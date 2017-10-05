@@ -261,6 +261,23 @@ pub fn account_origin_create(
     Ok(())
 }
 
+pub fn account_origin_remove(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::AccountOriginRemove>()?;
+    match state.datastore.delete_origin(&msg) {
+        Ok(()) => conn.route_reply(req, &net::NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "ss:account-origin-remove:1");
+            error!("{}, {}", e, err);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn account_origin_list_request(
     req: &mut Message,
     conn: &mut RouteConn,

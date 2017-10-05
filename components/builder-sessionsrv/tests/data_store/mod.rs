@@ -66,3 +66,35 @@ fn get_account_by_id() {
     assert_eq!(bobo.get_email(), bobo2.get_email());
     assert_eq!(bobo.get_name(), bobo2.get_name());
 }
+
+#[test]
+fn delete_origin() {
+    let ds = datastore_test!(DataStore);
+    let bobo = create_bobo_account(&ds);
+
+    let mut aoc = sessionsrv::AccountOriginCreate::new();
+    aoc.set_account_id(bobo.get_id());
+    aoc.set_account_name(bobo.get_name().to_string());
+    aoc.set_origin_id(1);
+    aoc.set_origin_name(String::from("origin"));
+    ds.create_origin(&aoc).expect("could not create origin");
+
+    let mut acclist = sessionsrv::AccountOriginListRequest::new();
+    acclist.set_account_id(bobo.get_id());
+    let accounts1 = ds.get_origins_by_account(&acclist).expect(
+        "failed to get origin by account",
+    );
+
+    assert_eq!(1, accounts1.get_origins().len());
+
+    let mut aor = sessionsrv::AccountOriginRemove::new();
+    aor.set_account_name(bobo.get_name().to_string());
+    aor.set_origin_id(1);
+    ds.delete_origin(&aor).expect("could not delete origin");
+
+    let accounts2 = ds.get_origins_by_account(&acclist).expect(
+        "failed to get origin by account",
+    );
+
+    assert_eq!(0, accounts2.get_origins().len());
+}

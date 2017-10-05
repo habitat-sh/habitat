@@ -106,5 +106,12 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                      END
                  $$ LANGUAGE plpgsql STABLE"#,
     )?;
+    migrator.migrate("accountsrv",
+                     r#"CREATE OR REPLACE FUNCTION delete_account_origin_v1 (
+                    aod_account_name text,
+                    aod_origin_id bigint
+                 ) RETURNS void AS $$
+                        DELETE FROM account_origins WHERE account_name=aod_account_name AND origin_id=aod_origin_id;
+                 $$ LANGUAGE SQL VOLATILE"#)?;
     Ok(())
 }

@@ -56,6 +56,8 @@ lazy_static! {
             handlers::account_origin_list_request);
         map.register(proto::AccountOriginCreate::descriptor_static(None),
             handlers::account_origin_create);
+        map.register(proto::AccountOriginRemove::descriptor_static(None),
+            handlers::account_origin_remove);
         map
     };
 
