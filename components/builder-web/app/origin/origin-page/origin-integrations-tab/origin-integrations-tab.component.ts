@@ -48,7 +48,7 @@ export class OriginIntegrationsTabComponent implements OnInit {
   }
 
   get token() {
-    return this.store.getState().gitHub.authToken;
+    return this.store.getState().session.token;
   }
 
   addDocker(): void {

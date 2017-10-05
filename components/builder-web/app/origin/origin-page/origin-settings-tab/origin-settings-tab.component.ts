@@ -33,7 +33,7 @@ export class OriginSettingsTabComponent {
   }
 
   get token() {
-    return this.store.getState().gitHub.authToken;
+    return this.store.getState().session.token;
   }
 
   update(event) {

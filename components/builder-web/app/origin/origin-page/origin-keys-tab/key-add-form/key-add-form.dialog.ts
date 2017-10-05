@@ -58,9 +58,9 @@ export class KeyAddFormDialog implements OnInit {
 
     submit(key) {
         if (this.type === "public") {
-            this.store.dispatch(uploadOriginPublicKey(key, this.gitHubAuthToken));
+            this.store.dispatch(uploadOriginPublicKey(key, this.token));
         } else {
-            this.store.dispatch(uploadOriginPrivateKey(key, this.gitHubAuthToken));
+            this.store.dispatch(uploadOriginPrivateKey(key, this.token));
         }
         this.dialogRef.close();
     }
@@ -77,8 +77,8 @@ export class KeyAddFormDialog implements OnInit {
         this.dialogRef.close();
     }
 
-    get gitHubAuthToken() {
-        return this.store.getState().gitHub.authToken;
+    get token() {
+        return this.store.getState().session.token;
     }
 
     get ui() {

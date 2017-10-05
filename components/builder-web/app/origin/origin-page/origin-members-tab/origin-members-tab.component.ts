@@ -80,7 +80,7 @@ export class OriginMembersTabComponent implements OnInit, OnDestroy {
     }
 
     get token() {
-        return this.store.getState().gitHub.authToken;
+        return this.store.getState().session.token;
     }
 
     canDelete(member) {

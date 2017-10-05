@@ -69,7 +69,7 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
     }
 
     get token() {
-        return this.store.getState().gitHub.authToken;
+        return this.store.getState().session.token;
     }
 
     get ui() {
@@ -77,7 +77,7 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
     }
 
     downloadPrivateKey() {
-        new BuilderApiClient(this.store.getState().gitHub.authToken)
+        new BuilderApiClient(this.store.getState().session.token)
             .getSigningKey(this.origin)
             .then((response: any) => {
                 response.blob().then((blob) => {

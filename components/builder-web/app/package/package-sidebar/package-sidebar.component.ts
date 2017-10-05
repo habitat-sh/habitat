@@ -36,7 +36,7 @@ export class PackageSidebarComponent implements OnChanges {
 
     build() {
         if (this.buildable) {
-            let token = this.store.getState().gitHub.authToken;
+            let token = this.store.getState().session.token;
             this.store.dispatch(submitJob(this.origin, this.name, token));
         }
     }

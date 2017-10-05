@@ -60,6 +60,9 @@ describe("PackageSidebarComponent", () => {
           }
         }
       },
+      session: {
+        token: undefined
+      },
       gitHub: {
         authToken: undefined
       },

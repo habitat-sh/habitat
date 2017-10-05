@@ -43,14 +43,15 @@ export const SET_GITHUB_ORGS_LOADING_FLAG = "SET_GITHUB_ORGS_LOADING_FLAG";
 export const SET_GITHUB_REPOS_LOADING_FLAG = "SET_GITHUB_REPOS_LOADING_FLAG";
 export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
 
-export function authenticateWithGitHub(token = undefined) {
-    const wasInitializedWithToken = !!token;
+export function authenticateWithGitHub(oauth_token = undefined, session_token = undefined) {
+    const wasInitializedWithToken = !!oauth_token;
 
     return dispatch => {
-        if (token) {
-            setCookie("gitHubAuthToken", token);
+        if (oauth_token) {
+            setCookie("gitHubAuthToken", oauth_token);
+            setCookie("bldrAuthSessionToken", session_token);
 
-            fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
+            fetch(`${config["github_api_url"]}/user?access_token=${oauth_token}`).then(response => {
                 if (response.ok) {
                     return response.json();
                 } else {
@@ -60,8 +61,8 @@ export function authenticateWithGitHub(token = undefined) {
                 }
             }).then(data => {
                 dispatch(populateGitHubUserData(data));
-                dispatch(fetchMyOrigins(token));
-                dispatch(fetchMyOriginInvitations(token));
+                dispatch(fetchMyOrigins(session_token));
+                dispatch(fetchMyOriginInvitations(session_token));
                 dispatch(attemptSignIn(data["login"]));
             }).catch(error => {
                 // We can assume an error from the response is a 401; anything
@@ -189,6 +190,7 @@ export function removeSessionStorage() {
         cookies.remove("gitHubAuthState", { domain: cookieDomain() });
         cookies.remove("gitHubAuthToken", { domain: cookieDomain() });
         cookies.remove("featureFlags", { domain: cookieDomain() });
+        cookies.remove("bldrSessionToken", { domain: cookieDomain() });
     };
 }
 
@@ -207,7 +209,7 @@ export function requestGitHubAuthToken(params, stateKey = "") {
                 }));
             }).then(data => {
                 if (data["oauth_token"]) {
-                    dispatch(authenticateWithGitHub(data["oauth_token"]));
+                    dispatch(authenticateWithGitHub(data["oauth_token"], data["token"]));
                     dispatch(setGitHubAuthToken(data["oauth_token"]));
                     dispatch(setBldrSessionToken(data["token"]));
                     if (data["flags"]) {

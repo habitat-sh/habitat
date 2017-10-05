@@ -9,7 +9,7 @@ export class UserLoggedInGuard implements CanActivate {
   constructor(private store: AppStore, private router: Router) { }
 
   canActivate() {
-    const hasToken = !!this.store.getState().gitHub.authToken;
+    const hasToken = !!this.store.getState().session.token;
     const hasCode = window.location.search.slice(1).split("&").filter((param) => {
       return !!param.match(/^code=.+/);
     }).length >= 1;
