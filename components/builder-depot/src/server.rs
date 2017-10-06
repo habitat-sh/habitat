@@ -1041,7 +1041,11 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         // Schedule re-build of dependent packages (if requested)
         // Don't schedule builds if the upload is being done by the builder
         if depot.config.builds_enabled &&
-            (ident.get_origin() == "core" || depot.config.non_core_builds_enabled)
+            (ident.get_origin() == "core" || depot.config.non_core_builds_enabled) &&
+            !match helpers::extract_query_value("builder", req) {
+                Some(_) => true,
+                None => false,
+            }
         {
             let mut request = GroupCreate::new();
             request.set_origin(ident.get_origin().to_string());
