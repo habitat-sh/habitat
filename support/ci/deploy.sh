@@ -45,7 +45,10 @@ rm ./core.sig.key
 COMPONENTS=($COMPONENTS)
 for component in "${COMPONENTS[@]}"
 do
-  echo "Building $component"
+  echo "--> Clearing any pre-exisiting $HAB_ORIGIN secret keys from the Studio"
+  env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
+
+  echo "--> Building $component"
   ${TRAVIS_HAB} studio run HAB_CARGO_TARGET_DIR=/src/target build components/${component}
 
   HART=$(find ./results -name *${component}*.hart)
@@ -65,6 +68,8 @@ do
 
   rm $HART
 done
+echo "--> Removing origin secret keys from Studio"
+env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
 
 echo "Publishing hab to $BINTRAY_REPO"
 ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
