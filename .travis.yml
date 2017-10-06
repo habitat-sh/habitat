@@ -203,7 +203,7 @@ matrix:
       env:
         # These components will build as Habitat packages in the provided order
         - COMPONENTS="hab-butterfly hab plan-build backline bintray-publish studio pkg-aci pkg-dockerize pkg-cfize pkg-export-docker pkg-mesosize pkg-tarize sup"
-        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/backline|components/bintray-publish|components/plan-build|components/studio|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
+        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/backline|components/bintray-publish|components/pkg-aci|components/pkg-cfize|components/pkg-dockerize|components/pkg-mesosize|components/pkg-tarize|components/plan-build|components/studio|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_AUTH_TOKEN
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
