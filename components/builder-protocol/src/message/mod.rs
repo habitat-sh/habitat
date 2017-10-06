@@ -362,6 +362,10 @@ impl Txn {
         self.0.set_complete(value);
     }
 
+    pub fn set_id(&mut self, value: u64) {
+        self.0.set_id(value);
+    }
+
     pub fn to_bytes(&self) -> Result<Vec<u8>, ProtocolError> {
         encode(&self.0)
     }
