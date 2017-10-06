@@ -141,7 +141,7 @@ export function getUniquePackages(
             dispatch(clearPackages());
         }
 
-        depotApi.getUnique(origin, nextRange).then(response => {
+        depotApi.getUnique(origin, nextRange, token).then(response => {
             dispatch(setVisiblePackages(response["results"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));

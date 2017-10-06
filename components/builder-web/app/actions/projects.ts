@@ -61,6 +61,26 @@ export function setProjectIntegrationSettings(origin: string, name: string, inte
   };
 }
 
+export function setProjectVisibility(origin: string, name: string, setting: string, token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).setProjectVisibility(origin, name, setting)
+      .then(response => {
+        dispatch(fetchProject(origin, name, token, false));
+        dispatch(addNotification({
+          title: "Privacy settings saved",
+          type: SUCCESS
+        }));
+      })
+      .catch(error => {
+        dispatch(addNotification({
+          title: "Failed to save privacy settings",
+          body: error.message,
+          type: DANGER
+        }));
+      });
+  };
+}
+
 export function fetchProject(origin: string, name: string, token: string, alert: boolean) {
   return dispatch => {
     dispatch(clearCurrentProject());

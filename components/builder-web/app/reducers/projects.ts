@@ -36,6 +36,9 @@ export default function projects(state = initialState["projects"], action) {
                     setIn(["ui", "current", "loading"], false);
             }
             else {
+                if (action.payload.visibility !== "public") {
+                    action.payload.visibility = "private";
+                }
                 return state.setIn(["current"], Project(action.payload)).
                     setIn(["ui", "current", "exists"], true).
                     setIn(["ui", "current", "loading"], false);

@@ -494,6 +494,24 @@ export class BuilderApiClient {
         });
     }
 
+    public setProjectVisibility(origin: string, name: string, setting: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${origin}/${name}/${setting}`, {
+                headers: this.headers,
+                method: "PATCH"
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve();
+                }
+                else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
     public deleteDockerIntegration(origin: string, name: string) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${origin}/integrations/docker/${name}`, {

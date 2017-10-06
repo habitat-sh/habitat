@@ -187,6 +187,7 @@ export const fetchProjects = projectActions.fetchProjects;
 export const fetchProjectIntegration = projectActions.fetchProjectIntegration;
 export const setCurrentProject = projectActions.setCurrentProject;
 export const setProjectIntegrationSettings = projectActions.setProjectIntegrationSettings;
+export const setProjectVisibility = projectActions.setProjectVisibility;
 export const deleteProject = projectActions.deleteProject;
 export const updateProject = projectActions.updateProject;
 

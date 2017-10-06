@@ -26,5 +26,6 @@ export const Project = Record({
     vcs_data: undefined,
     vcs_type: undefined,
     vcs_username: undefined,
-    settings: undefined
+    settings: undefined,
+    visibility: undefined
 });

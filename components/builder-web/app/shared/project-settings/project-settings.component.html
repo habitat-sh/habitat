@@ -84,12 +84,15 @@
             <div *ngIf="files.size === 0">
                 <p><em>No plan files were found in this GitHub repo.</em></p>
             </div>
-            <md-radio-group [(ngModel)]="selectedPath">
-                <md-radio-button *ngFor="let file of files" [value]="file.get('path')" [disabled]="isWindows(file.get('path'))">
-                    <hab-icon [symbol]="iconFor(file.get('path'))"></hab-icon>
-                    <span>{{ file.get("path") }}</span>
-                </md-radio-button>
-            </md-radio-group>
+            <div class="files">
+                <md-radio-group [(ngModel)]="selectedPath">
+                    <md-radio-button *ngFor="let file of files" [value]="file.get('path')" [disabled]="isWindows(file.get('path'))">
+                        <hab-icon [symbol]="iconFor(file.get('path'))"></hab-icon>
+                        <span>{{ file.get("path") }}</span>
+                    </md-radio-button>
+                </md-radio-group>
+            </div>
+            <hab-visibility-selector [setting]="visibility" (changed)="settingChanged($event)"></hab-visibility-selector>
             <hab-docker-export-settings #docker
                 *ngIf="files.size > 0"
                 [integrations]="integrations">

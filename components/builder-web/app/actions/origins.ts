@@ -121,11 +121,11 @@ export function deleteOriginMember(origin: string, member: string, token: string
     };
 }
 
-export function createOrigin(name: string, token: string, generateKeys: boolean, isFirstOrigin = false, callback: Function = (origin) => {}) {
+export function createOrigin(body: object, token: string, generateKeys: boolean, isFirstOrigin = false, callback: Function = (origin) => {}) {
     return dispatch => {
         dispatch(setCurrentOriginCreatingFlag(true));
 
-        new BuilderApiClient(token).createOrigin(name).then(origin => {
+        new BuilderApiClient(token).createOrigin(body).then(origin => {
             dispatch(setCurrentOriginCreatingFlag(false));
             dispatch(fetchMyOrigins(token));
 

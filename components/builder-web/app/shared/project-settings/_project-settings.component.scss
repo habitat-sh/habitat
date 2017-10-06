@@ -181,26 +181,34 @@ hab-project-settings {
         margin-top: 28px;
       }
 
-      md-radio-button {
-        display: block;
-        line-height: rem(40);
-        border-bottom: 1px solid $very-light-gray;
+      .files {
 
-        .mat-radio-container {
-          margin-right: 40px;
-        }
+        md-radio-group {
+          display: block;
+          margin-bottom: 18px;
 
-        label {
-          margin-bottom: 2px;
-        }
+          md-radio-button {
+            display: block;
+            line-height: rem(40);
+            border-bottom: 1px solid $very-light-gray;
 
-        hab-icon {
-          margin-right: 12px;
-        }
+            .mat-radio-container {
+              margin-right: 40px;
+            }
 
-        span {
-          font-size: rem(12);
-          text-transform: none;
+            label {
+              margin-bottom: 2px;
+            }
+
+            hab-icon {
+              margin-right: 12px;
+            }
+
+            span {
+              font-size: rem(12);
+              text-transform: none;
+            }
+          }
         }
       }
 
