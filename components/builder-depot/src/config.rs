@@ -58,12 +58,12 @@ impl Default for Config {
             http: HttpCfg::default(),
             routers: vec![RouterAddr::default()],
             github: GitHubCfg::default(),
-            path: PathBuf::from("/hab/svc/hab-depot/data"),
+            path: PathBuf::from("/hab/svc/builder-api/data"),
             events_enabled: false, // TODO: change to default to true later
-            builds_enabled: false,
-            non_core_builds_enabled: false,
+            builds_enabled: true,
+            non_core_builds_enabled: true,
             log_dir: PathBuf::from(env::temp_dir().to_string_lossy().into_owned()),
-            key_dir: PathBuf::from("/hab/svc/hab-depot/files"),
+            key_dir: PathBuf::from("/hab/svc/builder-api/files"),
             targets: vec![
                 PackageTarget::new(Platform::Linux, Architecture::X86_64),
                 PackageTarget::new(Platform::Windows, Architecture::X86_64),
