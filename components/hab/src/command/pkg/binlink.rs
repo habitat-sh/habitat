@@ -33,7 +33,7 @@ pub fn start(
     let dst_path = fs_root_path.join(dest_path.strip_prefix("/")?);
     let dst = dst_path.join(&binary);
     ui.begin(format!(
-        "Symlinking {} from {} into {}",
+        "Binlinking {} from {} into {}",
         &binary,
         &ident,
         dst_path.display()
@@ -54,9 +54,9 @@ pub fn start(
         )?;
         fs::create_dir_all(&dst_path)?
     }
-    let ui_symlinked =
+    let ui_binlinked =
         format!(
-        "Symlinked {} from {} to {}",
+        "Binlinked {} from {} to {}",
         &binary,
         &pkg_install.ident(),
         &dst.display(),
@@ -66,21 +66,21 @@ pub fn start(
             if force && path != src {
                 fs::remove_file(&dst)?;
                 filesystem::symlink(&src, &dst)?;
-                ui.end(&ui_symlinked)?;
+                ui.end(&ui_binlinked)?;
             } else if path != src {
                 ui.warn(
-                    format!("Skipping symlink because {} already exists at {}. Use --force to overwrite",
+                    format!("Skipping binlink because {} already exists at {}. Use --force to overwrite",
                 &binary,
                 &dst.display(),
                 ),
                 )?;
             } else {
-                ui.end(&ui_symlinked)?;
+                ui.end(&ui_binlinked)?;
             }
         }
         Err(_) => {
             filesystem::symlink(&src, &dst)?;
-            ui.end(&ui_symlinked)?;
+            ui.end(&ui_binlinked)?;
         }
     }
     Ok(())
