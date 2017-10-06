@@ -60,6 +60,21 @@ Next we generate a release bundle of all Habitat and Builder components which ar
     $ make bundle
     ```
 
+## Update Homebrew Tap
+
+We have our own [Homebrew tap](https://github.com/habitat-sh/homebrew-habitat) that will need
+updating. You will need the following bits of information for the latest stable MacOS Bintray artifact:
+
+* the new version number
+* the new release
+* the SHA256 of the Bintray zip file
+
+With those in hand, update the
+[formula](https://github.com/habitat-sh/homebrew-habitat/blob/5adccfd7bf7657e64abda659160ca116d8bdff1a/Formula/hab.rb#L3-L5),
+and merge the changes to the master branch.
+
+(This will be a temporary state of affairs; I'll be talking with Engineering Services soon to get their help with automating this, as well as other parts of our release process.)
+
 ## Publish Release
 
 Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
