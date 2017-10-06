@@ -77,7 +77,7 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
             });
         }
         if (session_token) {
-            setCookie("bldrAuthSessionToken", session_token);
+            setCookie("bldrSessionToken", session_token);
             dispatch(fetchMyOrigins(session_token));
             dispatch(fetchMyOriginInvitations(session_token));
         }
@@ -85,7 +85,7 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
 }
 
 export function fetchGitHubFiles(installationId: string, owner: string, repo: string, filename: string) {
-    const token = cookies.get("bldrAuthSessionToken");
+    const token = cookies.get("bldrSessionToken");
 
     return dispatch => {
         dispatch(clearGitHubFiles());
