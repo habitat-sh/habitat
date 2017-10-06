@@ -31,4 +31,5 @@ demo_app_url          = "#"
 
 [depot]
 builds_enabled = true
+non_core_builds_enabled = true
 events_enabled = false
