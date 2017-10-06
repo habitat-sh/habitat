@@ -12,14 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::io::Read;
 use std::str::FromStr;
 
 use bodyparser;
 use bldr_core::build_config::{BLDR_CFG, BuildCfg};
+use constant_time_eq::constant_time_eq;
 use github_api_client::GitHubClient;
 use hab_core::package::Plan;
+use hex::ToHex;
 use http_gateway::http::controller::*;
 use iron::status;
+use openssl::hash::MessageDigest;
+use openssl::pkey::PKey;
+use openssl::sign::Signer;
 use persistent;
 use protocol::originsrv::{OriginProject, OriginProjectGet};
 use protocol::scheduler::{Group, GroupCreate};
@@ -61,7 +67,42 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
         }
         _ => return Ok(Response::with(status::BadRequest)),
     };
-    // JW TODO: Authenticate hook
+
+    // Authenticate the hook
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let our_token = &github.webhook_secret_token;
+    let gh_signature = match req.headers.get::<XHubSignature>() {
+        Some(&XHubSignature(ref sig)) => sig.clone(),
+        None => {
+            error!("Received a GitHub hook with no signature!");
+            return Ok(Response::with(status::BadRequest));
+        }
+    };
+
+    let mut payload = String::new();
+    if let Err(err) = req.body.read_to_string(&mut payload) {
+        error!(
+            "Can not read request body. SEEMS LIKE A BAD THING. err = {:?}",
+            err
+        );
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    let key = PKey::hmac(our_token.as_bytes()).unwrap();
+    let mut signer = Signer::new(MessageDigest::sha1(), &key).unwrap();
+    signer.update(payload.as_bytes()).unwrap();
+    let hmac = signer.finish().unwrap();
+    let computed_signature = format!("sha1={}", &hmac.to_hex());
+
+    if !constant_time_eq(gh_signature.as_bytes(), computed_signature.as_bytes()) {
+        error!(
+            "Web hook signatuers don't match. GH = {:?}, Our = {:?}",
+            gh_signature,
+            computed_signature
+        );
+        return Ok(Response::with(status::BadRequest));
+    }
+
     match event {
         GitHubEvent::Ping => Ok(Response::with(status::Ok)),
         GitHubEvent::Push => handle_push(req),

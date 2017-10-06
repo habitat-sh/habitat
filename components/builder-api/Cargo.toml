@@ -13,16 +13,19 @@ doc = false
 
 [dependencies]
 clippy = {version = "*", optional = true}
+constant_time_eq = "*"
 base64 = "*"
 bodyparser = "*"
 builder-http-gateway = { path = "../builder-http-gateway" }
 env_logger = "*"
 github-api-client = { path = "../github-api-client" }
 habitat-builder-protocol = { path = "../builder-protocol" }
+hex = "*"
 hyper = "*"
 iron = "*"
 log = "*"
 mount = "*"
+openssl = "*"
 params = "*"
 persistent = "*"
 protobuf = "*"

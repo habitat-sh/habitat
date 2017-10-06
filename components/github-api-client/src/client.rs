@@ -41,6 +41,7 @@ pub struct GitHubClient {
     pub client_secret: String,
     app_id: u32,
     app_private_key: String,
+    pub webhook_secret_token: String,
 }
 
 impl GitHubClient {
@@ -52,6 +53,7 @@ impl GitHubClient {
             client_secret: config.client_secret,
             app_id: config.app_id,
             app_private_key: config.app_private_key,
+            webhook_secret_token: config.webhook_secret_token,
         }
     }
 
