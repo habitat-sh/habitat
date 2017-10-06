@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,8 +48,7 @@ pub trait LogArchiver: Send {
 /// Create appropriate LogArchiver variant based on configuration values.
 pub fn from_config(config: &ArchiveCfg) -> Result<Box<LogArchiver>> {
     match config.backend {
-        Some(ArchiveBackend::Local) => Ok(Box::new(local::LocalArchiver::new(config)?)),
-        Some(ArchiveBackend::S3) => Ok(Box::new(s3::S3Archiver::new(config)?)),
-        None => panic!("Did not specify an archive backend!"),
+        ArchiveBackend::Local => Ok(Box::new(local::LocalArchiver::new(config)?)),
+        ArchiveBackend::S3 => Ok(Box::new(s3::S3Archiver::new(config)?)),
     }
 }
