@@ -1393,128 +1393,1830 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 // scenario, that involves symlinks.
 #[cfg(all(unix, test))]
 mod tests {
+    use std::collections::{HashMap, HashSet, VecDeque};
+    use std::ffi::OsString;
     use std::fs;
-    use std::fs::{DirBuilder, File};
-    use std::os::unix::fs::symlink;
-    use std::path::Path;
+    use std::fs::File;
+    use std::io::ErrorKind;
+    use std::os::unix::fs as unix_fs;
+    use std::path::{Component, Path, PathBuf};
+    use std::sync::mpsc::Sender;
+    use std::time::Duration;
+
+    use notify;
+    use notify::{DebouncedEvent, RawEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
     use tempdir::TempDir;
 
-    use super::{Callbacks, default_file_watcher};
+    use super::{WatchedFile, Callbacks, FileWatcher};
 
-
-    struct TestCallbacks {
-        temp_dir: TempDir,
-        pub appeared_events: u32,
-        pub disappeared_events: u32,
-    }
-
-    const FILENAME: &str = "peer-watch-file";
-    const DATA_DIR_NAME: &str = "..data";
-    const TEMP_DATA_DIR_NAME: &str = "..data_tmp";
-    const APPEARED_EVENTS_THRESHOLD: u32 = 2;
-    const DISAPPEARED_EVENTS_THRESHOLD: u32 = 1;
-
-    impl Callbacks for TestCallbacks {
-        fn file_appeared(&mut self, _: &Path) {
-            self.appeared_events += 1;
-
-            if self.appeared_events == 1 {
-                // Create new timestamped directory.
-                let new_timestamped_dir = self.temp_dir.path().join("bar");
-                DirBuilder::new().create(&new_timestamped_dir).expect(
-                    "creating new timestamped dir",
-                );
-
-                // Create temp symlink for the new data dir,
-                // i.e. `..data_tmp -> bar`.
-                let temp_data_dir_path = self.temp_dir.path().join(TEMP_DATA_DIR_NAME);
-                symlink(&new_timestamped_dir, &temp_data_dir_path).expect(
-                    "creating temporary data dir symlink",
-                );
-
-                // Create new file.
-                let file_path = new_timestamped_dir.join(&FILENAME);
-                File::create(&file_path).expect("creating peer-watch-file in new timestamped dir");
-
-                // Update data to point to the new timestamped dir,
-                // using a rename which is atomic on Unix.
-                fs::rename(
-                    &temp_data_dir_path,
-                    &self.temp_dir.path().join(DATA_DIR_NAME),
-                ).expect("renaming symlink");
+    // Convenient macro for inline creation of hashmaps.
+    macro_rules! hm(
+        {$($key:expr => $value:expr),+} => {
+            {
+                [
+                    $(
+                        ($key, $value),
+                    )+
+                ].iter().cloned().collect::<HashMap<_, _>>()
             }
-        }
+        };
+        // This form of the macro is to allow the leading comma.
+        { $($key:expr => $value:expr),+, } => {
+            hm!{ $($key => $value),+ }
+        };
+    );
 
-        fn file_modified(&mut self, real_path: &Path) {
-            debug!("file {:?} modified!", real_path);
-        }
+    // Convenient macro for creating PathBufs.
+    macro_rules! pb(
+        {$str:expr} => {
+            PathBuf::from($str)
+        };
+    );
 
-        fn file_disappeared(&mut self, real_path: &Path) {
-            debug!("file {:?} disappeared!", real_path);
-            self.disappeared_events += 1;
-        }
+    // Convenient macro for creating OsStrings.
+    macro_rules! os(
+        {$str:expr} => {
+            OsString::from($str)
+        };
+    );
+
+    // Add new test cases here.
+    fn get_test_cases() -> Vec<TestCase> {
+        vec![
+            TestCase {
+                name: "Basic add/remove directories/files",
+                init: Init {
+                    path: Some(pb!("/a/b/c")),
+                    commands: vec![],
+                    initial_file: None,
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::MkdirP(pb!("/a")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::MkdirP(pb!("/a/b")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                            pb!("/a/b") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/a/b/c")),
+                            },
+                            pb!("/a/b/c") => PathState {
+                                kind: PathKind::MissingRegular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a/b")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::Touch(pb!("/a/b/c")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                            pb!("/a/b") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/a/b/c")),
+                            },
+                            pb!("/a/b/c") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a/b")),
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::appeared(pb!("/a/b/c"))],
+                    },
+                    Step {
+                        action: StepAction::RmRF(pb!("/a/b/c")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                            pb!("/a/b") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/a/b/c")),
+                            },
+                            pb!("/a/b/c") => PathState {
+                                kind: PathKind::MissingRegular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a/b")),
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
+                    },
+                    Step {
+                        action: StepAction::RmRF(pb!("/a/b")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::RmRF(pb!("/a")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                ],
+            },
+
+            TestCase {
+                name: "Basic symlink tracking",
+                init: Init {
+                    path: Some(pb!("/a")),
+                    commands: vec![
+                        InitCommand::Touch(pb!("/1")),
+                        InitCommand::Touch(pb!("/2")),
+                        InitCommand::Touch(pb!("/3")),
+                        InitCommand::LnS(pb!("s2"), pb!("/s1")),
+                        InitCommand::LnS(pb!("/s3"), pb!("/s2")),
+                        InitCommand::LnS(pb!("/1"), pb!("/s3")),
+                        InitCommand::LnS(pb!("s1"), pb!("/a")),
+                        InitCommand::MkdirP(pb!("/tmp")),
+                        InitCommand::LnS(pb!("3"), pb!("/tmp/link")),
+                    ],
+                    initial_file: Some(pb!("/1")),
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 5,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: None,
+                                next: Some(pb!("/s1")),
+                            },
+                            pb!("/s1") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/s2")),
+                            },
+                            pb!("/s2") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: Some(pb!("/s1")),
+                                next: Some(pb!("/s3")),
+                            },
+                            pb!("/s3") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: Some(pb!("/s2")),
+                                next: Some(pb!("/1")),
+                            },
+                            pb!("/1") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/s3")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::RmRF(pb!("/s2")),
+                        dirs: hm!{
+                            pb!("/") => 3,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: None,
+                                next: Some(pb!("/s1")),
+                            },
+                            pb!("/s1") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/s2")),
+                            },
+                            pb!("/s2") => PathState {
+                                kind: PathKind::MissingRegular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/s1")),
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::disappeared(pb!("/1"))],
+                    },
+                    Step {
+                        action: StepAction::LnS(pb!("/2"), pb!("/s2")),
+                        dirs: hm!{
+                            pb!("/") => 4,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: None,
+                                next: Some(pb!("/s1")),
+                            },
+                            pb!("/s1") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/s2")),
+                            },
+                            pb!("/s2") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: Some(pb!("/s1")),
+                                next: Some(pb!("/2")),
+                            },
+                            pb!("/2") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/s2")),
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::appeared(pb!("/2"))],
+                    },
+                    Step {
+                        action: StepAction::Mv(pb!("/tmp/link"), pb!("/s1")),
+                        dirs: hm!{
+                            pb!("/") => 3,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: None,
+                                next: Some(pb!("/s1")),
+                            },
+                            pb!("/s1") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/3")),
+                            },
+                            pb!("/3") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/s1")),
+                                next: None,
+                            },
+                        },
+                        events: vec![
+                            NotifyEvent::disappeared(pb!("/2")),
+                            NotifyEvent::appeared(pb!("/3")),
+                        ],
+                    },
+                ],
+            },
+
+            TestCase {
+                name: "Emulate Kubernetes ConfigMap",
+                init: Init {
+                    path: Some(pb!("/a")),
+                    commands: vec![
+                        InitCommand::MkdirP(pb!("/old")),
+                        InitCommand::MkdirP(pb!("/new")),
+                        InitCommand::Touch(pb!("/old/a")),
+                        InitCommand::Touch(pb!("/new/a")),
+                        InitCommand::LnS(pb!("old"), pb!("/data")),
+                        InitCommand::LnS(pb!("data/a"), pb!("/a")),
+                        InitCommand::MkdirP(pb!("/tmp")),
+                        InitCommand::LnS(pb!("new"), pb!("/tmp/link")),
+                    ],
+                    initial_file: Some(pb!("/old/a")),
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 3,
+                            pb!("/old") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: None,
+                                next: Some(pb!("/data")),
+                            },
+                            pb!("/data") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("a")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/old")),
+                            },
+                            pb!("/old") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("a")],
+                                prev: Some(pb!("/data")),
+                                next: Some(pb!("/old/a")),
+                            },
+                            pb!("/old/a") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/old")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::Mv(pb!("/tmp/link"), pb!("/data")),
+                        dirs: hm!{
+                            pb!("/") => 3,
+                            pb!("/new") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![],
+                                prev: None,
+                                next: Some(pb!("/data")),
+                            },
+                            pb!("/data") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("a")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/new")),
+                            },
+                            pb!("/new") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("a")],
+                                prev: Some(pb!("/data")),
+                                next: Some(pb!("/new/a")),
+                            },
+                            pb!("/new/a") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/new")),
+                                next: None,
+                            },
+                        },
+                        events: vec![
+                            NotifyEvent::disappeared(pb!("/old/a")),
+                            NotifyEvent::appeared(pb!("/new/a")),
+                        ],
+                    },
+                ],
+            },
+
+            TestCase {
+                name: "Symlink loop, pointing to itself",
+                init: Init {
+                    path: Some(pb!("/a/b/c")),
+                    commands: vec![
+                        InitCommand::MkdirP(pb!("/a")),
+                        InitCommand::LnS(pb!("b"), pb!("/a/b")),
+                    ],
+                    initial_file: None,
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::RmRF(pb!("/a/b")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                ],
+            },
+
+            TestCase {
+                name: "Dropping looping symlink and adding a new one instead",
+                init: Init {
+                    path: Some(pb!("/a/b/c/d")),
+                    commands: vec![
+                        InitCommand::MkdirP(pb!("/a")),
+                        InitCommand::MkdirP(pb!("/x")),
+                        InitCommand::LnS(pb!("/x"), pb!("/a/b")),
+                        InitCommand::LnS(pb!("/a/b/c"), pb!("/x/c")),
+                    ],
+                    initial_file: None,
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 2,
+                            pb!("/a") => 1,
+                            pb!("/x") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/x")),
+                            },
+                            pb!("/x") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a/b")),
+                                next: Some(pb!("/x/c")),
+                            },
+                            pb!("/x/c") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("d")],
+                                prev: Some(pb!("/x")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::RmRF(pb!("/x/c")),
+                        dirs: hm!{
+                            pb!("/") => 2,
+                            pb!("/a") => 1,
+                            pb!("/x") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/x")),
+                            },
+                            pb!("/x") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a/b")),
+                                next: Some(pb!("/x/c")),
+                            },
+                            pb!("/x/c") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("d")],
+                                prev: Some(pb!("/x")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::Touch(pb!("/x/d")),
+                        dirs: hm!{
+                            pb!("/") => 2,
+                            pb!("/a") => 1,
+                            pb!("/x") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/x")),
+                            },
+                            pb!("/x") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a/b")),
+                                next: Some(pb!("/x/c")),
+                            },
+                            pb!("/x/c") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("d")],
+                                prev: Some(pb!("/x")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::LnS(pb!("."), pb!("/x/c")),
+                        dirs: hm!{
+                            pb!("/") => 2,
+                            pb!("/a") => 1,
+                            pb!("/x") => 2,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/x")),
+                            },
+                            pb!("/x") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a/b")),
+                                next: Some(pb!("/x/c")),
+                            },
+                            pb!("/x/c") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("d")],
+                                prev: Some(pb!("/x")),
+                                next: Some(pb!("/x/d")),
+                            },
+                            pb!("/x/d") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/x/c")),
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::appeared(pb!("/x/d"))],
+                    },
+                ],
+            },
+
+            TestCase {
+                name: "Rewiring symlink loop",
+                init: Init {
+                    path: Some(pb!("/a/b/c/d")),
+                    commands: vec![
+                        InitCommand::MkdirP(pb!("/a")),
+                        InitCommand::MkdirP(pb!("/x")),
+                        InitCommand::LnS(pb!("/x"), pb!("/a/b")),
+                        InitCommand::LnS(pb!("/a/b/c"), pb!("/x/c")),
+                        InitCommand::Touch(pb!("/x/d")),
+                        InitCommand::MkdirP(pb!("/tmp")),
+                        InitCommand::LnS(pb!("."), pb!("/tmp/link")),
+                    ],
+                    initial_file: None,
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 2,
+                            pb!("/a") => 1,
+                            pb!("/x") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/x")),
+                            },
+                            pb!("/x") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a/b")),
+                                next: Some(pb!("/x/c")),
+                            },
+                            pb!("/x/c") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("d")],
+                                prev: Some(pb!("/x")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::Mv(pb!("/tmp/link"), pb!("/x/c")),
+                        dirs: hm!{
+                            pb!("/") => 2,
+                            pb!("/a") => 1,
+                            pb!("/x") => 2,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/x")),
+                            },
+                            pb!("/x") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c"), os!("d")],
+                                prev: Some(pb!("/a/b")),
+                                next: Some(pb!("/x/c")),
+                            },
+                            pb!("/x/c") => PathState {
+                                kind: PathKind::Symlink,
+                                path_rest: vec![os!("d")],
+                                prev: Some(pb!("/x")),
+                                next: Some(pb!("/x/d")),
+                            },
+                            pb!("/x/d") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/x/c")),
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::appeared(pb!("/x/d"))],
+                    },
+                ],
+            },
+
+            TestCase {
+                name: "Moving a directory",
+                init: Init {
+                    path: Some(pb!("/a/b/c")),
+                    commands: vec![
+                        InitCommand::MkdirP(pb!("/a/b")),
+                        InitCommand::Touch(pb!("/a/b/c")),
+                    ],
+                    initial_file: Some(pb!("/a/b/c")),
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                            pb!("/a/b") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/a/b/c")),
+                            },
+                            pb!("/a/b/c") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a/b")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::Mv(pb!("/a/b"), pb!("/a/d")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
+                    }
+                ],
+            },
+        ]
     }
 
     #[test]
-    // Implements the steps defined in https://git.io/v5Mz1#L85-L121
-    fn k8s_behaviour() {
-        let temp_dir = TempDir::new("filewatchertest").expect("creating temp dir");
+    fn file_watcher() {
+        for tc in get_test_cases() {
+            let mut runner = TestCaseRunner::new();
+            runner.run_init_commands(&tc.init.commands);
+            let setup = runner.prepare_watcher(&tc.init.path);
+            runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+        }
+    }
 
-        let timestamped_dir = temp_dir.path().join("foo");
+    // Commands that can be executed at the test case init.
+    //
+    // Tests may come and go, so some of the variants may be unused.
+    #[allow(dead_code)]
+    enum InitCommand {
+        MkdirP(PathBuf),
+        Touch(PathBuf),
+        LnS(PathBuf, PathBuf),
+    }
 
-        DirBuilder::new().create(&timestamped_dir).expect(
-            "creating timestamped dir",
-        );
+    // Description of the init phase for test case.
+    struct Init {
+        // The path to the file that will be watched.
+        path: Option<PathBuf>,
+        // Commands to be executed before executing the steps.
+        commands: Vec<InitCommand>,
+        // Optional file to the real file if it exists after
+        // performing the initial commands.
+        initial_file: Option<PathBuf>,
+    }
 
-        // Create a file in the timestamped dir.
-        let file_path = timestamped_dir.join(&FILENAME);
-        debug!("creating file in {:?}", &file_path);
-        File::create(&file_path).expect("creating peer-watch-file");
+    // Commands executed as a part of the test case step.
+    // Tests may come and go, so some of the variants may be unused.
+    #[allow(dead_code)]
+    enum StepAction {
+        LnS(PathBuf, PathBuf),
+        MkdirP(PathBuf),
+        Touch(PathBuf),
+        Mv(PathBuf, PathBuf),
+        RmRF(PathBuf),
+        Nop,
+    }
 
-        // Create a data dir as a symlink to a timestamped dir,
-        // i.e. `..data -> ..foo`.
-        let data_dir_path = temp_dir.path().join(DATA_DIR_NAME);
-        debug!("symlinking {:?} -> {:?}", &data_dir_path, &timestamped_dir);
-        symlink(&timestamped_dir, &data_dir_path).expect("creating data dir symlink");
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    enum PathKind {
+        Symlink,
+        Regular,
+        MissingRegular,
+        Directory,
+        MissingDirectory,
+    }
 
-        // Create a relative symlink to the file,
-        // i.e. `peer-watch-file -> ..data/peer-watch-file`.
-        let file_symlink_src = data_dir_path.join(&FILENAME);
-        let file_symlink_dest = temp_dir.path().join(&FILENAME);
-        debug!(
-            "symlinking {:?} -> {:?}",
-            &file_symlink_dest,
-            &file_symlink_src
-        );
-        symlink(&file_symlink_src, &file_symlink_dest).expect("creating first file symlink");
+    // Simplified description of the WatchedFile's Common struct.
+    #[derive(Clone)]
+    struct PathState {
+        kind: PathKind,
+        path_rest: Vec<OsString>,
+        prev: Option<PathBuf>,
+        next: Option<PathBuf>,
+    }
 
-        // Create file watcher.
-        debug!("watching {:?}", &file_path);
-        let cb = TestCallbacks {
-            appeared_events: 0,
-            disappeared_events: 0,
-            temp_dir: temp_dir,
-        };
-        let mut fw = default_file_watcher(&file_symlink_dest, cb).expect("creating file watcher");
-        while fw.get_callbacks().appeared_events < APPEARED_EVENTS_THRESHOLD {
-            fw.single_iteration().expect("iteration succeeds");
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    enum NotifyEventKind {
+        Appeared,
+        Modified,
+        Disappeared,
+    }
+
+    #[derive(Clone, Debug, PartialEq)]
+    struct NotifyEvent {
+        path: PathBuf,
+        kind: NotifyEventKind,
+    }
+
+    impl NotifyEvent {
+        fn new(path: PathBuf, kind: NotifyEventKind) -> Self {
+            Self {
+                path: path,
+                kind: kind,
+            }
         }
 
-        // Remove old timestamped dir.
-        fs::remove_dir_all(timestamped_dir).unwrap();
+        fn appeared(path: PathBuf) -> Self {
+            Self::new(path, NotifyEventKind::Appeared)
+        }
 
-        // The first appeared event is emitted when the watcher finds
-        // the already existing file.
-        assert_eq!(
-            fw.callbacks.appeared_events,
-            APPEARED_EVENTS_THRESHOLD,
-            "appeared events"
-        );
-        assert_eq!(
-            fw.callbacks.disappeared_events,
-            DISAPPEARED_EVENTS_THRESHOLD,
-            "disappeared events"
-        );
+        fn modified(path: PathBuf) -> Self {
+            Self::new(path, NotifyEventKind::Modified)
+        }
+
+        fn disappeared(path: PathBuf) -> Self {
+            Self::new(path, NotifyEventKind::Disappeared)
+        }
     }
+
+    // A description of the single step in the test case.
+    struct Step {
+        // Action to execute at the beginning of the step.
+        action: StepAction,
+        // Expected watched directories together with the use count,
+        // similar to `dirs` field in Paths.
+        dirs: HashMap<PathBuf, u32>,
+        // Expected watched items, similar to `paths` field in Paths,
+        // but a bit simplified.
+        paths: HashMap<PathBuf, PathState>,
+        // Expected events that happened when executing the step
+        // command. The events map to the `file_*` functions in
+        // `Callbacks` trait.
+        events: Vec<NotifyEvent>,
+    }
+
+    struct TestCase {
+        // Not used directly, but describes the test. Can be used
+        // later for debugging.
+        #[allow(dead_code)]
+        name: &'static str,
+        init: Init,
+        steps: Vec<Step>,
+    }
+
+    // The implementation of `Callbacks` trait for testing purposes.
+    #[derive(Default)]
+    struct TestCallbacks {
+        // A list of events that happened when executing the step.
+        events: Vec<NotifyEvent>,
+        // A set of ignored directories. Usually it is just `/` and
+        // `/tmp`.
+        ignored_dirs: HashSet<PathBuf>,
+        // Whether this single iteration should be ignored, because it
+        // happened in one of the ignored directories.
+        ignore: bool,
+    }
+
+    impl TestCallbacks {
+        fn new(ignored_dirs: &Vec<PathBuf>) -> Self {
+            let mut cb = Self::default();
+            cb.ignored_dirs.extend(ignored_dirs.iter().cloned());
+            cb
+        }
+    }
+
+    impl Callbacks for TestCallbacks {
+        fn file_appeared(&mut self, real_path: &Path) {
+            self.events.push(
+                NotifyEvent::appeared(real_path.to_owned()),
+            );
+        }
+
+        fn file_modified(&mut self, real_path: &Path) {
+            self.events.push(
+                NotifyEvent::modified(real_path.to_owned()),
+            );
+        }
+
+        fn file_disappeared(&mut self, real_path: &Path) {
+            self.events.push(
+                NotifyEvent::disappeared(real_path.to_owned()),
+            );
+        }
+
+        fn event_in_directories(&mut self, paths: &Vec<PathBuf>) {
+            for path in paths {
+                if self.ignored_dirs.contains(path) {
+                    self.ignore = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // The implementation of notify::Watcher trait for testing
+    // purposes.
+    struct TestWatcher {
+        // The real watcher that does the grunt work.
+        real_watcher: RecommendedWatcher,
+        // A set of watched dirs. We will use these to correctly
+        // compute the number of iterations to perform after executing
+        // the step action.
+        watched_dirs: HashSet<PathBuf>,
+    }
+
+    impl Watcher for TestWatcher {
+        fn new_raw(tx: Sender<RawEvent>) -> notify::Result<Self> {
+            Ok(TestWatcher {
+                real_watcher: RecommendedWatcher::new_raw(tx)?,
+                watched_dirs: HashSet::new(),
+            })
+        }
+
+        fn new(tx: Sender<DebouncedEvent>, d: Duration) -> notify::Result<Self> {
+            Ok(TestWatcher {
+                real_watcher: RecommendedWatcher::new(tx, d)?,
+                watched_dirs: HashSet::new(),
+            })
+        }
+
+        fn watch<P: AsRef<Path>>(&mut self, path: P, mode: RecursiveMode) -> notify::Result<()> {
+            if !self.watched_dirs.insert(path.as_ref().to_owned()) {
+                panic!(
+                    "Trying to watch a path {} we are already watching",
+                    path.as_ref().display(),
+                );
+            }
+            match mode {
+                RecursiveMode::Recursive => panic!("Recursive watch should not ever happen"),
+                _ => (),
+            };
+            self.real_watcher.watch(path, mode)
+        }
+
+        fn unwatch<P: AsRef<Path>>(&mut self, path: P) -> notify::Result<()> {
+            if !self.watched_dirs.remove(&path.as_ref().to_owned()) {
+                panic!(
+                    "Trying to unwatch a path {} we were not watching",
+                    path.as_ref().display(),
+                );
+            }
+            self.real_watcher.unwatch(path)
+        }
+    }
+
+    struct WatcherSetup {
+        init_path: PathBuf,
+        watcher: FileWatcher<TestCallbacks, TestWatcher>,
+    }
+
+    // Structure used for executing the initial commands and step
+    // actions.
+    struct FsOps<'a> {
+        root: &'a PathBuf,
+        watched_dirs: Option<&'a HashSet<PathBuf>>,
+    }
+
+    impl<'a> FsOps<'a> {
+        fn ln_s(&self, target: &PathBuf, path: &PathBuf) -> u32 {
+            let pp = self.prepend_root(&path);
+            let tt = if target.is_absolute() {
+                self.prepend_root(&target)
+            } else {
+                target.clone()
+            };
+            unix_fs::symlink(&tt, &pp).expect(&format!(
+                "could not create symlink at {} pointing to {}",
+                pp.display(),
+                tt.display(),
+            ));
+            if self.parent_is_watched(&pp) {
+                // One event - create.
+                1
+            } else {
+                // No events.
+                0
+            }
+        }
+
+        fn mkdir_p(&self, path: &PathBuf) -> u32 {
+            let full_path = self.prepend_root(&path);
+            match self.watched_dirs {
+                Some(wd) => {
+                    let mut test_path = full_path.clone();
+                    while !test_path.exists() {
+                        test_path = self.get_parent(&test_path);
+                    }
+                    self.real_mkdir(&full_path);
+                    if wd.contains(&test_path) {
+                        // One event - create.
+                        1
+                    } else {
+                        // No events.
+                        0
+                    }
+                }
+                None => {
+                    self.real_mkdir(&full_path);
+                    0
+                }
+            }
+        }
+
+        fn real_mkdir(&self, real_path: &PathBuf) {
+            fs::create_dir_all(&real_path).expect(&format!(
+                "could not create directories up to {}",
+                real_path.display(),
+            ));
+        }
+
+        fn touch(&self, path: &PathBuf) -> u32 {
+            let pp = self.prepend_root(&path);
+            File::create(&pp).expect(&format!(
+                "could not create file {}",
+                pp.display(),
+            ));
+            if self.parent_is_watched(&pp) {
+                // One event - create.
+                1
+            } else {
+                // No events.
+                0
+            }
+        }
+
+        fn mv(&self, from: &PathBuf, to: &PathBuf) -> u32 {
+            let ff = self.prepend_root(&from);
+            let tt = self.prepend_root(&to);
+            fs::rename(&ff, &tt).expect(&format!(
+                "could not move from {} to {}",
+                ff.display(),
+                tt.display(),
+            ));
+            match (self.parent_is_watched(&ff), self.parent_is_watched(&tt)) {
+                (true, true) | (true, false) => {
+                    if self.path_is_watched(&ff) {
+                        // Since we are watching both moved path and
+                        // its parent, we are going to receive double
+                        // notice remove event followed by the rename
+                        // event.
+                        3
+                    } else {
+                        // Two events - notice remove, and rename or
+                        // remove.
+                        2
+                    }
+                }
+                (false, true) => {
+                    // One event - create.
+                    1
+                }
+                (false, false) => {
+                    // No events.
+                    0
+                }
+            }
+        }
+
+        fn rm_rf(&mut self, path: &PathBuf) -> u32 {
+            let pp = self.prepend_root(&path);
+            let metadata = match pp.symlink_metadata() {
+                Ok(m) => m,
+                Err(e) => {
+                    match e.kind() {
+                        ErrorKind::NotFound => return 0,
+                        _ => {
+                            panic!(
+                                "Failed to stat {}: {}",
+                                pp.display(),
+                                e,
+                            )
+                        }
+                    }
+                }
+            };
+            let event_count = self.get_event_count_on_rm_rf(&pp);
+            if metadata.is_dir() {
+                fs::remove_dir_all(&pp).unwrap_or_else(|err| {
+                    panic!(
+                        "failed to remove directory {}: {}",
+                        pp.display(),
+                        err,
+                    )
+                });
+            } else {
+                fs::remove_file(&pp).unwrap_or_else(|err| {
+                    panic!(
+                        "failed to remove file {}: {}",
+                        pp.display(),
+                        err,
+                    )
+                });
+            }
+            event_count
+        }
+
+        fn get_event_count_on_rm_rf(&self, top_path: &PathBuf) -> u32 {
+            let mut queue = VecDeque::new();
+            queue.push_back(top_path.clone());
+            let mut event_count = 0;
+            while let Some(path) = queue.pop_front() {
+                if !self.parent_is_watched(&path) {
+                    continue;
+                }
+                // Two events for each deletion in the watched path -
+                // remove notice and remove.
+                event_count += 2;
+                let metadata = match path.symlink_metadata() {
+                    Ok(m) => m,
+                    Err(err) => {
+                        panic!(
+                            "Failed to stat {}: {}",
+                            path.display(),
+                            err,
+                        )
+                    }
+                };
+                if !metadata.is_dir() {
+                    continue;
+                }
+                queue.extend(self.get_dir_contents(&path));
+            }
+            event_count
+        }
+
+        fn get_dir_contents(&self, path: &PathBuf) -> Vec<PathBuf> {
+            fs::read_dir(&path)
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "failed to read directory {}: {}",
+                        path.display(),
+                        err,
+                    )
+                })
+                .map(|rde| {
+                    rde.unwrap_or_else(|err| {
+                        panic!(
+                            "failed to get entry for {}: {}",
+                            path.display(),
+                            err,
+                        )
+                    }).path()
+                        .to_owned()
+                })
+                .collect()
+        }
+
+        fn parent_is_watched(&self, path: &PathBuf) -> bool {
+            self.path_is_watched(&self.get_parent(&path))
+        }
+
+        fn path_is_watched(&self, path: &PathBuf) -> bool {
+            match self.watched_dirs {
+                Some(wd) => wd.contains(path),
+                None => false,
+            }
+        }
+
+        fn get_parent(&self, path: &PathBuf) -> PathBuf {
+            path.parent()
+                .expect(&format!(
+                    "path {} has no parent",
+                    path.display(),
+                ))
+                .to_owned()
+        }
+
+        fn prepend_root(&self, p: &PathBuf) -> PathBuf {
+            prepend_root_impl(self.root, p)
+        }
+    }
+
+    struct TestCaseRunner {
+        // We don't use this field anywhere, but it will drop the temp
+        // dir when TestCaseRunner goes away.
+        #[allow(dead_code)]
+        tmp_dir: TempDir,
+        root: PathBuf,
+    }
+
+    impl TestCaseRunner {
+        fn new() -> Self {
+            let tmp_dir = TempDir::new("file-watcher").expect(&format!(
+                "couldn't create temporary directory",
+            ));
+            let root = tmp_dir.path().to_owned();
+            Self {
+                tmp_dir: tmp_dir,
+                root: root,
+            }
+        }
+
+        fn run_init_commands(&mut self, commands: &Vec<InitCommand>) {
+            let fs_ops = self.get_fs_ops();
+            for command in commands {
+                match command {
+                    &InitCommand::MkdirP(ref path) => {
+                        fs_ops.mkdir_p(path);
+                    }
+                    &InitCommand::Touch(ref path) => {
+                        fs_ops.touch(path);
+                    }
+                    &InitCommand::LnS(ref target, ref path) => {
+                        fs_ops.ln_s(target, path);
+                    }
+                }
+            }
+        }
+
+        fn prepare_watcher(&mut self, tc_init_path: &Option<PathBuf>) -> WatcherSetup {
+            let init_path = tc_init_path.clone().unwrap_or(pb!("/a/b/c/d/e/f"));
+            let additional_dirs = self.get_additional_directories_from_root();
+            let callbacks = TestCallbacks::new(&additional_dirs);
+            let watcher =
+                FileWatcher::<_, TestWatcher>::create(self.prepend_root(&init_path), callbacks)
+                    .expect("failed to create watcher");
+            WatcherSetup {
+                init_path: init_path,
+                watcher: watcher,
+            }
+        }
+
+        fn run_steps(
+            &mut self,
+            mut setup: WatcherSetup,
+            tc_initial_file: &Option<PathBuf>,
+            steps: &Vec<Step>,
+        ) {
+            let mut initial_file = tc_initial_file.clone();
+            let mut actual_initial_file = setup.watcher.initial_real_file.clone();
+            for step in steps {
+                let iterations = self.execute_step_action(&mut setup, &step.action);
+                self.spin_watcher(&mut setup, iterations);
+                self.test_dirs(&step.dirs, &setup.watcher.paths.dirs);
+                self.test_paths(&step.paths, &setup.init_path, &setup.watcher.paths.paths);
+                let real_initial_file =
+                    self.test_initial_file(iterations, &mut initial_file, &mut actual_initial_file);
+                self.test_events(
+                    real_initial_file,
+                    &step.events,
+                    &mut setup.watcher.get_mut_callbacks().events,
+                );
+            }
+        }
+
+        fn execute_step_action(&mut self, setup: &mut WatcherSetup, action: &StepAction) -> u32 {
+            let iterations = {
+                let tw = setup.watcher.get_mut_underlying_watcher();
+                let mut fs_ops = self.get_fs_ops_with_dirs(&tw.watched_dirs);
+                match action {
+                    &StepAction::LnS(ref target, ref path) => fs_ops.ln_s(target, path),
+                    &StepAction::MkdirP(ref path) => fs_ops.mkdir_p(path),
+                    &StepAction::Touch(ref path) => fs_ops.touch(path),
+                    &StepAction::Mv(ref from, ref to) => fs_ops.mv(from, to),
+                    &StepAction::RmRF(ref path) => fs_ops.rm_rf(path),
+                    &StepAction::Nop => 0,
+                }
+            };
+            iterations
+        }
+
+        fn spin_watcher(&self, setup: &mut WatcherSetup, iterations: u32) {
+            let mut iteration = 0;
+            while iteration < iterations {
+                setup.watcher.single_iteration().expect("iteration failed");
+                let cb = setup.watcher.get_mut_callbacks();
+                if cb.ignore {
+                    cb.ignore = false;
+                } else {
+                    iteration += 1;
+                }
+            }
+        }
+
+        fn test_dirs(
+            &mut self,
+            step_dirs: &HashMap<PathBuf, u32>,
+            actual_dirs: &HashMap<PathBuf, u32>,
+        ) {
+            let expected_dirs = self.fixup_expected_dirs(step_dirs);
+            assert_eq!(
+                &expected_dirs,
+                actual_dirs,
+                "comparing watched directories",
+            );
+        }
+
+        fn test_paths(
+            &mut self,
+            step_paths: &HashMap<PathBuf, PathState>,
+            init_path: &PathBuf,
+            actual_paths: &HashMap<PathBuf, WatchedFile>,
+        ) {
+            let expected_paths = self.fixup_expected_paths(&step_paths, &init_path);
+            self.compare_paths(expected_paths, actual_paths);
+        }
+
+        fn test_initial_file(
+            &mut self,
+            iterations: u32,
+            initial_file: &mut Option<PathBuf>,
+            actual_initial_file: &mut Option<PathBuf>,
+        ) -> Option<PathBuf> {
+            if iterations > 0 {
+                let expected_initial_file =
+                    initial_file.take().map(|path| self.prepend_root(&path));
+                assert_eq!(
+                    expected_initial_file,
+                    actual_initial_file.take(),
+                    "comparing initial path",
+                );
+                expected_initial_file
+            } else {
+                None
+            }
+        }
+
+        fn test_events(
+            &mut self,
+            real_initial_file: Option<PathBuf>,
+            step_events: &Vec<NotifyEvent>,
+            actual_events: &mut Vec<NotifyEvent>,
+        ) {
+            let expected_events = self.fixup_expected_events(&step_events, real_initial_file);
+            assert_eq!(
+                &expected_events,
+                actual_events,
+                "comparing expected events",
+            );
+            actual_events.clear();
+        }
+
+        fn get_fs_ops_with_dirs<'a>(&'a mut self, watched_dirs: &'a HashSet<PathBuf>) -> FsOps<'a> {
+            let mut fs_ops = self.get_fs_ops();
+            fs_ops.watched_dirs = Some(watched_dirs);
+            fs_ops
+        }
+
+        fn get_fs_ops(&mut self) -> FsOps {
+            FsOps {
+                root: &self.root,
+                watched_dirs: None,
+            }
+        }
+
+        fn fixup_expected_dirs(&self, dirs: &HashMap<PathBuf, u32>) -> HashMap<PathBuf, u32> {
+            let mut expected_dirs = dirs.iter()
+                .map(|(p, c)| (self.prepend_root(&p), *c))
+                .collect::<HashMap<_, _>>();
+            let additional_dirs = self.get_additional_directories_from_root();
+            expected_dirs.extend(additional_dirs.iter().cloned().map(|d| (d, 1)));
+            expected_dirs
+        }
+
+        // Get vector for extending dirs. For the root directory like
+        // /tmp/foo, the vector will be [`/`, `/tmp`].
+        //
+        // All this is because we run the tests in a temporary
+        // directory (let's say `/tmp/foo`) and if in test case we
+        // specify that we expect directories `/` and `/a` to be
+        // watched, then in reality these will be `/`, `/tmp`,
+        // `/tmp/foo`, `/tmp/foo/a`.
+        fn get_additional_directories_from_root(&self) -> Vec<PathBuf> {
+            let mut tmp_path = PathBuf::new();
+            let mut additional_dirs = Vec::new();
+
+            for component in self.root.components() {
+                match component {
+                    Component::Prefix(p) => tmp_path.push(p.as_os_str().to_owned()),
+                    Component::RootDir |
+                    Component::Normal(_) => {
+                        tmp_path.push(component.as_os_str().to_owned());
+                        additional_dirs.push(tmp_path.clone());
+                    }
+                    // Respectively the `.`. and `..` components of a path.
+                    Component::CurDir | Component::ParentDir => {
+                        panic!("the path should be simplified")
+                    }
+                };
+            }
+            // Pop the last directory (like `/tmp/foo`), so it will not
+            // overwrite an already fixed-up directory in expected_dirs.
+            additional_dirs.pop();
+
+            additional_dirs
+        }
+
+        fn fixup_expected_paths(
+            &self,
+            paths: &HashMap<PathBuf, PathState>,
+            init_path: &PathBuf,
+        ) -> HashMap<PathBuf, PathState> {
+            let expected_paths = self.get_initial_expected_paths(paths);
+            let real_first_expected =
+                self.get_real_first_expected_path(&init_path, &expected_paths);
+            let additional_paths = self.get_additional_paths(
+                &real_first_expected,
+                // The existence of this path in the map is checked in
+                // get_real_first_expected_path.
+                expected_paths.get(&real_first_expected).unwrap(),
+            );
+
+            self.link_expected_paths_with_additional_ones(
+                expected_paths,
+                additional_paths,
+                real_first_expected,
+            )
+        }
+
+        fn compare_paths(
+            &mut self,
+            expected_paths: HashMap<PathBuf, PathState>,
+            actual_paths: &HashMap<PathBuf, WatchedFile>,
+        ) {
+            self.compare_path_keys(&expected_paths, &actual_paths);
+
+            for (path, path_state) in expected_paths {
+                // This should not panic - we tested the equality of
+                // paths in compare_path_keys.
+                let watched_file = actual_paths.get(&path).unwrap();
+
+                self.compare_path_state_with_watched_file(&path_state, &watched_file);
+            }
+        }
+
+        fn fixup_expected_events(
+            &self,
+            events: &Vec<NotifyEvent>,
+            real_initial_file: Option<PathBuf>,
+        ) -> Vec<NotifyEvent> {
+            let mut expected_events = match real_initial_file {
+                Some(path) => vec![NotifyEvent::appeared(path)],
+                None => Vec::new(),
+            };
+            expected_events.extend(events.iter().map(|e| {
+                NotifyEvent::new(self.prepend_root(&e.path), e.kind)
+            }));
+            expected_events
+        }
+
+        fn get_initial_expected_paths(
+            &self,
+            paths: &HashMap<PathBuf, PathState>,
+        ) -> HashMap<PathBuf, PathState> {
+            paths
+                .iter()
+                .map(|(p, s)| {
+                    (
+                        self.prepend_root(&p),
+                        PathState {
+                            kind: s.kind,
+                            path_rest: s.path_rest.clone(),
+                            prev: match &s.prev {
+                                &Some(ref p) => Some(self.prepend_root(&p)),
+                                &None => None,
+                            },
+                            next: match &s.next {
+                                &Some(ref p) => Some(self.prepend_root(&p)),
+                                &None => None,
+                            },
+                        },
+                    )
+                })
+                .collect()
+        }
+
+        fn get_real_first_expected_path(
+            &self,
+            init_path: &PathBuf,
+            expected_paths: &HashMap<PathBuf, PathState>,
+        ) -> PathBuf {
+            let first_expected = get_first_item(&init_path);
+            let real_first_expected = self.prepend_root(&first_expected);
+            let first_item = expected_paths.get(&real_first_expected).expect(&format!(
+                "expected watched item for {} (real: {}), it is an error in the test case",
+                first_expected.display(),
+                real_first_expected.display(),
+            ));
+
+            assert_eq!(
+                first_item.prev,
+                None,
+                "expected prev member of first expected path ({}, real: {}) to be None, {}",
+                first_expected.display(),
+                real_first_expected.display(),
+                "it is an error in the test case",
+            );
+
+            real_first_expected
+        }
+
+        fn prepend_root(&self, p: &PathBuf) -> PathBuf {
+            prepend_root_impl(&self.root, p)
+        }
+
+        fn get_additional_paths(
+            &self,
+            real_first_expected: &PathBuf,
+            first_item: &PathState,
+        ) -> Vec<(PathBuf, PathState)> {
+            let mut ap_vec = Vec::new();
+            // empty additional path states
+            for path in self.get_additional_paths_from_root() {
+                ap_vec.push((
+                    path,
+                    PathState {
+                        kind: PathKind::Directory,
+                        path_rest: Vec::new(),
+                        prev: None,
+                        next: None,
+                    },
+                ));
+            }
+            let ap_len = ap_vec.len();
+            // Link the path states - set the prev and next
+            // members. The first path state will have None `prev` and
+            // the last path state will have None `next`.
+            for idx in (0..ap_len).skip(1) {
+                ap_vec[idx].1.prev = Some(ap_vec[idx - 1].0.clone());
+                ap_vec[ap_len - 1 - idx].1.next = Some(ap_vec[ap_len - idx].0.clone())
+            }
+            // Fill path rests in additional path states.
+            let real_first_expected_path_rest = to_path_rest(&real_first_expected);
+            for idx in 0..ap_len {
+                let path_rest = &mut ap_vec[idx].1.path_rest;
+                // If root/temporary directory is `/tmp/foo/bar` then
+                // `/tmp` will have path rest `[foo, bar, <rest from
+                // the first item>]`, `/tmp/foo` - `[bar, <rest from
+                // the first item>]`, and `/tmp/foo/bar` - `[<rest
+                // from the first item>]`.
+                path_rest.extend(real_first_expected_path_rest.iter().skip(idx + 1).cloned());
+                // Here add the `<rest from the first item>` part.
+                path_rest.extend(first_item.path_rest.iter().cloned());
+            }
+
+            ap_vec
+        }
+
+        fn link_expected_paths_with_additional_ones(
+            &self,
+            mut expected_paths: HashMap<PathBuf, PathState>,
+            mut additional_paths: Vec<(PathBuf, PathState)>,
+            real_first_expected: PathBuf,
+        ) -> HashMap<PathBuf, PathState> {
+            // link last additional path state with the first expected one
+            if let Some(mut last) = additional_paths.last_mut() {
+                // The existence of this path in the map is checked in
+                // get_real_first_expected_path.
+                let mut first_item = expected_paths.get_mut(&real_first_expected).unwrap();
+
+                last.1.next = Some(real_first_expected);
+                first_item.prev = Some(last.0.clone());
+            }
+
+            expected_paths.extend(additional_paths);
+            expected_paths
+        }
+
+        fn compare_path_keys(
+            &self,
+            expected_paths: &HashMap<PathBuf, PathState>,
+            actual_paths: &HashMap<PathBuf, WatchedFile>,
+        ) {
+            let mut expected_paths_keys: Vec<&PathBuf> = expected_paths.keys().collect();
+            expected_paths_keys.sort();
+            let mut actual_paths_keys: Vec<&PathBuf> = actual_paths.keys().collect();
+            actual_paths_keys.sort();
+
+            assert_eq!(
+                expected_paths_keys,
+                actual_paths_keys,
+                "comparing paths",
+            );
+        }
+
+        fn compare_path_state_with_watched_file(
+            &self,
+            path_state: &PathState,
+            watched_file: &WatchedFile,
+        ) {
+            let common = watched_file.get_common();
+            let expected_kind = match watched_file {
+                &WatchedFile::Regular(_) => PathKind::Regular,
+                &WatchedFile::MissingRegular(_) => PathKind::MissingRegular,
+                &WatchedFile::Symlink(_) => PathKind::Symlink,
+                &WatchedFile::Directory(_) => PathKind::Directory,
+                &WatchedFile::MissingDirectory(_) => PathKind::MissingDirectory,
+            };
+            let path_rest: Vec<OsString> = common.path_rest.iter().cloned().collect();
+
+            assert_eq!(
+                path_state.kind,
+                expected_kind,
+                "ensuring proper watched file kind",
+            );
+            assert_eq!(
+                path_state.path_rest,
+                path_rest,
+                "comparing path rest",
+            );
+            assert_eq!(
+                path_state.prev,
+                common.prev,
+                "comparing prev member",
+            );
+            assert_eq!(
+                path_state.next,
+                common.next,
+                "comparing next member",
+            );
+        }
+
+        // Get vector for extending paths. For the root directory like
+        // /tmp/foo, the vector will be [`/tmp/`, `/tmp/foo`].
+        //
+        // All this is because we run the tests in a temporary
+        // directory (let's say `/tmp/foo`) and if in test case we
+        // specify that we expect the watched items to be `/a` and
+        // `/a/b`, then in reality these will be `/tmp`, `/tmp/foo`,
+        // `/tmp/foo/a` and `/tmp/foo/a/b`.
+        fn get_additional_paths_from_root(&self) -> Vec<PathBuf> {
+            let mut tmp_path = PathBuf::new();
+            let mut for_paths = Vec::new();
+
+            for component in self.root.components() {
+                match component {
+                    Component::Prefix(_) |
+                    Component::RootDir => tmp_path.push(component.as_os_str().to_owned()),
+                    Component::Normal(c) => {
+                        tmp_path.push(c.to_owned());
+                        for_paths.push(tmp_path.to_owned());
+                    }
+                    // Respectively the `.`. and `..` components of a path.
+                    Component::CurDir | Component::ParentDir => {
+                        panic!("the path should be simplified")
+                    }
+                };
+            }
+
+            for_paths
+        }
+    }
+
+    fn prepend_root_impl(root: &PathBuf, p: &PathBuf) -> PathBuf {
+        if !p.is_absolute() {
+            panic!(
+                "expected path {} to be absolute",
+                p.display(),
+            );
+        }
+        root.join(strip_prefix_and_root(p))
+    }
+
+    fn get_first_item(path: &PathBuf) -> PathBuf {
+        let mut first = PathBuf::new();
+
+        for component in path.components() {
+            match component {
+                Component::Prefix(p) => first.push(p.as_os_str().to_owned()),
+                Component::RootDir => first.push(component.as_os_str().to_owned()),
+                Component::Normal(c) => {
+                    first.push(c.to_owned());
+                    break;
+                }
+                // Respectively the `.`. and `..` components of a path.
+                Component::CurDir | Component::ParentDir => panic!("the path should be simplified"),
+            }
+        }
+
+        first
+    }
+
+    fn to_path_rest(path: &PathBuf) -> Vec<OsString> {
+        let mut path_rest = Vec::new();
+
+        for component in path.components() {
+            match component {
+                Component::Prefix(_) => (),
+                Component::RootDir => (),
+                Component::Normal(c) => path_rest.push(c.to_owned()),
+                // Respectively the `.`. and `..` components of a path.
+                Component::CurDir | Component::ParentDir => panic!("the path should be simplified"),
+            }
+        }
+
+        path_rest
+    }
+
+    fn strip_prefix_and_root(path: &PathBuf) -> PathBuf {
+        let mut stripped = PathBuf::new();
+
+        for component in path.components() {
+            match component {
+                Component::Prefix(_) |
+                Component::RootDir => (),
+                Component::Normal(_) |
+                Component::CurDir |
+                Component::ParentDir => stripped.push(component.as_os_str()),
+            }
+        }
+
+        stripped
+    }
+
 }
