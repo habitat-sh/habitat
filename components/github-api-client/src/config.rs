@@ -26,6 +26,8 @@ pub const DEV_GITHUB_CLIENT_ID: &'static str = "Iv1.732260b62f84db15";
 pub const DEV_GITHUB_CLIENT_SECRET: &'static str = "fc7654ed8c65ccfe014cd339a55e3538f935027a";
 /// Default github application id created in the habitat-sh org
 pub const DEFAULT_GITHUB_APP_ID: u32 = 5629;
+/// Webhook secret token
+pub const DEV_GITHUB_WEBHOOK_SECRET_TOKEN: &'static str = "58d4afaf5e5617ab0f8c39e505605e78a054d003";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default)]
@@ -42,6 +44,8 @@ pub struct GitHubCfg {
     pub client_secret: String,
     /// App Id used for builder integration
     pub app_id: u32,
+    /// Webhook secret token
+    pub webhook_secret_token: String,
 }
 
 impl Default for GitHubCfg {
@@ -53,6 +57,7 @@ impl Default for GitHubCfg {
             client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             app_id: DEFAULT_GITHUB_APP_ID,
+            webhook_secret_token: DEV_GITHUB_WEBHOOK_SECRET_TOKEN.to_string(),
         }
     }
 }
