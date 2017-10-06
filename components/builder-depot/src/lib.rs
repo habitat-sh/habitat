@@ -50,6 +50,7 @@ extern crate walkdir;
 extern crate zmq;
 extern crate uuid;
 extern crate base64;
+extern crate github_api_client;
 
 pub mod config;
 pub mod error;

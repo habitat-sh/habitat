@@ -1170,6 +1170,7 @@ dependencies = [
  "clap 2.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "github-api-client 0.0.0",
  "habitat-builder-protocol 0.0.0",
  "habitat_core 0.0.0",
  "habitat_net 0.0.0",

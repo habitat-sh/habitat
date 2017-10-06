@@ -159,32 +159,36 @@ impl Key for Authenticated {
 
 impl BeforeMiddleware for Authenticated {
     fn before(&self, req: &mut Request) -> IronResult<()> {
-        let session = {
-            let token = match req.headers.get::<Authorization<Bearer>>() {
-                Some(&Authorization(Bearer { ref token })) => {
-                    if let Ok(token) = base64::decode(token) {
-                        if let Ok(token) = message::decode(&token) {
-                            token
-                        } else {
-                            let err = NetError::new(ErrCode::BAD_TOKEN, "net:auth:2");
-                            return Err(IronError::new(err, Status::Forbidden));
-                        }
-                    } else {
-                        let err = NetError::new(ErrCode::BAD_TOKEN, "net:auth:3");
-                        return Err(IronError::new(err, Status::Forbidden));
-                    }
+        let token = match req.headers.get::<Authorization<Bearer>>() {
+            Some(&Authorization(Bearer { ref token })) => token.to_owned(),
+            _ => {
+                if self.optional {
+                    return Ok(());
+                } else {
+                    let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:1");
+                    return Err(IronError::new(err, Status::Unauthorized));
                 }
-                _ => {
-                    if self.optional {
-                        return Ok(());
-                    } else {
-                        let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:1");
-                        return Err(IronError::new(err, Status::Unauthorized));
-                    }
-                }
-            };
-            self.authenticate(req, token)?
+            }
         };
+
+        let session = {
+            if let Ok(decoded_token) = base64::decode(&token) {
+                if let Ok(token) = message::decode(&decoded_token) {
+                    self.authenticate(req, token)?
+                } else {
+                    // TODO: Replace temporary auth workaround
+                    // We got a bearer token that is not a valid session token.
+                    // Check to see if this is a valid github token, and create (or
+                    // update) a session. This is a temporary fix until we can roll out
+                    // and migrate clients to our own personal access tokens.
+                    session_create_github(req, token)?
+                }
+            } else {
+                let err = NetError::new(ErrCode::BAD_TOKEN, "net:auth:3");
+                return Err(IronError::new(err, Status::Forbidden));
+            }
+        };
+
         req.extensions.insert::<Self>(session);
         Ok(())
     }

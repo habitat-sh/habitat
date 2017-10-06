@@ -22,6 +22,7 @@ use base64;
 use bldr_core;
 use bldr_core::helpers::transition_visibility;
 use bodyparser;
+use github_api_client::GitHubClient;
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
                         ident};
 use hab_core::crypto::keys::PairType;
@@ -2382,6 +2383,9 @@ pub fn router(depot: DepotUtil) -> Result<Chain> {
         &depot.config.log_dir,
         depot.config.events_enabled,
     )));
+    chain.link(persistent::Read::<GitHubCli>::both(
+        GitHubClient::new(depot.config.github.clone()),
+    ));
     chain.link(persistent::State::<DepotUtil>::both(depot));
     chain.link_before(XRouteClient);
     chain.link_after(Cors);
