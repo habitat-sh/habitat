@@ -673,7 +673,12 @@ record() {
       | $bb tr '\n' ' ')"
     log="${LOGDIR:-/src/results/logs}/${name}.$($bb date -u +%Y-%m-%d-%H%M%S).log"
     $bb mkdir -p $($bb dirname $log)
-    unset BUSYBOX LOGDIR
+    $bb touch $log
+    if [[ "$log" =~ ^/src/results/logs/.* ]]; then
+      ownership=$($bb stat -c '%u:%g' /src)
+      $bb chown -R "$ownership" "/src/results" || true
+    fi
+    unset BUSYBOX LOGDIR name ownership
 
     $bb script -c "$bb env -i $env $cmd $*" -e $log
   ); return $?

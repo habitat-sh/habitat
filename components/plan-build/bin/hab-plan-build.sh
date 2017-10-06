@@ -2069,6 +2069,10 @@ _write_pre_build_file() {
   build_line "Writing pre_build file"
 
   mkdir -pv "$pkg_output_path"
+  # Attempt to set user/group ownership to the same as the ownership of the
+  # `plan.sh` file. If the `chown` fails, then don't stop the build--this is
+  # only best effort.
+  chown "$plan_owner" "$pkg_output_path" || true
 
   if [ -f "$pre_build_file" ]; then
     rm "$pre_build_file"
@@ -2956,7 +2960,7 @@ _prepare_build_outputs() {
   # At this point, we know it built successfully, so delete the pre_build file
   pre_build_file="$pkg_output_path/pre_build.env"
   if [ -f "$pre_build_file" ]; then
-    rm "$pre_build_file"
+    rm -f "$pre_build_file"
   fi
 
   cat <<-EOF > "$pkg_output_path"/last_build.env
