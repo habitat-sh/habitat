@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {fromJS, List} from "immutable";
-import * as actionTypes from "../actions/index";
+import { fromJS, List } from "immutable";
 import initialState from "../initialState";
+import * as actionTypes from "../actions/index";
+import config from "../config";
 
 export default function gitHub(state = initialState["gitHub"], action) {
     switch (action.type) {
@@ -33,7 +34,12 @@ export default function gitHub(state = initialState["gitHub"], action) {
                 set("authToken", action.payload.gitHubAuthToken);
 
         case actionTypes.POPULATE_GITHUB_INSTALLATIONS:
-            return state.set("installations", fromJS(action.payload.installations));
+
+            const filtered = action.payload.installations.filter((i) => {
+                return i.integration_id.toString() === config["github_app_id"];
+            });
+
+            return state.set("installations", fromJS(filtered));
 
         case actionTypes.POPULATE_GITHUB_INSTALLATION_REPOSITORIES:
             return state.set("installationRepositories", fromJS(action.payload.repositories));

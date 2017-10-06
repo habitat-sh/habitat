@@ -142,9 +142,9 @@ export class BuilderApiClient {
         });
     }
 
-    public findFileInRepo(installationId: string, owner: string, repo: string, filename: string, page: number = 1, per_page: number = 100) {
+    public findFileInRepo(installationId: string, owner: string, repo: string, path: string, page: number = 1, per_page: number = 100) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/ext/installations/${installationId}/search/code?q=repo:${owner}/${repo}+filename:${filename}&page=${page}&per_page=${per_page}`, {
+            fetch(`${this.urlPrefix}/ext/installations/${installationId}/repos/${repo}/contents/${encodeURIComponent(path)}`, {
                 method: "GET",
                 headers: this.headers,
             }).then(response => {

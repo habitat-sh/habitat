@@ -12,16 +12,12 @@
         Failed to load origins: {{ui.errorMessage}}
       </p>
       <div class="origin-create-intro" *ngIf="origins.size === 0 && !ui.errorMessage">
-        <p><strong>You don't currently have any origins. Let's add one now.</strong></p>
+        <p><strong>You are not currently an owner or member of any origins.</strong></p>
         <p>
-          In order to begin uploading and distributing your packages, you'll first need to <a [routerLink]="['/origins/create']">create an origin</a>. If you would like to join an existing origin, then you'll need to request an invite from a current member.
+          Note: If you've already created an origin with the Habitat CLI tool, then you'll need to create it here, too, using the same name.
         </p>
         <p>
-          If you've already created an origin locally via the Habitat CLI tool, then you'll need to create it here too
-          using the same name.
-        </p>
-        <p>
-          <em>Not sure how to get started? <a href="{{ config['demo_app_url'] }}">Try the demo app</a> for a hands-on walkthrough.</em>
+          <em>New to Habitat? <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
         </p>
       </div>
       <div *ngIf="origins.size > 0">

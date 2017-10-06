@@ -18,6 +18,10 @@ habitatConfig({
     github_api_url: "https://api.github.com",
     // The Web URL for GitHub
     github_web_url: "https://github.com",
+    // The Habitat Builder GitHub app
+    github_app_url: "https://github.com/apps/habitat-builder-dev",
+    // The Habitat Builder GitHub app ID
+    github_app_id: "5629",
     // The URL for the Habitat source code
     source_code_url: "https://github.com/habitat-sh/habitat",
     // The URL for tutorials
@@ -37,7 +41,7 @@ habitatConfig({
     // The URL for status
     status_url: "https://status.habitat.sh/",
     // The URL for the demo app
-    demo_app_url: "#",
+    demo_app_url: "https://www.habitat.sh/demo",
     // The version of the software we're running. In production, this should
     // be automatically populated by Habitat
     version: "",

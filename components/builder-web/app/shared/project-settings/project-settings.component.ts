@@ -1,15 +1,13 @@
 import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges, ViewChild } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MdDialog, MdDialogRef } from "@angular/material";
 import { DisconnectConfirmDialog } from "./dialog/disconnect-confirm/disconnect-confirm.dialog";
-import { Subscription } from "rxjs/subscription";
 import { DockerExportSettingsComponent } from "../../shared/docker-export-settings/docker-export-settings.component";
 import { BuilderApiClient } from "../../BuilderApiClient";
 import { GitHubApiClient } from "../../GitHubApiClient";
 import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
-import { requireSignIn } from "../../util";
 import { AppStore } from "../../AppStore";
-import { addNotification, addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchGitHubFiles,
+import { addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchGitHubFiles,
     fetchGitHubInstallations, fetchGitHubInstallationRepositories, fetchProject, setProjectVisibility } from "../../actions/index";
 import config from "../../config";
 
@@ -17,11 +15,12 @@ import config from "../../config";
     selector: "hab-project-settings",
     template: require("./project-settings.component.html")
 })
-export class ProjectSettingsComponent implements OnInit, OnChanges {
+export class ProjectSettingsComponent implements OnChanges {
     connecting: boolean = false;
+    doesFileExist: Function;
     filter: GitHubRepo = new GitHubRepo();
+    form: FormGroup;
     selectedInstallation: any;
-    selectedOrg: string;
     selectedRepo: any;
     selectedPath: string;
 
@@ -36,13 +35,23 @@ export class ProjectSettingsComponent implements OnInit, OnChanges {
     @ViewChild("docker")
     docker: DockerExportSettingsComponent;
 
-    private sub: Subscription;
+    private api: BuilderApiClient;
+    private defaultPath = "habitat/plan.sh";
     private _visibility: string;
 
-    constructor(private store: AppStore, private disconnectDialog: MdDialog) {}
+    constructor(private formBuilder: FormBuilder, private store: AppStore, private disconnectDialog: MdDialog) {
+        this.api = new BuilderApiClient(this.token);
+        this.form = formBuilder.group({});
+        this.selectedPath = this.defaultPath;
 
-    ngOnInit() {
-        this.store.dispatch(fetchGitHubInstallations());
+        this.doesFileExist = (path) => {
+            return this.api.findFileInRepo(
+                this.selectedInstallation.get("id"),
+                this.selectedRepo.getIn(["owner", "login"]),
+                this.selectedRepo.get("name"),
+                this.planField.value
+            );
+        };
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -55,6 +64,10 @@ export class ProjectSettingsComponent implements OnInit, OnChanges {
 
     get config() {
         return config;
+    }
+
+    get planField() {
+        return this.form.controls["plan_path"];
     }
 
     get connectButtonLabel() {
@@ -86,17 +99,24 @@ export class ProjectSettingsComponent implements OnInit, OnChanges {
         return this.store.getState().gitHub.installationRepositories;
     }
 
+    get repoUrl() {
+        if (this.selectedRepo) {
+            return `https://github.com/${this.selectedRepo.getIn(["owner", "login"])}/${this.selectedRepo.get("name")}`;
+        }
+    }
+
     get token() {
         return this.store.getState().session.token;
     }
 
-    get user() {
-        return this.store.getState().users.current.gitHub;
+    get username() {
+        return this.store.getState().users.current.gitHub.get("login");
     }
 
     get valid() {
         const dockerValid = (this.docker && this.docker.settings.enabled) ? this.docker.settings.valid : true;
-        return !!this.selectedPath && dockerValid;
+        const planPathValid = this.form.valid;
+        return this.selectedRepo && dockerValid && planPathValid;
     }
 
     get visibility() {
@@ -108,6 +128,8 @@ export class ProjectSettingsComponent implements OnInit, OnChanges {
     }
 
     connect() {
+        this.deselect();
+        this.store.dispatch(fetchGitHubInstallations());
         this.connecting = true;
         this.toggled.emit(this.connecting);
     }
@@ -139,9 +161,9 @@ export class ProjectSettingsComponent implements OnInit, OnChanges {
     }
 
     deselect() {
-        this.selectedOrg = null;
+        this.selectedInstallation = null;
         this.selectedRepo = null;
-        this.selectedPath = null;
+        this.selectedPath = this.defaultPath;
         this.filter = new GitHubRepo();
     }
 
@@ -152,74 +174,16 @@ export class ProjectSettingsComponent implements OnInit, OnChanges {
     }
 
     saveConnection() {
-        new BuilderApiClient(this.token)
-            .getGitHubFileContent(this.selectedInstallation.get("id"), this.selectedRepo.getIn(["owner", "login"]), this.selectedRepo.get("name"), this.selectedPath)
-            .then((response) => {
-
-                // Plan variables may be prefixed with a $
-                const dedollar = (key) => key.replace(/^\$/, "");
-
-                // Values may contain quotes
-                const dequote = (val) => val.replace(/["']/g, "");
-
-                const content = atob(response["content"]);
-                const lines = content.split("\n");
-                const ident = lines.filter((line) => ["pkg_name", "pkg_origin"].includes(dedollar(line).split("=")[0]));
-                let planVars = {};
-
-                ident.forEach((i) => {
-                    const s = i.split("=");
-                    planVars[dedollar(s[0]).trim()] = dequote(s[1]).trim();
-                });
-
-                const planOrigin = planVars["pkg_origin"];
-                const planName = planVars["pkg_name"];
-
-                if (this.name) {
-                    if (planName === this.name && planOrigin === this.origin) {
-                        if (this.project) {
-                            this.store.dispatch(updateProject(this.project.name, this.planTemplate, this.token, (result) => {
-                                this.handleSaved(result.success, planOrigin, planName);
-                            }));
-                        }
-                        else {
-                            this.store.dispatch(addProject(this.planTemplate, this.token, (result) => {
-                                this.handleSaved(result.success, planOrigin, planName);
-                            }));
-                        }
-                    }
-                    else {
-                        this.store.dispatch(addNotification({
-                            type: "danger",
-                            title: "Invalid Selection",
-                            body: `The origin and name in this plan file (${planOrigin}/${planName})
-                                must match those of this package (${this.origin}/${this.name}).`
-                        }));
-                    }
-                }
-                else {
-                    if (planOrigin === this.origin) {
-                        this.store.dispatch(addProject(this.planTemplate, this.token, (result) => {
-                          this.handleSaved(result.success, planOrigin, planName);
-                        }));
-                    }
-                    else {
-                        this.store.dispatch(addNotification({
-                            type: "danger",
-                            title: "Invalid Selection",
-                            body: `The origin in this plan file (${planOrigin}) must match
-                                the current origin (${this.origin}).`
-                        }));
-                    }
-                }
-            })
-            .catch((error) => {
-                this.store.dispatch(addNotification({
-                    type: "danger",
-                    title: "Error reading plan file",
-                    body: `The message from GitHub was ${error.message}.`
-                }));
-            });
+        if (this.project) {
+            this.store.dispatch(updateProject(this.project.name, this.planTemplate, this.token, (result) => {
+                this.handleSaved(result.success, this.project.origin_name, this.project.package_name);
+            }));
+        }
+        else {
+            this.store.dispatch(addProject(this.planTemplate, this.token, (result) => {
+                this.handleSaved(result.success, result.response.origin_name, result.response.package_name);
+            }));
+        }
     }
 
     selectInstallation(installation) {
@@ -229,8 +193,13 @@ export class ProjectSettingsComponent implements OnInit, OnChanges {
 
     selectRepo(repo) {
         this.selectedRepo = repo;
-        this.store.dispatch(fetchGitHubFiles(this.selectedInstallation.get("id"), repo.getIn(["owner", "login"]), repo.get("name"), "plan."));
+        this.selectedPath = this.defaultPath;
         window.scrollTo(0, 0);
+        debugger;
+
+        setTimeout(() => {
+            this.planField.markAsDirty();
+        }, 1000);
     }
 
     settingChanged(setting) {
