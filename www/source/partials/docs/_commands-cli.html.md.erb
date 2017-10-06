@@ -73,7 +73,7 @@ Reads a stdin stream containing plain text and outputs an encrypted representati
 
 **OPTIONS** 
 
-    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <BUILDER_URL>    Use a specific Builder URL (ex: https://bldr.habitat.sh)
 
 <h2 id="hab-cli" class="anchor">hab cli</h2>
 Commands relating to Habitat runtime config.
@@ -152,7 +152,7 @@ Applies a configuration to a group of Habitat Supervisors.
 
 **Read More**: 
 
-- <a href="/docs/run-packages-apply-config-updates">Knowledge Article: Configuration Updates</a>
+- <a href="/tutorials/build-your-own/add-config/">Tutorial: Adding Configuration to your plan</a>
 
 <h2 id="hab-file-upload" class="anchor">hab file</h2>
 Upload a file to the Supervisor ring.
@@ -216,8 +216,8 @@ Promote every package in a job group to a specified channel.
 
 **OPTIONS** 
 
-    -z, --auth <AUTH_TOKEN>    Authentication token for the Depot
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex:http://depot.example.com/v1/depot)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BUILDER_URL>      Use a specific Builder URL (ex: https://bldr.habitat.sh)
 
 <h2 id="hab-origin-key" class="anchor">hab origin key</h2>
 Commands relating to Habitat origin key maintenance.
@@ -238,7 +238,7 @@ Commands relating to Habitat origin key maintenance.
     generate    Generates a Habitat origin key
     help        Prints this message or the help of the given subcommand(s)
     import      Reads a stdin stream containing a public or secret origin key contents and writes the key to disk
-    upload      Upload origin keys to the depot
+    upload      Upload origin keys to Habitat Builder
 
 **Read More:** 
 
@@ -247,8 +247,8 @@ Commands relating to Habitat origin key maintenance.
 - [hab origin key generate](#hab-origin-key-generate)
 - [hab origin key import](#hab-origin-key-import)
 - [hab origin key upload](#hab-origin-key-upload)
-- <a href="/docs/share-packages-overview">Knowledge Article: Sharing Packages</a>
-- <a href="/docs/concepts-keys">Knowledge Article: Keys</a>
+- <a href="/docs/developing-packages/#sharing-pkgs">Knowledge Article: Sharing Packages</a>
+- <a href="/docs/using-habitat/#using-encryption">Knowledge Article: Using encryption</a>
 
 
 <h2 id="hab-origin-key-download" class="anchor">hab origin key download</h2>
@@ -265,7 +265,7 @@ Download origin key(s) to HAB_CACHE_KEY_PATH
 
 **OPTIONS** 
 
-    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <BUILDER_URL>    Use a specific Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 
 
@@ -321,7 +321,7 @@ Reads a stdin stream containing a public or secret origin key contents and write
     -V, --version    Prints version information
 
 <h2 id="hab-origin-key-upload" class="anchor">hab origin key download</h2>
-Upload origin keys to the depot.
+Upload origin keys to Habitat Builder.
 
 **USAGE** 
 
@@ -335,8 +335,8 @@ Upload origin keys to the depot.
 
 **OPTIONS** 
 
-    -z, --auth <AUTH_TOKEN>     Authentication token for the Depot
-    -u, --url <DEPOT_URL>       Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -z, --auth <AUTH_TOKEN>     Authentication token for Habitat Builder
+    -u, --url <BUILDER_URL>       Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
         --pubfile <PUBLIC_FILE> Path to a local public origin key file on disk
         --secfile <SECRET_FILE> Path to a local secret origin key file on disk
 
@@ -367,17 +367,17 @@ Commands relating to Habitat packages.
     export      Exports the package to the specified format
     hash        Generates a blake2b hashsum from a target at any given filepath
     help        Prints this message or the help of the given subcommand(s)
-    install     Installs a Habitat package from a Depot or locally from a Habitat Artifact
+    install     Installs a Habitat package from Habitat Builder or locally from a Habitat Artifact
     path        Prints the path to a specific installed release of a package
     promote     Promote a package to a specified channel
     provides    Search installed Habitat packages for a given file
-    search      Search for a package on a Depot
+    search      Search for a package on Habitat Builder
     sign        Signs an archive with an origin key, generating a Habitat Artifact
-    upload      Uploads a local Habitat Artifact to a Depot
+    upload      Uploads a local Habitat Artifact to Habitat Builder
     verify      Verifies a Habitat Artifact with an origin key
 
 **Read More** 
-- <a href="/docs/create-packages-build">Knowledge Article: Create and Build Packages</a>
+- <a href="/docs/developing-packages/">Knowledge Article: Developing Packages</a>
 - [hab pkg binlink](#hab-pkg-binlink) Creates a symlink for a package binary in a common 'PATH' location
 - [hab pkg build](#hab-pkg-build) Builds a Plan using a Studio
 - [hab pkg channels](#hab-pkg-channels) Find out what channels a package belongs to
@@ -387,13 +387,13 @@ Commands relating to Habitat packages.
 - [hab pkg exec](#hab-pkg-exec) Executes a command using the 'PATH' context of an installed package
 - [hab pkg export](#hab-pkg-export) Exports the package to the specified format
 - [hab pkg hash](#hab-pkg-hash) Generates a blake2b hashsum from a target at any given filepath
-- [hab pkg install](#hab-pkg-install) Installs a Habitat package from a Depot or locally from a Habitat Artifact
+- [hab pkg install](#hab-pkg-install) Installs a Habitat package from Habitat Builder or locally from a Habitat Artifact
 - [hab pkg path](#hab-pkg-path) Prints the path to a specific installed release of a package
 - [hab pkg promote](#hab-pkg-promote) Promote a package to a specified channel
 - [hab pkg provides](#hab-pkg-provides) Search installed Habitat packages for a given file
-- [hab pkg search](#hab-pkg-provides) Search for a package on a Depot
+- [hab pkg search](#hab-pkg-provides) Search for a package on Habitat Builder
 - [hab pkg sign](#hab-pkg-sign) Signs an archive with an origin key, generating a Habitat Artifact
-- [hab pkg upload](#hab-pkg-upload) Uploads a local Habitat Artifact to a Depot
+- [hab pkg upload](#hab-pkg-upload) Uploads a local Habitat Artifact to Habitat Builder
 - [hab pkg verify](#hab-pkg-verify) Verifies a Habitat Artifact with an origin key
 
 <h2 id="hab-pkg-binlink" class="anchor">hab pkg binlink</h2>
@@ -457,7 +457,7 @@ Find out what channels a package belongs to
 
 **OPTIONS** 
 
-    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 
 
@@ -493,8 +493,8 @@ Demote a package from a specified channel
 
 **OPTIONS** 
 
-    -z, --auth <AUTH_TOKEN>    Authentication token for the Depot
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Habitat Builder
+    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 
 
@@ -550,7 +550,7 @@ Exports the package to the specified format
 **OPTIONS** 
 
     -c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel (default: stable)
-    -u, --url <DEPOT_URL>      Retrieve the container's package from the specified Depot (default: https://bldr.habitat.sh/v1/depot)
+    -u, --url <BUILDER_URL>    Retrieve the container's package from the specified Habitat Builder (default: https://bldr.habitat.sh/)
 
 **ARGS** 
 
@@ -574,7 +574,7 @@ Generates a blake2b hashsum from a target at any given filepath
     <SOURCE>    A filepath of the target
 
 <h2 id="hab-pkg-install" class="anchor">hab pkg install</h2>
-Installs a Habitat package from a Depot or locally from a Habitat Artifact
+Installs a Habitat package from Habitat Builder or locally from a Habitat Artifact
 
 **USAGE** 
 
@@ -589,7 +589,7 @@ Installs a Habitat package from a Depot or locally from a Habitat Artifact
 **OPTIONS** 
 
     -c, --channel <CHANNEL>    Install from the specified release channel (default: stable)
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (default: https://bldr.habitat.sh/v1/depot)
+    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (default: https://bldr.habitat.sh)
 
 **ARGS** 
 
@@ -626,8 +626,8 @@ Promote a package to a specified channel
 
 **OPTIONS** 
 
-    -z, --auth <AUTH_TOKEN>    Authentication token for the Depot
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Habitat Builder
+    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 
 
@@ -654,7 +654,7 @@ Search installed Habitat packages for a given file
     <FILE>    File name to find
 
 <h2 id="hab-pkg-search" class="anchor">hab pkg search</h2>
-Search for a package on a Depot
+Search for a package on Habitat Builder
 
 **USAGE** 
 
@@ -667,7 +667,7 @@ Search for a package on a Depot
 
 **OPTIONS** 
 
-    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 
     <SEARCH_TERM>    Search term
@@ -694,7 +694,7 @@ Signs an archive with an origin key, generating a Habitat Artifact
     <DEST>      The destination path to the signed Habitat Artifact (ex:/home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-upload" class="anchor">hab pkg upload</h2>
-Uploads a local Habitat Artifact to a Depot
+Uploads a local Habitat Artifact to Habitat Builder
 
 **USAGE** 
 
@@ -707,9 +707,9 @@ Uploads a local Habitat Artifact to a Depot
 
 **OPTIONS** 
 
-    -z, --auth <AUTH_TOKEN>    Authentication token for the Depot
+    -z, --auth <AUTH_TOKEN>    Authentication token for Habitat Builder
     -c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to `unstable`, regardless of the   value of this option. (default: none)
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 
 
@@ -783,8 +783,8 @@ Commands relating to Habitat ring keys
 - [hab ring key export](#hab-ring-key-export)
 - [hab ring key generate](#hab-ring-key-generate)
 - [hab ring key import](#hab-ring-key-import)
-- <a href="/docs/run-packages-security">Knowledge Article: Supervisor Security</a>
-- <a href="/docs/concepts-keys">Knowledge Article: Keys</a>
+- <a href="/docs/using-habitat/#using-encryption">Knowledge Article: Supervisor Security</a>
+- <a href="/docs/glossary/#sts=Keys">Knowledge Article: Keys</a>
 
 <h2 id="hab-ring-key-export" class="anchor">hab ring key export</h2>
 Outputs the latest ring key contents to stdout
@@ -912,8 +912,8 @@ Reads a stdin stream containing ring key contents and writes the key to disk
     hab studio -v -r /opt/slim rm
 
 **Read More:**
-- <a href="/docs/concepts-studio">Knowledge Article: Studio</a>
-- <a href="/docs/reference/environment-vars">Knowledge Article: Environment Variables</a>
+- <a href="/docs/glossary/#sts=Studio">Knowledge Article: Studio</a>
+- <a href="/docs/reference/#environment-variables">Knowledge Article: Environment Variables</a>
 - <a href="/blog/2017/07/Hab-Studio-Artifact-Caching/">Blog: Habitat Studio Artifact Caching</a>
 - [hab studio build](#hab-studio-build)
 - [hab studio enter](#hab-studio-enter)
@@ -1007,10 +1007,9 @@ hab sup [FLAGS] <SUBCOMMAND>
 
 **Read More:** 
 
-- <a href="/docs/concepts-supervisor">Knowledge Article: Supervisor</a>
-- <a href="/docs/reference/log-keys">Knowledge Article: Habitat Supervisor Log Key Reference</a>
-- <a href="/docs/run-packages-multiple-services">Knowledge Article: Run Multiple Services with one Supervisor</a>
-- <a href="/docs/internals-supervisors">Developer Documentation: Supervisor Internals</a>
+- <a href="/docs/glossary/#glossary-supervisor">Knowledge Article: Supervisor</a>
+- <a href="/docs/reference/#sts=Habitat Supervisor Log Key Reference">Knowledge Article: Habitat Supervisor Log Key Reference</a>
+- <a href="/docs/internals/#supervisor-internals">Developer Documentation: Supervisor Internals</a>
 - <a href="/blog/2017/04/Multi-Service-Supervision">Blog: Multi-Service Supervision</a>
 - [hab sup bash](#hab-sup-bash)
 - [hab sup config](#hab-sup-config)
@@ -1075,9 +1074,9 @@ Load a service to be started and supervised by Habitat from a package or artifac
         --channel <CHANNEL>
             Receive package updates from the specified release channel [default: stable]
 
-    -u, --url <DEPOT_URL>
-            Receive package updates from the Depot at the specified URL [default:
-            https://bldr.habitat.sh/v1/depot]
+    -u, --url <BUILDER_URL>
+            Receive package updates from a Habitat Builder at the specified URL [default:
+            https://bldr.habitat.sh]
     -e, --environment <ENVIRONMENT>    Environment name; [default: not set].
         --group <GROUP>
             The service group; shared config and topology [default: default].
@@ -1114,9 +1113,9 @@ Run the Habitat Supervisor
         --channel <CHANNEL>
             Receive Supervisor updates from the specified release channel [default: stable]
 
-    -u, --url <DEPOT_URL>
-            Receive Supervisor updates from the Depot at the specified URL [default:
-            https://bldr.habitat.sh/v1/depot]
+    -u, --url <BUILDER_URL>
+            Receive Supervisor updates from the Habitat Builder at the specified URL [default:
+            https://bldr.habitat.sh/]
     -n, --events <EVENTS>
             Name of the service group running a Habitat EventSrv to forward supervisor and
             service event data to
@@ -1175,9 +1174,9 @@ Start a loaded, but stopped, Habitat service or a transient service from a packa
         --config-from <CONFIG_DIR>
             Use package config from this path, rather than the package itself
 
-    -u, --url <DEPOT_URL>
-            Receive package updates from the Depot at the specified URL [default:
-            https://bldr.habitat.sh/v1/depot]
+    -u, --url <BUILDER_URL>
+            Receive package updates from the Habitat Builder at the specified URL [default:
+            https://bldr.habitat.sh/]
     -e, --environment <ENVIRONMENT>        Environment name; [default: not set].
     -n, --events <EVENTS>
             Name of the service group running a Habitat EventSrv to forward supervisor and
@@ -1311,8 +1310,8 @@ Generates a Habitat service key
 
 **Read More:** 
 
-- <a href="/docs/run-packages-security">Knowledge Article: Supervisor Security</a>
-- <a href="docs/concepts-keys">Knowledge Article: Keys</a>
+- <a href="/docs/using-habitat/#using-encryption">Knowledge Article: Supervisor Security</a>
+- <a href="/docs/glossary/#sts=Keys">Knowledge Article: Keys</a>
 
 <h2 id="hab-user-key-generate" class="anchor">hab user key generate</h2>
 Generates a Habitat user key
