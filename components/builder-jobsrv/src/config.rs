@@ -146,7 +146,7 @@ impl Default for NetCfg {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct ArchiveCfg {
-    pub backend: Option<ArchiveBackend>,
+    pub backend: ArchiveBackend,
 
     // These are for S3 archiving
     pub key: Option<String>,
@@ -162,7 +162,7 @@ pub struct ArchiveCfg {
 impl Default for ArchiveCfg {
     fn default() -> Self {
         ArchiveCfg {
-            backend: None,
+            backend: ArchiveBackend::Local,
 
             key: None,
             secret: None,
@@ -242,7 +242,7 @@ mod tests {
         assert_eq!(config.datastore.connection_test, true);
         assert_eq!(config.datastore.pool_size, 1);
 
-        assert_eq!(config.archive.backend, Some(ArchiveBackend::S3));
+        assert_eq!(config.archive.backend, ArchiveBackend::S3);
         assert_eq!(config.archive.key, Some("THIS_IS_THE_KEY".to_string()));
         assert_eq!(
             config.archive.secret,
