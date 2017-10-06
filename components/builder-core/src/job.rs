@@ -74,7 +74,7 @@ impl fmt::Debug for Job {
         f.debug_struct("Job")
             .field("id", &self.0.get_id())
             .field("owner_id", &self.0.get_owner_id())
-            .field("state", &self.0.get_owner_id())
+            .field("state", &self.0.get_state())
             .field("project", &self.0.get_project())
             .field("created_at", &self.0.get_created_at())
             .field("channel", &self.0.get_channel())
