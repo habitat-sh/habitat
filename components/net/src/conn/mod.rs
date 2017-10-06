@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 
 mod error;
 
+use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+
 use protobuf;
 use protocol::Routable;
 use protocol::message::{Header, Message, RouteInfo, Txn};
@@ -31,6 +33,8 @@ use socket::DEFAULT_CONTEXT;
 pub const RECV_TIMEOUT_MS: i32 = 5_000;
 /// Time to wait before timing out a message send for a `RouteBroker` to a router.
 pub const SEND_TIMEOUT_MS: i32 = 5_000;
+
+static TXN_ID: AtomicUsize = ATOMIC_USIZE_INIT;
 
 /// Message events signaling activity on the server listener.
 pub enum ConnEvent {
@@ -87,6 +91,8 @@ impl RouteClient {
             error!("{}, {}", err, e);
             return Err(err);
         }
+        let txn_id = next_txn_id();
+        self.msg_buf.txn_mut().unwrap().set_id(txn_id);
         if let Err(e) = route(&self.socket, &self.msg_buf) {
             let err = NetError::new(ErrCode::SOCK, "net:route:2");
             error!("{}, {}", err, e);
@@ -123,10 +129,20 @@ impl RouteClient {
             error!("{}, {}", err, e);
             return Err(err);
         }
+        // JW TODO: Due to the way ZMQ sockets work, we should never receive a message out of order
+        // or a message intended for another socket. We check the transaction ID as a corruption
+        // check. This message means that we have a bug in how we have connected the ZMQ sockets
+        // together and should be addressed immediately.
+        if self.msg_buf.txn().unwrap().id() != txn_id {
+            read_until_end(&self.socket, &mut self.recv_buf);
+            let err = NetError::new(ErrCode::BUG, "net:route:37");
+            error!("{}", err);
+            return Err(err);
+        }
         if self.msg_buf.message_id() == NetError::message_id() {
             match NetError::parse(&self.msg_buf) {
                 Ok(err) => return Err(err),
-                Err(err) => error!("{}", err),
+                Err(err) => panic!("{}", err),
             }
         }
         match self.msg_buf.parse::<T>() {
@@ -248,9 +264,7 @@ pub fn socket_read(
     match read_into(socket, message, buf) {
         Ok(event) => Ok(event),
         Err(err) => {
-            if let Err(err) = read_until_end(socket, buf) {
-                error!("error while reading to end of message, {}", err)
-            }
+            read_until_end(socket, buf);
             Err(err)
         }
     }
@@ -277,6 +291,14 @@ pub fn wait_recv(
     }
 }
 
+fn next_txn_id() -> u64 {
+    let mut id = 0;
+    while id == 0 {
+        id = TXN_ID.fetch_add(1, Ordering::Relaxed);
+    }
+    id as u64
+}
+
 fn read_into(
     socket: &zmq::Socket,
     message: &mut Message,
@@ -295,9 +317,7 @@ fn read_into(
     try_read_body(socket, message, buf)?;
     if buf.get_more() {
         warn!("received message with additional message parts");
-        if let Err(err) = read_until_end(socket, buf) {
-            error!("error while reading to end of message, {}", err)
-        }
+        read_until_end(socket, buf);
     }
     Ok(ConnEvent::OnMessage)
 }
@@ -376,15 +396,17 @@ fn read_body(
     Ok(())
 }
 
-fn read_until_end(socket: &zmq::Socket, buf: &mut zmq::Message) -> Result<(), ConnErr> {
+fn read_until_end(socket: &zmq::Socket, buf: &mut zmq::Message) {
     loop {
         if !buf.get_more() {
             break;
         }
-        socket.recv(buf, 0)?;
+        if let Err(err) = socket.recv(buf, 0) {
+            error!("error while reading to end of message, {}", err);
+            return;
+        }
         trace!("recv: overflow, {:?}", buf);
     }
-    Ok(())
 }
 
 fn send_body(socket: &zmq::Socket, message: &Message) -> Result<(), ConnErr> {
