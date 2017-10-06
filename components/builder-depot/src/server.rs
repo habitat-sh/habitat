@@ -466,6 +466,11 @@ pub fn origin_member_delete(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
+    // Do not allow the owner to be removed which would orphan the origin
+    if account_name == session.get_name() {
+        return Ok(Response::with(status::BadRequest));
+    }
+
     debug!(
         "Deleting user name {} for user {} origin {}",
         &account_name,
