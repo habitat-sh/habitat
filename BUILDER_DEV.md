@@ -31,12 +31,8 @@ Create the following files somewhere on your local filesystem (Note: the client_
 ```toml
 [depot]
 builds_enabled = true
+non_core_builds_enabled = true
 key_dir = "/path/to/bldr-key-pair"
-
-[github]
-url = "https://api.github.com"
-client_id = "0c2f738a7d0bd300de10"
-client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 ```
 
 `config_jobsrv.toml`
@@ -50,8 +46,6 @@ local_dir = "/tmp"
 
 `config_scheduler.toml`
 ```toml
-auth_token = "<your github token>"
-depot_url = "http://localhost:9636"
 ```
 
 `config_sessionsrv.toml`
@@ -60,17 +54,12 @@ depot_url = "http://localhost:9636"
 admin_team = 1995301
 build_worker_teams = [1995301]
 early_access_teams = [1995301]
-
-[github]
-url = "https://api.github.com"
-client_id = "0c2f738a7d0bd300de10"
-client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 ```
 
 `config_worker.toml`
 ```toml
 auth_token = "<your github token>"
-depot_url = "http://localhost:9636"
+bldr_url = "http://localhost:9636"
 auto_publish = true
 ```
 
