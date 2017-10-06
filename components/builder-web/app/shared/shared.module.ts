@@ -20,6 +20,7 @@ import { PackageListComponent } from "./package-list/package-list.component";
 import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
 import { ProjectSettingsComponent } from "./project-settings/project-settings.component";
 import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
+import { VisibilitySelectorComponent } from "./visibility-selector/visibility-selector.component";
 import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
 import { SimpleConfirmDialog } from "./dialog/simple-confirm/simple-confirm.dialog";
 import { TabsComponent } from "./tabs/TabsComponent";
@@ -58,6 +59,7 @@ import { UserLoggedInGuard } from "./user/user.guard";
     ProgressBarComponent,
     ProjectSettingsComponent,
     PlatformIconComponent,
+    VisibilitySelectorComponent,
     RepoFilterPipe,
     SimpleConfirmDialog,
     TabsComponent,
@@ -84,6 +86,7 @@ import { UserLoggedInGuard } from "./user/user.guard";
     MdRadioButton,
     MdSlideToggle,
     PackageListComponent,
+    VisibilitySelectorComponent,
     ProgressBarComponent,
     ProjectSettingsComponent,
     PlatformIconComponent,

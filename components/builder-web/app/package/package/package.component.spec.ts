@@ -10,7 +10,17 @@ import * as actions from "../../actions/index";
 import { AppStore } from "../../AppStore";
 import { PackageComponent } from "./package.component";
 
-class MockAppStore {}
+class MockAppStore {
+  dispatch() {}
+
+  getState() {
+    return {
+      session: {
+        token: "some-token"
+      }
+    };
+  }
+}
 
 class MockRoute {
   params = Observable.of({

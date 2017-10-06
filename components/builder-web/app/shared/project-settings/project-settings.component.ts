@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
+import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { MdDialog, MdDialogRef } from "@angular/material";
 import { DisconnectConfirmDialog } from "./dialog/disconnect-confirm/disconnect-confirm.dialog";
@@ -10,14 +10,14 @@ import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
 import { requireSignIn } from "../../util";
 import { AppStore } from "../../AppStore";
 import { addNotification, addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchGitHubFiles,
-    fetchGitHubInstallations, fetchGitHubInstallationRepositories, fetchProject } from "../../actions/index";
+    fetchGitHubInstallations, fetchGitHubInstallationRepositories, fetchProject, setProjectVisibility } from "../../actions/index";
 import config from "../../config";
 
 @Component({
     selector: "hab-project-settings",
     template: require("./project-settings.component.html")
 })
-export class ProjectSettingsComponent implements OnInit {
+export class ProjectSettingsComponent implements OnInit, OnChanges {
     connecting: boolean = false;
     filter: GitHubRepo = new GitHubRepo();
     selectedInstallation: any;
@@ -37,11 +37,20 @@ export class ProjectSettingsComponent implements OnInit {
     docker: DockerExportSettingsComponent;
 
     private sub: Subscription;
+    private _visibility: string;
 
     constructor(private store: AppStore, private disconnectDialog: MdDialog) {}
 
     ngOnInit() {
         this.store.dispatch(fetchGitHubInstallations());
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        const p = changes["project"];
+
+        if (p && p.currentValue) {
+            this.visibility = p.currentValue.visibility || this.visibility;
+        }
     }
 
     get config() {
@@ -88,6 +97,14 @@ export class ProjectSettingsComponent implements OnInit {
     get valid() {
         const dockerValid = (this.docker && this.docker.settings.enabled) ? this.docker.settings.valid : true;
         return !!this.selectedPath && dockerValid;
+    }
+
+    get visibility() {
+        return this._visibility || this.store.getState().origins.current.default_package_visibility || "public";
+    }
+
+    set visibility(v: string) {
+        this._visibility = v;
     }
 
     connect() {
@@ -216,8 +233,13 @@ export class ProjectSettingsComponent implements OnInit {
         window.scrollTo(0, 0);
     }
 
+    settingChanged(setting) {
+        this.visibility = setting;
+    }
+
     private handleSaved(successful, origin, name) {
         if (successful) {
+            this.saveVisibility(origin, name);
             this.saveIntegration(origin, name);
             this.store.dispatch(fetchProject(origin, name, this.token, false));
             this.saved.emit({ origin: origin, name: name });
@@ -235,5 +257,9 @@ export class ProjectSettingsComponent implements OnInit {
                 )
             );
         }
+    }
+
+    private saveVisibility(origin, name) {
+        this.store.dispatch(setProjectVisibility(origin, name, this.visibility, this.token));
     }
 }

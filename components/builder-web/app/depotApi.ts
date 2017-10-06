@@ -15,14 +15,29 @@
 import "whatwg-fetch";
 import config from "./config";
 import { packageString } from "./util";
+import { AppStore } from "./AppStore";
 
 const urlPrefix = `${config["habitat_api_url"]}/v1` || "v1";
 
-export function getUnique(origin: string, nextRange: number = 0) {
+function opts() {
+    const store = new AppStore();
+    let token = store.getState().session.token;
+    let o: any = {};
+
+    if (token) {
+        o.headers = {
+            Authorization: `Bearer ${token}`
+        };
+    }
+
+    return o;
+}
+
+export function getUnique(origin: string, nextRange: number = 0, token: string = "") {
     const url = `${urlPrefix}/depot/${origin}/pkgs?range=${nextRange}`;
 
     return new Promise((resolve, reject) => {
-        fetch(url).then(response => {
+        fetch(url, opts()).then(response => {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
             }
@@ -52,7 +67,7 @@ export function getLatest(origin: string, pkg: string) {
     const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/latest`;
 
     return new Promise((resolve, reject) => {
-        fetch(url).then(response => {
+        fetch(url, opts()).then(response => {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
             }
@@ -70,7 +85,7 @@ export function getLatestInChannel(origin: string, name: string, channel: string
     const url = `${urlPrefix}/depot/channels/${origin}/${channel}/pkgs/${name}/${version ? version + "/" : ""}latest`;
 
     return new Promise((resolve, reject) => {
-        fetch(url)
+        fetch(url, opts())
             .then(response => {
                 if (response.status >= 400) {
                     reject(new Error(response.statusText));
@@ -96,7 +111,7 @@ export function get(params, nextRange: number = 0) {
     }
 
     return new Promise((resolve, reject) => {
-        fetch(url).then(response => {
+        fetch(url, opts()).then(response => {
             // Fail the promise if an error happens.
             //
             // If we're hitting the fake api, the 4xx response will show up
@@ -131,7 +146,7 @@ export function getPackageVersions(origin: string, pkg: string) {
     const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/versions`;
 
     return new Promise((resolve, reject) => {
-        fetch(url).then(response => {
+        fetch(url, opts()).then(response => {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
             }

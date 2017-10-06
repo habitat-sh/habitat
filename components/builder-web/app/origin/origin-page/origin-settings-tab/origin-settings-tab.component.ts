@@ -28,7 +28,7 @@ export class OriginSettingsTabComponent {
     return this.store.getState().origins.current;
   }
 
-  get privacy() {
+  get visibility() {
     return this.origin.default_package_visibility;
   }
 
@@ -36,7 +36,7 @@ export class OriginSettingsTabComponent {
     return this.store.getState().session.token;
   }
 
-  update(event) {
-    this.store.dispatch(updateOrigin({ name: this.origin.name, default_package_visibility: event.value }, this.token));
+  update(setting) {
+    this.store.dispatch(updateOrigin({ name: this.origin.name, default_package_visibility: setting }, this.token));
   }
 }

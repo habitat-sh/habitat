@@ -28,6 +28,7 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     form: FormGroup;
     isOriginAvailable: Function;
     maxLength = 255;
+    visibility: string = "public";
 
     private api: BuilderApiClient;
     private name: FormControl;
@@ -72,8 +73,14 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     }
 
     createOrigin(origin) {
+        origin.default_package_visibility = this.visibility;
+
         this.store.dispatch(createOrigin(origin, this.token, this.form.get("generateKeys").value, this.isFirstOrigin, (origin) => {
             this.router.navigate(["/origins", origin.name]);
         }));
+    }
+
+    settingChanged(setting) {
+        this.visibility = setting;
     }
 }

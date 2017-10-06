@@ -200,7 +200,7 @@ impl AfterMiddleware for Cors {
             UniCase("range".to_string()),
         ]));
         res.headers.set(headers::AccessControlAllowMethods(
-            vec![Method::Put, Method::Delete],
+            vec![Method::Put, Method::Delete, Method::Patch],
         ));
         res.headers.set(headers::AccessControlExposeHeaders(
             vec![UniCase("content-disposition".to_string())],
