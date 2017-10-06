@@ -11,7 +11,7 @@ set -eu
 
 var_file="$HOME/tmp/our-awesome-vars"
 if [[ -f ${var_file} ]]; then
-  echo "Located the file with the magic environment variables."
+  echo "--> Located the file with the magic environment variables."
   source ${var_file}
   rm ${var_file}
 else
@@ -21,6 +21,9 @@ fi
 
 hab_src_dir="$HOME/code/$TRAVIS_BUILD_NUMBER/habitat"
 function cleanup {
+  echo "--> Removing origin secret keys from cache"
+  rm -f /hab/cache/keys/*-*.sig.key
+  echo "--> Purging directory '$hab_src_dir'"
   rm -rf "$hab_src_dir"
 }
 trap cleanup EXIT
@@ -59,8 +62,11 @@ core-20160810182414
 ${HAB_ORIGIN_KEY}
 EOF
 
+echo "--> Clearing any pre-exisiting origin secret keys from cache"
+rm -f /hab/cache/keys/*-*.sig.key
+echo "--> Importing origin secret key into cache"
 ${mac_hab} origin key import < ./core.sig.key
-rm ./core.sig.key
+rm -f ./core.sig.key
 
 # since this is running on a headless mac, we can't use docker/studio,
 # so we need to resort to this hackery
