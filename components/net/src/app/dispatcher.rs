@@ -212,8 +212,8 @@ fn worker_run<T>(
     T: Dispatcher,
 {
     let mut message = Message::default();
-    let mut conn = RouteConn::new().unwrap();
-    conn.connect(&*reply_queue, &*request_queue).unwrap();
+    let mut conn = RouteConn::new(request_queue.clone()).unwrap();
+    conn.connect(&*reply_queue).unwrap();
     rz.send(()).unwrap();
     loop {
         message.reset();

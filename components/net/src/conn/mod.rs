@@ -18,6 +18,7 @@
 
 mod error;
 
+use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 
 use protobuf;
@@ -59,7 +60,7 @@ impl RouteClient {
     ///
     /// * Socket(s) could not be created
     pub fn new() -> Result<Self, ConnErr> {
-        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::REQ)?;
         socket.set_rcvtimeo(RECV_TIMEOUT_MS)?;
         socket.set_sndtimeo(SEND_TIMEOUT_MS)?;
         socket.set_immediate(true)?;
@@ -159,28 +160,25 @@ impl RouteClient {
 /// Underlying connection struct for sending and receiving messages to and from a RouteSrv.
 pub struct RouteConn {
     rep_sock: zmq::Socket,
-    req_conn: RouteClient,
     recv_buf: zmq::Message,
+    req_queue: Arc<String>,
 }
 
 impl RouteConn {
-    pub fn new() -> Result<Self, ConnErr> {
+    pub fn new(req_queue: Arc<String>) -> Result<Self, ConnErr> {
         let rep_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
-        let req_conn = RouteClient::new()?;
         Ok(RouteConn {
             rep_sock: rep_sock,
-            req_conn: req_conn,
             recv_buf: zmq::Message::new()?,
+            req_queue: req_queue,
         })
     }
 
-    pub fn connect<T, U>(&self, rep_queue: T, req_queue: U) -> Result<(), ConnErr>
+    pub fn connect<T>(&self, rep_queue: T) -> Result<(), ConnErr>
     where
         T: AsRef<str>,
-        U: AsRef<str>,
     {
         self.rep_sock.connect(rep_queue.as_ref())?;
-        self.req_conn.connect(req_queue)?;
         Ok(())
     }
 
@@ -189,7 +187,9 @@ impl RouteConn {
         M: Routable,
         T: protobuf::MessageStatic,
     {
-        self.req_conn.route(message)
+        let mut conn = RouteClient::new().unwrap();
+        conn.connect(&*self.req_queue).unwrap();
+        conn.route(message)
     }
 
     pub fn route_reply<T>(&self, message: &mut Message, reply: &T) -> Result<(), ConnErr>
