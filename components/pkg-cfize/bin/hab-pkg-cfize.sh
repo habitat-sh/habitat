@@ -47,7 +47,7 @@ print_help() {
 
 $author
 
-Habitat Package CFize - Create a Cloud Foundry ready Docker image from a given package.¬
+Habitat Package CFize - Create a Cloud Foundry ready Docker image from a given package.
 
 USAGE:
   $program [PKG] [MAPPING]
@@ -172,7 +172,7 @@ version='@version@'
 # The author of this program
 author='@author@'
 # The short version of the program name which is used in logging output
-program=$(basename $0)
+program=hab-pkg-export-cf
 
 if [ "$#" -eq 0 ]; then
   print_help
