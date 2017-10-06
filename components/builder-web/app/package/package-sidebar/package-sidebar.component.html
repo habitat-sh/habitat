@@ -25,12 +25,14 @@
       None. <a [routerLink]="['./']">View available versions</a>.
     </p>
   </div>
-  <div class="command">
-    <h3>Run Command</h3>
-    <hab-copyable [command]="runCommand"></hab-copyable>
-  </div>
-  <div class="command">
-    <h3>Export Command</h3>
-    <hab-copyable [command]="exportCommand"></hab-copyable>
+  <div *ngIf="isAService">
+      <div class="command">
+        <h3>Run Command</h3>
+        <hab-copyable [command]="runCommand"></hab-copyable>
+      </div>
+      <div class="command">
+        <h3>Export Command</h3>
+        <hab-copyable [command]="exportCommand"></hab-copyable>
+      </div>
   </div>
 </div>

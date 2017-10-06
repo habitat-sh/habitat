@@ -49,6 +49,10 @@ export class PackageSidebarComponent implements OnChanges {
         return `hab pkg export docker ${this.origin}/${this.name}`;
     }
 
+    get isAService() {
+        return this.latestStable && this.latestStable.is_a_service;
+    }
+
     get latestStable() {
         return this.store.getState().packages.latestInChannel.stable;
     }

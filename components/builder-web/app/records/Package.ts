@@ -28,5 +28,6 @@ export const Package = Record({
     exposes: [],
     config: undefined,
     channels: [],
-    target: undefined
+    target: undefined,
+    is_a_service: undefined
 });
