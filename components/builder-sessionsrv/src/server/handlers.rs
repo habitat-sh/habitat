@@ -14,11 +14,10 @@
 
 use std::env;
 
-use base64;
 use hab_net::app::prelude::*;
 use hab_net::privilege::{self, FeatureFlags};
 
-use protocol::{message, net};
+use protocol::net;
 use protocol::sessionsrv as proto;
 
 use super::{ServerState, Session};
@@ -106,7 +105,7 @@ pub fn session_create(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let mut msg = req.parse::<proto::SessionCreate>()?;
-    let mut session = Session::default();
+    debug!("session-create, {:?}", msg);
     let mut flags = FeatureFlags::default();
     if env::var_os("HAB_FUNC_TEST").is_some() {
         flags = FeatureFlags::all();
@@ -119,23 +118,11 @@ pub fn session_create(
     account_req.set_email(msg.take_email());
 
     match conn.route::<proto::AccountFindOrCreate, proto::Account>(&account_req) {
-        Ok(mut account) => {
-            let mut token = proto::SessionToken::new();
-            token.set_account_id(account.get_id());
-            token.set_extern_id(msg.get_extern_id());
-            token.set_provider(msg.get_provider());
-            token.set_token(msg.get_token().to_string().into_bytes());
-            let bytes = message::encode(&token)?;
-            let encoded_token = base64::encode(&bytes);
-
-            session.set_id(account.get_id());
-            session.set_email(account.take_email());
-            session.set_name(account.take_name());
-            session.set_token(encoded_token);
-            session.set_flags(flags.bits());
-            session.set_oauth_token(msg.take_token());
+        Ok(account) => {
+            let session = Session::build(msg, account, flags)?;
             {
-                state.sessions.write().unwrap().replace(session.clone());
+                debug!("issuing session, {:?}", session);
+                state.sessions.write().unwrap().insert(session.clone());
             }
             conn.route_reply(req, &*session)?;
         }
@@ -154,9 +141,10 @@ pub fn session_get(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let msg = req.parse::<proto::SessionGet>()?;
-    let encoded = message::encode(msg.get_token())?;
-    let base64_token = base64::encode(&encoded);
-    match state.sessions.read().unwrap().get(base64_token.as_str()) {
+    match state.sessions.read().unwrap().get(&(
+        msg.get_token().get_extern_id(),
+        msg.get_token().get_provider(),
+    )) {
         Some(session) => {
             if session.expired() {
                 let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:1");
