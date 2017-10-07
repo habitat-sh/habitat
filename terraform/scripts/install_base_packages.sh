@@ -111,6 +111,15 @@ log "Installing public origin keys"
 mkdir -p /hab/cache/keys
 cp ${tmpdir}/keys/* /hab/cache/keys
 
+# When installing packages (even from a .hart file), we pull
+# dependencies from Builder, but we pull them *through the artifact
+# cache*. If we put all the hart files in the cache first, we should
+# be able to install everything we need. There will be some extra
+# artifacts, but that's a minor concern.
+log "Populating artifact cache"
+mkdir -p /hab/cache/artifacts
+cp ${tmpdir}/artifacts/* /hab/cache/artifacts
+
 for pkg in "${sup_packages[@]}" ${services_to_install[@]:-}
 do
     pkg_name=${pkg##core/} # strip "core/" if it's there
