@@ -48,5 +48,7 @@ habitatConfig({
     // The main website URL
     www_url: "https://www.habitat.sh",
     // Feature flags
-    feature_flags: {}
+    feature_flags: {
+        project: false
+    }
 });
