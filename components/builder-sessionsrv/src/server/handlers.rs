@@ -141,22 +141,35 @@ pub fn session_get(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let msg = req.parse::<proto::SessionGet>()?;
-    match state.sessions.read().unwrap().get(&(
-        msg.get_token().get_extern_id(),
-        msg.get_token().get_provider(),
-    )) {
-        Some(session) => {
-            if session.expired() {
-                let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:1");
+    let expire_session = {
+        match state.sessions.read().unwrap().get(&(
+            msg.get_token().get_extern_id(),
+            msg.get_token().get_provider(),
+        )) {
+            Some(session) => {
+                if session.expired() {
+                    true
+                } else if session.validate_token(msg.get_token()) {
+                    conn.route_reply(req, &**session)?;
+                    false
+                } else {
+                    let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:2");
+                    conn.route_reply(req, &*err)?;
+                    false
+                }
+            }
+            None => {
+                let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:0");
                 conn.route_reply(req, &*err)?;
-            } else {
-                conn.route_reply(req, &**session)?;
+                false
             }
         }
-        None => {
-            let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:0");
-            conn.route_reply(req, &*err)?;
-        }
+    };
+    if expire_session {
+        state.sessions.write().unwrap().remove(&(
+            msg.get_token().get_extern_id(),
+            msg.get_token().get_provider(),
+        ));
     }
     Ok(())
 }
