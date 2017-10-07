@@ -51,7 +51,7 @@ impl Default for Config {
             ui: UiCfg::default(),
             depot: depot::config::Config::default(),
             events_enabled: false,
-            non_core_builds_enabled: false,
+            non_core_builds_enabled: true,
             log_dir: env::temp_dir().to_string_lossy().into_owned(),
         }
     }
@@ -136,7 +136,6 @@ mod tests {
 
         [depot]
         path = "/hab/svc/hab-depot/data"
-        builds_enabled = true
         events_enabled = true
         log_dir = "/hab/svc/hab-depot/var/log"
 
@@ -183,7 +182,7 @@ mod tests {
 
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(config.events_enabled, false);
-        assert_eq!(config.non_core_builds_enabled, false);
+        assert_eq!(config.non_core_builds_enabled, true);
         assert_eq!(config.http.port, 9000);
     }
 }
