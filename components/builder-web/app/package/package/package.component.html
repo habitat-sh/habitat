@@ -6,32 +6,32 @@
     <h4>package</h4>
   </div>
   <nav md-tab-nav-bar>
-    <a md-tab-link *ngIf="enabled('latest')"
+    <a md-tab-link
        routerLink="latest"
        routerLinkActive #rla="routerLinkActive"
        [active]="rla.isActive">
       Latest
     </a>
-    <a md-tab-link *ngIf="enabled('readme')"
+    <a md-tab-link
        routerLink="readme"
        routerLinkActive #rla="routerLinkActive"
        [active]="rla.isActive">
       Readme
     </a>
-    <a md-tab-link *ngIf="enabled('versions')"
+    <a md-tab-link
       routerLink="./"
       [routerLinkActiveOptions]="{exact: true}"
       routerLinkActive #rla="routerLinkActive"
       [active]="rla.isActive">
       Versions
     </a>
-    <a md-tab-link *ngIf="enabled('builds')"
+    <a md-tab-link
        routerLink="builds"
        routerLinkActive #rla="routerLinkActive"
        [active]="rla.isActive">
       Build Jobs
     </a>
-    <a md-tab-link *ngIf="enabled('settings') && isOriginMember"
+    <a md-tab-link *ngIf="projectsEnabled && isOriginMember"
        routerLink="settings"
        routerLinkActive #rla="routerLinkActive"
        [active]="rla.isActive">
