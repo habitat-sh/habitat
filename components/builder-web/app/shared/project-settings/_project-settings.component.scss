@@ -11,6 +11,30 @@ hab-project-settings {
     p {
       font-size: rem(14);
       margin-bottom: 0;
+
+      &.note {
+        position: relative;
+        margin-top: 0;
+        padding: 14px 14px 14px 48px;
+        background-color: $very-light-gray;
+        border-radius: $global-radius;
+        color: $dark-blue;
+        margin-bottom: 18px;
+
+        hab-icon {
+          position: absolute;
+          left: 14px;
+          top: 16px;
+          width: 24px;
+          height: 24px;
+          color: $dark-gray;
+        }
+
+        a {
+          color: $dark-blue;
+          text-decoration: underline;
+        }
+      }
     }
 
     .connect {
@@ -146,7 +170,7 @@ hab-project-settings {
         color: $hab-white;
         font-size: rem(14);
         padding: 4px 14px;
-        margin-bottom: 36px;
+        margin-bottom: 28px;
 
         li {
           display: inline-block;
@@ -174,6 +198,34 @@ hab-project-settings {
         p {
           font-size: rem(14);
           margin-bottom: 12px;
+
+          code {
+            font-family: $monospace-font-family;
+            font-size: rem(12);
+          }
+        }
+
+        form {
+          margin-bottom: 20px;
+        }
+
+        input {
+          font-family: $monospace-font-family;
+          font-size: rem(12);
+          margin-bottom: 16px;
+        }
+
+        small {
+          display: block;
+          margin-bottom: 10px;
+          font-size: rem(12);
+        }
+
+        hab-icon {
+          top: 7px;
+          right: 6px;
+          width: 16px;
+          height: 16px;
         }
       }
 
@@ -181,39 +233,14 @@ hab-project-settings {
         margin-top: 28px;
       }
 
-      .files {
-
-        md-radio-group {
-          display: block;
-          margin-bottom: 18px;
-
-          md-radio-button {
-            display: block;
-            line-height: rem(40);
-            border-bottom: 1px solid $very-light-gray;
-
-            .mat-radio-container {
-              margin-right: 40px;
-            }
-
-            label {
-              margin-bottom: 2px;
-            }
-
-            hab-icon {
-              margin-right: 12px;
-            }
-
-            span {
-              font-size: rem(12);
-              text-transform: none;
-            }
-          }
-        }
+      .repo-link {
+        font-size: rem(12);
+        float: right;
+        display: block;
       }
 
       .controls {
-        margin-top: 30px;
+        margin-top: 12px;
 
         a {
           cursor: pointer;

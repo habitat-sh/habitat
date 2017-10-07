@@ -22,4 +22,44 @@
       display: block;
     }
   }
+
+  md-slide-toggle {
+    margin-bottom: 12px;
+  }
+
+  md-radio-group {
+    display: block;
+    border-top: 1px solid $very-light-gray;
+    margin-bottom: 18px;
+
+    md-radio-button {
+      display: block;
+      line-height: rem(40);
+      border-bottom: 1px solid $very-light-gray;
+
+      .mat-radio-container {
+        margin-right: 40px;
+      }
+
+      label {
+        margin-bottom: 2px;
+      }
+
+      hab-icon {
+        margin-right: 12px;
+      }
+
+      span {
+        font-size: rem(12);
+        text-transform: none;
+      }
+    }
+  }
+
+  input[type="text"] {
+
+    &::placeholder {
+      color: $medium-gray;
+    }
+  }
 }

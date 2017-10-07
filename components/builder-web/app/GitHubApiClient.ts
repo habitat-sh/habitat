@@ -77,9 +77,9 @@ export class GitHubApiClient {
         });
     }
 
-    public getUserInstallationRepositories(installationId: string) {
+    public getUserInstallationRepositories(installationId: string, page: number) {
         return new Promise((resolve, reject) => {
-            fetch(`${config["github_api_url"]}/user/installations/${installationId}/repositories?access_token=${this.token}`, {
+            fetch(`${config["github_api_url"]}/user/installations/${installationId}/repositories?access_token=${this.token}&page=${page}`, {
                 method: "GET",
                 headers: {
                     "Accept": [

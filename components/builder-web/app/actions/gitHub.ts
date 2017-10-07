@@ -117,13 +117,13 @@ export function fetchGitHubInstallations() {
 };
 
 
-export function fetchGitHubInstallationRepositories(installationId: string) {
+export function fetchGitHubInstallationRepositories(installationId: string, page: number = 1) {
     const token = cookies.get("gitHubAuthToken");
 
     return dispatch => {
         dispatch(clearGitHubRepos());
 
-        new GitHubApiClient(token).getUserInstallationRepositories(installationId)
+        new GitHubApiClient(token).getUserInstallationRepositories(installationId, page)
             .then((results) => {
                 dispatch(populateGitHubInstallationRepositories(results));
             });
