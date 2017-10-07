@@ -76,6 +76,10 @@ helpers do
     current_page.path.start_with?(path)
   end
 
+  def github_app_url
+    ENV['GITHUB_APP_URL'] || 'https://github.com/apps/habitat-builder'
+  end
+
   def builder_web_url
     ENV['BUILDER_WEB_URL'] || 'https://bldr.habitat.sh'
   end

@@ -77,8 +77,8 @@ const stickyVisibleBreakpoint = 300;
     function cookieDomain() {
       let delim = ".";
       let tld = location.hostname.split(delim);
-      tdl.shift();
-      return tdl.join(delim);
+      tld.shift();
+      return tld.join(delim);
     }
   });
 })($, Cookies);
