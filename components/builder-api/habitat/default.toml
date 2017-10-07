@@ -10,6 +10,7 @@ web_url = "https://github.com"
 client_id = ""
 client_secret = ""
 app_id = 5565
+webhook_secret = ""
 
 [web]
 app_url               = "https://bldr.habitat.sh"

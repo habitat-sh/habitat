@@ -146,6 +146,10 @@ pub fn session_get(
         msg.get_token().get_provider(),
     )) {
         Some(session) => {
+            if session.get_token() != msg.get_token().get_token() {
+                let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:0");
+                return conn.route_reply(req, &*err)?;
+            }
             if session.expired() {
                 let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:1");
                 conn.route_reply(req, &*err)?;

@@ -70,7 +70,6 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
 
     // Authenticate the hook
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
-    let our_token = &github.webhook_secret_token;
     let gh_signature = match req.headers.get::<XHubSignature>() {
         Some(&XHubSignature(ref sig)) => sig.clone(),
         None => {
@@ -88,7 +87,7 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    let key = PKey::hmac(our_token.as_bytes()).unwrap();
+    let key = PKey::hmac(github.webhook_secret.as_bytes()).unwrap();
     let mut signer = Signer::new(MessageDigest::sha1(), &key).unwrap();
     signer.update(payload.as_bytes()).unwrap();
     let hmac = signer.finish().unwrap();
