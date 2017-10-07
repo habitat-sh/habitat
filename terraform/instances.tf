@@ -550,12 +550,18 @@ resource "aws_instance" "scheduler" {
     destination = "/tmp/sch_log_parser.py"
   }
 
+  provisioner "file" {
+    source = "${path.module}/files/builder.logrotate"
+    destination = "/tmp/builder.logrotate"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a dogstreams: /tmp/builder-scheduler.log:/etc/dd-agent/sch_log_parser.py:my_log_parser\" /etc/dd-agent/datadog.conf",
       "sudo sed -i \"$ a tags: env:${var.env}, role:scheduler\" /etc/dd-agent/datadog.conf",
       "sudo cp /tmp/sch_log_parser.py /etc/dd-agent/sch_log_parser.py",
+      "sudo cp /tmp/builder.logrotate /etc/logrotate.d/builder",
       "sudo /etc/init.d/datadog-agent start"
     ]
   }
@@ -706,10 +712,16 @@ resource "aws_instance" "worker" {
     ]
   }
 
+  provisioner "file" {
+    source = "${path.module}/files/builder.logrotate"
+    destination = "/tmp/builder.logrotate"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:worker\" /etc/dd-agent/datadog.conf",
+      "sudo cp /tmp/builder.logrotate /etc/logrotate.d/builder",
       "sudo /etc/init.d/datadog-agent stop"
     ]
   }
