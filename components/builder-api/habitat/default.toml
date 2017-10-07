@@ -29,7 +29,6 @@ slack_url             = "http://slack.habitat.sh/"
 youtube_url           = "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk"
 demo_app_url          = "https://www.habitat.sh/demo"
 github_app_url        = "https://github.com/apps/habitat-builder"
-github_app_id         = "5565"
 
 [depot]
 builds_enabled = true
