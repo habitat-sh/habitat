@@ -1,4 +1,4 @@
-log_path = "{{pkg.svc_path}}/logs"
+log_path = "{{pkg.svc_var_path}}"
 
 {{~#eachAlive bind.router.members as |member|}}
 [[routers]]
