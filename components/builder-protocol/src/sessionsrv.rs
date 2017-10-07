@@ -154,6 +154,14 @@ impl Routable for AccountOriginCreate {
     }
 }
 
+impl Routable for AccountOriginRemove {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_account_name().to_string())
+    }
+}
+
 impl Routable for AccountOriginInvitationAcceptRequest {
     type H = InstaId;
 

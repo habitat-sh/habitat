@@ -43,7 +43,7 @@ use protobuf;
 use protocol::originsrv::*;
 use protocol::scheduler::{Group, GroupCreate, GroupGet, PackageStatsGet, PackageStats,
                           PackagePreCreate};
-use protocol::sessionsrv::{Account, AccountGet};
+use protocol::sessionsrv::{Account, AccountGet, AccountOriginRemove};
 use regex::Regex;
 use router::{Params, Router};
 use serde_json;
@@ -479,17 +479,28 @@ pub fn origin_member_delete(req: &mut Request) -> IronResult<Response> {
         &origin
     );
 
-    let mut request = OriginMemberRemove::new();
+    let mut session_request = AccountOriginRemove::new();
+    let mut origin_request = OriginMemberRemove::new();
+
     match helpers::get_origin(req, origin) {
-        Ok(origin) => request.set_origin_id(origin.get_id()),
+        Ok(origin) => {
+            session_request.set_origin_id(origin.get_id());
+            origin_request.set_origin_id(origin.get_id());
+        }
         Err(err) => return Ok(render_net_error(&err)),
     }
-    request.set_account_name(account_name.to_string());
+    session_request.set_account_name(account_name.to_string());
+    origin_request.set_account_name(account_name.to_string());
 
-    match route_message::<OriginMemberRemove, NetOk>(req, &request) {
+    if let Err(err) = route_message::<AccountOriginRemove, NetOk>(req, &session_request) {
+        error!("Error deleting origin_account from sessionsrv, {}", err);
+        return Ok(render_net_error(&err));
+    }
+
+    match route_message::<OriginMemberRemove, NetOk>(req, &origin_request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => {
-            error!("Error deleting member, {}", err);
+            error!("Error deleting member from originsrv, {}", err);
             Ok(render_net_error(&err))
         }
     }

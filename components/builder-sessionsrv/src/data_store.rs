@@ -202,6 +202,18 @@ impl DataStore {
         Ok(())
     }
 
+    pub fn delete_origin(&self, request: &sessionsrv::AccountOriginRemove) -> SrvResult<()> {
+        let conn = self.pool.get(request)?;
+        conn.execute(
+            "SELECT delete_account_origin_v1($1, $2)",
+            &[
+                &request.get_account_name(),
+                &(request.get_origin_id() as i64),
+            ],
+        ).map_err(SrvError::OriginCreate)?;
+        Ok(())
+    }
+
     pub fn create_account_origin_invitation(
         &self,
         invitation_create: &sessionsrv::AccountOriginInvitationCreate,
