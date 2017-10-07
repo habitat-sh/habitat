@@ -95,6 +95,10 @@ export class ProjectSettingsComponent implements OnChanges {
         };
     }
 
+    get projectsEnabled() {
+        return !!this.store.getState().featureFlags.current.get("project");
+    }
+
     get repos() {
         return this.store.getState().gitHub.installationRepositories;
     }
@@ -195,7 +199,6 @@ export class ProjectSettingsComponent implements OnChanges {
         this.selectedRepo = repo;
         this.selectedPath = this.defaultPath;
         window.scrollTo(0, 0);
-        debugger;
 
         setTimeout(() => {
             this.planField.markAsDirty();

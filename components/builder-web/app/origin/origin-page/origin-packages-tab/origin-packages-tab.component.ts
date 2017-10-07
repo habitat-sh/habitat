@@ -36,9 +36,9 @@ export class OriginPackagesTabComponent {
     return this.store.getState().origins.current.name;
   }
 
-  get projectsFlag() {
-    return this.store.getState().featureFlags.current.get("project");
-  }
+  get projectsEnabled() {
+    return !!this.store.getState().featureFlags.current.get("project");
+}
 
   get packagesUi() {
     return this.store.getState().packages.ui.visible;

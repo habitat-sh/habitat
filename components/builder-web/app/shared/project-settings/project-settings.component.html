@@ -1,4 +1,4 @@
-<section class="plan">
+<section class="plan" *ngIf="projectsEnabled">
     <div class="connect" *ngIf="!project && !connecting && !loading">
         <button md-raised-button color="primary" class="button" (click)="connect()">
             Connect a plan file
