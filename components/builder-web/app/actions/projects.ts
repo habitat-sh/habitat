@@ -16,12 +16,19 @@ import { BuilderApiClient } from "../BuilderApiClient";
 import { addNotification } from "./notifications";
 import { DANGER, INFO, SUCCESS, WARNING } from "./notifications";
 
+export const CLEAR_PROJECTS = "CLEAR_PROJECTS";
 export const CLEAR_CURRENT_PROJECT = "CLEAR_CURRENT_PROJECT";
 export const CLEAR_CURRENT_PROJECT_INTEGRATION = "CLEAR_CURRENT_PROJECT_SETTINGS";
 export const DELETE_PROJECT = "DELETE_PROJECT";
 export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
 export const SET_CURRENT_PROJECT_INTEGRATION = "SET_CURRENT_PROJECT_INTEGRATION";
 export const SET_PROJECTS = "SET_PROJECTS";
+
+function clearProjects() {
+    return {
+        type: CLEAR_PROJECTS
+    };
+}
 
 export function addProject(project: any, token: string, onComplete: Function = () => {}) {
   return dispatch => {
@@ -97,10 +104,14 @@ export function fetchProject(origin: string, name: string, token: string, alert:
   };
 }
 
-export function fetchProjects(token: string) {
+export function fetchProjects(origin: string, token: string) {
   return dispatch => {
-    new BuilderApiClient(token).getProjects().then(response => {
-      dispatch(setProjects(response));
+    dispatch(clearProjects());
+
+    new BuilderApiClient(token).getProjects(origin).then(response => {
+        if (Array.isArray(response) && response.length > 0) {
+          dispatch(setProjects(response));
+        }
     });
   };
 }

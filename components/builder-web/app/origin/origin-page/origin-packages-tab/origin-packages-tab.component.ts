@@ -44,6 +44,18 @@ export class OriginPackagesTabComponent {
     return this.store.getState().packages.ui.visible;
   }
 
+  get projectsUi() {
+    return this.store.getState().projects.ui.visible;
+  }
+
+  get projects() {
+    return this.store.getState().projects.visible;
+  }
+
+  get projectsExist() {
+    return this.projectsUi.exists && this.projects.size > 0;
+  }
+
   get packages() {
     return this.store.getState().packages.visible;
   }

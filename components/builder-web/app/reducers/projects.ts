@@ -21,6 +21,12 @@ export default function projects(state = initialState["projects"], action) {
 
     switch (action.type) {
 
+        case actionTypes.CLEAR_PROJECTS:
+            return state.set("visible", List()).
+                setIn(["ui", "visible", "errorMessage"], undefined).
+                setIn(["ui", "visible", "exists"], false).
+                setIn(["ui", "visible", "loading"], true);
+
         case actionTypes.CLEAR_CURRENT_PROJECT:
             return state.setIn(["current"], Project()).
                 setIn(["ui", "current", "exists"], false).
@@ -48,8 +54,17 @@ export default function projects(state = initialState["projects"], action) {
             return state.setIn(["current", "settings"], action.payload);
 
         case actionTypes.SET_PROJECTS:
-            return state.set("all",
-                state.get("added").concat(List(action.payload)));
+            if (action.error) {
+                return state.set("visible", List()).
+                    setIn(["ui", "visible", "errorMessage"], action.error.message).
+                    setIn(["ui", "visible", "exists"], false).
+                    setIn(["ui", "visible", "loading"], false);
+            } else {
+                return state.set("visible", state.get("visible").concat(List(action.payload))).
+                    setIn(["ui", "visible", "errorMessage"], undefined).
+                    setIn(["ui", "visible", "exists"], true).
+                    setIn(["ui", "visible", "loading"], false);
+            }
 
         default:
             return state;

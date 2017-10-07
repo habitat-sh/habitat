@@ -21,7 +21,7 @@ import { Origin } from "../../records/Origin";
 import { requireSignIn, packageString } from "../../util";
 import { fetchOrigin, fetchOriginInvitations, fetchOriginMembers, inviteUserToOrigin, filterPackagesBy,
     fetchMyOrigins, requestRoute, setCurrentProject, getUniquePackages,
-    fetchDockerIntegration } from "../../actions";
+    fetchDockerIntegration, fetchProjects } from "../../actions";
 
 @Component({
     template: require("./origin-page.component.html")
@@ -45,6 +45,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         this.store.dispatch(fetchMyOrigins(this.token));
         this.store.dispatch(fetchDockerIntegration(this.origin.name, this.token));
         this.getPackages();
+        this.getProjects();
         this.loadPackages = this.getPackages.bind(this);
     }
 
@@ -98,6 +99,10 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     labelFor(visibility) {
         return visibility === "private" ? "ON" : "OFF";
+    }
+
+    getProjects() {
+        this.store.dispatch(fetchProjects(this.origin.name, this.token));
     }
 
     getPackages() {

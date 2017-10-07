@@ -204,11 +204,17 @@ export default Record({
   })(),
   projects: Record({
     current: Project(),
+    visible: List(),
     ui: Record({
       current: Record({
         exists: false,
         loading: true,
-      })()
+      })(),
+      visible: Record({
+        errorMessage: undefined,
+        exists: false,
+        loading: true,
+      })(),
     })()
   })(),
   router: Record({

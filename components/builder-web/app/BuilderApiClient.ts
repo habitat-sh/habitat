@@ -286,11 +286,18 @@ export class BuilderApiClient {
         });
     }
 
-    public getProjects() {
+    public getProjects(origin: string) {
         return new Promise((resolve, reject) => {
-            // TODO make the real API call here once the endpoint exists
-            // for now, just pretend it succeeded and there were no results
-            resolve([]);
+            fetch(`${this.urlPrefix}/projects/${origin}`, {
+                method: "GET",
+                headers: this.headers
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
         });
     }
 
