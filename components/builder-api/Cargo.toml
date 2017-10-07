@@ -11,6 +11,9 @@ name = "bldr-api"
 path = "src/main.rs"
 doc = false
 
+[profile.release]
+debug = true
+
 [dependencies]
 clippy = {version = "*", optional = true}
 constant_time_eq = "*"
