@@ -2,6 +2,7 @@
 
 export HOME={{pkg.svc_data_path}}
 export RUST_LOG={{cfg.log_level}}
+export RUST_BACKTRACE=1
 pkg_svc_run="bldr-sessionsrv start -c {{pkg.svc_config_path}}/config.toml"
 
 if [ "\$(whoami)" = "root" ]; then
