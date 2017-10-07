@@ -3,6 +3,8 @@ module SidebarHelpers
   SIDEBAR_LAYOUTS = %w(
     about
     build_web_app
+    build_web_app_node
+    build_web_app_ruby
     docs
     download
     get_started

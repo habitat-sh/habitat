@@ -1,0 +1,27 @@
+---
+sidebar_links:
+- title: Build Your Web App
+  links:
+  - title: Introduction
+    link: /tutorials/build-your-own/node/
+    sub_links:
+    - title: Create Your Plan
+      link: /tutorials/build-your-own/node/create-plan/
+    - title: Define Dependencies
+      link: /tutorials/build-your-own/node/define-dependencies/
+    - title: Define Build Logic
+      link: /tutorials/build-your-own/node/define-build-logic/
+    - title: Define Hooks
+      link: /tutorials/build-your-own/node/define-hooks/
+    - title: Define Environment Variables
+      link: /tutorials/build-your-own/node/define-variables/
+    - title: Define Processes
+      link: /tutorials/build-your-own/node/define-processes/
+    - title: Add Configuration
+      link: /tutorials/build-your-own/node/add-config/
+    - title: Build and Test
+      link: /tutorials/build-your-own/node/build-test/
+    - title: Connect to Nginx
+      link: /tutorials/build-your-own/node/connect-nginx/
+  - title: Next Steps
+    link: /tutorials/build-your-own/node/next-steps/

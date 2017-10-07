@@ -1,0 +1,24 @@
+section
+ h1 Define Environment Variables
+
+ p Through associative arrays, you can define additional application variables in your plan.sh file. For example, to define additional application variables, you would add items to the <code>scaffolding_env</code> array. 
+
+ pre
+  code
+   |
+    declare -A scaffolding_env
+
+    # Add additional variables which use runtime config values
+    scaffolding_env[AWS_DEFAULT_REGION]="{{cfg.aws_default_region}}"
+    # Add addition variable which is hardcoded at build time
+    scaffolding_env[MY_PKG_VERSION]="$pkg_version/$pkg_release"
+
+ blockquote
+  p <b>Note</b> All app environment variable values which use handlebars templating will be computed and rendered by the Supervisor at run time.
+ 
+ = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_default_variables"
+
+ p For information on the default values for these variables, see #{link_to 'Add Configuration',"/tutorials/build-your-own/#{current_page.data.platform_short}/add-config/"}.
+    
+
+ = link_to 'Next: Define Processes', "/tutorials/build-your-own/#{current_page.data.platform_short}/define-processes/", class: 'button cta'

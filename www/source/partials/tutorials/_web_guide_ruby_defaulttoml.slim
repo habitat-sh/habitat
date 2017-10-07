@@ -1,0 +1,22 @@
+p For example, the Ruby scaffolding creates the following <code>default.toml</code> file for a Rails app that has a PostgreSQL database configured in the <code>config/database.yml</code> file for the app.
+
+pre
+ code
+  |
+   # Rails' secret key base is required and must be non-empty
+   # You can run 'rails secret' in development to generate
+   # a random key string.
+   secret_key_base = ""
+
+   lang = "en_US.UTF-8"
+   rack_env = "production"
+   rails_env = "production"
+
+   [app]
+   port = 8000
+
+   [db]
+   adapter = "postgresql"
+   name = "myrailsapp_production"
+   user = "myrailsapp"
+   password = "myrailsapp"

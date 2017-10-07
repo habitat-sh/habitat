@@ -1,0 +1,8 @@
+p As part of the detection logic of the Ruby scaffolding, it will parse your Gemfile and if it detects one of the following gems, it will add entries to the <code>pkg_deps</code> array for your plan so that those runtime dependencies are packaged up with your application.
+
+ul
+ li sqlite3
+ li Any PostgreSQL-related gems (see #{link_to 'Connect to Database','/tutorials/build-your-own/connect-database/'} topic for more information)
+ li nokogiri
+ li execjs
+ li webpacker

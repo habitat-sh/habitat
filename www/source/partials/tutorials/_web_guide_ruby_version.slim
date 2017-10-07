@@ -1,0 +1,22 @@
+p You can use the <code>ruby</code> keyword in your app's Gemfile to specify a version of Ruby. For example:
+
+pre
+ code
+  |
+   source "https://rubygems.org"
+
+   ruby "2.4.1"
+
+p The value of this keyword will be used to determine the version of the Habitat <code>core/ruby</code> package. For example, the Gemfile above would result in <code>core/ruby/2.4.1</code> being injected into your Plan's <code>pkg_deps</code> array.
+
+p You can also set the <code>scaffolding_ruby_pkg</code> variable in your plan.sh to specify a version of Ruby. For example:
+
+pre
+ code
+  |
+   scaffolding_ruby_pkg=core/ruby/2.4.1
+
+p The value of this variable will be used to determine the Habitat package to satisfy the role of your app's Ruby implementation.
+
+blockquote
+ p <b>Note</b> Currently only MRI versions of Ruby are supported.

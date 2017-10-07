@@ -3,41 +3,10 @@ title: Habitat - Build Your WebApp with Habitat
 ---
 
 section
-  h1 Build Your web application with Habitat
+ h1 Build Your web application with Habitat
 
-  p If you have gone through the #{link_to 'Build a Sample App tutorial', '/tutorials/sample-app/'}, we used Habitat to package up a small Ruby-on-Rails web application and connect it to a PostgreSQL database. This guide is a deeper dive about how to use the Ruby scaffolding to build and run your web application with Habitat. It explores how to extend and customize your Habitat package based on some common overrides to the default scaffolding behavior. For the complete reference on how to use the Ruby scaffolding, see the  #{link_to 'reference topic', 'https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md'} that accomplanies the Ruby scaffolding.
+ p Each guide is tailored by platform, so select the your web application type below. You can switch between guides using the selector at the top of the page.
 
-  p If your web application is not a Ruby-based application, you can use one of our other scaffoldings listed  #{link_to 'here','/docs/glossary#glossary-scaffolding'}. If there is not an existing scaffolding for your application type, please see the #{link_to 'Create Packages', '/docs/developing-packages/'} section of the reference documentation for information on how to create a plan from scratch.
-
-  h2 In this guide
-
-  p The steps in this guide provide a framework for how to use the Ruby scaffolding; however, you are not required to read them in order. Feel free to move back and forth between topics as you create the plan for your web application. 
-
-  ul
-   li #{link_to 'Create Your Plan','/tutorials/build-your-own/create-plan/'}: Learn how to use the scaffolding to create a basic structure for your plan.
-   li #{link_to 'Define Dependencies and Callbacks','/tutorials/build-your-own/define-dependencies/'}: Understand how to add runtime dependencies for your web application.
-   li #{link_to 'Define Build Logic For Your App','/tutorials/build-your-own/define-build-logic/'}: Define how source code for your web application is built and installed as part of the package creation process.
-   li #{link_to 'Define Hooks','/tutorials/build-your-own/define-hooks/'}: Define runtime behavior for your application.
-   li #{link_to 'Define Environment Variables','/tutorials/build-your-own/define-variables/'}: Set and configure environment variables that can be used at runtime.
-   li #{link_to 'Define Processes','/tutorials/build-your-own/define-processes/'}: Define tasks for binaries included in your web application.
-   li #{link_to 'Add Configuration','/tutorials/build-your-own/add-config/'}: Specify which settings on your web application can be configured at runtime.
-   li #{link_to 'Build and Test','/tutorials/build-your-own/build-test/'}: Learn how to build, test, and run your web application package.
-   li #{link_to 'Connect to a Database','/tutorials/build-your-own/connect-database/'}: Describes how to connect your web application to a PostgreSQL database through a container, in the cloud, or in a lcoal cluster.
-   li #{link_to 'Connect to Nginx','/tutorials/build-your-own/connect-nginx/'}: Explains how you can use the popular web server Nginx as a reverse proxy for your web application.
-   li #{link_to 'Next Steps','/tutorials/build-your-own/next-steps/'}: Provides suggested topics for further reading within the reference documentation and blog posts.
-
-
-  h2 Prerequisites
-
-  p This guide assumes that you have a Ruby web application already created with a Gemfile in your project directory. 
-
-  p Also, #{link_to 'download and install', '/tutorials/download/'} the Habitat CLI (command-line interface) on your workstation. You should complete all steps before doing any local development work with the CLI.
-
-  blockquote
-   p <b>Important</b> If you have the gem <code>tzinfo-data</code> referenced in your Gemfile, it is important that you remove any platform-specific attributes from the gem declaration. Your reference should simply look like the following:
-
-   pre
-    code gem 'tzinfo-data'
-
-
-= link_to 'Next: Create Your Plan', '/tutorials/build-your-own/create-plan/', class: 'button cta'
+ .buttons
+   =link_to 'Ruby', '/tutorials/build-your-own/ruby/', class: 'button outline ruby'
+   =link_to 'Node.js', '/tutorials/build-your-own/node/', class: 'button outline node'
