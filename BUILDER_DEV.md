@@ -30,8 +30,6 @@ Create the following files somewhere on your local filesystem (Note: the client_
 `config_api.toml`
 ```toml
 [depot]
-builds_enabled = true
-non_core_builds_enabled = true
 key_dir = "/path/to/bldr-key-pair"
 ```
 

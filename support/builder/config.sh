@@ -20,9 +20,6 @@ friends_only     = false
 source_code_url  = "https://github.com/habitat-sh/habitat"
 tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "http://$APP_HOSTNAME/#/sign-in"
-
-[depot]
-builds_enabled = true
 EOT
 
 mkdir -p /hab/svc/builder-jobsrv
