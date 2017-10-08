@@ -68,10 +68,10 @@ export default function origins(state = initialState["origins"], action) {
                 List(action.payload));
 
         case actionTypes.POPULATE_ORIGIN_DOCKER_INTEGRATIONS:
-            if (action.error) {
-                return state.setIn(["currentIntegrations", "docker"], List());
-            } else {
+            if (action.payload) {
                 return state.setIn(["currentIntegrations", "docker"], List(action.payload.names));
+            } else {
+                return state.setIn(["currentIntegrations", "docker"], List());
             }
 
         case actionTypes.POPULATE_ORIGIN_PUBLIC_KEYS:
