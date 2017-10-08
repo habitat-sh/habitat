@@ -257,7 +257,7 @@ fn handle_push(req: &mut Request, body: &str) -> IronResult<Response> {
 fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResult<Response> {
     let mut request = GroupCreate::new();
 
-    for plan in plans.into_iter() {
+    for plan in plans.iter() {
         let mut project_get = OriginProjectGet::new();
         project_get.set_name(format!("{}/{}", &plan.origin, &plan.name));
 
@@ -279,8 +279,8 @@ fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResul
         }
 
         debug!("Scheduling, {:?}", plan);
-        request.set_origin(plan.origin);
-        request.set_package(plan.name);
+        request.set_origin(plan.origin.clone());
+        request.set_package(plan.name.clone());
         // JW TODO: We need to be able to determine which platform this build is for based on
         // the directory structure the plan is found in or metadata inside the plan. We will need
         // to have this done before we support building additional targets with Builder.
@@ -290,8 +290,7 @@ fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResul
             Err(err) => debug!("Failed to create group, {:?}", err),
         }
     }
-
-    Ok(Response::with(status::Ok))
+    Ok(render_json(status::Ok, &plans))
 }
 
 fn read_bldr_config(
