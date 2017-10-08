@@ -16,7 +16,7 @@ use std::io::BufRead;
 
 use error::{Error, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Plan {
     pub name: String,
     pub origin: String,
