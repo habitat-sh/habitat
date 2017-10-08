@@ -533,81 +533,25 @@ fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> 
 
 fn generate_origin_keys(req: &mut Request) -> IronResult<Response> {
     debug!("Generate Origin Keys {:?}", req);
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let params = req.extensions.get::<Router>().unwrap().clone();
-    let mut public_request = OriginPublicKeyCreate::new();
-    let mut secret_request = OriginSecretKeyCreate::new();
-    public_request.set_owner_id(session.get_id());
-    secret_request.set_owner_id(session.get_id());
-
-    let origin = match params.find("origin") {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    match params.find("origin") {
         Some(origin) => {
             if !check_origin_access(req, session.get_id(), origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
             match helpers::get_origin(req, origin) {
-                Ok(mut origin) => {
-                    public_request.set_name(origin.get_name().to_string());
-                    public_request.set_origin_id(origin.get_id());
-                    secret_request.set_name(origin.take_name());
-                    secret_request.set_origin_id(origin.get_id());
+                Ok(origin) => {
+                    match helpers::generate_origin_keys(req, session, origin) {
+                        Ok(_) => Ok(Response::with(status::Created)),
+                        Err(err) => Ok(render_net_error(&err)),
+                    }
                 }
-                Err(err) => return Ok(render_net_error(&err)),
+                Err(err) => Ok(render_net_error(&err)),
             }
-            origin
         }
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-
-    let pair = match SigKeyPair::generate_pair_for_origin(origin) {
-        Ok(pair) => pair,
-        Err(e) => {
-            error!("Unable to generate origin keys, err={:?}", e);
-            return Ok(Response::with(status::InternalServerError));
-        }
-    };
-    public_request.set_revision(pair.rev.clone());
-    public_request.set_body(
-        pair.to_public_string()
-            .expect("no public key in generated pair")
-            .into_bytes(),
-    );
-    secret_request.set_revision(pair.rev.clone());
-    secret_request.set_body(
-        pair.to_secret_string()
-            .expect("no secret key in generated pair")
-            .into_bytes(),
-    );
-
-    match route_message::<OriginPublicKeyCreate, OriginPublicKey>(req, &public_request) {
-        Ok(_) => {
-            log_event!(
-                req,
-                Event::OriginKeyUpload {
-                    origin: origin.to_string(),
-                    version: public_request.get_revision().to_string(),
-                    account: session.get_id().to_string(),
-                }
-            );
-        }
-        Err(err) => return Ok(render_net_error(&err)),
-    };
-
-    match route_message::<OriginSecretKeyCreate, OriginSecretKey>(req, &secret_request) {
-        Ok(_) => {
-            log_event!(
-                req,
-                Event::OriginSecretKeyUpload {
-                    origin: origin.to_string(),
-                    version: secret_request.take_revision(),
-                    account: session.get_id().to_string(),
-                }
-            );
-        }
-        Err(err) => return Ok(render_net_error(&err)),
-    };
-
-    Ok(Response::with(status::Created))
+        None => Ok(Response::with(status::BadRequest)),
+    }
 }
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
@@ -1120,7 +1064,8 @@ fn package_stats(req: &mut Request) -> IronResult<Response> {
 
 fn schedule(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let origin_name = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -1142,8 +1087,34 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
+    let mut secret_key_request = OriginSecretKeyGet::new();
+    let origin = match helpers::get_origin(req, origin_name) {
+        Ok(origin) => {
+            secret_key_request.set_owner_id(origin.get_owner_id());
+            secret_key_request.set_origin(String::from(origin_name));
+            origin
+        }
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+    let need_keys =
+        match route_message::<OriginSecretKeyGet, OriginSecretKey>(req, &secret_key_request) {
+            Ok(key) => {
+                let mut pub_key_request = OriginPublicKeyGet::new();
+                pub_key_request.set_origin(String::from(origin_name));
+                pub_key_request.set_revision(key.get_revision().to_string());
+                route_message::<OriginPublicKeyGet, OriginPublicKey>(req, &pub_key_request).is_err()
+            }
+            Err(_) => true,
+        };
+
+    if need_keys {
+        if let Err(err) = helpers::generate_origin_keys(req, session, origin) {
+            return Ok(render_net_error(&err));
+        }
+    }
+
     let mut request = GroupCreate::new();
-    request.set_origin(String::from(origin));
+    request.set_origin(String::from(origin_name));
     request.set_package(String::from(package));
     request.set_target(target);
     request.set_deps_only(deps_only);
