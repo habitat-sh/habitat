@@ -11,9 +11,6 @@ name = "bldr-sessionsrv"
 path = "src/main.rs"
 doc = false
 
-[profile.release]
-debug = true
-
 [dependencies]
 base64 = "*"
 clippy = {version = "*", optional = true}

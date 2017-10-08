@@ -11,9 +11,6 @@ name = "bldr-jobsrv"
 path = "src/main.rs"
 doc = false
 
-[profile.release]
-debug = true
-
 [dependencies]
 builder_core = { path = "../builder-core" }
 clippy = {version = "*", optional = true}

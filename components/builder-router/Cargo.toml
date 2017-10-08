@@ -11,9 +11,6 @@ name = "bldr-router"
 path = "src/main.rs"
 doc = false
 
-[profile.release]
-debug = true
-
 [dependencies]
 clippy = {version = "*", optional = true}
 env_logger = "*"
