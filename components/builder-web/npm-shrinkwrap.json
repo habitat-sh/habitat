@@ -16,12 +16,12 @@
     },
     "@angular/cdk": {
       "version": "2.0.0-beta.10",
-      "from": "@angular/cdk@>=2.0.0-beta.10 <3.0.0",
+      "from": "https://registry.npmjs.org/@angular/cdk/-/cdk-2.0.0-beta.10.tgz",
       "resolved": "https://registry.npmjs.org/@angular/cdk/-/cdk-2.0.0-beta.10.tgz",
       "dependencies": {
         "tslib": {
           "version": "1.7.1",
-          "from": "tslib@>=1.7.1 <2.0.0",
+          "from": "https://registry.npmjs.org/tslib/-/tslib-1.7.1.tgz",
           "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.7.1.tgz"
         }
       }
@@ -88,12 +88,12 @@
     },
     "@angular/material": {
       "version": "2.0.0-beta.10",
-      "from": "@angular/material@>=2.0.0-beta.10 <3.0.0",
+      "from": "https://registry.npmjs.org/@angular/material/-/material-2.0.0-beta.10.tgz",
       "resolved": "https://registry.npmjs.org/@angular/material/-/material-2.0.0-beta.10.tgz",
       "dependencies": {
         "tslib": {
           "version": "1.7.1",
-          "from": "tslib@>=1.7.1 <2.0.0",
+          "from": "https://registry.npmjs.org/tslib/-/tslib-1.7.1.tgz",
           "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.7.1.tgz"
         }
       }
@@ -138,6 +138,11 @@
       "version": "1.3.0",
       "from": "https://registry.npmjs.org/ansi_up/-/ansi_up-1.3.0.tgz",
       "resolved": "https://registry.npmjs.org/ansi_up/-/ansi_up-1.3.0.tgz"
+    },
+    "async": {
+      "version": "2.5.0",
+      "from": "async@>=2.5.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/async/-/async-2.5.0.tgz"
     },
     "blueimp-md5": {
       "version": "2.10.0",

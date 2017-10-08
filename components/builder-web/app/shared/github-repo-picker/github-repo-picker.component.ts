@@ -16,7 +16,7 @@ import { Component, Input, OnInit, Output, EventEmitter } from "@angular/core";
 import { List, Map, OrderedSet } from "immutable";
 import { AppStore } from "../../AppStore";
 import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
-import { setSelectedGitHubOrg, resetRedirectRoute } from "../../actions/index";
+import { resetRedirectRoute } from "../../actions/index";
 
 @Component({
   selector: "hab-github-repo-picker",

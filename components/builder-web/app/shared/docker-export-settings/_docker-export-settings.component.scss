@@ -7,9 +7,16 @@
 
   .unconfigured {
     font-style: italic;
+    margin-left: 18px;
+    font-size: rem(13);
+  }
+
+  .integrations {
+    @include row;
   }
 
   .fields {
+    @include row;
     margin-top: 18px;
 
     label {
@@ -23,8 +30,18 @@
     }
   }
 
-  md-slide-toggle {
+  .toggle {
+    @include row;
     margin-bottom: 12px;
+
+    md-slide-toggle {
+      @include span-columns(1.5);
+    }
+
+    span {
+      @include span-columns(6);
+      @include omega;
+    }
   }
 
   md-radio-group {
@@ -57,6 +74,8 @@
   }
 
   input[type="text"] {
+    font-family: $monospace-font-family;
+    font-size: rem(12);
 
     &::placeholder {
       color: $medium-gray;

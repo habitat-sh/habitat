@@ -31,18 +31,10 @@ export default Record({
     authState: undefined,
     authToken: undefined,
     installations: List(),
-    installationRepositories: List(),
-    orgs: List(),
-    repos: List(),
-    files: List(),
-    selectedOrg: undefined,
     username: undefined,
     ui: Record({
-      orgs: Record({
-        loading: false,
-      })(),
-      repos: Record({
-        loading: false,
+      installations: Record({
+        loading: false
       })()
     })()
   })(),

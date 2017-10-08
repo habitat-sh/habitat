@@ -31,6 +31,7 @@ export class CheckingInputComponent implements OnInit {
     @Input() maxLength;
     @Input() name: string;
     @Input() notAvailableMessage: string;
+    @Input() unmatchedMessage: string;
     @Input() pattern;
     @Input() placeholder;
     @Input() value: string;
@@ -59,9 +60,9 @@ export class CheckingInputComponent implements OnInit {
             this.pattern = this.pattern || this.defaultPattern;
         }
 
-        this.notAvailableMessage = this.notAvailableMessage ||
-            "is already in use";
+        this.notAvailableMessage = this.notAvailableMessage || "is already in use";
         this.availableMessage = this.availableMessage || "is available";
+        this.unmatchedMessage = this.unmatchedMessage || "must match the correct format";
 
         this.control = new FormControl(
             this.value,

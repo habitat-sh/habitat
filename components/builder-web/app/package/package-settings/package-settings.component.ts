@@ -6,8 +6,7 @@ import { GitHubApiClient } from "../../GitHubApiClient";
 import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
 import { requireSignIn } from "../../util";
 import { AppStore } from "../../AppStore";
-import { addNotification, addProject, updateProject, setProjectIntegrationSettings, deleteProject,
-    fetchGitHubFiles, fetchProject } from "../../actions/index";
+import { addNotification, addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchProject } from "../../actions/index";
 import config from "../../config";
 
 @Component({

@@ -5,10 +5,9 @@ import { DisconnectConfirmDialog } from "./dialog/disconnect-confirm/disconnect-
 import { DockerExportSettingsComponent } from "../../shared/docker-export-settings/docker-export-settings.component";
 import { BuilderApiClient } from "../../BuilderApiClient";
 import { GitHubApiClient } from "../../GitHubApiClient";
-import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
 import { AppStore } from "../../AppStore";
-import { addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchGitHubFiles,
-    fetchGitHubInstallations, fetchGitHubInstallationRepositories, fetchProject, setProjectVisibility } from "../../actions/index";
+import { addProject, updateProject, setProjectIntegrationSettings, deleteProject,
+    fetchGitHubInstallations, fetchProject, setProjectVisibility } from "../../actions/index";
 import config from "../../config";
 
 @Component({
@@ -18,10 +17,10 @@ import config from "../../config";
 export class ProjectSettingsComponent implements OnChanges {
     connecting: boolean = false;
     doesFileExist: Function;
-    filter: GitHubRepo = new GitHubRepo();
+    doesRepoExist: Function;
     form: FormGroup;
     selectedInstallation: any;
-    selectedRepo: any;
+    selectedRepo: string;
     selectedPath: string;
 
     @Input() integrations;
@@ -41,14 +40,28 @@ export class ProjectSettingsComponent implements OnChanges {
 
     constructor(private formBuilder: FormBuilder, private store: AppStore, private disconnectDialog: MdDialog) {
         this.api = new BuilderApiClient(this.token);
-        this.form = formBuilder.group({});
         this.selectedPath = this.defaultPath;
+
+        this.doesRepoExist = (repo) => {
+            return new Promise((resolve, reject) => {
+                const matched = this.installations.filter((i) => {
+                    return i.get("full_name") === repo.trim();
+                });
+
+                if (matched.size > 0) {
+                    resolve(matched.get(0).get("full_name"));
+                }
+                else {
+                    reject();
+                }
+            });
+        };
 
         this.doesFileExist = (path) => {
             return this.api.findFileInRepo(
-                this.selectedInstallation.get("id"),
-                this.selectedRepo.getIn(["owner", "login"]),
-                this.selectedRepo.get("name"),
+                this.selectedInstallation.get("installation_id"),
+                this.selectedInstallation.get("org"),
+                this.selectedInstallation.get("name"),
                 this.planField.value
             );
         };
@@ -58,6 +71,8 @@ export class ProjectSettingsComponent implements OnChanges {
         const p = changes["project"];
 
         if (p && p.currentValue) {
+            this.selectedRepo = p.currentValue.vcs_data;
+            this.selectedPath = p.currentValue.plan_path;
             this.visibility = p.currentValue.visibility || this.visibility;
         }
     }
@@ -66,12 +81,16 @@ export class ProjectSettingsComponent implements OnChanges {
         return config;
     }
 
-    get planField() {
-        return this.form.controls["plan_path"];
-    }
-
     get connectButtonLabel() {
         return this.project ? "Update" : "Save";
+    }
+
+    get dockerEnabled() {
+        return this.dockerSettings && this.dockerSettings.docker_hub_repo_name !== "";
+    }
+
+    get dockerSettings() {
+        return this.store.getState().projects.current.settings;
     }
 
     get files() {
@@ -82,16 +101,24 @@ export class ProjectSettingsComponent implements OnChanges {
         return this.store.getState().gitHub.installations;
     }
 
+    get loading() {
+        return this.store.getState().gitHub.ui.installations.loading;
+    }
+
     get orgs() {
         return this.store.getState().gitHub.orgs;
+    }
+
+    get planField() {
+        return this.form.controls["plan_path"];
     }
 
     get planTemplate() {
         return {
             "origin": this.origin,
-            "plan_path": this.selectedPath,
-            "installation_id": this.selectedInstallation.get("id"),
-            "repo_id": this.selectedRepo.get("id")
+            "plan_path": this.planField.value,
+            "installation_id": this.selectedInstallation.get("installation_id"),
+            "repo_id": this.selectedInstallation.get("repo_id")
         };
     }
 
@@ -99,13 +126,17 @@ export class ProjectSettingsComponent implements OnChanges {
         return !!this.store.getState().featureFlags.current.get("project");
     }
 
+    get repoField() {
+        return this.form.controls["repo_path"];
+    }
+
     get repos() {
         return this.store.getState().gitHub.installationRepositories;
     }
 
     get repoUrl() {
-        if (this.selectedRepo) {
-            return `https://github.com/${this.selectedRepo.getIn(["owner", "login"])}/${this.selectedRepo.get("name")}`;
+        if (this.selectedInstallation) {
+            return `https://github.com/${this.selectedInstallation.get("full_name")}`;
         }
     }
 
@@ -117,10 +148,14 @@ export class ProjectSettingsComponent implements OnChanges {
         return this.store.getState().users.current.gitHub.get("login");
     }
 
-    get valid() {
+    get validRepo() {
+        return this.repoField ? this.repoField.valid : false;
+    }
+
+    get validProject() {
+        const planPathValid = this.planField ? this.planField.valid : false;
         const dockerValid = (this.docker && this.docker.settings.enabled) ? this.docker.settings.valid : true;
-        const planPathValid = this.form.valid;
-        return this.selectedRepo && dockerValid && planPathValid;
+        return this.selectedInstallation && dockerValid && planPathValid;
     }
 
     get visibility() {
@@ -162,19 +197,22 @@ export class ProjectSettingsComponent implements OnChanges {
         this.connecting = false;
         this.deselect();
         this.toggled.emit(this.connecting);
+        window.scroll(0, 0);
     }
 
     deselect() {
-        this.selectedInstallation = null;
+        this.form = this.formBuilder.group({});
         this.selectedRepo = null;
+        this.selectedInstallation = null;
         this.selectedPath = this.defaultPath;
-        this.filter = new GitHubRepo();
     }
 
     editConnection() {
         this.clearConnection();
         this.connect();
+        this.selectedRepo = this.parseGitHubUrl(this.project.vcs_data);
         this.selectedPath = this.project.plan_path;
+        setTimeout(() => { this.repoField.markAsDirty(); }, 1000);
     }
 
     saveConnection() {
@@ -190,23 +228,17 @@ export class ProjectSettingsComponent implements OnChanges {
         }
     }
 
-    selectInstallation(installation) {
-        this.selectedInstallation = installation;
-        this.store.dispatch(fetchGitHubInstallationRepositories(installation.get("id")));
-    }
-
-    selectRepo(repo) {
-        this.selectedRepo = repo;
-        this.selectedPath = this.defaultPath;
-        window.scrollTo(0, 0);
-
-        setTimeout(() => {
-            this.planField.markAsDirty();
-        }, 1000);
+    selectRepo() {
+        this.selectedInstallation = this.installations.find(i => i.get("full_name") === this.repoField.value);
+        setTimeout(() => { this.planField.markAsDirty(); }, 1000);
     }
 
     settingChanged(setting) {
         this.visibility = setting;
+    }
+
+    private parseGitHubUrl(url) {
+        return (url.match(/github.com\/(.+)\.git$/) || [""])[1] || "";
     }
 
     private handleSaved(successful, origin, name) {

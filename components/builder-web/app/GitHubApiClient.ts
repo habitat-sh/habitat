@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import "whatwg-fetch";
+import * as async from "async";
 import config from "./config";
 
 export interface File {
@@ -66,7 +67,91 @@ export class GitHubApiClient {
             })
             .then(response => {
                 if (response.ok) {
-                    resolve(response.json());
+                    response.json().then((data) => {
+                        let repos = [];
+
+                        // Fetch all installations for the signed-in user, then all repositories
+                        // for each installation, including subsequent pages if there are any.
+
+                        data.installations.forEach((install) => {
+                            repos.push((done) => {
+                                this.getUserInstallationRepositories(install.id, 1)
+                                    .then((firstPage: any) => {
+                                        const totalCount = firstPage.total_count;
+                                        const thisPage = firstPage.repositories;
+
+                                        if (totalCount > thisPage.length) {
+                                            const pageCount = Math.ceil(totalCount / thisPage.length);
+                                            let pages = [];
+
+                                            for (let page = 2; page <= pageCount; page++) {
+                                                pages.push((done) => {
+                                                    this.getUserInstallationRepositories(install.id, page)
+                                                        .then((pageResults: any) => {
+                                                            done(null, pageResults.repositories);
+                                                        })
+                                                        .catch((err) => {
+                                                            done(err);
+                                                        });
+                                                });
+                                            }
+
+                                            async.parallel(pages, (err, additionalPages) => {
+                                                if (err) {
+                                                    done(err);
+                                                }
+                                                else {
+                                                    additionalPages.forEach((p) => {
+                                                        firstPage.repositories = firstPage.repositories.concat(p);
+                                                    });
+
+                                                    done(null, {
+                                                        id: install.id,
+                                                        app_id: install.app_id,
+                                                        repos: firstPage.repositories
+                                                    });
+                                                }
+                                            });
+                                        }
+                                        else {
+                                            done(null, {
+                                                id: install.id,
+                                                app_id: install.app_id,
+                                                repos: firstPage.repositories
+                                            });
+                                        }
+                                    })
+                                    .catch((err) => {
+                                        done(err);
+                                    });
+                            });
+                        });
+
+                        async.parallel(repos, (err, installations) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                let results = [];
+
+                                installations.map((install) => {
+                                    install.repos.forEach((repo) => {
+                                        results.push({
+                                            repo_id: repo.id,
+                                            app_id: install.app_id,
+                                            installation_id: install.id,
+                                            full_name: repo.full_name,
+                                            org: repo.owner.login,
+                                            name: repo.name,
+                                            url: repo.url
+                                        });
+                                    });
+                                });
+
+                                resolve(Promise.resolve(results));
+                            }
+                        });
+                    });
                 } else {
                     reject(new Error(response.statusText));
                 }
@@ -77,7 +162,7 @@ export class GitHubApiClient {
         });
     }
 
-    public getUserInstallationRepositories(installationId: string, page: number) {
+    private getUserInstallationRepositories(installationId: string, page: number) {
         return new Promise((resolve, reject) => {
             fetch(`${config["github_api_url"]}/user/installations/${installationId}/repositories?access_token=${this.token}&page=${page}`, {
                 method: "GET",
