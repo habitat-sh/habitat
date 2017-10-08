@@ -107,6 +107,8 @@ export function fetchProject(origin: string, name: string, token: string, alert:
 export function fetchProjects(origin: string, token: string) {
   return dispatch => {
     dispatch(clearProjects());
+    dispatch(clearCurrentProject());
+    dispatch(clearCurrentProjectIntegration());
 
     new BuilderApiClient(token).getProjects(origin).then(response => {
         if (Array.isArray(response) && response.length > 0) {

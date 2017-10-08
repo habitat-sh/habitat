@@ -20,56 +20,27 @@ import config from "../config";
 export default function gitHub(state = initialState["gitHub"], action) {
     switch (action.type) {
 
-        case actionTypes.CLEAR_GITHUB_FILES:
-            return state.set("files", List());
-
         case actionTypes.CLEAR_GITHUB_INSTALLATIONS:
-            return state.set("installations", List());
-
-        case actionTypes.CLEAR_GITHUB_REPOS:
-            return state.set("installationRepositories", List());
+            return state.set("installations", List()).
+                setIn(["ui", "installations", "loading"], true);
 
         case actionTypes.LOAD_GITHUB_SESSION_STATE:
             return state.set("authState", action.payload.gitHubAuthState).
                 set("authToken", action.payload.gitHubAuthToken);
 
         case actionTypes.POPULATE_GITHUB_INSTALLATIONS:
-
-            const filtered = action.payload.installations.filter((i) => {
-                return i.integration_id.toString() === config["github_app_id"];
+            const filtered = action.payload.filter((i) => {
+                return i.app_id.toString() === config["github_app_id"];
             });
 
-            return state.set("installations", fromJS(filtered));
-
-        case actionTypes.POPULATE_GITHUB_INSTALLATION_REPOSITORIES:
-            return state.set("installationRepositories", fromJS(action.payload.repositories));
-
-        case actionTypes.POPULATE_GITHUB_REPOS:
-            return state.set("repos",
-                state.get("repos").concat(fromJS(action.payload)).
-                    sortBy(repo => repo.get("name")));
-
-        case actionTypes.POPULATE_GITHUB_FILES:
-            return state.set("files", fromJS(action.payload.items.sort((a, b) => {
-                if (a.path < b.path) { return -1; }
-                if (a.path > b.path) { return 1; }
-                return 0;
-            })));
+            return state.set("installations", fromJS(filtered)).
+                setIn(["ui", "installations", "loading"], false);
 
         case actionTypes.SET_GITHUB_AUTH_STATE:
             return state.set("authState", action.payload);
 
         case actionTypes.SET_GITHUB_AUTH_TOKEN:
             return state.set("authToken", action.payload);
-
-        case actionTypes.SET_GITHUB_ORGS_LOADING_FLAG:
-            return state.setIn(["ui", "orgs", "loading"], action.payload);
-
-        case actionTypes.SET_GITHUB_REPOS_LOADING_FLAG:
-            return state.setIn(["ui", "repos", "loading"], action.payload);
-
-        case actionTypes.SET_SELECTED_GITHUB_ORG:
-            return state.set("selectedOrg", action.payload);
 
         default:
             return state;

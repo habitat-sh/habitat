@@ -5,252 +5,204 @@ hab-project-settings {
     font-size: rem(12);
   }
 
-  .plan {
-    @include row;
+  p {
+    font-size: rem(14);
+    margin: 8px 0 12px;
 
-    p {
-      font-size: rem(14);
-      margin-bottom: 0;
+    &.note {
+      position: relative;
+      margin-top: 0;
+      padding: 14px 14px 14px 48px;
+      background-color: $very-light-gray;
+      border-radius: $global-radius;
+      color: $dark-blue;
+      margin-bottom: 18px;
 
-      &.note {
-        position: relative;
-        margin-top: 0;
-        padding: 14px 14px 14px 48px;
-        background-color: $very-light-gray;
-        border-radius: $global-radius;
-        color: $dark-blue;
-        margin-bottom: 18px;
-
-        hab-icon {
-          position: absolute;
-          left: 14px;
-          top: 16px;
-          width: 24px;
-          height: 24px;
-          color: $dark-gray;
-        }
-
-        a {
-          color: $dark-blue;
-          text-decoration: underline;
-        }
-      }
-    }
-
-    .connect {
-      margin-bottom: 14px;
-    }
-
-    .installations {
-      @include span-columns(4.5 of 9);
-
-      img {
+      hab-icon {
+        position: absolute;
+        left: 14px;
+        top: 16px;
         width: 24px;
         height: 24px;
-        border-radius: 2px;
-        margin-right: 8px;
-        vertical-align: middle;
+        color: $dark-gray;
+      }
+
+      a {
+        color: $dark-blue;
+        text-decoration: underline;
       }
     }
 
-    .repos {
-      @include span-columns(4.5 of 9);
-
-      input {
-        margin-bottom: 8px;
-      }
+    code {
+      font-family: $monospace-font-family;
+      font-size: rem(12);
     }
+  }
 
-    .browser {
+  .connect {
+    margin-bottom: 14px;
+
+    button {
+      margin-bottom: 12px;
+    }
+  }
+
+  .connected-plans {
+
+    li {
       @include row;
-    }
 
-    .installations, .repos {
-
-      li {
-        line-height:  40px;
-        padding: 0 4px;
+      &.heading {
         border-bottom: 1px solid $very-light-gray;
+      }
 
-        a {
-          display: block;
-          position: relative;
-          font-size: rem(14);
-          font-weight: 600;
-          color: $hab-gray-dark;
+      &.item {
+        font-size: rem(12);
+        padding: 12px 0;
+      }
+
+      .plan-path {
+        @include span-columns(6);
+
+        hab-icon {
+          margin-right: 12px;
+        }
+      }
+
+      .plan-exports, .plan-status, .plan-actions {
+        @include span-columns(2);
+      }
+
+      .plan-actions {
+
+        hab-icon {
+          width: 16px;
+          color: $hab-blue;
+          margin-right: 22px;
           cursor: pointer;
+          transition: color .2s linear;
 
-          hab-icon {
-            display: none;
-            width: 20px;
-            height: 20px;
-            @include chevron-right;
+          &:hover {
+            color: darken($hab-blue, 10%);
           }
 
-          &:hover, &.active {
-            background-color: rgba($medium-gray, 0.05);
-
-            hab-icon {
-              display: block;
-            }
+          &:active {
+            color: $hab-blue;
           }
         }
       }
-    }
 
-    .plans {
+      .plan-status {
+
+        hab-icon {
+          width: 18px;
+
+          &.success {
+            color: $hab-green-light;
+          }
+        }
+
+        span {
+          color: $medium-gray;
+        }
+      }
+    }
+  }
+
+  .connecting {
+    @include span-columns(9);
+    @include omega;
+
+    ol {
+      background-color: $hab-blue;
+      border-radius: $global-radius;
+      color: $hab-white;
+      font-size: rem(14);
+      padding: 4px 14px;
+      margin-bottom: 28px;
 
       li {
-        @include row;
+        display: inline-block;
+        margin-right: 8px;
 
-        &.heading {
-          border-bottom: 1px solid $very-light-gray;
+        &.active {
+          font-weight: 600;
         }
 
-        &.item {
-          font-size: rem(12);
-          padding: 12px 0;
+        &:first-child {
+          cursor: pointer;
         }
 
-        .plan-path {
-          @include span-columns(6);
-
-          hab-icon {
+        &:not(:first-child) {
+          &:before {
+            content: '→';
             margin-right: 12px;
           }
         }
-
-        .plan-exports, .plan-status, .plan-actions {
-          @include span-columns(2);
-        }
-
-        .plan-actions {
-
-          hab-icon {
-            width: 16px;
-            color: $hab-blue;
-            margin-right: 22px;
-            cursor: pointer;
-            transition: color .2s linear;
-
-            &:hover {
-              color: darken($hab-blue, 10%);
-            }
-
-            &:active {
-              color: $hab-blue;
-            }
-          }
-        }
-
-        .plan-status {
-
-          hab-icon {
-            width: 18px;
-
-            &.success {
-              color: $hab-green-light;
-            }
-          }
-
-          span {
-            color: $medium-gray;
-          }
-        }
       }
     }
 
-    .connecting {
-      @include span-columns(9);
-      @include omega;
+    hab-checking-input {
 
-      ol {
-        background-color: $hab-blue;
-        border-radius: $global-radius;
-        color: $hab-white;
-        font-size: rem(14);
-        padding: 4px 14px;
-        margin-bottom: 28px;
-
-        li {
-          display: inline-block;
-          margin-right: 8px;
-
-          &.active {
-            font-weight: 600;
-          }
-
-          &:first-child {
-            cursor: pointer;
-          }
-
-          &:not(:first-child) {
-            &:before {
-              content: '→';
-              margin-right: 12px;
-            }
-          }
-        }
-      }
-
-      .select {
-
-        p {
-          font-size: rem(14);
-          margin-bottom: 12px;
-
-          code {
-            font-family: $monospace-font-family;
-            font-size: rem(12);
-          }
-        }
-
-        form {
-          margin-bottom: 20px;
-        }
-
-        input {
-          font-family: $monospace-font-family;
-          font-size: rem(12);
-          margin-bottom: 16px;
-        }
-
-        small {
-          display: block;
-          margin-bottom: 10px;
-          font-size: rem(12);
-        }
-
-        hab-icon {
-          top: 7px;
-          right: 6px;
-          width: 16px;
-          height: 16px;
-        }
-      }
-
-      .docker-export-settings {
-        margin-top: 28px;
-      }
-
-      .repo-link {
+      input {
+        font-family: $monospace-font-family;
         font-size: rem(12);
-        float: right;
-        display: block;
+        margin-bottom: 16px;
+
+        &::placeholder {
+          color: $medium-gray;
+        }
       }
 
-      .controls {
-        margin-top: 12px;
+      small {
+        text-align: left;
+        display: block;
+        margin-bottom: 12px;
+        font-size: rem(12);
 
-        a {
-          cursor: pointer;
+        span {
+          margin-left: 0;
         }
+      }
 
-        button, a {
-          display: inline-block;
-          font-size: rem(14);
-          margin-right: 16px;
-        }
+      hab-icon {
+        top: 7px;
+        right: 6px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .try-again {
+      cursor: pointer;
+
+      hab-icon {
+        width: 0.9em;
+        margin-right: 1px;
+      }
+    }
+
+    .docker-export-settings {
+      margin-top: 28px;
+    }
+
+    .repo-link {
+      font-size: rem(12);
+      float: right;
+      display: block;
+    }
+
+    .controls {
+      margin: 24px 0;
+
+      a {
+        cursor: pointer;
+      }
+
+      button, a {
+        display: inline-block;
+        font-size: rem(14);
+        margin-right: 16px;
       }
     }
   }

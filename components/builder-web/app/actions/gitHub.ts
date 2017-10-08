@@ -28,20 +28,12 @@ const parseLinkHeader = require("parse-link-header");
 const uuid = require("uuid").v4;
 const gitHubTokenAuthUrl = `${config["habitat_api_url"]}/v1/authenticate`;
 
-export const CLEAR_GITHUB_FILES = "CLEAR_GITHUB_FILES";
 export const CLEAR_GITHUB_INSTALLATIONS = "CLEAR_GITHUB_INSTALLATIONS";
-export const CLEAR_GITHUB_REPOS = "CLEAR_GITHUB_REPOS";
 export const LOAD_GITHUB_SESSION_STATE = "LOAD_GITHUB_SESSION_STATE";
-export const POPULATE_GITHUB_FILES = "POPULATE_GITHUB_FILES";
 export const POPULATE_GITHUB_INSTALLATIONS = "POPULATE_GITHUB_INSTALLATIONS";
-export const POPULATE_GITHUB_INSTALLATION_REPOSITORIES = "POPULATE_GITHUB_INSTALLATION_REPOSITORIES";
-export const POPULATE_GITHUB_REPOS = "POPULATE_GITHUB_REPOS";
 export const POPULATE_GITHUB_USER_DATA = "POPULATE_GITHUB_USER_DATA";
 export const SET_GITHUB_AUTH_STATE = "SET_GITHUB_AUTH_STATE";
 export const SET_GITHUB_AUTH_TOKEN = "SET_GITHUB_AUTH_TOKEN";
-export const SET_GITHUB_ORGS_LOADING_FLAG = "SET_GITHUB_ORGS_LOADING_FLAG";
-export const SET_GITHUB_REPOS_LOADING_FLAG = "SET_GITHUB_REPOS_LOADING_FLAG";
-export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
 
 export function authenticateWithGitHub(oauth_token = undefined, session_token = undefined) {
     const wasInitializedWithToken = !!oauth_token;
@@ -84,27 +76,12 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
     };
 }
 
-export function fetchGitHubFiles(installationId: string, owner: string, repo: string, filename: string) {
-    const token = cookies.get("bldrSessionToken");
-
-    return dispatch => {
-        dispatch(clearGitHubFiles());
-        const client = new BuilderApiClient(token);
-
-        client.findFileInRepo(installationId, owner, repo, filename)
-            .then((results) => {
-                dispatch(populateGitHubFiles(results));
-            });
-    };
-};
-
 export function fetchGitHubInstallations() {
     const token = cookies.get("gitHubAuthToken");
 
     return dispatch => {
         const client = new GitHubApiClient(token);
         dispatch(clearGitHubInstallations());
-        dispatch(clearGitHubRepos());
 
         client.getUserInstallations()
             .then((results) => {
@@ -112,20 +89,6 @@ export function fetchGitHubInstallations() {
             })
             .catch((error) => {
                 console.error(error);
-            });
-    };
-};
-
-
-export function fetchGitHubInstallationRepositories(installationId: string, page: number = 1) {
-    const token = cookies.get("gitHubAuthToken");
-
-    return dispatch => {
-        dispatch(clearGitHubRepos());
-
-        new GitHubApiClient(token).getUserInstallationRepositories(installationId, page)
-            .then((results) => {
-                dispatch(populateGitHubInstallationRepositories(results));
             });
     };
 };
@@ -140,12 +103,6 @@ export function loadGitHubSessionState() {
     };
 }
 
-function clearGitHubFiles() {
-    return {
-        type: CLEAR_GITHUB_FILES
-    };
-}
-
 function clearGitHubInstallations() {
     return {
         type: CLEAR_GITHUB_INSTALLATIONS
@@ -156,27 +113,6 @@ function populateGitHubInstallations(payload) {
     return {
         type: POPULATE_GITHUB_INSTALLATIONS,
         payload,
-    };
-}
-
-function populateGitHubInstallationRepositories(payload) {
-    return {
-        type: POPULATE_GITHUB_INSTALLATION_REPOSITORIES,
-        payload,
-    };
-}
-
-function populateGitHubRepos(data) {
-    return {
-        type: POPULATE_GITHUB_REPOS,
-        payload: data,
-    };
-}
-
-function populateGitHubFiles(data) {
-    return {
-        type: POPULATE_GITHUB_FILES,
-        payload: data,
     };
 }
 
@@ -229,12 +165,6 @@ export function requestGitHubAuthToken(params, stateKey = "") {
     };
 }
 
-function clearGitHubRepos() {
-    return {
-        type: CLEAR_GITHUB_REPOS,
-    };
-}
-
 // Return up to two trailing segments of the current hostname
 // for purposes of setting the cookie domain unless the domain
 // is an IP address.
@@ -280,26 +210,5 @@ export function setGitHubAuthToken(payload) {
     return {
         type: SET_GITHUB_AUTH_TOKEN,
         payload
-    };
-}
-
-function setGitHubOrgsLoadingFlag(payload) {
-    return {
-        type: SET_GITHUB_ORGS_LOADING_FLAG,
-        payload,
-    };
-}
-
-function setGitHubReposLoadingFlag(payload) {
-    return {
-        type: SET_GITHUB_REPOS_LOADING_FLAG,
-        payload,
-    };
-}
-
-export function setSelectedGitHubOrg(org) {
-    return {
-        type: SET_SELECTED_GITHUB_ORG,
-        payload: org,
     };
 }

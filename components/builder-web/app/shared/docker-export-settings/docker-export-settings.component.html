@@ -7,12 +7,14 @@
     Export the resulting .hart file as a Docker container and publish it to your
     Docker Hub account. Integration settings are managed under the origin Settings tab.
   </p>
-  <md-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
-    {{ enabled ? "On" : "Off" }}
-  </md-slide-toggle>
-  <span class="unconfigured" *ngIf="!configured">
-    You can configure this integration in the origin Integrations tab.
-  </span>
+  <div class="toggle">
+      <md-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
+        {{ enabled ? "On" : "Off" }}
+      </md-slide-toggle>
+      <span class="unconfigured" *ngIf="!configured">
+        You can configure this integration in the origin Integrations tab.
+      </span>
+  </div>
   <div *ngIf="enabled && configured">
     <div class="integrations">
       <md-radio-group [(ngModel)]="name">
@@ -24,9 +26,9 @@
     </div>
     <div class="fields">
       <label>Docker Organization and Repository</label>
-      <input type="text" [(ngModel)]="repoName" placeholder="your-docker-org/your-docker-repo">
+      <input type="text" [(ngModel)]="repoName" placeholder="{{ repoPlaceholder }}">
       <label>Custom Tag (Optional)</label>
-      <input type="text" [(ngModel)]="customTag">
+      <input type="text" [(ngModel)]="customTag" [placeholder]="'yourtag or \{\{ channel \}\}'">
       <label>Additional Tags</label>
       <md-checkbox [(ngModel)]="latestTag">:latest</md-checkbox>
       <md-checkbox [(ngModel)]="versionTag">:pkg_version</md-checkbox>

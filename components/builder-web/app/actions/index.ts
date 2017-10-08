@@ -26,20 +26,12 @@ import * as featureFlagActions from "./feature-flags";
 import * as sessionActions from "./sessions";
 
 // Action types
-export const CLEAR_GITHUB_FILES = gitHubActions.CLEAR_GITHUB_FILES;
 export const CLEAR_GITHUB_INSTALLATIONS = gitHubActions.CLEAR_GITHUB_INSTALLATIONS;
-export const CLEAR_GITHUB_REPOS = gitHubActions.CLEAR_GITHUB_REPOS;
 export const LOAD_GITHUB_SESSION_STATE = gitHubActions.LOAD_GITHUB_SESSION_STATE;
-export const POPULATE_GITHUB_FILES = gitHubActions.POPULATE_GITHUB_FILES;
 export const POPULATE_GITHUB_INSTALLATIONS = gitHubActions.POPULATE_GITHUB_INSTALLATIONS;
-export const POPULATE_GITHUB_INSTALLATION_REPOSITORIES = gitHubActions.POPULATE_GITHUB_INSTALLATION_REPOSITORIES;
-export const POPULATE_GITHUB_REPOS = gitHubActions.POPULATE_GITHUB_REPOS;
 export const POPULATE_GITHUB_USER_DATA = gitHubActions.POPULATE_GITHUB_USER_DATA;
-export const SET_GITHUB_ORGS_LOADING_FLAG = gitHubActions.SET_GITHUB_ORGS_LOADING_FLAG;
-export const SET_GITHUB_REPOS_LOADING_FLAG = gitHubActions.SET_GITHUB_REPOS_LOADING_FLAG;
 export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
 export const SET_GITHUB_AUTH_TOKEN = gitHubActions.SET_GITHUB_AUTH_TOKEN;
-export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
 
 export const SET_BLDR_SESSION_TOKEN = sessionActions.SET_BLDR_SESSION_TOKEN;
 export const LOAD_BLDR_SESSION_STATE = sessionActions.LOAD_BLDR_SESSION_STATE;
@@ -124,14 +116,11 @@ export const RESET = "RESET";
 
 // Actions
 export const authenticateWithGitHub = gitHubActions.authenticateWithGitHub;
-export const fetchGitHubFiles = gitHubActions.fetchGitHubFiles;
 export const fetchGitHubInstallations = gitHubActions.fetchGitHubInstallations;
-export const fetchGitHubInstallationRepositories = gitHubActions.fetchGitHubInstallationRepositories;
 export const loadGitHubSessionState = gitHubActions.loadGitHubSessionState;
 export const removeSessionStorage = gitHubActions.removeSessionStorage;
 export const requestGitHubAuthToken = gitHubActions.requestGitHubAuthToken;
 export const setGitHubAuthState = gitHubActions.setGitHubAuthState;
-export const setSelectedGitHubOrg = gitHubActions.setSelectedGitHubOrg;
 
 export const loadBldrSessionState = sessionActions.loadBldrSessionState;
 

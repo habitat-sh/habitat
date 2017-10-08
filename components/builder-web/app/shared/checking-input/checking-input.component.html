@@ -17,7 +17,7 @@
     <span *ngIf="!control.valid"
       class="hab-checking-input--input-msg invalid">
       <span *ngIf="control.errors.invalidFormat">
-        {{displayName}} must match correct format
+        {{displayName}} {{unmatchedMessage}}
       </span>
       <span *ngIf="control.errors.required">
         {{displayName}} is required
