@@ -15,7 +15,6 @@
 use std::io::Read;
 use std::str::FromStr;
 
-use bodyparser;
 use bldr_core::build_config::{BLDR_CFG, BuildCfg};
 use constant_time_eq::constant_time_eq;
 use github_api_client::GitHubClient;
@@ -30,6 +29,7 @@ use persistent;
 use protocol::originsrv::{OriginProject, OriginProjectGet};
 use protocol::scheduler::{Group, GroupCreate};
 use router::Router;
+use serde_json;
 
 use error::Error;
 use headers::*;
@@ -73,19 +73,17 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
     let gh_signature = match req.headers.get::<XHubSignature>() {
         Some(&XHubSignature(ref sig)) => sig.clone(),
         None => {
-            error!("Received a GitHub hook with no signature!");
+            warn!("Received a GitHub hook with no signature");
             return Ok(Response::with(status::BadRequest));
         }
     };
 
     let mut payload = String::new();
     if let Err(err) = req.body.read_to_string(&mut payload) {
-        error!(
-            "Can not read request body. SEEMS LIKE A BAD THING. err = {:?}",
-            err
-        );
+        warn!("Unable to read GitHub Hook request body, {}", err);
         return Ok(Response::with(status::BadRequest));
     }
+    trace!("handle-notify, {}", payload);
 
     let key = PKey::hmac(github.webhook_secret.as_bytes()).unwrap();
     let mut signer = Signer::new(MessageDigest::sha1(), &key).unwrap();
@@ -94,8 +92,8 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
     let computed_signature = format!("sha1={}", &hmac.to_hex());
 
     if !constant_time_eq(gh_signature.as_bytes(), computed_signature.as_bytes()) {
-        error!(
-            "Web hook signatuers don't match. GH = {:?}, Our = {:?}",
+        warn!(
+            "Web hook signatures don't match. GH = {}, Our = {}",
             gh_signature,
             computed_signature
         );
@@ -104,7 +102,7 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
 
     match event {
         GitHubEvent::Ping => Ok(Response::with(status::Ok)),
-        GitHubEvent::Push => handle_push(req),
+        GitHubEvent::Push => handle_push(req, &payload),
     }
 }
 
@@ -183,10 +181,9 @@ pub fn search_code(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn handle_push(req: &mut Request) -> IronResult<Response> {
-    let hook = match req.get::<bodyparser::Struct<GitHubWebhookPush>>() {
-        Ok(Some(hook)) => hook,
-        Ok(None) => return Ok(Response::with(status::UnprocessableEntity)),
+fn handle_push(req: &mut Request, body: &str) -> IronResult<Response> {
+    let hook = match serde_json::from_str::<GitHubWebhookPush>(&body) {
+        Ok(hook) => hook,
         Err(err) => {
             return Ok(Response::with(
                 (status::UnprocessableEntity, err.to_string()),
@@ -267,8 +264,8 @@ fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResul
         match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
             Ok(project) => {
                 if repo_url != project.get_vcs_data() {
-                    error!(
-                        "Incoming repository URL ({}) doesn't match what's in the project vcs data ({}). Aborting.",
+                    warn!(
+                        "Repo URL ({}) doesn't match project vcs data ({}). Aborting.",
                         repo_url,
                         project.get_vcs_data()
                     );
@@ -276,7 +273,7 @@ fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResul
                 }
             }
             Err(err) => {
-                error!("Failed to fetch project. err = {:?}", &err);
+                warn!("Failed to fetch project, {}", err);
                 continue;
             }
         }
