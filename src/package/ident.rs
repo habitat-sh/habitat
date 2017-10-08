@@ -221,7 +221,7 @@ impl PartialOrd for PackageIdent {
                 // non-numeric versions to co-exist with numeric ones, we
                 // always have potential for incorrect ordering no matter
                 // what we choose - eg, "master" vs. "0.x.x" (real examples)
-                warn!(
+                debug!(
                     "Comparing non-numeric versions: {} {}",
                     self.version.as_ref().unwrap(),
                     other.version.as_ref().unwrap()
@@ -625,6 +625,6 @@ mod tests {
         assert!(!super::is_valid_origin_name("!foo"));
         assert!(!super::is_valid_origin_name("foo bar"));
         assert!(!super::is_valid_origin_name("0xDEADBEEF"));
-    
-    }   
+
+    }
 }
