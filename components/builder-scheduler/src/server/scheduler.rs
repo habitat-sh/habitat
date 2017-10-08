@@ -17,6 +17,7 @@ use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 use std::collections::HashMap;
 
+use hab_net::ErrCode;
 use hab_net::conn::RouteClient;
 use hab_net::socket::DEFAULT_CONTEXT;
 use zmq;
@@ -137,6 +138,11 @@ impl ScheduleMgr {
         }
     }
 
+    fn log_error(&mut self, msg: String) {
+        warn!("{}", msg);
+        self.logger.log(&msg);
+    }
+
     fn process_work(&mut self) -> SrvResult<()> {
         loop {
             // Take one group from the pending list
@@ -150,7 +156,6 @@ impl ScheduleMgr {
 
             // This unwrap is fine, because we just checked our length
             let group = groups.pop().unwrap();
-            info!("Got pending group {}", group.get_id());
             assert!(group.get_state() == proto::GroupState::Dispatching);
 
             self.dispatch_group(&group)?;
@@ -160,6 +165,7 @@ impl ScheduleMgr {
     }
 
     fn dispatch_group(&mut self, group: &proto::Group) -> SrvResult<()> {
+        debug!("Dispatching group {}", group.get_id());
         self.logger.log_group(&group);
 
         let mut skipped = HashMap::new();
@@ -190,11 +196,12 @@ impl ScheduleMgr {
                             let skip_list = match self.skip_projects(&group, project.get_name()) {
                                 Ok(v) => v,
                                 Err(e) => {
-                                    warn!(
-                                        "Error skipping projects for {:?}: {:?}",
+                                    self.log_error(format!(
+                                        "Error skipping projects for {:?} (group: {}): {:?}",
                                         project.get_name(),
+                                        group.get_id(),
                                         e
-                                    );
+                                    ));
                                     return Err(e);
                                 }
                             };
@@ -205,11 +212,12 @@ impl ScheduleMgr {
                     }
                 }
                 Err(err) => {
-                    warn!(
-                        "Failed to schedule job for {}, err: {:?}",
+                    self.log_error(format!(
+                        "Failed to schedule job for {} (group: {}), err: {:?}",
                         project.get_name(),
+                        group.get_id(),
                         err
-                    );
+                    ));
 
                     self.datastore.set_group_state(
                         group.get_id(),
@@ -326,13 +334,22 @@ impl ScheduleMgr {
         ) {
             Ok(project) => project,
             Err(err) => {
-                warn!(
-                    "Unable to retrieve project: {:?}, error: {:?} - Skipping",
-                    project_name,
-                    err
-                );
-
-                return Ok(None);
+                if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
+                    // It's valid to not have a project connected
+                    debug!("Unable to retrieve project: {:?} (not found)", project_name);
+                    return Ok(None);
+                } else {
+                    // If we're not able to retrieve the project for other reasons,
+                    // it's likely a legit error - just log it for now, and return
+                    // Ok to keep the scheduler going.  TODO: Tighten this up later
+                    self.log_error(format!(
+                        "Unable to retrieve project: {:?} (group: {}), error: {:?}",
+                        project_name,
+                        group_id,
+                        err
+                    ));
+                    return Ok(None);
+                }
             }
         };
 
@@ -362,8 +379,12 @@ impl ScheduleMgr {
                 }
             }
             Err(err) => {
-                warn!("Group retrieve error: {:?}", err);
-                Err(SrvError::UnknownGroup)
+                self.log_error(format!(
+                    "Failed to get group {} from datastore: {:?}",
+                    group_id,
+                    err
+                ));
+                Err(err)
             }
         }
     }
@@ -392,7 +413,6 @@ impl ScheduleMgr {
                     return Ok(());
                 }
                 Err(e) => {
-                    warn!("Error retrieving group {:?}: {:?}", job.get_owner_id(), e);
                     return Err(e);
                 }
             };
@@ -405,11 +425,12 @@ impl ScheduleMgr {
                         match self.skip_projects(&group, job.get_project().get_name()) {
                             Ok(_) => (),
                             Err(e) => {
-                                warn!(
-                                    "Error skipping projects for {:?}: {:?}",
+                                self.log_error(format!(
+                                    "Error skipping projects for {:?} (group: {}): {:?}",
                                     job.get_project().get_name(),
+                                    job.get_owner_id(),
                                     e
-                                );
+                                ));
                             }
                         };
                     }
@@ -424,7 +445,14 @@ impl ScheduleMgr {
                     // Delete the processed message from the queue
                     self.datastore.delete_message(msg_id)?;
                 }
-                Err(err) => debug!("Did not set job state: {:?}", err),
+                Err(err) => {
+                    self.log_error(format!(
+                        "Failed to update job state for {} (group: {}): {:?}",
+                        job.get_project().get_name(),
+                        job.get_owner_id(),
+                        err
+                    ))
+                }
             }
         }
 
@@ -480,8 +508,8 @@ impl ScheduleMgr {
                 self.logger.log_group(&updated_group);
             }
         } else {
-            warn!(
-                "Unexpected group state {:?} for group id: {}",
+            debug!(
+                "Skipping group update because state is {:?} for group id: {}",
                 group.get_state(),
                 group_id
             );
