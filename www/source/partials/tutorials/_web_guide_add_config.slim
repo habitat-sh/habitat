@@ -1,0 +1,24 @@
+section
+ h1 Add Configuration
+
+ p To make your app's package portable in more environments and contexts, you can templatize the environment variables and configuration settings of your application. The values for these variables and settings will be computed at runtime and can be used to dynamically configure your application.
+
+ h2 Using pre-defined scaffolding configuration
+
+ p The following environment variables are set by the #{current_page.data.platform} scaffolding and placed in a file called <code>app_env.sh</code>, which is created by the scaffolding and located in the <code>/hab/svc/package/config/</code> directory. When the <code>init</code> hook is executed, the following <code>export</code> commands are run in the context of the hook, which allows it to have access to connection string data and deployment values.
+
+ = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_config"
+ 
+ h2 Specifying config settings in default.toml
+
+ p Based on the detected app type, the scaffolding will specify a set of values in a generated default.toml file. 
+ 
+ = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_defaulttoml"
+
+ p  To customize these settings, create a <code>default.toml</code> file in your plan. You can choose to override one or all of the values that are created for you by the #{current_page.data.platform} scaffolding. You can also add your own configuration elements to templatize native configuration files and set environment variables at start up.
+
+ p If you choose to only override a partial set of values, the default values already set on the service will be merged with your changes. 
+
+ p For more information on how to configure plans, see #{link_to 'Add configuration to plans','/docs/create-packages-configure/'}.
+
+= link_to 'Next: Build and Test', "/tutorials/build-your-own/#{current_page.data.platform_short}/build-test/", class: 'button cta'

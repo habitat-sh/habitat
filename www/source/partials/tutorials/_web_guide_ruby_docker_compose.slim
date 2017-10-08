@@ -1,0 +1,16 @@
+pre
+  code.yaml
+   | 
+     version: '3'
+     services:
+       db:
+         image: core/postgresql
+         volumes:
+           - "./habitat/default.toml:/default.toml"
+       railsapp:
+           image: origin/package
+           ports:
+             - 8000:8000
+           links:
+           - db
+           command: --peer db --bind database:postgresql.default

@@ -1,17 +1,13 @@
----
-title: Habitat - Connect to Nginx
----
-
 section
  h1 Connect to Nginx
 
  p If you have successfully completed the sample app tutorial, you will see that the application server Puma was used to serve out the index page when you visited the local site through your Web browser. For production use, you should add a web server like Nginx as a reverse proxy to buffer requests and responses between users and your application.
 
- p Adding Nginx to your rails app is accomplished by doing the following:
+ p Adding Nginx to your web app is accomplished by doing the following:
 
  ol
   li Create a plan for a reverse-proxy Nginx package.
-  li Start up both packages and you're there. Might be cool to show starting up both the web application and Postgresql and then start up the nginx container connected to the other two.
+  li Start up both the web app and reverse-proxy packages. 
 
  p This topic covers the following areas:
 
@@ -31,9 +27,9 @@ section
  pre
   code
    |
-    $ tree railsapp-proxy
+    $ tree webapp-proxy
 
-    railsapp-proxy
+    webapp-proxy
     ├── config
     ├── default.toml
     ├── hooks
@@ -47,7 +43,7 @@ section
   code
    |
     pkg_origin=yourorigin
-    pkg_name=railsapp-proxy
+    pkg_name=webapp-proxy
     pkg_deps=(core/nginx)
     pkg_version="0.1.0"
     pkg_svc_run="nginx -c ${pkg_svc_config_path}/nginx.conf"
@@ -64,7 +60,7 @@ section
       return 0
     }
 
- p This shows how you can wrap an existing package like <code>core/nginx</code> by taking a dependency on it. Note that <code>pkg_svc_user</code> is set to root, which because the Nginx master process needs to be able to bind to port 80, which typically requires elevated privileges. Any worker processes used during runtime will be run as a different user. 
+ p This shows how you can wrap an existing package like <code>core/nginx</code> by taking a dependency on it. Note that <code>pkg_svc_user</code> is set to root because the Nginx master process needs to be able to bind to port 80, which typically requires elevated privileges. Any worker processes used during runtime will be run as a different user. 
  
  p A few more items to note:
  
@@ -76,7 +72,7 @@ section
  
  h3 Creating nginx.conf
 
- p Next you need to create your own <code>nginx.conf</code> and templatize it so that the correct settings such as port values and paths, can be configured dynamically at runtime.
+ p Next you need to create your own <code>nginx.conf</code> and templatize it so that the correct settings such as port values and paths can be configured dynamically at runtime.
 
  ol
   li Start by creating a file named <code>nginx.conf</code> in the <code>config</code> directory of your plan.
@@ -100,7 +96,7 @@ section
        scgi_temp_path {{ pkg.svc_var_path }}/scgi_temp_path;
        uwsgi_temp_path {{ pkg.svc_var_path }}/uwsgi;
 
-       upstream railsapp {
+       upstream webapp {
          {{~#each bind.app.members}}
          server {{sys.ip}}:{{cfg.port}};
          {{~/each}}
@@ -112,7 +108,7 @@ section
          root {{ cfg.http.server.root }};
 
          location / {
-              proxy_pass http://railsapp;
+              proxy_pass http://webapp;
               proxy_set_header Host $host;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
          }
@@ -144,7 +140,7 @@ section
 
     [http.server]
     listen_port = 80
-    root = "/hab/svc/myrailsapp/static"
+    root = "/hab/svc/mywebapp/static"
     hostname = "localhost"
    
  h3 Add an init hook
@@ -177,29 +173,26 @@ section
  pre
   code
    | 
-    # hab pkg export docker ./results/&lt;hart-filename>.hart
+    # hab pkg export docker ./results/&lt;reverse-proxy-file>.hart
     
  h2 <a name="run-application">Run your package with your web application</a>
 
  p The final step to connecting your Nginx package to your web application. The important step is to understand that like connecting to a database, you need to bind to a service group to help configure your proxy. In this case, you will bind your web application service group. 
  
- p If you have already completed the tutorial and want to test this out on the myrailsapp web application, start both the database and the myrailsapp containers using Docker Compose and then start up your reverse proxy container.
+ - if "#{current_page.data.platform_short}" == "ruby"
+   = partial '/partials/tutorials/web_guide_ruby_nginx_docker'
+ - else
+   = partial '/partials/tutorials/web_guide_common_nginx_docker'
  
- pre
-  code
-   | 
-    $ cd path/to/tutorial/directory/
-    $ docker-compose up
- 
- p Open a new another terminal window and enter the following: 
+ p Open another terminal window and enter the following: 
 
  pre
   code
    | 
-    $ docker run -it -p 80:80 --net=myrailsapp_default origin/railsapp-proxy --peer IP_ADDRESS --bind app:myrailsapp.default
+    $ docker run -it -p 80:80 --net=mywebapp_default origin/webapp-proxy --peer IP_ADDRESS --bind app:mywebapp.default
 
- p You can use <code>docker ps</code> and <code>docker inspect</code> to retrieve the IP address of either the myrailsapp or postgreSQL container. The <code>--bind</code> specifies that you are binding to any keys (which is a port in this case) that were exported by the <code>myrailsapp.default</code> service group. 
+ p You can use <code>docker ps</code> and <code>docker inspect</code> to retrieve the IP address of either your web application or postgreSQL container. The <code>--bind</code> specifies that you are binding to any keys (which is a port in this case) that were exported by the <code>mywebapp.default</code> service group. 
 
  p Once your containers are all up and connect to each other, browse to #{link_to 'http://localhost','http://localhost'} on your host workstation to see your web application data showing up through Nginx. 
 
-= link_to 'Next: Next Steps', '/tutorials/build-your-own/next-steps/', class: 'button cta'
+= link_to 'Next: Next Steps', "/tutorials/build-your-own/#{current_page.data.platform_short}/next-steps/", class: 'button cta'

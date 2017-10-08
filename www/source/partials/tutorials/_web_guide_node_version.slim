@@ -1,0 +1,49 @@
+p You can use the <code>engines.node</code> data structure in your app's <code>package.json</code> to specify a version of Node.js. For example:
+
+pre
+ code
+  |
+   {
+     "name": "my_app",
+     "version": "0.1.0",
+     "engines": {
+       "node": "6.10.3"
+     },
+    ...
+   }
+
+p The value of this key will be used to determine the version of the Habitat <code>core/node</code> package. For example, the <code>package.json</code> above would result in <code>core/node/6.10.3</code> being injected into your Plan's <code>pkg_deps</code> array.
+
+p Currently only releases of the <code>core/node</code> package will work, so if further customizing is required, you may need to specify a version of Node.js in your plan as described below. Version constraint expressions such as <code>"0.10.3"</code>, <code>"=0.10.3"</code>, <code>"v0.10.3"</code>, <code>">0.10.3"</code>, <code>">=0.10.3"</code>, <code>">=0.10.3"</code>, and <code>">0.10.3"</code> are supported.
+
+h4 Specifying a Node Version in an .nvmrc File
+
+p You can use an <code>.nvmrc file</code> in your app's root directory to specify a version of Node.js. For example:
+
+pre
+ code
+  |
+   > cat .nvmrc
+   6.10.3
+
+p The value of the contents of this file will be used to determine the version of the Habitat <code>core/node</code> package. For example, the <code>.nvmrc file</code> above would result in <code>core/node/6.10.3</code> being injected into your plan's <code>pkg_deps</code> array.
+
+p If a version of Node.js is detected in your project's <code>package.json</code>, the value in an <code>.nvmrc</code> will not be used.
+
+p Currently only releases of the <code>core/node package</code> will work so if further customizing is required you may need to specify a version of Node.js in your plan as described below. Additionally, only exact versions of Node.js are currently supported, so version constraint expressions or wildcard versions will not work.
+
+h4 Specifying a Node.js Version in Your Plan
+
+p You can set the <code>scaffolding_node_pkg</code> variable in your plan to specify a version of Node.js. For example:
+
+pre
+ code
+  |
+   pkg_name=my_app
+   pkg_origin=acmecorp
+   pkg_version=0.1.0
+    # ...
+   pkg_scaffolding=core/scaffolding-node
+   scaffolding_node_pkg=core/node/5.6.0
+
+p The value of this variable will be used to determine the Habitat package to satisfy the role of your app's Node.js implementation.

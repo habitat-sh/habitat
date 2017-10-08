@@ -26,7 +26,9 @@ page 'tutorials/sample-app/linux/*', layout: :tutorials_sidebar, locals: { sideb
 page 'tutorials/sample-app/windows/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app_windows' }
 page 'tutorials/sample-app/mac/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app_mac' }
 page 'tutorials/sample-app/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app' }
-page 'tutorials/build-your-own/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app'}
+page 'tutorials/build-your-own/index.html', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app'}
+page 'tutorials/build-your-own/ruby/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_ruby'}
+page 'tutorials/build-your-own/node/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_node'}
 page '/blog/index.html', layout: :blog_index
 
 activate :blog do |blog|

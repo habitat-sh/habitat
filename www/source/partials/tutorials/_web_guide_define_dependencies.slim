@@ -1,11 +1,7 @@
----
-title: Habitat - Define Dependencies and Callbacks
----
-
 section
  h1 Define Dependencies
 
- p Based on the detection logic built into the Ruby scaffolding, you should be able to build a basic package for your web application following the instructions in #{link_to 'Create Your Plan','/tutorials/build-your-own/create-plan/'}; however, if you require any customization of runtime dependencies or how your package is built, you will need to reference those dependencies in your plan. In addition, depending on how you wish to build your package, you may have to override the default build and installation logic of the Ruby scaffolding. 
+ p Based on the detection logic built into the #{current_page.data.platform} scaffolding, you should be able to build a basic package for your web application following the instructions in #{link_to 'Create Your Plan',"/tutorials/buid-your-own/#{current_page.data.platform_short}/create-plan/"}; however, if you require any customization of runtime dependencies or how your package is built, you will need to reference those dependencies in your plan. In addition, depending on how you wish to build your package, you may have to override the default build and installation logic of the #{current_page.data.platform} scaffolding. 
 
  p This topic explains your options for these customizations and in which scenarios you are most likely to need them.
 
@@ -13,18 +9,11 @@ section
 
  p Dependencies are broken up into two main types: build dependencies and run dependencies. Build dependencies are needed while your package builds and run dependencies are those packages needed when your Habitat service is running.
 
- p As part of the detection logic of the Ruby scaffolding, it will parse your Gemfile and if it detects one of the following gems, it will add entries to the <code>pkg_deps</code> array for your plan so that those runtime dependencies are packaged up with your application.
-
- ul
-  li sqlite3
-  li Any PostgreSQL-related gems (see #{link_to 'Connect to Database','/tutorials/build-your-own/connect-database/'} topic for more information)
-  li nokogiri
-  li execjs
-  li webpacker
+ = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_detected_dependencies"
  
  p If you require additional runtime or buildtime dependencies, you can add them into your plan.sh using the <code>pkg_deps</code> and <code>pkg_build_deps</code> settings, respectively. For example, in the Build a Sample App tutorial, the <code>health_check</code> hook requires the <code>code/curl</code> package so that it can execute a <code>curl</code> command. This package isn't already part of the runtime dependencies added by the scaffolding, so it must be added to the plan.sh manually. You can also include version and release information when declaring dependencies, if needed.
 
- p There is a third type of dependencies, transitive dependencies, that do not need to be explicitly declared in your plan.sh file. They are automatically included in the list of files when your package is built. See #{link_to 'Package contents','/docs/reference#package-contents'} for more information.
+ p There is a third type of dependencies, transitive dependencies, that do not need to be explicitly declared in your plan.sh file. They are automatically included in the list of files when your package is built. See #{link_to 'Package contents','/docs/reference/package-contents/'} for more information.
 
  h2 Use the Habitat Builder UI to search for dependencies
 
@@ -33,14 +22,14 @@ section
  .screenshot
     img src="/images/screenshots/explore-tab-main-screen.png"
 
- p Type in the name of your dependency (such as <code>node</code> or <code>nginx</code>). You will get a search result list back with available public packages. Any packages with the origin "core" are foundational packages managed and maintained by the #{link_to 'Habitat maintainers','https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md'}. 
+ p Type in the name of your dependency (such as <code>nginx</code>). You will get a search result list back with available public packages. Any packages with the origin "core" are foundational packages managed and maintained by the #{link_to 'Habitat maintainers','https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md'}. 
 
  p Clicking on one of the entries will show you all of the versions of that package that have been uploaded to Builder. By convention, version numbers align with the version of the binary, library, or framework that the package has bundled up. For example, the <code>core/node</code> version 6.10.3 package has v6.10.3 of the Node.js binary.
 
  p The Builder UI also provides channel information about the package, as denoted by the <code>stable</code> and <code>unstable</code> labels. Channels function like continuous delivery stages in a pipeline (development, QA, production, etc.). When packages are initially uploaded to Builder, they are placed in the <code>unstable</code> channel, and by default, only <code>stable</code> packages are downloaded and installed in a given container, virtual machine, etc unless otherwise specified through the <code>hab start</code> and <code>hab svc load</code> commands. By convention, the latest version number with the latest build date will be the stable version of the package.
 
- p After you have decided on a version, click on it to see the #{link_to 'manifest','/docs/reference#manifest'}  for the package. 
+ p After you have decided on a version, click on it to see the #{link_to 'manifest','/docs/reference/package-contents#manifest'}  for the package. 
 
  p All specific information on how that package was built will be contained within the manifest and if it is a core package, the plan for that package will be in the #{link_to 'core-plans','https://github.com/habitat-sh/core-plans'} repo in GitHub.
 
-= link_to 'Next: Define Build Logic For Your App', '/tutorials/build-your-own/define-build-logic/', class: 'button cta'
+= link_to 'Next: Define Build Logic For Your App', "/tutorials/build-your-own/#{current_page.data.platform_short}/define-build-logic/", class: 'button cta'

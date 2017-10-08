@@ -4,26 +4,3 @@ sidebar_links:
   links:
   - title: Introduction
     link: /tutorials/build-your-own/
-    sub_links:
-    - title: Create Your Plan
-      link: /tutorials/build-your-own/create-plan/
-    - title: Define Dependencies
-      link: /tutorials/build-your-own/define-dependencies/
-    - title: Define Build Logic
-      link: /tutorials/build-your-own/define-build-logic/
-    - title: Define Hooks
-      link: /tutorials/build-your-own/define-hooks/
-    - title: Define Environment Variables
-      link: /tutorials/build-your-own/define-variables/
-    - title: Define Processes
-      link: /tutorials/build-your-own/define-processes/
-    - title: Add Configuration
-      link: /tutorials/build-your-own/add-config/
-    - title: Build and Test
-      link: /tutorials/build-your-own/build-test/
-    - title: Connect to a Database
-      link: /tutorials/build-your-own/connect-database/
-    - title: Connect to Nginx
-      link: /tutorials/build-your-own/connect-nginx/
-  - title: Next Steps
-    link: /tutorials/build-your-own/next-steps/

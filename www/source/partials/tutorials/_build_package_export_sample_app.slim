@@ -1,0 +1,55 @@
+h2 Export the Package as a Docker Container
+
+p Something
+
+h3 Upload your public key
+
+p An OAuth token is required to upload your public key to Builder and the public key for the origin allows Supervisors to verify the integrity of the Habitat packages (<code>.hart</code> files. Follow these steps to generate a #{link_to 'GitHub access token','https://help.github.com/articles/creating-an-access-token-for-command-line-use/'}, if you have not done so already. Save that token value and/or set the <code>HAB_AUTH_TOKEN</code> #{link_to 'environment variable','/docs/reference#environment-variables'} to it.
+
+p Once you have created this token, you can upload your public key to Builder through either the web interface for Builder, or by using the <code>hab origin key upload</code> command.
+
+blockquote
+ p <b>Note</b> Before you upload your public key, you must #{link_to 'create or join an origin','/tutorials/download/create-origin/'} with the same name as the name of the origin key you created in <code>hab setup</code>. 
+
+p To upload your public key, do the following:
+
+- if "#{current_page.data.platform}" == "windows"
+  p In a PowerShell window, run the <code>hab origin key upload</code> subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. <code>~\.hab\cache\keys\originname-release.pub</code>).
+
+  pre
+   code
+    |
+     PS > hab origin key upload -z <OAuth_token> originname
+
+- else
+  p In a terminal window, run the <code>hab origin key upload</code> subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. <code>~/.hab/cache/keys/originname-release.pub</code>).
+
+  pre
+   code
+    |
+     $ hab origin key upload -z <OAuth_token> originname
+ 
+p <b>Note</b> Because only the private key is imported when entering the Habitat Studio, it is easier to upload your public key outside of the Studio.
+
+h3 Export your package
+
+p Habitat packages can be exported into multiple runtime formats where the Habitat Supervisor, user package, and any runtime dependencies are installed and setup in that environment. For Docker containers, this means creating an image using the Docker scratch image and building up the rest of the image with exported packages.
+
+
+p Run <code>hab pkg export docker</code> and reference the .hart file you created in the previous section.
+
+pre
+  code.console [2][default:/src:0]# hab pkg export docker ./results/&lt;hart-filename>.hart
+
+p Because we need to connect to a PostgreSQL database managed by Habitat, export the PostgreSQL database package to a Docker container as well.
+
+pre
+  code.console [1][default:/src:0]# hab pkg export docker core/postgresql
+
+blockquote
+ p <b>Note</b> If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, instead of a local .hart file the Habitat CLI will check Builder for the latest stable version of the package and export that.
+
+p Once you have finished exporting both packages, exit out of the Studio.
+
+pre
+  code.console [5][default:/src:0]# exit

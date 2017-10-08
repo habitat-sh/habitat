@@ -1,4 +1,4 @@
-Every package needs a version number to use as part of its package identification and the <code>hab plan init</code> subcommand does not stub out a version for you. You have two options for adding versioning:
+Every package needs a version number to use as part of its package identification. The <code>hab plan init</code> subcommand creates a version for you, but in general, you have two options for adding versioning:
 
 * Explicitly add <code>pkg_version</code> to your plan.sh
 * Use the <code>pkg_version()</code> and <code>update_pkg_version()</code> helper functions to compute <code>pkg_version</code>

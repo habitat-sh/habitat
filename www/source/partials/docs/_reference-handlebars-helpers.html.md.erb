@@ -45,6 +45,10 @@ Example Template:
 
     export JAVA_HOME={{pkgPathFor "core/jre8"}}
 
+Example pointing to specific file in <code>core/nginx</code> package on disk:
+
+    {{pkgPathFor "core/nginx"}}/config/fastcgi.conf
+
 ### eachAlive Helper
 
 Iterates over a collection of members and renders the template for members that are marked alive.

@@ -1,0 +1,21 @@
+p By default, the Ruby scaffolding creates the following items in the <code>scaffolding_env</code> array for you:
+
+ pre
+  code
+   |
+    scaffolding_env LANG "{{cfg.lang}}"
+    scaffolding_env PORT "{{cfg.app.port}}"
+
+p If you are packaging up a Rails app v4.1 or later, the following additional items will be added to your <code>scaffolding_env</code> array:
+
+ pre
+  code
+   | 
+    scaffolding_env RAILS_ENV "{{cfg.rails_env}}
+    scaffolding_env RACK_ENV "{{cfg.rack_env}}
+    scaffolding_env RAILS_LOG_TO_STDOUT "enabled" (only if your railties gem is v5.0.0 or later)
+    scaffolding_env RAILS_SERVE_STATIC_FILES "enabled" (only if your railties gem is v4.2.0 or later)
+    scaffolding_env SECRET_KEY_BASE "{{cfg.secret_key_base}}
+
+ blockquote
+  p <b>Note</b> If your app type is strictly a Rack web server, then only the <code>RACK_ENV</code> environment variable will be added by default.

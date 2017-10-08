@@ -1,0 +1,29 @@
+---
+sidebar_links:
+- title: Build Your Web App
+  links:
+  - title: Introduction
+    link: /tutorials/build-your-own/ruby/
+    sub_links:
+    - title: Create Your Plan
+      link: /tutorials/build-your-own/ruby/create-plan/
+    - title: Define Dependencies
+      link: /tutorials/build-your-own/ruby/define-dependencies/
+    - title: Define Build Logic
+      link: /tutorials/build-your-own/ruby/define-build-logic/
+    - title: Define Hooks
+      link: /tutorials/build-your-own/ruby/define-hooks/
+    - title: Define Environment Variables
+      link: /tutorials/build-your-own/ruby/define-variables/
+    - title: Define Processes
+      link: /tutorials/build-your-own/ruby/define-processes/
+    - title: Add Configuration
+      link: /tutorials/build-your-own/ruby/add-config/
+    - title: Build and Test
+      link: /tutorials/build-your-own/ruby/build-test/
+    - title: Connect to a Database
+      link: /tutorials/build-your-own/ruby/connect-database/
+    - title: Connect to Nginx
+      link: /tutorials/build-your-own/ruby/connect-nginx/
+  - title: Next Steps
+    link: /tutorials/build-your-own/ruby/next-steps/

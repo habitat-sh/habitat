@@ -1,0 +1,7 @@
+.platform-switcher
+  ul
+    li class=('active' if platform == 'Ruby')
+      = link_to 'Ruby', '/tutorials/build-your-own/ruby/', class: 'ruby'
+
+    li class=('active' if platform == 'Node.js')
+      = link_to 'Node.js', '/tutorials/build-your-own/node/', class: 'node'

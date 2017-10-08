@@ -1,0 +1,5 @@
+pre
+  code
+   |
+    web: bundle exec puma -t 5:5 -p $PORT
+    release: bundle exec rake db:migrate

@@ -1,0 +1,8 @@
+pre
+  code
+   |
+    declare -A scaffolding_process_bins
+    # Override the default web process
+    scaffolding_process_bins[web]='node server.js -p ${PORT}'
+    # Add an addition process called release
+    scaffolding_process_bins[release]='node scripts/migrate_db.js'
