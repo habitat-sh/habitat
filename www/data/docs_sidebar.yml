@@ -44,6 +44,8 @@ sidebar_links:
       link: "/docs/developing-packages/#pkg-exports"
     - title: Share via Builder
       link: "/docs/developing-packages/#sharing-pkgs"
+    - title: Using Builder with Multiple Plans
+      link: "/docs/developing-packages/#multiple-plans-builder"
   - title: Commands (CLI)
     link: "/docs/habitat-cli"
   - title: Best Practice Guides
