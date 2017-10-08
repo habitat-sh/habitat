@@ -108,6 +108,10 @@ impl Session {
     pub fn expired(&self) -> bool {
         self.created_at.elapsed() >= *SESSION_DURATION
     }
+
+    pub fn validate_token(&self, token: &proto::SessionToken) -> bool {
+        self.token.get_token() == token.get_token()
+    }
 }
 
 impl Borrow<SessionKey> for Session {
@@ -143,7 +147,7 @@ impl Hash for Session {
 
 impl PartialEq for Session {
     fn eq(&self, other: &Session) -> bool {
-        self.key == other.key
+        self.key == other.key && self.token == other.token
     }
 }
 
