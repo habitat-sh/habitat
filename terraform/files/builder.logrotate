@@ -1,5 +1,5 @@
-/tmp/builder-scheduler/var/builder-scheduler.log
-/hab/svc/builder-worker/var/builder-worker.log
+/tmp/builder-scheduler.log
+/tmp/builder-worker.log
 {
         rotate 7
         weekly
