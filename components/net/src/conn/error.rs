@@ -101,6 +101,31 @@ impl error::Error for ConnErr {
     }
 }
 
+impl<'a> From<&'a ConnErr> for protocol::net::ErrCode {
+    fn from(err: &ConnErr) -> protocol::net::ErrCode {
+        match *err {
+            ConnErr::BadIdentity(_) |
+            ConnErr::BadHeader(_) |
+            ConnErr::BadRouteInfo(_) |
+            ConnErr::BadTxn(_) |
+            ConnErr::HostUnreachable |
+            ConnErr::MultipleSender |
+            ConnErr::NoBody |
+            ConnErr::NoHeader |
+            ConnErr::NoIdentity |
+            ConnErr::NoRouteInfo |
+            ConnErr::NoTxn |
+            ConnErr::Protocol(_) |
+            ConnErr::TxnNotComplete => protocol::net::ErrCode::BUG,
+
+            ConnErr::Shutdown(_) |
+            ConnErr::Socket(_) => protocol::net::ErrCode::SOCK,
+
+            ConnErr::Timeout => protocol::net::ErrCode::TIMEOUT,
+        }
+    }
+}
+
 impl From<zmq::Error> for ConnErr {
     fn from(err: zmq::Error) -> Self {
         match err {

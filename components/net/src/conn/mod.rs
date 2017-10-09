@@ -95,14 +95,13 @@ impl RouteClient {
         let txn_id = next_txn_id();
         self.msg_buf.txn_mut().unwrap().set_id(txn_id);
         if let Err(e) = route(&self.socket, &self.msg_buf) {
-            let err = NetError::new(ErrCode::SOCK, "net:route:2");
+            let err = NetError::new(ErrCode::from(&e), "net:route:2");
             error!("{}, {}", err, e);
             return Err(err);
         }
         self.msg_buf.reset();
-        // JW TODO: Handle socket errors more correctly here. Socket should be Timeout for example
         if let Err(e) = read_header(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
-            let err = NetError::new(ErrCode::BUG, "net:route:3");
+            let err = NetError::new(ErrCode::from(&e), "net:route:3");
             error!("{}, {}", err, e);
             return Err(err);
         }
@@ -113,20 +112,20 @@ impl RouteClient {
                 &mut self.recv_buf,
             )
             {
-                let err = NetError::new(ErrCode::BUG, "net:route:4");
+                let err = NetError::new(ErrCode::from(&e), "net:route:4");
                 error!("{}, {}", err, e);
                 return Err(err);
             }
         }
         if self.msg_buf.header().has_txn() {
             if let Err(e) = try_read_txn(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
-                let err = NetError::new(ErrCode::BUG, "net:route:5");
+                let err = NetError::new(ErrCode::from(&e), "net:route:5");
                 error!("{}, {}", err, e);
                 return Err(err);
             }
         }
         if let Err(e) = try_read_body(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
-            let err = NetError::new(ErrCode::BUG, "net:route:6");
+            let err = NetError::new(ErrCode::from(&e), "net:route:6");
             error!("{}, {}", err, e);
             return Err(err);
         }
