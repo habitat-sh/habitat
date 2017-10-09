@@ -2,7 +2,7 @@
 title: NodeJS Scaffolding and Builder
 date: 2017-10-09
 author: Nell Shamrell-Harrington
-tags: Scaffolding
+tags: Scaffolding, launch
 category: community
 classes: body-article
 ---
