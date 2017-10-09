@@ -9,6 +9,7 @@ section
   li #{link_to 'Building your package','#build-your-package'} 
   li #{link_to 'Testing your package locally','#test-locally'}
   li #{link_to 'Exporting and Running your Docker container','#export-container'}
+  li #{link_to 'Building with Builder','#build-builder'}
   li #{link_to 'Debugging your plan','#debug-plan'}
 
  h2 <a name="build-your-package">Building your package</a>
@@ -96,6 +97,8 @@ section
       secret_key_base = "some_secret_key_value"
 
  p For more information on using the Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
+
+ = partial '/partials/tutorials/using_builder'
 
  h2 <a name="debug-plan">Debugging your plan</a>
 

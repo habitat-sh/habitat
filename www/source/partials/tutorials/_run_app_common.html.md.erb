@@ -35,7 +35,7 @@ Let's quickly review the file to understand how these containers will be brought
 
 * The entrypoint for the Rails container has a few additional command arguments to connect it to the database container and set the [binding](/docs/developing-packages#pkg-binds) to the appropriate database service group. 
 
-Now that you understand how the docker-compose.yml file will be used, open the docker-compose.yml file in a text editor and update the following line with the name of your origin.
+Now that you understand how the docker-compose.yml file will be used, open the docker-compose.yml file in a text editor and update the following line with the name of your origin. If you used Builder to create a container and push it to Docker Hub, specify the Docker Hub organization/repository information instead.
 
 ```yaml
 image: originname/myrailsapp
