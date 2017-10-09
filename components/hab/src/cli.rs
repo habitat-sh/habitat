@@ -276,7 +276,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                    "A package identifier (ex: core/redis/3.2.1/20160729052715)")
                 (@arg CHANNEL: +required +takes_value
                     "Promote to the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
