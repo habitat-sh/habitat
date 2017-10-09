@@ -20,7 +20,7 @@ use hab_net::privilege::{self, FeatureFlags};
 use protocol::net;
 use protocol::sessionsrv as proto;
 
-use super::{ServerState, Session};
+use super::{encode_token, ServerState, Session};
 use error::SrvResult;
 
 pub fn account_get_id(
@@ -141,20 +141,14 @@ pub fn session_get(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let msg = req.parse::<proto::SessionGet>()?;
+    let token = encode_token(msg.get_token())?;
     let expire_session = {
-        match state.sessions.read().unwrap().get(&(
-            msg.get_token().get_extern_id(),
-            msg.get_token().get_provider(),
-        )) {
+        match state.sessions.read().unwrap().get(token.as_str()) {
             Some(session) => {
                 if session.expired() {
                     true
-                } else if session.validate_token(msg.get_token()) {
-                    conn.route_reply(req, &**session)?;
-                    false
                 } else {
-                    let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:2");
-                    conn.route_reply(req, &*err)?;
+                    conn.route_reply(req, &**session)?;
                     false
                 }
             }
@@ -165,11 +159,10 @@ pub fn session_get(
             }
         }
     };
+    // JW TODO: We should renew the session if it's within X time of expiring since the
+    // user just confirmed they're still using this session.
     if expire_session {
-        state.sessions.write().unwrap().remove(&(
-            msg.get_token().get_extern_id(),
-            msg.get_token().get_provider(),
-        ));
+        state.sessions.write().unwrap().remove(token.as_str());
     }
     Ok(())
 }
