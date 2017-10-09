@@ -17,6 +17,7 @@
 
 extern crate fnv;
 extern crate habitat_builder_protocol as protocol;
+extern crate habitat_builder_sessionsrv as bldr_sessionsrv;
 extern crate habitat_core as hcore;
 
 pub mod config;

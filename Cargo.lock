@@ -6,6 +6,7 @@ dependencies = [
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-builder-protocol 0.0.0",
+ "habitat_builder_sessionsrv 0.0.0",
  "habitat_core 0.0.0",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

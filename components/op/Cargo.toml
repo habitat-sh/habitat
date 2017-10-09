@@ -10,6 +10,7 @@ clippy = {version = "*", optional = true}
 fnv = "*"
 log = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
+habitat_builder_sessionsrv = { path = "../builder-sessionsrv" }
 habitat_core = { path = "../core" }
 
 [dependencies.clap]
