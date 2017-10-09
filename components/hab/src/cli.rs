@@ -239,6 +239,10 @@ pub fn get() -> App<'static, 'static> {
                     (ex: core/busybox-static/1.24.2/20160708162350)")
                 (@arg FULL_PATHS: -p "Show full path to file")
             )
+            (@subcommand remove => 
+                (about: "Remove a package from the system")
+                (@arg PKG_IDENT: +required +takes_value "Package to remove")
+            )
             (@subcommand search =>
                 (about: "Search for a package in Builder")
                 (@arg SEARCH_TERM: +required +takes_value "Search term")

@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod binlink;
-pub mod build;
-pub mod channels;
-pub mod demote;
-pub mod env;
-pub mod exec;
-pub mod export;
-pub mod hash;
-pub mod header;
-pub mod path;
-pub mod promote;
-pub mod provides;
-pub mod search;
-pub mod sign;
-pub mod upload;
-pub mod verify;
-pub mod remove;
+use std::collections::HashSet;
+use std::path::Path;
+
+use walkdir::WalkDir;
+
+use error::{Error, Result};
+use hcore::fs::PKG_PATH;
+use hcore::package::PackageIdent;
+use common::ui::{Status, UI};
+
+pub fn start(ui: &mut UI, pkg_name: &PackageIdent, fs_root_path: &Path ) -> Result<()> {
+  Ok(())
+} 
