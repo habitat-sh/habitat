@@ -7,11 +7,11 @@ classes: home
 section.home--hero
   .home--hero--content
     h1.home--hero--heading.row
-      ' Build. Deploy. Manage.
+      ' Your fastest path from Code to Cloud Native.
       = partial "partials/global/github_star"
     p.home--hero--text.row
-      span.column.large-12="A simple, flexible way to build, deploy, and run cloud native applications."
-      span.column.large-12="Get started in about 10 minutes."
+      span.column.large-12="A simple, flexible way to build, deploy, and manage cloud native applications."
+      span.column.large-12="Get started in 10 minutes."
     .home--button-wrap.hero.row
       = link_to 'Sign up', '#{builder_web_url}/#/sign-in/', class: "button cta"
       = link_to 'Learn More', '/demo/', class: "button outline"
@@ -37,16 +37,16 @@ section.home--hero-carousel
           .circle.small.gray
           .circle.small.gray
           .circle.small.gray
-        p.output="# Navigate to any source code repository"
+        p.output="# Start in your code repository"
         p.input="$ cd my-repository/my-node-js-project"
-        p.output="# Use Habitat scaffolding to create the files Habitat needs to build your application"
+        p.output="# Create your plan"
         p.input="$ hab plan init -s node"
         p.output="# Build your application"
-        p.input="$ hab pkg build ."
+        p.input="$ hab pkg build"
       .columns.large-5.home--hero-carousel-slide-sidebar
         h4="Make any application or service cloud native."
         p
-          | Build and package any application, leveraging templates or Habitat
+          | Build and package any application, using templates or Habitat
             Scaffolding, for common languages such as NodeJS, Ruby, and Java.
         ul.tech-icons
           li.tech-icons--item: .tech-icon.tech-icons--node: img src="/images/solutions-logos/icon-node.svg" alt="node"
@@ -78,8 +78,8 @@ section.home--hero-carousel
         h4="Any runtime. Any format."
         p
           | Deploy your application consistently in multiple formats and
-            runtime environments: containers, VMs, Kubernetes, Cloud Foundry,
-            Mesosphere, bare metal, and more.
+            runtime environments: Docker, Kubernetes, Cloud Foundry,
+            Mesosphere, VMs, bare metal, and more.
         ul.tech-icons
           li.tech-icons--item: .tech-icon.tech-icons--docker: img src="/images/solutions-logos/icon-docker.svg" alt="docker"
           li.tech-icons--item: .tech-icon.tech-icons--coreos: img src="/images/solutions-logos/icon-coreos.svg" alt="coreos"
@@ -94,25 +94,24 @@ section.home--hero-carousel
           .circle.small.gray
           .circle.small.gray
           .circle.small.gray
-        p.output="# Declare a topology for your Habitat service group"
+        p.output="# Declare your topology"
         p.input="$ hab start my-origin/my-nodejs --topology leader --group production"
-        p.output="# Declare an update strategy"
+        p.output="# Declare your update strategy"
         p.input="$ hab start my-origin/my-nodejs --group dev --strategy rolling"
-        p.output="# Bind Supervisors together to share configuration information"
+        p.output="# Connect your application Supervisors"
         p.input="$ hab start my-origin/my-nodejs --group production --bind database:my-redis.production"
-        p.output="# Update configuration dynamically for running services"
+        p.output="# Update your services dynamically"
         p.input="$ echo \"port = 6380\" | hab config apply my-redis.prod $(date + '%s')"
       .columns.large-5.home--hero-carousel-slide-sidebar
-        h4="Automated Application Management"
+        h4="Automated Application Supervision"
         p
-          | Habitat manages everything your application needs from build and runtime
-            dependencies, configuration, dynamic topologies, to deployment strategies.
-            Habitat's Supervisor automates managing your services over their lifetimes
-            with application lifecycle hooks: add smoke tests, health checks, 
+          | Habitat manages everything your application needs: build and runtime
+            dependencies, configuration, dynamic topologies, and deployment strategies.
+            The Supervisor automates application lifecycle management: add smoke tests, health checks,
             compliance tests, and more.
         p
-          | Habitat Supervisor also provides a RESTful API for querying the health
-            of the service.
+          | The Supervisor also provides a RESTful API for querying the health
+            of your services.
         a.button.outline href="#manage" Learn More
   .row.home--hero-carousel-nav-row
     ul.home--hero-carousel-nav
@@ -128,11 +127,9 @@ section.home--section
         .home--callout-label="build"
         h3.home--callout-header="Better Container Packaging"
       p
-        | Habitat includes a safe, simple, and secure packaging system that
-          includes only what your application needs to build and run: 
-          dependencies and configuration. Scaffolding for popular languages 
-          helps developers quickly build running software built with common 
-          languages like Node.js, Ruby-on-Rails, and Java.
+        | Habitat lets you explicitly declare the dependencies and configuration
+          your application needs to run. Scaffolding helps you quickly develop applications
+          built in languages such as Node.js, Ruby-on-Rails, and Java.
     .columns.small-12.medium-6.medium-pull-6
       img src="/images/homepage/callout-build.svg" alt="Build and upload"/
   .row.home--callouts
@@ -142,11 +139,12 @@ section.home--section
         .home--callout-label="deploy"
         h3.home--callout-header="Target any format or runtime"
       p
-        | Habitat packages can be exported to any format, including: Docker, 
-          Mesos, Cloud Foundry, and Tar. 
-          Your exported artifact contains your application, its libraries,
-          and the dependencies it needs to run in any cloud-native
-          architecture.
+        | When you check in code, Habitat automatically builds a package
+          containing your applicaiton, its libraries, and dependencies.
+      p
+        | Your package can be run in any cloud-native architecture. Deploy it consistently
+          in multiple formats and runtime environments: Docker, Kubernetes, Cloud Foundry,
+          Mesosphere, VMs, bare metal, and more.
     .columns.large-6
       img src="/images/homepage/callout-deploy.svg" alt=""/
   .row.home--callouts
@@ -154,24 +152,26 @@ section.home--section
       a name="manage"
       hgroup.home--callout-hgroup.mt-2
         .home--callout-label="manage"
-        h3.home--callout-header="Automation for Applications"
+        h3.home--callout-header="Consistent Application Management"
       p
-        | Habitat provides a Supervisor as part of your artifact which manages everything your application needs:
-      .row
-        .columns.large-4
-          ul
-            li="Dynamic configuration values"
-            li="Service discovery"
-            li="Topologies"
-        .columns.large-4
-          ul
-            li="Deployment strategies"
-            li="Secrets management"
-            li="Security auditing"
-        .columns.large-4
-          ul
-            li="Update strategy"
-            li="Intelligent scaling"
+        | Habitat includes a Supervisor every time it builds your application.
+          The Supervisor manages clustering topology, automatic configuration,
+          and automatic updates for your application.
+      / .row
+      /   .columns.large-4
+      /     ul
+      /       li="Dynamic configuration values"
+      /       li="Service discovery"
+      /       li="Topologies"
+      /   .columns.large-4
+      /     ul
+      /       li="Deployment strategies"
+      /       li="Secrets management"
+      /       li="Security auditing"
+      /   .columns.large-4
+      /     ul
+      /       li="Update strategy"
+      /       li="Intelligent scaling"
     .columns.large-6.medium-6.medium-pull-6
       img src="/images/homepage/callout-manage.svg"/
 section.home--section.home--testimonial-carousel
