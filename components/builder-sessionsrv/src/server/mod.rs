@@ -68,14 +68,11 @@ lazy_static! {
     };
 }
 
-pub type SessionKey = (u32, proto::OAuthProvider);
-
 #[derive(Clone, Debug)]
 pub struct Session {
     pub created_at: Instant,
-    pub key: SessionKey,
+    encoded_token: String,
     inner: proto::Session,
-    token: proto::SessionToken,
 }
 
 impl Session {
@@ -91,32 +88,28 @@ impl Session {
         token.set_provider(msg.get_provider());
         token.set_token(msg.get_token().to_string().into_bytes());
 
+        let encoded_token = encode_token(&token)?;
         session.set_id(account.get_id());
         session.set_email(account.take_email());
         session.set_name(account.take_name());
-        session.set_token(encode_token(&token)?);
+        session.set_token(encoded_token.clone());
         session.set_flags(flags.bits());
         session.set_oauth_token(msg.take_token());
         Ok(Session {
             created_at: Instant::now(),
-            key: (msg.get_extern_id(), msg.get_provider()),
+            encoded_token: encoded_token,
             inner: session,
-            token: token,
         })
     }
 
     pub fn expired(&self) -> bool {
         self.created_at.elapsed() >= *SESSION_DURATION
     }
-
-    pub fn validate_token(&self, token: &proto::SessionToken) -> bool {
-        self.token.get_token() == token.get_token()
-    }
 }
 
-impl Borrow<SessionKey> for Session {
-    fn borrow(&self) -> &SessionKey {
-        &self.key
+impl Borrow<str> for Session {
+    fn borrow(&self) -> &str {
+        &self.encoded_token
     }
 }
 
@@ -141,13 +134,13 @@ impl Hash for Session {
     where
         H: Hasher,
     {
-        self.key.hash(state);
+        self.encoded_token.hash(state);
     }
 }
 
 impl PartialEq for Session {
     fn eq(&self, other: &Session) -> bool {
-        self.key == other.key && self.token == other.token
+        self.encoded_token == other.encoded_token
     }
 }
 
