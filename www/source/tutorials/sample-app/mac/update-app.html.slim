@@ -96,10 +96,10 @@ section.sample-app
 
 	p To set up the database, table, and seed it with a set of values, we must connect directly to the <code>myrailsapp</code> container and run <code>rake db:setup</code>. The Ruby scaffolding creates #{link_to 'process bins', 'https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md#process-bins', target: '_blank'} for several Rails processes that you can use. They are essentially core processes for a given language or framework (like <code>rake</code>, or <code>sh</code>), but made to work within a Habitat package.
 
-	p Run the following from the root of the <code>~/habitat-example-plans/myrailsapp</code> directory:
+	p Run the following from the root of the <code>~/habitat-example-plans/myrailsapp</code> directory. Make sure to change <code>origin</code> to the origin for your <code>myrailsapp</code> package.
 
 	pre
-		code $ docker-compose exec railsapp myrailsapp-rake db:setup
+		code $ docker-compose exec railsapp hab pkg exec origin/myrailsapp myrailsapp-rake db:setup
 
 	p Your output should show the <code>myrailsapp_production</code> database and <code>page_updates</code> table being created. An initial set of values should also have been inserted into the table.
 
