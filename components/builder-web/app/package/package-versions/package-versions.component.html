@@ -6,6 +6,9 @@
       <h3>Updated</h3>
       <h3>Platforms</h3>
     </li>
+    <li class="none" *ngIf="versions.length === 0">
+        <span>There are no available versions for this package.</span>
+    </li>
     <li class="version" *ngFor="let version of versions" (click)="toggle(version)">
       <div class="summary">
         <span class="version-name">{{ version.version }}</span>

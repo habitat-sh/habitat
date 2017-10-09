@@ -212,7 +212,11 @@ export class ProjectSettingsComponent implements OnChanges {
         this.connect();
         this.selectedRepo = this.parseGitHubUrl(this.project.vcs_data);
         this.selectedPath = this.project.plan_path;
-        setTimeout(() => { this.repoField.markAsDirty(); }, 1000);
+        setTimeout(() => {
+            if (this.repoField) {
+                this.repoField.markAsDirty();
+            }
+        }, 1000);
     }
 
     saveConnection() {
@@ -230,7 +234,11 @@ export class ProjectSettingsComponent implements OnChanges {
 
     selectRepo() {
         this.selectedInstallation = this.installations.find(i => i.get("full_name") === this.repoField.value);
-        setTimeout(() => { this.planField.markAsDirty(); }, 1000);
+        setTimeout(() => {
+            if (this.planField) {
+                this.planField.markAsDirty();
+            }
+        }, 1000);
     }
 
     settingChanged(setting) {

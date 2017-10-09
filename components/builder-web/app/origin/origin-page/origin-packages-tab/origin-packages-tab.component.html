@@ -24,7 +24,7 @@
             </div>
           </li>
           <li *ngFor="let proj of projects">
-            <a [routerLink]="['/pkgs', origin, proj, 'settings']">
+            <a [routerLink]="['/pkgs', origin, proj, 'latest']">
               <span class="pkg-col-1">{{ proj }}</span>
             </a>
             <hab-icon symbol="chevron-right"></hab-icon>

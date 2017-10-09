@@ -21,6 +21,11 @@
         }
       }
 
+      &.none {
+        padding: 10px;
+        font-size: 14px;
+      }
+
       &.version {
         cursor: pointer;
         font-size: rem(12);
