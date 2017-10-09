@@ -148,6 +148,14 @@ pub struct GitHubWebhookPush {
 }
 
 impl GitHubWebhookPush {
+    pub fn branch(&self) -> &str {
+        self.git_ref
+            .split("refs/heads/")
+            .collect::<Vec<&str>>()
+            .last()
+            .expect("bad git ref")
+    }
+
     pub fn changed(&self) -> Vec<&String> {
         let mut paths = vec![];
         for commit in self.commits.iter() {
@@ -376,5 +384,17 @@ pub struct TeamMembership {
 impl TeamMembership {
     pub fn active(&self) -> bool {
         self.state == "active"
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn branch_from_hook() {
+        let mut hook = GitHubWebhookPush::default();
+        hook.git_ref = "refs/heads/master".to_string();
+        assert_eq!(hook.branch(), "master");
     }
 }

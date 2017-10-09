@@ -56,22 +56,31 @@ impl Deref for BuildCfg {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProjectCfg {
+    /// Branches which trigger an automatic rebuild on push notification from a GitHub push
+    /// notification.
     #[serde(default)]
-    pub paths: Vec<Pattern>,
+    pub branches: Vec<String>,
     /// Additional Release Channel to promote built packages into.
     #[serde(default)]
     pub channels: Vec<String>,
+    /// Unix style file globs which are matched against changed files from a GitHub push
+    /// notification to determine if an automatic rebuild should occur.
+    #[serde(default)]
+    pub paths: Vec<Pattern>,
 }
 
 impl ProjectCfg {
-    pub fn triggered_by(&self, path: &str) -> bool {
-        self.paths.iter().any(|p| p.matches(path))
+    /// Returns true if the given branch & file path combination should result in a new build
+    /// being automatically triggered by a GitHub Push notification
+    pub fn triggered_by(&self, branch: &str, path: &str) -> bool {
+        self.paths.iter().any(|p| p.matches(path)) && self.branches.iter().any(|b| b == branch)
     }
 }
 
 impl Default for ProjectCfg {
     fn default() -> Self {
         ProjectCfg {
+            branches: vec!["master".to_string()],
             paths: vec![],
             channels: vec![],
         }
@@ -137,6 +146,10 @@ mod test {
     fn from_contents() {
         let raw = r#"
         [hab-sup]
+        branches = [
+            "master",
+            "dev",
+        ]
         channels = [
           "stable"
         ]
@@ -153,19 +166,32 @@ mod test {
         assert_eq!(cfg.len(), 2);
         assert_eq!(
             cfg.get("hab-sup").unwrap().triggered_by(
+                "master",
                 "components/hab-sup/Cargo.toml",
             ),
             true
         );
         assert_eq!(
             cfg.get("hab-sup").unwrap().triggered_by(
+                "master",
                 "components/hAb-Sup/Cargo.toml",
             ),
             true
         );
         assert_eq!(
-            cfg.get("hab-sup").unwrap().triggered_by("components"),
+            cfg.get("hab-sup").unwrap().triggered_by(
+                "dev",
+                "components/hab-sup/Cargo.toml",
+            ),
+            true
+        );
+        assert_eq!(
+            cfg.get("hab-sup").unwrap().triggered_by(
+                "master",
+                "components",
+            ),
             false
         );
+        assert_eq!(cfg.get("hab-sup").unwrap().branches, &["master", "dev"]);
     }
 }
