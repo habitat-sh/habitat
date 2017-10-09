@@ -183,7 +183,11 @@ where
 }
 
 pub fn rescind_invitation(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let mut request = OriginInvitationRescindRequest::new();
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_owner_id(session.get_id());
+    }
     let params = req.extensions.get::<Router>().unwrap().clone();
     let origin = match params.find("origin") {
         Some(origin) => origin,
@@ -193,36 +197,30 @@ pub fn rescind_invitation(req: &mut Request) -> IronResult<Response> {
         Some(invitation) => invitation,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let invitation_id = match invitation.parse::<u64>() {
-        Ok(invitation_id) => invitation_id,
-        Err(e) => {
-            error!("Bad request; invitation ID did not parse into a u64, {}", e);
-            return Ok(Response::with(status::BadRequest));
-        }
-    };
+    match invitation.parse::<u64>() {
+        Ok(invitation_id) => request.set_invitation_id(invitation_id),
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    }
 
     debug!(
         "Rescinding invitation id {} for user {} origin {}",
-        &invitation_id,
-        &session.get_id(),
+        request.get_invitation_id(),
+        request.get_owner_id(),
         &origin
     );
 
-    let mut request = OriginInvitationRescindRequest::new();
-    request.set_invitation_id(invitation_id);
-    request.set_owner_id(session.get_id());
-
     match route_message::<OriginInvitationRescindRequest, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
-        Err(err) => {
-            error!("Error rescinding invitation, {}", err);
-            Ok(render_net_error(&err))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let mut request = OriginInvitationIgnoreRequest::new();
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_account_id(session.get_id());
+    }
     let params = req.extensions.get::<Router>().unwrap().clone();
     let origin = match params.find("origin") {
         Some(origin) => origin,
@@ -232,65 +230,50 @@ pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
         Some(invitation) => invitation,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let invitation_id = match invitation.parse::<u64>() {
-        Ok(invitation_id) => invitation_id,
-        Err(e) => {
-            error!("Bad request; invitation ID did not parse into a u64, {}", e);
-            return Ok(Response::with(status::BadRequest));
-        }
-    };
+    match invitation.parse::<u64>() {
+        Ok(invitation_id) => request.set_invitation_id(invitation_id),
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    }
 
     debug!(
         "Ignoring invitation id {} for user {} origin {}",
-        &invitation_id,
-        &session.get_id(),
+        request.get_invitation_id(),
+        request.get_account_id(),
         &origin
     );
 
-    let mut request = OriginInvitationIgnoreRequest::new();
-    request.set_invitation_id(invitation_id);
-    request.set_account_id(session.get_id());
-
     match route_message::<OriginInvitationIgnoreRequest, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
-        Err(err) => {
-            error!("Error ignoring invitation, {}", err);
-            Ok(render_net_error(&err))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
-    // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let mut request = OriginInvitationAcceptRequest::new();
+    request.set_ignore(false);
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_account_id(session.get_id());
+    }
     let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
-        Some(origin) => origin,
+    match params.find("origin") {
+        Some(origin) => request.set_origin_name(origin.to_string()),
         None => return Ok(Response::with(status::BadRequest)),
-    };
+    }
     let invitation = match params.find("invitation_id") {
         Some(invitation) => invitation,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let invitation_id = match invitation.parse::<u64>() {
-        Ok(invitation_id) => invitation_id,
-        Err(e) => {
-            error!("Bad request; invitation ID did not parse into a u64, {}", e);
-            return Ok(Response::with(status::BadRequest));
-        }
-    };
+    match invitation.parse::<u64>() {
+        Ok(invitation_id) => request.set_invite_id(invitation_id),
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    }
 
     debug!(
         "Accepting invitation for user {} origin {}",
-        &session.get_id(),
-        &origin
+        &request.get_account_id(),
+        request.get_origin_name()
     );
-
-    let mut request = OriginInvitationAcceptRequest::new();
-    request.set_account_id(session.get_id());
-    request.set_invite_id(invitation_id);
-    request.set_origin_name(origin.to_string());
-    request.set_ignore(false);
 
     match route_message::<OriginInvitationAcceptRequest, NetOk>(req, &request) {
         Ok(_) => {
@@ -298,15 +281,12 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
                 req,
                 Event::OriginInvitationAccept {
                     id: request.get_invite_id().to_string(),
-                    account: session.get_id().to_string(),
+                    account: request.get_account_id().to_string(),
                 }
             );
             Ok(Response::with(status::NoContent))
         }
-        Err(err) => {
-            error!("Error accepting invitation, {}", err);
-            Ok(render_net_error(&err))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -491,16 +471,12 @@ pub fn origin_member_delete(req: &mut Request) -> IronResult<Response> {
     origin_request.set_account_name(account_name.to_string());
 
     if let Err(err) = route_message::<AccountOriginRemove, NetOk>(req, &session_request) {
-        error!("Error deleting origin_account from sessionsrv, {}", err);
         return Ok(render_net_error(&err));
     }
 
     match route_message::<OriginMemberRemove, NetOk>(req, &origin_request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
-        Err(err) => {
-            error!("Error deleting member from originsrv, {}", err);
-            Ok(render_net_error(&err))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -655,10 +631,7 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
     }
     let key = match route_message::<OriginSecretKeyGet, OriginSecretKey>(req, &request) {
         Ok(key) => key,
-        Err(err) => {
-            error!("Can't retrieve secret key file: {}", err);
-            return Ok(render_net_error(&err));
-        }
+        Err(err) => return Ok(render_net_error(&err)),
     };
 
     let xfilename = format!("{}-{}.sig.key", key.get_name(), key.get_revision());
@@ -831,16 +804,12 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     match route_message::<OriginPackageGet, OriginPackage>(req, &ident_req) {
         Ok(_) => return Ok(Response::with((status::Conflict))),
         Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => {
-                    if depot.archive(&ident, &target_from_artifact).is_some() {
-                        return Ok(Response::with((status::Conflict)));
-                    }
+            if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
+                if depot.archive(&ident, &target_from_artifact).is_some() {
+                    return Ok(Response::with((status::Conflict)));
                 }
-                _ => {
-                    error!("upload_package:1, err={:?}", err);
-                    return Ok(Response::with(status::InternalServerError));
-                }
+            } else {
+                return Ok(render_net_error(&err));
             }
         }
     }
@@ -883,22 +852,16 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<PackagePreCreate, NetOk>(req, &pcr_req) {
         Ok(_) => (),
-        Err(e) => {
-            if e.get_code() == ErrCode::ENTITY_CONFLICT {
+        Err(err) => {
+            if err.get_code() == ErrCode::ENTITY_CONFLICT {
                 warn!(
                     "Failed package circular dependency check: {:?}, err: {:?}",
                     ident,
-                    e
+                    err
                 );
                 return Ok(Response::with(status::FailedDependency));
-            } else {
-                error!(
-                    "Unable to check package dependency: {:?}, err: {:?}",
-                    ident,
-                    e
-                );
-                return Ok(Response::with(status::InternalServerError));
             }
+            return Ok(render_net_error(&err));
         }
     }
 
@@ -960,15 +923,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                             package.set_visibility(o.get_default_package_visibility());
                         }
                     }
-                    Err(e) => {
-                        // Can't find the origin
-                        error!(
-                            "Trying to upload a package for {} and can't find the origin. e = {:?}",
-                            ident,
-                            e
-                        );
-                        return Ok(Response::with(status::NotFound));
-                    }
+                    Err(err) => return Ok(render_net_error(&err)),
                 }
             }
         }
@@ -979,16 +934,8 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             package.set_visibility(OriginPackageVisibility::Public);
         }
 
-        match route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
-            Ok(_) => (),
-            Err(err) => {
-                error!(
-                    "Unable to create origin package for {:?}, err={:?}",
-                    ident,
-                    err
-                );
-                return Ok(Response::with(status::InternalServerError));
-            }
+        if let Err(err) = route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
+            return Ok(render_net_error(&err));
         }
 
         // Schedule re-build of dependent packages (if requested)
@@ -1017,7 +964,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                         !depot.config.non_core_builds_enabled
                     )
                 }
-                Err(err) => error!("Unable to schedule build, err: {:?}", err),
+                Err(err) => warn!("Unable to schedule build, err: {:?}", err),
             }
         }
 
@@ -1172,10 +1119,7 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
     }
     let key = match route_message::<OriginPublicKeyGet, OriginPublicKey>(req, &request) {
         Ok(key) => key,
-        Err(err) => {
-            error!("Can't retrieve key file: {}", err);
-            return Ok(Response::with(status::NotFound));
-        }
+        Err(err) => return Ok(render_net_error(&err)),
     };
     let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
     let mut response = Response::with((status::Ok, key.get_body()));
@@ -1199,10 +1143,7 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
     }
     let key = match route_message::<OriginPublicKeyLatestGet, OriginPublicKey>(req, &request) {
         Ok(key) => key,
-        Err(err) => {
-            error!("Can't retrieve key file: {}", err);
-            return Ok(Response::with(status::NotFound));
-        }
+        Err(err) => return Ok(render_net_error(&err)),
     };
 
     let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
@@ -1216,7 +1157,6 @@ fn package_channels(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         let ident = ident_from_params(params);
         if !ident.fully_qualified() {
-            error!("package_channels:1");
             return Ok(Response::with(status::BadRequest));
         }
         request.set_ident(ident);
@@ -1260,11 +1200,10 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
     ident_req.set_show_hidden(true);
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
     if !depot.config.targets.contains(&agent_target) {
-        error!(
-            "Unsupported client platform ({}) for this depot.",
-            agent_target
-        );
-        return Ok(Response::with(status::NotImplemented));
+        return Ok(Response::with((
+            status::NotImplemented,
+            "Unsupported client platform ({}).",
+        )));
     }
 
     match route_message::<OriginPackageGet, OriginPackage>(req, &ident_req) {
@@ -1292,20 +1231,11 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
                 }
             } else {
                 // This can happen if the package is not found in the file system for some reason
-                error!("package not found - inconsistentcy between metadata and filesystem. \
-                    download_package:2",);
+                error!("Inconsistentcy between metadata and filesystem!");
                 Ok(Response::with(status::InternalServerError))
             }
         }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("download_package:1, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Err(err) => return Ok(render_net_error(&err)),
     }
 }
 
@@ -1402,15 +1332,7 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
             dont_cache_response(&mut response);
             Ok(response)
         }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("list_unique_packages:2, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Err(err) => return Ok(render_net_error(&err)),
     }
 }
 
@@ -1459,15 +1381,7 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
             dont_cache_response(&mut response);
             Ok(response)
         }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("list_package_versions:1, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Err(err) => return Ok(render_net_error(&err)),
     }
 }
 
@@ -1761,10 +1675,7 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
             delete.set_origin_id(origin_channel.get_origin_id());
             match route_message::<OriginChannelDelete, NetOk>(req, &delete) {
                 Ok(_) => Ok(Response::with(status::Ok)),
-                Err(err) => {
-                    error!("Error deleting channel, {}", err);
-                    Ok(render_net_error(&err))
-                }
+                Err(err) => return Ok(render_net_error(&err)),
             }
         }
         Err(err) => Ok(render_net_error(&err)),
@@ -1942,10 +1853,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
             dont_cache_response(&mut response);
             Ok(response)
         }
-        Err(err) => {
-            error!("search_packages:2, err={:?}", err);
-            Ok(Response::with(status::InternalServerError))
-        }
+        Err(err) => return Ok(render_net_error(&err)),
     }
 }
 
@@ -2080,10 +1988,7 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
                     demote.set_ident(ident);
                     match route_message::<OriginPackageDemote, NetOk>(req, &demote) {
                         Ok(_) => Ok(Response::with(status::Ok)),
-                        Err(err) => {
-                            error!("Error demoting package, {}", err);
-                            Ok(render_net_error(&err))
-                        }
+                        Err(err) => return Ok(render_net_error(&err)),
                     }
                 }
                 Err(err) => Ok(render_net_error(&err)),
@@ -2107,18 +2012,12 @@ pub fn download_latest_builder_key(req: &mut Request) -> IronResult<Response> {
         &depot.config.key_dir,
     ) {
         Ok(p) => p,
-        Err(_) => {
-            error!("Can't find bldr key pair at {:?}", depot.config.key_dir);
-            return Ok(Response::with(status::NotFound));
-        }
+        Err(_) => return Ok(Response::with((status::NotFound, "key-pair"))),
     };
 
     let key = match kp.public() {
         Ok(k) => k,
-        Err(_) => {
-            error!("Can't find public key in key pair: {}", kp.name_with_rev());
-            return Ok(Response::with(status::NotFound));
-        }
+        Err(_) => return Ok(Response::with((status::NotFound, "public-key"))),
     };
 
     let xfilename = format!("{}-{}.pub", kp.name, kp.rev);

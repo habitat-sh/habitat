@@ -21,7 +21,7 @@ use http_gateway::http::helpers;
 use iron::status::{self, Status};
 
 use protocol::originsrv::*;
-use protocol::net::{NetOk, ErrCode};
+use protocol::net::NetOk;
 use persistent;
 use router::Router;
 
@@ -89,15 +89,7 @@ pub fn fetch_origin_integration_names(req: &mut Request) -> IronResult<Response>
             helpers::dont_cache_response(&mut response);
             Ok(response)
         }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("create_integration:1, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -111,11 +103,11 @@ pub fn create_origin_integration(req: &mut Request) -> IronResult<Response> {
     match body {
         Ok(Some(_)) => (),
         Ok(None) => {
-            warn!("create_origin_integration: Empty body in request");
+            debug!("create_origin_integration: Empty body in request");
             return Ok(Response::with(status::BadRequest));
         }
         Err(e) => {
-            warn!("create_origin_integration, Error parsing body: {:?}", e);
+            debug!("create_origin_integration, Error parsing body: {:?}", e);
             return Ok(Response::with(status::BadRequest));
         }
     };
@@ -138,15 +130,7 @@ pub fn create_origin_integration(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<OriginIntegrationCreate, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
-        Err(err) => {
-            if err.get_code() == ErrCode::ENTITY_CONFLICT {
-                warn!("Failed to create integration as it already exists");
-                Ok(Response::with(status::Conflict))
-            } else {
-                error!("create_integration:1, err={:?}", err);
-                Ok(Response::with(status::InternalServerError))
-            }
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -166,9 +150,6 @@ pub fn delete_origin_integration(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<OriginIntegrationDelete, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
-        Err(err) => {
-            error!("delete_integration:1, err={:?}", err);
-            Ok(Response::with(status::InternalServerError))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
