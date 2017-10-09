@@ -113,5 +113,26 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                  ) RETURNS void AS $$
                         DELETE FROM account_origins WHERE account_name=aod_account_name AND origin_id=aod_origin_id;
                  $$ LANGUAGE SQL VOLATILE"#)?;
+
+    // This query is a report that's meant to be run manually. There's no code path (as of
+    // 2017-10-09) that calls it
+    migrator.migrate("accountsrv",
+                     r#"CREATE OR REPLACE FUNCTION account_creation_report (
+                          op_date timestamptz
+                        ) RETURNS TABLE(name text, email text, created_at timestamptz) AS $$
+                        DECLARE
+                          schema RECORD;
+                        BEGIN
+                          FOR schema IN EXECUTE
+                            format(
+                              'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                              'shard_'
+                            )
+                            LOOP
+                              RETURN QUERY EXECUTE format('SELECT name, email, created_at FROM %I.accounts WHERE created_at >= %L', schema.schema_name, op_date);
+                            END LOOP;
+                            RETURN;
+                          END;
+                          $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }
