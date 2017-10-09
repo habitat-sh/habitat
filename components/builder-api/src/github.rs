@@ -236,25 +236,20 @@ fn handle_push(req: &mut Request, body: &str) -> IronResult<Response> {
     };
 
     debug!("Config, {:?}", config);
-
     let mut plans = match read_plans(&github, &token, &hook, plans) {
         HandleResult::Ok(plans) => plans,
         HandleResult::Err(err) => return Ok(err),
     };
 
     debug!("Plans, {:?}", plans);
-
     if let Some(cfg) = config {
         plans.retain(|plan| match cfg.get(&plan.name) {
-            Some(project) => {
-                hook.changed().iter().any(|f| {
-                    project.triggered_by(hook.branch(), f)
-                })
-            }
+            Some(project) => project.triggered_by(hook.branch(), hook.changed().as_slice()),
             None => false,
         })
     }
 
+    debug!("Filtered Plans, {:?}", plans);
     build_plans(req, &hook.repository.clone_url, plans)
 }
 
