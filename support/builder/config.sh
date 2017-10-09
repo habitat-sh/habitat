@@ -20,6 +20,7 @@ friends_only     = false
 source_code_url  = "https://github.com/habitat-sh/habitat"
 tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "http://$APP_HOSTNAME/#/sign-in"
+
 EOT
 
 mkdir -p /hab/svc/builder-jobsrv
@@ -326,7 +327,7 @@ EOT
 
 mkdir -p /hab/svc/builder-worker
 cat <<EOT > /hab/svc/builder-worker/user.toml
-auth_token = "$WORKER_AUTH_TOKEN"
-depot_url = "http://$APP_HOSTNAME:9636"
+auth_token = "$GITHUB_CLIENT_SECRET"
+bldr_url = "http://$APP_HOSTNAME:9636"
 auto_publish = true
 EOT
