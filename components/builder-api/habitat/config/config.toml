@@ -6,9 +6,6 @@ root = "{{pkg.svc_static_path}}"
 [http]
 {{toToml cfg.http}}
 
-[web]
-{{toToml cfg.web}}
-
 [github]
 app_private_key = "{{pkg.svc_files_path}}/builder-github-app.pem"
 {{toToml cfg.github}}
