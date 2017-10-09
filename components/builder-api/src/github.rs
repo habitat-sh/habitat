@@ -246,7 +246,11 @@ fn handle_push(req: &mut Request, body: &str) -> IronResult<Response> {
 
     if let Some(cfg) = config {
         plans.retain(|plan| match cfg.get(&plan.name) {
-            Some(project) => hook.changed().iter().any(|f| project.triggered_by(f)),
+            Some(project) => {
+                hook.changed().iter().any(|f| {
+                    project.triggered_by(hook.branch(), f)
+                })
+            }
             None => false,
         })
     }
