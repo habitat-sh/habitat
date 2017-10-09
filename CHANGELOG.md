@@ -1,5 +1,63 @@
 # Habitat CHANGELOG
 
+## [0.36.0](https://github.com/habitat-sh/habitat/tree/0.36.0) (10-09-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.35.0...0.36.0)
+
+## Features & Enhancements
+
+- Need better error when connecting plan file and origin does not match [\#3556](https://github.com/habitat-sh/habitat/issues/3556)
+- Implement `--peer-watch-file` flag for joining the ring [\#2735](https://github.com/habitat-sh/habitat/issues/2735)
+- Expose builder-web feature flag configuration [\#3642](https://github.com/habitat-sh/habitat/pull/3642) ([reset](https://github.com/reset))
+- Remove unused `web` section of builder-api config [\#3641](https://github.com/habitat-sh/habitat/pull/3641) ([reset](https://github.com/reset))
+- Fixing tutorial with temp fix to unblock users [\#3634](https://github.com/habitat-sh/habitat/pull/3634) ([davidwrede](https://github.com/davidwrede))
+- Return plans built by a GitHub hook in response [\#3630](https://github.com/habitat-sh/habitat/pull/3630) ([reset](https://github.com/reset))
+- generate keys on build if they are missing [\#3620](https://github.com/habitat-sh/habitat/pull/3620) ([mwrock](https://github.com/mwrock))
+- Put profile.release in proper Cargo.toml [\#3617](https://github.com/habitat-sh/habitat/pull/3617) ([reset](https://github.com/reset))
+- Describing how to use Builder with multiple plans [\#3616](https://github.com/habitat-sh/habitat/pull/3616) ([davidwrede](https://github.com/davidwrede))
+- Set `RUST\_BACKTRACE=1` in every Builder service's run hook [\#3615](https://github.com/habitat-sh/habitat/pull/3615) ([reset](https://github.com/reset))
+- Configurable feature flags [\#3609](https://github.com/habitat-sh/habitat/pull/3609) ([cnunciato](https://github.com/cnunciato))
+- New Node.js web app guide + content refactoring [\#3580](https://github.com/habitat-sh/habitat/pull/3580) ([davidwrede](https://github.com/davidwrede))
+- Revised homepage / pricing / demo [\#3441](https://github.com/habitat-sh/habitat/pull/3441) ([mgamini](https://github.com/mgamini))
+
+## Bug fixes
+
+- Support multiple sessions [\#3629](https://github.com/habitat-sh/habitat/issues/3629)
+- Paginate repositories when retrieving the contents of a file [\#3628](https://github.com/habitat-sh/habitat/issues/3628)
+- Accumulate all repositories via pagination [\#3643](https://github.com/habitat-sh/habitat/pull/3643) ([christophermaier](https://github.com/christophermaier))
+- Check for origin access before allowing updates to an origin [\#3639](https://github.com/habitat-sh/habitat/pull/3639) ([reset](https://github.com/reset))
+- Support multiple sessions for the same user [\#3636](https://github.com/habitat-sh/habitat/pull/3636) ([reset](https://github.com/reset))
+- Remove nested feature-flags toml [\#3635](https://github.com/habitat-sh/habitat/pull/3635) ([cnunciato](https://github.com/cnunciato))
+- Fix deserialization error on GitHub notify [\#3622](https://github.com/habitat-sh/habitat/pull/3622) ([reset](https://github.com/reset))
+
+**Closed issues:**
+
+- Build worker can panic [\#3613](https://github.com/habitat-sh/habitat/issues/3613)
+
+**Merged pull requests:**
+
+- adds in blog post about node scaffolding [\#3638](https://github.com/habitat-sh/habitat/pull/3638) ([nellshamrell](https://github.com/nellshamrell))
+- Update scheduler logging and tweak error handling [\#3633](https://github.com/habitat-sh/habitat/pull/3633) ([chefsalim](https://github.com/chefsalim))
+- Handle missing error messages [\#3632](https://github.com/habitat-sh/habitat/pull/3632) ([cnunciato](https://github.com/cnunciato))
+- Quotes don’t go there [\#3626](https://github.com/habitat-sh/habitat/pull/3626) ([cnunciato](https://github.com/cnunciato))
+- Select a plan by text field [\#3623](https://github.com/habitat-sh/habitat/pull/3623) ([cnunciato](https://github.com/cnunciato))
+- Move worker logs to tmp [\#3619](https://github.com/habitat-sh/habitat/pull/3619) ([chefsalim](https://github.com/chefsalim))
+- Put profile.release in proper Cargo.toml [\#3618](https://github.com/habitat-sh/habitat/pull/3618) ([reset](https://github.com/reset))
+- Remove non-compiling code that snuck in [\#3612](https://github.com/habitat-sh/habitat/pull/3612) ([christophermaier](https://github.com/christophermaier))
+- Move scheduler log file back to tmp [\#3611](https://github.com/habitat-sh/habitat/pull/3611) ([chefsalim](https://github.com/chefsalim))
+- Set default bldr\_url in builder-worker plan [\#3610](https://github.com/habitat-sh/habitat/pull/3610) ([reset](https://github.com/reset))
+- Feature-flag project configuration [\#3608](https://github.com/habitat-sh/habitat/pull/3608) ([cnunciato](https://github.com/cnunciato))
+- Switch logs back to var path [\#3606](https://github.com/habitat-sh/habitat/pull/3606) ([chefsalim](https://github.com/chefsalim))
+- Environment variables on one line [\#3605](https://github.com/habitat-sh/habitat/pull/3605) ([cnunciato](https://github.com/cnunciato))
+- quickfixes for un-breaking nav js, envs [\#3604](https://github.com/habitat-sh/habitat/pull/3604) ([mgamini](https://github.com/mgamini))
+- Enable non-core builds by default [\#3602](https://github.com/habitat-sh/habitat/pull/3602) ([reset](https://github.com/reset))
+- Expose webhook\_secret as config and set default in builder-api plan [\#3601](https://github.com/habitat-sh/habitat/pull/3601) ([reset](https://github.com/reset))
+- Share app-id config between web and api in Habitat plan [\#3600](https://github.com/habitat-sh/habitat/pull/3600) ([reset](https://github.com/reset))
+- Update builder log location, add log rotation [\#3599](https://github.com/habitat-sh/habitat/pull/3599) ([chefsalim](https://github.com/chefsalim))
+- Add projects \(aka connected plans\) to the packages screen [\#3598](https://github.com/habitat-sh/habitat/pull/3598) ([raskchanky](https://github.com/raskchanky))
+- Replace plan selection with a text field [\#3597](https://github.com/habitat-sh/habitat/pull/3597) ([cnunciato](https://github.com/cnunciato))
+- Add hook to update folder permissions [\#3595](https://github.com/habitat-sh/habitat/pull/3595) ([chefsalim](https://github.com/chefsalim))
+- Tests for FileWatcher [\#3575](https://github.com/habitat-sh/habitat/pull/3575) ([krnowak](https://github.com/krnowak))
+
 ## [0.35.0](https://github.com/habitat-sh/habitat/tree/0.35.0) (10-07-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.34.1...0.35.0)
 
