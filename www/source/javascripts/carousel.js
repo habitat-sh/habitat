@@ -15,7 +15,7 @@ function Carousel($slides, $nav, activeClass, intervalLength, smallBreakpoint) {
 
   this.dom.window.resize(this.resizeParent.bind(this));
 
-  this.interval;
+  this.timeout;
   this.init();
 }
 
@@ -26,21 +26,14 @@ Carousel.prototype.init = function() {
 
   this.resizeParent();
   this.rotate(0, true);
-  this.startInterval();
 }
 
-Carousel.prototype.startInterval = function(delay) {
-  clearInterval(this.interval);
-  setTimeout(function() {
-    this.interval = setInterval(this.rotate.bind(this), this.intervalLength);
-  }.bind(this), delay || 1)
+Carousel.prototype.startTimeout = function(delay) {
+  clearTimeout(this.timeout);
+  this.timeout = setTimeout(this.rotate.bind(this), delay || 1)
 }
 
 Carousel.prototype.rotate = function(target, initialRotate) {
-  if (target !== undefined && initialRotate !== true) {
-    this.startInterval(this.intervalLength * 6);
-  }
-
   $(this.dom.slides[this.current]).removeClass(this.activeClass);
   $(this.dom.nav[this.current]).removeClass(this.activeClass);
 
@@ -52,6 +45,8 @@ Carousel.prototype.rotate = function(target, initialRotate) {
   this.dom.slideParent.attr('data-currentIdx', next);
   this.dom.navParent.attr('data-currentIdx', next);
   this.current = next;
+
+  this.startTimeout(target !== undefined && initialRotate !== true ? this.intervalLength * 6 : this.intervalLength);
 }
 
 Carousel.prototype.resizeParent = function() {
