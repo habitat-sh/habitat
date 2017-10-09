@@ -31,9 +31,6 @@ youtube_url           = "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI
 demo_app_url          = "https://www.habitat.sh/demo"
 github_app_url        = "https://github.com/apps/habitat-builder"
 
-[web.feature_flags]
-project = false
-
 [depot]
 builds_enabled = true
 non_core_builds_enabled = true
