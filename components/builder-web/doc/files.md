@@ -61,6 +61,7 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     karma.conf.js                # The [Karma](https://karma-runner.github.io/0.13/index.html) config file.
     npm-debug.log                # Logs from npm debug output. Ignored by git.
     npm-shrinkwrap.json          # [`npm-shrinkwrap`](https://docs.npmjs.com/cli/shrinkwrap) file for locking npm dependencies.
+    opensearch.xml               # [OpenSearch](http://www.opensearch.org/) provider
     package.json                 # A [package.json](https://docs.npmjs.com/files/package.json).
     plan.sh                      # Plan for creating Habitat package.
     protractor.conf.js           # Configuration for Protractor.
