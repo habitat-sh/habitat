@@ -3,7 +3,7 @@ title: Habitat Demo - Step 10
 layout: layout
 classes: demo_step
 ---
-#demo-step
+#demo-step.demo--page
   .row
     .columns.large-12.demo-step--content
       .demo-step--indicators
@@ -39,7 +39,9 @@ classes: demo_step
             strong  Commit changes
             '  button to update the master branch.
           p
-            ' Habitat Builder will detect the change and start a new build automatically. You can view the resulting output in the Habitat Builder web app.
+            ' In the Habitat Builder app, click on the
+            strong Build latest version
+            '  button.
             ' Once the build job completes, re-run the docker commands to verify the updated container:
           p.code $ docker pull your-docker-org/your-docker-repo
           p.code $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
