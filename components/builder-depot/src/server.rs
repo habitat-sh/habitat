@@ -71,16 +71,18 @@ struct OriginUpdateReq {
 const ONE_YEAR_IN_SECS: usize = 31536000;
 
 pub fn origin_update(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let mut request = OriginUpdate::new();
-
-    let origin = {
+    {
         let params = req.extensions.get::<Router>().unwrap();
-
         match params.find("name") {
-            Some(o) => o.to_string(),
+            Some(origin) => request.set_name(origin.to_string()),
             None => return Ok(Response::with(status::BadRequest)),
         }
-    };
+    }
+    if !check_origin_access(req, session.get_id(), request.get_name())? {
+        return Ok(Response::with(status::Forbidden));
+    }
 
     match req.get::<bodyparser::Struct<OriginUpdateReq>>() {
         Ok(Some(body)) => {
@@ -89,18 +91,14 @@ pub fn origin_update(req: &mut Request) -> IronResult<Response> {
                 Ok(x) => x,
                 Err(_) => return Ok(Response::with(status::UnprocessableEntity)),
             };
-            request.set_name(origin.clone());
             request.set_default_package_visibility(dpv);
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     }
-
-    let origin_id = match helpers::get_origin(req, origin) {
-        Ok(origin) => origin.get_id(),
+    match helpers::get_origin(req, request.get_name()) {
+        Ok(origin) => request.set_id(origin.get_id()),
         Err(err) => return Ok(render_net_error(&err)),
-    };
-
-    request.set_id(origin_id);
+    }
     match route_message::<OriginUpdate, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => Ok(render_net_error(&err)),
