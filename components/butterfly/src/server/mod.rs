@@ -346,6 +346,13 @@ impl Server {
         Ok(())
     }
 
+    pub fn need_peer_seeding(&self) -> bool {
+        let m = self.member_list.members.read().expect(
+            "Members lock is poisoned",
+        );
+        m.is_empty()
+    }
+
     /// Blacklist a given address, causing no traffic to be seen.
     pub fn add_to_blacklist(&self, member_id: String) {
         let mut blacklist = self.blacklist.write().expect(

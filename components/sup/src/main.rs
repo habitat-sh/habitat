@@ -206,6 +206,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+                "Watch this file for connecting to the ring"
+            )
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg CHANNEL: --channel +takes_value
                 "Receive Supervisor updates from the specified release channel [default: stable]")
@@ -239,6 +242,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+                "Watch this file for connecting to the ring"
+            )
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
                 "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
@@ -367,6 +373,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+                "Watch this file for connecting to the ring"
+            )
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg CHANNEL: --channel +takes_value
                 "Receive Supervisor updates from the specified release channel [default: stable]")
@@ -400,6 +409,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+                "Watch this file for connecting to the ring"
+            )
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
                 "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
@@ -753,6 +765,9 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         }
     }
     cfg.gossip_peers = gossip_peers;
+    if let Some(watch_peer_file) = m.value_of("PEER_WATCH_FILE") {
+        cfg.watch_peer_file = Some(String::from(watch_peer_file));
+    }
     let ring = match m.value_of("RING") {
         Some(val) => Some(SymKey::get_latest_pair_for(
             &val,
