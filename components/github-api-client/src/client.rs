@@ -17,13 +17,14 @@ use std::io::Read;
 use std::time::{UNIX_EPOCH, Duration, SystemTime};
 
 use hyper::{self, Url};
-use hyper::client::IntoUrl;
+use hyper::client::{IntoUrl, Response};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use jwt;
+use regex::Regex;
 use serde_json;
 
 use config::GitHubCfg;
@@ -32,6 +33,16 @@ use types::*;
 
 const USER_AGENT: &'static str = "Habitat-Builder";
 const HTTP_TIMEOUT: u64 = 3_000;
+
+lazy_static! {
+    // Until we can migrate to Hyper 0.11.x, which has typed support
+    // for interacting with Link headers, we need to roll our own
+    // support using regular expressions.
+    //
+    // Given a header string, this regex extracts the 'rel="next"'
+    // URL, if there is one. Used with Github's pagination scheme.
+    static ref LINK_NEXT_RE: Regex = Regex::new("<(?P<url>[^>].*)>;.*rel=\"next\"").unwrap();
+}
 
 #[derive(Clone)]
 pub struct GitHubClient {
@@ -181,21 +192,56 @@ impl GitHubClient {
     }
 
     pub fn repositories(&self, token: &str, install_id: u32) -> HubResult<Vec<Repository>> {
-        let url = Url::parse(&format!(
+
+        let initial_url = Url::parse(&format!(
             "{}/user/installations/{}/repositories",
             self.url,
             install_id
         )).unwrap();
-        let mut rep = http_get(url, Some(token))?;
-        let mut body = String::new();
-        rep.read_to_string(&mut body)?;
-        debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
+
+        let mut repositories = Vec::new();
+        let mut current_url = Some(initial_url);
+
+        while let Some(url) = current_url {
+            let mut rep = http_get(url, Some(token))?;
+            let mut body = String::new();
+            rep.read_to_string(&mut body)?;
+            debug!("GitHub response body, {}", body);
+            if rep.status != StatusCode::Ok {
+                let err: HashMap<String, String> = serde_json::from_str(&body)?;
+                return Err(HubError::ApiError(rep.status, err));
+            }
+            let mut list = serde_json::from_str::<RepositoryList>(&body)?;
+            repositories.append(&mut list.repositories);
+
+            // Determine the next page to grab and do it again.
+            current_url = Self::next_page_url(&rep);
         }
-        let list = serde_json::from_str::<RepositoryList>(&body)?;
-        Ok(list.repositories)
+
+        Ok(repositories)
+    }
+
+    /// Given an HTTP response from Github, extract the URL for the
+    /// "next" page of results, if it exists.
+    ///
+    /// See
+    /// https://developer.github.com/v3/guides/traversing-with-pagination/
+    /// for further details.
+    ///
+    /// NOTE: Once we upgrade to Hyper 0.11.x, this implementation can
+    /// get a whole lot less ugly because then we'll actually have
+    /// TYPED ACCESS to the Link header.
+    fn next_page_url(response: &Response) -> Option<Url> {
+        let headers = &response.headers;
+        if let Some(link) = headers.get_raw("link") {
+            for value in link.iter() {
+                let value = String::from_utf8_lossy(value);
+                if let Some(captures) = LINK_NEXT_RE.captures(&value) {
+                    return Some(Url::parse(&captures["url"]).unwrap());
+                }
+            }
+        }
+        return None;
     }
 
     pub fn user(&self, token: &str) -> HubResult<User> {
