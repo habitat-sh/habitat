@@ -98,7 +98,11 @@ export class GitHubApiClient {
 
                                             async.parallel(pages, (err, additionalPages) => {
                                                 if (err) {
-                                                    done(null, []);
+                                                    done(null, {
+                                                        id: install.id,
+                                                        app_id: install.app_id,
+                                                        repos: []
+                                                    });
                                                 }
                                                 else {
                                                     additionalPages.forEach((p) => {
@@ -122,7 +126,11 @@ export class GitHubApiClient {
                                         }
                                     })
                                     .catch((err) => {
-                                        done(null, []);
+                                        done(null, {
+                                            id: install.id,
+                                            app_id: install.app_id,
+                                            repos: []
+                                        });
                                     });
                             });
                         });
