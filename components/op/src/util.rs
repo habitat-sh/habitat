@@ -15,9 +15,11 @@
 use std::hash::Hasher;
 use std::path::PathBuf;
 
+use bldr_sessionsrv::server as sessionsrv;
 use fnv::FnvHasher;
 use hcore::crypto::hash::hash_file;
 use protocol::SHARD_COUNT;
+
 const SHARD_MASK: u64 = 0x1FFF;
 
 use config::Config;
@@ -36,6 +38,12 @@ pub fn hash(config: Config) -> Result<()> {
         }
         Err(e) => Err(Error::HabitatCore(e)),
     }
+}
+
+pub fn session(encoded_token: &str) -> Result<()> {
+    let token = sessionsrv::decode_token(encoded_token).unwrap();
+    println!("{:?}", token);
+    Ok(())
 }
 
 pub fn shard(config: Config) -> Result<()> {

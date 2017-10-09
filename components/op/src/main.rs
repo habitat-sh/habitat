@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -51,11 +52,14 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
             (about: "Return the BLAKE2b hash for a file")
             (@arg file: --file +takes_value "File to hash")
         )
+        (@subcommand session =>
+            (about: "Decodes a base64 encoded session token and outputs it's contents.")
+            (@arg token: +takes_value "Token")
+        )
         (@subcommand shard =>
             (about: "Return the shard number for an origin or account id")
             (@arg origin: --origin +takes_value "Origin")
             (@arg account: --account +takes_value "Account")
-
         )
     )
 }
@@ -84,6 +88,10 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
     match matches.subcommand_name() {
         Some("hash") => util::hash(config),
         Some("shard") => util::shard(config),
+        Some("session") => {
+            let args = matches.subcommand_matches("session").unwrap();
+            util::session(args.value_of("token").unwrap())
+        }
         Some(cmd) => {
             debug!("Dispatch failed, no match for command: {:?}", cmd);
             Ok(())
