@@ -31,9 +31,9 @@ use error::{ErrCode, NetError, NetResult};
 use socket::DEFAULT_CONTEXT;
 
 /// Time to wait before timing out a message receive for a `RouteConn`.
-pub const RECV_TIMEOUT_MS: i32 = 10_000;
+pub const RECV_TIMEOUT_MS: i32 = 15_000;
 /// Time to wait before timing out a message send for a `RouteBroker` to a router.
-pub const SEND_TIMEOUT_MS: i32 = 10_000;
+pub const SEND_TIMEOUT_MS: i32 = 15_000;
 
 static TXN_ID: AtomicUsize = ATOMIC_USIZE_INIT;
 
