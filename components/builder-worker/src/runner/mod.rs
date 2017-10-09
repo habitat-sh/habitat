@@ -102,20 +102,44 @@ impl Runner {
 
     pub fn run(mut self) -> Job {
         if let Some(err) = util::validate_integrations(&self.workspace).err() {
-            error!("failed to validate integrations err={:?}", err);
+            let msg = format!(
+                "Failed to validate integrations for {}, err={:?}",
+                self.workspace.job.get_project().get_name(),
+                err
+            );
+            debug!("{}", msg);
+            self.logger.log(&msg);
             return self.fail(net::err(ErrCode::INVALID_INTEGRATIONS, "wk:run:7"));
         };
         if let Some(err) = self.setup().err() {
-            error!("failed to setup workspace err={:?}", err);
+            let msg = format!(
+                "Failed to setup workspace for {}, err={:?}",
+                self.workspace.job.get_project().get_name(),
+                err
+            );
+            warn!("{}", msg);
+            self.logger.log(&msg);
             return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
         }
         if let Some(err) = self.install_origin_secret_key().err() {
-            error!("failed to retrieve secret key, err={:?}", err);
+            let msg = format!(
+                "Failed to install origin secret key {}, err={:?}",
+                self.workspace.job.get_project().get_origin_name(),
+                err
+            );
+            debug!("{}", msg);
+            self.logger.log(&msg);
             return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
         }
         let vcs = VCS::from_job(&self.job(), self.config.github.clone());
         if let Some(err) = vcs.clone(&self.workspace.src()).err() {
-            error!("failed to clone remote source repository, err={:?}", err);
+            let msg = format!(
+                "Failed to clone remote source repository for {}, err={:?}",
+                self.workspace.job.get_project().get_name(),
+                err
+            );
+            debug!("{}", msg);
+            self.logger.log(&msg);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }
 
@@ -140,7 +164,13 @@ impl Runner {
                 self.workspace.job.set_build_finished_at(
                     UTC::now().to_rfc3339(),
                 );
-                error!("failed the studio build, err={}", err);
+                let msg = format!(
+                    "Failed studio build for {}, err={:?}",
+                    self.workspace.job.get_project().get_name(),
+                    err
+                );
+                debug!("{}", msg);
+                self.logger.log(&msg);
                 return self.fail(net::err(ErrCode::BUILD, "wk:run:5"));
             }
         };
@@ -160,8 +190,8 @@ impl Runner {
         }
 
         if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
-            error!(
-                "failed to delete directory, dir={}, err={:?}",
+            warn!(
+                "Failed to delete directory during cleanup, dir={}, err={:?}",
                 self.workspace.out().display(),
                 err
             )
@@ -183,16 +213,25 @@ impl Runner {
             },
             |res| {
                 if res.is_err() {
-                    error!("failed to fetch origin secret key, err={:?}", res);
+                    debug!("Failed to fetch origin secret key, err={:?}", res);
                 };
                 res.is_ok()
             },
         ) {
             Ok(res) => {
-                debug!("imported origin secret key, dst={:?}.", res.unwrap());
+                debug!("Imported origin secret key, dst={:?}.", res.unwrap());
                 Ok(())
             }
-            Err(err) => Err(Error::Retry(err)),
+            Err(err) => {
+                let msg = format!(
+                    "Failed to import secret key {} after {} retries",
+                    self.job().origin(),
+                    RETRIES
+                );
+                debug!("{}", msg);
+                self.logger.log(&msg);
+                Err(Error::Retry(err))
+            }
         }
     }
 
@@ -211,7 +250,7 @@ impl Runner {
         if self.has_docker_integration() && status.success() {
             // TODO fn: This check should be updated in PackageArchive is check for run hooks.
             if self.workspace.last_built()?.is_a_service() {
-                debug!("found runnable package, running docker export");
+                debug!("Found runnable package, running docker export");
                 log_pipe.pipe_stdout(b"\n--- BEGIN: Docker export ---\n")?;
                 status = DockerExporter::new(
                     util::docker_exporter_spec(&self.workspace),
@@ -220,7 +259,7 @@ impl Runner {
                 ).export(&mut log_pipe)?;
                 log_pipe.pipe_stdout(b"\n--- END: Docker export ---\n")?;
             } else {
-                debug!("package not runnable, skipping docker export");
+                debug!("Package not runnable, skipping docker export");
             }
         }
 
@@ -253,8 +292,8 @@ impl Runner {
 
         if self.workspace.src().exists() {
             if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
-                error!(
-                    "failed to delete directory, dir={}, err={:?}",
+                warn!(
+                    "Failed to delete directory during setup, dir={}, err={:?}",
                     self.workspace.src().display(),
                     err
                 )
@@ -401,7 +440,7 @@ impl RunnerMgr {
 
     fn execute_job(&mut self, job: Job) -> Result<()> {
         let runner = Runner::new(job, self.config.clone(), &self.net_ident);
-        debug!("executing work, job={:?}", runner.job());
+        debug!("Executing work, job={:?}", runner.job());
         let job = runner.run();
         self.send_complete(&job)
     }
@@ -413,14 +452,14 @@ impl RunnerMgr {
     }
 
     fn send_ack(&mut self, job: &Job) -> Result<()> {
-        debug!("received work, job={:?}", job);
+        debug!("Received work, job={:?}", job);
         self.sock.send_str(WORK_ACK, zmq::SNDMORE)?;
         self.sock.send(&message::encode(&**job)?, 0)?;
         Ok(())
     }
 
     fn send_complete(&mut self, job: &Job) -> Result<()> {
-        debug!("completed work, job={:?}", job);
+        debug!("Completed work, job={:?}", job);
         self.sock.send_str(WORK_COMPLETE, zmq::SNDMORE)?;
         self.sock.send(&message::encode(&**job)?, 0)?;
         Ok(())
