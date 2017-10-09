@@ -1693,7 +1693,15 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
             dont_cache_response(&mut response);
             Ok(response)
         }
-        Err(err) => Ok(render_net_error(&err)),
+        Err(err) => {
+            match err.get_code() {
+                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
+                _ => {
+                    error!("list_packages:2, err={:?}", err);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
+        }
     }
 }
 

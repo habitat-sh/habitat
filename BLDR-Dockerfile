@@ -44,6 +44,8 @@ RUN addgroup -S hab && adduser -S -G hab hab \
   core/builder-worker -c unstable
 
 RUN /tmp/init-datastore.sh \
+  && hab term \
+  && sleep 5
   && /tmp/config.sh
 
 RUN hab pkg exec core/openssl openssl s_client -showcerts -connect $GITHUB_ADDR:443 \

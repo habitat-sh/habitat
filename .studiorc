@@ -1,0 +1,290 @@
+#!/bin/bash
+
+export HAB_DEPOT_CHANNEL
+export APP_HOSTNAME
+export GITHUB_API_URL
+export GITHUB_WEB_URL
+export GITHUB_CLIENT_ID
+export GITHUB_CLIENT_SECRET
+export GITHUB_ADMIN_TEAM
+export GITHUB_WORKER_TEAM
+export GITHUB_WEBHOOK_SECRET
+export WORKER_AUTH_TOKEN
+export SSL_CERT_FILE
+
+init-datastore() {
+  mkdir -p /hab/svc/builder-datastore
+  cp -f /src/support/builder/datastore.toml /hab/svc/builder-datastore/user.toml
+  /src/support/builder/init-datastore.sh
+}
+
+configure() {
+  sup-term
+  sleep 2
+  /src/support/builder/config.sh
+  sleep 2
+  sup-run
+}
+
+install-packages() {
+  hab pkg install core/cacerts core/net-tools core/procps-ng core/postgresql -b -c stable
+  hab pkg install \
+    core/builder-admin \
+    core/builder-admin-proxy \
+    core/builder-api \
+    core/builder-api-proxy \
+    core/builder-datastore \
+    core/builder-jobsrv \
+    core/builder-originsrv \
+    core/builder-router \
+    core/builder-scheduler \
+    core/builder-sessionsrv \
+    core/builder-worker -c unstable
+}
+
+build-habitat() {
+  build-hab
+  build-launcher
+  build-sup
+}
+
+build-hab() {
+  build "/src/components/hab"
+}
+
+build-launcher() {
+  build "/src/components/launcher"
+}
+
+build-sup() {
+  build "/src/components/sup"
+}
+
+build-builder() {
+  build-admin
+  build-admin-proxy
+  build-api
+  build-api-proxy
+  build-datastore
+  build-jobsrv
+  build-originsrv
+  build-router
+  build-scheduler
+  build-sessionsrv
+  build-worker
+}
+
+build-admin() {
+  build "/src/components/builder-admin"
+}
+
+build-admin-proxy() {
+  build "/src/components/builder-admin-proxy"
+}
+
+build-api() {
+  build "/src/components/builder-api"
+}
+
+build-api-proxy() {
+  build "/src/components/builder-api-proxy"
+}
+
+build-datastore() {
+  build "/src/components/builder-datastore"
+}
+
+build-jobsrv() {
+  build "/src/components/builder-jobsrv"
+}
+
+build-originsrv() {
+  build "/src/components/builder-originsrv"
+}
+
+build-router() {
+  build "/src/components/builder-router"
+}
+
+build-scheduler() {
+  build "/src/components/builder-scheduler"
+}
+
+build-sessionsrv() {
+  build "/src/components/builder-sessionsrv"
+}
+
+build-worker() {
+  build "/src/components/builder-worker"
+}
+
+start-builder() {
+  sup-start
+  start-admin
+  start-admin-proxy
+  start-api
+  start-api-proxy
+  start-datastore
+  start-jobsrv
+  start-originsrv
+  start-router
+  start-scheduler
+  start-sessionsrv
+  start-worker
+}
+
+start-admin() {
+  hab svc start core/builder-admin --bind router:builder-router.default
+}
+
+start-admin-proxy() {
+  hab svc start core/builder-admin-proxy --bind http:builder-admin.default
+}
+
+start-api() {
+  hab svc start core/builder-api --bind router:builder-router.default
+}
+
+start-api-proxy() {
+  hab svc start core/builder-api-proxy --bind http:builder-api.default
+}
+
+start-datastore() {
+  hab svc start core/builder-datastore
+}
+
+start-jobsrv() {
+  hab svc start core/builder-jobsrv --bind router:builder-router.default --bind datastore:builder-datastore.default
+}
+
+start-originsrv() {
+  hab svc start core/builder-originsrv --bind router:builder-router.default --bind datastore:builder-datastore.default
+}
+
+start-router() {
+  hab svc start core/builder-router
+}
+
+start-scheduler() {
+  hab svc start core/builder-scheduler --bind router:builder-router.default --bind datastore:builder-datastore.default --bind depot:builder-api.default
+}
+
+start-sessionsrv() {
+  hab svc start core/builder-sessionsrv --bind router:builder-router.default --bind datastore:builder-datastore.default
+}
+
+start-worker() {
+  hab svc start core/builder-worker --bind jobsrv:builder-jobsrv.default --bind depot:builder-api.default
+}
+
+stop-builder() {
+  stop-admin
+  stop-admin-proxy
+  stop-api
+  stop-api-proxy
+  stop-datastore
+  stop-jobsrv
+  stop-originsrv
+  stop-router
+  stop-scheduler
+  stop-sessionsrv
+  stop-worker
+}
+
+stop-admin() {
+  hab svc start core/builder-admin
+}
+
+stop-admin-proxy() {
+  hab svc start core/builder-admin-proxy
+}
+
+stop-api() {
+  hab svc start core/builder-api
+}
+
+stop-api-proxy() {
+  hab svc start core/builder-api-proxy
+}
+
+stop-datastore() {
+  hab svc start core/builder-datastore
+}
+
+stop-jobsrv() {
+  hab svc start core/builder-jobsrv
+}
+
+stop-originsrv() {
+  hab svc start core/builder-originsrv
+}
+
+stop-router() {
+  hab svc start core/builder-router
+}
+
+stop-scheduler() {
+  hab svc start core/builder-scheduler
+}
+
+stop-sessionsrv() {
+  hab svc start core/builder-sessionsrv
+}
+
+stop-worker() {
+  hab svc start core/builder-worker
+}
+
+dev_docs() {
+  cat <<DOCS
+Welcome to the development environment for Habitat & Builder.
+The following commands are available:
+
+1. Building Habitat
+  * build-habitat - build all Habitat components
+  * build-hab - build the Habitat CLI
+  * build-sup - build the Habitat Supervisor
+  * build-launcher - build the Habitat Launcher
+2. Building Habitat Web
+  * TED TODO: ELLIOT WILL WRITE THIS
+3. Building Builder
+  * build-builder - build all Builder components
+  * build-admin - build the Admin Gateway
+  * build-admin-proxy - build the Admin Gateway Proxy
+  * build-api - build the API Gateway
+  * build-api-proxy - build the API Gateway Proxy
+  * build-datastore - build Builder's Datastore
+  * build-jobsrv - build the JobSrv
+  * build-originsrv - build the OriginSrv
+  * build-router - build the RouteSrv
+  * build-scheduler - build the Scheduler
+  * build-sessionsrv - build the SessionSrv
+  * build-worker - build the Worker
+4. Running Builder
+  * start-builder - run all Builder services
+  * stop-builder - stop all Builder services
+  * start-{svc} - start a specfic Builder service. See the
+    above list of build targets for available services
+  * stop-{svc} - stop a specific Builder service
+DOCS
+}
+
+install-packages
+
+HAB_DEPOT_CHANNEL=unstable
+APP_HOSTNAME=localhost:3000
+GITHUB_API_URL=https://api.github.com
+GITHUB_WEB_URL=https://github.com
+GITHUB_CLIENT_ID=Iv1.732260b62f84db15
+GITHUB_CLIENT_SECRET=fc7654ed8c65ccfe014cd339a55e3538f935027a
+GITHUB_ADMIN_TEAM=1995301
+GITHUB_WORKER_TEAM=1995301
+GITHUB_WEBHOOK_SECRET=58d4afaf5e5617ab0f8c39e505605e78a054d003
+SSL_CERT_FILE=$(hab pkg path core/cacerts)/ssl/cert.pem
+
+init-datastore
+configure
+start-builder
+
+# Print out the docs
+dev_docs

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$I_MEAN_IT" != "1" ]; then 
+if [ "$I_MEAN_IT" != "1" ]; then
   echo "**** THESE TESTS WILL DESTROY YOUR DATABASES ****"
   echo "**** AND I MEAN THE REALLY REAL ONES ****"
   echo
