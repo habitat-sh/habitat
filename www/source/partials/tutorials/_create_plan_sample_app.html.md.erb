@@ -10,7 +10,7 @@ To demonstrate Habitat code residing in the same repo as your source code, you a
 application and then add your plan to that web application. By having the Habitat plan live in the same directory as your
 source code, the Habitat package for your application can be built right alongside your source code for testing and deployment purposes.
 
-## Clone the Project
+## Get the sample application source code
 
 The Ruby-on-Rails web application in this tutorial is a simple web app that connects to a backend PostgreSQL database. It was created
 by running `rails new mywebapp --database=postgresql` to reference the use of PostgreSQL instead of the default database for most Rails
@@ -33,6 +33,8 @@ Open a new PowerShell window on your workstation and perform the following steps
     PS > git config --global core.autocrlf input
     ```
 <% end %>
+
+1. (Optional) If you want to use Builder to build the sample application, it must be able to have access to a repository, so fork the sample application first in the GitHub UI by opening the sample repo at https://github.com/habitat-sh/habitat-example-plans and in the top-right corner of the page, click the `Fork` button. Copy the repo to one of your GitHub organizations. For the next step, substitute your org name in place of `habitat-sh`.
 
 1. Clone the `habitat-example-plans` repo onto your local machine. In this example, a directory called `habitat-example-plans` will be created
 in the `$HOME` directory.
