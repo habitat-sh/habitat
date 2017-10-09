@@ -262,6 +262,17 @@ $home--hero-carousel-nav-border-height: 10px;
   background: #16222A;
   border-radius: $global-radius 0px 0px 0px;
   padding: 50px 40px 20px;
+  
+  .window-buttons {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+  
+    > div {
+      float: left;
+      margin-right: 10px;
+    }
+  }
 }
 
 .home--hero-carousel-slide-sidebar {
@@ -274,16 +285,6 @@ $home--hero-carousel-nav-border-height: 10px;
   }
 }
 
-.window-buttons {
-  position: absolute;
-  top: 25px;
-  left: 25px;
-
-  > div {
-    float: left;
-    margin-right: 10px;
-  }
-}
 
 .tech-icons {
   list-style: none;
