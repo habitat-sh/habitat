@@ -39,11 +39,17 @@ You can download Habitat from the [Habitat downloads page](https://www.habitat.s
 
 Once you have downloaded it, follow the instructions on the page for your specific operating system.
 
-If you are running on a Mac or Linux, you can also use the [Habitat install
+If you are running MacOS and use [Homebrew](https://brew.sh), you can use our official [Homebrew tap](https://github.com/habitat-sh/homebrew-habitat).
+```
+$ brew tap habitat-sh/habitat
+$ brew install hab
+```
+
+If you do _not_ run Homebrew, or if you use Linux, you can use the [Habitat install
 script](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh).
 
 ```
-  $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+$ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 ```
 
 ## Contribute
