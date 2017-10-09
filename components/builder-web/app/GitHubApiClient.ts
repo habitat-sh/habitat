@@ -91,14 +91,14 @@ export class GitHubApiClient {
                                                             done(null, pageResults.repositories);
                                                         })
                                                         .catch((err) => {
-                                                            done(err);
+                                                            done(null, []);
                                                         });
                                                 });
                                             }
 
                                             async.parallel(pages, (err, additionalPages) => {
                                                 if (err) {
-                                                    done(err);
+                                                    done(null, []);
                                                 }
                                                 else {
                                                     additionalPages.forEach((p) => {
@@ -122,7 +122,7 @@ export class GitHubApiClient {
                                         }
                                     })
                                     .catch((err) => {
-                                        done(err);
+                                        done(null, []);
                                     });
                             });
                         });
