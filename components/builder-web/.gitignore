@@ -10,3 +10,4 @@ node_modules
 npm-debug.log*
 /dist
 /typings
+results/

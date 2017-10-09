@@ -1,0 +1,20 @@
+app_url               = "https://bldr.habitat.sh"
+community_url         = "https://www.habitat.sh/community"
+docs_url              = "https://www.habitat.sh/docs"
+environment           = "production"
+friends_only          = false
+source_code_url       = "https://github.com/habitat-sh/habitat"
+tutorials_url         = "https://www.habitat.sh/tutorials"
+www_url               = "https://www.habitat.sh"
+status_url            = "https://status.habitat.sh/"
+forums_url            = "https://forums.habitat.sh/"
+events_url            = "https://events.chef.io/events/categories/habitat/"
+roadmap_url           = "https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6"
+feature_requests_url  = "https://portal.prodpad.com/24539"
+slack_url             = "http://slack.habitat.sh/"
+youtube_url           = "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk"
+demo_app_url          = "https://www.habitat.sh/demo"
+github_app_url        = "https://github.com/apps/habitat-builder"
+
+[feature_flags]
+project = true
