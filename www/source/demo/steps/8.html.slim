@@ -3,7 +3,7 @@ title: Habitat Demo - Step 8
 layout: layout
 classes: demo_step
 ---
-#demo-step
+#demo-step.demo--page
   .row
     .columns.large-12.demo-step--content
       .demo-step--indicators
@@ -27,19 +27,18 @@ classes: demo_step
             strong Build Jobs
             '  tab, click the
             strong Build latest version
-            '  button. You'll see a mesage when a new build job kicks off (see image below).
+            '  button. You'll see a message when a new build job kicks off (see image below).
           p
             ' Once the message appears,
             ' click the
             strong View build output
             '  link to see streaming logs as your job completes.
-          img src="/images/demo/screen-start-build.png"
-        .columns.large-6
           p
-            ' When the job is complete, click the
-            strong Published to
-            '  link to see the new container in your Docker Hub account!
-          img src="/images/demo/screen-build-output.png"
+            ' When the build job is complete, head over to
+            a.link-external href="https://hub.docker.com/" target="_blank" Docker Hub
+            '  and find your new container images under Tags.
+        .columns.large-6
+          img src="/images/demo/screen-start-build.png"
       .row.mt-1.step-bottom-nav
         .columns.large-6
           a.previous-step-link href="/demo/steps/7" Previous Step
