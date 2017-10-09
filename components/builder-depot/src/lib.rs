@@ -87,10 +87,7 @@ impl DepotUtil {
         let file = self.archive_path(ident, target);
         match fs::metadata(&file) {
             Ok(_) => Some(PackageArchive::new(file)),
-            Err(_) => {
-                warn!("Package not found at {:?}", file);
-                None
-            }
+            Err(_) => None,
         }
     }
 
