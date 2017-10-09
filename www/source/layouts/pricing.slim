@@ -1,0 +1,7 @@
+- content_for :js do
+  = javascript_include_tag "pricing"
+
+= wrap_layout :layout do
+  .container_pricing
+    .main-content
+      = yield

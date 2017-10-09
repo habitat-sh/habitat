@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="50px" height="50px" viewBox="0 0 50 50" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>scala-logo@1x</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="0%" y1="50%" x2="100%" y2="50%" id="linearGradient-1">
+            <stop stop-color="#445462" offset="0%"></stop>
+            <stop stop-color="#ECF6FF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="50%" x2="100%" y2="50%" id="linearGradient-2">
+            <stop stop-color="#334351" offset="0%"></stop>
+            <stop stop-color="#3F4F5D" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Habitat-SaaS-Home-&amp;-Pricing/desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Habitat-Web-SaaS-Message-Home-(desktop)-V4" transform="translate(-1211.000000, -737.000000)" fill-rule="nonzero">
+            <g id="scala-disabled" transform="translate(1210.000000, 736.000000)">
+                <g id="scala">
+                    <g transform="translate(0.890314, 0.390045)" id="Shape">
+                        <path d="M16,30.6511031 L16,28.4676472 C16,28.0995984 23.9407515,27.4831815 29.114382,26.2841913 C31.6136202,26.8634894 33.4676472,27.578503 33.4676472,28.4676472 L33.4676472,30.6511031 C33.4676472,31.5397696 31.6136202,32.2552608 29.114382,32.834559 C23.9406832,31.635364 16,31.0188789 16,30.6511031" fill="url(#linearGradient-1)" transform="translate(24.733824, 29.559375) scale(-1, 1) rotate(-180.000000) translate(-24.733824, -29.559375) "></path>
+                        <path d="M16,21.9172795 L16,19.7338236 C16,19.3657748 23.9407515,18.7493579 29.114382,17.5503677 C31.6136202,18.1296658 33.4676472,18.8446794 33.4676472,19.7338236 L33.4676472,21.9172795 C33.4676472,22.805946 31.6136202,23.5214372 29.114382,24.1007354 C23.9406832,22.9015405 16,22.2850553 16,21.9172795" fill="url(#linearGradient-1)" transform="translate(24.733824, 20.825552) scale(-1, 1) rotate(-180.000000) translate(-24.733824, -20.825552) "></path>
+                        <path d="M16,26.2841913 L16,19.7338236 C16,20.2796876 33.4676472,21.3714155 33.4676472,24.1007354 L33.4676472,30.6511031 C33.4676472,27.9217832 16,26.8300553 16,26.2841913" fill="url(#linearGradient-2)" transform="translate(24.733824, 25.192463) scale(-1, 1) rotate(-180.000000) translate(-24.733824, -25.192463) "></path>
+                        <path d="M16,17.5503677 L16,11 C16,11.545864 33.4676472,12.6375919 33.4676472,15.3669118 L33.4676472,21.9172795 C33.4676472,19.1879596 16,18.0962317 16,17.5503677" fill="url(#linearGradient-2)" transform="translate(24.733824, 16.458640) scale(-1, 1) rotate(-180.000000) translate(-24.733824, -16.458640) "></path>
+                        <path d="M16,35.0180149 L16,28.4676472 C16,29.0135111 33.4676472,30.1052391 33.4676472,32.834559 L33.4676472,39.3849267 C33.4676472,36.6556068 16,35.5638788 16,35.0180149" fill="url(#linearGradient-2)" transform="translate(24.733824, 33.926287) scale(-1, 1) rotate(-180.000000) translate(-24.733824, -33.926287) "></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

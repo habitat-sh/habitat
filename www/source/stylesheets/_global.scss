@@ -35,6 +35,7 @@ $main-nav-breakpoint: 769px;
 body {
   background: $body-background;
   background: linear-gradient(0deg, $hab-navy-light 0%, $hab-navy 100%) fixed;
+  min-height: 100%;
 }
 
 .page-title {

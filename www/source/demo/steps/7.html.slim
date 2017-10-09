@@ -1,0 +1,58 @@
+---
+title: Habitat Demo - Step 7
+layout: layout
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator.active href="/demo/steps/5"
+        a.demo-step--indicator.active href="/demo/steps/6"
+        a.demo-step--indicator.active href="/demo/steps/7"
+        a.demo-step--indicator href="/demo/steps/8"
+        a.demo-step--indicator href="/demo/steps/9"
+        a.demo-step--indicator href="/demo/steps/10"
+      .row
+        .columns.large-12
+          h1.h4="Step 7: Set Up Automated Package Builds"
+        .columns.large-6
+          p Habitat Builder can rebuild your application as you commit new code or when underlying dependencies are updated.
+          p
+            ' To set up auomated builds, navigate to the
+            strong Packages
+            '  tab and click the
+            strong Connect a plan
+            '  button.
+          p Select the GitHub org and repo where you forked the sample app. Next, you will see the plan file for the sample app listed (see image).
+          p
+            ' Switch the
+            strong Publish to Docker Hub
+            '  option to
+            strong ON
+            '  . The Docker Hub account you added earlier should appear and be selected.
+          p
+            ' Finally, type in your target Docker Hub organization and repository.
+            span.asterisk.sup="*"
+            '  You can leave the default
+            em Tags
+            '  and click
+            strong Save Connection
+            ' .
+          .footnote
+            p.mb-0
+              span.asterisk="*"
+              '  If there is no repository in your Docker Hub organization, log in to
+              a.link-external href="https://hub.docker.com/" target="_blank" Docker Hub
+              '  and add one.
+        .columns.large-6
+          img src="/images/demo/screen-connect-plan.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/6" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/steps/8" Next Step

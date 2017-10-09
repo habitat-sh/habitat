@@ -7,7 +7,7 @@ clean:
 	rm -rf build
 
 run: build
-	BUILDER_WEB_URL="http://localhost:3000" bundle exec middleman serve
+	BUILDER_WEB_URL="http://localhost:3000" GITHUB_APP_URL="https://github.com/apps/habitat-builder" bundle exec middleman serve
 
 sync: build check-env
 	bundle exec middleman s3_sync

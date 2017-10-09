@@ -1,0 +1,55 @@
+ul.accordion data-accordion="true"
+  li.accordion-item.background-white
+    a.mb-0.accordion-title.h6 data-accordion-item="true" href="#" What is the supported authentication and SCM system for Habitat Builder?
+    .accordion-content data-tab-content="true"
+      p.mb-0
+        ' Habitat currently supports GitHub as the authentication, sign-in and source control management system. Let us know in our
+        a.link-external href="http://slack.habitat.sh/" Slack channel
+        '  if you’d like to see other options!
+  li.accordion-item.background-gray-light
+    a.mb-0.accordion-title.h6 data-accordion-item="true"  What runtime platforms are Habitat packages compatible with?
+    .accordion-content data-tab-content="true"
+      p Habitat packages (.hart file) are compatible with:
+      ul.mb-0
+        li Linux kernels 2.6.32+
+        li Windows OS version 6.1+ (i.e. Windows Server 2008R2/Windows 7 +)
+  li.accordion-item.background-white 
+    a.mb-0.accordion-title.h6 data-accordion-item="true"  What are the supported local development platforms?
+    .accordion-content data-tab-content="true"
+      p Habitat currently supports the following platforms for local development:
+      ul.mb-0
+        li.mb-1
+          p.mb-0: strong Mac OSX
+          p.mb-0 Requirements:
+          ul
+            li 64-bit processor running 10.9+
+            li Docker for Mac
+        li.mb-1
+          p.mb-0: strong Linux
+          p.mb-0 Requirements:
+          ul
+            li 64-bit processor with kernel 2.6.32+
+        li.mb-1
+          p.mb-0: strong Windows
+          p.mb-0 Requirements:
+          ul
+            li 64-bit Windows 10 Pro, Enterprise, or Education editions (1511 November update, build 10586 or later)
+            li Hyper-V enabled
+            li Docker for Windows
+  li.accordion-item.background-gray-light
+    a.mb-0.accordion-title.h6 data-accordion-item="true"  Is there any storage or usage limit for a free preview plan?
+    .accordion-content data-tab-content="true"
+      ' No! However, Habitat Builder reserves the right to throttle your requests if you are creating a bottleneck for other users. If you are concerned this is happening for you or that you  have a large workload that may run into this, contact us in
+      a.link-external href="http://slack.habitat.sh/" Slack
+      '  to chat it out.
+  li.accordion-item.background-white 
+    a.mb-0.accordion-title.h6 data-accordion-item="true"  How often does Habitat release new features?
+    .accordion-content data-tab-content="true"
+      ' Weekly! You can view our
+      a.link-external href="https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6" product roadmap
+      '  for more details.
+  li.accordion-item.background-gray-light 
+    a.mb-0.accordion-title.h6 data-accordion-item="true"  I have a question!
+    .accordion-content data-tab-content="true"
+      a.link-external href="http://slack.habitat.sh/" Join our Slack chat
+      '  to ask questions and discuss development with the Habitat community.
