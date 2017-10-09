@@ -1,4 +1,7 @@
 ul
+  li class=('active' if path_starts_with?('tutorials/demo'))
+    = link_to 'Try the Demo', '/demo/'
+
   li class=('active' if path_starts_with?('tutorials/get-started'))
     = link_to 'Get Started', '/tutorials/get-started/'
 
