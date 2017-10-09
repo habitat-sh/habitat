@@ -122,7 +122,7 @@ export class AppComponent implements OnInit, OnDestroy {
         // When the page loads attempt to authenticate with GitHub. If there
         // is no token stored in session storage, this won't do anything.
         this.store.dispatch(
-            authenticateWithGitHub(this.state.gitHub.authToken)
+            authenticateWithGitHub(this.state.gitHub.authToken, this.state.session.token)
         );
 
         this.store.dispatch(loadFeatureFlags());

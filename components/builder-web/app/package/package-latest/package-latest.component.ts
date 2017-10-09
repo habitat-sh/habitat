@@ -3,6 +3,7 @@ import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs/Subscription";
 import { AppStore } from "../../AppStore";
 import { fetchLatestPackage } from "../../actions/index";
+import config from "../../config";
 
 @Component({
     template: require("./package-latest.component.html")
@@ -25,6 +26,14 @@ export class PackageLatestComponent implements OnDestroy {
         if (this.sub) {
             this.sub.unsubscribe();
         }
+    }
+
+    get config() {
+        return config;
+    }
+
+    get hasLatest() {
+        return !!this.store.getState().packages.latest.ident.name;
     }
 
     get ident() {

@@ -26,7 +26,6 @@ export class PackageComponent implements OnInit, OnDestroy {
             this.origin = params["origin"];
             this.name = params["name"];
             this.store.dispatch(fetchOrigin(this.origin));
-            this.store.dispatch(fetchMyOrigins(this.token));
         });
     }
 
@@ -118,7 +117,7 @@ export class PackageComponent implements OnInit, OnDestroy {
     }
 
     private fetchProject() {
-        if (this.origin && this.name) {
+        if (this.origin && this.name && this.isOriginMember) {
             this.store.dispatch(fetchProject(this.origin, this.name, this.token, false));
             this.store.dispatch(fetchDockerIntegration(this.origin, this.token));
         }

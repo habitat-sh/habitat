@@ -1,5 +1,27 @@
 <div class="hab-package-latest">
   <hab-icon symbol="loading" class="spinning" *ngIf="ui.loading"></hab-icon>
-  <hab-package-detail [package]="latest" *ngIf="!ui.loading"></hab-package-detail>
+  <div *ngIf="!ui.loading">
+      <hab-package-detail [package]="latest" *ngIf="hasLatest"></hab-package-detail>
+      <div class="none" *ngIf="!hasLatest">
+        <p>
+            <strong>There are no available Habitat artifacts (.hart files) for this origin/package.</strong>
+        </p>
+        <p>
+          There are two ways to add .hart files:
+        </p>
+        <ol>
+          <li>
+            Build them locally from a <a href="{{ config['docs_url'] }}/developing-packages/">plan file</a>
+            and upload them to this origin.
+          </li>
+          <li>
+            Set up automated builds under <a [routerLink]="['../settings']">Build Settings</a> by connecting a plan file to Habitat Builder.
+          </li>
+        </ol>
+        <p>
+          <em>Don't have a plan file? <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
+        </p>
+      </div>
+  </div>
 </div>
 
