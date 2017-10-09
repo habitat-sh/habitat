@@ -17,7 +17,10 @@ extern crate frank_jwt as jwt;
 extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
+extern crate lazy_static;
+#[macro_use]
 extern crate log;
+extern crate regex;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
