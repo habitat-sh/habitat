@@ -22,21 +22,22 @@ classes: demo_step
           h1.h4="Step 5: Activate Habitat Builder"
         .columns.large-6
           p
-            ' By installing the Habitat Builder GitHub App
-            span.asterisk="*"
-            ' , you will get automated builds any time a repo change is detected.
-          p
-            ' Simply
+            ' Before you can set up automate builds using the Build Service, you will first need to
             strong install
-            '  the app using this link
-            a.link-external href="#{github_app_url}" target="_blank" #{github_app_url}
+            '  the Habitat Builder GitHub app
+            span.asterisk="*"
             ' .
-          p
-            ' You can either install it on your personal GitHub account or any organization for which you are the owner.
           p
             '  We recommend installing it on
             strong all repositories
             '  , or you can select your sample-node-app repository.
+          a.button.cta href="#{github_app_url}" target="_blank" Install Habitat Builder
+
+          .footnote
+            p.mb-0
+              span.asterisk="*"
+              '  You can either install it on your personal GitHub account or any organization for which you are an owner.
+
 
         .columns.large-6
           img src="/images/demo/screen-install-github-app.png"

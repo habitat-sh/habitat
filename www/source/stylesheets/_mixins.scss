@@ -35,7 +35,6 @@
   background-image: linear-gradient(to left, lighten($hab-orange, 13%), lighten($hab-orange-dark, 5%) 100%);
   color: $hab-navy;
   font-weight: normal;  
-  text-shadow: 0 1px 2px #EB6852;
 }
 
 @mixin linear-gradient($pos, $g1, $g2: null,
