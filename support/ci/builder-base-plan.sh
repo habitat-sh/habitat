@@ -21,7 +21,7 @@ do_install() {
 }
 
 do_strip() {
-  do_builder_strip
+  return 0
 }
 
 do_builder_before() {
@@ -53,10 +53,4 @@ do_builder_prepare() {
   # Used by Cargo to use a pristine, isolated directory for all compilation
   export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
-}
-
-do_builder_strip() {
-  if [[ "$builder_build_type" != "--debug" ]]; then
-    do_default_strip
-  fi
 }
