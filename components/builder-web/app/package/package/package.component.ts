@@ -117,13 +117,15 @@ export class PackageComponent implements OnInit, OnDestroy {
     }
 
     private fetchProject() {
-        if (this.origin && this.name && this.isOriginMember) {
+        if (this.token && this.origin && this.name && this.isOriginMember) {
             this.store.dispatch(fetchProject(this.origin, this.name, this.token, false));
             this.store.dispatch(fetchDockerIntegration(this.origin, this.token));
         }
     }
 
     private fetchBuilds() {
-        this.store.dispatch(fetchBuilds(this.origin, this.name, this.token));
+        if (this.token) {
+            this.store.dispatch(fetchBuilds(this.origin, this.name, this.token));
+        }
     }
 }
