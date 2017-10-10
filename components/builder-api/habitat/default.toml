@@ -2,17 +2,17 @@ log_level = "info"
 
 [http]
 listen = "0.0.0.0"
-port = 9636
+port   = 9636
 
 [github]
-url = "https://api.github.com"
-web_url = "https://github.com"
-client_id = ""
-client_secret = ""
-app_id = 5565
+url            = "https://api.github.com"
+web_url        = "https://github.com"
+client_id      = ""
+client_secret  = ""
+app_id         = 5565
 webhook_secret = ""
 
 [depot]
-builds_enabled = true
+builds_enabled          = true
 non_core_builds_enabled = true
-events_enabled = false
+events_enabled          = false
