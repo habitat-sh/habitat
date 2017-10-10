@@ -1,4 +1,3 @@
-source "../../support/ci/builder-base-plan.sh"
 pkg_origin=core
 pkg_name=builder-admin-proxy
 pkg_description="HTTP Proxy service fronting the Habitat Builder Admin service"
@@ -17,19 +16,19 @@ pkg_binds=(
 )
 pkg_exposes=(port)
 
+pkg_version() {
+  git rev-list master --count
+}
+
+do_before() {
+  update_pkg_version
+}
+
 do_build() {
   return 0
 }
 
-do_download() {
-  return 0
-}
-
 do_install() {
-  return 0
-}
-
-do_prepare() {
   return 0
 }
 

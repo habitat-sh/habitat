@@ -9,6 +9,7 @@ paths = [
   "components/core/*",
   "components/github-api-client/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [builder-api-proxy]
@@ -27,6 +28,7 @@ paths = [
   "components/core/*",
   "components/github-api-client/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [builder-datastore]
@@ -42,6 +44,7 @@ paths = [
   "components/builder-db/*",
   "components/core/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [builder-originsrv]
@@ -51,6 +54,7 @@ paths = [
   "components/builder-db/*",
   "components/core/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [builder-router]
@@ -59,6 +63,7 @@ paths = [
   "components/builder-protocol/*",
   "components/core/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [builder-scheduler]
@@ -69,6 +74,7 @@ paths = [
   "components/builder-db/*",
   "components/core/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [builder-sessionsrv]
@@ -79,6 +85,7 @@ paths = [
   "components/core/*",
   "components/github-api-client/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [builder-worker]
@@ -90,6 +97,7 @@ paths = [
   "components/core/*",
   "components/github-api-client/*",
   "components/net/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [hab]
@@ -122,12 +130,14 @@ paths = [
   "components/eventsrv/*",
   "components/eventsrv-protocol/*",
   "components/core/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [hab-launcher]
 paths = [
   "components/launcher/*",
   "components/launcher-protocol/*",
+  "support/ci/builder-base-plan.sh",
 ]
 
 [hab-studio]
