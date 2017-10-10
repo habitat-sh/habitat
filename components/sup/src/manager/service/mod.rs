@@ -406,7 +406,7 @@ impl Service {
             "Service update failed; unable to find own service group",
         );
         let cfg_updated = self.cfg.update(census_group);
-        if cfg_updated || census_ring.changed {
+        if cfg_updated || census_ring.changed() {
             let (reload, reconfigure) = {
                 let ctx = self.render_context(census_ring);
                 let reload = self.compile_hooks(&ctx);

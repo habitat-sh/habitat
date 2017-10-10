@@ -38,7 +38,7 @@ type MemberId = String;
 
 #[derive(Debug, Serialize)]
 pub struct CensusRing {
-    pub changed: bool,
+    changed: bool,
 
     census_groups: HashMap<ServiceGroup, CensusGroup>,
     local_member_id: MemberId,
@@ -51,6 +51,12 @@ pub struct CensusRing {
 }
 
 impl CensusRing {
+    /// Indicates whether the census has changed since the last time
+    /// we looked at rumors.
+    pub fn changed(&self) -> bool {
+        self.changed
+    }
+
     pub fn new<I>(local_member_id: I) -> Self
     where
         I: Into<MemberId>,
