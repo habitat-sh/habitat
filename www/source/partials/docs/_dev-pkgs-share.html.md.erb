@@ -76,3 +76,21 @@ or
 ```
 $ hab start core/postgresql --url https://bldr.habitat.sh --channel unstable
 ```
+
+## Running packages from exported tarballs
+
+An exported tarball package contains the Habitat client/binary as well as dependencies specified by your artifact.
+
+After deploying the tarball to your target server, extract the contents to the _root directory_:
+
+```
+$ tar zxf core-nginx-1.11.10-20170616000025.tar.gz --directory /
+```
+
+You can instruct the Supervisor to run packages from an exported tarball:
+
+```
+$ /hab/bin/hab svc start core/nginx
+```
+
+Note: On a clean server, this will download additional packages to satisfy the Supervisor dependencies. You will also require a `hab` group and `hab` user on the system for most services.
