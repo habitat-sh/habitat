@@ -16,13 +16,18 @@ import "whatwg-fetch";
 import config from "./config";
 import { parseKey } from "./util";
 import { GitHubApiClient } from "./GitHubApiClient";
+import { AppStore } from "./AppStore";
+import { requestRoute, addNotification } from "./actions/index";
+import { WARNING } from "./actions/notifications";
 
 export class BuilderApiClient {
-  private headers;
-  private urlPrefix: string = `${config["habitat_api_url"]}/v1`;
+    private headers;
+    private urlPrefix: string = `${config["habitat_api_url"]}/v1`;
+    private store: AppStore;
 
     constructor(private token: string = "") {
         this.headers = token ? { "Authorization": `Bearer ${token}` } : {};
+        this.store = new AppStore();
     }
 
     public acceptOriginInvitation(invitationId: string, originName: string) {
@@ -38,7 +43,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -55,7 +60,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -72,7 +77,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -89,7 +94,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -99,13 +104,15 @@ export class BuilderApiClient {
                 body: JSON.stringify(origin),
                 headers: this.headers,
                 method: "POST",
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -116,13 +123,15 @@ export class BuilderApiClient {
                 body: key.text,
                 headers: this.headers,
                 method: "POST",
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(true);
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -132,13 +141,15 @@ export class BuilderApiClient {
                 body: JSON.stringify(project),
                 headers: this.headers,
                 method: "POST",
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -147,13 +158,15 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/ext/installations/${installationId}/repos/${repo}/contents/${encodeURIComponent(path)}`, {
                 method: "GET",
                 headers: this.headers,
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            });
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -163,13 +176,15 @@ export class BuilderApiClient {
                 body: JSON.stringify(project),
                 headers: this.headers,
                 method: "PUT",
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve();
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -178,13 +193,15 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/projects/${projectId}`, {
                 method: "DELETE",
                 headers: this.headers
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response);
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -201,7 +218,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -211,14 +228,14 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
-                .then(response => {
-                    if (response.ok) {
-                        resolve(response.json());
-                    } else {
-                        reject(new Error(response.statusText));
-                    }
-                })
-                .catch(error => reject(error));
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -228,14 +245,14 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
-                .then(response => {
-                    if (response.ok) {
-                        resolve(response.json());
-                    } else {
-                        reject(new Error(response.statusText));
-                    }
-                })
-                .catch(error => reject(error));
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -245,29 +262,14 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
-                .then(response => {
-                    if (response.ok) {
-                        resolve(response.json());
-                    } else {
-                        reject(new Error(response.statusText));
-                    }
-                })
-                .catch(error => reject(error));
-        });
-    }
-
-    public getGitHubFileContent(installationId: string, owner: string, repo: string, path: string) {
-        return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/ext/installations/${installationId}/repos/${repo}/contents/${encodeURIComponent(path)}`, {
-                method: "GET",
-                headers: this.headers
-            }).then(response => {
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            });
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -276,13 +278,15 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/projects/${origin}/${name}`, {
                 method: "GET",
                 headers: this.headers
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -291,13 +295,15 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/projects/${origin}`, {
                 method: "GET",
                 headers: this.headers
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -305,11 +311,13 @@ export class BuilderApiClient {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/user/invitations`, {
                 headers: this.headers,
-            }).then(response => {
+            })
+            .then(response => {
                 response.json().then(data => {
                     resolve(data["invitations"]);
                 });
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -317,7 +325,8 @@ export class BuilderApiClient {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/user/origins`, {
                 headers: this.headers,
-            }).then(response => {
+            })
+            .then(response => {
                 response.json().then(data => {
                     if (response.ok) {
                         resolve(data["origins"]);
@@ -325,7 +334,8 @@ export class BuilderApiClient {
                         reject(new Error(response.statusText));
                     }
                 });
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -333,29 +343,33 @@ export class BuilderApiClient {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}`, {
                 headers: this.headers,
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
     public getOriginInvitations(originName: string) {
-      return new Promise((resolve, reject) => {
-        fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations`, {
-          headers: this.headers,
-        }).then(response => {
-          if (response.ok) {
-            response.json().then(data => {
-              resolve(data["invitations"]);
-            });
-          } else {
-            reject(new Error(response.statusText));
-          }
-        }).catch(error => reject(error));
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations`, {
+                headers: this.headers,
+            })
+            .then(response => {
+                if (response.ok) {
+                    response.json().then(data => {
+                        resolve(data["invitations"]);
+                    });
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => this.handleError(error, reject));
       });
     }
 
@@ -363,7 +377,8 @@ export class BuilderApiClient {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/users`, {
                 headers: this.headers,
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     response.json().then(data => {
                         resolve(data["members"]);
@@ -371,7 +386,8 @@ export class BuilderApiClient {
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -379,13 +395,15 @@ export class BuilderApiClient {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/keys`, {
                 headers: this.headers,
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -394,7 +412,8 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${origin}/users/${username}/invitations`, {
                 headers: this.headers,
                 method: "POST",
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(true);
                 } else if (response.status === 404) {
@@ -407,7 +426,8 @@ export class BuilderApiClient {
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -415,7 +435,8 @@ export class BuilderApiClient {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${name}`, {
                 headers: this.headers,
-            }).then(response => {
+            })
+            .then(response => {
                 // Getting a 200 means it exists and is already taken.
                 if (response.ok) {
                     reject(false);
@@ -423,11 +444,8 @@ export class BuilderApiClient {
                 } else if (response.status === 404) {
                     resolve(true);
                 }
-            }).catch(error => {
-                // This happens when there is a network error. We'll say that it is
-                // not available.
-                reject(false);
-            });
+            })
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -443,7 +461,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -461,7 +479,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -478,7 +496,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -497,7 +515,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -515,7 +533,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -532,7 +550,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -550,7 +568,7 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
     }
 
@@ -566,7 +584,24 @@ export class BuilderApiClient {
                     reject(new Error(response.statusText));
                 }
             })
-            .catch(error => reject(error));
+            .catch(error => this.handleError(error, reject));
         });
+    }
+
+    private handleError(error, reject) {
+        const store = this.store;
+        const state = store.getState();
+        store.dispatch(requestRoute(["/sign-in"]));
+        reject(error);
+
+        if (state.session.token) {
+            setTimeout(() => {
+                store.dispatch(addNotification({
+                    title: "Session Expired",
+                    body: "Please sign in again.",
+                    type: WARNING
+                }));
+            }, 1000);
+        }
     }
 }
