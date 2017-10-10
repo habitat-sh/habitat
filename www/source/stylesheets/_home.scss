@@ -338,6 +338,7 @@ $home--hero-carousel-nav-border-height: 10px;
   opacity: 0.3;
   transition: opacity 1000ms ease;
   text-align: center;
+  line-height: 60px;
 
   @include breakpoint(small only) {
     width: 33%;
@@ -413,6 +414,15 @@ $home--hero-carousel-nav-border-height: 10px;
 }
 
 // general home components
+.home--anchor {
+  @include breakpoint(small only) {
+    display: block;
+    position: relative;
+    top: -100px;
+    visibility: hidden;
+  }
+}
+
 .home--icon {
   position: relative;
   text-align: center;

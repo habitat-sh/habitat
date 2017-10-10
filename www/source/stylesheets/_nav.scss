@@ -144,7 +144,7 @@ $main-nav-breakpoint: 769px;
       max-width: rem-calc(140);
 
       @include large-nav {
-        background-size: rem-calc(170) auto;
+        background-size: rem-calc(120) auto;
         min-width: rem-calc(170);
         height: $header-height;
       }
@@ -258,8 +258,8 @@ $main-nav-breakpoint: 769px;
     display: block;
     float: right;
     clear: none;
-    padding-top: rem-calc(40);
     height: $header-height;
+    line-height: $header-height;
 
     & > li {
       display: inline-block;
@@ -345,7 +345,8 @@ $main-nav-breakpoint: 769px;
     }
 
     @include large-nav {
-      margin: 10px 0px 0px;
+
+      margin: 0px
     }
   }
 
@@ -355,7 +356,9 @@ $main-nav-breakpoint: 769px;
   }
 
   @include large-nav {
-    padding: rem-calc(30) 0 0 0;
+    height: 80px;
+    line-height: 80px;
+    padding: 0;
   }
 
   @media (max-width: 292px) {
