@@ -52,11 +52,20 @@ function handleError(error, reject) {
     }
 }
 
+function handleUnauthorized(response, reject) {
+    if (response.status === 401) {
+        throw new Error("Unauthorized");
+    }
+
+    return response;
+}
+
 export function getUnique(origin: string, nextRange: number = 0, token: string = "") {
     const url = `${urlPrefix}/depot/${origin}/pkgs?range=${nextRange}`;
 
     return new Promise((resolve, reject) => {
         fetch(url, opts())
+        .then(response => handleUnauthorized(response, reject))
         .then(response => {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
@@ -88,6 +97,7 @@ export function getLatest(origin: string, pkg: string) {
 
     return new Promise((resolve, reject) => {
         fetch(url, opts())
+        .then(response => handleUnauthorized(response, reject))
         .then(response => {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
@@ -107,6 +117,7 @@ export function getLatestInChannel(origin: string, name: string, channel: string
 
     return new Promise((resolve, reject) => {
         fetch(url, opts())
+        .then(response => handleUnauthorized(response, reject))
         .then(response => {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
@@ -133,6 +144,7 @@ export function get(params, nextRange: number = 0) {
 
     return new Promise((resolve, reject) => {
         fetch(url, opts())
+        .then(response => handleUnauthorized(response, reject))
         .then(response => {
             // Fail the promise if an error happens.
             //
@@ -169,6 +181,7 @@ export function getPackageVersions(origin: string, pkg: string) {
 
     return new Promise((resolve, reject) => {
         fetch(url, opts())
+        .then(response => handleUnauthorized(response, reject))
         .then(response => {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
@@ -193,6 +206,7 @@ export function submitJob(origin: string, pkg: string, token: string) {
             },
             method: "POST",
         })
+        .then(response => handleUnauthorized(response, reject))
         .then(response => {
             if (response.ok) {
                 resolve(true);
@@ -209,6 +223,7 @@ export function getStats(origin: string) {
 
     return new Promise((resolve, reject) => {
         fetch(url)
+        .then(response => handleUnauthorized(response, reject))
         .then(response => {
             if (response.ok) {
                 response.json().then(data => resolve(data));

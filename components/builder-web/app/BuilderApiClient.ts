@@ -36,6 +36,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "PUT",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(true);
@@ -53,6 +54,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "DELETE",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(true);
@@ -70,6 +72,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "DELETE",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(true);
@@ -87,6 +90,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "PUT",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(true);
@@ -105,6 +109,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "POST",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -124,6 +129,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "POST",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(true);
@@ -142,6 +148,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "POST",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -159,6 +166,7 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -177,6 +185,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "PUT",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve();
@@ -194,6 +203,7 @@ export class BuilderApiClient {
                 method: "DELETE",
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response);
@@ -211,6 +221,7 @@ export class BuilderApiClient {
                 method: "POST",
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve();
@@ -228,6 +239,7 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -245,6 +257,7 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -262,6 +275,7 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -279,6 +293,7 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -296,6 +311,7 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -312,6 +328,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/user/invitations`, {
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 response.json().then(data => {
                     resolve(data["invitations"]);
@@ -326,6 +343,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/user/origins`, {
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 response.json().then(data => {
                     if (response.ok) {
@@ -344,6 +362,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${originName}`, {
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -360,6 +379,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations`, {
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     response.json().then(data => {
@@ -378,6 +398,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/users`, {
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     response.json().then(data => {
@@ -396,6 +417,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/keys`, {
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -413,6 +435,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "POST",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(true);
@@ -436,6 +459,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${name}`, {
                 headers: this.headers,
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 // Getting a 200 means it exists and is already taken.
                 if (response.ok) {
@@ -454,6 +478,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/names`, {
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -472,6 +497,7 @@ export class BuilderApiClient {
                 method: "PUT",
                 body: JSON.stringify(credentials)
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve();
@@ -488,6 +514,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/projects/${origin}/${name}/integrations/${integration}/default`, {
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response.json());
@@ -507,6 +534,7 @@ export class BuilderApiClient {
                 method: "PUT",
                 body: JSON.stringify(settings)
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve();
@@ -525,6 +553,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "PATCH"
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve();
@@ -543,6 +572,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "DELETE",
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve();
@@ -561,6 +591,7 @@ export class BuilderApiClient {
                 method: "PUT",
                 body: JSON.stringify(origin)
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve();
@@ -577,6 +608,7 @@ export class BuilderApiClient {
             fetch(`${this.urlPrefix}/depot/origins/${origin}/secret_keys/latest`, {
                 headers: this.headers
             })
+            .then(response => this.handleUnauthorized(response, reject))
             .then(response => {
                 if (response.ok) {
                     resolve(response);
@@ -603,5 +635,13 @@ export class BuilderApiClient {
                 }));
             }, 1000);
         }
+    }
+
+    private handleUnauthorized(response, reject) {
+        if (response.status === 401) {
+            throw new Error("Unauthorized");
+        }
+
+        return response;
     }
 }
