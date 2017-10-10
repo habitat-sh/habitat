@@ -3,7 +3,7 @@ habitatConfig({
     community_url: "{{cfg.community_url}}",
     docs_url: "{{cfg.docs_url}}",
     environment: "{{cfg.environment}}",
-    friends_only: {{cfg.friends_only }},
+    friends_only: {{cfg.friends_only}},
     github_client_id: "{{cfg.github.client_id}}",
     github_api_url: "{{cfg.github.url}}",
     github_web_url: "{{cfg.github.web_url}}",
@@ -21,5 +21,5 @@ habitatConfig({
     slack_url: "{{cfg.slack_url}}",
     youtube_url: "{{cfg.youtube_url}}",
     demo_app_url: "{{cfg.demo_app_url}}",
-    feature_flags: {{toJson cfg.feature_flags }},
+    feature_flags: {{toJson cfg.feature_flags}},
 });
