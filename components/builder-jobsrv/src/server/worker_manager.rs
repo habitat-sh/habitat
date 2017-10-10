@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
@@ -35,9 +34,9 @@ use data_store::DataStore;
 use error::Result;
 
 const WORKER_MGR_ADDR: &'static str = "inproc://work-manager";
-const WORKER_TIMEOUT_MS: u64 = 33_000;
-const JOB_TIMEOUT_MS: u64 = 5_400_000;
-const DEFAULT_POLL_TIMEOUT_MS: i64 = 60_000;
+const WORKER_TIMEOUT_MS: u64 = 33_000; // 33 sec
+const JOB_TIMEOUT_MS: u64 = 3_600_000; // 60 mins
+const DEFAULT_POLL_TIMEOUT_MS: u64 = 60_000; // 60 secs
 
 pub struct WorkerMgrClient {
     socket: zmq::Socket,
@@ -65,6 +64,66 @@ impl Default for WorkerMgrClient {
     }
 }
 
+#[derive(Debug)]
+pub struct Worker {
+    pub ident: String,
+    pub state: jobsrv::WorkerState,
+    pub expiry: Instant,
+    pub job_id: Option<u64>,
+    pub job_expiry: Option<Instant>,
+    pub quarantined: bool,
+}
+
+impl Worker {
+    pub fn new(ident: &str) -> Self {
+        Worker {
+            ident: ident.to_string(),
+            state: jobsrv::WorkerState::Ready,
+            expiry: Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS),
+            job_id: None,
+            job_expiry: None,
+            quarantined: false,
+        }
+    }
+
+    pub fn ready(&mut self) {
+        self.state = jobsrv::WorkerState::Ready;
+        self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
+        self.job_id = None;
+        self.job_expiry = None;
+        self.quarantined = false;
+    }
+
+    pub fn busy(&mut self, job_id: u64) {
+        self.state = jobsrv::WorkerState::Busy;
+        self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
+        self.job_id = Some(job_id);
+        self.job_expiry = Some(Instant::now() + Duration::from_millis(JOB_TIMEOUT_MS));
+        self.quarantined = false;
+    }
+
+    pub fn quarantine(&mut self) {
+        self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
+        self.quarantined = true;
+    }
+
+    pub fn is_quarantined(&self) -> bool {
+        self.quarantined
+    }
+
+    pub fn is_expired(&self) -> bool {
+        self.expiry < Instant::now()
+    }
+
+    pub fn is_job_expired(&self) -> bool {
+        if self.job_expiry.is_some() {
+            self.job_expiry.unwrap() < Instant::now()
+        } else {
+            false
+        }
+    }
+}
+
 pub struct WorkerMgr {
     datastore: DataStore,
     key_dir: PathBuf,
@@ -73,12 +132,9 @@ pub struct WorkerMgr {
     rq_sock: zmq::Socket,
     work_mgr_sock: zmq::Socket,
     msg: zmq::Message,
-    ready_workers: LinkedHashMap<String, Instant>,
-    busy_workers: LinkedHashMap<String, Instant>,
-    jobs: LinkedHashMap<u64, Instant>,
+    workers: LinkedHashMap<String, Worker>,
     worker_command: String,
     worker_heartbeat: String,
-    worker_map: HashMap<String, u64>,
 }
 
 impl WorkerMgr {
@@ -99,10 +155,7 @@ impl WorkerMgr {
             rq_sock: rq_sock,
             work_mgr_sock: work_mgr_sock,
             msg: zmq::Message::new()?,
-            ready_workers: LinkedHashMap::new(),
-            busy_workers: LinkedHashMap::new(),
-            jobs: LinkedHashMap::new(),
-            worker_map: HashMap::new(),
+            workers: LinkedHashMap::new(),
             worker_command: cfg.net.worker_command_addr(),
             worker_heartbeat: cfg.net.worker_heartbeat_addr(),
         })
@@ -131,23 +184,23 @@ impl WorkerMgr {
         let mut rq_sock = false;
         let mut work_mgr_sock = false;
         let mut process_work = false;
+        let mut last_processed = Instant::now();
+
         rz.send(()).unwrap();
 
-        // Reset any Dispatched jobs to Pending
-        self.datastore.reset_jobs()?;
+        // Load busy worker state
+        self.load_workers()?;
 
+        info!("builder-jobsrv is ready to go.");
         loop {
             {
-                let timeout = self.poll_timeout();
                 let mut items = [
                     self.hb_sock.as_poll_item(1),
                     self.rq_sock.as_poll_item(1),
                     self.work_mgr_sock.as_poll_item(1),
                 ];
-                // Poll until timeout or message is received. Checking for the zmq::POLLIN flag on
-                // a poll item's revents will let you know if you have received a message or not
-                // on that socket.
-                zmq::poll(&mut items, timeout)?;
+
+                zmq::poll(&mut items, DEFAULT_POLL_TIMEOUT_MS as i64)?;
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     hb_sock = true;
                 }
@@ -158,12 +211,12 @@ impl WorkerMgr {
                     work_mgr_sock = true;
                 }
             }
+
             if hb_sock {
-                process_work = self.process_heartbeat()?;
+                self.process_heartbeat()?;
                 hb_sock = false;
             }
             self.expire_workers()?;
-            self.expire_jobs()?;
             if rq_sock {
                 self.process_job_status()?;
                 rq_sock = false;
@@ -175,84 +228,100 @@ impl WorkerMgr {
             }
 
             // Handle potential work in pending_jobs queue
-            if process_work {
+            let now = Instant::now();
+            if process_work ||
+                (&now > &(last_processed + Duration::from_millis(DEFAULT_POLL_TIMEOUT_MS)))
+            {
                 self.process_work()?;
+                last_processed = now;
             }
         }
     }
 
-    fn poll_timeout(&self) -> i64 {
-        let now = Instant::now();
-        let timeout;
+    fn load_workers(&mut self) -> Result<()> {
+        let workers = self.datastore.get_busy_workers()?;
 
-        if let Some((_, expiry)) = self.ready_workers.front() {
-            // uh-oh. our expiration date is in the past. it's supposed to be in the
-            // future. blindly subtracting now from this will panic the current
-            // thread, since Instant's are supposed to monotonically increase.
-            // let's just timeout immediately instead.
-            if expiry < &now {
-                return 0;
-            } else {
-                timeout = *expiry - now;
+        for worker in workers {
+            let mut bw = Worker::new(worker.get_ident());
+            bw.busy(worker.get_job_id());
+            if worker.get_quarantined() {
+                bw.quarantine();
             }
 
-            (timeout.as_secs() as i64 * 1000) + (timeout.subsec_nanos() as i64 / 1000 / 1000)
-        } else {
-            DEFAULT_POLL_TIMEOUT_MS
+            self.workers.insert(worker.get_ident().to_owned(), bw);
         }
+
+        Ok(())
+    }
+
+    fn save_worker(&mut self, worker: &Worker) -> Result<()> {
+        let mut bw = jobsrv::BusyWorker::new();
+        bw.set_ident(worker.ident.clone());
+        bw.set_job_id(worker.job_id.unwrap()); // unwrap Ok
+        bw.set_quarantined(worker.quarantined);
+
+        self.datastore.upsert_busy_worker(&bw)
+    }
+
+    fn delete_worker(&mut self, worker: &Worker) -> Result<()> {
+        let mut bw = jobsrv::BusyWorker::new();
+        bw.set_ident(worker.ident.clone());
+        bw.set_job_id(worker.job_id.unwrap()); // unwrap Ok
+
+        self.datastore.delete_busy_worker(&bw)
     }
 
     fn process_work(&mut self) -> Result<()> {
         loop {
+            // Exit if we don't have any ready workers
+            let worker_ident = match self.workers.iter().find(|t| {
+                t.1.state == jobsrv::WorkerState::Ready
+            }) {
+                Some(t) => t.0.clone(),
+                None => return Ok(()),
+            };
+
             // Take one job from the pending list
             let mut jobs = self.datastore.pending_jobs(1)?;
             // 0 means there are no pending jobs, so we can exit
             if jobs.len() == 0 {
-                debug!("process_work, no pending jobs");
                 break;
             }
+
             // This unwrap is fine, because we just checked our length
             let mut job = Job::new(jobs.pop().unwrap());
+
             self.add_integrations_to_job(&mut job);
             self.add_project_integrations_to_job(&mut job);
 
-            match self.ready_workers.pop_front() {
-                Some((worker, _)) => {
-                    debug!("sending work, worker={:?}, job={:?}", worker, job);
-                    if self.rq_sock.send_str(&worker, zmq::SNDMORE).is_err() {
-                        debug!("failed to send, worker went away, worker={:?}", worker);
-                        job.set_state(jobsrv::JobState::Pending);
-                        self.datastore.update_job(&job)?;
-                        continue;
-                    }
-                    if self.rq_sock.send(&[], zmq::SNDMORE).is_err() {
-                        debug!("failed to send, worker went away, worker={:?}", worker);
-                        job.set_state(jobsrv::JobState::Pending);
-                        self.datastore.update_job(&job)?;
-                        continue;
-                    }
-
-                    if self.rq_sock
-                        .send(&job.write_to_bytes().unwrap(), 0)
-                        .is_err()
-                    {
-                        debug!("failed to send, worker went away, worker={:?}", worker);
-                        job.set_state(jobsrv::JobState::Pending);
-                        self.datastore.update_job(&job)?;
-                        continue;
-                    }
-                    let expiry = Instant::now() + Duration::from_millis(JOB_TIMEOUT_MS);
-                    self.jobs.insert(job.get_id(), expiry);
-                    self.worker_map.insert(worker, job.get_id());
+            match self.dispatch_job(&job, &worker_ident) {
+                Ok(()) => {
+                    let mut worker = self.workers.remove(&worker_ident).unwrap(); // unwrap Ok
+                    worker.busy(job.get_id());
+                    self.save_worker(&worker)?;
+                    self.workers.insert(worker_ident, worker);
                 }
-                None => {
-                    debug!("no workers available - bailing for now");
+                Err(err) => {
+                    warn!(
+                        "Failed to dispatch job to worker {}, err={:?}",
+                        worker_ident,
+                        err
+                    );
                     job.set_state(jobsrv::JobState::Pending);
                     self.datastore.update_job(&job)?;
-                    return Ok(());
                 }
             }
         }
+        Ok(())
+    }
+
+    fn dispatch_job(&mut self, job: &jobsrv::Job, worker_ident: &str) -> Result<()> {
+        debug!("Dispatching job to worker {:?}: {:?}", worker_ident, job);
+
+        self.rq_sock.send_str(&worker_ident, zmq::SNDMORE)?;
+        self.rq_sock.send(&[], zmq::SNDMORE)?;
+        self.rq_sock.send(&job.write_to_bytes().unwrap(), 0)?;
+
         Ok(())
     }
 
@@ -313,143 +382,137 @@ impl WorkerMgr {
     }
 
     fn expire_workers(&mut self) -> Result<()> {
-        let now = Instant::now();
         loop {
-            if let Some((_, expiry)) = self.ready_workers.front() {
-                if expiry >= &now {
+            if let Some(worker) = self.workers.front() {
+                if !worker.1.is_expired() {
                     break;
                 }
             } else {
                 break;
             }
 
-            let (worker, _) = self.ready_workers.pop_front().unwrap();
-            debug!(
-                "expiring ready worker due to missed heartbeat, worker={:?}",
-                worker
-            );
-        }
+            let worker = self.workers.pop_front().unwrap().1;
+            debug!("Expiring worker due to missed heartbeat: {:?}", worker);
 
-        loop {
-            if let Some((_, expiry)) = self.busy_workers.front() {
-                if expiry >= &now {
-                    break;
-                }
-            } else {
-                break;
-            }
-
-            let (worker, _) = self.busy_workers.pop_front().unwrap();
-            debug!(
-                "expiring busy worker due to missed heartbeat, worker={:?}",
-                worker
-            );
-
-            // TODO: (SA) we need to handle a case where both worker and job srv
-            // restart during progress of a job - the job_id can get lost.
-            if self.worker_map.contains_key(&worker) {
-                let job_id = self.worker_map.remove(&worker).unwrap();
-
-                if self.jobs.contains_key(&job_id) {
-                    self.jobs.remove(&job_id).unwrap();
-                }
-
-                let mut req = jobsrv::JobGet::new();
-                req.set_id(job_id);
-
-                match self.datastore.get_job(&req)? {
-                    Some(mut job) => {
-                        debug!("updating job {:?}, setting state back to Pending", job_id);
-                        job.set_state(jobsrv::JobState::Pending);
-                        self.datastore.update_job(&job)?;
-                    }
-                    None => {
-                        warn!(
-                            "did not find job id {:?} for busy worker {:?}!",
-                            job_id,
-                            worker
-                        );
-                    }
-                }
+            if worker.state == jobsrv::WorkerState::Busy {
+                self.requeue_job(worker.job_id.unwrap())?; // unwrap Ok
+                self.delete_worker(&worker)?;
             }
         }
 
         Ok(())
     }
 
-    fn expire_jobs(&mut self) -> Result<()> {
-        let now = Instant::now();
-        loop {
-            if let Some((_, expiry)) = self.jobs.front() {
-                if expiry >= &now {
-                    break;
-                }
-            } else {
-                break;
+    fn requeue_job(&mut self, job_id: u64) -> Result<()> {
+        let mut req = jobsrv::JobGet::new();
+        req.set_id(job_id);
+
+        match self.datastore.get_job(&req)? {
+            Some(mut job) => {
+                debug!("Requeing job {:?}", job_id);
+                job.set_state(jobsrv::JobState::Pending);
+                self.datastore.update_job(&job)?;
             }
-
-            let (job_id, _) = self.jobs.pop_front().unwrap();
-            debug!("expiring job due to timeout, id={:?}", job_id);
-
-            let mut req = jobsrv::JobGet::new();
-            req.set_id(job_id);
-
-            match self.datastore.get_job(&req)? {
-                Some(mut job) => {
-                    job.set_state(jobsrv::JobState::Failed);
-                    let err = NetError::new(ErrCode::TIMEOUT, "js:err:1");
-                    job.set_error(err.take_err());
-                    debug!("updating job {:?} setting state to Failed", job_id);
-                    self.datastore.update_job(&job)?;
-                }
-                None => {}
+            None => {
+                warn!(
+                    "Unable to requeue job {:?} (not found)",
+                    job_id,
+                );
             }
         }
 
         Ok(())
     }
 
-    fn process_heartbeat(&mut self) -> Result<bool> {
-        self.hb_sock.recv(&mut self.msg, 0)?;
-        let heartbeat: jobsrv::Heartbeat = parse_from_bytes(&self.msg)?;
-        debug!("heartbeat={:?}", heartbeat);
+    fn fail_job(&mut self, job_id: u64) -> Result<()> {
+        let mut req = jobsrv::JobGet::new();
+        req.set_id(job_id);
 
-        let now = Instant::now();
-        let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
-        let endpoint = heartbeat.get_endpoint().to_string();
-
-        let result = match heartbeat.get_state() {
-            jobsrv::WorkerState::Ready => {
-                self.busy_workers.remove(&endpoint);
-                self.ready_workers.insert(endpoint, expiry);
-                true
+        match self.datastore.get_job(&req)? {
+            Some(mut job) => {
+                job.set_state(jobsrv::JobState::Failed);
+                let err = NetError::new(ErrCode::TIMEOUT, "js:wrk-fail:1");
+                job.set_error(err.take_err());
+                debug!(
+                    "Job {:?} timed out after {} minutes",
+                    job_id,
+                    JOB_TIMEOUT_MS / (60 * 1000)
+                );
+                self.datastore.update_job(&job)?;
             }
-            jobsrv::WorkerState::Busy => {
-                self.ready_workers.remove(&endpoint);
-                self.busy_workers.insert(endpoint, expiry);
-                false
+            None => {
+                warn!(
+                    "Unable to fail job {:?} (not found)",
+                    job_id,
+                );
             }
         };
-        Ok(result)
+
+        Ok(())
+    }
+
+    fn process_heartbeat(&mut self) -> Result<()> {
+        self.hb_sock.recv(&mut self.msg, 0)?;
+        let heartbeat: jobsrv::Heartbeat = parse_from_bytes(&self.msg)?;
+        debug!("Got heartbeat: {:?}", heartbeat);
+
+        let worker_ident = heartbeat.get_endpoint().to_string();
+
+        let mut worker = match self.workers.remove(&worker_ident) {
+            Some(worker) => worker,
+            None => {
+                if heartbeat.get_state() == jobsrv::WorkerState::Ready {
+                    Worker::new(&worker_ident)
+                } else {
+                    warn!(
+                        "Unexpacted Busy heartbeat from unknown worker {}",
+                        worker_ident
+                    );
+                    return Ok(()); // Something went wrong, don't process this HB
+                }
+            }
+        };
+
+        match (worker.state, heartbeat.get_state()) {
+            (jobsrv::WorkerState::Ready, jobsrv::WorkerState::Busy) => {
+                warn!(
+                    "Unexpected Busy heartbeat from known worker {}",
+                    worker_ident
+                );
+                return Ok(()); // Something went wrong, don't process this HB
+            }
+            (jobsrv::WorkerState::Busy, jobsrv::WorkerState::Busy) => {
+                // Check to see if job has expired and quarantine this worker if so.
+                // It's probably hung in a build or in some other semi-bad state
+                let job_id = worker.job_id.unwrap(); // unwrap Ok
+                if worker.is_job_expired() {
+                    if !worker.is_quarantined() {
+                        self.fail_job(job_id)?;
+                    };
+                    worker.quarantine();
+                } else {
+                    worker.busy(job_id);
+                }
+            }
+            (jobsrv::WorkerState::Busy, jobsrv::WorkerState::Ready) => {
+                self.delete_worker(&worker)?;
+                worker.ready()
+            }
+            _ => worker.ready(),
+        };
+
+        assert!(!worker.is_expired());
+        self.workers.insert(worker_ident, worker);
+        Ok(())
     }
 
     fn process_job_status(&mut self) -> Result<()> {
-        // Pop message delimiter
         self.rq_sock.recv(&mut self.msg, 0)?;
-        // Pop message body
         self.rq_sock.recv(&mut self.msg, 0)?;
-        let job = Job::new(parse_from_bytes::<jobsrv::Job>(&self.msg)?);
-        debug!("job_status={:?}", job);
-        self.datastore.update_job(&job)?;
 
-        match job.get_state() {
-            jobsrv::JobState::Complete |
-            jobsrv::JobState::Rejected |
-            jobsrv::JobState::Failed => {
-                self.jobs.remove(&job.get_id());
-            }
-            _ => (),
-        }
+        let job = Job::new(parse_from_bytes::<jobsrv::Job>(&self.msg)?);
+        debug!("Got job status: {:?}", job);
+        self.datastore.update_job(&job)?;
 
         Ok(())
     }

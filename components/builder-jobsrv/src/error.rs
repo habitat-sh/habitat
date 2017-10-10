@@ -32,6 +32,9 @@ use zmq;
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
+    BusyWorkerUpsert(postgres::error::Error),
+    BusyWorkerDelete(postgres::error::Error),
+    BusyWorkersGet(postgres::error::Error),
     CaughtPanic(String, String),
     ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
@@ -71,6 +74,15 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
+            Error::BusyWorkerUpsert(ref e) => {
+                format!("Database error creating or updating a busy worker, {}", e)
+            }
+            Error::BusyWorkerDelete(ref e) => {
+                format!("Database error deleting a busy worker, {}", e)
+            }
+            Error::BusyWorkersGet(ref e) => {
+                format!("Database error retrieving busy workers, {}", e)
+            }
             Error::CaughtPanic(ref msg, ref source) => {
                 format!("Caught a panic: {}. {}", msg, source)
             }
@@ -134,6 +146,9 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
+            Error::BusyWorkerUpsert(ref err) => err.description(),
+            Error::BusyWorkerDelete(ref err) => err.description(),
+            Error::BusyWorkersGet(ref err) => err.description(),
             Error::CaughtPanic(_, _) => "Caught a panic",
             Error::ConnErr(ref err) => err.description(),
             Error::Db(ref err) => err.description(),

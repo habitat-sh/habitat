@@ -29,6 +29,12 @@ message Heartbeat {
   optional WorkerState state = 3;
 }
 
+message BusyWorker {
+  optional string ident = 1;
+  optional uint64 job_id = 2;
+  optional bool quarantined = 3;
+}
+
 message Job {
   reserved 10;
   reserved "log_url";
