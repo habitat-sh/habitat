@@ -12,7 +12,10 @@ paths = [
 ]
 
 [builder-api-proxy]
-paths = ["components/builder-api-proxy/*"]
+paths = [
+  "components/builder-api-proxy/*",
+  "components/builder-web/*",
+]
 
 [builder-api]
 paths = [
@@ -21,7 +24,6 @@ paths = [
   "components/builder-depot/*",
   "components/builder-http-gateway/*",
   "components/builder-protocol/*",
-  "components/builder-web/*",
   "components/core/*",
   "components/github-api-client/*",
   "components/net/*",
