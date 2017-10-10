@@ -62,7 +62,7 @@ impl Logger {
     //   Duration (job duration, in seconds, only for jobs)
     //   Error (if applicable)
     pub fn log_ident(&mut self, ident: &str) {
-        let msg = format!("I,{}", ident);
+        let msg = format!("I,Started {}", ident);
         self.log(&msg);
     }
 
@@ -151,7 +151,8 @@ impl Logger {
         };
 
         let msg = format!(
-            "W,{},{:?},{},,,{},{},{:?}",
+            "W,{},{},{:?},{},,,{},{},{:?}",
+            job.get_owner_id(),
             job.get_id(),
             job.get_state(),
             job.get_project().get_name(),

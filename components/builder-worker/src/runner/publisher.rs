@@ -47,27 +47,28 @@ impl Publisher {
         );
 
         let client = depot_client::Client::new(&self.url, PRODUCT, VERSION, None).unwrap();
+        let ident = archive.ident().unwrap();
 
         match retry(RETRIES, RETRY_WAIT, || client.x_put_package(archive, auth_token), |res| {
-            let msg = format!("Upload status: {:?}", res);
-            debug!("{}", msg);
-            logger.log(&msg);
             match *res {
                 Ok(_) |  // Conflict means package got uploaded earlier
                 Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => true,
-                Err(_) => false
+                Err(_) => {
+                    let msg = format!("Upload {}: {:?}", ident, res);
+                    debug!("{}", msg);
+                    logger.log(&msg);
+                    false
+                }
             }
         }) {
             Ok(_) => (),
             Err(_) => {
-                let msg = format!("Publisher failed uploading package after {} retries", RETRIES);
-                error!("{}", msg);
+                let msg = format!("Failed to upload {} after {} retries", ident, RETRIES);
+                warn!("{}", msg);
                 logger.log(&msg);
                 return false;
             }
         }
-
-        let ident = archive.ident().unwrap();
 
         if self.channel_opt.is_none() {
             debug!("Promotion skipped (no channel specified)");
@@ -82,21 +83,23 @@ impl Publisher {
                     RETRY_WAIT,
                     || client.create_channel(&ident.origin, &channel, auth_token),
                     |res| {
-                        let msg = format!("Create channel status: {:?}", res);
-                        debug!("{}", msg);
-                        logger.log(&msg);
                         match *res {
                             Ok(_) |  // Conflict means channel got created earlier
                             Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => true,
-                            Err(_) => false
+                            Err(_) => {
+                                let msg = format!("Create channel {}: {:?}", channel, res);
+                                debug!("{}", msg);
+                                logger.log(&msg);
+                                false
+                            }
                         }
                     },
                 ) {
                     Ok(_) => (),
                     Err(_) => {
-                        let msg = format!("Publisher failed creating channel after {} retries",
-                            RETRIES);
-                        error!("{}", msg);
+                        let msg = format!("Failed to create channel {} after {} retries",
+                            channel, RETRIES);
+                        warn!("{}", msg);
                         logger.log(&msg);
                         return false;
                     }
@@ -107,17 +110,19 @@ impl Publisher {
                 RETRY_WAIT,
                 || client.promote_package(&ident, &channel, auth_token),
                 |res| {
-                    let msg = format!("Promote status: {:?}", res);
-                    debug!("{}", msg);
-                    logger.log(&msg);
+                    if res.is_err() {
+                        let msg = format!("Promote {} to {}: {:?}", ident, channel, res);
+                        debug!("{}", msg);
+                        logger.log(&msg);
+                    };
                     res.is_ok()
                 },
             ) {
                 Ok(_) => (),
                 Err(_) => {
-                    let msg = format!("Publisher failed promoting package after {} retries",
-                        RETRIES);
-                    error!("{}", msg);
+                    let msg = format!("Failed to promote {} to {} after {} retries",
+                        ident, channel, RETRIES);
+                    warn!("{}", msg);
                     logger.log(&msg);
                     return false;
                 }
