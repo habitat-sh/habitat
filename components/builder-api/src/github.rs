@@ -203,9 +203,9 @@ fn handle_push(req: &mut Request, body: &str) -> IronResult<Response> {
         }
     };
 
-    let mut query = format!("q={}+in:path+repo:{}", "plan.sh", hook.repository.full_name);
+    let query = format!("q={}+in:path+repo:{}", "plan.sh", hook.repository.full_name);
     let plans = match github.search_code(&token, &query) {
-        Ok(search) => search.items,
+        Ok(plans) => plans,
         Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
     };
 
@@ -213,35 +213,18 @@ fn handle_push(req: &mut Request, body: &str) -> IronResult<Response> {
         return Ok(Response::with(status::Ok));
     }
 
-    query = format!("q={}+in:path+repo:{}", BLDR_CFG, hook.repository.full_name);
-
-    let config = match github.search_code(&token, &query) {
-        Ok(search) => {
-            match search
-                .items
-                .into_iter()
-                .filter(|i| i.path == BLDR_CFG)
-                .collect::<Vec<SearchItem>>()
-                .pop() {
-                Some(item) => {
-                    match read_bldr_config(&*github, &token, &hook, &item.path) {
-                        HandleResult::Ok(cfg) => Some(cfg),
-                        HandleResult::Err(response) => return Ok(response),
-                    }
-                }
-                None => None,
-            }
-        }
-        Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
+    let config = match read_bldr_config(&*github, &token, &hook) {
+        HandleResult::Ok(config) => config,
+        HandleResult::Err(err) => return Ok(err),
     };
-
     debug!("Config, {:?}", config);
+
     let mut plans = match read_plans(&github, &token, &hook, plans) {
         HandleResult::Ok(plans) => plans,
         HandleResult::Err(err) => return Ok(err),
     };
-
     debug!("Plans, {:?}", plans);
+
     if let Some(cfg) = config {
         plans.retain(|plan| match cfg.get(&plan.name) {
             Some(project) => project.triggered_by(hook.branch(), hook.changed().as_slice()),
@@ -296,14 +279,13 @@ fn read_bldr_config(
     github: &GitHubClient,
     token: &str,
     hook: &GitHubWebhookPush,
-    path: &str,
-) -> HandleResult<BuildCfg> {
-    match github.contents(token, hook.repository.id, path) {
-        Ok(contents) => {
+) -> HandleResult<Option<BuildCfg>> {
+    match github.contents(token, hook.repository.id, BLDR_CFG) {
+        Ok(Some(contents)) => {
             match contents.decode() {
                 Ok(ref bytes) => {
                     match BuildCfg::from_slice(bytes) {
-                        Ok(cfg) => HandleResult::Ok(cfg),
+                        Ok(cfg) => HandleResult::Ok(Some(cfg)),
                         Err(err) => HandleResult::Err(Response::with(
                             (status::UnprocessableEntity, err.to_string()),
                         )),
@@ -316,6 +298,7 @@ fn read_bldr_config(
                 }
             }
         }
+        Ok(None) => HandleResult::Ok(None),
         Err(err) => HandleResult::Err(Response::with((status::BadGateway, err.to_string()))),
     }
 }
@@ -329,7 +312,7 @@ fn read_plans(
     let mut parsed = Vec::with_capacity(plans.len());
     for plan in plans {
         match github.contents(token, hook.repository.id, &plan.path) {
-            Ok(contents) => {
+            Ok(Some(contents)) => {
                 match contents.decode() {
                     Ok(bytes) => {
                         match Plan::from_bytes(bytes.as_slice()) {
@@ -345,6 +328,7 @@ fn read_plans(
                     }
                 }
             }
+            Ok(None) => (),
             Err(err) => {
                 return HandleResult::Err(Response::with(
                     (status::BadGateway, format!("{}, {}", plan.path, err)),

@@ -68,6 +68,29 @@ impl GitHubClient {
         }
     }
 
+    /// Given an HTTP response from Github, extract the URL for the
+    /// "next" page of results, if it exists.
+    ///
+    /// See
+    /// https://developer.github.com/v3/guides/traversing-with-pagination/
+    /// for further details.
+    ///
+    /// NOTE: Once we upgrade to Hyper 0.11.x, this implementation can
+    /// get a whole lot less ugly because then we'll actually have
+    /// TYPED ACCESS to the Link header.
+    fn next_page_url(response: &Response) -> Option<Url> {
+        let headers = &response.headers;
+        if let Some(link) = headers.get_raw("link") {
+            for value in link.iter() {
+                let value = String::from_utf8_lossy(value);
+                if let Some(captures) = LINK_NEXT_RE.captures(&value) {
+                    return Some(Url::parse(&captures["url"]).unwrap());
+                }
+            }
+        }
+        return None;
+    }
+
     pub fn app(&self) -> HubResult<App> {
         let app_token = generate_app_token(&self.app_private_key, &self.app_id);
         let url = Url::parse(&format!("{}/app", self.url)).map_err(
@@ -151,7 +174,7 @@ impl GitHubClient {
     }
 
     /// Returns the contents of a file or directory in a repository.
-    pub fn contents(&self, token: &str, repo: u32, path: &str) -> HubResult<Contents> {
+    pub fn contents(&self, token: &str, repo: u32, path: &str) -> HubResult<Option<Contents>> {
         let url = Url::parse(&format!(
             "{}/repositories/{}/contents/{}",
             self.url,
@@ -162,19 +185,21 @@ impl GitHubClient {
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
+        match rep.status {
+            StatusCode::NotFound => return Ok(None),
+            StatusCode::Ok => (),
+            status => {
+                let err: HashMap<String, String> = serde_json::from_str(&body)?;
+                return Err(HubError::ApiError(status, err));
+            }
         }
         let mut contents: Contents = serde_json::from_str(&body)?;
-
         // We need to strip line feeds as the Github API has started to return
         // base64 content with line feeds.
         if contents.encoding == "base64" {
             contents.content = contents.content.replace("\n", "");
         }
-
-        Ok(contents)
+        Ok(Some(contents))
     }
 
     pub fn repo(&self, token: &str, repo: u32) -> HubResult<Repository> {
@@ -192,7 +217,6 @@ impl GitHubClient {
     }
 
     pub fn repositories(&self, token: &str, install_id: u32) -> HubResult<Vec<Repository>> {
-
         let initial_url = Url::parse(&format!(
             "{}/user/installations/{}/repositories",
             self.url,
@@ -221,29 +245,6 @@ impl GitHubClient {
         Ok(repositories)
     }
 
-    /// Given an HTTP response from Github, extract the URL for the
-    /// "next" page of results, if it exists.
-    ///
-    /// See
-    /// https://developer.github.com/v3/guides/traversing-with-pagination/
-    /// for further details.
-    ///
-    /// NOTE: Once we upgrade to Hyper 0.11.x, this implementation can
-    /// get a whole lot less ugly because then we'll actually have
-    /// TYPED ACCESS to the Link header.
-    fn next_page_url(response: &Response) -> Option<Url> {
-        let headers = &response.headers;
-        if let Some(link) = headers.get_raw("link") {
-            for value in link.iter() {
-                let value = String::from_utf8_lossy(value);
-                if let Some(captures) = LINK_NEXT_RE.captures(&value) {
-                    return Some(Url::parse(&captures["url"]).unwrap());
-                }
-            }
-        }
-        return None;
-    }
-
     pub fn user(&self, token: &str) -> HubResult<User> {
         let url = Url::parse(&format!("{}/user", self.url)).unwrap();
         let mut rep = http_get(url, Some(token))?;
@@ -258,19 +259,26 @@ impl GitHubClient {
         Ok(user)
     }
 
-    pub fn search_code(&self, token: &str, query: &str) -> HubResult<Search> {
-        let url = Url::parse(&format!("{}/search/code?{}", self.url, query))
+    pub fn search_code(&self, token: &str, query: &str) -> HubResult<Vec<SearchItem>> {
+        let initial_url = Url::parse(&format!("{}/search/code?{}", self.url, query))
             .map_err(HubError::HttpClientParse)?;
-        let mut rep = http_get(url, Some(token))?;
-        let mut body = String::new();
-        rep.read_to_string(&mut body)?;
-        debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
+        let mut items = Vec::new();
+        let mut current_url = Some(initial_url);
+
+        while let Some(url) = current_url {
+            let mut rep = http_get(url, Some(token))?;
+            let mut body = String::new();
+            rep.read_to_string(&mut body)?;
+            debug!("GitHub response body, {}", body);
+            if rep.status != StatusCode::Ok {
+                let err: HashMap<String, String> = serde_json::from_str(&body)?;
+                return Err(HubError::ApiError(rep.status, err));
+            }
+            let mut search = serde_json::from_str::<Search>(&body)?;
+            items.append(&mut search.items);
+            current_url = Self::next_page_url(&rep);
         }
-        let search = serde_json::from_str::<Search>(&body)?;
-        Ok(search)
+        Ok(items)
     }
 }
 

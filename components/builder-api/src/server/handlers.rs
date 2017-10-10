@@ -16,7 +16,6 @@
 
 use std::env;
 
-use base64;
 use bodyparser;
 use bldr_core::helpers::transition_visibility;
 use depot::server::check_origin_access;
@@ -410,7 +409,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     };
 
     match github.contents(&token, repo_id, &project.get_plan_path()) {
-        Ok(contents) => {
+        Ok(Some(contents)) => {
             match contents.decode() {
                 Ok(bytes) => {
                     match Plan::from_bytes(bytes.as_slice()) {
@@ -431,6 +430,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                 }
             }
         }
+        Ok(None) => return Ok(Response::with((status::NotFound, "rg:pc:5"))),
         Err(e) => {
             debug!("Error fetching contents from GH. e = {:?}", e);
             return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2")));
@@ -544,8 +544,8 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
     };
 
     match github.contents(&token, repo_id, &project.get_plan_path()) {
-        Ok(contents) => {
-            match base64::decode(&contents.content) {
+        Ok(Some(contents)) => {
+            match contents.decode() {
                 Ok(bytes) => {
                     match Plan::from_bytes(bytes.as_slice()) {
                         Ok(plan) => {
@@ -567,6 +567,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 }
             }
         }
+        Ok(None) => return Ok(Response::with((status::NotFound, "rg:pu:6"))),
         Err(e) => {
             debug!("Erroring fetching contents from GH. e = {:?}", e);
             return Ok(Response::with((status::UnprocessableEntity, "rg:pu:5")));
