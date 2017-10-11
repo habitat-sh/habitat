@@ -39,22 +39,26 @@ impl BuildCfg {
         vec!["master".to_string()]
     }
 
-    pub fn default_plan_path() -> String {
-        String::from("habitat/plan.sh")
+    pub fn default_plan_path() -> Pattern {
+        Pattern::from_str("habitat/*").unwrap()
     }
 
     pub fn from_slice(bytes: &[u8]) -> Result<Self> {
-        let value = toml::from_slice::<HashMap<String, ProjectCfg>>(bytes)
+        let mut inner = toml::from_slice::<HashMap<String, ProjectCfg>>(bytes)
             .map_err(|e| Error::DecryptError(e.to_string()))?;
-        Ok(BuildCfg(value))
+        for value in inner.values_mut() {
+            value.plan_path.dir_expand();
+        }
+        Ok(BuildCfg(inner))
     }
 
+    /// List of all registered projects for this `BuildCfg`.
     pub fn projects(&self) -> Vec<&ProjectCfg> {
         self.0.values().collect()
     }
 
     /// Returns true if the given branch & file path combination should result in a new build
-    /// being automatically triggered by a GitHub Push notification
+    /// being automatically triggered by a GitHub Push notification.
     pub fn triggered_by<T>(&self, branch: &str, paths: &[T]) -> Vec<&ProjectCfg>
     where
         T: AsRef<str>,
@@ -91,9 +95,9 @@ pub struct ProjectCfg {
     /// notification to determine if an automatic rebuild should occur.
     #[serde(default)]
     pub paths: Vec<Pattern>,
-    /// Relative filepath to the project's Plan File (default: "habitat/plan.sh").
+    /// Relative filepath to the project's Plan (default: "habitat").
     #[serde(default = "BuildCfg::default_plan_path")]
-    pub plan_path: String,
+    pub plan_path: Pattern,
 }
 
 impl ProjectCfg {
@@ -107,7 +111,7 @@ impl ProjectCfg {
             return false;
         }
         paths.iter().any(|p| {
-            self.paths.iter().any(|i| i.matches(p.as_ref()))
+            self.plan_path.matches(p.as_ref()) || self.paths.iter().any(|i| i.matches(p.as_ref()))
         })
     }
 }
@@ -129,19 +133,33 @@ pub struct Pattern {
 }
 
 impl Pattern {
-    pub fn matches<T>(&self, value: T) -> bool
-    where
-        T: AsRef<str>,
-    {
-        self.inner.matches_with(value.as_ref(), &self.options)
-    }
-
     fn default_options() -> glob::MatchOptions {
         glob::MatchOptions {
             case_sensitive: false,
             require_literal_separator: false,
             require_literal_leading_dot: false,
         }
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.inner.as_str()
+    }
+
+    /// Mutate the pattern match to encompass the entire directory if not already present. This is
+    /// useful for allowing a user to specify a directory name like "habitat" in their configuration
+    /// and we'll check the contents.
+    pub fn dir_expand(&mut self) {
+        if self.inner.as_str().ends_with("/*") {
+            return;
+        }
+        self.inner = glob::Pattern::from_str(&format!("{}/*", self.inner.as_str())).unwrap();
+    }
+
+    pub fn matches<T>(&self, value: T) -> bool
+    where
+        T: AsRef<str>,
+    {
+        self.inner.matches_with(value.as_ref(), &self.options)
     }
 }
 
@@ -151,17 +169,25 @@ impl<'de> Deserialize<'de> for Pattern {
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let inner: glob::Pattern = FromStr::from_str(&s).map_err(de::Error::custom)?;
-        Ok(Pattern {
-            inner: inner,
-            options: Pattern::default_options(),
-        })
+        Pattern::from_str(&s).map_err(de::Error::custom)
     }
 }
 
 impl fmt::Debug for Pattern {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.inner)
+    }
+}
+
+impl FromStr for Pattern {
+    type Err = glob::PatternError;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        let inner: glob::Pattern = FromStr::from_str(value)?;
+        Ok(Pattern {
+            inner: inner,
+            options: Pattern::default_options(),
+        })
     }
 }
 
@@ -178,77 +204,62 @@ impl Serialize for Pattern {
 mod test {
     use super::*;
 
-    #[test]
-    fn from_contents() {
-        let raw = r#"
-        [hab-sup]
-        branches = [
-          "master",
-          "dev",
-        ]
-        channels = [
-          "stable"
-        ]
-        paths = [
-          "components/hab-sup/*"
-        ]
+    const CONFIG: &'static str = r#"
+    [hab-sup]
+    plan_path = "components/hab-sup"
+    branches = [
+      "master",
+      "dev",
+    ]
+    channels = [
+      "stable"
+    ]
+    paths = [
+      "components/net/*"
+    ]
 
-        [builder-api]
-        plan_path = "components/builder-api/habitat/plan.sh"
-        paths = [
-          "components/builder-api/*"
-        ]
-        "#;
-        let cfg = BuildCfg::from_slice(raw.as_bytes()).unwrap();
-        assert_eq!(cfg.len(), 2);
-        assert_eq!(&cfg.get("hab-sup").unwrap().plan_path, "habitat/plan.sh");
-        assert_eq!(
-            &cfg.get("builder-api").unwrap().plan_path,
-            "components/builder-api/habitat/plan.sh"
-        );
-        assert_eq!(
-            cfg.get("hab-sup").unwrap().triggered_by(
-                "master",
-                &[
-                    "components/hab-sup/Cargo.toml",
-                ],
-            ),
-            true
-        );
-        assert_eq!(
-            cfg.get("hab-sup").unwrap().triggered_by(
-                "master",
-                &[
-                    "components/hAb-Sup/Cargo.toml",
-                ],
-            ),
-            true
-        );
-        assert_eq!(
-            cfg.get("hab-sup").unwrap().triggered_by(
-                "dev",
-                &[
-                    "components/hab-sup/Cargo.toml",
-                ],
-            ),
-            true
-        );
-        assert_eq!(
-            cfg.get("hab-sup").unwrap().triggered_by(
-                "master",
-                &["components"],
-            ),
-            false
-        );
-        assert_eq!(
-            cfg.get("builder-api").unwrap().triggered_by(
-                "master",
-                &[
-                    "components/builder-api/Cargo.toml",
-                ],
-            ),
-            true
-        );
-        assert_eq!(cfg.get("hab-sup").unwrap().branches, &["master", "dev"]);
+    [builder-api]
+    plan_path = "components/builder-api/habitat"
+    paths = [
+      "components/net/*"
+    ]
+
+    [default]
+    "#;
+
+    #[test]
+    fn triggered_by() {
+        let cfg = BuildCfg::from_slice(CONFIG.as_bytes()).unwrap();
+        let hab_sup = cfg.get("hab-sup").unwrap();
+        let bldr_api = cfg.get("builder-api").unwrap();
+        let default = cfg.get("default").unwrap();
+
+        assert!(hab_sup.triggered_by(
+            "master",
+            &["components/hab-sup/Cargo.toml"],
+        ));
+        assert!(hab_sup.triggered_by(
+            "master",
+            &["components/hAb-Sup/Cargo.toml"],
+        ));
+        assert!(hab_sup.triggered_by(
+            "dev",
+            &["components/hab-sup/Cargo.toml"],
+        ));
+        assert_eq!(hab_sup.triggered_by("master", &["components"]), false);
+
+        assert!(bldr_api.triggered_by(
+            "master",
+            &["components/builder-api/habitat/plan.sh"],
+        ));
+        assert!(bldr_api.triggered_by(
+            "master",
+            &["components/net/Cargo.toml"],
+        ));
+
+        assert!(default.triggered_by("master", &["habitat/plan.sh"]));
+        assert!(default.triggered_by("master", &["habitat/hooks/init"]));
+        assert_eq!(default.triggered_by("dev", &["habitat/plan.sh"]), false);
+        assert_eq!(default.triggered_by("master", &["components"]), false);
     }
 }
