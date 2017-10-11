@@ -15,6 +15,7 @@
 use std::sync::Arc;
 
 use chrono::{DateTime, UTC};
+use db::config::DataStoreCfg;
 use db::pool::Pool;
 use db::migration::Migrator;
 use postgres;
@@ -23,7 +24,6 @@ use protocol::jobsrv::{Job, JobState};
 use protocol::scheduler::*;
 use protobuf::RepeatedField;
 
-use config::Config;
 use error::{SrvError, SrvResult};
 
 // DataStore inherits Send + Sync by virtue of having only one member, the pool itself.
@@ -37,8 +37,8 @@ impl DataStore {
     ///
     /// * Can fail if the pool cannot be created
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
-    pub fn new(config: &Config) -> SrvResult<DataStore> {
-        let pool = Pool::new(&config.datastore, vec![0])?;
+    pub fn new(config: &DataStoreCfg) -> SrvResult<DataStore> {
+        let pool = Pool::new(config, vec![0])?;
         Ok(DataStore { pool: pool })
     }
 

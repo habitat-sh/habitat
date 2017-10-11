@@ -14,11 +14,13 @@
 
 use std::fmt;
 use std::net::{IpAddr, Ipv4Addr};
+use std::str::FromStr;
 
 pub use core::config::ConfigFile;
-pub use protocol::sharding::{ShardId, SHARD_COUNT};
 use num_cpus;
 use protocol::routesrv::DEFAULT_ROUTER_PORT;
+use protocol::sharding::{SHARD_COUNT, ShardId};
+use toml;
 
 use socket::ToAddrString;
 
@@ -53,26 +55,85 @@ impl fmt::Display for RouterAddr {
     }
 }
 
-/// Applied to back-end services connecting to RouteSrv.
-pub trait AppCfg: Send + Sync {
-    /// Default size of Dispatch worker pool.
-    fn default_worker_count() -> usize {
-        // JW TODO: increase default count after r2d2 connection pools are moved to be owned
-        // by main thread of servers instead of dispatcher threads.
-        // num_cpus::get() * 8
-        num_cpus::get()
-    }
-
+/// Configuration structure for connecting to a Router
+#[derive(Clone, Debug, Deserialize)]
+#[serde(default)]
+pub struct AppCfg {
     /// Return a list of router addresses.
-    fn route_addrs(&self) -> &[RouterAddr];
-
+    #[serde(default = "AppCfg::default_routers")]
+    pub routers: Vec<RouterAddr>,
     /// Return a list of shards which this service is hosting.
     ///
     /// A value of `None` indicates that this is not a sharded service.
-    fn shards(&self) -> Option<&[ShardId]>;
-
+    #[serde(default = "AppCfg::default_shards")]
+    pub shards: Option<Vec<ShardId>>,
     /// Count of Dispatch workers to start and supervise.
-    fn worker_count(&self) -> usize {
-        Self::default_worker_count()
+    #[serde(default = "AppCfg::default_worker_count")]
+    pub worker_count: usize,
+}
+
+impl AppCfg {
+    pub fn default_routers() -> Vec<RouterAddr> {
+        vec![RouterAddr::default()]
+    }
+
+    pub fn default_shards() -> Option<Vec<ShardId>> {
+        Some((0..SHARD_COUNT).collect())
+    }
+
+    /// Default size of Dispatch worker pool.
+    pub fn default_worker_count() -> usize {
+        num_cpus::get() * 8
+    }
+}
+
+impl Default for AppCfg {
+    fn default() -> Self {
+        AppCfg {
+            routers: Self::default_routers(),
+            shards: Self::default_shards(),
+            worker_count: Self::default_worker_count(),
+        }
+    }
+}
+
+impl FromStr for AppCfg {
+    type Err = toml::de::Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        toml::de::from_str(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    #[test]
+    fn config_from_file() {
+        let content = r#"
+        shards = [0]
+        worker_count = 1
+
+        [[routers]]
+        host = "1:1:1:1:1:1:1:1"
+        port = 9000
+        "#;
+
+        let config = AppCfg::from_str(&content).unwrap();
+        assert_eq!(config.shards, Some(vec![0]));
+        assert_eq!(config.worker_count, 1);
+        assert_eq!(&format!("{}", config.routers[0]), "1:1:1:1:1:1:1:1:9000");
+    }
+
+    #[test]
+    fn config_from_file_defaults() {
+        let content = r#"
+        worker_count = 0
+        "#;
+
+        let config = AppCfg::from_str(&content).unwrap();
+        assert_eq!(config.worker_count, 0);
     }
 }

@@ -18,10 +18,11 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use bldr_core::helpers::transition_visibility;
-use db::pool::Pool;
 use db::async::{AsyncServer, EventOutcome};
-use db::migration::Migrator;
+use db::config::{DataStoreCfg, ShardId};
 use db::error::{Error as DbError, Result as DbResult};
+use db::migration::Migrator;
+use db::pool::Pool;
 use hab_net::conn::{RouteClient, RouteConn};
 use hab_net::{ErrCode, NetError};
 use hab_core::package::PackageIdent;
@@ -32,7 +33,6 @@ use protocol::originsrv::Pageable;
 use postgres;
 use protobuf;
 
-use config::Config;
 use error::{SrvError, SrvResult};
 use migrations;
 
@@ -49,8 +49,12 @@ impl Drop for DataStore {
 }
 
 impl DataStore {
-    pub fn new(config: &Config, router_pipe: Arc<String>) -> SrvResult<DataStore> {
-        let pool = Pool::new(&config.datastore, config.shards.clone())?;
+    pub fn new(
+        cfg: &DataStoreCfg,
+        shards: Vec<ShardId>,
+        router_pipe: Arc<String>,
+    ) -> SrvResult<DataStore> {
+        let pool = Pool::new(&cfg, shards)?;
         let ap = pool.clone();
         Ok(DataStore {
             pool: pool,

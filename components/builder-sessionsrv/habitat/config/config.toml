@@ -1,4 +1,10 @@
-shards = {{toToml cfg.shards}}
+[app]
+{{toToml cfg.app}}
+{{~#eachAlive bind.router.members as |member|}}
+[[routers]]
+host = "{{member.sys.ip}}"
+port = {{member.cfg.port}}
+{{~/eachAlive}}
 
 [permissions]
 {{toToml cfg.permissions}}
@@ -6,12 +12,6 @@ shards = {{toToml cfg.shards}}
 [github]
 app_private_key = "{{pkg.svc_files_path}}/builder-github-app.pem"
 {{toToml cfg.github}}
-
-{{~#eachAlive bind.router.members as |member|}}
-[[routers]]
-host = "{{member.sys.ip}}"
-port = {{member.cfg.port}}
-{{~/eachAlive}}
 
 [datastore]
 {{toToml cfg.datastore}}

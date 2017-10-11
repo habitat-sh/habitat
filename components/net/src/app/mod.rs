@@ -33,22 +33,12 @@
 //!
 //!     #[derive(Default)]
 //!     pub struct SrvConfig {
-//!         pub routers: Vec<RouterAddr>,
-//!         pub shards: Vec<ShardId>,
-//!         pub worker_threads: usize,
+//!         pub app: AppCfg,
 //!     }
 //!
-//!     impl AppCfg for SrvConfig {
-//!         fn route_addrs(&self) -> &[RouterAddr] {
-//!             self.routers.as_slice()
-//!         }
-//!
-//!         fn shards(&self) -> Option<&[ShardId]> {
-//!             Some(self.shards.as_slice())
-//!         }
-//!
-//!         fn worker_count(&self) -> usize {
-//!             self.worker_threads
+//!     impl AsRef<AppCfg> for SrvConfig {
+//!         fn as_ref(&self) -> &AppCfg {
+//!             &self.app
 //!         }
 //!     }
 //! }
@@ -136,11 +126,10 @@
 //! #[derive(Clone, Default)]
 //! pub struct SrvState;
 //! impl AppState for SrvState {
-//!     type Config = SrvConfig;
 //!     type Error = error::SrvError;
 //!     type InitState = Self;
 //!
-//!     fn build(_config: &Self::Config, init_state: Self::InitState) -> SrvResult<Self> {
+//!     fn build(init_state: Self::InitState) -> SrvResult<Self> {
 //!         Ok(init_state)
 //!     }
 //! }
@@ -152,11 +141,12 @@
 //!     // example, we will use the SessionSrv protocol
 //!     const PROTOCOL: Protocol = Protocol::SessionSrv;
 //!
+//!     type Config = config::SrvConfig;
 //!     type Error = error::SrvError;
 //!     type State = SrvState;
 //!
 //!     fn app_init(
-//!         config: &<Self::State as AppState>::Config,
+//!         config: Self::Config,
 //!         router_pipe: Arc<String>,
 //!     ) -> SrvResult<<Self::State as AppState>::InitState> {
 //!         Ok(SrvState::default())
@@ -192,7 +182,6 @@ use protocol::routesrv;
 use uuid::Uuid;
 use zmq;
 
-use self::config::AppCfg;
 use self::error::{AppError, AppResult};
 use self::dispatcher::{Dispatcher, DispatcherPool};
 use conn::{self, ConnErr, ConnEvent};
@@ -218,7 +207,6 @@ enum RecvEvent {
 /// Apply to a struct containing worker state that will be passed as a mutable reference on each
 /// call of `dispatch()` to an implementer of `Dispatcher`.
 pub trait AppState: Send + Sized {
-    type Config: AppCfg;
     type Error: std::error::Error;
     type InitState: Clone + Send;
 
@@ -227,7 +215,7 @@ pub trait AppState: Send + Sized {
     /// The default implementation will take your initial state and convert it into the actual
     /// state of the worker. Override this function if you need to perform additional steps to
     /// initialize your worker state.
-    fn build(&Self::Config, init_state: Self::InitState) -> Result<Self, Self::Error>;
+    fn build(init_state: Self::InitState) -> Result<Self, Self::Error>;
 }
 
 struct Application<T>
@@ -259,7 +247,7 @@ impl<T> Application<T>
 where
     T: Dispatcher,
 {
-    fn new(config: &<T::State as AppState>::Config) -> AppResult<Self, T::Error> {
+    fn new(config: &T::Config) -> AppResult<Self, T::Error> {
         let router_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         router_sock.set_identity(socket::srv_ident().as_bytes())?;
         router_sock.set_probe_router(true)?;
@@ -270,7 +258,7 @@ where
         let pipe_in = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
         let mut registration = routesrv::Registration::new();
         registration.set_protocol(T::PROTOCOL);
-        if let Some(ref shards) = config.shards() {
+        if let Some(ref shards) = config.as_ref().shards {
             registration.set_shards(shards.to_vec());
         }
         Ok(Application {
@@ -367,21 +355,20 @@ where
         Ok(())
     }
 
-    fn run(mut self, config: <T::State as AppState>::Config) -> AppResult<(), T::Error> {
+    fn run(mut self, config: T::Config) -> AppResult<(), T::Error> {
         signals::init();
-        for addr in config.route_addrs() {
+        for addr in config.as_ref().routers.iter() {
             let addr = addr.to_addr_string();
             self.router_sock.connect(&addr)?;
         }
-        let mut drop_buf: Vec<Vec<u8>> = Vec::with_capacity(config.route_addrs().len());
+        let mut drop_buf: Vec<Vec<u8>> = Vec::with_capacity(config.as_ref().routers.len());
         let pipe_in = Arc::new(format!("inproc://net.dispatcher.in.{}", Uuid::new_v4()));
         let pipe_out = Arc::new(format!("inproc://net.dispatcher.out.{}", Uuid::new_v4()));
         self.pipe_in.bind(&*pipe_in)?;
         self.pipe_out.bind(&*pipe_out)?;
-        let state = T::app_init(&config, pipe_out.clone()).map_err(
-            AppError::Init,
-        )?;
-        DispatcherPool::<T>::new(pipe_in, pipe_out, config, state).run();
+        let dispatch = DispatcherPool::<T>::new(pipe_in, pipe_out.clone(), &config);
+        let state = T::app_init(config, pipe_out).map_err(AppError::Init)?;
+        dispatch.run(state);
         info!("{} is ready to go.", T::APP_NAME);
         loop {
             self.msg_buf.reset();
@@ -492,7 +479,7 @@ where
     }
 }
 
-pub fn start<T>(cfg: <T::State as AppState>::Config) -> AppResult<(), T::Error>
+pub fn start<T>(cfg: T::Config) -> AppResult<(), T::Error>
 where
     T: Dispatcher,
 {

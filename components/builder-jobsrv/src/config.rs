@@ -19,32 +19,23 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
 use hab_net::app::config::*;
-use protocol::sharding::{ShardId, SHARD_COUNT};
 use db::config::DataStoreCfg;
 use server::log_archiver::ArchiveBackend;
 
 use error::Error;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// List of shard identifiers serviced by the running service.
-    pub shards: Vec<ShardId>,
-    /// Number of threads to process queued messages.
-    pub worker_threads: usize,
+    pub app: AppCfg,
     pub net: NetCfg,
-    /// List of net addresses for routing servers to connect to
-    pub routers: Vec<RouterAddr>,
     pub datastore: DataStoreCfg,
-
     /// Directory to which log output of running build processes will
     /// be written. Defaults to the system temp directory. Must exist
     /// and be writable by the server process.
     pub log_dir: PathBuf,
-
     /// Configuration for the job log archiver
     pub archive: ArchiveCfg,
-    ///
     /// Filepath to where the builder encryption keys can be found
     pub key_dir: PathBuf,
 }
@@ -54,10 +45,8 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_jobsrv");
         Config {
-            shards: (0..SHARD_COUNT).collect(),
-            worker_threads: Self::default_worker_count(),
+            app: AppCfg::default(),
             net: NetCfg::default(),
-            routers: vec![RouterAddr::default()],
             datastore: datastore,
             log_dir: env::temp_dir(),
             archive: ArchiveCfg::default(),
@@ -66,25 +55,17 @@ impl Default for Config {
     }
 }
 
+impl AsRef<AppCfg> for Config {
+    fn as_ref(&self) -> &AppCfg {
+        &self.app
+    }
+}
+
 impl ConfigFile for Config {
     type Error = Error;
 }
 
-impl AppCfg for Config {
-    fn route_addrs(&self) -> &[RouterAddr] {
-        self.routers.as_slice()
-    }
-
-    fn shards(&self) -> Option<&[ShardId]> {
-        Some(self.shards.as_slice())
-    }
-
-    fn worker_count(&self) -> usize {
-        self.worker_threads
-    }
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct NetCfg {
     /// Worker Command socket's listening address
@@ -182,11 +163,6 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
-        shards = [
-            0
-        ]
-        worker_threads = 1
-
         [net]
         worker_command_listen = "1:1:1:1:1:1:1:1"
         worker_command_port = 9000
@@ -202,10 +178,6 @@ mod tests {
         bucket = "bukkit"
         endpoint = "http://minio.mycompany.com:9000"
 
-        [[routers]]
-        host = "1.1.1.1"
-        port = 9000
-
         [datastore]
         host = "1.1.1.1"
         port = 9000
@@ -218,7 +190,6 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(&format!("{}", config.routers[0]), "1.1.1.1:9000");
         assert_eq!(
             &format!("{}", config.net.worker_command_listen),
             "1:1:1:1:1:1:1:1"
@@ -232,8 +203,6 @@ mod tests {
         assert_eq!(config.net.worker_command_port, 9000);
         assert_eq!(config.net.worker_heartbeat_port, 9000);
         assert_eq!(config.net.log_ingestion_port, 9999);
-        assert_eq!(config.shards, vec![0]);
-        assert_eq!(config.worker_threads, 1);
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");
         assert_eq!(config.datastore.database, "test_jobsrv");
@@ -254,18 +223,6 @@ mod tests {
             Some("http://minio.mycompany.com:9000".to_string())
         );
         assert_eq!(config.archive.region, "us-east-1");
-
         assert_eq!(config.archive.local_dir, None);
-
-    }
-
-    #[test]
-    fn config_from_file_defaults() {
-        let content = r#"
-        worker_threads = 0
-        "#;
-
-        let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.worker_threads, 0);
     }
 }

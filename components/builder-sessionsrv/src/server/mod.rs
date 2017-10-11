@@ -153,22 +153,21 @@ pub struct ServerState {
 }
 
 impl ServerState {
-    fn new(cfg: &Config) -> SrvResult<Self> {
+    fn new(cfg: Config) -> SrvResult<Self> {
         Ok(ServerState {
-            datastore: DataStore::new(cfg)?,
-            github: Arc::new(Box::new(GitHubClient::new(cfg.github.clone()))),
-            permissions: Arc::new(cfg.permissions.clone()),
+            datastore: DataStore::new(&cfg.datastore, cfg.app.shards.unwrap())?,
+            github: Arc::new(Box::new(GitHubClient::new(cfg.github))),
+            permissions: Arc::new(cfg.permissions),
             sessions: Arc::new(Box::new(RwLock::new(HashSet::default()))),
         })
     }
 }
 
 impl AppState for ServerState {
-    type Config = Config;
     type Error = SrvError;
     type InitState = Self;
 
-    fn build(_config: &Self::Config, init_state: Self::InitState) -> SrvResult<Self> {
+    fn build(init_state: Self::InitState) -> SrvResult<Self> {
         Ok(init_state)
     }
 }
@@ -178,14 +177,15 @@ impl Dispatcher for SessionSrv {
     const APP_NAME: &'static str = "builder-sessionsrv";
     const PROTOCOL: Protocol = Protocol::SessionSrv;
 
+    type Config = Config;
     type Error = SrvError;
     type State = ServerState;
 
     fn app_init(
-        config: &<Self::State as AppState>::Config,
+        cfg: Self::Config,
         _: Arc<String>,
     ) -> SrvResult<<Self::State as AppState>::InitState> {
-        let state = ServerState::new(&config)?;
+        let state = ServerState::new(cfg)?;
         state.datastore.setup()?;
         Ok(state)
     }

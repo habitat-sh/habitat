@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::mpsc;
-use std::sync::Arc;
-use std::thread::{self, JoinHandle};
 use std::collections::HashMap;
+use std::path::Path;
+use std::sync::{mpsc, Arc};
+use std::thread::{self, JoinHandle};
 
 use hab_net::ErrCode;
 use hab_net::conn::RouteClient;
@@ -28,7 +28,6 @@ use protocol::scheduler as proto;
 use data_store::DataStore;
 use error::{SrvResult, SrvError};
 
-use config::Config;
 use bldr_core::logger::Logger;
 use hab_core::channel::bldr_channel_name;
 
@@ -72,7 +71,10 @@ pub struct ScheduleMgr {
 }
 
 impl ScheduleMgr {
-    pub fn new(datastore: DataStore, config: &Config, router_pipe: Arc<String>) -> SrvResult<Self> {
+    pub fn new<T>(datastore: DataStore, log_path: T, router_pipe: Arc<String>) -> SrvResult<Self>
+    where
+        T: AsRef<Path>,
+    {
         let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         socket.set_rcvhwm(1)?;
         socket.set_linger(0)?;
@@ -83,7 +85,7 @@ impl ScheduleMgr {
         route_conn.connect(&*router_pipe)?;
         Ok(ScheduleMgr {
             datastore: datastore,
-            logger: Logger::init(&config.log_path, "builder-scheduler.log"),
+            logger: Logger::init(log_path, "builder-scheduler.log"),
             msg: zmq::Message::new()?,
             route_conn: route_conn,
             schedule_cli: schedule_cli,
@@ -91,13 +93,16 @@ impl ScheduleMgr {
         })
     }
 
-    pub fn start(
+    pub fn start<T>(
         datastore: DataStore,
-        config: &Config,
+        log_path: T,
         route_pipe: Arc<String>,
-    ) -> SrvResult<JoinHandle<()>> {
+    ) -> SrvResult<JoinHandle<()>>
+    where
+        T: AsRef<Path>,
+    {
         let (tx, rx) = mpsc::sync_channel(1);
-        let mut schedule_mgr = Self::new(datastore, config, route_pipe)?;
+        let mut schedule_mgr = Self::new(datastore, log_path, route_pipe)?;
         let handle = thread::Builder::new()
             .name("scheduler".to_string())
             .spawn(move || { schedule_mgr.run(tx).unwrap(); })

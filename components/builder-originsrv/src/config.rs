@@ -15,7 +15,6 @@
 //! Configuration for a Habitat OriginSrv service
 
 use hab_net::app::config::*;
-use protocol::sharding::{ShardId, SHARD_COUNT};
 use db::config::DataStoreCfg;
 
 use error::SrvError;
@@ -23,12 +22,7 @@ use error::SrvError;
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// List of shard identifiers serviced by the running service.
-    pub shards: Vec<ShardId>,
-    /// Number of threads to process queued messages.
-    pub worker_threads: usize,
-    /// List of net addresses for routing servers to connect to
-    pub routers: Vec<RouterAddr>,
+    pub app: AppCfg,
     pub datastore: DataStoreCfg,
 }
 
@@ -37,30 +31,20 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_originsrv");
         Config {
-            shards: (0..SHARD_COUNT).collect(),
-            worker_threads: Self::default_worker_count(),
-            routers: vec![RouterAddr::default()],
+            app: AppCfg::default(),
             datastore: datastore,
         }
     }
 }
 
-impl ConfigFile for Config {
-    type Error = SrvError;
+impl AsRef<AppCfg> for Config {
+    fn as_ref(&self) -> &AppCfg {
+        &self.app
+    }
 }
 
-impl AppCfg for Config {
-    fn route_addrs(&self) -> &[RouterAddr] {
-        self.routers.as_slice()
-    }
-
-    fn shards(&self) -> Option<&[ShardId]> {
-        Some(self.shards.as_slice())
-    }
-
-    fn worker_count(&self) -> usize {
-        self.worker_threads
-    }
+impl ConfigFile for Config {
+    type Error = SrvError;
 }
 
 #[cfg(test)]
@@ -70,15 +54,6 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
-        shards = [
-            0
-        ]
-        worker_threads = 1
-
-        [[routers]]
-        host = "1:1:1:1:1:1:1:1"
-        port = 9000
-
         [datastore]
         host = "1.1.1.1"
         port = 9000
@@ -91,10 +66,6 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.shards, vec![0]);
-        assert_eq!(config.worker_threads, 1);
-        assert_eq!(&format!("{}", config.routers[0]), "1:1:1:1:1:1:1:1:9000");
-        assert_eq!(&format!("{}", config.datastore.host), "1.1.1.1");
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");
         assert_eq!(config.datastore.database, "test_originsrv");
@@ -102,15 +73,5 @@ mod tests {
         assert_eq!(config.datastore.connection_timeout_sec, 4800);
         assert_eq!(config.datastore.connection_test, true);
         assert_eq!(config.datastore.pool_size, 1);
-    }
-
-    #[test]
-    fn config_from_file_defaults() {
-        let content = r#"
-        worker_threads = 0
-        "#;
-
-        let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.worker_threads, 0);
     }
 }

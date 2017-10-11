@@ -1,5 +1,8 @@
 log_level = "info"
 
+[app]
+shards = [0]
+
 [net]
 worker_command_listen = "0.0.0.0"
 worker_command_port = 5566

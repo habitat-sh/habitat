@@ -1,5 +1,7 @@
 key_dir = "{{pkg.svc_files_path}}"
 
+[app]
+{{toToml cfg.app}}
 {{~#eachAlive bind.router.members as |member|}}
 [[routers]]
 host = "{{member.sys.ip}}"

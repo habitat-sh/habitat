@@ -16,13 +16,13 @@
 
 use std::sync::Arc;
 
+use db::config::{DataStoreCfg, ShardId};
 use db::pool::Pool;
 use db::migration::Migrator;
 use protocol::sessionsrv;
 use postgres;
 use protobuf;
 
-use config::Config;
 use error::{SrvError, SrvResult};
 use migrations;
 
@@ -32,8 +32,8 @@ pub struct DataStore {
 }
 
 impl DataStore {
-    pub fn new(config: &Config) -> SrvResult<DataStore> {
-        let pool = Pool::new(&config.datastore, config.shards.clone())?;
+    pub fn new(cfg: &DataStoreCfg, shards: Vec<ShardId>) -> SrvResult<DataStore> {
+        let pool = Pool::new(&cfg, shards)?;
         Ok(DataStore { pool: pool })
     }
 

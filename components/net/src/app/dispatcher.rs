@@ -14,6 +14,7 @@
 
 use std::collections::HashMap;
 use std::error;
+use std::marker::PhantomData;
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::Duration;
@@ -30,13 +31,14 @@ pub trait Dispatcher: Sized + Send + 'static {
     const APP_NAME: &'static str;
     const PROTOCOL: Protocol;
 
+    type Config: AsRef<AppCfg> + Send;
     type Error: error::Error;
     type State: AppState;
 
     /// An initialization callback called before application startup. You should set up any state
     /// and start any additional side-car threads here.
     fn app_init(
-        &<Self::State as AppState>::Config,
+        Self::Config,
         Arc<String>,
     ) -> Result<<Self::State as AppState>::InitState, Self::Error>;
 
@@ -86,11 +88,67 @@ pub struct DispatcherPool<T>
 where
     T: Dispatcher,
 {
-    config: Arc<<T::State as AppState>::Config>,
-    state: <T::State as AppState>::InitState,
     reply_queue: Arc<String>,
     request_queue: Arc<String>,
     workers: Vec<mpsc::Receiver<()>>,
+    marker: PhantomData<T>,
+}
+
+impl<T> DispatcherPool<T>
+where
+    T: Dispatcher,
+{
+    pub fn new(reply_queue: Arc<String>, request_queue: Arc<String>, config: &T::Config) -> Self {
+        DispatcherPool {
+            reply_queue: reply_queue,
+            request_queue: request_queue,
+            workers: Vec::with_capacity(config.as_ref().worker_count),
+            marker: PhantomData,
+        }
+    }
+
+    /// Start a pool of message dispatchers.
+    pub fn run(mut self, state: <T::State as AppState>::InitState) {
+        let worker_count = self.workers.capacity();
+        for worker_id in 0..worker_count {
+            self.spawn_dispatcher(state.clone(), worker_id);
+        }
+        thread::spawn(move || loop {
+            for i in 0..worker_count {
+                // Refactor this if/when the standard library ever stabilizes select for mpsc
+                // https://doc.rust-lang.org/std/sync/mpsc/struct.Select.html
+                match self.workers[i].try_recv() {
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        info!("Worker[{}] restarting...", i);
+                        self.spawn_dispatcher(state.clone(), i);
+                    }
+                    Ok(msg) => warn!("Worker[{}] sent unexpected msg: {:?}", i, msg),
+                    Err(mpsc::TryRecvError::Empty) => continue,
+                }
+            }
+            thread::sleep(Duration::from_millis(500));
+        });
+    }
+
+    fn spawn_dispatcher(&mut self, state: <T::State as AppState>::InitState, worker_id: usize) {
+        let (tx, rx) = mpsc::sync_channel(1);
+        let state = match T::State::build(state) {
+            Ok(state) => state,
+            Err(err) => panic!("Dispatcher failed to initialize state, {}", err),
+        };
+        let reply_queue = self.reply_queue.clone();
+        let request_queue = self.request_queue.clone();
+        thread::spawn(move || {
+            worker_run::<T>(tx, worker_id, reply_queue, request_queue, state)
+        });
+        if rx.recv().is_ok() {
+            debug!("worker[{}] ready", worker_id);
+            self.workers.insert(worker_id, rx);
+        } else {
+            error!("worker[{}] failed to start", worker_id);
+            self.workers.remove(worker_id);
+        }
+    }
 }
 
 pub struct DispatchTable<T>(HashMap<&'static str, Box<Handler<T>>>);
@@ -118,69 +176,6 @@ where
                 "Attempted to register a second handler for message, '{}'",
                 msg.name()
             );
-        }
-    }
-}
-
-impl<T> DispatcherPool<T>
-where
-    T: Dispatcher,
-{
-    pub fn new(
-        reply_queue: Arc<String>,
-        request_queue: Arc<String>,
-        config: <T::State as AppState>::Config,
-        state: <T::State as AppState>::InitState,
-    ) -> Self {
-        DispatcherPool {
-            reply_queue: reply_queue,
-            request_queue: request_queue,
-            state: state,
-            workers: Vec::with_capacity(config.worker_count()),
-            config: Arc::new(config),
-        }
-    }
-
-    /// Start a pool of message dispatchers.
-    pub fn run(mut self) {
-        let worker_count = self.config.worker_count();
-        for worker_id in 0..worker_count {
-            self.spawn_dispatcher(worker_id);
-        }
-        thread::spawn(move || loop {
-            for i in 0..worker_count {
-                // Refactor this if/when the standard library ever stabilizes select for mpsc
-                // https://doc.rust-lang.org/std/sync/mpsc/struct.Select.html
-                match self.workers[i].try_recv() {
-                    Err(mpsc::TryRecvError::Disconnected) => {
-                        info!("Worker[{}] restarting...", i);
-                        self.spawn_dispatcher(i);
-                    }
-                    Ok(msg) => warn!("Worker[{}] sent unexpected msg: {:?}", i, msg),
-                    Err(mpsc::TryRecvError::Empty) => continue,
-                }
-            }
-            thread::sleep(Duration::from_millis(500));
-        });
-    }
-
-    fn spawn_dispatcher(&mut self, worker_id: usize) {
-        let (tx, rx) = mpsc::sync_channel(1);
-        let state = match T::State::build(&*self.config, self.state.clone()) {
-            Ok(state) => state,
-            Err(err) => panic!("Dispatcher failed to initialize state, {}", err),
-        };
-        let reply_queue = self.reply_queue.clone();
-        let request_queue = self.request_queue.clone();
-        thread::spawn(move || {
-            worker_run::<T>(tx, worker_id, reply_queue, request_queue, state)
-        });
-        if rx.recv().is_ok() {
-            debug!("worker[{}] ready", worker_id);
-            self.workers.insert(worker_id, rx);
-        } else {
-            error!("worker[{}] failed to start", worker_id);
-            self.workers.remove(worker_id);
         }
     }
 }
