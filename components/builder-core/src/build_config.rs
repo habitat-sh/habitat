@@ -35,10 +35,34 @@ pub const DEFAULT_CHANNEL: &'static str = UNSTABLE_CHANNEL;
 pub struct BuildCfg(HashMap<String, ProjectCfg>);
 
 impl BuildCfg {
+    pub fn default_branches() -> Vec<String> {
+        vec!["master".to_string()]
+    }
+
+    pub fn default_plan_path() -> String {
+        String::from("habitat/plan.sh")
+    }
+
     pub fn from_slice(bytes: &[u8]) -> Result<Self> {
         let value = toml::from_slice::<HashMap<String, ProjectCfg>>(bytes)
             .map_err(|e| Error::DecryptError(e.to_string()))?;
         Ok(BuildCfg(value))
+    }
+
+    pub fn projects(&self) -> Vec<&ProjectCfg> {
+        self.0.values().collect()
+    }
+
+    /// Returns true if the given branch & file path combination should result in a new build
+    /// being automatically triggered by a GitHub Push notification
+    pub fn triggered_by<T>(&self, branch: &str, paths: &[T]) -> Vec<&ProjectCfg>
+    where
+        T: AsRef<str>,
+    {
+        self.0
+            .values()
+            .filter(|p| p.triggered_by(branch, paths))
+            .collect()
     }
 }
 
@@ -57,8 +81,8 @@ impl Deref for BuildCfg {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProjectCfg {
     /// Branches which trigger an automatic rebuild on push notification from a GitHub push
-    /// notification.
-    #[serde(default = "default_branches")]
+    /// notification (default: ["master"]).
+    #[serde(default = "BuildCfg::default_branches")]
     pub branches: Vec<String>,
     /// Additional Release Channel to promote built packages into.
     #[serde(default)]
@@ -67,12 +91,15 @@ pub struct ProjectCfg {
     /// notification to determine if an automatic rebuild should occur.
     #[serde(default)]
     pub paths: Vec<Pattern>,
+    /// Relative filepath to the project's Plan File (default: "habitat/plan.sh").
+    #[serde(default = "BuildCfg::default_plan_path")]
+    pub plan_path: String,
 }
 
 impl ProjectCfg {
     /// Returns true if the given branch & file path combination should result in a new build
     /// being automatically triggered by a GitHub Push notification
-    pub fn triggered_by<T>(&self, branch: &str, paths: &[T]) -> bool
+    fn triggered_by<T>(&self, branch: &str, paths: &[T]) -> bool
     where
         T: AsRef<str>,
     {
@@ -88,9 +115,10 @@ impl ProjectCfg {
 impl Default for ProjectCfg {
     fn default() -> Self {
         ProjectCfg {
-            branches: default_branches(),
-            paths: vec![],
+            branches: BuildCfg::default_branches(),
             channels: vec![],
+            paths: vec![],
+            plan_path: BuildCfg::default_plan_path(),
         }
     }
 }
@@ -146,10 +174,6 @@ impl Serialize for Pattern {
     }
 }
 
-fn default_branches() -> Vec<String> {
-    vec!["master".to_string()]
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -159,8 +183,8 @@ mod test {
         let raw = r#"
         [hab-sup]
         branches = [
-            "master",
-            "dev",
+          "master",
+          "dev",
         ]
         channels = [
           "stable"
@@ -170,12 +194,18 @@ mod test {
         ]
 
         [builder-api]
+        plan_path = "components/builder-api/habitat/plan.sh"
         paths = [
           "components/builder-api/*"
         ]
         "#;
         let cfg = BuildCfg::from_slice(raw.as_bytes()).unwrap();
         assert_eq!(cfg.len(), 2);
+        assert_eq!(&cfg.get("hab-sup").unwrap().plan_path, "habitat/plan.sh");
+        assert_eq!(
+            &cfg.get("builder-api").unwrap().plan_path,
+            "components/builder-api/habitat/plan.sh"
+        );
         assert_eq!(
             cfg.get("hab-sup").unwrap().triggered_by(
                 "master",
