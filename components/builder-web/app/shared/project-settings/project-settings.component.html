@@ -1,9 +1,13 @@
 <div *ngIf="projectsEnabled">
     <div class="content">
         <div class="connect" *ngIf="!project && !connecting">
-            <button md-raised-button color="primary" class="button" (click)="connect()">
+            <button md-raised-button color="primary" class="button" (click)="connect()" [disabled]="!hasPrivateKey">
                 Connect a plan file
             </button>
+            <span class="no-keys" *ngIf="!hasPrivateKey">
+                <hab-icon symbol="add-circle"></hab-icon>
+                <a [routerLink]="['/origins', origin, 'keys']">Add required origin keys</a>
+            </span>
             <div *ngIf="name">
                 <p><strong>There are currently no Habitat plan files connected.</strong></p>
                 <p>If you have a plan file in a GitHub repo, connect it here for automated build jobs.</p>

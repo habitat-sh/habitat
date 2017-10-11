@@ -97,6 +97,11 @@ export class ProjectSettingsComponent implements OnChanges {
         return this.store.getState().gitHub.files;
     }
 
+    get hasPrivateKey() {
+        const currentOrigin = this.store.getState().origins.current;
+        return currentOrigin.name === this.origin && !!currentOrigin.private_key_name;
+    }
+
     get installations() {
         return this.store.getState().gitHub.installations;
     }

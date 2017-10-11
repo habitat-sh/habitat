@@ -121,7 +121,7 @@ export function deleteOriginMember(origin: string, member: string, token: string
     };
 }
 
-export function createOrigin(body: object, token: string, generateKeys: boolean, isFirstOrigin = false, callback: Function = (origin) => {}) {
+export function createOrigin(body: object, token: string, isFirstOrigin = false, callback: Function = (origin) => {}) {
     return dispatch => {
         dispatch(setCurrentOriginCreatingFlag(true));
 
@@ -138,10 +138,6 @@ export function createOrigin(body: object, token: string, generateKeys: boolean,
                 body: origin["default"] ? `'${origin["name"]}' is now the default origin` : "",
                 type: SUCCESS,
             }));
-
-            if (generateKeys) {
-                dispatch(generateOriginKeys(origin["name"], token));
-            }
 
             callback(origin);
         }).catch(error => {
@@ -234,7 +230,7 @@ export function generateOriginKeys(origin: string, token: string) {
                 dispatch(fetchOriginPublicKeys(origin, token));
                 dispatch(addNotification({
                     title: "Origin keys generated",
-                    body: "Your public and private keys have been created and can be downloaded now.",
+                    body: "Your public and private keys have been created and are available for download.",
                     type: SUCCESS
                 }));
             }).catch(error => {

@@ -31,14 +31,10 @@
     font-size: rem(12);
   }
 
-  p, md-checkbox {
+  p {
     display: block;
     font-size: rem(14);
     margin-bottom: 12px;
-  }
-
-  label {
-    text-transform: none;
   }
 
   hab-checking-input {
@@ -54,5 +50,10 @@
         margin-left: 0;
       }
     }
+  }
+
+  hab-icon[symbol="info-outline"] {
+    color: $hab-blue;
+    margin-right: 4px;
   }
 }

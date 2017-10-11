@@ -52,6 +52,10 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
         this.sub.unsubscribe();
     }
 
+    get config() {
+        return config;
+    }
+
     get memberOfOrigin() {
         return !!this.origins.find(origin => origin["name"] === this.origin);
     }
