@@ -33,9 +33,10 @@
         <p>
           Required for signing .hart files. Available for download once origin is created.
         </p>
-        <md-checkbox checked="true" formControlName="generateKeys">
-          Yes, generate an origin key pair for me now
-        </md-checkbox>
+        <p>
+          <hab-icon symbol="info-outline"></hab-icon>
+          A key pair will be generated automatically and stored under the Keys tab.
+        </p>
       </section>
       <section>
         <button md-raised-button color="primary" [disabled]="!form.valid || creating" (click)="createOrigin">

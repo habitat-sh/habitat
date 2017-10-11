@@ -98,5 +98,11 @@
   .members-sidebar {
     @include span-columns(3);
     font-size: rem(14);
+    padding-left: 20px;
+    border-left: 1px solid $very-light-gray;
+
+    p {
+      margin-bottom: 0;
+    }
   }
 }

@@ -35,10 +35,7 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
 
     constructor(private formBuilder: FormBuilder, private store: AppStore, private router: Router) {
         this.api = new BuilderApiClient(this.token);
-
-        this.form = formBuilder.group({
-            generateKeys: true
-        });
+        this.form = formBuilder.group({});
 
         this.isOriginAvailable = origin => {
             return this.api.isOriginAvailable(origin);
@@ -75,7 +72,7 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     createOrigin(origin) {
         origin.default_package_visibility = this.visibility;
 
-        this.store.dispatch(createOrigin(origin, this.token, this.form.get("generateKeys").value, this.isFirstOrigin, (origin) => {
+        this.store.dispatch(createOrigin(origin, this.token, this.isFirstOrigin, (origin) => {
             this.router.navigate(["/origins", origin.name]);
         }));
     }

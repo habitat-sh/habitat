@@ -32,6 +32,7 @@ hab-project-settings {
 
         &.cta {
           @include span-columns(3);
+          text-align: center;
         }
       }
     }
@@ -44,9 +45,24 @@ hab-project-settings {
 
   .connect {
     margin-bottom: 14px;
+    font-size: rem(14);
 
     button {
       margin-bottom: 12px;
+    }
+
+    .no-keys {
+      color: $hab-blue;
+      margin-left: 8px;
+
+      hab-icon {
+        margin-right: 4px;
+      }
+
+      a {
+        color: $hab-blue;
+        text-decoration: underline;
+      }
     }
   }
 

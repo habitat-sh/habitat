@@ -56,6 +56,10 @@
       <!-- https://material.io/icons/#ic_add -->
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
     </g>
+    <g id="icon-add-circle">
+      <!-- https://material.io/icons/#ic_add_circle -->
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+    </g>
     <g id="icon-add-box">
       <!-- https://material.io/icons/#ic_add_box -->
       <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
@@ -139,6 +143,10 @@
     <g id="icon-open-in-new">
       <!-- https://material.io/icons/#ic_open_in_new -->
       <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+    </g>
+    <g id="icon-info-outline">
+      <!-- https://material.io/icons/#ic_info_outline -->
+      <path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
     </g>
   </defs>
 </svg>

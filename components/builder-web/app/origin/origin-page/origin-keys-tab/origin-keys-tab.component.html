@@ -1,63 +1,81 @@
 <div class="page-body origin-keys-tab">
-  <section class="generate" *ngIf="memberOfOrigin">
-    <button md-raised-button color="primary" (click)="generateKeys()">
-      Generate a key pair
-    </button>
-  </section>
-  <section class="private" *ngIf="memberOfOrigin">
-    <ul>
-      <li>
-        <h3 class="key">Private Key</h3>
-        <h3 class="actions">Actions</h3>
-      </li>
-      <li *ngIf="!privateKey">
-        <span class="none">
-          No private key found.
-        </span>
-      </li>
-      <li *ngIf="privateKey">
-        <span class="key">
-          <hab-icon symbol="visibility-off"></hab-icon>
-          <span>{{ privateKey }}</span>
-        </span>
-        <span class="actions">
-          <a (click)="downloadPrivateKey()">
-            <hab-icon symbol="file-download" title="Download this key"></hab-icon>
-          </a>
-        </span>
-      </li>
-    </ul>
-    <button md-raised-button color="basic" (click)="openKeyAddForm('private')" *ngIf="memberOfOrigin">
-      <hab-icon symbol="file-upload"></hab-icon>
-      Upload a private key
-    </button>
-  </section>
-  <section class="public">
-    <ul>
-      <li>
-        <h3 class="key">Public Keys</h3>
-        <h3 class="actions">Actions</h3>
-      </li>
-      <li class="none" *ngIf="publicKeys.size === 0">
+  <div class="page-content">
+    <section class="generate" *ngIf="memberOfOrigin">
+      <button md-raised-button color="primary" (click)="generateKeys()">
+        Generate a key pair
+      </button>
+    </section>
+    <section class="private" *ngIf="memberOfOrigin">
+      <ul>
+        <li>
+          <h3 class="key">Private Key</h3>
+          <h3 class="actions">Actions</h3>
+        </li>
+        <li *ngIf="!privateKey">
           <span class="none">
-            No public keys found.
+            <strong>No private key found</strong>.
+            You can generate a key pair above.
           </span>
-      </li>
-      <li *ngFor="let key of publicKeys">
-        <span class="key">
-          <hab-icon symbol="visibility"></hab-icon>
-          <span>{{ key.origin }}-{{ key.revision }}</span>
-        </span>
-        <span class="actions">
-          <a href="{{ urlFor(key) }}">
-            <hab-icon symbol="file-download" title="Download this key"></hab-icon>
-          </a>
-        </span>
-      </li>
-    </ul>
-    <button md-raised-button color="basic" *ngIf="memberOfOrigin" (click)="openKeyAddForm('public')">
-      <hab-icon symbol="file-upload"></hab-icon>
-      Upload a public key
-    </button>
-  </section>
+        </li>
+        <li *ngIf="privateKey">
+          <span class="key">
+            <hab-icon symbol="visibility-off"></hab-icon>
+            <span>{{ privateKey }}</span>
+          </span>
+          <span class="actions">
+            <a (click)="downloadPrivateKey()">
+              <hab-icon symbol="file-download" title="Download this key"></hab-icon>
+            </a>
+          </span>
+        </li>
+      </ul>
+      <button md-raised-button color="basic" (click)="openKeyAddForm('private')" *ngIf="memberOfOrigin">
+        <hab-icon symbol="file-upload"></hab-icon>
+        Upload a private key
+      </button>
+    </section>
+    <section class="public">
+      <ul>
+        <li>
+          <h3 class="key">Public Keys</h3>
+          <h3 class="actions">Actions</h3>
+        </li>
+        <li class="none" *ngIf="publicKeys.size === 0">
+            <span class="none">
+              <strong>No public key found</strong>.
+              You can generate a key pair above.
+            </span>
+        </li>
+        <li *ngFor="let key of publicKeys">
+          <span class="key">
+            <hab-icon symbol="visibility"></hab-icon>
+            <span>{{ key.origin }}-{{ key.revision }}</span>
+          </span>
+          <span class="actions">
+            <a href="{{ urlFor(key) }}">
+              <hab-icon symbol="file-download" title="Download this key"></hab-icon>
+            </a>
+          </span>
+        </li>
+      </ul>
+      <button md-raised-button color="basic" *ngIf="memberOfOrigin" (click)="openKeyAddForm('public')">
+        <hab-icon symbol="file-upload"></hab-icon>
+        Upload a public key
+      </button>
+    </section>
+  </div>
+  <div class="page-sidebar">
+    <h3>About Origin Keys</h3>
+    <p>
+      Origin keys are used to sign .hart files, providing the capability to
+      verify their authenticity at both build and runtime.
+    </p>
+    <p>
+      Only one <strong>private key</strong> exists for an origin at any given time.
+    </p>
+    <p>
+      Read the docs for more information on
+      <a href="{{ config['docs_url'] }}/glossary/#sts=Origin Keys" target="_blank">Origin Keys</a>.
+    </p>
+  </div>
 </div>
