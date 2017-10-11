@@ -15,7 +15,27 @@
 .hab-sign-in {
   @include shadow-float;
 
-  .button-area {
+  .page-body {
     text-align: center;
+  }
+
+  .button-area {
+    margin-top: 12px;
+    margin-bottom: 22px;
+  }
+
+  p {
+    font-size: rem(14);
+    margin: 0;
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+    }
+
+    &.footnote {
+      margin-top: 52px;
+      font-size: rem(12);
+    }
   }
 }
