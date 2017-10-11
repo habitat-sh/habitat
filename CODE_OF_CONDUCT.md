@@ -54,12 +54,12 @@ Community Organizers who do not follow or enforce the Code of Conduct in good fa
 
 ## Roles
 The following are the various roles of our <b>Community Organizers</b> and the person(s) assigned to each role:
-  * The <b>Decider</b> has final say on community guidelines and final authority on correct actions and appeals. The top-level decider is [Adam Jacob](adam@habitat.sh), [@adamhjk](https://twitter.com/adamhjk)
-  * The <b>Community Manager</b> guides and meets regularly with community advocates, helps enforce corrective actions, hears appeals, is responsible for maintaining a list of incidents, and ensures incident responders have support in incident documentation as outlined below. The Community Manager is [Ian Henry](ian@habitat.sh), [@eeyun___](https://twitter.com/eeyun___).
+  * The <b>Decider</b> has final say on community guidelines and final authority on correct actions and appeals. The top-level decider is [Adam Jacob](mailto:adam@habitat.sh), [@adamhjk](https://twitter.com/adamhjk)
+  * The <b>Community Manager</b> guides and meets regularly with community advocates, helps enforce corrective actions, hears appeals, is responsible for maintaining a list of incidents, and ensures incident responders have support in incident documentation as outlined below. The Community Manager is [Ian Henry](mailto:ian@habitat.sh), [@eeyun___](https://twitter.com/eeyun___).
   * <b>Community Advocates</b> may be assigned for each area where the community convenes online (IRC, email list, GitHub, etc.). Community Advocates are volunteers who have the best interests of our community in mind. They act in good faith to help enforce our community guidelines and respond to incidents when they occur. Our Community Advocates are
-    - [Tasha Drew](tasha@habitat.sh), [@tashadrew](https://twitter.com/tashadrew)
-    - [Nell Shamrell-Harrington](nshamrell@habitat.sh), [@nellshamrell](https://twitter.com/nellshamrell)
-    - [Ben Dang](me@bdang.it), [@bdangit](https://twitter.com/bdangit)
+    - [Tasha Drew](mailto:tasha@habitat.sh), [@tashadrew](https://twitter.com/tashadrew)
+    - [Nell Shamrell-Harrington](mailto:nshamrell@habitat.sh), [@nellshamrell](https://twitter.com/nellshamrell)
+    - [Ben Dang](mailto:me@bdang.it), [@bdangit](https://twitter.com/bdangit)
   * The <b>Project Maintainers</b> are likewise expected to conduct their behavior in line with the Code of Conduct and are individually responsible for both escalating to a <b>Community Advocate</b> in case of witnessing an incident and helping to foster the community and it's members.
   * A <b>Community Member</b> is anyone who participates with the community whether in-person or via online channels. Community members are responsible for following the community guidelines, suggesting updates to the guidelines when warranted, and helping enforce community guidelines.
 
