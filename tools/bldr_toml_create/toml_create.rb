@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 #############################################################################
 #
 # Script to auto-create bldr.tom file for the core plan repo
@@ -16,13 +18,13 @@ if ARGV.length < 2
   exit
 end
 
-source_dir = ARGV[0]
-dest_dir = ARGV[1]
+source_dir = File.expand_path(ARGV[0])
+dest_dir = File.expand_path(ARGV[1])
 
-template = File.read('toml.erb')
+template = File.read(File.join(File.dirname(__FILE__), 'toml.erb'))
 renderer = ERB.new(template)
 
-destfile = File.open(File.join(dest_dir, 'bldr.toml'), 'w')
+destfile = File.open(File.join(dest_dir, '.bldr.toml'), 'w')
 
 Dir.chdir source_dir
 Dir.open '.' do |root|

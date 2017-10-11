@@ -1,7 +1,8 @@
 [builder-admin-proxy]
-paths = ["components/builder-admin-proxy/*"]
+plan_path = "components/builder-admin-proxy"
 
 [builder-admin]
+plan_path = "components/builder-admin/habitat"
 paths = [
   "components/builder-admin/*",
   "components/builder-http-gateway/*",
@@ -12,12 +13,13 @@ paths = [
 ]
 
 [builder-api-proxy]
+plan_path = "components/builder-api-proxy"
 paths = [
-  "components/builder-api-proxy/*",
   "components/builder-web/*",
 ]
 
 [builder-api]
+plan_path = "components/builder-api/habitat"
 paths = [
   "components/builder-api/*",
   "components/builder-core/*",
@@ -30,11 +32,10 @@ paths = [
 ]
 
 [builder-datastore]
-paths = [
-  "components/builder-datastore"
-]
+plan_path = "components/builder-datastore"
 
 [builder-jobsrv]
+plan_path = "components/builder-jobsrv/habitat"
 paths = [
   "components/builder-jobsrv/*",
   "components/builder-core/*",
@@ -45,6 +46,7 @@ paths = [
 ]
 
 [builder-originsrv]
+plan_path = "components/builder-originsrv/habitat"
 paths = [
   "components/builder-originsrv/*",
   "components/builder-protocol/*",
@@ -54,6 +56,7 @@ paths = [
 ]
 
 [builder-router]
+plan_path = "components/builder-router/habitat"
 paths = [
   "components/builder-router/*",
   "components/builder-protocol/*",
@@ -62,6 +65,7 @@ paths = [
 ]
 
 [builder-scheduler]
+plan_path = "components/builder-scheduler/habitat"
 paths = [
   "components/builder-scheduler/*",
   "components/builder-core/*",
@@ -72,6 +76,7 @@ paths = [
 ]
 
 [builder-sessionsrv]
+plan_path = "components/builder-sessionsrv/habitat"
 paths = [
   "components/builder-sessionsrv/*",
   "components/builder-protocol/*",
@@ -82,6 +87,7 @@ paths = [
 ]
 
 [builder-worker]
+plan_path = "components/builder-worker/habitat"
 paths = [
   "components/builder-worker/*",
   "components/builder-core/*",
@@ -93,6 +99,7 @@ paths = [
 ]
 
 [hab]
+plan_path = "components/hab"
 paths = [
   "components/hab/*",
   "components/builder-api-client/*",
@@ -103,12 +110,13 @@ paths = [
 ]
 
 [hab-backline]
-paths = ["components/backline/*"]
+plan_path = "components/backline"
 
 [hab-bintray-publish]
-paths = ["components/hab-bintray-publish/*"]
+plan_path = "components/bintray-publish"
 
 [hab-butterfly]
+plan_path = "components/hab-butterfly"
 paths = [
   "components/hab-butterfly/*",
   "components/butterfly/*",
@@ -118,6 +126,7 @@ paths = [
 ]
 
 [hab-eventsrv]
+plan_path = "components/eventsrv/habitat"
 paths = [
   "components/eventsrv/*",
   "components/eventsrv-protocol/*",
@@ -125,15 +134,17 @@ paths = [
 ]
 
 [hab-launcher]
+plan_path = "components/launcher/habitat"
 paths = [
   "components/launcher/*",
   "components/launcher-protocol/*",
 ]
 
 [hab-studio]
-paths = ["components/studio/*"]
+plan_path = "components/studio"
 
 [hab-sup]
+plan_path = "components/sup"
 paths = [
   "components/sup/*",
   "components/eventsrv-client/*",
@@ -144,18 +155,18 @@ paths = [
 ]
 
 [hab-pkg-aci]
-paths = ["components/pkg-aci/*"]
+plan_path = "components/pkg-aci"
 
 [hab-pkg-export-docker]
+plan_path = "components/pkg-export-docker"
 paths = [
-  "components/pkg-export-docker/*",
   "components/core/*",
   "components/common/*",
   "components/hab/*",
 ]
 
 [hab-pkg-mesosize]
-paths = ["components/pkg-mesosize/*"]
+plan_path = "components/pkg-mesosize"
 
 [hab-pkg-tarize]
-paths = ["components/pkg-tarize/*"]
+plan_path = "components/pkg-tarize"
