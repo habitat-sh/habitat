@@ -1,4 +1,5 @@
 hab-project-settings {
+  @include row;
 
   h3 {
     text-transform: uppercase;
@@ -10,26 +11,28 @@ hab-project-settings {
     margin: 8px 0 12px;
 
     &.note {
+      @include row;
       position: relative;
       margin-top: 0;
-      padding: 14px 14px 14px 48px;
+      padding: 14px;
       background-color: $very-light-gray;
       border-radius: $global-radius;
       color: $dark-blue;
       margin-bottom: 18px;
 
       hab-icon {
-        position: absolute;
-        left: 14px;
-        top: 16px;
+        @include span-columns(1);
         width: 24px;
         height: 24px;
         color: $dark-gray;
       }
 
-      a {
-        color: $dark-blue;
-        text-decoration: underline;
+      span {
+        @include span-columns(8);
+
+        &.cta {
+          @include span-columns(3);
+        }
       }
     }
 
@@ -110,8 +113,6 @@ hab-project-settings {
   }
 
   .connecting {
-    @include span-columns(9);
-    @include omega;
 
     ol {
       background-color: $hab-blue;
@@ -204,6 +205,25 @@ hab-project-settings {
         font-size: rem(14);
         margin-right: 16px;
       }
+    }
+  }
+
+  .content {
+    @include span-columns(9);
+  }
+
+  .sidebar {
+    @include span-columns(3);
+    padding-left: 20px;
+    border-left: 1px solid $very-light-gray;
+
+    h3 {
+      margin-bottom: 16px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: underline;
     }
   }
 }

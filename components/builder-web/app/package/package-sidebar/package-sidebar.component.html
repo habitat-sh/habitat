@@ -11,6 +11,9 @@
   </div>
   <div class="platforms">
     <h3>Supported Platforms</h3>
+    <p *ngIf="platforms.length === 0">
+      None.
+    </p>
     <hab-platform-icon [platform]="platform" *ngFor="let platform of platforms"></hab-platform-icon>
   </div>
   <div class="latest-stable">
