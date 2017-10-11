@@ -17,10 +17,13 @@
 input.hab-checking-input--input {
   padding-right: $base-spacing * 1.2;
 
+  &:focus {
+    box-shadow: none !important;
+  }
+
   &.loading {
     &:focus {
       border-color: $light-gray;
-      box-shadow: $form-box-shadow-focus-loading;
     }
   }
 }
