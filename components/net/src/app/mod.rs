@@ -392,7 +392,9 @@ where
                     }
                     if pipe_out {
                         trace!("OnRequest, dispatcher->router");
-                        self.forward_request()?;
+                        if let Err(err) = self.forward_request() {
+                            warn!("{}", err);
+                        }
                     }
                     if router {
                         match conn::socket_read(
