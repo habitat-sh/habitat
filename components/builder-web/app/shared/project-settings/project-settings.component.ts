@@ -233,7 +233,7 @@ export class ProjectSettingsComponent implements OnChanges {
     }
 
     selectRepo() {
-        this.selectedInstallation = this.installations.find(i => i.get("full_name") === this.repoField.value);
+        this.selectedInstallation = this.installations.find(i => i.get("full_name") === this.repoField.value.trim());
         setTimeout(() => {
             if (this.planField) {
                 this.planField.markAsDirty();
