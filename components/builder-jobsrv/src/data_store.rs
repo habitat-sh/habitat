@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use chrono::{DateTime, UTC};
 use db::async::{AsyncServer, EventOutcome};
+use db::config::{DataStoreCfg, ShardId};
 use db::error::{Error as DbError, Result as DbResult};
 use db::migration::Migrator;
 use db::pool::Pool;
@@ -30,7 +31,6 @@ use protocol::{originsrv, jobsrv, scheduler};
 use protocol::originsrv::Pageable;
 use protobuf::ProtobufEnum;
 
-use config::Config;
 use error::{Result, Error};
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
@@ -51,8 +51,12 @@ impl DataStore {
     ///
     /// * Can fail if the pool cannot be created
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
-    pub fn new(config: &Config, router_pipe: Arc<String>) -> Result<DataStore> {
-        let pool = Pool::new(&config.datastore, config.shards.clone())?;
+    pub fn new(
+        cfg: &DataStoreCfg,
+        shards: Vec<ShardId>,
+        router_pipe: Arc<String>,
+    ) -> Result<DataStore> {
+        let pool = Pool::new(cfg, shards)?;
         let ap = pool.clone();
         Ok(DataStore {
             pool: pool,

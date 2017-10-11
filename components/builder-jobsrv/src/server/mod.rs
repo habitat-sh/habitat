@@ -26,7 +26,7 @@ use self::log_archiver::LogArchiver;
 use self::log_directory::LogDirectory;
 use self::log_ingester::LogIngester;
 use self::worker_manager::{WorkerMgr, WorkerMgrClient};
-use config::Config;
+use config::{ArchiveCfg, Config};
 use data_store::DataStore;
 use error::{Error, Result};
 
@@ -43,16 +43,18 @@ lazy_static! {
 
 #[derive(Clone)]
 pub struct InitServerState {
+    archive_cfg: ArchiveCfg,
     datastore: DataStore,
     log_dir: Arc<LogDirectory>,
 }
 
 impl InitServerState {
-    fn new(cfg: &Config, router_pipe: Arc<String>) -> Result<Self> {
+    fn new(cfg: Config, router_pipe: Arc<String>) -> Result<Self> {
         LogDirectory::validate(&cfg.log_dir)?;
         Ok(InitServerState {
-            datastore: DataStore::new(cfg, router_pipe)?,
-            log_dir: Arc::new(LogDirectory::new(&cfg.log_dir)),
+            archive_cfg: cfg.archive,
+            datastore: DataStore::new(&cfg.datastore, cfg.app.shards.unwrap(), router_pipe)?,
+            log_dir: Arc::new(LogDirectory::new(cfg.log_dir)),
         })
     }
 }
@@ -65,13 +67,12 @@ pub struct ServerState {
 }
 
 impl AppState for ServerState {
-    type Config = Config;
     type Error = Error;
     type InitState = InitServerState;
 
-    fn build(config: &Self::Config, init_state: Self::InitState) -> Result<Self> {
+    fn build(init_state: Self::InitState) -> Result<Self> {
         let mut state = ServerState {
-            archiver: log_archiver::from_config(&config.archive)?,
+            archiver: log_archiver::from_config(&init_state.archive_cfg)?,
             datastore: init_state.datastore,
             log_dir: init_state.log_dir,
             worker_mgr: WorkerMgrClient::default(),
@@ -86,20 +87,21 @@ impl Dispatcher for JobSrv {
     const APP_NAME: &'static str = "builder-jobsrv";
     const PROTOCOL: Protocol = Protocol::JobSrv;
 
+    type Config = Config;
     type Error = Error;
     type State = ServerState;
 
     fn app_init(
-        config: &<Self::State as AppState>::Config,
+        config: Self::Config,
         router_pipe: Arc<String>,
     ) -> Result<<Self::State as AppState>::InitState> {
-        let state = InitServerState::new(config, router_pipe.clone())?;
+        let state = InitServerState::new(config.clone(), router_pipe.clone())?;
         state.datastore.setup()?;
         state.datastore.start_async();
-        LogIngester::start(config, state.log_dir.clone(), state.datastore.clone())?;
+        LogIngester::start(&config, state.log_dir.clone(), state.datastore.clone())?;
         let conn = RouteClient::new()?;
         conn.connect(&*router_pipe)?;
-        WorkerMgr::start(config, state.datastore.clone(), conn)?;
+        WorkerMgr::start(&config, state.datastore.clone(), conn)?;
         Ok(state)
     }
 

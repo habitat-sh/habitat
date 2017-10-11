@@ -120,17 +120,18 @@ pub struct ServerState {
 }
 
 impl ServerState {
-    fn new(cfg: &Config, router_pipe: Arc<String>) -> SrvResult<Self> {
-        Ok(ServerState { datastore: DataStore::new(cfg, router_pipe)? })
+    fn new(cfg: Config, router_pipe: Arc<String>) -> SrvResult<Self> {
+        Ok(ServerState {
+            datastore: DataStore::new(&cfg.datastore, cfg.app.shards.unwrap(), router_pipe)?,
+        })
     }
 }
 
 impl AppState for ServerState {
-    type Config = Config;
     type Error = SrvError;
     type InitState = Self;
 
-    fn build(_config: &Self::Config, init_state: Self::InitState) -> SrvResult<Self> {
+    fn build(init_state: Self::InitState) -> SrvResult<Self> {
         Ok(init_state)
     }
 }
@@ -140,11 +141,12 @@ impl Dispatcher for OriginSrv {
     const APP_NAME: &'static str = "builder-originsrv";
     const PROTOCOL: Protocol = Protocol::OriginSrv;
 
+    type Config = Config;
     type Error = SrvError;
     type State = ServerState;
 
     fn app_init(
-        config: &<Self::State as AppState>::Config,
+        config: Self::Config,
         router_pipe: Arc<String>,
     ) -> SrvResult<<Self::State as AppState>::InitState> {
         let state = ServerState::new(config, router_pipe)?;

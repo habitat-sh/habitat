@@ -1,5 +1,5 @@
-shards = {{toToml cfg.shards}}
-
+[app]
+{{toToml cfg.app}}
 {{~#eachAlive bind.router.members as |member|}}
 [[routers]]
 host = "{{member.sys.ip}}"

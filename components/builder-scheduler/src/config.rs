@@ -25,10 +25,7 @@ use error::SrvError;
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// List of shard identifiers serviced by the running service.
-    pub shards: Vec<ShardId>,
-    /// Number of threads to process queued messages.
-    pub worker_threads: usize,
+    pub app: AppCfg,
     /// Path to packages on-disk (for migration)
     pub migration_path: String,
     /// Path to scheduler event logs
@@ -44,8 +41,7 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_scheduler");
         Config {
-            shards: (0..SHARD_COUNT).collect(),
-            worker_threads: Self::default_worker_count(),
+            app: AppCfg::default(),
             migration_path: String::from("/hab/svc/builder-scheduler/pkgs"),
             log_path: PathBuf::from("/tmp"),
             routers: vec![RouterAddr::default()],
@@ -54,22 +50,14 @@ impl Default for Config {
     }
 }
 
-impl ConfigFile for Config {
-    type Error = SrvError;
+impl AsRef<AppCfg> for Config {
+    fn as_ref(&self) -> &AppCfg {
+        &self.app
+    }
 }
 
-impl AppCfg for Config {
-    fn route_addrs(&self) -> &[RouterAddr] {
-        self.routers.as_slice()
-    }
-
-    fn shards(&self) -> Option<&[ShardId]> {
-        Some(self.shards.as_slice())
-    }
-
-    fn worker_count(&self) -> usize {
-        self.worker_threads
-    }
+impl ConfigFile for Config {
+    type Error = SrvError;
 }
 
 #[cfg(test)]
@@ -79,15 +67,6 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
-        shards = [
-            0
-        ]
-        worker_threads = 1
-
-        [[routers]]
-        host = "1.1.1.1"
-        port = 9000
-
         [datastore]
         host = "1.1.1.1"
         port = 9000
@@ -107,17 +86,5 @@ mod tests {
         assert_eq!(config.datastore.connection_timeout_sec, 4800);
         assert_eq!(config.datastore.connection_test, true);
         assert_eq!(config.datastore.pool_size, 1);
-        assert_eq!(config.shards, vec![0]);
-        assert_eq!(config.worker_threads, 1);
-    }
-
-    #[test]
-    fn config_from_file_defaults() {
-        let content = r#"
-        worker_threads = 0
-        "#;
-
-        let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.worker_threads, 0);
     }
 }

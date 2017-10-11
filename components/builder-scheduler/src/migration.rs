@@ -54,7 +54,7 @@ impl DataMigrator {
 
 pub fn run(config: Config) -> SrvResult<()> {
     let datastore = {
-        DataStore::new(&config)?
+        DataStore::new(&config.datastore)?
     };
     datastore.setup()?;
 

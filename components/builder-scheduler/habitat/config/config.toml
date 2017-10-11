@@ -1,5 +1,7 @@
 log_path = "{{cfg.log_path}}"
 
+[app]
+{{toToml cfg.app}}
 {{~#eachAlive bind.router.members as |member|}}
 [[routers]]
 host = "{{member.sys.ip}}"

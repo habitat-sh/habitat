@@ -18,6 +18,7 @@ protobuf = "*"
 serde = "*"
 serde_derive = "*"
 time = "*"
+toml = "*"
 unicase = "*"
 uuid = { version = "*", features = ["v4"] }
 

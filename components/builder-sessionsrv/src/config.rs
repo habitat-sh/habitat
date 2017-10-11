@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,15 +22,10 @@ use error::SrvError;
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
+    pub app: AppCfg,
     pub datastore: DataStoreCfg,
     pub github: GitHubCfg,
     pub permissions: PermissionsCfg,
-    /// List of net addresses for routing servers to connect to
-    pub routers: Vec<RouterAddr>,
-    /// List of shard identifiers serviced by the running service.
-    pub shards: Vec<ShardId>,
-    /// Number of threads to process queued messages.
-    pub worker_threads: usize,
 }
 
 impl Default for Config {
@@ -38,9 +33,7 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_sessionsrv");
         Config {
-            shards: (0..SHARD_COUNT).collect(),
-            worker_threads: Self::default_worker_count(),
-            routers: vec![RouterAddr::default()],
+            app: AppCfg::default(),
             datastore: datastore,
             github: GitHubCfg::default(),
             permissions: PermissionsCfg::default(),
@@ -48,22 +41,14 @@ impl Default for Config {
     }
 }
 
-impl ConfigFile for Config {
-    type Error = SrvError;
+impl AsRef<AppCfg> for Config {
+    fn as_ref(&self) -> &AppCfg {
+        &self.app
+    }
 }
 
-impl AppCfg for Config {
-    fn route_addrs(&self) -> &[RouterAddr] {
-        self.routers.as_slice()
-    }
-
-    fn shards(&self) -> Option<&[ShardId]> {
-        Some(self.shards.as_slice())
-    }
-
-    fn worker_count(&self) -> usize {
-        self.worker_threads
-    }
+impl ConfigFile for Config {
+    type Error = SrvError;
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -100,11 +85,6 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
-        shards = [
-            0
-        ]
-        worker_threads = 1
-
         [permissions]
         admin_team = 2000
         build_worker_teams = [
@@ -115,10 +95,6 @@ mod tests {
             4000,
             4001
         ]
-
-        [[routers]]
-        host = "1:1:1:1:1:1:1:1"
-        port = 9000
 
         [datastore]
         host = "1.1.1.1"
@@ -137,8 +113,6 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.shards, vec![0]);
-        assert_eq!(config.worker_threads, 1);
         assert_eq!(config.permissions.admin_team, 2000);
         assert_eq!(config.permissions.build_worker_teams, vec![3000, 3001]);
         assert_eq!(config.permissions.early_access_teams, vec![4000, 4001]);
@@ -156,15 +130,5 @@ mod tests {
             config.github.client_secret,
             "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
         );
-    }
-
-    #[test]
-    fn config_from_file_defaults() {
-        let content = r#"
-        worker_threads = 0
-        "#;
-
-        let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.worker_threads, 0);
     }
 }

@@ -18,7 +18,9 @@ use std::net::{Ipv4Addr, IpAddr};
 use num_cpus;
 use postgres::params::{ConnectParams, Host, IntoConnectParams};
 
-#[derive(Debug, Deserialize)]
+pub use protocol::sharding::ShardId;
+
+#[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct DataStoreCfg {
     pub host: IpAddr,

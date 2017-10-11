@@ -64,11 +64,10 @@ pub struct ServerState {
 }
 
 impl AppState for ServerState {
-    type Config = Config;
     type Error = SrvError;
     type InitState = InitServerState;
 
-    fn build(_: &Self::Config, init_state: Self::InitState) -> SrvResult<Self> {
+    fn build(init_state: Self::InitState) -> SrvResult<Self> {
         let mut state = ServerState {
             datastore: init_state.datastore,
             graph: init_state.graph,
@@ -84,14 +83,15 @@ impl Dispatcher for SchedulerSrv {
     const APP_NAME: &'static str = "builder-scheduler";
     const PROTOCOL: Protocol = Protocol::Scheduler;
 
+    type Config = Config;
     type Error = SrvError;
     type State = ServerState;
 
     fn app_init(
-        config: &<Self::State as AppState>::Config,
+        config: Self::Config,
         router_pipe: Arc<String>,
     ) -> SrvResult<<Self::State as AppState>::InitState> {
-        let datastore = DataStore::new(config)?;
+        let datastore = DataStore::new(&config.datastore)?;
         datastore.setup()?;
         let mut graph = TargetGraph::new();
         let packages = datastore.get_packages()?;
@@ -108,7 +108,7 @@ impl Dispatcher for SchedulerSrv {
             );
         }
         let state = InitServerState::new(datastore, graph);
-        ScheduleMgr::start(state.datastore.clone(), config, router_pipe)?;
+        ScheduleMgr::start(state.datastore.clone(), config.log_path, router_pipe)?;
         Ok(state)
     }
 

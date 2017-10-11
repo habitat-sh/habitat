@@ -248,7 +248,15 @@ fn read_bldr_config(github: &GitHubClient, token: &str, hook: &GitHubWebhookPush
     match github.contents(token, hook.repository.id, BLDR_CFG) {
         Ok(Some(contents)) => {
             match contents.decode() {
-                Ok(ref bytes) => BuildCfg::from_slice(bytes).unwrap_or_default(),
+                Ok(ref bytes) => {
+                    match BuildCfg::from_slice(bytes) {
+                        Ok(cfg) => cfg,
+                        Err(err) => {
+                            debug!("unable to parse bldr.toml, {}", err);
+                            BuildCfg::default()
+                        }
+                    }
+                }
                 Err(err) => {
                     debug!("unable to read bldr.toml, {}", err);
                     BuildCfg::default()

@@ -1,4 +1,6 @@
 log_level = "info"
+
+[app]
 shards = []
 
 [permissions]
