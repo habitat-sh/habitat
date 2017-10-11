@@ -4,32 +4,22 @@
     </div>
     <div class="page-body">
         <div class="button-area">
-            <hr>
-            <a md-raised-button color="accent" [class.disabled]="isSigningIn || isSignedIn"
-               class="button cta" href="{{gitHubLoginUrl}}">
+            <a md-raised-button color="accent" class="button cta" href="{{ gitHubLoginUrl }}">
                 <hab-icon symbol="github"></hab-icon>
-                <span>
-                    Sign In with GitHub
-                </span>
+                <span>Sign In with GitHub</span>
             </a>
-            <hr>
         </div>
         <p>
-            New to {{appName}}? To sign up, simply click the GitHub button
-            above.
+            New to Habitat? An account will be created for you when you sign in.
         </p>
         <p>
-            The {{appName}} project is maintained on GitHub and packages are
-            built from plan files stored in GitHub repositories. GitHub
-            accounts are free.
-            <a href="{{gitHubJoinUrl}}" _target="blank">Create one now</a>.
+            Don't have a GitHub account?
+            <a href="{{ gitHubJoinUrl }}" target="_blank">Sign up, it's free</a>.
         </p>
-        <p>
-            You can still browse the
-            <a href="{{sourceCodeUrl}}">{{appName}} source code</a>,
-            <a [routerLink]="['/pkgs']">public packages</a>,
-            and <a href="{{docsUrl}}">documentation</a>
-            without signing in.
+        <p class="footnote">
+            By clicking on "Sign in with GitHub", you are agreeing to the
+            <a href="{{ wwwUrl }}/legal/terms-and-conditions/" target="_blank">Terms of Service</a> and
+            <a href="{{ wwwUrl }}/legal/privacy-policy/" target="_blank">Privacy Policy</a>.
         </p>
     </div>
 </div>

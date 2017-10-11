@@ -21,32 +21,19 @@ import { createGitHubLoginUrl } from "../util";
 @Component({
     template: require("./sign-in-page.component.html")
 })
-
 export class SignInPageComponent implements OnInit, OnDestroy {
     constructor(private store: AppStore) { }
 
-    get appName() { return this.store.getState().app.name; }
+    get wwwUrl() {
+        return config["www_url"];
+    }
 
-    get docsUrl() { return config["docs_url"]; }
-
-    get gitHubJoinUrl() { return `${config["github_web_url"]}/join`; }
+    get gitHubJoinUrl() {
+        return `${config["github_web_url"]}/join`;
+    }
 
     get gitHubLoginUrl() {
         return createGitHubLoginUrl(this.store.getState().gitHub.authState);
-    }
-
-    get isSignedIn() {
-        return this.store.getState().users.current.isSignedIn;
-    }
-
-    get isSigningIn() {
-        return this.store.getState().users.current.isSigningIn;
-    }
-
-    get sourceCodeUrl() { return config["source_code_url"]; }
-
-    signOut() {
-        this.store.dispatch(signOut());
     }
 
     ngOnInit() {
