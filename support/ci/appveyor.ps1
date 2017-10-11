@@ -130,6 +130,19 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                     if(Test-ReleaseBuild) {
                         mkdir "results/prod" -Force
                         Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
+                        $nuspec_version = $env:APPVEYOR_BUILD_VERSION.substring(0, $env:APPVEYOR_BUILD_VERSION.IndexOf('-'))
+                        $checksum = (Get-FileHash "results/prod/$zip" -Algorithm SHA256).Hash
+                        $choco_install = "c:/projects/habitat/components/hab/win/chocolateyinstall.ps1"
+
+                        (Get-Content $choco_install) |
+                            % {$_.Replace('$version$', $env:APPVEYOR_BUILD_VERSION) } | 
+                            Set-Content $choco_install
+
+                        (Get-Content $choco_install) |
+                            % {$_.Replace('$checksum$', $checksum) } |
+                            Set-Content $choco_install
+
+                        choco pack "c:/projects/habitat/components/hab/win/habitat.nuspec" --version $nuspec_version --output-directory "results/prod"
                     }
                     Compress-Archive -Path ./windows -DestinationPath "results/$zip"
                 }

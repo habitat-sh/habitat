@@ -53,6 +53,9 @@ artifacts:
   - path: 'results\prod\*.zip'
     name: HabProdCLI
 
+  - path: 'results\prod\*.nupkg'
+    name: HabProdChoco
+
 deploy:
 - provider: BinTray
   username: chef-releng-ops
@@ -77,5 +80,14 @@ deploy:
   package: hab-x86_64-windows
   publish: true
   artifact: HabProdCLI
+  on:
+    appveyor_repo_tag: true
+
+- provider: NuGet
+  server: https://push.chocolatey.org/
+  api_key:
+    secure: Ux8ZU3v6CNRegF1FBY4Q/ie+Rufn/uSMlqiC95H7jc8nZo4ldUXBuHoVmpbep/Tb
+  skip_symbols: true
+  artifact: HabProdChoco
   on:
     appveyor_repo_tag: true

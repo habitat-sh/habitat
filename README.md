@@ -45,8 +45,13 @@ $ brew tap habitat-sh/habitat
 $ brew install hab
 ```
 
-If you do _not_ run Homebrew, or if you use Linux, you can use the [Habitat install
-script](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh).
+If you are running Windows and use [Chocolatey](https://chocolatey.org), you can install our [chocolatey package](https://chocolatey.org/packages/habitat)
+```
+C:\> choco install habitat
+```
+
+If you do _not_ run Homebrew or Chocolatey, or if you use Linux, you can use the [Habitat install
+script](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh) from a bash shell.
 
 ```
 $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
