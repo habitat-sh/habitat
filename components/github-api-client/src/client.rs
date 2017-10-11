@@ -296,7 +296,7 @@ where
     let mut payload = jwt::Payload::new();
     let header = jwt::Header::new(jwt::Algorithm::RS256);
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-    let expiration = now + Duration::from_secs(10 * 60);
+    let expiration = now + Duration::from_secs(10 * 10);
     payload.insert("iat".to_string(), now.as_secs().to_string());
     payload.insert("exp".to_string(), expiration.as_secs().to_string());
     payload.insert("iss".to_string(), app_id.to_string());

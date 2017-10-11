@@ -15,6 +15,7 @@
 use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
+use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
 use std::string::ToString;
@@ -31,24 +32,13 @@ use error::{Error, Result};
 pub const BLDR_CFG: &'static str = ".bldr.toml";
 pub const DEFAULT_CHANNEL: &'static str = UNSTABLE_CHANNEL;
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BuildCfg(HashMap<String, ProjectCfg>);
 
 impl BuildCfg {
-    pub fn default_branches() -> Vec<String> {
-        vec!["master".to_string()]
-    }
-
-    pub fn default_plan_path() -> Pattern {
-        Pattern::from_str("habitat/*").unwrap()
-    }
-
     pub fn from_slice(bytes: &[u8]) -> Result<Self> {
-        let mut inner = toml::from_slice::<HashMap<String, ProjectCfg>>(bytes)
+        let inner = toml::from_slice::<HashMap<String, ProjectCfg>>(bytes)
             .map_err(|e| Error::DecryptError(e.to_string()))?;
-        for value in inner.values_mut() {
-            value.plan_path.dir_expand();
-        }
         Ok(BuildCfg(inner))
     }
 
@@ -74,56 +64,19 @@ impl ConfigFile for BuildCfg {
     type Error = Error;
 }
 
+impl Default for BuildCfg {
+    fn default() -> Self {
+        let mut cfg = HashMap::default();
+        cfg.insert("default".into(), ProjectCfg::default());
+        BuildCfg(cfg)
+    }
+}
+
 impl Deref for BuildCfg {
     type Target = HashMap<String, ProjectCfg>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct ProjectCfg {
-    /// Branches which trigger an automatic rebuild on push notification from a GitHub push
-    /// notification (default: ["master"]).
-    #[serde(default = "BuildCfg::default_branches")]
-    pub branches: Vec<String>,
-    /// Additional Release Channel to promote built packages into.
-    #[serde(default)]
-    pub channels: Vec<String>,
-    /// Unix style file globs which are matched against changed files from a GitHub push
-    /// notification to determine if an automatic rebuild should occur.
-    #[serde(default)]
-    pub paths: Vec<Pattern>,
-    /// Relative filepath to the project's Plan (default: "habitat").
-    #[serde(default = "BuildCfg::default_plan_path")]
-    pub plan_path: Pattern,
-}
-
-impl ProjectCfg {
-    /// Returns true if the given branch & file path combination should result in a new build
-    /// being automatically triggered by a GitHub Push notification
-    fn triggered_by<T>(&self, branch: &str, paths: &[T]) -> bool
-    where
-        T: AsRef<str>,
-    {
-        if !self.branches.iter().any(|b| b == branch) {
-            return false;
-        }
-        paths.iter().any(|p| {
-            self.plan_path.matches(p.as_ref()) || self.paths.iter().any(|i| i.matches(p.as_ref()))
-        })
-    }
-}
-
-impl Default for ProjectCfg {
-    fn default() -> Self {
-        ProjectCfg {
-            branches: BuildCfg::default_branches(),
-            channels: vec![],
-            paths: vec![],
-            plan_path: BuildCfg::default_plan_path(),
-        }
     }
 }
 
@@ -139,20 +92,6 @@ impl Pattern {
             require_literal_separator: false,
             require_literal_leading_dot: false,
         }
-    }
-
-    pub fn as_str(&self) -> &str {
-        self.inner.as_str()
-    }
-
-    /// Mutate the pattern match to encompass the entire directory if not already present. This is
-    /// useful for allowing a user to specify a directory name like "habitat" in their configuration
-    /// and we'll check the contents.
-    pub fn dir_expand(&mut self) {
-        if self.inner.as_str().ends_with("/*") {
-            return;
-        }
-        self.inner = glob::Pattern::from_str(&format!("{}/*", self.inner.as_str())).unwrap();
     }
 
     pub fn matches<T>(&self, value: T) -> bool
@@ -197,6 +136,69 @@ impl Serialize for Pattern {
         S: Serializer,
     {
         serializer.serialize_str(&self.inner.to_string())
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ProjectCfg {
+    /// Branches which trigger an automatic rebuild on push notification from a GitHub push
+    /// notification (default: ["master"]).
+    #[serde(default = "ProjectCfg::default_branches")]
+    pub branches: Vec<String>,
+    /// Additional Release Channel to promote built packages into.
+    #[serde(default)]
+    pub channels: Vec<String>,
+    /// Unix style file globs which are matched against changed files from a GitHub push
+    /// notification to determine if an automatic rebuild should occur.
+    #[serde(default)]
+    pub paths: Vec<Pattern>,
+    /// Relative filepath to the project's Habitat Plan (default: "habitat").
+    #[serde(default = "ProjectCfg::default_plan_path")]
+    plan_path: PathBuf,
+}
+
+impl ProjectCfg {
+    fn default_branches() -> Vec<String> {
+        vec!["master".to_string()]
+    }
+
+    fn default_plan_path() -> PathBuf {
+        PathBuf::from("habitat")
+    }
+
+    fn default_plan_pattern() -> Pattern {
+        Pattern::from_str("habitat/*").unwrap()
+    }
+
+    pub fn plan_file(&self) -> PathBuf {
+        self.plan_path.join("plan.sh")
+    }
+
+    /// Returns true if the given branch & file path combination should result in a new build
+    /// being automatically triggered by a GitHub Push notification
+    fn triggered_by<T>(&self, branch: &str, paths: &[T]) -> bool
+    where
+        T: AsRef<str>,
+    {
+        if !self.branches.iter().any(|b| b == branch) {
+            return false;
+        }
+        let plan_pattern = Pattern::from_str(&self.plan_path.join("*").to_string_lossy())
+            .unwrap_or(Self::default_plan_pattern());
+        paths.iter().any(|p| {
+            plan_pattern.matches(p.as_ref()) || self.paths.iter().any(|i| i.matches(p.as_ref()))
+        })
+    }
+}
+
+impl Default for ProjectCfg {
+    fn default() -> Self {
+        ProjectCfg {
+            branches: ProjectCfg::default_branches(),
+            channels: vec![],
+            paths: vec![],
+            plan_path: ProjectCfg::default_plan_path(),
+        }
     }
 }
 
