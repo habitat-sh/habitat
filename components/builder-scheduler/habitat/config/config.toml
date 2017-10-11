@@ -2,11 +2,11 @@ log_path = "{{cfg.log_path}}"
 
 [app]
 {{toToml cfg.app}}
-{{~#eachAlive bind.router.members as |member|}}
-[[routers]]
-host = "{{member.sys.ip}}"
-port = {{member.cfg.port}}
-{{~/eachAlive}}
+routers = [
+  {{~#eachAlive bind.router.members as |member|}}
+  { host = "{{member.sys.ip}}", port = {{member.cfg.port}} },
+  {{~/eachAlive}}
+]
 
 [datastore]
 {{toToml cfg.datastore}}
