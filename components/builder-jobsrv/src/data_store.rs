@@ -381,6 +381,59 @@ impl DataStore {
                                     RETURNING *;
                                 $$ LANGUAGE SQL VOLATILE"#)?;
 
+        // The busy workers table
+        migrator.migrate(
+            "jobsrv",
+            r#"CREATE TABLE IF NOT EXISTS busy_workers (
+                                ident text,
+                                job_id bigint,
+                                quarantined bool,
+                                created_at timestamptz DEFAULT now(),
+                                updated_at timestamptz,
+                                UNIQUE(ident, job_id)
+                         )"#,
+        )?;
+
+        // Insert or update a new worker into the busy workers table
+        migrator.migrate(
+            "jobsrv",
+            r#"CREATE OR REPLACE FUNCTION upsert_busy_worker_v1 (
+                                in_ident text,
+                                in_job_id bigint,
+                                in_quarantined bool
+                            ) RETURNS SETOF busy_workers AS $$
+                                    BEGIN
+                                        RETURN QUERY INSERT INTO busy_workers (ident, job_id, quarantined)
+                                        VALUES (in_ident, in_job_id, in_quarantined)
+                                        ON CONFLICT(ident, job_id)
+                                        DO UPDATE SET quarantined=in_quarantined RETURNING *;
+                                        RETURN;
+                                    END
+                                $$ LANGUAGE plpgsql VOLATILE
+                            "#,
+        )?;
+
+        migrator.migrate(
+            "jobsrv",
+            r#"CREATE OR REPLACE FUNCTION get_busy_workers_v1()
+                             RETURNS SETOF busy_workers AS $$
+                               SELECT * FROM busy_workers
+                             $$ LANGUAGE SQL STABLE
+                            "#,
+        )?;
+
+        // Delete a worker from the busy workers table
+        migrator.migrate(
+            "jobsrv",
+            r#"CREATE OR REPLACE FUNCTION delete_busy_worker_v1 (
+                                in_ident text,
+                                in_job_id bigint
+                            ) RETURNS void AS $$
+                                DELETE FROM busy_workers
+                                WHERE ident = in_ident AND job_id = in_job_id
+                            $$ LANGUAGE SQL VOLATILE
+                        "#,
+        )?;
         migrator.finish()?;
 
         self.async.register("sync_jobs".to_string(), sync_jobs);
@@ -611,6 +664,79 @@ impl DataStore {
             list_request.get_range()[0] + (rows.len() as u64) - 1
         }
     }
+
+    /// Create or update a busy worker
+    ///
+    /// # Errors
+    ///
+    /// * If the pool has no connections available
+    /// * If the busy worker cannot be created
+    pub fn upsert_busy_worker(&self, bw: &jobsrv::BusyWorker) -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+
+        conn.execute(
+            "SELECT FROM upsert_busy_worker_v1($1, $2, $3)",
+            &[
+                &bw.get_ident(),
+                &(bw.get_job_id() as i64),
+                &bw.get_quarantined(),
+            ],
+        ).map_err(Error::BusyWorkerUpsert)?;
+        return Ok(());
+    }
+
+    /// Delete a busy worker
+    ///
+    /// # Errors
+    ///
+    /// * If the pool has no connections available
+    /// * If the busy worker cannot be created
+    pub fn delete_busy_worker(&self, bw: &jobsrv::BusyWorker) -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+
+        conn.execute(
+            "SELECT FROM delete_busy_worker_v1($1, $2)",
+            &[&bw.get_ident(), &(bw.get_job_id() as i64)],
+        ).map_err(Error::BusyWorkerDelete)?;
+
+        return Ok(());
+    }
+
+    /// Get a list of busy workers
+    ///
+    /// # Errors
+    ///
+    /// * If the pool has no connections available
+    /// * If the busy workers cannot be created
+    pub fn get_busy_workers(&self) -> Result<Vec<jobsrv::BusyWorker>> {
+        let conn = self.pool.get_shard(0)?;
+
+        let rows = conn.query("SELECT * FROM get_busy_workers_v1()", &[])
+            .map_err(Error::BusyWorkersGet)?;
+
+        let mut workers = Vec::new();
+        for row in rows.iter() {
+            let bw = row_to_busy_worker(&row)?;
+            workers.push(bw);
+        }
+
+        return Ok(workers);
+    }
+}
+
+/// Translate a database `busy_workers` row to a `jobsrv::BusyWorker`.
+///
+fn row_to_busy_worker(row: &postgres::rows::Row) -> Result<jobsrv::BusyWorker> {
+    let mut bw = jobsrv::BusyWorker::new();
+    let ident: String = row.get("ident");
+    let job_id: i64 = row.get("job_id");
+    let quarantined: bool = row.get("quarantined");
+
+    bw.set_ident(ident);
+    bw.set_job_id(job_id as u64);
+    bw.set_quarantined(quarantined);
+
+    Ok(bw)
 }
 
 /// Translate a database `jobs` row to a `jobsrv::Job`.
