@@ -38,6 +38,7 @@ pub enum SrvError {
     DbTransactionCommit(postgres::error::Error),
     DbListen(postgres::error::Error),
     HabitatCore(hab_core::Error),
+    MyOrigins(postgres::error::Error),
     NetError(hab_net::NetError),
     OriginCreate(postgres::error::Error),
     OriginChannelCreate(postgres::error::Error),
@@ -121,6 +122,7 @@ impl fmt::Display for SrvError {
                 format!("Error setting up async database event listener, {}", e)
             }
             SrvError::HabitatCore(ref e) => format!("{}", e),
+            SrvError::MyOrigins(ref e) => format!("Error looking up my origins, {}", e),
             SrvError::NetError(ref e) => format!("{}", e),
             SrvError::OriginCreate(ref e) => format!("Error creating origin in database, {}", e),
             SrvError::OriginChannelCreate(ref e) => {
@@ -334,6 +336,7 @@ impl error::Error for SrvError {
             SrvError::DbPoolTimeout(ref err) => err.description(),
             SrvError::DbListen(ref err) => err.description(),
             SrvError::HabitatCore(ref err) => err.description(),
+            SrvError::MyOrigins(ref err) => err.description(),
             SrvError::NetError(ref err) => err.description(),
             SrvError::OriginCreate(ref err) => err.description(),
             SrvError::OriginChannelCreate(ref err) => err.description(),

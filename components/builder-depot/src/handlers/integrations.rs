@@ -17,7 +17,7 @@ use std::collections::HashMap;
 use bldr_core;
 use bodyparser;
 use http_gateway::http::controller::*;
-use http_gateway::http::helpers;
+use http_gateway::http::helpers::{self, check_origin_access};
 use iron::status::{self, Status};
 
 use protocol::originsrv::*;
@@ -25,7 +25,6 @@ use protocol::net::NetOk;
 use persistent;
 use router::Router;
 
-use super::super::server::check_origin_access;
 use DepotUtil;
 
 pub fn encrypt(req: &mut Request, content: &str) -> Result<String, Status> {
@@ -55,22 +54,12 @@ pub fn validate_params(
             res.insert(p.to_string(), params.find(p).unwrap().to_string());
         }
     }
-    // Check that we have origin access
-    {
-        let session_id = {
-            req.extensions.get::<Authenticated>().unwrap().get_id()
-        };
-        if !check_origin_access(req, session_id, &res["origin"])
-            .map_err(|_| status::InternalServerError)?
-        {
-            debug!(
-                "Failed origin access check, session: {}, origin: {}",
-                session_id,
-                &res["origin"]
-            );
-            return Err(status::Forbidden);
-        }
+
+    if !check_origin_access(req, &res["origin"]).unwrap_or(false) {
+        debug!("Failed origin access check, origin: {}", &res["origin"]);
+        return Err(status::Forbidden);
     }
+
     Ok(res)
 }
 

@@ -30,7 +30,8 @@ use hab_core::crypto::{BoxKeyPair, SigKeyPair};
 use hab_core::crypto::PUBLIC_BOX_KEY_VERSION;
 use hab_core::event::*;
 use http_gateway::http::controller::*;
-use http_gateway::http::helpers::{self, dont_cache_response};
+use http_gateway::http::helpers::{self, check_origin_access, check_origin_owner,
+                                  dont_cache_response, get_param};
 use http_gateway::http::middleware::XRouteClient;
 use hab_net::{privilege, ErrCode, NetOk, NetResult};
 use hyper::header::{Charset, ContentDisposition, DispositionParam, DispositionType};
@@ -71,16 +72,13 @@ struct OriginUpdateReq {
 const ONE_YEAR_IN_SECS: usize = 31536000;
 
 pub fn origin_update(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let mut request = OriginUpdate::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("name") {
-            Some(origin) => request.set_name(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    match get_param(req, "name") {
+        Some(origin) => request.set_name(origin),
+        None => return Ok(Response::with(status::BadRequest)),
     }
-    if !check_origin_access(req, session.get_id(), request.get_name())? {
+
+    if !check_origin_access(req, request.get_name()).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -137,12 +135,9 @@ pub fn origin_create(req: &mut Request) -> IronResult<Response> {
 
 pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginGet::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("origin") {
-            Some(origin) => request.set_name(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    match get_param(req, "origin") {
+        Some(origin) => request.set_name(origin),
+        None => return Ok(Response::with(status::BadRequest)),
     }
     match route_message::<OriginGet, Origin>(req, &request) {
         Ok(origin) => {
@@ -154,46 +149,17 @@ pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-pub fn check_origin_access<T>(req: &mut Request, account_id: u64, origin: T) -> IronResult<bool>
-where
-    T: ToString,
-{
-    match helpers::check_origin_access(req, account_id, origin) {
-        Ok(b) => Ok(b),
-        Err(err) => {
-            let body = serde_json::to_string(&err).unwrap();
-            let status = net_err_to_http(err.get_code());
-            Err(IronError::new(err, (body, status)))
-        }
-    }
-}
-
-pub fn check_origin_owner<T>(req: &mut Request, account_id: u64, origin: T) -> IronResult<bool>
-where
-    T: ToString,
-{
-    match helpers::check_origin_owner(req, account_id, origin) {
-        Ok(b) => Ok(b),
-        Err(err) => {
-            let body = serde_json::to_string(&err).unwrap();
-            let status = net_err_to_http(err.get_code());
-            Err(IronError::new(err, (body, status)))
-        }
-    }
-}
-
 pub fn rescind_invitation(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginInvitationRescindRequest::new();
     {
         let session = req.extensions.get::<Authenticated>().unwrap();
         request.set_owner_id(session.get_id());
     }
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let invitation = match params.find("invitation_id") {
+    let invitation = match get_param(req, "invitation_id") {
         Some(invitation) => invitation,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -221,12 +187,11 @@ pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
         let session = req.extensions.get::<Authenticated>().unwrap();
         request.set_account_id(session.get_id());
     }
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let invitation = match params.find("invitation_id") {
+    let invitation = match get_param(req, "invitation_id") {
         Some(invitation) => invitation,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -255,12 +220,11 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
         let session = req.extensions.get::<Authenticated>().unwrap();
         request.set_account_id(session.get_id());
     }
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    match params.find("origin") {
-        Some(origin) => request.set_origin_name(origin.to_string()),
+    match get_param(req, "origin") {
+        Some(origin) => request.set_origin_name(origin),
         None => return Ok(Response::with(status::BadRequest)),
     }
-    let invitation = match params.find("invitation_id") {
+    let invitation = match get_param(req, "invitation_id") {
         Some(invitation) => invitation,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -291,15 +255,14 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
-    // TODO: SA - Eliminate need to clone the session and params
+    // TODO: SA - Eliminate need to clone the session
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let user_to_invite = match params.find("username") {
+    let user_to_invite = match get_param(req, "username") {
         Some(username) => username,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -310,7 +273,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         &origin
     );
 
-    if !check_origin_access(req, session.get_id(), &origin)? {
+    if !check_origin_access(req, &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -361,19 +324,12 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
-    let session_id: u64;
-    let origin_name: String;
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session_id = session.get_id();
-        let params = req.extensions.get::<Router>().unwrap();
-        origin_name = match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-    }
+    let origin_name = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
-    if !check_origin_access(req, session_id, &origin_name)? {
+    if !check_origin_access(req, &origin_name).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -397,19 +353,12 @@ pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
-    let session_id: u64;
-    let origin_name: String;
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session_id = session.get_id();
-        let params = req.extensions.get::<Router>().unwrap();
-        origin_name = match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-    }
+    let origin_name = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
-    if !check_origin_access(req, session_id, &origin_name)? {
+    if !check_origin_access(req, &origin_name).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -430,17 +379,16 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
 
 pub fn origin_member_delete(req: &mut Request) -> IronResult<Response> {
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_owner(req, session.get_id(), &origin)? {
+    if !check_origin_owner(req, session.get_id(), &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
-    let account_name = match params.find("username") {
+    let account_name = match get_param(req, "username") {
         Some(user) => user,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -507,13 +455,13 @@ fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> 
 
 fn generate_origin_keys(req: &mut Request) -> IronResult<Response> {
     debug!("Generate Origin Keys {:?}", req);
-    let params = req.extensions.get::<Router>().unwrap().clone();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    match params.find("origin") {
+    match get_param(req, "origin") {
         Some(origin) => {
-            if !check_origin_access(req, session.get_id(), origin)? {
+            if !check_origin_access(req, &origin).unwrap_or(false) {
                 return Ok(Response::with(status::Forbidden));
             }
+
             match helpers::get_origin(req, origin) {
                 Ok(origin) => {
                     match helpers::generate_origin_keys(req, session, origin) {
@@ -530,18 +478,18 @@ fn generate_origin_keys(req: &mut Request) -> IronResult<Response> {
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Public Key {:?}", req);
-    // TODO: SA - Eliminate need to clone the session and params
+    // TODO: SA - Eliminate need to clone the session
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
     let mut request = OriginPublicKeyCreate::new();
     request.set_owner_id(session.get_id());
 
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(origin) => {
-            if !check_origin_access(req, session.get_id(), origin)? {
+            if !check_origin_access(req, &origin).unwrap_or(false) {
                 return Ok(Response::with(status::Forbidden));
             }
-            match helpers::get_origin(req, origin) {
+
+            match helpers::get_origin(req, &origin) {
                 Ok(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -552,8 +500,9 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
         }
         None => return Ok(Response::with(status::BadRequest)),
     };
-    match params.find("revision") {
-        Some(revision) => request.set_revision(revision.to_string()),
+
+    match get_param(req, "revision") {
+        Some(revision) => request.set_revision(revision),
         None => return Ok(Response::with(status::BadRequest)),
     };
 
@@ -617,10 +566,11 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> {
-    let origin = {
-        let params = req.extensions.get::<Router>().unwrap();
-        params.find("origin").unwrap().to_owned()
+    let origin = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
     };
+
     let mut request = OriginSecretKeyGet::new();
     match helpers::get_origin(req, origin) {
         Ok(mut origin) => {
@@ -640,18 +590,18 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
 
 fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
-    // TODO: SA - Eliminate need to clone the session and params
+    // TODO: SA - Eliminate need to clone the session
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
     let mut request = OriginSecretKeyCreate::new();
     request.set_owner_id(session.get_id());
 
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(origin) => {
-            if !check_origin_access(req, session.get_id(), origin)? {
+            if !check_origin_access(req, &origin).unwrap_or(false) {
                 return Ok(Response::with(status::Forbidden));
             }
-            match helpers::get_origin(req, origin) {
+
+            match helpers::get_origin(req, &origin) {
                 Ok(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -662,8 +612,9 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
         }
         None => return Ok(Response::with(status::BadRequest)),
     };
-    match params.find("revision") {
-        Some(revision) => request.set_revision(revision.to_string()),
+
+    match get_param(req, "revision") {
+        Some(revision) => request.set_revision(revision),
         None => return Ok(Response::with(status::BadRequest)),
     };
 
@@ -714,10 +665,7 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
-    let ident = {
-        let params = req.extensions.get::<Router>().unwrap();
-        ident_from_params(params)
-    };
+    let ident = ident_from_req(req);
 
     if !ident.valid() || !ident.fully_qualified() {
         info!(
@@ -727,27 +675,16 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    let session_opt = helpers::get_authenticated_session(req);
+    if !check_origin_access(req, &ident.get_origin()).unwrap_or(false) {
+        debug!("Failed origin access check, ident: {}", ident);
 
-    // Bypass origin check if caller is a build worker (no session)
-    let session_id = if session_opt.is_some() {
-        let session = session_opt.unwrap();
-        if !check_origin_access(req, session.get_id(), &ident.get_origin())? {
-            debug!(
-                "Failed origin access check, session: {}, ident: {}",
-                session.get_id(),
-                ident
-            );
-            return Ok(Response::with(status::Forbidden));
-        };
-        session.get_id()
-    } else {
-        helpers::builder_session_id()
-    };
+        return Ok(Response::with(status::Forbidden));
+    }
 
     let lock = req.get::<persistent::State<DepotUtil>>().expect(
         "depot not found",
     );
+
     let depot = lock.read().expect("depot read lock is poisoned");
     let checksum_from_param = match helpers::extract_query_value("checksum", req) {
         Some(checksum) => checksum,
@@ -889,8 +826,12 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with((status::UnprocessableEntity, "ds:up:5")));
         }
     };
+
     if ident.satisfies(package.get_ident()) {
-        package.set_owner_id(session_id);
+        {
+            let session = req.extensions.get::<Authenticated>().unwrap();
+            package.set_owner_id(session.get_id());
+        }
 
         // let's make sure this origin actually exists
         match helpers::get_origin(req, &ident.get_origin()) {
@@ -990,13 +931,11 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
 fn package_stats(req: &mut Request) -> IronResult<Response> {
     let mut request = PackageStatsGet::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("origin") {
-            Some(origin) => request.set_origin(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    match get_param(req, "origin") {
+        Some(origin) => request.set_origin(origin),
+        None => return Ok(Response::with(status::BadRequest)),
     }
+
     match route_message::<PackageStatsGet, PackageStats>(req, &request) {
         Ok(stats) => {
             let mut response = render_json(status::Ok, &stats);
@@ -1008,13 +947,12 @@ fn package_stats(req: &mut Request) -> IronResult<Response> {
 }
 
 fn schedule(req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap().clone();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let origin_name = match params.find("origin") {
+    let origin_name = match get_param(req, "origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let package = match params.find("pkg") {
+    let package = match get_param(req, "pkg") {
         Some(pkg) => pkg,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -1033,10 +971,10 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
     }
 
     let mut secret_key_request = OriginSecretKeyGet::new();
-    let origin = match helpers::get_origin(req, origin_name) {
+    let origin = match helpers::get_origin(req, &origin_name) {
         Ok(origin) => {
             secret_key_request.set_owner_id(origin.get_owner_id());
-            secret_key_request.set_origin(String::from(origin_name));
+            secret_key_request.set_origin(origin_name.clone());
             origin
         }
         Err(err) => return Ok(render_net_error(&err)),
@@ -1045,7 +983,7 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         match route_message::<OriginSecretKeyGet, OriginSecretKey>(req, &secret_key_request) {
             Ok(key) => {
                 let mut pub_key_request = OriginPublicKeyGet::new();
-                pub_key_request.set_origin(String::from(origin_name));
+                pub_key_request.set_origin(origin_name.clone());
                 pub_key_request.set_revision(key.get_revision().to_string());
                 route_message::<OriginPublicKeyGet, OriginPublicKey>(req, &pub_key_request).is_err()
             }
@@ -1059,8 +997,8 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
     }
 
     let mut request = GroupCreate::new();
-    request.set_origin(String::from(origin_name));
-    request.set_package(String::from(package));
+    request.set_origin(origin_name);
+    request.set_package(package);
     request.set_target(target);
     request.set_deps_only(deps_only);
     request.set_origin_only(origin_only);
@@ -1078,8 +1016,7 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
 
 fn get_schedule(req: &mut Request) -> IronResult<Response> {
     let group_id = {
-        let params = req.extensions.get::<Router>().unwrap();
-        let group_id_str = match params.find("groupid") {
+        let group_id_str = match get_param(req, "groupid") {
             Some(s) => s,
             None => return Ok(Response::with(status::BadRequest)),
         };
@@ -1130,16 +1067,13 @@ fn abort_schedule(req: &mut Request) -> IronResult<Response> {
 // This function should not require authentication (session/auth token)
 fn download_origin_key(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginPublicKeyGet::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("origin") {
-            Some(origin) => request.set_origin(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-        match params.find("revision") {
-            Some(revision) => request.set_revision(revision.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    match get_param(req, "origin") {
+        Some(origin) => request.set_origin(origin),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "revision") {
+        Some(revision) => request.set_revision(revision),
+        None => return Ok(Response::with(status::BadRequest)),
     }
     let key = match route_message::<OriginPublicKeyGet, OriginPublicKey>(req, &request) {
         Ok(key) => key,
@@ -1158,12 +1092,9 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
 // This function should not require authentication (session/auth token)
 fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginPublicKeyLatestGet::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("origin") {
-            Some(origin) => request.set_origin(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    match get_param(req, "origin") {
+        Some(origin) => request.set_origin(origin),
+        None => return Ok(Response::with(status::BadRequest)),
     }
     let key = match route_message::<OriginPublicKeyLatestGet, OriginPublicKey>(req, &request) {
         Ok(key) => key,
@@ -1177,17 +1108,19 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
 fn package_channels(req: &mut Request) -> IronResult<Response> {
     let session_id = helpers::get_optional_session_id(req);
     let mut request = OriginPackageChannelListRequest::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        let ident = ident_from_params(params);
-        if !ident.fully_qualified() {
-            return Ok(Response::with(status::BadRequest));
-        }
-        request.set_ident(ident);
+    let ident = ident_from_req(req);
+
+    if !ident.fully_qualified() {
+        return Ok(Response::with(status::BadRequest));
     }
-    if session_id.is_some() {
-        request.set_account_id(session_id.unwrap());
-    }
+
+    request.set_visibilities(visibility_for_optional_session(
+        req,
+        session_id,
+        &ident.get_origin(),
+    ));
+    request.set_ident(ident);
+
     match route_message::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(
         req,
         &request,
@@ -1214,14 +1147,12 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
     let depot = lock.read().expect("depot read lock is poisoned");
     let session_id = helpers::get_optional_session_id(req);
     let mut ident_req = OriginPackageGet::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        ident_req.set_ident(ident_from_params(params));
-    };
-    if session_id.is_some() {
-        ident_req.set_account_id(session_id.unwrap());
-    }
-    ident_req.set_show_hidden(true);
+    let ident = ident_from_req(req);
+    let mut vis = visibility_for_optional_session(req, session_id, &ident.get_origin());
+    vis.push(OriginPackageVisibility::Hidden);
+    ident_req.set_visibilities(vis);
+    ident_req.set_ident(ident);
+
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
     if !depot.config.targets.contains(&agent_target) {
         return Ok(Response::with((
@@ -1264,17 +1195,13 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
-    let origin_name: String;
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        origin_name = match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    let origin_name = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
     let mut request = OriginPublicKeyListRequest::new();
-    match helpers::get_origin(req, origin_name.as_str()) {
+    match helpers::get_origin(req, &origin_name) {
         Ok(origin) => request.set_origin_id(origin.get_id()),
         Err(err) => return Ok(render_net_error(&err)),
     }
@@ -1310,18 +1237,17 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
         Ok(range) => range,
         Err(response) => return Ok(response),
     };
+
     request.set_start(start as u64);
     request.set_stop(stop as u64);
-    if session_id.is_some() {
-        request.set_account_id(session_id.unwrap());
-    }
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("origin") {
-            Some(origin) => request.set_origin(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
+
+    match get_param(req, "origin") {
+        Some(origin) => {
+            request.set_visibilities(visibility_for_optional_session(req, session_id, &origin));
+            request.set_origin(origin);
         }
-    };
+        None => return Ok(Response::with(status::BadRequest)),
+    }
 
     match route_message::<OriginPackageUniqueListRequest, OriginPackageUniqueListResponse>(
         req,
@@ -1362,30 +1288,23 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
 
 fn list_package_versions(req: &mut Request) -> IronResult<Response> {
     let session_id = helpers::get_optional_session_id(req);
-    let (origin, name) = {
-        let params = req.extensions.get::<Router>().unwrap();
+    let origin = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
-        let origin = match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-
-        let name = match params.find("pkg") {
-            Some(pkg) => pkg.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-
-        (origin, name)
+    let name = match get_param(req, "pkg") {
+        Some(pkg) => pkg,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
     let packages: NetResult<OriginPackageVersionListResponse>;
 
     let mut request = OriginPackageVersionListRequest::new();
+    request.set_visibilities(visibility_for_optional_session(req, session_id, &origin));
     request.set_origin(origin);
     request.set_name(name);
-    if session_id.is_some() {
-        request.set_account_id(session_id.unwrap());
-    }
+
     packages = route_message::<OriginPackageVersionListRequest, OriginPackageVersionListResponse>(
         req,
         &request,
@@ -1410,13 +1329,11 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
 }
 
 fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(o) => o,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let visibility = match params.find("visibility") {
+    let visibility = match get_param(req, "visibility") {
         Some(v) => v,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -1426,7 +1343,7 @@ fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    let ident = ident_from_params(&params);
+    let ident = ident_from_req(req);
 
     if !ident.valid() || !ident.fully_qualified() {
         info!(
@@ -1441,13 +1358,13 @@ fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(req, session.get_id(), &origin)? {
+    if !check_origin_access(req, &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut opg = OriginPackageGet::new();
     opg.set_ident(ident);
-    opg.set_account_id(session.get_id());
+    opg.set_visibilities(vec![OriginPackageVisibility::Private]);
 
     match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
         Ok(mut package) => {
@@ -1473,7 +1390,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
         Err(response) => return Ok(response),
     };
 
-    let (ident, channel) = {
+    let (origin, ident, channel) = {
         let params = req.extensions.get::<Router>().unwrap();
 
         let origin = match params.find("origin") {
@@ -1482,9 +1399,9 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
         };
 
         let ident: String = if params.find("pkg").is_none() {
-            origin
+            origin.clone()
         } else {
-            ident_from_params(params).to_string()
+            ident_from_params(&params).to_string()
         };
 
         let channel = match params.find("channel") {
@@ -1492,7 +1409,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             None => None,
         };
 
-        (ident, channel)
+        (origin, ident, channel)
     };
 
     let packages: NetResult<OriginPackageListResponse>;
@@ -1502,9 +1419,8 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             request.set_name(channel);
             request.set_start(start as u64);
             request.set_stop(stop as u64);
-            if session_id.is_some() {
-                request.set_account_id(session_id.unwrap());
-            }
+            request.set_visibilities(visibility_for_optional_session(req, session_id, &origin));
+
             request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect(
                 "invalid package identifier",
             ));
@@ -1518,9 +1434,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             let mut request = OriginPackageListRequest::new();
             request.set_start(start as u64);
             request.set_stop(stop as u64);
-            if session_id.is_some() {
-                request.set_account_id(session_id.unwrap());
-            }
+            request.set_visibilities(visibility_for_optional_session(req, session_id, &origin));
 
             // only set this if "distinct" is present as a URL parameter, e.g. ?distinct=true
             if helpers::extract_query_value("distinct", req).is_some() {
@@ -1557,8 +1471,8 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
                 let mut platforms: Option<Vec<String>> = None;
 
                 if !distinct {
-                    channels = helpers::channels_for_package_ident(req, &package, session_id);
-                    platforms = helpers::platforms_for_package_ident(req, &package, session_id);
+                    channels = helpers::channels_for_package_ident(req, &package);
+                    platforms = helpers::platforms_for_package_ident(req, &package);
                 }
 
                 let mut pkg_json = serde_json::to_value(package).unwrap();
@@ -1601,17 +1515,13 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_channels(req: &mut Request) -> IronResult<Response> {
-    let origin_name = {
-        let params = req.extensions.get::<Router>().unwrap();
-
-        match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    let origin_name = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
     let mut request = OriginChannelListRequest::new();
-    match helpers::get_origin(req, origin_name.as_str()) {
+    match helpers::get_origin(req, &origin_name) {
         Ok(origin) => request.set_origin_id(origin.get_id()),
         Err(err) => return Ok(render_net_error(&err)),
     }
@@ -1636,48 +1546,30 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
 }
 
 fn create_channel(req: &mut Request) -> IronResult<Response> {
-    let session_opt = helpers::get_authenticated_session(req);
-    let session_id_opt = match session_opt {
-        Some(s) => Some(s.get_id()),
-        None => None,
+    let origin = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let channel = match get_param(req, "channel") {
+        Some(channel) => channel,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let (origin, channel) = {
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-        let channel = match params.find("channel") {
-            Some(channel) => channel.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-        (origin, channel)
-    };
-
-    match helpers::create_channel(req, &origin, &channel, session_id_opt) {
+    match helpers::create_channel(req, &origin, &channel) {
         Ok(origin_channel) => Ok(render_json(status::Created, &origin_channel)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 fn delete_channel(req: &mut Request) -> IronResult<Response> {
-    let session_id: u64;
-    let origin: String;
-    let channel: String;
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session_id = session.get_id();
-        let params = req.extensions.get::<Router>().unwrap();
-        origin = match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-        channel = match params.find("channel") {
-            Some(channel) => channel.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-    }
+    let origin = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let channel = match get_param(req, "channel") {
+        Some(channel) => channel,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
     let mut channel_req = OriginChannelGet::new();
     channel_req.set_origin_name(origin.clone());
@@ -1685,7 +1577,7 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
             // make sure the person trying to create the channel has access to do so
-            if !check_origin_access(req, session_id, &origin)? {
+            if !check_origin_access(req, &origin).unwrap_or(false) {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1708,23 +1600,9 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
 
 fn show_package(req: &mut Request) -> IronResult<Response> {
     let session_id = helpers::get_optional_session_id(req);
-    let (mut ident, channel) = {
-        let params = req.extensions.get::<Router>().unwrap();
+    let channel = get_param(req, "channel");
 
-        if params.find("origin").is_none() {
-            return Ok(Response::with(status::BadRequest));
-        }
-
-        let ident = ident_from_params(params);
-
-        let channel = match params.find("channel") {
-            Some(ch) => Some(ch.to_owned()),
-            None => None,
-        };
-
-        (ident, channel)
-    };
-
+    let mut ident = ident_from_req(req);
     let qualified = ident.fully_qualified();
 
     if let Some(channel) = channel {
@@ -1734,11 +1612,14 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
                 .to_string();
             let mut request = OriginChannelPackageLatestGet::new();
             request.set_name(channel.clone());
-            request.set_ident(ident);
             request.set_target(target);
-            if session_id.is_some() {
-                request.set_account_id(session_id.unwrap());
-            }
+            request.set_visibilities(visibility_for_optional_session(
+                req,
+                session_id,
+                &ident.get_origin(),
+            ));
+            request.set_ident(ident);
+
             match route_message::<OriginChannelPackageLatestGet, OriginPackageIdent>(
                 req,
                 &request,
@@ -1750,12 +1631,15 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
 
         let mut request = OriginChannelPackageGet::new();
         request.set_name(channel);
+        request.set_visibilities(visibility_for_optional_session(
+            req,
+            session_id,
+            &ident.get_origin(),
+        ));
         request.set_ident(ident);
-        if session_id.is_some() {
-            request.set_account_id(session_id.unwrap());
-        }
+
         match route_message::<OriginChannelPackageGet, OriginPackage>(req, &request) {
-            Ok(pkg) => render_package(req, &pkg, false, session_id),
+            Ok(pkg) => render_package(req, &pkg, false),
             Err(err) => Ok(render_net_error(&err)),
         }
     } else {
@@ -1764,11 +1648,14 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
                 .unwrap()
                 .to_string();
             let mut request = OriginPackageLatestGet::new();
-            request.set_ident(ident);
             request.set_target(target);
-            if session_id.is_some() {
-                request.set_account_id(session_id.unwrap());
-            }
+            request.set_visibilities(visibility_for_optional_session(
+                req,
+                session_id,
+                &ident.get_origin(),
+            ));
+            request.set_ident(ident);
+
             match route_message::<OriginPackageLatestGet, OriginPackageIdent>(req, &request) {
                 Ok(id) => ident = id.into(),
                 Err(err) => return Ok(render_net_error(&err)),
@@ -1776,18 +1663,21 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
         }
 
         let mut request = OriginPackageGet::new();
+        request.set_visibilities(visibility_for_optional_session(
+            req,
+            session_id,
+            &ident.get_origin(),
+        ));
         request.set_ident(ident);
-        if session_id.is_some() {
-            request.set_account_id(session_id.unwrap());
-        }
+
         match route_message::<OriginPackageGet, OriginPackage>(req, &request) {
             Ok(pkg) => {
                 // If the request was for a fully qualified ident, cache the response, otherwise do
                 // not cache
                 if qualified {
-                    render_package(req, &pkg, true, session_id)
+                    render_package(req, &pkg, true)
                 } else {
-                    render_package(req, &pkg, false, session_id)
+                    render_package(req, &pkg, false)
                 }
             }
             Err(err) => Ok(render_net_error(&err)),
@@ -1804,8 +1694,26 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     };
     request.set_start(start as u64);
     request.set_stop(stop as u64);
+
     if session_id.is_some() {
-        request.set_account_id(session_id.unwrap());
+        let mut my_origins = MyOriginsRequest::new();
+        my_origins.set_account_id(session_id.unwrap());
+
+        match route_message::<MyOriginsRequest, MyOriginsResponse>(req, &my_origins) {
+            Ok(response) => {
+                request.set_my_origins(protobuf::RepeatedField::from_vec(
+                    response.get_origins().to_vec(),
+                ))
+            }
+            Err(e) => {
+                debug!(
+                    "Error fetching origins for account id {}, {}",
+                    session_id.unwrap(),
+                    e
+                );
+                return Ok(Response::with(status::BadRequest));
+            }
+        }
     }
 
     // First, try to parse the query like it's a PackageIdent, since it seems reasonable to expect
@@ -1813,27 +1721,26 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     // works, set the origin appropriately and do a regular search.  If that doesn't work, do a
     // search across all origins, similar to how the "distinct" search works now, but returning all
     // the details instead of just names.
-
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        let query = params.find("query").unwrap();
-
-        let decoded_query = match url::percent_encoding::percent_decode(query.as_bytes())
-            .decode_utf8() {
-            Ok(q) => q.to_string(),
-            Err(_) => return Ok(Response::with(status::BadRequest)),
-        };
-
-        match PackageIdent::from_str(decoded_query.as_ref()) {
-            Ok(ident) => {
-                request.set_origin(ident.origin().to_string());
-                request.set_query(ident.name().to_string());
-            }
-            Err(_) => {
-                request.set_query(decoded_query);
-            }
-        }
+    let query = match get_param(req, "query") {
+        Some(q) => q,
+        None => return Ok(Response::with(status::BadRequest)),
     };
+
+    let decoded_query = match url::percent_encoding::percent_decode(query.as_bytes())
+        .decode_utf8() {
+        Ok(q) => q.to_string(),
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
+
+    match PackageIdent::from_str(decoded_query.as_ref()) {
+        Ok(ident) => {
+            request.set_origin(ident.origin().to_string());
+            request.set_query(ident.name().to_string());
+        }
+        Err(_) => {
+            request.set_query(decoded_query);
+        }
+    }
 
     debug!("search_packages called with: {}", request.get_query());
 
@@ -1885,10 +1792,9 @@ fn render_package(
     req: &mut Request,
     pkg: &OriginPackage,
     should_cache: bool,
-    session_id: Option<u64>,
 ) -> IronResult<Response> {
     let mut pkg_json = serde_json::to_value(pkg.clone()).unwrap();
-    let channels = helpers::channels_for_package_ident(req, pkg.get_ident(), session_id);
+    let channels = helpers::channels_for_package_ident(req, pkg.get_ident());
     pkg_json["channels"] = json!(channels);
     pkg_json["is_a_service"] = json!(is_a_service(req, pkg.get_ident()));
 
@@ -1900,95 +1806,74 @@ fn render_package(
         SubLevel::Json,
         vec![(Attr::Charset, Value::Utf8)],
     )));
+
     if should_cache {
         do_cache_response(&mut response);
     } else {
         dont_cache_response(&mut response);
     }
+
     Ok(response)
 }
 
 fn promote_package(req: &mut Request) -> IronResult<Response> {
-    let session_opt = helpers::get_authenticated_session(req);
-    let session_id_opt = match session_opt {
-        Some(s) => Some(s.get_id()),
-        None => None,
+    let mut ident = OriginPackageIdent::new();
+    match get_param(req, "origin") {
+        Some(origin) => ident.set_origin(origin),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "pkg") {
+        Some(pkg) => ident.set_name(pkg),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "version") {
+        Some(version) => ident.set_version(version),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "release") {
+        Some(release) => ident.set_release(release),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    let channel = match get_param(req, "channel") {
+        Some(channel) => channel,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let mut ident = OriginPackageIdent::new();
-    let channel = {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("origin") {
-            Some(origin) => ident.set_origin(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
-        match params.find("pkg") {
-            Some(pkg) => ident.set_name(pkg.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
-        match params.find("version") {
-            Some(version) => ident.set_version(version.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
-        match params.find("release") {
-            Some(release) => ident.set_release(release.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
-        req.extensions
-            .get::<Router>()
-            .unwrap()
-            .find("channel")
-            .unwrap()
-            .to_string()
-    };
-    match helpers::promote_package_to_channel(req, &ident, &channel, session_id_opt) {
+    match helpers::promote_package_to_channel(req, &ident, &channel) {
         Ok(_) => Ok(Response::with(status::Ok)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 fn demote_package(req: &mut Request) -> IronResult<Response> {
-    let (channel, ident, session_id) = {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        let session_id = session.get_id();
-
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = match params.find("origin") {
-            Some(o) => o.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-
-        let channel = match params.find("channel") {
-            Some(c) => c.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-
-        let pkg = match params.find("pkg") {
-            Some(p) => p.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-
-        let version = match params.find("version") {
-            Some(v) => v.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-
-        let release = match params.find("release") {
-            Some(r) => r.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        };
-
-        let mut ident = OriginPackageIdent::new();
-        ident.set_origin(origin);
-        ident.set_name(pkg);
-        ident.set_version(version);
-        ident.set_release(release);
-
-        (channel, ident, session_id)
+    let mut ident = OriginPackageIdent::new();
+    match get_param(req, "origin") {
+        Some(origin) => ident.set_origin(origin),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "pkg") {
+        Some(pkg) => ident.set_name(pkg),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "version") {
+        Some(version) => ident.set_version(version),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "release") {
+        Some(release) => ident.set_release(release),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    let channel = match get_param(req, "channel") {
+        Some(channel) => channel,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
     // you can't demote from "unstable"
     if channel == "unstable" {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    if !check_origin_access(req, &ident.get_origin()).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -1997,13 +1882,9 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
     channel_req.set_name(channel);
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
-            if !check_origin_access(req, session_id, &ident.get_origin())? {
-                return Ok(Response::with(status::Forbidden));
-            }
-
             let mut request = OriginPackageGet::new();
             request.set_ident(ident.clone());
-            request.set_account_id(session_id);
+            request.set_visibilities(vec![OriginPackageVisibility::Private]);
             match route_message::<OriginPackageGet, OriginPackage>(req, &request) {
                 Ok(package) => {
                     let mut demote = OriginPackageDemote::new();
@@ -2063,6 +1944,11 @@ pub fn download_latest_builder_key(req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+fn ident_from_req(req: &mut Request) -> OriginPackageIdent {
+    let params = req.extensions.get::<Router>().unwrap();
+    ident_from_params(&params)
+}
+
 fn ident_from_params(params: &Params) -> OriginPackageIdent {
     let mut ident = OriginPackageIdent::new();
     ident.set_origin(params.find("origin").unwrap().to_string());
@@ -2112,6 +1998,21 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
         Ok(t) => Ok(t),
         Err(_) => Err(Response::with(status::BadRequest)),
     }
+}
+
+fn visibility_for_optional_session(
+    req: &mut Request,
+    optional_session_id: Option<u64>,
+    origin: &str,
+) -> Vec<OriginPackageVisibility> {
+    let mut v = Vec::new();
+    v.push(OriginPackageVisibility::Public);
+
+    if optional_session_id.is_some() && check_origin_access(req, origin).unwrap_or(false) {
+        v.push(OriginPackageVisibility::Private);
+    }
+
+    v
 }
 
 fn is_a_service<T>(req: &mut Request, ident: &T) -> bool
@@ -2268,7 +2169,6 @@ where
                 handlers::integrations::fetch_origin_integrations).before(basic.clone()
             )
         },
-
         origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {
             XHandler::new(invite_to_origin).before(basic.clone())
         },

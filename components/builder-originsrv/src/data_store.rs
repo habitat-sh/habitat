@@ -381,6 +381,28 @@ impl DataStore {
         if rows.len() != 0 { Ok(true) } else { Ok(false) }
     }
 
+    pub fn my_origins(
+        &self,
+        mor: &originsrv::MyOriginsRequest,
+    ) -> SrvResult<originsrv::MyOriginsResponse> {
+        let conn = self.pool.get(mor)?;
+        let rows = &conn.query(
+            "SELECT * FROM my_origins_v1($1) ORDER BY name",
+            &[&(mor.get_account_id() as i64)],
+        ).map_err(SrvError::MyOrigins)?;
+
+        let mut response = originsrv::MyOriginsResponse::new();
+
+        let mut origins = protobuf::RepeatedField::new();
+        for row in rows {
+            let o = self.row_to_origin(row)?;
+            origins.push(o);
+        }
+
+        response.set_origins(origins);
+        Ok(response)
+    }
+
     pub fn list_origin_members(
         &self,
         omlr: &originsrv::OriginMemberListRequest,
@@ -876,12 +898,12 @@ impl DataStore {
         opg: &originsrv::OriginPackageGet,
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(opg)?;
+
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_v3($1, $2, $3)",
+            "SELECT * FROM get_origin_package_v4($1, $2)",
             &[
                 &opg.get_ident().to_string(),
-                &(opg.get_account_id() as i64),
-                &opg.get_show_hidden(),
+                &self.vec_to_delimited_string(opg.get_visibilities()),
             ],
         ).map_err(SrvError::OriginPackageGet)?;
 
@@ -900,12 +922,12 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_v3($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_channel_package_v4($1, $2, $3, $4)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
                 &ocpg.get_ident().to_string(),
-                &(ocpg.get_account_id() as i64),
+                &self.vec_to_delimited_string(ocpg.get_visibilities()),
             ],
         ).map_err(SrvError::OriginChannelPackageGet)?;
         if rows.len() != 0 {
@@ -947,11 +969,11 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(opc)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_latest_v4($1, $2, $3)",
+            "SELECT * FROM get_origin_package_latest_v5($1, $2, $3)",
             &[
                 &self.searchable_ident(opc.get_ident()),
                 &opc.get_target(),
-                &(opc.get_account_id() as i64),
+                &self.vec_to_delimited_string(opc.get_visibilities()),
             ],
         ).map_err(SrvError::OriginPackageLatestGet)?;
         if rows.len() != 0 {
@@ -968,13 +990,13 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_latest_v4($1, $2, $3, $4, $5)",
+            "SELECT * FROM get_origin_channel_package_latest_v5($1, $2, $3, $4, $5)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
                 &self.searchable_ident(ocpg.get_ident()),
                 &ocpg.get_target(),
-                &(ocpg.get_account_id() as i64),
+                &self.vec_to_delimited_string(ocpg.get_visibilities()),
             ],
         ).map_err(SrvError::OriginChannelPackageLatestGet)?;
 
@@ -993,11 +1015,11 @@ impl DataStore {
         let conn = self.pool.get(opvl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_versions_for_origin_v6($1, $2, $3)",
+            "SELECT * FROM get_origin_package_versions_for_origin_v7($1, $2, $3)",
             &[
                 &opvl.get_origin(),
                 &opvl.get_name(),
-                &(opvl.get_account_id() as i64),
+                &self.vec_to_delimited_string(opvl.get_visibilities()),
             ],
         ).map_err(SrvError::OriginPackageVersionList)?;
 
@@ -1042,10 +1064,10 @@ impl DataStore {
         let conn = self.pool.get(oppl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_platforms_for_package_v3($1, $2)",
+            "SELECT * FROM get_origin_package_platforms_for_package_v4($1, $2)",
             &[
                 &self.searchable_ident(oppl.get_ident()),
-                &(oppl.get_account_id() as i64),
+                &self.vec_to_delimited_string(oppl.get_visibilities()),
             ],
         ).map_err(SrvError::OriginPackagePlatformList)?;
 
@@ -1066,10 +1088,10 @@ impl DataStore {
         let conn = self.pool.get(opcl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_channels_for_package_v3($1, $2)",
+            "SELECT * FROM get_origin_package_channels_for_package_v4($1, $2)",
             &[
                 &self.searchable_ident(opcl.get_ident()),
-                &(opcl.get_account_id() as i64),
+                &self.vec_to_delimited_string(opcl.get_visibilities()),
             ],
         ).map_err(SrvError::OriginPackageChannelList)?;
 
@@ -1096,9 +1118,9 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let query = if *&opl.get_distinct() {
-            "SELECT * FROM get_origin_packages_for_origin_distinct_v3($1, $2, $3, $4)"
+            "SELECT * FROM get_origin_packages_for_origin_distinct_v4($1, $2, $3, $4)"
         } else {
-            "SELECT * FROM get_origin_packages_for_origin_v4($1, $2, $3, $4)"
+            "SELECT * FROM get_origin_packages_for_origin_v5($1, $2, $3, $4)"
         };
 
         let rows = conn.query(
@@ -1107,7 +1129,7 @@ impl DataStore {
                 &self.searchable_ident(opl.get_ident()),
                 &opl.limit(),
                 &(opl.get_start() as i64),
-                &(opl.get_account_id() as i64),
+                &self.vec_to_delimited_string(opl.get_visibilities()),
             ],
         ).map_err(SrvError::OriginPackageList)?;
 
@@ -1151,12 +1173,12 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_packages_for_channel_v2($1, $2, $3, $4, $5, $6)",
+            "SELECT * FROM get_origin_channel_packages_for_channel_v3($1, $2, $3, $4, $5, $6)",
             &[
                 &opl.get_ident().get_origin(),
                 &opl.get_name(),
                 &self.searchable_ident(opl.get_ident()),
-                &(opl.get_account_id() as i64),
+                &self.vec_to_delimited_string(opl.get_visibilities()),
                 &opl.limit(),
                 &(opl.get_start() as i64),
             ],
@@ -1181,12 +1203,12 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginPackageUniqueListResponse> {
         let conn = self.pool.get(opl)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_packages_unique_for_origin_v3($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_packages_unique_for_origin_v4($1, $2, $3, $4)",
             &[
                 &opl.get_origin(),
                 &opl.limit(),
                 &(opl.get_start() as i64),
-                &(opl.get_account_id() as i64),
+                &self.vec_to_delimited_string(opl.get_visibilities()),
             ],
         ).map_err(SrvError::OriginPackageUniqueList)?;
 
@@ -1214,10 +1236,10 @@ impl DataStore {
 
         let rows = if *&ops.get_distinct() {
             conn.query(
-                "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_dynamic_v5($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
+                "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_dynamic_v6($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                 &[
                     &ops.get_query(),
-                    &(ops.get_account_id() as i64),
+                    &self.vec_to_delimited_string(ops.get_my_origins()),
                     &ops.limit(),
                     &(ops.get_start() as i64),
                 ],
@@ -1225,23 +1247,23 @@ impl DataStore {
         } else {
             if ops.get_origin().is_empty() {
                 conn.query(
-                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_v4($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_v5($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                     &[
                         &ops.get_query(),
-                        &(ops.get_account_id() as i64),
+                        &self.vec_to_delimited_string(ops.get_my_origins()),
                         &ops.limit(),
                         &(ops.get_start() as i64),
                     ],
                 ).map_err(SrvError::OriginPackageSearch)?
             } else {
                 conn.query(
-                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_origin_packages_for_origin_v3($1, $2, $3, $4, $5)",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_origin_packages_for_origin_v4($1, $2, $3, $4, $5)",
                     &[
                         &ops.get_origin(),
                         &ops.get_query(),
                         &ops.limit(),
                         &(ops.get_start() as i64),
-                        &(ops.get_account_id() as i64),
+                        &self.vec_to_delimited_string(ops.get_my_origins())
                     ],
                 ).map_err(SrvError::OriginPackageSearch)?
             }
@@ -1268,6 +1290,14 @@ impl DataStore {
             buffer.push_str(&format!("{}:", part));
         }
         buffer
+    }
+
+    fn vec_to_delimited_string<T: Display>(&self, parts: &[T]) -> String {
+        parts
+            .iter()
+            .map(|p| p.to_string())
+            .collect::<Vec<String>>()
+            .join(",")
     }
 
     fn into_idents(

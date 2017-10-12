@@ -244,6 +244,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SEARCH_TERM: +required +takes_value "Search term")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand sign =>
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")
@@ -299,6 +300,7 @@ pub fn get() -> App<'static, 'static> {
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A fully qualified package identifier (ex: core/redis/3.2.1/20160729052715)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat Artifact with an origin key")
@@ -588,6 +590,7 @@ fn sub_pkg_install() -> App<'static, 'static> {
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
         (@arg BINLINK: -b --binlink "Binlink all binaries from installed package(s)")
         (@arg FORCE: -f --force "Overwrite existing binlinks")
+        (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
     )
 }
 

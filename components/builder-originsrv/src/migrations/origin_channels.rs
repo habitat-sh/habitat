@@ -124,168 +124,6 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
     )?;
     migrator.migrate(
         "originsrv",
-        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_v1 (
-                    op_origin text,
-                    op_channel text,
-                    op_ident text
-                 ) RETURNS SETOF origin_packages AS $$
-                    BEGIN
-                        RETURN QUERY SELECT op.*
-                          FROM origin_packages op
-                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
-                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
-                          INNER JOIN origins o on oc.origin_id = o.id
-                          WHERE op.ident = op_ident AND o.name = op_origin AND oc.name = op_channel;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
-    )?;
-    migrator.migrate(
-        "originsrv",
-        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v1 (
-                    op_origin text,
-                    op_channel text,
-                    op_ident text,
-                    op_target text
-                 ) RETURNS SETOF origin_packages AS $$
-                    BEGIN
-                        RETURN QUERY SELECT op.*
-                          FROM origin_packages op
-                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
-                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
-                          INNER JOIN origins o on oc.origin_id = o.id
-                          WHERE o.name = op_origin
-                          AND oc.name = op_channel
-                          AND op.ident LIKE (op_ident  || '%')
-                          AND op.target = op_target
-                          ORDER BY op.ident DESC
-                          LIMIT 1;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
-    )?;
-    migrator.migrate(
-        "originsrv",
-        r#"CREATE OR REPLACE FUNCTION get_origin_channel_packages_for_channel_v1 (
-                    op_origin text,
-                    op_channel text,
-                    op_ident text,
-                    op_limit bigint,
-                    op_offset bigint
-                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
-                    BEGIN
-                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, op.ident
-                          FROM origin_packages op
-                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
-                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
-                          INNER JOIN origins o on oc.origin_id = o.id
-                          WHERE o.name = op_origin
-                          AND oc.name = op_channel
-                          AND op.ident LIKE (op_ident  || '%')
-                          ORDER BY ident ASC
-                          LIMIT op_limit OFFSET op_offset;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
-    )?;
-    migrator.migrate(
-        "originsrv-v2",
-        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v2 (
-                    op_origin text,
-                    op_channel text,
-                    op_ident text,
-                    op_target text
-                 ) RETURNS SETOF origin_packages AS $$
-                    BEGIN
-                        RETURN QUERY SELECT op.*
-                          FROM origin_packages op
-                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
-                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
-                          INNER JOIN origins o on oc.origin_id = o.id
-                          WHERE o.name = op_origin
-                          AND oc.name = op_channel
-                          AND op.ident LIKE (op_ident  || '%')
-                          AND op.target = op_target;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
-    )?;
-    migrator.migrate("originsrv",
-                     r#"CREATE OR REPLACE FUNCTION get_origin_package_channels_for_package_v1 (
-                    op_ident text
-                 ) RETURNS SETOF origin_channels AS $$
-                    BEGIN
-                        RETURN QUERY SELECT oc.*
-                            FROM origin_channels oc INNER JOIN origin_channel_packages ocp ON oc.id = ocp.channel_id
-                            INNER JOIN origin_packages op ON op.id = ocp.package_id
-                            WHERE op.ident=op_ident
-                            ORDER BY oc.name;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate(
-        "originsrv",
-        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v3 (
-                    op_origin text,
-                    op_channel text,
-                    op_ident text,
-                    op_target text,
-                    op_account_id bigint
-                 ) RETURNS SETOF origin_packages AS $$
-                    BEGIN
-                        RETURN QUERY SELECT op.*
-                          FROM origin_packages op
-                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
-                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
-                          INNER JOIN origins o on oc.origin_id = o.id
-                          WHERE o.name = op_origin
-                          AND oc.name = op_channel
-                          AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
-                          AND op.ident LIKE (op_ident  || '%')
-                          AND op.target = op_target;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
-    )?;
-    migrator.migrate(
-        "originsrv",
-        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_v2 (
-                    op_origin text,
-                    op_channel text,
-                    op_ident text,
-                    op_account_id bigint
-                 ) RETURNS SETOF origin_packages AS $$
-                    BEGIN
-                        RETURN QUERY SELECT op.*
-                          FROM origin_packages op
-                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
-                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
-                          INNER JOIN origins o on oc.origin_id = o.id
-                          WHERE op.ident = op_ident
-                          AND o.name = op_origin
-                          AND oc.name = op_channel
-                          AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)));
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
-    )?;
-    migrator.migrate("originsrv",
-                     r#"CREATE OR REPLACE FUNCTION get_origin_package_channels_for_package_v2 (
-                    op_ident text,
-                    op_account_id bigint
-                 ) RETURNS SETOF origin_channels AS $$
-                    BEGIN
-                        RETURN QUERY SELECT oc.*
-                            FROM origin_channels oc INNER JOIN origin_channel_packages ocp ON oc.id = ocp.channel_id
-                            INNER JOIN origin_packages op ON op.id = ocp.package_id
-                            WHERE op.ident = op_ident
-                            AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
-                            ORDER BY oc.name;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate(
-        "originsrv",
         r#"CREATE OR REPLACE FUNCTION get_origin_channel_packages_for_channel_v2 (
                     op_origin text,
                     op_channel text,
@@ -371,5 +209,124 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_channel_package_v1(text, text, text)"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_channel_package_v2(text, text, text, bigint)"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_v4 (
+                    op_origin text,
+                    op_channel text,
+                    op_ident text,
+                    op_visibilities text
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT op.*
+                          FROM origin_packages op
+                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
+                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
+                          INNER JOIN origins o on oc.origin_id = o.id
+                          WHERE op.ident = op_ident
+                          AND o.name = op_origin
+                          AND oc.name = op_channel
+                          AND op.visibility = ANY(STRING_TO_ARRAY(op_visibilities, ','));
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_channel_package_latest_v1(text, text, text, text)"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_channel_package_latest_v2(text, text, text, text)"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_channel_package_latest_v3(text, text, text, text, bigint)"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v5 (
+                    op_origin text,
+                    op_channel text,
+                    op_ident text,
+                    op_target text,
+                    op_visibilities text
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT op.*
+                          FROM origin_packages op
+                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
+                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
+                          INNER JOIN origins o on oc.origin_id = o.id
+                          WHERE o.name = op_origin
+                          AND oc.name = op_channel
+                          AND op.target = op_target
+                          AND op.visibility = ANY(STRING_TO_ARRAY(op_visibilities, ','))
+                          AND op.ident LIKE (op_ident  || '%');
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_package_channels_for_package_v1(text)"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_package_channels_for_package_v2(text, bigint)"#,
+    )?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_package_channels_for_package_v4 (
+                    op_ident text,
+                    op_visibilities text
+                 ) RETURNS SETOF origin_channels AS $$
+                    BEGIN
+                        RETURN QUERY SELECT oc.*
+                            FROM origin_channels oc INNER JOIN origin_channel_packages ocp ON oc.id = ocp.channel_id
+                            INNER JOIN origin_packages op ON op.id = ocp.package_id
+                            WHERE op.ident = op_ident
+                            AND op.visibility = ANY(STRING_TO_ARRAY(op_visibilities, ','))
+                            ORDER BY oc.name;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"DROP FUNCTION IF EXISTS get_origin_channel_packages_for_channel_v1(text, text, text, bigint, bigint)"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_packages_for_channel_v3 (
+                    op_origin text,
+                    op_channel text,
+                    op_ident text,
+                    op_visibilities text,
+                    op_limit bigint,
+                    op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, op.ident
+                          FROM origin_packages op
+                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
+                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
+                          INNER JOIN origins o on oc.origin_id = o.id
+                          WHERE o.name = op_origin
+                          AND oc.name = op_channel
+                          AND op.visibility = ANY(STRING_TO_ARRAY(op_visibilities, ','))
+                          AND op.ident LIKE (op_ident  || '%')
+                          ORDER BY ident ASC
+                          LIMIT op_limit OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     Ok(())
 }

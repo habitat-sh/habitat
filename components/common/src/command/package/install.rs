@@ -185,6 +185,7 @@ pub fn start<P1, P2>(
     version: &str,
     fs_root_path: P1,
     artifact_cache_path: P2,
+    token: Option<&str>,
 ) -> Result<PackageInstall>
 where
     P1: AsRef<Path>,
@@ -216,7 +217,7 @@ where
     )?;
 
     match *install_source {
-        InstallSource::Ident(ref ident) => task.from_ident(ui, ident.clone(), channel),
+        InstallSource::Ident(ref ident) => task.from_ident(ui, ident.clone(), channel, token),
         InstallSource::Archive(ref local_archive) => task.from_archive(ui, local_archive),
     }
 }
@@ -264,6 +265,7 @@ impl<'a> InstallTask<'a> {
         ui: &mut UI,
         ident: PackageIdent,
         channel: Option<&str>,
+        token: Option<&str>,
     ) -> Result<PackageInstall> {
         if channel.is_some() {
             ui.begin(format!(
@@ -311,7 +313,7 @@ impl<'a> InstallTask<'a> {
             // a fully-qualified identifier.
             if let Some(channel) = channel {
                 let ch = channel.to_string();
-                match self.depot_client.package_channels(&ident) {
+                match self.depot_client.package_channels(&ident, token) {
                     Ok(channels) => {
                         if channels.iter().find(|ref c| ***c == ch).is_none() {
                             ui.warn(format!(
@@ -345,7 +347,7 @@ impl<'a> InstallTask<'a> {
             }
             None => {
                 // No installed package was found
-                self.install_package(ui, &target_ident)
+                self.install_package(ui, &target_ident, token)
             }
         }
     }
@@ -391,7 +393,7 @@ impl<'a> InstallTask<'a> {
             }
             None => {
                 self.store_artifact_in_cache(ident, &local_archive.path)?;
-                self.install_package(ui, ident)
+                self.install_package(ui, ident, None)
             }
         }
     }
@@ -404,9 +406,14 @@ impl<'a> InstallTask<'a> {
     /// If the package is already present in the cache, it is not
     /// re-downloaded. Any dependencies of the package that are not
     /// installed will be re-cached (as needed) and installed.
-    fn install_package(&self, ui: &mut UI, ident: &PackageIdent) -> Result<PackageInstall> {
+    fn install_package(
+        &self,
+        ui: &mut UI,
+        ident: &PackageIdent,
+        token: Option<&str>,
+    ) -> Result<PackageInstall> {
         // TODO (CM): rename artifact to archive
-        let mut artifact = self.get_cached_artifact(ui, ident)?;
+        let mut artifact = self.get_cached_artifact(ui, ident, token)?;
 
         match artifact.package_type()? {
             PackageType::Standalone => {
@@ -418,7 +425,7 @@ impl<'a> InstallTask<'a> {
                     if self.installed_package(dependency).is_some() {
                         ui.status(Status::Using, dependency)?;
                     } else {
-                        artifacts_to_install.push(self.get_cached_artifact(ui, dependency)?);
+                        artifacts_to_install.push(self.get_cached_artifact(ui, dependency, token)?);
                     }
                 }
                 // The package we're actually trying to install goes last; we
@@ -448,12 +455,12 @@ impl<'a> InstallTask<'a> {
                     //
                     // We don't really need a channel down here, as
                     // all these identifiers are fully-qualified.
-                    self.from_ident(ui, service, None)?;
+                    self.from_ident(ui, service, None, token)?;
                 }
                 // All the services have been unpacked; let's do the
                 // same with the composite package itself.
                 self.unpack_artifact(ui, &mut artifact)?;
-            }        
+            }
         }
 
         // Return the thing we just installed
@@ -462,7 +469,12 @@ impl<'a> InstallTask<'a> {
 
     /// This ensures the identified package is in the local cache,
     /// verifies it, and returns a handle to the package's metadata.
-    fn get_cached_artifact(&self, ui: &mut UI, ident: &PackageIdent) -> Result<PackageArchive> {
+    fn get_cached_artifact(
+        &self,
+        ui: &mut UI,
+        ident: &PackageIdent,
+        token: Option<&str>,
+    ) -> Result<PackageArchive> {
         if self.is_artifact_cached(&ident)? {
             debug!(
                 "Found {} in artifact cache, skipping remote download",
@@ -472,7 +484,7 @@ impl<'a> InstallTask<'a> {
             if retry(
                 RETRIES,
                 RETRY_WAIT,
-                || self.fetch_artifact(ui, ident),
+                || self.fetch_artifact(ui, ident, token),
                 |res| res.is_ok(),
             ).is_err()
             {
@@ -527,10 +539,11 @@ impl<'a> InstallTask<'a> {
 
     /// Retrieve the identified package from the depot, ensuring that
     /// the artifact is cached locally.
-    fn fetch_artifact(&self, ui: &mut UI, ident: &PackageIdent) -> Result<()> {
+    fn fetch_artifact(&self, ui: &mut UI, ident: &PackageIdent, token: Option<&str>) -> Result<()> {
         ui.status(Status::Downloading, ident)?;
         match self.depot_client.fetch_package(
             ident,
+            token,
             self.artifact_cache_path,
             ui.progress(),
         ) {

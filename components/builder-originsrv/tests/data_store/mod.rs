@@ -796,7 +796,7 @@ fn update_origin_package() {
 
     let mut package_get = originsrv::OriginPackageGet::new();
     package_get.set_ident(ident.clone());
-    package_get.set_account_id(1);
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Private]);
     let mut result = ds.get_origin_package(&package_get)
         .expect("Failed to get origin package")
         .unwrap();
@@ -816,6 +816,7 @@ fn update_origin_package() {
 
     let mut package_get2 = originsrv::OriginPackageGet::new();
     package_get2.set_ident(ident.clone());
+    package_get2.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result2 = ds.get_origin_package(&package_get2)
         .expect("Failed to get origin package")
         .unwrap();
@@ -1092,6 +1093,7 @@ fn get_origin_package() {
 
     let mut package_get = originsrv::OriginPackageGet::new();
     package_get.set_ident(ident.clone());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result = ds.get_origin_package(&package_get)
         .expect("Failed to get origin package")
         .unwrap();
@@ -1168,6 +1170,7 @@ fn get_latest_package() {
     search_ident.set_name("cacerts".to_string());
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-windows".to_string());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result1 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
 
     search_ident.set_version("2017.01.18".to_string());
@@ -1250,6 +1253,7 @@ fn list_origin_package_versions_for_origin() {
     let mut opvl = originsrv::OriginPackageVersionListRequest::new();
     opvl.set_origin("core".to_string());
     opvl.set_name("cacerts".to_string());
+    opvl.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
 
     let result = ds.list_origin_package_versions_for_origin(&opvl.clone())
         .expect("Could not get the packages from the database");
@@ -1339,6 +1343,7 @@ fn list_origin_package_for_origin() {
     );
     opl.set_start(1);
     opl.set_stop(2);
+    opl.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result = ds.list_origin_package_for_origin(&opl.clone()).expect(
         "Could not get the packages from the database",
     );
@@ -1467,6 +1472,7 @@ fn list_origin_package_for_origin_unique() {
     opl.set_origin("core".to_string());
     opl.set_start(0);
     opl.set_stop(2);
+    opl.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result = ds.list_origin_package_unique_for_origin(&opl.clone())
         .expect("Could not get the packages from the database");
     assert_eq!(result.get_idents().len(), 2);
@@ -1858,6 +1864,7 @@ fn list_origin_package_channels_for_package() {
 
     let mut package_get = originsrv::OriginPackageGet::new();
     package_get.set_ident(ident.clone());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result = ds.get_origin_package(&package_get)
         .expect("Failed to get origin package")
         .unwrap();
@@ -1872,6 +1879,7 @@ fn list_origin_package_channels_for_package() {
 
     let mut opclr = originsrv::OriginPackageChannelListRequest::new();
     opclr.set_ident(ident);
+    opclr.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let resp = ds.list_origin_package_channels_for_package(&opclr)
         .expect("Could not list channels for package")
         .unwrap();
@@ -2005,6 +2013,7 @@ fn promote_origin_package_group() {
     opl.set_ident(originsrv::OriginPackageIdent::from_str("core").unwrap());
     opl.set_start(0);
     opl.set_stop(20);
+    opl.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result = ds.list_origin_channel_package_for_channel(&opl.clone())
         .expect("Could not get the packages from the database");
     assert_eq!(result.get_idents().len(), 3);
@@ -2167,6 +2176,7 @@ fn get_channel_package() {
     let mut package_get = originsrv::OriginChannelPackageGet::new();
     package_get.set_ident(ident1.clone());
     package_get.set_name(channel1.get_name().to_string());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result = ds.get_origin_channel_package(&package_get)
         .expect("Failed to get origin channel package")
         .unwrap();
@@ -2303,6 +2313,7 @@ fn get_latest_channel_package() {
     search_ident.set_name("cacerts".to_string());
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-windows".to_string());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
 
     // latest core/cacerts in channel1 for windows
     let result1 = ds.get_origin_channel_package_latest(&package_get.clone())
@@ -2467,6 +2478,7 @@ fn list_origin_channel_package_for_channel() {
     );
     opl.set_start(0);
     opl.set_stop(2);
+    opl.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let result = ds.list_origin_channel_package_for_channel(&opl.clone())
         .expect("Could not get the packages from the database");
     assert_eq!(result.get_idents().len(), 2);
@@ -2594,6 +2606,7 @@ fn delete_origin_channel_by_name() {
     let mut package_get = originsrv::OriginChannelPackageGet::new();
     package_get.set_ident(ident1.clone());
     package_get.set_name(channel2.get_name().to_string());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let _ = ds.get_origin_channel_package(&package_get)
         .expect("Failed to get origin channel package")
         .unwrap();
@@ -2610,6 +2623,7 @@ fn delete_origin_channel_by_name() {
     // Check that the package still exists
     let mut package_get = originsrv::OriginPackageGet::new();
     package_get.set_ident(ident1.clone());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     let _ = ds.get_origin_package(&package_get)
         .expect("Failed to get origin package")
         .unwrap();
@@ -2619,6 +2633,7 @@ fn delete_origin_channel_by_name() {
     let mut package_get = originsrv::OriginChannelPackageGet::new();
     package_get.set_ident(ident1.clone());
     package_get.set_name(channel2.get_name().to_string());
+    package_get.set_visibilities(vec![originsrv::OriginPackageVisibility::Public]);
     assert!(
         ds.get_origin_channel_package(&package_get)
             .expect("Error getting package from database")

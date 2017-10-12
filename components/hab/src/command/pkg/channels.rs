@@ -41,11 +41,11 @@ use error::Result;
 /// # Failures
 ///
 /// * Fails if it cannot find the specified package in Builder.
-pub fn start(ui: &mut UI, url: &str, ident: &PackageIdent) -> Result<()> {
+pub fn start(ui: &mut UI, url: &str, ident: &PackageIdent, token: Option<&str>) -> Result<()> {
     let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Retrieving channels for {}", ident))?;
-    let channels = depot_client.package_channels(ident)?;
+    let channels = depot_client.package_channels(ident, token)?;
     for channel in &channels {
         println!("{}", channel);
     }

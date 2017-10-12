@@ -16,9 +16,9 @@ use error::Result;
 use depot_client::Client;
 use {PRODUCT, VERSION};
 
-pub fn start(st: &str, url: &str) -> Result<()> {
+pub fn start(st: &str, url: &str, token: Option<&str>) -> Result<()> {
     let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
-    let (packages, more) = depot_client.search_package(st)?;
+    let (packages, more) = depot_client.search_package(st, token)?;
     match packages.len() {
         0 => println!("No packages found that match '{}'", st),
         _ => {
