@@ -30,6 +30,7 @@ use error::{SrvError, SrvResult};
 lazy_static! {
     static ref DISPATCH_TABLE: DispatchTable<SchedulerSrv> = {
         let mut map = DispatchTable::new();
+        map.register(GroupAbort::descriptor_static(None), handlers::group_abort);
         map.register(GroupCreate::descriptor_static(None), handlers::group_create);
         map.register(GroupGet::descriptor_static(None), handlers::group_get);
         map.register(PackageCreate::descriptor_static(None), handlers::package_create);

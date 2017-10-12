@@ -34,6 +34,10 @@ message GroupCreate {
   optional bool package_only = 6;
 }
 
+message GroupAbort {
+  optional uint64 group_id = 1;
+}
+
 message GroupGet {
   optional uint64 group_id = 1;
 }

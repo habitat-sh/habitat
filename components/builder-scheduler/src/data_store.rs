@@ -416,6 +416,18 @@ impl DataStore {
                                 "#,
         )?;
 
+        // Abort a group (experimental)
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION abort_group_v1(in_gid bigint) RETURNS void AS $$
+                UPDATE projects SET project_state='Failure'
+                    WHERE owner_id = in_gid
+                    AND (project_state = 'InProgress' OR project_state = 'NotStarted');
+                UPDATE groups SET group_state='Complete' where id = in_gid;
+            $$ LANGUAGE SQL VOLATILE
+            "#,
+        )?;
+
         migrator.finish()?;
 
         Ok(())
@@ -571,6 +583,16 @@ impl DataStore {
 
         group.set_projects(projects);
         Ok(Some(group))
+    }
+
+    // TODO (SA): This is an experimental dev-only function for now
+    pub fn abort_group(&self, msg: &GroupAbort) -> SrvResult<()> {
+        let group_id = msg.get_group_id();
+        let conn = self.pool.get_shard(0)?;
+        conn.query("SELECT abort_group_v1($1)", &[&(group_id as i64)])
+            .map_err(SrvError::GroupGet)?;
+
+        Ok(())
     }
 
     fn row_to_package(&self, row: &postgres::rows::Row) -> SrvResult<Package> {
