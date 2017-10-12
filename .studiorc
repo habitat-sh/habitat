@@ -182,7 +182,7 @@ start-sessionsrv() {
 }
 
 start-worker() {
-  hab svc load core/builder-worker --bind jobsrv:builder-jobsrv.default --bind depot:builder-api.default
+  hab svc load core/builder-worker --bind jobsrv:builder-jobsrv.default --bind depot:builder-api-proxy.default
 }
 
 stop-builder() {
