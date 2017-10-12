@@ -12,77 +12,77 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as cookies from "js-cookie";
-import * as gitHub from "./actions/gitHub";
-import * as actions from "./actions/index";
-import * as depotApi from "./depotApi";
+import * as cookies from 'js-cookie';
+import * as gitHub from './actions/gitHub';
+import * as actions from './actions/index';
+import * as depotApi from './depotApi';
 
-describe("actions", () => {
+describe('actions', () => {
 
-    xdescribe("populateBuildLog", () => {
-        describe("when data is undefined", () => {
-            it("has an undefined payload", () => {
+  xdescribe('populateBuildLog', () => {
+    describe('when data is undefined', () => {
+      it('has an undefined payload', () => {
 
-            });
-        });
-
-        describe("when data is a string", () => {
-            it("has a string payload", () => {
-
-            });
-        });
+      });
     });
 
-    xdescribe("populateExploreStats", () => {
-        it("has an object payload", () => {
-            let data = { plans: 123, builds: 456 };
-            expect(actions.populateExploreStats(data)).toEqual({
-                type: actions.POPULATE_EXPLORE_STATS,
-                payload: data
-            });
-        });
+    describe('when data is a string', () => {
+      it('has a string payload', () => {
+
+      });
     });
+  });
 
-    describe("filterPackagesBy", () => {
-
-        describe("given a query parameter", () => {
-
-            it("encodes the parameter before sending it", () => {
-                spyOn(depotApi, "get").and.returnValue(new Promise(() => {}));
-                actions.filterPackagesBy({}, "core/awesome", false)(() => {});
-                expect(depotApi.get).toHaveBeenCalledWith({ query: "core%2Fawesome" }, 0);
-            });
-        });
+  xdescribe('populateExploreStats', () => {
+    it('has an object payload', () => {
+      let data = { plans: 123, builds: 456 };
+      expect(actions.populateExploreStats(data)).toEqual({
+        type: actions.POPULATE_EXPLORE_STATS,
+        payload: data
+      });
     });
+  });
 
-    describe("gitHub", () => {
+  describe('filterPackagesBy', () => {
 
-        describe("setCookie", () => {
+    describe('given a query parameter', () => {
 
-            it("applies the proper domain", () => {
-                spyOn(cookies, "set");
-
-                spyOn(gitHub, "currentHostname").and.returnValues(
-                    "localhost",
-                    "builder.habitat.sh",
-                    "builder.acceptance.habitat.foo",
-                    "1.2.3.4"
-                );
-
-                gitHub.setCookie("gitHubAuthToken", "some-token");
-                gitHub.setCookie("gitHubAuthToken", "some-token");
-                gitHub.setCookie("gitHubAuthToken", "some-token");
-                gitHub.setCookie("gitHubAuthToken", "some-token");
-
-                expect(cookies.set.calls.allArgs()).toEqual(
-                    [
-                        [ "gitHubAuthToken", "some-token", { domain: "localhost", secure: false } ],
-                        [ "gitHubAuthToken", "some-token", { domain: "habitat.sh", secure: false } ],
-                        [ "gitHubAuthToken", "some-token", { domain: "habitat.foo", secure: false } ],
-                        [ "gitHubAuthToken", "some-token", { domain: "1.2.3.4", secure: false } ]
-                    ]
-                );
-            });
-        });
+      it('encodes the parameter before sending it', () => {
+        spyOn(depotApi, 'get').and.returnValue(new Promise(() => { }));
+        actions.filterPackagesBy({}, 'core/awesome', false)(() => { });
+        expect(depotApi.get).toHaveBeenCalledWith({ query: 'core%2Fawesome' }, 0);
+      });
     });
+  });
+
+  describe('gitHub', () => {
+
+    describe('setCookie', () => {
+
+      it('applies the proper domain', () => {
+        spyOn(cookies, 'set');
+
+        spyOn(gitHub, 'currentHostname').and.returnValues(
+          'localhost',
+          'builder.habitat.sh',
+          'builder.acceptance.habitat.foo',
+          '1.2.3.4'
+        );
+
+        gitHub.setCookie('gitHubAuthToken', 'some-token');
+        gitHub.setCookie('gitHubAuthToken', 'some-token');
+        gitHub.setCookie('gitHubAuthToken', 'some-token');
+        gitHub.setCookie('gitHubAuthToken', 'some-token');
+
+        expect(cookies.set.calls.allArgs()).toEqual(
+          [
+            ['gitHubAuthToken', 'some-token', { domain: 'localhost', secure: false }],
+            ['gitHubAuthToken', 'some-token', { domain: 'habitat.sh', secure: false }],
+            ['gitHubAuthToken', 'some-token', { domain: 'habitat.foo', secure: false }],
+            ['gitHubAuthToken', 'some-token', { domain: '1.2.3.4', secure: false }]
+          ]
+        );
+      });
+    });
+  });
 });

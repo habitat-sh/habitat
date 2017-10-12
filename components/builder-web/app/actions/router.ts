@@ -12,40 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export const ROUTE_CHANGE = "ROUTE_CHANGE";
-export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
-export const SET_REDIRECT_ROUTE = "SET_REDIRECT_ROUTE";
-export const RESET_REDIRECT_ROUTE = "RESET_REDIRECT_ROUTE";
+export const ROUTE_CHANGE = 'ROUTE_CHANGE';
+export const ROUTE_REQUESTED = 'ROUTE_REQUESTED';
+export const SET_REDIRECT_ROUTE = 'SET_REDIRECT_ROUTE';
+export const RESET_REDIRECT_ROUTE = 'RESET_REDIRECT_ROUTE';
 
 export function goHome() {
-    return dispatch => {
-        dispatch(requestRoute(["/pkgs", "core"]));
-    };
+  return dispatch => {
+    dispatch(requestRoute(['/pkgs', 'core']));
+  };
 }
 
 export function routeChange(newRoute) {
-    return {
-        type: ROUTE_CHANGE,
-        payload: newRoute,
-    };
+  return {
+    type: ROUTE_CHANGE,
+    payload: newRoute,
+  };
 }
 
 export function requestRoute(requestedRoute: Array<any>) {
-    return {
-        type: ROUTE_REQUESTED,
-        payload: requestedRoute
-    };
+  return {
+    type: ROUTE_REQUESTED,
+    payload: requestedRoute
+  };
 }
 
 export function setRedirectRoute(redirectRoute: Array<any>) {
-    return {
-        type: SET_REDIRECT_ROUTE,
-        payload: redirectRoute
-    };
+  return {
+    type: SET_REDIRECT_ROUTE,
+    payload: redirectRoute
+  };
 }
 
 export function resetRedirectRoute() {
-    return {
-        type: RESET_REDIRECT_ROUTE
-    };
+  return {
+    type: RESET_REDIRECT_ROUTE
+  };
 }

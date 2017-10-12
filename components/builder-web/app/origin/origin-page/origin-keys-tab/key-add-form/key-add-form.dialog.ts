@@ -12,120 +12,120 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Inject, OnInit } from "@angular/core";
-import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from "@angular/material";
-import { parseKey } from "../../../../util";
-import { AppStore } from "../../../../AppStore";
-import config from "../../../../config";
+import { Component, Inject, OnInit } from '@angular/core';
+import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { parseKey } from '../../../../util';
+import { AppStore } from '../../../../app.store';
+import config from '../../../../config';
 import {
-    uploadOriginPrivateKey,
-    uploadOriginPublicKey
-} from "../../../../actions/index";
+  uploadOriginPrivateKey,
+  uploadOriginPublicKey
+} from '../../../../actions/index';
 
 @Component({
-    selector: "hab-key-add-form",
-    template: require("./key-add-form.dialog.html")
+  selector: 'hab-key-add-form',
+  template: require('./key-add-form.dialog.html')
 })
 
 export class KeyAddFormDialog implements OnInit {
-    originName: string;
-    type: string;
-    form: FormGroup;
-    control: FormControl;
+  originName: string;
+  type: string;
+  form: FormGroup;
+  control: FormControl;
 
-    constructor(private formBuilder: FormBuilder, private store: AppStore,
-        public dialogRef: MdDialogRef<KeyAddFormDialog>,
-        @Inject(MD_DIALOG_DATA) public data: any) {
-        this.originName = data.origin;
-        this.type = data.type;
-        this.form = formBuilder.group({});
+  constructor(private formBuilder: FormBuilder, private store: AppStore,
+    public dialogRef: MdDialogRef<KeyAddFormDialog>,
+    @Inject(MD_DIALOG_DATA) public data: any) {
+    this.originName = data.origin;
+    this.type = data.type;
+    this.form = formBuilder.group({});
+  }
+
+  ngOnInit() {
+    this.control = new FormControl(
+      '',
+      Validators.compose([
+        Validators.required,
+        this.keyFormatValidator,
+        this.keyTypeValidator.bind(this),
+        this.originMatchValidator.bind(this),
+      ])
+    );
+
+    this.form.addControl('key', this.control);
+  }
+
+  submit(key) {
+    if (this.type === 'public') {
+      this.store.dispatch(uploadOriginPublicKey(key, this.token));
+    } else {
+      this.store.dispatch(uploadOriginPrivateKey(key, this.token));
     }
+    this.dialogRef.close();
+  }
 
-    ngOnInit() {
-        this.control = new FormControl(
-            "",
-            Validators.compose([
-                Validators.required,
-                this.keyFormatValidator,
-                this.keyTypeValidator.bind(this),
-                this.originMatchValidator.bind(this),
-            ])
-        );
-
-        this.form.addControl("key", this.control);
+  keyFormatValidator(control) {
+    if (parseKey(control.value).valid) {
+      return null;
+    } else {
+      return { invalidFormat: true };
     }
+  }
 
-    submit(key) {
-        if (this.type === "public") {
-            this.store.dispatch(uploadOriginPublicKey(key, this.token));
-        } else {
-            this.store.dispatch(uploadOriginPrivateKey(key, this.token));
-        }
-        this.dialogRef.close();
-    }
+  close() {
+    this.dialogRef.close();
+  }
 
-    keyFormatValidator(control) {
-        if (parseKey(control.value).valid) {
-            return null;
-        } else {
-            return { invalidFormat: true };
-        }
-    }
+  get token() {
+    return this.store.getState().session.token;
+  }
 
-    close() {
-        this.dialogRef.close();
-    }
+  get ui() {
+    return this.store.getState().origins.ui.current;
+  }
 
-    get token() {
-        return this.store.getState().session.token;
+  get icon() {
+    if (this.type === 'public') {
+      return 'visibility';
+    } else {
+      return 'visibility-off';
     }
+  }
 
-    get ui() {
-        return this.store.getState().origins.ui.current;
-    }
+  get docsUrl() {
+    return config['docs_url'];
+  }
 
-    get icon() {
-        if (this.type === "public") {
-            return "visibility";
-        } else {
-            return "visibility-off";
-        }
+  get errorMessage() {
+    if (this.type === 'public') {
+      this.ui.publicKeyErrorMessage;
+    } else {
+      return this.ui.privateKeyErrorMessage;
     }
+  }
 
-    get docsUrl() {
-        return config["docs_url"];
+  get keyFileHeaderPrefix() {
+    if (this.type === 'public') {
+      return 'SIG-PUB-1';
+    } else {
+      return 'SIG-SEC-1';
     }
+  }
 
-    get errorMessage() {
-        if (this.type === "public") {
-            this.ui.publicKeyErrorMessage;
-        } else {
-            return this.ui.privateKeyErrorMessage;
-        }
+  private keyTypeValidator(control) {
+    if (parseKey(control.value).type === this.keyFileHeaderPrefix) {
+      return null;
+    } else {
+      return { invalidType: true };
     }
+  }
 
-    get keyFileHeaderPrefix() {
-        if (this.type === "public") {
-            return "SIG-PUB-1";
-        } else {
-            return "SIG-SEC-1";
-        }
+  private originMatchValidator(control) {
+    if (parseKey(control.value).origin === this.originName) {
+      return null;
+    } else {
+      return { invalidOrigin: true };
     }
-
-    private keyTypeValidator(control) {
-        if (parseKey(control.value).type === this.keyFileHeaderPrefix) {
-            return null;
-        } else {
-            return { invalidType: true };
-        }
-    }
-
-    private originMatchValidator(control) {
-        if (parseKey(control.value).origin === this.originName) {
-            return null;
-        } else {
-            return { invalidOrigin: true };
-        }
-    }
+  }
 }

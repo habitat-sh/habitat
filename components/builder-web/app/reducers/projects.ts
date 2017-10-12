@@ -12,61 +12,61 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as actionTypes from "../actions/index";
-import initialState from "../initialState";
-import { List, Record } from "immutable";
-import { Project } from "../records/Project";
+import * as actionTypes from '../actions/index';
+import initialState from '../initialState';
+import { List, Record } from 'immutable';
+import { Project } from '../records/Project';
 
-export default function projects(state = initialState["projects"], action) {
+export default function projects(state = initialState['projects'], action) {
 
-    switch (action.type) {
+  switch (action.type) {
 
-        case actionTypes.CLEAR_PROJECTS:
-            return state.set("visible", List()).
-                setIn(["ui", "visible", "errorMessage"], undefined).
-                setIn(["ui", "visible", "exists"], false).
-                setIn(["ui", "visible", "loading"], true);
+    case actionTypes.CLEAR_PROJECTS:
+      return state.set('visible', List()).
+        setIn(['ui', 'visible', 'errorMessage'], undefined).
+        setIn(['ui', 'visible', 'exists'], false).
+        setIn(['ui', 'visible', 'loading'], true);
 
-        case actionTypes.CLEAR_CURRENT_PROJECT:
-            return state.setIn(["current"], Project()).
-                setIn(["ui", "current", "exists"], false).
-                setIn(["ui", "current", "loading"], true);
+    case actionTypes.CLEAR_CURRENT_PROJECT:
+      return state.setIn(['current'], Project()).
+        setIn(['ui', 'current', 'exists'], false).
+        setIn(['ui', 'current', 'loading'], true);
 
-        case actionTypes.CLEAR_CURRENT_PROJECT_INTEGRATION:
-            return state.setIn(["current", "settings"], undefined);
+    case actionTypes.CLEAR_CURRENT_PROJECT_INTEGRATION:
+      return state.setIn(['current', 'settings'], undefined);
 
-        case actionTypes.SET_CURRENT_PROJECT:
-            if (action.error) {
-                return state.setIn(["current"], Project()).
-                    setIn(["ui", "current", "exists"], false).
-                    setIn(["ui", "current", "loading"], false);
-            }
-            else {
-                if (action.payload.visibility !== "public") {
-                    action.payload.visibility = "private";
-                }
-                return state.setIn(["current"], Project(action.payload)).
-                    setIn(["ui", "current", "exists"], true).
-                    setIn(["ui", "current", "loading"], false);
-            }
+    case actionTypes.SET_CURRENT_PROJECT:
+      if (action.error) {
+        return state.setIn(['current'], Project()).
+          setIn(['ui', 'current', 'exists'], false).
+          setIn(['ui', 'current', 'loading'], false);
+      }
+      else {
+        if (action.payload.visibility !== 'public') {
+          action.payload.visibility = 'private';
+        }
+        return state.setIn(['current'], Project(action.payload)).
+          setIn(['ui', 'current', 'exists'], true).
+          setIn(['ui', 'current', 'loading'], false);
+      }
 
-        case actionTypes.SET_CURRENT_PROJECT_INTEGRATION:
-            return state.setIn(["current", "settings"], action.payload);
+    case actionTypes.SET_CURRENT_PROJECT_INTEGRATION:
+      return state.setIn(['current', 'settings'], action.payload);
 
-        case actionTypes.SET_PROJECTS:
-            if (action.error) {
-                return state.set("visible", List()).
-                    setIn(["ui", "visible", "errorMessage"], action.error.message).
-                    setIn(["ui", "visible", "exists"], false).
-                    setIn(["ui", "visible", "loading"], false);
-            } else {
-                return state.set("visible", state.get("visible").concat(List(action.payload))).
-                    setIn(["ui", "visible", "errorMessage"], undefined).
-                    setIn(["ui", "visible", "exists"], true).
-                    setIn(["ui", "visible", "loading"], false);
-            }
+    case actionTypes.SET_PROJECTS:
+      if (action.error) {
+        return state.set('visible', List()).
+          setIn(['ui', 'visible', 'errorMessage'], action.error.message).
+          setIn(['ui', 'visible', 'exists'], false).
+          setIn(['ui', 'visible', 'loading'], false);
+      } else {
+        return state.set('visible', state.get('visible').concat(List(action.payload))).
+          setIn(['ui', 'visible', 'errorMessage'], undefined).
+          setIn(['ui', 'visible', 'exists'], true).
+          setIn(['ui', 'visible', 'loading'], false);
+      }
 
-        default:
-            return state;
-    }
+    default:
+      return state;
+  }
 }

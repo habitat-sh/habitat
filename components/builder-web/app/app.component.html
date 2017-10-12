@@ -1,0 +1,14 @@
+<div id="main-nav">
+  <hab-notifications [notifications]="state.notifications.all" [removeNotification]="removeNotification">
+  </hab-notifications>
+  <hab-header [appName]="state.app.name" [isUserNavOpen]="user.isUserNavOpen" [isSignedIn]="user.isSignedIn" [username]="user.username"
+    [avatarUrl]="user.gitHub.get('avatar_url')" [signOut]="signOut" [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
+</div>
+<div class="hab-container" [class.full]="fullView">
+  <hab-side-nav [isSignedIn]="user.isSignedIn" *ngIf="!hideNav">
+  </hab-side-nav>
+  <section class="hab-main" [class.centered]="hideNav">
+    <router-outlet></router-outlet>
+  </section>
+</div>
+<hab-footer [currentYear]="state.app.currentYear"></hab-footer>

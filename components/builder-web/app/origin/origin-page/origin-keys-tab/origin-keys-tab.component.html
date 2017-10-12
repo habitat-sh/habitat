@@ -13,8 +13,7 @@
         </li>
         <li *ngIf="!privateKey">
           <span class="none">
-            <strong>No private key found</strong>.
-            You can generate a key pair above.
+            <strong>No private key found</strong>. You can generate a key pair above.
           </span>
         </li>
         <li *ngIf="privateKey">
@@ -41,10 +40,9 @@
           <h3 class="actions">Actions</h3>
         </li>
         <li class="none" *ngIf="publicKeys.size === 0">
-            <span class="none">
-              <strong>No public key found</strong>.
-              You can generate a key pair above.
-            </span>
+          <span class="none">
+            <strong>No public key found</strong>. You can generate a key pair above.
+          </span>
         </li>
         <li *ngFor="let key of publicKeys">
           <span class="key">
@@ -67,11 +65,11 @@
   <div class="page-sidebar">
     <h3>About Origin Keys</h3>
     <p>
-      Origin keys are used to sign .hart files, providing the capability to
-      verify their authenticity at both build and runtime.
+      Origin keys are used to sign .hart files, providing the capability to verify their authenticity at both build and runtime.
     </p>
     <p>
-      Only one <strong>private key</strong> exists for an origin at any given time.
+      Only one
+      <strong>private key</strong> exists for an origin at any given time.
     </p>
     <p>
       Read the docs for more information on

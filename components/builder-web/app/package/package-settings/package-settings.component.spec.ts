@@ -1,14 +1,28 @@
-import { TestBed, ComponentFixture } from "@angular/core/testing";
-import { RouterTestingModule } from "@angular/router/testing";
-import { Component, DebugElement } from "@angular/core";
-import { By } from "@angular/platform-browser";
-import { ActivatedRoute } from "@angular/router";
-import { Observable } from "rxjs";
-import { MockComponent } from "ng2-mock-component";
-import { AppStore } from "../../AppStore";
-import { Package } from "../../records/Package";
-import * as actions from "../../actions/index";
-import { PackageSettingsComponent } from "./package-settings.component";
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Component, DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
+import { MockComponent } from 'ng2-mock-component';
+import { AppStore } from '../../app.store';
+import { Package } from '../../records/Package';
+import * as actions from '../../actions/index';
+import { PackageSettingsComponent } from './package-settings.component';
 
 class MockAppStore {
 
@@ -20,19 +34,19 @@ class MockAppStore {
     };
   }
 
-  dispatch() {}
+  dispatch() { }
 }
 
 class MockRoute {
   parent = {
     params: Observable.of({
-      origin: "core",
-      name: "nginx"
+      origin: 'core',
+      name: 'nginx'
     })
   };
 }
 
-describe("PackageSettingsComponent", () => {
+describe('PackageSettingsComponent', () => {
   let fixture: ComponentFixture<PackageSettingsComponent>;
   let component: PackageSettingsComponent;
   let element: DebugElement;
@@ -60,9 +74,9 @@ describe("PackageSettingsComponent", () => {
     element = fixture.debugElement;
   });
 
-  describe("given origin and name", () => {
+  describe('given origin and name', () => {
 
-    xit("fetches current project settings", () => {
+    xit('fetches current project settings', () => {
 
     });
   });

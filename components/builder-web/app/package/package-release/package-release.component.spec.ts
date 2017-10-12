@@ -1,14 +1,28 @@
-import { TestBed, ComponentFixture } from "@angular/core/testing";
-import { RouterTestingModule } from "@angular/router/testing";
-import { Component, DebugElement } from "@angular/core";
-import { By } from "@angular/platform-browser";
-import { ActivatedRoute } from "@angular/router";
-import { Observable } from "rxjs";
-import { MockComponent } from "ng2-mock-component";
-import { AppStore } from "../../AppStore";
-import { Package } from "../../records/Package";
-import * as actions from "../../actions/index";
-import { PackageReleaseComponent } from "./package-release.component";
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Component, DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
+import { MockComponent } from 'ng2-mock-component';
+import { AppStore } from '../../app.store';
+import { Package } from '../../records/Package';
+import * as actions from '../../actions/index';
+import { PackageReleaseComponent } from './package-release.component';
 
 class MockAppStore {
 
@@ -20,24 +34,24 @@ class MockAppStore {
     };
   }
 
-  dispatch() {}
+  dispatch() { }
 }
 
 class MockRoute {
   parent = {
     params: Observable.of({
-      origin: "core",
-      name: "nginx"
+      origin: 'core',
+      name: 'nginx'
     })
   };
 
   params = Observable.of({
-    version: "1.11.10",
-    release: "20170829004822"
+    version: '1.11.10',
+    release: '20170829004822'
   });
 }
 
-describe("PackageReleaseComponent", () => {
+describe('PackageReleaseComponent', () => {
   let fixture: ComponentFixture<PackageReleaseComponent>;
   let component: PackageReleaseComponent;
   let element: DebugElement;
@@ -46,8 +60,8 @@ describe("PackageReleaseComponent", () => {
   beforeEach(() => {
 
     store = new MockAppStore();
-    spyOn(store, "dispatch");
-    spyOn(actions, "fetchPackage");
+    spyOn(store, 'dispatch');
+    spyOn(actions, 'fetchPackage');
 
     TestBed.configureTestingModule({
       imports: [
@@ -55,7 +69,7 @@ describe("PackageReleaseComponent", () => {
       ],
       declarations: [
         PackageReleaseComponent,
-        MockComponent({ selector: "hab-package-detail", inputs: [ "package" ]})
+        MockComponent({ selector: 'hab-package-detail', inputs: ['package'] })
       ],
       providers: [
         { provide: AppStore, useValue: store },
@@ -68,16 +82,16 @@ describe("PackageReleaseComponent", () => {
     element = fixture.debugElement;
   });
 
-  describe("given origin, name, version and release", () => {
+  describe('given origin, name, version and release', () => {
 
-    it("fetches the specified package", () => {
+    it('fetches the specified package', () => {
       expect(store.dispatch).toHaveBeenCalled();
       expect(actions.fetchPackage).toHaveBeenCalledWith({
         ident: {
-          origin: "core",
-          name: "nginx",
-          version: "1.11.10",
-          release: "20170829004822"
+          origin: 'core',
+          name: 'nginx',
+          version: '1.11.10',
+          release: '20170829004822'
         }
       });
     });

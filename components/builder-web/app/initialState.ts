@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { List, Map, Record } from "immutable";
-import { BehaviorSubject } from "rxjs";
-import { Origin } from "./records/Origin";
-import { Package } from "./records/Package";
-import { Project } from "./records/Project";
-import { getBrowserCookies } from "./actions/cookies";
+import { List, Map, Record } from 'immutable';
+import { BehaviorSubject } from 'rxjs';
+import { Origin } from './records/Origin';
+import { Package } from './records/Package';
+import { Project } from './records/Project';
+import { getBrowserCookies } from './actions/cookies';
 
 export default Record({
   app: Record({
-    name: "Habitat",
+    name: 'Habitat',
     currentYear: new Date().getFullYear(),
   })(),
   session: Record({
-    token: ""
+    token: ''
   })(),
   gitHub: Record({
     authState: undefined,
@@ -76,20 +76,20 @@ export default Record({
       members: List(),
       availableMemberSearchResults: List([
         Record({
-          username: "testUser",
-          name: "Test User",
-          email: "smith+chef-logo@getchef.com",
-          status: "",
+          username: 'testUser',
+          name: 'Test User',
+          email: 'smith+chef-logo@getchef.com',
+          status: '',
           canBeAdded: true,
           ui: Record({
             isActionsMenuOpen: false
           })(),
         })(),
         Record({
-          username: "testUser2",
-          name: "Test User 2",
-          email: "nlloyds@gmail.com",
-          status: "",
+          username: 'testUser2',
+          name: 'Test User 2',
+          email: 'nlloyds@gmail.com',
+          status: '',
           canBeAdded: true,
           ui: Record({
             isActionsMenuOpen: false
@@ -157,7 +157,7 @@ export default Record({
     visible: List(),
     versions: undefined,
     nextRange: 0,
-    searchQuery: "",
+    searchQuery: '',
     totalCount: 0,
     ui: Record({
       current: Record({
@@ -210,12 +210,12 @@ export default Record({
     })()
   })(),
   router: Record({
-    requestedRoute: "",
-    route: "",
-    redirectRoute: ""
+    requestedRoute: '',
+    route: '',
+    redirectRoute: ''
   })(),
   ui: Record({
-    layout: "default"
+    layout: 'default'
   })(),
   users: Record({
     current: Record({

@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component } from "@angular/core";
-import { AppStore } from "../../../AppStore";
-import { updateOrigin } from "../../../actions/index";
+import { Component } from '@angular/core';
+import { AppStore } from '../../../app.store';
+import { updateOrigin } from '../../../actions/index';
 
 @Component({
-    template: require("./origin-settings-tab.component.html")
+  template: require('./origin-settings-tab.component.html')
 })
 
 export class OriginSettingsTabComponent {
 
-  constructor(private store: AppStore) {}
+  constructor(private store: AppStore) { }
 
   get origin() {
     return this.store.getState().origins.current;

@@ -12,99 +12,99 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
-import { List } from "immutable";
-import { MdDialog, MdDialogRef } from "@angular/material";
-import { SimpleConfirmDialog } from "../../shared/dialog/simple-confirm/simple-confirm.dialog";
-import { acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins, ignoreOriginInvitation } from "../../actions/index";
-import { AppStore } from "../../AppStore";
-import config from "../../config";
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { List } from 'immutable';
+import { MdDialog, MdDialogRef } from '@angular/material';
+import { SimpleConfirmDialog } from '../../shared/dialog/simple-confirm/simple-confirm.dialog';
+import { acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins, ignoreOriginInvitation } from '../../actions/index';
+import { AppStore } from '../../app.store';
+import config from '../../config';
 
 @Component({
-    template: require("./origins-page.component.html")
+  template: require('./origins-page.component.html')
 })
 export class OriginsPageComponent implements OnInit {
 
-    constructor(
-        private store: AppStore,
-        private router: Router,
-        private confirmDialog: MdDialog
-    ) { }
+  constructor(
+    private store: AppStore,
+    private router: Router,
+    private confirmDialog: MdDialog
+  ) { }
 
-    ngOnInit() {
-        if (this.token) {
-            this.store.dispatch(fetchMyOrigins(this.token));
-            this.store.dispatch(fetchMyOriginInvitations(this.token));
-        }
+  ngOnInit() {
+    if (this.token) {
+      this.store.dispatch(fetchMyOrigins(this.token));
+      this.store.dispatch(fetchMyOriginInvitations(this.token));
     }
+  }
 
-    get config() {
-        return config;
-    }
+  get config() {
+    return config;
+  }
 
-    get origins() {
-        const mine = this.store.getState().origins.mine;
-        const invites = this.store.getState().origins.myInvitations;
-        return mine.concat(invites).sortBy(item => item.name || item.origin_name);
-    }
+  get origins() {
+    const mine = this.store.getState().origins.mine;
+    const invites = this.store.getState().origins.myInvitations;
+    return mine.concat(invites).sortBy(item => item.name || item.origin_name);
+  }
 
-    get token() {
-        return this.store.getState().session.token;
-    }
+  get token() {
+    return this.store.getState().session.token;
+  }
 
-    get ui() {
-        return this.store.getState().origins.ui.mine;
-    }
+  get ui() {
+    return this.store.getState().origins.ui.mine;
+  }
 
-    accept(item) {
-        this.store.dispatch(acceptOriginInvitation(
-            item.origin_invitation_id, item.origin_name, this.token
-        ));
-    }
+  accept(item) {
+    this.store.dispatch(acceptOriginInvitation(
+      item.origin_invitation_id, item.origin_name, this.token
+    ));
+  }
 
-    ignore(item) {
-        const data = {
-            heading: "Confirm ignore",
-            body: `Are you sure you want to ignore this invitation? Doing so will prevent
+  ignore(item) {
+    const data = {
+      heading: 'Confirm ignore',
+      body: `Are you sure you want to ignore this invitation? Doing so will prevent
                 access to this origin and its private packages.`,
-            action: "ignore it"
-        };
+      action: 'ignore it'
+    };
 
-        this.confirm(data, () => {
-            this.store.dispatch(ignoreOriginInvitation(
-                item.origin_invitation_id, item.origin_name, this.token
-            ));
-        });
+    this.confirm(data, () => {
+      this.store.dispatch(ignoreOriginInvitation(
+        item.origin_invitation_id, item.origin_name, this.token
+      ));
+    });
+  }
+
+  name(item) {
+    return item.name || item.origin_name;
+  }
+
+  navigateTo(item) {
+    if (!this.isInvitation(item)) {
+      this.router.navigate(['/origins', item.name]);
     }
+  }
 
-    name(item) {
-        return item.name || item.origin_name;
-    }
+  packageCount(item) {
+    const count = item.packageCount;
+    return count >= 0 ? count : '-';
+  }
 
-    navigateTo(item) {
-        if (!this.isInvitation(item)) {
-            this.router.navigate(["/origins", item.name]);
+  isInvitation(item) {
+    return !!item.origin_invitation_id;
+  }
+
+  private confirm(data, then) {
+    this.confirmDialog
+      .open(SimpleConfirmDialog, { width: '480px', data: data })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          then();
         }
-    }
-
-    packageCount(item) {
-        const count = item.packageCount;
-        return count >= 0 ? count : "-";
-    }
-
-    isInvitation(item) {
-        return !!item.origin_invitation_id;
-    }
-
-    private confirm(data, then) {
-        this.confirmDialog
-            .open(SimpleConfirmDialog, { width: "480px", data: data })
-            .afterClosed()
-            .subscribe((confirmed) => {
-                if (confirmed) {
-                    then();
-                }
-            });
-    }
+      });
+  }
 }

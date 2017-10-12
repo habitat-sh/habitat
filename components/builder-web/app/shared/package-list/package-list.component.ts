@@ -12,26 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input } from "@angular/core";
-import { isPackage, packageString } from "../../util";
+import { Component, Input } from '@angular/core';
+import { isPackage, packageString } from '../../util';
 
 @Component({
-    selector: "hab-package-list",
-    template: `
-    <ul class="hab-package-list">
-        <li *ngIf="!packages || packages.length === 0">None</li>
-        <li *ngFor="let pkg of packages">
-            <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['/pkgs', pkg.origin, pkg.name, pkg.version, pkg.release]">
-                {{packageString(pkg)}}
-            </a>
-        </li>
-    </ul>`
+  selector: 'hab-package-list',
+  template: require('./package-list.component.html')
 })
 
 export class PackageListComponent {
-    @Input() currentPackage: Object;
-    @Input() packages: Array<Object>;
+  @Input() currentPackage: Object;
+  @Input() packages: Array<Object>;
 
-    isPackage(x, y) { return isPackage(x, y); }
-    packageString(pkg) { return packageString(pkg); }
+  isPackage(x, y) { return isPackage(x, y); }
+  packageString(pkg) { return packageString(pkg); }
 }

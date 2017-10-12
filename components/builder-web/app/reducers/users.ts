@@ -12,28 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { fromJS } from "immutable";
-import * as actionTypes from "../actions/index";
-import initialState from "../initialState";
+import { fromJS } from 'immutable';
+import * as actionTypes from '../actions/index';
+import initialState from '../initialState';
 
-export default function users(state = initialState["users"], action) {
-    switch (action.type) {
-        case actionTypes.POPULATE_GITHUB_USER_DATA:
-            return state.
-                setIn(["current", "gitHub"], fromJS(action.payload));
+export default function users(state = initialState['users'], action) {
+  switch (action.type) {
+    case actionTypes.POPULATE_GITHUB_USER_DATA:
+      return state.
+        setIn(['current', 'gitHub'], fromJS(action.payload));
 
-        case actionTypes.SIGN_IN_ATTEMPT:
-            return state.
-                setIn(["current", "username"], action.payload.username).
-                setIn(["current", "isSignedIn"], true);
+    case actionTypes.SIGN_IN_ATTEMPT:
+      return state.
+        setIn(['current', 'username'], action.payload.username).
+        setIn(['current', 'isSignedIn'], true);
 
-        case actionTypes.TOGGLE_USER_NAV_MENU:
-            return state.setIn(["current", "isUserNavOpen"],
-                !state.getIn(["current", "isUserNavOpen"]));
+    case actionTypes.TOGGLE_USER_NAV_MENU:
+      return state.setIn(['current', 'isUserNavOpen'],
+        !state.getIn(['current', 'isUserNavOpen']));
 
-        case actionTypes.SET_SIGNING_IN_FLAG:
-            return state.setIn(["current", "isSigningIn"], action.payload);
-        default:
-            return state;
-    }
+    case actionTypes.SET_SIGNING_IN_FLAG:
+      return state.setIn(['current', 'isSigningIn'], action.payload);
+    default:
+      return state;
+  }
 }

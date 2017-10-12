@@ -12,26 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input } from "@angular/core";
+import { Component, Input } from '@angular/core';
 
 @Component({
-    selector: "hab-package-breadcrumbs",
-    template: `
-    <span class="hab-package-breadcrumbs">
-        <a [routerLink]="['/pkgs', ident.origin]">
-            {{ident.origin}}
-        </a>
-        <span *ngIf="ident.name">/</span>
-        <a [routerLink]="['/pkgs', ident.origin, ident.name]">
-            {{ident.name}}
-        </a>
-        <span *ngIf="ident.version">/</span>
-        <a [routerLink]="['/pkgs', ident.origin, ident.name, ident.version]">
-            {{ident.version}}
-        </a>
-    </span>`
+  selector: 'hab-package-breadcrumbs',
+  template: require('./breadcrumbs.component.html')
 })
 
 export class BreadcrumbsComponent {
-    @Input() ident;
+  @Input() ident;
 }

@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit, AfterViewInit, Output, EventEmitter, ViewChild } from "@angular/core";
-import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { RouterLink } from "@angular/router";
-import { DockerExportSettingsComponent } from "../docker-export-settings/docker-export-settings.component";
-import { GitHubApiClient } from "../../GitHubApiClient";
-import { GitHubFileResponse } from "../../github/api/shared/github-file-response.model";
-import { GitHubFile } from "../../github/file/shared/github-file.model";
-import { AppStore } from "../../AppStore";
-import config from "../../config";
+import { Component, Input, OnInit, AfterViewInit, Output, EventEmitter, ViewChild } from '@angular/core';
+import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { DockerExportSettingsComponent } from '../docker-export-settings/docker-export-settings.component';
+import { GitHubApiClient } from '../../GitHubApiClient';
+import { GitHubFileResponse } from '../../github/api/shared/github-file-response.model';
+import { GitHubFile } from '../../github/file/shared/github-file.model';
+import { AppStore } from '../../app.store';
+import config from '../../config';
 
 @Component({
-  selector: "hab-plan-select",
-  template: require("./plan-select.component.html")
+  selector: 'hab-plan-select',
+  template: require('./plan-select.component.html')
 })
 
 export class PackagePlanSelectComponent implements OnInit {
@@ -34,20 +34,20 @@ export class PackagePlanSelectComponent implements OnInit {
   @Input() ownerAndRepo: string;
   @Input() project: string;
 
-  @ViewChild("docker")
+  @ViewChild('docker')
   docker: DockerExportSettingsComponent;
 
   gitHubClient: GitHubApiClient = new GitHubApiClient(this.store.getState().gitHub.authToken);
   form: FormGroup;
   control: FormControl;
   formIndex: number = 0;
-  plans: Array <GitHubFile>;
+  plans: Array<GitHubFile>;
   errorText: string;
 
   disablePlanSelectTab: boolean = true;
-  repo: string = "";
-  owner: string = "";
-  plan: string = "";
+  repo: string = '';
+  owner: string = '';
+  plan: string = '';
 
   constructor(private formBuilder: FormBuilder, private store: AppStore) {
     this.form = formBuilder.group({});
@@ -66,27 +66,27 @@ export class PackagePlanSelectComponent implements OnInit {
   }
 
   repoSelected(ownerAndRepo: string) {
-    [this.owner, this.repo] = ownerAndRepo.split("/");
+    [this.owner, this.repo] = ownerAndRepo.split('/');
 
     return false;
-  };
+  }
 
   handleGitHubFileResponse(result: GitHubFileResponse) {
     if (result.total_count === 0) {
-      this.owner = "";
-      this.repo = "";
-      this.errorText = "That repo doesn't appear to have a plan file. Please select another repo.";
+      this.owner = '';
+      this.repo = '';
+      this.errorText = 'That repo doesn\'t appear to have a plan file. Please select another repo.';
       return false;
     }
 
-    this.errorText = "";
+    this.errorText = '';
     this.formIndex = 1;
 
     this.plans = result.items.map((item) => {
-      if (item.name.endsWith(".sh")) {
-        item.type = "linux";
-      } else if (item.name.endsWith(".ps1")) {
-        item.type = "windows";
+      if (item.name.endsWith('.sh')) {
+        item.type = 'linux';
+      } else if (item.name.endsWith('.ps1')) {
+        item.type = 'windows';
       }
 
       return item;
@@ -100,7 +100,7 @@ export class PackagePlanSelectComponent implements OnInit {
           organization: this.owner,
           repo: this.repo,
         },
-        plan_path: this.form.get("plan").value
+        plan_path: this.form.get('plan').value
       },
       integrations: {
         docker: this.docker.settings
@@ -113,10 +113,10 @@ export class PackagePlanSelectComponent implements OnInit {
   }
 
   public ngOnInit() {
-    this.control = new FormControl("", Validators.compose([
+    this.control = new FormControl('', Validators.compose([
       Validators.required
     ]));
 
-    this.form.addControl("plan", this.control);
+    this.form.addControl('plan', this.control);
   }
 }

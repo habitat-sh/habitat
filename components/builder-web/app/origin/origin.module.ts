@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { NgModule } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { RouterModule } from "@angular/router";
-import { MdButtonModule } from "@angular/material";
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { SharedModule } from "../shared/shared.module";
-import { OriginPageModule } from "./origin-page/origin-page.module";
-import { OriginRoutingModule } from "./origin-routing.module";
-import { OriginsPageComponent } from "./origins-page/origins-page.component";
-import { OriginCreatePageComponent } from "./origin-create-page/origin-create-page.component";
-import { OriginService } from "./origin.service";
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { MdButtonModule } from '@angular/material';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { SharedModule } from '../shared/shared.module';
+import { OriginPageModule } from './origin-page/origin-page.module';
+import { OriginRoutingModule } from './origin-routing.module';
+import { OriginsPageComponent } from './origins-page/origins-page.component';
+import { OriginCreatePageComponent } from './origin-create-page/origin-create-page.component';
+import { OriginService } from './origin.service';
 
 // This is so we can test that the ordering of the modules is correct.
 // Ordering matters in this case because we have a static route 'create'
@@ -49,4 +49,4 @@ export const declarations = [
     OriginService
   ]
 })
-export class OriginModule {}
+export class OriginModule { }

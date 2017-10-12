@@ -1,0 +1,8 @@
+<ul class="hab-package-list">
+  <li *ngIf="!packages || packages.length === 0">None</li>
+  <li *ngFor="let pkg of packages">
+    <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['/pkgs', pkg.origin, pkg.name, pkg.version, pkg.release]">
+      {{packageString(pkg)}}
+    </a>
+  </li>
+</ul>

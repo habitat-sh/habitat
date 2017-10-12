@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Record} from "immutable";
+import { Record } from 'immutable';
 
 export const Project = Record({
-    id: undefined,
-    name: undefined,
-    origin_id: undefined,
-    origin_name: undefined,
-    owner_id: undefined,
-    package_name: undefined,
-    plan_path: undefined,
-    vcs_auth_token: undefined,
-    vcs_data: undefined,
-    vcs_type: undefined,
-    vcs_username: undefined,
-    settings: undefined,
-    visibility: undefined
+  id: undefined,
+  name: undefined,
+  origin_id: undefined,
+  origin_name: undefined,
+  owner_id: undefined,
+  package_name: undefined,
+  plan_path: undefined,
+  vcs_auth_token: undefined,
+  vcs_data: undefined,
+  vcs_type: undefined,
+  vcs_username: undefined,
+  settings: undefined,
+  visibility: undefined
 });

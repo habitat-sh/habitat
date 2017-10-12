@@ -1,85 +1,98 @@
 {
-    "rulesDirectory": [
-        "node_modules/codelyzer"
+  "rulesDirectory": [
+    "node_modules/codelyzer"
+  ],
+  "rules": {
+    "class-name": true,
+    "comment-format": [
+      true,
+      "check-space"
     ],
-    "rules": {
-        "class-name": true,
-        "comment-format": [
-            true,
-            "check-space"
-        ],
-        "indent": [
-            true,
-            4
-        ],
-        "member-ordering": [
-            true,
-            {
-                "order": "instance-sandwich"
-            }
-        ],
-        "no-duplicate-variable": true,
-        "no-eval": true,
-        "no-internal-module": true,
-        "no-trailing-whitespace": true,
-        "no-var-keyword": true,
-        "one-line": [
-            true,
-            "check-open-brace",
-            "check-whitespace"
-        ],
-        "quotemark": [
-            true,
-            "double"
-        ],
-        "semicolon": [
-            true,
-            "always"
-        ],
-        "triple-equals": [
-            true,
-            "allow-null-check"
-        ],
-        "typedef-whitespace": [
-            true,
-            {
-                "call-signature": "nospace",
-                "index-signature": "nospace",
-                "parameter": "nospace",
-                "property-declaration": "nospace",
-                "variable-declaration": "nospace"
-            }
-        ],
-        "variable-name": [
-            true,
-            "ban-keywords"
-        ],
-        "whitespace": [
-            true,
-            "check-branch",
-            "check-decl",
-            "check-operator",
-            "check-separator",
-            "check-type"
-        ],
-
-        "component-class-suffix": false,
-        "component-selector": [true, "element", "hab", "kebab-case"],
-        "directive-class-suffix": true,
-        "directive-selector": [true, "attribute", "hab", "camelCase"],
-        "invoke-injectable": true,
-        "no-access-missing-member": true,
-        "no-attribute-parameter-decorator": true,
-        "no-forward-ref": true,
-        "no-input-rename": true,
-        "no-output-rename": true,
-        "pipe-naming": [true, "camelCase", "hab"],
-        "template-to-ng-template": true,
-        "templates-use-public": true,
-        "use-host-property-decorator": true,
-        "use-input-property-decorator": true,
-        "use-life-cycle-interface": true,
-        "use-output-property-decorator": true,
-        "use-pipe-transform-interface": true
-    }
+    "indent": [
+      true,
+      2
+    ],
+    "member-ordering": [
+      true,
+      {
+        "order": "instance-sandwich"
+      }
+    ],
+    "no-duplicate-variable": true,
+    "no-eval": true,
+    "no-internal-module": true,
+    "no-trailing-whitespace": true,
+    "no-var-keyword": true,
+    "one-line": [
+      true,
+      "check-open-brace",
+      "check-whitespace"
+    ],
+    "quotemark": [
+      true,
+      "single"
+    ],
+    "semicolon": [
+      true,
+      "always"
+    ],
+    "triple-equals": [
+      true,
+      "allow-null-check"
+    ],
+    "typedef-whitespace": [
+      true,
+      {
+        "call-signature": "nospace",
+        "index-signature": "nospace",
+        "parameter": "nospace",
+        "property-declaration": "nospace",
+        "variable-declaration": "nospace"
+      }
+    ],
+    "variable-name": [
+      true,
+      "ban-keywords"
+    ],
+    "whitespace": [
+      true,
+      "check-branch",
+      "check-decl",
+      "check-operator",
+      "check-separator",
+      "check-type"
+    ],
+    "component-class-suffix": false,
+    "component-selector": [
+      true,
+      "element",
+      "hab",
+      "kebab-case"
+    ],
+    "directive-class-suffix": true,
+    "directive-selector": [
+      true,
+      "attribute",
+      "hab",
+      "camelCase"
+    ],
+    "invoke-injectable": true,
+    "no-access-missing-member": true,
+    "no-attribute-parameter-decorator": true,
+    "no-forward-ref": true,
+    "no-input-rename": true,
+    "no-output-rename": true,
+    "pipe-naming": [
+      true,
+      "camelCase",
+      "hab"
+    ],
+    "template-to-ng-template": true,
+    "templates-use-public": true,
+    "use-host-property-decorator": true,
+    "use-input-property-decorator": true,
+    "use-life-cycle-interface": true,
+    "use-output-property-decorator": true,
+    "use-pipe-transform-interface": true
+  }
 }

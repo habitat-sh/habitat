@@ -12,72 +12,72 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { AfterViewInit, Component, OnInit } from "@angular/core";
-import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
-import { AppStore } from "../../AppStore";
-import { AsyncValidator } from "../../AsyncValidator";
-import { BuilderApiClient } from "../../BuilderApiClient";
-import { createOrigin } from "../../actions/index";
-import { requireSignIn } from "../../util";
+import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AppStore } from '../../app.store';
+import { AsyncValidator } from '../../AsyncValidator';
+import { BuilderApiClient } from '../../BuilderApiClient';
+import { createOrigin } from '../../actions/index';
+import { requireSignIn } from '../../util';
 
 @Component({
-    template: require("./origin-create-page.component.html")
+  template: require('./origin-create-page.component.html')
 })
 export class OriginCreatePageComponent implements AfterViewInit, OnInit {
-    form: FormGroup;
-    isOriginAvailable: Function;
-    maxLength = 255;
-    visibility: string = "public";
+  form: FormGroup;
+  isOriginAvailable: Function;
+  maxLength = 255;
+  visibility: string = 'public';
 
-    private api: BuilderApiClient;
-    private name: FormControl;
+  private api: BuilderApiClient;
+  private name: FormControl;
 
-    constructor(private formBuilder: FormBuilder, private store: AppStore, private router: Router) {
-        this.api = new BuilderApiClient(this.token);
-        this.form = formBuilder.group({});
+  constructor(private formBuilder: FormBuilder, private store: AppStore, private router: Router) {
+    this.api = new BuilderApiClient(this.token);
+    this.form = formBuilder.group({});
 
-        this.isOriginAvailable = origin => {
-            return this.api.isOriginAvailable(origin);
-        };
+    this.isOriginAvailable = origin => {
+      return this.api.isOriginAvailable(origin);
+    };
+  }
+
+  ngOnInit() {
+    requireSignIn(this);
+  }
+
+  ngAfterViewInit() {
+    // Attempt to validate when the page loads.
+    if (this.isFirstOrigin) {
+      setTimeout(() => this.form.controls['name'].markAsDirty(), 1000);
     }
+  }
 
-    ngOnInit() {
-        requireSignIn(this);
-    }
+  get creating() {
+    return this.store.getState().origins.ui.current.creating;
+  }
 
-    ngAfterViewInit() {
-        // Attempt to validate when the page loads.
-        if (this.isFirstOrigin) {
-            setTimeout(() => this.form.controls["name"].markAsDirty(), 1000);
-        }
-    }
+  get isFirstOrigin() {
+    return this.store.getState().origins.mine.size === 0;
+  }
 
-    get creating() {
-        return this.store.getState().origins.ui.current.creating;
-    }
+  get token() {
+    return this.store.getState().session.token;
+  }
 
-    get isFirstOrigin() {
-        return this.store.getState().origins.mine.size === 0;
-    }
+  get username() {
+    return this.store.getState().users.current.username;
+  }
 
-    get token() {
-        return this.store.getState().session.token;
-    }
+  createOrigin(origin) {
+    origin.default_package_visibility = this.visibility;
 
-    get username() {
-        return this.store.getState().users.current.username;
-    }
+    this.store.dispatch(createOrigin(origin, this.token, this.isFirstOrigin, (origin) => {
+      this.router.navigate(['/origins', origin.name]);
+    }));
+  }
 
-    createOrigin(origin) {
-        origin.default_package_visibility = this.visibility;
-
-        this.store.dispatch(createOrigin(origin, this.token, this.isFirstOrigin, (origin) => {
-            this.router.navigate(["/origins", origin.name]);
-        }));
-    }
-
-    settingChanged(setting) {
-        this.visibility = setting;
-    }
+  settingChanged(setting) {
+    this.visibility = setting;
+  }
 }

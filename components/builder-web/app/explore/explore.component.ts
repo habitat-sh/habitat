@@ -12,32 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { AppStore } from "../AppStore";
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Router } from "@angular/router";
-import { fetchExplore, setLayout, setPackagesSearchQuery } from "../actions/index";
+import { AppStore } from '../app.store';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { fetchExplore, setLayout, setPackagesSearchQuery } from '../actions/index';
 
 @Component({
-    selector: "hab-explore",
-    template: require("./explore.component.html"),
+  selector: 'hab-explore',
+  template: require('./explore.component.html'),
 })
 export class ExploreComponent implements OnInit, OnDestroy {
 
-    constructor(
-        private store: AppStore,
-        private router: Router
-    ) { }
+  constructor(
+    private store: AppStore,
+    private router: Router
+  ) { }
 
-    ngOnInit() {
-        this.store.dispatch(fetchExplore());
-        this.store.dispatch(setLayout("full"));
-    }
+  ngOnInit() {
+    this.store.dispatch(fetchExplore());
+    this.store.dispatch(setLayout('full'));
+  }
 
-    ngOnDestroy() {
-        this.store.dispatch(setLayout("default"));
-    }
+  ngOnDestroy() {
+    this.store.dispatch(setLayout('default'));
+  }
 
-    search(term) {
-        this.router.navigate(["search", { q: term.trim() }]);
-    }
+  search(term) {
+    this.router.navigate(['search', { q: term.trim() }]);
+  }
 }

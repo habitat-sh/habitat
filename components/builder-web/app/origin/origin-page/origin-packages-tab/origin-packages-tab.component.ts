@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component } from "@angular/core";
-import { Router } from "@angular/router";
-import { AppStore } from "../../../AppStore";
-import { GitHubRepoPickerComponent } from "../../../shared/github-repo-picker/github-repo-picker.component";
-import { addProject, requestRoute, setProjectIntegrationSettings } from "../../../actions/index";
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { AppStore } from '../../../app.store';
+import { GitHubRepoPickerComponent } from '../../../shared/github-repo-picker/github-repo-picker.component';
+import { addProject, requestRoute, setProjectIntegrationSettings } from '../../../actions/index';
 
 @Component({
-  selector: "hab-origin-packages-tab",
-  template: require("./origin-packages-tab.component.html")
+  selector: 'hab-origin-packages-tab',
+  template: require('./origin-packages-tab.component.html')
 })
 
 export class OriginPackagesTabComponent {
@@ -37,8 +37,8 @@ export class OriginPackagesTabComponent {
   }
 
   get projectsEnabled() {
-    return !!this.store.getState().featureFlags.current.get("project");
-}
+    return !!this.store.getState().featureFlags.current.get('project');
+  }
 
   get packagesUi() {
     return this.store.getState().packages.ui.visible;
@@ -65,7 +65,7 @@ export class OriginPackagesTabComponent {
   }
 
   saved(project) {
-    this.router.navigate(["/pkgs", project.origin, project.name, "settings"]);
+    this.router.navigate(['/pkgs', project.origin, project.name, 'settings']);
   }
 
   toggled(active) {

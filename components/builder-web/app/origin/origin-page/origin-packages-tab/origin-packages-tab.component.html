@@ -9,11 +9,7 @@
         (planSelectCanceled)="planSelectCanceled()"></hab-plan-select>
       -->
 
-    <hab-project-settings
-      [origin]="origin"
-      [integrations]="integrations"
-      (toggled)="toggled($event)"
-      (saved)="saved($event)"></hab-project-settings>
+    <hab-project-settings [origin]="origin" [integrations]="integrations" (toggled)="toggled($event)" (saved)="saved($event)"></hab-project-settings>
 
     <div *ngIf="!selectingPlan">
       <ul class="packages-list">
@@ -54,9 +50,8 @@
       <div *ngIf="packages.size < totalCount">
         Showing {{packages.size}} of {{totalCount}} packages.
         <a href="#" (click)="fetchMorePackages()">
-          Load
-          {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
-          more</a>.
+          Load {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }} more
+        </a>.
       </div>
     </div>
   </div>

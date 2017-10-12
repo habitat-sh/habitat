@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {List, Record} from "immutable";
+import { List, Record } from 'immutable';
 
 export const Origin = Record({
-    id: undefined,
-    name: undefined,
-    owner_id: undefined,
-    private_key_name: undefined,
-    privateKeys: List(),
-    publicKeys: List(),
-    packageCount: undefined,
-    default_package_visibility: undefined
+  id: undefined,
+  name: undefined,
+  owner_id: undefined,
+  private_key_name: undefined,
+  privateKeys: List(),
+  publicKeys: List(),
+  packageCount: undefined,
+  default_package_visibility: undefined
 });

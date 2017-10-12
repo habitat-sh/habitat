@@ -1,15 +1,29 @@
-import { TestBed, ComponentFixture } from "@angular/core/testing";
-import { Component, DebugElement } from "@angular/core";
-import { By } from "@angular/platform-browser";
-import { ActivatedRoute, Router } from "@angular/router";
-import { RouterTestingModule } from "@angular/router/testing";
-import { BehaviorSubject, Observable } from "rxjs";
-import { Record } from "immutable";
-import { MockComponent } from "ng2-mock-component";
-import { AppStore } from "../../AppStore";
-import * as actions from "../../actions/index";
-import * as util from "../../util";
-import { BuildDetailComponent } from "./build-detail.component";
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { Component, DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { Record } from 'immutable';
+import { MockComponent } from 'ng2-mock-component';
+import { AppStore } from '../../app.store';
+import * as actions from '../../actions/index';
+import * as util from '../../util';
+import { BuildDetailComponent } from './build-detail.component';
 
 class MockAppStore {
   getState() {
@@ -17,7 +31,7 @@ class MockAppStore {
       builds: {
         selected: Record({
           info: {
-            id: "123"
+            id: '123'
           },
           log: {
             content: new BehaviorSubject([])
@@ -25,24 +39,24 @@ class MockAppStore {
         })()
       },
       session: {
-        token: "some-token",
+        token: 'some-token',
       },
       gitHub: {
-        authToken: "some-token"
+        authToken: 'some-token'
       }
     };
   }
-  dispatch() {}
+  dispatch() { }
 }
 
-describe("BuildDetailComponent", () => {
+describe('BuildDetailComponent', () => {
   let fixture: ComponentFixture<BuildDetailComponent>;
   let component: BuildDetailComponent;
   let element: DebugElement;
   let store: AppStore;
 
   beforeEach(() => {
-    spyOn(util, "requireSignIn");
+    spyOn(util, 'requireSignIn');
 
     TestBed.configureTestingModule({
       imports: [
@@ -50,8 +64,8 @@ describe("BuildDetailComponent", () => {
       ],
       declarations: [
         BuildDetailComponent,
-        MockComponent({ selector: "hab-package-breadcrumbs", inputs: [ "ident" ] }),
-        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ] })
+        MockComponent({ selector: 'hab-package-breadcrumbs', inputs: ['ident'] }),
+        MockComponent({ selector: 'hab-icon', inputs: ['symbol'] })
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }
@@ -64,36 +78,36 @@ describe("BuildDetailComponent", () => {
     store = TestBed.get(AppStore);
   });
 
-  describe("on init", () => {
+  describe('on init', () => {
 
     beforeEach(() => {
       component.build = {
-        origin: "core",
-        name: "nginx",
-        id: "123"
+        origin: 'core',
+        name: 'nginx',
+        id: '123'
       };
 
       fixture.detectChanges();
     });
   });
 
-  describe("on changes", () => {
+  describe('on changes', () => {
 
-    describe("when a build is provided", () => {
+    describe('when a build is provided', () => {
       let changes;
 
       beforeEach(() => {
         changes = {
           build: {
             currentValue: {
-              id: "123"
+              id: '123'
             }
           }
         };
       });
 
-      it("fetches the specified build log", () => {
-        spyOn(actions, "fetchBuildLog");
+      it('fetches the specified build log', () => {
+        spyOn(actions, 'fetchBuildLog');
         component.ngOnChanges(changes);
 
         expect(actions.fetchBuildLog).toHaveBeenCalledWith(
@@ -103,26 +117,26 @@ describe("BuildDetailComponent", () => {
         );
       });
 
-      describe("log streaming", () => {
+      describe('log streaming', () => {
 
-        describe("by default", () => {
+        describe('by default', () => {
 
-          it("is set to false", () => {
-            spyOn(actions, "streamBuildLog");
+          it('is set to false', () => {
+            spyOn(actions, 'streamBuildLog');
             component.ngOnChanges(changes);
 
             expect(actions.streamBuildLog).toHaveBeenCalledWith(false);
           });
         });
 
-        describe("when requested", () => {
+        describe('when requested', () => {
 
           beforeEach(() => {
             component.stream = true;
           });
 
-          it("is set to true", () => {
-            spyOn(actions, "streamBuildLog");
+          it('is set to true', () => {
+            spyOn(actions, 'streamBuildLog');
             component.ngOnChanges(changes);
 
             expect(actions.streamBuildLog).toHaveBeenCalledWith(true);
@@ -130,42 +144,42 @@ describe("BuildDetailComponent", () => {
         });
       });
 
-      describe("log navigation", () => {
+      describe('log navigation', () => {
 
-        describe("jump-to-top button", () => {
+        describe('jump-to-top button', () => {
 
-          it("scrolls to top", () => {
-            spyOn(window, "scrollTo");
-            element.query(By.css("button.jump-to-top")).triggerEventHandler("click", {});
+          it('scrolls to top', () => {
+            spyOn(window, 'scrollTo');
+            element.query(By.css('button.jump-to-top')).triggerEventHandler('click', {});
             expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
           });
 
-          describe("when log following is enabled", () => {
+          describe('when log following is enabled', () => {
 
             beforeEach(() => {
               component.followLog = true;
             });
 
-            it("disables log following", () => {
-              element.query(By.css("button.jump-to-top")).triggerEventHandler("click", {});
+            it('disables log following', () => {
+              element.query(By.css('button.jump-to-top')).triggerEventHandler('click', {});
               expect(component.followLog).toBe(false);
             });
           });
         });
 
-        describe("follow-log button", () => {
+        describe('follow-log button', () => {
 
-          it("enables log following", () => {
+          it('enables log following', () => {
             expect(component.followLog).toBe(false);
 
-            spyOn(window, "scrollTo");
-            spyOn(document, "querySelector").and.returnValues(
+            spyOn(window, 'scrollTo');
+            spyOn(document, 'querySelector').and.returnValues(
               { getBoundingClientRect: () => { return { height: 100 }; } }, // contentHeight
               { getBoundingClientRect: () => { return { height: 50 }; } },  // footerHeight
               { getBoundingClientRect: () => { return { height: 10 }; } }   // navHeight
             );
 
-            element.query(By.css("button.jump-to-end")).triggerEventHandler("click", {});
+            element.query(By.css('button.jump-to-end')).triggerEventHandler('click', {});
 
             expect(window.scrollTo).toHaveBeenCalledWith(0, 30);
             expect(component.followLog).toBe(true);
@@ -175,21 +189,21 @@ describe("BuildDetailComponent", () => {
     });
   });
 
-  describe("on destroy", () => {
+  describe('on destroy', () => {
 
-    it("terminates log streaming", () => {
-      spyOn(actions, "streamBuildLog");
+    it('terminates log streaming', () => {
+      spyOn(actions, 'streamBuildLog');
       component.ngOnDestroy();
 
       expect(actions.streamBuildLog).toHaveBeenCalledWith(false);
     });
   });
 
-  xit("shows the selected build status", () => {
+  xit('shows the selected build status', () => {
 
   });
 
-  xit("shows the selected build log", () => {
+  xit('shows the selected build log', () => {
 
   });
 });

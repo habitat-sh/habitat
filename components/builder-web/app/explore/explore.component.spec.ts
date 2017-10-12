@@ -1,115 +1,129 @@
-import { DebugElement } from "@angular/core";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
-import { RouterTestingModule } from "@angular/router/testing";
-import { By } from "@angular/platform-browser";
-import { FormsModule } from "@angular/forms";
-import { Router } from "@angular/router";
-import { MockComponent } from "ng2-mock-component";
-import { AppStore } from "../AppStore";
-import * as actions from "../actions/index";
-import { ExploreComponent } from "./explore.component";
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { DebugElement } from '@angular/core';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { By } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MockComponent } from 'ng2-mock-component';
+import { AppStore } from '../app.store';
+import * as actions from '../actions/index';
+import { ExploreComponent } from './explore.component';
 
 class MockAppStore {
   getState() {
     return {
       packages: {
         explore: {
-            popular: [
-                {
-                    "origin": "core",
-                    "name": "python2",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "ruby",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "go",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "node",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "jdk8",
-                    "originCount": 4,
-                    "starCount": 2345
-                }
-            ],
-            your_app: [
-                {
-                    "origin": "core",
-                    "name": "scaffolding-ruby",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "scaffolding-node",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "nginx",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "tomcat8",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "core",
-                    "name": "docker",
-                    "originCount": 4,
-                    "starCount": 2345
-                }
-            ],
-            community: [
-                {
-                    "origin": "endocode",
-                    "name": "drupal",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "endocode",
-                    "name": "jenkins",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "starkandwayne",
-                    "name": "wordpress",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "starkandwayne",
-                    "name": "postgresql",
-                    "originCount": 4,
-                    "starCount": 2345
-                },
-                {
-                    "origin": "starkandwayne",
-                    "name": "mysql",
-                    "originCount": 4,
-                    "starCount": 2345
-                }
-            ],
+          popular: [
+            {
+              'origin': 'core',
+              'name': 'python2',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'ruby',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'go',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'node',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'jdk8',
+              'originCount': 4,
+              'starCount': 2345
+            }
+          ],
+          your_app: [
+            {
+              'origin': 'core',
+              'name': 'scaffolding-ruby',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'scaffolding-node',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'nginx',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'tomcat8',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'core',
+              'name': 'docker',
+              'originCount': 4,
+              'starCount': 2345
+            }
+          ],
+          community: [
+            {
+              'origin': 'endocode',
+              'name': 'drupal',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'endocode',
+              'name': 'jenkins',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'starkandwayne',
+              'name': 'wordpress',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'starkandwayne',
+              'name': 'postgresql',
+              'originCount': 4,
+              'starCount': 2345
+            },
+            {
+              'origin': 'starkandwayne',
+              'name': 'mysql',
+              'originCount': 4,
+              'starCount': 2345
+            }
+          ],
           stats: {
             plans: 324,
             builds: 12378
@@ -118,10 +132,10 @@ class MockAppStore {
       }
     };
   }
-  dispatch() {}
+  dispatch() { }
 }
 
-describe("ExploreComponent", () => {
+describe('ExploreComponent', () => {
   let fixture: ComponentFixture<ExploreComponent>;
   let component: ExploreComponent;
   let element: DebugElement;
@@ -134,7 +148,7 @@ describe("ExploreComponent", () => {
         RouterTestingModule
       ],
       declarations: [
-        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ]}),
+        MockComponent({ selector: 'hab-icon', inputs: ['symbol'] }),
         ExploreComponent
       ],
       providers: [
@@ -148,94 +162,94 @@ describe("ExploreComponent", () => {
     store = TestBed.get(AppStore);
   });
 
-  describe("init", () => {
-    it("dispatches a request for data", () => {
-      spyOn(actions, "fetchExplore");
-      spyOn(store, "dispatch");
+  describe('init', () => {
+    it('dispatches a request for data', () => {
+      spyOn(actions, 'fetchExplore');
+      spyOn(store, 'dispatch');
       fixture.detectChanges();
       expect(store.dispatch).toHaveBeenCalledWith(actions.fetchExplore());
     });
 
-    it("dispatches a request to set the layout", () => {
-      spyOn(actions, "setLayout").and.callThrough();
-      spyOn(store, "dispatch");
+    it('dispatches a request to set the layout', () => {
+      spyOn(actions, 'setLayout').and.callThrough();
+      spyOn(store, 'dispatch');
       fixture.detectChanges();
-      expect(store.dispatch).toHaveBeenCalledWith(actions.setLayout("full"));
+      expect(store.dispatch).toHaveBeenCalledWith(actions.setLayout('full'));
     });
   });
 
-  describe("heading", () => {
+  describe('heading', () => {
     let heading;
 
     beforeEach(() => {
-      heading = element.query(By.css("h1")).nativeElement;
+      heading = element.query(By.css('h1')).nativeElement;
     });
 
-    it("exists", () => {
+    it('exists', () => {
       expect(heading.textContent).not.toBeFalsy();
     });
   });
 
-  describe("search form", () =>  {
+  describe('search form', () => {
     let input, button;
 
     beforeEach(() => {
-      input = element.query(By.css("form input")).nativeElement;
-      button = element.query(By.css("form button")).nativeElement;
+      input = element.query(By.css('form input')).nativeElement;
+      button = element.query(By.css('form button')).nativeElement;
     });
 
-    it("exists", () => {
-      expect(input.getAttribute("placeholder")).not.toBeFalsy();
+    it('exists', () => {
+      expect(input.getAttribute('placeholder')).not.toBeFalsy();
       expect(button.textContent).not.toBeFalsy();
     });
 
-    describe("submission", () => {
+    describe('submission', () => {
 
-      it("navigates to the package-search view", () => {
+      it('navigates to the package-search view', () => {
         let router = TestBed.get(Router);
-        spyOn(router, "navigate");
+        spyOn(router, 'navigate');
 
-        input.value = " g++ ";
+        input.value = ' g++ ';
         button.click();
 
-        expect(router.navigate).toHaveBeenCalledWith(["search", { q: "g++" }]);
+        expect(router.navigate).toHaveBeenCalledWith(['search', { q: 'g++' }]);
       });
     });
   });
 
-  describe("packages section", () => {
+  describe('packages section', () => {
 
-    it("exists", () => {
-      expect(element.query(By.css("section.packages"))).not.toBeNull();
+    it('exists', () => {
+      expect(element.query(By.css('section.packages'))).not.toBeNull();
     });
 
-    it("renders the popular, top-dependencies and recently-added lists", () => {
+    it('renders the popular, top-dependencies and recently-added lists', () => {
       fixture.detectChanges();
 
       function listFor(selector) {
         return element.queryAll(By.css(`.packages .${selector} li a`));
       }
 
-      expect(listFor("popular").length).toBe(5);
-      expect(listFor("top").length).toBe(5);
-      expect(listFor("recent").length).toBe(5);
+      expect(listFor('popular').length).toBe(5);
+      expect(listFor('top').length).toBe(5);
+      expect(listFor('recent').length).toBe(5);
     });
   });
 
-  describe("stats section", () => {
-    it("exists", () => {
-      expect(element.query(By.css("section.stats"))).not.toBeNull();
+  describe('stats section', () => {
+    it('exists', () => {
+      expect(element.query(By.css('section.stats'))).not.toBeNull();
     });
 
-    it("renders plan and build counts", () => {
+    it('renders plan and build counts', () => {
       fixture.detectChanges();
 
       function countFor(selector) {
         return element.query(By.css(`.stats .${selector} strong`)).nativeElement.textContent;
       }
 
-      expect(countFor("plans")).toBe("324");
-      expect(countFor("builds")).toBe("12378");
+      expect(countFor('plans')).toBe('324');
+      expect(countFor('builds')).toBe('12378');
     });
   });
 
@@ -247,36 +261,36 @@ describe("ExploreComponent", () => {
   //   });
   // });
 
-  describe("scaffolding section", () => {
-    it("exists", () => {
-      expect(element.query(By.css("section.scaffolding"))).not.toBeNull();
+  describe('scaffolding section', () => {
+    it('exists', () => {
+      expect(element.query(By.css('section.scaffolding'))).not.toBeNull();
     });
   });
 
-  describe("compliance section", () => {
-    it("exists", () => {
-      expect(element.query(By.css("section.compliance"))).not.toBeNull();
+  describe('compliance section', () => {
+    it('exists', () => {
+      expect(element.query(By.css('section.compliance'))).not.toBeNull();
     });
   });
 
-  describe("community section", () => {
+  describe('community section', () => {
     let heading, button;
 
-    it("exists", () => {
-      expect(element.query(By.css("section.community"))).not.toBeNull();
+    it('exists', () => {
+      expect(element.query(By.css('section.community'))).not.toBeNull();
     });
 
-    describe("call-to-action button", () => {
+    describe('call-to-action button', () => {
 
       beforeEach(() => {
-        button = element.query(By.css("section.community a")).nativeElement;
+        button = element.query(By.css('section.community a')).nativeElement;
       });
 
-      it("links to the community view", () => {
+      it('links to the community view', () => {
         fixture.detectChanges();
 
         expect(button.textContent).not.toBeFalsy();
-        expect(button.getAttribute("href")).toBe("https://www.habitat.sh/community/");
+        expect(button.getAttribute('href')).toBe('https://www.habitat.sh/community/');
       });
     });
   });

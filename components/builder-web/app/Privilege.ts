@@ -13,6 +13,6 @@
 // limitations under the License.
 
 export enum FeatureFlags {
-    ADMIN = 1,
-    EARLY_ACCESS = 2,
+  ADMIN = 1,
+  EARLY_ACCESS = 2,
 }

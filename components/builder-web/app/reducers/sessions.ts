@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as actionTypes from "../actions/index";
-import initialState from "../initialState";
+import * as actionTypes from '../actions/index';
+import initialState from '../initialState';
 
-export default function session(state = initialState["session"], action) {
-    switch (action.type) {
-        case actionTypes.SET_BLDR_SESSION_TOKEN:
-            return state.set("token", action.payload);
-        case actionTypes.LOAD_BLDR_SESSION_STATE:
-            return state.set("token", action.payload);
-        default:
-            return state;
-    }
+export default function session(state = initialState['session'], action) {
+  switch (action.type) {
+    case actionTypes.SET_BLDR_SESSION_TOKEN:
+      return state.set('token', action.payload);
+    case actionTypes.LOAD_BLDR_SESSION_STATE:
+      return state.set('token', action.payload);
+    default:
+      return state;
+  }
 }

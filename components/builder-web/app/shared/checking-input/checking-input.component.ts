@@ -12,104 +12,104 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormControl, FormGroup, Validators } from "@angular/forms";
-import { Component, Input, OnInit } from "@angular/core";
-import { AsyncValidator } from "../../AsyncValidator";
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnInit } from '@angular/core';
+import { AsyncValidator } from '../../AsyncValidator';
 
 @Component({
-    selector: "hab-checking-input",
-    template: require("./checking-input.component.html")
+  selector: 'hab-checking-input',
+  template: require('./checking-input.component.html')
 })
 
 export class CheckingInputComponent implements OnInit {
-    @Input() autofocus;
-    @Input() availableMessage;
-    @Input() displayName;
-    @Input() form: FormGroup;
-    @Input() id;
-    @Input() isAvailable: Function;
-    @Input() maxLength;
-    @Input() name: string;
-    @Input() notAvailableMessage: string;
-    @Input() unmatchedMessage: string;
-    @Input() pattern;
-    @Input() placeholder;
-    @Input() value: string;
+  @Input() autofocus;
+  @Input() availableMessage;
+  @Input() displayName;
+  @Input() form: FormGroup;
+  @Input() id;
+  @Input() isAvailable: Function;
+  @Input() maxLength;
+  @Input() name: string;
+  @Input() notAvailableMessage: string;
+  @Input() unmatchedMessage: string;
+  @Input() pattern;
+  @Input() placeholder;
+  @Input() value: string;
 
-    control: FormControl;
+  control: FormControl;
 
-    private defaultMaxLength = 255;
-    private defaultPattern = "^[a-z0-9][a-z0-9_-]*$";
+  private defaultMaxLength = 255;
+  private defaultPattern = '^[a-z0-9][a-z0-9_-]*$';
 
-    public ngOnInit() {
-        let validators = [
-            Validators.required,
-            this.patternValidator.bind(this),
-        ];
+  public ngOnInit() {
+    let validators = [
+      Validators.required,
+      this.patternValidator.bind(this),
+    ];
 
-        // If explicitly passed false, don't validate for max length. If one
-        // wasn't passed, use the default.
-        if (this.maxLength !== false) {
-            this.maxLength = this.maxLength || this.defaultMaxLength;
-            validators.push(Validators.maxLength(this.maxLength));
-        }
-
-        // If explicitly passed false, don't use a pattern. If one wasn't
-        // passed, use the default.
-        if (this.pattern !== false) {
-            this.pattern = this.pattern || this.defaultPattern;
-        }
-
-        this.notAvailableMessage = this.notAvailableMessage || "is already in use";
-        this.availableMessage = this.availableMessage || "is available";
-        this.unmatchedMessage = this.unmatchedMessage || "must match the correct format";
-
-        this.control = new FormControl(
-            this.value,
-            Validators.compose(validators),
-            AsyncValidator.debounce(control => this.takenValidator(control))
-        );
-
-        this.form.addControl(this.name, this.control);
+    // If explicitly passed false, don't validate for max length. If one
+    // wasn't passed, use the default.
+    if (this.maxLength !== false) {
+      this.maxLength = this.maxLength || this.defaultMaxLength;
+      validators.push(Validators.maxLength(this.maxLength));
     }
 
-    symbolForState(control) {
-        if (control.pending) {
-            return "loading";
-        }
-        else if (control.dirty && !control.pending && !control.valid) {
-            return "no";
-        }
-        else if (!control.pending && control.valid) {
-            return "check";
-        }
+    // If explicitly passed false, don't use a pattern. If one wasn't
+    // passed, use the default.
+    if (this.pattern !== false) {
+      this.pattern = this.pattern || this.defaultPattern;
     }
 
-    private patternValidator(control) {
-        const value = control.value;
+    this.notAvailableMessage = this.notAvailableMessage || 'is already in use';
+    this.availableMessage = this.availableMessage || 'is available';
+    this.unmatchedMessage = this.unmatchedMessage || 'must match the correct format';
 
-        if (!this.pattern || !value || value.match(this.pattern)) {
-            return null;
-        } else {
-            return { invalidFormat: true };
-        }
+    this.control = new FormControl(
+      this.value,
+      Validators.compose(validators),
+      AsyncValidator.debounce(control => this.takenValidator(control))
+    );
+
+    this.form.addControl(this.name, this.control);
+  }
+
+  symbolForState(control) {
+    if (control.pending) {
+      return 'loading';
     }
-
-    private takenValidator(control) {
-        return new Promise(resolve => {
-            // If we're empty or invalid, don't attempt to validate.
-            if ((control.errors && control.errors.required) ||
-                (control.errors && control.errors.invalidFormat)) {
-                resolve(null);
-            }
-
-            if (this.isAvailable) {
-                this.isAvailable(control.value).
-                    then(() => resolve(null)).
-                    catch(() => resolve({ taken: true }));
-            } else {
-                resolve(null);
-            }
-        });
+    else if (control.dirty && !control.pending && !control.valid) {
+      return 'no';
     }
+    else if (!control.pending && control.valid) {
+      return 'check';
+    }
+  }
+
+  private patternValidator(control) {
+    const value = control.value;
+
+    if (!this.pattern || !value || value.match(this.pattern)) {
+      return null;
+    } else {
+      return { invalidFormat: true };
+    }
+  }
+
+  private takenValidator(control) {
+    return new Promise(resolve => {
+      // If we're empty or invalid, don't attempt to validate.
+      if ((control.errors && control.errors.required) ||
+        (control.errors && control.errors.invalidFormat)) {
+        resolve(null);
+      }
+
+      if (this.isAvailable) {
+        this.isAvailable(control.value).
+          then(() => resolve(null)).
+          catch(() => resolve({ taken: true }));
+      } else {
+        resolve(null);
+      }
+    });
+  }
 }

@@ -6,29 +6,17 @@
     <h4>package</h4>
   </div>
   <nav md-tab-nav-bar>
-    <a md-tab-link
-       routerLink="latest"
-       routerLinkActive #latest="routerLinkActive"
-       [active]="latest.isActive">
+    <a md-tab-link routerLink="latest" routerLinkActive #latest="routerLinkActive" [active]="latest.isActive">
       Latest
     </a>
-    <a md-tab-link
-      routerLink="./"
-      [routerLinkActiveOptions]="{exact: true}"
-      routerLinkActive #versions="routerLinkActive"
-      [active]="versions.isActive">
+    <a md-tab-link routerLink="./" [routerLinkActiveOptions]="{exact: true}" routerLinkActive #versions="routerLinkActive" [active]="versions.isActive">
       Versions
     </a>
-    <a md-tab-link
-       routerLink="builds"
-       routerLinkActive #jobs="routerLinkActive"
-       [active]="jobs.isActive">
+    <a md-tab-link routerLink="builds" routerLinkActive #jobs="routerLinkActive" [active]="jobs.isActive">
       Build Jobs
     </a>
-    <a md-tab-link *ngIf="projectsEnabled && isOriginMember"
-       routerLink="settings"
-       routerLinkActive #settings="routerLinkActive"
-       [active]="settings.isActive">
+    <a md-tab-link *ngIf="projectsEnabled && isOriginMember" routerLink="settings" routerLinkActive #settings="routerLinkActive"
+      [active]="settings.isActive">
       Settings
     </a>
   </nav>

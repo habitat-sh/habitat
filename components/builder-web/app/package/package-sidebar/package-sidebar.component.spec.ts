@@ -1,13 +1,27 @@
-import { TestBed, ComponentFixture } from "@angular/core/testing";
-import { Component, DebugElement, SimpleChange } from "@angular/core";
-import { By } from "@angular/platform-browser";
-import { RouterTestingModule } from "@angular/router/testing";
-import { List } from "immutable";
-import { MockComponent } from "ng2-mock-component";
-import { AppStore } from "../../AppStore";
-import * as actions from "../../actions/index";
-import { Package } from "../../records/Package";
-import { PackageSidebarComponent } from "./package-sidebar.component";
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { Component, DebugElement, SimpleChange } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { RouterTestingModule } from '@angular/router/testing';
+import { List } from 'immutable';
+import { MockComponent } from 'ng2-mock-component';
+import { AppStore } from '../../app.store';
+import * as actions from '../../actions/index';
+import { Package } from '../../records/Package';
+import { PackageSidebarComponent } from './package-sidebar.component';
 
 class MockAppStore {
   static state;
@@ -16,10 +30,10 @@ class MockAppStore {
     return MockAppStore.state;
   }
 
-  dispatch() {}
+  dispatch() { }
 }
 
-describe("PackageSidebarComponent", () => {
+describe('PackageSidebarComponent', () => {
   let fixture: ComponentFixture<PackageSidebarComponent>;
   let component: PackageSidebarComponent;
   let element: DebugElement;
@@ -33,8 +47,8 @@ describe("PackageSidebarComponent", () => {
       ],
       declarations: [
         PackageSidebarComponent,
-        MockComponent({ selector: "hab-copyable", inputs: [ "command" ] }),
-        MockComponent({ selector: "hab-platform-icon", inputs: [ "platform" ]})
+        MockComponent({ selector: 'hab-copyable', inputs: ['command'] }),
+        MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] })
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }
@@ -53,9 +67,9 @@ describe("PackageSidebarComponent", () => {
         latestInChannel: {
           stable: {
             ident: {
-              origin: "core",
-              name: "nginx",
-              version: "1.11.10"
+              origin: 'core',
+              name: 'nginx',
+              version: '1.11.10'
             }
           }
         }
@@ -72,49 +86,49 @@ describe("PackageSidebarComponent", () => {
     };
   });
 
-  describe("given an origin and name", () => {
+  describe('given an origin and name', () => {
 
     beforeEach(() => {
-      spyOn(store, "dispatch");
-      spyOn(actions, "fetchLatestInChannel");
+      spyOn(store, 'dispatch');
+      spyOn(actions, 'fetchLatestInChannel');
 
       component.ngOnChanges({
-        origin: new SimpleChange(undefined, "core", true),
-        name: new SimpleChange(undefined, "nginx", true)
+        origin: new SimpleChange(undefined, 'core', true),
+        name: new SimpleChange(undefined, 'nginx', true)
       });
     });
 
-    it("fetches the latest package", () => {
+    it('fetches the latest package', () => {
       expect(store.dispatch).toHaveBeenCalled();
-      expect(actions.fetchLatestInChannel).toHaveBeenCalledWith("core", "nginx", "stable");
+      expect(actions.fetchLatestInChannel).toHaveBeenCalledWith('core', 'nginx', 'stable');
     });
 
-    it("hides the build button", () => {
-      expect(element.query(By.css(".hab-package-sidebar .build button"))).toBeNull();
+    it('hides the build button', () => {
+      expect(element.query(By.css('.hab-package-sidebar .build button'))).toBeNull();
     });
 
-    describe("when buildable", () => {
+    describe('when buildable', () => {
 
       beforeEach(() => {
         component.buildable = true;
       });
 
-      it("shows the build button", () => {
+      it('shows the build button', () => {
         fixture.detectChanges();
-        expect(element.query(By.css(".hab-package-sidebar .build button"))).not.toBeNull();
+        expect(element.query(By.css('.hab-package-sidebar .build button'))).not.toBeNull();
       });
 
-      describe("and building", () => {
+      describe('and building', () => {
 
         beforeEach(() => {
           component.building = true;
         });
 
-        it("disables the build button", () => {
+        it('disables the build button', () => {
           fixture.detectChanges();
 
-          let el = element.query(By.css(".hab-package-sidebar .build button")).nativeElement;
-          expect(el.getAttribute("disabled")).not.toBeNull();
+          let el = element.query(By.css('.hab-package-sidebar .build button')).nativeElement;
+          expect(el.getAttribute('disabled')).not.toBeNull();
         });
       });
     });

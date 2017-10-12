@@ -12,109 +12,111 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { RouterLink, ActivatedRoute } from "@angular/router";
-import { Subscription } from "rxjs/Subscription";
-import { AppStore } from "../../AppStore";
-import config from "../../config";
-import { Origin } from "../../records/Origin";
-import { requireSignIn, packageString } from "../../util";
-import { fetchOrigin, fetchOriginInvitations, fetchOriginMembers, inviteUserToOrigin, filterPackagesBy,
-    fetchMyOrigins, requestRoute, setCurrentProject, getUniquePackages,
-    fetchDockerIntegration, fetchProjects } from "../../actions";
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
+import { AppStore } from '../../app.store';
+import config from '../../config';
+import { Origin } from '../../records/Origin';
+import { requireSignIn, packageString } from '../../util';
+import {
+  fetchOrigin, fetchOriginInvitations, fetchOriginMembers, inviteUserToOrigin, filterPackagesBy,
+  fetchMyOrigins, requestRoute, setCurrentProject, getUniquePackages,
+  fetchDockerIntegration, fetchProjects
+} from '../../actions';
 
 @Component({
-    template: require("./origin-page.component.html")
+  template: require('./origin-page.component.html')
 })
 
 export class OriginPageComponent implements OnInit, OnDestroy {
-    loadPackages: Function;
-    perPage: number = 50;
-    sub: Subscription;
-    originName: string;
+  loadPackages: Function;
+  perPage: number = 50;
+  sub: Subscription;
+  originName: string;
 
-    constructor(private route: ActivatedRoute, private store: AppStore) {
-        this.sub = this.route.params.subscribe(params => {
-            this.originName = params["origin"];
-        });
+  constructor(private route: ActivatedRoute, private store: AppStore) {
+    this.sub = this.route.params.subscribe(params => {
+      this.originName = params['origin'];
+    });
+  }
+
+  ngOnInit() {
+    requireSignIn(this);
+    this.store.dispatch(fetchOrigin(this.origin.name));
+    this.store.dispatch(fetchMyOrigins(this.token));
+    this.store.dispatch(fetchDockerIntegration(this.origin.name, this.token));
+    this.getPackages();
+    this.getProjects();
+    this.loadPackages = this.getPackages.bind(this);
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
+  }
+
+  get origin() {
+    const current = this.store.getState().origins.current;
+
+    if (current.name === this.originName) {
+      return current;
     }
 
-    ngOnInit() {
-        requireSignIn(this);
-        this.store.dispatch(fetchOrigin(this.origin.name));
-        this.store.dispatch(fetchMyOrigins(this.token));
-        this.store.dispatch(fetchDockerIntegration(this.origin.name, this.token));
-        this.getPackages();
-        this.getProjects();
-        this.loadPackages = this.getPackages.bind(this);
-    }
+    return Origin({ name: this.originName });
+  }
 
-    ngOnDestroy() {
-        this.sub.unsubscribe();
-    }
+  get navLinks() {
+    return ['packages', 'keys', 'members', 'settings', 'integrations'];
+  }
 
-    get origin() {
-        const current = this.store.getState().origins.current;
+  get features() {
+    return this.store.getState().users.current.flags;
+  }
 
-        if (current.name === this.originName) {
-            return current;
-        }
+  get token() {
+    return this.store.getState().session.token;
+  }
 
-        return Origin({ name: this.originName });
-    }
+  get ui() {
+    return this.store.getState().origins.ui.current;
+  }
 
-    get navLinks() {
-        return ["packages", "keys", "members", "settings", "integrations"];
-    }
+  get totalCount() {
+    return this.store.getState().packages.totalCount;
+  }
 
-    get features() {
-        return this.store.getState().users.current.flags;
-    }
+  get myOrigins() {
+    return this.store.getState().origins.mine;
+  }
 
-    get token() {
-        return this.store.getState().session.token;
-    }
+  get iAmPartOfThisOrigin() {
+    return !!this.myOrigins.find(org => {
+      return org['name'] === this.origin.name;
+    });
+  }
 
-    get ui() {
-        return this.store.getState().origins.ui.current;
-    }
+  iconFor(visibility) {
+    return visibility === 'private' ? 'lock' : 'public';
+  }
 
-    get totalCount() {
-        return this.store.getState().packages.totalCount;
-    }
+  labelFor(visibility) {
+    return visibility === 'private' ? 'ON' : 'OFF';
+  }
 
-    get myOrigins() {
-        return this.store.getState().origins.mine;
-    }
+  getProjects() {
+    this.store.dispatch(fetchProjects(this.origin.name, this.token));
+  }
 
-    get iAmPartOfThisOrigin() {
-        return !!this.myOrigins.find(org => {
-            return org["name"] === this.origin.name;
-        });
-    }
+  getPackages() {
+    this.store.dispatch(getUniquePackages(this.origin.name, 0, this.token));
+  }
 
-    iconFor(visibility) {
-        return visibility === "private" ? "lock" : "public";
-    }
-
-    labelFor(visibility) {
-        return visibility === "private" ? "ON" : "OFF";
-    }
-
-    getProjects() {
-        this.store.dispatch(fetchProjects(this.origin.name, this.token));
-    }
-
-    getPackages() {
-        this.store.dispatch(getUniquePackages(this.origin.name, 0, this.token));
-    }
-
-    fetchMorePackages() {
-        this.store.dispatch(getUniquePackages(
-            this.origin.name,
-            this.store.getState().packages.nextRange,
-            this.token
-        ));
-        return false;
-    }
+  fetchMorePackages() {
+    this.store.dispatch(getUniquePackages(
+      this.origin.name,
+      this.store.getState().packages.nextRange,
+      this.token
+    ));
+    return false;
+  }
 }
