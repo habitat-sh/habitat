@@ -12,12 +12,16 @@
         Failed to load origins: {{ui.errorMessage}}
       </p>
       <div class="origin-create-intro" *ngIf="origins.size === 0 && !ui.errorMessage">
-        <p><strong>You are not currently an owner or member of any origins.</strong></p>
         <p>
-          Note: If you've already created an origin with the Habitat CLI tool, then you'll need to create it here, too, using the same name.
+          <strong>You are not currently an owner or member of any origins.</strong>
         </p>
         <p>
-          <em>New to Habitat? <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
+          Note: If you've already created an origin with the Habitat CLI tool, then you'll need to create it here, too, using the same
+          name.
+        </p>
+        <p>
+          <em>New to Habitat?
+            <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
         </p>
       </div>
       <div *ngIf="origins.size > 0">

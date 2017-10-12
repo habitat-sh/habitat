@@ -1,0 +1,8 @@
+<ul class="hab-notifications">
+  <li *ngFor="let n of notifications; let i = index" class="{{n.type}}">
+    <a class="dismiss" href="#" (click)="removeNotification(i)">&times;</a>
+    <small>{{n.type}}</small>
+    <h1>{{n.title}}</h1>
+    <p>{{n.body}}</p>
+  </li>
+</ul>

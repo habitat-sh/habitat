@@ -4,16 +4,16 @@
     Publish to Docker Hub
   </h3>
   <p>
-    Export the resulting .hart file as a Docker container and publish it to your
-    Docker Hub account. Integration settings are managed under the origin Settings tab.
+    Export the resulting .hart file as a Docker container and publish it to your Docker Hub account. Integration settings are
+    managed under the origin Settings tab.
   </p>
   <div class="toggle">
-      <md-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
-        {{ enabled ? "On" : "Off" }}
-      </md-slide-toggle>
-      <span class="unconfigured" *ngIf="!configured">
-        You can configure this integration in the origin Integrations tab.
-      </span>
+    <md-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
+      {{ enabled ? "On" : "Off" }}
+    </md-slide-toggle>
+    <span class="unconfigured" *ngIf="!configured">
+      You can configure this integration in the origin Integrations tab.
+    </span>
   </div>
   <div *ngIf="enabled && configured">
     <div class="integrations">

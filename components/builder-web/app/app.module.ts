@@ -12,63 +12,63 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { NgModule } from "@angular/core";
-import { LocationStrategy, HashLocationStrategy } from "@angular/common";
-import { MdButtonModule, MD_PLACEHOLDER_GLOBAL_OPTIONS } from "@angular/material";
-import { BrowserModule, DomSanitizer } from "@angular/platform-browser";
-import { HttpModule } from "@angular/http";
-import { MdIconModule, MdRadioModule, MdTabsModule } from "@angular/material";
-import { routing } from "./routes";
-import { AppStore } from "./AppStore";
-import { AppComponent } from "./AppComponent";
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { ExploreComponent } from "./explore/explore.component";
-import { FooterComponent } from "./footer/FooterComponent";
-import { GravatarComponent } from "./GravatarComponent";
-import { HeaderComponent } from "./header/HeaderComponent";
-import { NotificationsComponent } from "./notifications/NotificationsComponent";
-import { SideNavComponent } from "./side-nav/SideNavComponent";
-import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
-import { UserNavComponent } from "./header/user-nav/UserNavComponent";
+import { NgModule } from '@angular/core';
+import { LocationStrategy, HashLocationStrategy } from '@angular/common';
+import { MdButtonModule, MD_PLACEHOLDER_GLOBAL_OPTIONS } from '@angular/material';
+import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
+import { HttpModule } from '@angular/http';
+import { MdIconModule, MdRadioModule, MdTabsModule } from '@angular/material';
+import { routing } from './routes';
+import { AppStore } from './app.store';
+import { AppComponent } from './app.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ExploreComponent } from './explore/explore.component';
+import { FooterComponent } from './footer/footer.component';
+import { GravatarComponent } from './GravatarComponent';
+import { HeaderComponent } from './header/header.component';
+import { NotificationsComponent } from './notifications/notifications.component';
+import { SideNavComponent } from './side-nav/side-nav.component';
+import { SignInPageComponent } from './sign-in-page/sign-in-page.component';
+import { UserNavComponent } from './header/user-nav/user-nav.component';
 
-import { OriginModule } from "./origin/origin.module";
-import { PackageModule } from "./package/package.module";
-import { SearchModule } from "./search/search.module";
-import { SharedModule } from "./shared/shared.module";
+import { OriginModule } from './origin/origin.module';
+import { PackageModule } from './package/package.module';
+import { SearchModule } from './search/search.module';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
-    imports: [
-        MdIconModule,
-        MdRadioModule,
-        MdTabsModule,
-        BrowserModule,
-        FormsModule,
-        HttpModule,
-        MdButtonModule,
-        OriginModule,
-        PackageModule,
-        ReactiveFormsModule,
-        SearchModule,
-        SharedModule,
-        routing
-    ],
-    declarations: [
-        AppComponent,
-        ExploreComponent,
-        FooterComponent,
-        GravatarComponent,
-        HeaderComponent,
-        NotificationsComponent,
-        SideNavComponent,
-        SignInPageComponent,
-        UserNavComponent
-    ],
-    providers: [
-        { provide: LocationStrategy, useClass: HashLocationStrategy, },
-        { provide: MD_PLACEHOLDER_GLOBAL_OPTIONS, useValue: { float: "always" } },
-        AppStore
-    ],
-    bootstrap: [AppComponent]
+  imports: [
+    MdIconModule,
+    MdRadioModule,
+    MdTabsModule,
+    BrowserModule,
+    FormsModule,
+    HttpModule,
+    MdButtonModule,
+    OriginModule,
+    PackageModule,
+    ReactiveFormsModule,
+    SearchModule,
+    SharedModule,
+    routing
+  ],
+  declarations: [
+    AppComponent,
+    ExploreComponent,
+    FooterComponent,
+    GravatarComponent,
+    HeaderComponent,
+    NotificationsComponent,
+    SideNavComponent,
+    SignInPageComponent,
+    UserNavComponent
+  ],
+  providers: [
+    { provide: LocationStrategy, useClass: HashLocationStrategy, },
+    { provide: MD_PLACEHOLDER_GLOBAL_OPTIONS, useValue: { float: 'always' } },
+    AppStore
+  ],
+  bootstrap: [AppComponent]
 })
 
 export class AppModule {

@@ -12,19 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input } from "@angular/core";
+import { Component, Input } from '@angular/core';
 
 @Component({
-    selector: "hab-package-form-progress",
-    template: `
-    <ol class="hab-package-form-progress small">
-    <li class="hab-package-form-progress-step" *ngFor="let step of steps">
-      {{step.disabled}}
-      <a [ngClass]="{current: step.current}" [routerLink]="step.disabled ? null : step.target">{{step.name}}</a>
-    </li>
-    </ol>`
+  selector: 'hab-package-form-progress',
+  template: require('./form-progress.component.html')
 })
 
 export class FormProgressComponent {
-    @Input() steps;
+  @Input() steps;
 }

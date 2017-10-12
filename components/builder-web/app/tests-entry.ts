@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-let testing = require("@angular/core/testing");
-let browser = require("@angular/platform-browser-dynamic/testing");
+let testing = require('@angular/core/testing');
+let browser = require('@angular/platform-browser-dynamic/testing');
 
 // Initialize the test environment
 testing.TestBed.initTestEnvironment(
@@ -22,8 +22,8 @@ testing.TestBed.initTestEnvironment(
 );
 
 // Ensure config global exists
-window["Habitat"] = { config: {} };
+window['Habitat'] = { config: {} };
 
 // Load all tests
-let testContext = (<{ context?: Function }>require).context("./", true, /\.(test|spec)\.ts$/);
+let testContext = (<{ context?: Function }>require).context('./', true, /\.(test|spec)\.ts$/);
 testContext.keys().forEach(testContext);

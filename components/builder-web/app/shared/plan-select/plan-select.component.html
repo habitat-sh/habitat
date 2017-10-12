@@ -12,11 +12,7 @@
         <small>If the selected repo contains any plan files, they will be listed below.</small>
         <small>When repo changes are detected, the Build Service will create a new .hart from the selected plan.</small>
         <!-- <input class="hidden" value="{{selectedPlan}}" [formControl]=/> -->
-        <md-radio-group
-          [(ngModel)]="selectedPlan"
-          class="hab-radio-plans"
-          name="selectedPlan"
-          [formControl]="form.controls['plan']">
+        <md-radio-group [(ngModel)]="selectedPlan" class="hab-radio-plans" name="selectedPlan" [formControl]="form.controls['plan']">
           <md-radio-button *ngFor="let plan of plans" [value]="plan.path">
             <hab-icon [symbol]="plan.type" class="icon-os" title="OS"></hab-icon> {{plan.path}}
           </md-radio-button>

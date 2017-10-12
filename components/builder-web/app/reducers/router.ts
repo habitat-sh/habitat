@@ -12,28 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as actionTypes from "../actions/index";
-import initialState from "../initialState";
+import * as actionTypes from '../actions/index';
+import initialState from '../initialState';
 
-export default function router(state = initialState["router"], action) {
-    switch (action.type) {
-       case actionTypes.ROUTE_CHANGE:
-            return state.set("route", action.payload).
-                set("requestedRoute", null);
+export default function router(state = initialState['router'], action) {
+  switch (action.type) {
+    case actionTypes.ROUTE_CHANGE:
+      return state.set('route', action.payload).
+        set('requestedRoute', null);
 
-        case actionTypes.ROUTE_REQUESTED:
-            return state.
-                set("requestedRoute", action.payload);
+    case actionTypes.ROUTE_REQUESTED:
+      return state.
+        set('requestedRoute', action.payload);
 
-        case actionTypes.SET_REDIRECT_ROUTE:
-            return state.
-                set("redirectRoute", action.payload);
+    case actionTypes.SET_REDIRECT_ROUTE:
+      return state.
+        set('redirectRoute', action.payload);
 
-        case actionTypes.RESET_REDIRECT_ROUTE:
-            return state.
-                set("redirectRoute", "");
+    case actionTypes.RESET_REDIRECT_ROUTE:
+      return state.
+        set('redirectRoute', '');
 
-        default:
-            return state;
-    }
+    default:
+      return state;
+  }
 }

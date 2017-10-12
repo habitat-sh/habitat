@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component } from "@angular/core";
-import {AppStore} from "../../AppStore";
+import { Component } from '@angular/core';
+import { AppStore } from '../../app.store';
 
 @Component({
-    selector: "hab-progress-bar",
-    template: `
+  selector: 'hab-progress-bar',
+  template: `
     <div class="progress-bar-wrapper" *ngIf="loading">
       <md-progress-bar mode="indeterminate"></md-progress-bar>
     </div>`

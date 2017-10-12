@@ -12,31 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input } from "@angular/core";
-const md5 = require("blueimp-md5");
+import { Component, Input } from '@angular/core';
+const md5 = require('blueimp-md5');
 
 @Component({
-    selector: "hab-gravatar",
-    template: `
+  selector: 'hab-gravatar',
+  template: `
     <img class="hab-gravatar"
         width="{{size || DEFAULT_SIZE}}" height="{{size || DEFAULT_SIZE}}"
         src='{{gravatarUrl(defaultStyle, email, size)}}'>`
 })
 
 export class GravatarComponent {
-    @Input() defaultStyle;
-    @Input() email;
-    @Input() size;
+  @Input() defaultStyle;
+  @Input() email;
+  @Input() size;
 
-    DEFAULT_SIZE = 80;
+  DEFAULT_SIZE = 80;
 
-    gravatarUrl(defaultStyle: string = "retro",
-        email: string, size: number = this.DEFAULT_SIZE) {
+  gravatarUrl(defaultStyle: string = 'retro',
+    email: string, size: number = this.DEFAULT_SIZE) {
 
-        defaultStyle = encodeURIComponent(defaultStyle || "retro");
-        return `https://secure.gravatar.com/avatar/
+    defaultStyle = encodeURIComponent(defaultStyle || 'retro');
+    return `https://secure.gravatar.com/avatar/
             ${md5(email.toLowerCase().trim())}?
             d=${defaultStyle}&
-            s=${size}`.replace(/\s/g, "");
-    }
+            s=${size}`.replace(/\s/g, '');
+  }
 }

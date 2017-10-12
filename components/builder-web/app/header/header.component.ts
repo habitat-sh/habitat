@@ -12,21 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input } from "@angular/core";
+import { Component, Input } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import config from '../config';
 
 @Component({
-    selector: "hab-notifications",
-    template: `
-    <ul class="hab-notifications">
-        <li *ngFor="let n of notifications; let i = index" class="{{n.type}}">
-            <a class="dismiss" href="#" (click)="removeNotification(i)">&times;</a>
-            <small>{{n.type}}</small>
-            <h1>{{n.title}}</h1>
-            <p>{{n.body}}</p>
-        </li>
-    </ul>`
+  selector: 'hab-header',
+  template: require('./header.component.html')
 })
-export class NotificationsComponent {
-    @Input() notifications;
-    @Input() removeNotification: Function;
+
+export class HeaderComponent {
+  @Input() appName;
+  @Input() isUserNavOpen;
+  @Input() isSignedIn;
+  @Input() username;
+  @Input() avatarUrl;
+  @Input() signOut;
+  @Input() toggleUserNavMenu;
+
+  constructor(private router: Router) { }
+
+  get config() {
+    return config;
+  }
+
+  get area() {
+    if (this.router.url === '/explore') {
+      return 'explore';
+    }
+    else {
+      return 'depot';
+    }
+  }
 }

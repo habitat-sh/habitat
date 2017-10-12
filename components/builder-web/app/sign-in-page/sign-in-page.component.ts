@@ -12,37 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { AppStore } from "../AppStore";
-import { setGitHubAuthState, signOut, setLayout } from "../actions/index";
-import config from "../config";
-import { createGitHubLoginUrl } from "../util";
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { AppStore } from '../app.store';
+import { setGitHubAuthState, signOut, setLayout } from '../actions/index';
+import config from '../config';
+import { createGitHubLoginUrl } from '../util';
 
 @Component({
-    template: require("./sign-in-page.component.html")
+  template: require('./sign-in-page.component.html')
 })
 export class SignInPageComponent implements OnInit, OnDestroy {
-    constructor(private store: AppStore) { }
+  constructor(private store: AppStore) { }
 
-    get wwwUrl() {
-        return config["www_url"];
-    }
+  get wwwUrl() {
+    return config['www_url'];
+  }
 
-    get gitHubJoinUrl() {
-        return `${config["github_web_url"]}/join`;
-    }
+  get gitHubJoinUrl() {
+    return `${config['github_web_url']}/join`;
+  }
 
-    get gitHubLoginUrl() {
-        return createGitHubLoginUrl(this.store.getState().gitHub.authState);
-    }
+  get gitHubLoginUrl() {
+    return createGitHubLoginUrl(this.store.getState().gitHub.authState);
+  }
 
-    ngOnInit() {
-        this.store.dispatch(signOut());
-        this.store.dispatch(setGitHubAuthState());
-        this.store.dispatch(setLayout("centered"));
-    }
+  ngOnInit() {
+    this.store.dispatch(signOut());
+    this.store.dispatch(setGitHubAuthState());
+    this.store.dispatch(setLayout('centered'));
+  }
 
-    ngOnDestroy() {
-        this.store.dispatch(setLayout("default"));
-    }
+  ngOnDestroy() {
+    this.store.dispatch(setLayout('default'));
+  }
 }

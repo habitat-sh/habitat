@@ -12,28 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Routes, RouterModule } from "@angular/router";
-import { ExploreComponent } from "./explore/explore.component";
-import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
+import { Routes, RouterModule } from '@angular/router';
+import { ExploreComponent } from './explore/explore.component';
+import { SignInPageComponent } from './sign-in-page/sign-in-page.component';
 
 export const routes: Routes = [
-    {
-        path: "",
-        pathMatch: "full",
-        redirectTo: "origins"
-    },
-    {
-        path: "explore",
-        component: ExploreComponent
-    },
-    {
-        path: "sign-in",
-        component: SignInPageComponent
-    },
-    {
-        path: "*",
-        redirectTo: "/pkgs/core"
-    }
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'origins'
+  },
+  {
+    path: 'explore',
+    component: ExploreComponent
+  },
+  {
+    path: 'sign-in',
+    component: SignInPageComponent
+  },
+  {
+    path: '*',
+    redirectTo: '/pkgs/core'
+  }
 ];
 
 export const routing = RouterModule.forRoot(routes);

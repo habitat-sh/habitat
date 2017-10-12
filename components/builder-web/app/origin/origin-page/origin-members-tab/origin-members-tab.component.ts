@@ -12,122 +12,122 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit, OnDestroy } from "@angular/core";
-import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { ActivatedRoute } from "@angular/router";
-import { Subscription } from "rxjs/Subscription";
-import { List } from "immutable";
-import { MdDialog, MdDialogRef } from "@angular/material";
-import { SimpleConfirmDialog } from "../../../shared/dialog/simple-confirm/simple-confirm.dialog";
-import { AppStore } from "../../../AppStore";
-import { deleteOriginInvitation, inviteUserToOrigin } from "../../../actions/index";
-import { Origin } from "../../../records/Origin";
-import { deleteOriginMember, fetchOriginMembers, fetchOriginInvitations } from "../../../actions/index";
-import config from "../../../config";
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
+import { List } from 'immutable';
+import { MdDialog, MdDialogRef } from '@angular/material';
+import { SimpleConfirmDialog } from '../../../shared/dialog/simple-confirm/simple-confirm.dialog';
+import { AppStore } from '../../../app.store';
+import { deleteOriginInvitation, inviteUserToOrigin } from '../../../actions/index';
+import { Origin } from '../../../records/Origin';
+import { deleteOriginMember, fetchOriginMembers, fetchOriginInvitations } from '../../../actions/index';
+import config from '../../../config';
 
 @Component({
-    selector: "hab-origin-members-tab",
-    template: require("./origin-members-tab.component.html")
+  selector: 'hab-origin-members-tab',
+  template: require('./origin-members-tab.component.html')
 })
 export class OriginMembersTabComponent implements OnInit, OnDestroy {
-    form: FormGroup;
-    control: FormControl;
-    sub: Subscription;
-    origin;
+  form: FormGroup;
+  control: FormControl;
+  sub: Subscription;
+  origin;
 
-    constructor(
-        formBuilder: FormBuilder,
-        private route: ActivatedRoute,
-        private store: AppStore,
-        private confirmDialog: MdDialog
-    ) {
-        this.form = formBuilder.group({});
-    }
+  constructor(
+    formBuilder: FormBuilder,
+    private route: ActivatedRoute,
+    private store: AppStore,
+    private confirmDialog: MdDialog
+  ) {
+    this.form = formBuilder.group({});
+  }
 
-    ngOnInit() {
-        this.sub = this.route.parent.params.subscribe(params => {
-            this.origin = Origin({ name: params["origin"]});
-            this.store.dispatch(fetchOriginMembers(this.origin.name, this.token));
-            this.store.dispatch(fetchOriginInvitations(this.origin.name, this.token));
-        });
+  ngOnInit() {
+    this.sub = this.route.parent.params.subscribe(params => {
+      this.origin = Origin({ name: params['origin'] });
+      this.store.dispatch(fetchOriginMembers(this.origin.name, this.token));
+      this.store.dispatch(fetchOriginInvitations(this.origin.name, this.token));
+    });
 
-        this.control = new FormControl("", Validators.required);
-        this.form.addControl("username", this.control);
-    }
+    this.control = new FormControl('', Validators.required);
+    this.form.addControl('username', this.control);
+  }
 
-    ngOnDestroy() {
-        this.sub.unsubscribe();
-    }
+  ngOnDestroy() {
+    this.sub.unsubscribe();
+  }
 
-    get ui() {
-        return this.store.getState().origins.ui.current;
-    }
+  get ui() {
+    return this.store.getState().origins.ui.current;
+  }
 
-    get errorMessage() {
-        return this.ui.userInviteErrorMessage;
-    }
+  get errorMessage() {
+    return this.ui.userInviteErrorMessage;
+  }
 
-    get invitations(): List<Object> {
-        return this.store.getState().origins.currentPendingInvitations;
-    }
+  get invitations(): List<Object> {
+    return this.store.getState().origins.currentPendingInvitations;
+  }
 
-    get members(): List<Object> {
-        return this.store.getState().origins.currentMembers;
-    }
+  get members(): List<Object> {
+    return this.store.getState().origins.currentMembers;
+  }
 
-    get docsUrl() {
-        return config["docs_url"];
-    }
+  get docsUrl() {
+    return config['docs_url'];
+  }
 
-    get token() {
-        return this.store.getState().session.token;
-    }
+  get token() {
+    return this.store.getState().session.token;
+  }
 
-    canDelete(member) {
-        return this.store.getState().users.current.username !== member;
-    }
+  canDelete(member) {
+    return this.store.getState().users.current.username !== member;
+  }
 
-    delete(member) {
-        const data = {
-            heading: "Confirm remove",
-            body: `Are you sure you want to remove this member? Doing so will remove
+  delete(member) {
+    const data = {
+      heading: 'Confirm remove',
+      body: `Are you sure you want to remove this member? Doing so will remove
                 revoke access to this origin and its private packages.`,
-            action: "remove member"
-        };
+      action: 'remove member'
+    };
 
-        this.confirm(data, () => {
-            this.store.dispatch(deleteOriginMember(this.origin.name, member, this.token));
-        });
-    }
+    this.confirm(data, () => {
+      this.store.dispatch(deleteOriginMember(this.origin.name, member, this.token));
+    });
+  }
 
-    rescind(invitation) {
-        const data = {
-            heading: "Confirm rescind",
-            body: `Are you sure you want to rescind this invitation? Doing so will remove
+  rescind(invitation) {
+    const data = {
+      heading: 'Confirm rescind',
+      body: `Are you sure you want to rescind this invitation? Doing so will remove
                 access to this origin and its private packages.`,
-            action: "rescind it"
-        };
+      action: 'rescind it'
+    };
 
-        this.confirm(data, () => {
-            this.store.dispatch(deleteOriginInvitation(invitation.id, this.origin.name, this.token));
-        });
-    }
+    this.confirm(data, () => {
+      this.store.dispatch(deleteOriginInvitation(invitation.id, this.origin.name, this.token));
+    });
+  }
 
-    submit(username: string) {
-        this.store.dispatch(inviteUserToOrigin(username, this.origin.name, this.token));
-        const field = this.form.get("username");
-        field.setValue("");
-        field.markAsPristine();
-    }
+  submit(username: string) {
+    this.store.dispatch(inviteUserToOrigin(username, this.origin.name, this.token));
+    const field = this.form.get('username');
+    field.setValue('');
+    field.markAsPristine();
+  }
 
-    private confirm(data, then) {
-        this.confirmDialog
-            .open(SimpleConfirmDialog, { width: "480px", data: data })
-            .afterClosed()
-            .subscribe((confirmed) => {
-                if (confirmed) {
-                    then();
-                }
-            });
-    }
+  private confirm(data, then) {
+    this.confirmDialog
+      .open(SimpleConfirmDialog, { width: '480px', data: data })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          then();
+        }
+      });
+  }
 }

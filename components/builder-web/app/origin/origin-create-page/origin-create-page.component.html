@@ -7,24 +7,19 @@
       <section>
         <h3>Origin Name</h3>
         <p>
-          Must be unique and contain no spaces, and begin with a lowercase letter or number.
-          Allowed characters include <strong>a&thinsp;&ndash;&thinsp;z</strong>, <strong>0&thinsp;&ndash;&thinsp;9</strong>,
-          <strong>_</strong>, and <strong>-</strong>. No more than {{maxLength}} characters.
+          Must be unique and contain no spaces, and begin with a lowercase letter or number. Allowed characters include
+          <strong>a&thinsp;&ndash;&thinsp;z</strong>,
+          <strong>0&thinsp;&ndash;&thinsp;9</strong>,
+          <strong>_</strong>, and
+          <strong>-</strong>. No more than {{maxLength}} characters.
         </p>
-        <hab-checking-input
-          displayName="Name"
-          [form]="form"
-          id="origin-name"
-          [isAvailable]="isOriginAvailable"
-          name="name"
-          [value]="isFirstOrigin ? username : ''">
+        <hab-checking-input displayName="Name" [form]="form" id="origin-name" [isAvailable]="isOriginAvailable" name="name" [value]="isFirstOrigin ? username : ''">
         </hab-checking-input>
       </section>
       <section>
         <h3>Privacy Setting</h3>
         <p>
-          Build artifacts (.hart files) can be made available to all Habitat users or restricted
-          to members of this origin.
+          Build artifacts (.hart files) can be made available to all Habitat users or restricted to members of this origin.
         </p>
         <hab-visibility-selector [setting]="visibility" (changed)="settingChanged($event)"></hab-visibility-selector>
       </section>

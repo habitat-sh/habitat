@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as Cookies from "js-cookie";
+import * as Cookies from 'js-cookie';
 import {
   merge
-} from "lodash";
+} from 'lodash';
 
 import {
   AppStore
-} from "../AppStore";
+} from '../app.store';
 
-export const SET_COOKIE = "SET_COOKIE";
-export const REMOVE_COOKIE = "REMOVE_COOKIE";
+export const SET_COOKIE = 'SET_COOKIE';
+export const REMOVE_COOKIE = 'REMOVE_COOKIE';
 
 export const domain = cookieDomain();
-export const secure = window.location.protocol === "https";
+export const secure = window.location.protocol === 'https';
 
 export function getCookie(name: string) {
   return Cookies.get(name);
@@ -36,7 +36,7 @@ export function getBrowserCookies() {
 }
 
 export function setCookie(name: string, value: any, opts: Object = {}) {
-  Cookies.set(name, value, merge({domain, secure}, opts));
+  Cookies.set(name, value, merge({ domain, secure }, opts));
 
   return {
     type: SET_COOKIE,
@@ -50,12 +50,12 @@ export function setCookie(name: string, value: any, opts: Object = {}) {
 export function removeCookie(name: string, opts: Object = {}) {
   return {
     type: REMOVE_COOKIE,
-    payload: Cookies.remove(name, merge({domain, secure}, opts))
+    payload: Cookies.remove(name, merge({ domain, secure }, opts))
   };
 }
 
 function cookieDomain() {
-  let delim = ".";
+  let delim = '.';
   let hostname = location.hostname;
   let tld = hostname.split(delim).pop();
 

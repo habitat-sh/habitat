@@ -12,31 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export const ADD_NOTIFICATION = "ADD_NOTIFICATION";
-export const REMOVE_NOTIFICATION = "REMOVE_NOTIFICATION";
+export const ADD_NOTIFICATION = 'ADD_NOTIFICATION';
+export const REMOVE_NOTIFICATION = 'REMOVE_NOTIFICATION';
 
-export const DANGER = "danger";
-export const INFO = "info";
-export const SUCCESS = "success";
-export const WARNING = "warning";
+export const DANGER = 'danger';
+export const INFO = 'info';
+export const SUCCESS = 'success';
+export const WARNING = 'warning';
 
 export function addNotification(n) {
-    return dispatch => {
-        dispatch(populateNotification(n));
-        setTimeout(() => dispatch(removeNotification(0)), 5000);
-    };
+  return dispatch => {
+    dispatch(populateNotification(n));
+    setTimeout(() => dispatch(removeNotification(0)), 5000);
+  };
 }
 
 export function removeNotification(i) {
-    return {
-        type: REMOVE_NOTIFICATION,
-        payload: i,
-    };
+  return {
+    type: REMOVE_NOTIFICATION,
+    payload: i,
+  };
 }
 
 function populateNotification(n) {
-    return {
-        type: ADD_NOTIFICATION,
-        payload: n,
-    };
+  return {
+    type: ADD_NOTIFICATION,
+    payload: n,
+  };
 }

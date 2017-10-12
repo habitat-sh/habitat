@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as gitHubActions from "./gitHub";
-import * as buildActions from "./builds";
-import * as notificationActions from "./notifications";
-import * as originActions from "./origins";
-import * as packageActions from "./packages";
-import * as projectActions from "./projects";
-import * as routerActions from "./router";
-import * as usersActions from "./users";
-import * as uiActions from "./ui";
-import * as cookieActions from "./cookies";
-import * as featureFlagActions from "./feature-flags";
-import * as sessionActions from "./sessions";
+import * as gitHubActions from './gitHub';
+import * as buildActions from './builds';
+import * as notificationActions from './notifications';
+import * as originActions from './origins';
+import * as packageActions from './packages';
+import * as projectActions from './projects';
+import * as routerActions from './router';
+import * as usersActions from './users';
+import * as uiActions from './ui';
+import * as cookieActions from './cookies';
+import * as featureFlagActions from './feature-flags';
+import * as sessionActions from './sessions';
 
 // Action types
 export const CLEAR_GITHUB_INSTALLATIONS = gitHubActions.CLEAR_GITHUB_INSTALLATIONS;
@@ -112,7 +112,7 @@ export const SET_FEATURE_FLAG = featureFlagActions.SET_FEATURE_FLAG;
 export const SET_FEATURE_FLAGS = featureFlagActions.SET_FEATURE_FLAGS;
 
 // Used by redux-reset to reset the app state
-export const RESET = "RESET";
+export const RESET = 'RESET';
 
 // Actions
 export const authenticateWithGitHub = gitHubActions.authenticateWithGitHub;
@@ -203,7 +203,7 @@ export const setFeatureFlag = featureFlagActions.setFeatureFlag;
 export const setFeatureFlags = featureFlagActions.setFeatureFlags;
 
 export function resetAppState() {
-    return {
-        type: RESET,
-    };
+  return {
+    type: RESET,
+  };
 }

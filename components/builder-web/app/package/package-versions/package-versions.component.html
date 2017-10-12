@@ -7,7 +7,7 @@
       <h3>Platforms</h3>
     </li>
     <li class="none" *ngIf="versions.length === 0">
-        <span>There are no available versions for this package.</span>
+      <span>There are no available versions for this package.</span>
     </li>
     <li class="version" *ngFor="let version of versions" (click)="toggle(version)">
       <div class="summary">
@@ -27,10 +27,10 @@
               <hab-channels [channels]="pkg.channels"></hab-channels>
             </div>
             <div class="build-date">
-                {{ releaseToDate(pkg.release) }}
-              </div>
+              {{ releaseToDate(pkg.release) }}
+            </div>
             <div class="os">
-                <hab-platform-icon [platform]="pkg.platforms[0]"></hab-platform-icon>
+              <hab-platform-icon [platform]="pkg.platforms[0]"></hab-platform-icon>
             </div>
             <div class="visibility">
               <!-- TBD -->

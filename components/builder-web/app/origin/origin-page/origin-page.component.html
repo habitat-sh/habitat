@@ -16,10 +16,7 @@
     </p>
   </div>
   <nav md-tab-nav-bar>
-    <a md-tab-link *ngFor="let link of navLinks"
-       [routerLink]="link"
-       routerLinkActive #rla="routerLinkActive"
-       [active]="rla.isActive">
+    <a md-tab-link *ngFor="let link of navLinks" [routerLink]="link" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
       {{link}}
     </a>
   </nav>

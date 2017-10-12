@@ -12,31 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { combineReducers } from "redux";
-import app from "./app";
-import gitHub from "./gitHub";
-import builds from "./builds";
-import notifications from "./notifications";
-import origins from "./origins";
-import packages from "./packages";
-import projects from "./projects";
-import router from "./router";
-import session from "./sessions";
-import users from "./users";
-import ui from "./ui";
-import featureFlags from "./feature-flags";
+import { combineReducers } from 'redux';
+import app from './app';
+import gitHub from './gitHub';
+import builds from './builds';
+import notifications from './notifications';
+import origins from './origins';
+import packages from './packages';
+import projects from './projects';
+import router from './router';
+import session from './sessions';
+import users from './users';
+import ui from './ui';
+import featureFlags from './feature-flags';
 
 export default combineReducers({
-    app,
-    gitHub,
-    builds,
-    notifications,
-    origins,
-    packages,
-    projects,
-    router,
-    session,
-    ui,
-    users,
-    featureFlags
+  app,
+  gitHub,
+  builds,
+  notifications,
+  origins,
+  packages,
+  projects,
+  router,
+  session,
+  ui,
+  users,
+  featureFlags
 });

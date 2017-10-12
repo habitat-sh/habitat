@@ -12,24 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input, Host} from "@angular/core";
-import {TabsComponent} from "./TabsComponent";
+import { Component, Input } from '@angular/core';
 
 @Component({
-    selector: "hab-tab",
-    template: `
-    <div [hidden]="!active">
-        <ng-content></ng-content>
-    </div>`
+  selector: 'hab-notifications',
+  template: require('./notifications.component.html')
 })
-
-export class TabComponent {
-    @Input() tabTitle: string;
-    @Input() public onSelect: Function;
-
-    public active: boolean;
-
-    constructor(tabs: TabsComponent) {
-        tabs.addTab(this);
-    }
+export class NotificationsComponent {
+  @Input() notifications;
+  @Input() removeNotification: Function;
 }

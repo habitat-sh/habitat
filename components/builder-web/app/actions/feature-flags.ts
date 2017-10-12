@@ -12,25 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { merge } from 'lodash';
 
-import { merge } from "lodash";
+import { setCookie } from './index';
+import { getBrowserCookies } from './cookies';
+import { Map } from 'immutable';
+import config from '../config';
 
-import { setCookie } from "./index";
-import { getBrowserCookies } from "./cookies";
-import { Map } from "immutable";
-import config from "../config";
+export const SET_FEATURE_FLAG = 'SET_FEATURE_FLAG';
+export const SET_FEATURE_FLAGS = 'SET_FEATURE_FLAGS';
 
-export const SET_FEATURE_FLAG = "SET_FEATURE_FLAG";
-export const SET_FEATURE_FLAGS = "SET_FEATURE_FLAGS";
-
-const FEATURE_FLAG_KEY = "feature-flag";
+const FEATURE_FLAG_KEY = 'feature-flag';
 
 export function setFeatureFlag(name, value) {
   setCookie(`${FEATURE_FLAG_KEY}.${name}`, value);
 
   return {
     type: SET_FEATURE_FLAG,
-    payload: {name, value}
+    payload: { name, value }
   };
 }
 

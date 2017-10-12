@@ -24,10 +24,7 @@
         {{ dateFor(build.created_at) }}
       </div>
       <div class="icons">
-        <hab-icon
-          [symbol]="iconFor(build.state)"
-          class="status {{ build.state | lowercase }}"
-          title="{{ build.state | titlecase }}"></hab-icon>
+        <hab-icon [symbol]="iconFor(build.state)" class="status {{ build.state | lowercase }}" title="{{ build.state | titlecase }}"></hab-icon>
         <hab-icon symbol="chevron-right"></hab-icon>
       </div>
     </li>

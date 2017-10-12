@@ -12,37 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { requestRoute, removeSessionStorage, resetAppState } from "./index";
+import { requestRoute, removeSessionStorage, resetAppState } from './index';
 
-export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
-export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
-export const SET_SIGNING_IN_FLAG = "SET_SIGNING_IN_FLAG";
+export const SIGN_IN_ATTEMPT = 'SIGN_IN_ATTEMPT';
+export const TOGGLE_USER_NAV_MENU = 'TOGGLE_USER_NAV_MENU';
+export const SET_SIGNING_IN_FLAG = 'SET_SIGNING_IN_FLAG';
 
 export function attemptSignIn(username) {
-    return {
-        type: SIGN_IN_ATTEMPT,
-        payload: { username: username },
-    };
+  return {
+    type: SIGN_IN_ATTEMPT,
+    payload: { username: username },
+  };
 }
 
 export function toggleUserNavMenu() {
-    return {
-        type: TOGGLE_USER_NAV_MENU
-    };
+  return {
+    type: TOGGLE_USER_NAV_MENU
+  };
 }
 
 
 export function setSigningInFlag(payload) {
-    return {
-        type: SET_SIGNING_IN_FLAG,
-        payload,
-    };
+  return {
+    type: SET_SIGNING_IN_FLAG,
+    payload,
+  };
 }
 
 export function signOut() {
-    return dispatch => {
-        dispatch(removeSessionStorage());
-        dispatch(resetAppState());
-        dispatch(requestRoute(["/sign-in"]));
-    };
+  return dispatch => {
+    dispatch(removeSessionStorage());
+    dispatch(resetAppState());
+    dispatch(requestRoute(['/sign-in']));
+  };
 }

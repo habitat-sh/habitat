@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnInit } from "@angular/core";
-import { AppStore } from "../../../AppStore";
-import { deleteDockerIntegration, setDockerIntegration } from "../../../actions";
-import { MdDialog, MdDialogRef } from "@angular/material";
-import { DockerCredentialsFormDialog } from "../docker-credentials-form/docker-credentials-form.dialog";
-import { IntegrationDeleteConfirmDialog } from "./dialog/integration-delete-confirm/integration-delete-confirm.dialog";
-import { fetchDockerIntegration } from "../../../actions/index";
+import { Component, OnInit } from '@angular/core';
+import { AppStore } from '../../../app.store';
+import { deleteDockerIntegration, setDockerIntegration } from '../../../actions';
+import { MdDialog, MdDialogRef } from '@angular/material';
+import { DockerCredentialsFormDialog } from '../docker-credentials-form/docker-credentials-form.dialog';
+import { IntegrationDeleteConfirmDialog } from './dialog/integration-delete-confirm/integration-delete-confirm.dialog';
+import { fetchDockerIntegration } from '../../../actions/index';
 
 @Component({
-  template: require("./origin-integrations-tab.component.html")
+  template: require('./origin-integrations-tab.component.html')
 })
 export class OriginIntegrationsTabComponent implements OnInit {
 
@@ -53,7 +53,7 @@ export class OriginIntegrationsTabComponent implements OnInit {
 
   addDocker(): void {
     this.credsDialog
-      .open(DockerCredentialsFormDialog, { width: "480px" })
+      .open(DockerCredentialsFormDialog, { width: '480px' })
       .afterClosed()
       .subscribe((result) => {
         if (result) {
@@ -64,7 +64,7 @@ export class OriginIntegrationsTabComponent implements OnInit {
 
   deleteDocker(name) {
     this.confirmDialog
-      .open(IntegrationDeleteConfirmDialog, { width: "480px" })
+      .open(IntegrationDeleteConfirmDialog, { width: '480px' })
       .afterClosed()
       .subscribe(confirmed => {
         if (confirmed) {

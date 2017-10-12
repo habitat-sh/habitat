@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as actionTypes from "../actions/index";
-import initialState from "../initialState";
+import * as actionTypes from '../actions/index';
+import initialState from '../initialState';
 
-export default function notifications(state = initialState["notifications"], action) {
-    switch (action.type) {
-        case actionTypes.ADD_NOTIFICATION:
-            return state.set("all",
-                state.get("all").push(action.payload));
+export default function notifications(state = initialState['notifications'], action) {
+  switch (action.type) {
+    case actionTypes.ADD_NOTIFICATION:
+      return state.set('all',
+        state.get('all').push(action.payload));
 
-        case actionTypes.REMOVE_NOTIFICATION:
-            return state.set("all",
-                state.get("all").delete(action.payload));
+    case actionTypes.REMOVE_NOTIFICATION:
+      return state.set('all',
+        state.get('all').delete(action.payload));
 
-        default:
-            return state;
-    }
+    default:
+      return state;
+  }
 }

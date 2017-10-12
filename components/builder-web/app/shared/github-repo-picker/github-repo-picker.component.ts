@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit, Output, EventEmitter } from "@angular/core";
-import { List, Map, OrderedSet } from "immutable";
-import { AppStore } from "../../AppStore";
-import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
-import { resetRedirectRoute } from "../../actions/index";
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { List, Map, OrderedSet } from 'immutable';
+import { AppStore } from '../../app.store';
+import { GitHubRepo } from '../../github/repo/shared/github-repo.model';
+import { resetRedirectRoute } from '../../actions/index';
 
 @Component({
-  selector: "hab-github-repo-picker",
-  template: require("./github-repo-picker.component.html")
+  selector: 'hab-github-repo-picker',
+  template: require('./github-repo-picker.component.html')
 })
 
 export class GitHubRepoPickerComponent implements OnInit {

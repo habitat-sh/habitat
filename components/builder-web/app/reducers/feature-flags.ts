@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as actionTypes from "../actions/index";
-import initialState from "../initialState";
-import { Map } from "immutable";
+import * as actionTypes from '../actions/index';
+import initialState from '../initialState';
+import { Map } from 'immutable';
 
-export default function featureFlags(state = initialState["featureFlags"], action) {
+export default function featureFlags(state = initialState['featureFlags'], action) {
 
   switch (action.type) {
     case actionTypes.SET_FEATURE_FLAGS:
-      return state.set("current", action.payload || Map());
+      return state.set('current', action.payload || Map());
 
     case actionTypes.SET_FEATURE_FLAG:
-      return state.setIn(["current", action.payload.name], action.payload.value);
+      return state.setIn(['current', action.payload.name], action.payload.value);
 
     default:
       return state;

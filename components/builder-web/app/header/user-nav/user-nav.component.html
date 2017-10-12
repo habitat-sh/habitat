@@ -1,0 +1,16 @@
+<div class="main-nav--cta" *ngIf="!isSignedIn">
+  <a md-button color="accent" class="button" href="{{ config['www_url'] }}/try">Get Started</a>
+</div>
+<div class="main-nav--profile" *ngIf="isSignedIn">
+  <span class="main-nav--avatar">
+    <img src="{{avatarUrl}}" />
+  </span>
+  <ul class="main-nav--dropdown" *ngIf="isOpen">
+    <li>{{username}}</li>
+    <li>
+      <a href="#" (click)="signOut()">
+        Sign Out
+      </a>
+    </li>
+  </ul>
+</div>

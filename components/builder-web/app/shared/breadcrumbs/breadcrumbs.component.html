@@ -1,0 +1,13 @@
+<span class="hab-package-breadcrumbs">
+  <a [routerLink]="['/pkgs', ident.origin]">
+    {{ident.origin}}
+  </a>
+  <span *ngIf="ident.name">/</span>
+  <a [routerLink]="['/pkgs', ident.origin, ident.name]">
+    {{ident.name}}
+  </a>
+  <span *ngIf="ident.version">/</span>
+  <a [routerLink]="['/pkgs', ident.origin, ident.name, ident.version]">
+    {{ident.version}}
+  </a>
+</span>

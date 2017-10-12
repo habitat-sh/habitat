@@ -1,11 +1,7 @@
 <div class="hab-package-sidebar">
   <div class="build" *ngIf="buildable">
     <h3>Build</h3>
-    <button md-raised-button
-      color="primary"
-      class="button"
-      (click)="build()"
-      [disabled]="building">
+    <button md-raised-button color="primary" class="button" (click)="build()" [disabled]="building">
       {{ buildButtonLabel }}
     </button>
   </div>
@@ -25,17 +21,18 @@
       <hab-platform-icon [platform]="latestStable.target"></hab-platform-icon>
     </p>
     <p *ngIf="!latestStable && !loadingLatestStable">
-      None. <a [routerLink]="['./']">View available versions</a>.
+      None.
+      <a [routerLink]="['./']">View available versions</a>.
     </p>
   </div>
   <div *ngIf="isAService">
-      <div class="command">
-        <h3>Run Command</h3>
-        <hab-copyable [command]="runCommand"></hab-copyable>
-      </div>
-      <div class="command">
-        <h3>Export Command</h3>
-        <hab-copyable [command]="exportCommand"></hab-copyable>
-      </div>
+    <div class="command">
+      <h3>Run Command</h3>
+      <hab-copyable [command]="runCommand"></hab-copyable>
+    </div>
+    <div class="command">
+      <h3>Export Command</h3>
+      <hab-copyable [command]="exportCommand"></hab-copyable>
+    </div>
   </div>
 </div>

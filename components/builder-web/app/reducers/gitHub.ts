@@ -12,37 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { fromJS, List } from "immutable";
-import initialState from "../initialState";
-import * as actionTypes from "../actions/index";
-import config from "../config";
+import { fromJS, List } from 'immutable';
+import initialState from '../initialState';
+import * as actionTypes from '../actions/index';
+import config from '../config';
 
-export default function gitHub(state = initialState["gitHub"], action) {
-    switch (action.type) {
+export default function gitHub(state = initialState['gitHub'], action) {
+  switch (action.type) {
 
-        case actionTypes.CLEAR_GITHUB_INSTALLATIONS:
-            return state.set("installations", List()).
-                setIn(["ui", "installations", "loading"], true);
+    case actionTypes.CLEAR_GITHUB_INSTALLATIONS:
+      return state.set('installations', List()).
+        setIn(['ui', 'installations', 'loading'], true);
 
-        case actionTypes.LOAD_GITHUB_SESSION_STATE:
-            return state.set("authState", action.payload.gitHubAuthState).
-                set("authToken", action.payload.gitHubAuthToken);
+    case actionTypes.LOAD_GITHUB_SESSION_STATE:
+      return state.set('authState', action.payload.gitHubAuthState).
+        set('authToken', action.payload.gitHubAuthToken);
 
-        case actionTypes.POPULATE_GITHUB_INSTALLATIONS:
-            const filtered = action.payload.filter((i) => {
-                return i.app_id.toString() === config["github_app_id"];
-            });
+    case actionTypes.POPULATE_GITHUB_INSTALLATIONS:
+      const filtered = action.payload.filter((i) => {
+        return i.app_id.toString() === config['github_app_id'];
+      });
 
-            return state.set("installations", fromJS(filtered)).
-                setIn(["ui", "installations", "loading"], false);
+      return state.set('installations', fromJS(filtered)).
+        setIn(['ui', 'installations', 'loading'], false);
 
-        case actionTypes.SET_GITHUB_AUTH_STATE:
-            return state.set("authState", action.payload);
+    case actionTypes.SET_GITHUB_AUTH_STATE:
+      return state.set('authState', action.payload);
 
-        case actionTypes.SET_GITHUB_AUTH_TOKEN:
-            return state.set("authToken", action.payload);
+    case actionTypes.SET_GITHUB_AUTH_TOKEN:
+      return state.set('authToken', action.payload);
 
-        default:
-            return state;
-    }
+    default:
+      return state;
+  }
 }
