@@ -2,28 +2,28 @@
 <!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
-    <id>hab</id>
-    <title>hab development build</title>
-    <version>0.9.4-alpha</version>
+    <id>habitat</id>
+    <title>habitat</title>
+    <version>$version$</version>
     <authors>Habitat Maintainers</authors>
-    <owners>Habitat Maintainers</owners>
-    <summary>Pre-release build of hab for Windows</summary>
-    <description>This is a pre-release build for testing only. 
+    <owners>Habitat, Matt Wrock</owners>
+    <summary>A simple, flexible way to build, deploy, and manage cloud native applications</summary>
+    <description>
+Habitat centers application configuration, management, and behavior around the application itself, not the infrastructure that the app runs on.
+
+Habitat provides automation that can programmatically and declaratively build, deploy, and manage your application and services, both stateful and stateless.
+
+Habitat can be deployed and run on various infrastructure environments including bare metal, VM, containers, and PaaS. 
     </description>
     <projectUrl>https://habitat.sh</projectUrl>
+    <iconUrl>https://brand.chef.io/images/habitat/logos/logo-3.png</iconUrl>
     <projectSourceUrl>https://github.com/habitat-sh/habitat</projectSourceUrl>
     <docsUrl>https://www.habitat.sh/docs/overview/</docsUrl>
     <mailingListUrl>https://forums.habitat.sh/</mailingListUrl>
     <bugTrackerUrl>https://github.com/habitat-sh/habitat/issues</bugTrackerUrl>
-    <tags>hab</tags>
+    <tags>habitat</tags>
     <copyright>Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors</copyright>
-    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <licenseUrl>https://github.com/habitat-sh/habitat/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <releaseNotes>This is a pre-release build for testing only.</releaseNotes>
   </metadata>
-  <files>
-    <file src="..\..\..\target\Debug\hab.exe" target="tools" />
-    <file src="C:\Windows\System32\vcruntime140.dll" target="tools"/>
-    <file src="C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll" target="tools" />
-  </files>
 </package>
