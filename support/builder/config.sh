@@ -34,6 +34,7 @@ EOT
 
 mkdir -p /hab/svc/builder-originsrv
 cat <<EOT > /hab/svc/builder-originsrv/user.toml
+[app]
 shards = [
   0,
   1,
@@ -180,6 +181,7 @@ EOT
 
 mkdir -p /hab/svc/builder-sessionsrv
 cat <<EOT > /hab/svc/builder-sessionsrv/user.toml
+[app]
 shards = [
   0,
   1,
