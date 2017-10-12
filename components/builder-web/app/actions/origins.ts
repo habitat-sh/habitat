@@ -139,6 +139,7 @@ export function createOrigin(body: object, token: string, isFirstOrigin = false,
                 type: SUCCESS,
             }));
 
+            dispatch(generateOriginKeys(origin["name"], token));
             callback(origin);
         }).catch(error => {
             dispatch(setCurrentOriginCreatingFlag(false));
