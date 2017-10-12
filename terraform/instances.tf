@@ -740,7 +740,7 @@ resource "aws_instance" "worker" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
+      "sudo hab svc load core/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api-proxy.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
     ]
   }
 
