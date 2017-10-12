@@ -19,7 +19,7 @@ use std::process::{Child, Command, ExitStatus, Stdio};
 
 use hab_core::env;
 use hab_core::fs as hfs;
-use hab_core::os::process::{self, Signal};
+use hab_core::os::process::{self, Pid, Signal};
 
 use error::Result;
 use runner::log_pipe::LogPipe;
@@ -206,7 +206,7 @@ impl<'a> DockerExporter<'a> {
             dockerd.id(),
             Signal::TERM
         );
-        process::signal(dockerd.id(), Signal::TERM)?;
+        process::signal(dockerd.id() as Pid, Signal::TERM)?;
         dockerd.wait()?;
         debug!("terminated dockerd");
         // TODO fn: clean up `self.dockerd_root()` directory
