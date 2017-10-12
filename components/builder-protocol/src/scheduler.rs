@@ -84,6 +84,14 @@ impl Routable for GroupGet {
     }
 }
 
+impl Routable for GroupAbort {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_group_id().to_string())
+    }
+}
+
 impl Routable for PackageCreate {
     type H = String;
 

@@ -23,6 +23,34 @@ use time::PreciseTime;
 use super::ServerState;
 use error::SrvResult;
 
+// TODO (SA): This is an experimental dev-only function for now
+pub fn group_abort(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::GroupAbort>()?;
+    debug!("group_abort message: {:?}", msg);
+
+    match state.datastore.abort_group(&msg) {
+        Ok(()) => {
+            warn!("Group {} aborted", msg.get_group_id());
+            conn.route_reply(req, &net::NetOk::new())?
+        }
+        Err(err) => {
+            warn!(
+                "Unable to abort group {}, err: {:?}",
+                msg.get_group_id(),
+                err
+            );
+            let err = NetError::new(ErrCode::DATA_STORE, "sc:schedule-abort:1");
+            conn.route_reply(req, &*err)?;
+        }
+    };
+
+    Ok(())
+}
+
 pub fn group_create(
     req: &mut Message,
     conn: &mut RouteConn,

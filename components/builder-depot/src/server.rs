@@ -42,7 +42,7 @@ use persistent;
 use protobuf;
 use protocol::originsrv::*;
 use protocol::scheduler::{Group, GroupCreate, GroupGet, PackageStatsGet, PackageStats,
-                          PackagePreCreate};
+                          PackagePreCreate, GroupAbort};
 use protocol::sessionsrv::{Account, AccountGet, AccountOriginRemove};
 use regex::Regex;
 use router::{Params, Router};
@@ -1099,6 +1099,30 @@ fn get_schedule(req: &mut Request) -> IronResult<Response> {
             dont_cache_response(&mut response);
             Ok(response)
         }
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+// TODO (SA) This is an experiemental dev-only function for now
+fn abort_schedule(req: &mut Request) -> IronResult<Response> {
+    let group_id = {
+        let params = req.extensions.get::<Router>().unwrap();
+        let group_id_str = match params.find("groupid") {
+            Some(s) => s,
+            None => return Ok(Response::with(status::BadRequest)),
+        };
+
+        match group_id_str.parse::<u64>() {
+            Ok(id) => id,
+            Err(_) => return Ok(Response::with(status::BadRequest)),
+        }
+    };
+
+    let mut request = GroupAbort::new();
+    request.set_group_id(group_id);
+
+    match route_message::<GroupAbort, NetOk>(req, &request) {
+        Ok(_) => Ok(Response::with(status::Ok)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }
@@ -2199,7 +2223,9 @@ where
             XHandler::new(schedule).before(basic.clone())
         },
         schedule_get: get "/pkgs/schedule/:groupid" => get_schedule,
-
+        schedule_abort: delete "/pkgs/schedule/:groupid" => {
+            XHandler::new(abort_schedule).before(worker.clone())
+        },
         origin_create: post "/origins" => {
             XHandler::new(origin_create).before(basic.clone())
         },
