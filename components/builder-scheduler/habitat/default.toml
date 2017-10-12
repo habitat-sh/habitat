@@ -1,6 +1,8 @@
 log_level = "info"
 log_path = "/tmp"
 
+[app]
+
 [datastore]
 user = "hab"
 password = ""

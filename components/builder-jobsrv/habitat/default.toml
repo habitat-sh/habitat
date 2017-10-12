@@ -9,6 +9,8 @@ publisher_listen = "0.0.0.0"
 log_ingestion_listen = "0.0.0.0"
 log_ingestion_port = 5568
 
+[app]
+
 [datastore]
 user = "hab"
 password = ""
