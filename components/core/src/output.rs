@@ -30,9 +30,12 @@ use std::fmt;
 
 use ansi_term::Colour::{White, Cyan, Green};
 
+use regex::Regex;
+
 use PROGRAM_NAME;
 
 static mut VERBOSE: AtomicBool = ATOMIC_BOOL_INIT;
+static mut JSON: AtomicBool = ATOMIC_BOOL_INIT;
 // I am sorry this isn't named the other way; I can't get an atomic initializer that defaults to
 // true. Them's the breaks.
 static mut NO_COLOR: AtomicBool = ATOMIC_BOOL_INIT;
@@ -44,9 +47,17 @@ pub fn is_verbose() -> bool {
 
 /// Turn verbose output on or off.
 pub fn set_verbose(booly: bool) {
-    unsafe {
-        VERBOSE.store(booly, Ordering::Relaxed);
-    }
+    unsafe { VERBOSE.store(booly, Ordering::Relaxed) }
+}
+
+/// True if JSON output is enabled
+pub fn is_json() -> bool {
+    unsafe { JSON.load(Ordering::Relaxed) }
+}
+
+/// Turn JSON output on or off.
+pub fn set_json(booly: bool) {
+    unsafe { JSON.store(booly, Ordering::Relaxed) }
 }
 
 /// True if color is enabled
@@ -78,6 +89,7 @@ pub struct StructuredOutput<'a> {
     content: &'a str,
     pub verbose: Option<bool>,
     pub color: Option<bool>,
+    pub json: Option<bool>,
 }
 
 impl<'a> StructuredOutput<'a> {
@@ -99,6 +111,7 @@ impl<'a> StructuredOutput<'a> {
             content: content,
             verbose: None,
             color: None,
+            json: None,
         }
     }
 }
@@ -106,57 +119,106 @@ impl<'a> StructuredOutput<'a> {
 // If we ever want to create multiple output formats in the future, we would do it here -
 // essentially create a flag we check to see what output you want, then call a different formatting
 // function. Viola!
+
 impl<'a> fmt::Display for StructuredOutput<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let verbose = self.verbose.unwrap_or(is_verbose());
-        let color = self.color.unwrap_or(is_color());
-        let preamble_color = if self.preamble == PROGRAM_NAME.as_str() {
-            Cyan
-        } else {
-            Green
-        };
-        if verbose {
-            if color {
-                write!(
-                    f,
-                    "{}({})[{}]: {}",
-                    preamble_color.paint(self.preamble),
-                    White.bold().paint(self.logkey),
-                    White.underline().paint(format!(
-                        "{}:{}:{}",
-                        self.file,
-                        self.line,
-                        self.column
-                    )),
-                    self.content
-                )
-            } else {
-                write!(
-                    f,
-                    "{}({})[{}:{}:{}]: {}",
-                    self.preamble,
-                    self.logkey,
-                    self.file,
-                    self.line,
-                    self.column,
-                    self.content
-                )
-            }
-        } else {
-            if color {
-                write!(
-                    f,
-                    "{}({}): {}",
-                    preamble_color.paint(self.preamble),
-                    White.bold().paint(self.logkey),
-                    self.content
-                )
-            } else {
-                write!(f, "{}({}): {}", self.preamble, self.logkey, self.content)
-            }
+        if self.json.unwrap_or(is_json()) {
+          jsonfmt(self, f)
+        }
+        else {
+          stdfmt(self, f)
         }
     }
 }
+
+fn stdfmt(output: &StructuredOutput, f: &mut fmt::Formatter) -> fmt::Result {
+    let verbose = output.verbose.unwrap_or(is_verbose());
+    let color = output.color.unwrap_or(is_color());
+
+    let re = Regex::new(r"\x1b\[[0-9;]*[a-zA-Z]").unwrap();
+
+    let preamble_color = if output.preamble == PROGRAM_NAME.as_str() {
+        Cyan
+    } else {
+        Green
+    };
+    if verbose {
+        if color {
+            write!(
+                f,
+                "{}({})[{}]: {}",
+                preamble_color.paint(output.preamble),
+                White.bold().paint(output.logkey),
+                White.underline().paint(format!(
+                    "{}:{}:{}",
+                    output.file,
+                    output.line,
+                    output.column
+                )),
+                output.content
+            )
+        } else {
+            write!(
+                f,
+                "{}({})[{}:{}:{}]: {}",
+                output.preamble,
+                output.logkey,
+                output.file,
+                output.line,
+                output.column,
+                re.replace_all(output.content, "")
+            )
+        }
+    } else {
+        if color {
+            write!(
+                f,
+                "{}({}): {}",
+                preamble_color.paint(output.preamble),
+                White.bold().paint(output.logkey),
+                output.content
+            )
+        } else {
+            write!(f, "{}({}): {}", output.preamble, output.logkey, re.replace_all(output.content, ""))
+        }
+    }
+}
+
+fn jsonfmt(output: &StructuredOutput, f: &mut fmt::Formatter) -> fmt::Result {
+    let verbose = output.verbose.unwrap_or(is_verbose());
+    let color = output.color.unwrap_or(is_color());
+    let re = Regex::new(r"\x1b\[[0-9;]*[a-zA-Z]").unwrap();
+    let uncolored_content;
+
+    let content = match color {
+        true => output.content,
+        false => { uncolored_content = re.replace_all(output.content, ""); &uncolored_content }
+    };
+
+    if verbose {
+        write!(
+            f, "{}", 
+            json!({
+              "preamble": output.preamble,
+              "logkey": output.logkey,
+              "file": output.file,
+              "line": output.line,
+              "column": output.column,
+              "content": content
+            })
+        )
+    } else {
+        write!(
+            f, "{}", 
+            json!({
+              "preamble": output.preamble,
+              "logkey": output.logkey,
+              "content": content
+            })
+       )
+    }
+}
+
 
 #[macro_export]
 /// Works the same as the print! macro, but uses our StructuredOutput formatter.
@@ -305,7 +367,7 @@ macro_rules! output_format {
             format!("{}", so)
         }
     };
-    (preamble $preamble:expr, logkey $logkey:expr) => {
+    (preamble $preamble:expr, logkey $logkey:expr, content $content:expr) => {
         {
             use $crate::output::StructuredOutput;
             let preamble = &$preamble;
@@ -314,7 +376,8 @@ macro_rules! output_format {
                                            line!(),
                                            file!(),
                                            column!(),
-                                           "");
+                                           $content);
+
             format!("{}", so)
         }
     };
@@ -348,7 +411,6 @@ macro_rules! output_format {
         }
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::StructuredOutput;

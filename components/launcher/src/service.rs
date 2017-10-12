@@ -18,11 +18,12 @@ use std::io::{self, BufRead, BufReader, Read, Write};
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
 use std::thread;
 
-use ansi_term::Colour;
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
 use core::os::process::Pid;
 use protocol;
+
+use ansi_term::Colour;
 
 pub use sys::service::*;
 use error::Result;
@@ -111,8 +112,7 @@ where
     let mut reader = BufReader::new(out);
     let mut buffer = String::new();
     while reader.read_line(&mut buffer).unwrap() > 0 {
-        let mut line = output_format!(preamble &id, logkey "O");
-        line.push_str(&buffer);
+        let line = output_format!(preamble &id, logkey "O", content &buffer );
         write!(&mut io::stdout(), "{}", line).expect("unable to write to stdout");
         buffer.clear();
     }
@@ -126,9 +126,8 @@ where
     let mut reader = BufReader::new(err);
     let mut buffer = String::new();
     while reader.read_line(&mut buffer).unwrap() > 0 {
-        let mut line = output_format!(preamble &id, logkey "E");
         let c = format!("{}", Colour::Red.bold().paint(buffer.clone()));
-        line.push_str(c.as_str());
+        let line = output_format!(preamble &id, logkey "E", content &c);
         write!(&mut io::stderr(), "{}", line).expect("unable to write to stderr");
         buffer.clear();
     }

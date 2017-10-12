@@ -107,6 +107,7 @@ fn boot() -> Option<LauncherCli> {
 
 fn start() -> Result<()> {
     let launcher = boot();
+
     let app_matches = match cli().get_matches_safe() {
         Ok(matches) => matches,
         Err(err) => {
@@ -115,15 +116,27 @@ fn start() -> Result<()> {
             process::exit(ERR_NO_RETRY_EXCODE);
         }
     };
+
+// I'm not sure this is the best way to do this - but it beats having this in every sub_ func
     match app_matches.subcommand() {
-        ("bash", Some(m)) => sub_bash(m),
+      (_, Some(m)) => {
+
+        if m.is_present("VERBOSE") {
+            hcore::output::set_verbose(true);
+        }
+      }
+      _ => unreachable!(),
+    } 
+
+    match app_matches.subcommand() {
+        ("bash", _) => sub_bash(),
         ("config", Some(m)) => sub_config(m),
         ("load", Some(m)) => sub_load(m),
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
             sub_run(m, launcher)
         }
-        ("sh", Some(m)) => sub_sh(m),
+        ("sh", _) => sub_sh(),
         ("start", Some(m)) => {
             let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
             sub_start(m, launcher)
@@ -145,7 +158,6 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg VERBOSE: -v +global "Verbose output; shows line numbers")
-        (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
         (@subcommand bash =>
             (about: "Start an interactive Bash-like shell")
             (aliases: &["b", "ba", "bas"])
@@ -225,6 +237,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward Supervisor and service event data to")
+            (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
+            (@arg JSON: --("json") +global "Display supervisor output as JSON")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -313,6 +327,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@setting SubcommandRequiredElseHelp)
         (@arg VERBOSE: -v +global "Verbose output; shows line numbers")
         (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
+        (@arg JSON: --("json") +global "Display supervisor output as JSON")
         (@subcommand bash =>
             (about: "Start an interactive Bash-like shell")
             (aliases: &["b", "ba", "bas"])
@@ -468,14 +483,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
     )
 }
 
-fn sub_bash(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
-
+fn sub_bash() -> Result<()> {
     command::shell::bash()
 }
 
@@ -487,12 +495,6 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_load(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
     let cfg = mgrcfg_from_matches(m)?;
     let install_source = install_source_from_input(m)?;
 
@@ -678,13 +680,6 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_unload(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
-
     let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
@@ -714,30 +709,22 @@ fn sub_unload(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
+    if m.is_present("NO_COLOR") {
+        hcore::output::set_no_color(true);
+    }
+    if m.is_present("JSON") {
+        hcore::output::set_json(true);
+    }
     let cfg = mgrcfg_from_matches(m)?;
     let mut manager = Manager::load(cfg, launcher)?;
     manager.run()
 }
 
-fn sub_sh(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
-
+fn sub_sh() -> Result<()> {
     command::shell::sh()
 }
 
 fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
-
     let cfg = mgrcfg_from_matches(m)?;
 
     if !fs::am_i_root() {
@@ -826,12 +813,6 @@ fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
 }
 
 fn sub_status(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
     let cfg = mgrcfg_from_matches(m)?;
     if !Manager::is_running(&cfg)? {
         println!("The Supervisor is not running.");
@@ -871,12 +852,6 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
     let cfg = mgrcfg_from_matches(m)?;
 
     // PKG_IDENT is required, so unwrap() is safe
