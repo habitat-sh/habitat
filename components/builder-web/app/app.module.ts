@@ -14,10 +14,10 @@
 
 import { NgModule } from '@angular/core';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
-import { MdButtonModule, MD_PLACEHOLDER_GLOBAL_OPTIONS } from '@angular/material';
+import { MatButtonModule, MAT_PLACEHOLDER_GLOBAL_OPTIONS } from '@angular/material';
 import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
 import { HttpModule } from '@angular/http';
-import { MdIconModule, MdRadioModule, MdTabsModule } from '@angular/material';
+import { MatIconModule, MatRadioModule, MatTabsModule } from '@angular/material';
 import { routing } from './routes';
 import { AppStore } from './app.store';
 import { AppComponent } from './app.component';
@@ -38,13 +38,13 @@ import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   imports: [
-    MdIconModule,
-    MdRadioModule,
-    MdTabsModule,
+    MatIconModule,
+    MatRadioModule,
+    MatTabsModule,
     BrowserModule,
     FormsModule,
     HttpModule,
-    MdButtonModule,
+    MatButtonModule,
     OriginModule,
     PackageModule,
     ReactiveFormsModule,
@@ -65,7 +65,7 @@ import { SharedModule } from './shared/shared.module';
   ],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy, },
-    { provide: MD_PLACEHOLDER_GLOBAL_OPTIONS, useValue: { float: 'always' } },
+    { provide: MAT_PLACEHOLDER_GLOBAL_OPTIONS, useValue: { float: 'always' } },
     AppStore
   ],
   bootstrap: [AppComponent]

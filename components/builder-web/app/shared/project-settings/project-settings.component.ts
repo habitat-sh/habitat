@@ -14,7 +14,7 @@
 
 import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { DisconnectConfirmDialog } from './dialog/disconnect-confirm/disconnect-confirm.dialog';
 import { DockerExportSettingsComponent } from '../../shared/docker-export-settings/docker-export-settings.component';
 import { BuilderApiClient } from '../../BuilderApiClient';
@@ -54,7 +54,7 @@ export class ProjectSettingsComponent implements OnChanges {
   private defaultPath = 'habitat/plan.sh';
   private _visibility: string;
 
-  constructor(private formBuilder: FormBuilder, private store: AppStore, private disconnectDialog: MdDialog) {
+  constructor(private formBuilder: FormBuilder, private store: AppStore, private disconnectDialog: MatDialog) {
     this.api = new BuilderApiClient(this.token);
     this.selectedPath = this.defaultPath;
 

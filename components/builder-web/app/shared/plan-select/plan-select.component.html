@@ -1,30 +1,30 @@
 <form (ngSubmit)="handleSubmit()" [formGroup]="form" #formValues="ngForm">
-  <md-tab-group [selectedIndex]="formIndex" (selectChange)="onTabChange($event)" class="hab-tab-progress">
-    <md-tab id="repoSelect" label="1. Select a GitHub repo">
+  <mat-tab-group [selectedIndex]="formIndex" (selectChange)="onTabChange($event)" class="hab-tab-progress">
+    <mat-tab id="repoSelect" label="1. Select a GitHub repo">
       <div class="page-body">
         <p class="error" *ngIf="errorText">{{errorText}}</p>
         <hab-github-repo-picker (repoSelected)="repoSelected($event)"></hab-github-repo-picker>
       </div>
-    </md-tab>
-    <md-tab id="planSelect" label="2. Set path to Habitat plan file" [disabled]="formIndex === 0">
+    </mat-tab>
+    <mat-tab id="planSelect" label="2. Set path to Habitat plan file" [disabled]="formIndex === 0">
       <div class="page-body">
         <label for="plan">Select a plan file</label>
         <small>If the selected repo contains any plan files, they will be listed below.</small>
         <small>When repo changes are detected, the Build Service will create a new .hart from the selected plan.</small>
         <!-- <input class="hidden" value="{{selectedPlan}}" [formControl]=/> -->
-        <md-radio-group [(ngModel)]="selectedPlan" class="hab-radio-plans" name="selectedPlan" [formControl]="form.controls['plan']">
-          <md-radio-button *ngFor="let plan of plans" [value]="plan.path">
+        <mat-radio-group [(ngModel)]="selectedPlan" class="hab-radio-plans" name="selectedPlan" [formControl]="form.controls['plan']">
+          <mat-radio-button *ngFor="let plan of plans" [value]="plan.path">
             <hab-icon [symbol]="plan.type" class="icon-os" title="OS"></hab-icon> {{plan.path}}
-          </md-radio-button>
-        </md-radio-group>
+          </mat-radio-button>
+        </mat-radio-group>
         <hab-docker-export-settings #docker [integrations]="integrations"></hab-docker-export-settings>
         <div class="submit">
-          <button type="submit" md-raised-button color="primary" [disabled]="!form.valid">
+          <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">
             Save Project
           </button>
           <a (click)="cancel()">Cancel</a>
         </div>
       </div>
-    </md-tab>
-  </md-tab-group>
+    </mat-tab>
+  </mat-tab-group>
 </form>

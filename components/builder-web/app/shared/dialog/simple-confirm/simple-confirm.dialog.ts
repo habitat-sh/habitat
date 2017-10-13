@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, Inject } from '@angular/core';
-import { MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
 @Component({
   template: require('./simple-confirm.dialog.html')
@@ -21,8 +21,8 @@ import { MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
 export class SimpleConfirmDialog {
 
   constructor(
-    private ref: MdDialogRef<SimpleConfirmDialog>,
-    @Inject(MD_DIALOG_DATA) private data: any
+    private ref: MatDialogRef<SimpleConfirmDialog>,
+    @Inject(MAT_DIALOG_DATA) private data: any
   ) { }
 
   get heading() {

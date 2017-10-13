@@ -14,7 +14,7 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { parseKey } from '../../../../util';
 import { AppStore } from '../../../../app.store';
 import config from '../../../../config';
@@ -35,8 +35,8 @@ export class KeyAddFormDialog implements OnInit {
   control: FormControl;
 
   constructor(private formBuilder: FormBuilder, private store: AppStore,
-    public dialogRef: MdDialogRef<KeyAddFormDialog>,
-    @Inject(MD_DIALOG_DATA) public data: any) {
+    public dialogRef: MatDialogRef<KeyAddFormDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: any) {
     this.originName = data.origin;
     this.type = data.type;
     this.form = formBuilder.group({});

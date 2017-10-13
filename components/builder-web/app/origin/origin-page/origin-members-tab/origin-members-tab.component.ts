@@ -17,7 +17,7 @@ import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms'
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { List } from 'immutable';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { SimpleConfirmDialog } from '../../../shared/dialog/simple-confirm/simple-confirm.dialog';
 import { AppStore } from '../../../app.store';
 import { deleteOriginInvitation, inviteUserToOrigin } from '../../../actions/index';
@@ -39,7 +39,7 @@ export class OriginMembersTabComponent implements OnInit, OnDestroy {
     formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private store: AppStore,
-    private confirmDialog: MdDialog
+    private confirmDialog: MatDialog
   ) {
     this.form = formBuilder.group({});
   }

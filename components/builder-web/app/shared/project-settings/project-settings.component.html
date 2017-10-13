@@ -1,7 +1,7 @@
 <div *ngIf="projectsEnabled">
   <div class="content">
     <div class="connect" *ngIf="!project && !connecting">
-      <button md-raised-button color="primary" class="button" (click)="connect()" [disabled]="!hasPrivateKey">
+      <button mat-raised-button color="primary" class="button" (click)="connect()" [disabled]="!hasPrivateKey">
         Connect a plan file
       </button>
       <span class="no-keys" *ngIf="!hasPrivateKey">
@@ -58,7 +58,7 @@
             repository.
           </span>
           <span class="cta">
-            <a href="{{ config['github_app_url'] }}" md-raised-button color="accent" class="button" target="_blank">
+            <a href="{{ config['github_app_url'] }}" mat-raised-button color="accent" class="button" target="_blank">
               Install GitHub App
             </a>
           </span>
@@ -116,10 +116,10 @@
           </hab-docker-export-settings>
         </div>
         <div class="controls">
-          <button *ngIf="!selectedInstallation" md-raised-button color="primary" class="button" (click)="selectRepo()" [disabled]="!validRepo">
+          <button *ngIf="!selectedInstallation" mat-raised-button color="primary" class="button" (click)="selectRepo()" [disabled]="!validRepo">
             Next &raquo;
           </button>
-          <button *ngIf="selectedInstallation" md-raised-button color="primary" class="button" (click)="saveConnection()" [disabled]="!validProject">
+          <button *ngIf="selectedInstallation" mat-raised-button color="primary" class="button" (click)="saveConnection()" [disabled]="!validProject">
             {{ connectButtonLabel }} Connection
           </button>
           <a (click)="clearConnection()">Cancel</a>
@@ -131,8 +131,7 @@
     <h3>About Packages</h3>
     <p>
       In order to connect a plan, you will need to have a Habitat plan file in a GitHub repo and install the
-      <a href="{{ config['github_app_url'] }}"
-        target="_blank">Habitat GitHub app</a>.
+      <a href="{{ config['github_app_url'] }}" target="_blank">Habitat GitHub app</a>.
     </p>
     <p>
       Don't have a plan file? Learn about

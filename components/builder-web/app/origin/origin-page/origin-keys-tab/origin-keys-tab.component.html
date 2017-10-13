@@ -1,7 +1,7 @@
 <div class="page-body origin-keys-tab">
   <div class="page-content">
     <section class="generate" *ngIf="memberOfOrigin">
-      <button md-raised-button color="primary" (click)="generateKeys()">
+      <button mat-raised-button color="primary" (click)="generateKeys()">
         Generate a key pair
       </button>
     </section>
@@ -28,7 +28,7 @@
           </span>
         </li>
       </ul>
-      <button md-raised-button color="basic" (click)="openKeyAddForm('private')" *ngIf="memberOfOrigin">
+      <button mat-raised-button color="basic" (click)="openKeyAddForm('private')" *ngIf="memberOfOrigin">
         <hab-icon symbol="file-upload"></hab-icon>
         Upload a private key
       </button>
@@ -56,7 +56,7 @@
           </span>
         </li>
       </ul>
-      <button md-raised-button color="basic" *ngIf="memberOfOrigin" (click)="openKeyAddForm('public')">
+      <button mat-raised-button color="basic" *ngIf="memberOfOrigin" (click)="openKeyAddForm('public')">
         <hab-icon symbol="file-upload"></hab-icon>
         Upload a public key
       </button>
