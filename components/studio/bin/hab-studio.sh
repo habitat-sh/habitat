@@ -938,6 +938,11 @@ chroot_env() {
   if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
     env="$env HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
   fi
+  # If a Habitat Auth Token is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_AUTH_TOKEN:-}" ]; then
+    env="$env HAB_AUTH_TOKEN=$HAB_AUTH_TOKEN"
+  fi
   # If a Habitat Builder URL is set, then propagate it into the Studio's
   # environment.
   if [ -n "${HAB_BLDR_URL:-}" ]; then
