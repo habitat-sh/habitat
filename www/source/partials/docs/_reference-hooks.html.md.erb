@@ -73,7 +73,7 @@ For processes that can update their configuration without requiring a restart a 
 ###reconfigure
 File location: `<plan>/hooks/reconfigure`
 
-This hook is run when service configuration information has changed through a set of Habitat services that are peers with each other. Before the `reconfigure` hook the config files are re-rendered and the process is either restarted or the `reload` hook is called if present.
+This hook is run when service configuration has changed due to updates coming from the gossip protocol or from the `user.toml` file. Before the `reconfigure` hook the config files are re-rendered and the process is either restarted or the `reload` hook is called if present.
 
 ###suitability
 File location: `<plan>/hooks/suitability`
