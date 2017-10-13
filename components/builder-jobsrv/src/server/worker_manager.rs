@@ -97,9 +97,19 @@ impl Worker {
     pub fn busy(&mut self, job_id: u64) {
         self.state = jobsrv::WorkerState::Busy;
         self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
-        self.job_id = Some(job_id);
-        self.job_expiry = Some(Instant::now() + Duration::from_millis(JOB_TIMEOUT_MS));
+
+        if self.job_id.is_none() {
+            self.job_id = Some(job_id);
+            self.job_expiry = Some(Instant::now() + Duration::from_millis(JOB_TIMEOUT_MS));
+        } else {
+            assert!(self.job_id.unwrap() == job_id);
+        }
+
         self.quarantined = false;
+    }
+
+    pub fn refresh(&mut self) {
+        self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
     }
 
     pub fn quarantine(&mut self) {
@@ -309,13 +319,14 @@ impl WorkerMgr {
                     );
                     job.set_state(jobsrv::JobState::Pending);
                     self.datastore.update_job(&job)?;
+                    return Ok(()); // Exit instead of re-trying immediately
                 }
             }
         }
         Ok(())
     }
 
-    fn dispatch_job(&mut self, job: &jobsrv::Job, worker_ident: &str) -> Result<()> {
+    fn dispatch_job(&mut self, job: &Job, worker_ident: &str) -> Result<()> {
         debug!("Dispatching job to worker {:?}: {:?}", worker_ident, job);
 
         self.rq_sock.send_str(&worker_ident, zmq::SNDMORE)?;
@@ -325,7 +336,7 @@ impl WorkerMgr {
         Ok(())
     }
 
-    fn add_integrations_to_job(&mut self, job: &mut jobsrv::Job) {
+    fn add_integrations_to_job(&mut self, job: &mut Job) {
         let mut integrations = RepeatedField::new();
         let mut integration_request = OriginIntegrationRequest::new();
         let origin = job.get_project().get_origin_name().to_string();
@@ -359,7 +370,7 @@ impl WorkerMgr {
         }
     }
 
-    fn add_project_integrations_to_job(&mut self, job: &mut jobsrv::Job) {
+    fn add_project_integrations_to_job(&mut self, job: &mut Job) {
         let mut integrations = RepeatedField::new();
         let mut req = OriginProjectIntegrationRequest::new();
         let origin = job.get_project().get_origin_name().to_string();
@@ -451,6 +462,33 @@ impl WorkerMgr {
         Ok(())
     }
 
+    fn is_job_complete(&mut self, job_id: u64) -> Result<bool> {
+        let mut req = jobsrv::JobGet::new();
+        req.set_id(job_id);
+
+        let ret = match self.datastore.get_job(&req)? {
+            Some(job) => {
+                match job.get_state() {
+                    jobsrv::JobState::Pending |
+                    jobsrv::JobState::Processing |
+                    jobsrv::JobState::Dispatched => false,
+                    jobsrv::JobState::Complete |
+                    jobsrv::JobState::Failed |
+                    jobsrv::JobState::Rejected => true,
+                }
+            }
+            None => {
+                warn!(
+                    "Unable to check job completeness {:?} (not found)",
+                    job_id,
+                );
+                false
+            }
+        };
+
+        Ok(ret)
+    }
+
     fn process_heartbeat(&mut self) -> Result<()> {
         self.hb_sock.recv(&mut self.msg, 0)?;
         let heartbeat: jobsrv::Heartbeat = parse_from_bytes(&self.msg)?;
@@ -491,12 +529,18 @@ impl WorkerMgr {
                     };
                     worker.quarantine();
                 } else {
-                    worker.busy(job_id);
+                    worker.refresh();
                 }
             }
             (jobsrv::WorkerState::Busy, jobsrv::WorkerState::Ready) => {
-                self.delete_worker(&worker)?;
-                worker.ready()
+                if !self.is_job_complete(worker.job_id.unwrap())? {
+                    // Handle potential race condition where a Ready heartbeat
+                    // is received right *after* the job has been dispatched
+                    worker.refresh();
+                } else {
+                    self.delete_worker(&worker)?;
+                    worker.ready();
+                }
             }
             _ => worker.ready(),
         };
