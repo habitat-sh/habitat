@@ -225,7 +225,7 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Exports the package to the specified format")
                 (aliases: &["exp"])
                 (@arg FORMAT: +required +takes_value
-                    "The export format (ex: aci, cf, docker, mesos, or tar)")
+                    "The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
                     filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")

@@ -19,6 +19,7 @@ use error::Result;
 
 pub mod docker;
 pub mod cf;
+pub mod kubernetes;
 
 #[allow(dead_code)]
 pub struct ExportFormat {
