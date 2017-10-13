@@ -8,7 +8,8 @@
         font-size: rem(16);
       }
 
-      hab-icon, h1 {
+      hab-icon,
+      h1 {
         display: inline-block;
       }
     }
@@ -20,7 +21,8 @@
     &.controls {
       font-size: rem(14);
 
-      button, a {
+      button,
+      a {
         display: inline-block;
         margin-right: 18px;
         cursor: pointer;

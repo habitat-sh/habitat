@@ -25,7 +25,7 @@
 }
 
 .actions--menu {
-  @extend hab-drop-down;
+  @extend .hab-drop-down;
   right: 0;
   top: rem(30);
   z-index: 100;

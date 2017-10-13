@@ -95,7 +95,6 @@ $main-nav-breakpoint: 710px;
   display: none;
   clear: both;
   margin-bottom: 0;
-  @extend .no-bullet;
 
   & > li {
     padding: rem(15) 0 0 rem(5);
