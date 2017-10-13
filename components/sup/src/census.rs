@@ -38,7 +38,7 @@ type MemberId = String;
 
 #[derive(Debug, Serialize)]
 pub struct CensusRing {
-    pub changed: bool,
+    changed: bool,
 
     census_groups: HashMap<ServiceGroup, CensusGroup>,
     local_member_id: MemberId,
@@ -51,6 +51,12 @@ pub struct CensusRing {
 }
 
 impl CensusRing {
+    /// Indicates whether the census has changed since the last time
+    /// we looked at rumors.
+    pub fn changed(&self) -> bool {
+        self.changed
+    }
+
     pub fn new<I>(local_member_id: I) -> Self
     where
         I: Into<MemberId>,
@@ -77,14 +83,35 @@ impl CensusRing {
         service_config_rumors: &RumorStore<ServiceConfigRumor>,
         service_file_rumors: &RumorStore<ServiceFileRumor>,
     ) {
-        self.changed = false;
+        // If ANY new rumor, of any type, has been received,
+        // reconstruct the entire census state to ensure consistency
+        if (service_rumors.get_update_counter() > self.last_service_counter) ||
+            (member_list.get_update_counter() > self.last_membership_counter) ||
+            (election_rumors.get_update_counter() > self.last_election_counter) ||
+            (election_update_rumors.get_update_counter() > self.last_election_update_counter) ||
+            (service_config_rumors.get_update_counter() > self.last_service_config_counter) ||
+            (service_file_rumors.get_update_counter() > self.last_service_file_counter)
+        {
 
-        self.populate_census(service_rumors, member_list);
-        self.update_from_election_store(election_rumors);
-        self.update_from_election_update_store(election_update_rumors);
+            self.changed = true;
 
-        self.update_from_service_config(service_config_rumors);
-        self.update_from_service_files(service_file_rumors);
+            self.populate_census(service_rumors, member_list);
+            self.update_from_election_store(election_rumors);
+            self.update_from_election_update_store(election_update_rumors);
+            self.update_from_service_config(service_config_rumors);
+            self.update_from_service_files(service_file_rumors);
+
+            // Update our counters to reflect current state.
+            self.last_membership_counter = member_list.get_update_counter();
+            self.last_service_counter = service_rumors.get_update_counter();
+            self.last_election_counter = election_rumors.get_update_counter();
+            self.last_election_update_counter = election_update_rumors.get_update_counter();
+            self.last_service_config_counter = service_config_rumors.get_update_counter();
+            self.last_service_file_counter = service_file_rumors.get_update_counter();
+
+        } else {
+            self.changed = false;
+        }
     }
 
     pub fn census_group_for(&self, sg: &ServiceGroup) -> Option<&CensusGroup> {
@@ -105,18 +132,6 @@ impl CensusRing {
         service_rumors: &RumorStore<ServiceRumor>,
         member_list: &MemberList,
     ) {
-        // We are drawing on information from two different sources
-        // which can change independently. If either have changed
-        // since the last we saw them, we need to re-examine our
-        // census.
-        if (service_rumors.get_update_counter() <= self.last_service_counter) &&
-            (member_list.get_update_counter() <= self.last_membership_counter)
-        {
-            return;
-        }
-
-        self.changed = true;
-
         // Populate our census; new groups are created here, as are
         // new members of those groups.
         //
@@ -148,17 +163,9 @@ impl CensusRing {
                 }
             }
         });
-
-        // Update our counters to reflect current state.
-        self.last_membership_counter = member_list.get_update_counter();
-        self.last_service_counter = service_rumors.get_update_counter();
     }
 
     fn update_from_election_store(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
-        if election_rumors.get_update_counter() <= self.last_election_counter {
-            return;
-        }
-        self.changed = true;
         election_rumors.with_keys(|(service_group, rumors)| {
             let election = rumors.get("election").unwrap();
             if let Ok(sg) = service_group_from_str(service_group) {
@@ -167,17 +174,12 @@ impl CensusRing {
                 }
             }
         });
-        self.last_election_counter = election_rumors.get_update_counter();
     }
 
     fn update_from_election_update_store(
         &mut self,
         election_update_rumors: &RumorStore<ElectionUpdateRumor>,
     ) {
-        if election_update_rumors.get_update_counter() <= self.last_election_update_counter {
-            return;
-        }
-        self.changed = true;
         election_update_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
             service_group_from_str(service_group)
         {
@@ -186,17 +188,12 @@ impl CensusRing {
                 census_group.update_from_election_update_rumor(election);
             }
         });
-        self.last_election_update_counter = election_update_rumors.get_update_counter();
     }
 
     fn update_from_service_config(
         &mut self,
         service_config_rumors: &RumorStore<ServiceConfigRumor>,
     ) {
-        if service_config_rumors.get_update_counter() <= self.last_service_config_counter {
-            return;
-        }
-        self.changed = true;
         service_config_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
             service_group_from_str(service_group)
         {
@@ -206,14 +203,9 @@ impl CensusRing {
                 }
             }
         });
-        self.last_service_config_counter = service_config_rumors.get_update_counter();
     }
 
     fn update_from_service_files(&mut self, service_file_rumors: &RumorStore<ServiceFileRumor>) {
-        if service_file_rumors.get_update_counter() <= self.last_service_file_counter {
-            return;
-        }
-        self.changed = true;
         service_file_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
             service_group_from_str(service_group)
         {
@@ -225,7 +217,6 @@ impl CensusRing {
             );
             census_group.update_from_service_file_rumors(rumors);
         });
-        self.last_service_file_counter = service_file_rumors.get_update_counter();
     }
 }
 
@@ -587,6 +578,11 @@ impl CensusMember {
             Health::Confirmed => self.confirmed = true,
             Health::Departed => self.departed = true,
         }
+    }
+
+    /// Is this member currently considered to be alive or not?
+    pub fn alive(&self) -> bool {
+        self.alive
     }
 }
 

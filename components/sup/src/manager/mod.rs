@@ -546,7 +546,7 @@ impl Manager {
                 self.persist_state();
             }
 
-            if self.census_ring.changed {
+            if self.census_ring.changed() {
                 self.persist_state();
                 events.as_ref().map(|events| {
                     events.try_connect(&self.census_ring)

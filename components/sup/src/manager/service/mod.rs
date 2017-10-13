@@ -366,7 +366,17 @@ impl Service {
     fn all_binds_satisfied(&self, census_ring: &CensusRing) -> bool {
         let mut ret = true;
         for ref bind in self.binds.iter() {
-            if census_ring.census_group_for(&bind.service_group).is_none() {
+            if let Some(group) = census_ring.census_group_for(&bind.service_group) {
+                if group.members().iter().all(|m| !m.alive()) {
+                    ret = false;
+                    outputln!(preamble self.service_group,
+                              "The specified service group '{}' for binding '{}' is present in the \
+                               census, but currently has no live members.",
+                              Green.bold().paint(format!("{}", bind.service_group)),
+                              Green.bold().paint(format!("{}", bind.name)));
+                }
+
+            } else {
                 ret = false;
                 outputln!(preamble self.service_group,
                           "The specified service group '{}' for binding '{}' is not (yet?) present \
@@ -396,7 +406,7 @@ impl Service {
             "Service update failed; unable to find own service group",
         );
         let cfg_updated = self.cfg.update(census_group);
-        if cfg_updated || census_ring.changed {
+        if cfg_updated || census_ring.changed() {
             let (reload, reconfigure) = {
                 let ctx = self.render_context(census_ring);
                 let reload = self.compile_hooks(&ctx);
