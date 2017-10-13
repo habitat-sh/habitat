@@ -85,6 +85,7 @@ pub struct Service {
     pub pkg: Pkg,
     pub sys: Arc<Sys>,
     pub initialized: bool,
+    pub user_config_updated: bool,
 
     #[serde(skip_serializing)]
     config_renderer: CfgRenderer,
@@ -140,6 +141,7 @@ impl Service {
             last_election_status: ElectionStatus::None,
             needs_reload: false,
             needs_reconfiguration: false,
+            user_config_updated: false,
             manager_fs_cfg: manager_fs_cfg,
             supervisor: Supervisor::new(&service_group),
             pkg: pkg,
@@ -415,18 +417,39 @@ impl Service {
         let census_group = census_ring.census_group_for(&self.service_group).expect(
             "Service update failed; unable to find own service group",
         );
-        let cfg_updated = self.cfg.update(census_group);
-        if cfg_updated || census_ring.changed() {
+        let cfg_updated_from_rumors = self.cfg.update(census_group);
+        let cfg_changed = cfg_updated_from_rumors || self.user_config_updated;
+
+        if self.user_config_updated {
+            if let Err(e) = self.cfg.reload_user() {
+                outputln!(preamble self.service_group, "Reloading user-config failed: {}", e);
+            }
+
+            self.user_config_updated = false;
+        }
+
+
+        if cfg_changed || census_ring.changed() {
             let (reload, reconfigure) = {
                 let ctx = self.render_context(census_ring);
+
+                // If any hooks have changed, execute the `reload` hook (if present) or restart the
+                // service.
                 let reload = self.compile_hooks(&ctx);
+
+                // If the configuration has changed, execute the `reload` and `reconfigure` hooks.
+                // Note that the configuration does not necessarily change every time the user config has (e.g.
+                // when only a comment has been added to the latter)
                 let reconfigure = self.compile_configuration(&ctx);
+
                 (reload, reconfigure)
             };
+
             self.needs_reload = reload;
             self.needs_reconfiguration = reconfigure;
         }
-        cfg_updated
+
+        cfg_changed
     }
 
     /// Replace the package of the running service and restart it's system process.
