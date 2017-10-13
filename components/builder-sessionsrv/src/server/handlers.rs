@@ -316,35 +316,38 @@ fn assign_permissions(name: &str, flags: &mut FeatureFlags, state: &ServerState)
                 state.permissions.admin_team,
                 name,
             ) {
-                Ok(membership) => {
+                Ok(Some(membership)) => {
                     if membership.active() {
                         debug!("Granting feature flag={:?}", privilege::ADMIN);
                         flags.set(privilege::ADMIN, true);
                     }
                 }
+                Ok(None) => (),
                 Err(err) => warn!("Failed to check team membership, {}", err),
             }
             for team in state.permissions.early_access_teams.iter() {
                 match state.github.check_team_membership(&token, *team, name) {
-                    Ok(membership) => {
+                    Ok(Some(membership)) => {
                         if membership.active() {
                             debug!("Granting feature flag={:?}", privilege::EARLY_ACCESS);
                             flags.set(privilege::EARLY_ACCESS, true);
                             break;
                         }
                     }
+                    Ok(None) => (),
                     Err(err) => warn!("Failed to check team membership, {}", err),
                 }
             }
             for team in state.permissions.build_worker_teams.iter() {
                 match state.github.check_team_membership(&token, *team, name) {
-                    Ok(membership) => {
+                    Ok(Some(membership)) => {
                         if membership.active() {
                             debug!("Granting feature flag={:?}", privilege::BUILD_WORKER);
                             flags.set(privilege::BUILD_WORKER, true);
                             break;
                         }
                     }
+                    Ok(None) => (),
                     Err(err) => warn!("Failed to check team membership, {}", err),
                 }
             }

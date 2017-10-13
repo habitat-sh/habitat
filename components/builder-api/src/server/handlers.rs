@@ -392,7 +392,8 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
             project.set_vcs_installation_id(body.installation_id);
 
             match github.repo(&token, body.repo_id) {
-                Ok(repo) => project.set_vcs_data(repo.clone_url),
+                Ok(Some(repo)) => project.set_vcs_data(repo.clone_url),
+                Ok(None) => return Ok(Response::with((status::NotFound, "rg:pc:2"))),
                 Err(e) => {
                     debug!("Error finding github repo. e = {:?}", e);
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1")));
@@ -532,7 +533,8 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
             project.set_plan_path(body.plan_path);
             project.set_vcs_installation_id(body.installation_id);
             match github.repo(&token, body.repo_id) {
-                Ok(repo) => project.set_vcs_data(repo.clone_url),
+                Ok(Some(repo)) => project.set_vcs_data(repo.clone_url),
+                Ok(None) => return Ok(Response::with((status::NotFound, "rg:pu:2"))),
                 Err(e) => {
                     debug!("Error finding GH repo. e = {:?}", e);
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pu:1")));
