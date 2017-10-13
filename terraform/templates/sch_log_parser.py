@@ -16,7 +16,7 @@ def my_log_parser(logger, line):
             elif event == 'Complete':
                 message = package + ' ' + url
             else:
-                message = package
+                message = package + ' grp:' + group_id + ' job:' + job_id
 
             logged_event = {
                 'msg_title': event,
