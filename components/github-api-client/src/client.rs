@@ -158,19 +158,23 @@ impl GitHubClient {
         token: &str,
         team: u32,
         user: &str,
-    ) -> HubResult<TeamMembership> {
+    ) -> HubResult<Option<TeamMembership>> {
         let url = Url::parse(&format!("{}/teams/{}/memberships/{}", self.url, team, user))
             .map_err(HubError::HttpClientParse)?;
         let mut rep = http_get(url, Some(token))?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
+        match rep.status {
+            StatusCode::NotFound => return Ok(None),
+            StatusCode::Ok => (),
+            status => {
+                let err: HashMap<String, String> = serde_json::from_str(&body)?;
+                return Err(HubError::ApiError(status, err));
+            }
         }
-        let contents = serde_json::from_str(&body)?;
-        Ok(contents)
+        let membership = serde_json::from_str(&body)?;
+        Ok(Some(membership))
     }
 
     /// Returns the contents of a file or directory in a repository.
@@ -202,44 +206,52 @@ impl GitHubClient {
         Ok(Some(contents))
     }
 
-    pub fn repo(&self, token: &str, repo: u32) -> HubResult<Repository> {
+    pub fn repo(&self, token: &str, repo: u32) -> HubResult<Option<Repository>> {
         let url = Url::parse(&format!("{}/repositories/{}", self.url, repo)).unwrap();
         let mut rep = http_get(url, Some(token))?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
+        match rep.status {
+            StatusCode::NotFound => return Ok(None),
+            StatusCode::Ok => (),
+            status => {
+                let err: HashMap<String, String> = serde_json::from_str(&body)?;
+                return Err(HubError::ApiError(status, err));
+            }
         }
         let value = serde_json::from_str(&body)?;
-        Ok(value)
+        Ok(Some(value))
     }
 
     pub fn repositories(&self, token: &str, install_id: u32) -> HubResult<Vec<Repository>> {
-        let initial_url = Url::parse(&format!(
+        let mut url = Url::parse(&format!(
             "{}/user/installations/{}/repositories",
             self.url,
             install_id
         )).unwrap();
-
         let mut repositories = Vec::new();
-        let mut current_url = Some(initial_url);
-
-        while let Some(url) = current_url {
-            let mut rep = http_get(url, Some(token))?;
+        loop {
+            let mut rep = http_get(url.clone(), Some(token))?;
             let mut body = String::new();
             rep.read_to_string(&mut body)?;
             debug!("GitHub response body, {}", body);
-            if rep.status != StatusCode::Ok {
-                let err: HashMap<String, String> = serde_json::from_str(&body)?;
-                return Err(HubError::ApiError(rep.status, err));
+            match rep.status {
+                StatusCode::NotFound => continue,
+                StatusCode::Ok => (),
+                status => {
+                    let err: HashMap<String, String> = serde_json::from_str(&body)?;
+                    return Err(HubError::ApiError(status, err));
+                }
             }
             let mut list = serde_json::from_str::<RepositoryList>(&body)?;
             repositories.append(&mut list.repositories);
 
             // Determine the next page to grab and do it again.
-            current_url = Self::next_page_url(&rep);
+            match Self::next_page_url(&rep) {
+                Some(next_url) => url = next_url,
+                None => break,
+            }
         }
 
         Ok(repositories)
@@ -260,23 +272,28 @@ impl GitHubClient {
     }
 
     pub fn search_code(&self, token: &str, query: &str) -> HubResult<Vec<SearchItem>> {
-        let initial_url = Url::parse(&format!("{}/search/code?{}", self.url, query))
+        let mut url = Url::parse(&format!("{}/search/code?{}", self.url, query))
             .map_err(HubError::HttpClientParse)?;
         let mut items = Vec::new();
-        let mut current_url = Some(initial_url);
-
-        while let Some(url) = current_url {
-            let mut rep = http_get(url, Some(token))?;
+        loop {
+            let mut rep = http_get(url.clone(), Some(token))?;
             let mut body = String::new();
             rep.read_to_string(&mut body)?;
             debug!("GitHub response body, {}", body);
-            if rep.status != StatusCode::Ok {
-                let err: HashMap<String, String> = serde_json::from_str(&body)?;
-                return Err(HubError::ApiError(rep.status, err));
+            match rep.status {
+                StatusCode::NotFound => continue,
+                StatusCode::Ok => (),
+                status => {
+                    let err: HashMap<String, String> = serde_json::from_str(&body)?;
+                    return Err(HubError::ApiError(status, err));
+                }
             }
             let mut search = serde_json::from_str::<Search>(&body)?;
             items.append(&mut search.items);
-            current_url = Self::next_page_url(&rep);
+            match Self::next_page_url(&rep) {
+                Some(next_url) => url = next_url,
+                None => break,
+            }
         }
         Ok(items)
     }

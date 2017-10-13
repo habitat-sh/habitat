@@ -129,7 +129,7 @@ impl Authenticated {
     fn authenticate(&self, req: &mut Request, token: SessionToken) -> IronResult<Session> {
         let mut request = SessionGet::new();
         request.set_token(token);
-        let mut conn = req.extensions.get_mut::<XRouteClient>().unwrap();
+        let conn = req.extensions.get_mut::<XRouteClient>().unwrap();
         match conn.route::<SessionGet, Session>(&request) {
             Ok(session) => {
                 self.validate_session(&session)?;
@@ -215,7 +215,7 @@ impl AfterMiddleware for Cors {
 
 pub fn session_create_github(req: &mut Request, token: String) -> IronResult<Session> {
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
-    let mut conn = req.extensions.get_mut::<XRouteClient>().expect(
+    let conn = req.extensions.get_mut::<XRouteClient>().expect(
         "no XRouteClient extension in request",
     );
     match github.user(&token) {
@@ -268,7 +268,7 @@ pub fn session_create_github(req: &mut Request, token: String) -> IronResult<Ses
 }
 
 pub fn session_create_short_circuit(req: &mut Request, token: &str) -> IronResult<Session> {
-    let mut conn = req.extensions.get_mut::<XRouteClient>().expect(
+    let conn = req.extensions.get_mut::<XRouteClient>().expect(
         "no XRouteClient extension in request",
     );
     let request = match token.as_ref() {
