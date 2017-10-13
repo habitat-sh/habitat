@@ -134,5 +134,7 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             RETURN;
                           END;
                           $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("accountsrv",
+        r#"ALTER TABLE IF EXISTS accounts DROP CONSTRAINT IF EXISTS accounts_email_key"#)?;
     Ok(())
 }
