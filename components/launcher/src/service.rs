@@ -21,6 +21,7 @@ use std::thread;
 use ansi_term::Colour;
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
+use core::os::process::Pid;
 use protocol;
 
 pub use sys::service::*;
@@ -64,7 +65,7 @@ impl Service {
         &self.args
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> Pid {
         self.process.id()
     }
 

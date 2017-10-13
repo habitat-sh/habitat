@@ -23,7 +23,7 @@ use std::time::Duration;
 
 use core;
 use core::package::{PackageIdent, PackageInstall};
-use core::os::process::{self, Signal};
+use core::os::process::{self, Pid, Signal};
 use core::os::signals::{self, SignalEvent};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use protobuf;
@@ -89,7 +89,7 @@ impl Server {
     }
 
     fn forward_signal(&self, signal: Signal) {
-        if let Err(err) = core::os::process::signal(self.supervisor.id(), signal) {
+        if let Err(err) = core::os::process::signal(self.supervisor.id() as Pid, signal) {
             error!(
                 "Unable to signal Supervisor, {}, {}",
                 self.supervisor.id(),
@@ -167,14 +167,14 @@ impl Server {
 }
 
 #[derive(Debug, Default)]
-pub struct ServiceTable(HashMap<u32, Service>);
+pub struct ServiceTable(HashMap<Pid, Service>);
 
 impl ServiceTable {
-    pub fn get(&self, pid: u32) -> Option<&Service> {
+    pub fn get(&self, pid: Pid) -> Option<&Service> {
         self.0.get(&pid)
     }
 
-    pub fn get_mut(&mut self, pid: u32) -> Option<&mut Service> {
+    pub fn get_mut(&mut self, pid: Pid) -> Option<&mut Service> {
         self.0.get_mut(&pid)
     }
 
@@ -182,7 +182,7 @@ impl ServiceTable {
         self.0.insert(service.id(), service);
     }
 
-    pub fn remove(&mut self, pid: u32) -> Option<Service> {
+    pub fn remove(&mut self, pid: Pid) -> Option<Service> {
         self.0.remove(&pid)
     }
 
@@ -195,7 +195,7 @@ impl ServiceTable {
     }
 
     fn reap_zombies(&mut self) {
-        let mut dead: Vec<u32> = vec![];
+        let mut dead: Vec<Pid> = vec![];
         for service in self.0.values_mut() {
             match service.try_wait() {
                 Ok(None) => (),

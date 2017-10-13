@@ -55,6 +55,7 @@ use depot_client;
 use glob;
 use handlebars;
 use hcore;
+use hcore::os::process::Pid;
 use hcore::output::StructuredOutput;
 use hcore::package::{self, Identifiable, PackageInstall};
 use launcher_client;
@@ -144,7 +145,7 @@ pub enum Error {
     PidFileCorrupt(PathBuf),
     PidFileIO(PathBuf, io::Error),
     ProcessLockCorrupt,
-    ProcessLocked(u32),
+    ProcessLocked(Pid),
     ProcessLockIO(PathBuf, io::Error),
     RecvError(mpsc::RecvError),
     RenderContextSerialization(serde_json::Error),

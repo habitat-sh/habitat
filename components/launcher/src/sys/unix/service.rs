@@ -19,7 +19,7 @@ use std::process::{Command, ExitStatus, Stdio};
 use std::result;
 
 use core::os;
-use core::os::process::{signal, Signal};
+use core::os::process::{Pid, signal, Signal};
 use libc::{self, c_int, pid_t};
 use protocol::{self, ShutdownMethod};
 use time::{Duration, SteadyTime};
@@ -40,13 +40,14 @@ impl Process {
         }
     }
 
-    pub fn id(&self) -> u32 {
-        self.pid as u32
+    pub fn id(&self) -> Pid {
+        self.pid
     }
 
     /// Attempt to gracefully terminate a proccess and then forcefully kill it after
     /// 8 seconds if it has not terminated.
     pub fn kill(&mut self) -> ShutdownMethod {
+        let mut pid_to_kill = self.pid;
         // check the group of the process being killed
         // if it is the root process of the process group
         // we send our signals to the entire process group
@@ -59,12 +60,12 @@ impl Process {
             );
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
-            self.pid = self.pid.neg();
+            pid_to_kill = self.pid.neg();
         }
 
         // JW TODO: Determine if the error represents a case where the process was already
         // exited before we return out and assume so.
-        if signal(self.id(), Signal::TERM).is_err() {
+        if signal(pid_to_kill, Signal::TERM).is_err() {
             return ShutdownMethod::AlreadyExited;
         }
         let stop_time = SteadyTime::now() + Duration::seconds(8);
@@ -77,7 +78,7 @@ impl Process {
             }
             // JW TODO: Determine if the error represents a case where the process was already
             // exited before we return out and assume so.
-            if signal(self.id(), Signal::KILL).is_err() {
+            if signal(pid_to_kill, Signal::KILL).is_err() {
                 return ShutdownMethod::GracefulTermination;
             }
             return ShutdownMethod::Killed;

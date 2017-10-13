@@ -210,7 +210,7 @@ impl ::protobuf::reflect::ProtobufValue for Register {
 #[derive(PartialEq,Clone,Default)]
 pub struct Restart {
     // message fields
-    pid: ::std::option::Option<u32>,
+    pid: ::std::option::Option<i64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -234,7 +234,7 @@ impl Restart {
         }
     }
 
-    // optional uint32 pid = 1;
+    // optional int64 pid = 1;
 
     pub fn clear_pid(&mut self) {
         self.pid = ::std::option::Option::None;
@@ -245,19 +245,19 @@ impl Restart {
     }
 
     // Param is passed by value, moved
-    pub fn set_pid(&mut self, v: u32) {
+    pub fn set_pid(&mut self, v: i64) {
         self.pid = ::std::option::Option::Some(v);
     }
 
-    pub fn get_pid(&self) -> u32 {
+    pub fn get_pid(&self) -> i64 {
         self.pid.unwrap_or(0)
     }
 
-    fn get_pid_for_reflect(&self) -> &::std::option::Option<u32> {
+    fn get_pid_for_reflect(&self) -> &::std::option::Option<i64> {
         &self.pid
     }
 
-    fn mut_pid_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
+    fn mut_pid_for_reflect(&mut self) -> &mut ::std::option::Option<i64> {
         &mut self.pid
     }
 }
@@ -275,7 +275,7 @@ impl ::protobuf::Message for Restart {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
-                    let tmp = is.read_uint32()?;
+                    let tmp = is.read_int64()?;
                     self.pid = ::std::option::Option::Some(tmp);
                 },
                 _ => {
@@ -300,7 +300,7 @@ impl ::protobuf::Message for Restart {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.pid {
-            os.write_uint32(1, v)?;
+            os.write_int64(1, v)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -346,7 +346,7 @@ impl ::protobuf::MessageStatic for Restart {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
                     "pid",
                     Restart::get_pid_for_reflect,
                     Restart::mut_pid_for_reflect,
@@ -854,7 +854,7 @@ impl ::protobuf::reflect::ProtobufValue for Spawn {
 #[derive(PartialEq,Clone,Default)]
 pub struct SpawnOk {
     // message fields
-    pid: ::std::option::Option<u32>,
+    pid: ::std::option::Option<i64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -878,7 +878,7 @@ impl SpawnOk {
         }
     }
 
-    // optional uint32 pid = 1;
+    // optional int64 pid = 1;
 
     pub fn clear_pid(&mut self) {
         self.pid = ::std::option::Option::None;
@@ -889,19 +889,19 @@ impl SpawnOk {
     }
 
     // Param is passed by value, moved
-    pub fn set_pid(&mut self, v: u32) {
+    pub fn set_pid(&mut self, v: i64) {
         self.pid = ::std::option::Option::Some(v);
     }
 
-    pub fn get_pid(&self) -> u32 {
+    pub fn get_pid(&self) -> i64 {
         self.pid.unwrap_or(0)
     }
 
-    fn get_pid_for_reflect(&self) -> &::std::option::Option<u32> {
+    fn get_pid_for_reflect(&self) -> &::std::option::Option<i64> {
         &self.pid
     }
 
-    fn mut_pid_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
+    fn mut_pid_for_reflect(&mut self) -> &mut ::std::option::Option<i64> {
         &mut self.pid
     }
 }
@@ -919,7 +919,7 @@ impl ::protobuf::Message for SpawnOk {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
-                    let tmp = is.read_uint32()?;
+                    let tmp = is.read_int64()?;
                     self.pid = ::std::option::Option::Some(tmp);
                 },
                 _ => {
@@ -944,7 +944,7 @@ impl ::protobuf::Message for SpawnOk {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.pid {
-            os.write_uint32(1, v)?;
+            os.write_int64(1, v)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -990,7 +990,7 @@ impl ::protobuf::MessageStatic for SpawnOk {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
                     "pid",
                     SpawnOk::get_pid_for_reflect,
                     SpawnOk::mut_pid_for_reflect,
@@ -1027,7 +1027,7 @@ impl ::protobuf::reflect::ProtobufValue for SpawnOk {
 #[derive(PartialEq,Clone,Default)]
 pub struct Terminate {
     // message fields
-    pid: ::std::option::Option<u32>,
+    pid: ::std::option::Option<i64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -1051,7 +1051,7 @@ impl Terminate {
         }
     }
 
-    // optional uint32 pid = 1;
+    // optional int64 pid = 1;
 
     pub fn clear_pid(&mut self) {
         self.pid = ::std::option::Option::None;
@@ -1062,19 +1062,19 @@ impl Terminate {
     }
 
     // Param is passed by value, moved
-    pub fn set_pid(&mut self, v: u32) {
+    pub fn set_pid(&mut self, v: i64) {
         self.pid = ::std::option::Option::Some(v);
     }
 
-    pub fn get_pid(&self) -> u32 {
+    pub fn get_pid(&self) -> i64 {
         self.pid.unwrap_or(0)
     }
 
-    fn get_pid_for_reflect(&self) -> &::std::option::Option<u32> {
+    fn get_pid_for_reflect(&self) -> &::std::option::Option<i64> {
         &self.pid
     }
 
-    fn mut_pid_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
+    fn mut_pid_for_reflect(&mut self) -> &mut ::std::option::Option<i64> {
         &mut self.pid
     }
 }
@@ -1092,7 +1092,7 @@ impl ::protobuf::Message for Terminate {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
-                    let tmp = is.read_uint32()?;
+                    let tmp = is.read_int64()?;
                     self.pid = ::std::option::Option::Some(tmp);
                 },
                 _ => {
@@ -1117,7 +1117,7 @@ impl ::protobuf::Message for Terminate {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.pid {
-            os.write_uint32(1, v)?;
+            os.write_int64(1, v)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -1163,7 +1163,7 @@ impl ::protobuf::MessageStatic for Terminate {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
                     "pid",
                     Terminate::get_pid_for_reflect,
                     Terminate::mut_pid_for_reflect,
@@ -1472,17 +1472,17 @@ impl ::protobuf::reflect::ProtobufValue for ShutdownMethod {
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n\x18protocols/launcher.proto\x12\x08launcher\"\x1e\n\x08Register\x12\
     \x12\n\x04pipe\x18\x01\x20\x01(\tR\x04pipe\"\x1b\n\x07Restart\x12\x10\n\
-    \x03pid\x18\x01\x20\x01(\rR\x03pid\"\xee\x01\n\x05Spawn\x12\x0e\n\x02id\
-    \x18\x01\x20\x01(\tR\x02id\x12\x16\n\x06binary\x18\x02\x20\x01(\tR\x06bi\
-    nary\x12\x19\n\x08svc_user\x18\x03\x20\x01(\tR\x07svcUser\x12\x1b\n\tsvc\
-    _group\x18\x04\x20\x01(\tR\x08svcGroup\x12!\n\x0csvc_password\x18\x05\
+    \x03pid\x18\x01\x20\x01(\x03R\x03pid\"\xee\x01\n\x05Spawn\x12\x0e\n\x02i\
+    d\x18\x01\x20\x01(\tR\x02id\x12\x16\n\x06binary\x18\x02\x20\x01(\tR\x06b\
+    inary\x12\x19\n\x08svc_user\x18\x03\x20\x01(\tR\x07svcUser\x12\x1b\n\tsv\
+    c_group\x18\x04\x20\x01(\tR\x08svcGroup\x12!\n\x0csvc_password\x18\x05\
     \x20\x01(\tR\x0bsvcPassword\x12*\n\x03env\x18\x06\x20\x03(\x0b2\x18.laun\
     cher.Spawn.EnvEntryR\x03env\x1a6\n\x08EnvEntry\x12\x10\n\x03key\x18\x01\
     \x20\x01(\tR\x03key\x12\x14\n\x05value\x18\x02\x20\x01(\tR\x05value:\x02\
-    8\x01\"\x1b\n\x07SpawnOk\x12\x10\n\x03pid\x18\x01\x20\x01(\rR\x03pid\"\
-    \x1d\n\tTerminate\x12\x10\n\x03pid\x18\x01\x20\x01(\rR\x03pid\"m\n\x0bTe\
-    rminateOk\x12\x1b\n\texit_code\x18\x01\x20\x01(\x05R\x08exitCode\x12A\n\
-    \x0fshutdown_method\x18\x02\x20\x01(\x0e2\x18.launcher.ShutdownMethodR\
+    8\x01\"\x1b\n\x07SpawnOk\x12\x10\n\x03pid\x18\x01\x20\x01(\x03R\x03pid\"\
+    \x1d\n\tTerminate\x12\x10\n\x03pid\x18\x01\x20\x01(\x03R\x03pid\"m\n\x0b\
+    TerminateOk\x12\x1b\n\texit_code\x18\x01\x20\x01(\x05R\x08exitCode\x12A\
+    \n\x0fshutdown_method\x18\x02\x20\x01(\x0e2\x18.launcher.ShutdownMethodR\
     \x0eshutdownMethod*H\n\x0eShutdownMethod\x12\x11\n\rAlreadyExited\x10\0\
     \x12\x17\n\x13GracefulTermination\x10\x01\x12\n\n\x06Killed\x10\x02J\xfc\
     \x08\n\x06\x12\x04\0\0&\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\x08\n\x01\
@@ -1492,10 +1492,10 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \0\x05\x12\x03\x05\x0b\x11\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x05\x12\
     \x16\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\x05\x19\x1a\n\n\n\x02\x04\x01\
     \x12\x04\x08\0\n\x01\n\n\n\x03\x04\x01\x01\x12\x03\x08\x08\x0f\n\x0b\n\
-    \x04\x04\x01\x02\0\x12\x03\t\x02\x1a\n\x0c\n\x05\x04\x01\x02\0\x04\x12\
-    \x03\t\x02\n\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\t\x0b\x11\n\x0c\n\x05\
-    \x04\x01\x02\0\x01\x12\x03\t\x12\x15\n\x0c\n\x05\x04\x01\x02\0\x03\x12\
-    \x03\t\x18\x19\n\n\n\x02\x04\x02\x12\x04\x0c\0\x13\x01\n\n\n\x03\x04\x02\
+    \x04\x04\x01\x02\0\x12\x03\t\x02\x19\n\x0c\n\x05\x04\x01\x02\0\x04\x12\
+    \x03\t\x02\n\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\t\x0b\x10\n\x0c\n\x05\
+    \x04\x01\x02\0\x01\x12\x03\t\x11\x14\n\x0c\n\x05\x04\x01\x02\0\x03\x12\
+    \x03\t\x17\x18\n\n\n\x02\x04\x02\x12\x04\x0c\0\x13\x01\n\n\n\x03\x04\x02\
     \x01\x12\x03\x0c\x08\r\n\x0b\n\x04\x04\x02\x02\0\x12\x03\r\x02\x19\n\x0c\
     \n\x05\x04\x02\x02\0\x04\x12\x03\r\x02\n\n\x0c\n\x05\x04\x02\x02\0\x05\
     \x12\x03\r\x0b\x11\n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03\r\x12\x14\n\x0c\
@@ -1519,14 +1519,14 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x05\x04\x02\x02\x05\x01\x12\x03\x12\x16\x19\n\x0c\n\x05\x04\x02\x02\x05\
     \x03\x12\x03\x12\x1c\x1d\n\n\n\x02\x04\x03\x12\x04\x15\0\x17\x01\n\n\n\
     \x03\x04\x03\x01\x12\x03\x15\x08\x0f\n\x0b\n\x04\x04\x03\x02\0\x12\x03\
-    \x16\x02\x1a\n\x0c\n\x05\x04\x03\x02\0\x04\x12\x03\x16\x02\n\n\x0c\n\x05\
-    \x04\x03\x02\0\x05\x12\x03\x16\x0b\x11\n\x0c\n\x05\x04\x03\x02\0\x01\x12\
-    \x03\x16\x12\x15\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x16\x18\x19\n\n\n\
+    \x16\x02\x19\n\x0c\n\x05\x04\x03\x02\0\x04\x12\x03\x16\x02\n\n\x0c\n\x05\
+    \x04\x03\x02\0\x05\x12\x03\x16\x0b\x10\n\x0c\n\x05\x04\x03\x02\0\x01\x12\
+    \x03\x16\x11\x14\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x16\x17\x18\n\n\n\
     \x02\x04\x04\x12\x04\x19\0\x1b\x01\n\n\n\x03\x04\x04\x01\x12\x03\x19\x08\
-    \x11\n\x0b\n\x04\x04\x04\x02\0\x12\x03\x1a\x02\x1a\n\x0c\n\x05\x04\x04\
+    \x11\n\x0b\n\x04\x04\x04\x02\0\x12\x03\x1a\x02\x19\n\x0c\n\x05\x04\x04\
     \x02\0\x04\x12\x03\x1a\x02\n\n\x0c\n\x05\x04\x04\x02\0\x05\x12\x03\x1a\
-    \x0b\x11\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03\x1a\x12\x15\n\x0c\n\x05\
-    \x04\x04\x02\0\x03\x12\x03\x1a\x18\x19\n\n\n\x02\x04\x05\x12\x04\x1d\0\
+    \x0b\x10\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03\x1a\x11\x14\n\x0c\n\x05\
+    \x04\x04\x02\0\x03\x12\x03\x1a\x17\x18\n\n\n\x02\x04\x05\x12\x04\x1d\0\
     \x20\x01\n\n\n\x03\x04\x05\x01\x12\x03\x1d\x08\x13\n\x0b\n\x04\x04\x05\
     \x02\0\x12\x03\x1e\x02\x1f\n\x0c\n\x05\x04\x05\x02\0\x04\x12\x03\x1e\x02\
     \n\n\x0c\n\x05\x04\x05\x02\0\x05\x12\x03\x1e\x0b\x10\n\x0c\n\x05\x04\x05\
