@@ -243,6 +243,44 @@ stop-worker() {
   hab svc unload core/builder-worker
 }
 
+load_packages() {
+  if [[ -d /src/pkgs ]]; then
+    for pkg in /src/pkgs/core*.hart ; do
+      hab pkg upload --url http://localhost:9636/v1 --auth "${HAB_AUTH_TOKEN}" "${pkg}" --channel stable
+    done
+  fi
+}
+
+origin() {
+  curl localhost:9636/v1/depot/origins \
+    -d '{"name":"core"}' \
+    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+}
+
+keys() {
+  cat /hab/cache/keys/core-20160810182414.pub | \
+  curl http://localhost:9636/v1/depot/origins/core/keys/20160810182414 \
+    --data-binary @- \
+    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+
+  cat /hab/cache/keys/core-20160810182414.sig.key | \
+  curl http://localhost:9636/v1/depot/origins/core/secret_keys/20160810182414 \
+    --data-binary @- \
+    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+}
+
+project() {
+  curl http://localhost:9636/v1/projects -q \
+    -d '{ "origin": "core", "plan_path": "nginx/plan.sh", "github": { "organization": "habitat-sh", "repo": "core-plans" } }'
+    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+}
+
+job() {
+  curl POST http://localhost:9636/v1/jobs \
+    -d '{"project_id":"core/nginx"}' \
+    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+}
+
 dev_docs() {
   cat <<DOCS
 Welcome to the development environment for Habitat & Builder.
@@ -254,7 +292,15 @@ mmands are available:
   * build-sup - build the Habitat Supervisor
   * build-launcher - build the Habitat Launcher
 2. Building Habitat Web
-  * TED TODO: ELLIOT WILL WRITE THIS
+  * Ensure you have a unzipped download of packages from http://nunciato-shared-files.s3.amazonaws.com/pkgs.zip in the habitat directory
+  * In the studio (after builder has started)
+  * * origin - create the core origin
+  * * keys - generate keys for the core origin
+  * * load_packages - load all the packages from core
+  * Outside of the studio
+  * * cd components/builder-web
+  * * npm i - install the node packages
+  * * npm start - run the web dev env
 3. Building Builder
   * build-builder - build all Builder components
   * build-admin - build the Admin Gateway
@@ -290,6 +336,8 @@ GITHUB_ADMIN_TEAM=1995301
 GITHUB_WORKER_TEAM=1995301
 GITHUB_WEBHOOK_SECRET=58d4afaf5e5617ab0f8c39e505605e78a054d003
 SSL_CERT_FILE=$(hab pkg path core/cacerts)/ssl/cert.pem
+
+hab pkg binlink core/curl curl
 
 init-datastore
 configure
