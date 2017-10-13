@@ -34,7 +34,7 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 staticfile = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 typemap = "*"
 unicase = "*"
 

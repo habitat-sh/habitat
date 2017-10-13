@@ -20,4 +20,4 @@ habitat_common = { path = "../common" }
 habitat_butterfly = { path = "../butterfly" }
 lazy_static = "*"
 log = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }

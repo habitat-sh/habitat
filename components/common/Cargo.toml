@@ -16,7 +16,7 @@ regex = "*"
 retry = "*"
 term = "*"
 time = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 
 [dependencies.habitat_core]
 path = "../core"

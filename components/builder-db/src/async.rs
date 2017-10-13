@@ -154,7 +154,7 @@ impl AsyncServer {
             let mut f = self.failure_count.write().expect(
                 "Async failure count lock poisoned",
             );
-            let mut value = f.entry(key.clone()).or_insert(0);
+            let value = f.entry(key.clone()).or_insert(0);
             *value += 1;
             if *value >= FAILURE_COUNT_UPPER_BOUND {
                 *value

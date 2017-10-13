@@ -20,7 +20,7 @@ log = "*"
 protobuf = "*"
 serde = "*"
 serde_derive = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 postgres = "*"
 r2d2 = "*"
 

@@ -191,7 +191,7 @@ impl Trace {
     pub fn write(&mut self, trace_write: TraceWrite) {
         let dump = format!("{:#?}", self);
         match self.file.as_mut() {
-            Some(mut file) => {
+            Some(file) => {
                 match write!(file, "{}", trace_write) {
                     Ok(_) => {}
                     Err(e) => panic!("Trace requested, but failed to write {:?}", e),

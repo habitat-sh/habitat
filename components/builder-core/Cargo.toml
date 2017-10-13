@@ -20,7 +20,7 @@ serde_derive = "*"
 serde_json = "*"
 statsd = "*"
 time = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 walkdir = "*"
 
 [dependencies.habitat_core]

@@ -145,7 +145,7 @@ impl CensusRing {
         service_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
             service_group_from_str(service_group)
         {
-            let mut census_group = self.census_groups.entry(sg.clone()).or_insert(
+            let census_group = self.census_groups.entry(sg.clone()).or_insert(
                 CensusGroup::new(
                     sg,
                     &self.local_member_id,
@@ -209,7 +209,7 @@ impl CensusRing {
         service_file_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
             service_group_from_str(service_group)
         {
-            let mut census_group = self.census_groups.entry(sg.clone()).or_insert(
+            let census_group = self.census_groups.entry(sg.clone()).or_insert(
                 CensusGroup::new(
                     sg,
                     &self.local_member_id,
@@ -371,7 +371,7 @@ impl CensusGroup {
         for (member_id, service_rumor) in rumors.iter() {
             // Yeah - we are ourself - we're alive.
             let is_self = member_id == &self.local_member_id;
-            let mut member = self.population
+            let member = self.population
                 .entry(member_id.to_string())
                 .or_insert_with(|| {
                     let mut new_member = CensusMember::default();

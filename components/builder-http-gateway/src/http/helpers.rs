@@ -357,7 +357,7 @@ pub fn promote_job_group_to_channel(
         if project.get_state() == ProjectState::Success {
             let ident = OriginPackageIdent::from_str(project.get_ident()).unwrap();
 
-            let mut project_list = origin_map.entry(ident.get_origin().to_string()).or_insert(
+            let project_list = origin_map.entry(ident.get_origin().to_string()).or_insert(
                 Vec::new(),
             );
             project_list.push(project);

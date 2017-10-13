@@ -28,7 +28,7 @@ serde = "*"
 serde_derive = "*"
 time = "*"
 threadpool = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 
 [dependencies.uuid]
 version = "*"
