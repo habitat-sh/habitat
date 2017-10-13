@@ -37,6 +37,7 @@ pub enum Error {
     ArgumentError(&'static str),
     ButterflyError(String),
     CannotRemoveFromChannel((String, String)),
+    CannotRemovePackage((String, Vec<String>)),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     DepotClient(depot_client::Error),
@@ -74,6 +75,13 @@ impl fmt::Display for Error {
             Error::ButterflyError(ref e) => format!("{}", e),
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
                 format!("{} cannot be removed from the {} channel.", p, c)
+            }
+            Error::CannotRemovePackage((ref p, ref d)) => {
+                format!(
+                    "{} cannot be removed, the following packages depend on it:\n\n{}",
+                    p,
+                    d.join("\n")
+                )
             }
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!(
@@ -169,6 +177,7 @@ impl error::Error for Error {
             Error::CannotRemoveFromChannel(_) => {
                 "Package cannot be removed from the specified channel"
             }
+            Error::CannotRemovePackage(_) => "Package cannot be removed",
             Error::CommandNotFoundInPkg(_) => {
                 "Command was not found under any 'PATH' directories in the package"
             }
