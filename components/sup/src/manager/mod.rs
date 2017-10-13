@@ -146,12 +146,12 @@ pub struct Manager {
     launcher: LauncherCli,
     services: Arc<RwLock<Vec<Service>>>,
     updater: ServiceUpdater,
-    watcher: SpecWatcher,
+    peer_watcher: Option<PeerWatcher>,
+    spec_watcher: SpecWatcher,
     organization: Option<String>,
     self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
-    peer_watcher: Option<PeerWatcher>,
 }
 
 impl Manager {
@@ -318,12 +318,12 @@ impl Manager {
             events_group: cfg.eventsrv_group,
             launcher: launcher,
             services: services,
-            watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
+            peer_watcher: peer_watcher,
+            spec_watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
             fs_cfg: Arc::new(fs_cfg),
             organization: cfg.organization,
             service_states: HashMap::new(),
             sys: Arc::new(sys),
-            peer_watcher: peer_watcher,
         })
     }
 
@@ -528,7 +528,7 @@ impl Manager {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        self.start_initial_services_from_watcher()?;
+        self.start_initial_services_from_spec_watcher()?;
 
         outputln!(
             "Starting gossip-listener on {}",
@@ -564,7 +564,7 @@ impl Manager {
                 self.shutdown();
                 return Ok(());
             }
-            self.update_running_services_from_watcher()?;
+            self.update_running_services_from_spec_watcher()?;
             self.update_peers_from_watch_file()?;
             self.check_for_updated_packages();
             self.restart_elections();
@@ -682,7 +682,7 @@ impl Manager {
             active_services.push(service.spec_ident.clone());
         }
 
-        for loaded in self.watcher
+        for loaded in self.spec_watcher
             .specs_from_watch_path()
             .unwrap()
             .values()
@@ -790,7 +790,7 @@ impl Manager {
         // add services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
-        for down in self.watcher
+        for down in self.spec_watcher
             .specs_from_watch_path()
             .unwrap()
             .values()
@@ -891,8 +891,8 @@ impl Manager {
         release_process_lock(&self.fs_cfg);
     }
 
-    fn start_initial_services_from_watcher(&mut self) -> Result<()> {
-        for service_event in self.watcher.initial_events()? {
+    fn start_initial_services_from_spec_watcher(&mut self) -> Result<()> {
+        for service_event in self.spec_watcher.initial_events()? {
             match service_event {
                 SpecWatcherEvent::AddService(spec) => {
                     if spec.desired_state == DesiredState::Up {
@@ -906,7 +906,7 @@ impl Manager {
         Ok(())
     }
 
-    fn update_running_services_from_watcher(&mut self) -> Result<()> {
+    fn update_running_services_from_spec_watcher(&mut self) -> Result<()> {
         let mut active_specs = HashMap::new();
         for service in self.services
             .read()
@@ -917,7 +917,7 @@ impl Manager {
             active_specs.insert(spec.ident.name.clone(), spec);
         }
 
-        for service_event in self.watcher.new_events(active_specs)? {
+        for service_event in self.spec_watcher.new_events(active_specs)? {
             match service_event {
                 SpecWatcherEvent::AddService(spec) => {
                     if spec.desired_state == DesiredState::Up {
