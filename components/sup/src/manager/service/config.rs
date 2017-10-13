@@ -23,6 +23,7 @@ use std::path::{Path, PathBuf};
 use std::result;
 
 use ansi_term::Colour::Purple;
+use fs;
 use hcore::crypto;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
@@ -64,7 +65,8 @@ impl Cfg {
             &package.path,
         );
         let default = Self::load_default(&pkg_root)?;
-        let user = Self::load_user(&package)?;
+        let user_config_path = Self::determine_user_config_path(&package);
+        let user = Self::load_user(&user_config_path)?;
         let environment = Self::load_environment(&package)?;
         return Ok(Self {
             default: default,
@@ -165,8 +167,36 @@ impl Cfg {
         Self::load_toml_file(config_from, "default.toml")
     }
 
-    fn load_user(package: &Pkg) -> Result<Option<toml::Value>> {
-        Self::load_toml_file(&package.svc_path, "user.toml")
+    fn determine_user_config_path(package: &Pkg) -> PathBuf {
+        let recommended_dir = fs::user_config_path(&package.name);
+        let recommended_path = recommended_dir.join("user.toml");
+        if recommended_path.exists() {
+            return recommended_dir;
+        }
+        debug!(
+            "'user.toml' at {} does not exist",
+            recommended_path.display()
+        );
+        let deprecated_dir = package.svc_path.clone();
+        let deprecated_path = deprecated_dir.join("user.toml");
+        if deprecated_path.exists() {
+            outputln!(
+                "The user configuration location at {} is deprecated, \
+                 consider putting it in {}",
+                deprecated_path.display(),
+                recommended_path.display(),
+            );
+            return deprecated_dir;
+        }
+        debug!(
+            "'user.toml' at {} does not exist",
+            deprecated_path.display()
+        );
+        recommended_dir
+    }
+
+    fn load_user<T: AsRef<Path>>(path: T) -> Result<Option<toml::Value>> {
+        Self::load_toml_file(path, "user.toml")
     }
 
     fn load_environment(package: &Pkg) -> Result<Option<toml::Value>> {
