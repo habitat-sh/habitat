@@ -15,7 +15,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MdButtonModule } from '@angular/material';
+import { MatButtonModule } from '@angular/material';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from '../shared/shared.module';
 import { OriginPageModule } from './origin-page/origin-page.module';
@@ -30,7 +30,7 @@ import { OriginService } from './origin.service';
 export const imports = [
   CommonModule,
   FormsModule,
-  MdButtonModule,
+  MatButtonModule,
   OriginRoutingModule,
   OriginPageModule,
   ReactiveFormsModule,

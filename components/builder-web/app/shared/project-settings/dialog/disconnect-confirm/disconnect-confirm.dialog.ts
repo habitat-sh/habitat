@@ -13,13 +13,13 @@
 // limitations under the License.
 
 import { Component, Inject } from '@angular/core';
-import { MdDialogRef } from '@angular/material';
+import { MatDialogRef } from '@angular/material';
 
 @Component({
   template: require('./disconnect-confirm.dialog.html')
 })
 export class DisconnectConfirmDialog {
-  constructor(private ref: MdDialogRef<DisconnectConfirmDialog>) { }
+  constructor(private ref: MatDialogRef<DisconnectConfirmDialog>) { }
 
   ok() {
     this.ref.close(true);

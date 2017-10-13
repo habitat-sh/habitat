@@ -8,21 +8,21 @@
     managed under the origin Settings tab.
   </p>
   <div class="toggle">
-    <md-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
+    <mat-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
       {{ enabled ? "On" : "Off" }}
-    </md-slide-toggle>
+    </mat-slide-toggle>
     <span class="unconfigured" *ngIf="!configured">
       You can configure this integration in the origin Integrations tab.
     </span>
   </div>
   <div *ngIf="enabled && configured">
     <div class="integrations">
-      <md-radio-group [(ngModel)]="name">
-        <md-radio-button *ngFor="let integration of integrations" [value]="integration">
+      <mat-radio-group [(ngModel)]="name">
+        <mat-radio-button *ngFor="let integration of integrations" [value]="integration">
           <hab-icon symbol="docker"></hab-icon>
           <span>{{ integration }}</span>
-        </md-radio-button>
-      </md-radio-group>
+        </mat-radio-button>
+      </mat-radio-group>
     </div>
     <div class="fields">
       <label>Docker Organization and Repository</label>
@@ -30,9 +30,9 @@
       <label>Custom Tag (Optional)</label>
       <input type="text" [(ngModel)]="customTag" [placeholder]="'yourtag or \{\{ channel \}\}'">
       <label>Additional Tags</label>
-      <md-checkbox [(ngModel)]="latestTag">:latest</md-checkbox>
-      <md-checkbox [(ngModel)]="versionTag">:pkg_version</md-checkbox>
-      <md-checkbox [(ngModel)]="releaseTag">:pkg_version-pkg_release</md-checkbox>
+      <mat-checkbox [(ngModel)]="latestTag">:latest</mat-checkbox>
+      <mat-checkbox [(ngModel)]="versionTag">:pkg_version</mat-checkbox>
+      <mat-checkbox [(ngModel)]="releaseTag">:pkg_version-pkg_release</mat-checkbox>
     </div>
   </div>
 </div>

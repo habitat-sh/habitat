@@ -19,7 +19,7 @@ import { AppStore } from '../../app.store';
   selector: 'hab-progress-bar',
   template: `
     <div class="progress-bar-wrapper" *ngIf="loading">
-      <md-progress-bar mode="indeterminate"></md-progress-bar>
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </div>`
 })
 

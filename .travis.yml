@@ -144,7 +144,7 @@ matrix:
 #
     - os: linux
       language: node_js
-      node_js: 4.4.3
+      node_js: 8.7.0
       sudo: false
       env:
         - CXX=g++-4.8

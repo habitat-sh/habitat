@@ -14,7 +14,7 @@
 
 import { Component, Inject, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { Subscription } from 'rxjs/subscription';
 import { GitHubApiClient } from '../../GitHubApiClient';
 import { GitHubRepo } from '../../github/repo/shared/github-repo.model';
@@ -33,7 +33,7 @@ export class PackageSettingsComponent implements OnInit, OnDestroy {
 
   private sub: Subscription;
 
-  constructor(private route: ActivatedRoute, private store: AppStore, private disconnectDialog: MdDialog) {
+  constructor(private route: ActivatedRoute, private store: AppStore, private disconnectDialog: MatDialog) {
     this.sub = this.route.parent.params.subscribe((params) => {
       this.origin = params['origin'];
       this.name = params['name'];

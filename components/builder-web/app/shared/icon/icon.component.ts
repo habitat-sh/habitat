@@ -16,7 +16,7 @@ import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'hab-icon',
-  template: `<md-icon [svgIcon]="id" [mdTooltip]="tooltip" mdTooltipPosition="above"></md-icon>`
+  template: `<mat-icon [svgIcon]="id" [matTooltip]="tooltip" matTooltipPosition="above"></mat-icon>`
 })
 export class IconComponent {
   @Input() symbol: string;

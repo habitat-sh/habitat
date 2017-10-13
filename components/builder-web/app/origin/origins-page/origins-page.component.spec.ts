@@ -16,7 +16,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { MdDialog } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { List } from 'immutable';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -76,7 +76,7 @@ describe('OriginsPageComponent', () => {
       ],
       providers: [
         { provide: AppStore, useValue: store },
-        { provide: MdDialog, useClass: MockDialog }
+        { provide: MatDialog, useClass: MockDialog }
       ]
     });
 

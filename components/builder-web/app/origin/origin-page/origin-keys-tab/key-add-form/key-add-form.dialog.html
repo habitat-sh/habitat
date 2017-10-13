@@ -3,7 +3,7 @@
 <label>{{type}} Key</label>
 <form class="hab-key-add-form" [formGroup]="form" #formValues="ngForm" (ngSubmit)="submit(formValues.value.key)">
   <div>
-    <textarea mdInput name="key" [formControl]="form.controls['key']" placeholder="Begins with '{{keyFileHeaderPrefix}}'" rows=6>
+    <textarea matInput name="key" [formControl]="form.controls['key']" placeholder="Begins with '{{keyFileHeaderPrefix}}'" rows=6>
     </textarea>
     <div class="hint" *ngIf="control.pristine">
       Paste your key here. Check the documentation for a guide on
@@ -28,7 +28,7 @@
     </div>
   </div>
   <div class="controls">
-    <button md-raised-button color="primary" tabindex="1" type="submit" [disabled]="!form.valid">
+    <button mat-raised-button color="primary" tabindex="1" type="submit" [disabled]="!form.valid">
       Upload Key
     </button>
     <a (click)="close()">Cancel</a>

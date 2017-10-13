@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component } from '@angular/core';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 
 export interface Credentials {
   username: string;
@@ -34,7 +34,7 @@ export class DockerCredentialsFormDialog {
   model: Credentials = new Credentials;
 
   constructor(
-    public dialogRef: MdDialogRef<DockerCredentialsFormDialog>) { }
+    public dialogRef: MatDialogRef<DockerCredentialsFormDialog>) { }
 
   onNoClick(): void {
     this.dialogRef.close();

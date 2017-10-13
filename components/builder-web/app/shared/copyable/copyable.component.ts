@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, Input, ViewChild } from '@angular/core';
-import { MdTooltip } from '@angular/material';
+import { MatTooltip } from '@angular/material';
 
 @Component({
   selector: 'hab-copyable',
@@ -25,8 +25,8 @@ export class CopyableComponent {
 
   public copied: boolean = false;
 
-  @ViewChild(MdTooltip)
-  tooltip: MdTooltip;
+  @ViewChild(MatTooltip)
+  tooltip: MatTooltip;
 
   copy(text) {
     let el = document.createElement('input');

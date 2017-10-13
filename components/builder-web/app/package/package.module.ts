@@ -16,7 +16,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { MdTabsModule, MdButtonModule, MdRadioModule } from '@angular/material';
+import { MatTabsModule, MatButtonModule, MatRadioModule } from '@angular/material';
 import { BuildDetailComponent } from './build-detail/build-detail.component';
 import { BuildListComponent } from './build-list/build-list.component';
 import { BuildNoticeComponent } from './build-notice/build-notice.component';
@@ -41,9 +41,9 @@ import { PackageRoutingModule } from './package-routing.module';
     PackageRoutingModule,
     ReactiveFormsModule,
     RouterModule,
-    MdTabsModule,
-    MdButtonModule,
-    MdRadioModule,
+    MatTabsModule,
+    MatButtonModule,
+    MatRadioModule,
     SharedModule,
     FormsModule,
     ReactiveFormsModule

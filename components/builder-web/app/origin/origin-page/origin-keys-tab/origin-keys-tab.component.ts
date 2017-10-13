@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
-import { MdDialog } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../../app.store';
@@ -35,8 +35,8 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private store: AppStore,
-    private keyAddDialog: MdDialog,
-    private keyGenerateDialog: MdDialog,
+    private keyAddDialog: MatDialog,
+    private keyGenerateDialog: MatDialog,
     private originService: OriginService
   ) { }
 

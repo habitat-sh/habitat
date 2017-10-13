@@ -18,9 +18,9 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  MdCheckbox, MdCheckboxModule, MdIconModule, MdIconRegistry, MdProgressBarModule, MdRadioModule,
-  MdRadioGroup, MdRadioButton, MdSlideToggleModule, MdSlideToggle, MdTooltipModule, MdTabsModule,
-  MdButtonModule
+  MatCheckbox, MatCheckboxModule, MatIconModule, MatIconRegistry, MatProgressBarModule, MatRadioModule,
+  MatRadioGroup, MatRadioButton, MatSlideToggleModule, MatSlideToggle, MatTooltipModule, MatTabsModule,
+  MatButtonModule
 } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BreadcrumbsComponent } from './breadcrumbs/breadcrumbs.component';
@@ -47,15 +47,15 @@ import { UserLoggedInGuard } from './user/user.guard';
     BrowserAnimationsModule,
     CommonModule,
     FormsModule,
-    MdCheckboxModule,
-    MdIconModule,
-    MdTabsModule,
-    MdProgressBarModule,
-    MdRadioModule,
-    MdSlideToggleModule,
-    MdTooltipModule,
-    MdRadioModule,
-    MdButtonModule,
+    MatCheckboxModule,
+    MatIconModule,
+    MatTabsModule,
+    MatProgressBarModule,
+    MatRadioModule,
+    MatSlideToggleModule,
+    MatTooltipModule,
+    MatRadioModule,
+    MatButtonModule,
     ReactiveFormsModule,
     RouterModule
   ],
@@ -91,10 +91,10 @@ import { UserLoggedInGuard } from './user/user.guard';
     DisconnectConfirmDialog,
     DockerExportSettingsComponent,
     IconComponent,
-    MdCheckbox,
-    MdRadioGroup,
-    MdRadioButton,
-    MdSlideToggle,
+    MatCheckbox,
+    MatRadioGroup,
+    MatRadioButton,
+    MatSlideToggle,
     PackageListComponent,
     VisibilitySelectorComponent,
     ProgressBarComponent,
@@ -111,16 +111,16 @@ import { UserLoggedInGuard } from './user/user.guard';
   ]
 })
 export class SharedModule {
-  constructor(private mdIconRegistry: MdIconRegistry, private sanitizer: DomSanitizer) {
+  constructor(private matIconRegistry: MatIconRegistry, private sanitizer: DomSanitizer) {
 
-    // At the time of this monkeypatching, the SVG settings applied by MdIconRegistry
+    // At the time of this monkeypatching, the SVG settings applied by MatIconRegistry
     // were missing the `viewBox` attribute, which is responsible for mapping the coordinate space
     // of an SVG image to that of the viewport, enabling proper scaling. While we await resolution
     // of the issue below, we'll go ahead and plow right over Angular's implementation,
     // 'cause JavaScript is awesome.
     // https://github.com/angular/material2/issues/5188
     // https://github.com/angular/material2/blob/bef6271c617f6904cc360454805ea080e2212f2a/src/lib/icon/icon-registry.ts#L424-L436
-    mdIconRegistry['_setSvgAttributes'] = (svg: SVGElement): SVGElement => {
+    matIconRegistry['_setSvgAttributes'] = (svg: SVGElement): SVGElement => {
 
       if (!svg.getAttribute('xmlns')) {
         svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -136,7 +136,7 @@ export class SharedModule {
       return svg;
     };
 
-    mdIconRegistry.addSvgIconSet(
+    matIconRegistry.addSvgIconSet(
       sanitizer.bypassSecurityTrustResourceUrl('/assets/images/icons/all.svg')
     );
   }

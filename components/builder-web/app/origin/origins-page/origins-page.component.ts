@@ -15,7 +15,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { List } from 'immutable';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { SimpleConfirmDialog } from '../../shared/dialog/simple-confirm/simple-confirm.dialog';
 import { acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins, ignoreOriginInvitation } from '../../actions/index';
 import { AppStore } from '../../app.store';
@@ -29,7 +29,7 @@ export class OriginsPageComponent implements OnInit {
   constructor(
     private store: AppStore,
     private router: Router,
-    private confirmDialog: MdDialog
+    private confirmDialog: MatDialog
   ) { }
 
   ngOnInit() {
