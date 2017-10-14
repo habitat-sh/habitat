@@ -1,0 +1,30 @@
+{
+  "api.version":"v1",
+  "source":{
+    "name":"${name}",
+    "category":"${category}",
+    "automaticDateParsing":true,
+    "multilineProcessingEnabled":true,
+    "useAutolineMatching":true,
+    "contentType":"Other",
+    "forceTimeZone":false,
+    "timeZone":"Etc/UTC",
+    "filters":[],
+    "cutoffTimestamp":1507273200000,
+    "encoding":"UTF-8",
+    "thirdPartyRef":{
+      "resources":[{
+        "serviceType":"Other",
+        "path":{
+          "type":"NoPathExpression"
+        },
+        "authentication":{
+          "type":"NoAuthentication"
+        }
+      }]
+    },
+    "pathExpression":"${path}",
+    "blacklist":[],
+    "sourceType":"LocalFile"
+  }
+}
