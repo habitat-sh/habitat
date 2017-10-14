@@ -181,7 +181,7 @@ impl<T: Rumor> RumorStore<T> {
     /// mutated; if nothing changed, returns false.
     pub fn insert(&self, rumor: T) -> bool {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
-        let mut rumors = list.entry(String::from(rumor.key())).or_insert(
+        let rumors = list.entry(String::from(rumor.key())).or_insert(
             HashMap::new(),
         );
         // Result reveals if there was a change so we can increment the counter if needed.
@@ -200,7 +200,7 @@ impl<T: Rumor> RumorStore<T> {
 
     pub fn remove(&self, key: &str, id: &str) {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
-        list.get_mut(key).and_then(|mut r| r.remove(id));
+        list.get_mut(key).and_then(|r| r.remove(id));
     }
 
     pub fn with_keys<F>(&self, mut with_closure: F)

@@ -247,7 +247,7 @@ impl Inbound {
         }
         // Populate the member for this sender with its remote address
         let from = {
-            let mut ping = msg.mut_ping();
+            let ping = msg.mut_ping();
             let mut from = ping.take_from();
             from.set_address(format!("{}", addr.ip()));
             from

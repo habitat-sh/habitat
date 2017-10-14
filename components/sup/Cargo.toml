@@ -47,7 +47,7 @@ serde_json = "*"
 serde_yaml = "*"
 tempdir = "*"
 time = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 url = "*"
 
 [target.'cfg(windows)'.dependencies]

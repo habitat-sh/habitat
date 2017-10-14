@@ -110,9 +110,9 @@ impl RumorHeat {
             let mut rumor_map = self.0.write().expect("RumorHeat lock poisoned");
             for ref rk in rumors {
                 if rumor_map.contains_key(&rk) {
-                    let mut heat_map = rumor_map.get_mut(&rk).unwrap();
+                    let heat_map = rumor_map.get_mut(&rk).unwrap();
                     if heat_map.contains_key(id) {
-                        let mut heat = heat_map.get_mut(id).unwrap();
+                        let heat = heat_map.get_mut(id).unwrap();
                         *heat += 1;
                     } else {
                         heat_map.insert(String::from(id), 1);

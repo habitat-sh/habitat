@@ -78,7 +78,6 @@ mod inner {
 
 #[cfg(not(target_os = "linux"))]
 mod inner {
-    use std::env;
     use std::ffi::OsString;
 
     use common::ui::UI;

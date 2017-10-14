@@ -24,7 +24,7 @@ regex = "*"
 retry = "*"
 serde = "*"
 serde_derive = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 url = "*"
 walkdir = "*"
 

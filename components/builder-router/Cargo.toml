@@ -22,7 +22,7 @@ protobuf = "*"
 rand = "*"
 serde = "*"
 serde_derive = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 
 [dependencies.clap]
 version = "*"

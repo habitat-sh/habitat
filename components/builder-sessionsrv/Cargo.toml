@@ -27,7 +27,7 @@ r2d2 = "*"
 serde = "*"
 serde_derive = "*"
 time = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", default-features = false }
 
 [dependencies.clap]
 version = "*"
