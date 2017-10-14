@@ -36,8 +36,9 @@ classes: demo_step
             strong ON
             '  . The Docker Hub account you added earlier should appear and be selected.
           p
-            ' Finally, type in your target Docker Hub organization and repository.
+            ' Finally, type in your target Docker Hub organization and repository
             span.asterisk.sup="*"
+            ' .
             '  You can leave the default
             em Tags
             '  and click
@@ -46,9 +47,7 @@ classes: demo_step
           .footnote
             p.mb-0
               span.asterisk="*"
-              '  If there is no repository in your Docker Hub organization, log in to
-              a.link-external href="https://hub.docker.com/" target="_blank" Docker Hub
-              '  and add one.
+              '  If the target Docker Hub organization or/and repository doesn’t exist yet, they will be created for you following the default visibility setting.
         .columns.large-6
           img src="/images/demo/screen-connect-plan.png"
       .row.mt-1.step-bottom-nav
