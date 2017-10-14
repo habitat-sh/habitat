@@ -21,16 +21,14 @@ pub const DEFAULT_BLDR_URL: &'static str = "https://bldr.habitat.sh";
 /// Legacy environment variable for defining a default Builder endpoint
 const LEGACY_BLDR_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";
 
-pub fn default_bldr_url() -> String {
-    match env::var(BLDR_URL_ENVVAR) {
-        Ok(val) => val,
-        Err(_) => legacy_depot_url(),
-    }
+// Returns a Builder URL value if set in the environment. Does *not*
+// return any default value if the value was not found in the environment!
+pub fn bldr_url_from_env() -> Option<String> {
+    env::var(BLDR_URL_ENVVAR)
+        .or_else(|_| env::var(LEGACY_BLDR_URL_ENVVAR))
+        .ok()
 }
 
-fn legacy_depot_url() -> String {
-    match env::var(LEGACY_BLDR_URL_ENVVAR) {
-        Ok(val) => val,
-        Err(_) => DEFAULT_BLDR_URL.to_string(),
-    }
+pub fn default_bldr_url() -> String {
+    bldr_url_from_env().unwrap_or(DEFAULT_BLDR_URL.to_string())
 }
