@@ -130,6 +130,8 @@ impl From<zmq::Error> for ConnErr {
     fn from(err: zmq::Error) -> Self {
         match err {
             zmq::Error::EHOSTUNREACH => ConnErr::HostUnreachable,
+            zmq::Error::EAGAIN => ConnErr::Timeout,
+            zmq::Error::EINTR | zmq::Error::ETERM => ConnErr::Shutdown(err),
             _ => ConnErr::Socket(err),
         }
     }

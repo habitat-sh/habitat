@@ -24,7 +24,7 @@ use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use protobuf;
 use protocol::Routable;
 use protocol::message::{Header, Message, RouteInfo, Txn};
-use zmq::{self, Error as ZError};
+use zmq;
 
 pub use self::error::ConnErr;
 use error::{ErrCode, NetError, NetResult};
@@ -243,15 +243,10 @@ pub fn send_to(socket: &zmq::Socket, message: &Message, dest: &[u8]) -> Result<(
 }
 
 pub fn socket_poll(items: &mut [zmq::PollItem], timeout: i64) -> Result<u32, ConnErr> {
-    match zmq::poll(items, timeout) {
-        Ok(count) if count < 0 => unreachable!("zmq::poll, returned a negative count"),
-        Ok(count) if count == 0 => Err(ConnErr::Timeout),
-        Ok(count) => Ok(count as u32),
-        Err(ZError::EAGAIN) => Err(ConnErr::Timeout),
-        Err(e @ ZError::EINTR) |
-        Err(e @ ZError::ETERM) => Err(ConnErr::Shutdown(e)),
-        Err(ZError::EFAULT) => unreachable!("zmq::poll, the provided _items_ was not valid (NULL)"),
-        Err(err) => unreachable!("zmq::poll, returned an unexpected error, {:?}", err),
+    match zmq::poll(items, timeout)? {
+        count if count < 0 => unreachable!("zmq::poll, returned a negative count"),
+        count if count == 0 => Err(ConnErr::Timeout),
+        count => Ok(count as u32),
     }
 }
 
