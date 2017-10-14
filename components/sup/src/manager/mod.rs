@@ -52,7 +52,7 @@ use serde;
 use serde_json;
 use time::{self, Timespec, Duration as TimeDuration};
 
-pub use self::service::{Service, ServiceSpec, UpdateStrategy, Topology};
+pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, UpdateStrategy, Topology};
 pub use self::sys::Sys;
 use self::self_updater::{SUP_PKG_IDENT, SelfUpdater};
 use self::service::{DesiredState, Pkg, ProcessState, StartStyle};
@@ -89,6 +89,7 @@ pub struct FsCfg {
 
     data_path: PathBuf,
     specs_path: PathBuf,
+    composites_path: PathBuf,
     member_id_file: PathBuf,
     proc_lock_file: PathBuf,
 }
@@ -105,6 +106,7 @@ impl FsCfg {
             census_data_path: data_path.join("census.dat"),
             services_data_path: data_path.join("services.dat"),
             specs_path: sup_svc_root.join("specs"),
+            composites_path: sup_svc_root.join("composites"),
             data_path: data_path,
             member_id_file: sup_svc_root.join(MEMBER_ID_FILE),
             proc_lock_file: sup_svc_root.join(PROC_LOCK_FILE),
@@ -189,17 +191,17 @@ impl Manager {
         Self::new(cfg, fs_cfg, launcher)
     }
 
-    pub fn service_status(cfg: ManagerConfig, ident: PackageIdent) -> Result<ServiceStatus> {
+    pub fn service_status(cfg: &ManagerConfig, ident: &PackageIdent) -> Result<ServiceStatus> {
         for status in Self::status(cfg)? {
-            if status.pkg.ident.satisfies(&ident) {
+            if status.pkg.ident.satisfies(ident) {
                 return Ok(status);
             }
         }
-        Err(sup_error!(Error::ServiceNotLoaded(ident)))
+        Err(sup_error!(Error::ServiceNotLoaded(ident.clone())))
     }
 
-    pub fn status(cfg: ManagerConfig) -> Result<Vec<ServiceStatus>> {
-        let state_path = Self::state_path_from(&cfg);
+    pub fn status(cfg: &ManagerConfig) -> Result<Vec<ServiceStatus>> {
+        let state_path = Self::state_path_from(cfg);
         let fs_cfg = FsCfg::new(state_path);
 
         let dat = File::open(&fs_cfg.services_data_path)?;
@@ -365,8 +367,23 @@ impl Manager {
         Self::specs_path(&Self::state_path_from(cfg)).join(spec.file_name())
     }
 
+    pub fn composite_path_for(cfg: &ManagerConfig, spec: &CompositeSpec) -> PathBuf {
+        Self::composites_path(&Self::state_path_from(cfg)).join(spec.file_name())
+    }
+
+    // TODO (CM): BAAAAARF
+    pub fn composite_path_by_ident(cfg: &ManagerConfig, ident: &PackageIdent) -> PathBuf {
+        let mut p = Self::composites_path(&Self::state_path_from(cfg)).join(&ident.name);
+        p.set_extension("spec");
+        p
+    }
+
     pub fn save_spec_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> Result<()> {
         spec.to_file(Self::spec_path_for(cfg, spec))
+    }
+
+    pub fn save_composite_spec_for(cfg: &ManagerConfig, spec: &CompositeSpec) -> Result<()> {
+        spec.to_file(Self::composite_path_for(cfg, spec))
     }
 
     fn clean_dirty_state<T>(state_path: T) -> Result<()>
@@ -409,6 +426,16 @@ impl Manager {
         if let Some(err) = fs::create_dir_all(&specs_path).err() {
             return Err(sup_error!(Error::BadSpecsPath(specs_path, err)));
         }
+
+        let composites_path = Self::composites_path(&state_path);
+        debug!(
+            "Creating composites directory: {}",
+            composites_path.display()
+        );
+        if let Some(err) = fs::create_dir_all(&composites_path).err() {
+            return Err(sup_error!(Error::BadCompositesPath(composites_path, err)));
+        }
+
         Ok(())
     }
 
@@ -426,6 +453,14 @@ impl Manager {
         T: AsRef<Path>,
     {
         state_path.as_ref().join("specs")
+    }
+
+    #[inline]
+    fn composites_path<T>(state_path: T) -> PathBuf
+    where
+        T: AsRef<Path>,
+    {
+        state_path.as_ref().join("composites")
     }
 
     fn state_path_from(cfg: &ManagerConfig) -> PathBuf {
@@ -975,14 +1010,16 @@ pub struct ServiceStatus {
     pub process: ProcessStatus,
     pub service_group: ServiceGroup,
     pub start_style: StartStyle,
+    pub composite: Option<String>,
 }
 
 impl fmt::Display for ServiceStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{}, {}, group:{}, style:{}",
+            "{} ({}), {}, group:{}, style:{}",
             self.pkg.ident,
+            self.composite.as_ref().unwrap_or(&"standalone".to_string()),
             self.process,
             self.service_group,
             self.start_style

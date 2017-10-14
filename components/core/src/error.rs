@@ -36,6 +36,8 @@ pub enum Error {
     ArchiveError(libarchive::error::ArchiveError),
     /// An invalid path to a keyfile was given.
     BadKeyPath(String),
+    /// An operation expected a composite package
+    CompositePackageExpected(String),
     /// Error reading raw contents of configuration file.
     ConfigFileIO(PathBuf, io::Error),
     /// Parsing error while reading a configuration file.
@@ -97,6 +99,8 @@ pub enum Error {
     InvalidPackageTarget(String),
     /// Occurs when validating a package target for an unsupported architecture.
     InvalidArchitecture(String),
+    /// Occurs when a package type is not recognized.
+    InvalidPackageType(String),
     /// Occurs when validating a package target for an unsupported platform.
     InvalidPlatform(String),
     /// Occurs when a service group string cannot be successfully parsed.
@@ -109,7 +113,8 @@ pub enum Error {
     LogonTypeNotGranted,
     /// Occurs when a call to LogonUserW fails
     LogonUserFailed(io::Error),
-    /// Occurs when a BIND or BIND_OPTIONAL MetaFile is read and contains a bad entry.
+    /// Occurs when a BIND, BIND_OPTIONAL, or BIND_MAP MetaFile is
+    /// read and contains a bad entry.
     MetaFileBadBind,
     /// Occurs when a package metadata file cannot be opened, read, or parsed.
     MetaFileMalformed(package::metadata::MetaFile),
@@ -164,6 +169,9 @@ impl fmt::Display for Error {
                     "Invalid keypath: {}. Specify an absolute path to a file on disk.",
                     e
                 )
+            }
+            Error::CompositePackageExpected(ref ident) => {
+                format!("The package is not a composite: {}", ident)
             }
             Error::ConfigFileIO(ref f, ref e) => {
                 format!("Error reading configuration file, {}, {}", f.display(), e)
@@ -297,6 +305,7 @@ impl fmt::Display for Error {
                 )
             }
             Error::InvalidArchitecture(ref e) => format!("Invalid architecture: {}.", e),
+            Error::InvalidPackageType(ref e) => format!("Invalid package type: {}.", e),
             Error::InvalidPlatform(ref e) => format!("Invalid platform: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
                 format!(
@@ -321,7 +330,9 @@ impl fmt::Display for Error {
                 )
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
-            Error::MetaFileBadBind => format!("Bad value parsed from BIND or BIND_OPTIONAL"),
+            Error::MetaFileBadBind => {
+                format!("Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP")
+            }
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
             }
@@ -369,6 +380,7 @@ impl error::Error for Error {
         match *self {
             Error::ArchiveError(ref err) => err.description(),
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
+            Error::CompositePackageExpected(_) => "A composite package was expected",
             Error::ConfigFileIO(_, _) => "Unable to read the raw contents of a configuration file",
             Error::ConfigFileSyntax(_) => "Error parsing contents of configuration file",
             Error::ConfigInvalidArraySocketAddr(_) => {
@@ -447,6 +459,7 @@ impl error::Error for Error {
                 "Package targets must be in architecture-platform format (example: x86_64-linux)"
             }
             Error::InvalidArchitecture(_) => "Unsupported target architecture supplied.",
+            Error::InvalidPackageType(_) => "Unsupported package type supplied.",
             Error::InvalidPlatform(_) => "Unsupported target platform supplied.",
             Error::InvalidServiceGroup(_) => {
                 "Service group strings must be in service.group format (example: redis.production)"
@@ -460,7 +473,9 @@ impl error::Error for Error {
                 "Logon type not granted to hab_svc_user to be spawned by the Supervisor"
             }
             Error::LogonUserFailed(_) => "LogonUserW failed",
-            Error::MetaFileBadBind => "Bad value parsed from BIND or BIND_OPTIONAL MetaFile",
+            Error::MetaFileBadBind => {
+                "Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP MetaFile"
+            }
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",

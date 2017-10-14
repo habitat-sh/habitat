@@ -24,7 +24,7 @@
 # pkg_name=zlib
 # pkg_description="The zlib library"
 # pkg_upstream_url=http://zlib.net
-# pkg_maintainer="Frank Llyod Wright <flw@example.com>"
+# pkg_maintainer="Frank Lloyd Wright <flw@example.com>"
 # pkg_version=1.2.8
 # pkg_license=('zlib')
 # pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
@@ -49,7 +49,7 @@
 # 1. Run `./configure && make`
 # 1. Run `make install`
 # 1. Write out the data other packages need to depend on `zlib`
-# 1. Create a libsodium signed tarball of the results
+# 1. Create a libsodium-signed tarball of the results
 #
 # ## Plan Options
 #
@@ -196,7 +196,7 @@
 # ### pkg_binds
 # An associative array representing services which you depend on and the configuration keys that
 # you expect the service to export (by their `pkg_exports`). These binds *must* be set for the
-# Supervisor to load the service. The loaded service will wait to run until it's bind becomes
+# Supervisor to load the service. The loaded service will wait to run until its bind becomes
 # available. If the bind does not contain the expected keys, the service will not start
 # successfully.
 # ```
@@ -271,7 +271,7 @@
 # pkg_name=haproxy
 # pkg_version=1.5.12
 # pkg_license=('BSD')
-# pkg_maintainer="Frank Llyod Wright <flw@example.com>"
+# pkg_maintainer="Frank Lloyd Wright <flw@example.com>"
 # pkg_source=http://www.haproxy.org/download/1.5/src/${pkg_name}-${pkg_version}.tar.gz
 # pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 # pkg_shasum=6648dd7d6b958d83dd7101eab5792178212a66c884bec0ebcd8abc39df83bb78
@@ -325,6 +325,11 @@
 #
 
 # # Internals
+source_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source "${source_dir}/public.sh"
+source "${source_dir}/shared.sh"
+
+
 
 # Fail when commands return a non-zero return code.
 set -e
@@ -452,6 +457,7 @@ umask 0022
 # and other build software.
 unset TERMINFO
 
+_artifact_ext="hart"
 
 # ## Private/Internal helper functions
 #
@@ -463,7 +469,7 @@ unset TERMINFO
 # task.
 
 # **Internal** Handles exiting the program on signals. Takes either an argument
-# with the status code, or uses the last commands status code.
+# with the status code, or uses the last command's status code.
 #
 # For example, the below would exit with a status of 1.
 #
@@ -681,7 +687,8 @@ _resolve_dependency() {
 # _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
-  if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
+    local dep="${1}"
+    if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
     $HAB_BIN install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL "$dep" || {
       if [[ "$HAB_BLDR_CHANNEL" != "$FALLBACK_CHANNEL" ]]; then
         build_line "Trying to install '$dep' from '$FALLBACK_CHANNEL'"
@@ -786,7 +793,7 @@ _return_or_append_to_set() {
 _array_contains() {
   local e
   for e in "${@:2}"; do
-    if [[ "$e" == "$1" ]]; then
+      if [[ "$e" == "$1" ]]; then
       return 0
     fi
   done
@@ -840,6 +847,11 @@ _determine_hab_bin() {
   fi
   build_line "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
 }
+
+# TODO (CM): why can't these arrays be created up at the top of this
+# script? What does having a separate function get for us? Should we
+# pull these up to the top, or put some of the things up top into
+# their own functions?
 
 # **Internal** Create initial package-related arrays.
 _init_dependencies() {
@@ -1289,388 +1301,6 @@ _pkg_path_for_deps() {
 # `plan.sh` files.
 
 
-# Check that the command exists, 0 if it does, 1 if it does not.
-#
-# ```sh
-# exists gsha256sum
-# ```
-#
-# Would return 0 if gsha256sum exists, 1 if it does not.
-exists() {
-  if command -v $1 >/dev/null 2>&1
-  then
-    return 0
-  else
-    return 1
-  fi
-}
-
-# Print a line of build output. Takes the rest of the line as its only
-# argument.
-#
-# ```sh
-# build_line "Checksum verified - ${pkg_shasum}"
-# ```
-build_line() {
-  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
-    echo "   ${pkg_name}: $1"
-  else
-    case "${TERM:-}" in
-      *term | xterm-* | rxvt | screen | screen-*)
-        echo -e "   \033[1;36m${pkg_name}: \033[1;37m$1\033[0m"
-        ;;
-      *)
-        echo "   ${pkg_name}: $1"
-        ;;
-    esac
-  fi
-  return 0
-}
-
-# Print a warning line on stderr. Takes the rest of the line as its only
-# argument.
-#
-# ```sh
-# warn "Checksum failed"
-# ```
-warn() {
-  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
-    >&2 echo "   ${pkg_name}: WARN $1"
-  else
-    case "${TERM:-}" in
-      *term | xterm-* | rxvt | screen | screen-*)
-        >&2 echo -e "   \033[1;36m${pkg_name}: \033[1;33mWARN \033[1;37m$1\033[0m"
-        ;;
-      *)
-        >&2 echo "   ${pkg_name}: WARN $1"
-        ;;
-    esac
-  fi
-  return 0
-}
-
-# Prints a line only if the `$DEBUG` environment value is set.
-#
-# ```sh
-# DEBUG=1
-# debug "Only if things are set"
-# # "DEBUG: Only if things are set"
-# DEBUG=0
-# debug "Not so much anymore"
-# ```
-#
-debug() {
-  if [[ -n "$DEBUG" ]]; then
-    echo "DEBUG: $1"
-  fi
-  return 0
-}
-
-# Exit the program with an error message and a status code.
-#
-# ```
-# exit_with "Something bad went down" 55
-# ```
-exit_with() {
-  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
-    echo "ERROR: $1"
-  else
-    case "${TERM:-}" in
-      *term | xterm-* | rxvt | screen | screen-*)
-        echo -e "\033[1;31mERROR: \033[1;37m$1\033[0m"
-        ;;
-      *)
-        echo "ERROR: $1"
-        ;;
-    esac
-  fi
-  exit $2
-}
-
-# Trim leading and trailing whitespace.  [Thanks to these
-# guys](http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable)
-# for the tip.
-#
-# ```sh
-# local data=$(cat /tmp/somefile)
-# local trimmed=$(trim $data)
-# ```
-trim() {
-  local var="$*"
-  var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
-  var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
-  echo "$var"
-}
-
-# Returns the path for the desired build or runtime direct package dependency
-# on stdout from the resolved dependency set.
-#
-# ```
-# pkg_all_deps_resolved=(
-#   /hab/pkgs/acme/zlib/1.2.8/20151216221001
-#   /hab/pkgs/acme/nginx/1.8.0/20150911120000
-#   /hab/pkgs/acme/glibc/2.22/20151216221001
-# )
-#
-# pkg_path_for acme/nginx
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# pkg_path_for zlib
-# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
-# pkg_path_for glibc/2.22
-# # /hab/pkgs/acme/glibc/2.22/20151216221001
-# ```
-#
-# Will return 0 if a package is found locally on disk, and 1 if a package
-# cannot be found. A message will be printed to stderr to provide context.
-pkg_path_for() {
-  local dep="$1"
-  local e
-  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
-  for e in "${pkg_all_deps_resolved[@]}"; do
-    if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
-      echo "$e"
-      return 0
-    fi
-  done
-  warn "pkg_path_for() '$dep' did not find a suitable installed package"
-  warn "Resolved package set: (${pkg_all_deps_resolved[*]})"
-  return 1
-}
-
-# Attach to an interactive debugging session which lets the user check the
-# state of variables, call arbitrary functions, turn on higher levels of
-# logging (with `set -x`), or whatever else is useful.
-#
-# Usage: simply add `attach` in a `plan.sh` file and a debugging session will
-# spawn, similar to:
-#
-# ```
-# ### Attaching to debugging session
-#
-# From: /plans/glibc/plan.sh @ line 66 :
-#
-#     56:
-#     57:   # Modify the ldd rewrite script to remove lib64 and libx32
-#     58:   sed -i '/RTLDLIST/d' sysdeps/unix/sysv/linux/*/ldd-rewrite.sed
-#     59:
-#     60:   rm -rf ../${pkg_name}-build
-#     61:   mkdir ../${pkg_name}-build
-#     62:   pushd ../${pkg_name}-build > /dev/null
-#     63:     # Configure Glibc to install its libraries into `$pkg_prefix/lib`
-#     64:     echo "libc_cv_slibdir=$pkg_prefix/lib" >> config.cache
-#     65:
-#  => 66:     attach
-#     67:
-#     68:     ../$pkg_dirname/configure \
-#     69:       --prefix=$pkg_prefix \
-#     70:       --libdir=$pkg_prefix/lib \
-#     71:       --libexecdir=$pkg_prefix/lib/glibc \
-#     72:       --enable-obsolete-rpc \
-#     73:       --disable-profile \
-#     74:       --enable-kernel=2.6.32 \
-#     75:       --cache-file=config.cache
-#     76:     make
-#
-# [1] glibc(build)>
-# ```
-attach() {
-  printf "\n### Attaching to debugging session\n"
-  local cmd=""
-  local fname="${FUNCNAME[1]}"
-  local replno=1
-  # Print out our current code context (source file, line number, etc.)
-  _attach_whereami
-  # Clear on exit traps and allow for non-zero returning commands as we're
-  # entering a debugging session, remember?
-  trap - 1 2 3 15 ERR
-  set +e
-  # Loop through input, REPL-style until either `"exit"` or `"quit"` is found
-  while [[ "$cmd" != "exit" && "$cmd" != "quit" ]]; do
-    read -e -r -p "[$replno] ${pkg_name}($fname)> " cmd
-    history -s $cmd
-    case "$cmd" in
-      vars) (set -o posix; set);;
-      whereami*|\@*)
-        _attach_whereami "$(echo $cmd \
-         | awk '{if (NF == 2) print $2; else print "10"}')"
-        ;;
-      exit|quit) ;;
-      exit-program|quit-program) exit $?;;
-      help)
-        printf "
-Help
-  help          Show a list of command or information about a specific command.
-
-Context
-  whereami      Show the code surrounding the current context
-                (add a number to increase the lines of context).
-
-Environment
-  vars          Prints all the environment variables that are currently in scope.
-
-Navigating
-  exit          Pop to the previous context.
-  exit-program  End the $0 program.
-
-Aliases
-  @             Alias for \`whereami\`.
-  quit          Alias for \`exit\`.
-  quit-program  Alias for \`exit-program\`.
-
-"
-        ;;
-      *) eval $cmd;;
-    esac
-    # Increment our REPL command line count, cause that's helpful
-    replno=$((${replno}+1))
-  done
-  # Re-enable on exit trap and restore exit-on-non-zero behavior
-  trap _on_exit 1 2 3 15 ERR
-  set -e
-  printf "\n### Leaving debugging session\n\n"
-  return 0
-}
-
-# Return the absolute path for a path, which might be absolute or relative.
-#
-# ```sh
-# abspath .
-# # /a/b/c
-# abspath /tmp/
-# # /tmp
-# ```
-#
-# Thanks to [Stack
-# Overflow](http://stackoverflow.com/questions/7126580/expand-a-possible-relative-path-in-bash#answer-13087801)
-abspath() {
-  if [[ -d "$1" ]]; then
-    pushd "$1" > /dev/null
-    pwd
-    popd >/dev/null
-  elif [[ -e $1 ]]; then
-    pushd "$(dirname "$1")" > /dev/null
-    echo "$(pwd)/$(basename "$1")"
-    popd >/dev/null
-  else
-    echo "$1" does not exist! >&2
-    return 127
-  fi
-}
-
-# Returns all items joined by defined IFS
-#
-# ```sh
-# join_by , a "b c" d
-# # a,b c,d
-# join_by / var local tmp
-# # var/local/tmp
-# join_by , "${FOO[@]}"
-# # a,b,c
-# ```
-#
-# Thanks to [Stack Overflow](http://stackoverflow.com/a/17841619/515789)
-join_by() {
-  local IFS="$1"
-  shift
-  echo "$*"
-}
-
-# Sets environment variable for package
-#
-# ```sh
-# add_env PATH 'bin' 'sbin'
-# add_env SETTINGS_MODULE 'app.settings'
-# ```
-add_env() {
-  local -u key=$1
-  shift
-  local values=($*)
-
-  if [[ ${pkg_env[$key]+abc} ]]; then
-    exit_with "Cannot add $key to pkg_env once the value is already set"
-  fi
-
-  if [[ -n ${values} ]]; then
-    # Set a default separator if none is defined
-    if [[ ! ${pkg_env_sep[$key]+abc} && ${_env_default_sep[$key]+abc} ]]; then
-      pkg_env_sep[$key]=${_env_default_sep[$key]}
-    fi
-
-    if [[ ${#values[@]} -gt 1 ]]; then
-      if [[ ${pkg_env_sep[$key]+abc} ]]; then
-        pkg_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
-      else
-        exit_with "Cannot add multiple values without setting a separator for $key"
-      fi
-    else
-      pkg_env[$key]=${values[0]}
-    fi
-  fi
-}
-
-# Adds `$pkg_prefix` to supplied paths
-#
-# ```sh
-# add_path_env PATH 'bin' 'sbin'
-# ```
-add_path_env() {
-  local key=$1
-  shift
-  local paths=()
-  for path in $*; do
-    paths+=("${pkg_prefix}/${path}")
-  done
-  add_env ${key} ${paths[@]}
-}
-
-# TODO: Make `add_build_env` and `add_build_path_env` more generic
-# Sets build environment variable for package
-#
-# ```sh
-# add_build_env PATH 'bin' 'sbin'
-# add_build_env SETTINGS_MODULE 'app.settings'
-# ```
-add_build_env() {
-  local -u key=$1
-  shift
-  local values=($*)
-
-  if [[ ${pkg_build_env[$key]+abc} ]]; then
-    exit_with "Cannot add $key to pkg_build_env once the value is already set"
-  fi
-
-  if [[ -n ${values} ]]; then
-    # Set a default separator if none is defined
-    if [[ ! ${pkg_env_sep[$key]+abc} && ${_env_default_sep[$key]+abc} ]]; then
-      pkg_env_sep[$key]=${_env_default_sep[$key]}
-    fi
-
-    if [[ ${#values[@]} -gt 1 ]]; then
-      if [[ ${pkg_env_sep[$key]+abc} ]]; then
-        pkg_build_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
-      else
-        exit_with "Cannot add multiple values without setting a separator for $key"
-      fi
-    else
-      pkg_build_env[$key]=${values[0]}
-    fi
-  fi
-}
-
-# Adds `$pkg_prefix` to supplied paths
-#
-# ```sh
-# add_build_path_env PATH 'bin' 'sbin'
-# ```
-add_build_path_env() {
-  local key=$1
-  shift
-  local paths=()
-  for path in $*; do
-    paths+=("${pkg_prefix}/${path}")
-  done
-  add_build_env ${key} ${paths[@]}
-}
 
 # **Internal** Convert a string into a numerical value.
 _to_int() {
@@ -1695,271 +1325,6 @@ _port_is_valid() {
         return 1
     fi
     return 0
-}
-
-# Downloads a file from a source URL to a local file and uses an optional
-# shasum to determine if an existing file can be used.
-#
-# If an existing file is present and the third argument is set with a shasum
-# digest, the file will be checked to see if it's valid. If so, the function
-# ends early and returns 0. Otherwise, the shasums do not match so the
-# file-on-disk is removed and a normal download proceeds as though no previous
-# file existed. This is designed to restart an interrupted download.
-#
-# Any valid `wget` URL will work.
-#
-# ```sh
-# download_file http://example.com/file.tar.gz file.tar.gz
-# # Downloads every time, even if the file exists locally
-# download_file http://example.com/file.tar.gz file.tar.gz abc123...
-# # Downloads if no local file is found
-# download_file http://example.com/file.tar.gz file.tar.gz abc123...
-# # File matches checksum: download is skipped, local file is used
-# download_file http://example.com/file.tar.gz file.tar.gz oh noes...
-# # File doesn't match checksum: local file removed, download attempted
-# ```
-#
-# Will return 0 if a file was downloaded or if a valid cached file was found.
-download_file() {
-  local url="$1"
-  local dst="$2"
-  local sha="$3"
-
-  pushd $HAB_CACHE_SRC_PATH > /dev/null
-  if [[ -f $dst && -n "$sha" ]]; then
-    build_line "Found previous file '$dst', attempting to re-use"
-    if verify_file $dst $sha; then
-      build_line "Using cached and verified '$dst'"
-      return 0
-    else
-      build_line "Clearing previous '$dst' file and re-attempting download"
-      rm -fv $dst
-    fi
-  fi
-
-  build_line "Downloading '$url' to '$dst'"
-  $_wget_cmd $url -O $dst
-  build_line "Downloaded '$dst'";
-  popd > /dev/null
-}
-
-# Verifies that a file on disk matches the given shasum. If the given shasum
-# doesn't match the file's shasum then a warning is printed with the expected
-# and computed shasum values.
-#
-# ```sh
-# verify_file file.tar.gz abc123...
-# ```
-#
-# Will return 0 if the shasums match, and 1 if they do not match. A message
-# will be printed to stderr with the expected and computed shasum values.
-verify_file() {
-  build_line "Verifying $1"
-  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$1))
-  if [[ $2 = $checksum ]]; then
-    build_line "Checksum verified for $1"
-  else
-    warn "Checksum invalid for $1:"
-    warn "   Expected: $2"
-    warn "   Computed: ${checksum}"
-    return 1
-  fi
-  return 0
-}
-
-# Unpacks an archive file in a variety of formats.
-#
-# ```sh
-# unpack_file file.tar.gz
-# ```
-#
-# Will return 0 if the file archive is extracted, and 1 if the file archive
-# type could not be found or was not supported (given the file extension). A
-# message will be printed to stderr to provide context.
-unpack_file() {
-  build_line "Unpacking $1"
-  local unpack_file="$HAB_CACHE_SRC_PATH/$1"
-  # Thanks to:
-  # http://stackoverflow.com/questions/17420994/bash-regex-match-string
-  if [[ -f $unpack_file ]]; then
-    pushd $HAB_CACHE_SRC_PATH > /dev/null
-    case $unpack_file in
-      *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
-        $_tar_cmd xf $unpack_file
-        ;;
-      *.bz2)  bunzip2 $unpack_file    ;;
-      *.rar)  rar x $unpack_file      ;;
-      *.gz)   gunzip $unpack_file     ;;
-      *.zip)  unzip -o $unpack_file   ;;
-      *.Z)    uncompress $unpack_file ;;
-      *.7z)   7z x $unpack_file       ;;
-      *)
-        warn "Error: unknown archive format '.${unpack_file##*.}'"
-        return 1
-        ;;
-    esac
-  else
-    warn "'$1' is not a valid file!"
-    return 1
-  fi
-  popd > /dev/null
-  return 0
-}
-
-# Edit the `#!` shebang of the target file in-place. Useful for
-# changing hardcoded `/usr/bin/env` to our coreutils, for example. Be
-# sure to depend on the required package that provides the expected
-# path for the shebang in `pkg_deps`. This does a greedy match against
-# the specified interpreter in the target file(s).
-#
-# To use this function in your plan.sh, specify the following
-# arguments:
-#
-# 1. The target file or files
-# 2. The name of the package that contains the interpreter
-# 3. The relative directory and binary path to the interpreter
-#
-# For example, to replace all the files in `node_modules/.bin` that
-# have `#!/usr/bin/env` with the `coreutils` path
-# to `bin/env` (which resolves to
-# /hab/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
-# to quote the wildcard target:
-#
-#     fix_interpreter "node_modules/.bin/*" acme/coreutils bin/env
-#
-# For a single target:
-#
-#     fix_interpreter node_modules/.bin/concurrent acme/coreutils bin/env
-#
-# To get the interpreters exposed by a package, look in that package's
-# INTERPRETERS metadata file, e.g.,
-# `/hab/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
-
-fix_interpreter() {
-    local targets=$1
-    local pkg=$2
-    local int=$3
-    local interpreter_old=".*${int}"
-    local interpreter_new="$(pkg_interpreter_for ${pkg} ${int})"
-    if [[ -z $interpreter_new || $? -ne 0 ]]; then
-      warn "fix_interpreter() '$pkg' is not a runtime dependency"
-      warn "Only runtime packages may be used as your interpreter must travel"
-      warn "with the '$pkg_name' in order to run."
-      warn "Resolved runtime package set: ${pkg_deps_resolved[*]}"
-      return 1
-    fi
-
-    for t in ${targets}; do
-      if [[ ! -f $t ]]; then
-        debug "Ignoring non-file target: ${t}"
-        continue
-      fi
-
-      # Resolve symbolic links to fix the actual file instead of replacing it
-      if [[ -L $t ]]; then
-        t="$(readlink --canonicalize --no-newline "$t")"
-      fi
-
-      build_line "Replacing '${interpreter_old}' with '${interpreter_new}' in '${t}'"
-      sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i $t
-    done
-}
-
-# Returns the path for the given package and interpreter by reading it
-# from the INTERPRETERS metadata in the package. The directory of the
-# interpreter needs to be specified, as an interpreter binary might
-# live in `bin`, `sbin`, or `libexec`, depending on the software.
-#
-# ```
-# pkg_interpreter_for acme/coreutils bin/env
-# ```
-#
-# Will return 0 if the specified package and interpreter were found,
-# and 1 if the package could not be found or the interpreter is not
-# specified for that package.
-pkg_interpreter_for() {
-    local pkg=$1
-    local int=$2
-    local path=$(_pkg_path_for_deps $pkg)
-    if [[ -z $path || $? -ne 0 ]]; then
-      warn "Could not resolve the path for ${pkg}, is it specified in 'pkg_deps'?"
-      return 1
-    fi
-
-   local int_path=$(grep -x ".*${int}" ${path}/INTERPRETERS)
-    if [[ -n "$int_path" ]]; then
-      echo "$int_path"
-      return 0
-    fi
-    warn "Could not find interpreter ${int} in package ${pkg}"
-    return 1
-}
-
-# Updates the value of `$pkg_version` and recomputes any relevant variables.
-# This function must be called before the `do_prepare()` build phase otherwise
-# it will fail the build process.
-#
-# This function depends on the Plan author implementing a `pkg_version()`
-# function which prints a computed version string on standard output. Then,
-# this function must be explicitly called in an appropriate build phase--most
-# likely `do_before()`. For example:
-#
-# ```sh
-# pkg_origin=acme
-# pkg_name=myapp
-#
-# pkg_version() {
-#   cat "$SRC_PATH/version.txt"
-# }
-#
-# do_before() {
-#   do_default_before
-#   update_pkg_version
-# }
-# ```
-update_pkg_version() {
-  local update_src_path val
-
-  if [[ "${_verify_vars:-}" == true ]]; then
-    local e
-    e="Plan called 'update_pkg_version()' in phase 'do_prepare()' or later"
-    e="$e which is not supported. Package version must be determined before"
-    e="$e 'do_prepare()' phase."
-    exit_with "$e" 21
-  fi
-
-  if [[ "$(type -t pkg_version)" == "function" ]]; then
-    pkg_version="$(pkg_version)"
-    build_line "Version updated to '$pkg_version'"
-  else
-    debug "pkg_version() function not found, retaining pkg_version=$pkg_version"
-  fi
-
-  # `$pkg_dirname` needs to be recomputed, unless it was explicitly set by the
-  # Plan author.
-  if [[ "${_pkg_dirname_initially_unset:-}" == true ]]; then
-    pkg_dirname="${pkg_name}-${pkg_version}"
-  fi
-  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
-  pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
-  # If the `$CACHE_PATH` and `$SRC_PATH` are the same, then we are building
-  # third party software using `$pkg_source` and
-  # downloading/verifying/unpacking it.
-  if [[ "$CACHE_PATH" == "$SRC_PATH" ]]; then
-    update_src_path=true
-  fi
-  CACHE_PATH="$HAB_CACHE_SRC_PATH/$pkg_dirname"
-  # Only update `$SRC_PATH` if we are building third party software using
-  # `$pkg_source`.
-  if [[ "${update_src_path:-}" == true ]]; then
-    SRC_PATH="$CACHE_PATH"
-  fi
-  # Replace the unset placeholders with the computed value
-  val="$(echo "$PATH" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  PATH="$val"
-  build_line "Updating PATH=$PATH"
-  val="$(echo "${pkg_env[PATH]}" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  pkg_env[PATH]="$val"
 }
 
 # ## Build Phases
@@ -2510,164 +1875,38 @@ do_default_install() {
 # * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
 _build_metadata() {
   build_line "Building package metadata"
-  local ld_run_path_part=()
-  local ld_lib_part=()
-  for lib in ${pkg_lib_dirs[@]}; do
-    ld_run_path_part+=("${pkg_prefix}/$lib")
-    ld_lib_part+=("-L${pkg_prefix}/$lib")
-  done
-  if [[ -n ${ld_run_path_part} ]]; then
-    echo $(join_by ':' ${ld_run_path_part[@]}) > "$pkg_prefix/LD_RUN_PATH"
-  fi
-  if [[ -n ${ld_lib_part} ]]; then
-    echo $(join_by ' ' ${ld_lib_part[@]}) > "$pkg_prefix/LDFLAGS"
-  fi
 
-  local cflags_part=()
-  for inc in "${pkg_include_dirs[@]}"; do
-    cflags_part+=("-I${pkg_prefix}/${inc}")
-  done
-  if [[ -n ${cflags_part} ]]; then
-    echo $(join_by ' ' ${cflags_part[@]}) > "$pkg_prefix/CFLAGS"
-  fi
-
-  local cppflags_part=()
-  for inc in "${pkg_include_dirs[@]}"; do
-    cppflags_part+=("-I${pkg_prefix}/${inc}")
-  done
-  if [[ -n ${cppflags_part} ]]; then
-    echo $(join_by ' ' ${cppflags_part[@]}) > "$pkg_prefix/CPPFLAGS"
-  fi
-
-  local cxxflags_part=()
-  for inc in "${pkg_include_dirs[@]}"; do
-    cxxflags_part+=("-I${pkg_prefix}/${inc}")
-  done
-  if [[ -n ${cxxflags_part} ]]; then
-    echo $(join_by ' ' ${cxxflags_part[@]}) > "$pkg_prefix/CXXFLAGS"
-  fi
-
-  local pconfig_path_part=()
-  if [[ ${#pkg_pconfig_dirs[@]} -eq 0 ]]; then
-    # Plan doesn't define pkg-config paths so let's try to find them in the conventional locations
-    local locations=(lib/pkgconfig share/pkgconfig)
-    for dir in "${locations[@]}"; do
-      if [[ -d "${pkg_prefix}/${dir}" ]]; then
-        pconfig_path_part+=("${pkg_prefix}/${dir}")
-      fi
-    done
-  else
-    # Plan explicitly defines pkg-config paths so we don't provide defaults
-    for inc in "${pkg_pconfig_dirs[@]}"; do
-      pconfig_path_part+=("${pkg_prefix}/${inc}")
-    done
-  fi
-  if [[ -n ${pconfig_path_part} ]]; then
-    echo $(join_by ':' ${pconfig_path_part[@]}) > "$pkg_prefix/PKG_CONFIG_PATH"
-  fi
-
-  for env in ${!pkg_build_env[@]}; do
-    echo "$env=${pkg_build_env[$env]}" >> "$pkg_prefix/BUILD_ENVIRONMENT"
-  done
-
-  for env in ${!pkg_env[@]}; do
-    echo "$env=${pkg_env[$env]}" >> "$pkg_prefix/ENVIRONMENT"
-  done
-
-  for env_sep in ${!pkg_env_sep[@]}; do
-    echo "$env_sep=${pkg_env_sep[$env_sep]}" >> "$pkg_prefix/ENVIRONMENT_SEP"
-  done
-
-  # Create PATH metadata for older versions of Habitat
-  if [[ ${pkg_env[PATH]+abc} ]]; then
-    echo "${pkg_env[PATH]}" > "$pkg_prefix/PATH"
-  fi
-
-  for export in "${!pkg_exports[@]}"; do
-    echo "$export=${pkg_exports[$export]}" >> $pkg_prefix/EXPORTS
-  done
-
-  for bind in "${!pkg_binds[@]}"; do
-    echo "$bind=${pkg_binds[$bind]}" >> $pkg_prefix/BINDS
-  done
-
-  for bind in "${!pkg_binds_optional[@]}"; do
-    echo "$bind=${pkg_binds_optional[$bind]}" >> $pkg_prefix/BINDS_OPTIONAL
-  done
-
-  local port_part=""
-  for export in "${pkg_exposes[@]}"; do
-    if [[ ! ${pkg_exports[$export]+abc} ]]; then
-      exit_with "Bad value in pkg_exposes; No pkg_export found matching key: ${export}"
-    fi
-    key=${pkg_exports[$export]}
-    port=$($_rq_cmd -t < $PLAN_CONTEXT/default.toml "at \"${key}\"" | tr -d '"')
-    if ! _port_is_valid $port; then
-      exit_with "Bad pkg_export in pkg_exposes; Value of key \"${key}\" does not contain a valid TCP or UDP port number: ${port}"
-    fi
-
-    if [[ -z "$port_part" ]]; then
-      port_part="$port";
-    else
-      port_part="$port_part $port";
-    fi
-  done
-  if [[ -n "${port_part}" ]]; then
-    echo $port_part > $pkg_prefix/EXPOSES
-  fi
-
-  if [[ ${#pkg_interpreters[@]} -gt 0 ]]; then
-    local interpreters="$(printf "${pkg_prefix}/%s\n" ${pkg_interpreters[@]})"
-    printf "%s\n" ${pkg_interpreters[@]} \
-      | sed "s|^|${pkg_prefix}/|" > $pkg_prefix/INTERPRETERS
-  fi
-
-  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
-  local deps
-
-  deps="$(printf '%s\n' "${pkg_build_deps_resolved[@]}" \
-    | cut -d "/" -f ${cutn}-)"
-  if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_prefix/BUILD_DEPS
-  fi
-  deps="$(printf '%s\n' "${pkg_build_tdeps_resolved[@]}" \
-    | cut -d "/" -f ${cutn}- | sort)"
-  if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_prefix/BUILD_TDEPS
-  fi
-  deps="$(printf '%s\n' "${pkg_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
-  if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_prefix/DEPS
-  fi
-  deps="$(printf '%s\n' "${pkg_tdeps_resolved[@]}" \
-    | cut -d "/" -f ${cutn}- | sort)"
-  if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_prefix/TDEPS
-  fi
-
-  echo "$pkg_target" > $pkg_prefix/TARGET
-  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" \
-    >> $pkg_prefix/IDENT
+  _render_metadata_LD_RUN_PATH
+  _render_metadata_LDFLAGS
+  _render_metadata_CFLAGS
+  _render_metadata_CPPFLAGS
+  _render_metadata_CXXFLAGS
+  _render_metadata_PKG_CONFIG_PATH
+  _render_metadata_BUILD_ENVIRONMENT
+  _render_metadata_ENVIRONMENT
+  _render_metadata_ENVIRONMENT_SEP
+  _render_metadata_PATH
+  _render_metadata_EXPORTS
+  _render_metadata_BINDS
+  _render_metadata_BINDS_OPTIONAL
+  _render_metadata_EXPOSES
+  _render_metadata_INTERPRETERS
+  _render_metadata_BUILD_DEPS
+  _render_metadata_BUILD_TDEPS
+  _render_metadata_DEPS
+  _render_metadata_TDEPS
+  _render_metadata_TARGET
+  _render_metadata_TYPE
+  _render_metadata_IDENT
 
   # Only generate `SVC_USER` & `SVC_GROUP` files if this package is a service.
   # We determine this by checking if there is a `hooks/run` script and/or
   # a set `$pkg_svc_run` value.
   if [[ -f "$PLAN_CONTEXT/hooks/run" || -n "${pkg_svc_run:-}" ]]; then
-    echo "$pkg_svc_user" > $pkg_prefix/SVC_USER
-    echo "$pkg_svc_group" > $pkg_prefix/SVC_GROUP
+    _render_metadata_SVC_USER
+    _render_metadata_SVC_GROUP
   fi
 
-  # Generate the blake2b hashes of all the files in the package. This
-  # is not in the resulting MANIFEST because MANIFEST is included!
-  pushd "$CACHE_PATH" > /dev/null
-  build_line "Generating blake2b hashes of all files in the package"
-  find $pkg_prefix -type f \
-    | sort \
-    | hab pkg hash > ${pkg_name}_blake2bsums
-
-  build_line "Generating signed metadata FILES"
-  $HAB_BIN pkg sign --origin $pkg_origin ${pkg_name}_blake2bsums $pkg_prefix/FILES
-  popd > /dev/null
   return 0
 }
 
@@ -2962,6 +2201,7 @@ do_default_end() {
 }
 
 # # Main Flow
+########################################################################
 
 # Parse depot flag (-u)
 OPTIND=2
@@ -3018,6 +2258,14 @@ fi
 # paths in `plan.sh`
 cd "$PLAN_CONTEXT"
 
+# Setup global variables for composite plans that are expected to be
+# overridden in plan.sh
+#
+# pkg_type defaults to "standalone" to accommodate every Habitat
+# plan.sh in existence before composite plans were a thing :)
+declare -g pkg_type="standalone"
+declare -A -g pkg_bind_map
+
 # Load the Plan
 build_line "Loading $PLAN_CONTEXT/plan.sh"
 if source "$PLAN_CONTEXT/plan.sh"; then
@@ -3057,33 +2305,34 @@ done
 # Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
 # from prior pkg_svc_* variables that were set before the Plan was loaded.
 if [[ -n "${pkg_svc_run+xxx}" ]]; then
-  pkg_svc_run="$(echo $pkg_svc_run | sed "s|@__pkg_name__@|$pkg_name|g")"
+    pkg_svc_run="$(echo $pkg_svc_run | sed "s|@__pkg_name__@|$pkg_name|g")"
 fi
 
+# Ensure that the version is set (or can be set!) properly
 if [[ -z "${pkg_version:-}" && "$(type -t pkg_version)" == "function" ]]; then
-  pkg_version="__pkg__version__unset__"
+    pkg_version="__pkg__version__unset__"
 elif [[ -z "${pkg_version:-}" ]]; then
-  e="Failed to build. 'pkg_version' must be set or 'pkg_version()' function"
-  e="$e must be implemented and then invoking by calling 'update_pkg_version()'."
-  exit_with "$e" 1
+    e="Failed to build. 'pkg_version' must be set or 'pkg_version()' function"
+    e="$e must be implemented and then invoking by calling 'update_pkg_version()'."
+    exit_with "$e" 1
 fi
 
 # If `$pkg_source` is used, default `$pkg_filename` to the basename of
 # `$pkg_source` if it is not already set by the Plan.
 if [[ -n "${pkg_source:-}" && -z "${pkg_filename+xxx}" ]]; then
-  pkg_filename="$(basename "$pkg_source")"
+    pkg_filename="$(basename "$pkg_source")"
 fi
 
 # Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
 # already set by the Plan.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
-  pkg_dirname="${pkg_name}-${pkg_version}"
-  _pkg_dirname_initially_unset=true
+    pkg_dirname="${pkg_name}-${pkg_version}"
+    _pkg_dirname_initially_unset=true
 fi
 
 # Set `$pkg_prefix` if not already set by the Plan.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
-  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+    pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 fi
 
 # Set the cache path to be under the cache source root path
@@ -3092,13 +2341,13 @@ CACHE_PATH="$HAB_CACHE_SRC_PATH/$pkg_dirname"
 # If `$pkg_source` is used, update the source path to build under the cache
 # source path.
 if [[ -n "${pkg_source:-}" ]]; then
-  SRC_PATH="$CACHE_PATH"
+    SRC_PATH="$CACHE_PATH"
 fi
 
 if [[ -n "$HAB_OUTPUT_PATH" ]]; then
-  pkg_output_path="$HAB_OUTPUT_PATH"
+    pkg_output_path="$HAB_OUTPUT_PATH"
 else
-  pkg_output_path="$INITIAL_PWD/results"
+    pkg_output_path="$INITIAL_PWD/results"
 fi
 
 # Set $pkg_svc variables a second time, now that the Plan has been sourced and
@@ -3110,86 +2359,105 @@ pkg_svc_var_path="$pkg_svc_path/var"
 pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static_path="$pkg_svc_path/static"
 
-# Set the package artifact name
-_artifact_ext="hart"
 pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
-
-# Run `do_begin`
-build_line "$_program setup"
-do_begin
-
-# Write out a prebuild file so workers can have some metadata about failed builds
-_write_pre_build_file
 
 # Determine if we have all the commands we need to work
 _find_system_commands
-
-# Ensure that the origin key is available for package signing
-_ensure_origin_key_present
-
 _determine_hab_bin
 
-_resolve_dependencies
+mkdir -pv "$CACHE_PATH"
+mkdir -pv "$pkg_prefix"
 
-# Set up runtime environment
-_set_environment
+case "${pkg_type}" in
+    "composite")
+        source "${source_dir}/composite_build_functions.sh"
 
-mkdir -pv "$HAB_CACHE_SRC_PATH"
+        # Preliminaries
+        _setup_composite_build_global_variables
 
-# Run any code after the environment is set but before the build starts
-do_before
+        _validate_composite
+        _render_composite_metadata
+        ;;
+    "standalone")
+        # Non-composite ("normal") Habitat package
 
-# Download the source
-do_download
+        # Run `do_begin`
+        build_line "$_program setup"
+        do_begin
 
-# Verify the source
-do_verify
+        # Write out a prebuild file so workers can have some metadata about failed builds
+        _write_pre_build_file
 
-# Clean the cache
-do_clean
+        # Ensure that the origin key is available for package signing
+        _ensure_origin_key_present
 
-# Unpack the source
-do_unpack
+        _resolve_dependencies
 
-# Set up the build environment
-_build_environment
+        # Set up runtime environment
+        _set_environment
 
-# Fix any libtool scripts in the source
-_fix_libtool
+        mkdir -pv "$HAB_CACHE_SRC_PATH"
 
-# Make sure all required variables are set
-_verify_vars
+        # Run any code after the environment is set but before the build starts
+        do_before
 
-# Prepare the source
-do_prepare_wrapper
+        # Download the source
+        do_download
 
-# Build the source
-do_build_wrapper
+        # Verify the source
+        do_verify
 
-# Check the source
-do_check_wrapper
+        # Clean the cache
+        do_clean
 
-# Install the source
-do_install_wrapper
+        # Unpack the source
+        do_unpack
 
-# Copy the configuration
-do_build_config
+        # Set up the build environment
+        _build_environment
 
-# Copy the service management scripts
-do_build_service
+        # Fix any libtool scripts in the source
+        _fix_libtool
 
-# Strip the binaries
-do_strip
+        # Make sure all required variables are set
+        _verify_vars
 
-# Run any code after the package has finished building and installing, but
-# before the artifact metadata is generated and the artifact is signed.
-do_after
+        # Prepare the source
+        do_prepare_wrapper
+
+        # Build the source
+        do_build_wrapper
+
+        # Check the source
+        do_check_wrapper
+
+        # Install the source
+        do_install_wrapper
+
+        # Copy the configuration
+        do_build_config
+
+        # Copy the service management scripts
+        do_build_service
+
+        # Strip the binaries
+        do_strip
+
+        # Run any code after the package has finished building and installing, but
+        # before the artifact metadata is generated and the artifact is signed.
+        do_after
+
+        # Render the linking and dependency files
+        _build_metadata
+        ;;
+    *)
+        exit_with "'${pkg_type}' is not a recognized package type"
+esac
+
+# Common processing for both composite and standalone packages
 
 # Write the manifest
 _build_manifest
-
-# Render the linking and dependency files
-_build_metadata
 
 # Generate the artifact and write to artifact cache
 _generate_artifact

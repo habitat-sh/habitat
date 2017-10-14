@@ -11,7 +11,7 @@ teardown() {
     stop_supervisor
 }
 
-@test "upgrade a service" {
+@test "supervisor: upgrade a service" {
     # This is an old version of Redis; at the time of writing, there
     # is at least a version of 3.2.4 that is in the stable channel, so
     # we'll definitely get something new when we try to upgrade.

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod hooks;
+mod composite_spec;
 mod config;
 mod health;
 mod package;
@@ -56,6 +57,7 @@ use util;
 pub use self::config::Cfg;
 pub use self::health::{HealthCheck, SmokeCheck};
 pub use self::package::Pkg;
+pub use self::composite_spec::CompositeSpec;
 pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle};
 pub use self::supervisor::ProcessState;
 
@@ -98,6 +100,7 @@ pub struct Service {
     #[serde(rename = "process")]
     supervisor: Supervisor,
     svc_encrypted_password: Option<String>,
+    composite: Option<String>,
 }
 
 impl Service {
@@ -149,6 +152,7 @@ impl Service {
             config_from: spec.config_from,
             last_health_check: Instant::now() - *HEALTH_CHECK_INTERVAL,
             svc_encrypted_password: spec.svc_encrypted_password,
+            composite: spec.composite,
         })
     }
 
@@ -352,6 +356,9 @@ impl Service {
         spec.group = self.service_group.group().to_string();
         if let Some(appenv) = self.service_group.application_environment() {
             spec.application_environment = Some(appenv)
+        }
+        if let Some(ref composite) = self.composite {
+            spec.composite = Some(composite.clone())
         }
         spec.bldr_url = self.bldr_url.clone();
         spec.channel = self.channel.clone();

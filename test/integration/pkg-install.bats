@@ -6,7 +6,7 @@ setup() {
     reset_hab_root
 }
 
-@test "install a package: origin/name" {
+@test "hab pkg install: origin/name (standalone service)" {
     run ${hab} pkg install core/redis
     assert_success
 
@@ -14,7 +14,7 @@ setup() {
     assert_package_and_deps_installed "${latest_redis}"
 }
 
-@test "install a package: origin/name/version" {
+@test "hab pkg install: origin/name/version (standalone service)" {
     run ${hab} pkg install core/redis/3.2.4
     assert_success
 
@@ -22,7 +22,7 @@ setup() {
     assert_package_and_deps_installed "${latest_redis}"
 }
 
-@test "install a package: origin/name/version/release" {
+@test "hab pkg install: origin/name/version/release (standalone service)" {
     desired_version="core/redis/3.2.3/20160920131015"
 
     run ${hab} pkg install "${desired_version}"
@@ -30,7 +30,7 @@ setup() {
     assert_package_and_deps_installed "${desired_version}"
 }
 
-@test "install a package: local hart file" {
+@test "hab pkg install: local hart file (standalone service)" {
     desired_version="core/redis/3.2.4/20170514150022"
 
     # First, grab a hart file! Then set it aside and clean everything
@@ -47,7 +47,7 @@ setup() {
     assert_package_and_deps_installed ${desired_version}
 }
 
-@test "install a package: local hart file in /hab/cache/artifacts" {
+@test "hab pkg install: local hart from /hab/cache/artifacts (standalone service)" {
     desired_version="core/redis/3.2.4/20170514150022"
 
     # First, grab a hart file!
@@ -64,7 +64,7 @@ setup() {
     assert_package_and_deps_installed "${desired_version}"
 }
 
-@test "trying to install from a file that isn't a hart doesn't work" {
+@test "hab pkg install: installing from a file that isn't a hart fails" {
     echo "lolwut" > /tmp/not-a.hart
 
     run ${hab} pkg install /tmp/not-a.hart
@@ -72,7 +72,7 @@ setup() {
     [[ "$output" =~ "Can't read keyname" ]]
 }
 
-@test "trying to install from a nonexistent file that looks a hart doesn't work" {
+@test "hab pkg install: installing from a nonexistent file that looks a hart fails" {
     run ${hab} pkg install looks-like/an-ident.hart
     assert_failure
     [[ "$output" =~ "File not found at: looks-like/an-ident.hart" ]]
