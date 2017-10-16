@@ -76,7 +76,7 @@ Documentation improvements are very welcome.
 
 To find documentation-related issues, [search by the A-Documentation label](https://github.com/habitat-sh/habitat/issues?q=is%3Aissue+is%3Aopen+label%3AA-documentation).
 
-Blogs from community members are also very welcome. You can open a pull request to submit a blog for the website by [following these instructions](https://github.com/habitat-sh/habitat/tree/master/www/source/blog).
+Blogs from community members are also very welcome. You can open a pull request to submit a blog for the website by [following these instructions](https://github.com/habitat-sh/habitat/wiki/Contributing-Bloggery)
 
 # Issue Triage 
 
@@ -93,11 +93,11 @@ You can also help triage by using the following labeling system adopted by the H
 | *STATUS TAGS* Prefix "S-"         | The current status of an issue or pull request.   |
 | *PLATFORM TAGS* Prefix "P-"       | Issue is in regards to specific platform.         |
 
-[Read more about issue triage here.](https://www.habitat.sh/blog/community/)
+[Read more about issue triage here.](https://github.com/habitat-sh/habitat/wiki/Contribution-Maintenance-Policy#triage-process)
 
 # Related Articles 
 * [Current Habitat Maintainers](https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md)
-* [Maintainers Policy, how to become a Maintainers](https://github.com/habitat-sh/habitat/blob/master/maintenance-policy.md)
+* [Maintainers Policy, how to become a Maintainers](https://github.com/habitat-sh/habitat/wiki/Contribution-Maintenance-Policy)
 * [ReadMe](https://github.com/habitat-sh/habitat/blob/master/README.md)
 * [CLI UX Principes](https://github.com/habitat-sh/habitat/blob/master/UX_PRINCIPLES.md)
 * [Habitat Main Website: Browse docs, do a tutorial, check out Builder](https://www.habitat.sh/)
