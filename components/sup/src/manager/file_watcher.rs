@@ -1293,17 +1293,29 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         }
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    /// Runs the FileWatcher in a loop.
+    ///
+    /// The `initial_file_event` parameter controls whether an event is emitted when the file was
+    /// already there at the time the FileWatcher was started.
+    pub fn run(&mut self, initial_file_event: bool) -> Result<()> {
         loop {
-            self.single_iteration()?;
+            self.single_iteration(initial_file_event)?;
         }
     }
 
-    pub fn single_iteration(&mut self) -> Result<()> {
-        if let Some(ref real_file) = self.initial_real_file {
-            self.callbacks.file_appeared(real_file);
+    /// Receives an event from the file watcher, without blocking.
+    ///
+    /// The `initial_file_event` parameter controls whether an event is emitted when the file was
+    /// already there at the time the FileWatcher was started.
+    pub fn single_iteration(&mut self, initial_file_event: bool) -> Result<()> {
+        if initial_file_event {
+            if let Some(ref real_file) = self.initial_real_file {
+                self.callbacks.file_appeared(real_file);
+            }
         }
+
         self.initial_real_file = None;
+
         self.rx
             .recv()
             .map_err(|e| sup_error!(Error::RecvError(e)))

@@ -108,7 +108,7 @@ impl PeerWatcher {
                 }
             }
         };
-        if let Err(err) = file_watcher.run() {
+        if let Err(err) = file_watcher.run(true) {
             outputln!(
                 "PeerWatcher({}) error during watching ({}), restarting",
                 path.display(),
