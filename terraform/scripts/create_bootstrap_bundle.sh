@@ -100,6 +100,10 @@ builder_packages=(core/builder-api
                   core/builder-sessionsrv
                   core/builder-worker)
 
+# Helper packages. Not all need to to be installed on the same machine,
+# but all need to be present in our bundle.
+helper_packages=(core/sumologic)
+
 # This is where we ultimately put all the things in S3.
 s3_bucket="habitat-builder-bootstrap"
 
@@ -119,7 +123,7 @@ sandbox_dir=${this_bootstrap_bundle}
 mkdir ${sandbox_dir}
 log "Using ${sandbox_dir} as the Habitat root directory"
 
-for package in "${sup_packages[@]}" "${builder_packages[@]}"
+for package in "${sup_packages[@]}" "${builder_packages[@]}" "${helper_packages[@]}"
 do
   env FS_ROOT=${sandbox_dir} ${depot_flag} ${hab} pkg install --channel=stable ${package} >&2
 done

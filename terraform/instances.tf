@@ -254,6 +254,11 @@ resource "null_resource" "datastore_provision" {
   }
 
   provisioner "file" {
+    content     = "${data.template_file.sumo_sources_worker.rendered}"
+    destination = "/home/ubuntu/sumo_sources_worker.json"
+  }
+
+  provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
@@ -741,6 +746,7 @@ resource "aws_instance" "worker" {
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
       "sudo hab svc load core/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api-proxy.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
+      "sudo hab svc load core/sumologic --group ${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
     ]
   }
 
@@ -770,5 +776,15 @@ data "template_file" "sch_log_parser" {
 
   vars {
     bldr_url = "${var.bldr_url}"
+  }
+}
+
+data "template_file" "sumo_sources_worker" {
+  template = "${file("${path.module}/templates/sumo_sources_local.json")}"
+
+  vars {
+    name = "${var.env}"
+    category = "${var.env}/worker"
+    path = "/tmp/builder-worker.log"
   }
 }
