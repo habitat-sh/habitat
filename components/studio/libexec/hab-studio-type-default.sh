@@ -7,7 +7,8 @@ studio_build_command="record \${1:-} $HAB_ROOT_PATH/bin/build"
 studio_run_environment=
 studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash --login"
 
-pkgs="${HAB_BACKLINE_PKG:-core/hab-backline}"
+pkgs="${HAB_STUDIO_BACKLINE_PKG:-core/hab-backline/$(
+  echo "$version" | $bb cut -d / -f 1)}"
 
 run_user="hab"
 run_group="$run_user"

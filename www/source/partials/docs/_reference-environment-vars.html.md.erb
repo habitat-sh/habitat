@@ -18,6 +18,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_RING` | Supervisor | no default | The ring used by the Supervisor when running with [wire encryption](/docs/using-habitat#using-encryption) |
 | `HAB_RING_KEY` | Supervisor | no default | The name of the ring key when running with [wire encryption](/docs/using-habitat#using-encryption) |
 | `HAB_STUDIOS_HOME` | build system | `/hab/studios` if running as root; `$HOME/.hab/studios` if running as non-root | Directory in which to create build studios |
+| `HAB_STUDIO_BACKLINE_PKG` | build system | `core/hab-backline/{{studio_version}}` | Overrides the default package identifier for the "backline" package which installs the Studio basline package set. |
 | `HAB_STUDIO_ROOT` | build system | no default | Root of the current studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
 | `HAB_STUDIO_NOSTUDIORC` | build system | no default | When set to a non-empty value, a `.studiorc` will not be sourced when entering an interactive Studio via `hab studio enter`. |
 | `HAB_STUDIO_SUP` | build system | no default | Used to customize the arguments passed to an automatically launched Supervisor, or to disable the automatic launching by setting it to `false`, `no`, or `0`. |
