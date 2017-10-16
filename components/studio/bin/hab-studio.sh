@@ -1013,6 +1013,9 @@ report_env_vars() {
   if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
     info "Exported: HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
   fi
+  if [ -n "${HAB_AUTH_TOKEN:-}" ]; then
+    info "Exported: HAB_AUTH_TOKEN=[redacted]"
+  fi
   if [ -n "${HAB_ORIGIN:-}" ]; then
     info "Exported: HAB_ORIGIN=$HAB_ORIGIN"
   fi
