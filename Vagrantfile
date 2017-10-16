@@ -3,26 +3,30 @@
 
 $script = <<SCRIPT
 cd /vagrant
-cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
-sh support/linux/install_dev_9_linux.sh
-. ~/.profile
-make
+echo 'eval "$(direnv hook bash)"' >> /home/vagrant/.bashrc
+apt-get install -y direnv
+sh components/hab/install.sh
 SCRIPT
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.box = "bento/ubuntu-17.04"
   config.vm.provision "shell", inline: $script, privileged: true
 
-  # For builder-api
-  config.vm.network "forwarded_port", guest: 9636, host: 9636, auto_correct: true
+  config.vm.synced_folder "~/.hab", "/home/vagrant/.hab", nfs: true, :linux__nfs_options => ["no_root_squash"], :map_uid => 0, :map_gid => 0
 
-  # For builder-web
-  config.vm.network "forwarded_port", guest: 3000, host: 3000, auto_correct: true
+  config.vm.network "forwarded_port", guest: 80, host: 9636
+  config.vm.network "forwarded_port", guest: 9631, host: 9631
+  config.vm.network "forwarded_port", guest: 9638, host: 9638
 
   config.vm.provider "virtualbox" do |v|
     v.memory = 2048
     v.cpus = 2
+  end
+
+  config.vm.provider "vmware_fusion" do |v|
+    v.vmx["memsize"] = "2048"
+    v.vmx["numvcpus"] = "2"
   end
 
   config.vm.provider "hyperv" do |hv, override|
