@@ -28,7 +28,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         let mut datastore = DataStoreCfg::default();
-        datastore.database = String::from("builder_scheduler");
+        datastore.database = String::from("builder_jobsrv");
         Config { datastore: datastore }
     }
 }
@@ -48,7 +48,7 @@ mod tests {
         host = "1.1.1.1"
         port = 9000
         user = "test"
-        database = "test_scheduler"
+        database = "test_jobsrv"
         connection_retry_ms = 500
         connection_timeout_sec = 4800
         connection_test = true
@@ -58,7 +58,7 @@ mod tests {
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");
-        assert_eq!(config.datastore.database, "test_scheduler");
+        assert_eq!(config.datastore.database, "test_jobsrv");
         assert_eq!(config.datastore.connection_retry_ms, 500);
         assert_eq!(config.datastore.connection_timeout_sec, 4800);
         assert_eq!(config.datastore.connection_test, true);
@@ -71,6 +71,6 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.datastore.database, String::from("builder_scheduler"));
+        assert_eq!(config.datastore.database, String::from("builder_jobsrv"));
     }
 }

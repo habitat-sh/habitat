@@ -38,6 +38,8 @@ pub struct Config {
     pub archive: ArchiveCfg,
     /// Filepath to where the builder encryption keys can be found
     pub key_dir: PathBuf,
+    /// Path to scheduler event logs
+    pub log_path: PathBuf,
 }
 
 impl Default for Config {
@@ -51,6 +53,7 @@ impl Default for Config {
             log_dir: env::temp_dir(),
             archive: ArchiveCfg::default(),
             key_dir: PathBuf::from("/hab/svc/hab-depot/files"),
+            log_path: PathBuf::from("/tmp"),
         }
     }
 }

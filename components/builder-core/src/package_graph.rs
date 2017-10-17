@@ -15,7 +15,7 @@
 use std::collections::{HashMap, BinaryHeap};
 use std::cmp::Ordering;
 use std::str::FromStr;
-use protocol::scheduler;
+use protocol::jobsrv;
 use petgraph::{Graph, Direction};
 use petgraph::graph::NodeIndex;
 use petgraph::algo::{is_cyclic_directed, connected_components};
@@ -105,7 +105,7 @@ impl PackageGraph {
 
     pub fn build<T>(&mut self, packages: T) -> (usize, usize)
     where
-        T: Iterator<Item = scheduler::Package>,
+        T: Iterator<Item = jobsrv::JobGraphPackage>,
     {
         assert!(self.package_max == 0);
 
@@ -116,7 +116,7 @@ impl PackageGraph {
         (self.graph.node_count(), self.graph.edge_count())
     }
 
-    pub fn check_extend(&mut self, package: &scheduler::Package) -> bool {
+    pub fn check_extend(&mut self, package: &jobsrv::JobGraphPackage) -> bool {
         let name = format!("{}", package.get_ident());
         let pkg_short_name = short_name(&name);
 
@@ -180,7 +180,7 @@ impl PackageGraph {
         !circular_dep
     }
 
-    pub fn extend(&mut self, package: &scheduler::Package) -> (usize, usize) {
+    pub fn extend(&mut self, package: &jobsrv::JobGraphPackage) -> (usize, usize) {
         let name = format!("{}", package.get_ident());
         let (pkg_id, pkg_node) = self.generate_id(&name);
 
@@ -359,14 +359,14 @@ mod test {
         let mut graph = PackageGraph::new();
         let mut packages = Vec::new();
 
-        let mut package1 = scheduler::Package::new();
+        let mut package1 = jobsrv::JobGraphPackage::new();
         package1.set_ident("foo/bar/1/2".to_string());
         let mut package1_deps = RepeatedField::new();
         package1_deps.push("foo/baz/1/2".to_string());
         package1.set_deps(package1_deps);
         packages.push(package1);
 
-        let mut package2 = scheduler::Package::new();
+        let mut package2 = jobsrv::JobGraphPackage::new();
         package2.set_ident("foo/baz/1/2".to_string());
         let mut package2_deps = RepeatedField::new();
         package2_deps.push("foo/bar/1/2".to_string());
@@ -389,13 +389,13 @@ mod test {
     fn pre_check_with_dep_not_present() {
         let mut graph = PackageGraph::new();
 
-        let mut package1 = scheduler::Package::new();
+        let mut package1 = jobsrv::JobGraphPackage::new();
         package1.set_ident("foo/bar/1/2".to_string());
         let mut package1_deps = RepeatedField::new();
         package1_deps.push("foo/baz/1/2".to_string());
         package1.set_deps(package1_deps);
 
-        let mut package2 = scheduler::Package::new();
+        let mut package2 = jobsrv::JobGraphPackage::new();
         package2.set_ident("foo/baz/1/2".to_string());
         let mut package2_deps = RepeatedField::new();
         package2_deps.push("foo/xyz/1/2".to_string());

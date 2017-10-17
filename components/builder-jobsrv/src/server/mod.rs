@@ -17,15 +17,21 @@ mod handlers;
 mod worker_manager;
 mod log_directory;
 mod log_ingester;
+mod scheduler;
+
+use std::sync::RwLock;
+use time::PreciseTime;
 
 use hab_net::app::prelude::*;
 use hab_net::conn::RouteClient;
 use protocol::jobsrv::*;
+use bldr_core::target_graph::TargetGraph;
 
 use self::log_archiver::LogArchiver;
 use self::log_directory::LogDirectory;
 use self::log_ingester::LogIngester;
 use self::worker_manager::{WorkerMgr, WorkerMgrClient};
+use self::scheduler::{ScheduleMgr, ScheduleClient};
 use config::{ArchiveCfg, Config};
 use data_store::DataStore;
 use error::{Error, Result};
@@ -37,6 +43,14 @@ lazy_static! {
         map.register(JobGet::descriptor_static(None), handlers::job_get);
         map.register(ProjectJobsGet::descriptor_static(None), handlers::project_jobs_get);
         map.register(JobLogGet::descriptor_static(None), handlers::job_log_get);
+        map.register(JobGroupSpec::descriptor_static(None), handlers::job_group_create);
+        map.register(JobGroupAbort::descriptor_static(None), handlers::job_group_abort);
+        map.register(JobGroupGet::descriptor_static(None), handlers::job_group_get);
+        map.register(JobGraphPackageCreate::descriptor_static(None), handlers::job_graph_package_create);
+        map.register(JobGraphPackagePreCreate::descriptor_static(None), handlers::job_graph_package_precreate);
+        map.register(JobGraphPackageStatsGet::descriptor_static(None), handlers::job_graph_package_stats_get);
+        map.register(JobGraphPackageReverseDependenciesGet::descriptor_static(None),
+            handlers::job_graph_package_reverse_dependencies_get);
         map
     };
 }
@@ -45,15 +59,17 @@ lazy_static! {
 pub struct InitServerState {
     archive_cfg: ArchiveCfg,
     datastore: DataStore,
+    graph: Arc<RwLock<TargetGraph>>,
     log_dir: Arc<LogDirectory>,
 }
 
 impl InitServerState {
-    fn new(cfg: Config, router_pipe: Arc<String>) -> Result<Self> {
+    fn new(cfg: Config, datastore: DataStore, graph: TargetGraph) -> Result<Self> {
         LogDirectory::validate(&cfg.log_dir)?;
         Ok(InitServerState {
             archive_cfg: cfg.archive,
-            datastore: DataStore::new(&cfg.datastore, cfg.app.shards.unwrap(), router_pipe)?,
+            datastore: datastore,
+            graph: Arc::new(RwLock::new(graph)),
             log_dir: Arc::new(LogDirectory::new(cfg.log_dir)),
         })
     }
@@ -63,6 +79,8 @@ pub struct ServerState {
     archiver: Box<LogArchiver>,
     datastore: DataStore,
     worker_mgr: WorkerMgrClient,
+    graph: Arc<RwLock<TargetGraph>>,
+    schedule_cli: ScheduleClient,
     log_dir: Arc<LogDirectory>,
 }
 
@@ -76,8 +94,11 @@ impl AppState for ServerState {
             datastore: init_state.datastore,
             log_dir: init_state.log_dir,
             worker_mgr: WorkerMgrClient::default(),
+            graph: init_state.graph,
+            schedule_cli: ScheduleClient::default(),
         };
         state.worker_mgr.connect()?;
+        state.schedule_cli.connect()?;
         Ok(state)
     }
 }
@@ -95,13 +116,31 @@ impl Dispatcher for JobSrv {
         config: Self::Config,
         router_pipe: Arc<String>,
     ) -> Result<<Self::State as AppState>::InitState> {
-        let state = InitServerState::new(config.clone(), router_pipe.clone())?;
-        state.datastore.setup()?;
-        state.datastore.start_async();
+        let datastore = DataStore::new(&config.datastore)?;
+        datastore.setup()?;
+
+        let mut graph = TargetGraph::new();
+        let packages = datastore.get_job_graph_packages()?;
+        let start_time = PreciseTime::now();
+        let res = graph.build(packages.into_iter());
+        let end_time = PreciseTime::now();
+        info!("Graph build stats ({} sec):", start_time.to(end_time));
+        for stat in res {
+            info!(
+                "Target {}: {} nodes, {} edges",
+                stat.target,
+                stat.node_count,
+                stat.edge_count,
+            );
+        }
+
+        let state = InitServerState::new(config.clone(), datastore, graph)?;
+
         LogIngester::start(&config, state.log_dir.clone(), state.datastore.clone())?;
         let conn = RouteClient::new()?;
         conn.connect(&*router_pipe)?;
         WorkerMgr::start(&config, state.datastore.clone(), conn)?;
+        ScheduleMgr::start(state.datastore.clone(), config.log_path, router_pipe)?;
         Ok(state)
     }
 

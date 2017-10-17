@@ -7,7 +7,6 @@ enum Protocol {
   SessionSrv = 2;
   OriginSrv = 3;
   JobSrv = 4;
-  Scheduler = 5;
 }
 
 enum ErrCode {

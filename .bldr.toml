@@ -69,18 +69,6 @@ paths = [
   "support/ci/builder-base-plan.sh",
 ]
 
-[builder-scheduler]
-plan_path = "components/builder-scheduler/habitat"
-paths = [
-  "components/builder-scheduler/*",
-  "components/builder-core/*",
-  "components/builder-protocol/*",
-  "components/builder-db/*",
-  "components/core/*",
-  "components/net/*",
-  "support/ci/builder-base-plan.sh",
-]
-
 [builder-sessionsrv]
 plan_path = "components/builder-sessionsrv/habitat"
 paths = [

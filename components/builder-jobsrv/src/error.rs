@@ -45,6 +45,14 @@ pub enum Error {
     HabitatCore(hab_core::Error),
     InvalidUrl,
     IO(io::Error),
+    JobGroupCreate(postgres::error::Error),
+    JobGroupGet(postgres::error::Error),
+    JobGroupPending(postgres::error::Error),
+    JobGroupSetState(postgres::error::Error),
+    JobGraphPackageInsert(postgres::error::Error),
+    JobGraphPackageStats(postgres::error::Error),
+    JobGraphPackagesGet(postgres::error::Error),
+    JobGroupProjectSetState(postgres::error::Error),
     JobCreate(postgres::error::Error),
     JobGet(postgres::error::Error),
     JobLogArchive(u64, aws_sdk_rust::aws::errors::s3::S3Error),
@@ -54,6 +62,7 @@ pub enum Error {
     JobReset(postgres::error::Error),
     JobSetLogUrl(postgres::error::Error),
     JobSetState(postgres::error::Error),
+    SyncJobs(postgres::error::Error),
     LogDirDoesNotExist(PathBuf, io::Error),
     LogDirIsNotDir(PathBuf),
     LogDirNotWritable(PathBuf),
@@ -63,6 +72,10 @@ pub enum Error {
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     UnknownVCS,
+    UnknownJobGroup,
+    UnknownJobGroupState,
+    UnknownJobGraphPackage,
+    UnknownJobGroupProjectState,
     UnknownJobState(protocol::jobsrv::Error),
     Zmq(zmq::Error),
 }
@@ -101,6 +114,22 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::InvalidUrl => format!("Bad URL!"),
             Error::IO(ref e) => format!("{}", e),
+            Error::JobGroupCreate(ref e) => format!("Database error creating a new group, {}", e),
+            Error::JobGroupGet(ref e) => format!("Database error getting group data, {}", e),
+            Error::JobGroupPending(ref e) => format!("Database error getting pending group, {}", e),
+            Error::JobGroupSetState(ref e) => format!("Database error setting group state, {}", e),
+            Error::JobGraphPackageInsert(ref e) => {
+                format!("Database error inserting a new package, {}", e)
+            }
+            Error::JobGraphPackageStats(ref e) => {
+                format!("Database error retrieving package statistics, {}", e)
+            }
+            Error::JobGraphPackagesGet(ref e) => {
+                format!("Database error retrieving packages, {}", e)
+            }
+            Error::JobGroupProjectSetState(ref e) => {
+                format!("Database error setting project state, {}", e)
+            }
             Error::JobCreate(ref e) => format!("Database error creating a new job, {}", e),
             Error::JobGet(ref e) => format!("Database error getting job data, {}", e),
             Error::JobLogArchive(job_id, ref e) => {
@@ -116,6 +145,7 @@ impl fmt::Display for Error {
             Error::JobReset(ref e) => format!("Database error reseting jobs, {}", e),
             Error::JobSetLogUrl(ref e) => format!("Database error setting job log URL, {}", e),
             Error::JobSetState(ref e) => format!("Database error setting job state, {}", e),
+            Error::SyncJobs(ref e) => format!("Database error retrieving sync jobs, {}", e),
             Error::LogDirDoesNotExist(ref path, ref e) => {
                 format!("Build log directory {:?} doesn't exist!: {:?}", path, e)
             }
@@ -134,6 +164,10 @@ impl fmt::Display for Error {
             Error::ProjectJobsGet(ref e) => {
                 format!("Database error getting jobs for project, {}", e)
             }
+            Error::UnknownJobGroup => format!("Unknown Group"),
+            Error::UnknownJobGroupState => format!("Unknown Group State"),
+            Error::UnknownJobGraphPackage => format!("Unknown Package"),
+            Error::UnknownJobGroupProjectState => format!("Unknown Project State"),
             Error::UnknownVCS => format!("Unknown VCS"),
             Error::UnknownJobState(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
@@ -159,6 +193,14 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::InvalidUrl => "Bad Url!",
+            Error::JobGroupCreate(ref err) => err.description(),
+            Error::JobGroupGet(ref err) => err.description(),
+            Error::JobGroupPending(ref err) => err.description(),
+            Error::JobGroupSetState(ref err) => err.description(),
+            Error::JobGraphPackageInsert(ref err) => err.description(),
+            Error::JobGraphPackageStats(ref err) => err.description(),
+            Error::JobGraphPackagesGet(ref err) => err.description(),
+            Error::JobGroupProjectSetState(ref err) => err.description(),
             Error::JobCreate(ref err) => err.description(),
             Error::JobGet(ref err) => err.description(),
             Error::JobLogArchive(_, ref err) => err.description(),
@@ -168,6 +210,7 @@ impl error::Error for Error {
             Error::JobReset(ref err) => err.description(),
             Error::JobSetLogUrl(ref err) => err.description(),
             Error::JobSetState(ref err) => err.description(),
+            Error::SyncJobs(ref err) => err.description(),
             Error::LogDirDoesNotExist(_, ref err) => err.description(),
             Error::LogDirIsNotDir(_) => "Build log directory is not a directory",
             Error::LogDirNotWritable(_) => "Build log directory is not writable",
@@ -177,6 +220,10 @@ impl error::Error for Error {
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
             Error::UnknownJobState(ref err) => err.description(),
+            Error::UnknownJobGroup => "Unknown Group",
+            Error::UnknownJobGroupState => "Unknown Group State",
+            Error::UnknownJobGraphPackage => "Unknown Package",
+            Error::UnknownJobGroupProjectState => "Unknown Project State",
             Error::UnknownVCS => "Unknown VCS",
             Error::Zmq(ref err) => err.description(),
         }

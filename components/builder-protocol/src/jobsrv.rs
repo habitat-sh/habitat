@@ -18,6 +18,7 @@ use std::fmt;
 use std::error;
 
 use message::{Persistable, Routable};
+use message::originsrv::OriginPackage;
 use originsrv::Pageable;
 use protobuf::RepeatedField;
 use regex::Regex;
@@ -294,6 +295,201 @@ impl Persistable for Job {
 
     fn set_primary_key(&mut self, value: Self::Key) {
         self.set_id(value);
+    }
+}
+
+impl Routable for JobGroupSpec {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(format!("{}/{}", self.get_origin(), self.get_package()))
+    }
+}
+
+impl From<OriginPackage> for JobGraphPackage {
+    fn from(value: OriginPackage) -> JobGraphPackage {
+        let mut package = JobGraphPackage::new();
+
+        let name = format!("{}", value.get_ident());
+        let target = value.get_target().to_string();
+
+        let deps = value.get_deps().iter().map(|x| format!("{}", x)).collect();
+
+        package.set_ident(name);
+        package.set_target(target);
+        package.set_deps(deps);
+        package
+    }
+}
+
+impl From<JobGraphPackage> for JobGraphPackageCreate {
+    fn from(value: JobGraphPackage) -> JobGraphPackageCreate {
+        let mut package = JobGraphPackageCreate::new();
+
+        let name = format!("{}", value.get_ident());
+        let target = value.get_target().to_string();
+
+        let deps = value.get_deps().iter().map(|x| format!("{}", x)).collect();
+
+        package.set_ident(name);
+        package.set_target(target);
+        package.set_deps(deps);
+        package
+    }
+}
+
+impl Into<JobGraphPackage> for JobGraphPackagePreCreate {
+    fn into(self) -> JobGraphPackage {
+        let mut package = JobGraphPackage::new();
+
+        let name = format!("{}", self.get_ident());
+        let target = self.get_target().to_string();
+
+        let deps = self.get_deps().iter().map(|x| format!("{}", x)).collect();
+
+        package.set_ident(name);
+        package.set_target(target);
+        package.set_deps(deps);
+        package
+    }
+}
+
+impl Routable for JobGroupGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_group_id().to_string())
+    }
+}
+
+impl Routable for JobGroupAbort {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_group_id().to_string())
+    }
+}
+
+impl Routable for JobGraphPackageCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_ident().to_string())
+    }
+}
+
+impl Routable for JobGraphPackagePreCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_ident().to_string())
+    }
+}
+
+impl Routable for JobGraphPackageStatsGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
+impl Routable for JobGraphPackageReverseDependenciesGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(format!("{}/{}", self.get_origin(), self.get_name()))
+    }
+}
+
+impl Serialize for JobGroupState {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self as u64 {
+            0 => serializer.serialize_str("Pending"),
+            1 => serializer.serialize_str("Dispatching"),
+            2 => serializer.serialize_str("Complete"),
+            3 => serializer.serialize_str("Failed"),
+            _ => panic!("Unexpected enum value"),
+        }
+    }
+}
+
+impl Serialize for JobGroupProjectState {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self as u64 {
+            0 => serializer.serialize_str("NotStarted"),
+            1 => serializer.serialize_str("InProgress"),
+            2 => serializer.serialize_str("Success"),
+            3 => serializer.serialize_str("Failure"),
+            4 => serializer.serialize_str("Skipped"),
+            _ => panic!("Unexpected enum value"),
+        }
+    }
+}
+
+impl Serialize for JobGroupProject {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("job_group_project", 4)?;
+        strukt.serialize_field("name", &self.get_name())?;
+        strukt.serialize_field("ident", &self.get_ident())?;
+        strukt.serialize_field("state", &self.get_state())?;
+        strukt.serialize_field("job_id", &self.get_job_id())?;
+        strukt.end()
+    }
+}
+
+impl Serialize for JobGroup {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("job_group", 3)?;
+        strukt.serialize_field("id", &self.get_id())?;
+        strukt.serialize_field("state", &self.get_state())?;
+        strukt.serialize_field("projects", &self.get_projects())?;
+        strukt.serialize_field("created_at", &self.get_created_at())?;
+        strukt.end()
+    }
+}
+
+impl Serialize for JobGraphPackageReverseDependencies {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct(
+            "job_graph_package_reverse_dependencies",
+            3,
+        )?;
+        strukt.serialize_field("origin", &self.get_origin())?;
+        strukt.serialize_field("name", &self.get_name())?;
+        strukt.serialize_field("rdeps", &self.get_rdeps())?;
+        strukt.end()
+    }
+}
+
+impl Serialize for JobGraphPackageStats {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("job_graph_package_stats", 2)?;
+        strukt.serialize_field("plans", &self.get_plans())?;
+        strukt.serialize_field("builds", &self.get_builds())?;
+        strukt.serialize_field(
+            "unique_packages",
+            &self.get_unique_packages(),
+        )?;
+        strukt.end()
     }
 }
 

@@ -16,7 +16,7 @@ use std::str::FromStr;
 use std::iter::Iterator;
 use std::collections::HashMap;
 use hab_core::package::PackageTarget;
-use protocol::scheduler;
+use protocol::jobsrv;
 use package_graph::PackageGraph;
 
 pub struct TargetGraphStats {
@@ -74,7 +74,7 @@ impl TargetGraph {
 
     pub fn build<T>(&mut self, packages: T) -> Vec<TargetGraphStats>
     where
-        T: Iterator<Item = scheduler::Package>,
+        T: Iterator<Item = jobsrv::JobGraphPackage>,
     {
         for p in packages {
             match self.graph_mut(p.get_target()) {

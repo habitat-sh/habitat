@@ -35,7 +35,6 @@ pub mod search;
 pub mod sessionsrv;
 pub mod sharding;
 pub mod originsrv;
-pub mod scheduler;
 
 pub use self::error::{ProtocolError, ProtocolResult};
 pub use self::message::{Message, Protocol, Persistable, Routable, RouteKey};

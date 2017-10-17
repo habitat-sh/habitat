@@ -104,10 +104,6 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                      $$ LANGUAGE SQL STABLE"#)?;
     migrator.migrate(
         "originsrv",
-        r#"UPDATE origin_packages SET scheduler_sync = false"#,
-    )?;
-    migrator.migrate(
-        "originsrv",
         r#"ALTER TABLE IF EXISTS origin_packages ADD COLUMN IF NOT EXISTS visibility text NOT NULL DEFAULT 'public';"#,
     )?;
     migrator.migrate("originsrv",
@@ -733,6 +729,10 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"UPDATE origin_packages SET scheduler_sync = false "#,
     )?;
     Ok(())
 }

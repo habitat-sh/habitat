@@ -31,6 +31,7 @@ r2d2 = "*"
 serde = "*"
 serde_derive = "*"
 sha2 = "*"
+time = "*"
 toml = { version = "*", default-features = false }
 url = "*"
 hyper = "*"

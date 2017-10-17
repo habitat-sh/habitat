@@ -42,8 +42,8 @@ use iron::request::Body;
 use persistent;
 use protobuf;
 use protocol::originsrv::*;
-use protocol::scheduler::{Group, GroupAbort, GroupCreate, GroupGet, PackagePreCreate,
-                          PackageStats, PackageStatsGet};
+use protocol::jobsrv::{JobGroup, JobGroupSpec, JobGroupGet, JobGraphPackageStatsGet,
+                       JobGraphPackageStats, JobGraphPackagePreCreate, JobGroupAbort};
 use protocol::sessionsrv::{Account, AccountGet, AccountOriginRemove};
 use regex::Regex;
 use router::{Params, Router};
@@ -768,7 +768,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     }
 
     // Check with scheduler to ensure we don't have circular deps
-    let mut pcr_req = PackagePreCreate::new();
+    let mut pcr_req = JobGraphPackagePreCreate::new();
     pcr_req.set_ident(format!("{}", ident));
     pcr_req.set_target(target_from_artifact.to_string());
 
@@ -787,7 +787,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     }
     pcr_req.set_deps(pcr_deps);
 
-    match route_message::<PackagePreCreate, NetOk>(req, &pcr_req) {
+    match route_message::<JobGraphPackagePreCreate, NetOk>(req, &pcr_req) {
         Ok(_) => (),
         Err(err) => {
             if err.get_code() == ErrCode::ENTITY_CONFLICT {
@@ -888,7 +888,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                 None => false,
             }
         {
-            let mut request = GroupCreate::new();
+            let mut request = JobGroupSpec::new();
             request.set_origin(ident.get_origin().to_string());
             request.set_package(ident.get_name().to_string());
             request.set_target(target_from_artifact.to_string());
@@ -896,7 +896,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             request.set_origin_only(!depot.config.non_core_builds_enabled);
             request.set_package_only(false);
 
-            match route_message::<GroupCreate, Group>(req, &request) {
+            match route_message::<JobGroupSpec, JobGroup>(req, &request) {
                 Ok(group) => {
                     debug!(
                         "Scheduled reverse dependecy build for {}, group id: {}, origin_only: {}",
@@ -930,13 +930,13 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn package_stats(req: &mut Request) -> IronResult<Response> {
-    let mut request = PackageStatsGet::new();
+    let mut request = JobGraphPackageStatsGet::new();
     match get_param(req, "origin") {
         Some(origin) => request.set_origin(origin),
         None => return Ok(Response::with(status::BadRequest)),
     }
 
-    match route_message::<PackageStatsGet, PackageStats>(req, &request) {
+    match route_message::<JobGraphPackageStatsGet, JobGraphPackageStats>(req, &request) {
         Ok(stats) => {
             let mut response = render_json(status::Ok, &stats);
             dont_cache_response(&mut response);
@@ -996,7 +996,7 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         }
     }
 
-    let mut request = GroupCreate::new();
+    let mut request = JobGroupSpec::new();
     request.set_origin(origin_name);
     request.set_package(package);
     request.set_target(target);
@@ -1004,7 +1004,7 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
     request.set_origin_only(origin_only);
     request.set_package_only(package_only);
 
-    match route_message::<GroupCreate, Group>(req, &request) {
+    match route_message::<JobGroupSpec, JobGroup>(req, &request) {
         Ok(group) => {
             let mut response = render_json(status::Ok, &group);
             dont_cache_response(&mut response);
@@ -1027,10 +1027,10 @@ fn get_schedule(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    let mut request = GroupGet::new();
+    let mut request = JobGroupGet::new();
     request.set_group_id(group_id);
 
-    match route_message::<GroupGet, Group>(req, &request) {
+    match route_message::<JobGroupGet, JobGroup>(req, &request) {
         Ok(group) => {
             let mut response = render_json(status::Ok, &group);
             dont_cache_response(&mut response);
@@ -1055,10 +1055,10 @@ fn abort_schedule(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    let mut request = GroupAbort::new();
+    let mut request = JobGroupAbort::new();
     request.set_group_id(group_id);
 
-    match route_message::<GroupAbort, NetOk>(req, &request) {
+    match route_message::<JobGroupAbort, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::Ok)),
         Err(err) => Ok(render_net_error(&err)),
     }

@@ -27,7 +27,7 @@ use openssl::pkey::PKey;
 use openssl::sign::Signer;
 use persistent;
 use protocol::originsrv::{OriginProject, OriginProjectGet};
-use protocol::scheduler::{Group, GroupCreate};
+use protocol::jobsrv::{JobGroup, JobGroupSpec};
 use router::Router;
 use serde_json;
 
@@ -206,7 +206,7 @@ fn handle_push(req: &mut Request, body: &str) -> IronResult<Response> {
 }
 
 fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResult<Response> {
-    let mut request = GroupCreate::new();
+    let mut request = JobGroupSpec::new();
 
     for plan in plans.iter() {
         let mut project_get = OriginProjectGet::new();
@@ -236,8 +236,8 @@ fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResul
         // the directory structure the plan is found in or metadata inside the plan. We will need
         // to have this done before we support building additional targets with Builder.
         request.set_target("x86_64-linux".to_string());
-        match route_message::<GroupCreate, Group>(req, &request) {
-            Ok(group) => debug!("Group created, {:?}", group),
+        match route_message::<JobGroupSpec, JobGroup>(req, &request) {
+            Ok(group) => debug!("JobGroup created, {:?}", group),
             Err(err) => debug!("Failed to create group, {:?}", err),
         }
     }

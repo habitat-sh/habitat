@@ -27,7 +27,7 @@ use hab_net::conn::{RouteClient, RouteConn};
 use hab_net::{ErrCode, NetError};
 use hab_core::package::PackageIdent;
 use postgres::rows::Rows;
-use protocol::{originsrv, sessionsrv, scheduler};
+use protocol::{originsrv, sessionsrv, jobsrv};
 use protocol::net::NetOk;
 use protocol::originsrv::Pageable;
 use postgres;
@@ -1651,7 +1651,7 @@ fn sync_packages(pool: Pool, mut route_conn: RouteClient) -> DbResult<EventOutco
         let rows = &conn.query("SELECT * FROM sync_packages_v2()", &[])
             .map_err(DbError::AsyncFunctionCheck)?;
         if rows.len() > 0 {
-            let mut request = scheduler::PackageCreate::new();
+            let mut request = jobsrv::JobGraphPackageCreate::new();
             for row in rows.iter() {
                 let pid: i64 = row.get("package_id");
                 let ident: String = row.get("package_ident");
@@ -1670,18 +1670,18 @@ fn sync_packages(pool: Pool, mut route_conn: RouteClient) -> DbResult<EventOutco
                 request.set_target(target);
                 request.set_deps(deps);
 
-                match route_conn.route::<scheduler::PackageCreate, NetOk>(&request) {
+                match route_conn.route::<jobsrv::JobGraphPackageCreate, NetOk>(&request) {
                     Ok(_) => {
                         conn.query("SELECT * FROM set_packages_sync_v1($1)", &[&pid])
                             .map_err(DbError::AsyncFunctionUpdate)?;
                         debug!(
-                            "Updated scheduler service with package creation, {:?}",
+                            "Updated jobsrv service with package creation, {:?}",
                             request
                         );
                     }
                     Err(e) => {
                         warn!(
-                            "Failed to sync package creation with the scheduler service, {:?}: {}",
+                            "Failed to sync package creation with the jobsrv service, {:?}: {}",
                             request,
                             e
                         );

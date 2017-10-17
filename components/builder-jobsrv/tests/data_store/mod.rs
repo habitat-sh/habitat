@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate protobuf;
+use self::protobuf::RepeatedField;
 use jobsrv::data_store::DataStore;
 use protocol::jobsrv;
 
@@ -157,4 +159,202 @@ fn update_job() {
         .expect("Failed to get job from database")
         .expect("No job found");
     assert_eq!(failed_job.get_state(), jobsrv::JobState::Failed);
+}
+
+#[test]
+fn create_job_group() {
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
+    let mut msg = jobsrv::JobGroupSpec::new();
+    msg.set_origin(String::from("Foo"));
+    msg.set_package(String::from("Bar"));
+
+    let ds = datastore_test!(DataStore);
+    ds.create_job_group(&msg, project_names).expect(
+        "Failed to create a group",
+    );
+}
+
+#[test]
+fn get_job_group() {
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
+    let mut msg = jobsrv::JobGroupSpec::new();
+    msg.set_origin(String::from("Foo"));
+    msg.set_package(String::from("Bar"));
+
+    let ds = datastore_test!(DataStore);
+    let group1 = ds.create_job_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    let group2 = ds.create_job_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    let group3 = ds.create_job_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+
+    let mut get_msg1 = jobsrv::JobGroupGet::new();
+    get_msg1.set_group_id(group1.get_id());
+    let mut get_msg2 = jobsrv::JobGroupGet::new();
+    get_msg2.set_group_id(group2.get_id());
+    let mut get_msg3 = jobsrv::JobGroupGet::new();
+    get_msg3.set_group_id(group3.get_id());
+
+    let g1 = ds.get_job_group(&get_msg1)
+        .expect("Failed to get group 1")
+        .expect("Group should exist");
+    let g2 = ds.get_job_group(&get_msg2)
+        .expect("Failed to get group 2")
+        .expect("Group should exist");
+    let g3 = ds.get_job_group(&get_msg3)
+        .expect("Failed to get group 3")
+        .expect("Group should exist");
+
+    assert!(g1.get_id() != 0);
+    assert!(g2.get_id() != 0);
+    assert!(g3.get_id() != 0);
+}
+
+#[test]
+fn get_group_does_not_exist() {
+    let ds = datastore_test!(DataStore);
+    let mut get_msg = jobsrv::JobGroupGet::new();
+    get_msg.set_group_id(0);
+
+    let result = ds.get_job_group(&get_msg).expect("Failed to get group");
+    assert!(result.is_none());
+}
+
+#[test]
+fn pending_groups() {
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
+    let mut msg = jobsrv::JobGroupSpec::new();
+    msg.set_origin(String::from("Foo"));
+    msg.set_package(String::from("Bar"));
+
+    let ds = datastore_test!(DataStore);
+
+    let group1 = ds.create_job_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    ds.create_job_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    ds.create_job_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+
+    // Get one group, it should be FIFO, and it should have its state set to Dispatching
+    let pending_groups = ds.pending_job_groups(1).expect(
+        "Failed to get pendings group",
+    );
+    assert_eq!(pending_groups.len(), 1, "Failed to find a pending group");
+    assert_eq!(
+        pending_groups[0].get_id(),
+        group1.get_id(),
+        "First in is not first out"
+    );
+
+    let mut get_msg1 = jobsrv::JobGroupGet::new();
+    get_msg1.set_group_id(group1.get_id());
+
+    let group1_dispatched = ds.get_job_group(&get_msg1)
+        .expect("Failed to get group entry")
+        .expect("Failed to find the group entry");
+    assert_eq!(
+        group1_dispatched.get_state(),
+        jobsrv::JobGroupState::GroupDispatching
+    );
+
+    // Get the remaining groups; a larger number results in the total set
+    let remaining_groups = ds.pending_job_groups(5).expect(
+        "Failed to get remaining pending groups",
+    );
+    assert_eq!(
+        remaining_groups.len(),
+        2,
+        "Failed to get all the remaining groups"
+    );
+
+    // No groups returns an empty array
+    let no_groups = ds.pending_job_groups(100).expect(
+        "Failed to get empty pending groups",
+    );
+    assert_eq!(no_groups.len(), 0);
+}
+
+#[test]
+fn set_job_group_state() {
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
+    let mut msg = jobsrv::JobGroupSpec::new();
+    msg.set_origin(String::from("Foo"));
+    msg.set_package(String::from("Bar"));
+
+    let ds = datastore_test!(DataStore);
+
+    let group = ds.create_job_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+
+    let mut get_msg = jobsrv::JobGroupGet::new();
+    get_msg.set_group_id(group.get_id());
+
+    let pending_group = ds.get_job_group(&get_msg)
+        .expect("Failed to get group from database")
+        .expect("No group found");
+    assert_eq!(
+        pending_group.get_state(),
+        jobsrv::JobGroupState::GroupPending
+    );
+
+    ds.set_job_group_state(group.get_id(), jobsrv::JobGroupState::GroupComplete)
+        .expect("Failed to update group state");
+
+    let completed_group = ds.get_job_group(&get_msg)
+        .expect("Failed to get group from database")
+        .expect("No group found");
+    assert_eq!(
+        completed_group.get_state(),
+        jobsrv::JobGroupState::GroupComplete
+    );
+}
+
+#[test]
+fn create_graph_package() {
+    let mut msg = jobsrv::JobGraphPackageCreate::new();
+    msg.set_ident(String::from("Foo/Bar/123/456"));
+    msg.set_target(String::from("quantum"));
+
+    let mut deps = RepeatedField::new();
+    deps.push(String::from("Foo/Baz/321/654"));
+    msg.set_deps(deps);
+
+    let ds = datastore_test!(DataStore);
+    let package = ds.create_job_graph_package(&msg).expect(
+        "Failed to create a graph package",
+    );
+
+    assert_eq!(package.get_ident(), "Foo/Bar/123/456");
+    assert_eq!(package.get_target(), "quantum");
+
+    let packages = ds.get_job_graph_packages().expect(
+        "Failed to get graph packages",
+    );
+    assert_eq!(packages.len(), 1);
+    assert_eq!(packages.last().unwrap().get_ident(), "Foo/Bar/123/456");
+}
+
+#[test]
+fn get_graph_stats() {
+    let ds = datastore_test!(DataStore);
+
+    let mut stats_msg = jobsrv::JobGraphPackageStatsGet::new();
+    stats_msg.set_origin(String::from("Foo"));
+
+    let stats = ds.get_job_graph_package_stats(&stats_msg).expect(
+        "Failed to get graph stats",
+    );
+
+    assert_eq!(stats.get_plans(), 0);
+    assert_eq!(stats.get_builds(), 0);
+    assert_eq!(stats.get_unique_packages(), 0);
 }

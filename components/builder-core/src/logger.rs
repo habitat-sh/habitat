@@ -18,8 +18,7 @@ use std::path::Path;
 use std::fs::OpenOptions;
 use chrono::prelude::*;
 
-use protocol::jobsrv::Job;
-use protocol::scheduler::{Group, Project};
+use protocol::jobsrv::{Job, JobGroup, JobGroupProject};
 
 pub struct Logger {
     file: File,
@@ -66,12 +65,12 @@ impl Logger {
         self.log(&msg);
     }
 
-    pub fn log_group(&mut self, group: &Group) {
+    pub fn log_group(&mut self, group: &JobGroup) {
         let msg = format!("G,{},{:?},", group.get_id(), group.get_state());
         self.log(&msg);
     }
 
-    pub fn log_group_project(&mut self, group: &Group, project: &Project) {
+    pub fn log_group_project(&mut self, group: &JobGroup, project: &JobGroupProject) {
         let msg = format!(
             "P,{},{:?},{},",
             group.get_id(),
@@ -81,7 +80,7 @@ impl Logger {
         self.log(&msg);
     }
 
-    pub fn log_group_job(&mut self, group: &Group, job: &Job) {
+    pub fn log_group_job(&mut self, group: &JobGroup, job: &Job) {
         let suffix = if job.has_build_started_at() && job.has_build_finished_at() {
             let start = job.get_build_started_at().parse::<DateTime<UTC>>().unwrap();
             let stop = job.get_build_finished_at()

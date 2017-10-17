@@ -3508,6 +3508,3475 @@ impl ::protobuf::reflect::ProtobufValue for JobLog {
     }
 }
 
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGroupSpec {
+    // message fields
+    origin: ::protobuf::SingularField<::std::string::String>,
+    package: ::protobuf::SingularField<::std::string::String>,
+    deps_only: ::std::option::Option<bool>,
+    target: ::protobuf::SingularField<::std::string::String>,
+    origin_only: ::std::option::Option<bool>,
+    package_only: ::std::option::Option<bool>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGroupSpec {}
+
+impl JobGroupSpec {
+    pub fn new() -> JobGroupSpec {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGroupSpec {
+        static mut instance: ::protobuf::lazy::Lazy<JobGroupSpec> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGroupSpec,
+        };
+        unsafe {
+            instance.get(JobGroupSpec::new)
+        }
+    }
+
+    // optional string origin = 1;
+
+    pub fn clear_origin(&mut self) {
+        self.origin.clear();
+    }
+
+    pub fn has_origin(&self) -> bool {
+        self.origin.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_origin(&mut self, v: ::std::string::String) {
+        self.origin = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_origin(&mut self) -> &mut ::std::string::String {
+        if self.origin.is_none() {
+            self.origin.set_default();
+        }
+        self.origin.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_origin(&mut self) -> ::std::string::String {
+        self.origin.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_origin(&self) -> &str {
+        match self.origin.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_origin_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.origin
+    }
+
+    fn mut_origin_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.origin
+    }
+
+    // optional string package = 2;
+
+    pub fn clear_package(&mut self) {
+        self.package.clear();
+    }
+
+    pub fn has_package(&self) -> bool {
+        self.package.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_package(&mut self, v: ::std::string::String) {
+        self.package = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_package(&mut self) -> &mut ::std::string::String {
+        if self.package.is_none() {
+            self.package.set_default();
+        }
+        self.package.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_package(&mut self) -> ::std::string::String {
+        self.package.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_package(&self) -> &str {
+        match self.package.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_package_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.package
+    }
+
+    fn mut_package_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.package
+    }
+
+    // optional bool deps_only = 3;
+
+    pub fn clear_deps_only(&mut self) {
+        self.deps_only = ::std::option::Option::None;
+    }
+
+    pub fn has_deps_only(&self) -> bool {
+        self.deps_only.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_deps_only(&mut self, v: bool) {
+        self.deps_only = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_deps_only(&self) -> bool {
+        self.deps_only.unwrap_or(false)
+    }
+
+    fn get_deps_only_for_reflect(&self) -> &::std::option::Option<bool> {
+        &self.deps_only
+    }
+
+    fn mut_deps_only_for_reflect(&mut self) -> &mut ::std::option::Option<bool> {
+        &mut self.deps_only
+    }
+
+    // optional string target = 4;
+
+    pub fn clear_target(&mut self) {
+        self.target.clear();
+    }
+
+    pub fn has_target(&self) -> bool {
+        self.target.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_target(&mut self, v: ::std::string::String) {
+        self.target = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_target(&mut self) -> &mut ::std::string::String {
+        if self.target.is_none() {
+            self.target.set_default();
+        }
+        self.target.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_target(&mut self) -> ::std::string::String {
+        self.target.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_target(&self) -> &str {
+        match self.target.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_target_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.target
+    }
+
+    fn mut_target_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.target
+    }
+
+    // optional bool origin_only = 5;
+
+    pub fn clear_origin_only(&mut self) {
+        self.origin_only = ::std::option::Option::None;
+    }
+
+    pub fn has_origin_only(&self) -> bool {
+        self.origin_only.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_origin_only(&mut self, v: bool) {
+        self.origin_only = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_origin_only(&self) -> bool {
+        self.origin_only.unwrap_or(false)
+    }
+
+    fn get_origin_only_for_reflect(&self) -> &::std::option::Option<bool> {
+        &self.origin_only
+    }
+
+    fn mut_origin_only_for_reflect(&mut self) -> &mut ::std::option::Option<bool> {
+        &mut self.origin_only
+    }
+
+    // optional bool package_only = 6;
+
+    pub fn clear_package_only(&mut self) {
+        self.package_only = ::std::option::Option::None;
+    }
+
+    pub fn has_package_only(&self) -> bool {
+        self.package_only.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_package_only(&mut self, v: bool) {
+        self.package_only = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_package_only(&self) -> bool {
+        self.package_only.unwrap_or(false)
+    }
+
+    fn get_package_only_for_reflect(&self) -> &::std::option::Option<bool> {
+        &self.package_only
+    }
+
+    fn mut_package_only_for_reflect(&mut self) -> &mut ::std::option::Option<bool> {
+        &mut self.package_only
+    }
+}
+
+impl ::protobuf::Message for JobGroupSpec {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.origin)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.package)?;
+                },
+                3 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_bool()?;
+                    self.deps_only = ::std::option::Option::Some(tmp);
+                },
+                4 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.target)?;
+                },
+                5 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_bool()?;
+                    self.origin_only = ::std::option::Option::Some(tmp);
+                },
+                6 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_bool()?;
+                    self.package_only = ::std::option::Option::Some(tmp);
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.origin.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(ref v) = self.package.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
+        }
+        if let Some(v) = self.deps_only {
+            my_size += 2;
+        }
+        if let Some(ref v) = self.target.as_ref() {
+            my_size += ::protobuf::rt::string_size(4, &v);
+        }
+        if let Some(v) = self.origin_only {
+            my_size += 2;
+        }
+        if let Some(v) = self.package_only {
+            my_size += 2;
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.origin.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        if let Some(ref v) = self.package.as_ref() {
+            os.write_string(2, &v)?;
+        }
+        if let Some(v) = self.deps_only {
+            os.write_bool(3, v)?;
+        }
+        if let Some(ref v) = self.target.as_ref() {
+            os.write_string(4, &v)?;
+        }
+        if let Some(v) = self.origin_only {
+            os.write_bool(5, v)?;
+        }
+        if let Some(v) = self.package_only {
+            os.write_bool(6, v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGroupSpec {
+    fn new() -> JobGroupSpec {
+        JobGroupSpec::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGroupSpec>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "origin",
+                    JobGroupSpec::get_origin_for_reflect,
+                    JobGroupSpec::mut_origin_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "package",
+                    JobGroupSpec::get_package_for_reflect,
+                    JobGroupSpec::mut_package_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
+                    "deps_only",
+                    JobGroupSpec::get_deps_only_for_reflect,
+                    JobGroupSpec::mut_deps_only_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "target",
+                    JobGroupSpec::get_target_for_reflect,
+                    JobGroupSpec::mut_target_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
+                    "origin_only",
+                    JobGroupSpec::get_origin_only_for_reflect,
+                    JobGroupSpec::mut_origin_only_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
+                    "package_only",
+                    JobGroupSpec::get_package_only_for_reflect,
+                    JobGroupSpec::mut_package_only_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGroupSpec>(
+                    "JobGroupSpec",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGroupSpec {
+    fn clear(&mut self) {
+        self.clear_origin();
+        self.clear_package();
+        self.clear_deps_only();
+        self.clear_target();
+        self.clear_origin_only();
+        self.clear_package_only();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGroupSpec {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGroupSpec {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGroupProject {
+    // message fields
+    name: ::protobuf::SingularField<::std::string::String>,
+    ident: ::protobuf::SingularField<::std::string::String>,
+    state: ::std::option::Option<JobGroupProjectState>,
+    job_id: ::std::option::Option<u64>,
+    target: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGroupProject {}
+
+impl JobGroupProject {
+    pub fn new() -> JobGroupProject {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGroupProject {
+        static mut instance: ::protobuf::lazy::Lazy<JobGroupProject> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGroupProject,
+        };
+        unsafe {
+            instance.get(JobGroupProject::new)
+        }
+    }
+
+    // optional string name = 1;
+
+    pub fn clear_name(&mut self) {
+        self.name.clear();
+    }
+
+    pub fn has_name(&self) -> bool {
+        self.name.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_name(&mut self, v: ::std::string::String) {
+        self.name = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_name(&mut self) -> &mut ::std::string::String {
+        if self.name.is_none() {
+            self.name.set_default();
+        }
+        self.name.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_name(&mut self) -> ::std::string::String {
+        self.name.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_name(&self) -> &str {
+        match self.name.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
+    }
+
+    // optional string ident = 2;
+
+    pub fn clear_ident(&mut self) {
+        self.ident.clear();
+    }
+
+    pub fn has_ident(&self) -> bool {
+        self.ident.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_ident(&mut self, v: ::std::string::String) {
+        self.ident = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_ident(&mut self) -> &mut ::std::string::String {
+        if self.ident.is_none() {
+            self.ident.set_default();
+        }
+        self.ident.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_ident(&mut self) -> ::std::string::String {
+        self.ident.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_ident(&self) -> &str {
+        match self.ident.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_ident_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.ident
+    }
+
+    fn mut_ident_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.ident
+    }
+
+    // optional .jobsrv.JobGroupProjectState state = 3;
+
+    pub fn clear_state(&mut self) {
+        self.state = ::std::option::Option::None;
+    }
+
+    pub fn has_state(&self) -> bool {
+        self.state.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_state(&mut self, v: JobGroupProjectState) {
+        self.state = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_state(&self) -> JobGroupProjectState {
+        self.state.unwrap_or(JobGroupProjectState::NotStarted)
+    }
+
+    fn get_state_for_reflect(&self) -> &::std::option::Option<JobGroupProjectState> {
+        &self.state
+    }
+
+    fn mut_state_for_reflect(&mut self) -> &mut ::std::option::Option<JobGroupProjectState> {
+        &mut self.state
+    }
+
+    // optional uint64 job_id = 4;
+
+    pub fn clear_job_id(&mut self) {
+        self.job_id = ::std::option::Option::None;
+    }
+
+    pub fn has_job_id(&self) -> bool {
+        self.job_id.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_job_id(&mut self, v: u64) {
+        self.job_id = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_job_id(&self) -> u64 {
+        self.job_id.unwrap_or(0)
+    }
+
+    fn get_job_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.job_id
+    }
+
+    fn mut_job_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.job_id
+    }
+
+    // optional string target = 5;
+
+    pub fn clear_target(&mut self) {
+        self.target.clear();
+    }
+
+    pub fn has_target(&self) -> bool {
+        self.target.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_target(&mut self, v: ::std::string::String) {
+        self.target = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_target(&mut self) -> &mut ::std::string::String {
+        if self.target.is_none() {
+            self.target.set_default();
+        }
+        self.target.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_target(&mut self) -> ::std::string::String {
+        self.target.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_target(&self) -> &str {
+        match self.target.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_target_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.target
+    }
+
+    fn mut_target_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.target
+    }
+}
+
+impl ::protobuf::Message for JobGroupProject {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.ident)?;
+                },
+                3 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_enum()?;
+                    self.state = ::std::option::Option::Some(tmp);
+                },
+                4 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.job_id = ::std::option::Option::Some(tmp);
+                },
+                5 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.target)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(ref v) = self.ident.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
+        }
+        if let Some(v) = self.state {
+            my_size += ::protobuf::rt::enum_size(3, v);
+        }
+        if let Some(v) = self.job_id {
+            my_size += ::protobuf::rt::value_size(4, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        if let Some(ref v) = self.target.as_ref() {
+            my_size += ::protobuf::rt::string_size(5, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.name.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        if let Some(ref v) = self.ident.as_ref() {
+            os.write_string(2, &v)?;
+        }
+        if let Some(v) = self.state {
+            os.write_enum(3, v.value())?;
+        }
+        if let Some(v) = self.job_id {
+            os.write_uint64(4, v)?;
+        }
+        if let Some(ref v) = self.target.as_ref() {
+            os.write_string(5, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGroupProject {
+    fn new() -> JobGroupProject {
+        JobGroupProject::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGroupProject>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "name",
+                    JobGroupProject::get_name_for_reflect,
+                    JobGroupProject::mut_name_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "ident",
+                    JobGroupProject::get_ident_for_reflect,
+                    JobGroupProject::mut_ident_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<JobGroupProjectState>>(
+                    "state",
+                    JobGroupProject::get_state_for_reflect,
+                    JobGroupProject::mut_state_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "job_id",
+                    JobGroupProject::get_job_id_for_reflect,
+                    JobGroupProject::mut_job_id_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "target",
+                    JobGroupProject::get_target_for_reflect,
+                    JobGroupProject::mut_target_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGroupProject>(
+                    "JobGroupProject",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGroupProject {
+    fn clear(&mut self) {
+        self.clear_name();
+        self.clear_ident();
+        self.clear_state();
+        self.clear_job_id();
+        self.clear_target();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGroupProject {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGroupProject {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGroupAbort {
+    // message fields
+    group_id: ::std::option::Option<u64>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGroupAbort {}
+
+impl JobGroupAbort {
+    pub fn new() -> JobGroupAbort {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGroupAbort {
+        static mut instance: ::protobuf::lazy::Lazy<JobGroupAbort> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGroupAbort,
+        };
+        unsafe {
+            instance.get(JobGroupAbort::new)
+        }
+    }
+
+    // optional uint64 group_id = 1;
+
+    pub fn clear_group_id(&mut self) {
+        self.group_id = ::std::option::Option::None;
+    }
+
+    pub fn has_group_id(&self) -> bool {
+        self.group_id.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_group_id(&mut self, v: u64) {
+        self.group_id = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_group_id(&self) -> u64 {
+        self.group_id.unwrap_or(0)
+    }
+
+    fn get_group_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.group_id
+    }
+
+    fn mut_group_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.group_id
+    }
+}
+
+impl ::protobuf::Message for JobGroupAbort {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.group_id = ::std::option::Option::Some(tmp);
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(v) = self.group_id {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(v) = self.group_id {
+            os.write_uint64(1, v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGroupAbort {
+    fn new() -> JobGroupAbort {
+        JobGroupAbort::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGroupAbort>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "group_id",
+                    JobGroupAbort::get_group_id_for_reflect,
+                    JobGroupAbort::mut_group_id_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGroupAbort>(
+                    "JobGroupAbort",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGroupAbort {
+    fn clear(&mut self) {
+        self.clear_group_id();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGroupAbort {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGroupAbort {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGroupGet {
+    // message fields
+    group_id: ::std::option::Option<u64>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGroupGet {}
+
+impl JobGroupGet {
+    pub fn new() -> JobGroupGet {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGroupGet {
+        static mut instance: ::protobuf::lazy::Lazy<JobGroupGet> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGroupGet,
+        };
+        unsafe {
+            instance.get(JobGroupGet::new)
+        }
+    }
+
+    // optional uint64 group_id = 1;
+
+    pub fn clear_group_id(&mut self) {
+        self.group_id = ::std::option::Option::None;
+    }
+
+    pub fn has_group_id(&self) -> bool {
+        self.group_id.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_group_id(&mut self, v: u64) {
+        self.group_id = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_group_id(&self) -> u64 {
+        self.group_id.unwrap_or(0)
+    }
+
+    fn get_group_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.group_id
+    }
+
+    fn mut_group_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.group_id
+    }
+}
+
+impl ::protobuf::Message for JobGroupGet {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.group_id = ::std::option::Option::Some(tmp);
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(v) = self.group_id {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(v) = self.group_id {
+            os.write_uint64(1, v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGroupGet {
+    fn new() -> JobGroupGet {
+        JobGroupGet::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGroupGet>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "group_id",
+                    JobGroupGet::get_group_id_for_reflect,
+                    JobGroupGet::mut_group_id_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGroupGet>(
+                    "JobGroupGet",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGroupGet {
+    fn clear(&mut self) {
+        self.clear_group_id();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGroupGet {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGroupGet {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGroup {
+    // message fields
+    id: ::std::option::Option<u64>,
+    state: ::std::option::Option<JobGroupState>,
+    projects: ::protobuf::RepeatedField<JobGroupProject>,
+    created_at: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGroup {}
+
+impl JobGroup {
+    pub fn new() -> JobGroup {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGroup {
+        static mut instance: ::protobuf::lazy::Lazy<JobGroup> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGroup,
+        };
+        unsafe {
+            instance.get(JobGroup::new)
+        }
+    }
+
+    // optional uint64 id = 1;
+
+    pub fn clear_id(&mut self) {
+        self.id = ::std::option::Option::None;
+    }
+
+    pub fn has_id(&self) -> bool {
+        self.id.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_id(&mut self, v: u64) {
+        self.id = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_id(&self) -> u64 {
+        self.id.unwrap_or(0)
+    }
+
+    fn get_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.id
+    }
+
+    fn mut_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.id
+    }
+
+    // optional .jobsrv.JobGroupState state = 2;
+
+    pub fn clear_state(&mut self) {
+        self.state = ::std::option::Option::None;
+    }
+
+    pub fn has_state(&self) -> bool {
+        self.state.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_state(&mut self, v: JobGroupState) {
+        self.state = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_state(&self) -> JobGroupState {
+        self.state.unwrap_or(JobGroupState::GroupPending)
+    }
+
+    fn get_state_for_reflect(&self) -> &::std::option::Option<JobGroupState> {
+        &self.state
+    }
+
+    fn mut_state_for_reflect(&mut self) -> &mut ::std::option::Option<JobGroupState> {
+        &mut self.state
+    }
+
+    // repeated .jobsrv.JobGroupProject projects = 3;
+
+    pub fn clear_projects(&mut self) {
+        self.projects.clear();
+    }
+
+    // Param is passed by value, moved
+    pub fn set_projects(&mut self, v: ::protobuf::RepeatedField<JobGroupProject>) {
+        self.projects = v;
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_projects(&mut self) -> &mut ::protobuf::RepeatedField<JobGroupProject> {
+        &mut self.projects
+    }
+
+    // Take field
+    pub fn take_projects(&mut self) -> ::protobuf::RepeatedField<JobGroupProject> {
+        ::std::mem::replace(&mut self.projects, ::protobuf::RepeatedField::new())
+    }
+
+    pub fn get_projects(&self) -> &[JobGroupProject] {
+        &self.projects
+    }
+
+    fn get_projects_for_reflect(&self) -> &::protobuf::RepeatedField<JobGroupProject> {
+        &self.projects
+    }
+
+    fn mut_projects_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<JobGroupProject> {
+        &mut self.projects
+    }
+
+    // optional string created_at = 4;
+
+    pub fn clear_created_at(&mut self) {
+        self.created_at.clear();
+    }
+
+    pub fn has_created_at(&self) -> bool {
+        self.created_at.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_created_at(&mut self, v: ::std::string::String) {
+        self.created_at = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_created_at(&mut self) -> &mut ::std::string::String {
+        if self.created_at.is_none() {
+            self.created_at.set_default();
+        }
+        self.created_at.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_created_at(&mut self) -> ::std::string::String {
+        self.created_at.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_created_at(&self) -> &str {
+        match self.created_at.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_created_at_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.created_at
+    }
+
+    fn mut_created_at_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.created_at
+    }
+}
+
+impl ::protobuf::Message for JobGroup {
+    fn is_initialized(&self) -> bool {
+        for v in &self.projects {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.id = ::std::option::Option::Some(tmp);
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_enum()?;
+                    self.state = ::std::option::Option::Some(tmp);
+                },
+                3 => {
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.projects)?;
+                },
+                4 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.created_at)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(v) = self.id {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        if let Some(v) = self.state {
+            my_size += ::protobuf::rt::enum_size(2, v);
+        }
+        for value in &self.projects {
+            let len = value.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        };
+        if let Some(ref v) = self.created_at.as_ref() {
+            my_size += ::protobuf::rt::string_size(4, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(v) = self.id {
+            os.write_uint64(1, v)?;
+        }
+        if let Some(v) = self.state {
+            os.write_enum(2, v.value())?;
+        }
+        for v in &self.projects {
+            os.write_tag(3, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        };
+        if let Some(ref v) = self.created_at.as_ref() {
+            os.write_string(4, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGroup {
+    fn new() -> JobGroup {
+        JobGroup::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGroup>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "id",
+                    JobGroup::get_id_for_reflect,
+                    JobGroup::mut_id_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<JobGroupState>>(
+                    "state",
+                    JobGroup::get_state_for_reflect,
+                    JobGroup::mut_state_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<JobGroupProject>>(
+                    "projects",
+                    JobGroup::get_projects_for_reflect,
+                    JobGroup::mut_projects_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "created_at",
+                    JobGroup::get_created_at_for_reflect,
+                    JobGroup::mut_created_at_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGroup>(
+                    "JobGroup",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGroup {
+    fn clear(&mut self) {
+        self.clear_id();
+        self.clear_state();
+        self.clear_projects();
+        self.clear_created_at();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGroup {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGroup {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGraphPackage {
+    // message fields
+    ident: ::protobuf::SingularField<::std::string::String>,
+    deps: ::protobuf::RepeatedField<::std::string::String>,
+    target: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGraphPackage {}
+
+impl JobGraphPackage {
+    pub fn new() -> JobGraphPackage {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGraphPackage {
+        static mut instance: ::protobuf::lazy::Lazy<JobGraphPackage> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGraphPackage,
+        };
+        unsafe {
+            instance.get(JobGraphPackage::new)
+        }
+    }
+
+    // optional string ident = 1;
+
+    pub fn clear_ident(&mut self) {
+        self.ident.clear();
+    }
+
+    pub fn has_ident(&self) -> bool {
+        self.ident.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_ident(&mut self, v: ::std::string::String) {
+        self.ident = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_ident(&mut self) -> &mut ::std::string::String {
+        if self.ident.is_none() {
+            self.ident.set_default();
+        }
+        self.ident.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_ident(&mut self) -> ::std::string::String {
+        self.ident.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_ident(&self) -> &str {
+        match self.ident.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_ident_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.ident
+    }
+
+    fn mut_ident_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.ident
+    }
+
+    // repeated string deps = 2;
+
+    pub fn clear_deps(&mut self) {
+        self.deps.clear();
+    }
+
+    // Param is passed by value, moved
+    pub fn set_deps(&mut self, v: ::protobuf::RepeatedField<::std::string::String>) {
+        self.deps = v;
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_deps(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.deps
+    }
+
+    // Take field
+    pub fn take_deps(&mut self) -> ::protobuf::RepeatedField<::std::string::String> {
+        ::std::mem::replace(&mut self.deps, ::protobuf::RepeatedField::new())
+    }
+
+    pub fn get_deps(&self) -> &[::std::string::String] {
+        &self.deps
+    }
+
+    fn get_deps_for_reflect(&self) -> &::protobuf::RepeatedField<::std::string::String> {
+        &self.deps
+    }
+
+    fn mut_deps_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.deps
+    }
+
+    // optional string target = 3;
+
+    pub fn clear_target(&mut self) {
+        self.target.clear();
+    }
+
+    pub fn has_target(&self) -> bool {
+        self.target.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_target(&mut self, v: ::std::string::String) {
+        self.target = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_target(&mut self) -> &mut ::std::string::String {
+        if self.target.is_none() {
+            self.target.set_default();
+        }
+        self.target.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_target(&mut self) -> ::std::string::String {
+        self.target.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_target(&self) -> &str {
+        match self.target.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_target_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.target
+    }
+
+    fn mut_target_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.target
+    }
+}
+
+impl ::protobuf::Message for JobGraphPackage {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.ident)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_repeated_string_into(wire_type, is, &mut self.deps)?;
+                },
+                3 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.target)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.ident.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        for value in &self.deps {
+            my_size += ::protobuf::rt::string_size(2, &value);
+        };
+        if let Some(ref v) = self.target.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.ident.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        for v in &self.deps {
+            os.write_string(2, &v)?;
+        };
+        if let Some(ref v) = self.target.as_ref() {
+            os.write_string(3, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGraphPackage {
+    fn new() -> JobGraphPackage {
+        JobGraphPackage::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGraphPackage>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "ident",
+                    JobGraphPackage::get_ident_for_reflect,
+                    JobGraphPackage::mut_ident_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "deps",
+                    JobGraphPackage::get_deps_for_reflect,
+                    JobGraphPackage::mut_deps_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "target",
+                    JobGraphPackage::get_target_for_reflect,
+                    JobGraphPackage::mut_target_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGraphPackage>(
+                    "JobGraphPackage",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGraphPackage {
+    fn clear(&mut self) {
+        self.clear_ident();
+        self.clear_deps();
+        self.clear_target();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGraphPackage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGraphPackage {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGraphPackagePreCreate {
+    // message fields
+    ident: ::protobuf::SingularField<::std::string::String>,
+    deps: ::protobuf::RepeatedField<::std::string::String>,
+    target: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGraphPackagePreCreate {}
+
+impl JobGraphPackagePreCreate {
+    pub fn new() -> JobGraphPackagePreCreate {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGraphPackagePreCreate {
+        static mut instance: ::protobuf::lazy::Lazy<JobGraphPackagePreCreate> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGraphPackagePreCreate,
+        };
+        unsafe {
+            instance.get(JobGraphPackagePreCreate::new)
+        }
+    }
+
+    // optional string ident = 1;
+
+    pub fn clear_ident(&mut self) {
+        self.ident.clear();
+    }
+
+    pub fn has_ident(&self) -> bool {
+        self.ident.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_ident(&mut self, v: ::std::string::String) {
+        self.ident = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_ident(&mut self) -> &mut ::std::string::String {
+        if self.ident.is_none() {
+            self.ident.set_default();
+        }
+        self.ident.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_ident(&mut self) -> ::std::string::String {
+        self.ident.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_ident(&self) -> &str {
+        match self.ident.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_ident_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.ident
+    }
+
+    fn mut_ident_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.ident
+    }
+
+    // repeated string deps = 2;
+
+    pub fn clear_deps(&mut self) {
+        self.deps.clear();
+    }
+
+    // Param is passed by value, moved
+    pub fn set_deps(&mut self, v: ::protobuf::RepeatedField<::std::string::String>) {
+        self.deps = v;
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_deps(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.deps
+    }
+
+    // Take field
+    pub fn take_deps(&mut self) -> ::protobuf::RepeatedField<::std::string::String> {
+        ::std::mem::replace(&mut self.deps, ::protobuf::RepeatedField::new())
+    }
+
+    pub fn get_deps(&self) -> &[::std::string::String] {
+        &self.deps
+    }
+
+    fn get_deps_for_reflect(&self) -> &::protobuf::RepeatedField<::std::string::String> {
+        &self.deps
+    }
+
+    fn mut_deps_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.deps
+    }
+
+    // optional string target = 3;
+
+    pub fn clear_target(&mut self) {
+        self.target.clear();
+    }
+
+    pub fn has_target(&self) -> bool {
+        self.target.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_target(&mut self, v: ::std::string::String) {
+        self.target = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_target(&mut self) -> &mut ::std::string::String {
+        if self.target.is_none() {
+            self.target.set_default();
+        }
+        self.target.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_target(&mut self) -> ::std::string::String {
+        self.target.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_target(&self) -> &str {
+        match self.target.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_target_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.target
+    }
+
+    fn mut_target_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.target
+    }
+}
+
+impl ::protobuf::Message for JobGraphPackagePreCreate {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.ident)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_repeated_string_into(wire_type, is, &mut self.deps)?;
+                },
+                3 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.target)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.ident.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        for value in &self.deps {
+            my_size += ::protobuf::rt::string_size(2, &value);
+        };
+        if let Some(ref v) = self.target.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.ident.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        for v in &self.deps {
+            os.write_string(2, &v)?;
+        };
+        if let Some(ref v) = self.target.as_ref() {
+            os.write_string(3, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGraphPackagePreCreate {
+    fn new() -> JobGraphPackagePreCreate {
+        JobGraphPackagePreCreate::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGraphPackagePreCreate>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "ident",
+                    JobGraphPackagePreCreate::get_ident_for_reflect,
+                    JobGraphPackagePreCreate::mut_ident_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "deps",
+                    JobGraphPackagePreCreate::get_deps_for_reflect,
+                    JobGraphPackagePreCreate::mut_deps_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "target",
+                    JobGraphPackagePreCreate::get_target_for_reflect,
+                    JobGraphPackagePreCreate::mut_target_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGraphPackagePreCreate>(
+                    "JobGraphPackagePreCreate",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGraphPackagePreCreate {
+    fn clear(&mut self) {
+        self.clear_ident();
+        self.clear_deps();
+        self.clear_target();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGraphPackagePreCreate {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGraphPackagePreCreate {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGraphPackageCreate {
+    // message fields
+    ident: ::protobuf::SingularField<::std::string::String>,
+    deps: ::protobuf::RepeatedField<::std::string::String>,
+    target: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGraphPackageCreate {}
+
+impl JobGraphPackageCreate {
+    pub fn new() -> JobGraphPackageCreate {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGraphPackageCreate {
+        static mut instance: ::protobuf::lazy::Lazy<JobGraphPackageCreate> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGraphPackageCreate,
+        };
+        unsafe {
+            instance.get(JobGraphPackageCreate::new)
+        }
+    }
+
+    // optional string ident = 1;
+
+    pub fn clear_ident(&mut self) {
+        self.ident.clear();
+    }
+
+    pub fn has_ident(&self) -> bool {
+        self.ident.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_ident(&mut self, v: ::std::string::String) {
+        self.ident = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_ident(&mut self) -> &mut ::std::string::String {
+        if self.ident.is_none() {
+            self.ident.set_default();
+        }
+        self.ident.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_ident(&mut self) -> ::std::string::String {
+        self.ident.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_ident(&self) -> &str {
+        match self.ident.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_ident_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.ident
+    }
+
+    fn mut_ident_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.ident
+    }
+
+    // repeated string deps = 2;
+
+    pub fn clear_deps(&mut self) {
+        self.deps.clear();
+    }
+
+    // Param is passed by value, moved
+    pub fn set_deps(&mut self, v: ::protobuf::RepeatedField<::std::string::String>) {
+        self.deps = v;
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_deps(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.deps
+    }
+
+    // Take field
+    pub fn take_deps(&mut self) -> ::protobuf::RepeatedField<::std::string::String> {
+        ::std::mem::replace(&mut self.deps, ::protobuf::RepeatedField::new())
+    }
+
+    pub fn get_deps(&self) -> &[::std::string::String] {
+        &self.deps
+    }
+
+    fn get_deps_for_reflect(&self) -> &::protobuf::RepeatedField<::std::string::String> {
+        &self.deps
+    }
+
+    fn mut_deps_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.deps
+    }
+
+    // optional string target = 3;
+
+    pub fn clear_target(&mut self) {
+        self.target.clear();
+    }
+
+    pub fn has_target(&self) -> bool {
+        self.target.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_target(&mut self, v: ::std::string::String) {
+        self.target = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_target(&mut self) -> &mut ::std::string::String {
+        if self.target.is_none() {
+            self.target.set_default();
+        }
+        self.target.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_target(&mut self) -> ::std::string::String {
+        self.target.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_target(&self) -> &str {
+        match self.target.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_target_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.target
+    }
+
+    fn mut_target_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.target
+    }
+}
+
+impl ::protobuf::Message for JobGraphPackageCreate {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.ident)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_repeated_string_into(wire_type, is, &mut self.deps)?;
+                },
+                3 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.target)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.ident.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        for value in &self.deps {
+            my_size += ::protobuf::rt::string_size(2, &value);
+        };
+        if let Some(ref v) = self.target.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.ident.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        for v in &self.deps {
+            os.write_string(2, &v)?;
+        };
+        if let Some(ref v) = self.target.as_ref() {
+            os.write_string(3, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGraphPackageCreate {
+    fn new() -> JobGraphPackageCreate {
+        JobGraphPackageCreate::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGraphPackageCreate>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "ident",
+                    JobGraphPackageCreate::get_ident_for_reflect,
+                    JobGraphPackageCreate::mut_ident_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "deps",
+                    JobGraphPackageCreate::get_deps_for_reflect,
+                    JobGraphPackageCreate::mut_deps_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "target",
+                    JobGraphPackageCreate::get_target_for_reflect,
+                    JobGraphPackageCreate::mut_target_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGraphPackageCreate>(
+                    "JobGraphPackageCreate",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGraphPackageCreate {
+    fn clear(&mut self) {
+        self.clear_ident();
+        self.clear_deps();
+        self.clear_target();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGraphPackageCreate {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGraphPackageCreate {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGraphPackageReverseDependenciesGet {
+    // message fields
+    origin: ::protobuf::SingularField<::std::string::String>,
+    name: ::protobuf::SingularField<::std::string::String>,
+    target: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGraphPackageReverseDependenciesGet {}
+
+impl JobGraphPackageReverseDependenciesGet {
+    pub fn new() -> JobGraphPackageReverseDependenciesGet {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGraphPackageReverseDependenciesGet {
+        static mut instance: ::protobuf::lazy::Lazy<JobGraphPackageReverseDependenciesGet> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGraphPackageReverseDependenciesGet,
+        };
+        unsafe {
+            instance.get(JobGraphPackageReverseDependenciesGet::new)
+        }
+    }
+
+    // optional string origin = 1;
+
+    pub fn clear_origin(&mut self) {
+        self.origin.clear();
+    }
+
+    pub fn has_origin(&self) -> bool {
+        self.origin.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_origin(&mut self, v: ::std::string::String) {
+        self.origin = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_origin(&mut self) -> &mut ::std::string::String {
+        if self.origin.is_none() {
+            self.origin.set_default();
+        }
+        self.origin.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_origin(&mut self) -> ::std::string::String {
+        self.origin.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_origin(&self) -> &str {
+        match self.origin.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_origin_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.origin
+    }
+
+    fn mut_origin_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.origin
+    }
+
+    // optional string name = 2;
+
+    pub fn clear_name(&mut self) {
+        self.name.clear();
+    }
+
+    pub fn has_name(&self) -> bool {
+        self.name.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_name(&mut self, v: ::std::string::String) {
+        self.name = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_name(&mut self) -> &mut ::std::string::String {
+        if self.name.is_none() {
+            self.name.set_default();
+        }
+        self.name.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_name(&mut self) -> ::std::string::String {
+        self.name.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_name(&self) -> &str {
+        match self.name.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
+    }
+
+    // optional string target = 3;
+
+    pub fn clear_target(&mut self) {
+        self.target.clear();
+    }
+
+    pub fn has_target(&self) -> bool {
+        self.target.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_target(&mut self, v: ::std::string::String) {
+        self.target = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_target(&mut self) -> &mut ::std::string::String {
+        if self.target.is_none() {
+            self.target.set_default();
+        }
+        self.target.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_target(&mut self) -> ::std::string::String {
+        self.target.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_target(&self) -> &str {
+        match self.target.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_target_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.target
+    }
+
+    fn mut_target_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.target
+    }
+}
+
+impl ::protobuf::Message for JobGraphPackageReverseDependenciesGet {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.origin)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
+                },
+                3 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.target)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.origin.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(ref v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
+        }
+        if let Some(ref v) = self.target.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.origin.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        if let Some(ref v) = self.name.as_ref() {
+            os.write_string(2, &v)?;
+        }
+        if let Some(ref v) = self.target.as_ref() {
+            os.write_string(3, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGraphPackageReverseDependenciesGet {
+    fn new() -> JobGraphPackageReverseDependenciesGet {
+        JobGraphPackageReverseDependenciesGet::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGraphPackageReverseDependenciesGet>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "origin",
+                    JobGraphPackageReverseDependenciesGet::get_origin_for_reflect,
+                    JobGraphPackageReverseDependenciesGet::mut_origin_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "name",
+                    JobGraphPackageReverseDependenciesGet::get_name_for_reflect,
+                    JobGraphPackageReverseDependenciesGet::mut_name_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "target",
+                    JobGraphPackageReverseDependenciesGet::get_target_for_reflect,
+                    JobGraphPackageReverseDependenciesGet::mut_target_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGraphPackageReverseDependenciesGet>(
+                    "JobGraphPackageReverseDependenciesGet",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGraphPackageReverseDependenciesGet {
+    fn clear(&mut self) {
+        self.clear_origin();
+        self.clear_name();
+        self.clear_target();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGraphPackageReverseDependenciesGet {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGraphPackageReverseDependenciesGet {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGraphPackageReverseDependencies {
+    // message fields
+    origin: ::protobuf::SingularField<::std::string::String>,
+    name: ::protobuf::SingularField<::std::string::String>,
+    rdeps: ::protobuf::RepeatedField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGraphPackageReverseDependencies {}
+
+impl JobGraphPackageReverseDependencies {
+    pub fn new() -> JobGraphPackageReverseDependencies {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGraphPackageReverseDependencies {
+        static mut instance: ::protobuf::lazy::Lazy<JobGraphPackageReverseDependencies> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGraphPackageReverseDependencies,
+        };
+        unsafe {
+            instance.get(JobGraphPackageReverseDependencies::new)
+        }
+    }
+
+    // optional string origin = 1;
+
+    pub fn clear_origin(&mut self) {
+        self.origin.clear();
+    }
+
+    pub fn has_origin(&self) -> bool {
+        self.origin.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_origin(&mut self, v: ::std::string::String) {
+        self.origin = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_origin(&mut self) -> &mut ::std::string::String {
+        if self.origin.is_none() {
+            self.origin.set_default();
+        }
+        self.origin.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_origin(&mut self) -> ::std::string::String {
+        self.origin.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_origin(&self) -> &str {
+        match self.origin.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_origin_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.origin
+    }
+
+    fn mut_origin_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.origin
+    }
+
+    // optional string name = 2;
+
+    pub fn clear_name(&mut self) {
+        self.name.clear();
+    }
+
+    pub fn has_name(&self) -> bool {
+        self.name.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_name(&mut self, v: ::std::string::String) {
+        self.name = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_name(&mut self) -> &mut ::std::string::String {
+        if self.name.is_none() {
+            self.name.set_default();
+        }
+        self.name.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_name(&mut self) -> ::std::string::String {
+        self.name.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_name(&self) -> &str {
+        match self.name.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
+    }
+
+    // repeated string rdeps = 3;
+
+    pub fn clear_rdeps(&mut self) {
+        self.rdeps.clear();
+    }
+
+    // Param is passed by value, moved
+    pub fn set_rdeps(&mut self, v: ::protobuf::RepeatedField<::std::string::String>) {
+        self.rdeps = v;
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_rdeps(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.rdeps
+    }
+
+    // Take field
+    pub fn take_rdeps(&mut self) -> ::protobuf::RepeatedField<::std::string::String> {
+        ::std::mem::replace(&mut self.rdeps, ::protobuf::RepeatedField::new())
+    }
+
+    pub fn get_rdeps(&self) -> &[::std::string::String] {
+        &self.rdeps
+    }
+
+    fn get_rdeps_for_reflect(&self) -> &::protobuf::RepeatedField<::std::string::String> {
+        &self.rdeps
+    }
+
+    fn mut_rdeps_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<::std::string::String> {
+        &mut self.rdeps
+    }
+}
+
+impl ::protobuf::Message for JobGraphPackageReverseDependencies {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.origin)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
+                },
+                3 => {
+                    ::protobuf::rt::read_repeated_string_into(wire_type, is, &mut self.rdeps)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.origin.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        if let Some(ref v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
+        }
+        for value in &self.rdeps {
+            my_size += ::protobuf::rt::string_size(3, &value);
+        };
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.origin.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        if let Some(ref v) = self.name.as_ref() {
+            os.write_string(2, &v)?;
+        }
+        for v in &self.rdeps {
+            os.write_string(3, &v)?;
+        };
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGraphPackageReverseDependencies {
+    fn new() -> JobGraphPackageReverseDependencies {
+        JobGraphPackageReverseDependencies::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGraphPackageReverseDependencies>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "origin",
+                    JobGraphPackageReverseDependencies::get_origin_for_reflect,
+                    JobGraphPackageReverseDependencies::mut_origin_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "name",
+                    JobGraphPackageReverseDependencies::get_name_for_reflect,
+                    JobGraphPackageReverseDependencies::mut_name_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "rdeps",
+                    JobGraphPackageReverseDependencies::get_rdeps_for_reflect,
+                    JobGraphPackageReverseDependencies::mut_rdeps_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGraphPackageReverseDependencies>(
+                    "JobGraphPackageReverseDependencies",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGraphPackageReverseDependencies {
+    fn clear(&mut self) {
+        self.clear_origin();
+        self.clear_name();
+        self.clear_rdeps();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGraphPackageReverseDependencies {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGraphPackageReverseDependencies {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGraphPackageStatsGet {
+    // message fields
+    origin: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGraphPackageStatsGet {}
+
+impl JobGraphPackageStatsGet {
+    pub fn new() -> JobGraphPackageStatsGet {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGraphPackageStatsGet {
+        static mut instance: ::protobuf::lazy::Lazy<JobGraphPackageStatsGet> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGraphPackageStatsGet,
+        };
+        unsafe {
+            instance.get(JobGraphPackageStatsGet::new)
+        }
+    }
+
+    // optional string origin = 1;
+
+    pub fn clear_origin(&mut self) {
+        self.origin.clear();
+    }
+
+    pub fn has_origin(&self) -> bool {
+        self.origin.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_origin(&mut self, v: ::std::string::String) {
+        self.origin = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_origin(&mut self) -> &mut ::std::string::String {
+        if self.origin.is_none() {
+            self.origin.set_default();
+        }
+        self.origin.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_origin(&mut self) -> ::std::string::String {
+        self.origin.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_origin(&self) -> &str {
+        match self.origin.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_origin_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.origin
+    }
+
+    fn mut_origin_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.origin
+    }
+}
+
+impl ::protobuf::Message for JobGraphPackageStatsGet {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.origin)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.origin.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.origin.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGraphPackageStatsGet {
+    fn new() -> JobGraphPackageStatsGet {
+        JobGraphPackageStatsGet::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGraphPackageStatsGet>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "origin",
+                    JobGraphPackageStatsGet::get_origin_for_reflect,
+                    JobGraphPackageStatsGet::mut_origin_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGraphPackageStatsGet>(
+                    "JobGraphPackageStatsGet",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGraphPackageStatsGet {
+    fn clear(&mut self) {
+        self.clear_origin();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGraphPackageStatsGet {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGraphPackageStatsGet {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct JobGraphPackageStats {
+    // message fields
+    plans: ::std::option::Option<u64>,
+    builds: ::std::option::Option<u64>,
+    unique_packages: ::std::option::Option<u64>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for JobGraphPackageStats {}
+
+impl JobGraphPackageStats {
+    pub fn new() -> JobGraphPackageStats {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static JobGraphPackageStats {
+        static mut instance: ::protobuf::lazy::Lazy<JobGraphPackageStats> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const JobGraphPackageStats,
+        };
+        unsafe {
+            instance.get(JobGraphPackageStats::new)
+        }
+    }
+
+    // optional uint64 plans = 1;
+
+    pub fn clear_plans(&mut self) {
+        self.plans = ::std::option::Option::None;
+    }
+
+    pub fn has_plans(&self) -> bool {
+        self.plans.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_plans(&mut self, v: u64) {
+        self.plans = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_plans(&self) -> u64 {
+        self.plans.unwrap_or(0)
+    }
+
+    fn get_plans_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.plans
+    }
+
+    fn mut_plans_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.plans
+    }
+
+    // optional uint64 builds = 2;
+
+    pub fn clear_builds(&mut self) {
+        self.builds = ::std::option::Option::None;
+    }
+
+    pub fn has_builds(&self) -> bool {
+        self.builds.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_builds(&mut self, v: u64) {
+        self.builds = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_builds(&self) -> u64 {
+        self.builds.unwrap_or(0)
+    }
+
+    fn get_builds_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.builds
+    }
+
+    fn mut_builds_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.builds
+    }
+
+    // optional uint64 unique_packages = 3;
+
+    pub fn clear_unique_packages(&mut self) {
+        self.unique_packages = ::std::option::Option::None;
+    }
+
+    pub fn has_unique_packages(&self) -> bool {
+        self.unique_packages.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_unique_packages(&mut self, v: u64) {
+        self.unique_packages = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_unique_packages(&self) -> u64 {
+        self.unique_packages.unwrap_or(0)
+    }
+
+    fn get_unique_packages_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.unique_packages
+    }
+
+    fn mut_unique_packages_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.unique_packages
+    }
+}
+
+impl ::protobuf::Message for JobGraphPackageStats {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.plans = ::std::option::Option::Some(tmp);
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.builds = ::std::option::Option::Some(tmp);
+                },
+                3 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.unique_packages = ::std::option::Option::Some(tmp);
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(v) = self.plans {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        if let Some(v) = self.builds {
+            my_size += ::protobuf::rt::value_size(2, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        if let Some(v) = self.unique_packages {
+            my_size += ::protobuf::rt::value_size(3, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(v) = self.plans {
+            os.write_uint64(1, v)?;
+        }
+        if let Some(v) = self.builds {
+            os.write_uint64(2, v)?;
+        }
+        if let Some(v) = self.unique_packages {
+            os.write_uint64(3, v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for JobGraphPackageStats {
+    fn new() -> JobGraphPackageStats {
+        JobGraphPackageStats::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<JobGraphPackageStats>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "plans",
+                    JobGraphPackageStats::get_plans_for_reflect,
+                    JobGraphPackageStats::mut_plans_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "builds",
+                    JobGraphPackageStats::get_builds_for_reflect,
+                    JobGraphPackageStats::mut_builds_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "unique_packages",
+                    JobGraphPackageStats::get_unique_packages_for_reflect,
+                    JobGraphPackageStats::mut_unique_packages_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<JobGraphPackageStats>(
+                    "JobGraphPackageStats",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for JobGraphPackageStats {
+    fn clear(&mut self) {
+        self.clear_plans();
+        self.clear_builds();
+        self.clear_unique_packages();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for JobGraphPackageStats {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGraphPackageStats {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
 #[derive(Clone,PartialEq,Eq,Debug,Hash)]
 pub enum Os {
     Linux = 1,
@@ -3670,6 +7139,119 @@ impl ::protobuf::reflect::ProtobufValue for JobState {
     }
 }
 
+#[derive(Clone,PartialEq,Eq,Debug,Hash)]
+pub enum JobGroupProjectState {
+    NotStarted = 0,
+    InProgress = 1,
+    Success = 2,
+    Failure = 3,
+    Skipped = 4,
+}
+
+impl ::protobuf::ProtobufEnum for JobGroupProjectState {
+    fn value(&self) -> i32 {
+        *self as i32
+    }
+
+    fn from_i32(value: i32) -> ::std::option::Option<JobGroupProjectState> {
+        match value {
+            0 => ::std::option::Option::Some(JobGroupProjectState::NotStarted),
+            1 => ::std::option::Option::Some(JobGroupProjectState::InProgress),
+            2 => ::std::option::Option::Some(JobGroupProjectState::Success),
+            3 => ::std::option::Option::Some(JobGroupProjectState::Failure),
+            4 => ::std::option::Option::Some(JobGroupProjectState::Skipped),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    fn values() -> &'static [Self] {
+        static values: &'static [JobGroupProjectState] = &[
+            JobGroupProjectState::NotStarted,
+            JobGroupProjectState::InProgress,
+            JobGroupProjectState::Success,
+            JobGroupProjectState::Failure,
+            JobGroupProjectState::Skipped,
+        ];
+        values
+    }
+
+    fn enum_descriptor_static(_: ::std::option::Option<JobGroupProjectState>) -> &'static ::protobuf::reflect::EnumDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::EnumDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                ::protobuf::reflect::EnumDescriptor::new("JobGroupProjectState", file_descriptor_proto())
+            })
+        }
+    }
+}
+
+impl ::std::marker::Copy for JobGroupProjectState {
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGroupProjectState {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
+}
+
+#[derive(Clone,PartialEq,Eq,Debug,Hash)]
+pub enum JobGroupState {
+    GroupPending = 0,
+    GroupDispatching = 1,
+    GroupComplete = 2,
+    GroupFailed = 3,
+}
+
+impl ::protobuf::ProtobufEnum for JobGroupState {
+    fn value(&self) -> i32 {
+        *self as i32
+    }
+
+    fn from_i32(value: i32) -> ::std::option::Option<JobGroupState> {
+        match value {
+            0 => ::std::option::Option::Some(JobGroupState::GroupPending),
+            1 => ::std::option::Option::Some(JobGroupState::GroupDispatching),
+            2 => ::std::option::Option::Some(JobGroupState::GroupComplete),
+            3 => ::std::option::Option::Some(JobGroupState::GroupFailed),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    fn values() -> &'static [Self] {
+        static values: &'static [JobGroupState] = &[
+            JobGroupState::GroupPending,
+            JobGroupState::GroupDispatching,
+            JobGroupState::GroupComplete,
+            JobGroupState::GroupFailed,
+        ];
+        values
+    }
+
+    fn enum_descriptor_static(_: ::std::option::Option<JobGroupState>) -> &'static ::protobuf::reflect::EnumDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::EnumDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                ::protobuf::reflect::EnumDescriptor::new("JobGroupState", file_descriptor_proto())
+            })
+        }
+    }
+}
+
+impl ::std::marker::Copy for JobGroupState {
+}
+
+impl ::protobuf::reflect::ProtobufValue for JobGroupState {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
+}
+
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n\x16protocols/jobsrv.proto\x12\x06jobsrv\x1a\x13protocols/net.proto\
     \x1a\x19protocols/originsrv.proto\"n\n\tHeartbeat\x12\x1a\n\x08endpoint\
@@ -3708,218 +7290,392 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x05start\x18\x02\x20\x01(\x04R\x05start\"m\n\x06JobLog\x12\x14\n\x05sta\
     rt\x18\x01\x20\x01(\x04R\x05start\x12\x12\n\x04stop\x18\x02\x20\x01(\x04\
     R\x04stop\x12\x18\n\x07content\x18\x03\x20\x03(\tR\x07content\x12\x1f\n\
-    \x0bis_complete\x18\x04\x20\x01(\x08R\nisComplete*(\n\x02Os\x12\t\n\x05L\
-    inux\x10\x01\x12\n\n\x06Darwin\x10\x02\x12\x0b\n\x07Windows\x10\x03*\"\n\
-    \x0bWorkerState\x12\t\n\x05Ready\x10\0\x12\x08\n\x04Busy\x10\x01*_\n\x08\
-    JobState\x12\x0b\n\x07Pending\x10\0\x12\x0e\n\nProcessing\x10\x01\x12\
-    \x0c\n\x08Complete\x10\x02\x12\x0c\n\x08Rejected\x10\x03\x12\n\n\x06Fail\
-    ed\x10\x04\x12\x0e\n\nDispatched\x10\x05J\xf7'\n\x07\x12\x05\0\0\x80\x01\
-    \x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\x08\n\x01\x02\x12\x03\x01\x08\x0e\
-    \n\t\n\x02\x03\0\x12\x03\x02\x07\x1c\n\t\n\x02\x03\x01\x12\x03\x03\x07\"\
-    \n\n\n\x02\x05\0\x12\x04\x05\0\t\x01\n\n\n\x03\x05\0\x01\x12\x03\x05\x05\
-    \x07\n\x0b\n\x04\x05\0\x02\0\x12\x03\x06\x02\x0c\n\x0c\n\x05\x05\0\x02\0\
-    \x01\x12\x03\x06\x02\x07\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x06\n\x0b\n\
-    \x0b\n\x04\x05\0\x02\x01\x12\x03\x07\x02\r\n\x0c\n\x05\x05\0\x02\x01\x01\
-    \x12\x03\x07\x02\x08\n\x0c\n\x05\x05\0\x02\x01\x02\x12\x03\x07\x0b\x0c\n\
-    \x0b\n\x04\x05\0\x02\x02\x12\x03\x08\x02\x0e\n\x0c\n\x05\x05\0\x02\x02\
-    \x01\x12\x03\x08\x02\t\n\x0c\n\x05\x05\0\x02\x02\x02\x12\x03\x08\x0c\r\n\
-    \n\n\x02\x05\x01\x12\x04\x0b\0\x0e\x01\n\n\n\x03\x05\x01\x01\x12\x03\x0b\
-    \x05\x10\n\x0b\n\x04\x05\x01\x02\0\x12\x03\x0c\x02\x0c\n\x0c\n\x05\x05\
-    \x01\x02\0\x01\x12\x03\x0c\x02\x07\n\x0c\n\x05\x05\x01\x02\0\x02\x12\x03\
-    \x0c\n\x0b\n\x0b\n\x04\x05\x01\x02\x01\x12\x03\r\x02\x0b\n\x0c\n\x05\x05\
-    \x01\x02\x01\x01\x12\x03\r\x02\x06\n\x0c\n\x05\x05\x01\x02\x01\x02\x12\
-    \x03\r\t\n\n\n\n\x02\x05\x02\x12\x04\x10\0\x17\x01\n\n\n\x03\x05\x02\x01\
-    \x12\x03\x10\x05\r\n\x0b\n\x04\x05\x02\x02\0\x12\x03\x11\x02\x0e\n\x0c\n\
-    \x05\x05\x02\x02\0\x01\x12\x03\x11\x02\t\n\x0c\n\x05\x05\x02\x02\0\x02\
-    \x12\x03\x11\x0c\r\n\x0b\n\x04\x05\x02\x02\x01\x12\x03\x12\x02\x11\n\x0c\
-    \n\x05\x05\x02\x02\x01\x01\x12\x03\x12\x02\x0c\n\x0c\n\x05\x05\x02\x02\
-    \x01\x02\x12\x03\x12\x0f\x10\n\x0b\n\x04\x05\x02\x02\x02\x12\x03\x13\x02\
-    \x0f\n\x0c\n\x05\x05\x02\x02\x02\x01\x12\x03\x13\x02\n\n\x0c\n\x05\x05\
-    \x02\x02\x02\x02\x12\x03\x13\r\x0e\n\x0b\n\x04\x05\x02\x02\x03\x12\x03\
-    \x14\x02\x0f\n\x0c\n\x05\x05\x02\x02\x03\x01\x12\x03\x14\x02\n\n\x0c\n\
-    \x05\x05\x02\x02\x03\x02\x12\x03\x14\r\x0e\n\x0b\n\x04\x05\x02\x02\x04\
-    \x12\x03\x15\x02\r\n\x0c\n\x05\x05\x02\x02\x04\x01\x12\x03\x15\x02\x08\n\
-    \x0c\n\x05\x05\x02\x02\x04\x02\x12\x03\x15\x0b\x0c\n\x0b\n\x04\x05\x02\
-    \x02\x05\x12\x03\x16\x02\x11\n\x0c\n\x05\x05\x02\x02\x05\x01\x12\x03\x16\
-    \x02\x0c\n\x0c\n\x05\x05\x02\x02\x05\x02\x12\x03\x16\x0f\x10\n\n\n\x02\
-    \x04\0\x12\x04\x19\0\x1d\x01\n\n\n\x03\x04\0\x01\x12\x03\x19\x08\x11\n\
-    \x0b\n\x04\x04\0\x02\0\x12\x03\x1a\x02\x1f\n\x0c\n\x05\x04\0\x02\0\x04\
-    \x12\x03\x1a\x02\n\n\x0c\n\x05\x04\0\x02\0\x05\x12\x03\x1a\x0b\x11\n\x0c\
-    \n\x05\x04\0\x02\0\x01\x12\x03\x1a\x12\x1a\n\x0c\n\x05\x04\0\x02\0\x03\
-    \x12\x03\x1a\x1d\x1e\n\x0b\n\x04\x04\0\x02\x01\x12\x03\x1b\x02\x15\n\x0c\
-    \n\x05\x04\0\x02\x01\x04\x12\x03\x1b\x02\n\n\x0c\n\x05\x04\0\x02\x01\x06\
-    \x12\x03\x1b\x0b\r\n\x0c\n\x05\x04\0\x02\x01\x01\x12\x03\x1b\x0e\x10\n\
-    \x0c\n\x05\x04\0\x02\x01\x03\x12\x03\x1b\x13\x14\n\x0b\n\x04\x04\0\x02\
-    \x02\x12\x03\x1c\x02!\n\x0c\n\x05\x04\0\x02\x02\x04\x12\x03\x1c\x02\n\n\
-    \x0c\n\x05\x04\0\x02\x02\x06\x12\x03\x1c\x0b\x16\n\x0c\n\x05\x04\0\x02\
-    \x02\x01\x12\x03\x1c\x17\x1c\n\x0c\n\x05\x04\0\x02\x02\x03\x12\x03\x1c\
-    \x1f\x20\n\n\n\x02\x04\x01\x12\x04\x1f\0#\x01\n\n\n\x03\x04\x01\x01\x12\
-    \x03\x1f\x08\x12\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x20\x02\x1c\n\x0c\n\
-    \x05\x04\x01\x02\0\x04\x12\x03\x20\x02\n\n\x0c\n\x05\x04\x01\x02\0\x05\
-    \x12\x03\x20\x0b\x11\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x20\x12\x17\n\
-    \x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x20\x1a\x1b\n\x0b\n\x04\x04\x01\x02\
-    \x01\x12\x03!\x02\x1d\n\x0c\n\x05\x04\x01\x02\x01\x04\x12\x03!\x02\n\n\
-    \x0c\n\x05\x04\x01\x02\x01\x05\x12\x03!\x0b\x11\n\x0c\n\x05\x04\x01\x02\
-    \x01\x01\x12\x03!\x12\x18\n\x0c\n\x05\x04\x01\x02\x01\x03\x12\x03!\x1b\
-    \x1c\n\x0b\n\x04\x04\x01\x02\x02\x12\x03\"\x02\x20\n\x0c\n\x05\x04\x01\
-    \x02\x02\x04\x12\x03\"\x02\n\n\x0c\n\x05\x04\x01\x02\x02\x05\x12\x03\"\
-    \x0b\x0f\n\x0c\n\x05\x04\x01\x02\x02\x01\x12\x03\"\x10\x1b\n\x0c\n\x05\
-    \x04\x01\x02\x02\x03\x12\x03\"\x1e\x1f\n\n\n\x02\x04\x02\x12\x04%\0>\x01\
-    \n\n\n\x03\x04\x02\x01\x12\x03%\x08\x0b\n\n\n\x03\x04\x02\t\x12\x03&\x0b\
-    \x0e\n\x0b\n\x04\x04\x02\t\0\x12\x03&\x0b\r\n\x0c\n\x05\x04\x02\t\0\x01\
-    \x12\x03&\x0b\r\n\x0c\n\x05\x04\x02\t\0\x02\x12\x03&\x0b\r\n\n\n\x03\x04\
-    \x02\n\x12\x03'\x0b\x15\n\x0b\n\x04\x04\x02\n\0\x12\x03'\x0b\x14\n\x0b\n\
-    \x04\x04\x02\x02\0\x12\x03(\x02\x19\n\x0c\n\x05\x04\x02\x02\0\x04\x12\
-    \x03(\x02\n\n\x0c\n\x05\x04\x02\x02\0\x05\x12\x03(\x0b\x11\n\x0c\n\x05\
-    \x04\x02\x02\0\x01\x12\x03(\x12\x14\n\x0c\n\x05\x04\x02\x02\0\x03\x12\
-    \x03(\x17\x18\n\x0b\n\x04\x04\x02\x02\x01\x12\x03)\x02\x1f\n\x0c\n\x05\
-    \x04\x02\x02\x01\x04\x12\x03)\x02\n\n\x0c\n\x05\x04\x02\x02\x01\x05\x12\
-    \x03)\x0b\x11\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03)\x12\x1a\n\x0c\n\
-    \x05\x04\x02\x02\x01\x03\x12\x03)\x1d\x1e\n\x0b\n\x04\x04\x02\x02\x02\
-    \x12\x03*\x02\x1e\n\x0c\n\x05\x04\x02\x02\x02\x04\x12\x03*\x02\n\n\x0c\n\
-    \x05\x04\x02\x02\x02\x06\x12\x03*\x0b\x13\n\x0c\n\x05\x04\x02\x02\x02\
-    \x01\x12\x03*\x14\x19\n\x0c\n\x05\x04\x02\x02\x02\x03\x12\x03*\x1c\x1d\n\
-    \x0b\n\x04\x04\x02\x02\x03\x12\x03+\x02/\n\x0c\n\x05\x04\x02\x02\x03\x04\
-    \x12\x03+\x02\n\n\x0c\n\x05\x04\x02\x02\x03\x06\x12\x03+\x0b\"\n\x0c\n\
-    \x05\x04\x02\x02\x03\x01\x12\x03+#*\n\x0c\n\x05\x04\x02\x02\x03\x03\x12\
-    \x03+-.\n\x0b\n\x04\x04\x02\x02\x04\x12\x03,\x02\"\n\x0c\n\x05\x04\x02\
-    \x02\x04\x04\x12\x03,\x02\n\n\x0c\n\x05\x04\x02\x02\x04\x06\x12\x03,\x0b\
-    \x17\n\x0c\n\x05\x04\x02\x02\x04\x01\x12\x03,\x18\x1d\n\x0c\n\x05\x04\
-    \x02\x02\x04\x03\x12\x03,\x20!\n\xa5\x01\n\x04\x04\x02\x02\x05\x12\x030\
-    \x02!\x1a\x97\x01\x20The\x20RFC3339-formatted\x20time\x20the\x20job\x20w\
-    as\x20entered\x20into\x20the\n\x20system.\x20It\x20may\x20not\x20begin\
-    \x20processing\x20for\x20some\x20time\x20after\x20this,\n\x20based\x20on\
-    \x20current\x20system\x20load.\n\n\x0c\n\x05\x04\x02\x02\x05\x04\x12\x03\
-    0\x02\n\n\x0c\n\x05\x04\x02\x02\x05\x05\x12\x030\x0b\x11\n\x0c\n\x05\x04\
-    \x02\x02\x05\x01\x12\x030\x12\x1c\n\x0c\n\x05\x04\x02\x02\x05\x03\x12\
-    \x030\x1f\x20\nR\n\x04\x04\x02\x02\x06\x12\x033\x02'\x1aE\x20The\x20RFC3\
-    339-formatted\x20time\x20the\x20`hab\x20studio\x20build`\x20process\n\
-    \x20started.\n\n\x0c\n\x05\x04\x02\x02\x06\x04\x12\x033\x02\n\n\x0c\n\
-    \x05\x04\x02\x02\x06\x05\x12\x033\x0b\x11\n\x0c\n\x05\x04\x02\x02\x06\
-    \x01\x12\x033\x12\"\n\x0c\n\x05\x04\x02\x02\x06\x03\x12\x033%&\ne\n\x04\
-    \x04\x02\x02\x07\x12\x036\x02(\x1aX\x20The\x20RFC3339-formatted\x20time\
-    \x20the\x20`hab\x20studio\x20build`\x20process\n\x20stopped,\x20successf\
-    ul\x20or\x20not.\n\n\x0c\n\x05\x04\x02\x02\x07\x04\x12\x036\x02\n\n\x0c\
-    \n\x05\x04\x02\x02\x07\x05\x12\x036\x0b\x11\n\x0c\n\x05\x04\x02\x02\x07\
-    \x01\x12\x036\x12#\n\x0c\n\x05\x04\x02\x02\x07\x03\x12\x036&'\nH\n\x04\
-    \x04\x02\x02\x08\x12\x038\x02:\x1a;\x20The\x20identifier\x20of\x20the\
-    \x20package\x20built/attempted\x20by\x20the\x20job.\n\n\x0c\n\x05\x04\
-    \x02\x02\x08\x04\x12\x038\x02\n\n\x0c\n\x05\x04\x02\x02\x08\x06\x12\x038\
-    \x0b'\n\x0c\n\x05\x04\x02\x02\x08\x01\x12\x038(5\n\x0c\n\x05\x04\x02\x02\
-    \x08\x03\x12\x03889\nC\n\x04\x04\x02\x02\t\x12\x03:\x02!\x1a6\x20Whether\
-    \x20or\x20not\x20the\x20log\x20for\x20the\x20job\x20has\x20been\x20archi\
-    ved\n\n\x0c\n\x05\x04\x02\x02\t\x04\x12\x03:\x02\n\n\x0c\n\x05\x04\x02\
-    \x02\t\x05\x12\x03:\x0b\x0f\n\x0c\n\x05\x04\x02\x02\t\x01\x12\x03:\x10\
-    \x1b\n\x0c\n\x05\x04\x02\x02\t\x03\x12\x03:\x1e\x20\n\x0b\n\x04\x04\x02\
-    \x02\n\x12\x03;\x029\n\x0c\n\x05\x04\x02\x02\n\x04\x12\x03;\x02\n\n\x0c\
-    \n\x05\x04\x02\x02\n\x06\x12\x03;\x0b&\n\x0c\n\x05\x04\x02\x02\n\x01\x12\
-    \x03;'3\n\x0c\n\x05\x04\x02\x02\n\x03\x12\x03;68\n\x0b\n\x04\x04\x02\x02\
-    \x0b\x12\x03<\x02\x1f\n\x0c\n\x05\x04\x02\x02\x0b\x04\x12\x03<\x02\n\n\
-    \x0c\n\x05\x04\x02\x02\x0b\x05\x12\x03<\x0b\x11\n\x0c\n\x05\x04\x02\x02\
-    \x0b\x01\x12\x03<\x12\x19\n\x0c\n\x05\x04\x02\x02\x0b\x03\x12\x03<\x1c\
-    \x1e\n\x0b\n\x04\x04\x02\x02\x0c\x12\x03=\x02H\n\x0c\n\x05\x04\x02\x02\
-    \x0c\x04\x12\x03=\x02\n\n\x0c\n\x05\x04\x02\x02\x0c\x06\x12\x03=\x0b-\n\
-    \x0c\n\x05\x04\x02\x02\x0c\x01\x12\x03=.B\n\x0c\n\x05\x04\x02\x02\x0c\
-    \x03\x12\x03=EG\n)\n\x02\x04\x03\x12\x04A\0C\x01\x1a\x1d\x20Retrieve\x20\
-    a\x20single\x20job\x20by\x20ID\n\n\n\n\x03\x04\x03\x01\x12\x03A\x08\x0e\
-    \n\x0b\n\x04\x04\x03\x02\0\x12\x03B\x02\x19\n\x0c\n\x05\x04\x03\x02\0\
-    \x04\x12\x03B\x02\n\n\x0c\n\x05\x04\x03\x02\0\x05\x12\x03B\x0b\x11\n\x0c\
-    \n\x05\x04\x03\x02\0\x01\x12\x03B\x12\x14\n\x0c\n\x05\x04\x03\x02\0\x03\
-    \x12\x03B\x17\x18\n\n\n\x02\x04\x04\x12\x04E\0I\x01\n\n\n\x03\x04\x04\
-    \x01\x12\x03E\x08\x0f\n\x0b\n\x04\x04\x04\x02\0\x12\x03F\x02\x1f\n\x0c\n\
-    \x05\x04\x04\x02\0\x04\x12\x03F\x02\n\n\x0c\n\x05\x04\x04\x02\0\x05\x12\
-    \x03F\x0b\x11\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03F\x12\x1a\n\x0c\n\x05\
-    \x04\x04\x02\0\x03\x12\x03F\x1d\x1e\n\x0b\n\x04\x04\x04\x02\x01\x12\x03G\
-    \x02/\n\x0c\n\x05\x04\x04\x02\x01\x04\x12\x03G\x02\n\n\x0c\n\x05\x04\x04\
-    \x02\x01\x06\x12\x03G\x0b\"\n\x0c\n\x05\x04\x04\x02\x01\x01\x12\x03G#*\n\
-    \x0c\n\x05\x04\x04\x02\x01\x03\x12\x03G-.\n\x0b\n\x04\x04\x04\x02\x02\
-    \x12\x03H\x02\x1e\n\x0c\n\x05\x04\x04\x02\x02\x04\x12\x03H\x02\n\n\x0c\n\
-    \x05\x04\x04\x02\x02\x05\x12\x03H\x0b\x11\n\x0c\n\x05\x04\x04\x02\x02\
-    \x01\x12\x03H\x12\x19\n\x0c\n\x05\x04\x04\x02\x02\x03\x12\x03H\x1c\x1d\n\
-    3\n\x02\x04\x05\x12\x04L\0Q\x01\x1a'\x20Retrieve\x20jobs\x20for\x20a\x20\
-    specific\x20project.\n\n\n\n\x03\x04\x05\x01\x12\x03L\x08\x16\nH\n\x04\
-    \x04\x05\x02\0\x12\x03N\x02\x1b\x1a;\x20The\x20origin-qualified\x20name\
-    \x20of\x20a\x20project,\x20e.g.\x20\"core/nginx\"\n\n\x0c\n\x05\x04\x05\
-    \x02\0\x04\x12\x03N\x02\n\n\x0c\n\x05\x04\x05\x02\0\x05\x12\x03N\x0b\x11\
-    \n\x0c\n\x05\x04\x05\x02\0\x01\x12\x03N\x12\x16\n\x0c\n\x05\x04\x05\x02\
-    \0\x03\x12\x03N\x19\x1a\n\x0b\n\x04\x04\x05\x02\x01\x12\x03O\x02\x1c\n\
-    \x0c\n\x05\x04\x05\x02\x01\x04\x12\x03O\x02\n\n\x0c\n\x05\x04\x05\x02\
-    \x01\x05\x12\x03O\x0b\x11\n\x0c\n\x05\x04\x05\x02\x01\x01\x12\x03O\x12\
-    \x17\n\x0c\n\x05\x04\x05\x02\x01\x03\x12\x03O\x1a\x1b\n\x0b\n\x04\x04\
-    \x05\x02\x02\x12\x03P\x02\x1b\n\x0c\n\x05\x04\x05\x02\x02\x04\x12\x03P\
-    \x02\n\n\x0c\n\x05\x04\x05\x02\x02\x05\x12\x03P\x0b\x11\n\x0c\n\x05\x04\
-    \x05\x02\x02\x01\x12\x03P\x12\x16\n\x0c\n\x05\x04\x05\x02\x02\x03\x12\
-    \x03P\x19\x1a\n\n\n\x02\x04\x06\x12\x04S\0X\x01\n\n\n\x03\x04\x06\x01\
-    \x12\x03S\x08\x1e\n\x0b\n\x04\x04\x06\x02\0\x12\x03T\x02\x18\n\x0c\n\x05\
-    \x04\x06\x02\0\x04\x12\x03T\x02\n\n\x0c\n\x05\x04\x06\x02\0\x06\x12\x03T\
-    \x0b\x0e\n\x0c\n\x05\x04\x06\x02\0\x01\x12\x03T\x0f\x13\n\x0c\n\x05\x04\
-    \x06\x02\0\x03\x12\x03T\x16\x17\n\x0b\n\x04\x04\x06\x02\x01\x12\x03U\x02\
-    \x1c\n\x0c\n\x05\x04\x06\x02\x01\x04\x12\x03U\x02\n\n\x0c\n\x05\x04\x06\
-    \x02\x01\x05\x12\x03U\x0b\x11\n\x0c\n\x05\x04\x06\x02\x01\x01\x12\x03U\
-    \x12\x17\n\x0c\n\x05\x04\x06\x02\x01\x03\x12\x03U\x1a\x1b\n\x0b\n\x04\
-    \x04\x06\x02\x02\x12\x03V\x02\x1b\n\x0c\n\x05\x04\x06\x02\x02\x04\x12\
-    \x03V\x02\n\n\x0c\n\x05\x04\x06\x02\x02\x05\x12\x03V\x0b\x11\n\x0c\n\x05\
-    \x04\x06\x02\x02\x01\x12\x03V\x12\x16\n\x0c\n\x05\x04\x06\x02\x02\x03\
-    \x12\x03V\x19\x1a\n\x0b\n\x04\x04\x06\x02\x03\x12\x03W\x02\x1c\n\x0c\n\
-    \x05\x04\x06\x02\x03\x04\x12\x03W\x02\n\n\x0c\n\x05\x04\x06\x02\x03\x05\
-    \x12\x03W\x0b\x11\n\x0c\n\x05\x04\x06\x02\x03\x01\x12\x03W\x12\x17\n\x0c\
-    \n\x05\x04\x06\x02\x03\x03\x12\x03W\x1a\x1b\nQ\n\x02\x04\x07\x12\x04[\0d\
-    \x01\x1aE\x20Sent\x20from\x20a\x20worker\x20to\x20the\x20job\x20server's\
-    \x20log\x20ingester\x20during\x20a\x20build.\n\n\n\n\x03\x04\x07\x01\x12\
-    \x03[\x08\x13\n\x0b\n\x04\x04\x07\x02\0\x12\x03\\\x02\x1d\n\x0c\n\x05\
-    \x04\x07\x02\0\x04\x12\x03\\\x02\n\n\x0c\n\x05\x04\x07\x02\0\x05\x12\x03\
-    \\\x0b\x11\n\x0c\n\x05\x04\x07\x02\0\x01\x12\x03\\\x12\x18\n\x0c\n\x05\
-    \x04\x07\x02\0\x03\x12\x03\\\x1b\x1c\n\x9c\x01\n\x04\x04\x07\x02\x01\x12\
-    \x03`\x02\x1a\x1a\x8e\x01\x20Ordering\x20of\x20this\x20chunk\x20in\x20th\
-    e\x20overall\x20log\x20output,\x20starting\x20at\x201;\n\x20We\x20curren\
-    tly\x20send\x20one\x20line\x20at\x20a\x20time,\x20so\x20this\x20correspo\
-    nds\x20to\x20line\n\x20number.\n\n\x0c\n\x05\x04\x07\x02\x01\x04\x12\x03\
-    `\x02\n\n\x0c\n\x05\x04\x07\x02\x01\x05\x12\x03`\x0b\x11\n\x0c\n\x05\x04\
-    \x07\x02\x01\x01\x12\x03`\x12\x15\n\x0c\n\x05\x04\x07\x02\x01\x03\x12\
-    \x03`\x18\x19\nd\n\x04\x04\x07\x02\x02\x12\x03c\x02\x1e\x1aW\x20The\x20l\
-    og\x20content\x20being\x20sent\n\x20TODO:\x20Make\x20this\x20a\x20repeat\
-    ed\x20field\x20for\x20future\x20compatibility\n\n\x0c\n\x05\x04\x07\x02\
-    \x02\x04\x12\x03c\x02\n\n\x0c\n\x05\x04\x07\x02\x02\x05\x12\x03c\x0b\x11\
-    \n\x0c\n\x05\x04\x07\x02\x02\x01\x12\x03c\x12\x19\n\x0c\n\x05\x04\x07\
-    \x02\x02\x03\x12\x03c\x1c\x1d\n\\\n\x02\x04\x08\x12\x04h\0j\x01\x1aP\x20\
-    Sent\x20from\x20a\x20worker\x20to\x20the\x20job\x20server's\x20log\x20in\
-    gester\x20when\x20a\x20build\x20is\n\x20complete.\n\n\n\n\x03\x04\x08\
-    \x01\x12\x03h\x08\x16\n\x0b\n\x04\x04\x08\x02\0\x12\x03i\x02\x1d\n\x0c\n\
-    \x05\x04\x08\x02\0\x04\x12\x03i\x02\n\n\x0c\n\x05\x04\x08\x02\0\x05\x12\
-    \x03i\x0b\x11\n\x0c\n\x05\x04\x08\x02\0\x01\x12\x03i\x12\x18\n\x0c\n\x05\
-    \x04\x08\x02\0\x03\x12\x03i\x1b\x1c\nl\n\x02\x04\t\x12\x04n\0r\x01\x1a`\
-    \x20Initiated\x20by\x20API\x20request\x20to\x20retrieve\x20a\x20portion\
-    \x20of\x20a\x20job's\x20log\x20data,\n\x20beginning\x20at\x20line\x20`st\
-    art`\n\n\n\n\x03\x04\t\x01\x12\x03n\x08\x11\n\x0b\n\x04\x04\t\x02\0\x12\
-    \x03o\x02\x19\n\x0c\n\x05\x04\t\x02\0\x04\x12\x03o\x02\n\n\x0c\n\x05\x04\
-    \t\x02\0\x05\x12\x03o\x0b\x11\n\x0c\n\x05\x04\t\x02\0\x01\x12\x03o\x12\
-    \x14\n\x0c\n\x05\x04\t\x02\0\x03\x12\x03o\x17\x18\n@\n\x04\x04\t\x02\x01\
-    \x12\x03q\x02\x1c\x1a3\x20Zero-indexed\x20line\x20of\x20the\x20log\x20ou\
-    tput\x20to\x20start\x20with\n\n\x0c\n\x05\x04\t\x02\x01\x04\x12\x03q\x02\
-    \n\n\x0c\n\x05\x04\t\x02\x01\x05\x12\x03q\x0b\x11\n\x0c\n\x05\x04\t\x02\
-    \x01\x01\x12\x03q\x12\x17\n\x0c\n\x05\x04\t\x02\x01\x03\x12\x03q\x1a\x1b\
-    \n+\n\x02\x04\n\x12\x05u\0\x80\x01\x01\x1a\x1e\x20Sent\x20in\x20reply\
-    \x20to\x20a\x20JobLogGet\n\n\n\n\x03\x04\n\x01\x12\x03u\x08\x0e\nK\n\x04\
-    \x04\n\x02\0\x12\x03w\x02\x1c\x1a>\x20Zero-indexed\x20(inclusive)\x20lin\
-    e\x20of\x20the\x20log\x20output\x20in\x20`content`\n\n\x0c\n\x05\x04\n\
-    \x02\0\x04\x12\x03w\x02\n\n\x0c\n\x05\x04\n\x02\0\x05\x12\x03w\x0b\x11\n\
-    \x0c\n\x05\x04\n\x02\0\x01\x12\x03w\x12\x17\n\x0c\n\x05\x04\n\x02\0\x03\
-    \x12\x03w\x1a\x1b\nK\n\x04\x04\n\x02\x01\x12\x03y\x02\x1b\x1a>\x20Zero-i\
-    ndexed\x20(exclusive)\x20line\x20of\x20the\x20log\x20output\x20in\x20`co\
-    ntent`\n\n\x0c\n\x05\x04\n\x02\x01\x04\x12\x03y\x02\n\n\x0c\n\x05\x04\n\
-    \x02\x01\x05\x12\x03y\x0b\x11\n\x0c\n\x05\x04\n\x02\x01\x01\x12\x03y\x12\
-    \x16\n\x0c\n\x05\x04\n\x02\x01\x03\x12\x03y\x19\x1a\n\"\n\x04\x04\n\x02\
-    \x02\x12\x03{\x02\x1e\x1a\x15\x20Lines\x20of\x20log\x20output\n\n\x0c\n\
-    \x05\x04\n\x02\x02\x04\x12\x03{\x02\n\n\x0c\n\x05\x04\n\x02\x02\x05\x12\
-    \x03{\x0b\x11\n\x0c\n\x05\x04\n\x02\x02\x01\x12\x03{\x12\x19\n\x0c\n\x05\
-    \x04\n\x02\x02\x03\x12\x03{\x1c\x1d\n\x9c\x01\n\x04\x04\n\x02\x03\x12\
-    \x03\x7f\x02\x20\x1a\x8e\x01\x20While\x20we\x20need\x20to\x20poll\x20for\
-    \x20logs,\x20this\x20serves\x20as\x20an\x20indicator\x20to\n\x20clients\
-    \x20if\x20they\x20need\x20to\x20continue\x20polling\x20to\x20receive\x20\
-    more\x20logs,\x20or\n\x20can\x20stop.\n\n\x0c\n\x05\x04\n\x02\x03\x04\
-    \x12\x03\x7f\x02\n\n\x0c\n\x05\x04\n\x02\x03\x05\x12\x03\x7f\x0b\x0f\n\
-    \x0c\n\x05\x04\n\x02\x03\x01\x12\x03\x7f\x10\x1b\n\x0c\n\x05\x04\n\x02\
-    \x03\x03\x12\x03\x7f\x1e\x1f\
+    \x0bis_complete\x18\x04\x20\x01(\x08R\nisComplete\"\xb9\x01\n\x0cJobGrou\
+    pSpec\x12\x16\n\x06origin\x18\x01\x20\x01(\tR\x06origin\x12\x18\n\x07pac\
+    kage\x18\x02\x20\x01(\tR\x07package\x12\x1b\n\tdeps_only\x18\x03\x20\x01\
+    (\x08R\x08depsOnly\x12\x16\n\x06target\x18\x04\x20\x01(\tR\x06target\x12\
+    \x1f\n\x0borigin_only\x18\x05\x20\x01(\x08R\noriginOnly\x12!\n\x0cpackag\
+    e_only\x18\x06\x20\x01(\x08R\x0bpackageOnly\"\x9e\x01\n\x0fJobGroupProje\
+    ct\x12\x12\n\x04name\x18\x01\x20\x01(\tR\x04name\x12\x14\n\x05ident\x18\
+    \x02\x20\x01(\tR\x05ident\x122\n\x05state\x18\x03\x20\x01(\x0e2\x1c.jobs\
+    rv.JobGroupProjectStateR\x05state\x12\x15\n\x06job_id\x18\x04\x20\x01(\
+    \x04R\x05jobId\x12\x16\n\x06target\x18\x05\x20\x01(\tR\x06target\"*\n\rJ\
+    obGroupAbort\x12\x19\n\x08group_id\x18\x01\x20\x01(\x04R\x07groupId\"(\n\
+    \x0bJobGroupGet\x12\x19\n\x08group_id\x18\x01\x20\x01(\x04R\x07groupId\"\
+    \x9b\x01\n\x08JobGroup\x12\x0e\n\x02id\x18\x01\x20\x01(\x04R\x02id\x12+\
+    \n\x05state\x18\x02\x20\x01(\x0e2\x15.jobsrv.JobGroupStateR\x05state\x12\
+    3\n\x08projects\x18\x03\x20\x03(\x0b2\x17.jobsrv.JobGroupProjectR\x08pro\
+    jects\x12\x1d\n\ncreated_at\x18\x04\x20\x01(\tR\tcreatedAt\"S\n\x0fJobGr\
+    aphPackage\x12\x14\n\x05ident\x18\x01\x20\x01(\tR\x05ident\x12\x12\n\x04\
+    deps\x18\x02\x20\x03(\tR\x04deps\x12\x16\n\x06target\x18\x03\x20\x01(\tR\
+    \x06target\"\\\n\x18JobGraphPackagePreCreate\x12\x14\n\x05ident\x18\x01\
+    \x20\x01(\tR\x05ident\x12\x12\n\x04deps\x18\x02\x20\x03(\tR\x04deps\x12\
+    \x16\n\x06target\x18\x03\x20\x01(\tR\x06target\"Y\n\x15JobGraphPackageCr\
+    eate\x12\x14\n\x05ident\x18\x01\x20\x01(\tR\x05ident\x12\x12\n\x04deps\
+    \x18\x02\x20\x03(\tR\x04deps\x12\x16\n\x06target\x18\x03\x20\x01(\tR\x06\
+    target\"k\n%JobGraphPackageReverseDependenciesGet\x12\x16\n\x06origin\
+    \x18\x01\x20\x01(\tR\x06origin\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04\
+    name\x12\x16\n\x06target\x18\x03\x20\x01(\tR\x06target\"f\n\"JobGraphPac\
+    kageReverseDependencies\x12\x16\n\x06origin\x18\x01\x20\x01(\tR\x06origi\
+    n\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12\x14\n\x05rdeps\x18\
+    \x03\x20\x03(\tR\x05rdeps\"1\n\x17JobGraphPackageStatsGet\x12\x16\n\x06o\
+    rigin\x18\x01\x20\x01(\tR\x06origin\"m\n\x14JobGraphPackageStats\x12\x14\
+    \n\x05plans\x18\x01\x20\x01(\x04R\x05plans\x12\x16\n\x06builds\x18\x02\
+    \x20\x01(\x04R\x06builds\x12'\n\x0funique_packages\x18\x03\x20\x01(\x04R\
+    \x0euniquePackages*(\n\x02Os\x12\t\n\x05Linux\x10\x01\x12\n\n\x06Darwin\
+    \x10\x02\x12\x0b\n\x07Windows\x10\x03*\"\n\x0bWorkerState\x12\t\n\x05Rea\
+    dy\x10\0\x12\x08\n\x04Busy\x10\x01*_\n\x08JobState\x12\x0b\n\x07Pending\
+    \x10\0\x12\x0e\n\nProcessing\x10\x01\x12\x0c\n\x08Complete\x10\x02\x12\
+    \x0c\n\x08Rejected\x10\x03\x12\n\n\x06Failed\x10\x04\x12\x0e\n\nDispatch\
+    ed\x10\x05*]\n\x14JobGroupProjectState\x12\x0e\n\nNotStarted\x10\0\x12\
+    \x0e\n\nInProgress\x10\x01\x12\x0b\n\x07Success\x10\x02\x12\x0b\n\x07Fai\
+    lure\x10\x03\x12\x0b\n\x07Skipped\x10\x04*[\n\rJobGroupState\x12\x10\n\
+    \x0cGroupPending\x10\0\x12\x14\n\x10GroupDispatching\x10\x01\x12\x11\n\r\
+    GroupComplete\x10\x02\x12\x0f\n\x0bGroupFailed\x10\x03J\xd68\n\x07\x12\
+    \x05\0\0\xb9\x01\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\x08\n\x01\x02\x12\
+    \x03\x01\x08\x0e\n\t\n\x02\x03\0\x12\x03\x02\x07\x1c\n\t\n\x02\x03\x01\
+    \x12\x03\x03\x07\"\n\n\n\x02\x05\0\x12\x04\x05\0\t\x01\n\n\n\x03\x05\0\
+    \x01\x12\x03\x05\x05\x07\n\x0b\n\x04\x05\0\x02\0\x12\x03\x06\x02\x0c\n\
+    \x0c\n\x05\x05\0\x02\0\x01\x12\x03\x06\x02\x07\n\x0c\n\x05\x05\0\x02\0\
+    \x02\x12\x03\x06\n\x0b\n\x0b\n\x04\x05\0\x02\x01\x12\x03\x07\x02\r\n\x0c\
+    \n\x05\x05\0\x02\x01\x01\x12\x03\x07\x02\x08\n\x0c\n\x05\x05\0\x02\x01\
+    \x02\x12\x03\x07\x0b\x0c\n\x0b\n\x04\x05\0\x02\x02\x12\x03\x08\x02\x0e\n\
+    \x0c\n\x05\x05\0\x02\x02\x01\x12\x03\x08\x02\t\n\x0c\n\x05\x05\0\x02\x02\
+    \x02\x12\x03\x08\x0c\r\n\n\n\x02\x05\x01\x12\x04\x0b\0\x0e\x01\n\n\n\x03\
+    \x05\x01\x01\x12\x03\x0b\x05\x10\n\x0b\n\x04\x05\x01\x02\0\x12\x03\x0c\
+    \x02\x0c\n\x0c\n\x05\x05\x01\x02\0\x01\x12\x03\x0c\x02\x07\n\x0c\n\x05\
+    \x05\x01\x02\0\x02\x12\x03\x0c\n\x0b\n\x0b\n\x04\x05\x01\x02\x01\x12\x03\
+    \r\x02\x0b\n\x0c\n\x05\x05\x01\x02\x01\x01\x12\x03\r\x02\x06\n\x0c\n\x05\
+    \x05\x01\x02\x01\x02\x12\x03\r\t\n\n\n\n\x02\x05\x02\x12\x04\x10\0\x17\
+    \x01\n\n\n\x03\x05\x02\x01\x12\x03\x10\x05\r\n\x0b\n\x04\x05\x02\x02\0\
+    \x12\x03\x11\x02\x0e\n\x0c\n\x05\x05\x02\x02\0\x01\x12\x03\x11\x02\t\n\
+    \x0c\n\x05\x05\x02\x02\0\x02\x12\x03\x11\x0c\r\n\x0b\n\x04\x05\x02\x02\
+    \x01\x12\x03\x12\x02\x11\n\x0c\n\x05\x05\x02\x02\x01\x01\x12\x03\x12\x02\
+    \x0c\n\x0c\n\x05\x05\x02\x02\x01\x02\x12\x03\x12\x0f\x10\n\x0b\n\x04\x05\
+    \x02\x02\x02\x12\x03\x13\x02\x0f\n\x0c\n\x05\x05\x02\x02\x02\x01\x12\x03\
+    \x13\x02\n\n\x0c\n\x05\x05\x02\x02\x02\x02\x12\x03\x13\r\x0e\n\x0b\n\x04\
+    \x05\x02\x02\x03\x12\x03\x14\x02\x0f\n\x0c\n\x05\x05\x02\x02\x03\x01\x12\
+    \x03\x14\x02\n\n\x0c\n\x05\x05\x02\x02\x03\x02\x12\x03\x14\r\x0e\n\x0b\n\
+    \x04\x05\x02\x02\x04\x12\x03\x15\x02\r\n\x0c\n\x05\x05\x02\x02\x04\x01\
+    \x12\x03\x15\x02\x08\n\x0c\n\x05\x05\x02\x02\x04\x02\x12\x03\x15\x0b\x0c\
+    \n\x0b\n\x04\x05\x02\x02\x05\x12\x03\x16\x02\x11\n\x0c\n\x05\x05\x02\x02\
+    \x05\x01\x12\x03\x16\x02\x0c\n\x0c\n\x05\x05\x02\x02\x05\x02\x12\x03\x16\
+    \x0f\x10\n\n\n\x02\x04\0\x12\x04\x19\0\x1d\x01\n\n\n\x03\x04\0\x01\x12\
+    \x03\x19\x08\x11\n\x0b\n\x04\x04\0\x02\0\x12\x03\x1a\x02\x1f\n\x0c\n\x05\
+    \x04\0\x02\0\x04\x12\x03\x1a\x02\n\n\x0c\n\x05\x04\0\x02\0\x05\x12\x03\
+    \x1a\x0b\x11\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x1a\x12\x1a\n\x0c\n\x05\
+    \x04\0\x02\0\x03\x12\x03\x1a\x1d\x1e\n\x0b\n\x04\x04\0\x02\x01\x12\x03\
+    \x1b\x02\x15\n\x0c\n\x05\x04\0\x02\x01\x04\x12\x03\x1b\x02\n\n\x0c\n\x05\
+    \x04\0\x02\x01\x06\x12\x03\x1b\x0b\r\n\x0c\n\x05\x04\0\x02\x01\x01\x12\
+    \x03\x1b\x0e\x10\n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\x1b\x13\x14\n\x0b\
+    \n\x04\x04\0\x02\x02\x12\x03\x1c\x02!\n\x0c\n\x05\x04\0\x02\x02\x04\x12\
+    \x03\x1c\x02\n\n\x0c\n\x05\x04\0\x02\x02\x06\x12\x03\x1c\x0b\x16\n\x0c\n\
+    \x05\x04\0\x02\x02\x01\x12\x03\x1c\x17\x1c\n\x0c\n\x05\x04\0\x02\x02\x03\
+    \x12\x03\x1c\x1f\x20\n\n\n\x02\x04\x01\x12\x04\x1f\0#\x01\n\n\n\x03\x04\
+    \x01\x01\x12\x03\x1f\x08\x12\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x20\x02\
+    \x1c\n\x0c\n\x05\x04\x01\x02\0\x04\x12\x03\x20\x02\n\n\x0c\n\x05\x04\x01\
+    \x02\0\x05\x12\x03\x20\x0b\x11\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x20\
+    \x12\x17\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x20\x1a\x1b\n\x0b\n\x04\
+    \x04\x01\x02\x01\x12\x03!\x02\x1d\n\x0c\n\x05\x04\x01\x02\x01\x04\x12\
+    \x03!\x02\n\n\x0c\n\x05\x04\x01\x02\x01\x05\x12\x03!\x0b\x11\n\x0c\n\x05\
+    \x04\x01\x02\x01\x01\x12\x03!\x12\x18\n\x0c\n\x05\x04\x01\x02\x01\x03\
+    \x12\x03!\x1b\x1c\n\x0b\n\x04\x04\x01\x02\x02\x12\x03\"\x02\x20\n\x0c\n\
+    \x05\x04\x01\x02\x02\x04\x12\x03\"\x02\n\n\x0c\n\x05\x04\x01\x02\x02\x05\
+    \x12\x03\"\x0b\x0f\n\x0c\n\x05\x04\x01\x02\x02\x01\x12\x03\"\x10\x1b\n\
+    \x0c\n\x05\x04\x01\x02\x02\x03\x12\x03\"\x1e\x1f\n\n\n\x02\x04\x02\x12\
+    \x04%\05\x01\n\n\n\x03\x04\x02\x01\x12\x03%\x08\x0b\n\n\n\x03\x04\x02\t\
+    \x12\x03&\x0b\x0e\n\x0b\n\x04\x04\x02\t\0\x12\x03&\x0b\r\n\x0c\n\x05\x04\
+    \x02\t\0\x01\x12\x03&\x0b\r\n\x0c\n\x05\x04\x02\t\0\x02\x12\x03&\x0b\r\n\
+    \n\n\x03\x04\x02\n\x12\x03'\x0b\x15\n\x0b\n\x04\x04\x02\n\0\x12\x03'\x0b\
+    \x14\n\x0b\n\x04\x04\x02\x02\0\x12\x03(\x02\x19\n\x0c\n\x05\x04\x02\x02\
+    \0\x04\x12\x03(\x02\n\n\x0c\n\x05\x04\x02\x02\0\x05\x12\x03(\x0b\x11\n\
+    \x0c\n\x05\x04\x02\x02\0\x01\x12\x03(\x12\x14\n\x0c\n\x05\x04\x02\x02\0\
+    \x03\x12\x03(\x17\x18\n\x0b\n\x04\x04\x02\x02\x01\x12\x03)\x02\x1f\n\x0c\
+    \n\x05\x04\x02\x02\x01\x04\x12\x03)\x02\n\n\x0c\n\x05\x04\x02\x02\x01\
+    \x05\x12\x03)\x0b\x11\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03)\x12\x1a\n\
+    \x0c\n\x05\x04\x02\x02\x01\x03\x12\x03)\x1d\x1e\n\x0b\n\x04\x04\x02\x02\
+    \x02\x12\x03*\x02\x1e\n\x0c\n\x05\x04\x02\x02\x02\x04\x12\x03*\x02\n\n\
+    \x0c\n\x05\x04\x02\x02\x02\x06\x12\x03*\x0b\x13\n\x0c\n\x05\x04\x02\x02\
+    \x02\x01\x12\x03*\x14\x19\n\x0c\n\x05\x04\x02\x02\x02\x03\x12\x03*\x1c\
+    \x1d\n\x0b\n\x04\x04\x02\x02\x03\x12\x03+\x02/\n\x0c\n\x05\x04\x02\x02\
+    \x03\x04\x12\x03+\x02\n\n\x0c\n\x05\x04\x02\x02\x03\x06\x12\x03+\x0b\"\n\
+    \x0c\n\x05\x04\x02\x02\x03\x01\x12\x03+#*\n\x0c\n\x05\x04\x02\x02\x03\
+    \x03\x12\x03+-.\n\x0b\n\x04\x04\x02\x02\x04\x12\x03,\x02\"\n\x0c\n\x05\
+    \x04\x02\x02\x04\x04\x12\x03,\x02\n\n\x0c\n\x05\x04\x02\x02\x04\x06\x12\
+    \x03,\x0b\x17\n\x0c\n\x05\x04\x02\x02\x04\x01\x12\x03,\x18\x1d\n\x0c\n\
+    \x05\x04\x02\x02\x04\x03\x12\x03,\x20!\n%\n\x04\x04\x02\x02\x05\x12\x03-\
+    \x02!\"\x18\x20RFC3339-formatted\x20time\n\n\x0c\n\x05\x04\x02\x02\x05\
+    \x04\x12\x03-\x02\n\n\x0c\n\x05\x04\x02\x02\x05\x05\x12\x03-\x0b\x11\n\
+    \x0c\n\x05\x04\x02\x02\x05\x01\x12\x03-\x12\x1c\n\x0c\n\x05\x04\x02\x02\
+    \x05\x03\x12\x03-\x1f\x20\n%\n\x04\x04\x02\x02\x06\x12\x03.\x02'\"\x18\
+    \x20RFC3339-formatted\x20time\n\n\x0c\n\x05\x04\x02\x02\x06\x04\x12\x03.\
+    \x02\n\n\x0c\n\x05\x04\x02\x02\x06\x05\x12\x03.\x0b\x11\n\x0c\n\x05\x04\
+    \x02\x02\x06\x01\x12\x03.\x12\"\n\x0c\n\x05\x04\x02\x02\x06\x03\x12\x03.\
+    %&\n\x0b\n\x04\x04\x02\x02\x07\x12\x03/\x02(\n\x0c\n\x05\x04\x02\x02\x07\
+    \x04\x12\x03/\x02\n\n\x0c\n\x05\x04\x02\x02\x07\x05\x12\x03/\x0b\x11\n\
+    \x0c\n\x05\x04\x02\x02\x07\x01\x12\x03/\x12#\n\x0c\n\x05\x04\x02\x02\x07\
+    \x03\x12\x03/&'\n\x0b\n\x04\x04\x02\x02\x08\x12\x030\x02:\n\x0c\n\x05\
+    \x04\x02\x02\x08\x04\x12\x030\x02\n\n\x0c\n\x05\x04\x02\x02\x08\x06\x12\
+    \x030\x0b'\n\x0c\n\x05\x04\x02\x02\x08\x01\x12\x030(5\n\x0c\n\x05\x04\
+    \x02\x02\x08\x03\x12\x03089\n\x0b\n\x04\x04\x02\x02\t\x12\x031\x02!\n\
+    \x0c\n\x05\x04\x02\x02\t\x04\x12\x031\x02\n\n\x0c\n\x05\x04\x02\x02\t\
+    \x05\x12\x031\x0b\x0f\n\x0c\n\x05\x04\x02\x02\t\x01\x12\x031\x10\x1b\n\
+    \x0c\n\x05\x04\x02\x02\t\x03\x12\x031\x1e\x20\n\x0b\n\x04\x04\x02\x02\n\
+    \x12\x032\x029\n\x0c\n\x05\x04\x02\x02\n\x04\x12\x032\x02\n\n\x0c\n\x05\
+    \x04\x02\x02\n\x06\x12\x032\x0b&\n\x0c\n\x05\x04\x02\x02\n\x01\x12\x032'\
+    3\n\x0c\n\x05\x04\x02\x02\n\x03\x12\x03268\n\x0b\n\x04\x04\x02\x02\x0b\
+    \x12\x033\x02\x1f\n\x0c\n\x05\x04\x02\x02\x0b\x04\x12\x033\x02\n\n\x0c\n\
+    \x05\x04\x02\x02\x0b\x05\x12\x033\x0b\x11\n\x0c\n\x05\x04\x02\x02\x0b\
+    \x01\x12\x033\x12\x19\n\x0c\n\x05\x04\x02\x02\x0b\x03\x12\x033\x1c\x1e\n\
+    \x0b\n\x04\x04\x02\x02\x0c\x12\x034\x02H\n\x0c\n\x05\x04\x02\x02\x0c\x04\
+    \x12\x034\x02\n\n\x0c\n\x05\x04\x02\x02\x0c\x06\x12\x034\x0b-\n\x0c\n\
+    \x05\x04\x02\x02\x0c\x01\x12\x034.B\n\x0c\n\x05\x04\x02\x02\x0c\x03\x12\
+    \x034EG\n\n\n\x02\x04\x03\x12\x047\09\x01\n\n\n\x03\x04\x03\x01\x12\x037\
+    \x08\x0e\n\x0b\n\x04\x04\x03\x02\0\x12\x038\x02\x19\n\x0c\n\x05\x04\x03\
+    \x02\0\x04\x12\x038\x02\n\n\x0c\n\x05\x04\x03\x02\0\x05\x12\x038\x0b\x11\
+    \n\x0c\n\x05\x04\x03\x02\0\x01\x12\x038\x12\x14\n\x0c\n\x05\x04\x03\x02\
+    \0\x03\x12\x038\x17\x18\n\n\n\x02\x04\x04\x12\x04;\0?\x01\n\n\n\x03\x04\
+    \x04\x01\x12\x03;\x08\x0f\n\x0b\n\x04\x04\x04\x02\0\x12\x03<\x02\x1f\n\
+    \x0c\n\x05\x04\x04\x02\0\x04\x12\x03<\x02\n\n\x0c\n\x05\x04\x04\x02\0\
+    \x05\x12\x03<\x0b\x11\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03<\x12\x1a\n\
+    \x0c\n\x05\x04\x04\x02\0\x03\x12\x03<\x1d\x1e\n\x0b\n\x04\x04\x04\x02\
+    \x01\x12\x03=\x02/\n\x0c\n\x05\x04\x04\x02\x01\x04\x12\x03=\x02\n\n\x0c\
+    \n\x05\x04\x04\x02\x01\x06\x12\x03=\x0b\"\n\x0c\n\x05\x04\x04\x02\x01\
+    \x01\x12\x03=#*\n\x0c\n\x05\x04\x04\x02\x01\x03\x12\x03=-.\n\x0b\n\x04\
+    \x04\x04\x02\x02\x12\x03>\x02\x1e\n\x0c\n\x05\x04\x04\x02\x02\x04\x12\
+    \x03>\x02\n\n\x0c\n\x05\x04\x04\x02\x02\x05\x12\x03>\x0b\x11\n\x0c\n\x05\
+    \x04\x04\x02\x02\x01\x12\x03>\x12\x19\n\x0c\n\x05\x04\x04\x02\x02\x03\
+    \x12\x03>\x1c\x1d\n\n\n\x02\x04\x05\x12\x04A\0E\x01\n\n\n\x03\x04\x05\
+    \x01\x12\x03A\x08\x16\n\x0b\n\x04\x04\x05\x02\0\x12\x03B\x02\x1b\n\x0c\n\
+    \x05\x04\x05\x02\0\x04\x12\x03B\x02\n\n\x0c\n\x05\x04\x05\x02\0\x05\x12\
+    \x03B\x0b\x11\n\x0c\n\x05\x04\x05\x02\0\x01\x12\x03B\x12\x16\n\x0c\n\x05\
+    \x04\x05\x02\0\x03\x12\x03B\x19\x1a\n\x0b\n\x04\x04\x05\x02\x01\x12\x03C\
+    \x02\x1c\n\x0c\n\x05\x04\x05\x02\x01\x04\x12\x03C\x02\n\n\x0c\n\x05\x04\
+    \x05\x02\x01\x05\x12\x03C\x0b\x11\n\x0c\n\x05\x04\x05\x02\x01\x01\x12\
+    \x03C\x12\x17\n\x0c\n\x05\x04\x05\x02\x01\x03\x12\x03C\x1a\x1b\n\x0b\n\
+    \x04\x04\x05\x02\x02\x12\x03D\x02\x1b\n\x0c\n\x05\x04\x05\x02\x02\x04\
+    \x12\x03D\x02\n\n\x0c\n\x05\x04\x05\x02\x02\x05\x12\x03D\x0b\x11\n\x0c\n\
+    \x05\x04\x05\x02\x02\x01\x12\x03D\x12\x16\n\x0c\n\x05\x04\x05\x02\x02\
+    \x03\x12\x03D\x19\x1a\n\n\n\x02\x04\x06\x12\x04G\0L\x01\n\n\n\x03\x04\
+    \x06\x01\x12\x03G\x08\x1e\n\x0b\n\x04\x04\x06\x02\0\x12\x03H\x02\x18\n\
+    \x0c\n\x05\x04\x06\x02\0\x04\x12\x03H\x02\n\n\x0c\n\x05\x04\x06\x02\0\
+    \x06\x12\x03H\x0b\x0e\n\x0c\n\x05\x04\x06\x02\0\x01\x12\x03H\x0f\x13\n\
+    \x0c\n\x05\x04\x06\x02\0\x03\x12\x03H\x16\x17\n\x0b\n\x04\x04\x06\x02\
+    \x01\x12\x03I\x02\x1c\n\x0c\n\x05\x04\x06\x02\x01\x04\x12\x03I\x02\n\n\
+    \x0c\n\x05\x04\x06\x02\x01\x05\x12\x03I\x0b\x11\n\x0c\n\x05\x04\x06\x02\
+    \x01\x01\x12\x03I\x12\x17\n\x0c\n\x05\x04\x06\x02\x01\x03\x12\x03I\x1a\
+    \x1b\n\x0b\n\x04\x04\x06\x02\x02\x12\x03J\x02\x1b\n\x0c\n\x05\x04\x06\
+    \x02\x02\x04\x12\x03J\x02\n\n\x0c\n\x05\x04\x06\x02\x02\x05\x12\x03J\x0b\
+    \x11\n\x0c\n\x05\x04\x06\x02\x02\x01\x12\x03J\x12\x16\n\x0c\n\x05\x04\
+    \x06\x02\x02\x03\x12\x03J\x19\x1a\n\x0b\n\x04\x04\x06\x02\x03\x12\x03K\
+    \x02\x1c\n\x0c\n\x05\x04\x06\x02\x03\x04\x12\x03K\x02\n\n\x0c\n\x05\x04\
+    \x06\x02\x03\x05\x12\x03K\x0b\x11\n\x0c\n\x05\x04\x06\x02\x03\x01\x12\
+    \x03K\x12\x17\n\x0c\n\x05\x04\x06\x02\x03\x03\x12\x03K\x1a\x1b\n\n\n\x02\
+    \x04\x07\x12\x04N\0R\x01\n\n\n\x03\x04\x07\x01\x12\x03N\x08\x13\n\x0b\n\
+    \x04\x04\x07\x02\0\x12\x03O\x02\x1d\n\x0c\n\x05\x04\x07\x02\0\x04\x12\
+    \x03O\x02\n\n\x0c\n\x05\x04\x07\x02\0\x05\x12\x03O\x0b\x11\n\x0c\n\x05\
+    \x04\x07\x02\0\x01\x12\x03O\x12\x18\n\x0c\n\x05\x04\x07\x02\0\x03\x12\
+    \x03O\x1b\x1c\n+\n\x04\x04\x07\x02\x01\x12\x03P\x02\x1a\"\x1e\x20Chunk\
+    \x20ordering\x20(line\x20number)\n\n\x0c\n\x05\x04\x07\x02\x01\x04\x12\
+    \x03P\x02\n\n\x0c\n\x05\x04\x07\x02\x01\x05\x12\x03P\x0b\x11\n\x0c\n\x05\
+    \x04\x07\x02\x01\x01\x12\x03P\x12\x15\n\x0c\n\x05\x04\x07\x02\x01\x03\
+    \x12\x03P\x18\x19\n5\n\x04\x04\x07\x02\x02\x12\x03Q\x02\x1e\"(\x20Log\
+    \x20content\x20(TODO:\x20Make\x20repeatedfield)\n\n\x0c\n\x05\x04\x07\
+    \x02\x02\x04\x12\x03Q\x02\n\n\x0c\n\x05\x04\x07\x02\x02\x05\x12\x03Q\x0b\
+    \x11\n\x0c\n\x05\x04\x07\x02\x02\x01\x12\x03Q\x12\x19\n\x0c\n\x05\x04\
+    \x07\x02\x02\x03\x12\x03Q\x1c\x1d\n\n\n\x02\x04\x08\x12\x04T\0V\x01\n\n\
+    \n\x03\x04\x08\x01\x12\x03T\x08\x16\n\x0b\n\x04\x04\x08\x02\0\x12\x03U\
+    \x02\x1d\n\x0c\n\x05\x04\x08\x02\0\x04\x12\x03U\x02\n\n\x0c\n\x05\x04\
+    \x08\x02\0\x05\x12\x03U\x0b\x11\n\x0c\n\x05\x04\x08\x02\0\x01\x12\x03U\
+    \x12\x18\n\x0c\n\x05\x04\x08\x02\0\x03\x12\x03U\x1b\x1c\n\n\n\x02\x04\t\
+    \x12\x04X\0[\x01\n\n\n\x03\x04\t\x01\x12\x03X\x08\x11\n\x0b\n\x04\x04\t\
+    \x02\0\x12\x03Y\x02\x19\n\x0c\n\x05\x04\t\x02\0\x04\x12\x03Y\x02\n\n\x0c\
+    \n\x05\x04\t\x02\0\x05\x12\x03Y\x0b\x11\n\x0c\n\x05\x04\t\x02\0\x01\x12\
+    \x03Y\x12\x14\n\x0c\n\x05\x04\t\x02\0\x03\x12\x03Y\x17\x18\n.\n\x04\x04\
+    \t\x02\x01\x12\x03Z\x02\x1c\"!\x20Zero-indexed\x20line\x20of\x20log\x20o\
+    utput\n\n\x0c\n\x05\x04\t\x02\x01\x04\x12\x03Z\x02\n\n\x0c\n\x05\x04\t\
+    \x02\x01\x05\x12\x03Z\x0b\x11\n\x0c\n\x05\x04\t\x02\x01\x01\x12\x03Z\x12\
+    \x17\n\x0c\n\x05\x04\t\x02\x01\x03\x12\x03Z\x1a\x1b\n\n\n\x02\x04\n\x12\
+    \x04]\0b\x01\n\n\n\x03\x04\n\x01\x12\x03]\x08\x0e\n,\n\x04\x04\n\x02\0\
+    \x12\x03^\x02\x1c\"\x1f\x20Zero-indexed\x20(inclusive)\x20line\n\n\x0c\n\
+    \x05\x04\n\x02\0\x04\x12\x03^\x02\n\n\x0c\n\x05\x04\n\x02\0\x05\x12\x03^\
+    \x0b\x11\n\x0c\n\x05\x04\n\x02\0\x01\x12\x03^\x12\x17\n\x0c\n\x05\x04\n\
+    \x02\0\x03\x12\x03^\x1a\x1b\n,\n\x04\x04\n\x02\x01\x12\x03_\x02\x1b\"\
+    \x1f\x20Zero-indexed\x20(exclusive)\x20line\n\n\x0c\n\x05\x04\n\x02\x01\
+    \x04\x12\x03_\x02\n\n\x0c\n\x05\x04\n\x02\x01\x05\x12\x03_\x0b\x11\n\x0c\
+    \n\x05\x04\n\x02\x01\x01\x12\x03_\x12\x16\n\x0c\n\x05\x04\n\x02\x01\x03\
+    \x12\x03_\x19\x1a\n\x0b\n\x04\x04\n\x02\x02\x12\x03`\x02\x1e\n\x0c\n\x05\
+    \x04\n\x02\x02\x04\x12\x03`\x02\n\n\x0c\n\x05\x04\n\x02\x02\x05\x12\x03`\
+    \x0b\x11\n\x0c\n\x05\x04\n\x02\x02\x01\x12\x03`\x12\x19\n\x0c\n\x05\x04\
+    \n\x02\x02\x03\x12\x03`\x1c\x1d\n\x0b\n\x04\x04\n\x02\x03\x12\x03a\x02\
+    \x20\n\x0c\n\x05\x04\n\x02\x03\x04\x12\x03a\x02\n\n\x0c\n\x05\x04\n\x02\
+    \x03\x05\x12\x03a\x0b\x0f\n\x0c\n\x05\x04\n\x02\x03\x01\x12\x03a\x10\x1b\
+    \n\x0c\n\x05\x04\n\x02\x03\x03\x12\x03a\x1e\x1f\n\n\n\x02\x04\x0b\x12\
+    \x04d\0k\x01\n\n\n\x03\x04\x0b\x01\x12\x03d\x08\x14\n\x0b\n\x04\x04\x0b\
+    \x02\0\x12\x03e\x02\x1d\n\x0c\n\x05\x04\x0b\x02\0\x04\x12\x03e\x02\n\n\
+    \x0c\n\x05\x04\x0b\x02\0\x05\x12\x03e\x0b\x11\n\x0c\n\x05\x04\x0b\x02\0\
+    \x01\x12\x03e\x12\x18\n\x0c\n\x05\x04\x0b\x02\0\x03\x12\x03e\x1b\x1c\n\
+    \x0b\n\x04\x04\x0b\x02\x01\x12\x03f\x02\x1e\n\x0c\n\x05\x04\x0b\x02\x01\
+    \x04\x12\x03f\x02\n\n\x0c\n\x05\x04\x0b\x02\x01\x05\x12\x03f\x0b\x11\n\
+    \x0c\n\x05\x04\x0b\x02\x01\x01\x12\x03f\x12\x19\n\x0c\n\x05\x04\x0b\x02\
+    \x01\x03\x12\x03f\x1c\x1d\n\x0b\n\x04\x04\x0b\x02\x02\x12\x03g\x02\x1e\n\
+    \x0c\n\x05\x04\x0b\x02\x02\x04\x12\x03g\x02\n\n\x0c\n\x05\x04\x0b\x02\
+    \x02\x05\x12\x03g\x0b\x0f\n\x0c\n\x05\x04\x0b\x02\x02\x01\x12\x03g\x10\
+    \x19\n\x0c\n\x05\x04\x0b\x02\x02\x03\x12\x03g\x1c\x1d\n\x0b\n\x04\x04\
+    \x0b\x02\x03\x12\x03h\x02\x1d\n\x0c\n\x05\x04\x0b\x02\x03\x04\x12\x03h\
+    \x02\n\n\x0c\n\x05\x04\x0b\x02\x03\x05\x12\x03h\x0b\x11\n\x0c\n\x05\x04\
+    \x0b\x02\x03\x01\x12\x03h\x12\x18\n\x0c\n\x05\x04\x0b\x02\x03\x03\x12\
+    \x03h\x1b\x1c\n\x0b\n\x04\x04\x0b\x02\x04\x12\x03i\x02\x20\n\x0c\n\x05\
+    \x04\x0b\x02\x04\x04\x12\x03i\x02\n\n\x0c\n\x05\x04\x0b\x02\x04\x05\x12\
+    \x03i\x0b\x0f\n\x0c\n\x05\x04\x0b\x02\x04\x01\x12\x03i\x10\x1b\n\x0c\n\
+    \x05\x04\x0b\x02\x04\x03\x12\x03i\x1e\x1f\n\x0b\n\x04\x04\x0b\x02\x05\
+    \x12\x03j\x02!\n\x0c\n\x05\x04\x0b\x02\x05\x04\x12\x03j\x02\n\n\x0c\n\
+    \x05\x04\x0b\x02\x05\x05\x12\x03j\x0b\x0f\n\x0c\n\x05\x04\x0b\x02\x05\
+    \x01\x12\x03j\x10\x1c\n\x0c\n\x05\x04\x0b\x02\x05\x03\x12\x03j\x1f\x20\n\
+    \n\n\x02\x05\x03\x12\x04m\0s\x01\n\n\n\x03\x05\x03\x01\x12\x03m\x05\x19\
+    \n\x0b\n\x04\x05\x03\x02\0\x12\x03n\x02\x11\n\x0c\n\x05\x05\x03\x02\0\
+    \x01\x12\x03n\x02\x0c\n\x0c\n\x05\x05\x03\x02\0\x02\x12\x03n\x0f\x10\n\
+    \x0b\n\x04\x05\x03\x02\x01\x12\x03o\x02\x11\n\x0c\n\x05\x05\x03\x02\x01\
+    \x01\x12\x03o\x02\x0c\n\x0c\n\x05\x05\x03\x02\x01\x02\x12\x03o\x0f\x10\n\
+    \x0b\n\x04\x05\x03\x02\x02\x12\x03p\x02\x0e\n\x0c\n\x05\x05\x03\x02\x02\
+    \x01\x12\x03p\x02\t\n\x0c\n\x05\x05\x03\x02\x02\x02\x12\x03p\x0c\r\n\x0b\
+    \n\x04\x05\x03\x02\x03\x12\x03q\x02\x0e\n\x0c\n\x05\x05\x03\x02\x03\x01\
+    \x12\x03q\x02\t\n\x0c\n\x05\x05\x03\x02\x03\x02\x12\x03q\x0c\r\n\x0b\n\
+    \x04\x05\x03\x02\x04\x12\x03r\x02\x0e\n\x0c\n\x05\x05\x03\x02\x04\x01\
+    \x12\x03r\x02\t\n\x0c\n\x05\x05\x03\x02\x04\x02\x12\x03r\x0c\r\n\n\n\x02\
+    \x04\x0c\x12\x04u\0{\x01\n\n\n\x03\x04\x0c\x01\x12\x03u\x08\x17\n\x0b\n\
+    \x04\x04\x0c\x02\0\x12\x03v\x02\x1b\n\x0c\n\x05\x04\x0c\x02\0\x04\x12\
+    \x03v\x02\n\n\x0c\n\x05\x04\x0c\x02\0\x05\x12\x03v\x0b\x11\n\x0c\n\x05\
+    \x04\x0c\x02\0\x01\x12\x03v\x12\x16\n\x0c\n\x05\x04\x0c\x02\0\x03\x12\
+    \x03v\x19\x1a\n\x0b\n\x04\x04\x0c\x02\x01\x12\x03w\x02\x1c\n\x0c\n\x05\
+    \x04\x0c\x02\x01\x04\x12\x03w\x02\n\n\x0c\n\x05\x04\x0c\x02\x01\x05\x12\
+    \x03w\x0b\x11\n\x0c\n\x05\x04\x0c\x02\x01\x01\x12\x03w\x12\x17\n\x0c\n\
+    \x05\x04\x0c\x02\x01\x03\x12\x03w\x1a\x1b\n\x0b\n\x04\x04\x0c\x02\x02\
+    \x12\x03x\x02*\n\x0c\n\x05\x04\x0c\x02\x02\x04\x12\x03x\x02\n\n\x0c\n\
+    \x05\x04\x0c\x02\x02\x06\x12\x03x\x0b\x1f\n\x0c\n\x05\x04\x0c\x02\x02\
+    \x01\x12\x03x\x20%\n\x0c\n\x05\x04\x0c\x02\x02\x03\x12\x03x()\n\x0b\n\
+    \x04\x04\x0c\x02\x03\x12\x03y\x02\x1d\n\x0c\n\x05\x04\x0c\x02\x03\x04\
+    \x12\x03y\x02\n\n\x0c\n\x05\x04\x0c\x02\x03\x05\x12\x03y\x0b\x11\n\x0c\n\
+    \x05\x04\x0c\x02\x03\x01\x12\x03y\x12\x18\n\x0c\n\x05\x04\x0c\x02\x03\
+    \x03\x12\x03y\x1b\x1c\n\x0b\n\x04\x04\x0c\x02\x04\x12\x03z\x02\x1d\n\x0c\
+    \n\x05\x04\x0c\x02\x04\x04\x12\x03z\x02\n\n\x0c\n\x05\x04\x0c\x02\x04\
+    \x05\x12\x03z\x0b\x11\n\x0c\n\x05\x04\x0c\x02\x04\x01\x12\x03z\x12\x18\n\
+    \x0c\n\x05\x04\x0c\x02\x04\x03\x12\x03z\x1b\x1c\n\x0b\n\x02\x05\x04\x12\
+    \x05}\0\x82\x01\x01\n\n\n\x03\x05\x04\x01\x12\x03}\x05\x12\n\x0b\n\x04\
+    \x05\x04\x02\0\x12\x03~\x02\x13\n\x0c\n\x05\x05\x04\x02\0\x01\x12\x03~\
+    \x02\x0e\n\x0c\n\x05\x05\x04\x02\0\x02\x12\x03~\x11\x12\n\x0b\n\x04\x05\
+    \x04\x02\x01\x12\x03\x7f\x02\x17\n\x0c\n\x05\x05\x04\x02\x01\x01\x12\x03\
+    \x7f\x02\x12\n\x0c\n\x05\x05\x04\x02\x01\x02\x12\x03\x7f\x15\x16\n\x0c\n\
+    \x04\x05\x04\x02\x02\x12\x04\x80\x01\x02\x14\n\r\n\x05\x05\x04\x02\x02\
+    \x01\x12\x04\x80\x01\x02\x0f\n\r\n\x05\x05\x04\x02\x02\x02\x12\x04\x80\
+    \x01\x12\x13\n\x0c\n\x04\x05\x04\x02\x03\x12\x04\x81\x01\x02\x12\n\r\n\
+    \x05\x05\x04\x02\x03\x01\x12\x04\x81\x01\x02\r\n\r\n\x05\x05\x04\x02\x03\
+    \x02\x12\x04\x81\x01\x10\x11\n\x0c\n\x02\x04\r\x12\x06\x84\x01\0\x86\x01\
+    \x01\n\x0b\n\x03\x04\r\x01\x12\x04\x84\x01\x08\x15\n\x0c\n\x04\x04\r\x02\
+    \0\x12\x04\x85\x01\x02\x1f\n\r\n\x05\x04\r\x02\0\x04\x12\x04\x85\x01\x02\
+    \n\n\r\n\x05\x04\r\x02\0\x05\x12\x04\x85\x01\x0b\x11\n\r\n\x05\x04\r\x02\
+    \0\x01\x12\x04\x85\x01\x12\x1a\n\r\n\x05\x04\r\x02\0\x03\x12\x04\x85\x01\
+    \x1d\x1e\n\x0c\n\x02\x04\x0e\x12\x06\x88\x01\0\x8a\x01\x01\n\x0b\n\x03\
+    \x04\x0e\x01\x12\x04\x88\x01\x08\x13\n\x0c\n\x04\x04\x0e\x02\0\x12\x04\
+    \x89\x01\x02\x1f\n\r\n\x05\x04\x0e\x02\0\x04\x12\x04\x89\x01\x02\n\n\r\n\
+    \x05\x04\x0e\x02\0\x05\x12\x04\x89\x01\x0b\x11\n\r\n\x05\x04\x0e\x02\0\
+    \x01\x12\x04\x89\x01\x12\x1a\n\r\n\x05\x04\x0e\x02\0\x03\x12\x04\x89\x01\
+    \x1d\x1e\n\x0c\n\x02\x04\x0f\x12\x06\x8c\x01\0\x91\x01\x01\n\x0b\n\x03\
+    \x04\x0f\x01\x12\x04\x8c\x01\x08\x10\n\x0c\n\x04\x04\x0f\x02\0\x12\x04\
+    \x8d\x01\x02\x19\n\r\n\x05\x04\x0f\x02\0\x04\x12\x04\x8d\x01\x02\n\n\r\n\
+    \x05\x04\x0f\x02\0\x05\x12\x04\x8d\x01\x0b\x11\n\r\n\x05\x04\x0f\x02\0\
+    \x01\x12\x04\x8d\x01\x12\x14\n\r\n\x05\x04\x0f\x02\0\x03\x12\x04\x8d\x01\
+    \x17\x18\n\x0c\n\x04\x04\x0f\x02\x01\x12\x04\x8e\x01\x02#\n\r\n\x05\x04\
+    \x0f\x02\x01\x04\x12\x04\x8e\x01\x02\n\n\r\n\x05\x04\x0f\x02\x01\x06\x12\
+    \x04\x8e\x01\x0b\x18\n\r\n\x05\x04\x0f\x02\x01\x01\x12\x04\x8e\x01\x19\
+    \x1e\n\r\n\x05\x04\x0f\x02\x01\x03\x12\x04\x8e\x01!\"\n\x0c\n\x04\x04\
+    \x0f\x02\x02\x12\x04\x8f\x01\x02(\n\r\n\x05\x04\x0f\x02\x02\x04\x12\x04\
+    \x8f\x01\x02\n\n\r\n\x05\x04\x0f\x02\x02\x06\x12\x04\x8f\x01\x0b\x1a\n\r\
+    \n\x05\x04\x0f\x02\x02\x01\x12\x04\x8f\x01\x1b#\n\r\n\x05\x04\x0f\x02\
+    \x02\x03\x12\x04\x8f\x01&'\n\x0c\n\x04\x04\x0f\x02\x03\x12\x04\x90\x01\
+    \x02!\n\r\n\x05\x04\x0f\x02\x03\x04\x12\x04\x90\x01\x02\n\n\r\n\x05\x04\
+    \x0f\x02\x03\x05\x12\x04\x90\x01\x0b\x11\n\r\n\x05\x04\x0f\x02\x03\x01\
+    \x12\x04\x90\x01\x12\x1c\n\r\n\x05\x04\x0f\x02\x03\x03\x12\x04\x90\x01\
+    \x1f\x20\n\x0c\n\x02\x04\x10\x12\x06\x93\x01\0\x97\x01\x01\n\x0b\n\x03\
+    \x04\x10\x01\x12\x04\x93\x01\x08\x17\n\x0c\n\x04\x04\x10\x02\0\x12\x04\
+    \x94\x01\x02\x1c\n\r\n\x05\x04\x10\x02\0\x04\x12\x04\x94\x01\x02\n\n\r\n\
+    \x05\x04\x10\x02\0\x05\x12\x04\x94\x01\x0b\x11\n\r\n\x05\x04\x10\x02\0\
+    \x01\x12\x04\x94\x01\x12\x17\n\r\n\x05\x04\x10\x02\0\x03\x12\x04\x94\x01\
+    \x1a\x1b\n\x0c\n\x04\x04\x10\x02\x01\x12\x04\x95\x01\x02\x1b\n\r\n\x05\
+    \x04\x10\x02\x01\x04\x12\x04\x95\x01\x02\n\n\r\n\x05\x04\x10\x02\x01\x05\
+    \x12\x04\x95\x01\x0b\x11\n\r\n\x05\x04\x10\x02\x01\x01\x12\x04\x95\x01\
+    \x12\x16\n\r\n\x05\x04\x10\x02\x01\x03\x12\x04\x95\x01\x19\x1a\n\x0c\n\
+    \x04\x04\x10\x02\x02\x12\x04\x96\x01\x02\x1d\n\r\n\x05\x04\x10\x02\x02\
+    \x04\x12\x04\x96\x01\x02\n\n\r\n\x05\x04\x10\x02\x02\x05\x12\x04\x96\x01\
+    \x0b\x11\n\r\n\x05\x04\x10\x02\x02\x01\x12\x04\x96\x01\x12\x18\n\r\n\x05\
+    \x04\x10\x02\x02\x03\x12\x04\x96\x01\x1b\x1c\n\x0c\n\x02\x04\x11\x12\x06\
+    \x99\x01\0\x9d\x01\x01\n\x0b\n\x03\x04\x11\x01\x12\x04\x99\x01\x08\x20\n\
+    \x0c\n\x04\x04\x11\x02\0\x12\x04\x9a\x01\x02\x1c\n\r\n\x05\x04\x11\x02\0\
+    \x04\x12\x04\x9a\x01\x02\n\n\r\n\x05\x04\x11\x02\0\x05\x12\x04\x9a\x01\
+    \x0b\x11\n\r\n\x05\x04\x11\x02\0\x01\x12\x04\x9a\x01\x12\x17\n\r\n\x05\
+    \x04\x11\x02\0\x03\x12\x04\x9a\x01\x1a\x1b\n\x0c\n\x04\x04\x11\x02\x01\
+    \x12\x04\x9b\x01\x02\x1b\n\r\n\x05\x04\x11\x02\x01\x04\x12\x04\x9b\x01\
+    \x02\n\n\r\n\x05\x04\x11\x02\x01\x05\x12\x04\x9b\x01\x0b\x11\n\r\n\x05\
+    \x04\x11\x02\x01\x01\x12\x04\x9b\x01\x12\x16\n\r\n\x05\x04\x11\x02\x01\
+    \x03\x12\x04\x9b\x01\x19\x1a\n\x0c\n\x04\x04\x11\x02\x02\x12\x04\x9c\x01\
+    \x02\x1d\n\r\n\x05\x04\x11\x02\x02\x04\x12\x04\x9c\x01\x02\n\n\r\n\x05\
+    \x04\x11\x02\x02\x05\x12\x04\x9c\x01\x0b\x11\n\r\n\x05\x04\x11\x02\x02\
+    \x01\x12\x04\x9c\x01\x12\x18\n\r\n\x05\x04\x11\x02\x02\x03\x12\x04\x9c\
+    \x01\x1b\x1c\n\x0c\n\x02\x04\x12\x12\x06\x9f\x01\0\xa3\x01\x01\n\x0b\n\
+    \x03\x04\x12\x01\x12\x04\x9f\x01\x08\x1d\n\x0c\n\x04\x04\x12\x02\0\x12\
+    \x04\xa0\x01\x02\x1c\n\r\n\x05\x04\x12\x02\0\x04\x12\x04\xa0\x01\x02\n\n\
+    \r\n\x05\x04\x12\x02\0\x05\x12\x04\xa0\x01\x0b\x11\n\r\n\x05\x04\x12\x02\
+    \0\x01\x12\x04\xa0\x01\x12\x17\n\r\n\x05\x04\x12\x02\0\x03\x12\x04\xa0\
+    \x01\x1a\x1b\n\x0c\n\x04\x04\x12\x02\x01\x12\x04\xa1\x01\x02\x1b\n\r\n\
+    \x05\x04\x12\x02\x01\x04\x12\x04\xa1\x01\x02\n\n\r\n\x05\x04\x12\x02\x01\
+    \x05\x12\x04\xa1\x01\x0b\x11\n\r\n\x05\x04\x12\x02\x01\x01\x12\x04\xa1\
+    \x01\x12\x16\n\r\n\x05\x04\x12\x02\x01\x03\x12\x04\xa1\x01\x19\x1a\n\x0c\
+    \n\x04\x04\x12\x02\x02\x12\x04\xa2\x01\x02\x1d\n\r\n\x05\x04\x12\x02\x02\
+    \x04\x12\x04\xa2\x01\x02\n\n\r\n\x05\x04\x12\x02\x02\x05\x12\x04\xa2\x01\
+    \x0b\x11\n\r\n\x05\x04\x12\x02\x02\x01\x12\x04\xa2\x01\x12\x18\n\r\n\x05\
+    \x04\x12\x02\x02\x03\x12\x04\xa2\x01\x1b\x1c\n\x0c\n\x02\x04\x13\x12\x06\
+    \xa5\x01\0\xa9\x01\x01\n\x0b\n\x03\x04\x13\x01\x12\x04\xa5\x01\x08-\n\
+    \x0c\n\x04\x04\x13\x02\0\x12\x04\xa6\x01\x02\x1d\n\r\n\x05\x04\x13\x02\0\
+    \x04\x12\x04\xa6\x01\x02\n\n\r\n\x05\x04\x13\x02\0\x05\x12\x04\xa6\x01\
+    \x0b\x11\n\r\n\x05\x04\x13\x02\0\x01\x12\x04\xa6\x01\x12\x18\n\r\n\x05\
+    \x04\x13\x02\0\x03\x12\x04\xa6\x01\x1b\x1c\n\x0c\n\x04\x04\x13\x02\x01\
+    \x12\x04\xa7\x01\x02\x1b\n\r\n\x05\x04\x13\x02\x01\x04\x12\x04\xa7\x01\
+    \x02\n\n\r\n\x05\x04\x13\x02\x01\x05\x12\x04\xa7\x01\x0b\x11\n\r\n\x05\
+    \x04\x13\x02\x01\x01\x12\x04\xa7\x01\x12\x16\n\r\n\x05\x04\x13\x02\x01\
+    \x03\x12\x04\xa7\x01\x19\x1a\n\x0c\n\x04\x04\x13\x02\x02\x12\x04\xa8\x01\
+    \x02\x1d\n\r\n\x05\x04\x13\x02\x02\x04\x12\x04\xa8\x01\x02\n\n\r\n\x05\
+    \x04\x13\x02\x02\x05\x12\x04\xa8\x01\x0b\x11\n\r\n\x05\x04\x13\x02\x02\
+    \x01\x12\x04\xa8\x01\x12\x18\n\r\n\x05\x04\x13\x02\x02\x03\x12\x04\xa8\
+    \x01\x1b\x1c\n\x0c\n\x02\x04\x14\x12\x06\xab\x01\0\xaf\x01\x01\n\x0b\n\
+    \x03\x04\x14\x01\x12\x04\xab\x01\x08*\n\x0c\n\x04\x04\x14\x02\0\x12\x04\
+    \xac\x01\x02\x1d\n\r\n\x05\x04\x14\x02\0\x04\x12\x04\xac\x01\x02\n\n\r\n\
+    \x05\x04\x14\x02\0\x05\x12\x04\xac\x01\x0b\x11\n\r\n\x05\x04\x14\x02\0\
+    \x01\x12\x04\xac\x01\x12\x18\n\r\n\x05\x04\x14\x02\0\x03\x12\x04\xac\x01\
+    \x1b\x1c\n\x0c\n\x04\x04\x14\x02\x01\x12\x04\xad\x01\x02\x1b\n\r\n\x05\
+    \x04\x14\x02\x01\x04\x12\x04\xad\x01\x02\n\n\r\n\x05\x04\x14\x02\x01\x05\
+    \x12\x04\xad\x01\x0b\x11\n\r\n\x05\x04\x14\x02\x01\x01\x12\x04\xad\x01\
+    \x12\x16\n\r\n\x05\x04\x14\x02\x01\x03\x12\x04\xad\x01\x19\x1a\n\x0c\n\
+    \x04\x04\x14\x02\x02\x12\x04\xae\x01\x02\x1c\n\r\n\x05\x04\x14\x02\x02\
+    \x04\x12\x04\xae\x01\x02\n\n\r\n\x05\x04\x14\x02\x02\x05\x12\x04\xae\x01\
+    \x0b\x11\n\r\n\x05\x04\x14\x02\x02\x01\x12\x04\xae\x01\x12\x17\n\r\n\x05\
+    \x04\x14\x02\x02\x03\x12\x04\xae\x01\x1a\x1b\n\x0c\n\x02\x04\x15\x12\x06\
+    \xb1\x01\0\xb3\x01\x01\n\x0b\n\x03\x04\x15\x01\x12\x04\xb1\x01\x08\x1f\n\
+    \x0c\n\x04\x04\x15\x02\0\x12\x04\xb2\x01\x02\x1d\n\r\n\x05\x04\x15\x02\0\
+    \x04\x12\x04\xb2\x01\x02\n\n\r\n\x05\x04\x15\x02\0\x05\x12\x04\xb2\x01\
+    \x0b\x11\n\r\n\x05\x04\x15\x02\0\x01\x12\x04\xb2\x01\x12\x18\n\r\n\x05\
+    \x04\x15\x02\0\x03\x12\x04\xb2\x01\x1b\x1c\n\x0c\n\x02\x04\x16\x12\x06\
+    \xb5\x01\0\xb9\x01\x01\n\x0b\n\x03\x04\x16\x01\x12\x04\xb5\x01\x08\x1c\n\
+    \x0c\n\x04\x04\x16\x02\0\x12\x04\xb6\x01\x02\x1c\n\r\n\x05\x04\x16\x02\0\
+    \x04\x12\x04\xb6\x01\x02\n\n\r\n\x05\x04\x16\x02\0\x05\x12\x04\xb6\x01\
+    \x0b\x11\n\r\n\x05\x04\x16\x02\0\x01\x12\x04\xb6\x01\x12\x17\n\r\n\x05\
+    \x04\x16\x02\0\x03\x12\x04\xb6\x01\x1a\x1b\n\x0c\n\x04\x04\x16\x02\x01\
+    \x12\x04\xb7\x01\x02\x1d\n\r\n\x05\x04\x16\x02\x01\x04\x12\x04\xb7\x01\
+    \x02\n\n\r\n\x05\x04\x16\x02\x01\x05\x12\x04\xb7\x01\x0b\x11\n\r\n\x05\
+    \x04\x16\x02\x01\x01\x12\x04\xb7\x01\x12\x18\n\r\n\x05\x04\x16\x02\x01\
+    \x03\x12\x04\xb7\x01\x1b\x1c\n\x0c\n\x04\x04\x16\x02\x02\x12\x04\xb8\x01\
+    \x02&\n\r\n\x05\x04\x16\x02\x02\x04\x12\x04\xb8\x01\x02\n\n\r\n\x05\x04\
+    \x16\x02\x02\x05\x12\x04\xb8\x01\x0b\x11\n\r\n\x05\x04\x16\x02\x02\x01\
+    \x12\x04\xb8\x01\x12!\n\r\n\x05\x04\x16\x02\x02\x03\x12\x04\xb8\x01$%\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

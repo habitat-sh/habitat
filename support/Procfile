@@ -4,7 +4,6 @@ api: target/debug/bldr-api start --path /tmp/depot
 admin: target/debug/bldr-admin start
 router: target/debug/bldr-router start
 jobsrv: target/debug/bldr-jobsrv start
-scheduler: target/debug/bldr-scheduler start
 sessionsrv: target/debug/bldr-sessionsrv start
 originsrv: target/debug/bldr-originsrv start
 worker: target/debug/bldr-worker start

@@ -22,14 +22,15 @@ use hab_net::conn::RouteClient;
 use hab_net::socket::DEFAULT_CONTEXT;
 use zmq;
 
-use protocol::jobsrv::{self, Job, JobSpec};
-use protocol::originsrv::*;
-use protocol::scheduler as proto;
+use protocol::jobsrv;
+use protocol::originsrv;
 use data_store::DataStore;
-use error::{SrvResult, SrvError};
+use error::{Result, Error};
 
 use bldr_core::logger::Logger;
 use hab_core::channel::bldr_channel_name;
+
+use super::worker_manager::WorkerMgrClient;
 
 const SCHEDULER_ADDR: &'static str = "inproc://scheduler";
 const SOCKET_TIMEOUT_MS: i64 = 60_000;
@@ -39,12 +40,12 @@ pub struct ScheduleClient {
 }
 
 impl ScheduleClient {
-    pub fn connect(&mut self) -> SrvResult<()> {
+    pub fn connect(&mut self) -> Result<()> {
         self.socket.connect(SCHEDULER_ADDR)?;
         Ok(())
     }
 
-    pub fn notify(&mut self) -> SrvResult<()> {
+    pub fn notify(&mut self) -> Result<()> {
         self.socket.send(&[1], 0)?;
         Ok(())
     }
@@ -68,10 +69,11 @@ pub struct ScheduleMgr {
     route_conn: RouteClient,
     schedule_cli: ScheduleClient,
     socket: zmq::Socket,
+    worker_mgr: WorkerMgrClient,
 }
 
 impl ScheduleMgr {
-    pub fn new<T>(datastore: DataStore, log_path: T, router_pipe: Arc<String>) -> SrvResult<Self>
+    pub fn new<T>(datastore: DataStore, log_path: T, router_pipe: Arc<String>) -> Result<Self>
     where
         T: AsRef<Path>,
     {
@@ -79,10 +81,16 @@ impl ScheduleMgr {
         socket.set_rcvhwm(1)?;
         socket.set_linger(0)?;
         socket.set_immediate(true)?;
+
         let mut schedule_cli = ScheduleClient::default();
         schedule_cli.connect()?;
+
         let route_conn = RouteClient::new()?;
         route_conn.connect(&*router_pipe)?;
+
+        let mut worker_mgr = WorkerMgrClient::default();
+        worker_mgr.connect()?;
+
         Ok(ScheduleMgr {
             datastore: datastore,
             logger: Logger::init(log_path, "builder-scheduler.log"),
@@ -90,6 +98,7 @@ impl ScheduleMgr {
             route_conn: route_conn,
             schedule_cli: schedule_cli,
             socket: socket,
+            worker_mgr: worker_mgr,
         })
     }
 
@@ -97,7 +106,7 @@ impl ScheduleMgr {
         datastore: DataStore,
         log_path: T,
         route_pipe: Arc<String>,
-    ) -> SrvResult<JoinHandle<()>>
+    ) -> Result<JoinHandle<()>>
     where
         T: AsRef<Path>,
     {
@@ -113,7 +122,7 @@ impl ScheduleMgr {
         }
     }
 
-    fn run(&mut self, rz: mpsc::SyncSender<()>) -> SrvResult<()> {
+    fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
         self.socket.bind(SCHEDULER_ADDR)?;
 
         let mut socket = false;
@@ -148,10 +157,10 @@ impl ScheduleMgr {
         self.logger.log(&msg);
     }
 
-    fn process_work(&mut self) -> SrvResult<()> {
+    fn process_work(&mut self) -> Result<()> {
         loop {
             // Take one group from the pending list
-            let mut groups = self.datastore.pending_groups(1)?;
+            let mut groups = self.datastore.pending_job_groups(1)?;
 
             // 0 means there are no pending groups, so we should consume our notice that we have
             // work
@@ -161,7 +170,7 @@ impl ScheduleMgr {
 
             // This unwrap is fine, because we just checked our length
             let group = groups.pop().unwrap();
-            assert!(group.get_state() == proto::GroupState::Dispatching);
+            assert!(group.get_state() == jobsrv::JobGroupState::GroupDispatching);
 
             self.dispatch_group(&group)?;
             self.update_group_state(group.get_id())?;
@@ -169,7 +178,7 @@ impl ScheduleMgr {
         Ok(())
     }
 
-    fn dispatch_group(&mut self, group: &proto::Group) -> SrvResult<()> {
+    fn dispatch_group(&mut self, group: &jobsrv::JobGroup) -> Result<()> {
         debug!("Dispatching group {}", group.get_id());
         self.logger.log_group(&group);
 
@@ -184,18 +193,18 @@ impl ScheduleMgr {
             debug!("Dispatching project: {:?}", project.get_name());
             self.logger.log_group_project(&group, &project);
 
-            assert!(project.get_state() == proto::ProjectState::NotStarted);
+            assert!(project.get_state() == jobsrv::JobGroupProjectState::NotStarted);
 
             match self.schedule_job(group.get_id(), project.get_name()) {
                 Ok(job_opt) => {
                     match job_opt {
-                        Some(job) => self.datastore.set_group_job_state(&job).unwrap(),
+                        Some(job) => self.datastore.set_job_group_job_state(&job).unwrap(),
                         None => {
                             debug!("Skipping project: {:?}", project.get_name());
-                            self.datastore.set_group_project_state(
+                            self.datastore.set_job_group_project_state(
                                 group.get_id(),
                                 project.get_name(),
-                                proto::ProjectState::Skipped,
+                                jobsrv::JobGroupProjectState::Skipped,
                             )?;
 
                             let skip_list = match self.skip_projects(&group, project.get_name()) {
@@ -224,19 +233,19 @@ impl ScheduleMgr {
                         err
                     ));
 
-                    self.datastore.set_group_state(
+                    self.datastore.set_job_group_state(
                         group.get_id(),
-                        proto::GroupState::Failed,
+                        jobsrv::JobGroupState::GroupFailed,
                     )?;
-                    self.datastore.set_group_project_state(
+                    self.datastore.set_job_group_project_state(
                         group.get_id(),
                         project.get_name(),
-                        proto::ProjectState::Failure,
+                        jobsrv::JobGroupProjectState::Failure,
                     )?;
 
                     // TODO: Make this cleaner later
                     let mut updated_group = group.clone();
-                    updated_group.set_state(proto::GroupState::Failed);
+                    updated_group.set_state(jobsrv::JobGroupState::GroupFailed);
                     self.logger.log_group(&updated_group);
 
                     break;
@@ -246,10 +255,13 @@ impl ScheduleMgr {
         Ok(())
     }
 
-    fn dispatchable_projects(&mut self, group: &proto::Group) -> SrvResult<Vec<proto::Project>> {
+    fn dispatchable_projects(
+        &mut self,
+        group: &jobsrv::JobGroup,
+    ) -> Result<Vec<jobsrv::JobGroupProject>> {
         let mut projects = Vec::new();
         for project in group.get_projects().into_iter().filter(|x| {
-            x.get_state() == proto::ProjectState::NotStarted
+            x.get_state() == jobsrv::JobGroupProjectState::NotStarted
         })
         {
             // Check the deps for the project. If we don't find any dep that
@@ -258,7 +270,7 @@ impl ScheduleMgr {
                 true
             } else {
                 let mut check_status = true;
-                let package = self.datastore.get_package(&project.get_ident())?;
+                let package = self.datastore.get_job_graph_package(&project.get_ident())?;
                 let deps = package.get_deps();
 
                 for dep in deps {
@@ -281,10 +293,10 @@ impl ScheduleMgr {
         Ok(projects)
     }
 
-    fn check_dispatchable(&mut self, group: &proto::Group, name: &str) -> bool {
+    fn check_dispatchable(&mut self, group: &jobsrv::JobGroup, name: &str) -> bool {
         for project in group.get_projects() {
             if (project.get_name() == name) &&
-                (project.get_state() != proto::ProjectState::Success)
+                (project.get_state() != jobsrv::JobGroupProjectState::Success)
             {
                 return false;
             }
@@ -294,19 +306,19 @@ impl ScheduleMgr {
 
     fn skip_projects(
         &mut self,
-        group: &proto::Group,
+        group: &jobsrv::JobGroup,
         project_name: &str,
-    ) -> SrvResult<Vec<String>> {
+    ) -> Result<Vec<String>> {
         let mut skipped = HashMap::new();
         skipped.insert(project_name.to_string(), true);
 
         for project in group.get_projects().into_iter().filter(|x| {
-            x.get_state() == proto::ProjectState::NotStarted
+            x.get_state() == jobsrv::JobGroupProjectState::NotStarted
         })
         {
             // Check the deps for the project. If we find any dep that is in the
             // skipped list, we set the project status to Skipped and add it to the list
-            let package = self.datastore.get_package(&project.get_ident())?;
+            let package = self.datastore.get_job_graph_package(&project.get_ident())?;
             let deps = package.get_deps();
 
             for dep in deps {
@@ -316,10 +328,10 @@ impl ScheduleMgr {
 
                 if skipped.contains_key(&name) {
                     debug!("Skipping project {:?}", project.get_name());
-                    self.datastore.set_group_project_state(
+                    self.datastore.set_job_group_project_state(
                         group.get_id(),
                         project.get_name(),
-                        proto::ProjectState::Skipped,
+                        jobsrv::JobGroupProjectState::Skipped,
                     )?;
                     skipped.insert(project.get_name().to_string(), true);
                     break;
@@ -330,11 +342,11 @@ impl ScheduleMgr {
         Ok(skipped.keys().map(|s| s.to_string()).collect())
     }
 
-    fn schedule_job(&mut self, group_id: u64, project_name: &str) -> SrvResult<Option<Job>> {
-        let mut project_get = OriginProjectGet::new();
+    fn schedule_job(&mut self, group_id: u64, project_name: &str) -> Result<Option<jobsrv::Job>> {
+        let mut project_get = originsrv::OriginProjectGet::new();
         project_get.set_name(String::from(project_name));
 
-        let project = match self.route_conn.route::<OriginProjectGet, OriginProject>(
+        let project = match self.route_conn.route::<originsrv::OriginProjectGet, originsrv::OriginProject>(
             &project_get,
         ) {
             Ok(project) => project,
@@ -358,29 +370,31 @@ impl ScheduleMgr {
             }
         };
 
-        let mut job_spec: JobSpec = JobSpec::new();
+        let mut job_spec = jobsrv::JobSpec::new();
         job_spec.set_owner_id(group_id);
         job_spec.set_project(project);
         job_spec.set_channel(bldr_channel_name(group_id));
 
-        match self.route_conn.route::<JobSpec, Job>(&job_spec) {
+        let mut job: jobsrv::Job = job_spec.into();
+        match self.datastore.create_job(&mut job) {
             Ok(job) => {
                 debug!("Job created: {:?}", job);
+                self.worker_mgr.notify_work()?;
                 Ok(Some(job))
             }
-            Err(err) => Err(SrvError::from(err)),
+            Err(err) => Err(Error::from(err)),
         }
     }
 
-    fn get_group(&mut self, group_id: u64) -> SrvResult<proto::Group> {
-        let mut msg: proto::GroupGet = proto::GroupGet::new();
+    fn get_group(&mut self, group_id: u64) -> Result<jobsrv::JobGroup> {
+        let mut msg: jobsrv::JobGroupGet = jobsrv::JobGroupGet::new();
         msg.set_group_id(group_id);
 
-        match self.datastore.get_group(&msg) {
+        match self.datastore.get_job_group(&msg) {
             Ok(group_opt) => {
                 match group_opt {
                     Some(group) => Ok(group),
-                    None => Err(SrvError::UnknownGroup),
+                    None => Err(Error::UnknownJobGroup),
                 }
             }
             Err(err) => {
@@ -394,28 +408,20 @@ impl ScheduleMgr {
         }
     }
 
-    fn process_status(&mut self) -> SrvResult<()> {
-        loop {
-            // Take the top job status message from the message queue
-            let mut msgs = self.datastore.peek_message(1)?;
+    fn process_status(&mut self) -> Result<()> {
+        // Get a list of jobs with un-sync'd status
+        let jobs = self.datastore.sync_jobs()?;
 
-            if msgs.len() == 0 {
-                break;
-            }
+        for job in jobs {
+            debug!("Syncing job status: job={:?}", job);
 
-            // This unwrap is fine, because we just checked our length
-            let (msg_id, job_status) = msgs.pop().unwrap();
-            let job = job_status.get_job();
-
-            debug!("Got job status: id={} job={:?}", msg_id, job);
-
-            let group: proto::Group = match self.get_group(job.get_owner_id()) {
+            let group: jobsrv::JobGroup = match self.get_group(job.get_owner_id()) {
                 Ok(group) => group,
-                Err(SrvError::UnknownGroup) => {
-                    // UnknownGroup is ok, just delete the message and move on
+                Err(Error::UnknownJobGroup) => {
+                    // UnknownGroup is ok, just unset the sync and move on
                     debug!("Skipping unknown group {:?}", job.get_owner_id());
-                    self.datastore.delete_message(msg_id)?;
-                    return Ok(());
+                    self.datastore.set_job_sync(job.get_owner_id())?;
+                    continue;
                 }
                 Err(e) => {
                     return Err(e);
@@ -424,7 +430,7 @@ impl ScheduleMgr {
 
             self.logger.log_group_job(&group, &job);
 
-            match self.datastore.set_group_job_state(&job) {
+            match self.datastore.set_job_group_job_state(&job) {
                 Ok(_) => {
                     if job.get_state() == jobsrv::JobState::Failed {
                         match self.skip_projects(&group, job.get_project().get_name()) {
@@ -444,11 +450,14 @@ impl ScheduleMgr {
                         jobsrv::JobState::Complete |
                         jobsrv::JobState::Failed => self.update_group_state(job.get_owner_id())?,
 
-                        _ => (),
+                        jobsrv::JobState::Pending |
+                        jobsrv::JobState::Processing |
+                        jobsrv::JobState::Dispatched |
+                        jobsrv::JobState::Rejected => (),
                     }
 
-                    // Delete the processed message from the queue
-                    self.datastore.delete_message(msg_id)?;
+                    // Unset the sync state
+                    self.datastore.set_job_sync(job.get_id())?;
                 }
                 Err(err) => {
                     self.log_error(format!(
@@ -464,7 +473,7 @@ impl ScheduleMgr {
         Ok(())
     }
 
-    fn update_group_state(&mut self, group_id: u64) -> SrvResult<()> {
+    fn update_group_state(&mut self, group_id: u64) -> Result<()> {
         let group = self.get_group(group_id)?;
 
         // Group state transition rules:
@@ -478,33 +487,35 @@ impl ScheduleMgr {
         // |     Complete            |     N/A          |        N/A          |
         // |     Failed              |     N/A          |        N/A          |
 
-        if group.get_state() == proto::GroupState::Dispatching {
+        if group.get_state() == jobsrv::JobGroupState::GroupDispatching {
             let mut failed = 0;
             let mut succeeded = 0;
             let mut skipped = 0;
 
             for project in group.get_projects() {
                 match project.get_state() {
-                    proto::ProjectState::Failure => failed = failed + 1,
-                    proto::ProjectState::Success => succeeded = succeeded + 1,
-                    proto::ProjectState::Skipped => skipped = skipped + 1,
-                    _ => (),
+                    jobsrv::JobGroupProjectState::Failure => failed = failed + 1,
+                    jobsrv::JobGroupProjectState::Success => succeeded = succeeded + 1,
+                    jobsrv::JobGroupProjectState::Skipped => skipped = skipped + 1,
+
+                    jobsrv::JobGroupProjectState::NotStarted |
+                    jobsrv::JobGroupProjectState::InProgress => (),
                 }
             }
 
             let dispatchable = self.dispatchable_projects(&group)?;
 
             let new_state = if (succeeded + skipped + failed) == group.get_projects().len() {
-                proto::GroupState::Complete
+                jobsrv::JobGroupState::GroupComplete
             } else if dispatchable.len() > 0 {
-                proto::GroupState::Pending
+                jobsrv::JobGroupState::GroupPending
             } else {
-                proto::GroupState::Dispatching
+                jobsrv::JobGroupState::GroupDispatching
             };
 
-            self.datastore.set_group_state(group_id, new_state)?;
+            self.datastore.set_job_group_state(group_id, new_state)?;
 
-            if new_state == proto::GroupState::Pending {
+            if new_state == jobsrv::JobGroupState::GroupPending {
                 self.schedule_cli.notify()?;
             } else {
                 // TODO: Make this cleaner later

@@ -14,7 +14,7 @@ env:
     # Habitat Rust crate components
     - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/core|components/eventsrv-client|components/launcher-client|components/launcher-protocol"
     # Builder Rust program components
-    - _RUST_BLDR_BIN_COMPONENTS="components/builder-admin|components/builder-api|components/builder-jobsrv|components/builder-originsrv|components/builder-router|components/builder-scheduler|components/builder-sessionsrv|components/builder-worker|components/eventsrv"
+    - _RUST_BLDR_BIN_COMPONENTS="components/builder-admin|components/builder-api|components/builder-jobsrv|components/builder-originsrv|components/builder-router|components/builder-sessionsrv|components/builder-worker|components/eventsrv"
     # Builder Rust crate components
     - _RUST_BLDR_LIB_COMPONENTS="components/builder-core|components/builder-db|components/builder-depot|components/builder-depot-client|components/builder-http-gateway|components/builder-protocol|components/core|components/eventsrv-protocol|components/github-api-client|components/net"
 

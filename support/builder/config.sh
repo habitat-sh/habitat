@@ -170,15 +170,6 @@ shards = [
 password = "$PGPASSWORD"
 EOT
 
-mkdir -p /hab/svc/builder-scheduler
-cat <<EOT > /hab/svc/builder-scheduler/user.toml
-auth_token = "8e2c9a90675e0c11af0cacf86ae404cc883335c3"
-depot_url = "http://localhost:9636"
-
-[datastore]
-password = "$PGPASSWORD"
-EOT
-
 mkdir -p /hab/svc/builder-sessionsrv
 cat <<EOT > /hab/svc/builder-sessionsrv/user.toml
 [app]
