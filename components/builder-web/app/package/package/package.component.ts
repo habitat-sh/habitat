@@ -62,10 +62,6 @@ export class PackageComponent implements OnInit, OnDestroy {
     }
   }
 
-  get projectsEnabled() {
-    return !!this.store.getState().featureFlags.current.get('project');
-  }
-
   get ident() {
     return {
       origin: this.origin,

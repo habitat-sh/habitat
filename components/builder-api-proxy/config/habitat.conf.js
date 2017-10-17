@@ -20,6 +20,5 @@ habitatConfig({
     feature_requests_url: "{{cfg.feature_requests_url}}",
     slack_url: "{{cfg.slack_url}}",
     youtube_url: "{{cfg.youtube_url}}",
-    demo_app_url: "{{cfg.demo_app_url}}",
-    feature_flags: {{toJson cfg.feature_flags}},
+    demo_app_url: "{{cfg.demo_app_url}}"
 });

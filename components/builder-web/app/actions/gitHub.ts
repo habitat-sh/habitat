@@ -16,9 +16,8 @@ import 'whatwg-fetch';
 import { URLSearchParams } from '@angular/http';
 import * as cookies from 'js-cookie';
 import config from '../config';
-import { setFeatureFlags } from './index';
 import {
-  attemptSignIn, addNotification, goHome, fetchMyOrigins, fetchMyOriginInvitations, requestRoute, setFeatureFlag,
+  attemptSignIn, addNotification, goHome, fetchMyOrigins, fetchMyOriginInvitations, requestRoute, setPrivileges,
   signOut, setSigningInFlag
 } from './index';
 import { DANGER, WARNING } from './notifications';
@@ -129,7 +128,6 @@ export function removeSessionStorage() {
   return dispatch => {
     cookies.remove('gitHubAuthState', { domain: cookieDomain() });
     cookies.remove('gitHubAuthToken', { domain: cookieDomain() });
-    cookies.remove('featureFlags', { domain: cookieDomain() });
     cookies.remove('bldrSessionToken', { domain: cookieDomain() });
   };
 }
@@ -152,9 +150,7 @@ export function requestGitHubAuthToken(params, stateKey = '') {
           dispatch(authenticateWithGitHub(data['oauth_token'], data['token']));
           dispatch(setGitHubAuthToken(data['oauth_token']));
           dispatch(setBldrSessionToken(data['token']));
-          if (data['flags']) {
-            dispatch(setFeatureFlag('gitHub', data['flags']));
-          }
+          dispatch(setPrivileges(data['flags']));
         } else {
           dispatch(addNotification({
             title: 'Authentication Failed',

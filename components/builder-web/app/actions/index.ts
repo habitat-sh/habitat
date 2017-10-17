@@ -22,7 +22,6 @@ import * as routerActions from './router';
 import * as usersActions from './users';
 import * as uiActions from './ui';
 import * as cookieActions from './cookies';
-import * as featureFlagActions from './feature-flags';
 import * as sessionActions from './sessions';
 
 // Action types
@@ -100,6 +99,7 @@ export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
 export const SET_REDIRECT_ROUTE = routerActions.SET_REDIRECT_ROUTE;
 export const RESET_REDIRECT_ROUTE = routerActions.RESET_REDIRECT_ROUTE;
 
+export const SET_PRIVILEGES = usersActions.SET_PRIVILEGES;
 export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
 export const SET_SIGNING_IN_FLAG = usersActions.SET_SIGNING_IN_FLAG;
 export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
@@ -108,9 +108,6 @@ export const SET_LAYOUT = uiActions.SET_LAYOUT;
 
 export const SET_COOKIE = cookieActions.SET_COOKIE;
 export const REMOVE_COOKIE = cookieActions.REMOVE_COOKIE;
-
-export const SET_FEATURE_FLAG = featureFlagActions.SET_FEATURE_FLAG;
-export const SET_FEATURE_FLAGS = featureFlagActions.SET_FEATURE_FLAGS;
 
 // Used by redux-reset to reset the app state
 export const RESET = 'RESET';
@@ -190,6 +187,7 @@ export const requestRoute = routerActions.requestRoute;
 export const setRedirectRoute = routerActions.setRedirectRoute;
 export const resetRedirectRoute = routerActions.resetRedirectRoute;
 
+export const setPrivileges = usersActions.setPrivileges;
 export const setSigningInFlag = usersActions.setSigningInFlag;
 export const attemptSignIn = usersActions.attemptSignIn;
 export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
@@ -200,10 +198,6 @@ export const setLayout = uiActions.setLayout;
 export const getCookie = cookieActions.getCookie;
 export const setCookie = cookieActions.setCookie;
 export const removeCookie = cookieActions.removeCookie;
-
-export const loadFeatureFlags = featureFlagActions.loadFeatureFlags;
-export const setFeatureFlag = featureFlagActions.setFeatureFlag;
-export const setFeatureFlags = featureFlagActions.setFeatureFlags;
 
 export function resetAppState() {
   return {

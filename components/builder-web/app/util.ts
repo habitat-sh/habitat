@@ -17,6 +17,7 @@ import { requestRoute } from './actions/index';
 import config from './config';
 import { Project } from './records/Project';
 import { AppStore } from './app.store';
+import { FeatureFlags } from './privilege';
 
 // Create a GitHub login URL
 export function createGitHubLoginUrl(state) {
@@ -119,6 +120,12 @@ export function parseKey(key) {
 export function isSignedIn() {
   const store = new AppStore();
   return !!store.getState().session.token;
+}
+
+export function isEarlyAccess() {
+  const store = new AppStore();
+  const flags = store.getState().users.current.flags;
+  return !!(flags & FeatureFlags.EARLY_ACCESS);
 }
 
 // Given a page component, check if the user is signed in and redirect if not
