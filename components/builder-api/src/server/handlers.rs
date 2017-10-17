@@ -132,17 +132,17 @@ pub fn validate_docker_credentials(req: &mut Request) -> IronResult<Response> {
         Ok(Some(b)) => b,
         Ok(None) => {
             debug!("Error: Missing request body");
-            return Ok(Response::with(status::BadRequest))
-        },
+            return Ok(Response::with(status::BadRequest));
+        }
         Err(err) => {
             debug!("Error: {:?}", err);
-            return Ok(Response::with(status::BadRequest))
+            return Ok(Response::with(status::BadRequest));
         }
     };
 
     if !body["username"].is_string() || !body["password"].is_string() {
         debug!("Error: Missing username or password");
-        return Ok(Response::with(status::BadRequest))
+        return Ok(Response::with(status::BadRequest));
     }
 
     // There's probably a better way to do this. Suggestions?
@@ -150,7 +150,7 @@ pub fn validate_docker_credentials(req: &mut Request) -> IronResult<Response> {
         Ok(c) => c,
         Err(e) => {
             debug!("Error: Unable to create HTTP client: {}", e);
-            return Ok(Response::with(status::InternalServerError))
+            return Ok(Response::with(status::InternalServerError));
         }
     };
 
@@ -165,15 +165,13 @@ pub fn validate_docker_credentials(req: &mut Request) -> IronResult<Response> {
     match result {
         Ok(response) => {
             match response.status {
-                StatusCode::Ok => {
-                    Ok(Response::with(status::NoContent))
-                },
+                StatusCode::Ok => Ok(Response::with(status::NoContent)),
                 _ => {
                     debug!("Non-OK Response: {}", &response.status);
                     Ok(Response::with(response.status))
                 }
             }
-        },
+        }
         Err(e) => {
             debug!("Error sending request: {:?}", e);
             Ok(Response::with(status::Forbidden))
