@@ -111,6 +111,9 @@ impl HttpGateway for ApiSrv {
             ext_repo_content: get "/ext/installations/:install_id/repos/:repo/contents/:path" => {
                 XHandler::new(github::repo_file_content).before(basic.clone())
             },
+            ext_credentials_docker: post "/ext/integrations/docker/credentials/validate" => {
+                XHandler::new(validate_docker_credentials).before(basic.clone())
+            },
         )
     }
 }

@@ -45,6 +45,6 @@ export class AppStore {
   }
 
   subscribe(listener: Function) {
-    this.store.subscribe(() => listener(this.getState()));
+    return this.store.subscribe(() => listener(this.getState()));
   }
 }

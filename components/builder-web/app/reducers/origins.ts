@@ -116,6 +116,9 @@ export default function origins(state = initialState['origins'], action) {
       return state.setIn(['ui', 'current', 'loading'],
         action.payload);
 
+    case actionTypes.SET_INTEGRATION_CREDS_VALIDATION:
+      return state.setIn(['currentIntegrations', 'ui', 'creds'], action.payload);
+
     case actionTypes.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE:
       return state.setIn(['ui', 'current', 'privateKeyErrorMessage'],
         action.payload);

@@ -55,5 +55,8 @@ path = "../builder-core"
 [dependencies.habitat_depot]
 path = "../builder-depot"
 
+[dependencies.habitat_http_client]
+path = "../http-client"
+
 [dependencies.habitat_net]
 path = "../net"

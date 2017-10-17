@@ -22,8 +22,11 @@ use depot::server::check_origin_access;
 use github_api_client::HubError;
 use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
+use http_client::ApiClient;
 use http_gateway::http::controller::*;
 use http_gateway::http::helpers::{self, validate_params};
+use hyper::header::{Accept, ContentType};
+use hyper::status::StatusCode;
 use iron::status;
 use params::{Params, Value, FromValue};
 use persistent;
@@ -43,6 +46,9 @@ use types::*;
 // A default name for per-project integrations. Currently, there
 // can only be one.
 const DEFAULT_PROJECT_INTEGRATION: &'static str = "default";
+
+const PRODUCT: &'static str = "builder-api";
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 define_event_log!();
 
@@ -116,6 +122,62 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
     match helpers::promote_job_group_to_channel(req, group_id, &channel, Some(session_id)) {
         Ok(resp) => Ok(render_json(status::Ok, &resp)),
         Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+pub fn validate_docker_credentials(req: &mut Request) -> IronResult<Response> {
+    let json_body = req.get::<bodyparser::Json>();
+
+    let body = match json_body {
+        Ok(Some(b)) => b,
+        Ok(None) => {
+            debug!("Error: Missing request body");
+            return Ok(Response::with(status::BadRequest))
+        },
+        Err(err) => {
+            debug!("Error: {:?}", err);
+            return Ok(Response::with(status::BadRequest))
+        }
+    };
+
+    if !body["username"].is_string() || !body["password"].is_string() {
+        debug!("Error: Missing username or password");
+        return Ok(Response::with(status::BadRequest))
+    }
+
+    // There's probably a better way to do this. Suggestions?
+    let client = match ApiClient::new("https://hub.docker.com/v2", PRODUCT, VERSION, None) {
+        Ok(c) => c,
+        Err(e) => {
+            debug!("Error: Unable to create HTTP client: {}", e);
+            return Ok(Response::with(status::InternalServerError))
+        }
+    };
+
+    let sbody = serde_json::to_string(&body).unwrap();
+    let result = client
+        .post("users/login")
+        .header(Accept::json())
+        .header(ContentType::json())
+        .body(&sbody)
+        .send();
+
+    match result {
+        Ok(response) => {
+            match response.status {
+                StatusCode::Ok => {
+                    Ok(Response::with(status::NoContent))
+                },
+                _ => {
+                    debug!("Non-OK Response: {}", &response.status);
+                    Ok(Response::with(response.status))
+                }
+            }
+        },
+        Err(e) => {
+            debug!("Error sending request: {:?}", e);
+            Ok(Response::with(status::Forbidden))
+        }
     }
 }
 
