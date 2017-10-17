@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material';
+import { AppStore } from '../../../app.store';
+import { clearIntegrationCredsValidation, validateDockerCredentials } from '../../../actions/index';
 
 export interface Credentials {
   username: string;
@@ -29,19 +31,74 @@ export class Credentials implements Credentials {
   selector: 'hab-docker-credentials-dialog',
   template: require('./docker-credentials-form.dialog.html')
 })
-
-export class DockerCredentialsFormDialog {
+export class DockerCredentialsFormDialog implements OnDestroy {
   model: Credentials = new Credentials;
 
   constructor(
-    public dialogRef: MatDialogRef<DockerCredentialsFormDialog>) { }
+    public dialogRef: MatDialogRef<DockerCredentialsFormDialog>,
+    private store: AppStore
+  ) {}
+
+  ngOnDestroy() {
+    this.store.dispatch(clearIntegrationCredsValidation());
+  }
+
+  get token() {
+    return this.store.getState().session.token;
+  }
+
+  get creds() {
+    return this.store.getState().origins.currentIntegrations.ui.creds;
+  }
+
+  get message() {
+    return this.creds.message;
+  }
+
+  get status() {
+    let creds = this.creds;
+
+    if (creds.validating) {
+      return {
+        icon: 'loading',
+        className: 'validating'
+      };
+    }
+    else if (creds.validated) {
+      if (creds.valid) {
+        return {
+          icon: 'check',
+          className: 'success'
+        };
+      }
+      else {
+        return {
+          icon: 'warning',
+          className: 'error'
+        };
+      }
+    }
+  }
 
   onNoClick(): void {
     this.dialogRef.close();
   }
 
   onSubmit() {
-    this.dialogRef.close(this.model);
+    this.store.dispatch(validateDockerCredentials(this.model.username, this.model.password, this.token));
+    let unsubscribe;
+
+    unsubscribe = this.store.subscribe(state => {
+      const creds = state.origins.currentIntegrations.ui.creds;
+
+      if (!creds.validating && creds.validated) {
+        unsubscribe();
+
+        if (creds.valid) {
+          setTimeout(() => this.dialogRef.close(this.model), 750);
+        }
+      }
+    });
   }
 
   close() {

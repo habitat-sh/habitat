@@ -850,6 +850,7 @@ dependencies = [
  "habitat-builder-protocol 0.0.0",
  "habitat_core 0.0.0",
  "habitat_depot 0.0.0",
+ "habitat_http_client 0.0.0",
  "habitat_net 0.0.0",
  "hex 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.10.9 (registry+https://github.com/rust-lang/crates.io-index)",

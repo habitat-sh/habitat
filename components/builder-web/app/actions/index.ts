@@ -66,6 +66,7 @@ export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE = originActions.SET_ORI
 export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE = originActions.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE;
 export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
 export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE = originActions.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE;
+export const SET_INTEGRATION_CREDS_VALIDATION = originActions.SET_INTEGRATION_CREDS_VALIDATION;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 export const UPDATE_ORIGIN = originActions.UPDATE_ORIGIN;
 
@@ -137,6 +138,7 @@ export const removeNotification = notificationActions.removeNotification;
 
 export const acceptOriginInvitation = originActions.acceptOriginInvitation;
 export const createOrigin = originActions.createOrigin;
+export const clearIntegrationCredsValidation = originActions.clearIntegrationCredsValidation;
 export const deleteOriginInvitation = originActions.deleteOriginInvitation;
 export const deleteOriginMember = originActions.deleteOriginMember;
 export const deleteDockerIntegration = originActions.deleteDockerIntegration;
@@ -156,6 +158,7 @@ export const updateOrigin = originActions.updateOrigin;
 export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 export const setDockerIntegration = originActions.setDockerIntegration;
+export const validateDockerCredentials = originActions.validateDockerCredentials;
 
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
 export const fetchExplore = packageActions.fetchExplore;

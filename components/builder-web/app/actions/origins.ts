@@ -33,6 +33,7 @@ export const SET_CURRENT_ORIGIN_CREATING_FLAG = 'SET_CURRENT_ORIGIN_CREATING_FLA
 export const SET_CURRENT_ORIGIN_LOADING = 'SET_CURRENT_ORIGIN_LOADING';
 export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY = 'SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY';
 export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY = 'SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY';
+export const SET_INTEGRATION_CREDS_VALIDATION = 'SET_INTEGRATION_CREDS_VALIDATION';
 export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE = 'SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE';
 export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE = 'SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE';
 export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = 'SET_ORIGIN_USER_INVITE_ERROR_MESSAGE';
@@ -313,6 +314,47 @@ export function updateOrigin(origin: any, token: string) {
   };
 }
 
+export function validateDockerCredentials(username: string, password: string, token: string) {
+  return dispatch => {
+
+    dispatch(setIntegrationCredsValidation({
+      validating: true,
+      validated: false,
+      valid: false,
+      message: 'Verifying...'
+    }));
+
+    new BuilderApiClient(token).validateDockerCredentials(username, password)
+      .then(response => {
+        dispatch(setIntegrationCredsValidation({
+          validating: false,
+          validated: true,
+          valid: true,
+          message: 'Verified'
+        }));
+      })
+      .catch(error => {
+        dispatch(setIntegrationCredsValidation({
+          validating: false,
+          validated: true,
+          valid: false,
+          message: 'Username and password combination is not valid.'
+        }));
+      });
+  };
+}
+
+export function clearIntegrationCredsValidation() {
+  return dispatch => {
+    dispatch(setIntegrationCredsValidation({
+      validating: false,
+      validated: false,
+      valid: false,
+      message: undefined
+    }));
+  };
+}
+
 export function fetchOriginsPackageCount(origins) {
   return dispatch => {
     origins.forEach(origin => {
@@ -442,6 +484,13 @@ function setOriginIntegrationSaveErrorMessage(payload: string) {
   return {
     type: SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE,
     payload,
+  };
+}
+
+function setIntegrationCredsValidation(payload: any) {
+  return {
+    type: SET_INTEGRATION_CREDS_VALIDATION,
+    payload
   };
 }
 

@@ -620,6 +620,25 @@ export class BuilderApiClient {
     });
   }
 
+  public validateDockerCredentials(username: string, password: string) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/ext/integrations/docker/credentials/validate`, {
+        headers: this.headers,
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      })
+        .then(response => {
+          if (response.ok) {
+            resolve();
+          }
+          else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => reject(error));
+    });
+  }
+
   private handleError(error, reject) {
     const store = this.store;
     const state = store.getState();
