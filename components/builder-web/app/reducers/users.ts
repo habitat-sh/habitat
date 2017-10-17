@@ -18,9 +18,12 @@ import initialState from '../initialState';
 
 export default function users(state = initialState['users'], action) {
   switch (action.type) {
+
     case actionTypes.POPULATE_GITHUB_USER_DATA:
-      return state.
-        setIn(['current', 'gitHub'], fromJS(action.payload));
+      return state.setIn(['current', 'gitHub'], fromJS(action.payload));
+
+    case actionTypes.SET_PRIVILEGES:
+      return state.setIn(['current', 'flags'], action.payload);
 
     case actionTypes.SIGN_IN_ATTEMPT:
       return state.
@@ -33,6 +36,7 @@ export default function users(state = initialState['users'], action) {
 
     case actionTypes.SET_SIGNING_IN_FLAG:
       return state.setIn(['current', 'isSigningIn'], action.payload);
+
     default:
       return state;
   }

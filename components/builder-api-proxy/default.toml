@@ -15,9 +15,6 @@ slack_url            = "http://slack.habitat.sh/"
 youtube_url          = "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk"
 demo_app_url         = "https://www.habitat.sh/demo"
 
-[feature_flags]
-project = true
-
 [github]
 url       = "https://api.github.com"
 web_url   = "https://github.com"

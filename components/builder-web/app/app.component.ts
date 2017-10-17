@@ -19,7 +19,7 @@ import { Router, RouterOutlet } from '@angular/router';
 import {
   authenticateWithGitHub, loadGitHubSessionState, loadBldrSessionState, removeNotification,
   requestGitHubAuthToken, routeChange, setGitHubAuthState,
-  setPackagesSearchQuery, signOut, toggleUserNavMenu, loadFeatureFlags
+  setPackagesSearchQuery, signOut, toggleUserNavMenu
 } from './actions/index';
 
 @Component({
@@ -105,8 +105,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.store.dispatch(
       authenticateWithGitHub(this.state.gitHub.authToken, this.state.session.token)
     );
-
-    this.store.dispatch(loadFeatureFlags());
   }
 
   get fullView() {

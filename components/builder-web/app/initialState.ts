@@ -236,7 +236,4 @@ export default Record({
       gitHub: Map(),
     })(),
   })(),
-  featureFlags: Record({
-    current: Map({})
-  })()
 })();

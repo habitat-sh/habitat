@@ -13,23 +13,21 @@
 
     <div *ngIf="!selectingPlan">
       <ul class="packages-list">
-        <div *ngIf="projectsEnabled">
-          <li class="heading" *ngIf="projectsExist">
-            <div class="pkg-col-1">
-              <h3>Connected Plans</h3>
-            </div>
-          </li>
-          <li *ngFor="let proj of projects">
-            <a [routerLink]="['/pkgs', origin, proj, 'latest']">
-              <span class="pkg-col-1">{{ proj }}</span>
-            </a>
-            <hab-icon symbol="chevron-right"></hab-icon>
-          </li>
-          <li *ngIf="projectsExist">
-            <div class="pkg-col-1">&nbsp;
-            </div>
-          </li>
-        </div>
+        <li class="heading" *ngIf="projectsExist">
+          <div class="pkg-col-1">
+            <h3>Connected Plans</h3>
+          </div>
+        </li>
+        <li *ngFor="let proj of projects">
+          <a [routerLink]="['/pkgs', origin, proj, 'latest']">
+            <span class="pkg-col-1">{{ proj }}</span>
+          </a>
+          <hab-icon symbol="chevron-right"></hab-icon>
+        </li>
+        <li *ngIf="projectsExist">
+          <div class="pkg-col-1">&nbsp;
+          </div>
+        </li>
         <li class="heading">
           <div class="pkg-col-1">
             <h3>Packages</h3>

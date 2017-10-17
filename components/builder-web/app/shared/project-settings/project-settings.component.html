@@ -1,142 +1,140 @@
-<div *ngIf="projectsEnabled">
-  <div class="content">
-    <div class="connect" *ngIf="!project && !connecting">
-      <button mat-raised-button color="primary" class="button" (click)="connect()" [disabled]="!hasPrivateKey">
-        Connect a plan file
-      </button>
-      <span class="no-keys" *ngIf="!hasPrivateKey">
-        <hab-icon symbol="add-circle"></hab-icon>
-        <a [routerLink]="['/origins', origin, 'keys']">Add required origin keys</a>
-      </span>
-      <div *ngIf="name">
-        <p>
-          <strong>There are currently no Habitat plan files connected.</strong>
-        </p>
-        <p>If you have a plan file in a GitHub repo, connect it here for automated build jobs.</p>
-        <p>
-          <em>
-            Don't have a plan file? Learn more about
-            <a href="https://www.habitat.sh/docs/create-plans/">creating plan files</a> or
-            <a href="{{ config['demo_app_url'] }}">try the demo app</a>.
-          </em>
-        </p>
-      </div>
+<div class="content">
+  <div class="connect" *ngIf="!project && !connecting">
+    <button mat-raised-button color="primary" class="button" (click)="connect()" [disabled]="!hasPrivateKey">
+      Connect a plan file
+    </button>
+    <span class="no-keys" *ngIf="!hasPrivateKey">
+      <hab-icon symbol="add-circle"></hab-icon>
+      <a [routerLink]="['/origins', origin, 'keys']">Add required origin keys</a>
+    </span>
+    <div *ngIf="name">
+      <p>
+        <strong>There are currently no Habitat plan files connected.</strong>
+      </p>
+      <p>If you have a plan file in a GitHub repo, connect it here for automated build jobs.</p>
+      <p>
+        <em>
+          Don't have a plan file? Learn more about
+          <a href="https://www.habitat.sh/docs/create-plans/">creating plan files</a> or
+          <a href="{{ config['demo_app_url'] }}">try the demo app</a>.
+        </em>
+      </p>
     </div>
-    <div class="connected-plans" *ngIf="project && !connecting">
-      <ul>
-        <li class="heading">
-          <h3 class="plan-path">Plan</h3>
-          <h3 class="plan-exports">&nbsp;</h3>
-          <h3 class="plan-status">Status</h3>
-          <h3 class="plan-actions">Actions</h3>
-        </li>
-        <li class="item">
-          <div class="plan-path">
-            <hab-icon [symbol]="iconFor(project.plan_path)"></hab-icon>
-            <span>{{ project.plan_path }}</span>
-          </div>
-          <div class="plan-exports">
-            &nbsp;
-          </div>
-          <div class="plan-status">
-            <hab-icon symbol="check" class="success"></hab-icon>
-            <span>connected</span>
-          </div>
-          <div class="plan-actions">
-            <hab-icon symbol="cancel" (click)="disconnect()"></hab-icon>
-            <hab-icon symbol="settings" (click)="editConnection()"></hab-icon>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <div class="connecting" *ngIf="connecting">
-      <form [formGroup]="form" #formValues="ngForm">
-        <p class="note">
-          <hab-icon symbol="github"></hab-icon>
-          <span class="info">
-            In order to connect a plan file in your repo, you must first install the Habitat Builder GitHub app and allow access to that
-            repository.
-          </span>
-          <span class="cta">
-            <a href="{{ config['github_app_url'] }}" mat-raised-button color="accent" class="button" target="_blank">
-              Install GitHub App
-            </a>
-          </span>
-        </p>
-        <ol>
-          <li [class.active]="!selectedInstallation" (click)="clearConnection()">Select a GitHub repo</li>
-          <li [class.active]="selectedInstallation">Set path to Habitat plan file</li>
-        </ol>
-        <div class="installation" *ngIf="!selectedInstallation">
-          <h3>
-            GitHub Org / Repo
-          </h3>
-          <div *ngIf="loading">
-            <hab-icon symbol="loading" class="spinning"></hab-icon>
-          </div>
-          <div *ngIf="!loading">
-            <p *ngIf="installations.size === 0">
-              It looks like you haven't yet installed the Habitat Builder app.
-              <a href="{{ config['github_app_url'] }}" target="_blank">Install it on GitHub</a>, then come back here and
-              <a class="try-again" (click)="connect()">
-                <hab-icon symbol="loading"></hab-icon>try again</a>. (It may take a few minutes for the changes to be recognized.)
-            </p>
-            <div *ngIf="installations.size > 0">
-              <p>
-                Enter the name of the GitHub organization and repository that
-                <strong>contains your Habitat plan file</strong>.
-              </p>
-              <hab-checking-input id="repo_path" name="repo_path" availableMessage="found." notAvailableMessage="not found. Please verify you've entered the name correctly and that the Habitat Builder GitHub app has been installed."
-                displayName="GitHub installation" [form]="form" [pattern]="false" [maxLength]="false" [isAvailable]="doesRepoExist"
-                [value]="selectedRepo" placeholder="{{username}}/example-app">
-              </hab-checking-input>
-            </div>
-          </div>
+  </div>
+  <div class="connected-plans" *ngIf="project && !connecting">
+    <ul>
+      <li class="heading">
+        <h3 class="plan-path">Plan</h3>
+        <h3 class="plan-exports">&nbsp;</h3>
+        <h3 class="plan-status">Status</h3>
+        <h3 class="plan-actions">Actions</h3>
+      </li>
+      <li class="item">
+        <div class="plan-path">
+          <hab-icon [symbol]="iconFor(project.plan_path)"></hab-icon>
+          <span>{{ project.plan_path }}</span>
         </div>
-        <div *ngIf="selectedInstallation">
-          <a class="repo-link" href="{{ repoUrl }}" target="_blank">
-            <hab-icon symbol="open-in-new"></hab-icon>
-            Go to your repo
+        <div class="plan-exports">
+          &nbsp;
+        </div>
+        <div class="plan-status">
+          <hab-icon symbol="check" class="success"></hab-icon>
+          <span>connected</span>
+        </div>
+        <div class="plan-actions">
+          <hab-icon symbol="cancel" (click)="disconnect()"></hab-icon>
+          <hab-icon symbol="settings" (click)="editConnection()"></hab-icon>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div class="connecting" *ngIf="connecting">
+    <form [formGroup]="form" #formValues="ngForm">
+      <p class="note">
+        <hab-icon symbol="github"></hab-icon>
+        <span class="info">
+          In order to connect a plan file in your repo, you must first install the Habitat Builder GitHub app and allow access to that
+          repository.
+        </span>
+        <span class="cta">
+          <a href="{{ config['github_app_url'] }}" mat-raised-button color="accent" class="button" target="_blank">
+            Install GitHub App
           </a>
-          <h3>Path to Plan File</h3>
-          <p>
-            Enter the path to your plan file from the root of your repo. By default, we check for
-            <code>habitat/plan.sh</code>.
+        </span>
+      </p>
+      <ol>
+        <li [class.active]="!selectedInstallation" (click)="clearConnection()">Select a GitHub repo</li>
+        <li [class.active]="selectedInstallation">Set path to Habitat plan file</li>
+      </ol>
+      <div class="installation" *ngIf="!selectedInstallation">
+        <h3>
+          GitHub Org / Repo
+        </h3>
+        <div *ngIf="loading">
+          <hab-icon symbol="loading" class="spinning"></hab-icon>
+        </div>
+        <div *ngIf="!loading">
+          <p *ngIf="installations.size === 0">
+            It looks like you haven't yet installed the Habitat Builder app.
+            <a href="{{ config['github_app_url'] }}" target="_blank">Install it on GitHub</a>, then come back here and
+            <a class="try-again" (click)="connect()">
+              <hab-icon symbol="loading"></hab-icon>try again</a>. (It may take a few minutes for the changes to be recognized.)
           </p>
-          <div class="files">
-            <hab-checking-input id="plan_path" name="plan_path" availableMessage="found." notAvailableMessage="does not exist in the repository."
-              unmatchedMessage="must be named either plan.sh or plan.ps1." displayName="Plan file" [form]="form" [pattern]="false"
-              [maxLength]="false" [isAvailable]="doesFileExist" [value]="selectedPath">
+          <div *ngIf="installations.size > 0">
+            <p>
+              Enter the name of the GitHub organization and repository that
+              <strong>contains your Habitat plan file</strong>.
+            </p>
+            <hab-checking-input id="repo_path" name="repo_path" availableMessage="found." notAvailableMessage="not found. Please verify you've entered the name correctly and that the Habitat Builder GitHub app has been installed."
+              displayName="GitHub installation" [form]="form" [pattern]="false" [maxLength]="false" [isAvailable]="doesRepoExist"
+              [value]="selectedRepo" placeholder="{{username}}/example-app">
             </hab-checking-input>
           </div>
-          <hab-visibility-selector [setting]="visibility" (changed)="settingChanged($event)">
-          </hab-visibility-selector>
-          <hab-docker-export-settings #docker *ngIf="selectedInstallation" [integrations]="integrations" [current]="dockerSettings"
-            [enabled]="dockerEnabled">
-          </hab-docker-export-settings>
         </div>
-        <div class="controls">
-          <button *ngIf="!selectedInstallation" mat-raised-button color="primary" class="button" (click)="selectRepo()" [disabled]="!validRepo">
-            Next &raquo;
-          </button>
-          <button *ngIf="selectedInstallation" mat-raised-button color="primary" class="button" (click)="saveConnection()" [disabled]="!validProject">
-            {{ connectButtonLabel }} Connection
-          </button>
-          <a (click)="clearConnection()">Cancel</a>
+      </div>
+      <div *ngIf="selectedInstallation">
+        <a class="repo-link" href="{{ repoUrl }}" target="_blank">
+          <hab-icon symbol="open-in-new"></hab-icon>
+          Go to your repo
+        </a>
+        <h3>Path to Plan File</h3>
+        <p>
+          Enter the path to your plan file from the root of your repo. By default, we check for
+          <code>habitat/plan.sh</code>.
+        </p>
+        <div class="files">
+          <hab-checking-input id="plan_path" name="plan_path" availableMessage="found." notAvailableMessage="does not exist in the repository."
+            unmatchedMessage="must be named either plan.sh or plan.ps1." displayName="Plan file" [form]="form" [pattern]="false"
+            [maxLength]="false" [isAvailable]="doesFileExist" [value]="selectedPath">
+          </hab-checking-input>
         </div>
-      </form>
-    </div>
+        <hab-visibility-selector [setting]="visibility" (changed)="settingChanged($event)">
+        </hab-visibility-selector>
+        <hab-docker-export-settings #docker *ngIf="selectedInstallation" [integrations]="integrations" [current]="dockerSettings"
+          [enabled]="dockerEnabled">
+        </hab-docker-export-settings>
+      </div>
+      <div class="controls">
+        <button *ngIf="!selectedInstallation" mat-raised-button color="primary" class="button" (click)="selectRepo()" [disabled]="!validRepo">
+          Next &raquo;
+        </button>
+        <button *ngIf="selectedInstallation" mat-raised-button color="primary" class="button" (click)="saveConnection()" [disabled]="!validProject">
+          {{ connectButtonLabel }} Connection
+        </button>
+        <a (click)="clearConnection()">Cancel</a>
+      </div>
+    </form>
   </div>
-  <div class="sidebar" *ngIf="connecting">
-    <h3>About Packages</h3>
-    <p>
-      In order to connect a plan, you will need to have a Habitat plan file in a GitHub repo and install the
-      <a href="{{ config['github_app_url'] }}" target="_blank">Habitat GitHub app</a>.
-    </p>
-    <p>
-      Don't have a plan file? Learn about
-      <a href="{{config['docs_url']}}/developing-packages/" target="_blank">developing packages</a> or
-      <a href="{{ config['demo_app_url'] }}" target="_blank">try the demo app</a>.
-    </p>
-  </div>
+</div>
+<div class="sidebar" *ngIf="connecting">
+  <h3>About Packages</h3>
+  <p>
+    In order to connect a plan, you will need to have a Habitat plan file in a GitHub repo and install the
+    <a href="{{ config['github_app_url'] }}" target="_blank">Habitat GitHub app</a>.
+  </p>
+  <p>
+    Don't have a plan file? Learn about
+    <a href="{{config['docs_url']}}/developing-packages/" target="_blank">developing packages</a> or
+    <a href="{{ config['demo_app_url'] }}" target="_blank">try the demo app</a>.
+  </p>
 </div>

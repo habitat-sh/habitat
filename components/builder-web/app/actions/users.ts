@@ -17,6 +17,7 @@ import { requestRoute, removeSessionStorage, resetAppState } from './index';
 export const SIGN_IN_ATTEMPT = 'SIGN_IN_ATTEMPT';
 export const TOGGLE_USER_NAV_MENU = 'TOGGLE_USER_NAV_MENU';
 export const SET_SIGNING_IN_FLAG = 'SET_SIGNING_IN_FLAG';
+export const SET_PRIVILEGES = 'SET_PRIVILEGES';
 
 export function attemptSignIn(username) {
   return {
@@ -31,6 +32,12 @@ export function toggleUserNavMenu() {
   };
 }
 
+export function setPrivileges(payload) {
+  return {
+    type: SET_PRIVILEGES,
+    payload
+  };
+}
 
 export function setSigningInFlag(payload) {
   return {

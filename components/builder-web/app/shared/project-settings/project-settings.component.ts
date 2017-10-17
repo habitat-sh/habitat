@@ -143,10 +143,6 @@ export class ProjectSettingsComponent implements OnChanges {
     };
   }
 
-  get projectsEnabled() {
-    return !!this.store.getState().featureFlags.current.get('project');
-  }
-
   get repoField() {
     return this.form.controls['repo_path'];
   }

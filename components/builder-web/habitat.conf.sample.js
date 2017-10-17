@@ -46,9 +46,5 @@ habitatConfig({
     // be automatically populated by Habitat
     version: "",
     // The main website URL
-    www_url: "https://www.habitat.sh",
-    // Feature flags
-    feature_flags: {
-        project: false
-    }
+    www_url: "https://www.habitat.sh"
 });

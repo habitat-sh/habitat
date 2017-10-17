@@ -15,7 +15,7 @@
     <a mat-tab-link routerLink="builds" routerLinkActive #jobs="routerLinkActive" [active]="jobs.isActive">
       Build Jobs
     </a>
-    <a mat-tab-link *ngIf="projectsEnabled && isOriginMember" routerLink="settings" routerLinkActive #settings="routerLinkActive"
+    <a mat-tab-link *ngIf="isOriginMember" routerLink="settings" routerLinkActive #settings="routerLinkActive"
       [active]="settings.isActive">
       Settings
     </a>
