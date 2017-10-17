@@ -155,13 +155,13 @@ Navigate to the view page for this origin by clicking "My Origins", and then the
 
 First, you will need to install the [Habitat Builder App](https://github.com/apps/habitat-builder) on your Github repo.
 
-![](media/2017-10-09-node-Scaffolding-builder/blog_image_1.png)
+![](media/2017-10-09-node-scaffolding-builder/blog_image_1.png)
 
 ### Connecting to Docker Hub (optional)
 
 If you like, you can connect Builder to a [Docker Hub](https://hub.docker.com/) account.
 
-![](media/2017-10-09-node-Scaffolding-builder/blog_image_2.png)
+![](media/2017-10-09-node-scaffolding-builder/blog_image_2.png)
 
 ### Adding the Github repo to your origin
 
@@ -169,13 +169,13 @@ Now, make sure you are on the view page for your origin, then click on the "Conn
 
 Optionally, you can also connect to your Docker Hub account - builds of this package will automatically be exported as Docker images to your Docker Hub account.
 
-![](media/2017-10-09-node-Scaffolding-builder/blog_image_3.png)
+![](media/2017-10-09-node-scaffolding-builder/blog_image_3.png)
 
 ### Running a build
 
 Let's run our first build. From the "Build Jobs" tab click the big green "Build Latest Version" button and watch your build in action!
 
-![](media/2017-10-09-node-Scaffolding-builder/blog_image_4.png)
+![](media/2017-10-09-node-scaffolding-builder/blog_image_4.png)
 
 ### Using the build
 
