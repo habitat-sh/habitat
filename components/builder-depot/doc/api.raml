@@ -130,6 +130,20 @@ securitySchemes:
                                 description: You are not authorized to send invitations on behalf of this origin
                             500:
                                 description: Internal server error
+
+        /integrations:
+            get:
+                description: Get an object of all integrations
+                securedBy: [oauth_2_0]
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    {
+                                        "docker": ["region1", "region2"],
+                                        "google": ["region3"]
+                                    }
         /invitations:
             /{invitationId}:
                 put:

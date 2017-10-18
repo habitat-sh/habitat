@@ -14,7 +14,7 @@
 
 use std::fs::{self, File};
 use std::path::PathBuf;
-use std::io::{Read, Write, BufWriter};
+use std::io::{BufWriter, Read, Write};
 use std::result;
 use std::str::FromStr;
 
@@ -23,8 +23,8 @@ use bldr_core;
 use bldr_core::helpers::transition_visibility;
 use bodyparser;
 use github_api_client::GitHubClient;
-use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
-                        ident};
+use hab_core::package::{ident, FromArchive, Identifiable, PackageArchive, PackageIdent,
+                        PackageTarget};
 use hab_core::crypto::keys::PairType;
 use hab_core::crypto::{BoxKeyPair, SigKeyPair};
 use hab_core::crypto::PUBLIC_BOX_KEY_VERSION;
@@ -33,16 +33,16 @@ use http_gateway::http::controller::*;
 use http_gateway::http::helpers::{self, dont_cache_response};
 use http_gateway::http::middleware::XRouteClient;
 use hab_net::{privilege, ErrCode, NetOk, NetResult};
-use hyper::header::{Charset, ContentDisposition, DispositionType, DispositionParam};
-use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
+use hyper::header::{Charset, ContentDisposition, DispositionParam, DispositionType};
+use hyper::mime::{Attr, Mime, SubLevel, TopLevel, Value};
 use iron::headers::{ContentType, UserAgent};
 use iron::middleware::BeforeMiddleware;
 use iron::request::Body;
 use persistent;
 use protobuf;
 use protocol::originsrv::*;
-use protocol::scheduler::{Group, GroupCreate, GroupGet, PackageStatsGet, PackageStats,
-                          PackagePreCreate, GroupAbort};
+use protocol::scheduler::{Group, GroupAbort, GroupCreate, GroupGet, PackagePreCreate,
+                          PackageStats, PackageStatsGet};
 use protocol::sessionsrv::{Account, AccountGet, AccountOriginRemove};
 use regex::Regex;
 use router::{Params, Router};
@@ -2262,6 +2262,11 @@ where
         },
         origin_integration_delete: delete "/origins/:origin/integrations/:integration/:name" => {
             XHandler::new(handlers::integrations::delete_origin_integration).before(basic.clone())
+        },
+        origin_integrations: get "/origins/:origin/integrations" => {
+            XHandler::new(
+                handlers::integrations::fetch_origin_integrations).before(basic.clone()
+            )
         },
 
         origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {
