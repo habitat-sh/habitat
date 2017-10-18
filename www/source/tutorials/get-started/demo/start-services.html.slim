@@ -9,6 +9,8 @@ section
 
   p The start up procedure for the PostgreSQL package is similar, so in the second window, we have already started that package for you.
 
+  p You will see in each output that the Supervisor starts up first and then starts up any packaged applications or services. In the case of our Ruby-on-Rails application, the Supervisor recognizes that the application must bind to a database (specified in its plan), before initialization can take place. We will address that problem in the next step.
+
   blockquote
     p Tip: If you mess up entering a command, hit the Up arrow on your keyboard to re-enter your command in the terminal window. You can fix your error without having to type the whole command over again.
 
@@ -74,8 +76,5 @@ section
         postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  MultiXact member wraparound protections are now enabled
         postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  database system is ready to accept connections
         postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  autovacuum launcher started
-
-  #success
-    p You can see in each output that the Supervisor starts up first and then starts up any packaged applications or services. In the case of our Ruby-on-Rails application, the Supervisor recognizes that the application must bind to a database (specified in its plan), before initialization can take place. We will address that problem in the next step.
 
 = link_to 'Next: Join Services Together', '/tutorials/get-started/demo/join-services/', class: 'button cta'
