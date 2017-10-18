@@ -1,5 +1,8 @@
 ---
 title: Habitat - Add Health Monitoring to a Plan
+type: tutorial
+platform: macOS
+platform_short: mac
 ---
 
 = partial '/partials/tutorials/platform_switcher', locals: { platform: 'mac' }
@@ -7,7 +10,7 @@ title: Habitat - Add Health Monitoring to a Plan
 section.sample-app
   h1 Add Health Monitoring to a Plan
 
-  = partial "/partials/tutorials/add_hooks_sample_app", locals: { is_windows: false }
+  = partial "/partials/tutorials/sample_app_add_hooks", locals: { is_windows: false }
 
   p Congratulations, you have added a custom <code>health_check</code> application lifecycle hook to your sample application. It's time to build your sample Rails application.
 

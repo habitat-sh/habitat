@@ -2,7 +2,7 @@
 
 Packages need to be signed with a secret origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
 
-    hab origin key generate originname
+    hab origin key generate <originname>
 
 The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 

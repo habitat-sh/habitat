@@ -1,30 +1,10 @@
 ---
 title: Habitat - Run the Sample App
+type: tutorial
+platform: macOS
+platform_short: mac
 ---
 
 = partial '/partials/tutorials/platform_switcher', locals: { platform: 'mac' }
 
-section.sample-app
-  h1 Run the Sample App
-
-  = partial "/partials/tutorials/run_app_common"
-
-  h2 Start Up the Containers
-
-  p Now that you have an understanding of how the containers will be brought up, it's time to start them up with Docker Compose.
-
-  ol
-    li
-      p Change directory to the root of the <code>habitat-example-plans/myrailsapp</code> directory.
-    li
-      p Run <code>docker-compose up</code> to start up the containers. Missing packages will be downloaded and installed before the myrailsapp package and PostgreSQL packages start.
-
-      p If everything started up successfully, the Rails application should loop through a message similar to the following where it requires an environment variable to be set before proceeding with the rest of the initialization process.
-
-      = partial "/partials/tutorials/run_app_output"
-
-    p If you need to stop the containers at any time, run <code>Ctrl-C</code>. If you want to bring them back up, run <code>docker-compose down</code> before running <code>docker-compose up</code> again. This will ensure the IP address of the database container resolves correctly when the <code>myrailsapp</code> container tries to bind to it. If you want to remove the containers from your machine, run <code>docker-compose rm</code>.
-
-  p Learn how to fix this error by dynamically updating the configuration of the myrailsapp package in the next step.
-
-= link_to 'Next: Dynamically Update the App', '/tutorials/sample-app/mac/update-app/', class: 'button cta'
+= partial '/partials/tutorials/sample_app_run_app'

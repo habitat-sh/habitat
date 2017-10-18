@@ -1,5 +1,8 @@
 ---
 title: Habitat - Dynamically Update the App
+type: tutorial
+platform: Linux
+platform_short: linux
 ---
 
 = partial '/partials/tutorials/platform_switcher', locals: { platform: 'linux' }
@@ -13,7 +16,7 @@ section.sample-app
 
 	p There are a couple of ways to make config changes: through environment variables or through a configuration update process that sends updated values to any member within a given service group.
 
-	p We will be updating multiple values, so it is easier to pass them all in an updated TOML file. The <code>updated_config.toml</code> file found in <code>habitat-example-plans/myrailsapp</code> can be used for this purpose.
+	p We will be updating multiple values, so it is easier to pass them all in an updated TOML file. The <code>updated_config.toml</code> file found in <code>sample-rails-app/myrailsapp</code> can be used for this purpose.
 
 	pre
 		code
@@ -28,7 +31,7 @@ section.sample-app
 
 	ol
 		li
-			p Navigate to the <code>~/habitat-example-plans/myrailsapp</code> directory.
+			p Navigate to the <code>~/sample-rails-app/myrailsapp</code> directory.
 		li
 			p Open <code>updated_config.toml</code> in your text editor.
 		li
@@ -74,7 +77,7 @@ section.sample-app
 
 	ol
 		li
-			p In your new terminal window, make sure you are in the root of the <code>habitat-example-plans/myrailsapp</code> directory. If you shut down your containers, start them back up in your other window by running <code>docker-compose up</code>.
+			p In your terminal window, make sure you are in the root of the <code>sample-rails-app/myrailsapp</code> directory. If you shut down your containers, start them back up in your other window by running <code>docker-compose up</code>.
 		li
 			p Once your containers have started, run the <code>hab config apply</code> subcommand in your new window to send configuration updates to the <code>myrailsapp.default</code> service group.
 
@@ -96,7 +99,7 @@ section.sample-app
 
 	p To set up the database, table, and seed it with a set of values, we must connect directly to the <code>myrailsapp</code> container and run <code>rake db:setup</code>. The Ruby scaffolding creates #{link_to 'process bins', 'https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md#process-bins', target: '_blank'} for several Rails processes that you can use. They are essentially core processes for a given language or framework (like <code>rake</code>, or <code>sh</code>), but made to work within a Habitat package.
 
-	p Run the following from the root of the <code>~/habitat-example-plans/myrailsapp</code> directory. Make sure to change <code>origin</code> to the origin for your <code>myrailsapp</code> package.
+	p Run the following from the root of the <code>~/sample-rails-app/myrailsapp</code> directory. Make sure to change <code>origin</code> to the origin for your <code>myrailsapp</code> package.
 
 	pre
 		code $ docker-compose exec railsapp hab pkg exec origin/myrailsapp myrailsapp-rake db:setup
