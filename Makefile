@@ -188,7 +188,7 @@ bundle: image
 changelog: image
 	$(run) sh -c 'hab pkg install core/github_changelog_generator && \
 		hab pkg binlink core/github_changelog_generator github_changelog_generator --force && \
-		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN)'
+		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN)' --max-issues=1000
 
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \
