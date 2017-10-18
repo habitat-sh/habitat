@@ -25,7 +25,7 @@ You will need to specify that location in the config files below.
 ## Create configuration files
 Some capabilities (such as allowing builder permissions, and turning on auto-building when new packages are uploaded to the depot) require passing in a custom config to the Builder services.
 
-Create the following files somewhere on your local filesystem (Note: the client_id and client_secret below are for development purposes only):
+Create the following files somewhere on your local filesystem:
 
 `config_api.toml`
 ```toml
@@ -40,10 +40,6 @@ key_dir = "/path/to/bldr-key-pair"
 [archive]
 backend = "local"
 local_dir = "/tmp"
-```
-
-`config_scheduler.toml`
-```toml
 ```
 
 `config_sessionsrv.toml`
@@ -68,10 +64,9 @@ Now, modify the `Procfile` (located in your hab repo in the `support` folder) to
 
 ```
 api: target/debug/bldr-api start --path /tmp/depot --config /home/your_alias/habitat/config_api.toml
-sessionsrv: target/debug/bldr-session-srv start --config /home/your_alias/habitat/config_sessionsrv.toml
+sessionsrv: target/debug/bldr-sessionsrv start --config /home/your_alias/habitat/config_sessionsrv.toml
 worker: target/debug/bldr-worker start --config /home/your_alias/habitat/config_worker.toml
-jobsrv: target/debug/bldr-job-srv start --config /home/your_alias/habitat/config_jobsrv.toml
-scheduler: target/debug/bldr-scheduler start --config /home/your_alias/habitat/config_scheduler.toml
+jobsrv: target/debug/bldr-jobsrv start --config /home/your_alias/habitat/config_jobsrv.toml
 ```
 
 ## Build the Builder services for the first time
@@ -365,5 +360,5 @@ Then you will need to remove your node_modules directory, then run npm install:
    ```
      cd path/to/habitat/repo/components/builder-web
      rm -rf node_modules
-     npm install  
+     npm install
    ```
