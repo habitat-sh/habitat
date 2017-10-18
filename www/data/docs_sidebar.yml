@@ -15,6 +15,8 @@ sidebar_links:
       link: "/docs/using-habitat/#install-faq"
     - title: Using Habitat Packages
       link: "/docs/using-habitat/#using-packages"
+    - title: Monitor Services
+      link: "/docs/using-habitat/#monitor-services"
     - title: Service Groups
       link: "/docs/using-habitat/#service-groups"
     - title: Topologies
@@ -32,7 +34,7 @@ sidebar_links:
     sub_links:
     - title: Writing a Plan.sh
       link: "/docs/developing-packages/#write-plans"
-    - title: Config Templates
+    - title: Config TemplatesÏ
       link: "/docs/developing-packages/#add-configuration"
     - title: Binds and Exports
       link: "/docs/developing-packages/#pkg-binds"
