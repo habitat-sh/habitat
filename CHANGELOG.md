@@ -1,7 +1,7 @@
 # Habitat CHANGELOG
 
 ## [0.37.0](https://github.com/habitat-sh/habitat/tree/0.37.0) (10-17-2017)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.36.0...0.37.0-dev)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.36.0...0.37.0)
 
 ## Features & Enhancements
 
