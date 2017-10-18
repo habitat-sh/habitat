@@ -1,6 +1,8 @@
 ---
 title: Habitat - Build the sample package
 type: tutorial
+platform: Linux
+platform_short: linux
 ---
 
 = partial '/partials/tutorials/platform_switcher', locals: { platform: 'linux' }
@@ -21,7 +23,7 @@ section.sample-app
       p To build the sample Rails application, start by changing directories to the root directory for your project.
 
       pre
-        code.console $ cd ~/habitat-example-plans/myrailsapp/
+        code.console $ cd ~/sample-rails-app/myrailsapp/
 
     li
       p Enter into the Studio environment.
@@ -34,7 +36,7 @@ section.sample-app
       pre
         code.console [1][default:/src:0]#</code>
 
-      p Because the Studio is chrooted, the <code>src</code> directory maps to the <code>~/habitat-example-plans/myrailsapp</code> directory you were in before you entered the Studio.
+      p Because the Studio is chrooted, the <code>src</code> directory maps to the <code>~/sample-rails-app/myrailsapp</code> directory you were in before you entered the Studio.
 
     li
       p Run the <code>build</code> command to build your package.
@@ -46,9 +48,9 @@ section.sample-app
 
       = partial "/partials/tutorials/create_plan_build_output_sample_app"
 
-      p The source files are stored in <code>/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE</code> (for example, <code>/hab/pkgs/originname/myrailsapp/0.1.0/20170624214244</code>). Listing the contents of that directory will show you the source files copied into the package as well as package metadata and plan files. By default, this location is ephemeral. When you exit the Studio, the Studio environment is destroyed and recreated the next time you enter it.
+      p The source files are stored in <code>/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE</code> (for example, <code>/hab/pkgs/myorigin/myrailsapp/0.1.0/20170624214244</code>). Listing the contents of that directory will show you the source files copied into the package as well as package metadata and plan files. By default, this location is ephemeral. When you exit the Studio, the Studio environment is destroyed and recreated the next time you enter it.
 
-      p The package created is also stored in a relative <code>results</code> directory (for example, <code>/src/results/originname-myrailsapp-0.1.0-20170624214244-x86_64-linux.hart</code>) that persists when you exit the Studio. You will mostly refer to the .hart file when uploading your package to the depot.
+      p The package created is also stored in a relative <code>results</code> directory (for example, <code>/src/results/myorigin-myrailsapp-0.1.0-20170624214244-x86_64-linux.hart</code>) that persists when you exit the Studio. You will mostly refer to the .hart file when uploading your package to the depot.
 
   h2 Export the Package as a Docker Container
 
@@ -65,7 +67,7 @@ section.sample-app
     code.console [1][default:/src:0]# hab pkg export docker core/postgresql
 
   blockquote
-   p <b>Note</b> If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, instead of a local .hart file the Habitat CLI will check Builder for the latest stable version of the package and export that.
+   p <b>Note</b> If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Habitat CLI will check Builder for the latest stable version of the package and export that.
 
   p Once you have finished exporting both packages, exit out of the Studio.
 

@@ -1,5 +1,8 @@
 ---
 title: Habitat - Add Health Monitoring to a Plan
+type: tutorial
+platform: Windows
+platform_short: windows
 ---
 
 = partial '/partials/tutorials/platform_switcher', locals: { platform: 'windows' }
@@ -7,7 +10,7 @@ title: Habitat - Add Health Monitoring to a Plan
 section.sample-app
   h1 Add Health Monitoring to a Plan
 
-  = partial "/partials/tutorials/add_hooks_sample_app", locals: { is_windows: true }
+  = partial "/partials/tutorials/sample_app_add_hooks", locals: { is_windows: true }
 
   p Congratulations, you have added a custom <code>health_check</code> application lifecycle hook to your sample application. It's time to build your sample Rails application.
 

@@ -21,7 +21,7 @@ To upload your public key, do the following:
 1. In a terminal window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~/.hab/cache/keys/originname-release.pub`).
 
     ```
-    $ hab origin key upload -z <OAuth_token> originname
+    $ hab origin key upload -z <OAuth_token> <originname>
     ```
 > **Tip** Because only the private key is imported when entering the Habitat Studio, it is easier to upload your public key outside of the Studio.
 <% end %>
@@ -30,7 +30,7 @@ To upload your public key, do the following:
 1. In a PowerShell window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~\.hab\cache\keys\originname-release.pub`).
 
     ```
-    PS > hab origin key upload -z <OAuth_token> originname
+    PS > hab origin key upload -z <OAuth_token> <originname>
     ```
 > **Tip** Because only the private key is imported when entering the Habitat Studio, it is easier to upload your public key outside of the Studio.
 <% end %>
@@ -41,28 +41,28 @@ To upload your public key, do the following:
 Once the depot possesses at least the public key of the origin, you may upload one or more packages to that origin by using the `hab pkg upload` command. The depot will check the cryptographic integrity of the package before allowing you to upload it. Uploading packages is also a privileged operation for which you must have the access token.
 
 <% if !is_windows %>
-1. Again, in your terminal window, change directory to the root of the `~/habitat-example-plans/myrailsapp` directory.
+1. Again, in your terminal window, change directory to the root of the `~/sample-rails-app/myrailsapp` directory.
 
     ```
-    $ cd ~/habitat-example-plans/myrailsapp
+    $ cd ~/sample-rails-app/myrailsapp
     ```
 2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
 
     ```
-    $ hab pkg upload -z <OAuth_token> results/originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+    $ hab pkg upload -z <OAuth_token> results/<originname>-myrailsapp-0.1.0-release-x86_64-linux.hart
     ```
 <% end %>
 
 <% if is_windows %>
-1. Again, in your PowerShell window, change directory to the root of the `~\habitat-example-plans\myrailsapp` directory.
+1. Again, in your PowerShell window, change directory to the root of the `~\sample-rails-app\myrailsapp` directory.
 
     ```
-    PS > cd ~\habitat-example-plans\myrailsapp
+    PS > cd ~\sample-rails-app\myrailsapp
     ```
 2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
 
     ```
-    PS > hab pkg upload -z <OAuth_token> .\results\originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+    PS > hab pkg upload -z <OAuth_token> .\results\<originname>-myrailsapp-0.1.0-release-x86_64-linux.hart
     ```
 <% end %>
 
@@ -82,13 +82,13 @@ Once the depot possesses at least the public key of the origin, you may upload o
 
 <% if !is_windows %>
     ```
-    $ hab pkg promote -z <OAuth_token> originname/myrailsapp/0.1.0/release stable
+    $ hab pkg promote -z <OAuth_token> <originname>/myrailsapp/0.1.0/release stable
     ```
 <% end %>
 
 <% if is_windows %>
     ```
-    PS > hab pkg promote -z <OAuth_token> originname/myrailsapp/0.1.0/release stable
+    PS > hab pkg promote -z <OAuth_token> <originname>/myrailsapp/0.1.0/release stable
     ```
 <% end %>
 
