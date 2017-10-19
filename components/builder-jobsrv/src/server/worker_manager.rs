@@ -37,8 +37,8 @@ use super::scheduler::ScheduleClient;
 
 const WORKER_MGR_ADDR: &'static str = "inproc://work-manager";
 const WORKER_TIMEOUT_MS: u64 = 33_000; // 33 sec
-const JOB_TIMEOUT_MS: u64 = 3_600_000; // 60 mins
 const DEFAULT_POLL_TIMEOUT_MS: u64 = 60_000; // 60 secs
+const JOB_TIMEOUT_CONVERT_MS: u64 = 60_000; // Conversion from mins to milli-seconds
 
 pub struct WorkerMgrClient {
     socket: zmq::Socket,
@@ -96,13 +96,16 @@ impl Worker {
         self.quarantined = false;
     }
 
-    pub fn busy(&mut self, job_id: u64) {
+    pub fn busy(&mut self, job_id: u64, job_timeout: u64) {
         self.state = jobsrv::WorkerState::Busy;
         self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
 
         if self.job_id.is_none() {
             self.job_id = Some(job_id);
-            self.job_expiry = Some(Instant::now() + Duration::from_millis(JOB_TIMEOUT_MS));
+            self.job_expiry = Some(
+                Instant::now() +
+                    Duration::from_millis(job_timeout * JOB_TIMEOUT_CONVERT_MS),
+            );
         } else {
             assert!(self.job_id.unwrap() == job_id);
         }
@@ -148,6 +151,7 @@ pub struct WorkerMgr {
     worker_command: String,
     worker_heartbeat: String,
     schedule_cli: ScheduleClient,
+    job_timeout: u64,
 }
 
 impl WorkerMgr {
@@ -176,6 +180,7 @@ impl WorkerMgr {
             worker_command: cfg.net.worker_command_addr(),
             worker_heartbeat: cfg.net.worker_heartbeat_addr(),
             schedule_cli: schedule_cli,
+            job_timeout: cfg.job_timeout,
         })
     }
 
@@ -261,7 +266,7 @@ impl WorkerMgr {
 
         for worker in workers {
             let mut bw = Worker::new(worker.get_ident());
-            bw.busy(worker.get_job_id());
+            bw.busy(worker.get_job_id(), self.job_timeout);
             if worker.get_quarantined() {
                 bw.quarantine();
             }
@@ -315,7 +320,7 @@ impl WorkerMgr {
             match self.dispatch_job(&job, &worker_ident) {
                 Ok(()) => {
                     let mut worker = self.workers.remove(&worker_ident).unwrap(); // unwrap Ok
-                    worker.busy(job.get_id());
+                    worker.busy(job.get_id(), self.job_timeout);
                     self.save_worker(&worker)?;
                     self.workers.insert(worker_ident, worker);
                 }
@@ -455,7 +460,7 @@ impl WorkerMgr {
                 debug!(
                     "Job {:?} timed out after {} minutes",
                     job_id,
-                    JOB_TIMEOUT_MS / (60 * 1000)
+                    self.job_timeout
                 );
                 self.datastore.update_job(&job)?;
             }
@@ -530,6 +535,8 @@ impl WorkerMgr {
             (jobsrv::WorkerState::Busy, jobsrv::WorkerState::Busy) => {
                 // Check to see if job has expired and quarantine this worker if so.
                 // It's probably hung in a build or in some other semi-bad state
+                // TODO (SA): Send cancel message to the worker to attempt to
+                // properly cancel the job and do a better recovery
                 let job_id = worker.job_id.unwrap(); // unwrap Ok
                 if worker.is_job_expired() {
                     if !worker.is_quarantined() {
