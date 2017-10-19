@@ -699,9 +699,21 @@ impl Client {
     /// # Failures
     /// * Remote Builder is not available
     /// * Authorization token was not set on client
-    pub fn list_channels(&self, origin: &str) -> Result<Vec<String>> {
+    pub fn list_channels(
+        &self,
+        origin: &str,
+        include_sandbox_channels: bool,
+    ) -> Result<Vec<String>> {
         let path = format!("depot/channels/{}", origin);
-        let mut res = self.0.get(&path).send()?;
+        let mut res;
+
+        if include_sandbox_channels {
+            res = self.0
+                .get_with_custom_url(&path, |url| url.set_query(Some("sandbox=true")))
+                .send()?;
+        } else {
+            res = self.0.get(&path).send()?;
+        }
 
         match res.status {
             StatusCode::Ok |

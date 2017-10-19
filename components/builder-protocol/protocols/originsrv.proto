@@ -103,6 +103,7 @@ message OriginChannelGet {
 
 message OriginChannelListRequest {
   optional uint64 origin_id = 1;
+  optional bool include_sandbox_channels = 2;
 }
 
 message OriginChannelListResponse {

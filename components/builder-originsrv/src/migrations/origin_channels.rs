@@ -328,5 +328,18 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                     END
                     $$ LANGUAGE plpgsql STABLE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channels_for_origin_v2 (
+                   occ_origin_id bigint,
+                   occ_include_sandbox_channels bool
+                 ) RETURNS SETOF origin_channels AS $$
+                        SELECT *
+                        FROM origin_channels
+                        WHERE origin_id = occ_origin_id
+                        AND (occ_include_sandbox_channels = true OR (occ_include_sandbox_channels = false AND name NOT LIKE 'bldr-%'))
+                        ORDER BY name ASC;
+                    $$ LANGUAGE SQL STABLE"#,
+    )?;
     Ok(())
 }
