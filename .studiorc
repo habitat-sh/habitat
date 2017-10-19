@@ -37,7 +37,6 @@ install-packages() {
   core/builder-jobsrv \
   core/builder-originsrv \
   core/builder-router \
-  core/builder-scheduler \
   core/builder-sessionsrv \
   core/builder-worker -c unstable
 }
@@ -69,7 +68,6 @@ build-builder() {
   build-jobsrv
   build-originsrv
   build-router
-  build-scheduler
   build-sessionsrv
   build-worker
 }
@@ -106,10 +104,6 @@ build-router() {
   build "/src/components/builder-router"
 }
 
-build-scheduler() {
-  build "/src/components/builder-scheduler"
-}
-
 build-sessionsrv() {
   build "/src/components/builder-sessionsrv"
 }
@@ -135,7 +129,6 @@ start-builder() {
   start-api-proxy
   start-jobsrv
   start-originsrv
-  start-scheduler
   start-sessionsrv
   start-worker
   upload_github_keys
@@ -173,10 +166,6 @@ start-router() {
   hab svc load core/builder-router
 }
 
-start-scheduler() {
-  hab svc load core/builder-scheduler --bind router:builder-router.default --bind datastore:builder-datastore.default
-}
-
 start-sessionsrv() {
   hab svc load core/builder-sessionsrv --bind router:builder-router.default --bind datastore:builder-datastore.default
 }
@@ -194,7 +183,6 @@ stop-builder() {
   stop-jobsrv
   stop-originsrv
   stop-router
-  stop-scheduler
   stop-sessionsrv
   stop-worker
 }
@@ -229,10 +217,6 @@ stop-originsrv() {
 
 stop-router() {
   hab svc unload core/builder-router
-}
-
-stop-scheduler() {
-  hab svc unload core/builder-scheduler
 }
 
 stop-sessionsrv() {
@@ -311,7 +295,6 @@ mmands are available:
   * build-jobsrv - build the JobSrv
   * build-originsrv - build the OriginSrv
   * build-router - build the RouteSrv
-  * build-scheduler - build the Scheduler
   * build-sessionsrv - build the SessionSrv
   * build-worker - build the Worker
 4. Running Builder

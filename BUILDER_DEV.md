@@ -60,7 +60,7 @@ auto_publish = true
 
 (Note: If you want your log files to persist across restarts of your development machine, replace `/tmp` with some other directory. It *must* exist and be writable before you start the job server).
 
-Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, jobsrv, scheduler and worker services to the previously created config files, e.g.
+Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, jobsrv and worker services to the previously created config files, e.g.
 
 ```
 api: target/debug/bldr-api start --path /tmp/depot --config /home/your_alias/habitat/config_api.toml

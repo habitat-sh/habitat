@@ -320,10 +320,23 @@ resource "aws_instance" "jobsrv" {
     ]
   }
 
+  provisioner "file" {
+    content     = "${data.template_file.sch_log_parser.rendered}"
+    destination = "/tmp/sch_log_parser.py"
+  }
+
+  provisioner "file" {
+    source = "${path.module}/files/builder.logrotate"
+    destination = "/tmp/builder.logrotate"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a dogstreams: /tmp/builder-scheduler.log:/etc/dd-agent/sch_log_parser.py:my_log_parser\" /etc/dd-agent/datadog.conf",
       "sudo sed -i \"$ a tags: env:${var.env}, role:jobsrv\" /etc/dd-agent/datadog.conf",
+      "sudo cp /tmp/sch_log_parser.py /etc/dd-agent/sch_log_parser.py",
+      "sudo cp /tmp/builder.logrotate /etc/logrotate.d/builder",
       "sudo /etc/init.d/datadog-agent start"
     ]
   }
@@ -501,96 +514,6 @@ resource "aws_instance" "router" {
 
   tags {
     Name          = "builder-router-${count.index}"
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
-    X-Environment = "${var.env}"
-    X-Application = "builder"
-    X-ManagedBy   = "Terraform"
-  }
-}
-
-resource "aws_instance" "scheduler" {
-  ami           = "${lookup(var.aws_ami, var.aws_region)}"
-  instance_type = "t2.medium"
-  key_name      = "${var.aws_key_pair}"
-  // JW TODO: switch to private subnet after VPN is ready
-  subnet_id     = "${var.public_subnet_id}"
-  count         = 1
-
-  vpc_security_group_ids = [
-    "${var.aws_admin_sg}",
-    "${var.hab_sup_sg}",
-    "${var.events_sg}",
-    "${aws_security_group.datastore_client.id}",
-    "${aws_security_group.service.id}",
-  ]
-
-  connection {
-    // JW TODO: switch to private ip after VPN is ready
-    host        = "${self.public_ip}"
-    user        = "ubuntu"
-    private_key = "${file("${var.connection_private_key}")}"
-    agent       = "${var.connection_agent}"
-  }
-
-  ebs_block_device {
-    device_name = "/dev/xvdf"
-    volume_size = 100
-    volume_type = "gp2"
-  }
-
-  provisioner "file" {
-    source = "${path.module}/scripts/install_base_packages.sh"
-    destination = "/tmp/install_base_packages.sh"
-  }
-
-  provisioner "remote-exec" {
-    scripts = [
-      "${path.module}/scripts/init_filesystem.sh",
-      "${path.module}/scripts/foundation.sh",
-    ]
-  }
-
-  provisioner "file" {
-    content     = "${data.template_file.sch_log_parser.rendered}"
-    destination = "/tmp/sch_log_parser.py"
-  }
-
-  provisioner "file" {
-    source = "${path.module}/files/builder.logrotate"
-    destination = "/tmp/builder.logrotate"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
-      "sudo sed -i \"$ a dogstreams: /tmp/builder-scheduler.log:/etc/dd-agent/sch_log_parser.py:my_log_parser\" /etc/dd-agent/datadog.conf",
-      "sudo sed -i \"$ a tags: env:${var.env}, role:scheduler\" /etc/dd-agent/datadog.conf",
-      "sudo cp /tmp/sch_log_parser.py /etc/dd-agent/sch_log_parser.py",
-      "sudo cp /tmp/builder.logrotate /etc/logrotate.d/builder",
-      "sudo /etc/init.d/datadog-agent start"
-    ]
-  }
-
-  provisioner "file" {
-    content     = "${data.template_file.sup_service.rendered}"
-    destination = "/home/ubuntu/hab-sup.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/install_base_packages.sh",
-      "sudo /tmp/install_base_packages.sh core/builder-scheduler",
-
-      "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-sup",
-      "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-scheduler --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}"
-    ]
-  }
-
-  tags {
-    Name          = "builder-scheduler-${count.index}"
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"

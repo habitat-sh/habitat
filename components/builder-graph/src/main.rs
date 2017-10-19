@@ -82,7 +82,7 @@ fn main() {
     println!("Building graph... please wait.");
 
     let mut graph = PackageGraph::new();
-    let packages = datastore.get_packages().unwrap();
+    let packages = datastore.get_job_graph_packages().unwrap();
     let start_time = PreciseTime::now();
     let (ncount, ecount) = graph.build(packages.into_iter());
     let end_time = PreciseTime::now();
@@ -320,7 +320,7 @@ fn do_deps(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &str
 
     println!("Dependencies for: {}", ident);
 
-    match datastore.get_package(&ident) {
+    match datastore.get_job_graph_package(&ident) {
         Ok(package) => {
             let end_time = PreciseTime::now();
             println!(
@@ -357,7 +357,7 @@ fn do_check(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &st
     let mut new_deps = Vec::new();
     let ident = resolve_name(graph, name);
 
-    match datastore.get_package(&ident) {
+    match datastore.get_job_graph_package(&ident) {
         Ok(package) => {
             if filter.len() > 0 {
                 println!("Checks filtered by: {}\n", filter);
@@ -393,7 +393,7 @@ fn check_package(
     ident: &str,
     filter: &str,
 ) {
-    match datastore.get_package(ident) {
+    match datastore.get_job_graph_package(ident) {
         Ok(package) => {
             for dep in package.get_deps() {
                 if dep.starts_with(filter) {

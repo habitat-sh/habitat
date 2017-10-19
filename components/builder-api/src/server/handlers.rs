@@ -31,7 +31,7 @@ use params::{Params, FromValue};
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobState, ProjectJobsGet,
                        ProjectJobsGetResponse};
-use protocol::scheduler::{ReverseDependenciesGet, ReverseDependencies};
+use protocol::jobsrv::{JobGraphPackageReverseDependenciesGet, JobGraphPackageReverseDependencies};
 use protocol::originsrv::*;
 use protocol::sessionsrv;
 use serde_json;
@@ -222,7 +222,7 @@ pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
-    let mut rdeps_get = ReverseDependenciesGet::new();
+    let mut rdeps_get = JobGraphPackageReverseDependenciesGet::new();
     match get_param(req, "origin") {
         Some(origin) => rdeps_get.set_origin(origin),
         None => return Ok(Response::with(status::BadRequest)),
@@ -236,7 +236,10 @@ pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
     // For now, hard code a default value
     rdeps_get.set_target("x86_64-linux".to_string());
 
-    match route_message::<ReverseDependenciesGet, ReverseDependencies>(req, &rdeps_get) {
+    match route_message::<
+        JobGraphPackageReverseDependenciesGet,
+        JobGraphPackageReverseDependencies,
+    >(req, &rdeps_get) {
         Ok(rdeps) => Ok(render_json(status::Ok, &rdeps)),
         Err(err) => return Ok(render_net_error(&err)),
     }

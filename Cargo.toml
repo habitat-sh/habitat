@@ -16,7 +16,6 @@ members = [
   "components/builder-originsrv",
   "components/builder-protocol",
   "components/builder-router",
-  "components/builder-scheduler",
   "components/builder-sessionsrv",
   "components/builder-worker",
   "components/butterfly",

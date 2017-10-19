@@ -21,9 +21,11 @@ use std::path::PathBuf;
 use hab_net::app::prelude::*;
 use protobuf::RepeatedField;
 use protocol::jobsrv as proto;
+use protocol::net::{self, ErrCode};
 
 use super::ServerState;
 use error::{Error, Result};
+use time::PreciseTime;
 
 pub fn job_create(req: &mut Message, conn: &mut RouteConn, state: &mut ServerState) -> Result<()> {
     let msg = req.parse::<proto::JobSpec>()?;
@@ -180,4 +182,344 @@ fn get_log_content(log_file: &PathBuf, offset: u64) -> Option<Vec<String>> {
             None
         }
     }
+}
+
+// TODO (SA): This is an experimental dev-only function for now
+pub fn job_group_abort(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGroupAbort>()?;
+    debug!("job_group_abort message: {:?}", msg);
+
+    match state.datastore.abort_job_group(&msg) {
+        Ok(()) => {
+            warn!("Job Group {} aborted", msg.get_group_id());
+            conn.route_reply(req, &net::NetOk::new())?
+        }
+        Err(err) => {
+            warn!(
+                "Unable to abort job group {}, err: {:?}",
+                msg.get_group_id(),
+                err
+            );
+            let err = NetError::new(ErrCode::DATA_STORE, "jb:job-group-abort:1");
+            conn.route_reply(req, &*err)?;
+        }
+    };
+
+    Ok(())
+}
+
+pub fn job_group_create(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGroupSpec>()?;
+    debug!("job_group_create message: {:?}", msg);
+
+    let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
+    let mut projects = Vec::new();
+
+    // If we already have a scheduled or in-progress group, bail with a conflict error
+    if state.datastore.is_job_group_active(&project_name)? {
+        warn!(
+            "JobGroupSpec, project {} is already scheduled",
+            project_name
+        );
+        let err = NetError::new(ErrCode::ENTITY_CONFLICT, "jb:job-group-create:1");
+        conn.route_reply(req, &*err)?;
+        return Ok(());
+    }
+
+    // Get the ident for the root package
+    let mut start_time;
+    let mut end_time;
+
+    let project_ident = {
+        let mut target_graph = state.graph.write().unwrap();
+        let graph = match target_graph.graph_mut(msg.get_target()) {
+            Some(g) => g,
+            None => {
+                warn!(
+                    "JobGroupSpec, no graph found for target {}",
+                    msg.get_target()
+                );
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-group-create:2");
+                conn.route_reply(req, &*err)?;
+                return Ok(());
+            }
+        };
+
+        start_time = PreciseTime::now();
+        let ret = match graph.resolve(&project_name) {
+            Some(s) => s,
+            None => {
+                warn!("JobGroupSpec, project ident not found for {}", project_name);
+                // If a package has never been uploaded, we won't see it in the graph
+                // Carry on with stiff upper lip
+                String::from("")
+            }
+        };
+        end_time = PreciseTime::now();
+        ret
+    };
+    debug!("Resolved project name: {} sec\n", start_time.to(end_time));
+
+    // Add the root package if needed
+    if !msg.get_deps_only() || msg.get_package_only() {
+        projects.push((project_name.clone(), project_ident.clone()));
+    }
+
+    // Search the packages graph to find the reverse dependencies
+    if !msg.get_package_only() {
+        let rdeps_opt = {
+            let target_graph = state.graph.read().unwrap();
+            let graph = target_graph.graph(msg.get_target()).unwrap(); // Unwrap OK
+            start_time = PreciseTime::now();
+            let ret = graph.rdeps(&project_name);
+            end_time = PreciseTime::now();
+            ret
+        };
+
+        match rdeps_opt {
+            Some(rdeps) => {
+                debug!(
+                    "Graph rdeps: {} items ({} sec)\n",
+                    rdeps.len(),
+                    start_time.to(end_time)
+                );
+
+                for s in rdeps {
+                    let origin = s.0.split("/").nth(0).unwrap();
+
+                    // If the origin_only flag is true, make sure the origin matches
+                    if !msg.get_origin_only() || origin == msg.get_origin() {
+                        debug!("Adding to projects: {} ({})", s.0, s.1);
+                        projects.push(s.clone());
+                    } else {
+                        debug!("Skipping non-origin project: {} ({})", s.0, s.1);
+                    }
+                }
+            }
+            None => {
+                debug!("Graph rdeps: no entries found");
+            }
+        }
+    }
+
+    let group = if projects.is_empty() {
+        debug!("No projects need building - group is complete");
+
+        let mut new_group = proto::JobGroup::new();
+        let projects = RepeatedField::new();
+        new_group.set_id(0);
+        new_group.set_state(proto::JobGroupState::GroupComplete);
+        new_group.set_projects(projects);
+        new_group
+    } else {
+        let new_group = state.datastore.create_job_group(&msg, projects)?;
+        state.schedule_cli.notify()?;
+        new_group
+    };
+
+    conn.route_reply(req, &group)?;
+    Ok(())
+}
+
+pub fn job_graph_package_reverse_dependencies_get(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGraphPackageReverseDependenciesGet>()?;
+    debug!("reverse_dependencies_get message: {:?}", msg);
+
+    let ident = format!("{}/{}", msg.get_origin(), msg.get_name());
+    let target_graph = state.graph.read().expect("Graph lock is poisoned");
+    let graph = match target_graph.graph(msg.get_target()) {
+        Some(g) => g,
+        None => {
+            warn!(
+                "JobGraphPackageReverseDependenciesGet, no graph found for target {}",
+                msg.get_target()
+            );
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:reverse-dependencies-get:1");
+            conn.route_reply(req, &*err)?;
+            return Ok(());
+        }
+    };
+
+    let rdeps = graph.rdeps(&ident);
+    let mut rd_reply = proto::JobGraphPackageReverseDependencies::new();
+    rd_reply.set_origin(msg.get_origin().to_string());
+    rd_reply.set_name(msg.get_name().to_string());
+
+    match rdeps {
+        Some(rd) => {
+            let mut short_deps = RepeatedField::new();
+
+            // the tuples inside rd are of the form: (core/redis, core/redis/3.2.4/20170717232232)
+            // we're only interested in the short form, not the fully qualified form
+            for (id, _fully_qualified_id) in rd {
+                short_deps.push(id);
+            }
+
+            short_deps.sort();
+            rd_reply.set_rdeps(short_deps);
+        }
+        None => debug!("No rdeps found for {}", ident),
+    }
+
+    conn.route_reply(req, &rd_reply)?;
+
+    Ok(())
+}
+
+pub fn job_group_get(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGroupGet>()?;
+    debug!("group_get message: {:?}", msg);
+
+    let group_opt = match state.datastore.get_job_group(&msg) {
+        Ok(group_opt) => group_opt,
+        Err(err) => {
+            warn!(
+                "Unable to retrieve group {}, err: {:?}",
+                msg.get_group_id(),
+                err
+            );
+            None
+        }
+    };
+
+    match group_opt {
+        Some(group) => {
+            conn.route_reply(req, &group)?;
+        }
+        None => {
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-group-get:1");
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn job_graph_package_create(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGraphPackageCreate>()?;
+    debug!("job_graph_package_create message: {:?}", msg);
+    let package = state.datastore.create_job_graph_package(&msg)?;
+
+    // Extend the graph with new package
+    {
+        let mut target_graph = state.graph.write().unwrap();
+        let graph = match target_graph.graph_mut(msg.get_target()) {
+            Some(g) => g,
+            None => {
+                warn!(
+                    "JobGraphPackageCreate, no graph found for target {}",
+                    msg.get_target()
+                );
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-graph-package-create:1");
+                conn.route_reply(req, &*err)?;
+                return Ok(());
+            }
+        };
+
+        let start_time = PreciseTime::now();
+        let (ncount, ecount) = graph.extend(&package);
+        let end_time = PreciseTime::now();
+
+        debug!(
+            "Extended graph, nodes: {}, edges: {} ({} sec)\n",
+            ncount,
+            ecount,
+            start_time.to(end_time)
+        );
+    };
+
+    conn.route_reply(req, &package)?;
+    Ok(())
+}
+
+pub fn job_graph_package_precreate(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGraphPackagePreCreate>()?;
+    debug!("package_precreate message: {:?}", msg);
+    let package: proto::JobGraphPackage = msg.into();
+
+    // Check that we can safely extend the graph with new package
+    let can_extend = {
+        let mut target_graph = state.graph.write().unwrap();
+        let graph = match target_graph.graph_mut(package.get_target()) {
+            Some(g) => g,
+            None => {
+                warn!(
+                    "JobGraphPackagePreCreate, no graph found for target {}",
+                    package.get_target()
+                );
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-graph-package-pc:1");
+                conn.route_reply(req, &*err)?;
+                return Ok(());
+            }
+        };
+
+        let start_time = PreciseTime::now();
+        let ret = graph.check_extend(&package);
+        let end_time = PreciseTime::now();
+
+        debug!(
+            "Graph pre-check: {} ({} sec)\n",
+            ret,
+            start_time.to(end_time)
+        );
+
+        ret
+    };
+
+    if can_extend {
+        conn.route_reply(req, &net::NetOk::new())?
+    } else {
+        let err = NetError::new(ErrCode::ENTITY_CONFLICT, "jb:job-graph-package-pc:2");
+        conn.route_reply(req, &*err)?;
+    }
+    Ok(())
+}
+
+pub fn job_graph_package_stats_get(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGraphPackageStatsGet>()?;
+    debug!("package_stats_get message: {:?}", msg);
+
+    match state.datastore.get_job_graph_package_stats(&msg) {
+        Ok(package_stats) => conn.route_reply(req, &package_stats)?,
+        Err(err) => {
+            warn!(
+                "Unable to retrieve package stats for {}, err: {:?}",
+                msg.get_origin(),
+                err
+            );
+            let err = NetError::new(
+                ErrCode::ENTITY_NOT_FOUND,
+                "jb:job-graph-package-stats-get:1",
+            );
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
 }

@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::sync::Arc;
+
 use config::Config;
 use db::pool::Pool;
 use postgres;
-use protocol::scheduler::*;
+use protocol::jobsrv;
 use protobuf::RepeatedField;
 use error::{Result, Error};
 
@@ -50,27 +52,13 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn insert_package(&self, msg: &Package) -> Result<()> {
-        let conn = self.pool.get_shard(0)?;
-
-        conn.execute(
-            "SELECT insert_package_v1($1, $2)",
-            &[&msg.get_ident(), &msg.get_deps()],
-        ).map_err(Error::PackageInsert)?;
-
-        debug!("Package inserted: {}", msg.get_ident());
-
-        Ok(())
-    }
-
-    pub fn get_packages(&self) -> Result<RepeatedField<Package>> {
+    pub fn get_job_graph_packages(&self) -> Result<RepeatedField<jobsrv::JobGraphPackage>> {
         let mut packages = RepeatedField::new();
 
         let conn = self.pool.get_shard(0)?;
 
-        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[]).map_err(
-            Error::PackagesGet,
-        )?;
+        let rows = &conn.query("SELECT * FROM get_graph_packages_v1()", &[])
+            .map_err(Error::JobGraphPackagesGet)?;
 
         if rows.is_empty() {
             warn!("No packages found");
@@ -78,34 +66,41 @@ impl DataStore {
         }
 
         for row in rows {
-            let package = self.row_to_package(&row)?;
+            let package = self.row_to_job_graph_package(&row)?;
             packages.push(package);
         }
 
         Ok(packages)
     }
 
-    pub fn get_package(&self, ident: &str) -> Result<Package> {
+    pub fn get_job_graph_package(&self, ident: &str) -> Result<jobsrv::JobGraphPackage> {
         let conn = self.pool.get_shard(0)?;
 
-        let rows = &conn.query("SELECT * FROM get_package_v1($1)", &[&ident])
-            .map_err(Error::PackagesGet)?;
+        let rows = &conn.query("SELECT * FROM get_graph_package_v1($1)", &[&ident])
+            .map_err(Error::JobGraphPackagesGet)?;
 
         if rows.is_empty() {
             error!("No package found");
-            return Err(Error::UnknownPackage);
+            return Err(Error::UnknownJobGraphPackage);
         }
 
         assert!(rows.len() == 1);
-        let package = self.row_to_package(&rows.get(0))?;
+        let package = self.row_to_job_graph_package(&rows.get(0))?;
         Ok(package)
     }
 
-    fn row_to_package(&self, row: &postgres::rows::Row) -> Result<Package> {
-        let mut package = Package::new();
+    fn row_to_job_graph_package(
+        &self,
+        row: &postgres::rows::Row,
+    ) -> Result<jobsrv::JobGraphPackage> {
+        let mut package = jobsrv::JobGraphPackage::new();
 
         let name: String = row.get("ident");
         package.set_ident(name);
+
+        if let Some(Ok(target)) = row.get_opt::<&str, String>("target") {
+            package.set_target(target);
+        }
 
         let deps: Vec<String> = row.get("deps");
 

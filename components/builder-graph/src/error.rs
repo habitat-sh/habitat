@@ -20,7 +20,6 @@ use std::result;
 use db;
 use hab_core;
 use hab_net;
-use protocol;
 use postgres;
 use protobuf;
 use r2d2;
@@ -33,12 +32,10 @@ pub enum Error {
     DbTransaction(postgres::error::Error),
     HabitatCore(hab_core::Error),
     IO(io::Error),
-    PackageInsert(postgres::error::Error),
-    PackagesGet(postgres::error::Error),
-    NetError(hab_net::Error),
-    ProtoNetError(protocol::net::NetError),
+    JobGraphPackagesGet(postgres::error::Error),
+    NetError(hab_net::NetError),
     Protobuf(protobuf::ProtobufError),
-    UnknownPackage,
+    UnknownJobGraphPackage,
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -54,12 +51,12 @@ impl fmt::Display for Error {
             Error::DbTransaction(ref e) => format!("Database transaction error, {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
-            Error::PackageInsert(ref e) => format!("Database error inserting a new package, {}", e),
-            Error::PackagesGet(ref e) => format!("Database error retrieving packages, {}", e),
+            Error::JobGraphPackagesGet(ref e) => {
+                format!("Database error retrieving packages, {}", e)
+            }
             Error::NetError(ref e) => format!("{}", e),
-            Error::ProtoNetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
-            Error::UnknownPackage => format!("Unknown Package"),
+            Error::UnknownJobGraphPackage => format!("Unknown Package"),
         };
         write!(f, "{}", msg)
     }
@@ -74,12 +71,10 @@ impl error::Error for Error {
             Error::DbTransaction(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
-            Error::PackageInsert(ref err) => err.description(),
-            Error::PackagesGet(ref err) => err.description(),
+            Error::JobGraphPackagesGet(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
-            Error::ProtoNetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
-            Error::UnknownPackage => "Unknown Package",
+            Error::UnknownJobGraphPackage => "Unknown Package",
         }
     }
 }
@@ -108,15 +103,9 @@ impl From<io::Error> for Error {
     }
 }
 
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Self {
+impl From<hab_net::NetError> for Error {
+    fn from(err: hab_net::NetError) -> Self {
         Error::NetError(err)
-    }
-}
-
-impl From<protocol::net::NetError> for Error {
-    fn from(err: protocol::net::NetError) -> Self {
-        Error::ProtoNetError(err)
     }
 }
 

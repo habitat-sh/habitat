@@ -32,7 +32,7 @@ use protocol::originsrv::{CheckOriginOwnerRequest, CheckOriginOwnerResponse,
                           OriginPackagePromote, OriginPackageGroupPromoteResponse,
                           OriginPackageVisibility, OriginPublicKeyCreate, OriginPublicKey,
                           OriginSecretKey, OriginSecretKeyCreate};
-use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
+use protocol::jobsrv::{JobGroup, JobGroupGet, JobGroupProject, JobGroupProjectState};
 use protocol::sessionsrv::Session;
 use serde::Serialize;
 use serde_json;
@@ -318,16 +318,17 @@ pub fn promote_job_group_to_channel(
     group_id: u64,
     channel: &str,
 ) -> NetResult<OriginPackageGroupPromoteResponse> {
-    let mut group_get = GroupGet::new();
+    let mut group_get = JobGroupGet::new();
     group_get.set_group_id(group_id);
-    let group = route_message::<GroupGet, Group>(req, &group_get)?;
+    let group = route_message::<JobGroupGet, JobGroup>(req, &group_get)?;
 
     // This only makes sense if the group is complete. If the group isn't complete, return now and
     // let the user know. Check the completion state by checking the individual project states,
     // as if this is called by the scheduler it needs to promote the group before marking it
     // Complete.
     if group.get_projects().iter().any(|&ref p| {
-        p.get_state() == ProjectState::NotStarted || p.get_state() == ProjectState::InProgress
+        p.get_state() == JobGroupProjectState::NotStarted ||
+            p.get_state() == JobGroupProjectState::InProgress
     })
     {
         return Err(NetError::new(
@@ -348,7 +349,7 @@ pub fn promote_job_group_to_channel(
     // the entire promotion at once, but that would require a cross-shard tool that we don't
     // currently have.
     for project in group.get_projects().into_iter() {
-        if project.get_state() == ProjectState::Success {
+        if project.get_state() == JobGroupProjectState::Success {
             let ident = OriginPackageIdent::from_str(project.get_ident()).unwrap();
 
             let project_list = origin_map.entry(ident.get_origin().to_string()).or_insert(
@@ -418,7 +419,7 @@ pub fn generate_origin_keys(req: &mut Request, session: Session, origin: Origin)
 fn do_group_promotion(
     req: &mut Request,
     channel: &str,
-    projects: Vec<&Project>,
+    projects: Vec<&JobGroupProject>,
     origin: &str,
 ) -> NetResult<NetOk> {
     if !check_origin_access(req, origin).unwrap_or(false) {

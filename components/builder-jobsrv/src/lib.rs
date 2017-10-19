@@ -31,6 +31,7 @@ extern crate log;
 extern crate postgres;
 extern crate protobuf;
 extern crate rand;
+extern crate time;
 extern crate r2d2;
 extern crate serde;
 #[macro_use]
@@ -45,6 +46,7 @@ pub mod config;
 pub mod data_store;
 pub mod error;
 pub mod server;
+pub mod migrations;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};

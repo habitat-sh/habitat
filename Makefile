@@ -44,7 +44,7 @@ endif
 
 BIN = hab hab-butterfly pkg-export-docker sup
 LIB = butterfly builder-db builder-core builder-protocol common core builder-depot-client http-client net
-SRV = builder-api builder-admin builder-depot builder-router builder-scheduler builder-jobsrv builder-sessionsrv builder-originsrv builder-worker
+SRV = builder-api builder-admin builder-depot builder-router builder-jobsrv builder-sessionsrv builder-originsrv builder-worker
 ALL = $(BIN) $(LIB) $(SRV)
 VERSION := $(shell cat VERSION)
 

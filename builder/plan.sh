@@ -12,7 +12,6 @@ pkg_services=(
     core/builder-jobsrv
     core/builder-originsrv
     core/builder-router
-    core/builder-scheduler
     core/builder-sessionsrv
     core/builder-worker
 )
@@ -24,7 +23,6 @@ pkg_bind_map=(
     [core/builder-admin-proxy]="http:core/builder-admin"
     [core/builder-jobsrv]="router:core/builder-router datastore:core/builder-datastore"
     [core/builder-originsrv]="router:core/builder-router datastore:core/builder-datastore"
-    [core/builder-scheduler]="router:core/builder-router datastore:core/builder-datastore"
     [core/builder-sessionsrv]="router:core/builder-router datastore:core/builder-datastore"
     [core/builder-worker]="jobsrv:core/builder-jobsrv depot:core/builder-api"
 )

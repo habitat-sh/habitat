@@ -43,26 +43,16 @@ message Job {
   optional JobState state = 3;
   optional originsrv.OriginProject project = 4;
   optional net.NetError error = 5;
-  // The RFC3339-formatted time the job was entered into the
-  // system. It may not begin processing for some time after this,
-  // based on current system load.
-  optional string created_at = 6;
-  // The RFC3339-formatted time the `hab studio build` process
-  // started.
-  optional string build_started_at = 7;
-  // The RFC3339-formatted time the `hab studio build` process
-  // stopped, successful or not.
+  optional string created_at = 6; // RFC3339-formatted time
+  optional string build_started_at = 7; // RFC3339-formatted time
   optional string build_finished_at = 8;
-  // The identifier of the package built/attempted by the job.
   optional originsrv.OriginPackageIdent package_ident = 9;
-  // Whether or not the log for the job has been archived
   optional bool is_archived = 11;
   repeated originsrv.OriginIntegration integrations = 12;
   optional string channel = 13;
   repeated originsrv.OriginProjectIntegration project_integrations = 14;
 }
 
-// Retrieve a single job by ID
 message JobGet {
   optional uint64 id = 1;
 }
@@ -73,9 +63,7 @@ message JobSpec {
   optional string channel = 3;
 }
 
-// Retrieve jobs for a specific project.
 message ProjectJobsGet {
-  // The origin-qualified name of a project, e.g. "core/nginx"
   optional string name = 1;
   optional uint64 start = 2;
   optional uint64 stop = 3;
@@ -88,42 +76,111 @@ message ProjectJobsGetResponse {
   optional uint64 count = 4;
 }
 
-// Sent from a worker to the job server's log ingester during a build.
 message JobLogChunk {
   optional uint64 job_id = 1;
- // Ordering of this chunk in the overall log output, starting at 1;
- // We currently send one line at a time, so this corresponds to line
- // number.
-  optional uint64 seq = 2;
-  // The log content being sent
-  // TODO: Make this a repeated field for future compatibility
-  optional string content = 3;
+  optional uint64 seq = 2; // Chunk ordering (line number)
+  optional string content = 3; // Log content (TODO: Make repeatedfield)
 }
 
-// Sent from a worker to the job server's log ingester when a build is
-// complete.
 message JobLogComplete {
   optional uint64 job_id = 1;
 }
 
-// Initiated by API request to retrieve a portion of a job's log data,
-// beginning at line `start`
 message JobLogGet {
   optional uint64 id = 1;
-  // Zero-indexed line of the log output to start with
-  optional uint64 start = 2;
+  optional uint64 start = 2; // Zero-indexed line of log output
 }
 
-// Sent in reply to a JobLogGet
 message JobLog {
-  // Zero-indexed (inclusive) line of the log output in `content`
-  optional uint64 start = 1;
-  // Zero-indexed (exclusive) line of the log output in `content`
-  optional uint64 stop = 2;
-  // Lines of log output
+  optional uint64 start = 1; // Zero-indexed (inclusive) line
+  optional uint64 stop = 2; // Zero-indexed (exclusive) line
   repeated string content = 3;
-  // While we need to poll for logs, this serves as an indicator to
-  // clients if they need to continue polling to receive more logs, or
-  // can stop.
   optional bool is_complete = 4;
+}
+
+message JobGroupSpec {
+  optional string origin = 1;
+  optional string package = 2;
+  optional bool deps_only = 3;
+  optional string target = 4;
+  optional bool origin_only = 5;
+  optional bool package_only = 6;
+}
+
+enum JobGroupProjectState {
+  NotStarted = 0;
+  InProgress = 1;
+  Success = 2;
+  Failure = 3;
+  Skipped = 4;
+}
+
+message JobGroupProject {
+  optional string name = 1;
+  optional string ident = 2;
+  optional JobGroupProjectState state = 3;
+  optional uint64 job_id = 4;
+  optional string target = 5;
+}
+
+enum JobGroupState {
+  GroupPending = 0;
+  GroupDispatching = 1;
+  GroupComplete = 2;
+  GroupFailed = 3;
+}
+
+message JobGroupAbort {
+  optional uint64 group_id = 1;
+}
+
+message JobGroupGet {
+  optional uint64 group_id = 1;
+}
+
+message JobGroup {
+  optional uint64 id = 1;
+  optional JobGroupState state = 2;
+  repeated JobGroupProject projects = 3;
+  optional string created_at = 4;
+}
+
+message JobGraphPackage {
+  optional string ident = 1;
+  repeated string deps = 2;
+  optional string target = 3;
+}
+
+message JobGraphPackagePreCreate {
+  optional string ident = 1;
+  repeated string deps = 2;
+  optional string target = 3;
+}
+
+message JobGraphPackageCreate {
+  optional string ident = 1;
+  repeated string deps = 2;
+  optional string target = 3;
+}
+
+message JobGraphPackageReverseDependenciesGet {
+  optional string origin = 1;
+  optional string name = 2;
+  optional string target = 3;
+}
+
+message JobGraphPackageReverseDependencies {
+  optional string origin = 1;
+  optional string name = 2;
+  repeated string rdeps = 3;
+}
+
+message JobGraphPackageStatsGet {
+  optional string origin = 1;
+}
+
+message JobGraphPackageStats {
+  optional uint64 plans = 1;
+  optional uint64 builds = 2;
+  optional uint64 unique_packages = 3;
 }

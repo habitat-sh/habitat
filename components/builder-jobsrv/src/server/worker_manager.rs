@@ -33,6 +33,8 @@ use config::Config;
 use data_store::DataStore;
 use error::Result;
 
+use super::scheduler::ScheduleClient;
+
 const WORKER_MGR_ADDR: &'static str = "inproc://work-manager";
 const WORKER_TIMEOUT_MS: u64 = 33_000; // 33 sec
 const JOB_TIMEOUT_MS: u64 = 3_600_000; // 60 mins
@@ -145,6 +147,7 @@ pub struct WorkerMgr {
     workers: LinkedHashMap<String, Worker>,
     worker_command: String,
     worker_heartbeat: String,
+    schedule_cli: ScheduleClient,
 }
 
 impl WorkerMgr {
@@ -157,6 +160,10 @@ impl WorkerMgr {
         work_mgr_sock.set_rcvhwm(1)?;
         work_mgr_sock.set_linger(0)?;
         work_mgr_sock.set_immediate(true)?;
+
+        let mut schedule_cli = ScheduleClient::default();
+        schedule_cli.connect()?;
+
         Ok(WorkerMgr {
             datastore: datastore,
             key_dir: cfg.key_dir.clone(),
@@ -168,6 +175,7 @@ impl WorkerMgr {
             workers: LinkedHashMap::new(),
             worker_command: cfg.net.worker_command_addr(),
             worker_heartbeat: cfg.net.worker_heartbeat_addr(),
+            schedule_cli: schedule_cli,
         })
     }
 
@@ -561,6 +569,7 @@ impl WorkerMgr {
         let job = Job::new(parse_from_bytes::<jobsrv::Job>(&self.msg)?);
         debug!("Got job status: {:?}", job);
         self.datastore.update_job(&job)?;
+        self.schedule_cli.notify()?;
 
         Ok(())
     }
