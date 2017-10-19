@@ -39,6 +39,8 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
     $ make changelog
     ```
 
+The changelog generator will only process the last 1000 issues to prevent the generator from exceeding Github's rate limit threshold. This may produce a truncated changelog. If so, simply copy the last release in the generated changelog and paste it on top of the former changelog. Terrible we know but we have a better plan coming!
+
 1. Commit the `CHANGELOG.md` and `VERSION` changes and push your branch
 1. Issue a new PR await approval (in the form of a [dank gif](http://imgur.com/X0sNq)) from two maintainers
 1. Pull master once again once the PR is merged into master
@@ -51,7 +53,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 
 ## Update Builder Bootstrap Bundle
 
-Next we generate a release bundle of all Habitat and Builder components which are uploaded to an S3 bucket which we read from when we bootstrap new nodes. This bundle is useful if you are bootstrapping in an environment which doesn't have access to Builder or there simply isn't a Builder instance in existence (ah, those were the days).
+Once the travis linux deployment has completed, we generate a release bundle of all Habitat and Builder components which are uploaded to an S3 bucket which we read from when we bootstrap new nodes. This bundle is useful if you are bootstrapping in an environment which doesn't have access to Builder or there simply isn't a Builder instance in existence (ah, those were the days).
 
 1. Configure your AWS credentials in your environment
 1. Run the bundle build make task
