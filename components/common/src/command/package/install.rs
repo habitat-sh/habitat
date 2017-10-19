@@ -359,7 +359,7 @@ impl<'a> InstallTask<'a> {
     fn get_channel_recommendations(&self, ident: &PackageIdent) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
-        let channels = match self.depot_client.list_channels(ident.origin()) {
+        let channels = match self.depot_client.list_channels(ident.origin(), false) {
             Ok(channels) => channels,
             Err(e) => {
                 debug!("Failed to get channel list: {:?}", e);

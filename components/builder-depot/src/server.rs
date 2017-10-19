@@ -1521,9 +1521,19 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut request = OriginChannelListRequest::new();
+    request.set_include_sandbox_channels(false);
+
     match helpers::get_origin(req, &origin_name) {
         Ok(origin) => request.set_origin_id(origin.get_id()),
         Err(err) => return Ok(render_net_error(&err)),
+    }
+
+    // Pass ?sandbox=true to this endpoint to include sanbox channels in the list. They are not
+    // there by default.
+    if let Some(sandbox) = helpers::extract_query_value("sandbox", req) {
+        if sandbox == "true" {
+            request.set_include_sandbox_channels(true);
+        }
     }
 
     match route_message::<OriginChannelListRequest, OriginChannelListResponse>(req, &request) {

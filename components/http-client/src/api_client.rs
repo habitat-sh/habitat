@@ -199,9 +199,11 @@ impl ApiClient {
 
     fn url_for(&self, path: &str) -> Url {
         let mut url = self.endpoint.clone();
+
         if path.is_empty() {
             return url;
         }
+
         if url.path().ends_with("/") {
             url.set_path(&format!("{}{}", self.endpoint.path(), path));
         } else {

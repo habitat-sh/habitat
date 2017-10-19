@@ -1397,9 +1397,13 @@ impl DataStore {
         oclr: &originsrv::OriginChannelListRequest,
     ) -> SrvResult<originsrv::OriginChannelListResponse> {
         let conn = self.pool.get(oclr)?;
+
         let rows = &conn.query(
-            "SELECT * FROM get_origin_channels_for_origin_v1($1)",
-            &[&(oclr.get_origin_id() as i64)],
+            "SELECT * FROM get_origin_channels_for_origin_v2($1, $2)",
+            &[
+                &(oclr.get_origin_id() as i64),
+                &oclr.get_include_sandbox_channels(),
+            ],
         ).map_err(SrvError::OriginChannelList)?;
 
         let mut response = originsrv::OriginChannelListResponse::new();
