@@ -31,7 +31,7 @@ use hab_core::crypto::PUBLIC_BOX_KEY_VERSION;
 use hab_core::event::*;
 use http_gateway::http::controller::*;
 use http_gateway::http::helpers::{self, check_origin_access, check_origin_owner,
-                                  dont_cache_response, get_param};
+                                  dont_cache_response, get_param, visibility_for_optional_session};
 use http_gateway::http::middleware::XRouteClient;
 use hab_net::{privilege, ErrCode, NetOk, NetResult};
 use hyper::header::{Charset, ContentDisposition, DispositionParam, DispositionType};
@@ -2008,21 +2008,6 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
         Ok(t) => Ok(t),
         Err(_) => Err(Response::with(status::BadRequest)),
     }
-}
-
-fn visibility_for_optional_session(
-    req: &mut Request,
-    optional_session_id: Option<u64>,
-    origin: &str,
-) -> Vec<OriginPackageVisibility> {
-    let mut v = Vec::new();
-    v.push(OriginPackageVisibility::Public);
-
-    if optional_session_id.is_some() && check_origin_access(req, origin).unwrap_or(false) {
-        v.push(OriginPackageVisibility::Private);
-    }
-
-    v
 }
 
 fn is_a_service<T>(req: &mut Request, ident: &T) -> bool

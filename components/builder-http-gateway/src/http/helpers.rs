@@ -160,18 +160,35 @@ pub fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
+pub fn visibility_for_optional_session(
+    req: &mut Request,
+    optional_session_id: Option<u64>,
+    origin: &str,
+) -> Vec<OriginPackageVisibility> {
+    let mut v = Vec::new();
+    v.push(OriginPackageVisibility::Public);
+
+    if optional_session_id.is_some() && check_origin_access(req, origin).unwrap_or(false) {
+        v.push(OriginPackageVisibility::Private);
+    }
+
+    v
+}
+
 // Get channels for a package
 pub fn channels_for_package_ident(
     req: &mut Request,
     package: &OriginPackageIdent,
 ) -> Option<Vec<String>> {
-    if !check_origin_access(req, package.get_origin()).unwrap_or(false) {
-        return None;
-    }
+    let session_id = get_optional_session_id(req);
 
     let mut opclr = OriginPackageChannelListRequest::new();
     opclr.set_ident(package.clone());
-    opclr.set_visibilities(vec![OriginPackageVisibility::Private]);
+    opclr.set_visibilities(visibility_for_optional_session(
+        req,
+        session_id,
+        package.get_origin(),
+    ));
 
     match route_message::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(
         req,
@@ -195,13 +212,15 @@ pub fn platforms_for_package_ident(
     req: &mut Request,
     package: &OriginPackageIdent,
 ) -> Option<Vec<String>> {
-    if !check_origin_access(req, package.get_origin()).unwrap_or(false) {
-        return None;
-    }
+    let session_id = get_optional_session_id(req);
 
     let mut opplr = OriginPackagePlatformListRequest::new();
     opplr.set_ident(package.clone());
-    opplr.set_visibilities(vec![OriginPackageVisibility::Private]);
+    opplr.set_visibilities(visibility_for_optional_session(
+        req,
+        session_id,
+        package.get_origin(),
+    ));
 
     match route_message::<OriginPackagePlatformListRequest, OriginPackagePlatformListResponse>(
         req,
@@ -303,7 +322,11 @@ pub fn promote_package_to_channel(
     let origin_channel = route_message::<OriginChannelGet, OriginChannel>(req, &channel_req)?;
     let mut request = OriginPackageGet::new();
     request.set_ident(ident.clone());
-    request.set_visibilities(vec![OriginPackageVisibility::Private]);
+    request.set_visibilities(vec![
+        OriginPackageVisibility::Public,
+        OriginPackageVisibility::Private,
+        OriginPackageVisibility::Hidden,
+    ]);
 
     let package = route_message::<OriginPackageGet, OriginPackage>(req, &request)?;
     let mut promote = OriginPackagePromote::new();
@@ -455,7 +478,11 @@ fn do_group_promotion(
         let opi = OriginPackageIdent::from_str(project.get_ident()).unwrap();
         let mut opg = OriginPackageGet::new();
         opg.set_ident(opi);
-        opg.set_visibilities(vec![OriginPackageVisibility::Private]);
+        opg.set_visibilities(vec![
+            OriginPackageVisibility::Public,
+            OriginPackageVisibility::Private,
+            OriginPackageVisibility::Hidden,
+        ]);
 
         let op = route_message::<OriginPackageGet, OriginPackage>(req, &opg)?;
         package_ids.push(op.get_id());
@@ -470,9 +497,13 @@ fn do_group_promotion(
 }
 
 fn is_worker(req: &mut Request) -> bool {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
-    flags.contains(privilege::BUILD_WORKER)
+    match req.extensions.get::<Authenticated>() {
+        Some(session) => {
+            let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
+            flags.contains(privilege::BUILD_WORKER)
+        }
+        None => false,
+    }
 }
 
 fn get_session_id(req: &mut Request) -> u64 {
