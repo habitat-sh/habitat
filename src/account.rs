@@ -52,9 +52,19 @@ impl Account {
 }
 
 fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
+
+    // if this is a machine account, strip the terminating '$'
+    // LookupAccountName will return the sid of the computer account
+    // given the computer name. Windows forbids usernames to match the
+    // computer name
+    let stripped_name = if name.ends_with("$") {
+        &name[..name.len() - 1]
+    } else {
+        name
+    };
     let mut sid_size: u32 = 0;
     let mut domain_size: u32 = 0;
-    let wide = WideCString::from_str(name).unwrap();
+    let wide = WideCString::from_str(stripped_name).unwrap();
     unsafe {
         LookupAccountNameW(
             null_mut(),
