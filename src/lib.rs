@@ -82,6 +82,8 @@ use std::path::PathBuf;
 pub use os::filesystem;
 pub use os::users;
 
+pub const AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
+
 lazy_static!{
     pub static ref PROGRAM_NAME: String = {
         let arg0 = std::env::args().next().map(|p| PathBuf::from(p));
