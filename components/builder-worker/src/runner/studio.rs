@@ -19,6 +19,7 @@ use hab_core::channel::{BLDR_CHANNEL_ENVVAR, STABLE_CHANNEL};
 use hab_core::env;
 use hab_core::fs;
 use hab_core::url::BLDR_URL_ENVVAR;
+use hab_core::AUTH_TOKEN_ENVVAR;
 
 use error::Result;
 use runner::log_pipe::LogPipe;
@@ -36,14 +37,16 @@ lazy_static! {
 pub struct Studio<'a> {
     workspace: &'a Workspace,
     bldr_url: &'a str,
+    auth_token: &'a str,
 }
 
 impl<'a> Studio<'a> {
     /// Creates a new Studio runner for a given `Workspace` and Builder URL.
-    pub fn new(workspace: &'a Workspace, bldr_url: &'a str) -> Self {
+    pub fn new(workspace: &'a Workspace, bldr_url: &'a str, auth_token: &'a str) -> Self {
         Studio {
             workspace,
             bldr_url,
+            auth_token,
         }
     }
 
@@ -80,6 +83,7 @@ impl<'a> Studio<'a> {
             self.bldr_url
         );
         cmd.env(BLDR_URL_ENVVAR, self.bldr_url);
+        cmd.env(AUTH_TOKEN_ENVVAR, self.auth_token);
 
         debug!("spawning studio build command");
         let mut child = cmd.spawn()?;

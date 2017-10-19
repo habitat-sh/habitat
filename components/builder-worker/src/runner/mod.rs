@@ -238,9 +238,11 @@ impl Runner {
     fn build(&mut self) -> Result<PackageArchive> {
         let mut log_pipe = LogPipe::new(&self.workspace);
         log_pipe.pipe_stdout(b"\n--- BEGIN: Studio build ---\n")?;
-        let mut status = Studio::new(&self.workspace, &self.config.bldr_url).build(
-            &mut log_pipe,
-        )?;
+        let mut status = Studio::new(
+            &self.workspace,
+            &self.config.bldr_url,
+            &self.config.auth_token,
+        ).build(&mut log_pipe)?;
         log_pipe.pipe_stdout(b"\n--- END: Studio build ---\n")?;
 
         if fs::rename(self.workspace.src().join("results"), self.workspace.out()).is_err() {
@@ -310,7 +312,11 @@ impl Runner {
     }
 
     fn teardown(&mut self) -> Result<()> {
-        let exit_status = Studio::new(&self.workspace, &self.config.bldr_url).rm()?;
+        let exit_status = Studio::new(
+            &self.workspace,
+            &self.config.bldr_url,
+            &self.config.auth_token,
+        ).rm()?;
 
         if exit_status.success() {
             if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
