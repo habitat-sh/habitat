@@ -5,23 +5,17 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 workspace = "../../"
 
 [dependencies]
-base64 = "*"
-clippy = {version = "*", optional = true}
+clippy = { version = "*", optional = true }
 bitflags = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
 habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "*"
 num_cpus = "*"
-persistent = "*"
 protobuf = "*"
 serde = "*"
 serde_derive = "*"
 time = "*"
 toml = "*"
-unicase = "*"
 uuid = { version = "*", features = ["v4"] }
-
-[dependencies.zmq]
-git = "https://github.com/erickt/rust-zmq"
-branch = "release/v0.8"
+zmq = { git = "https://github.com/erickt/rust-zmq", branch = "release/v0.8" }
