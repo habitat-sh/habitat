@@ -53,5 +53,6 @@ mod exec;
 
 pub const PRODUCT: &'static str = "hab";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-pub const AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
 pub const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
+
+pub use hcore::AUTH_TOKEN_ENVVAR;
