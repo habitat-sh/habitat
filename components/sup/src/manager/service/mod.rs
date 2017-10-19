@@ -367,6 +367,9 @@ impl Service {
         spec.binds = self.binds.clone();
         spec.start_style = self.start_style;
         spec.config_from = self.config_from.clone();
+        if let Some(ref password) = self.svc_encrypted_password {
+            spec.svc_encrypted_password = Some(password.clone())
+        }
         spec
     }
 

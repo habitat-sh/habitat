@@ -94,6 +94,7 @@ impl Supervisor {
                 return true;
             }
         }
+        debug!("Could not find a live process with pid {:?}", self.pid);
         self.change_state(ProcessState::Down);
         self.cleanup_pidfile();
         self.pid = None;
