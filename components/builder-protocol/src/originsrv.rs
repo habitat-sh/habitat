@@ -51,6 +51,14 @@ pub trait Pageable {
     }
 }
 
+impl Routable for MyOriginsRequest {
+    type H = u64;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_account_id())
+    }
+}
+
 impl Routable for AccountInvitationListRequest {
     type H = u64;
 
@@ -535,6 +543,12 @@ impl Routable for OriginMemberRemove {
 
     fn route_key(&self) -> Option<Self::H> {
         Some(InstaId(self.get_origin_id()))
+    }
+}
+
+impl fmt::Display for Origin {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.get_name().fmt(f)
     }
 }
 

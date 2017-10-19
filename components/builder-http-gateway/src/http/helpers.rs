@@ -30,8 +30,8 @@ use protocol::originsrv::{CheckOriginOwnerRequest, CheckOriginOwnerResponse,
                           OriginPackageGroupPromote, OriginPackageIdent,
                           OriginPackagePlatformListRequest, OriginPackagePlatformListResponse,
                           OriginPackagePromote, OriginPackageGroupPromoteResponse,
-                          OriginPublicKeyCreate, OriginPublicKey, OriginSecretKey,
-                          OriginSecretKeyCreate};
+                          OriginPackageVisibility, OriginPublicKeyCreate, OriginPublicKey,
+                          OriginSecretKey, OriginSecretKeyCreate};
 use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
 use protocol::sessionsrv::Session;
 use serde::Serialize;
@@ -41,25 +41,6 @@ use protobuf::RepeatedField;
 
 use router::Router;
 use super::controller::route_message;
-
-// Builder services (eg, scheduler or build worker) can call APIs without a
-// login session. We need a way to identify that there is no session.
-// TODO (SA): Push this down the stack, origin calls should support no session
-const NO_SESSION: u64 = 0;
-
-pub fn builder_session_id() -> u64 {
-    return NO_SESSION;
-}
-
-pub fn get_authenticated_session(req: &mut Request) -> Option<Session> {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
-    if flags.contains(privilege::BUILD_WORKER) {
-        None
-    } else {
-        Some(session.to_owned())
-    }
-}
 
 pub fn dont_cache_response(response: &mut Response) {
     response.headers.set(CacheControl(
@@ -86,15 +67,8 @@ pub fn validate_params(
     }
     // Check that we have origin access
     {
-        let session_id = {
-            req.extensions.get::<Authenticated>().unwrap().get_id()
-        };
-        if check_origin_access(req, session_id, &res["origin"]).is_err() {
-            debug!(
-                "Failed origin access check, session: {}, origin: {}",
-                session_id,
-                &res["origin"]
-            );
+        if !check_origin_access(req, &res["origin"]).unwrap_or(false) {
+            debug!("Failed origin access check, origin: {}", &res["origin"]);
             return Err(status::Forbidden);
         }
     }
@@ -190,13 +164,14 @@ pub fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
 pub fn channels_for_package_ident(
     req: &mut Request,
     package: &OriginPackageIdent,
-    session_id: Option<u64>,
 ) -> Option<Vec<String>> {
+    if !check_origin_access(req, package.get_origin()).unwrap_or(false) {
+        return None;
+    }
+
     let mut opclr = OriginPackageChannelListRequest::new();
     opclr.set_ident(package.clone());
-    if session_id.is_some() {
-        opclr.set_account_id(session_id.unwrap());
-    }
+    opclr.set_visibilities(vec![OriginPackageVisibility::Private]);
 
     match route_message::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(
         req,
@@ -219,13 +194,14 @@ pub fn channels_for_package_ident(
 pub fn platforms_for_package_ident(
     req: &mut Request,
     package: &OriginPackageIdent,
-    session_id: Option<u64>,
 ) -> Option<Vec<String>> {
+    if !check_origin_access(req, package.get_origin()).unwrap_or(false) {
+        return None;
+    }
+
     let mut opplr = OriginPackagePlatformListRequest::new();
     opplr.set_ident(package.clone());
-    if session_id.is_some() {
-        opplr.set_account_id(session_id.unwrap());
-    }
+    opplr.set_visibilities(vec![OriginPackageVisibility::Private]);
 
     match route_message::<OriginPackagePlatformListRequest, OriginPackagePlatformListResponse>(
         req,
@@ -245,20 +221,38 @@ where
     route_message::<OriginGet, Origin>(req, &request)
 }
 
-pub fn check_origin_access<T>(req: &mut Request, account_id: u64, origin: T) -> NetResult<bool>
-where
-    T: ToString,
-{
-    let mut request = CheckOriginAccessRequest::new();
-    request.set_account_id(account_id);
-    request.set_origin_name(origin.to_string());
-    match route_message::<CheckOriginAccessRequest, CheckOriginAccessResponse>(req, &request) {
-        Ok(response) => Ok(response.get_has_access()),
-        Err(err) => Err(err),
+pub fn get_param(req: &mut Request, name: &str) -> Option<String> {
+    let params = req.extensions.get::<Router>().unwrap();
+    match params.find(name) {
+        Some(x) => Some(x.to_string()),
+        None => None,
     }
 }
 
-pub fn check_origin_owner<T>(req: &mut Request, account_id: u64, origin: T) -> NetResult<bool>
+pub fn check_origin_access<T>(req: &mut Request, origin: T) -> IronResult<bool>
+where
+    T: ToString,
+{
+    if is_worker(req) {
+        return Ok(true);
+    }
+
+    let session_id = get_session_id(req);
+
+    let mut request = CheckOriginAccessRequest::new();
+    request.set_account_id(session_id);
+    request.set_origin_name(origin.to_string());
+    match route_message::<CheckOriginAccessRequest, CheckOriginAccessResponse>(req, &request) {
+        Ok(response) => Ok(response.get_has_access()),
+        Err(err) => {
+            let body = serde_json::to_string(&err).unwrap();
+            let status = net_err_to_http(err.get_code());
+            Err(IronError::new(err, (body, status)))
+        }
+    }
+}
+
+pub fn check_origin_owner<T>(req: &mut Request, account_id: u64, origin: T) -> IronResult<bool>
 where
     T: ToString,
 {
@@ -267,19 +261,23 @@ where
     request.set_origin_name(origin.to_string());
     match route_message::<CheckOriginOwnerRequest, CheckOriginOwnerResponse>(req, &request) {
         Ok(response) => Ok(response.get_is_owner()),
-        Err(err) => Err(err),
+        Err(err) => {
+            let body = serde_json::to_string(&err).unwrap();
+            let status = net_err_to_http(err.get_code());
+            Err(IronError::new(err, (body, status)))
+        }
     }
 }
 
-pub fn create_channel(
-    req: &mut Request,
-    origin: &str,
-    channel: &str,
-    session_id: Option<u64>,
-) -> NetResult<OriginChannel> {
+pub fn create_channel(req: &mut Request, origin: &str, channel: &str) -> NetResult<OriginChannel> {
     let mut origin = get_origin(req, origin)?;
     let mut request = OriginChannelCreate::new();
-    request.set_owner_id(session_id.unwrap_or(NO_SESSION));
+
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_owner_id(session.get_id());
+    }
+
     request.set_origin_name(origin.take_name());
     request.set_origin_id(origin.get_id());
     request.set_name(channel.to_string());
@@ -290,16 +288,14 @@ pub fn promote_package_to_channel(
     req: &mut Request,
     ident: &OriginPackageIdent,
     channel: &str,
-    session_id_opt: Option<u64>,
 ) -> NetResult<NetOk> {
-    if let Some(session_id) = session_id_opt {
-        if !check_origin_access(req, session_id, ident.get_origin())? {
-            return Err(NetError::new(
-                ErrCode::ACCESS_DENIED,
-                "core:promote-package-to-channel:0",
-            ));
-        }
+    if !check_origin_access(req, ident.get_origin()).unwrap_or(false) {
+        return Err(NetError::new(
+            ErrCode::ACCESS_DENIED,
+            "core:promote-package-to-channel:0",
+        ));
     }
+
     let mut channel_req = OriginChannelGet::new();
     channel_req.set_origin_name(ident.get_origin().to_string());
     channel_req.set_name(channel.to_string());
@@ -307,9 +303,8 @@ pub fn promote_package_to_channel(
     let origin_channel = route_message::<OriginChannelGet, OriginChannel>(req, &channel_req)?;
     let mut request = OriginPackageGet::new();
     request.set_ident(ident.clone());
-    if let Some(session_id) = session_id_opt {
-        request.set_account_id(session_id);
-    }
+    request.set_visibilities(vec![OriginPackageVisibility::Private]);
+
     let package = route_message::<OriginPackageGet, OriginPackage>(req, &request)?;
     let mut promote = OriginPackagePromote::new();
     promote.set_channel_id(origin_channel.get_id());
@@ -322,7 +317,6 @@ pub fn promote_job_group_to_channel(
     req: &mut Request,
     group_id: u64,
     channel: &str,
-    session_id: Option<u64>,
 ) -> NetResult<OriginPackageGroupPromoteResponse> {
     let mut group_get = GroupGet::new();
     group_get.set_group_id(group_id);
@@ -367,7 +361,7 @@ pub fn promote_job_group_to_channel(
     }
 
     for (origin, projects) in origin_map.iter() {
-        match do_group_promotion(req, channel, projects.to_vec(), &origin, session_id) {
+        match do_group_promotion(req, channel, projects.to_vec(), &origin) {
             Ok(_) => (),
             Err(e) => {
                 if e.get_code() != ErrCode::ACCESS_DENIED {
@@ -426,15 +420,12 @@ fn do_group_promotion(
     channel: &str,
     projects: Vec<&Project>,
     origin: &str,
-    session_id_opt: Option<u64>,
 ) -> NetResult<NetOk> {
-    if let Some(session_id) = session_id_opt {
-        if !check_origin_access(req, session_id, origin)? {
-            return Err(NetError::new(
-                ErrCode::ACCESS_DENIED,
-                "hg:promote-job-group:0",
-            ));
-        }
+    if !check_origin_access(req, origin).unwrap_or(false) {
+        return Err(NetError::new(
+            ErrCode::ACCESS_DENIED,
+            "hg:promote-job-group:0",
+        ));
     }
 
     let mut ocg = OriginChannelGet::new();
@@ -446,7 +437,7 @@ fn do_group_promotion(
         Err(e) => {
             if e.get_code() == ErrCode::ENTITY_NOT_FOUND {
                 if channel != STABLE_CHANNEL || channel != UNSTABLE_CHANNEL {
-                    create_channel(req, &origin, channel, session_id_opt)?
+                    create_channel(req, &origin, channel)?
                 } else {
                     info!("Unable to retrieve default channel, err: {:?}", e);
                     return Err(e);
@@ -464,9 +455,7 @@ fn do_group_promotion(
         let opi = OriginPackageIdent::from_str(project.get_ident()).unwrap();
         let mut opg = OriginPackageGet::new();
         opg.set_ident(opi);
-        if let Some(session_id) = session_id_opt {
-            opg.set_account_id(session_id);
-        }
+        opg.set_visibilities(vec![OriginPackageVisibility::Private]);
 
         let op = route_message::<OriginPackageGet, OriginPackage>(req, &opg)?;
         package_ids.push(op.get_id());
@@ -478,4 +467,15 @@ fn do_group_promotion(
     opgp.set_origin(origin.to_string());
 
     route_message::<OriginPackageGroupPromote, NetOk>(req, &opgp)
+}
+
+fn is_worker(req: &mut Request) -> bool {
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
+    flags.contains(privilege::BUILD_WORKER)
+}
+
+fn get_session_id(req: &mut Request) -> u64 {
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    session.get_id()
 }

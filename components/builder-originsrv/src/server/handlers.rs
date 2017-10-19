@@ -61,6 +61,23 @@ pub fn origin_check_owner(
     Ok(())
 }
 
+pub fn my_origins(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::MyOriginsRequest>()?;
+    match state.datastore.my_origins(&msg) {
+        Ok(ref mor) => conn.route_reply(req, mor)?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:my-origins:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_update(
     req: &mut Message,
     conn: &mut RouteConn,

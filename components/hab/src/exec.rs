@@ -67,6 +67,7 @@ where
                 format!("package for {}", &ident),
             )?;
 
+            // JB TODO - Does an auth token need to be plumbed into here?  Not 100% sure.
             common::command::package::install::start(
                 ui,
                 &default_bldr_url(),
@@ -76,6 +77,7 @@ where
                 VERSION,
                 fs_root_path,
                 &cache_artifact_path(None::<String>),
+                None,
             )?;
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }

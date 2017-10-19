@@ -110,6 +110,8 @@ lazy_static! {
             handlers::origin_channel_package_list);
         map.register(OriginMemberRemove::descriptor_static(None),
             handlers::origin_member_delete);
+        map.register(MyOriginsRequest::descriptor_static(None),
+            handlers::my_origins);
         map
     };
 }

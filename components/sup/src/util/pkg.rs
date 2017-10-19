@@ -17,6 +17,8 @@ use std::path::Path;
 use common;
 use common::command::package::install::InstallSource;
 use common::ui::UI;
+use hcore::env as henv;
+use hcore::AUTH_TOKEN_ENVVAR;
 use hcore::fs::{self, FS_ROOT_PATH};
 use hcore::package::{PackageIdent, PackageInstall};
 
@@ -32,6 +34,11 @@ pub fn install(
     channel: &str,
 ) -> Result<PackageInstall> {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
+    let auth_token = match henv::var(AUTH_TOKEN_ENVVAR) {
+        Ok(v) => Some(v),
+        Err(_) => None,
+    };
+
     common::command::package::install::start(
         ui,
         url,
@@ -46,6 +53,7 @@ pub fn install(
         VERSION,
         fs_root_path,
         &fs::cache_artifact_path(None::<String>),
+        auth_token.as_ref().map(String::as_str),
     ).map_err(SupError::from)
 }
 

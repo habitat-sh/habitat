@@ -275,6 +275,7 @@ impl<'a> BuildSpec<'a> {
             VERSION,
             &fs_root_path,
             &cache_artifact_path(Some(&fs_root_path)),
+            None,
         )?;
         Ok(package_install.into())
     }

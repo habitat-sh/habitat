@@ -157,5 +157,26 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                  ) RETURNS void AS $$
                         DELETE FROM origin_members WHERE origin_id=om_origin_id AND account_name=om_account_name;
                  $$ LANGUAGE SQL VOLATILE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION my_origins_v1 (
+                    om_account_id bigint
+                 ) RETURNS SETOF origins AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT o.* FROM %I.origins o INNER JOIN %I.origin_members om ON o.id = om.origin_id WHERE om.account_id = %L ORDER BY o.name', schema.schema_name, schema.schema_name, om_account_id);
+                      END LOOP;
+                      RETURN;
+                    END;
+                 $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     Ok(())
 }

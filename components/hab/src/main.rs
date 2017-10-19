@@ -434,6 +434,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let channel = channel_from_matches(m);
     let install_sources = install_sources_from_matches(m)?;
+    let token = maybe_auth_token(&m);
 
     init();
 
@@ -447,6 +448,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             VERSION,
             &*FS_ROOT,
             &cache_artifact_path(Some(&*FS_ROOT)),
+            token.as_ref().map(String::as_str),
         )?;
 
         if m.is_present("BINLINK") {
@@ -482,7 +484,8 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
 fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
-    command::pkg::search::start(&search_term, &url)
+    let token = maybe_auth_token(&m);
+    command::pkg::search::start(&search_term, &url, token.as_ref().map(String::as_str))
 }
 
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -554,8 +557,9 @@ fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let token = maybe_auth_token(&m);
 
-    command::pkg::channels::start(ui, &url, &ident)
+    command::pkg::channels::start(ui, &url, &ident, token.as_ref().map(String::as_str))
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
@@ -703,6 +707,16 @@ fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
                 }
             }
         }
+    }
+}
+
+/// Check to see if an auth token exists and convert it to a string slice if it does. Unlike
+/// auth_token_param_or_env, it's ok for no auth token to be present here. This is useful for
+/// commands that can optionally take an auth token for operating on private packages.
+fn maybe_auth_token(m: &ArgMatches) -> Option<String> {
+    match auth_token_param_or_env(&m) {
+        Ok(t) => Some(t),
+        Err(_) => None,
     }
 }
 

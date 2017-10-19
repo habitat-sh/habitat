@@ -34,6 +34,14 @@ message CheckOriginOwnerResponse {
   optional bool is_owner = 1;
 }
 
+message MyOriginsRequest {
+  optional uint64 account_id = 1;
+}
+
+message MyOriginsResponse {
+  repeated Origin origins = 1;
+}
+
 enum OriginPackageVisibility {
   Public = 1;
   Private = 2;
@@ -103,24 +111,30 @@ message OriginChannelListResponse {
 }
 
 message OriginChannelPackageGet {
+  reserved 3;
+  reserved "account_id";
   optional string name = 1;
   optional OriginPackageIdent ident = 2;
-  optional uint64 account_id = 3;
+  repeated OriginPackageVisibility visibilities = 4;
 }
 
 message OriginChannelPackageLatestGet {
+  reserved 4;
+  reserved "account_id";
   optional string name = 1;
   optional OriginPackageIdent ident = 2;
   optional string target = 3;
-  optional uint64 account_id = 4;
+  repeated OriginPackageVisibility visibilities = 5;
 }
 
 message OriginChannelPackageListRequest {
+  reserved 5;
+  reserved "account_id";
   optional string name = 1;
   optional OriginPackageIdent ident = 2;
   optional uint64 start = 3;
   optional uint64 stop = 4;
-  optional uint64 account_id = 5;
+  repeated OriginPackageVisibility visibilities = 6;
 }
 
 message OriginChannelDelete {
@@ -223,8 +237,10 @@ message OriginPackageVersion {
 }
 
 message OriginPackagePlatformListRequest {
+  reserved 2;
+  reserved "account_id";
   optional OriginPackageIdent ident = 1;
-  optional uint64 account_id = 2;
+  repeated OriginPackageVisibility visibilities = 3;
 }
 
 message OriginPackagePlatformListResponse {
@@ -246,23 +262,28 @@ message OriginPackageCreate {
 }
 
 message OriginPackageGet {
+  reserved 2, 3;
+  reserved "account_id", "show_hidden";
   optional OriginPackageIdent ident = 1;
-  optional uint64 account_id = 2;
-  optional bool show_hidden = 3;
+  repeated OriginPackageVisibility visibilities = 4;
 }
 
 message OriginPackageLatestGet {
+  reserved 3;
+  reserved "account_id";
   optional OriginPackageIdent ident = 1;
   optional string target = 2;
-  optional uint64 account_id = 3;
+  repeated OriginPackageVisibility visibilities = 4;
 }
 
 message OriginPackageListRequest {
+  reserved 5;
+  reserved "account_id";
   optional OriginPackageIdent ident = 1;
   optional uint64 start = 2;
   optional uint64 stop = 3;
   optional bool distinct = 4;
-  optional uint64 account_id = 5;
+  repeated OriginPackageVisibility visibilities = 6;
 }
 
 message OriginPackageListResponse {
@@ -296,8 +317,10 @@ message OriginPackageDemote {
 }
 
 message OriginPackageChannelListRequest {
+  reserved 2;
+  reserved "account_id";
   optional OriginPackageIdent ident = 1;
-  optional uint64 account_id = 2;
+  repeated OriginPackageVisibility visibilities = 3;
 }
 
 message OriginPackageChannelListResponse {
@@ -305,19 +328,23 @@ message OriginPackageChannelListResponse {
 }
 
 message OriginPackageSearchRequest {
+  reserved 6;
+  reserved "account_id";
   optional string origin = 1;
   optional string query = 2;
   optional uint64 start = 3;
   optional uint64 stop = 4;
   optional bool distinct = 5;
-  optional uint64 account_id = 6;
+  repeated Origin my_origins = 7;
 }
 
 message OriginPackageUniqueListRequest {
+  reserved 4;
+  reserved "account_id";
   optional string origin = 1;
   optional uint64 start = 2;
   optional uint64 stop = 3;
-  optional uint64 account_id = 4;
+  repeated OriginPackageVisibility visibilities = 5;
 }
 
 message OriginPackageUniqueListResponse {
@@ -328,9 +355,11 @@ message OriginPackageUniqueListResponse {
 }
 
 message OriginPackageVersionListRequest {
+  reserved 3;
+  reserved "account_id";
   optional string origin = 1;
   optional string name = 2;
-  optional uint64 account_id = 3;
+  repeated OriginPackageVisibility visibilities = 4;
 }
 
 message OriginPackageVersionListResponse {

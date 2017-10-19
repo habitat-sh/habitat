@@ -18,24 +18,22 @@ use std::env;
 
 use bodyparser;
 use bldr_core::helpers::transition_visibility;
-use depot::server::check_origin_access;
 use github_api_client::HubError;
 use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
 use http_client::ApiClient;
 use http_gateway::http::controller::*;
-use http_gateway::http::helpers::{self, validate_params};
+use http_gateway::http::helpers::{self, check_origin_access, get_param, validate_params};
 use hyper::header::{Accept, ContentType};
 use hyper::status::StatusCode;
 use iron::status;
-use params::{Params, Value, FromValue};
+use params::{Params, FromValue};
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobState, ProjectJobsGet,
                        ProjectJobsGetResponse};
 use protocol::scheduler::{ReverseDependenciesGet, ReverseDependencies};
 use protocol::originsrv::*;
 use protocol::sessionsrv;
-use router::Router;
 use serde_json;
 use typemap;
 
@@ -53,16 +51,18 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 define_event_log!();
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
-    let code = {
-        let params = req.extensions.get::<Router>().unwrap();
-        params.find("code").unwrap().to_string()
+    let code = match get_param(req, "code") {
+        Some(c) => c,
+        None => return Ok(Response::with(status::BadRequest)),
     };
+
     if env::var_os("HAB_FUNC_TEST").is_some() {
         let session = {
             session_create_short_circuit(req, &code)?
         };
         return Ok(render_json(status::Ok, &session));
     }
+
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     match github.authenticate(&code) {
         Ok(token) => {
@@ -96,12 +96,7 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
-    // JB TODO: eliminate the need to clone the params and session - HI SALIM =)
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let session_id = session.get_id();
-
-    let group_id = match params.find("id") {
+    let group_id = match get_param(req, "id") {
         Some(id) => {
             match id.parse::<u64>() {
                 Ok(g) => g,
@@ -114,12 +109,12 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let channel = match params.find("channel") {
-        Some(c) => c.to_string(),
+    let channel = match get_param(req, "channel") {
+        Some(c) => c,
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    match helpers::promote_job_group_to_channel(req, group_id, &channel, Some(session_id)) {
+    match helpers::promote_job_group_to_channel(req, group_id, &channel) {
         Ok(resp) => Ok(render_json(status::Ok, &resp)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -180,17 +175,15 @@ pub fn validate_docker_credentials(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
-    let origin = match params.find("origin") {
+    let origin = match get_param(req, "origin") {
         Some(o) => o,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let name = match params.find("name") {
+    let name = match get_param(req, "name") {
         Some(n) => n,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let vis = match params.find("visibility") {
+    let vis = match get_param(req, "visibility") {
         Some(v) => v,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -205,7 +198,7 @@ pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(req, session.get_id(), &origin)? {
+    if !check_origin_access(req, &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -230,16 +223,13 @@ pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
 
 pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
     let mut rdeps_get = ReverseDependenciesGet::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("origin") {
-            Some(origin) => rdeps_get.set_origin(origin.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
-        match params.find("name") {
-            Some(name) => rdeps_get.set_name(name.to_string()),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+    match get_param(req, "origin") {
+        Some(origin) => rdeps_get.set_origin(origin),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+    match get_param(req, "name") {
+        Some(name) => rdeps_get.set_name(name),
+        None => return Ok(Response::with(status::BadRequest)),
     }
 
     // TODO (SA): The rdeps API needs to be extended to support a target param.
@@ -253,25 +243,25 @@ pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn job_show(req: &mut Request) -> IronResult<Response> {
-    let session_id = helpers::get_optional_session_id(req);
     let mut request = JobGet::new();
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("id").unwrap().parse::<u64>() {
-            Ok(id) => request.set_id(id),
-            Err(e) => {
-                debug!("Error finding id. e = {:?}", e);
-                return Ok(Response::with(status::BadRequest));
+    match get_param(req, "id") {
+        Some(id) => {
+            match id.parse::<u64>() {
+                Ok(i) => request.set_id(i),
+                Err(e) => {
+                    debug!("Error finding id. e = {:?}", e);
+                    return Ok(Response::with(status::BadRequest));
+                }
             }
         }
+        None => return Ok(Response::with(status::BadRequest)),
     }
+
     match route_message::<JobGet, Job>(req, &request) {
         Ok(job) => {
             if job.get_package_ident().fully_qualified() {
-                let channels =
-                    helpers::channels_for_package_ident(req, job.get_package_ident(), session_id);
-                let platforms =
-                    helpers::platforms_for_package_ident(req, job.get_package_ident(), session_id);
+                let channels = helpers::channels_for_package_ident(req, job.get_package_ident());
+                let platforms = helpers::platforms_for_package_ident(req, job.get_package_ident());
                 let mut job_json = serde_json::to_value(job).unwrap();
 
                 if channels.is_some() {
@@ -292,24 +282,17 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn job_log(req: &mut Request) -> IronResult<Response> {
-    let session_id = helpers::get_optional_session_id(req);
-    let start = {
-        let params = req.get_ref::<Params>().unwrap();
-        match params.find(&["start"]) {
-            Some(&Value::String(ref val)) => {
-                match val.parse::<u64>() {
-                    Ok(num) => num,
-                    Err(e) => {
-                        debug!(
-                            "Tried to parse 'start' parameter as a number but failed: {:?}",
-                            e
-                        );
-                        return Ok(Response::with(status::BadRequest));
-                    }
+    let start = match get_param(req, "start") {
+        Some(start) => {
+            match start.parse::<u64>() {
+                Ok(s) => s,
+                Err(e) => {
+                    debug!("Error parsing start. e = {:?}", e);
+                    return Ok(Response::with(status::BadRequest));
                 }
             }
-            _ => 0,
         }
+        None => 0,
     };
 
     let include_color = req.get_ref::<Params>()
@@ -321,18 +304,21 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
     let mut job_get = JobGet::new();
     let mut request = JobLogGet::new();
     request.set_start(start);
-    {
-        let params = req.extensions.get::<Router>().unwrap();
-        match params.find("id").unwrap().parse::<u64>() {
-            Ok(id) => {
-                request.set_id(id);
-                job_get.set_id(id);
-            }
-            Err(e) => {
-                debug!("Error finding id. e = {:?}", e);
-                return Ok(Response::with(status::BadRequest));
+
+    match get_param(req, "id") {
+        Some(id) => {
+            match id.parse::<u64>() {
+                Ok(i) => {
+                    request.set_id(i);
+                    job_get.set_id(i);
+                }
+                Err(e) => {
+                    debug!("Error parsing id. e = {:?}", e);
+                    return Ok(Response::with(status::BadRequest));
+                }
             }
         }
+        None => return Ok(Response::with(status::BadRequest)),
     }
 
     // Before fetching the logs, we need to check and see if the logs we want to fetch are for
@@ -342,13 +328,8 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         Ok(job) => {
             let project = job.get_project();
             if project.get_visibility() == OriginPackageVisibility::Private {
-                match session_id {
-                    Some(session_id) => {
-                        if !check_origin_access(req, session_id, project.get_origin_name())? {
-                            return Ok(Response::with(status::Forbidden));
-                        }
-                    }
-                    None => return Ok(Response::with(status::Forbidden)),
+                if !check_origin_access(req, project.get_origin_name()).unwrap_or(false) {
+                    return Ok(Response::with(status::Forbidden));
                 }
             }
             match route_message::<JobLogGet, JobLog>(req, &request) {
@@ -417,7 +398,6 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let mut origin_get = OriginGet::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let session_id = session.get_id();
 
     let (token, repo_id) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
@@ -434,7 +414,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                 )));
             }
 
-            if !check_origin_access(req, session_id, &body.origin)? {
+            if !check_origin_access(req, &body.origin).unwrap_or(false) {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -521,19 +501,24 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
 pub fn project_delete(req: &mut Request) -> IronResult<Response> {
     let mut project_del = OriginProjectDelete::new();
 
-    let (session_id, origin) = {
+    let session_id = {
         let session = req.extensions.get::<Authenticated>().unwrap();
-        let session_id = session.get_id();
-
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").unwrap().to_owned();
-        let name = params.find("name").unwrap();
-
-        project_del.set_name(format!("{}/{}", origin, name));
-        (session_id, origin)
+        session.get_id()
     };
 
-    if !check_origin_access(req, session_id, origin)? {
+    let origin = match get_param(req, "origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let name = match get_param(req, "name") {
+        Some(n) => n,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    project_del.set_name(format!("{}/{}", &origin, &name));
+
+    if !check_origin_access(req, origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -546,12 +531,14 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
 
 /// Update the given project
 pub fn project_update(req: &mut Request) -> IronResult<Response> {
-    let (name, origin) = {
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").unwrap().to_owned();
-        let name = params.find("name").unwrap().to_owned();
+    let origin = match get_param(req, "origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
-        (name, origin)
+    let name = match get_param(req, "name") {
+        Some(n) => n,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
     let session_id = {
@@ -559,7 +546,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         session.get_id()
     };
 
-    if !check_origin_access(req, session_id, &origin)? {
+    if !check_origin_access(req, &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -648,19 +635,19 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
 pub fn project_show(req: &mut Request) -> IronResult<Response> {
     let mut project_get = OriginProjectGet::new();
 
-    let (session_id, origin) = {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        let session_id = session.get_id();
-
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").unwrap().to_owned();
-        let name = params.find("name").unwrap();
-
-        project_get.set_name(format!("{}/{}", origin, name));
-        (session_id, origin)
+    let origin = match get_param(req, "origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(req, session_id, &origin)? {
+    let name = match get_param(req, "name") {
+        Some(n) => n,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    project_get.set_name(format!("{}/{}", &origin, &name));
+
+    if !check_origin_access(req, &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -674,20 +661,16 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
 pub fn project_list(req: &mut Request) -> IronResult<Response> {
     let mut projects_get = OriginProjectListGet::new();
 
-    let (session_id, origin) = {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        let session_id = session.get_id();
-
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").unwrap().to_owned();
-
-        projects_get.set_origin(origin.to_string());
-        (session_id, origin)
+    let origin = match get_param(req, "origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(req, session_id, &origin)? {
+    if !check_origin_access(req, &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
+
+    projects_get.set_origin(origin);
 
     match route_message::<OriginProjectListGet, OriginProjectList>(req, &projects_get) {
         Ok(projects) => Ok(render_json(status::Ok, &projects.get_names())),
@@ -699,19 +682,17 @@ pub fn project_list(req: &mut Request) -> IronResult<Response> {
 pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
     let mut jobs_get = ProjectJobsGet::new();
 
-    let (session_id, origin) = {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        let session_id = session.get_id();
-
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").unwrap().to_owned();
-        let name = params.find("name").unwrap();
-        jobs_get.set_name(format!("{}/{}", origin, name));
-
-        (session_id, origin)
+    let origin = match get_param(req, "origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(req, session_id, &origin)? {
+    match get_param(req, "name") {
+        Some(name) => jobs_get.set_name(format!("{}/{}", origin, name)),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+
+    if !check_origin_access(req, &origin).unwrap_or(false) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -728,16 +709,10 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
                 .get_jobs()
                 .iter()
                 .map(|job| if job.get_state() == JobState::Complete {
-                    let channels = helpers::channels_for_package_ident(
-                        req,
-                        &job.get_package_ident(),
-                        Some(session_id),
-                    );
-                    let platforms = helpers::platforms_for_package_ident(
-                        req,
-                        &job.get_package_ident(),
-                        Some(session_id),
-                    );
+                    let channels =
+                        helpers::channels_for_package_ident(req, &job.get_package_ident());
+                    let platforms =
+                        helpers::platforms_for_package_ident(req, &job.get_package_ident());
                     let mut job_json = serde_json::to_value(job).unwrap();
 
                     if channels.is_some() {

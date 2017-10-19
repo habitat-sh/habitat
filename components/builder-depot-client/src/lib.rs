@@ -295,6 +295,7 @@ impl Client {
         self.download(
             &format!("depot/origins/{}/keys/{}", origin, revision),
             dst_path.as_ref(),
+            None,
             progress,
         )
     }
@@ -335,7 +336,7 @@ impl Client {
         P: AsRef<Path>,
         D: DisplayProgress + Sized,
     {
-        self.download("builder/keys/latest", dst_path.as_ref(), progress)
+        self.download("builder/keys/latest", dst_path.as_ref(), None, progress)
     }
 
     /// Return a list of channels for a given package
@@ -344,7 +345,7 @@ impl Client {
     ///
     /// * Remote Builder is not available
     /// * Package does not exist
-    pub fn package_channels<I>(&self, ident: &I) -> Result<Vec<String>>
+    pub fn package_channels<I>(&self, ident: &I, token: Option<&str>) -> Result<Vec<String>>
     where
         I: Identifiable,
     {
@@ -355,7 +356,7 @@ impl Client {
         let path = package_channels_path(ident);
         debug!("Retrieving channels for {}", ident);
 
-        let mut res = self.0.get(&path).send()?;
+        let mut res = self.maybe_add_authz(self.0.get(&path), token).send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -495,6 +496,7 @@ impl Client {
     pub fn fetch_package<D, I, P>(
         &self,
         ident: &I,
+        token: Option<&str>,
         dst_path: &P,
         progress: Option<D>,
     ) -> Result<PackageArchive>
@@ -506,7 +508,7 @@ impl Client {
         // Given that the download URL requires a fully qualified package, the channel is
         // irrelevant, per https://github.com/habitat-sh/habitat/issues/2722. This function is fine
         // as is.
-        match self.download(&package_download(ident), dst_path.as_ref(), progress) {
+        match self.download(&package_download(ident), dst_path.as_ref(), token, progress) {
             Ok(file) => Ok(PackageArchive::new(PathBuf::from(file))),
             Err(e) => Err(e),
         }
@@ -722,8 +724,10 @@ impl Client {
     pub fn search_package(
         &self,
         search_term: &str,
+        token: Option<&str>,
     ) -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
-        let mut res = self.0.get(&package_search(search_term)).send()?;
+        let mut res = self.maybe_add_authz(self.0.get(&package_search(search_term)), token)
+            .send()?;
         match res.status {
             StatusCode::Ok |
             StatusCode::PartialContent => {
@@ -738,15 +742,34 @@ impl Client {
         }
     }
 
+    fn maybe_add_authz<'a>(
+        &'a self,
+        rb: RequestBuilder<'a>,
+        token: Option<&str>,
+    ) -> RequestBuilder {
+        if token.is_some() {
+            rb.header(Authorization(Bearer { token: token.unwrap().to_string() }))
+        } else {
+            rb
+        }
+    }
+
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
         rb.header(Authorization(Bearer { token: token.to_string() }))
     }
 
-    fn download<D>(&self, path: &str, dst_path: &Path, progress: Option<D>) -> Result<PathBuf>
+    fn download<D>(
+        &self,
+        path: &str,
+        dst_path: &Path,
+        token: Option<&str>,
+        progress: Option<D>,
+    ) -> Result<PathBuf>
     where
         D: DisplayProgress + Sized,
     {
-        let mut res = self.0.get(path).send()?;
+        let mut res = self.maybe_add_authz(self.0.get(path), token).send()?;
+
         debug!("Response: {:?}", res);
 
         if res.status != hyper::status::StatusCode::Ok {
