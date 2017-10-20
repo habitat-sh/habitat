@@ -1,16 +1,6 @@
 <div class="page-body origin-packages-tab">
   <div class="hab-origin--left hab-origin--pkg-list">
-
-    <!--
-      TODO: Reconcile these two. It's not over yet.
-      <hab-plan-select
-        *ngIf="selectingPlan"
-        (planSelected)="planSelected($event)"
-        (planSelectCanceled)="planSelectCanceled()"></hab-plan-select>
-      -->
-
     <hab-project-settings [origin]="origin" [integrations]="integrations" (toggled)="toggled($event)" (saved)="saved($event)"></hab-project-settings>
-
     <div *ngIf="!selectingPlan">
       <ul class="packages-list">
         <li class="heading" *ngIf="projectsExist">
