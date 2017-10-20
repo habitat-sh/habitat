@@ -40,6 +40,8 @@ pub struct Config {
     pub key_dir: PathBuf,
     /// Path to scheduler event logs
     pub log_path: PathBuf,
+    /// Max time (in minutes) allowed for a build job
+    pub job_timeout: u64,
 }
 
 impl Default for Config {
@@ -54,6 +56,7 @@ impl Default for Config {
             archive: ArchiveCfg::default(),
             key_dir: PathBuf::from("/hab/svc/hab-depot/files"),
             log_path: PathBuf::from("/tmp"),
+            job_timeout: 60,
         }
     }
 }

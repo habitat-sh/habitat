@@ -1,5 +1,6 @@
 log_level = "info"
 log_path = "/tmp"
+job_timeout = 60
 
 [net]
 worker_command_listen = "0.0.0.0"
