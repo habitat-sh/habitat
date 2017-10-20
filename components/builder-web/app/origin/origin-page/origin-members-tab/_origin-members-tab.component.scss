@@ -1,6 +1,7 @@
 .members-tab {
 
   h3 {
+    margin-bottom: rem(5);
     font-size: rem(12);
     text-transform: uppercase;
   }
@@ -50,14 +51,6 @@
           }
         }
       }
-
-      .members-pending-invites {
-        @include span-columns(4 of 9);
-
-        p {
-          font-size: rem(14);
-        }
-      }
     }
 
     .members {
@@ -66,19 +59,36 @@
     }
   }
 
-  .members-pending-invites, .members {
+  .members {
 
     ul {
 
-      li {
-        padding: 0;
-        font-size: rem(14);
+      &:first-child {
+        margin-bottom: rem(30);
+      }
 
-        span {
+      li {
+        @include row;
+        border-bottom: 1px solid $very-light-gray;
+        padding: 12px;
+
+        hab-icon {
+          width: 16px;
+          height: 16px;
+        }
+
+        .name {
+          @include span-columns(10);
           font-weight: 600;
+
+          hab-icon {
+            margin-right: 6px;
+          }
         }
 
         .actions {
+          @include span-columns(2);
+          text-align: right;
 
           hab-icon {
             color: $hab-blue;

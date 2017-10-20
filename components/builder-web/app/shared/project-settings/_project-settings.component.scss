@@ -33,6 +33,11 @@ hab-project-settings {
         &.cta {
           @include span-columns(3);
           text-align: center;
+
+          .mat-raised-button {
+            background-color: $hab-orange;
+            color: $hab-white;
+          }
         }
       }
     }
@@ -44,12 +49,8 @@ hab-project-settings {
   }
 
   .connect {
-    margin-bottom: 14px;
+    margin-bottom: $base-spacing;
     font-size: rem(14);
-
-    button {
-      margin-bottom: 12px;
-    }
 
     .no-keys {
       color: $hab-blue;
@@ -161,16 +162,6 @@ hab-project-settings {
 
     hab-checking-input {
 
-      input {
-        font-family: $monospace-font-family;
-        font-size: rem(12);
-        margin-bottom: 16px;
-
-        &::placeholder {
-          color: $medium-gray;
-        }
-      }
-
       small {
         text-align: left;
         display: block;
@@ -183,8 +174,8 @@ hab-project-settings {
       }
 
       hab-icon {
-        top: 7px;
-        right: 6px;
+        top: 12px;
+        right: 10px;
         width: 16px;
         height: 16px;
       }

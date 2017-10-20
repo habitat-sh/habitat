@@ -15,6 +15,11 @@
 .hab-sign-in {
   @include shadow-float;
 
+  .mat-raised-button:not([class*=mat-elevation-z]) {
+    background-color: $hab-orange;
+    color: $hab-white;
+  }
+
   .page-body {
     text-align: center;
   }

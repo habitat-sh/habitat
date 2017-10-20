@@ -12,9 +12,9 @@
       border: 1px solid $hab-blue-light;
       border-radius: $global-radius;
       margin-bottom: 0.5em;
-      padding: rem(10);
+      padding: $small-spacing $small-spacing * 1.5;
       color: $hab-gray-dark;
-      font-family: $heading-font-family;
+      font-family: $base-font-family;
       font-size: rem(16);
 
       &:hover, &.active {
@@ -24,12 +24,8 @@
       }
 
       hab-icon[symbol="chevron-right"] {
-        position: absolute;
+        @include chevron-right;
         display: none;
-        right: 24px;
-        width: 20px;
-        top: 50%;
-        transform: translateY(-50%);
       }
 
       &:hover {
@@ -40,8 +36,13 @@
       }
 
       .name {
-        font-family: $heading-font-family;
+        font-weight: bold;
       }
     }
+  }
+
+  div > p {
+    font-size: rem(14);
+    font-weight: bold;
   }
 }

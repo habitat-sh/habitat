@@ -25,10 +25,6 @@
     font-size: rem(10);
   }
 
-  .page-body {
-    padding-top: 28px;
-  }
-
   .connect-button {
     @include row;
     margin-bottom: 20px;
@@ -56,7 +52,7 @@
         a {
           display: block;
           color: $hab-gray-dark;
-          font-family: $heading-font-family;
+          font-weight: bold;
         }
 
         hab-icon {
@@ -69,7 +65,7 @@
           }
         }
 
-        &:hover {
+        &:not(.heading):hover {
           background-color: rgba($medium-gray, 0.05);
 
           hab-icon[symbol="chevron-right"] {

@@ -21,11 +21,12 @@
 
 @mixin chevron-right {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  right: 0;
-  top: 50%;
+  right: $small-spacing;
+  height: rem(24);
+  width: rem(24);
+  top: 46%;
   transform: translateY(-50%);
+  font-size: rem(24);
 }
 
 // Buttons

@@ -37,7 +37,7 @@
 
   &--list {
     line-height: $base-line-height * 1.333;
-    margin-bottom: $base-spacing;
+    margin-bottom: $base-spacing * 1.5;
     margin-left: rem(15);
 
     a {

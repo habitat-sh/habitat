@@ -3,7 +3,7 @@
   .page-body {
 
     .origin-create {
-      margin-bottom: 28px;
+      margin-bottom: $base-spacing;
     }
 
     .origin-create-intro {
@@ -80,7 +80,7 @@
           display: none;
         }
 
-        &:hover {
+        &:not(.heading):hover {
           background-color: rgba($medium-gray, 0.05);
 
           hab-icon[symbol="chevron-right"] {

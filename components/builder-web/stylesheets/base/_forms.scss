@@ -26,7 +26,7 @@ legend {
 }
 
 label {
-  color: $hab-gray-dark;
+  color: $hab-gray;
   font-size: rem(14);
   display: block;
   margin-bottom: $small-spacing / 2;
@@ -75,8 +75,8 @@ select[multiple] {
   box-sizing: border-box;
   font-family: $base-font-family;
   font-size: rem(14);
-  margin-bottom: $base-spacing;
-  padding: $base-spacing / 3;
+  margin-bottom: $base-spacing * 1.5;
+  padding: $small-spacing $small-spacing * 1.5;
   transition: border-color $base-duration $base-timing;
   width: 100%;
 
@@ -135,4 +135,16 @@ select {
   max-width: 100%;
   -webkit-appearance: none;
   width: auto;
+}
+
+::placeholder {
+  color: $hab-gray;
+}
+
+// Angular Material button overrides
+
+.mat-fab:not([class*=mat-elevation-z]),
+.mat-mini-fab:not([class*=mat-elevation-z]),
+.mat-raised-button:not([class*=mat-elevation-z]) {
+    box-shadow: none !important;
 }

@@ -11,7 +11,7 @@
     border-left: 1px solid $very-light-gray;
 
     p {
-      margin-bottom: 0;
+      margin: 0 0 rem(20);
     }
 
     a {
@@ -21,6 +21,7 @@
   }
 
   h3 {
+    margin-bottom: rem(20);
     font-size: rem(12);
     text-transform: uppercase;
   }
@@ -53,13 +54,16 @@
 
         .key {
           @include span-columns(10);
-          font-family: $heading-font-family;
+          font-weight: bold;
 
           hab-icon {
-            margin-right: 10px;
             width: 16px;
             height: 16px;
           }
+        }
+
+        h3.key {
+          font-weight: normal;
         }
 
         .actions {
@@ -72,6 +76,7 @@
           }
 
           hab-icon {
+            margin-right: 0;
             color: $hab-blue;
             transition: color .2s linear;
             width: 16px;
