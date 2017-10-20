@@ -440,6 +440,50 @@ impl DataStore {
         Ok(rows.len() >= 1)
     }
 
+    pub fn get_queued_job_group(&self, project_name: &str) -> Result<Option<jobsrv::JobGroup>> {
+        let conn = self.pool.get_shard(0)?;
+
+        let rows = &conn.query("SELECT * FROM get_queued_group_v1($1)", &[&project_name])
+            .map_err(Error::JobGroupGet)?;
+
+        if rows.is_empty() {
+            debug!("JobGroup {} not queued (not found)", project_name);
+            return Ok(None);
+        }
+
+        assert!(rows.len() == 1); // should never have more than one
+
+        let mut group = self.row_to_job_group(&rows.get(0))?;
+        let group_id = group.get_id();
+
+        let project_rows = &conn.query(
+            "SELECT * FROM get_group_projects_for_group_v1($1)",
+            &[&(group_id as i64)],
+        ).map_err(Error::JobGroupGet)?;
+
+        assert!(project_rows.len() > 0); // should at least have one
+        let projects = self.rows_to_job_group_projects(&project_rows)?;
+
+        group.set_projects(projects);
+        Ok(Some(group))
+    }
+
+    pub fn get_queued_job_groups(&self) -> Result<RepeatedField<jobsrv::JobGroup>> {
+        let mut groups = RepeatedField::new();
+
+        let conn = self.pool.get_shard(0)?;
+
+        let rows = &conn.query("SELECT * FROM get_queued_groups_v1()", &[])
+            .map_err(Error::JobGroupGet)?;
+
+        for row in rows {
+            let group = self.row_to_job_group(&row)?;
+            groups.push(group);
+        }
+
+        Ok(groups)
+    }
+
     pub fn create_job_group(
         &self,
         msg: &jobsrv::JobGroupSpec,
@@ -455,7 +499,7 @@ impl DataStore {
             project_tuples.iter().cloned().unzip();
 
         let rows = conn.query(
-            "SELECT * FROM insert_group_v1($1, $2, $3)",
+            "SELECT * FROM insert_group_v2($1, $2, $3)",
             &[&root_project, &project_names, &project_idents],
         ).map_err(Error::JobGroupCreate)?;
 
@@ -551,12 +595,16 @@ impl DataStore {
             "Pending" => jobsrv::JobGroupState::GroupPending,
             "Complete" => jobsrv::JobGroupState::GroupComplete,
             "Failed" => jobsrv::JobGroupState::GroupFailed,
+            "Queued" => jobsrv::JobGroupState::GroupQueued,
             _ => return Err(Error::UnknownJobGroupState),
         };
         group.set_state(group_state);
 
         let created_at = row.get::<&str, DateTime<UTC>>("created_at");
         group.set_created_at(created_at.to_rfc3339());
+
+        let project_name: String = row.get("project_name");
+        group.set_project_name(project_name);
 
         Ok(group)
     }
@@ -614,6 +662,7 @@ impl DataStore {
             jobsrv::JobGroupState::GroupPending => "Pending",
             jobsrv::JobGroupState::GroupComplete => "Complete",
             jobsrv::JobGroupState::GroupFailed => "Failed",
+            jobsrv::JobGroupState::GroupQueued => "Queued",
         };
         conn.execute(
             "SELECT set_group_state_v1($1, $2)",

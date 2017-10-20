@@ -136,6 +136,10 @@ impl ScheduleMgr {
                 warn!("Scheduler unable to process status: err {:?}", err);
             }
 
+            if let Err(err) = self.process_queue() {
+                warn!("Scheduler unable to process queue: err {:?}", err);
+            }
+
             if let Err(err) = self.process_work() {
                 warn!("Scheduler unable to process work: err {:?}", err);
             }
@@ -152,6 +156,27 @@ impl ScheduleMgr {
     fn log_error(&mut self, msg: String) {
         warn!("{}", msg);
         self.logger.log(&msg);
+    }
+
+    fn process_queue(&mut self) -> Result<()> {
+        let groups = self.datastore.get_queued_job_groups()?;
+
+        for group in groups.iter() {
+            assert!(group.get_state() == jobsrv::JobGroupState::GroupQueued);
+
+            if !self.datastore.is_job_group_active(group.get_project_name())? {
+                debug!(
+                    "Setting group {} from queued to pending",
+                    group.get_project_name()
+                );
+                self.datastore.set_job_group_state(
+                    group.get_id(),
+                    jobsrv::JobGroupState::GroupPending,
+                )?;
+            }
+        }
+
+        Ok(())
     }
 
     fn process_work(&mut self) -> Result<()> {
@@ -496,9 +521,9 @@ impl ScheduleMgr {
         // Group state transition rules:
         // |   Start Group State     |  Projects State  |   New Group State   |
         // |-------------------------|------------------|---------------------|
+        // |     Queued              |     N/A          |        N/A          |
         // |     Pending             |     N/A          |        N/A          |
-        // |     Dispatching         |   any Failure    |      Failed         |
-        // |     Dispatching         |   all Success    |      Complete       |
+        // |     Dispatching         |   no remaining   |      Complete       |
         // |     Dispatching         |   dispatchable?  |      Pending        |
         // |     Dispatching         |   otherwise      |      Dispatching    |
         // |     Complete            |     N/A          |        N/A          |

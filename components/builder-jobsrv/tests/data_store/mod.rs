@@ -231,17 +231,54 @@ fn pending_groups() {
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
 
+    let mut msg2 = jobsrv::JobGroupSpec::new();
+    msg2.set_origin(String::from("Foo"));
+    msg2.set_package(String::from("Baz"));
+
+    let mut msg3 = jobsrv::JobGroupSpec::new();
+    msg3.set_origin(String::from("Foo"));
+    msg3.set_package(String::from("Xyz"));
+
     let ds = datastore_test!(DataStore);
 
     let group1 = ds.create_job_group(&msg, project_names.clone()).expect(
         "Failed to create a group",
     );
-    ds.create_job_group(&msg, project_names.clone()).expect(
+
+    // Check that it is queued
+    let queued_groups = ds.get_queued_job_groups().expect(
+        "Failed to get queued groups",
+    );
+    assert_eq!(queued_groups.len(), 1, "Failed to find a queued group");
+    assert_eq!(
+        queued_groups[0].get_id(),
+        group1.get_id(),
+        "Queued group id did not match expected"
+    );
+
+    // There should not be any pending groups yet
+    let pending_groups_0 = ds.pending_job_groups(1).expect(
+        "Failed to get pendings group",
+    );
+    assert_eq!(pending_groups_0.len(), 0, "Found unexpected pending group");
+
+    let group2 = ds.create_job_group(&msg2, project_names.clone()).expect(
         "Failed to create a group",
     );
-    ds.create_job_group(&msg, project_names.clone()).expect(
+
+    let group3 = ds.create_job_group(&msg3, project_names.clone()).expect(
         "Failed to create a group",
     );
+
+    // Now set group states
+    ds.set_job_group_state(group1.get_id(), jobsrv::JobGroupState::GroupPending)
+        .expect("Failed to set group state");
+
+    ds.set_job_group_state(group2.get_id(), jobsrv::JobGroupState::GroupPending)
+        .expect("Failed to set group state");
+
+    ds.set_job_group_state(group3.get_id(), jobsrv::JobGroupState::GroupPending)
+        .expect("Failed to set group state");
 
     // Get one group, it should be FIFO, and it should have its state set to Dispatching
     let pending_groups = ds.pending_job_groups(1).expect(
@@ -303,7 +340,7 @@ fn set_job_group_state() {
         .expect("No group found");
     assert_eq!(
         pending_group.get_state(),
-        jobsrv::JobGroupState::GroupPending
+        jobsrv::JobGroupState::GroupQueued
     );
 
     ds.set_job_group_state(group.get_id(), jobsrv::JobGroupState::GroupComplete)

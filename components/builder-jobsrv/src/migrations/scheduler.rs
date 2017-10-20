@@ -268,5 +268,52 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
         "#,
     )?;
 
+    // Insert a new group into the groups table, and add it's projects to the projects table
+    migrator.migrate("jobsrv",
+         r#"CREATE OR REPLACE FUNCTION insert_group_v2 (
+                    root_project text,
+                    project_names text[],
+                    project_idents text[]
+                    ) RETURNS SETOF groups
+                      LANGUAGE SQL
+                      VOLATILE AS $$
+                      WITH my_group AS (
+                              INSERT INTO groups (project_name, group_state)
+                              VALUES (root_project, 'Queued') RETURNING *
+                          ), my_project AS (
+                              INSERT INTO group_projects (owner_id, project_name, project_ident, project_state)
+                              SELECT g.id, project_info.name, project_info.ident, 'NotStarted'
+                              FROM my_group AS g, unnest(project_names, project_idents) AS project_info(name, ident)
+                          )
+                      SELECT * FROM my_group;
+                    $$"#)?;
+
+    // Retrieve a queued group from the groups table
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION get_queued_group_v1 (pname text) RETURNS SETOF groups AS $$
+                  SELECT * FROM groups
+                  WHERE project_name = pname
+                  AND group_state = 'Queued'
+            $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+
+    migrator.migrate(
+        "jobsrv",
+        r#"DROP INDEX IF EXISTS queued_groups_index_v1;"#,
+    )?;
+
+    migrator.migrate("jobsrv",
+                     r#"CREATE INDEX queued_groups_index_v1 on groups(created_at) WHERE group_state = 'Queued'"#)?;
+
+    // Retrieve all queued groups from the groups table
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION get_queued_groups_v1 () RETURNS SETOF groups AS $$
+                  SELECT * FROM groups
+                  WHERE group_state = 'Queued'
+            $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+
     Ok(())
 }

@@ -128,6 +128,7 @@ enum JobGroupState {
   GroupDispatching = 1;
   GroupComplete = 2;
   GroupFailed = 3;
+  GroupQueued = 4;
 }
 
 message JobGroupAbort {
@@ -143,6 +144,7 @@ message JobGroup {
   optional JobGroupState state = 2;
   repeated JobGroupProject projects = 3;
   optional string created_at = 4;
+  optional string project_name = 5;
 }
 
 message JobGraphPackage {

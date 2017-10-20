@@ -412,6 +412,7 @@ impl Serialize for JobGroupState {
             1 => serializer.serialize_str("Dispatching"),
             2 => serializer.serialize_str("Complete"),
             3 => serializer.serialize_str("Failed"),
+            4 => serializer.serialize_str("Queued"),
             _ => panic!("Unexpected enum value"),
         }
     }
@@ -457,6 +458,10 @@ impl Serialize for JobGroup {
         strukt.serialize_field("state", &self.get_state())?;
         strukt.serialize_field("projects", &self.get_projects())?;
         strukt.serialize_field("created_at", &self.get_created_at())?;
+        strukt.serialize_field(
+            "project_name",
+            &self.get_project_name(),
+        )?;
         strukt.end()
     }
 }
