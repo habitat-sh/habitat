@@ -1,0 +1,18 @@
+[package]
+name = "segment-api-client"
+version = "0.0.0"
+authors = ["Josh Black <raskchanky@gmail.com>"]
+workspace = "../../"
+
+[dependencies]
+base64 = "*"
+hyper = "*"
+hyper-openssl = "*"
+log = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+
+[[bin]]
+name = "segment-client"
+path = "src/main.rs"

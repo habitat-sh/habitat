@@ -1,14 +1,14 @@
 [root]
-name = "op"
-version = "0.1.0"
+name = "segment-api-client"
+version = "0.0.0"
 dependencies = [
- "clap 2.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
- "fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat-builder-protocol 0.0.0",
- "habitat_builder_sessionsrv 0.0.0",
- "habitat_core 0.0.0",
+ "base64 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.10.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper-openssl 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1861,6 +1861,19 @@ dependencies = [
 name = "odds"
 version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "op"
+version = "0.1.0"
+dependencies = [
+ "clap 2.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat-builder-protocol 0.0.0",
+ "habitat_builder_sessionsrv 0.0.0",
+ "habitat_core 0.0.0",
+ "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "openssl"
