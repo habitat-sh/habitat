@@ -60,10 +60,11 @@ The web application for the Habitat builder and depot.
 
 #### Lieutenant
 
-* [Nathan L Smith](https://github.com/smith)
+* [Chris Nunciato](https://github.com/cnunciato)
 
 #### Maintainers
 
+* [Elliott Davis](https://github.com/elliott-davis)
 * [Fletcher Nichol](https://github.com/fnichol)
 * [Jamie Winsor](https://github.com/reset)
 * [Matt Wrock](https://github.com/mwrock)
