@@ -32,7 +32,7 @@ Example run:
 ```
 $ bldr-graph
 
-Connecting to builder_scheduler
+Connecting to builder_jobsrv
 Building graph... please wait.
 OK: 1224 nodes, 3537 edges (PT1.758762699S sec)
 

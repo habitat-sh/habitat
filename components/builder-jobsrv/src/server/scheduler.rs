@@ -77,7 +77,7 @@ impl ScheduleMgr {
     where
         T: AsRef<Path>,
     {
-        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         socket.set_rcvhwm(1)?;
         socket.set_linger(0)?;
         socket.set_immediate(true)?;
@@ -130,7 +130,9 @@ impl ScheduleMgr {
         loop {
             {
                 let mut items = [self.socket.as_poll_item(1)];
-                zmq::poll(&mut items, SOCKET_TIMEOUT_MS)?;
+                if let Err(err) = zmq::poll(&mut items, SOCKET_TIMEOUT_MS) {
+                    warn!("Scheduler unable to complete ZMQ poll: err {:?}", err);
+                };
 
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     socket = true;
@@ -138,15 +140,17 @@ impl ScheduleMgr {
             }
 
             if let Err(err) = self.process_status() {
-                warn!("Unable to process status: err {:?}", err);
+                warn!("Scheduler unable to process status: err {:?}", err);
             }
 
             if let Err(err) = self.process_work() {
-                warn!("Unable to process work: err {:?}", err);
+                warn!("Scheduler unable to process work: err {:?}", err);
             }
 
             if socket {
-                self.socket.recv(&mut self.msg, 0)?;
+                if let Err(err) = self.socket.recv(&mut self.msg, 0) {
+                    warn!("Scheduler unable to complete socket receive: err {:?}", err);
+                }
                 socket = false;
             }
         }
@@ -233,6 +237,7 @@ impl ScheduleMgr {
                         err
                     ));
 
+                    // TODO: Is this the right thing to do?
                     self.datastore.set_job_group_state(
                         group.get_id(),
                         jobsrv::JobGroupState::GroupFailed,
@@ -290,6 +295,11 @@ impl ScheduleMgr {
                 projects.push(project.clone());
             }
         }
+        debug!(
+            "Found {} dispatchable projects for group {}",
+            projects.len(),
+            group.get_id()
+        );
         Ok(projects)
     }
 
@@ -318,7 +328,17 @@ impl ScheduleMgr {
         {
             // Check the deps for the project. If we find any dep that is in the
             // skipped list, we set the project status to Skipped and add it to the list
-            let package = self.datastore.get_job_graph_package(&project.get_ident())?;
+            let package = match self.datastore.get_job_graph_package(&project.get_ident()) {
+                Ok(package) => package,
+                Err(err) => {
+                    warn!(
+                        "Unable to retrieve job graph package {}, err: {:?}",
+                        project.get_ident(),
+                        err
+                    );
+                    continue;
+                }
+            };
             let deps = package.get_deps();
 
             for dep in deps {
@@ -382,7 +402,10 @@ impl ScheduleMgr {
                 self.worker_mgr.notify_work()?;
                 Ok(Some(job))
             }
-            Err(err) => Err(Error::from(err)),
+            Err(err) => {
+                warn!("Unable to create job, err: {:?}", err);
+                Err(Error::from(err))
+            }
         }
     }
 
@@ -411,6 +434,7 @@ impl ScheduleMgr {
     fn process_status(&mut self) -> Result<()> {
         // Get a list of jobs with un-sync'd status
         let jobs = self.datastore.sync_jobs()?;
+        debug!("Process status: found {} updated jobs", jobs.len());
 
         for job in jobs {
             debug!("Syncing job status: job={:?}", job);
