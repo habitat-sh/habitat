@@ -637,7 +637,7 @@ impl DataStore {
             jobsrv::JobGroupProjectState::Skipped => "Skipped",
         };
         conn.execute(
-            "SELECT set_job_group_project_name_state_v1($1, $2, $3)",
+            "SELECT set_group_project_name_state_v1($1, $2, $3)",
             &[&(group_id as i64), &project_name, &state],
         ).map_err(Error::JobGroupProjectSetState)?;
         Ok(())

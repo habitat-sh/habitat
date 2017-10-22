@@ -158,7 +158,7 @@ impl WorkerMgr {
     pub fn new(cfg: &Config, datastore: DataStore, route_conn: RouteClient) -> Result<Self> {
         let hb_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::SUB)?;
         let rq_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
-        let work_mgr_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let work_mgr_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         rq_sock.set_router_mandatory(true)?;
         hb_sock.set_subscribe(&[])?;
         work_mgr_sock.set_rcvhwm(1)?;
@@ -215,6 +215,7 @@ impl WorkerMgr {
         self.load_workers()?;
 
         info!("builder-jobsrv is ready to go.");
+
         loop {
             {
                 let mut items = [
@@ -223,7 +224,9 @@ impl WorkerMgr {
                     self.work_mgr_sock.as_poll_item(1),
                 ];
 
-                zmq::poll(&mut items, DEFAULT_POLL_TIMEOUT_MS as i64)?;
+                if let Err(err) = zmq::poll(&mut items, DEFAULT_POLL_TIMEOUT_MS as i64) {
+                    warn!("Worker-manager unable to complete ZMQ poll: err {:?}", err);
+                };
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     hb_sock = true;
                 }
@@ -236,18 +239,30 @@ impl WorkerMgr {
             }
 
             if hb_sock {
-                self.process_heartbeat()?;
+                if let Err(err) = self.process_heartbeat() {
+                    warn!("Worker-manager unable to process heartbeat: err {:?}", err);
+                };
                 hb_sock = false;
             }
-            self.expire_workers()?;
+            if let Err(err) = self.expire_workers() {
+                warn!("Worker-manager unable to expire workers: err {:?}", err);
+            }
             if rq_sock {
-                self.process_job_status()?;
+                if let Err(err) = self.process_job_status() {
+                    warn!("Worker-manager unable to process job status: err {:?}", err);
+                }
                 rq_sock = false;
             }
             if work_mgr_sock {
                 process_work = true;
                 work_mgr_sock = false;
-                self.work_mgr_sock.recv(&mut self.msg, 0)?;
+
+                if let Err(err) = self.work_mgr_sock.recv(&mut self.msg, 0) {
+                    warn!(
+                        "Worker-manager unable to complete socket receive: err {:?}",
+                        err
+                    );
+                }
             }
 
             // Handle potential work in pending_jobs queue
@@ -255,7 +270,9 @@ impl WorkerMgr {
             if process_work ||
                 (&now > &(last_processed + Duration::from_millis(DEFAULT_POLL_TIMEOUT_MS)))
             {
-                self.process_work()?;
+                if let Err(err) = self.process_work() {
+                    warn!("Worker-manager unable to process work: err {:?}", err);
+                }
                 last_processed = now;
             }
         }

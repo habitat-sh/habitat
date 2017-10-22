@@ -32,7 +32,7 @@ while [ $running -eq 0 ]; do
   sleep 2
 done
 
-for dbname in builder_sessionsrv builder_jobsrv builder_originsrv builder_scheduler; do
+for dbname in builder_sessionsrv builder_jobsrv builder_originsrv; do
   if sudo -E TERM=vt100 hab pkg exec core/postgresql psql -lqt --host 127.0.0.1 -U hab | cut -d \| -f 1 | grep -qw $dbname; then
     echo "Database $dbname exists"
   else
