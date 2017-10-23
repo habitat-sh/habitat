@@ -18,7 +18,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../app.store';
 import { Origin } from '../../records/Origin';
 import { requireSignIn } from '../../util';
-import { fetchOrigin, fetchMyOrigins, getUniquePackages, fetchDockerIntegration, fetchProjects } from '../../actions';
+import { fetchOrigin, fetchMyOrigins, getUniquePackages, fetchIntegrations, fetchProjects } from '../../actions';
 
 @Component({
   template: require('./origin-page.component.html')
@@ -39,7 +39,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     requireSignIn(this);
     this.store.dispatch(fetchOrigin(this.origin.name));
     this.store.dispatch(fetchMyOrigins(this.token));
-    this.store.dispatch(fetchDockerIntegration(this.origin.name, this.token));
+    this.store.dispatch(fetchIntegrations(this.origin.name, this.token));
     this.getPackages();
     this.getProjects();
     this.loadPackages = this.getPackages.bind(this);

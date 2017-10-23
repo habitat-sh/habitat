@@ -1,5 +1,5 @@
 .integrations-tab {
-  @include span-columns(8);
+  @include span-columns(10);
   @include omega;
 
   h3 {
@@ -16,42 +16,108 @@
     margin: 0 auto rem(30);
   }
 
-  ul {
-    margin-top: 18px;
-    border-top: 1px solid $very-light-gray;
+  .registries {
+    .mat-grid-tile {
+      overflow: unset;
 
-    li {
-      @include row;
-      border-bottom: 1px solid $very-light-gray;
-      padding: 12px;
-      font-size: rem(12);
+      button {
+        width: 355px;
+        height: 54px;
+        position: relative;
 
-      hab-icon {
-        width: 16px;
-        height: 16px;
-      }
+        &#docker,
+        &#amazon {
+          box-shadow: 0 2px 15px 0 rgba(0,0,0,0.08);
+        }
 
-      .name {
-        @include span-columns(10);
-        font-weight: 600;
+        span:last-child {
+          line-height: 55px;
+          float: left;
+        }
 
         hab-icon {
-          margin-right: 6px;
+          width: 24px;
+          height: 24px;
+          margin: 0;
+        }
+
+        .icon {
+          float: left;
+          padding: 9px;
+          margin-left: 10px;
+
+          &.logo {
+            margin-left: -16px;
+            width: 68px;
+            color: $hab-white;
+          }
+
+          &.docker {
+            background-color: $docker-blue;
+          }
+
+          &.google {
+            background-color: $google-blue;
+          }
+
+          &.amazon {
+            background-color: $amazon-orange;
+          }
+
+          &.azure {
+            background-color: $azure-blue;
+          }
         }
       }
+    }
+  }
 
-      .actions {
-        @include span-columns(2);
-        text-align: right;
+  section {
+    margin-bottom: 28px;
+    margin-top: rem(30);
 
-        hab-icon {
-          color: $hab-blue;
-          cursor: pointer;
-          margin-left: 12px;
-          transition: color .2s linear;
+    ul {
+      margin-bottom: 20px;
 
-          &:hover {
-            color: darken($hab-blue, 10%);
+      li {
+        @include row;
+        border-bottom: 1px solid $very-light-gray;
+        padding: 14px;
+        font-size: rem(12);
+
+        .none {
+          font-size: rem(14);
+        }
+
+        .name {
+          @include span-columns(9);
+          font-family: $base-font-family;
+
+          hab-icon {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+
+        .actions {
+          @include span-columns(3);
+          text-align: right;
+
+          a {
+            cursor: pointer;
+            display: block;
+          }
+
+          hab-icon {
+            color: $hab-blue;
+            transition: color .2s linear;
+            width: 16px;
+            height: 16px;
+
+            &:hover {
+              color: darken($hab-blue, 10%);
+            }
           }
         }
       }

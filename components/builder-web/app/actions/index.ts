@@ -61,15 +61,15 @@ export {
 
 export {
   acceptOriginInvitation,
-  CLEAR_DOCKER_INTEGRATIONS,
+  CLEAR_INTEGRATIONS,
   CLEAR_MY_ORIGIN_INVITATIONS,
   CLEAR_MY_ORIGINS,
   clearIntegrationCredsValidation,
   createOrigin,
-  deleteDockerIntegration,
+  deleteIntegration,
   deleteOriginInvitation,
   deleteOriginMember,
-  fetchDockerIntegration,
+  fetchIntegrations,
   fetchMyOriginInvitations,
   fetchMyOrigins,
   fetchOrigin,
@@ -81,7 +81,7 @@ export {
   inviteUserToOrigin,
   POPULATE_MY_ORIGIN_INVITATIONS,
   POPULATE_MY_ORIGINS,
-  POPULATE_ORIGIN_DOCKER_INTEGRATIONS,
+  POPULATE_ORIGIN_INTEGRATIONS,
   POPULATE_ORIGIN_INVITATIONS,
   POPULATE_ORIGIN_MEMBERS,
   POPULATE_ORIGIN_PUBLIC_KEYS,
@@ -97,14 +97,14 @@ export {
   SET_ORIGIN_USER_INVITE_ERROR_MESSAGE,
   SET_PACKAGE_COUNT_FOR_ORIGIN,
   setCurrentOrigin,
-  setDockerIntegration,
+  setIntegration,
   TOGGLE_ORIGIN_PICKER,
   toggleOriginPicker,
   UPDATE_ORIGIN,
   updateOrigin,
   uploadOriginPrivateKey,
   uploadOriginPublicKey,
-  validateDockerCredentials
+  validateIntegrationCredentials
 } from './origins';
 
 export {

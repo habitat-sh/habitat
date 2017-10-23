@@ -27,11 +27,11 @@ use http_gateway::http::helpers::{self, check_origin_access, get_param, validate
 use hyper::header::{Accept, ContentType};
 use hyper::status::StatusCode;
 use iron::status;
-use params::{Params, FromValue};
+use params::{FromValue, Params};
 use persistent;
-use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobState, ProjectJobsGet,
+use protocol::jobsrv::{Job, JobGet, JobLog, JobLogGet, JobState, ProjectJobsGet,
                        ProjectJobsGetResponse};
-use protocol::jobsrv::{JobGraphPackageReverseDependenciesGet, JobGraphPackageReverseDependencies};
+use protocol::jobsrv::{JobGraphPackageReverseDependencies, JobGraphPackageReverseDependenciesGet};
 use protocol::originsrv::*;
 use protocol::sessionsrv::{Account, AccountGetId, AccountInvitationListRequest,
                            AccountInvitationListResponse, AccountOriginListRequest,
@@ -178,8 +178,13 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-pub fn validate_docker_credentials(req: &mut Request) -> IronResult<Response> {
+pub fn validate_registry_credentials(req: &mut Request) -> IronResult<Response> {
     let json_body = req.get::<bodyparser::Json>();
+
+    let registry_type: String = match get_param(req, "registry_type") {
+        Some(t) => t,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
     let body = match json_body {
         Ok(Some(b)) => b,
@@ -198,8 +203,17 @@ pub fn validate_docker_credentials(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    // There's probably a better way to do this. Suggestions?
-    let client = match ApiClient::new("https://hub.docker.com/v2", PRODUCT, VERSION, None) {
+    let url = match body["url"].as_str() {
+        Some(url) => url,
+        None => {
+            match registry_type.as_ref() {
+                "docker" => "https://hub.docker.com/v2",
+                _ => return Ok(Response::with(status::BadRequest)),
+            }
+        }
+    };
+
+    let client = match ApiClient::new(url, PRODUCT, VERSION, None) {
         Ok(c) => c,
         Err(e) => {
             debug!("Error: Unable to create HTTP client: {}", e);

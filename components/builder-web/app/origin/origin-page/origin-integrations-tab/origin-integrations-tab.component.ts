@@ -14,11 +14,11 @@
 
 import { Component, OnInit } from '@angular/core';
 import { AppStore } from '../../../app.store';
-import { deleteDockerIntegration, setDockerIntegration } from '../../../actions';
+import { deleteIntegration, setIntegration } from '../../../actions';
 import { MatDialog } from '@angular/material';
-import { DockerCredentialsFormDialog } from '../docker-credentials-form/docker-credentials-form.dialog';
+import { IntegrationCredentialsFormDialog } from '../integration-credentials-form/integration-credentials-form.dialog';
 import { IntegrationDeleteConfirmDialog } from './dialog/integration-delete-confirm/integration-delete-confirm.dialog';
-import { fetchDockerIntegration } from '../../../actions/index';
+import { fetchIntegrations } from '../../../actions/index';
 
 @Component({
   template: require('./origin-integrations-tab.component.html')
@@ -32,11 +32,11 @@ export class OriginIntegrationsTabComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.store.dispatch(fetchDockerIntegration(this.origin.name, this.token));
+    this.store.dispatch(fetchIntegrations(this.origin.name, this.token));
   }
 
   get integrations() {
-    return this.store.getState().origins.currentIntegrations;
+    return this.store.getState().origins.currentIntegrations.integrations;
   }
 
   get origin() {
@@ -51,24 +51,29 @@ export class OriginIntegrationsTabComponent implements OnInit {
     return this.store.getState().session.token;
   }
 
-  addDocker(): void {
+  addIntegration(type: string, name: string): void {
     this.credsDialog
-      .open(DockerCredentialsFormDialog, { width: '480px' })
+      .open(IntegrationCredentialsFormDialog, {
+        data: { type },
+        width: '480px'
+      })
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          this.store.dispatch(setDockerIntegration(this.origin.name, result, this.token));
+          const name = result['name'];
+          delete result['name'];
+          this.store.dispatch(setIntegration(this.origin.name, result, this.token, type, name));
         }
       });
   }
 
-  deleteDocker(name) {
+  deleteIntegration(name, type) {
     this.confirmDialog
       .open(IntegrationDeleteConfirmDialog, { width: '480px' })
       .afterClosed()
       .subscribe(confirmed => {
         if (confirmed) {
-          this.store.dispatch(deleteDockerIntegration(this.origin.name, this.token, name));
+          this.store.dispatch(deleteIntegration(this.origin.name, this.token, name, type));
         }
       });
   }

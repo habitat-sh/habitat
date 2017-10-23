@@ -509,9 +509,9 @@ export class BuilderApiClient {
     });
   }
 
-  public getDockerIntegration(originName: string) {
+  public getIntegrations(originName: string) {
     return new Promise((resolve, reject) => {
-      fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/names`, {
+      fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations`, {
         headers: this.headers
       })
         .then(response => this.handleUnauthorized(response, reject))
@@ -526,9 +526,9 @@ export class BuilderApiClient {
     });
   }
 
-  public setDockerIntegration(originName: string, credentials) {
+  public setIntegration(originName: string, credentials, type: string, name: string) {
     return new Promise((resolve, reject) => {
-      fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/docker`, {
+      fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/${type}/${name}`, {
         headers: this.headers,
         method: 'PUT',
         body: JSON.stringify(credentials)
@@ -602,9 +602,9 @@ export class BuilderApiClient {
     });
   }
 
-  public deleteDockerIntegration(origin: string, name: string) {
+  public deleteIntegration(origin: string, name: string, type: string) {
     return new Promise((resolve, reject) => {
-      fetch(`${this.urlPrefix}/depot/origins/${origin}/integrations/docker/${name}`, {
+      fetch(`${this.urlPrefix}/depot/origins/${origin}/integrations/${type}/${name}`, {
         headers: this.headers,
         method: 'DELETE',
       })
@@ -656,12 +656,17 @@ export class BuilderApiClient {
     });
   }
 
-  public validateDockerCredentials(username: string, password: string) {
+  public validateIntegrationCredentials(username: string, password: string, type: string, url?: string) {
+    let creds = { username, password };
+    if (url && url.trim() !== '') {
+      creds['url'] = url.trim();
+    }
+
     return new Promise((resolve, reject) => {
-      fetch(`${this.urlPrefix}/ext/integrations/docker/credentials/validate`, {
+      fetch(`${this.urlPrefix}/ext/integrations/${type}/credentials/validate`, {
         headers: this.headers,
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify(creds)
       })
         .then(response => {
           if (response.ok) {

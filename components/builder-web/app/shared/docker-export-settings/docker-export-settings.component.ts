@@ -34,7 +34,7 @@ export class DockerExportSettingsComponent implements OnChanges {
   constructor(private store: AppStore) { }
 
   get configured() {
-    return this.integrations.size > 0;
+    return Object.keys(this.integrations).length > 0;
   }
 
   get settings(): any {
@@ -72,7 +72,7 @@ export class DockerExportSettingsComponent implements OnChanges {
   ngOnChanges(changes) {
 
     if (changes.integrations) {
-      this.name = changes.integrations.currentValue.get(0);
+      this.name = changes.integrations.currentValue;
     }
 
     if (changes.current) {
