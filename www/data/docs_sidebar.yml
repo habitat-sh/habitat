@@ -34,7 +34,7 @@ sidebar_links:
     sub_links:
     - title: Writing a Plan.sh
       link: "/docs/developing-packages/#write-plans"
-    - title: Config TemplatesÏ
+    - title: Config Templates
       link: "/docs/developing-packages/#add-configuration"
     - title: Binds and Exports
       link: "/docs/developing-packages/#pkg-binds"
