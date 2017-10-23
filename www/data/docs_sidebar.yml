@@ -126,7 +126,7 @@ sidebar_links:
       link: "/docs/internals/#election-internals"
     - title: Crypto
       link: "/docs/internals/#crypto-internals"
-    - title: Bottstrapping Habitat
+    - title: Bootstrapping Habitat
       link: "/docs/internals/#bootstrap-internals"
   - title: Contribute
     link: "/docs/contribute"
