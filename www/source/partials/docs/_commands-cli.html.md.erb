@@ -462,7 +462,7 @@ Find out what channels a package belongs to
 
 **ARGS** 
 
-    <PKG_IDENT>    A fully qualified package identifier (ex: core/redis/3.2.1/20160729052715)
+    <PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
 
 <h2 id="hab-pkg-config" class="anchor">hab pkg config</h2>
 Displays the default configuration options for a service
@@ -499,7 +499,7 @@ Demote a package from a specified channel
 
 **ARGS** 
 
-    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    <PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
     <CHANNEL>      Demote from the specified release channel
 
 <h2 id="hab-pkg-env" class="anchor">hab pkg env</h2>
@@ -555,8 +555,9 @@ Exports the package to the specified format
 
 **ARGS** 
 
-    <FORMAT>       The export format (ex: docker, aci, mesos, or tar)
-    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    <FORMAT>       The export format (ex: aci, cf, docker, mesos, or tar)
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or
+                   filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-hash" class="anchor">hab pkg hash</h2>
 Generates a blake2b hashsum from a target at any given filepath
@@ -633,7 +634,7 @@ Promote a package to a specified channel
 
 **ARGS** 
 
-    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    <PKG_IDENT>    A fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)
     <CHANNEL>      Promote to the specified release channel
 
 <h2 id="hab-pkg-provides" class="anchor">hab pkg provides</h2>
@@ -710,7 +711,7 @@ Uploads a local Habitat Artifact to Habitat Builder
 **OPTIONS** 
 
     -z, --auth <AUTH_TOKEN>    Authentication token for Habitat Builder
-    -c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to `unstable`, regardless of the   value of this option. (default: none)
+    -c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to `unstable`, regardless of the value of this option. (default: none)
     -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 

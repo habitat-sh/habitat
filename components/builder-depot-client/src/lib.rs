@@ -664,6 +664,9 @@ impl Client {
     where
         I: Identifiable,
     {
+        if !ident.fully_qualified() {
+            return Err(Error::IdentNotFullyQualified);
+        }
         let path = channel_package_demote(channel, ident);
         debug!("Demoting package {}", ident);
 

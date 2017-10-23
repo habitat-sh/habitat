@@ -207,9 +207,10 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Exports the package to the specified format")
                 (aliases: &["exp"])
                 (@arg FORMAT: +required +takes_value
-                    "The export format (ex: docker, aci, mesos, or tar)")
+                    "The export format (ex: aci, cf, docker, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
+                    filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                 (@arg BLDR_URL: --url -u +takes_value {valid_url}
                     "Retrieve the container's package from the specified Builder \
                     (default: https://bldr.habitat.sh)")
@@ -273,11 +274,11 @@ pub fn get() -> App<'static, 'static> {
             )
             (@subcommand promote =>
                 (about: "Promote a package to a specified channel")
-                (aliases: &["pr", "pro"])
+                (aliases: &["pr", "pro", "promo", "promot"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
-                    "A package identifier (ex: core/redis/3.2.1/20160729052715)")
+                    "A fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg CHANNEL: +required +takes_value
                     "Promote to the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
@@ -288,7 +289,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                    "A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg CHANNEL: +required +takes_value
                     "Demote from the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
@@ -299,7 +300,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
-                    "A fully qualified package identifier (ex: core/redis/3.2.1/20160729052715)")
+                    "A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand verify =>

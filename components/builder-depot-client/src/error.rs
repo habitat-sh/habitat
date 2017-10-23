@@ -65,8 +65,8 @@ impl fmt::Display for Error {
             }
             Error::IdentNotFullyQualified => {
                 format!(
-                    "Cannot perform the specified operation on a package identifier that is not \
-                    fully qualified; please include the package version and release"
+                    "Cannot perform the specified operation. \
+                    Specify a fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)"
                 )
             }
             Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
@@ -94,8 +94,8 @@ impl error::Error for Error {
             }
             Error::NoXFilename => "Invalid download from Builder - missing X-Filename header",
             Error::IdentNotFullyQualified => {
-                "Cannot perform the specified operation on a package identifier that is not fully \
-                qualified"
+                "Cannot perform the specified operation. \
+                Specify a fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)"
             }
             Error::UploadFailed(_) => "Upload failed",
             Error::UrlParseError(ref err) => err.description(),
