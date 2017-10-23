@@ -1,0 +1,33 @@
+---
+## Secret for initial configuration.
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: user-toml-secret
+#type: Opaque
+#data:
+#  # Each configuration item needs to be encoded in base64.
+#  # Plain text content of the secret: "port = 4444"
+#  user.toml: cG9ydCA9IDQ0NDQ=
+#---
+apiVersion: habitat.sh/v1
+kind: Habitat
+metadata:
+  ## Name of the Habitat service.
+  name: {{metadata_name}}
+spec:
+  ## Name of the Habitat service package exported as a Docker image.
+  image: {{image}}
+  ## Number of desired instances.
+  count: {{count}}
+  ## An object containing parameters that effects how the Habitat service
+  ## is executed.
+  service:
+    ## Habitat topology of the service.
+    topology: standalone
+    ## Habitat service group name, a logical grouping of services
+    ## with the same package.
+    group: default
+    ## Name of the configuration secret. Edit the Kubernetes Secret
+    ## at the top.
+    #configSecretName: user-toml-secret
