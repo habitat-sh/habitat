@@ -1,15 +1,14 @@
 section
  h1 Build your #{current_page.data.platform} web application with Habitat
- 
+
  p This guide shows how to use the #{current_page.data.platform} scaffolding to build and run your web application with Habitat. It explores how to extend and customize your Habitat package based on some common overrides to the default scaffolding behavior. For the complete reference on how to use the #{current_page.data.platform} scaffolding, see the  #{link_to 'reference topic', "https://github.com/habitat-sh/core-plans/blob/master/scaffolding-#{current_page.data.platform_short}/doc/reference.md"} that accomplanies the #{current_page.data.platform} scaffolding.
 
  - if "#{current_page.data.platform_short}" == "node"
    blockquote
-    p <b>Note</b> At this time, pre- and post-build steps for more complex #{current_page.data.platform} applications, such as those built on Angular and React, are not supported in the #{current_page.data.platform} scaffolding; however, this support is coming soon. 
 
  h2 In this guide
 
- p The following steps provide a framework for how to use the #{current_page.data.platform} scaffolding; however, you are not required to read them in order. Feel free to move back and forth between topics as you create the plan for your web application. 
+ p The following steps provide a framework for how to use the #{current_page.data.platform} scaffolding; however, you are not required to read them in order. Feel free to move back and forth between topics as you create the plan for your web application.
 
  ul
   li #{link_to 'Create Your Plan',"/tutorials/build-your-own/#{current_page.data.platform_short}/create-plan/"}: Learn how to use the scaffolding to create a basic structure for your plan.
@@ -25,11 +24,11 @@ section
   li #{link_to 'Connect to Nginx',"/tutorials/build-your-own/#{current_page.data.platform_short}/connect-nginx/"}: Explains how you can use the popular web server Nginx as a reverse proxy for your web application.
   li #{link_to 'Next Steps',"/tutorials/build-your-own/#{current_page.data.platform_short}/next-steps/"}: Provides suggested topics for further reading within the reference documentation and blog posts.
 
- 
+
  h2 Prerequisites
- 
+
  p #{link_to 'Download and install', '/tutorials/download/'} the Habitat CLI (command-line interface) on your workstation. You should complete all steps before doing any local development work with the CLI.
 
- = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_prereqs" 
+ = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_prereqs"
 
 = link_to 'Next: Create Your Plan', "/tutorials/build-your-own/#{current_page.data.platform_short}/create-plan/", class: 'button cta'
