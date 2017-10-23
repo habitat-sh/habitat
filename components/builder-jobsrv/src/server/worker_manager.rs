@@ -59,9 +59,6 @@ impl WorkerMgrClient {
 impl Default for WorkerMgrClient {
     fn default() -> WorkerMgrClient {
         let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
-        socket.set_sndhwm(1).unwrap();
-        socket.set_linger(0).unwrap();
-        socket.set_immediate(true).unwrap();
         WorkerMgrClient { socket: socket }
     }
 }
@@ -158,12 +155,9 @@ impl WorkerMgr {
     pub fn new(cfg: &Config, datastore: DataStore, route_conn: RouteClient) -> Result<Self> {
         let hb_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::SUB)?;
         let rq_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
-        let work_mgr_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
+        let work_mgr_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         rq_sock.set_router_mandatory(true)?;
         hb_sock.set_subscribe(&[])?;
-        work_mgr_sock.set_rcvhwm(1)?;
-        work_mgr_sock.set_linger(0)?;
-        work_mgr_sock.set_immediate(true)?;
 
         let mut schedule_cli = ScheduleClient::default();
         schedule_cli.connect()?;

@@ -54,10 +54,6 @@ impl ScheduleClient {
 impl Default for ScheduleClient {
     fn default() -> ScheduleClient {
         let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
-        socket.set_sndhwm(1).unwrap();
-        socket.set_linger(0).unwrap();
-        socket.set_immediate(true).unwrap();
-
         ScheduleClient { socket: socket }
     }
 }
@@ -77,10 +73,7 @@ impl ScheduleMgr {
     where
         T: AsRef<Path>,
     {
-        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
-        socket.set_rcvhwm(1)?;
-        socket.set_linger(0)?;
-        socket.set_immediate(true)?;
+        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
 
         let mut schedule_cli = ScheduleClient::default();
         schedule_cli.connect()?;
