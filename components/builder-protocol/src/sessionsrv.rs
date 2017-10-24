@@ -105,6 +105,14 @@ impl Routable for AccountGetId {
     }
 }
 
+impl Routable for AccountUpdate {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_id()))
+    }
+}
+
 
 impl Routable for AccountOriginInvitationCreate {
     type H = InstaId;

@@ -195,6 +195,33 @@ schemas:
                 }
             }
         }
+    - userProfile: |
+        {
+            "properties":  {
+                "id": {
+                    "type": "string",
+                    "required": true
+                },
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "email": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+    - userProfileUpdate: |
+        {
+            "properties":  {
+                "email": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+
 securitySchemes:
     - oauth_2_0:
         description: Builder supports OAuth 2.0 for authenticating all API requests.
@@ -250,6 +277,40 @@ securitySchemes:
                         application/json:
                 400:
                     description: Bad search query parameter provided
+/profile:
+    get:
+        description: Retrieve your profile
+        securedBy: [oauth_2_0]
+        responses:
+            200:
+                body:
+                    application/json:
+                        schema: userProfile
+                        example: |
+                            {
+                                "id": 1234567890,
+                                "name": "jimmy",
+                                "email": "jimmy@example.com"
+                            }
+            401:
+                description: Authentication failed
+    patch:
+        description: Update your profile
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: userProfileUpdate
+                example: |
+                    {
+                        "email": "jimmy@example.com"
+                    }
+        responses:
+            200:
+                description: Update successful
+            401:
+                description: Authentication failed
+            422:
+                description: Bad JSON submitted
 /jobs:
     post:
         description: Create a new job for the given project

@@ -33,3 +33,8 @@ pub struct ProjectUpdateReq {
     pub installation_id: u32,
     pub repo_id: u32,
 }
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct UserUpdateReq {
+    pub email: String,
+}

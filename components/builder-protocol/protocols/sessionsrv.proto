@@ -30,6 +30,11 @@ message AccountCreate {
   optional string email = 2;
 }
 
+message AccountUpdate {
+  optional uint64 id = 1;
+  optional string email = 2;
+}
+
 message AccountOriginInvitation {
   optional uint64 id = 1;
   optional uint64 origin_invitation_id = 2;

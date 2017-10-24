@@ -33,7 +33,9 @@ use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobState, ProjectJobsGet,
                        ProjectJobsGetResponse};
 use protocol::jobsrv::{JobGraphPackageReverseDependenciesGet, JobGraphPackageReverseDependencies};
 use protocol::originsrv::*;
-use protocol::sessionsrv;
+use protocol::sessionsrv::{Account, AccountGetId, AccountInvitationListRequest,
+                           AccountInvitationListResponse, AccountOriginListRequest,
+                           AccountOriginListResponse, AccountUpdate};
 use serde_json;
 use typemap;
 
@@ -92,6 +94,51 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
             let err = NetError::new(ErrCode::BUG, "rg:auth:2");
             Ok(render_net_error(&err))
         }
+    }
+}
+
+pub fn update_profile(req: &mut Request) -> IronResult<Response> {
+    let session_id = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session.get_id()
+    };
+
+    let body = match req.get::<bodyparser::Struct<UserUpdateReq>>() {
+        Ok(Some(body)) => {
+            if body.email.len() <= 0 {
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `email`",
+                )));
+            }
+
+            body
+        }
+        _ => return Ok(Response::with(status::UnprocessableEntity)),
+    };
+
+    let mut request = AccountUpdate::new();
+    request.set_id(session_id);
+    request.set_email(body.email);
+
+    match route_message::<AccountUpdate, NetOk>(req, &request) {
+        Ok(_) => Ok(Response::with(status::Ok)),
+        Err(err) => return Ok(render_net_error(&err)),
+    }
+}
+
+pub fn get_profile(req: &mut Request) -> IronResult<Response> {
+    let session_id = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session.get_id()
+    };
+
+    let mut request = AccountGetId::new();
+    request.set_id(session_id);
+
+    match route_message::<AccountGetId, Account>(req, &request) {
+        Ok(account) => Ok(render_json(status::Ok, &account)),
+        Err(err) => return Ok(render_net_error(&err)),
     }
 }
 
@@ -364,30 +411,27 @@ pub fn status(_req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn list_account_invitations(req: &mut Request) -> IronResult<Response> {
-    let mut request = sessionsrv::AccountInvitationListRequest::new();
+    let mut request = AccountInvitationListRequest::new();
     {
         let session = req.extensions.get::<Authenticated>().unwrap();
         request.set_account_id(session.get_id());
     }
-    match route_message::<
-        sessionsrv::AccountInvitationListRequest,
-        sessionsrv::AccountInvitationListResponse,
-    >(req, &request) {
+    match route_message::<AccountInvitationListRequest, AccountInvitationListResponse>(
+        req,
+        &request,
+    ) {
         Ok(invites) => Ok(render_json(status::Ok, &invites)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
-    let mut request = sessionsrv::AccountOriginListRequest::new();
+    let mut request = AccountOriginListRequest::new();
     {
         let session = req.extensions.get::<Authenticated>().unwrap();
         request.set_account_id(session.get_id());
     }
-    match route_message::<
-        sessionsrv::AccountOriginListRequest,
-        sessionsrv::AccountOriginListResponse,
-    >(req, &request) {
+    match route_message::<AccountOriginListRequest, AccountOriginListResponse>(req, &request) {
         Ok(invites) => Ok(render_json(status::Ok, &invites)),
         Err(err) => Ok(render_net_error(&err)),
     }

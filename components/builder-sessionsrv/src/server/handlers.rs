@@ -65,6 +65,23 @@ pub fn account_get(
     Ok(())
 }
 
+pub fn account_update(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::AccountUpdate>()?;
+    match state.datastore.update_account(&msg) {
+        Ok(()) => conn.route_reply(req, &net::NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "ss:account-update:0");
+            error!("{}, {}", e, err);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn account_create(
     req: &mut Message,
     conn: &mut RouteConn,
