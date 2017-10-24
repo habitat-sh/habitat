@@ -223,17 +223,6 @@ pub fn job_group_create(
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
     let mut projects = Vec::new();
 
-    // If we already have a scheduled or in-progress group, bail with a conflict error
-    if state.datastore.is_job_group_active(&project_name)? {
-        warn!(
-            "JobGroupSpec, project {} is already scheduled",
-            project_name
-        );
-        let err = NetError::new(ErrCode::ENTITY_CONFLICT, "jb:job-group-create:1");
-        conn.route_reply(req, &*err)?;
-        return Ok(());
-    }
-
     // Get the ident for the root package
     let mut start_time;
     let mut end_time;
@@ -320,7 +309,16 @@ pub fn job_group_create(
         new_group.set_projects(projects);
         new_group
     } else {
-        let new_group = state.datastore.create_job_group(&msg, projects)?;
+        // If already have a queued job group (queue length: 1 per project),
+        // then return that group, else create a new job group
+        // TODO (SA) - update the group's projects instead of just returning the group
+        let new_group = match state.datastore.get_queued_job_group(&project_name)? {
+            Some(group) => {
+                debug!("JobGroupSpec, project {} is already queued", project_name);
+                group
+            }
+            None => state.datastore.create_job_group(&msg, projects)?,
+        };
         state.schedule_cli.notify()?;
         new_group
     };
