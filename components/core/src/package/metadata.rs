@@ -63,6 +63,13 @@ impl FromStr for Bind {
     }
 }
 
+impl fmt::Display for Bind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let formatted_exports = self.exports.join(" ");
+        write!(f, "[{}]={}", self.service, formatted_exports)
+    }
+}
+
 /// Describes a bind mapping in a composite package.
 #[derive(Debug, PartialEq)]
 pub struct BindMapping {
