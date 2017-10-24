@@ -35,11 +35,7 @@ import { ProgressBarComponent } from './progress-bar/progress-bar.component';
 import { ProjectSettingsComponent } from './project-settings/project-settings.component';
 import { PlatformIconComponent } from './platform-icon/platform-icon.component';
 import { VisibilitySelectorComponent } from './visibility-selector/visibility-selector.component';
-import { RepoFilterPipe } from '../pipes/repoFilter.pipe';
 import { SimpleConfirmDialog } from './dialog/simple-confirm/simple-confirm.dialog';
-import { FormProgressComponent } from './form-progress/form-progress.component';
-import { GitHubRepoPickerComponent } from './github-repo-picker/github-repo-picker.component';
-import { PackagePlanSelectComponent } from './plan-select/plan-select.component';
 import { UserLoggedInGuard } from './user/user.guard';
 
 @NgModule({
@@ -72,12 +68,7 @@ import { UserLoggedInGuard } from './user/user.guard';
     ProjectSettingsComponent,
     PlatformIconComponent,
     VisibilitySelectorComponent,
-    RepoFilterPipe,
     SimpleConfirmDialog,
-    FormProgressComponent,
-    GitHubRepoPickerComponent,
-    PackagePlanSelectComponent,
-    RepoFilterPipe
   ],
   entryComponents: [
     DisconnectConfirmDialog,
@@ -100,11 +91,7 @@ import { UserLoggedInGuard } from './user/user.guard';
     ProgressBarComponent,
     ProjectSettingsComponent,
     PlatformIconComponent,
-    RepoFilterPipe,
     SimpleConfirmDialog,
-    FormProgressComponent,
-    PackagePlanSelectComponent,
-    GitHubRepoPickerComponent
   ],
   providers: [
     UserLoggedInGuard

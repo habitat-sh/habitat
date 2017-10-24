@@ -15,7 +15,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppStore } from '../../../app.store';
-import { GitHubRepoPickerComponent } from '../../../shared/github-repo-picker/github-repo-picker.component';
 import { addProject, requestRoute, setProjectIntegrationSettings } from '../../../actions/index';
 
 @Component({
