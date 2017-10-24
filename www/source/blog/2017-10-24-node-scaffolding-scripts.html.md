@@ -1,6 +1,6 @@
 ---
 title: "Node Scaffolding now supports pre and post build scripts!"
-date: 2017-10-20
+date: 2017-10-26
 author: Nell Shamrell-Harrington
 tags: Node, scaffolding
 category: community
@@ -28,7 +28,7 @@ Let's take it for a test run:
 
 One of my favorite sample React apps is the [Pokedex](https://alik0211.ru/pokedex/) by Ali Gasymov.
 
-Let's habiterize this application and deploy it in a Docker container!
+Let's Habitize this application and deploy it in a Docker container!
 
 First, clone the Github repo:
 
@@ -78,14 +78,16 @@ Let's Habitize this app:
 ```
 $ hab plan init -s node
 $ hab studio enter
-$ (studio) build
+(studio) $ build
 ```
 
-Once the build completes, export your new HART package as a docker image:
+Currently, this only builds your application as a HART package - scripts within the package.json file will run when installing this package to wherever you want to run it.
+
+Once the build completes, export your new HART package as a Docker image:
 
 ```console
-$ (studio) hab pkg export docker ./results/your_new_hart_file.hart
-$ (studio) exit
+(studio) $ hab pkg export docker ./results/your_new_hart_file.hart
+(studio) $ exit
 ```
 
 Now, start up a new container with your container image
