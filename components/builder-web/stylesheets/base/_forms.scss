@@ -75,7 +75,7 @@ select[multiple] {
   box-sizing: border-box;
   font-family: $base-font-family;
   font-size: rem(14);
-  margin-bottom: $base-spacing * 1.5;
+  margin-bottom: $small-spacing * 2;
   padding: $small-spacing $small-spacing * 1.5;
   transition: border-color $base-duration $base-timing;
   width: 100%;
