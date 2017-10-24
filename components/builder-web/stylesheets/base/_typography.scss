@@ -42,10 +42,11 @@ h1 {
 }
 
 h2 {
-  font-size: 140%;
+  font-size: 150%;
 
   .page-title & {
-    margin: rem(20) 0 rem(4) 0;
+    margin: 0;
+    line-height: rem(36);
   }
 }
 
@@ -64,9 +65,10 @@ h4 {
   line-height: 1.5em;
 
   .page-title & {
+    margin: 0;
     font-family: $base-font-family;
     font-size: rem(16);
-    margin-top: rem(10);
+    line-height: rem(24);
   }
 }
 
@@ -93,6 +95,7 @@ a {
 
 hr {
   border-bottom: $base-border;
+  border-color: $hab-off-white;
   border-left: 0;
   border-right: 0;
   border-top: 0;

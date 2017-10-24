@@ -16,23 +16,26 @@
           </div>
         </form>
       </div>
-      <div class="members-pending-invites">
-        <h3>Pending Invites</h3>
-        <p *ngIf="invitations.size === 0">No pending invitations.</p>
-        <ul>
-          <li *ngFor="let invitation of invitations" class="pending-invite">
-            <span class="name">{{ invitation.account_name }}</span>
-            <span class="actions">
-              <hab-icon symbol="cancel" (click)="rescind(invitation)" title="Rescind this invitation"></hab-icon>
-            </span>
-          </li>
-        </ul>
-      </div>
     </div>
     <div class="members">
-      <h3>Current Members</h3>
-      <p *ngIf="members.size === 0">No Members.</p>
       <ul>
+        <li class="heading">
+          <h3>Pending Invites</h3>
+          <p *ngIf="invitations.size === 0">No pending invitations.</p>
+        </li>
+        <li *ngFor="let invitation of invitations" class="pending-invite">
+          <span class="name">{{ invitation.account_name }}</span>
+          <span class="actions">
+            <hab-icon symbol="cancel" (click)="rescind(invitation)" title="Rescind this invitation"></hab-icon>
+          </span>
+        </li>
+      </ul>
+      <hr>
+      <ul>
+        <li class="heading">
+          <h3>Current Members</h3>
+          <p *ngIf="members.size === 0">No Members.</p>
+        </li>
         <li *ngFor="let member of members">
           <span class="name">{{ member }}</span>
           <span class="actions">

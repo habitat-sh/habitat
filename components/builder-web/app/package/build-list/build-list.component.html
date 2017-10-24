@@ -1,5 +1,5 @@
 <div class="hab-build-list">
-  <ol *ngIf="builds && builds.size">
+  <ol>
     <li class="heading">
       <div class="version">
         <h5>Version</h5>
@@ -12,6 +12,11 @@
       </div>
       <div class="status">
       </div>
+    </li>
+    <li class="none" *ngIf="!builds || builds.size === 0">
+      <p>
+        <strong>There are no available build jobs for this package.</strong>
+      </p>
     </li>
     <li class="item" *ngFor="let build of builds" (click)="onClick(build)">
       <div class="version">
@@ -29,7 +34,4 @@
       </div>
     </li>
   </ol>
-  <div class="none" *ngIf="!builds || builds.size === 0">
-    There are no available builds for this package.
-  </div>
 </div>

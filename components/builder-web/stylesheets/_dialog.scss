@@ -30,3 +30,8 @@
     }
   }
 }
+
+// Angular Material overrides
+.cdk-overlay-dark-backdrop {
+  background: $hab-blue-dark;
+}

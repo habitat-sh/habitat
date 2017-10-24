@@ -21,6 +21,7 @@ hab-visibility-selector {
       }
 
       h4 {
+        margin-bottom: 0;
         font-family: $base-font-family;
         font-weight: 600;
         font-size: rem(14);
@@ -35,15 +36,19 @@ hab-visibility-selector {
         .mat-radio-container {
           position: absolute;
           top: 2px;
-          left: 0;
+          left: 3px;
         }
 
         .mat-radio-label-content {
           white-space: normal;
-          margin-left: 20px;
+          margin-left: rem(35);
 
           hab-icon {
-            margin-left: 6px;
+            margin-left: 5px;
+          }
+
+          span {
+            color: $hab-gray-dark;
           }
         }
       }

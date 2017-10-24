@@ -105,7 +105,7 @@ body {
 
 .page-title {
   @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
-  padding: rem(16) rem(20);
+  padding: rem(30) rem(20) rem(20);
   position: relative;
   border-radius: $global-radius $global-radius 0 0;
 
@@ -136,7 +136,7 @@ body {
 
 .page-body {
   min-height: 50vh;
-  padding: rem(20) rem(20);
+  padding: rem(30) rem(20);
 
   .hero {
     p {
