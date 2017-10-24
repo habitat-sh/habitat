@@ -116,13 +116,13 @@ describe('BuildListComponent', () => {
     });
 
     it('hides the list', () => {
-      let el = element.query(By.css('.hab-build-list ol'));
+      let el = element.query(By.css('.hab-build-list ol li.item'));
       expect(el).toBeNull();
     });
 
     it('renders an appropriate message', () => {
-      let el = element.query(By.css('.hab-build-list .none'));
-      expect(el.nativeElement.textContent).toContain('There are no available builds for this package.');
+      let el = element.query(By.css('.hab-build-list ol li.none'));
+      expect(el.nativeElement.textContent).toContain('There are no available build jobs for this package.');
     });
   });
 });

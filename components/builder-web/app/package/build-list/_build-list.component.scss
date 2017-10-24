@@ -44,6 +44,13 @@
         }
       }
 
+      &.none {
+        font-size: 14px;
+        padding: 0 10px;
+        border-bottom: none;
+        font-weight: normal;
+      }
+
       .version {
         @include span-columns(2);
       }
@@ -100,10 +107,5 @@
         }
       }
     }
-  }
-
-  .none {
-    font-size: 14px;
-    padding: 0 10px;
   }
 }

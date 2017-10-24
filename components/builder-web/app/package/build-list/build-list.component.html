@@ -13,8 +13,11 @@
       <div class="status">
       </div>
     </li>
-  </ol>
-  <ol *ngIf="builds && builds.size">
+    <li class="none" *ngIf="!builds || builds.size === 0">
+      <p>
+        <strong>There are no available build jobs for this package.</strong>
+      </p>
+    </li>
     <li class="item" *ngFor="let build of builds" (click)="onClick(build)">
       <div class="version">
         {{ build.version || "&mdash;" }}
@@ -31,9 +34,4 @@
       </div>
     </li>
   </ol>
-  <div class="none" *ngIf="!builds || builds.size === 0">
-    <p>
-      <strong>There are no available build jobs for this package.</strong>
-    </p>
-  </div>
 </div>

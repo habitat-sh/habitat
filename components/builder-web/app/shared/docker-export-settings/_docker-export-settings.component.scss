@@ -34,7 +34,7 @@
     @include row;
     margin-bottom: 12px;
 
-    md-slide-toggle {
+    mat-slide-toggle {
       @include span-columns(1.5);
     }
 
