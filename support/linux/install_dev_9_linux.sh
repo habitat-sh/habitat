@@ -15,10 +15,6 @@ if [ -f /etc/arch-release ]; then
   # According to https://docs.docker.com/engine/installation/linux/archlinux/
   # the Docker package is managed by the Arch Linux community
   sudo -E pacman -S --noconfirm docker
-elif [ -f /etc/lsb-release ] \
-    && [ "$(. /etc/lsb-release; echo $DISTRIB_DESCRIPTION)" = "Ubuntu 16.10" ]; then
-  # Until there is a 1.13 release, there is no stable Docker package for Yakkety :/
-  curl -sSL https://test.docker.com | sudo -E sh
 else
   curl -sSL https://get.docker.io | sudo -E sh
 fi
