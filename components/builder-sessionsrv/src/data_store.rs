@@ -70,6 +70,18 @@ impl DataStore {
         Ok(self.row_to_account(row))
     }
 
+    pub fn update_account(&self, account_update: &sessionsrv::AccountUpdate) -> SrvResult<()> {
+        let conn = self.pool.get(account_update)?;
+        conn.execute(
+            "SELECT update_account_v1($1, $2)",
+            &[
+                &(account_update.get_id() as i64),
+                &account_update.get_email(),
+            ],
+        ).map_err(SrvError::AccountUpdate)?;
+        Ok(())
+    }
+
     pub fn create_account(
         &self,
         account_create: &sessionsrv::AccountCreate,

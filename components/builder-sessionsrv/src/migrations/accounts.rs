@@ -134,7 +134,18 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             RETURN;
                           END;
                           $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("accountsrv",
-        r#"ALTER TABLE IF EXISTS accounts DROP CONSTRAINT IF EXISTS accounts_email_key"#)?;
+    migrator.migrate(
+        "accountsrv",
+        r#"ALTER TABLE IF EXISTS accounts DROP CONSTRAINT IF EXISTS accounts_email_key"#,
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE OR REPLACE FUNCTION update_account_v1 (
+                          op_id bigint,
+                          op_email text
+                        ) RETURNS void AS $$
+                            UPDATE accounts SET email = op_email WHERE id = op_id;
+                          $$ LANGUAGE SQL VOLATILE"#,
+    )?;
     Ok(())
 }
