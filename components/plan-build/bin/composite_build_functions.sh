@@ -92,19 +92,6 @@ _assert_package_is_a_service() {
     fi
 }
 
-# Given a path to a package's directory on disk and the name of a package
-# metadata file, returns the contents of that file on standard output.
-_read_metadata_file_for() {
-  local pkg_path="${1}"
-  local filename="${2}"
-  local full_path="${pkg_path}/${filename}"
-  if [[ -f "${full_path}" ]]; then
-    cat "${full_path}"
-  else
-    echo
-  fi
-}
-
 # Assemble a list of all the exports from a given package and return the list on
 # standard output.
 _exports_for_pkg() {

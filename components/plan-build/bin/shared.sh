@@ -272,3 +272,18 @@ _render_dependency_metadata_file() {
       debug "Would have rendered ${metadata_file_name}, but there was no data for it"
   fi
 }
+
+########################################################################
+
+# Given a path to a package's directory on disk and the name of a package
+# metadata file, returns the contents of that file on standard output.
+_read_metadata_file_for() {
+  local pkg_path="${1}"
+  local filename="${2}"
+  local full_path="${pkg_path}/${filename}"
+  if [[ -f "${full_path}" ]]; then
+    cat "${full_path}"
+  else
+    echo
+  fi
+}
