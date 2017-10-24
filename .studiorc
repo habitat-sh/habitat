@@ -115,6 +115,8 @@ build-worker() {
 upload_github_keys() {
   if [[ -f "/src/.secrets/builder-github-app.pem" ]]; then
     hab file upload builder-sessionsrv.default $(date +%s) "/src/.secrets/builder-github-app.pem"
+    hab file upload builder-worker.default $(date +%s) "/src/.secrets/builder-github-app.pem"
+    hab file upload builder-api.default $(date +%s) "/src/.secrets/builder-github-app.pem"
   else
     echo "Please follow instruction #6 here: https://github.com/habitat-sh/habitat/blob/master/BUILDER_DEV.md#pre-reqs"
   fi
@@ -132,6 +134,7 @@ start-builder() {
   start-sessionsrv
   start-worker
   upload_github_keys
+  generate_bldr_keys
 }
 
 start-admin() {
@@ -225,6 +228,12 @@ stop-sessionsrv() {
 
 stop-worker() {
   hab svc unload core/builder-worker
+}
+
+generate_bldr_keys() {
+  KEY_NAME=$(hab user key generate bldr | grep -Po "bldr-\d+")
+  hab file upload builder-api.default $(date +%s) "/hab/cache/keys/${KEY_NAME}.pub"
+  hab file upload builder-api.default $(date +%s) "/hab/cache/keys/${KEY_NAME}.box.key"
 }
 
 load_packages() {

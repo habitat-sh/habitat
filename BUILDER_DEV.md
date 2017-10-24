@@ -213,6 +213,30 @@ HTTP/1.1 201 Created
 }
 ```
 
+## Habitat Studio Based Development Environment
+This will start everything to run builder in a studio except the web app.
+
+#### Prerequisites
+1. Ensure you have a copy of the [package archive](http://nunciato-shared-files.s3.amazonaws.com/pkgs.zip) in the habitat directory
+1. Copy `habitat-builder-dev.2017-10-02.private-key.pem` from 1Password into `/src/.secrets/builder-github-app.pem`
+
+#### Notes for OS X
+* Enusre you have direnv installed and configured
+* The `.envrc` file will override several Habitat environment variables based on what is in your `cli.toml` file
+
+#### Notes for Vagrant VM
+* `cd /vagrant`
+* `direnv allow`
+
+1. `hab studio enter` (This will download and install and start the builder service)
+1. `sl` Wait until you see the origin service start
+1. `origin`
+1. `keys`
+1. `load_packages`
+
+### Web development
+This is a great environment to use for development on builder-web. Just make sure you're running builder-web locally.
+Everything should follow the [standard web setup](https://github.com/habitat-sh/habitat/tree/master/components/builder-web#builder-web).
 ## Other Commands
 Here are some other sample commands to experiment with:
 
