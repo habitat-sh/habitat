@@ -174,7 +174,7 @@ nconf.file({ file: nconf_file });
 console.log("Loading Configuration");
 
 console.log(nconf.get('mongo'));
-var dbConnectionString = 'mongodb://' + nconf.get('mongo')['host'] + ':' + nconf.get('mongo')['port'] + "/test'";
+var dbConnectionString = 'mongodb://' + nconf.get('mongo')['host'] + ':' + nconf.get('mongo')['port'] + "/learn-about-me'";
 console.log(dbConnectionString);
 
 console.log("Connecting to Database");
@@ -230,7 +230,7 @@ var dbConnectionString = 'mongodb://' + nconf.get('mongo')['host'] + ':' + nconf
 
 Here, we create a db connection string - pulling the ('mongo')['host'] and ('mongo')['port'] values from the configuration file we just loaded.
 
-In this case, we uses the default database included with all new installs of MongoDB - the test database - at the end of the db connection string.
+We also - if it is not already created - create a database called "learn-about-me" and connect to it.
 
 ```
 var mongoose = require('mongoose');
