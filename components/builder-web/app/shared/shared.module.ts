@@ -50,7 +50,6 @@ import { UserLoggedInGuard } from './user/user.guard';
     MatRadioModule,
     MatSlideToggleModule,
     MatTooltipModule,
-    MatRadioModule,
     MatButtonModule,
     ReactiveFormsModule,
     RouterModule

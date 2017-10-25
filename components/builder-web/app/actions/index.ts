@@ -99,6 +99,7 @@ export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
 export const SET_REDIRECT_ROUTE = routerActions.SET_REDIRECT_ROUTE;
 export const RESET_REDIRECT_ROUTE = routerActions.RESET_REDIRECT_ROUTE;
 
+export const POPULATE_PROFILE = usersActions.POPULATE_PROFILE;
 export const SET_PRIVILEGES = usersActions.SET_PRIVILEGES;
 export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
 export const SET_SIGNING_IN_FLAG = usersActions.SET_SIGNING_IN_FLAG;
@@ -187,6 +188,8 @@ export const requestRoute = routerActions.requestRoute;
 export const setRedirectRoute = routerActions.setRedirectRoute;
 export const resetRedirectRoute = routerActions.resetRedirectRoute;
 
+export const fetchProfile = usersActions.fetchProfile;
+export const saveProfile = usersActions.saveProfile;
 export const setPrivileges = usersActions.setPrivileges;
 export const setSigningInFlag = usersActions.setSigningInFlag;
 export const attemptSignIn = usersActions.attemptSignIn;

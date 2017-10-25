@@ -21,6 +21,7 @@ import { MatIconModule, MatRadioModule, MatTabsModule } from '@angular/material'
 import { routing } from './routes';
 import { AppStore } from './app.store';
 import { AppComponent } from './app.component';
+import { BannerComponent } from './banner/banner.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ExploreComponent } from './explore/explore.component';
 import { FooterComponent } from './footer/footer.component';
@@ -33,6 +34,7 @@ import { UserNavComponent } from './header/user-nav/user-nav.component';
 
 import { OriginModule } from './origin/origin.module';
 import { PackageModule } from './package/package.module';
+import { ProfileModule } from './profile/profile.module';
 import { SearchModule } from './search/search.module';
 import { SharedModule } from './shared/shared.module';
 
@@ -47,6 +49,7 @@ import { SharedModule } from './shared/shared.module';
     MatButtonModule,
     OriginModule,
     PackageModule,
+    ProfileModule,
     ReactiveFormsModule,
     SearchModule,
     SharedModule,
@@ -54,6 +57,7 @@ import { SharedModule } from './shared/shared.module';
   ],
   declarations: [
     AppComponent,
+    BannerComponent,
     ExploreComponent,
     FooterComponent,
     GravatarComponent,

@@ -1,0 +1,28 @@
+.profile {
+
+  .page-body {
+    font-size: rem(14);
+
+    h3 {
+      font-size: rem(12);
+      text-transform: uppercase;
+    }
+
+    hr {
+      margin: 26px 0;
+    }
+
+    p {
+      margin-bottom: inherit;
+
+      hab-icon {
+        margin-right: 4px;
+      }
+    }
+
+    input {
+      margin: 16px 0;
+      max-width: 50%;
+    }
+  }
+}

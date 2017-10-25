@@ -17,7 +17,7 @@ import { URLSearchParams } from '@angular/http';
 import * as cookies from 'js-cookie';
 import config from '../config';
 import {
-  attemptSignIn, addNotification, goHome, fetchMyOrigins, fetchMyOriginInvitations, requestRoute, setPrivileges,
+  attemptSignIn, addNotification, goHome, fetchMyOrigins, fetchMyOriginInvitations, fetchProfile, requestRoute, setPrivileges,
   signOut, setSigningInFlag
 } from './index';
 import { DANGER, WARNING } from './notifications';
@@ -73,6 +73,7 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
       setCookie('bldrSessionToken', session_token);
       dispatch(fetchMyOrigins(session_token));
       dispatch(fetchMyOriginInvitations(session_token));
+      dispatch(fetchProfile(session_token));
     }
   };
 }

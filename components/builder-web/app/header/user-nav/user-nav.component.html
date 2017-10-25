@@ -6,7 +6,13 @@
     <img src="{{avatarUrl}}" />
   </span>
   <ul class="main-nav--dropdown" *ngIf="isOpen">
-    <li>{{username}}</li>
+    <li class="username">
+      <hab-icon symbol="github"></hab-icon>
+      {{ username }}
+    </li>
+    <li>
+      <a [routerLink]="['/profile']" (click)="toggleUserNavMenu()">Profile</a>
+    </li>
     <li>
       <a href="#" (click)="signOut()">
         Sign Out

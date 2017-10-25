@@ -1,0 +1,27 @@
+hab-banner {
+
+  .banner {
+    padding: 14px 0;
+    position: relative;
+    background-color: $hab-blue;
+    color: $white;
+    text-align: center;
+    font-size: rem(14);
+
+    a {
+      color: $white;
+      text-decoration: underline;
+    }
+
+    .dismiss {
+      width: 16px;
+      height: 16px;
+      display: block;
+      position: absolute;
+      top: 50%;
+      right: 32px;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+  }
+}

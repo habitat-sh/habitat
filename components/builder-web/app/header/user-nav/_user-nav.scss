@@ -53,12 +53,17 @@
   right: 0;
   top: 52px;
   z-index: 9999;
+  font-size: rem(14);
 
   li {
     display: block;
     min-width: 8em;
     padding-bottom: rem(10);
     text-align: left;
+
+    &.username {
+      color: $hab-gray-dark;
+    }
 
     &:last-child {
       border-top: 1px solid $light-gray;

@@ -13,11 +13,60 @@
 // limitations under the License.
 
 import { requestRoute, removeSessionStorage, resetAppState } from './index';
+import { addNotification, SUCCESS, DANGER } from './notifications';
+import { BuilderApiClient } from '../BuilderApiClient';
 
+export const POPULATE_PROFILE = 'POPULATE_PROFILE';
+export const SET_PRIVILEGES = 'SET_PRIVILEGES';
+export const SET_SIGNING_IN_FLAG = 'SET_SIGNING_IN_FLAG';
 export const SIGN_IN_ATTEMPT = 'SIGN_IN_ATTEMPT';
 export const TOGGLE_USER_NAV_MENU = 'TOGGLE_USER_NAV_MENU';
-export const SET_SIGNING_IN_FLAG = 'SET_SIGNING_IN_FLAG';
-export const SET_PRIVILEGES = 'SET_PRIVILEGES';
+
+export function fetchProfile(token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).getProfile()
+      .then(data => {
+        dispatch(populateProfile(data));
+        notifySegment(data);
+      })
+      .catch(err => {});
+  };
+}
+
+export function saveProfile(profile: any, token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).saveProfile(profile)
+      .then(() => {
+        dispatch(addNotification({
+          title: 'Profile saved',
+          type: SUCCESS
+        }));
+        dispatch(fetchProfile(token));
+      })
+      .catch(err => {
+        dispatch(addNotification({
+          title: 'Error saving profile',
+          body: `${err.message}`,
+          type: DANGER
+        }));
+      });
+  };
+}
+
+function notifySegment(data: any) {
+  const segment = window['analytics'];
+
+  if (segment && typeof segment.identify === 'function') {
+    segment.identify(data.id, { email: data.email, name: data.name });
+  }
+}
+
+function populateProfile(payload) {
+  return {
+    type: POPULATE_PROFILE,
+    payload
+  };
+}
 
 export function attemptSignIn(username) {
   return {
