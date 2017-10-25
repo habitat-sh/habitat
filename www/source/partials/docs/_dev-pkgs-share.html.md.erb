@@ -9,19 +9,19 @@ You interact with Habitat Builder by:
 
 * Creating an account.
 * Creating an origin, or being invited to join an origin that already exists.
-* Setting up `hab` to authenticate to the depot.
+* Setting up `hab` to authenticate with Builder.
 * Uploading the keys for that origin.
 * Connecting your Github Repos and opting into rebuilds.
 
 Habitat Builder supports both public and private origins, packages, and Github repositories.
 
-## Creating an account in the depot
+## Creating an account in Builder
 
 Visit <https://bldr.habitat.sh/> and sign up for an account. Authorize it to use GitHub for authorization.
 
 ## Creating an origin or joining an existing origin
 
-You can create your own origin in the depot or be invited to join an existing one. If you already built some Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
+You can create your own origin in Builder or be invited to join an existing one. If you already built some Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
 
 ## Setting up hab to authenticate to Builder
 
@@ -39,9 +39,9 @@ Your keys are located at `~/.hab/cache/keys` on your host machine and `/hab/cach
 
 ## Uploading the keys for your origin
 
-If you created a new origin and/or Builder does not have the public key that corresponds to the private key used to build your package, you must upload it. You also have the ability to upload your private key; however, if you do not upload at least the public key, the depot will reject the upload of your packages for that origin.
+If you created a new origin and/or Builder does not have the public key that corresponds to the private key used to build your package, you must upload it. You also have the ability to upload your private key; however, if you do not upload at least the public key, Builder will reject the upload of your packages for that origin.
 
-You can upload keys for the origin through the web interface for the depot, or by using the `hab origin key upload` command. You must be authenticated using the access token described earlier before you can upload keys.
+You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must be authenticated using the access token described earlier before you can upload keys.
 
 ## Uploading packages to Builder
 
@@ -49,15 +49,15 @@ Once Builder possesses at least the public key of the origin, you may upload one
 
 ## Promoting packages
 
-By default, newly uploaded packages are placed in the unstable channel, however, the default package that is downloaded is the latest _stable_ version of a package, unless overridden in commands such as `hab start` and `hab install`. If you want to promote your package to the stable channel, run the `hab pkg promote` command as follows:
+By default, newly uploaded packages are placed in the unstable channel, however, the default package that is downloaded is the latest _stable_ version of a package, unless overridden in commands such as `hab start`, `hab svc load`, and `hab install`. If you want to promote your package to the stable channel, run the `hab pkg promote` command as follows:
 
 ```
 $ hab pkg promote -z <OAuth_token> origin/package/version/release stable
 ```
 
-## Running packages from the depot
+## Running packages from Builder
 
-You can instruct the Supervisor to download and run packages from a depot by using the `hab start` command, for example:
+You can instruct the Supervisor to download and run packages from Builder by using the `hab start` command, for example:
 
 ```
 $ hab start core/postgresql
@@ -65,16 +65,10 @@ $ hab start core/postgresql
 
 If the Supervisor does not have the `core/postgresql` package in its local cache, it will contact Builder, retrieve the latest version and the public key for the `core` origin, verify the cryptographic integrity of the package, and then start it.
 
-You may also supply a `--url` argument to the `hab start` command to instruct the Supervisor to use either a different Builder, or a materialized channel in that depot for the purposes of continuous deployment:
+You may also supply a `--channel` argument to instruct the Supervisor to use a different channel for the purposes of continuous deployment:
 
 ```
-$ hab start core/postgresql --url https://bldr.habitat.sh
-```
-
-or
-
-```
-$ hab start core/postgresql --url https://bldr.habitat.sh --channel unstable
+$ hab start core/postgresql --channel unstable
 ```
 
 ## Running packages from exported tarballs

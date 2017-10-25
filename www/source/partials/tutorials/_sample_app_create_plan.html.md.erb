@@ -52,17 +52,17 @@ in the `$HOME` directory.
     ```
 <% end%>
 
-1. After you have successfully cloned the repo, change directory to the `myrailsapp` directory.
+1. After you have successfully cloned the repo, change directory to the `sample-rails-app` directory.
 
 <% if !is_windows %>
     ```console
-    $ cd ~/sample-rails-app/myrailsapp
+    $ cd ~/sample-rails-app
     ```
 <% end %>
 
 <% if is_windows %>
     ```powershell
-    PS > cd .\sample-rails-app\myrailsapp
+    PS > cd .\sample-rails-app
     ```
 <% end%>
 
@@ -73,7 +73,7 @@ it should be built, and how the [Supervisor](/docs/glossary#glossary-supervisor)
 
 To create your plan, do the following in your terminal window:
 
-1. From within the `myrailsapp` directory, run `hab plan init -s ruby`. Because the myrailsapp web application is a Rails application, specifying `-s ruby` will create a plan that references the Ruby scaffolding.
+1. From within the `sample-rails-app` directory, run `hab plan init -s ruby`. Because the sample-rails-app web application is a Rails application, specifying `-s ruby` will create a plan that references the Ruby scaffolding.
 
 <% if !is_windows %>
     ```console
@@ -89,14 +89,14 @@ To create your plan, do the following in your terminal window:
 
     A scaffolding is a meta-package for applications and services that provide a default configuration and behavior experience to get application developers up and running quickly with Habitat.  
 
-    And if you set up PostgreSQL as your database (as we did in the myrailsapp sample code), the Ruby scaffolding will create configuration and credential information to connect to that database. For more information on scaffoldings, see the scaffolding [concepts topic](/docs/glossary#glossary-scaffolding).
+    And if you set up PostgreSQL as your database (as we did in the sample-rails-app sample code), the Ruby scaffolding will create configuration and credential information to connect to that database. For more information on scaffoldings, see the scaffolding [concepts topic](/docs/glossary#glossary-scaffolding).
 
 2. Now that you have created a basic plan, change directories into your newly-created `habitat` sub-directory and open plan.sh in your text editor.
 
     Your `plan.sh` should now look like this:
 
     ```bash
-    pkg_name=myrailsapp
+    pkg_name=sample-rails-app
     pkg_origin=<originname>
     pkg_version="0.1.0"
     pkg_scaffolding="core/scaffolding-ruby"
@@ -114,7 +114,7 @@ For more information on other plan settings, see [Basic Settings](/docs/referenc
 
 Your finished plan should look like the following:
 
-    pkg_name=myrailsapp
+    pkg_name=sample-rails-app
     pkg_origin=<originname>
     pkg_version="0.1.0"
     pkg_scaffolding="core/scaffolding-ruby"
