@@ -49,7 +49,7 @@ $ hab plan init -s node
 
 There are two parts to this application - the application itself and the database.  We'll run these in two separate containers, but the application needs to be able to access and talk to the database.
 
-Let's set up the default configuration for the application's connection to the database in habitat/default.toml - this file sets environmental variables that will be used by the application.
+Let's set up the default configuration for the application's connection to the database in habitat/default.toml - this file defines environmental variables that will be used by the application.
 
 **habitat/default.toml**
 
@@ -117,10 +117,6 @@ pkg_scaffolding="core/scaffolding-node"
 pkg_binds=(
   [database]="port"
 )
-
-pkg_exports=(
-  [port]=app.port
-)
 ```
 
 We will define this port when we start up the container running our application - we'll get to that in just a moment.
@@ -149,7 +145,10 @@ mongoose.connect("mongodb://localhost:27017/test");
 setUpPassport();
 ```
 
-First, delete this line - since we define the database url through Habitat:
+
+The initial source code of this application hard codes the url of the database we connect to. In our case, we will be using configuration files to provide the database info, so we need to make some changes to the source code.
+
+First, delete this line:
 
 ```
 mongoose.connect("mongodb://localhost:27017/test");
@@ -193,26 +192,22 @@ First, we use an npm module called [nconf](https://www.npmjs.com/package/nconf).
 
 
 ```
-const nconf_file = process.env.APP_CONFIG;
+const nconf_file = process.env.APP_CONFIG || './default-config.json';
 nconf.file({ file: nconf_file });
 ```
 
 Then we read a configuration file and load it to nconf. This brings us to the question - where do we get this file?
 
-Let's create a template for this config file at habitat/config/config.json
+Let's create a template for this config file at habitat/config/database.json
 
-**habitat/config/config.json**
+**habitat/config/database.json**
 
 ```
 {
-		"mongo": {
-			{{~#eachAlive bind.database.members as |member|}}
-			{{#if @first}}
-			"host" : "{{member.sys.ip}}",
-			"port"   : "{{member.cfg.port}}"
-			{{/if}}
-			{{~/eachAlive}}
-			}
+    "mongo": {
+        "host" : "{{cfg.mongo.host}}",
+		"port"   : "{{cfg.mongo.port}}"
+	}
 }
 ```
 
@@ -239,22 +234,10 @@ mongoose.connect(dbConnectionString, { useMongoClient: true });
 
 Finally, we use the mongoose node module to connect to the database. Go ahead and save and close the file.
 
-Open up your package.json file and add nconf as a dependency:
-
-**package.json**
+Now, install the nconf module with:
 
 ```
-  "dependencies": {
-    (...)
-	"nconf": "^0.8.5",
-    (...)
-  }
-```
-
-And then re-run npm install
-
-```console
-$ npm install
+$ npm install nconf --save
 ```
 
 One more thing before we can build - we need to load the nconf config file from plan.sh - add this content:
@@ -278,7 +261,7 @@ pkg_exports=(
 declare -A scaffolding_env
 
 # Define path to config file
-scaffolding_env[APP_CONFIG]="{{pkg.svc_config_path}}/config.json"
+scaffolding_env[APP_CONFIG]="{{pkg.svc_config_path}}/database.json"
 ```
 
 Now, enter the Habitat studio with this command:
@@ -299,7 +282,7 @@ When the build is complete, export your new package as a Docker container image
 (studio) $ hab pkg export docker ./results/<your_new_package>.hart
 ```
 
-And now run this command to pull down the core/mongodb package from the public Habitat Builder and export it as a Docker container image on your workstation:
+And now run this command to pull down the core/mongodb package from the public Habitat Builder and export it as a Docker image on your workstation:
 
 ```console
 (studio) $ hab pkg export docker core/mongodb
@@ -325,7 +308,7 @@ services:
 				environment:
 				  # The default bind_ip for mongodb is to 127.0.0.1. Overriding
 				  # it here will allow our application to connect to through the
-			      # ip that is discovered through the sys.ip.
+				  # ip that is discovered through the sys.ip.
 				  HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
 		learn-about-me-app:
 				image: core/learn-about-me
@@ -338,6 +321,10 @@ services:
 ```
 
 Note that we define the ports for the "learn-about-me-app" as 8000:8000 - port 8000 is what we will be able to access this application over.
+
+Here's a visual of how these two containers will work:
+
+![](media/2017-10-24-node-with-db/learn_about_me.png)
 
 Now, start up these containers with this command:
 
