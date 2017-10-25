@@ -1,6 +1,8 @@
 #!/bin/sh
 set -x
 
+npm run build-css -- --source-map=true
+
 concurrently \
   "npm run build-css-watch" \
   "npm run build-js-watch" \

@@ -1,19 +1,21 @@
-"use strict";
+'use strict';
 
-const webpack = require("webpack");
-const isProduction = process.env.NODE_ENV == "production";
+const webpack = require('webpack');
+const isProduction = process.env.NODE_ENV === 'production';
 
 let loaders = [
-    { test: /\.ts$/, loader: "awesome-typescript-loader" },
-    { test: /\.html$/, loader: "raw-loader" }
+    { test: /\.ts$/, loader: 'awesome-typescript-loader' },
+    { test: /\.html$/, loader: 'raw-loader' }
 ];
 
 let plugins = [];
+let devtool = 'source-map';
 
 if (isProduction) {
+    devtool = false;
 
     // Set up compression to only happen if NODE_ENV = production
-    loaders.push({ test: "app.js", loader: "uglify" });
+    loaders.push({ test: 'app.js', loader: 'uglify' });
     plugins.push(
         new webpack.optimize.UglifyJsPlugin({
             compress: {
@@ -21,23 +23,23 @@ if (isProduction) {
                 warnings: false
             },
             mangle: false,
-            sourceMap: true
+            sourceMap: false
         })
     );
 }
 
 module.exports = {
-    devtool: "source-map",
-    entry: "./app/main.ts",
+    devtool: devtool,
+    entry: './app/main.ts',
     output: {
-        filename: "assets/app.js"
+        filename: 'assets/app.js'
     },
     resolve: {
-        extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"]
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
     },
     module: {
         preLoaders: [
-            { test: /\.ts$/, loader: "tslint" }
+            { test: /\.ts$/, loader: 'tslint' }
         ],
         loaders: loaders
     },

@@ -1,7 +1,6 @@
 #!/bin/sh
 set -x
 
-npm run lint-css && \
 node-sass \
   --include-path=node_modules/bourbon-neat/app/assets/stylesheets \
   --include-path=node_modules/bourbon/app/assets/stylesheets \
@@ -13,6 +12,5 @@ node-sass \
   --recursive=true \
   --output=assets \
   --output-style=compressed \
-  --source-map=true \
-  "$@" \
+  $@ \
   app/app.scss
