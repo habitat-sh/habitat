@@ -133,24 +133,26 @@ start-builder() {
   start-originsrv
   start-sessionsrv
   start-worker
-  upload_github_keys
-  generate_bldr_keys
+  if [ ! -f /hab/svc/builder-api/user.toml ]; then
+    upload_github_keys
+    generate_bldr_keys
+  fi
 }
 
 start-admin() {
-  hab svc start core/builder-admin --bind router:builder-router.default
+  hab svc load core/builder-admin --bind router:builder-router.default
 }
 
 start-admin-proxy() {
-  hab svc start core/builder-admin-proxy --bind http:builder-admin.default
+  hab svc load core/builder-admin-proxy --bind http:builder-admin.default
 }
 
 start-api() {
-  hab svc start core/builder-api --bind router:builder-router.default
+  hab svc load core/builder-api --bind router:builder-router.default
 }
 
 start-api-proxy() {
-  hab svc start core/builder-api-proxy --bind http:builder-api.default
+  hab svc load core/builder-api-proxy --bind http:builder-api.default
 }
 
 start-datastore() {
@@ -333,9 +335,12 @@ SSL_CERT_FILE=$(hab pkg path core/cacerts)/ssl/cert.pem
 
 hab pkg binlink core/curl curl
 
+# If this file exists our services are likely already loaded
+if [ ! -f /hab/svc/builder-api/user.toml ]; then
 init-datastore
 configure
 start-builder
+fi
 
 # Print out the docs
 dev_docs

@@ -20,19 +20,19 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 9638, host: 9638
 
   config.vm.provider "virtualbox" do |v|
-    v.memory = 2048
-    v.cpus = 2
+    v.memory = 4096
+    v.cpus = 4
   end
 
   config.vm.provider "vmware_fusion" do |v|
-    v.vmx["memsize"] = "2048"
-    v.vmx["numvcpus"] = "2"
+    v.vmx["memsize"] = "4096"
+    v.vmx["numvcpus"] = "4"
   end
 
   config.vm.provider "hyperv" do |hv, override|
     override.vm.box = "ericmann/trusty64"
     hv.ip_address_timeout = 240
-    hv.memory = 2048
-    hv.cpus = 2
+    hv.memory = 4096
+    hv.cpus = 4
   end
 end
