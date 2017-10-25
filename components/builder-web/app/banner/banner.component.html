@@ -1,0 +1,8 @@
+<div class="banner" *ngIf="hidden">
+  <span>
+    New Habitat features and content are never far away.
+    <a [routerLink]="['/profile']">Add your email address</a>
+    to your profile for timely updates.
+  </span>
+  <hab-icon symbol="cancel" class="dismiss" (click)="dismiss()"></hab-icon>
+</div>

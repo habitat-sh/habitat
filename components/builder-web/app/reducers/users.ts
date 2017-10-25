@@ -19,6 +19,9 @@ import initialState from '../initialState';
 export default function users(state = initialState['users'], action) {
   switch (action.type) {
 
+    case actionTypes.POPULATE_PROFILE:
+      return state.setIn(['current', 'profile'], action.payload);
+
     case actionTypes.POPULATE_GITHUB_USER_DATA:
       return state.setIn(['current', 'gitHub'], fromJS(action.payload));
 

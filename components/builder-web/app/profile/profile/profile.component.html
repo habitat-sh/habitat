@@ -1,0 +1,31 @@
+<div class="profile">
+  <div class="page-title">
+    <h2>Profile</h2>
+    <h4>{{ profile.name }}</h4>
+  </div>
+  <div class="page-body">
+    <section>
+      <h3>GitHub Username</h3>
+      <p>The GitHub account under which you are currently signed in.</p>
+      <p>
+        <hab-icon symbol="github"></hab-icon>
+        {{ profile.name }}
+      </p>
+    </section>
+    <hr>
+    <form #f="ngForm" (submit)="save(f.value)">
+      <section>
+        <h3>Email Address</h3>
+        <p>Receive periodic updates about new Habitat features, tips and tutorials.</p>
+        <input type="email" name="email" autocomplete="off" [ngModel]="profile.email" email>
+      </section>
+      <hr>
+      <section>
+        <button mat-raised-button color="primary" [disabled]="!f.valid">
+          <span>Save</span>
+        </button>
+      </section>
+    </form>
+  </div>
+</div>
+

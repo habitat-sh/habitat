@@ -429,6 +429,42 @@ export class BuilderApiClient {
     });
   }
 
+  public getProfile() {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/profile`, {
+        headers: this.headers,
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve(response.json());
+          } else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
+  public saveProfile(profile: any) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/profile`, {
+        headers: this.headers,
+        method: 'PATCH',
+        body: JSON.stringify(profile)
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve();
+          } else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
   public inviteUserToOrigin(username: string, origin: string) {
     return new Promise((resolve, reject) => {
       fetch(`${this.urlPrefix}/depot/origins/${origin}/users/${username}/invitations`, {

@@ -24,6 +24,7 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "item-list";
 @import "tabs";
 
+@import "banner/banner.component";
 @import "explore/explore";
 @import "footer/footer";
 @import "header/header";
@@ -33,6 +34,7 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "origin/origin.module";
 @import "shared/shared.module";
 @import "package/package.module";
+@import "profile/profile.module";
 
 @import "search/results/results.component";
 @import "search/search/search.component";
