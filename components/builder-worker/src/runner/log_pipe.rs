@@ -97,9 +97,8 @@ impl LogPipe {
         for line in reader.lines() {
             self.line_count += 1;
             let mut l: String = line.unwrap();
+            self.logger.log(format!("{}", l).as_ref());
             l = l + EOL_MARKER;
-
-            self.logger.log(format!("Current line = {}", l).as_ref());
 
             let mut chunk = JobLogChunk::new();
             chunk.set_job_id(self.job_id);
@@ -123,7 +122,6 @@ impl LogPipe {
                 );
                 return Err(Error::Zmq(e));
             }
-            self.logger.log("Finished sending ^ to log_forwarder");
         }
 
         Ok(())

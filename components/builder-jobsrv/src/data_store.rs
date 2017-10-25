@@ -191,6 +191,25 @@ impl DataStore {
         Ok(jobs)
     }
 
+    /// Get a list of cancel-pending jobs
+    ///
+    /// # Errors
+    ///
+    /// * If a connection cannot be gotten from the pool
+    /// * If the cancel pending jobs cannot be selected from the database
+    /// * If the row returned cannot be translated into a Job
+    pub fn get_cancel_pending_jobs(&self) -> Result<Vec<jobsrv::Job>> {
+        let mut jobs = Vec::new();
+        let conn = self.pool.get_shard(0)?;
+        let rows = &conn.query("SELECT * FROM get_cancel_pending_jobs_v1()", &[])
+            .map_err(Error::JobPending)?;
+        for row in rows {
+            let job = row_to_job(&row)?;
+            jobs.push(job);
+        }
+        Ok(jobs)
+    }
+
     /// Reset any Dispatched jobs back to Pending state
     /// This is used for recovery scenario
     ///
@@ -521,6 +540,14 @@ impl DataStore {
         Ok(group)
     }
 
+    pub fn cancel_job_group(&self, group_id: u64) -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+        conn.query("SELECT cancel_group_v1($1)", &[&(group_id as i64)])
+            .map_err(Error::JobGroupCancel)?;
+
+        Ok(())
+    }
+
     pub fn get_job_group(&self, msg: &jobsrv::JobGroupGet) -> Result<Option<jobsrv::JobGroup>> {
         let group_id = msg.get_group_id();
         let conn = self.pool.get_shard(0)?;
@@ -596,6 +623,7 @@ impl DataStore {
             "Complete" => jobsrv::JobGroupState::GroupComplete,
             "Failed" => jobsrv::JobGroupState::GroupFailed,
             "Queued" => jobsrv::JobGroupState::GroupQueued,
+            "Canceled" => jobsrv::JobGroupState::GroupCanceled,
             _ => return Err(Error::UnknownJobGroupState),
         };
         group.set_state(group_state);
@@ -626,6 +654,7 @@ impl DataStore {
             "Success" => jobsrv::JobGroupProjectState::Success,
             "Failure" => jobsrv::JobGroupProjectState::Failure,
             "Skipped" => jobsrv::JobGroupProjectState::Skipped,
+            "Canceled" => jobsrv::JobGroupProjectState::Canceled,
             _ => return Err(Error::UnknownJobGroupProjectState),
         };
 
@@ -663,6 +692,7 @@ impl DataStore {
             jobsrv::JobGroupState::GroupComplete => "Complete",
             jobsrv::JobGroupState::GroupFailed => "Failed",
             jobsrv::JobGroupState::GroupQueued => "Queued",
+            jobsrv::JobGroupState::GroupCanceled => "Canceled",
         };
         conn.execute(
             "SELECT set_group_state_v1($1, $2)",
@@ -684,6 +714,7 @@ impl DataStore {
             jobsrv::JobGroupProjectState::Success => "Success",
             jobsrv::JobGroupProjectState::Failure => "Failure",
             jobsrv::JobGroupProjectState::Skipped => "Skipped",
+            jobsrv::JobGroupProjectState::Canceled => "Canceled",
         };
         conn.execute(
             "SELECT set_group_project_name_state_v1($1, $2, $3)",
@@ -715,6 +746,9 @@ impl DataStore {
             jobsrv::JobState::Pending |
             jobsrv::JobState::Processing |
             jobsrv::JobState::Dispatched => "InProgress",
+            jobsrv::JobState::CancelPending |
+            jobsrv::JobState::CancelProcessing |
+            jobsrv::JobState::CancelComplete => "Canceled",
         };
 
         if job.get_state() == jobsrv::JobState::Complete {

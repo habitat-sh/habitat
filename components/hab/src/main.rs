@@ -134,6 +134,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("job", Some(m)) => {
                     match m.subcommand() {
                         ("start", Some(m)) => sub_bldr_job_start(ui, m)?,
+                        ("cancel", Some(m)) => sub_bldr_job_cancel(ui, m)?,
                         ("promote", Some(m)) => sub_bldr_job_promote(ui, m)?,
                         _ => unreachable!(),
                     }
@@ -405,6 +406,13 @@ fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
     command::bldr::job::start::start(ui, &url, &ident, &token, group)
+}
+
+fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
+    let token = auth_token_param_or_env(&m)?;
+    command::bldr::job::cancel::start(ui, &url, &group_id, &token)
 }
 
 fn sub_bldr_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {

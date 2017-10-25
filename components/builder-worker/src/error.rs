@@ -17,6 +17,7 @@ use std::fmt;
 use std::io;
 use std::path::PathBuf;
 use std::result;
+use std::sync::mpsc;
 
 use bldr_core;
 use hab_core;
@@ -58,6 +59,8 @@ pub enum Error {
     WorkspaceSetup(String, io::Error),
     WorkspaceTeardown(String, io::Error),
     Zmq(zmq::Error),
+    Mpsc(mpsc::SendError<bldr_core::job::Job>),
+    JobCanceled,
 }
 
 impl fmt::Display for Error {
@@ -130,6 +133,8 @@ impl fmt::Display for Error {
                 format!("Error while tearing down workspace at {}, err={}", p, e)
             }
             Error::Zmq(ref e) => format!("{}", e),
+            Error::Mpsc(ref e) => format!("{}", e),
+            Error::JobCanceled => format!("Job was canceled"),
         };
         write!(f, "{}", msg)
     }
@@ -162,6 +167,8 @@ impl error::Error for Error {
             Error::WorkspaceTeardown(_, _) => "IO Error while destroying workspace on disk",
             Error::Zmq(ref err) => err.description(),
             Error::UrlParseError(ref err) => err.description(),
+            Error::Mpsc(ref err) => err.description(),
+            Error::JobCanceled => "Job was canceled",
         }
     }
 }

@@ -315,5 +315,17 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
             $$ LANGUAGE SQL VOLATILE"#,
     )?;
 
+    // Cancel a job group
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION cancel_group_v1(in_gid bigint) RETURNS void AS $$
+            UPDATE group_projects SET project_state='Canceled'
+                WHERE owner_id = in_gid
+                AND (project_state = 'NotStarted');
+            UPDATE groups SET group_state='Canceled' where id = in_gid;
+        $$ LANGUAGE SQL VOLATILE
+        "#,
+    )?;
+
     Ok(())
 }

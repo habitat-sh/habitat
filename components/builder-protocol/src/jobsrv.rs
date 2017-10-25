@@ -267,6 +267,9 @@ impl FromStr for JobState {
             "rejected" => Ok(JobState::Rejected),
             "failed" => Ok(JobState::Failed),
             "dispatched" => Ok(JobState::Dispatched),
+            "cancelpending" => Ok(JobState::CancelPending),
+            "cancelprocessing" => Ok(JobState::CancelProcessing),
+            "cancelcomplete" => Ok(JobState::CancelComplete),
             _ => Err(Error::BadJobState),
         }
     }
@@ -281,6 +284,9 @@ impl fmt::Display for JobState {
             JobState::Complete => "Complete",
             JobState::Rejected => "Rejected",
             JobState::Failed => "Failed",
+            JobState::CancelPending => "CancelPending",
+            JobState::CancelProcessing => "CancelProcessing",
+            JobState::CancelComplete => "CancelComplete",
         };
         write!(f, "{}", value)
     }
@@ -363,6 +369,13 @@ impl Routable for JobGroupGet {
 }
 
 impl Routable for JobGroupAbort {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_group_id().to_string())
+    }
+}
+impl Routable for JobGroupCancel {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {

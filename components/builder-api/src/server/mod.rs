@@ -79,6 +79,9 @@ impl HttpGateway for ApiSrv {
             job_group_promote: post "/jobs/group/:id/promote/:channel" => {
                 XHandler::new(job_group_promote).before(basic.clone())
             },
+            job_group_cancel: post "/jobs/group/:id/cancel" => {
+                XHandler::new(job_group_cancel).before(basic.clone())
+            },
             rdeps: get "/rdeps/:origin/:name" => rdeps_show,
 
             user_invitations: get "/user/invitations" => {

@@ -14,6 +14,11 @@ enum WorkerState {
   Busy = 1;
 }
 
+enum WorkerOperation {
+  StartJob = 0;
+  CancelJob = 1;
+}
+
 enum JobState {
   Pending = 0;
   Processing = 1;
@@ -21,6 +26,13 @@ enum JobState {
   Rejected = 3;
   Failed = 4;
   Dispatched = 5;
+  CancelPending = 6;
+  CancelProcessing = 7;
+  CancelComplete = 8;
+}
+
+message WorkerCommand {
+  optional WorkerOperation op = 1;
 }
 
 message Heartbeat {
@@ -113,6 +125,7 @@ enum JobGroupProjectState {
   Success = 2;
   Failure = 3;
   Skipped = 4;
+  Canceled = 5;
 }
 
 message JobGroupProject {
@@ -129,9 +142,14 @@ enum JobGroupState {
   GroupComplete = 2;
   GroupFailed = 3;
   GroupQueued = 4;
+  GroupCanceled = 5;
 }
 
 message JobGroupAbort {
+  optional uint64 group_id = 1;
+}
+
+message JobGroupCancel {
   optional uint64 group_id = 1;
 }
 

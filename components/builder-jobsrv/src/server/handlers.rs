@@ -20,7 +20,7 @@ use std::path::PathBuf;
 
 use hab_net::app::prelude::*;
 use protobuf::RepeatedField;
-use protocol::jobsrv as proto;
+use protocol::jobsrv;
 use protocol::net::{self, ErrCode};
 
 use super::ServerState;
@@ -28,8 +28,8 @@ use error::{Error, Result};
 use time::PreciseTime;
 
 pub fn job_create(req: &mut Message, conn: &mut RouteConn, state: &mut ServerState) -> Result<()> {
-    let msg = req.parse::<proto::JobSpec>()?;
-    let mut job: proto::Job = msg.into();
+    let msg = req.parse::<jobsrv::JobSpec>()?;
+    let mut job: jobsrv::Job = msg.into();
     let created_job = state.datastore.create_job(&mut job)?;
     debug!(
         "Job created: id={} owner_id={} state={:?}",
@@ -43,7 +43,7 @@ pub fn job_create(req: &mut Message, conn: &mut RouteConn, state: &mut ServerSta
 }
 
 pub fn job_get(req: &mut Message, conn: &mut RouteConn, state: &mut ServerState) -> Result<()> {
-    let msg = req.parse::<proto::JobGet>()?;
+    let msg = req.parse::<jobsrv::JobGet>()?;
     match state.datastore.get_job(&msg) {
         Ok(Some(ref job)) => conn.route_reply(req, job)?,
         Ok(None) => {
@@ -64,7 +64,7 @@ pub fn project_jobs_get(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::ProjectJobsGet>()?;
+    let msg = req.parse::<jobsrv::ProjectJobsGet>()?;
     match state.datastore.get_jobs_for_project(&msg) {
         Ok(ref jobs) => {
             // NOTE: Currently no difference between "project has no jobs" and "no
@@ -81,8 +81,8 @@ pub fn project_jobs_get(
 }
 
 pub fn job_log_get(req: &mut Message, conn: &mut RouteConn, state: &mut ServerState) -> Result<()> {
-    let msg = req.parse::<proto::JobLogGet>()?;
-    let mut get = proto::JobGet::new();
+    let msg = req.parse::<jobsrv::JobLogGet>()?;
+    let mut get = jobsrv::JobGet::new();
     get.set_id(msg.get_id());
     let job = match state.datastore.get_job(&get) {
         Ok(Some(job)) => job,
@@ -112,7 +112,7 @@ pub fn job_log_get(req: &mut Message, conn: &mut RouteConn, state: &mut ServerSt
                     segment = lines[start as usize..].to_vec();
                 }
 
-                let mut log = proto::JobLog::new();
+                let mut log = jobsrv::JobLog::new();
                 let log_content = RepeatedField::from_vec(segment);
 
                 log.set_start(start);
@@ -144,7 +144,7 @@ pub fn job_log_get(req: &mut Message, conn: &mut RouteConn, state: &mut ServerSt
         match get_log_content(&file, start) {
             Some(content) => {
                 let num_lines = content.len() as u64;
-                let mut log = proto::JobLog::new();
+                let mut log = jobsrv::JobLog::new();
                 log.set_start(start);
                 log.set_content(RepeatedField::from_vec(content));
                 log.set_stop(start + num_lines);
@@ -190,7 +190,7 @@ pub fn job_group_abort(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGroupAbort>()?;
+    let msg = req.parse::<jobsrv::JobGroupAbort>()?;
     debug!("job_group_abort message: {:?}", msg);
 
     match state.datastore.abort_job_group(&msg) {
@@ -212,12 +212,81 @@ pub fn job_group_abort(
     Ok(())
 }
 
+pub fn job_group_cancel(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<jobsrv::JobGroupCancel>()?;
+    debug!("job_group_cancel message: {:?}", msg);
+
+    // Get the job group
+    let mut jgc = jobsrv::JobGroupGet::new();
+    jgc.set_group_id(msg.get_group_id());
+
+    let group = match state.datastore.get_job_group(&jgc) {
+        Ok(group_opt) => {
+            match group_opt {
+                Some(group) => group,
+                None => {
+                    let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-group-cancel:1");
+                    conn.route_reply(req, &*err)?;
+                    return Ok(());
+                }
+            }
+        }
+        Err(err) => {
+            warn!(
+                "Failed to get group {} from datastore: {:?}",
+                msg.get_group_id(),
+                err
+            );
+            let err = NetError::new(ErrCode::DATA_STORE, "jb:job-group-cancel:2");
+            conn.route_reply(req, &*err)?;
+            return Ok(());
+        }
+    };
+
+    // Set the Group and NotStarted projects to Cancelled
+    // TODO (SA): Make the state change code below a single DB call
+
+    state.datastore.cancel_job_group(group.get_id())?;
+
+    // Set all the InProgress projects jobs to CancelPending
+    for project in group.get_projects().iter().filter(|&ref p| {
+        p.get_state() == jobsrv::JobGroupProjectState::InProgress
+    })
+    {
+        let job_id = project.get_job_id();
+        let mut req = jobsrv::JobGet::new();
+        req.set_id(job_id);
+
+        match state.datastore.get_job(&req)? {
+            Some(mut job) => {
+                debug!("Canceling job {:?}", job_id);
+                job.set_state(jobsrv::JobState::CancelPending);
+                state.datastore.update_job(&job)?;
+            }
+            None => {
+                warn!(
+                    "Unable to cancel job {:?} (not found)",
+                    job_id,
+                );
+            }
+        }
+    }
+
+    state.worker_mgr.notify_work()?;
+    conn.route_reply(req, &net::NetOk::new())?;
+    Ok(())
+}
+
 pub fn job_group_create(
     req: &mut Message,
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGroupSpec>()?;
+    let msg = req.parse::<jobsrv::JobGroupSpec>()?;
     debug!("job_group_create message: {:?}", msg);
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
@@ -302,10 +371,10 @@ pub fn job_group_create(
     let group = if projects.is_empty() {
         debug!("No projects need building - group is complete");
 
-        let mut new_group = proto::JobGroup::new();
+        let mut new_group = jobsrv::JobGroup::new();
         let projects = RepeatedField::new();
         new_group.set_id(0);
-        new_group.set_state(proto::JobGroupState::GroupComplete);
+        new_group.set_state(jobsrv::JobGroupState::GroupComplete);
         new_group.set_projects(projects);
         new_group
     } else {
@@ -332,7 +401,7 @@ pub fn job_graph_package_reverse_dependencies_get(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGraphPackageReverseDependenciesGet>()?;
+    let msg = req.parse::<jobsrv::JobGraphPackageReverseDependenciesGet>()?;
     debug!("reverse_dependencies_get message: {:?}", msg);
 
     let ident = format!("{}/{}", msg.get_origin(), msg.get_name());
@@ -351,7 +420,7 @@ pub fn job_graph_package_reverse_dependencies_get(
     };
 
     let rdeps = graph.rdeps(&ident);
-    let mut rd_reply = proto::JobGraphPackageReverseDependencies::new();
+    let mut rd_reply = jobsrv::JobGraphPackageReverseDependencies::new();
     rd_reply.set_origin(msg.get_origin().to_string());
     rd_reply.set_name(msg.get_name().to_string());
 
@@ -381,7 +450,7 @@ pub fn job_group_get(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGroupGet>()?;
+    let msg = req.parse::<jobsrv::JobGroupGet>()?;
     debug!("group_get message: {:?}", msg);
 
     let group_opt = match state.datastore.get_job_group(&msg) {
@@ -413,7 +482,7 @@ pub fn job_graph_package_create(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGraphPackageCreate>()?;
+    let msg = req.parse::<jobsrv::JobGraphPackageCreate>()?;
     debug!("job_graph_package_create message: {:?}", msg);
     let package = state.datastore.create_job_graph_package(&msg)?;
 
@@ -454,9 +523,9 @@ pub fn job_graph_package_precreate(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGraphPackagePreCreate>()?;
+    let msg = req.parse::<jobsrv::JobGraphPackagePreCreate>()?;
     debug!("package_precreate message: {:?}", msg);
-    let package: proto::JobGraphPackage = msg.into();
+    let package: jobsrv::JobGraphPackage = msg.into();
 
     // Check that we can safely extend the graph with new package
     let can_extend = {
@@ -501,7 +570,7 @@ pub fn job_graph_package_stats_get(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGraphPackageStatsGet>()?;
+    let msg = req.parse::<jobsrv::JobGraphPackageStatsGet>()?;
     debug!("package_stats_get message: {:?}", msg);
 
     match state.datastore.get_job_graph_package_stats(&msg) {
