@@ -7,7 +7,7 @@ export NODE_ENV
 npm run clean
 rm -rf dist/*
 mkdir -p dist/assets
-cp -R assets favicon.ico fixtures robots.txt dist
+cp -R assets favicon.ico fixtures robots.txt opensearch.xml dist
 npm run build
 mkdir -p dist/node_modules
 cp habitat.conf.sample.js dist/habitat.conf.js
