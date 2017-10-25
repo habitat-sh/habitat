@@ -7,7 +7,7 @@ section.sample-app
 
  h2 Update the docker-compose.yml File
 
- p When you cloned the <code>sample-rails-app</code> repo, a <code>docker-compose.yml</code> file was included in the root of the <code>myrailsapp</code> directory.
+ p When you cloned the <code>sample-rails-app</code> repo, a <code>docker-compose.yml</code> file was included in the root of the <code>sample-rails-app</code> directory.
 
  pre
   code.yaml
@@ -19,7 +19,7 @@ section.sample-app
         volumes:
           - "./updated_config.toml:/updated_config.toml"
       railsapp:
-        image: &lt;myorg>/myrailsapp
+        image: &lt;myorg>/sample-rails-app
         ports:
           - 8000:8000
         links:
@@ -29,17 +29,17 @@ section.sample-app
  p Let's quickly review the file to understand how these containers will be brought up.
 
  ul
-  li The image for the database contains the <code>core/postgresql</code> package and comes from the official Habitat Docker Hub account. The Rails application image was either created by Builder on your behalf or locally as part of the <code>export</code> subcommand you might have run in the last step.
-  li As part of updating the configuration values to connect the Rails application to the PostgreSQL database, you will use a TOML file to send configuration updates between supervisors connected together in the ring. The <code>updated_config.toml</code> file is bind mounted from the root location of the <code>myrailsapp</code> directory to the root directory of the database container.
+  li The Docker image for the database (<code>habitat/postgresql</code>) contains the <code>core/postgresql</code> package and comes from the official Habitat Docker Hub org. The Rails application image was either created by Builder on your behalf or locally as part of the <code>export</code> subcommand you might have run in the last step.
+  li As part of updating the configuration values to connect the Rails application to the PostgreSQL database, you will use a TOML file to send configuration updates between supervisors connected together in the ring. The <code>updated_config.toml</code> file is bind mounted from the root location of the <code>sample-rails-app</code> directory to the root directory of the database container.
   li The port number for the Rails container is exposed so you can view the Rails app page from within your host browser.
-  li The entrypoint for the Rails container has a few additional command arguments to connect it to the database container and set the [binding](/docs/developing-packages#pkg-binds) to the appropriate database service group. 
+  li The entrypoint for the Rails container has a few additional command arguments to connect it to the database container and set the #{link_to 'binding','/docs/developing-packages#pkg-binds'} to the appropriate database service group. 
 
  p Now that you understand how the docker-compose.yml file will be used, open the docker-compose.yml file in a text editor and update the following line with the name of your origin, if you built your image locally. If you used Builder to create a container and push it to Docker Hub, specify the Docker Hub organization/repository information instead.
 
  pre
   code.yaml
    |
-    image: &lt;myorg>/myrailsapp
+    image: &lt;myorg>/sample-rails-app
 
  p Save the file and exit the editor.
 
@@ -50,11 +50,11 @@ section.sample-app
  ol
    li
      - if "#{current_page.data.platform_short}" == "windows"
-       p Change directory to the root of the <code>sample-rails-app\myrailsapp</code> directory.
+       p Change directory to the root of the <code>sample-rails-app</code> directory.
      - else
-       p Change directory to the root of the <code>sample-rails-app/myrailsapp</code> directory.
+       p Change directory to the root of the <code>sample-rails-app</code> directory.
    li
-     p Run <code>docker-compose up</code> to start up the containers. The <code>habitat/postgresql</code> container and any missing packages will be downloaded and installed before the myrailsapp and PostgreSQL services start.
+     p Run <code>docker-compose up</code> to start up the containers. The <code>habitat/postgresql</code> container and any missing packages will be downloaded and installed before the sample-rails-app and PostgreSQL services start.
 
      - if "#{current_page.data.platform_short}" == "linux"
        blockquote
@@ -65,17 +65,17 @@ section.sample-app
      pre
       code.console
        |
-        railsapp_1  | myrailsapp.default(SR): Initializing
-        railsapp_1  | myrailsapp.default hook[init]:(HK): Required environment variable SECRET_KEY_BASE is not set.
-        railsapp_1  | myrailsapp.default hook[init]:(HK): Set this package's config setting 'secret_key_base' to a
-        railsapp_1  | myrailsapp.default hook[init]:(HK): non-empty value. You can run 'rails secret' in development
-        railsapp_1  | myrailsapp.default hook[init]:(HK): to generate a random key string.
-        railsapp_1  | myrailsapp.default hook[init]:(HK): 
-        railsapp_1  | myrailsapp.default hook[init]:(HK): Aborting...
-        railsapp_1  | myrailsapp.default(HK): Initialization failed! 'init' exited with status code 5
+        railsapp_1  | sample-rails-app.default(SR): Initializing
+        railsapp_1  | sample-rails-app.default hook[init]:(HK): Required environment variable SECRET_KEY_BASE is not set.
+        railsapp_1  | sample-rails-app.default hook[init]:(HK): Set this package's config setting 'secret_key_base' to a
+        railsapp_1  | sample-rails-app.default hook[init]:(HK): non-empty value. You can run 'rails secret' in development
+        railsapp_1  | sample-rails-app.default hook[init]:(HK): to generate a random key string.
+        railsapp_1  | sample-rails-app.default hook[init]:(HK): 
+        railsapp_1  | sample-rails-app.default hook[init]:(HK): Aborting...
+        railsapp_1  | sample-rails-app.default(HK): Initialization failed! 'init' exited with status code 5
 
-   p If you need to stop the containers at any time, run <code>Ctrl-C</code>. If you want to bring them back up, run <code>docker-compose down</code> before running <code>docker-compose up</code> again. This will ensure the IP address of the database container resolves correctly when the <code>myrailsapp</code> container tries to bind to it. If you want to remove the containers from your machine, run <code>docker-compose rm</code>.
+   p If you need to stop the containers at any time, run <code>Ctrl-C</code>. If you want to bring them back up, run <code>docker-compose down</code> before running <code>docker-compose up</code> again. This will ensure the IP address of the database container resolves correctly when the <code>sample-rails-app</code> container tries to bind to it. If you want to remove the containers from your machine, run <code>docker-compose rm</code>.
 
- p Learn how to fix this error by dynamically updating the configuration of the myrailsapp package in the next step.
+ p Learn how to fix this error by dynamically updating the configuration of the sample-rails-app package in the next step.
 
 = link_to 'Next: Dynamically Update the App', "/tutorials/sample-app/#{current_page.data.platform_short}/update-app/", class: 'button cta'
