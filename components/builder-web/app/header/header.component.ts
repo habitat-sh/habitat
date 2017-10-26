@@ -13,14 +13,13 @@
 // limitations under the License.
 
 import { Component, Input } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import config from '../config';
 
 @Component({
   selector: 'hab-header',
   template: require('./header.component.html')
 })
-
 export class HeaderComponent {
   @Input() appName;
   @Input() isUserNavOpen;

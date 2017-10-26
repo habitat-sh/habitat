@@ -15,7 +15,7 @@
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from './app.store';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   authenticateWithGitHub, loadGitHubSessionState, loadBldrSessionState, removeNotification,
   requestGitHubAuthToken, routeChange, setGitHubAuthState,
@@ -26,7 +26,6 @@ import {
   selector: 'hab-app',
   template: require('./app.component.html')
 })
-
 export class AppComponent implements OnInit, OnDestroy {
   removeNotification: Function;
   signOut: Function;

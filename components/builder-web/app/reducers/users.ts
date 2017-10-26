@@ -14,7 +14,7 @@
 
 import { fromJS } from 'immutable';
 import * as actionTypes from '../actions/index';
-import initialState from '../initialState';
+import initialState from '../initial-state';
 
 export default function users(state = initialState['users'], action) {
   switch (action.type) {

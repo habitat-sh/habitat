@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import * as actionTypes from '../actions/index';
-import initialState from '../initialState';
-import { List, Record } from 'immutable';
+import initialState from '../initial-state';
+import { List } from 'immutable';
 import { Project } from '../records/Project';
 
 export default function projects(state = initialState['projects'], action) {

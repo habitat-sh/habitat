@@ -13,17 +13,10 @@
 // limitations under the License.
 
 import * as Cookies from 'js-cookie';
-import {
-  merge
-} from 'lodash';
-
-import {
-  AppStore
-} from '../app.store';
+import { merge } from 'lodash';
 
 export const SET_COOKIE = 'SET_COOKIE';
 export const REMOVE_COOKIE = 'REMOVE_COOKIE';
-
 export const domain = cookieDomain();
 export const secure = window.location.protocol === 'https';
 

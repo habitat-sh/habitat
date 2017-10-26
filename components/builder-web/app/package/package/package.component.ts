@@ -21,7 +21,7 @@ import { PackageLatestComponent } from '../package-latest/package-latest.compone
 import { PackageReleaseComponent } from '../package-release/package-release.component';
 import { PackageVersionsComponent } from '../package-versions/package-versions.component';
 import { AppStore } from '../../app.store';
-import { fetchBuilds, fetchDockerIntegration, fetchOrigin, fetchMyOrigins, fetchProject } from '../../actions/index';
+import { fetchBuilds, fetchDockerIntegration, fetchOrigin, fetchProject } from '../../actions/index';
 
 @Component({
   template: require('./package.component.html')

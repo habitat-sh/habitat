@@ -15,7 +15,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppStore } from '../../../app.store';
 import { deleteDockerIntegration, setDockerIntegration } from '../../../actions';
-import { MatDialog, MatDialogRef } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { DockerCredentialsFormDialog } from '../docker-credentials-form/docker-credentials-form.dialog';
 import { IntegrationDeleteConfirmDialog } from './dialog/integration-delete-confirm/integration-delete-confirm.dialog';
 import { fetchDockerIntegration } from '../../../actions/index';

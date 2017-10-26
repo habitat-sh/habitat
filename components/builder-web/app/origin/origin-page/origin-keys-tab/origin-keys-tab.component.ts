@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../../app.store';
-import { BuilderApiClient } from '../../../BuilderApiClient';
+import { BuilderApiClient } from '../../../client/builder-api';
 import { GenerateKeysConfirmDialog } from './dialog/generate-keys-confirm/generate-keys-confirm.dialog';
 import { KeyAddFormDialog } from './key-add-form/key-add-form.dialog';
 import { fetchOriginPublicKeys, fetchMyOrigins, generateOriginKeys } from '../../../actions/index';
@@ -27,7 +27,6 @@ import config from '../../../config';
 @Component({
   template: require('./origin-keys-tab.component.html')
 })
-
 export class OriginKeysTabComponent implements OnInit, OnDestroy {
   origin: string;
   sub: Subscription;

@@ -134,7 +134,6 @@ $main-nav-breakpoint: 710px;
       &.is-current-page:before {
         content: "";
         position: absolute;
-        background-image: url("/assets/images/nav-active-icon.png");
         background-image: none, url("/assets/images/nav-active-icon.svg");
         background-position: center top;
         background-repeat: no-repeat;

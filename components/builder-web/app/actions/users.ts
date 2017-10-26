@@ -14,7 +14,7 @@
 
 import { requestRoute, removeSessionStorage, resetAppState } from './index';
 import { addNotification, SUCCESS, DANGER } from './notifications';
-import { BuilderApiClient } from '../BuilderApiClient';
+import { BuilderApiClient } from '../client/builder-api';
 
 export const POPULATE_PROFILE = 'POPULATE_PROFILE';
 export const SET_PRIVILEGES = 'SET_PRIVILEGES';
@@ -29,7 +29,7 @@ export function fetchProfile(token: string) {
         dispatch(populateProfile(data));
         notifySegment(data);
       })
-      .catch(err => {});
+      .catch(err => { });
   };
 }
 

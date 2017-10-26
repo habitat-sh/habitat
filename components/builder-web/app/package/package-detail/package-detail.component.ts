@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, Input } from '@angular/core';
-import { targetToPlatform, releaseToDate } from '../../util';
+import { releaseToDate } from '../../util';
 
 @Component({
   selector: 'hab-package-detail',

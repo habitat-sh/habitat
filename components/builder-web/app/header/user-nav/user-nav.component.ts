@@ -19,7 +19,6 @@ import config from '../../config';
   selector: 'hab-user-nav',
   template: require('./user-nav.component.html')
 })
-
 export class UserNavComponent {
   @Input() isOpen: boolean;
   @Input() isSignedIn: boolean;
@@ -38,7 +37,7 @@ export class UserNavComponent {
   // This makes it so the dropdown closes if you click somewhere you would
   // expect would make it close.
   @HostListener('document:click', ['$event'])
-  private toggle(event) {
+  toggle(event) {
     if ((this.isOpen && !event.target.closest('.main-nav--dropdown')) ||
       (!this.isOpen && this.element.nativeElement.contains(event.target))) {
       this.toggleUserNavMenu();

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as actionTypes from '../actions/index';
-import initialState from '../initialState';
+import initialState from '../initial-state';
 
 export default function router(state = initialState['router'], action) {
   switch (action.type) {

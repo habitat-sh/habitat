@@ -13,9 +13,8 @@
 // limitations under the License.
 
 import { List, Record } from 'immutable';
-import * as AnsiUp from 'ansi_up';
 import * as actionTypes from '../actions/index';
-import initialState from '../initialState';
+import initialState from '../initial-state';
 
 export default function builds(state = initialState['builds'], action) {
   switch (action.type) {

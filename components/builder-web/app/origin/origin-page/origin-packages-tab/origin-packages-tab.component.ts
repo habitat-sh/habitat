@@ -15,13 +15,11 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppStore } from '../../../app.store';
-import { addProject, requestRoute, setProjectIntegrationSettings } from '../../../actions/index';
 
 @Component({
   selector: 'hab-origin-packages-tab',
   template: require('./origin-packages-tab.component.html')
 })
-
 export class OriginPackagesTabComponent {
   selectingPlan: boolean = false;
 

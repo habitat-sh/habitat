@@ -13,8 +13,6 @@
 // limitations under the License.
 
 import { Injectable } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { AppStore } from '../app.store';
 import { Origin } from '../records/Origin';
 
 @Injectable()

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import initialState from '../initialState';
+import initialState from '../initial-state';
 
 export default function notifications(state = initialState['app'], action) {
   switch (action.type) {

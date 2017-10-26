@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, OnDestroy } from '@angular/core';
-import { MatDialog, MatDialogRef } from '@angular/material';
+import { MatDialogRef } from '@angular/material';
 import { AppStore } from '../../../app.store';
 import { clearIntegrationCredsValidation, validateDockerCredentials } from '../../../actions/index';
 
@@ -37,7 +37,7 @@ export class DockerCredentialsFormDialog implements OnDestroy {
   constructor(
     public dialogRef: MatDialogRef<DockerCredentialsFormDialog>,
     private store: AppStore
-  ) {}
+  ) { }
 
   ngOnDestroy() {
     this.store.dispatch(clearIntegrationCredsValidation());

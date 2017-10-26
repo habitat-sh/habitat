@@ -14,9 +14,9 @@
 
 import * as marked from 'marked';
 import * as actionTypes from '../actions/index';
-import initialState from '../initialState';
+import initialState from '../initial-state';
 import { Package } from '../records/Package';
-import { fromJS, List, Record } from 'immutable';
+import { List, Record } from 'immutable';
 
 export default function packages(state = initialState['packages'], action) {
   switch (action.type) {

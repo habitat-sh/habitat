@@ -14,7 +14,7 @@
 
 import 'whatwg-fetch';
 import * as async from 'async';
-import config from './config';
+import config from '../config';
 
 export interface File {
   name: string;
