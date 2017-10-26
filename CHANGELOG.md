@@ -1,5 +1,97 @@
 # Habitat CHANGELOG
 
+## [0.38.0](https://github.com/habitat-sh/habitat/tree/0.38.0) (10-26-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.37.0...0.38.0)
+
+## Features & Enhancements
+
+- There is no .bldr.toml documentation on the website \(that's searchable\) [\#3883](https://github.com/habitat-sh/habitat/issues/3883)
+- There is no .bldr.toml documentation on the website \\(that's searchable\\) [\#3883](https://github.com/habitat-sh/habitat/issues/3883)
+- Update and return user profile settings [\#3866](https://github.com/habitat-sh/habitat/issues/3866)
+- Integrate API Gateway with Segment [\#3749](https://github.com/habitat-sh/habitat/issues/3749)
+- Create Node web app guide [\#3366](https://github.com/habitat-sh/habitat/issues/3366)
+- Add Habitats package search engine to the browser [\#2619](https://github.com/habitat-sh/habitat/issues/2619)
+- \[Documentation\] How to use third party origins [\#2578](https://github.com/habitat-sh/habitat/issues/2578)
+- \\[Documentation\\] How to use third party origins [\#2578](https://github.com/habitat-sh/habitat/issues/2578)
+- Updated sample app flow to support automatic rebuilds in Builder [\#3901](https://github.com/habitat-sh/habitat/pull/3901) ([davidwrede](https://github.com/davidwrede))
+- Remove unused Cargo dependencies from net crate [\#3829](https://github.com/habitat-sh/habitat/pull/3829) ([reset](https://github.com/reset))
+- Made content around missing binds more discoverable [\#3826](https://github.com/habitat-sh/habitat/pull/3826) ([davidwrede](https://github.com/davidwrede))
+- Make monitoring via HTTP API more visible in docs [\#3823](https://github.com/habitat-sh/habitat/pull/3823) ([davidwrede](https://github.com/davidwrede))
+- Fix issue where all socket errors were reported as generic errors [\#3815](https://github.com/habitat-sh/habitat/pull/3815) ([reset](https://github.com/reset))
+- Clarified instructions on using Builder with sample app [\#3812](https://github.com/habitat-sh/habitat/pull/3812) ([davidwrede](https://github.com/davidwrede))
+- Add Studio dev env improvements and docs [\#3795](https://github.com/habitat-sh/habitat/pull/3795) ([elliott-davis](https://github.com/elliott-davis))
+- Adds note about origin in writing a plan section of docs [\#3559](https://github.com/habitat-sh/habitat/pull/3559) ([rsertelon](https://github.com/rsertelon))
+
+## Bug fixes
+
+- Cannot build package if current folder path contains a space [\#3881](https://github.com/habitat-sh/habitat/issues/3881)
+- \[builder ui\] Load More in search package result list doesn't load [\#3851](https://github.com/habitat-sh/habitat/issues/3851)
+- Don't check in all sandbox channels when building software [\#3755](https://github.com/habitat-sh/habitat/issues/3755)
+- More auth fixes for workers and the core team [\#3699](https://github.com/habitat-sh/habitat/issues/3699)
+- CLI support for downloading packages from private origins [\#3689](https://github.com/habitat-sh/habitat/issues/3689)
+- Sidebar navigation disappears [\#3660](https://github.com/habitat-sh/habitat/issues/3660)
+- 'HAB\_STUDIO\_SUP=false' not honoured when included in .studiorc [\#3542](https://github.com/habitat-sh/habitat/issues/3542)
+- Proxy error retrieving static files [\#3526](https://github.com/habitat-sh/habitat/issues/3526)
+- re-building service results in spammed child exiting with code signal 15 [\#3505](https://github.com/habitat-sh/habitat/issues/3505)
+- Missing app.js.map error [\#3040](https://github.com/habitat-sh/habitat/issues/3040)
+- \#3843 - changing positioning and z-index for footer decor [\#3917](https://github.com/habitat-sh/habitat/pull/3917) ([mgamini](https://github.com/mgamini))
+- Fix notification deadlock in jobsrv [\#3867](https://github.com/habitat-sh/habitat/pull/3867) ([chefsalim](https://github.com/chefsalim))
+- \[studio\] Redirect stderr to sup.log. [\#3844](https://github.com/habitat-sh/habitat/pull/3844) ([fnichol](https://github.com/fnichol))
+
+**Closed issues:**
+
+- \[builder ui\] dropdown menu when avatar is clicked is covered by demo window [\#3876](https://github.com/habitat-sh/habitat/issues/3876)
+- License Copyright in Readme doesn't match License File. [\#3854](https://github.com/habitat-sh/habitat/issues/3854)
+- Chore: Add worker to jobs table to make it easier to troubleshoot failed build [\#3837](https://github.com/habitat-sh/habitat/issues/3837)
+- \[acceptance\] Builder worker seems to build twice sometimes [\#3603](https://github.com/habitat-sh/habitat/issues/3603)
+- Clean up nginx log and add log rotation [\#3509](https://github.com/habitat-sh/habitat/issues/3509)
+
+**Merged pull requests:**
+
+- Fix load-more-packages link [\#3914](https://github.com/habitat-sh/habitat/pull/3914) ([cnunciato](https://github.com/cnunciato))
+- remove file check for key generation since it's already checked [\#3913](https://github.com/habitat-sh/habitat/pull/3913) ([elliott-davis](https://github.com/elliott-davis))
+- Fix the ability to disable non-core builds [\#3908](https://github.com/habitat-sh/habitat/pull/3908) ([reset](https://github.com/reset))
+- Add Segment to Builder [\#3906](https://github.com/habitat-sh/habitat/pull/3906) ([raskchanky](https://github.com/raskchanky))
+- Improve asset compilation in Builder UI [\#3905](https://github.com/habitat-sh/habitat/pull/3905) ([cnunciato](https://github.com/cnunciato))
+- Fixes bad studio.sh behavior in folders with spaces [\#3904](https://github.com/habitat-sh/habitat/pull/3904) ([rsertelon](https://github.com/rsertelon))
+- fix errors re-entering a studio from the vm [\#3903](https://github.com/habitat-sh/habitat/pull/3903) ([elliott-davis](https://github.com/elliott-davis))
+- Remove instruction about creating Docker Hub org when not exist [\#3902](https://github.com/habitat-sh/habitat/pull/3902) ([apriofrost](https://github.com/apriofrost))
+- Add user profile feature [\#3896](https://github.com/habitat-sh/habitat/pull/3896) ([cnunciato](https://github.com/cnunciato))
+- Don't log status check [\#3895](https://github.com/habitat-sh/habitat/pull/3895) ([chefsalim](https://github.com/chefsalim))
+- Add API endpoints for updating and retrieving your profile [\#3890](https://github.com/habitat-sh/habitat/pull/3890) ([raskchanky](https://github.com/raskchanky))
+- Remove extra slash so link works correctly [\#3889](https://github.com/habitat-sh/habitat/pull/3889) ([scotthain](https://github.com/scotthain))
+- Prevent heart attacks and spit-takes [\#3880](https://github.com/habitat-sh/habitat/pull/3880) ([christophermaier](https://github.com/christophermaier))
+- Queue builds instead of rejecting [\#3879](https://github.com/habitat-sh/habitat/pull/3879) ([chefsalim](https://github.com/chefsalim))
+- Remove the dev-setup check for Ubuntu 16.10 [\#3878](https://github.com/habitat-sh/habitat/pull/3878) ([cnunciato](https://github.com/cnunciato))
+- Update step3-create origin screenshots to match the latest Builder UI. [\#3877](https://github.com/habitat-sh/habitat/pull/3877) ([apriofrost](https://github.com/apriofrost))
+- Update step5 -install GitHub app screenshots to match the latest GitHub UI. [\#3874](https://github.com/habitat-sh/habitat/pull/3874) ([apriofrost](https://github.com/apriofrost))
+- adds in blog post highlighting new scripts feature of node scaffolding [\#3873](https://github.com/habitat-sh/habitat/pull/3873) ([nellshamrell](https://github.com/nellshamrell))
+- add cloudfoundary to cli docs + fully qualified package ident fixes [\#3871](https://github.com/habitat-sh/habitat/pull/3871) ([echohack](https://github.com/echohack))
+- fix spelling mistake in sidebar [\#3863](https://github.com/habitat-sh/habitat/pull/3863) ([echohack](https://github.com/echohack))
+- Fix Typo in sidebar menu [\#3862](https://github.com/habitat-sh/habitat/pull/3862) ([ncerny](https://github.com/ncerny))
+- Builder UI - tidying up typography and spacing [\#3860](https://github.com/habitat-sh/habitat/pull/3860) ([ryankeairns](https://github.com/ryankeairns))
+- Updates build-a-sample app next steps [\#3858](https://github.com/habitat-sh/habitat/pull/3858) ([burtlo](https://github.com/burtlo))
+- Some cleanup and additional debugging to jobsrv [\#3857](https://github.com/habitat-sh/habitat/pull/3857) ([chefsalim](https://github.com/chefsalim))
+- Update maintainers list [\#3853](https://github.com/habitat-sh/habitat/pull/3853) ([elliott-davis](https://github.com/elliott-davis))
+- updates docs - node scaffolding now supports pre and post-build scripts [\#3852](https://github.com/habitat-sh/habitat/pull/3852) ([nellshamrell](https://github.com/nellshamrell))
+- Cleanup unused components and stylings [\#3849](https://github.com/habitat-sh/habitat/pull/3849) ([elliott-davis](https://github.com/elliott-davis))
+- Adds blog post for Habitatize Ruby video series [\#3848](https://github.com/habitat-sh/habitat/pull/3848) ([burtlo](https://github.com/burtlo))
+- Fix config for job timeout [\#3842](https://github.com/habitat-sh/habitat/pull/3842) ([chefsalim](https://github.com/chefsalim))
+- Make job timeout configurable [\#3841](https://github.com/habitat-sh/habitat/pull/3841) ([chefsalim](https://github.com/chefsalim))
+- Plumb auth token into the studio, correct regression with private packages [\#3840](https://github.com/habitat-sh/habitat/pull/3840) ([raskchanky](https://github.com/raskchanky))
+- strip $ suffix when looking up the SID of an account name [\#3839](https://github.com/habitat-sh/habitat/pull/3839) ([mwrock](https://github.com/mwrock))
+- include svc\_encrypted\_password when converting a service to a spec [\#3836](https://github.com/habitat-sh/habitat/pull/3836) ([mwrock](https://github.com/mwrock))
+- Bump version 0.38.0-dev [\#3830](https://github.com/habitat-sh/habitat/pull/3830) ([reset](https://github.com/reset))
+- Exclude sandbox channels from recommendations when installing packages [\#3828](https://github.com/habitat-sh/habitat/pull/3828) ([raskchanky](https://github.com/raskchanky))
+- Consolidate builder job server and scheduler services [\#3827](https://github.com/habitat-sh/habitat/pull/3827) ([chefsalim](https://github.com/chefsalim))
+- checksum the right zip for chocolatey [\#3825](https://github.com/habitat-sh/habitat/pull/3825) ([mwrock](https://github.com/mwrock))
+- account for ratelimiting in changelog generator and timing of bundle [\#3824](https://github.com/habitat-sh/habitat/pull/3824) ([mwrock](https://github.com/mwrock))
+- Allow downloading of private packages from hab [\#3822](https://github.com/habitat-sh/habitat/pull/3822) ([raskchanky](https://github.com/raskchanky))
+- Fix incorrect full changelog link for last release [\#3813](https://github.com/habitat-sh/habitat/pull/3813) ([christophermaier](https://github.com/christophermaier))
+- Update BUILDER\_DEV with a few fixes [\#3811](https://github.com/habitat-sh/habitat/pull/3811) ([raskchanky](https://github.com/raskchanky))
+- Add new `/origins/:origin/integrations endpoint [\#3808](https://github.com/habitat-sh/habitat/pull/3808) ([elliott-davis](https://github.com/elliott-davis))
+- Adds OpenSearch provider [\#3686](https://github.com/habitat-sh/habitat/pull/3686) ([rsertelon](https://github.com/rsertelon))
+
 ## [0.37.0](https://github.com/habitat-sh/habitat/tree/0.37.0) (10-17-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.36.0...0.37.0)
 
@@ -97,6 +189,8 @@
 
 **Merged pull requests:**
 
+- release 0.37.0 [\#3809](https://github.com/habitat-sh/habitat/pull/3809) ([mwrock](https://github.com/mwrock))
+- Use Builder for feature flags [\#3807](https://github.com/habitat-sh/habitat/pull/3807) ([cnunciato](https://github.com/cnunciato))
 - Fix images on the Node blog post [\#3806](https://github.com/habitat-sh/habitat/pull/3806) ([cnunciato](https://github.com/cnunciato))
 - Validate Docker credentials [\#3800](https://github.com/habitat-sh/habitat/pull/3800) ([cnunciato](https://github.com/cnunciato))
 - Add back race condition fix and other tweaks [\#3797](https://github.com/habitat-sh/habitat/pull/3797) ([chefsalim](https://github.com/chefsalim))
