@@ -71,21 +71,26 @@ fn ui() -> UI {
     UI::default_with(coloring, isatty)
 }
 
-fn start(_ui: &mut UI) -> result::Result<(), String> {
+fn start(ui: &mut UI) -> result::Result<(), String> {
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
-    let count = m.value_of("COUNT").unwrap_or("1");
-    let topology = m.value_of("TOPOLOGY").unwrap_or("standalone");
-    let group = m.value_of("GROUP");
-    let config_secret_name = m.value_of("CONFIG_SECRET_NAME");
-    let ring_secret_name = m.value_of("RING_SECRET_NAME");
+
+    gen_k8s_manifest(ui, &m)
+}
+
+fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<(), String> {
+    let count = matches.value_of("COUNT").unwrap_or("1");
+    let topology = matches.value_of("TOPOLOGY").unwrap_or("standalone");
+    let group = matches.value_of("GROUP");
+    let config_secret_name = matches.value_of("CONFIG_SECRET_NAME");
+    let ring_secret_name = matches.value_of("RING_SECRET_NAME");
     // clap_app!() ensures that we do have the mandatory args so unwrap() is fine here
-    let pkg_ident_str = m.value_of("PKG_IDENT").unwrap();
+    let pkg_ident_str = matches.value_of("PKG_IDENT").unwrap();
     let pkg_ident = match PackageIdent::from_str(pkg_ident_str) {
         Ok(pi) => pi,
         Err(e) => return Err(format!("{}", e)),
     };
-    let image = m.value_of("IMAGE").unwrap_or(pkg_ident_str);
+    let image = matches.value_of("IMAGE").unwrap_or(pkg_ident_str);
 
     let json = json!({
         "metadata_name": pkg_ident.name,
@@ -97,7 +102,7 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
         "ring_secret_name": ring_secret_name,
     });
 
-    let mut write: Box<Write> = match m.value_of("OUTPUT") {
+    let mut write: Box<Write> = match matches.value_of("OUTPUT") {
         Some(o) if o != "-" => {
             match File::create(o) {
                 Ok(f) => Box::new(f),
