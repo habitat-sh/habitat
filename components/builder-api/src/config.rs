@@ -174,6 +174,7 @@ mod tests {
             "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
         );
         assert_eq!(config.ui.root, Some("/some/path".to_string()));
+        assert_eq!(config.segment.url, "https://api.segment.io");
     }
 
     #[test]

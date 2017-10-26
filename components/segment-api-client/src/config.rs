@@ -19,6 +19,7 @@ pub const DEFAULT_SEGMENT_URL: &'static str = "https://api.segment.io";
 #[serde(default)]
 pub struct SegmentCfg {
     /// URL to Segment API
+    #[serde(default = "default_url")]
     pub url: String,
     /// Write key used for Segment API requests
     pub write_key: String,
@@ -31,4 +32,8 @@ impl Default for SegmentCfg {
             write_key: "".to_string(),
         }
     }
+}
+
+fn default_url() -> String {
+    DEFAULT_SEGMENT_URL.to_string()
 }
