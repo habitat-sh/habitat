@@ -1275,7 +1275,7 @@ shift "$((OPTIND - 1))"
 # The directory name of the Studio (which will live under `$HAB_STUDIOS_HOME`).
 # It is a directory path turned into a single directory name that can be
 # deterministically re-constructed on next program invocation.
-dir_name="$(echo $SRC_PATH | $bb sed -e 's,^/$,root,' -e 's,^/,,' -e 's,/,--,g')"
+dir_name="$(echo $SRC_PATH | $bb sed -e 's,^/$,root,' -e 's,^/,,' -e 's,/,--,g' -e 's, ,-,g')"
 # The base path under which all Studios are created, which defaults to
 # `/hab/studios`.
 : ${HAB_STUDIOS_HOME:=/hab/studios}
