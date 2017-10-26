@@ -12,9 +12,9 @@
 
     <hab-search-results [noPackages]="(!ui.exists || packages.size === 0) && !ui.loading" [packages]="packages" [errorMessage]="ui.errorMessage"></hab-search-results>
 
-    <div *ngIf="packages.size < totalCount">
+    <div class="more" *ngIf="packages.size < totalCount">
       Showing {{packages.size}} of {{totalCount}} packages.
-      <a href="#" (click)="fetchMorePackages()">Load {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }} more</a>.
+      <a (click)="fetchMorePackages()">Load {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }} more</a>.
     </div>
   </div>
 </div>
