@@ -71,7 +71,7 @@ Now let's open up the plan file that was created when we ran "hab init", it shou
 
 ```
 pkg_name=learn-about-me
-pkg_origin=core
+pkg_origin=your_origin
 pkg_version="0.1.0"
 pkg_scaffolding="core/scaffolding-node"
 ```
@@ -81,17 +81,12 @@ When we eventually start this application in a container, it will need to bind t
 **habitat/plan.sh**
 
 ```
-pkg_name=learn-about-me
-pkg_origin=core
-pkg_version="0.1.0"
-pkg_scaffolding="core/scaffolding-node"
-
 pkg_binds=(
   [database]="port"
 )
 ```
 
-Now, let's define the value for that port in a configuration file - this will tell Habitat where to connect to the database when binding the two containers (unlike habitat/default.toml - which is used to set environmental variables within the application itself).
+Now, let's define the value for that port in a configuration file - this will tell Habitat where to connect to the database when binding the two containers (unlike habitat/default.toml - which is used to define environmental variables within the application itself).
 
 **default-config.json**
 
@@ -103,23 +98,6 @@ Now, let's define the value for that port in a configuration file - this will te
   }
 }
 ```
-
-Let's add one more thing to the plan.sh file - when we run the application in a Docker container, we need a port to access it on.
-
-**habitat/plan.sh**
-
-```
-pkg_name=learn-about-me
-pkg_origin=core
-pkg_version="0.1.0"
-pkg_scaffolding="core/scaffolding-node"
-
-pkg_binds=(
-  [database]="port"
-)
-```
-
-We will define this port when we start up the container running our application - we'll get to that in just a moment.
 
 ## Habitizing your application - Part II
 
@@ -165,7 +143,6 @@ Like so:
 **app.js**
 
 ```
-var app = express();
 var nconf = require('nconf');
 const nconf_file = process.env.APP_CONFIG || './default-config.json';
 nconf.file({ file: nconf_file });
@@ -211,12 +188,6 @@ Let's create a template for this config file at habitat/config/database.json
 }
 ```
 
-Why does it look like this? Storing data in JSON is tricky with Handlebars templating because:
-* Each element needs a comma except the last element
-* Duplicate keys or IDs at the same depth will cause errors
-
-We allow for multiple members of a MongoDB cluster - but only want the IP/Port information of one to connect to it. When defining this config, we want to write out one entry from the members array. It could be the first one or the last one. The important thing is to only write once.
-
 Now that we have this defined, we can use this config:
 
 ```
@@ -246,7 +217,7 @@ One more thing before we can build - we need to load the nconf config file from 
 
 ```
 pkg_name=learn-about-me
-pkg_origin=core
+pkg_origin=your_origin
 pkg_version="0.1.0"
 pkg_scaffolding="core/scaffolding-node"
 
@@ -282,7 +253,7 @@ When the build is complete, export your new package as a Docker container image
 (studio) $ hab pkg export docker ./results/<your_new_package>.hart
 ```
 
-And now run this command to pull down the core/mongodb package from the public Habitat Builder and export it as a Docker image on your workstation:
+And now run this command to pull down theecore/mongodb package from the public Habitat Builder and export it as a Docker image on your workstation:
 
 ```console
 (studio) $ hab pkg export docker core/mongodb
@@ -311,7 +282,7 @@ services:
 				  # ip that is discovered through the sys.ip.
 				  HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
 		learn-about-me-app:
-				image: core/learn-about-me
+				image: your_origin/learn-about-me
 				ports:
 				  - 8000:8000
 				# Find the container above named here by the peer
