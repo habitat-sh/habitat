@@ -10,6 +10,9 @@ root = "{{pkg.svc_static_path}}"
 app_private_key = "{{pkg.svc_files_path}}/builder-github-app.pem"
 {{toToml cfg.github}}
 
+[segment]
+{{toToml cfg.segment}}
+
 {{~#eachAlive bind.router.members as |member|}}
 [[routers]]
 host = "{{member.sys.ip}}"
