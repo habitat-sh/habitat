@@ -22,6 +22,7 @@ use std::option::IntoIter;
 use depot;
 use http_gateway::config::prelude::*;
 use segment_api_client::SegmentCfg;
+use typemap;
 
 use error::Error;
 
@@ -80,6 +81,10 @@ impl GatewayCfg for Config {
     fn route_addrs(&self) -> &[RouterAddr] {
         self.routers.as_slice()
     }
+}
+
+impl typemap::Key for Config {
+    type Value = Self;
 }
 
 /// Public listening net address for HTTP requests

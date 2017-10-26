@@ -39,6 +39,7 @@ use protocol::sessionsrv::{Account, AccountGetId, AccountInvitationListRequest,
 use serde_json;
 use typemap;
 
+use config::Config;
 use github;
 use headers::*;
 use types::*;
@@ -696,6 +697,13 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
         Some(o) => o,
         None => return Ok(Response::with(status::BadRequest)),
     };
+
+    let cfg = req.get::<persistent::Read<Config>>().unwrap();
+    if !cfg.depot.non_core_builds_enabled {
+        if origin != "core" {
+            return Ok(Response::with(status::Forbidden));
+        }
+    }
 
     let name = match get_param(req, "name") {
         Some(n) => n,
