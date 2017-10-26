@@ -27,6 +27,9 @@ use clap::App;
 use handlebars::Handlebars;
 use std::result;
 use std::str::FromStr;
+use std::io::prelude::*;
+use std::io;
+use std::fs::File;
 
 use hcore::PROGRAM_NAME;
 use hcore::env as henv;
@@ -94,15 +97,26 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
         "ring_secret_name": ring_secret_name,
     });
 
+    let mut write: Box<Write> = match m.value_of("OUTPUT") {
+        Some(o) if o != "-" => {
+            match File::create(o) {
+                Ok(f) => Box::new(f),
+                Err(e) => return Err(format!("{}", e)),
+            }
+        }
+        _ => Box::new(io::stdout()),
+    };
+
     match Handlebars::new().template_render(MANIFESTFILE, &json) {
         Ok(r) => {
             let out = r.lines().filter(|l| {
                 *l != ""
             }).collect::<Vec<_>>().join("\n") + "\n";
 
-            print!("{}", out);
-
-            Ok(())
+            match write.write(out.as_bytes()) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(format!("{}", e)),
+            }
         },
 
         Err(e) => Err(format!("{}", e)),
@@ -119,6 +133,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
         (@arg IMAGE: --("image") +takes_value
             "Image of the Habitat service exported as a Docker image")
+        (@arg OUTPUT: -o --("output") +takes_value
+            "Name of manifest file to create. Pass '-' for stdout (default: -)")
         (@arg COUNT: --("count") +takes_value {valid_natural_number}
             "Count is the number of desired instances")
         (@arg TOPOLOGY: -t --("service-topology") +takes_value
