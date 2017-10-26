@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[macro_use]
-extern crate log;
-extern crate unshare;
-extern crate users;
+use std::ffi::OsString;
+use std::os::unix::process::CommandExt;
+use std::process::Command;
 
-pub mod command;
-mod error;
+use Result;
 
-pub use error::Error;
-pub use error::Result;
+pub fn run(cmd: &str, args: Vec<OsString>) -> Result<()> {
+    debug!("Going to run: {} {:?}", cmd, args);
+    Command::new(cmd).args(args).exec();
+    Ok(())
+}
