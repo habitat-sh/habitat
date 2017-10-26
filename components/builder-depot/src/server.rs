@@ -1014,10 +1014,7 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
             // We don't really want to abort anything just because a call to segment failed. Let's
             // just log it and move on.
             if let Err(e) = segment.track(&account_name, &msg) {
-                debug!(
-                    "Error tracking scheduling of job group in segment. e = {:?}",
-                    e
-                );
+                warn!("Error tracking scheduling of job group in segment, {}", e);
             }
 
             let mut response = render_json(status::Ok, &group);

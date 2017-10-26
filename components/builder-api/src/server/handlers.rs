@@ -85,7 +85,7 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
             // We don't really want to abort anything just because a call to segment failed. Let's
             // just log it and move on.
             if let Err(e) = segment.identify(session.get_name()) {
-                debug!("Error identifying a user in segment. e = {:?}", e);
+                warn!("Error identifying a user in segment, {}", e);
             }
 
             Ok(render_json(status::Ok, &session))
