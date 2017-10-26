@@ -35,3 +35,8 @@ spec:
     ## at the top.
     configSecretName: {{config_secret_name}}
 {{/if}}
+{{#if ring_secret_name}}
+    ## The name of the Kubernetes Secret that contains the ring key, which
+    ## encrypts the communication between Habitat supervisors.
+    ringSecretName: {{ring_secret_name}}
+{{/if}}
