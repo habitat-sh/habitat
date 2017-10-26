@@ -25,9 +25,11 @@ spec:
   service:
     ## Habitat topology of the service.
     topology: {{service_topology}}
+{{#if service_group}}
     ## Habitat service group name, a logical grouping of services
     ## with the same package.
-    group: default
+    group: {{service_group}}
+{{/if}}
     ## Name of the configuration secret. Edit the Kubernetes Secret
     ## at the top.
     #configSecretName: user-toml-secret

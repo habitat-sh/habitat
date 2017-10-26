@@ -73,6 +73,7 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
     debug!("clap cli args: {:?}", m);
     let count = m.value_of("COUNT").unwrap_or("1");
     let topology = m.value_of("TOPOLOGY").unwrap_or("standalone");
+    let group = m.value_of("GROUP");
     // clap_app!() ensures that we do have the mandatory args so unwrap() is fine here
     let pkg_ident_str = m.value_of("PKG_IDENT").unwrap();
     let pkg_ident = match PackageIdent::from_str(pkg_ident_str) {
@@ -86,11 +87,16 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
         "image": image,
         "count": count,
         "service_topology": topology,
+        "service_group": group,
     });
 
     match Handlebars::new().template_render(MANIFESTFILE, &json) {
-        Ok(manifest) => {
-            print!("{}", manifest);
+        Ok(r) => {
+            let out = r.lines().filter(|l| {
+                *l != ""
+            }).collect::<Vec<_>>().join("\n") + "\n";
+
+            print!("{}", out);
 
             Ok(())
         },
@@ -115,6 +121,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             "A topology describes the intended relationship between peers \
              within a service group. Specify either standalone or leader \
              topology (default: standalone)")
+        (@arg GROUP: -g --("service-group") +takes_value
+            "group is a logical grouping of services with the same package and \
+             topology type connected together in a ring (default: default)")
         (@arg PKG_IDENT: +required
             "Habitat package identifier (ex: acme/redis)")
     )
