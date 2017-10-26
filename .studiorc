@@ -133,10 +133,8 @@ start-builder() {
   start-originsrv
   start-sessionsrv
   start-worker
-  if [ ! -f /hab/svc/builder-api/user.toml ]; then
-    upload_github_keys
-    generate_bldr_keys
-  fi
+  upload_github_keys
+  generate_bldr_keys
 }
 
 start-admin() {
