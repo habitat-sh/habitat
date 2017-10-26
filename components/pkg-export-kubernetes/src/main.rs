@@ -72,6 +72,7 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
     let count = m.value_of("COUNT").unwrap_or("1");
+    let topology = m.value_of("TOPOLOGY").unwrap_or("standalone");
     // clap_app!() ensures that we do have the mandatory args so unwrap() is fine here
     let pkg_ident_str = m.value_of("PKG_IDENT").unwrap();
     let pkg_ident = match PackageIdent::from_str(pkg_ident_str) {
@@ -84,6 +85,7 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
         "metadata_name": pkg_ident.name,
         "image": image,
         "count": count,
+        "service_topology": topology,
     });
 
     match Handlebars::new().template_render(MANIFESTFILE, &json) {
@@ -109,6 +111,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             "Image of the Habitat service exported as a Docker image")
         (@arg COUNT: --("count") +takes_value {valid_natural_number}
             "Count is the number of desired instances")
+        (@arg TOPOLOGY: -t --("service-topology") +takes_value
+            "A topology describes the intended relationship between peers \
+             within a service group. Specify either standalone or leader \
+             topology (default: standalone)")
         (@arg PKG_IDENT: +required
             "Habitat package identifier (ex: acme/redis)")
     )
