@@ -141,6 +141,7 @@ pub fn repo_file_content(req: &mut Request) -> IronResult<Response> {
         }
     };
     match github.contents(&token, repo.id, path) {
+        Ok(None) => Ok(Response::with(status::NotFound)),
         Ok(search) => Ok(render_json(status::Ok, &search)),
         Err(err) => Ok(Response::with((status::BadGateway, err.to_string()))),
     }
