@@ -17,17 +17,22 @@
   position: absolute;
   width: 100%;
   top: rem-calc(-60);
+  z-index: 1;
 }
 .footer--decor-item {
   text-align: center;
-  > img { position: relative; }
+  position: relative;
 }
-// .footer--decor-clam
 .footer--decor-trees {
   top: rem-calc(40);
 }
 .footer--decor-cube {
   top: rem-calc(70);
+  display: none;
+
+  @include breakpoint(large) {
+    display: block;
+  }
 }
 .footer--decor-snorkel {
   top: rem-calc(-50);
@@ -95,6 +100,9 @@
 }
 
 .footer--sitemap {
+  position: relative;
+  z-index: 2;
+  
   @include breakpoint(small only) {
     padding-top: rem-calc(62);
   }
