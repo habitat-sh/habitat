@@ -36,6 +36,7 @@ impl HttpGateway for ApiSrv {
     type Config = Config;
 
     fn add_middleware(config: Arc<Self::Config>, chain: &mut iron::Chain) {
+        chain.link(persistent::Read::<Self::Config>::both(config.clone()));
         chain.link(persistent::Read::<GitHubCli>::both(
             GitHubClient::new(config.github.clone()),
         ));
@@ -106,10 +107,12 @@ impl HttpGateway for ApiSrv {
             project_privacy_toggle: patch "/projects/:origin/:name/:visibility" => {
                 XHandler::new(project_privacy_toggle).before(basic.clone())
             },
-            project_integration_get: get "/projects/:origin/:name/integrations/:integration/default" => {
+            project_integration_get: get
+                "/projects/:origin/:name/integrations/:integration/default" => {
                 XHandler::new(get_project_integration).before(basic.clone())
             },
-            project_integration_put: put "/projects/:origin/:name/integrations/:integration/default" => {
+            project_integration_put: put
+                "/projects/:origin/:name/integrations/:integration/default" => {
                 XHandler::new(create_project_integration).before(basic.clone())
             },
 

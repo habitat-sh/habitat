@@ -954,6 +954,15 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
+    {
+        let lock = req.get::<persistent::State<DepotUtil>>().unwrap();
+        let depot = lock.read().unwrap();
+        if !depot.config.builds_enabled ||
+            (origin_name != "core" && !depot.config.non_core_builds_enabled)
+        {
+            return Ok(Response::with(status::Forbidden));
+        }
+    }
     let package = match get_param(req, "pkg") {
         Some(pkg) => pkg,
         None => return Ok(Response::with(status::BadRequest)),
