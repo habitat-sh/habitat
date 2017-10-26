@@ -34,6 +34,7 @@ extern crate params;
 extern crate persistent;
 extern crate protobuf;
 extern crate router;
+extern crate segment_api_client;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

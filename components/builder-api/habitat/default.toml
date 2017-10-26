@@ -16,3 +16,7 @@ webhook_secret = ""
 builds_enabled          = true
 non_core_builds_enabled = true
 events_enabled          = false
+
+[segment]
+url       = "https://api.segment.io"
+write_key = ""

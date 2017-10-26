@@ -32,7 +32,7 @@ use hab_core::event::*;
 use http_gateway::http::controller::*;
 use http_gateway::http::helpers::{self, check_origin_access, check_origin_owner,
                                   dont_cache_response, get_param, visibility_for_optional_session};
-use http_gateway::http::middleware::XRouteClient;
+use http_gateway::http::middleware::{SegmentCli, XRouteClient};
 use hab_net::{privilege, ErrCode, NetOk, NetResult};
 use hyper::header::{Charset, ContentDisposition, DispositionParam, DispositionType};
 use hyper::mime::{Attr, Mime, SubLevel, TopLevel, Value};
@@ -47,6 +47,7 @@ use protocol::jobsrv::{JobGroup, JobGroupSpec, JobGroupGet, JobGraphPackageStats
 use protocol::sessionsrv::{Account, AccountGet, AccountOriginRemove};
 use regex::Regex;
 use router::{Params, Router};
+use segment_api_client::SegmentClient;
 use serde_json;
 use typemap;
 use url;
@@ -948,6 +949,7 @@ fn package_stats(req: &mut Request) -> IronResult<Response> {
 
 fn schedule(req: &mut Request) -> IronResult<Response> {
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let segment = req.get::<persistent::Read<SegmentCli>>().unwrap();
     let origin_name = match get_param(req, "origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -979,6 +981,7 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     };
+    let account_name = session.get_name().to_string();
     let need_keys =
         match route_message::<OriginSecretKeyGet, OriginSecretKey>(req, &secret_key_request) {
             Ok(key) => {
@@ -1006,6 +1009,14 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<JobGroupSpec, JobGroup>(req, &request) {
         Ok(group) => {
+            let msg = format!("Scheduled job group for {}", group.get_project_name());
+
+            // We don't really want to abort anything just because a call to segment failed. Let's
+            // just log it and move on.
+            if let Err(e) = segment.track(&account_name, &msg) {
+                warn!("Error tracking scheduling of job group in segment, {}", e);
+            }
+
             let mut response = render_json(status::Ok, &group);
             dont_cache_response(&mut response);
             Ok(response)
@@ -2199,6 +2210,9 @@ pub fn router(depot: DepotUtil) -> Result<Chain> {
     )));
     chain.link(persistent::Read::<GitHubCli>::both(
         GitHubClient::new(depot.config.github.clone()),
+    ));
+    chain.link(persistent::Read::<SegmentCli>::both(
+        SegmentClient::new(depot.config.segment.clone()),
     ));
     chain.link(persistent::State::<DepotUtil>::both(depot));
     chain.link_before(XRouteClient);

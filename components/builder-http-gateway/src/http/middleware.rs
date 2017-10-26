@@ -28,6 +28,7 @@ use iron::typemap::Key;
 use persistent;
 use protocol::message;
 use protocol::sessionsrv::*;
+use segment_api_client::SegmentClient;
 use serde_json;
 use unicase::UniCase;
 
@@ -84,6 +85,12 @@ pub struct GitHubCli;
 
 impl Key for GitHubCli {
     type Value = GitHubClient;
+}
+
+pub struct SegmentCli;
+
+impl Key for SegmentCli {
+    type Value = SegmentClient;
 }
 
 pub struct XRouteClient;
