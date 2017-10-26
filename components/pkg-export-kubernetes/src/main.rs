@@ -74,6 +74,7 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
     let count = m.value_of("COUNT").unwrap_or("1");
     let topology = m.value_of("TOPOLOGY").unwrap_or("standalone");
     let group = m.value_of("GROUP");
+    let config_secret_name = m.value_of("CONFIG_SECRET_NAME");
     // clap_app!() ensures that we do have the mandatory args so unwrap() is fine here
     let pkg_ident_str = m.value_of("PKG_IDENT").unwrap();
     let pkg_ident = match PackageIdent::from_str(pkg_ident_str) {
@@ -88,6 +89,7 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
         "count": count,
         "service_topology": topology,
         "service_group": group,
+        "config_secret_name": config_secret_name,
     });
 
     match Handlebars::new().template_render(MANIFESTFILE, &json) {
@@ -124,6 +126,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@arg GROUP: -g --("service-group") +takes_value
             "group is a logical grouping of services with the same package and \
              topology type connected together in a ring (default: default)")
+        (@arg CONFIG_SECRET_NAME: -n --("config-secret-name") +takes_value
+            "name of the Kubernetes Secret containing the config file - \
+             user.toml - that the user has previously created. Habitat will \
+             use it for initial configuration of the service")
         (@arg PKG_IDENT: +required
             "Habitat package identifier (ex: acme/redis)")
     )

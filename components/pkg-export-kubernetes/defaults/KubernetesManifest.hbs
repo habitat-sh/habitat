@@ -30,6 +30,8 @@ spec:
     ## with the same package.
     group: {{service_group}}
 {{/if}}
+{{#if config_secret_name}}
     ## Name of the configuration secret. Edit the Kubernetes Secret
     ## at the top.
-    #configSecretName: user-toml-secret
+    configSecretName: {{config_secret_name}}
+{{/if}}
