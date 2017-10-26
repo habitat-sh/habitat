@@ -13,7 +13,7 @@
   "scripts": {
     "build": "concurrently \"npm run build-js\" \"npm run build-css\"",
     "build-css": "bin/build-css",
-    "build-css-watch": "npm run build-css -- --watch",
+    "build-css-watch": "npm run build-css -- --source-map=true --watch",
     "build-js": "npm run lint-js && webpack --config webpack.conf.js",
     "build-js-watch": "npm run build-js -- --watch",
     "clean": "concurrently \"npm run clean-js\" \"npm run clean-css\"",

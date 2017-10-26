@@ -14,11 +14,9 @@ cp habitat.conf.sample.js dist/habitat.conf.js
 
 css_sha=$(openssl dgst -sha256 assets/app.css | cut -d ' ' -f 2)
 cp assets/app.css "dist/assets/app-${css_sha}.css"
-cp assets/app.css.map "dist/assets/app-${css_sha}.css.map"
 
 js_sha=$(openssl dgst -sha256 assets/app.js | cut -d ' ' -f 2)
 cp assets/app.js "dist/assets/app-${js_sha}.js"
-cp assets/app.js.map "dist/assets/app-${js_sha}.js.map"
 sed -e "/id=\"hab-css\"/ s/app\.css/app-${css_sha}\.css/" \
     -e "/id=\"hab-js\"/ s/app\.js/app-${js_sha}\.js/" \
     index.html > dist/index.html
