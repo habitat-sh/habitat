@@ -91,9 +91,9 @@ The Habitat core team's project tracker is also public and on [Github.](https://
 
 ## Community and support 
 
-* [Habitat Slack](https://slack.habitat.sh)
+* [Habitat Slack](http://slack.habitat.sh)
 * [Forums]()
-* Community triage is every Tuesday at 10am Pacific. The link to participate is shared in the [Habitat Slack channel](https://slack.habitat.sh), and videos are posted on the [Habitat YouTube channel](https://youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
+* Community triage is every Tuesday at 10am Pacific. The link to participate is shared in the [Habitat Slack channel](http://slack.habitat.sh), and videos are posted on the [Habitat YouTube channel](https://youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.

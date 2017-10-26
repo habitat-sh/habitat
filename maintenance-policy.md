@@ -37,7 +37,7 @@ This file is the canonical source for how the Habitat project is maintained.
 
 * Each component may have multiple Maintainers
 * Handles contributions on GitHub - first response to a PR within 48 hours
-* Is available on [Slack](https://habitat-sh.slack.com/)
+* Is available on [Slack](http://habitat-sh.slack.com/)
 * Is available to answer mailing list questions within 48 hours
 * Weekends and local holidays in the Maintainer’s jurisdiction are not counted
   for timeliness requirements. Absences for reasonable causes such as vacations,
