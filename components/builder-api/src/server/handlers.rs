@@ -42,6 +42,7 @@ use typemap;
 use github;
 use headers::*;
 use types::*;
+use super::SegmentCli;
 
 // A default name for per-project integrations. Currently, there
 // can only be one.
@@ -66,6 +67,8 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     }
 
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let segment = req.get::<persistent::Read<SegmentCli>>().unwrap();
+
     match github.authenticate(&code) {
         Ok(token) => {
             let session = {
@@ -78,6 +81,13 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
                     account: session.get_id().to_string(),
                 }
             );
+
+            // We don't really want to abort anything just because a call to segment failed. Let's
+            // just log it and move on.
+            if let Err(e) = segment.identify(session.get_name()) {
+                debug!("Error identifying a user in segment. e = {:?}", e);
+            }
+
             Ok(render_json(status::Ok, &session))
         }
         Err(HubError::Auth(e)) => {

@@ -13,6 +13,7 @@ env_logger = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
 builder-http-gateway = { path = "../builder-http-gateway" }
 github-api-client = { path = "../github-api-client" }
+segment-api-client = { path = "../segment-api-client" }
 hyper = "*"
 iron = "*"
 iron-test = "*"

@@ -22,6 +22,7 @@ use hab_core::config::ConfigFile;
 use hab_core::os::system::{Architecture, Platform};
 use hab_core::package::PackageTarget;
 use http_gateway::config::prelude::*;
+use segment_api_client::SegmentCfg;
 
 use error::Error;
 
@@ -32,6 +33,7 @@ pub struct Config {
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<RouterAddr>,
     pub github: GitHubCfg,
+    pub segment: SegmentCfg,
     /// Filepath to location on disk to store entities
     pub path: PathBuf,
     /// Whether to log events for funnel metrics
@@ -58,6 +60,7 @@ impl Default for Config {
             http: HttpCfg::default(),
             routers: vec![RouterAddr::default()],
             github: GitHubCfg::default(),
+            segment: SegmentCfg::default(),
             path: PathBuf::from("/hab/svc/builder-api/data"),
             events_enabled: false, // TODO: change to default to true later
             builds_enabled: true,

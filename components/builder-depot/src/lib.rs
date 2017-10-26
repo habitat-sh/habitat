@@ -36,6 +36,7 @@ extern crate regex;
 extern crate r2d2;
 #[macro_use]
 extern crate router;
+extern crate segment_api_client;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

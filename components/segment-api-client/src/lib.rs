@@ -25,3 +25,7 @@ extern crate serde_json;
 pub mod client;
 pub mod config;
 pub mod error;
+
+pub use client::SegmentClient;
+pub use config::SegmentCfg;
+pub use error::{SegmentError, SegmentResult};

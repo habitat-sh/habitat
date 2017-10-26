@@ -28,7 +28,7 @@ use error::{SegmentError, SegmentResult};
 const USER_AGENT: &'static str = "Habitat-Builder";
 const HTTP_TIMEOUT: u64 = 3_000;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SegmentClient {
     pub url: String,
     pub write_key: String,

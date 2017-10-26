@@ -23,6 +23,7 @@ params = "*"
 persistent = "*"
 protobuf = "*"
 router = "*"
+segment-api-client = { path = "../segment-api-client" }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"

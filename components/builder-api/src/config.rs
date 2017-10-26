@@ -19,8 +19,9 @@ use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs};
 use std::option::IntoIter;
 
-use http_gateway::config::prelude::*;
 use depot;
+use http_gateway::config::prelude::*;
+use segment_api_client::SegmentCfg;
 
 use error::Error;
 
@@ -31,6 +32,7 @@ pub struct Config {
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<RouterAddr>,
     pub github: GitHubCfg,
+    pub segment: SegmentCfg,
     pub ui: UiCfg,
     /// Depot's configuration
     pub depot: depot::config::Config,
@@ -48,6 +50,7 @@ impl Default for Config {
             http: HttpCfg::default(),
             routers: vec![RouterAddr::default()],
             github: GitHubCfg::default(),
+            segment: SegmentCfg::default(),
             ui: UiCfg::default(),
             depot: depot::config::Config::default(),
             events_enabled: false,

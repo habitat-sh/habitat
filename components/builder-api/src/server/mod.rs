@@ -22,6 +22,7 @@ use http_gateway::app::prelude::*;
 use iron;
 use mount::Mount;
 use persistent::{self, Read};
+use segment_api_client::SegmentClient;
 use staticfile::Static;
 
 use super::github;
@@ -38,6 +39,9 @@ impl HttpGateway for ApiSrv {
         chain.link(persistent::Read::<GitHubCli>::both(
             GitHubClient::new(config.github.clone()),
         ));
+        chain.link(persistent::Read::<SegmentCli>::both(
+            SegmentClient::new(config.segment.clone()),
+        ));
         chain.link(Read::<EventLog>::both(
             EventLogger::new(&config.log_dir, config.events_enabled),
         ));
@@ -45,7 +49,9 @@ impl HttpGateway for ApiSrv {
     }
 
     fn mount(config: Arc<Self::Config>, chain: iron::Chain) -> Mount {
-        let depot = depot::DepotUtil::new(config.depot.clone());
+        let mut depot_config = config.depot.clone();
+        depot_config.segment.write_key = config.segment.write_key.clone();
+        let depot = depot::DepotUtil::new(depot_config);
         let depot_chain = depot::server::router(depot).unwrap();
         let mut mount = Mount::new();
         if let Some(ref path) = config.ui.root {
