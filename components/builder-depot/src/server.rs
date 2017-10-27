@@ -572,6 +572,10 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
         None => return Ok(Response::with(status::BadRequest)),
     };
 
+    if !check_origin_access(req, &origin).unwrap_or(false) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
     let mut request = OriginSecretKeyGet::new();
     match helpers::get_origin(req, origin) {
         Ok(mut origin) => {
@@ -2158,7 +2162,7 @@ where
             XHandler::new(upload_origin_secret_key).before(basic.clone())
         },
         origin_secret_key_latest: get "/origins/:origin/secret_keys/latest" => {
-            XHandler::new(download_latest_origin_secret_key).before(worker.clone())
+            XHandler::new(download_latest_origin_secret_key).before(basic.clone())
         },
 
         builder_key_latest: get "/builder/keys/latest" => download_latest_builder_key,
