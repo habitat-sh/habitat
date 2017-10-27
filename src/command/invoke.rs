@@ -23,7 +23,7 @@ use std::process::{Command, Stdio};
 
 use libc;
 
-use Result;
+use {Error, Result};
 use mount::{self, Mount};
 use filesystem;
 use pty;
@@ -174,7 +174,9 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
         Mount::Nonrecursive,
         Some(libc::MS_RDONLY),
     )?;
-    let source = env::home_dir().expect("poop").join(".hab/cache/keys");
+    let source = env::home_dir().ok_or(Error::HomeDirectoryNotFound)?.join(
+        ".hab/cache/keys",
+    );
     mkdir_p(&source)?;
     mount::bind(
         source,
@@ -184,7 +186,9 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
     )?;
 
     // Bind mount outside artifact cache (and ensure outside directory exists)
-    let source = env::home_dir().expect("poop").join(".hab/cache/artifacts");
+    let source = env::home_dir().ok_or(Error::HomeDirectoryNotFound)?.join(
+        ".hab/cache/artifacts",
+    );
     mkdir_p(&source)?;
     mount::bind(
         source,
@@ -200,7 +204,7 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
         command.env("FS_ROOT", rootfs);
         command.stdout(Stdio::null());
         debug!("running, command={:?}", &command);
-        command.spawn().expect("poop").wait().expect("poop");
+        command.spawn()?.wait()?;
     }
     {
         let mut command = Command::new("hab");
@@ -208,7 +212,7 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
         command.env("FS_ROOT", rootfs);
         command.stdout(Stdio::null());
         debug!("running, command={:?}", &command);
-        command.spawn().expect("poop").wait().expect("poop");
+        command.spawn()?.wait()?;
     }
 
     // Change the root file system, via `pivot_root(2)`
@@ -262,11 +266,8 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
     chmod(&console, 0o0000)?;
     mount::bind(&ptsname, &console, Mount::Nonrecursive, None)?;
 
-
     // Finally, call `exec` to become the target program
-    debug!("running, command={} args={:?}", cmd, args);
-    Command::new(cmd).args(args).exec();
-    Ok(())
+    exec_command(cmd, args)
 }
 
 fn mkdir_p<P: AsRef<Path>>(path: P) -> Result<()> {
@@ -306,5 +307,11 @@ fn chmod<P: AsRef<Path>>(path: P, mode: u32) -> Result<()> {
     let md = path.as_ref().metadata()?;
     let mut perms = md.permissions();
     perms.set_mode(mode);
+    Ok(())
+}
+
+fn exec_command(cmd: &str, args: Vec<OsString>) -> Result<()> {
+    debug!("running, command={} args={:?}", cmd, args);
+    Command::new(cmd).args(args).exec();
     Ok(())
 }

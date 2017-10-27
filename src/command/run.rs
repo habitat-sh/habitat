@@ -17,7 +17,7 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process;
+use std::process::{self, Command};
 
 use tempdir::TempDir;
 use unshare::{self, Namespace};
@@ -26,15 +26,29 @@ use users;
 use {Error, Result};
 
 pub fn run(cmd: &str, args: Vec<OsString>) -> Result<()> {
+    check_required_packages()?;
     let rootfs = TempDir::new("rootfs")?;
     debug!("created rootfs, path={}", rootfs.path().display());
     let mut command = unshare_command(rootfs.path(), cmd, args)?;
     debug!("running, command={:?}", command);
     let exit_status = command.spawn()?.wait()?;
-    // TODO fn: cleanup
     debug!("cleaning rootfs, path={}", rootfs.path().display());
     rootfs.close()?;
     process::exit(exit_status.code().unwrap_or(127));
+}
+
+fn check_required_packages() -> Result<()> {
+    for ident in vec!["core/hab", "core/busybox-static"].iter() {
+        debug!("checking for package, ident={}", ident);
+        let mut command = Command::new("hab");
+        command.args(&["pkg", "path", ident]);
+        debug!("running, command={:?}", &command);
+        let output = command.output()?;
+        if !output.status.success() {
+            return Err(Error::PackageNotFound(String::from(*ident)));
+        }
+    }
+    Ok(())
 }
 
 fn unshare_command(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<unshare::Command> {
