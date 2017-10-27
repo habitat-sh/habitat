@@ -12,195 +12,189 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as gitHubActions from './gitHub';
-import * as buildActions from './builds';
-import * as notificationActions from './notifications';
-import * as originActions from './origins';
-import * as packageActions from './packages';
-import * as projectActions from './projects';
-import * as routerActions from './router';
-import * as usersActions from './users';
-import * as uiActions from './ui';
-import * as cookieActions from './cookies';
-import * as sessionActions from './sessions';
+export {
+  CLEAR_BUILD_LOG,
+  CLEAR_BUILD,
+  CLEAR_BUILDS,
+  clearBuild,
+  clearBuilds,
+  fetchBuild,
+  fetchBuildLog,
+  fetchBuilds,
+  POPULATE_BUILD_LOG,
+  POPULATE_BUILD,
+  POPULATE_BUILDS,
+  STREAM_BUILD_LOG,
+  streamBuildLog,
+  submitJob
+} from './builds';
 
-// Action types
-export const CLEAR_GITHUB_INSTALLATIONS = gitHubActions.CLEAR_GITHUB_INSTALLATIONS;
-export const LOAD_GITHUB_SESSION_STATE = gitHubActions.LOAD_GITHUB_SESSION_STATE;
-export const POPULATE_GITHUB_INSTALLATIONS = gitHubActions.POPULATE_GITHUB_INSTALLATIONS;
-export const POPULATE_GITHUB_USER_DATA = gitHubActions.POPULATE_GITHUB_USER_DATA;
-export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
-export const SET_GITHUB_AUTH_TOKEN = gitHubActions.SET_GITHUB_AUTH_TOKEN;
+export {
+  getCookie,
+  SET_COOKIE,
+  setCookie,
+  REMOVE_COOKIE,
+  removeCookie
+} from './cookies';
 
-export const SET_BLDR_SESSION_TOKEN = sessionActions.SET_BLDR_SESSION_TOKEN;
-export const LOAD_BLDR_SESSION_STATE = sessionActions.LOAD_BLDR_SESSION_STATE;
+export {
+  authenticateWithGitHub,
+  CLEAR_GITHUB_INSTALLATIONS,
+  fetchGitHubInstallations,
+  LOAD_GITHUB_SESSION_STATE,
+  loadGitHubSessionState,
+  POPULATE_GITHUB_INSTALLATIONS,
+  POPULATE_GITHUB_USER_DATA,
+  removeSessionStorage,
+  requestGitHubAuthToken,
+  SET_GITHUB_AUTH_STATE,
+  SET_GITHUB_AUTH_TOKEN,
+  setGitHubAuthState
+} from './gitHub';
 
-export const CLEAR_BUILD = buildActions.CLEAR_BUILD;
-export const CLEAR_BUILD_LOG = buildActions.CLEAR_BUILD_LOG;
-export const CLEAR_BUILDS = buildActions.CLEAR_BUILDS;
-export const POPULATE_BUILD = buildActions.POPULATE_BUILD;
-export const POPULATE_BUILDS = buildActions.POPULATE_BUILDS;
-export const POPULATE_BUILD_LOG = buildActions.POPULATE_BUILD_LOG;
-export const STREAM_BUILD_LOG = buildActions.STREAM_BUILD_LOG;
+export {
+  ADD_NOTIFICATION,
+  addNotification,
+  REMOVE_NOTIFICATION,
+  removeNotification
+} from './notifications';
 
-export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
-export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
+export {
+  acceptOriginInvitation,
+  CLEAR_DOCKER_INTEGRATIONS,
+  CLEAR_MY_ORIGIN_INVITATIONS,
+  CLEAR_MY_ORIGINS,
+  clearIntegrationCredsValidation,
+  createOrigin,
+  deleteDockerIntegration,
+  deleteOriginInvitation,
+  deleteOriginMember,
+  fetchDockerIntegration,
+  fetchMyOriginInvitations,
+  fetchMyOrigins,
+  fetchOrigin,
+  fetchOriginInvitations,
+  fetchOriginMembers,
+  fetchOriginPublicKeys,
+  generateOriginKeys,
+  ignoreOriginInvitation,
+  inviteUserToOrigin,
+  POPULATE_MY_ORIGIN_INVITATIONS,
+  POPULATE_MY_ORIGINS,
+  POPULATE_ORIGIN_DOCKER_INTEGRATIONS,
+  POPULATE_ORIGIN_INVITATIONS,
+  POPULATE_ORIGIN_MEMBERS,
+  POPULATE_ORIGIN_PUBLIC_KEYS,
+  SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY,
+  SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY,
+  SET_CURRENT_ORIGIN_CREATING_FLAG,
+  SET_CURRENT_ORIGIN_LOADING,
+  SET_CURRENT_ORIGIN,
+  SET_INTEGRATION_CREDS_VALIDATION,
+  SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE,
+  SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE,
+  SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE,
+  SET_ORIGIN_USER_INVITE_ERROR_MESSAGE,
+  SET_PACKAGE_COUNT_FOR_ORIGIN,
+  setCurrentOrigin,
+  setDockerIntegration,
+  TOGGLE_ORIGIN_PICKER,
+  toggleOriginPicker,
+  UPDATE_ORIGIN,
+  updateOrigin,
+  uploadOriginPrivateKey,
+  uploadOriginPublicKey,
+  validateDockerCredentials
+} from './origins';
 
-export const CLEAR_MY_ORIGINS = originActions.CLEAR_MY_ORIGINS;
-export const CLEAR_MY_ORIGIN_INVITATIONS = originActions.CLEAR_MY_ORIGIN_INVITATIONS;
-export const CLEAR_DOCKER_INTEGRATIONS = originActions.CLEAR_DOCKER_INTEGRATIONS;
-export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
-export const SET_PACKAGE_COUNT_FOR_ORIGIN = originActions.SET_PACKAGE_COUNT_FOR_ORIGIN;
-export const POPULATE_MY_ORIGIN_INVITATIONS = originActions.POPULATE_MY_ORIGIN_INVITATIONS;
-export const POPULATE_ORIGIN_INVITATIONS = originActions.POPULATE_ORIGIN_INVITATIONS;
-export const POPULATE_ORIGIN_MEMBERS = originActions.POPULATE_ORIGIN_MEMBERS;
-export const POPULATE_ORIGIN_PUBLIC_KEYS = originActions.POPULATE_ORIGIN_PUBLIC_KEYS;
-export const POPULATE_ORIGIN_DOCKER_INTEGRATIONS = originActions.POPULATE_ORIGIN_DOCKER_INTEGRATIONS;
-export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
-export const SET_CURRENT_ORIGIN_CREATING_FLAG = originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
-export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY = originActions.SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY;
-export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY = originActions.SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY;
-export const SET_CURRENT_ORIGIN_LOADING = originActions.SET_CURRENT_ORIGIN_LOADING;
-export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE = originActions.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE;
-export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE = originActions.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE;
-export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
-export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE = originActions.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE;
-export const SET_INTEGRATION_CREDS_VALIDATION = originActions.SET_INTEGRATION_CREDS_VALIDATION;
-export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
-export const UPDATE_ORIGIN = originActions.UPDATE_ORIGIN;
+export {
+  CLEAR_LATEST_IN_CHANNEL,
+  CLEAR_LATEST_PACKAGE,
+  CLEAR_PACKAGE_VERSIONS,
+  CLEAR_PACKAGES,
+  fetchDashboardRecent,
+  fetchExplore,
+  fetchLatestInChannel,
+  fetchLatestPackage,
+  fetchPackage,
+  fetchPackageVersions,
+  filterPackagesBy,
+  getUniquePackages,
+  POPULATE_DASHBOARD_RECENT,
+  POPULATE_EXPLORE_STATS,
+  POPULATE_EXPLORE,
+  populateExplore,
+  populateExploreStats,
+  SET_CURRENT_PACKAGE_VERSIONS,
+  SET_CURRENT_PACKAGE,
+  SET_LATEST_IN_CHANNEL,
+  SET_LATEST_PACKAGE,
+  SET_PACKAGES_NEXT_RANGE,
+  SET_PACKAGES_SEARCH_QUERY,
+  SET_PACKAGES_TOTAL_COUNT,
+  SET_VISIBLE_PACKAGES,
+  setCurrentPackage,
+  setPackagesSearchQuery,
+  setVisiblePackages
+} from './packages';
 
-export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
-export const CLEAR_LATEST_IN_CHANNEL = packageActions.CLEAR_LATEST_IN_CHANNEL;
-export const CLEAR_LATEST_PACKAGE = packageActions.CLEAR_LATEST_PACKAGE;
-export const POPULATE_DASHBOARD_RECENT = packageActions.POPULATE_DASHBOARD_RECENT;
-export const CLEAR_PACKAGE_VERSIONS = packageActions.CLEAR_PACKAGE_VERSIONS;
-export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
-export const POPULATE_EXPLORE_STATS = packageActions.POPULATE_EXPLORE_STATS;
-export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
-export const SET_CURRENT_PACKAGE_VERSIONS = packageActions.SET_CURRENT_PACKAGE_VERSIONS;
-export const SET_LATEST_IN_CHANNEL = packageActions.SET_LATEST_IN_CHANNEL;
-export const SET_LATEST_PACKAGE = packageActions.SET_LATEST_PACKAGE;
-export const SET_PACKAGES_NEXT_RANGE = packageActions.SET_PACKAGES_NEXT_RANGE;
-export const SET_PACKAGES_SEARCH_QUERY = packageActions.SET_PACKAGES_SEARCH_QUERY;
-export const SET_PACKAGES_TOTAL_COUNT = packageActions.SET_PACKAGES_TOTAL_COUNT;
+export {
+  addProject,
+  CLEAR_PROJECTS,
+  CLEAR_CURRENT_PROJECT,
+  CLEAR_CURRENT_PROJECT_INTEGRATION,
+  deleteProject,
+  fetchProject,
+  fetchProjects,
+  SET_CURRENT_PROJECT_INTEGRATION,
+  SET_CURRENT_PROJECT,
+  SET_PROJECTS,
+  setCurrentProject,
+  setProjectIntegrationSettings,
+  setProjectVisibility,
+  updateProject
+} from './projects';
 
-export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
+export {
+  goHome,
+  requestRoute,
+  RESET_REDIRECT_ROUTE,
+  resetRedirectRoute,
+  ROUTE_CHANGE,
+  ROUTE_REQUESTED,
+  routeChange,
+  SET_REDIRECT_ROUTE,
+  setRedirectRoute
+} from './router';
 
-export const CLEAR_PROJECTS = projectActions.CLEAR_PROJECTS;
-export const CLEAR_CURRENT_PROJECT = projectActions.CLEAR_CURRENT_PROJECT;
-export const CLEAR_CURRENT_PROJECT_INTEGRATION = projectActions.CLEAR_CURRENT_PROJECT_INTEGRATION;
-export const SET_CURRENT_PROJECT = projectActions.SET_CURRENT_PROJECT;
-export const SET_CURRENT_PROJECT_INTEGRATION = projectActions.SET_CURRENT_PROJECT_INTEGRATION;
-export const SET_PROJECTS = projectActions.SET_PROJECTS;
-export const DELETE_PROJECT = projectActions.DELETE_PROJECT;
+export {
+  SET_LAYOUT,
+  setLayout
+} from './ui';
 
-export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
-export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
-export const SET_REDIRECT_ROUTE = routerActions.SET_REDIRECT_ROUTE;
-export const RESET_REDIRECT_ROUTE = routerActions.RESET_REDIRECT_ROUTE;
+export {
+  attemptSignIn,
+  fetchProfile,
+  POPULATE_PROFILE,
+  saveProfile,
+  SET_PRIVILEGES,
+  SET_SIGNING_IN_FLAG,
+  setPrivileges,
+  setSigningInFlag,
+  SIGN_IN_ATTEMPT,
+  signOut,
+  TOGGLE_USER_NAV_MENU,
+  toggleUserNavMenu
+} from './users';
 
-export const POPULATE_PROFILE = usersActions.POPULATE_PROFILE;
-export const SET_PRIVILEGES = usersActions.SET_PRIVILEGES;
-export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
-export const SET_SIGNING_IN_FLAG = usersActions.SET_SIGNING_IN_FLAG;
-export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
-
-export const SET_LAYOUT = uiActions.SET_LAYOUT;
-
-export const SET_COOKIE = cookieActions.SET_COOKIE;
-export const REMOVE_COOKIE = cookieActions.REMOVE_COOKIE;
+export {
+  LOAD_BLDR_SESSION_STATE,
+  loadBldrSessionState,
+  SET_BLDR_SESSION_TOKEN
+} from './sessions';
 
 // Used by redux-reset to reset the app state
 export const RESET = 'RESET';
-
-// Actions
-export const authenticateWithGitHub = gitHubActions.authenticateWithGitHub;
-export const fetchGitHubInstallations = gitHubActions.fetchGitHubInstallations;
-export const loadGitHubSessionState = gitHubActions.loadGitHubSessionState;
-export const removeSessionStorage = gitHubActions.removeSessionStorage;
-export const requestGitHubAuthToken = gitHubActions.requestGitHubAuthToken;
-export const setGitHubAuthState = gitHubActions.setGitHubAuthState;
-
-export const loadBldrSessionState = sessionActions.loadBldrSessionState;
-
-export const clearBuild = buildActions.clearBuild;
-export const clearBuilds = buildActions.clearBuilds;
-export const fetchBuild = buildActions.fetchBuild;
-export const fetchBuildLog = buildActions.fetchBuildLog;
-export const fetchBuilds = buildActions.fetchBuilds;
-export const streamBuildLog = buildActions.streamBuildLog;
-export const submitJob = buildActions.submitJob;
-
-export const addNotification = notificationActions.addNotification;
-export const removeNotification = notificationActions.removeNotification;
-
-export const acceptOriginInvitation = originActions.acceptOriginInvitation;
-export const createOrigin = originActions.createOrigin;
-export const clearIntegrationCredsValidation = originActions.clearIntegrationCredsValidation;
-export const deleteOriginInvitation = originActions.deleteOriginInvitation;
-export const deleteOriginMember = originActions.deleteOriginMember;
-export const deleteDockerIntegration = originActions.deleteDockerIntegration;
-export const ignoreOriginInvitation = originActions.ignoreOriginInvitation;
-export const fetchDockerIntegration = originActions.fetchDockerIntegration;
-export const fetchOrigin = originActions.fetchOrigin;
-export const fetchOriginInvitations = originActions.fetchOriginInvitations;
-export const fetchOriginMembers = originActions.fetchOriginMembers;
-export const fetchOriginPublicKeys = originActions.fetchOriginPublicKeys;
-export const fetchMyOrigins = originActions.fetchMyOrigins;
-export const fetchMyOriginInvitations = originActions.fetchMyOriginInvitations;
-export const generateOriginKeys = originActions.generateOriginKeys;
-export const inviteUserToOrigin = originActions.inviteUserToOrigin;
-export const toggleOriginPicker = originActions.toggleOriginPicker;
-export const setCurrentOrigin = originActions.setCurrentOrigin;
-export const updateOrigin = originActions.updateOrigin;
-export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
-export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
-export const setDockerIntegration = originActions.setDockerIntegration;
-export const validateDockerCredentials = originActions.validateDockerCredentials;
-
-export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
-export const fetchExplore = packageActions.fetchExplore;
-export const fetchPackage = packageActions.fetchPackage;
-export const fetchLatestInChannel = packageActions.fetchLatestInChannel;
-export const fetchLatestPackage = packageActions.fetchLatestPackage;
-export const fetchPackageVersions = packageActions.fetchPackageVersions;
-export const filterPackagesBy = packageActions.filterPackagesBy;
-export const populateExplore = packageActions.populateExplore;
-export const populateExploreStats = packageActions.populateExploreStats;
-export const setCurrentPackage = packageActions.setCurrentPackage;
-export const setPackagesSearchQuery = packageActions.setPackagesSearchQuery;
-export const setVisiblePackages = packageActions.setVisiblePackages;
-export const getUniquePackages = packageActions.getUniquePackages;
-
-export const addProject = projectActions.addProject;
-export const fetchProject = projectActions.fetchProject;
-export const fetchProjects = projectActions.fetchProjects;
-export const fetchProjectIntegration = projectActions.fetchProjectIntegration;
-export const setCurrentProject = projectActions.setCurrentProject;
-export const setProjectIntegrationSettings = projectActions.setProjectIntegrationSettings;
-export const setProjectVisibility = projectActions.setProjectVisibility;
-export const deleteProject = projectActions.deleteProject;
-export const updateProject = projectActions.updateProject;
-
-export const goHome = routerActions.goHome;
-export const routeChange = routerActions.routeChange;
-export const requestRoute = routerActions.requestRoute;
-export const setRedirectRoute = routerActions.setRedirectRoute;
-export const resetRedirectRoute = routerActions.resetRedirectRoute;
-
-export const fetchProfile = usersActions.fetchProfile;
-export const saveProfile = usersActions.saveProfile;
-export const setPrivileges = usersActions.setPrivileges;
-export const setSigningInFlag = usersActions.setSigningInFlag;
-export const attemptSignIn = usersActions.attemptSignIn;
-export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
-export const signOut = usersActions.signOut;
-
-export const setLayout = uiActions.setLayout;
-
-export const getCookie = cookieActions.getCookie;
-export const setCookie = cookieActions.setCookie;
-export const removeCookie = cookieActions.removeCookie;
 
 export function resetAppState() {
   return {

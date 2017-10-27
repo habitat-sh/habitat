@@ -15,7 +15,7 @@
 import { NgModule } from '@angular/core';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 import { MatButtonModule, MAT_PLACEHOLDER_GLOBAL_OPTIONS } from '@angular/material';
-import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
 import { HttpModule } from '@angular/http';
 import { MatIconModule, MatRadioModule, MatTabsModule } from '@angular/material';
 import { routing } from './routes';
@@ -25,7 +25,7 @@ import { BannerComponent } from './banner/banner.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ExploreComponent } from './explore/explore.component';
 import { FooterComponent } from './footer/footer.component';
-import { GravatarComponent } from './GravatarComponent';
+import { GravatarComponent } from './gravatar/gravatar.component';
 import { HeaderComponent } from './header/header.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { SideNavComponent } from './side-nav/side-nav.component';

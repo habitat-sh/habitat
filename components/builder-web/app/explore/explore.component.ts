@@ -15,7 +15,7 @@
 import { AppStore } from '../app.store';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { fetchExplore, setLayout, setPackagesSearchQuery } from '../actions/index';
+import { fetchExplore, setLayout } from '../actions/index';
 
 @Component({
   selector: 'hab-explore',

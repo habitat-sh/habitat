@@ -13,11 +13,10 @@
 // limitations under the License.
 
 import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppStore } from '../../app.store';
-import { AsyncValidator } from '../../AsyncValidator';
-import { BuilderApiClient } from '../../BuilderApiClient';
+import { BuilderApiClient } from '../../client/builder-api';
 import { createOrigin } from '../../actions/index';
 import { requireSignIn } from '../../util';
 
@@ -31,7 +30,6 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
   visibility: string = 'public';
 
   private api: BuilderApiClient;
-  private name: FormControl;
 
   constructor(private formBuilder: FormBuilder, private store: AppStore, private router: Router) {
     this.api = new BuilderApiClient(this.token);

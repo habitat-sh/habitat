@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { List } from 'immutable';
-import { MatDialog, MatDialogRef } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { SimpleConfirmDialog } from '../../../shared/dialog/simple-confirm/simple-confirm.dialog';
 import { AppStore } from '../../../app.store';
 import { deleteOriginInvitation, inviteUserToOrigin } from '../../../actions/index';

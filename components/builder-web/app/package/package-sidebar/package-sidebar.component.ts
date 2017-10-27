@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { packageString, targetToPlatform, releaseToDate } from '../../util';
 import { AppStore } from '../../app.store';
 import { fetchLatestInChannel, fetchPackageVersions, submitJob } from '../../actions/index';
 

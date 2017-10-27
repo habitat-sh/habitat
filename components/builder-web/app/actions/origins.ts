@@ -13,9 +13,8 @@
 // limitations under the License.
 
 import { addNotification, SUCCESS, DANGER } from './notifications';
-import { requestRoute } from './router';
-import * as depotApi from '../depotApi';
-import { BuilderApiClient } from '../BuilderApiClient';
+import * as depotApi from '../client/depot-api';
+import { BuilderApiClient } from '../client/builder-api';
 import { parseKey } from '../util';
 
 export const CLEAR_MY_ORIGINS = 'CLEAR_MY_ORIGINS';

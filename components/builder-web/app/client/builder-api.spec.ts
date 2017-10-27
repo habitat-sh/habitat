@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { BuilderApiClient } from './BuilderApiClient';
+import { BuilderApiClient } from './builder-api';
 
 describe('BuilderApiClient', () => {
 

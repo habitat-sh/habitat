@@ -21,7 +21,6 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "checking-input";
 @import "dialog";
 @import "drop-down";
-@import "item-list";
 @import "tabs";
 
 @import "banner/banner.component";
@@ -50,15 +49,6 @@ body {
   -webkit-font-smoothing: antialiased;
   background: linear-gradient(to top, $medium-blue, $dark-blue);
   margin: 0;
-}
-
-.hab-topbar {
-  @include background(url("/assets/images/bg-pattern.png"), linear-gradient(205deg, #484846 15%, #323330 100%), center);
-  background-color: $hab-orange;
-  box-shadow: 1px 0 14px 0 $medium-gray;
-  height: 80px;
-  position: relative;
-  z-index: 100;
 }
 
 .hab-container {
@@ -150,8 +140,4 @@ body {
   .hab-sign-in & {
     min-height: inherit;
   }
-}
-
-.uppercase {
-  text-transform: uppercase;
 }

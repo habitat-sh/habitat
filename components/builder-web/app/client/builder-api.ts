@@ -13,12 +13,12 @@
 // limitations under the License.
 
 import 'whatwg-fetch';
-import config from './config';
-import { parseKey } from './util';
-import { GitHubApiClient } from './GitHubApiClient';
-import { AppStore } from './app.store';
-import { requestRoute, addNotification } from './actions/index';
-import { WARNING } from './actions/notifications';
+import config from '../config';
+import { parseKey } from '../util';
+import { GitHubApiClient } from './github-api';
+import { AppStore } from '../app.store';
+import { requestRoute, addNotification } from '../actions/index';
+import { WARNING } from '../actions/notifications';
 
 export class BuilderApiClient {
   private headers;

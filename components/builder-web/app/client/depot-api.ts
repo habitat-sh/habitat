@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import 'whatwg-fetch';
-import config from './config';
-import { packageString } from './util';
-import { AppStore } from './app.store';
-import { requestRoute, addNotification } from './actions/index';
-import { WARNING } from './actions/notifications';
+import config from '../config';
+import { packageString } from '../util';
+import { AppStore } from '../app.store';
+import { requestRoute, addNotification } from '../actions/index';
+import { WARNING } from '../actions/notifications';
 
 const urlPrefix = `${config['habitat_api_url']}/v1` || 'v1';
 

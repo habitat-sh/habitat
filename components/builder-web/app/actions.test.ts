@@ -15,7 +15,7 @@
 import * as cookies from 'js-cookie';
 import * as gitHub from './actions/gitHub';
 import * as actions from './actions/index';
-import * as depotApi from './depotApi';
+import * as depotApi from './client/depot-api';
 
 describe('actions', () => {
 

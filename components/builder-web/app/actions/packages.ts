@@ -13,9 +13,7 @@
 // limitations under the License.
 
 import { groupBy } from 'lodash';
-import * as depotApi from '../depotApi';
-import * as fakeApi from '../fakeApi';
-import { Package } from '../records/Package';
+import * as depotApi from '../client/depot-api';
 
 export const CLEAR_PACKAGES = 'CLEAR_PACKAGES';
 export const CLEAR_LATEST_IN_CHANNEL = 'CLEAR_LATEST_IN_CHANNEL';
@@ -68,17 +66,11 @@ function clearPackageVersions() {
   };
 }
 
-// Fetch the explore endpoint
 export function fetchExplore() {
   return dispatch => {
-    Promise.all([
-      fakeApi.get('explore.json')
-        .then(response => dispatch(populateExplore(response)))
-        .catch(error => console.error(error)),
-      depotApi.getStats('core')
-        .then(data => dispatch(populateExploreStats(data)))
-        .catch(error => console.error(error))
-    ]);
+    depotApi.getStats('core')
+      .then(data => dispatch(populateExploreStats(data)))
+      .catch(error => console.error(error));
   };
 }
 

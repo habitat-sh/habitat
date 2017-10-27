@@ -14,7 +14,7 @@
 
 import { List } from 'immutable';
 import * as actionTypes from '../actions/index';
-import initialState from '../initialState';
+import initialState from '../initial-state';
 import { Origin } from '../records/Origin';
 
 export default function origins(state = initialState['origins'], action) {

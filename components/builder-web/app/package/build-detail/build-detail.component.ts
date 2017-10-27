@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Component, HostListener, Input, OnChanges, OnDestroy, ElementRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import * as AnsiUp from 'ansi_up';
 import * as moment from 'moment';

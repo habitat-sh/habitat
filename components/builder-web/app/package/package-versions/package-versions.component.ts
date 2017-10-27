@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs/subscription';
 import { AppStore } from '../../app.store';
-import { packageString, targetToPlatform, releaseToDate } from '../../util';
-import { fetchPackageVersions, fetchLatestPackage, filterPackagesBy, submitJob } from '../../actions/index';
+import { packageString, releaseToDate } from '../../util';
+import { fetchPackageVersions, filterPackagesBy } from '../../actions/index';
 
 @Component({
   template: require('./package-versions.component.html')

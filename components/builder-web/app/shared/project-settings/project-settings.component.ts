@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef } from '@angular/material';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material';
 import { DisconnectConfirmDialog } from './dialog/disconnect-confirm/disconnect-confirm.dialog';
 import { DockerExportSettingsComponent } from '../../shared/docker-export-settings/docker-export-settings.component';
-import { BuilderApiClient } from '../../BuilderApiClient';
-import { GitHubApiClient } from '../../GitHubApiClient';
+import { BuilderApiClient } from '../../client/builder-api';
 import { AppStore } from '../../app.store';
 import {
   addProject, updateProject, setProjectIntegrationSettings, deleteProject,

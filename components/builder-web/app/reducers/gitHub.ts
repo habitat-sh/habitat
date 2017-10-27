@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { fromJS, List } from 'immutable';
-import initialState from '../initialState';
+import initialState from '../initial-state';
 import * as actionTypes from '../actions/index';
 import config from '../config';
 

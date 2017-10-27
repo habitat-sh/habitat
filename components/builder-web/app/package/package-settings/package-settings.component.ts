@@ -12,16 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Inject, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MatDialog, MatDialogRef } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { Subscription } from 'rxjs/subscription';
-import { GitHubApiClient } from '../../GitHubApiClient';
-import { GitHubRepo } from '../../github/repo/shared/github-repo.model';
 import { requireSignIn } from '../../util';
 import { AppStore } from '../../app.store';
-import { addNotification, addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchProject } from '../../actions/index';
-import config from '../../config';
 
 @Component({
   selector: 'hab-package-settings',

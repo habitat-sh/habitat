@@ -14,7 +14,7 @@
 
 import { Component, Input } from '@angular/core';
 import { List } from 'immutable';
-import { packageString, releaseToDate } from '../../util';
+import { packageString } from '../../util';
 
 @Component({
   selector: 'hab-search-results',

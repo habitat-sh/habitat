@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { Component, Input, OnChanges } from '@angular/core';
 import { AppStore } from '../../app.store';
 
 @Component({

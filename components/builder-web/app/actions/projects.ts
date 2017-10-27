@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { BuilderApiClient } from '../BuilderApiClient';
+import { BuilderApiClient } from '../client/builder-api';
 import { addNotification } from './notifications';
-import { DANGER, INFO, SUCCESS, WARNING } from './notifications';
+import { DANGER, SUCCESS } from './notifications';
 
 export const CLEAR_PROJECTS = 'CLEAR_PROJECTS';
 export const CLEAR_CURRENT_PROJECT = 'CLEAR_CURRENT_PROJECT';

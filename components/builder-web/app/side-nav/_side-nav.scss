@@ -47,12 +47,6 @@
       &:hover {
         color: $hover-color;
       }
-
-      &.active {
-        background: url("../assets/images/sidebar-active.png") no-repeat right;
-        background-size: 10px;
-        color: $hab-green;
-      }
     }
   }
 }

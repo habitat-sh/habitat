@@ -5,11 +5,11 @@
 @import "theme_palette";
 
 $custom-typography: mat-typography-config(
-  $font-family: $base-font-family
+  $font-family: "#{$base-font-family}"
 );
 
 $tabs-typography: mat-typography-config(
-  $font-family: $tabs-font-family
+  $font-family: "#{$tabs-font-family}"
 );
 
 $hab-theme-primary: mat-palette($md-mcgpalette0);

@@ -14,13 +14,12 @@
 
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Component, Input, OnInit } from '@angular/core';
-import { AsyncValidator } from '../../AsyncValidator';
+import { AsyncValidator } from '../../async-validator';
 
 @Component({
   selector: 'hab-checking-input',
   template: require('./checking-input.component.html')
 })
-
 export class CheckingInputComponent implements OnInit {
   @Input() autofocus;
   @Input() availableMessage;

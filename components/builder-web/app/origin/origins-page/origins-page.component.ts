@@ -14,8 +14,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { List } from 'immutable';
-import { MatDialog, MatDialogRef } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { SimpleConfirmDialog } from '../../shared/dialog/simple-confirm/simple-confirm.dialog';
 import { acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins, ignoreOriginInvitation } from '../../actions/index';
 import { AppStore } from '../../app.store';

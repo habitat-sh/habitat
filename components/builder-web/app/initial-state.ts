@@ -17,7 +17,6 @@ import { BehaviorSubject } from 'rxjs';
 import { Origin } from './records/Origin';
 import { Package } from './records/Package';
 import { Project } from './records/Project';
-import { getBrowserCookies } from './actions/cookies';
 
 export default Record({
   app: Record({
@@ -110,9 +109,102 @@ export default Record({
       recent: List()
     })(),
     explore: Record({
-      popular: List(),
-      your_app: List(),
-      community: List(),
+      popular: List([
+        {
+          'origin': 'core',
+          'name': 'python2',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'ruby',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'go',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'node',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'jdk8',
+          'originCount': 4,
+          'starCount': 2345
+        }
+      ]),
+      your_app: List([
+        {
+          'origin': 'core',
+          'name': 'scaffolding-ruby',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'scaffolding-node',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'nginx',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'tomcat8',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'core',
+          'name': 'docker',
+          'originCount': 4,
+          'starCount': 2345
+        }
+      ]),
+      community: List([
+        {
+          'origin': 'endocode',
+          'name': 'drupal',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'endocode',
+          'name': 'jenkins',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'starkandwayne',
+          'name': 'wordpress',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'starkandwayne',
+          'name': 'postgresql',
+          'originCount': 4,
+          'starCount': 2345
+        },
+        {
+          'origin': 'starkandwayne',
+          'name': 'mysql',
+          'originCount': 4,
+          'starCount': 2345
+        }
+      ]),
       stats: Record({
         plans: 0,
         builds: 0

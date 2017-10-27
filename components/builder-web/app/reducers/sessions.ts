@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as actionTypes from '../actions/index';
-import initialState from '../initialState';
+import initialState from '../initial-state';
 
 export default function session(state = initialState['session'], action) {
   switch (action.type) {

@@ -17,15 +17,13 @@ import { URLSearchParams } from '@angular/http';
 import * as cookies from 'js-cookie';
 import config from '../config';
 import {
-  attemptSignIn, addNotification, goHome, fetchMyOrigins, fetchMyOriginInvitations, fetchProfile, requestRoute, setPrivileges,
-  signOut, setSigningInFlag
+  attemptSignIn, addNotification, fetchMyOrigins, fetchMyOriginInvitations,
+  fetchProfile, setPrivileges, signOut
 } from './index';
 import { DANGER, WARNING } from './notifications';
-import { BuilderApiClient } from '../BuilderApiClient';
-import { GitHubApiClient } from '../GitHubApiClient';
+import { GitHubApiClient } from '../client/github-api';
 import { setBldrSessionToken } from './sessions';
 
-const parseLinkHeader = require('parse-link-header');
 const uuid = require('uuid').v4;
 const gitHubTokenAuthUrl = `${config['habitat_api_url']}/v1/authenticate`;
 
@@ -37,7 +35,6 @@ export const SET_GITHUB_AUTH_STATE = 'SET_GITHUB_AUTH_STATE';
 export const SET_GITHUB_AUTH_TOKEN = 'SET_GITHUB_AUTH_TOKEN';
 
 export function authenticateWithGitHub(oauth_token = undefined, session_token = undefined) {
-  const wasInitializedWithToken = !!oauth_token;
 
   return dispatch => {
     if (oauth_token) {
