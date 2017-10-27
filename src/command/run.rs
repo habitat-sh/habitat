@@ -19,22 +19,25 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process;
 
+use tempdir::TempDir;
 use unshare::{self, Namespace};
 use users;
 
 use {Error, Result};
 
 pub fn run(cmd: &str, args: Vec<OsString>) -> Result<()> {
-    let program = proc_exe()?;
-    let mut command = unshare_command(cmd, args)?;
-    debug!("Running: {:?}", command);
+    let rootfs = TempDir::new("rootfs")?;
+    debug!("created rootfs, path={}", rootfs.path().display());
+    let mut command = unshare_command(rootfs.path(), cmd, args)?;
+    debug!("running, command={:?}", command);
     let exit_status = command.spawn()?.wait()?;
     // TODO fn: cleanup
+    debug!("cleaning rootfs, path={}", rootfs.path().display());
+    rootfs.close()?;
     process::exit(exit_status.code().unwrap_or(127));
-    Ok(())
 }
 
-fn unshare_command(cmd: &str, args: Vec<OsString>) -> Result<unshare::Command> {
+fn unshare_command(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<unshare::Command> {
     let program = proc_exe()?;
     let namespaces = vec![
         Namespace::User,
@@ -46,6 +49,7 @@ fn unshare_command(cmd: &str, args: Vec<OsString>) -> Result<unshare::Command> {
 
     let mut command = unshare::Command::new(program);
     command.arg("invoke");
+    command.arg(rootfs);
     command.arg(cmd);
     command.args(&args);
     command.unshare(namespaces.iter().cloned());
@@ -58,7 +62,7 @@ fn unshare_command(cmd: &str, args: Vec<OsString>) -> Result<unshare::Command> {
 }
 
 fn uid_maps() -> Result<Vec<unshare::UidMap>> {
-    let (start_uid, range) = sub_range(Path::new("/etc/subuid"))?;
+    let (start_uid, range) = sub_range(&username()?, Path::new("/etc/subuid"))?;
 
     Ok(vec![
         // Maps the outside user to the root user
@@ -83,7 +87,7 @@ fn uid_maps() -> Result<Vec<unshare::UidMap>> {
 }
 
 fn gid_maps() -> Result<Vec<unshare::GidMap>> {
-    let (start_gid, range) = sub_range(Path::new("/etc/subgid"))?;
+    let (start_gid, range) = sub_range(&groupname()?, Path::new("/etc/subgid"))?;
 
     Ok(vec![
         // Maps the outside group to the root group
@@ -145,21 +149,20 @@ fn find_command<P: AsRef<Path>>(command: P) -> Result<PathBuf> {
     }
 }
 
-fn sub_range(path: &Path) -> Result<(u32, u32)> {
+fn sub_range(entry: &str, path: &Path) -> Result<(u32, u32)> {
     if !path.exists() {
         return Err(Error::FileNotFound(path.to_string_lossy().into()));
     }
-    let username = username()?;
     let line = {
         let file = File::open(path)?;
         let file = BufReader::new(file);
         match file.lines().map(|l| l.unwrap()).find(|ref line| {
-            line.split(":").next().unwrap_or("") == username
+            line.split(":").next().unwrap_or("") == entry
         }) {
             Some(line) => line,
             None => {
                 return Err(Error::FileEntryNotFound(
-                    username,
+                    String::from(entry),
                     path.to_string_lossy().into(),
                 ))
             }
@@ -168,22 +171,22 @@ fn sub_range(path: &Path) -> Result<(u32, u32)> {
     let start_id = line.split(":")
         .nth(1)
         .ok_or(Error::FileEntryNotFound(
-            username.clone(),
+            String::from(entry),
             path.to_string_lossy().into(),
         ))?
         .parse()
         .map_err(|_err| {
-            Error::FileEntryNotFound(username.clone(), path.to_string_lossy().into())
+            Error::FileEntryNotFound(String::from(entry), path.to_string_lossy().into())
         })?;
     let range = line.split(":")
         .nth(2)
         .ok_or(Error::FileEntryNotFound(
-            username.clone(),
+            String::from(entry),
             path.to_string_lossy().into(),
         ))?
         .parse()
         .map_err(|_err| {
-            Error::FileEntryNotFound(username.clone(), path.to_string_lossy().into())
+            Error::FileEntryNotFound(String::from(entry), path.to_string_lossy().into())
         })?;
 
     Ok((start_id, range))

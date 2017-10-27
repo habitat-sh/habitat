@@ -24,8 +24,9 @@ extern crate log;
 
 use std::env;
 use std::ffi::OsString;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
+use std::result;
 
 use airlock::command;
 use airlock::Result;
@@ -54,8 +55,9 @@ fn _main() -> Result<()> {
 }
 
 fn sub_invoke(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
+    let rootfs = Path::new(m.value_of("ROOTFS").unwrap());
     let cmd = m.value_of("CMD").unwrap();
-    command::invoke::run(cmd, cmd_args)
+    command::invoke::run(rootfs, cmd, cmd_args)
 }
 
 fn sub_run(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
@@ -88,6 +90,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand invoke =>
             (@setting Hidden)
             (about: "invoke stuff")
+            (@arg ROOTFS: +required +takes_value {dir_exists}
+                "Path to the rootfs (ex: /tmp/rootfs)")
             (@arg CMD: +required +takes_value
                 "The command to execute (ex: ls)")
             (@arg ARGS: +takes_value +multiple
@@ -99,7 +103,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
 fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     let mut args = env::args();
     match args.nth(1).unwrap_or_default().as_str() {
-        "run" | "invoke" => {
+        "run" => {
             if args.by_ref().count() > 1 {
                 return (
                     env::args_os().take(3).collect(),
@@ -109,6 +113,24 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
                 (env::args_os().collect(), Vec::new())
             }
         }
+        "invoke" => {
+            if args.by_ref().count() > 2 {
+                return (
+                    env::args_os().take(4).collect(),
+                    env::args_os().skip(4).collect(),
+                );
+            } else {
+                (env::args_os().collect(), Vec::new())
+            }
+        }
         _ => (env::args_os().collect(), Vec::new()),
+    }
+}
+
+fn dir_exists(val: String) -> result::Result<(), String> {
+    if Path::new(&val).is_dir() {
+        Ok(())
+    } else {
+        Err(format!("Directory: '{}' cannot be found", &val))
     }
 }
