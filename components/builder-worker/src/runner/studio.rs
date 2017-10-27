@@ -15,6 +15,7 @@
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 
 use hab_core::channel::{BLDR_CHANNEL_ENVVAR, STABLE_CHANNEL};
@@ -39,6 +40,10 @@ lazy_static! {
         "hab-studio",
         include_str!(concat!(env!("OUT_DIR"), "/STUDIO_PKG_IDENT")),
     );
+
+    pub static ref STUDIO_HOME: Mutex<PathBuf> = {
+        Mutex::new(PathBuf::new())
+    };
 }
 
 pub struct Studio<'a> {
