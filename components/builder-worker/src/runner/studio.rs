@@ -128,7 +128,6 @@ impl<'a> Studio<'a> {
         let mut cmd = Command::new("airlock");
         cmd.uid(studio_uid());
         cmd.gid(studio_gid());
-        cmd.env_clear();
         if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
             cmd.env("DEBUG", val);
         }
