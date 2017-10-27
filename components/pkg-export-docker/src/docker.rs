@@ -152,13 +152,18 @@ impl<'a> DockerImage {
     /// * If a registry login is not successful
     /// * If a pushing one or more of the image tags fails
     /// * If a registry logout is not successful
-    pub fn push(&self, ui: &mut UI, credentials: &Credentials) -> Result<()> {
+    pub fn push(
+        &self,
+        ui: &mut UI,
+        credentials: &Credentials,
+        registry_url: Option<&str>,
+    ) -> Result<()> {
         ui.begin(format!(
             "Pushing Docker image '{}' with all tags to remote registry",
             self.name()
         ))?;
-        self.logout(ui)?;
-        self.login(ui, credentials)?;
+        self.logout(ui, registry_url)?;
+        self.login(ui, credentials, registry_url)?;
         if self.tags.is_empty() {
             self.push_image(ui, None)?;
         } else {
@@ -166,7 +171,7 @@ impl<'a> DockerImage {
                 self.push_image(ui, Some(tag))?;
             }
         }
-        self.logout(ui)?;
+        self.logout(ui, registry_url)?;
         ui.end(format!(
             "Docker image '{}' published with tags: {}",
             self.name(),
@@ -247,7 +252,12 @@ impl<'a> DockerImage {
         Ok(())
     }
 
-    fn login(&self, ui: &mut UI, credentials: &Credentials) -> Result<()> {
+    fn login(
+        &self,
+        ui: &mut UI,
+        credentials: &Credentials,
+        registry_url: Option<&str>,
+    ) -> Result<()> {
         ui.status(
             Status::Custom('☛', "Logging into".to_string()),
             "remote registry",
@@ -258,6 +268,11 @@ impl<'a> DockerImage {
             .arg(credentials.username)
             .arg("--password")
             .arg(credentials.password);
+
+        if let Some(arg) = registry_url {
+            cmd.arg(arg);
+        }
+
         debug!(
             "Running: {}",
             format!("{:?}", &cmd)
@@ -272,13 +287,17 @@ impl<'a> DockerImage {
         Ok(())
     }
 
-    fn logout(&self, ui: &mut UI) -> Result<()> {
+    fn logout(&self, ui: &mut UI, registry_url: Option<&str>) -> Result<()> {
         ui.status(
             Status::Custom('☒', "Logging out".to_string()),
             "of remote registry",
         )?;
         let mut cmd = docker_cmd();
         cmd.arg("logout");
+
+        if let Some(arg) = registry_url {
+            cmd.arg(arg);
+        }
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
@@ -461,6 +480,11 @@ impl DockerBuildRoot {
         let image_name = match naming.custom_image_name {
             Some(ref custom) => Handlebars::new().template_render(custom, &json)?,
             None => format!("{}/{}", ident.origin, ident.name),
+        }.to_lowercase();
+
+        let image_name = match naming.registry_url {
+            Some(ref url) => format!("{}/{}", url, image_name),
+            None => image_name,
         }.to_lowercase();
 
         let mut image = DockerImage::new(self.0.workdir(), image_name);

@@ -14,8 +14,10 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+base64 = "*"
 clap = { version = "*", features = ["suggestions", "color", "unstable"] }
 clippy = { version = "*", optional = true }
+chrono = "*"
 env_logger = "*"
 hab = { path = "../hab" }
 habitat_core = { path = "../core" }
@@ -23,6 +25,9 @@ habitat_common = { path = "../common" }
 handlebars = { version = "*", features = ["partial4"], default-features = false }
 lazy_static = "*"
 log = "*"
+rusoto_core = "*"
+rusoto_credential = "*"
+rusoto_ecr = "*"
 serde = { version = "*", features = ["rc"] }
 serde_json = "*"
 tempdir = "*"

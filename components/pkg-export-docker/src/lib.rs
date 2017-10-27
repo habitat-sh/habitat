@@ -19,6 +19,7 @@ extern crate hab;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate handlebars;
+extern crate rusoto_ecr;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -26,6 +27,7 @@ extern crate log;
 #[macro_use]
 extern crate serde_json;
 extern crate tempdir;
+extern crate base64;
 
 mod build;
 mod docker;
@@ -38,7 +40,7 @@ use common::ui::UI;
 
 pub use build::BuildSpec;
 pub use docker::{DockerImage, DockerBuildRoot};
-pub use error::Result;
+pub use error::{Error, Result};
 
 /// The version of this library and program when built.
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -65,6 +67,11 @@ pub struct Naming<'a> {
     pub version_release_tag: bool,
     /// An optional custom tag value for the image.
     pub custom_tag: Option<&'a str>,
+    /// A URL to a custom Docker registry to publish to. This will be used as part of every tag
+    /// before pushing.
+    pub registry_url: Option<&'a str>,
+    /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
+    pub registry_type: &'a str,
 }
 
 /// A credentials username and password pair.
