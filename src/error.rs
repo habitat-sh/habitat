@@ -27,6 +27,7 @@ pub enum Error {
     FileNotFound(String),
     Grantpt(String),
     GroupnameNotFound,
+    GroupNotFound(String),
     HomeDirectoryNotFound,
     IO(io::Error),
     Mount(String),
@@ -37,6 +38,7 @@ pub enum Error {
     Ptsname(String),
     Unlockpt(String),
     Unshare(unshare::Error),
+    UserNotInGroup(String, String),
     UsernameNotFound,
 }
 
@@ -50,6 +52,7 @@ impl fmt::Display for Error {
             Error::FileNotFound(ref f) => format!("Could not find file {}", f),
             Error::Grantpt(ref e) => format!("Error calling grantpt, {}", e),
             Error::GroupnameNotFound => String::from("Could not determine groupname of process"),
+            Error::GroupNotFound(ref g) => format!("Could not find {} unix group", g),
             Error::HomeDirectoryNotFound => String::from(
                 "Could not determine user's home directory",
             ),
@@ -62,6 +65,9 @@ impl fmt::Display for Error {
             Error::Ptsname(ref e) => format!("Error calling ptsname, {}", e),
             Error::Unlockpt(ref e) => format!("Error calling unlockpt, {}", e),
             Error::Unshare(ref e) => format!("Unshare error: {}", e),
+            Error::UserNotInGroup(ref u, ref g) => {
+                format!("User '{}' is not a member of the '{}' unix group", u, g)
+            }
             Error::UsernameNotFound => String::from("Could not determine username of process"),
         };
         write!(f, "{}", msg)

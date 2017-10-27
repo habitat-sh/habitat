@@ -22,11 +22,13 @@ use std::process::{self, Command};
 use tempdir::TempDir;
 use unshare::{self, Namespace};
 use users;
+use users::os::unix::GroupExt;
 
 use {Error, Result};
 
 pub fn run(cmd: &str, args: Vec<OsString>) -> Result<()> {
     check_required_packages()?;
+    check_user_group_membership()?;
     let rootfs = TempDir::new("rootfs")?;
     debug!("created rootfs, path={}", rootfs.path().display());
     let mut command = unshare_command(rootfs.path(), cmd, args)?;
@@ -46,6 +48,19 @@ fn check_required_packages() -> Result<()> {
         let output = command.output()?;
         if !output.status.success() {
             return Err(Error::PackageNotFound(String::from(*ident)));
+        }
+    }
+    Ok(())
+}
+
+fn check_user_group_membership() -> Result<()> {
+    let user = username()?;
+    for grp in vec!["tty"].iter() {
+        let user_group = users::get_group_by_name(grp).ok_or(Error::GroupNotFound(
+            String::from(*grp),
+        ))?;
+        if !user_group.members().contains(&user) {
+            return Err(Error::UserNotInGroup(user, String::from(*grp)));
         }
     }
     Ok(())
