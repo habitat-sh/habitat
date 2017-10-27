@@ -36,6 +36,8 @@ pub enum Error {
     PivotRoot(String),
     ProgramNotFound(String),
     Ptsname(String),
+    SubGidRangeTooSmall(u32, u32),
+    SubUidRangeTooSmall(u32, u32),
     Unlockpt(String),
     Unshare(unshare::Error),
     UserNotInGroup(String, String),
@@ -63,6 +65,20 @@ impl fmt::Display for Error {
             Error::PivotRoot(ref e) => format!("Error calling pivot_root, {}", e),
             Error::ProgramNotFound(ref p) => format!("Could not find program {}", p),
             Error::Ptsname(ref e) => format!("Error calling ptsname, {}", e),
+            Error::SubGidRangeTooSmall(ref r, ref m) => {
+                format!(
+                    "Range '{}' in subgid is too small for user, minimum required: '{}'",
+                    r,
+                    m
+                )
+            }
+            Error::SubUidRangeTooSmall(ref r, ref m) => {
+                format!(
+                    "Range '{}' in subuid is too small for user, minimum required: '{}'",
+                    r,
+                    m
+                )
+            }
             Error::Unlockpt(ref e) => format!("Error calling unlockpt, {}", e),
             Error::Unshare(ref e) => format!("Unshare error: {}", e),
             Error::UserNotInGroup(ref u, ref g) => {

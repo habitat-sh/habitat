@@ -26,6 +26,8 @@ use users::os::unix::GroupExt;
 
 use {Error, Result};
 
+const MIN_SUB_RANGE: u32 = 65536;
+
 pub fn run(cmd: &str, args: Vec<OsString>) -> Result<()> {
     check_required_packages()?;
     check_user_group_membership()?;
@@ -92,6 +94,9 @@ fn unshare_command(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<unsh
 
 fn uid_maps() -> Result<Vec<unshare::UidMap>> {
     let (start_uid, range) = sub_range(&username()?, Path::new("/etc/subuid"))?;
+    if range < MIN_SUB_RANGE {
+        return Err(Error::SubUidRangeTooSmall(range, MIN_SUB_RANGE));
+    }
 
     Ok(vec![
         // Maps the outside user to the root user
@@ -117,6 +122,9 @@ fn uid_maps() -> Result<Vec<unshare::UidMap>> {
 
 fn gid_maps() -> Result<Vec<unshare::GidMap>> {
     let (start_gid, range) = sub_range(&groupname()?, Path::new("/etc/subgid"))?;
+    if range < MIN_SUB_RANGE {
+        return Err(Error::SubGidRangeTooSmall(range, MIN_SUB_RANGE));
+    }
 
     Ok(vec![
         // Maps the outside group to the root group
