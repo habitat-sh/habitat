@@ -180,6 +180,10 @@ fn init_users() -> Result<()> {
     let gid = users::get_gid_by_name(studio::STUDIO_GROUP).ok_or(
         Error::NoStudioGroup,
     )?;
+    let mut home = studio::STUDIO_HOME.lock().unwrap();
+    *home = users::get_home_for_user(studio::STUDIO_USER).ok_or(
+        Error::NoStudioGroup,
+    )?;
     studio::set_studio_uid(uid);
     studio::set_studio_gid(gid);
     Ok(())

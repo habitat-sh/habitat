@@ -429,7 +429,7 @@ impl Client {
         &self,
         origin: &str,
         token: &str,
-        dst_path: &P,
+        dst_path: P,
     ) -> Result<PathBuf>
     where
         P: AsRef<Path>,

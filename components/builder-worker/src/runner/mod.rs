@@ -31,7 +31,7 @@ use bldr_core::job::Job;
 use bldr_core::logger::Logger;
 use chrono::UTC;
 use depot_client;
-use hab_core::crypto;
+use hab_core::fs::CACHE_KEY_PATH;
 use hab_core::package::archive::PackageArchive;
 use hab_net::socket::DEFAULT_CONTEXT;
 use protocol::{message, jobsrv as proto};
@@ -208,7 +208,7 @@ impl Runner {
                 self.depot_cli.fetch_origin_secret_key(
                     self.job().origin(),
                     &self.config.auth_token,
-                    &crypto::default_cache_key_path(None),
+                    &*studio::STUDIO_HOME.lock().unwrap().join(CACHE_KEY_PATH),
                 )
             },
             |res| {
