@@ -338,8 +338,8 @@ configure
 start-builder
 fi
 
-hab pkg exec core/busybox-static addgroup sparkleparty
-hab pkg exec core/busybox-static addgroup krangschnak -G sparkleparty -D
+hab pkg exec core/busybox-static addgroup krangschnak
+hab pkg exec core/busybox-static adduser krangschnak -G krangschnak -D
 
 # Print out the docs
 dev_docs
