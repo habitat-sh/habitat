@@ -12,6 +12,8 @@ pkg_binds=(
   [jobsrv]="worker_port worker_heartbeat log_port"
   [depot]="url"
 )
+pkg_svc_user="root"
+pkg_svc_group="root"
 bin="bldr-worker"
 
 do_prepare() {
