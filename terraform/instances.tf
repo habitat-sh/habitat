@@ -637,6 +637,7 @@ resource "aws_instance" "worker" {
     scripts = [
       "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
+      "${path.module}/scripts/worker_bootstrap.sh",
     ]
   }
 
