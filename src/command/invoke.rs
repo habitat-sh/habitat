@@ -28,6 +28,8 @@ use mount::{self, Mount};
 use filesystem;
 use pty;
 
+const MOUNT_ARTIFACT_CACHE_ENVVAR: &'static str = "MOUNT_ARTIFACT_CACHE";
+
 const ROOTFS_DIRS: &'static [&'static str] = &[
     "etc",
     "run",
@@ -185,17 +187,19 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
         Some(libc::MS_RDONLY),
     )?;
 
-    // Bind mount outside artifact cache (and ensure outside directory exists)
-    let source = env::home_dir().ok_or(Error::HomeDirectoryNotFound)?.join(
-        ".hab/cache/artifacts",
-    );
-    mkdir_p(&source)?;
-    mount::bind(
-        source,
-        rootfs.join("hab/cache/artifacts"),
-        Mount::Nonrecursive,
-        None,
-    )?;
+    if env::var(MOUNT_ARTIFACT_CACHE_ENVVAR).is_ok() {
+        // Bind mount outside artifact cache (and ensure outside directory exists)
+        let source = env::home_dir().ok_or(Error::HomeDirectoryNotFound)?.join(
+            ".hab/cache/artifacts",
+        );
+        mkdir_p(&source)?;
+        mount::bind(
+            source,
+            rootfs.join("hab/cache/artifacts"),
+            Mount::Nonrecursive,
+            None,
+        )?;
+    }
 
     // Binlink BusyBox and Habitat CLI binaries
     {
