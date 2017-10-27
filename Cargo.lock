@@ -1,6 +1,6 @@
 [root]
 name = "airlock"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "clap 2.27.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",

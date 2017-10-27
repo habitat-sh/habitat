@@ -32,6 +32,8 @@ use airlock::command;
 use airlock::Result;
 use clap::{App, ArgMatches};
 
+pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+
 fn main() {
     env_logger::init().unwrap();
     if let Err(e) = _main() {
@@ -75,8 +77,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             .to_string()
     };
     clap_app!((program_name) =>
-        (about: "derp")
-        (version: "0.0.1")
+        (about: "Airlock: your gateway to a Studio")
+        (version: VERSION)
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
