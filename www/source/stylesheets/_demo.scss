@@ -1,14 +1,13 @@
 // CSS for Demo
 
 #demo-step {
-  margin-bottom: rem-calc(200);
+  margin-bottom: rem-calc(50);
   z-index: 0;
 }
 
 .demo--page {
   color: $hab-white;
   position: relative;
-  z-index: 100;
   padding: 0px 0px rem-calc(150);
 
   // Demo typography
