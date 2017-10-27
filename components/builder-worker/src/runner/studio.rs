@@ -31,8 +31,7 @@ use runner::workspace::Workspace;
 pub static STUDIO_UID: AtomicUsize = ATOMIC_USIZE_INIT;
 pub static STUDIO_GID: AtomicUsize = ATOMIC_USIZE_INIT;
 pub const STUDIO_USER: &'static str = "krangschnak";
-// https://www.youtube.com/watch?v=f-jN3vH26NQ
-pub const STUDIO_GROUP: &'static str = "sparkleparty";
+pub const STUDIO_GROUP: &'static str = "krangschnak";
 
 lazy_static! {
     /// Absolute path to the Studio program
