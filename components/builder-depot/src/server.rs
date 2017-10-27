@@ -1318,21 +1318,16 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let packages: NetResult<OriginPackageVersionListResponse>;
-
     let mut request = OriginPackageVersionListRequest::new();
     request.set_visibilities(visibility_for_optional_session(req, session_id, &origin));
     request.set_origin(origin);
     request.set_name(name);
 
-    packages = route_message::<OriginPackageVersionListRequest, OriginPackageVersionListResponse>(
+    match route_message::<OriginPackageVersionListRequest, OriginPackageVersionListResponse>(
         req,
         &request,
-    );
-
-    match packages {
+    ) {
         Ok(packages) => {
-            debug!("packages = {:?}", &packages);
             let body = serde_json::to_string(&packages.get_versions().to_vec()).unwrap();
             let mut response = Response::with((status::Ok, body));
 

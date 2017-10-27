@@ -846,6 +846,51 @@ impl Serialize for OriginPackageIdent {
     }
 }
 
+impl PartialOrd for OriginPackageVersion {
+    fn partial_cmp(&self, other: &OriginPackageVersion) -> Option<Ordering> {
+        if self.get_origin() != other.get_origin() {
+            return None;
+        }
+        if self.get_name() != other.get_name() {
+            return None;
+        }
+        if self.get_version() == "" && other.get_version() == "" {
+            return None;
+        }
+        if self.get_version() == "" && other.get_version() != "" {
+            return Some(Ordering::Less);
+        }
+        if self.get_version() != "" && other.get_version() == "" {
+            return Some(Ordering::Greater);
+        }
+        match version_sort(self.get_version(), other.get_version()) {
+            ord @ Ok(Ordering::Greater) |
+            ord @ Ok(Ordering::Less) => ord.ok(),
+            Ok(Ordering::Equal) => Some(self.get_latest().cmp(&other.get_latest())),
+            Err(_) => {
+                match self.get_version().cmp(other.get_version()) {
+                    ord @ Ordering::Greater |
+                    ord @ Ordering::Less => Some(ord),
+                    Ordering::Equal => Some(self.get_latest().cmp(&other.get_latest())),
+                }
+            }
+        }
+    }
+}
+
+impl Ord for OriginPackageVersion {
+    fn cmp(&self, other: &OriginPackageVersion) -> Ordering {
+        match version_sort(self.get_version(), other.get_version()) {
+            ord @ Ok(Ordering::Greater) |
+            ord @ Ok(Ordering::Less) => ord.unwrap(),
+            Ok(Ordering::Equal) => self.get_latest().cmp(&other.get_latest()),
+            Err(_) => Ordering::Less,
+        }
+    }
+}
+
+impl Eq for OriginPackageVersion {}
+
 impl Serialize for OriginPackageVersion {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
@@ -1202,5 +1247,50 @@ impl Routable for OriginSecretKeyGet {
 
     fn route_key(&self) -> Option<Self::H> {
         Some(String::from(self.get_origin()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sort_origin_package_versions() {
+        let a = vec!["4.0.2", "3.2.4", "3.2.3", "3.2.11", "3.2.10", "3.2.1"];
+        let b = vec!["3.6.6", "3.6.5", "3.6.12", "3.6.10"];
+
+        let mut x = a.iter()
+            .map(|z| {
+                let mut opv = OriginPackageVersion::new();
+                opv.set_origin("core".to_string());
+                opv.set_name("redis".to_string());
+                opv.set_version(z.to_string());
+                opv.set_latest("haha".to_string());
+                opv
+            })
+            .collect::<Vec<OriginPackageVersion>>();
+
+        let mut y = b.iter()
+            .map(|z| {
+                let mut opv = OriginPackageVersion::new();
+                opv.set_origin("core".to_string());
+                opv.set_name("redis".to_string());
+                opv.set_version(z.to_string());
+                opv.set_latest("haha".to_string());
+                opv
+            })
+            .collect::<Vec<OriginPackageVersion>>();
+
+        x.sort_by(|m, n| n.cmp(m));
+        y.sort_by(|m, n| n.cmp(m));
+
+        let q = x.iter().map(|z| z.get_version()).collect::<Vec<&str>>();
+        let r = y.iter().map(|z| z.get_version()).collect::<Vec<&str>>();
+
+        assert_eq!(
+            vec!["4.0.2", "3.2.11", "3.2.10", "3.2.4", "3.2.3", "3.2.1"],
+            q
+        );
+        assert_eq!(vec!["3.6.12", "3.6.10", "3.6.6", "3.6.5"], r);
     }
 }
