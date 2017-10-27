@@ -1,4 +1,4 @@
-# Copyright:: Copyright (c) 2015-2016 The Habitat Maintainers
+# Copyright:: Copyright (c) 2015-2017 Chef Software Inc. and/or applicable contributors
 #
 # The terms of the Evaluation Agreement (Habitat) between Chef Software Inc.
 # and the party accessing this file ("Licensee") apply to Licensee's use of
