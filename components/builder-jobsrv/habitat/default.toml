@@ -1,5 +1,4 @@
 log_level = "info"
-log_path = "/tmp"
 job_timeout = 60
 
 [net]
