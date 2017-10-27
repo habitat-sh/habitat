@@ -1024,16 +1024,14 @@ impl DataStore {
         ).map_err(SrvError::OriginPackageVersionList)?;
 
         let mut response = originsrv::OriginPackageVersionListResponse::new();
-        let mut idents = Vec::new();
-        let mut version_map = HashMap::new();
+        let mut versions = protobuf::RepeatedField::new();
+
         for row in rows.iter() {
             let ver: String = row.get("version");
-            let ident =
-                PackageIdent::new(opvl.get_origin(), opvl.get_name(), Some(ver.as_str()), None);
-
             let release_count: i64 = row.get("release_count");
             let latest: String = row.get("latest");
             let platforms_str: String = row.get("platforms");
+
             let platforms_vec = platforms_str.split(',').map(|x| x.to_string()).collect();
             let platforms = protobuf::RepeatedField::from_vec(platforms_vec);
 
@@ -1045,14 +1043,12 @@ impl DataStore {
             version.set_latest(latest);
             version.set_platforms(platforms);
 
-            version_map.insert(ident.clone(), version);
-            idents.push(ident);
+            versions.push(version);
         }
 
-        let mut versions = protobuf::RepeatedField::new();
-        for ident in idents {
-            versions.push(version_map.remove(&ident).unwrap());
-        }
+        // reverse sort to get the bigger stuff at the front
+        versions.sort_by(|a, b| b.cmp(a));
+
         response.set_versions(versions);
         Ok(response)
     }
