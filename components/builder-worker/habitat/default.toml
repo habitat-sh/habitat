@@ -1,5 +1,4 @@
 log_level = "info"
-log_path = "/tmp"
 auth_token = ""
 auto_publish = true
 bldr_channel = "unstable"

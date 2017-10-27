@@ -4,12 +4,10 @@ pkg_origin=core
 pkg_maintainer="Jamie Winsor <reset@chef.io>"
 pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
-pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive
-  core/zlib core/hab-studio core/hab-pkg-export-docker core/docker core/curl)
+pkg_deps=(core/airlock core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium
+  core/libarchive core/zlib core/hab-studio core/hab-pkg-export-docker core/docker core/curl)
 pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config)
-pkg_svc_user="root"
-pkg_svc_group="root"
 pkg_binds=(
   [jobsrv]="worker_port worker_heartbeat log_port"
   [depot]="url"

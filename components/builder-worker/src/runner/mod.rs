@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod studio;
 mod docker;
 mod log_pipe;
 mod postprocessor;
 mod publisher;
-mod studio;
 mod toml_builder;
 mod util;
 mod workspace;
