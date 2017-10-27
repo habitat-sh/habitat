@@ -34,7 +34,7 @@
   background-color: $color1;
   background-image: linear-gradient(to left, lighten($color1, 5%), lighten($color2, 3%) 100%);
   border: 0;
-  border-radius: 7px;
+  border-radius: 2px;
   color: $textcolor;
   font-size: rem-calc(16);
   letter-spacing: rem-calc(1);
@@ -53,7 +53,6 @@
   @include transition(all 0.2s ease-in-out);
   background-color: $color1;
   background-image: linear-gradient(to left, lighten($color1, 13%), lighten($color2, 5%) 100%);
-  text-shadow: 0 1px 2px $hab-red;
 }
 
 @mixin secondary-button {
@@ -63,6 +62,7 @@
 
 @mixin cta-button {
   @include primary-button($hab-orange, $hab-orange-dark);
+  color: $hab-blue-dark;
 }
 
 
