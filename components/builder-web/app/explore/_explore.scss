@@ -430,6 +430,13 @@
       h3, p {
         color: $hab-white;
       }
+
+      .mat-raised-button:not([class*=mat-elevation-z]) {
+        @include cta-button;
+        padding: rem(10) rem(80);
+        font-size: rem(16);
+        line-height: rem(24);
+      }
     }
   }
 }
