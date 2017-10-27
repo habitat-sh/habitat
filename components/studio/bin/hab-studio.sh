@@ -405,21 +405,12 @@ new_studio() {
   $bb mkdir -p $v $HAB_STUDIO_ROOT/run
   $bb mkdir -p $v $HAB_STUDIO_ROOT/var/run
 
-  # Make  a `/dev/console` device, if it doesn't exist
-  if [ ! -r $HAB_STUDIO_ROOT/dev/console ]; then
-    $bb mknod -m 600 $HAB_STUDIO_ROOT/dev/console c 5 1
-  fi
-  # Make  a `/dev/null` device, if it doesn't exist
-  if [ ! -r $HAB_STUDIO_ROOT/dev/null ]; then
-    $bb mknod -m 666 $HAB_STUDIO_ROOT/dev/null c 1 3
-  fi
-
   # Unless `$NO_MOUNT` is set, mount filesystems such as `/dev`, `/proc`, and
   # company. If the mount already exists, skip it to be all idempotent and
   # nerdy like that
   if [ -z "${NO_MOUNT}" ]; then
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
-      $bb mount $v --bind /dev $HAB_STUDIO_ROOT/dev
+      $bb mount $v --rbind /dev $HAB_STUDIO_ROOT/dev
     fi
 
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
@@ -429,7 +420,7 @@ new_studio() {
       $bb mount $v -t proc proc $HAB_STUDIO_ROOT/proc
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
-      $bb mount $v -t sysfs sysfs $HAB_STUDIO_ROOT/sys
+      $bb mount $v --rbind /sys $HAB_STUDIO_ROOT/sys
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
       $bb mount $v -t tmpfs tmpfs $HAB_STUDIO_ROOT/run
@@ -517,13 +508,6 @@ new_studio() {
   $bb mkdir -p $v $HAB_STUDIO_ROOT/var/local
 
   $bb ln -sf $v /proc/self/mounts $HAB_STUDIO_ROOT/etc/mtab
-
-  $bb touch $HAB_STUDIO_ROOT/var/log/btmp
-  $bb touch $HAB_STUDIO_ROOT/var/log/lastlog
-  $bb touch $HAB_STUDIO_ROOT/var/log/wtmp
-  $bb chgrp $v 13 $HAB_STUDIO_ROOT/var/log/lastlog
-  $bb chmod $v 664 $HAB_STUDIO_ROOT/var/log/lastlog
-  $bb chmod $v 600 $HAB_STUDIO_ROOT/var/log/btmp
 
   # Load the appropriate type strategy to complete the setup
   . $libexec_path/hab-studio-type-${STUDIO_TYPE}.sh
@@ -1114,7 +1098,7 @@ unmount_filesystems() {
   fi
 
   if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/sys
+    $bb umount $v -l $HAB_STUDIO_ROOT/sys
   fi
 
   if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
