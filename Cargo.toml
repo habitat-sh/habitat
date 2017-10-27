@@ -20,3 +20,7 @@ log = "*"
 tempdir = "*"
 unshare = "*"
 users = "*"
+
+[profile.release]
+lto = true
+panic = 'abort'
