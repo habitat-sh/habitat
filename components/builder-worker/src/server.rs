@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::sync::Arc;
 
+use hab_core::users;
 use hab_net;
 use hab_net::socket::DEFAULT_CONTEXT;
 use protocol::{self, message};
@@ -26,7 +27,7 @@ use error::{Error, Result};
 use feat;
 use heartbeat::{HeartbeatCli, HeartbeatMgr};
 use log_forwarder::LogForwarder;
-use runner::{RunnerCli, RunnerMgr};
+use runner::{studio, RunnerCli, RunnerMgr};
 
 enum State {
     Ready,
@@ -76,6 +77,7 @@ impl Server {
             );
             return Err(Error::NoAuthTokenError);
         }
+        init_users()?;
         self.enable_features_from_config();
 
         HeartbeatMgr::start(&self.config, (&*self.net_ident).clone())?;
@@ -169,4 +171,16 @@ impl Server {
 
 pub fn run(config: Config) -> Result<()> {
     Server::new(config)?.run()
+}
+
+fn init_users() -> Result<()> {
+    let uid = users::get_uid_by_name(studio::STUDIO_USER).ok_or(
+        Error::NoStudioUser,
+    )?;
+    let gid = users::get_gid_by_name(studio::STUDIO_GROUP).ok_or(
+        Error::NoStudioGroup,
+    )?;
+    studio::set_studio_uid(uid);
+    studio::set_studio_gid(gid);
+    Ok(())
 }

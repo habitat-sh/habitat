@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
+use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 
 use hab_core::channel::{BLDR_CHANNEL_ENVVAR, STABLE_CHANNEL};
 use hab_core::env;
@@ -25,6 +27,12 @@ use error::Result;
 use runner::log_pipe::LogPipe;
 use runner::{NONINTERACTIVE_ENVVAR, RUNNER_DEBUG_ENVVAR};
 use runner::workspace::Workspace;
+
+pub static STUDIO_UID: AtomicUsize = ATOMIC_USIZE_INIT;
+pub static STUDIO_GID: AtomicUsize = ATOMIC_USIZE_INIT;
+pub const STUDIO_USER: &'static str = "krangschnak";
+// https://www.youtube.com/watch?v=f-jN3vH26NQ
+pub const STUDIO_GROUP: &'static str = "sparkleparty";
 
 lazy_static! {
     /// Absolute path to the Studio program
@@ -113,13 +121,17 @@ impl<'a> Studio<'a> {
 
     /// Builds and returns a `Command` for spawning a Habitat Studio process.
     fn studio_command(&self) -> Command {
-        let mut cmd = Command::new(&*STUDIO_PROGRAM);
+        let mut cmd = Command::new("airlock");
+        cmd.uid(studio_uid());
+        cmd.gid(studio_gid());
         cmd.env_clear();
         if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
             cmd.env("DEBUG", val);
         }
         cmd.env(NONINTERACTIVE_ENVVAR, "true"); // Disables progress bars
         cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
+        cmd.arg("run");
+        cmd.arg(&*STUDIO_PROGRAM);
         cmd.arg("-s"); // Source path
         cmd.arg(self.workspace.src());
         cmd.arg("-r"); // Studio root
@@ -128,6 +140,22 @@ impl<'a> Studio<'a> {
         cmd.stderr(Stdio::piped());
         cmd
     }
+}
+
+pub fn studio_gid() -> u32 {
+    STUDIO_GID.load(Ordering::Relaxed) as u32
+}
+
+pub fn studio_uid() -> u32 {
+    STUDIO_UID.load(Ordering::Relaxed) as u32
+}
+
+pub fn set_studio_gid(gid: u32) {
+    STUDIO_GID.store(gid as usize, Ordering::Relaxed);
+}
+
+pub fn set_studio_uid(uid: u32) {
+    STUDIO_UID.store(uid as usize, Ordering::Relaxed);
 }
 
 /// Returns a path argument suitable to pass to a Studio build command.
