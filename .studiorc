@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export HAB_DEPOT_CHANNEL
 export APP_HOSTNAME
 export GITHUB_API_URL
 export GITHUB_WEB_URL
@@ -319,7 +318,6 @@ install-packages
 
 # NOTE: these are dev secrets (not for the actual Builder services);
 # it's OK
-HAB_DEPOT_CHANNEL=unstable
 APP_HOSTNAME=localhost:3000
 GITHUB_API_URL=https://api.github.com
 GITHUB_WEB_URL=https://github.com
@@ -339,6 +337,9 @@ init-datastore
 configure
 start-builder
 fi
+
+hab pkg exec core/busybox-static addgroup sparkleparty
+hab pkg exec core/busybox-static addgroup krangschnak -G sparkleparty -D
 
 # Print out the docs
 dev_docs
