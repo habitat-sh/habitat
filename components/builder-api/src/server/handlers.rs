@@ -85,7 +85,10 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 
             // We don't really want to abort anything just because a call to segment failed. Let's
             // just log it and move on.
-            if let Err(e) = segment.identify(session.get_name()) {
+            // TODO JB: this likely needs to change after we switch to our own internal session
+            // tokens
+            let id_str = session.get_id().to_string();
+            if let Err(e) = segment.identify(&id_str) {
                 warn!("Error identifying a user in segment, {}", e);
             }
 
