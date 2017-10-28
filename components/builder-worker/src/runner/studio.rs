@@ -126,6 +126,7 @@ impl<'a> Studio<'a> {
     /// Builds and returns a `Command` for spawning a Habitat Studio process.
     fn studio_command(&self) -> Command {
         let mut cmd = Command::new("airlock");
+        cmd.current_dir(self.workspace.src());
         cmd.uid(studio_uid());
         cmd.gid(studio_gid());
         if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
@@ -135,8 +136,6 @@ impl<'a> Studio<'a> {
         cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
         cmd.arg("run");
         cmd.arg(&*STUDIO_PROGRAM);
-        cmd.arg("-s"); // Source path
-        cmd.arg(self.workspace.src());
         cmd.arg("-r"); // Studio root
         cmd.arg(self.workspace.studio());
         cmd.stdout(Stdio::piped());
