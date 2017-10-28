@@ -300,6 +300,32 @@ impl Client {
         )
     }
 
+    /// Download a secret key from a remote Builder to the given filepath.
+    ///
+    /// # Failures
+    ///
+    /// * Key cannot be found
+    /// * Remote Builder is not available
+    /// * File cannot be created and written to
+    pub fn fetch_secret_origin_key<D, P: ?Sized>(
+        &self,
+        origin: &str,
+        token: &str,
+        dst_path: &P,
+        progress: Option<D>,
+    ) -> Result<PathBuf>
+    where
+        P: AsRef<Path>,
+        D: DisplayProgress + Sized,
+    {
+        self.download(
+            &format!("depot/origins/{}/secret_keys/latest", origin),
+            dst_path.as_ref(),
+            Some(token),
+            progress,
+        )
+    }
+
     pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<originsrv::OriginKeyIdent>> {
         let mut res = self.0.get(&origin_keys_path(origin)).send()?;
         debug!("Response: {:?}", res);

@@ -233,6 +233,8 @@ fn sub_cli_completers(m: &ArgMatches) -> Result<()> {
 fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
     let revision = m.value_of("REVISION");
+    let with_secret = m.is_present("WITH_SECRET");
+    let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(m);
 
     command::origin::key::download::start(
@@ -240,6 +242,8 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         &url,
         &origin,
         revision,
+        with_secret,
+        token.as_ref().map(String::as_str),
         &default_cache_key_path(Some(&*FS_ROOT)),
     )
 }

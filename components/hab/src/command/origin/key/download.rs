@@ -29,14 +29,31 @@ pub fn start(
     depot: &str,
     origin: &str,
     revision: Option<&str>,
+    secret: bool,
+    token: Option<&str>,
     cache: &Path,
 ) -> Result<()> {
     let depot_client = Client::new(depot, PRODUCT, VERSION, None)?;
+
+    if secret {
+        handle_secret(ui, &depot_client, origin, token, cache)
+    } else {
+        handle_public(ui, &depot_client, origin, revision, cache)
+    }
+}
+
+fn handle_public(
+    ui: &mut UI,
+    depot_client: &Client,
+    origin: &str,
+    revision: Option<&str>,
+    cache: &Path,
+) -> Result<()> {
     match revision {
         Some(revision) => {
             let nwr = format!("{}-{}", origin, revision);
             ui.begin(format!("Downloading public origin key {}", &nwr))?;
-            match download_key(ui, &depot_client, &nwr, origin, revision, cache) {
+            match download_key(ui, depot_client, &nwr, origin, revision, cache) {
                 Ok(()) => {
                     let msg = format!("Download of {} public origin key completed.", nwr);
                     ui.end(msg)?;
@@ -59,7 +76,7 @@ pub fn start(
                         let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
                         download_key(
                             ui,
-                            &depot_client,
+                            depot_client,
                             &nwr,
                             key.get_origin(),
                             key.get_revision(),
@@ -76,6 +93,68 @@ pub fn start(
             }
         }
     }
+}
+
+fn handle_secret(
+    ui: &mut UI,
+    depot_client: &Client,
+    origin: &str,
+    token: Option<&str>,
+    cache: &Path,
+) -> Result<()> {
+    if token.is_none() {
+        ui.end(format!(
+            "No auth token found. You must pass a token to download secret keys."
+        ))?;
+        return Ok(());
+    }
+
+    ui.begin(
+        format!("Downloading secret origin keys for {}", origin),
+    )?;
+    download_secret_key(ui, &depot_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
+    ui.end(format!(
+        "Download of {} public origin keys completed.",
+        &origin
+    ))?;
+    Ok(())
+}
+
+fn download_secret_key(
+    ui: &mut UI,
+    depot_client: &Client,
+    name: &str,
+    token: &str,
+    cache: &Path,
+) -> Result<()> {
+    let download_fn = || -> Result<()> {
+        ui.status(Status::Downloading, "latest secret key")?;
+        let key_path = depot_client.fetch_secret_origin_key(
+            name,
+            token,
+            cache,
+            ui.progress(),
+        )?;
+        ui.status(
+            Status::Cached,
+            key_path.file_name().unwrap().to_str().unwrap(), // lol
+        )?;
+        Ok(())
+    };
+
+    if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
+        return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+            "We tried {} \
+                                                                            times but \
+                                                                            could not \
+                                                                            download the latest \
+                                                                            secret origin key. \
+                                                                            Giving up.",
+            RETRIES,
+        ))));
+    }
+
+    Ok(())
 }
 
 fn download_key(

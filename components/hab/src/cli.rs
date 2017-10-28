@@ -129,6 +129,9 @@ pub fn get() -> App<'static, 'static> {
                     (@arg REVISION: "The key revision")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    (@arg WITH_SECRET: -s --secret
+                        "Download secret key instead of public key")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder (required for downloading secret keys)")
                 )
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
