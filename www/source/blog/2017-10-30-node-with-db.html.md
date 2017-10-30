@@ -1,6 +1,6 @@
 ---
 title: NodeJS Scaffolding with Databases!
-date: 2017-10-24
+date: 2017-10-30
 author: Nell Shamrell-Harrington
 tags: Scaffolding, Node
 category: community
@@ -304,3 +304,5 @@ $ docker-compose up
 ```
 
 And, once both containers are up, you can access your application on http://localhost:8000!
+
+If you'd like to see a working example, check out [this Github repo](https://github.com/nellshamrell/Express.js-in-Action-code).
