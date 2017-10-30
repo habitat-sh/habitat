@@ -1,3 +1,6 @@
+[airlock]
+plan_path = "components/airlock"
+
 [builder-admin-proxy]
 plan_path = "components/builder-admin-proxy"
 

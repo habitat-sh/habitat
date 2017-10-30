@@ -3,6 +3,7 @@ debug = true
 
 [workspace]
 members = [
+  "components/airlock",
   "components/builder-admin",
   "components/builder-api",
   "components/builder-api-client",

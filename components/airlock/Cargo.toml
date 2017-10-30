@@ -2,6 +2,8 @@
 name = "airlock"
 version = "0.0.0"
 authors = ["Fletcher Nichol <fnichol@habitat.sh>"]
+build = "../build-builder.rs"
+workspace = "../../"
 
 [lib]
 name = "airlock"
@@ -20,7 +22,3 @@ log = "*"
 tempdir = "*"
 unshare = "*"
 users = "*"
-
-[profile.release]
-lto = true
-panic = 'abort'
