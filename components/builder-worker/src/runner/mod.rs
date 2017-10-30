@@ -223,7 +223,9 @@ impl Runner {
             },
         ) {
             Ok(res) => {
-                debug!("Imported origin secret key, dst={:?}.", res.unwrap());
+                let dst = res.unwrap();
+                debug!("Imported origin secret key, dst={:?}.", dst);
+                perm::set_owner(dst, STUDIO_USER, STUDIO_GROUP)?;
                 Ok(())
             }
             Err(err) => {
