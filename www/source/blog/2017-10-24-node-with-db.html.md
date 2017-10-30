@@ -229,10 +229,6 @@ pkg_binds=(
   [database]="port"
 )
 
-pkg_exports=(
-  [port]=app.port
-)
-
 declare -A scaffolding_env
 
 # Define path to config file
