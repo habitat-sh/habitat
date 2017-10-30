@@ -209,7 +209,10 @@ impl Runner {
                 self.depot_cli.fetch_origin_secret_key(
                     self.job().origin(),
                     &self.config.auth_token,
-                    &*studio::STUDIO_HOME.lock().unwrap().join(CACHE_KEY_PATH),
+                    &*studio::STUDIO_HOME.lock().unwrap().join(format!(
+                        ".{}",
+                        CACHE_KEY_PATH
+                    )),
                 )
             },
             |res| {
