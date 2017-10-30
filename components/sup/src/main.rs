@@ -1218,7 +1218,7 @@ fn composite_binds_from_input(m: &ArgMatches) -> Result<HashMap<String, Vec<Serv
                 // It's a composite bind
                 let service_name = parts[0];
                 let bind = format!("{}:{}", parts[1], parts[2]);
-                let mut binds = map.entry(service_name.to_string()).or_insert(vec![]);
+                let binds = map.entry(service_name.to_string()).or_insert(vec![]);
                 binds.push(ServiceBind::from_str(&bind)?);
             } else {
                 // You supplied a 2-part (i.e., standalone service)

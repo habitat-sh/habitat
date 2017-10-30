@@ -3416,10 +3416,10 @@ mod tests {
             real_first_expected: PathBuf,
         ) -> HashMap<PathBuf, PathState> {
             // link last additional path state with the first expected one
-            if let Some(mut last) = additional_paths.last_mut() {
+            if let Some(last) = additional_paths.last_mut() {
                 // The existence of this path in the map is checked in
                 // get_real_first_expected_path.
-                let mut first_item = expected_paths.get_mut(&real_first_expected).unwrap();
+                let first_item = expected_paths.get_mut(&real_first_expected).unwrap();
 
                 last.1.next = Some(real_first_expected);
                 first_item.prev = Some(last.0.clone());
