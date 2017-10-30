@@ -44,6 +44,34 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
 
+/// Trait for getting paths to directories where various configuration
+/// files are expected to be.
+pub trait PackageConfigPaths {
+    /// Get name of the package (basically name part of package ident.
+    fn name(&self) -> String;
+    /// Get path to directory which holds default.toml.
+    fn default_config_dir(&self) -> PathBuf;
+    /// Get recommended path to directory which holds user.toml.
+    fn recommended_user_config_dir(&self) -> PathBuf;
+    /// Get deprecated path to directory which holds user.toml.
+    fn deprecated_user_config_dir(&self) -> PathBuf;
+}
+
+impl PackageConfigPaths for Pkg {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+    fn default_config_dir(&self) -> PathBuf {
+        self.path.clone()
+    }
+    fn recommended_user_config_dir(&self) -> PathBuf {
+        fs::user_config_path(&self.name)
+    }
+    fn deprecated_user_config_dir(&self) -> PathBuf {
+        self.svc_path.clone()
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Cfg {
     /// Default level configuration loaded by a Package's `default.toml`
@@ -60,14 +88,14 @@ pub struct Cfg {
 }
 
 impl Cfg {
-    pub fn new(package: &Pkg, config_from: Option<&PathBuf>) -> Result<Cfg> {
-        let pkg_root = config_from.and_then(|p| Some(p.as_path())).unwrap_or(
-            &package.path,
+    pub fn new<P: PackageConfigPaths>(package: &P, config_from: Option<&PathBuf>) -> Result<Cfg> {
+        let pkg_root = config_from.and_then(|p| Some(p.clone())).unwrap_or(
+            package.default_config_dir(),
         );
-        let default = Self::load_default(&pkg_root)?;
-        let user_config_path = Self::determine_user_config_path(&package);
+        let default = Self::load_default(pkg_root)?;
+        let user_config_path = Self::determine_user_config_path(package);
         let user = Self::load_user(&user_config_path)?;
-        let environment = Self::load_environment(&package)?;
+        let environment = Self::load_environment(package)?;
         return Ok(Self {
             default: default,
             user: user,
@@ -167,8 +195,8 @@ impl Cfg {
         Self::load_toml_file(config_from, "default.toml")
     }
 
-    fn determine_user_config_path(package: &Pkg) -> PathBuf {
-        let recommended_dir = fs::user_config_path(&package.name);
+    fn determine_user_config_path<P: PackageConfigPaths>(package: &P) -> PathBuf {
+        let recommended_dir = package.recommended_user_config_dir();
         let recommended_path = recommended_dir.join("user.toml");
         if recommended_path.exists() {
             return recommended_dir;
@@ -177,7 +205,7 @@ impl Cfg {
             "'user.toml' at {} does not exist",
             recommended_path.display()
         );
-        let deprecated_dir = package.svc_path.clone();
+        let deprecated_dir = package.deprecated_user_config_dir();
         let deprecated_path = deprecated_dir.join("user.toml");
         if deprecated_path.exists() {
             outputln!(
@@ -199,8 +227,8 @@ impl Cfg {
         Self::load_toml_file(path, "user.toml")
     }
 
-    fn load_environment(package: &Pkg) -> Result<Option<toml::Value>> {
-        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name)
+    fn load_environment<P: PackageConfigPaths>(package: &P) -> Result<Option<toml::Value>> {
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name())
             .to_ascii_uppercase()
             .replace("-", "_");
         match env::var(&var_name) {
