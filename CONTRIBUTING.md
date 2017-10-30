@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Habitat! There are many ways to c
 
 You are currently in the core Habitat repo, which is primarily written in Rust code and holds the core functionality of the Core Habitat, Habitat Builder Web Application, Habitat Builder, and Documentation. If you are interested in contributing a new plan to core plans (which is a great way to get started as a new contributor!), check out the [core-plans repo](https://github.com/habitat-sh/core-plans) instead. 
 
-If you have questions, join the [Habitat Slack Channel](https://slack.habitat.sh) to talk directly to the community and core maintainers. All experience levels of questions are welcome in the general channel. 
+If you have questions, join the [Habitat Slack Channel](http://slack.habitat.sh) to talk directly to the community and core maintainers. All experience levels of questions are welcome in the general channel. 
 
 As a reminder, all participants are expected to follow the [Code of Conduct](https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md).
 
@@ -30,7 +30,7 @@ As a reminder, all participants are expected to follow the [Code of Conduct](htt
 Whether you are a user or contributor, official support channels include:
 
 * GitHub issues: https://github.com/habitat-sh/habitat/issues
-* Slack: https://slack.habitat.sh
+* Slack: http://slack.habitat.sh
 
 Before opening a new issue or submitting a new pull request, it's helpful to search the project - it's likely that another user has already reported the issue you're facing, or it's a known issue that we're already aware of.
 
@@ -60,7 +60,7 @@ If you have not received a reply to your email within 48 hours, or have not hear
 
 * Contact the current security coordinator (Jamie Winsor) directly.
 * Contact the back-up contacts (Fletcher Nichol, Tasha Drew) directly.
-* Post on the [slack channel](slack.habitat.sh) requesting an update. 
+* Post on the [slack channel](http://slack.habitat.sh) requesting an update. 
 
 Please note that the discussion forums and slack channel are public areas. When escalating in these venues, please do not discuss your issue. Simply say that you're trying to get a hold of someone from the security team.
 
