@@ -33,6 +33,7 @@ use chrono::UTC;
 use depot_client;
 use hab_core::fs::CACHE_KEY_PATH;
 use hab_core::package::archive::PackageArchive;
+use hab_core::util::perm;
 use hab_net::socket::DEFAULT_CONTEXT;
 use protocol::{message, jobsrv as proto};
 use protocol::originsrv::OriginPackageIdent;
@@ -42,7 +43,7 @@ use zmq;
 use {PRODUCT, VERSION};
 use self::log_pipe::LogPipe;
 use self::postprocessor::post_process;
-use self::studio::Studio;
+use self::studio::{Studio, STUDIO_GROUP, STUDIO_USER};
 use self::docker::DockerExporter;
 use self::workspace::Workspace;
 use config::Config;
@@ -307,6 +308,8 @@ impl Runner {
                 err,
             ));
         }
+        perm::set_owner(self.workspace.root(), STUDIO_USER, STUDIO_GROUP)?;
+        perm::set_owner(self.workspace.src(), STUDIO_USER, STUDIO_GROUP)?;
 
         Ok(())
     }
