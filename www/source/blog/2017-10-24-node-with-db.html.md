@@ -181,10 +181,14 @@ Let's create a template for this config file at habitat/config/database.json
 
 ```
 {
-    "mongo": {
-        "host" : "{{cfg.mongo.host}}",
-		"port"   : "{{cfg.mongo.port}}"
-	}
+		"mongo": {
+			{{~#eachAlive bind.database.members as |member|}}
+			{{#if @first}}
+			"host" : "{{member.sys.ip}}",
+			"port"   : "{{member.cfg.port}}"
+			{{/if}}
+			{{~/eachAlive}}
+			}
 }
 ```
 
