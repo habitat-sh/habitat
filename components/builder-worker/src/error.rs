@@ -15,6 +15,7 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::path::PathBuf;
 use std::result;
 
 use bldr_core;
@@ -33,13 +34,14 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    BuildEnvFile(PathBuf, io::Error),
     BuildFailure(i32),
     BuilderCore(bldr_core::Error),
     CannotAddCreds,
+    Exporter(io::Error),
     Git(git2::Error),
     GithubAppAuthErr(github_api_client::HubError),
     HabitatCore(hab_core::Error),
-    IO(io::Error),
     InvalidIntegrations(String),
     NoAuthTokenError,
     NotHTTPSCloneUrl(url::Url),
@@ -48,6 +50,8 @@ pub enum Error {
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     Retry(retry::RetryError),
+    StudioBuild(PathBuf, io::Error),
+    StudioTeardown(PathBuf, io::Error),
     UrlParseError(url::ParseError),
     WorkspaceSetup(String, io::Error),
     WorkspaceTeardown(String, io::Error),
@@ -57,15 +61,24 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::BuildEnvFile(ref p, ref e) => {
+                format!(
+                    "Unable to read workspace build env file, {}, {}",
+                    p.display(),
+                    e
+                )
+            }
             Error::BuildFailure(ref e) => {
                 format!("Build studio exited with non-zero exit code, {}", e)
             }
             Error::BuilderCore(ref e) => format!("{}", e),
             Error::CannotAddCreds => format!("Cannot add credentials to url"),
+            Error::Exporter(ref e) => {
+                format!("Unable to spawn or pipe data from exporter proc, {}", e)
+            }
             Error::Git(ref e) => format!("{}", e),
             Error::GithubAppAuthErr(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
-            Error::IO(ref e) => format!("{}", e),
             Error::InvalidIntegrations(ref s) => format!("Invalid integration: {}", s),
             Error::NoAuthTokenError => format!("No auth_token config specified"),
             Error::NotHTTPSCloneUrl(ref e) => {
@@ -83,14 +96,28 @@ impl fmt::Display for Error {
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Retry(ref e) => format!("{}", e),
-            Error::Zmq(ref e) => format!("{}", e),
-            Error::WorkspaceSetup(ref p, ref e) => {
-                format!("Error while setting up workspace at {}, err={:?}", p, e)
+            Error::StudioBuild(ref p, ref e) => {
+                format!(
+                    "Error while running studio build at {}, err={}",
+                    p.display(),
+                    e
+                )
             }
-            Error::WorkspaceTeardown(ref p, ref e) => {
-                format!("Error while tearing down workspace at {}, err={:?}", p, e)
+            Error::StudioTeardown(ref p, ref e) => {
+                format!(
+                    "Error while tearing down studio at {}, err={}",
+                    p.display(),
+                    e
+                )
             }
             Error::UrlParseError(ref e) => format!("{}", e),
+            Error::WorkspaceSetup(ref p, ref e) => {
+                format!("Error while setting up workspace at {}, err={}", p, e)
+            }
+            Error::WorkspaceTeardown(ref p, ref e) => {
+                format!("Error while tearing down workspace at {}, err={}", p, e)
+            }
+            Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -99,13 +126,14 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::BuildEnvFile(_, _) => "Unable to read workspace build env file",
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
             Error::BuilderCore(ref err) => err.description(),
             Error::CannotAddCreds => "Cannot add credentials to url",
+            Error::Exporter(_) => "IO Error while spawning or piping data from exporter proc",
             Error::Git(ref err) => err.description(),
             Error::GithubAppAuthErr(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
             Error::InvalidIntegrations(_) => "Invalid integrations detected",
             Error::NoAuthTokenError => "No auth_token config specified",
             Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
@@ -114,6 +142,8 @@ impl error::Error for Error {
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
             Error::Retry(ref err) => err.description(),
+            Error::StudioBuild(_, _) => "IO Error while running studio build",
+            Error::StudioTeardown(_, _) => "IO Error while tearing down studio",
             Error::WorkspaceSetup(_, _) => "IO Error while creating workspace on disk",
             Error::WorkspaceTeardown(_, _) => "IO Error while destroying workspace on disk",
             Error::Zmq(ref err) => err.description(),
@@ -131,12 +161,6 @@ impl From<bldr_core::Error> for Error {
 impl From<hab_core::Error> for Error {
     fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::IO(err)
     }
 }
 

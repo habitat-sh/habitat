@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::fs::{self, File};
-use std::io::Write;
+use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::{Child, Command, ExitStatus, Stdio};
 
@@ -21,7 +21,7 @@ use hab_core::env;
 use hab_core::fs as hfs;
 use hab_core::os::process::{self, Pid, Signal};
 
-use error::Result;
+use error::{Error, Result};
 use runner::log_pipe::LogPipe;
 use runner::{NONINTERACTIVE_ENVVAR, RUNNER_DEBUG_ENVVAR};
 use runner::workspace::Workspace;
@@ -77,7 +77,7 @@ impl<'a> DockerExporter<'a> {
     /// * If the calling thread can't wait on the child process
     /// * If the `LogPipe` fails to pipe output
     pub fn export(&self, log_pipe: &mut LogPipe) -> Result<ExitStatus> {
-        let dockerd = self.spawn_dockerd()?;
+        let dockerd = self.spawn_dockerd().map_err(Error::Exporter)?;
         let exit_status = self.run_export(log_pipe);
         self.teardown_dockerd(dockerd).err().map(|e| {
             error!("failed to teardown dockerd instance, err={:?}", e)
@@ -139,14 +139,14 @@ impl<'a> DockerExporter<'a> {
         cmd.stderr(Stdio::piped());
 
         debug!("spawning docker export command");
-        let mut child = cmd.spawn()?;
+        let mut child = cmd.spawn().map_err(Error::Exporter)?;
         log_pipe.pipe(&mut child)?;
-        let exit_status = child.wait()?;
+        let exit_status = child.wait().map_err(Error::Exporter)?;
         debug!("completed docker export command, status={:?}", exit_status);
         Ok(exit_status)
     }
 
-    fn spawn_dockerd(&self) -> Result<Child> {
+    fn spawn_dockerd(&self) -> io::Result<Child> {
         let root = self.dockerd_path();
         let env_path = &*DOCKERD_PROGRAM.parent().expect(
             "Dockerd parent directory exists",
@@ -197,16 +197,22 @@ impl<'a> DockerExporter<'a> {
         )?));
 
         debug!("spawning dockerd export command");
-        Ok(cmd.spawn()?)
+        cmd.spawn()
     }
 
-    fn teardown_dockerd(&self, mut dockerd: Child) -> Result<()> {
+    fn teardown_dockerd(&self, mut dockerd: Child) -> io::Result<()> {
         debug!(
             "signaling dockerd to shutdown pid={}, sig={:?}",
             dockerd.id(),
             Signal::TERM
         );
-        process::signal(dockerd.id() as Pid, Signal::TERM)?;
+        if let Err(err) = process::signal(dockerd.id() as Pid, Signal::TERM) {
+            warn!(
+                "Error sending TERM signal to dockerd, {}, {}",
+                dockerd.id(),
+                err
+            );
+        }
         dockerd.wait()?;
         debug!("terminated dockerd");
         // TODO fn: clean up `self.dockerd_root()` directory

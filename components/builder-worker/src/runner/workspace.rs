@@ -13,13 +13,13 @@
 // limitations under the License.
 
 use std::fs::File;
-use std::io::Read;
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 use hab_core::package::{PackageArchive, PackageIdent};
 
 use super::Job;
-use error::Result;
+use error::{Error, Result};
 
 pub struct Workspace {
     pub job: Job,
@@ -46,21 +46,31 @@ impl Workspace {
 
     /// Returns a `PackageArchive` representing the last built artifact from studio build
     pub fn last_built(&self) -> Result<PackageArchive> {
-        let build = StudioBuild::from_file(self.out().join("last_build.env"))?;
-        Ok(PackageArchive::new(
-            self.out().join(build.pkg_artifact.unwrap()),
-        ))
+        let last_build = self.last_build_env();
+        match StudioBuild::from_file(&last_build) {
+            Ok(build) => {
+                Ok(PackageArchive::new(
+                    self.out().join(build.pkg_artifact.unwrap()),
+                ))
+            }
+            Err(err) => Err(Error::BuildEnvFile(last_build, err)),
+        }
     }
 
     /// Returns a `PackageIdent` representing the artifact that the studio attempted to build
     pub fn attempted_build(&self) -> Result<PackageIdent> {
-        let build = StudioBuild::from_file(self.out().join("pre_build.env"))?;
-        Ok(PackageIdent::new(
-            build.pkg_origin,
-            build.pkg_name,
-            Some(build.pkg_version),
-            Some(build.pkg_release),
-        ))
+        let last_build = self.pre_build_env();
+        match StudioBuild::from_file(&last_build) {
+            Ok(build) => {
+                Ok(PackageIdent::new(
+                    build.pkg_origin,
+                    build.pkg_name,
+                    Some(build.pkg_version),
+                    Some(build.pkg_release),
+                ))
+            }
+            Err(err) => Err(Error::BuildEnvFile(last_build, err)),
+        }
     }
 
     /// Directory to the output directory containing built artifacts from studio build
@@ -82,6 +92,14 @@ impl Workspace {
     pub fn studio(&self) -> &Path {
         &self.studio
     }
+
+    fn last_build_env(&self) -> PathBuf {
+        self.out().join("last_build.env")
+    }
+
+    fn pre_build_env(&self) -> PathBuf {
+        self.out().join("pre_build.env")
+    }
 }
 
 #[derive(Debug)]
@@ -97,7 +115,10 @@ pub struct StudioBuild {
 }
 
 impl StudioBuild {
-    pub fn from_file<S: AsRef<Path>>(path: S) -> Result<Self> {
+    pub fn from_file<S>(path: S) -> io::Result<Self>
+    where
+        S: AsRef<Path>,
+    {
         let mut build = StudioBuild::default();
         let mut buf: Vec<u8> = vec![];
         let mut f = File::open(path)?;
