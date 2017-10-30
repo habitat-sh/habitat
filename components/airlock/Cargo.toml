@@ -1,0 +1,26 @@
+[package]
+name = "airlock"
+version = "0.0.0"
+authors = ["Fletcher Nichol <fnichol@habitat.sh>"]
+
+[lib]
+name = "airlock"
+
+[[bin]]
+name = "airlock"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap = { version = "*", features = ["suggestions", "color", "unstable"] }
+env_logger = "*"
+errno = "*"
+libc = "*"
+log = "*"
+tempdir = "*"
+unshare = "*"
+users = "*"
+
+[profile.release]
+lto = true
+panic = 'abort'
