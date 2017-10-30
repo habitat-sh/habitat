@@ -24,7 +24,7 @@ use hab_core::fs;
 use hab_core::url::BLDR_URL_ENVVAR;
 use hab_core::AUTH_TOKEN_ENVVAR;
 
-use error::Result;
+use error::{Error, Result};
 use runner::log_pipe::LogPipe;
 use runner::{NONINTERACTIVE_ENVVAR, RUNNER_DEBUG_ENVVAR};
 use runner::workspace::Workspace;
@@ -98,9 +98,13 @@ impl<'a> Studio<'a> {
         cmd.env(AUTH_TOKEN_ENVVAR, self.auth_token);
 
         debug!("spawning studio build command");
-        let mut child = cmd.spawn()?;
+        let mut child = cmd.spawn().map_err(|e| {
+            Error::StudioBuild(self.workspace.studio().to_path_buf(), e)
+        })?;
         log_pipe.pipe(&mut child)?;
-        let exit_status = child.wait()?;
+        let exit_status = child.wait().map_err(|e| {
+            Error::StudioBuild(self.workspace.studio().to_path_buf(), e)
+        })?;
         debug!("completed studio build command, status={:?}", exit_status);
         Ok(exit_status)
     }
@@ -117,8 +121,12 @@ impl<'a> Studio<'a> {
         debug!("building studio rm command, cmd={:?}", &cmd);
 
         debug!("spawning studio rm command");
-        let mut child = cmd.spawn()?;
-        let exit_status = child.wait()?;
+        let mut child = cmd.spawn().map_err(|e| {
+            Error::StudioTeardown(self.workspace.studio().to_path_buf(), e)
+        })?;
+        let exit_status = child.wait().map_err(|e| {
+            Error::StudioTeardown(self.workspace.studio().to_path_buf(), e)
+        })?;
         debug!("completed studio rm command, status={:?}", exit_status);
         Ok(exit_status)
     }
