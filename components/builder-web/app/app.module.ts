@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 import { MatButtonModule, MAT_PLACEHOLDER_GLOBAL_OPTIONS } from '@angular/material';
 import { BrowserModule } from '@angular/platform-browser';
@@ -51,6 +52,7 @@ import { SharedModule } from './shared/shared.module';
     PackageModule,
     ProfileModule,
     ReactiveFormsModule,
+    RouterModule,
     SearchModule,
     SharedModule,
     routing

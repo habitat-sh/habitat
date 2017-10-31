@@ -17,7 +17,6 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../app.store';
 import { Origin } from '../../records/Origin';
-import { requireSignIn } from '../../util';
 import { fetchOrigin, fetchMyOrigins, getUniquePackages, fetchIntegrations, fetchProjects } from '../../actions';
 
 @Component({
@@ -36,7 +35,6 @@ export class OriginPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    requireSignIn(this);
     this.store.dispatch(fetchOrigin(this.origin.name));
     this.store.dispatch(fetchMyOrigins(this.token));
     this.store.dispatch(fetchIntegrations(this.origin.name, this.token));

@@ -30,23 +30,15 @@ export {
 } from './builds';
 
 export {
-  getCookie,
-  SET_COOKIE,
-  setCookie,
-  REMOVE_COOKIE,
-  removeCookie
-} from './cookies';
-
-export {
-  authenticateWithGitHub,
+  authenticate,
   CLEAR_GITHUB_INSTALLATIONS,
   fetchGitHubInstallations,
   LOAD_GITHUB_SESSION_STATE,
   loadGitHubSessionState,
   POPULATE_GITHUB_INSTALLATIONS,
   POPULATE_GITHUB_USER_DATA,
-  removeSessionStorage,
-  requestGitHubAuthToken,
+  removeSession,
+  exchangeGitHubAuthCode,
   SET_GITHUB_AUTH_STATE,
   SET_GITHUB_AUTH_TOKEN,
   setGitHubAuthState
@@ -158,14 +150,16 @@ export {
 export {
   goHome,
   requestRoute,
-  RESET_REDIRECT_ROUTE,
-  resetRedirectRoute,
   ROUTE_CHANGE,
   ROUTE_REQUESTED,
   routeChange,
-  SET_REDIRECT_ROUTE,
-  setRedirectRoute
 } from './router';
+
+export {
+  LOAD_BLDR_SESSION_STATE,
+  loadBldrSessionState,
+  SET_BLDR_SESSION_TOKEN
+} from './sessions';
 
 export {
   SET_LAYOUT,
@@ -173,25 +167,22 @@ export {
 } from './ui';
 
 export {
-  attemptSignIn,
+  setCurrentUsername,
   fetchProfile,
+  identifyUser,
   POPULATE_PROFILE,
   saveProfile,
+  SET_CURRENT_USERNAME,
   SET_PRIVILEGES,
-  SET_SIGNING_IN_FLAG,
   setPrivileges,
-  setSigningInFlag,
-  SIGN_IN_ATTEMPT,
+  SIGNING_IN,
+  signingIn,
+  SIGN_IN_FAILED,
+  signInFailed,
   signOut,
   TOGGLE_USER_NAV_MENU,
   toggleUserNavMenu
 } from './users';
-
-export {
-  LOAD_BLDR_SESSION_STATE,
-  loadBldrSessionState,
-  SET_BLDR_SESSION_TOKEN
-} from './sessions';
 
 // Used by redux-reset to reset the app state
 export const RESET = 'RESET';

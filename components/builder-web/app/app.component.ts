@@ -15,12 +15,9 @@
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from './app.store';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { URLSearchParams } from '@angular/http';
 import { Router } from '@angular/router';
-import {
-  authenticateWithGitHub, loadGitHubSessionState, loadBldrSessionState, removeNotification,
-  requestGitHubAuthToken, routeChange, setGitHubAuthState,
-  setPackagesSearchQuery, signOut, toggleUserNavMenu
-} from './actions/index';
+import { identifyUser, removeNotification, exchangeGitHubAuthCode, routeChange, setPackagesSearchQuery, signOut, toggleUserNavMenu } from './actions/index';
 
 @Component({
   selector: 'hab-app',
@@ -37,9 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
     // Whenever the Angular route has an event, dispatch an event with the new
     // route data.
     this.sub = this.router.events.subscribe(event => {
-      let eventName = event.toString();
-
-      store.dispatch(routeChange(eventName));
+      store.dispatch(routeChange(event));
 
       // Clear the package search when the route changes
       store.dispatch(setPackagesSearchQuery(''));
@@ -53,7 +48,9 @@ export class AppComponent implements OnInit, OnDestroy {
       // If the state has a requestedRoute attribute, use the router to navigate
       // to the route that was requested.
       const requestedRoute = state.router.requestedRoute;
-      if (requestedRoute) { router.navigate(requestedRoute); }
+      if (requestedRoute) {
+        router.navigate(requestedRoute);
+      }
     });
 
     this.removeNotification = function (i) {
@@ -62,7 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }.bind(this);
 
     this.signOut = function () {
-      this.store.dispatch(signOut());
+      this.store.dispatch(signOut(true));
       return false;
     }.bind(this);
 
@@ -70,40 +67,42 @@ export class AppComponent implements OnInit, OnDestroy {
       this.store.dispatch(toggleUserNavMenu());
       return false;
     }.bind(this);
-
   }
 
-  get origin() { return this.state.origins.current; }
+  get origin() {
+    return this.state.origins.current;
+  }
 
-  get state() { return this.store.getState(); }
+  get state() {
+    return this.store.getState();
+  }
 
-  get user() { return this.state.users.current; }
+  get avatarUrl() {
+    return this.state.users.current.gitHub.get('avatar_url');
+  }
+
+  get isSignedIn() {
+    return !!this.state.session.token;
+  }
+
+  get isSigningIn() {
+    return this.state.users.current.isSigningIn;
+  }
+
+  get isUserNavOpen() {
+    return this.state.users.current.isUserNavOpen;
+  }
+
+  get username() {
+    return this.state.users.current.username;
+  }
 
   ngOnDestroy() {
     this.sub.unsubscribe();
   }
 
   ngOnInit() {
-    // Populate the GitHub authstate (used to get a token) in SessionStorage
-    // either with what's there already, or with a new UUID.
-    this.store.dispatch(setGitHubAuthState());
-
-    // Load up the session state when we load the page
-    this.store.dispatch(loadGitHubSessionState());
-    this.store.dispatch(loadBldrSessionState());
-
-    // Request an auth token from GitHub. This doesn't do anything if the
-    // "code" and "state" query parameters are not present.
-    this.store.dispatch(requestGitHubAuthToken(
-      window.location.search,
-      this.store.getState().gitHub.authState
-    ));
-
-    // When the page loads attempt to authenticate with GitHub. If there
-    // is no token stored in session storage, this won't do anything.
-    this.store.dispatch(
-      authenticateWithGitHub(this.state.gitHub.authToken, this.state.session.token)
-    );
+    this.handleSignIn();
   }
 
   get fullView() {
@@ -112,5 +111,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
   get hideNav() {
     return this.store.getState().ui.layout === 'centered';
+  }
+
+  private handleSignIn() {
+    const params = new URLSearchParams(window.location.search.slice(1));
+    const code = params.get('code');
+    const state = params.get('state');
+
+    if (code && state) {
+      this.store.dispatch(exchangeGitHubAuthCode(code, state));
+    }
+
+    this.store.dispatch(identifyUser());
   }
 }

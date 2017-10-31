@@ -69,13 +69,13 @@
     "zone.js": "^0.8.4"
   },
   "devDependencies": {
-    "@types/jasmine": "2.5.36",
+    "@types/jasmine": "^2.6.2",
     "@types/node": "^6.0.46",
     "@types/zone.js": "0.0.27",
     "awesome-typescript-loader": "^3.1.2",
     "codelyzer": "^2.1.1",
     "concurrently": "^3.4.0",
-    "jasmine-core": "~2.4.1",
+    "jasmine-core": "^2.8.0",
     "karma": "^1.6.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-cli": "^1.0.1",

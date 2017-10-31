@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppStore } from '../../app.store';
 import { BuilderApiClient } from '../../client/builder-api';
 import { createOrigin } from '../../actions/index';
-import { requireSignIn } from '../../util';
 
 @Component({
   template: require('./origin-create-page.component.html')
 })
-export class OriginCreatePageComponent implements AfterViewInit, OnInit {
+export class OriginCreatePageComponent implements AfterViewInit {
   form: FormGroup;
   isOriginAvailable: Function;
   maxLength = 255;
@@ -38,10 +37,6 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     this.isOriginAvailable = origin => {
       return this.api.isOriginAvailable(origin);
     };
-  }
-
-  ngOnInit() {
-    requireSignIn(this);
   }
 
   ngAfterViewInit() {

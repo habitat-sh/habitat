@@ -13,16 +13,22 @@
 // limitations under the License.
 
 import 'whatwg-fetch';
-import { URLSearchParams } from '@angular/http';
-import * as cookies from 'js-cookie';
 import config from '../config';
 import {
-  attemptSignIn, addNotification, fetchMyOrigins, fetchMyOriginInvitations,
-  fetchProfile, setPrivileges, signOut
+  setCurrentUsername,
+  addNotification,
+  fetchMyOrigins,
+  fetchMyOriginInvitations,
+  fetchProfile,
+  setPrivileges,
+  signingIn,
+  signInFailed,
+  signOut
 } from './index';
 import { DANGER, WARNING } from './notifications';
 import { GitHubApiClient } from '../client/github-api';
 import { setBldrSessionToken } from './sessions';
+import { Browser } from '../browser';
 
 const uuid = require('uuid').v4;
 const gitHubTokenAuthUrl = `${config['habitat_api_url']}/v1/authenticate`;
@@ -34,13 +40,14 @@ export const POPULATE_GITHUB_USER_DATA = 'POPULATE_GITHUB_USER_DATA';
 export const SET_GITHUB_AUTH_STATE = 'SET_GITHUB_AUTH_STATE';
 export const SET_GITHUB_AUTH_TOKEN = 'SET_GITHUB_AUTH_TOKEN';
 
-export function authenticateWithGitHub(oauth_token = undefined, session_token = undefined) {
+export function authenticate(gitHubToken: string, bldrToken: string) {
 
-  return dispatch => {
-    if (oauth_token) {
-      setCookie('gitHubAuthToken', oauth_token);
+  return (dispatch, getState) => {
 
-      fetch(`${config['github_api_url']}/user?access_token=${oauth_token}`).then(response => {
+    if (gitHubToken) {
+      dispatch(setGitHubAuthToken(gitHubToken));
+
+      fetch(`${config['github_api_url']}/user?access_token=${gitHubToken}`).then(response => {
         if (response.ok) {
           return response.json();
         } else {
@@ -48,35 +55,38 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
           // promise to be handled below.
           return response.json().then(error => { throw error; });
         }
-      }).then(data => {
-        dispatch(populateGitHubUserData(data));
-        dispatch(attemptSignIn(data['login']));
-      }).catch(error => {
-        // We can assume an error from the response is a 401; anything
-        // else is probably a transient failure on GitHub's end, which
-        // we can expect to clear when we try to sign in again.
-        //
-        // When we get an unauthorized response, our token is no
-        // longer valid, so sign out.
-        dispatch(signOut());
-        dispatch(addNotification({
-          title: 'GitHub Authorization Failed',
-          body: 'Please sign in again.',
-          type: WARNING,
-        }));
-      });
+      })
+        .then(data => {
+          dispatch(populateGitHubUserData(data));
+          dispatch(setCurrentUsername(data.login));
+        })
+        .catch(error => {
+          // We can assume an error from the response is a 401; anything
+          // else is probably a transient failure on GitHub's end, which
+          // we can expect to clear when we try to sign in again.
+          //
+          // When we get an unauthorized response, our token is no
+          // longer valid, so sign out.
+          dispatch(signOut(true, getState().router.route.url));
+          dispatch(addNotification({
+            title: 'GitHub Authorization Failed',
+            body: 'Please sign in again.',
+            type: WARNING,
+          }));
+        });
     }
-    if (session_token) {
-      setCookie('bldrSessionToken', session_token);
-      dispatch(fetchMyOrigins(session_token));
-      dispatch(fetchMyOriginInvitations(session_token));
-      dispatch(fetchProfile(session_token));
+
+    if (bldrToken) {
+      dispatch(setBldrSessionToken(bldrToken));
+      dispatch(fetchMyOrigins(bldrToken));
+      dispatch(fetchMyOriginInvitations(bldrToken));
+      dispatch(fetchProfile(bldrToken));
     }
   };
 }
 
 export function fetchGitHubInstallations() {
-  const token = cookies.get('gitHubAuthToken');
+  const token = Browser.getCookie('gitHubAuthToken');
 
   return dispatch => {
     const client = new GitHubApiClient(token);
@@ -96,8 +106,8 @@ export function loadGitHubSessionState() {
   return {
     type: LOAD_GITHUB_SESSION_STATE,
     payload: {
-      gitHubAuthToken: cookies.get('gitHubAuthToken'),
-      gitHubAuthState: cookies.get('gitHubAuthState'),
+      gitHubAuthToken: Browser.getCookie('gitHubAuthToken'),
+      gitHubAuthState: Browser.getCookie('gitHubAuthState')
     },
   };
 }
@@ -122,77 +132,59 @@ function populateGitHubUserData(payload) {
   };
 }
 
-export function removeSessionStorage() {
+export function removeSession() {
   return dispatch => {
-    cookies.remove('gitHubAuthState', { domain: cookieDomain() });
-    cookies.remove('gitHubAuthToken', { domain: cookieDomain() });
-    cookies.remove('bldrSessionToken', { domain: cookieDomain() });
+    Browser.removeCookie('gitHubAuthState');
+    Browser.removeCookie('gitHubAuthToken');
+    Browser.removeCookie('bldrSessionToken');
   };
 }
 
-export function requestGitHubAuthToken(params, stateKey = '') {
-  params = new URLSearchParams(params.slice(1));
+export function exchangeGitHubAuthCode(code: string, state: string) {
 
-  return dispatch => {
-    if (params.has('code') && params.get('state') === stateKey) {
-      fetch(`${gitHubTokenAuthUrl}/${params.get('code')}`).then(response => {
+  return (dispatch, getState) => {
+    dispatch(setGitHubAuthState());
+
+    if (state === getState().gitHub.authState) {
+      dispatch(signingIn(true));
+
+      fetch(`${gitHubTokenAuthUrl}/${code}`).then(response => {
         return response.json();
-      }).catch(error => {
-        dispatch(addNotification({
-          title: 'Authentication Failed',
-          body: 'Unable to retrieve GitHub token',
-          type: DANGER,
-        }));
-      }).then(data => {
-        if (data['oauth_token']) {
-          dispatch(authenticateWithGitHub(data['oauth_token'], data['token']));
-          dispatch(setGitHubAuthToken(data['oauth_token']));
-          dispatch(setBldrSessionToken(data['token']));
-          dispatch(setPrivileges(data['flags']));
-        } else {
+      })
+        .then(data => {
+          dispatch(signingIn(false));
+
+          if (data.oauth_token && data.token) {
+            dispatch(authenticate(data.oauth_token, data.token));
+            dispatch(setPrivileges(data.flags));
+          } else {
+            dispatch(signInFailed());
+            dispatch(addNotification({
+              title: 'Authentication Failed',
+              body: `[err=${data.code}] ${data.msg}`,
+              type: DANGER
+            }));
+          }
+        })
+        .catch(error => {
+          dispatch(signingIn(false));
+          dispatch(signInFailed());
           dispatch(addNotification({
             title: 'Authentication Failed',
-            body: `[err=${data['code']}] ${data['msg']}`,
-            type: DANGER,
+            body: 'Unable to retrieve GitHub token',
+            type: DANGER
           }));
-        }
-      });
+        });
+    }
+    else {
+      dispatch(signInFailed());
     }
   };
 }
 
-// Return up to two trailing segments of the current hostname
-// for purposes of setting the cookie domain unless the domain
-// is an IP address.
-function cookieDomain() {
-  let delim = '.';
-  let hostname = currentHostname();
-  let tld = hostname.split(delim).pop();
-
-  if (isNaN(Number(tld))) {
-    return hostname
-      .split(delim)
-      .splice(-2)
-      .join(delim);
-  } else {
-    return hostname;
-  }
-}
-
-export const currentHostname = () => {
-  return location.hostname;
-};
-
-export function setCookie(key, value) {
-  return cookies.set(key, value, {
-    domain: cookieDomain(),
-    secure: window.location.protocol === 'https'
-  });
-}
-
 export function setGitHubAuthState() {
-  let payload = cookies.get('gitHubAuthState') || uuid();
-  setCookie('gitHubAuthState', payload);
+  let payload = Browser.getCookie('gitHubAuthState') || uuid();
+  Browser.setCookie('gitHubAuthState', payload);
 
   return {
     type: SET_GITHUB_AUTH_STATE,
@@ -201,7 +193,7 @@ export function setGitHubAuthState() {
 }
 
 export function setGitHubAuthToken(payload) {
-  setCookie('gitHubAuthToken', payload);
+  Browser.setCookie('gitHubAuthToken', payload);
 
   return {
     type: SET_GITHUB_AUTH_TOKEN,

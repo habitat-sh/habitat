@@ -17,21 +17,17 @@ import initialState from '../initial-state';
 
 export default function router(state = initialState['router'], action) {
   switch (action.type) {
+
     case actionTypes.ROUTE_CHANGE:
-      return state.set('route', action.payload).
-        set('requestedRoute', null);
+      return state
+        .setIn(['route', 'id'], action.payload.id)
+        .setIn(['route', 'description'], action.payload.toString())
+        .setIn(['route', 'url'], action.payload.url)
+        .setIn(['route', 'urlAfterRedirects'], action.payload.url)
+        .set('requestedRoute', undefined);
 
     case actionTypes.ROUTE_REQUESTED:
-      return state.
-        set('requestedRoute', action.payload);
-
-    case actionTypes.SET_REDIRECT_ROUTE:
-      return state.
-        set('redirectRoute', action.payload);
-
-    case actionTypes.RESET_REDIRECT_ROUTE:
-      return state.
-        set('redirectRoute', '');
+      return state.set('requestedRoute', action.payload);
 
     default:
       return state;

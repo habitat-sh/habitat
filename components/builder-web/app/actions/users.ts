@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { requestRoute, removeSessionStorage, resetAppState } from './index';
+import { authenticate, removeSession, loadGitHubSessionState, loadBldrSessionState, requestRoute, resetAppState, setGitHubAuthState } from './index';
 import { addNotification, SUCCESS, DANGER } from './notifications';
 import { BuilderApiClient } from '../client/builder-api';
+import { Browser } from '../browser';
 
 export const POPULATE_PROFILE = 'POPULATE_PROFILE';
 export const SET_PRIVILEGES = 'SET_PRIVILEGES';
-export const SET_SIGNING_IN_FLAG = 'SET_SIGNING_IN_FLAG';
-export const SIGN_IN_ATTEMPT = 'SIGN_IN_ATTEMPT';
+export const SET_CURRENT_USERNAME = 'SET_CURRENT_USERNAME';
+export const SIGN_IN_FAILED = 'SIGN_IN_FAILED';
+export const SIGNING_IN = 'SIGNING_IN';
 export const TOGGLE_USER_NAV_MENU = 'TOGGLE_USER_NAV_MENU';
 
 export function fetchProfile(token: string) {
@@ -30,6 +32,20 @@ export function fetchProfile(token: string) {
         notifySegment(data);
       })
       .catch(err => { });
+  };
+}
+
+export function identifyUser() {
+  return (dispatch, getState) => {
+    dispatch(loadGitHubSessionState());
+    dispatch(loadBldrSessionState());
+
+    const gitHubToken = getState().gitHub.authToken;
+    const bldrToken = getState().session.token;
+
+    if (gitHubToken && bldrToken) {
+      dispatch(authenticate(gitHubToken, bldrToken));
+    }
   };
 }
 
@@ -68,10 +84,10 @@ function populateProfile(payload) {
   };
 }
 
-export function attemptSignIn(username) {
+export function setCurrentUsername(payload) {
   return {
-    type: SIGN_IN_ATTEMPT,
-    payload: { username: username },
+    type: SET_CURRENT_USERNAME,
+    payload
   };
 }
 
@@ -88,17 +104,39 @@ export function setPrivileges(payload) {
   };
 }
 
-export function setSigningInFlag(payload) {
+export function signInFailed() {
   return {
-    type: SET_SIGNING_IN_FLAG,
-    payload,
+    type: SIGN_IN_FAILED
   };
 }
 
-export function signOut() {
-  return dispatch => {
-    dispatch(removeSessionStorage());
-    dispatch(resetAppState());
-    dispatch(requestRoute(['/sign-in']));
+export function signingIn(payload) {
+  return {
+    type: SIGNING_IN,
+    payload
+  };
+}
+
+export function signOut(redirectToSignIn: boolean, pathAfterSignIn?: string) {
+  return (dispatch, getState) => {
+
+    if (getState().session.token) {
+      dispatch(removeSession());
+      dispatch(resetAppState());
+    }
+
+    if (pathAfterSignIn) {
+      const key = 'redirectPath';
+
+      if (!Browser.getCookie(key)) {
+        Browser.setCookie(key, pathAfterSignIn);
+      }
+    }
+
+    dispatch(setGitHubAuthState());
+
+    if (redirectToSignIn) {
+      dispatch(requestRoute(['/sign-in']));
+    }
   };
 }

@@ -17,7 +17,7 @@ import config from '../config';
 import { parseKey } from '../util';
 import { GitHubApiClient } from './github-api';
 import { AppStore } from '../app.store';
-import { requestRoute, addNotification } from '../actions/index';
+import { addNotification, signOut } from '../actions/index';
 import { WARNING } from '../actions/notifications';
 
 export class BuilderApiClient {
@@ -683,7 +683,7 @@ export class BuilderApiClient {
   private handleError(error, reject) {
     const store = this.store;
     const state = store.getState();
-    store.dispatch(requestRoute(['/sign-in']));
+    store.dispatch(signOut(true, state.router.route.url));
     reject(error);
 
     if (state.session.token) {
