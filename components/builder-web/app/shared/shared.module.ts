@@ -35,6 +35,7 @@ import { ProgressBarComponent } from './progress-bar/progress-bar.component';
 import { ProjectSettingsComponent } from './project-settings/project-settings.component';
 import { PlatformIconComponent } from './platform-icon/platform-icon.component';
 import { VisibilitySelectorComponent } from './visibility-selector/visibility-selector.component';
+import { KeysPipe } from './pipes/keys.pipe';
 import { SimpleConfirmDialog } from './dialog/simple-confirm/simple-confirm.dialog';
 import { UserLoggedInGuard } from './user/user.guard';
 
@@ -68,6 +69,7 @@ import { UserLoggedInGuard } from './user/user.guard';
     PlatformIconComponent,
     VisibilitySelectorComponent,
     SimpleConfirmDialog,
+    KeysPipe
   ],
   entryComponents: [
     DisconnectConfirmDialog,
@@ -90,6 +92,7 @@ import { UserLoggedInGuard } from './user/user.guard';
     ProgressBarComponent,
     ProjectSettingsComponent,
     PlatformIconComponent,
+    KeysPipe,
     SimpleConfirmDialog,
   ],
   providers: [

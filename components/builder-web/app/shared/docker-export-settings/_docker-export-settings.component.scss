@@ -25,7 +25,7 @@
       font-size: rem(12);
     }
 
-    md-checkbox {
+    .mat-checkbox {
       display: block;
     }
   }
@@ -34,7 +34,7 @@
     @include row;
     margin-bottom: 12px;
 
-    mat-slide-toggle {
+    .mat-slide-toggle {
       @include span-columns(1.5);
     }
 
@@ -44,12 +44,12 @@
     }
   }
 
-  md-radio-group {
+  .mat-radio-group {
     display: block;
     border-top: 1px solid $very-light-gray;
     margin-bottom: 18px;
 
-    md-radio-button {
+    .mat-radio-button {
       display: block;
       line-height: rem(40);
       border-bottom: 1px solid $very-light-gray;

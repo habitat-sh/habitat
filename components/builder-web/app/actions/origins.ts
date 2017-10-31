@@ -19,14 +19,14 @@ import { parseKey } from '../util';
 
 export const CLEAR_MY_ORIGINS = 'CLEAR_MY_ORIGINS';
 export const CLEAR_MY_ORIGIN_INVITATIONS = 'CLEAR_MY_ORIGIN_INVITATIONS';
-export const CLEAR_DOCKER_INTEGRATIONS = 'CLEAR_DOCKER_INTEGRATIONS';
-export const DELETE_DOCKER_INTEGRATION = 'DELETE_DOCKER_INTEGRATION';
+export const CLEAR_INTEGRATIONS = 'CLEAR_INTEGRATIONS';
+export const DELETE_INTEGRATION = 'DELETE_INTEGRATION';
 export const POPULATE_MY_ORIGINS = 'POPULATE_MY_ORIGINS';
 export const POPULATE_MY_ORIGIN_INVITATIONS = 'POPULATE_MY_ORIGIN_INVITATIONS';
 export const POPULATE_ORIGIN_INVITATIONS = 'POPULATE_ORIGIN_INVITATIONS';
 export const POPULATE_ORIGIN_MEMBERS = 'POPULATE_ORIGIN_MEMBERS';
 export const POPULATE_ORIGIN_PUBLIC_KEYS = 'POPULATE_ORIGIN_PUBLIC_KEYS';
-export const POPULATE_ORIGIN_DOCKER_INTEGRATIONS = 'POPULATE_ORIGIN_DOCKER_INTEGRATIONS';
+export const POPULATE_ORIGIN_INTEGRATIONS = 'POPULATE_ORIGIN_INTEGRATIONS';
 export const SET_CURRENT_ORIGIN = 'SET_CURRENT_ORIGIN';
 export const SET_CURRENT_ORIGIN_CREATING_FLAG = 'SET_CURRENT_ORIGIN_CREATING_FLAG';
 export const SET_CURRENT_ORIGIN_LOADING = 'SET_CURRENT_ORIGIN_LOADING';
@@ -256,36 +256,36 @@ export function inviteUserToOrigin(username: string, origin: string, token: stri
   };
 }
 
-export function deleteDockerIntegration(origin: string, token: string, name: string) {
+export function deleteIntegration(origin: string, token: string, name: string, type: string) {
   return dispatch => {
-    new BuilderApiClient(token).deleteDockerIntegration(origin, name)
+    new BuilderApiClient(token).deleteIntegration(origin, name, type)
       .then(response => {
-        dispatch(fetchDockerIntegration(origin, token));
+        dispatch(fetchIntegrations(origin, token));
       })
       .catch(error => {
-        dispatch(populateDockerIntegrations(undefined, error.message));
+        dispatch(populateIntegrations(undefined, error.message));
       });
   };
 }
 
-export function fetchDockerIntegration(origin: string, token: string) {
+export function fetchIntegrations(origin: string, token: string) {
   return dispatch => {
-    dispatch(clearDockerIntegration());
-    new BuilderApiClient(token).getDockerIntegration(origin)
+    dispatch(clearIntegration());
+    new BuilderApiClient(token).getIntegrations(origin)
       .then(response => {
-        dispatch(populateDockerIntegrations(response));
+        dispatch(populateIntegrations(response));
       })
       .catch(error => {
-        dispatch(populateDockerIntegrations(undefined, error.message));
+        dispatch(populateIntegrations(undefined, error.message));
       });
   };
 }
 
-export function setDockerIntegration(origin: string, credentials, token: string) {
+export function setIntegration(origin: string, credentials, token: string, type: string, name: string) {
   return dispatch => {
-    new BuilderApiClient(token).setDockerIntegration(origin, credentials)
+    new BuilderApiClient(token).setIntegration(origin, credentials, type, name)
       .then(() => {
-        dispatch(fetchDockerIntegration(origin, token));
+        dispatch(fetchIntegrations(origin, token));
       })
       .catch(error => {
         dispatch(setOriginIntegrationSaveErrorMessage(error.message));
@@ -313,7 +313,7 @@ export function updateOrigin(origin: any, token: string) {
   };
 }
 
-export function validateDockerCredentials(username: string, password: string, token: string) {
+export function validateIntegrationCredentials(username: string, password: string, token: string, type: string, url?: string) {
   return dispatch => {
 
     dispatch(setIntegrationCredsValidation({
@@ -323,7 +323,7 @@ export function validateDockerCredentials(username: string, password: string, to
       message: 'Verifying...'
     }));
 
-    new BuilderApiClient(token).validateDockerCredentials(username, password)
+    new BuilderApiClient(token).validateIntegrationCredentials(username, password, type, url)
       .then(response => {
         dispatch(setIntegrationCredsValidation({
           validating: false,
@@ -382,9 +382,9 @@ function clearMyOriginInvitations() {
   };
 }
 
-function clearDockerIntegration() {
+function clearIntegration() {
   return {
-    type: CLEAR_DOCKER_INTEGRATIONS
+    type: CLEAR_INTEGRATIONS
   };
 }
 
@@ -428,9 +428,9 @@ function populateOriginPublicKeys(payload, error = undefined) {
   };
 }
 
-function populateDockerIntegrations(payload, error = undefined) {
+function populateIntegrations(payload, error = undefined) {
   return {
-    type: POPULATE_ORIGIN_DOCKER_INTEGRATIONS,
+    type: POPULATE_ORIGIN_INTEGRATIONS,
     payload,
     error
   };

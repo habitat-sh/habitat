@@ -72,7 +72,7 @@ export default Record({
     mine: List(),
     myInvitations: List(),
     currentIntegrations: Record({
-      docker: List(),
+      integrations: undefined,
       ui: Record({
         creds: Record({
           validating: false,

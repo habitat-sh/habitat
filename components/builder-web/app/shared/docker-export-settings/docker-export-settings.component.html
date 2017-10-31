@@ -18,10 +18,12 @@
   <div *ngIf="enabled && configured">
     <div class="integrations">
       <mat-radio-group [(ngModel)]="name">
-        <mat-radio-button *ngFor="let integration of integrations" [value]="integration">
-          <hab-icon symbol="docker"></hab-icon>
-          <span>{{ integration }}</span>
-        </mat-radio-button>
+        <ng-container *ngFor="let type of integrations | habKeysPipe">
+          <mat-radio-button *ngFor="let integration of integrations[type]" [value]="integration">
+            <hab-icon [symbol]="type"></hab-icon>
+            <span>{{ integration }}</span>
+          </mat-radio-button>
+        </ng-container>
       </mat-radio-group>
     </div>
     <div class="fields">

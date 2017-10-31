@@ -21,7 +21,7 @@ import { PackageLatestComponent } from '../package-latest/package-latest.compone
 import { PackageReleaseComponent } from '../package-release/package-release.component';
 import { PackageVersionsComponent } from '../package-versions/package-versions.component';
 import { AppStore } from '../../app.store';
-import { fetchBuilds, fetchDockerIntegration, fetchOrigin, fetchProject } from '../../actions/index';
+import { fetchBuilds, fetchIntegrations, fetchOrigin, fetchProject } from '../../actions/index';
 
 @Component({
   template: require('./package.component.html')
@@ -129,7 +129,7 @@ export class PackageComponent implements OnInit, OnDestroy {
   private fetchProject() {
     if (this.token && this.origin && this.name && this.isOriginMember) {
       this.store.dispatch(fetchProject(this.origin, this.name, this.token, false));
-      this.store.dispatch(fetchDockerIntegration(this.origin, this.token));
+      this.store.dispatch(fetchIntegrations(this.origin, this.token));
     }
   }
 

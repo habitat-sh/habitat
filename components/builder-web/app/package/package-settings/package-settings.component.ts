@@ -60,7 +60,7 @@ export class PackageSettingsComponent implements OnInit, OnDestroy {
   }
 
   get integrations() {
-    return this.store.getState().origins.currentIntegrations.docker;
+    return this.store.getState().origins.currentIntegrations.integrations;
   }
 
   get loading() {
