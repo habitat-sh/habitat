@@ -86,5 +86,13 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         ORDER BY integration, name
                     $$ LANGUAGE SQL STABLE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE IF EXISTS origin_integrations DROP CONSTRAINT IF EXISTS origin_integrations_origin_name_key"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE IF EXISTS origin_integrations ADD CONSTRAINT origin_integrations_origin_integration_name_key UNIQUE(origin, integration, name)"#,
+    )?;
     Ok(())
 }
