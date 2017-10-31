@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use base64::DecodeError;
 use std::process::ExitStatus;
 use std::fmt;
 use std::io;
 use std::result;
+use std::string::FromUtf8Error;
+use rusoto_ecr::GetAuthorizationTokenError;
 
 use common;
 use hab;
@@ -26,13 +29,17 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    Base64DecodeError(DecodeError),
     BuildFailed(ExitStatus),
     DockerImageIdNotFound(String),
+    InvalidToken(FromUtf8Error),
     Hab(hab::error::Error),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
     LoginFailed(ExitStatus),
     LogoutFailed(ExitStatus),
+    NoECRTokensReturned,
+    TokenFetchFailed(GetAuthorizationTokenError),
     PrimaryServicePackageNotFound(Vec<String>),
     PushImageFailed(ExitStatus),
     RemoveImageFailed(ExitStatus),
@@ -43,6 +50,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::Base64DecodeError(ref err) => format!("{}", err),
             Error::BuildFailed(status) => format!("Docker build failed with exit code: {}", status),
             Error::DockerImageIdNotFound(ref image_tag) => {
                 format!(
@@ -54,6 +62,9 @@ impl fmt::Display for Error {
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::LoginFailed(status) => format!("Docker login failed with exit code: {}", status),
+            Error::TokenFetchFailed(ref err) => format!("{}", err),
+            Error::NoECRTokensReturned => format!("No ECR Tokens returned"),
+            Error::InvalidToken(ref err) => format!("{}", err),
             Error::LogoutFailed(status) => {
                 format!("Docker logout failed with exit code: {}", status)
             }

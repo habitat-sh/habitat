@@ -15,12 +15,17 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate base64;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate habitat_pkg_export_docker as export_docker;
+extern crate rusoto_core;
+extern crate rusoto_credential as aws_creds;
+extern crate rusoto_ecr;
+extern crate chrono;
 #[macro_use]
 extern crate log;
 extern crate url;
@@ -39,7 +44,11 @@ use hcore::package::PackageIdent;
 use hcore::url as hurl;
 use url::Url;
 
-use export_docker::{BuildSpec, Credentials, Result, Naming};
+use aws_creds::StaticProvider;
+use rusoto_core::Region;
+use rusoto_core::request::*;
+use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
+use export_docker::{BuildSpec, Credentials, Error, Result, Naming};
 
 const DEFAULT_HAB_IDENT: &'static str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
@@ -59,6 +68,8 @@ fn start(ui: &mut UI) -> Result<()> {
     debug!("clap cli args: {:?}", m);
     let default_channel = channel::default();
     let default_url = hurl::default_bldr_url();
+    let registry_type = m.value_of("REGISTRY_TYPE").unwrap_or("docker");
+    let registry_url = m.value_of("REGISTRY_URL");
 
     let spec = BuildSpec {
         hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
@@ -90,6 +101,8 @@ fn start(ui: &mut UI) -> Result<()> {
             true
         },
         custom_tag: m.value_of("TAG_CUSTOM"),
+        registry_url: registry_url,
+        registry_type: registry_type,
     };
 
     let docker_image = export_docker::export(ui, spec, &naming)?;
@@ -98,11 +111,51 @@ fn start(ui: &mut UI) -> Result<()> {
         env::current_dir()?.join("results"),
     )?;
     if m.is_present("PUSH_IMAGE") {
-        let credentials = Credentials {
-            username: m.value_of("REGISTRY_USERNAME").unwrap(),
-            password: m.value_of("REGISTRY_PASSWORD").unwrap(),
-        };
-        docker_image.push(ui, &credentials)?;
+        match registry_type {
+            "amazon" => {
+                // The username and password should be valid IAM credentials
+                let provider = StaticProvider::new_minimal(
+                    m.value_of("REGISTRY_USERNAME").unwrap().to_string(),
+                    m.value_of("REGISTRY_PASSWORD").unwrap().to_string(),
+                );
+                // TODO TED: Make the region configurable
+                let client =
+                    EcrClient::new(default_tls_client().unwrap(), provider, Region::UsWest2);
+                let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
+                let token = match client.get_authorization_token(&auth_token_req) {
+                    Ok(resp) => {
+                        match resp.authorization_data {
+                            Some(auth_data) => auth_data[0].clone().authorization_token.unwrap(),
+                            None => return Err(Error::NoECRTokensReturned),
+                        }
+                    }
+                    Err(e) => return Err(Error::TokenFetchFailed(e)),
+                };
+
+                let creds: Vec<String> = match base64::decode(&token) {
+                    Ok(decoded_token) => {
+                        match String::from_utf8(decoded_token) {
+                            Ok(dts) => dts.split(':').map(String::from).collect(),
+                            Err(err) => return Err(Error::InvalidToken(err)),
+                        }
+                    }
+                    Err(err) => return Err(Error::Base64DecodeError(err)),
+                };
+
+                let credentials = Credentials {
+                    username: &creds[0],
+                    password: &creds[1],
+                };
+                docker_image.push(ui, &credentials, registry_url)?;
+            }
+            _ => {
+                let credentials = Credentials {
+                    username: m.value_of("REGISTRY_USERNAME").unwrap(),
+                    password: m.value_of("REGISTRY_PASSWORD").unwrap(),
+                };
+                docker_image.push(ui, &credentials, registry_url)?;
+            }
+        }
     }
     if m.is_present("RM_IMAGE") {
         docker_image.rm(ui)?;
@@ -181,7 +234,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             "Remote registry username, required for pushing image to remote registry")
         (@arg REGISTRY_PASSWORD: --("password") -P +takes_value requires[REGISTRY_USERNAME]
             "Remote registry password, required for pushing image to remote registry")
-
+        (@arg REGISTRY_TYPE: --("registry-type") -P +takes_value
+            "Remote registry type, Ex: Amazon, Docker, Google (default: docker)")
+        (@arg REGISTRY_URL: --("registry-url") -P +takes_value
+            "Remote registry url")
         // Cleanup
         (@arg RM_IMAGE: --("rm-image")
             "Remove local image from engine after build and/or push (default: no)")
