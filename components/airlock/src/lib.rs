@@ -16,12 +16,11 @@ extern crate errno;
 extern crate libc;
 #[macro_use]
 extern crate log;
-extern crate tempdir;
 extern crate unshare;
 extern crate users;
 
 pub mod command;
-mod error;
+pub mod error;
 pub mod filesystem;
 pub mod mount;
 pub mod pty;

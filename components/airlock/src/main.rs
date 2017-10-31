@@ -21,18 +21,22 @@ extern crate clap;
 extern crate env_logger;
 #[macro_use]
 extern crate log;
+extern crate tempdir;
 
 use std::env;
 use std::ffi::OsString;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 use std::result;
 
 use airlock::command;
-use airlock::Result;
+use airlock::{Error, Result};
 use clap::{App, ArgMatches};
+use tempdir::TempDir;
 
-pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+const FS_ROOT_ENVVAR: &'static str = "AIRLOCK_FS_ROOT";
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 fn main() {
     env_logger::init().unwrap();
@@ -57,14 +61,28 @@ fn _main() -> Result<()> {
 }
 
 fn sub_invoke(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
-    let rootfs = Path::new(m.value_of("ROOTFS").unwrap());
+    let rootfs = Path::new(m.value_of("FS_ROOT").unwrap());
     let cmd = m.value_of("CMD").unwrap();
     command::invoke::run(rootfs, cmd, cmd_args)
 }
 
 fn sub_run(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
     let cmd = m.value_of("CMD").unwrap();
-    command::run::run(cmd, cmd_args)
+
+    match env::var(FS_ROOT_ENVVAR) {
+        Ok(ref val) => {
+            let rootfs = Path::new(val);
+            if rootfs.exists() {
+                return Err(Error::Rootfs(val.to_string()));
+            }
+            fs::create_dir(&rootfs)?;
+            command::run::run(cmd, cmd_args, rootfs)
+        }
+        Err(_) => {
+            let tmpdir = TempDir::new("rootfs")?;
+            command::run::run(cmd, cmd_args, tmpdir.path())
+        }
+    }
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
@@ -92,7 +110,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand invoke =>
             (@setting Hidden)
             (about: "invoke stuff")
-            (@arg ROOTFS: +required +takes_value {dir_exists}
+            (@arg FS_ROOT: +required +takes_value {dir_exists}
                 "Path to the rootfs (ex: /tmp/rootfs)")
             (@arg CMD: +required +takes_value
                 "The command to execute (ex: ls)")
