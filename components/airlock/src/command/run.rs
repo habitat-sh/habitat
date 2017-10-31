@@ -19,7 +19,6 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
-use tempdir::TempDir;
 use unshare::{self, Namespace};
 use users;
 use users::os::unix::GroupExt;
@@ -28,16 +27,13 @@ use {Error, Result};
 
 const MIN_SUB_RANGE: u32 = 65536;
 
-pub fn run(cmd: &str, args: Vec<OsString>) -> Result<()> {
+pub fn run<P: AsRef<Path>>(cmd: &str, args: Vec<OsString>, rootfs: P) -> Result<()> {
     check_required_packages()?;
     check_user_group_membership()?;
-    let rootfs = TempDir::new("rootfs")?;
-    debug!("created rootfs, path={}", rootfs.path().display());
-    let mut command = unshare_command(rootfs.path(), cmd, args)?;
+    debug!("created rootfs, path={}", rootfs.as_ref().display());
+    let mut command = unshare_command(rootfs.as_ref(), cmd, args)?;
     debug!("running, command={:?}", command);
     let exit_status = command.spawn()?.wait()?;
-    debug!("cleaning rootfs, path={}", rootfs.path().display());
-    rootfs.close()?;
     process::exit(exit_status.code().unwrap_or(127));
 }
 

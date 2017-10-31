@@ -320,25 +320,20 @@ impl Runner {
     }
 
     fn teardown(&mut self) -> Result<()> {
-        let exit_status = Studio::new(
-            &self.workspace,
-            &self.config.bldr_url,
-            &self.config.auth_token,
-        ).rm()?;
-
-        if exit_status.success() {
-            if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
-                return Err(Error::WorkspaceTeardown(
-                    format!("{}", self.workspace.src().display()),
-                    err,
-                ));
-            }
-            Ok(())
-        } else {
-            Err(Error::BuildFailure(exit_status.code().unwrap_or(-1)))
+        if let Some(err) = fs::remove_dir_all(self.workspace.studio()).err() {
+            return Err(Error::StudioTeardown(
+                self.workspace.studio().to_path_buf(),
+                err,
+            ));
         }
-
+        if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
+            return Err(Error::WorkspaceTeardown(
+                format!("{}", self.workspace.src().display()),
+                err,
+            ));
+        }
         // TODO fn: purge the secret origin key from worker
+        Ok(())
     }
 
     /// Determines whether or not there is a Docker integration for the job.
