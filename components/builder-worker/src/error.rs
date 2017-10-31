@@ -38,6 +38,8 @@ pub enum Error {
     BuildFailure(i32),
     BuilderCore(bldr_core::Error),
     CannotAddCreds,
+    Chown(PathBuf, u32, u32, io::Error),
+    ChownWait(io::Error),
     Exporter(io::Error),
     Git(git2::Error),
     GithubAppAuthErr(github_api_client::HubError),
@@ -73,6 +75,16 @@ impl fmt::Display for Error {
             }
             Error::BuilderCore(ref e) => format!("{}", e),
             Error::CannotAddCreds => format!("Cannot add credentials to url"),
+            Error::Chown(ref p, ref u, ref g, ref e) => {
+                format!(
+                    "Unable to recursively chown path, {} with '{}:{}', {}",
+                    p.display(),
+                    u,
+                    g,
+                    e
+                )
+            }
+            Error::ChownWait(ref e) => format!("Unable to complete chown process, {}", e),
             Error::Exporter(ref e) => {
                 format!("Unable to spawn or pipe data from exporter proc, {}", e)
             }
@@ -130,6 +142,8 @@ impl error::Error for Error {
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
             Error::BuilderCore(ref err) => err.description(),
             Error::CannotAddCreds => "Cannot add credentials to url",
+            Error::Chown(_, _, _, _) => "Unable to recursively chown path",
+            Error::ChownWait(_) => "Unable to complete chown process",
             Error::Exporter(_) => "IO Error while spawning or piping data from exporter proc",
             Error::Git(ref err) => err.description(),
             Error::GithubAppAuthErr(ref err) => err.description(),

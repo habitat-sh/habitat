@@ -32,6 +32,7 @@ use bldr_core::logger::Logger;
 use chrono::UTC;
 use depot_client;
 use hab_core::fs::CACHE_KEY_PATH;
+use hab_core::os::users;
 use hab_core::package::archive::PackageArchive;
 use hab_core::util::perm;
 use hab_net::socket::DEFAULT_CONTEXT;
@@ -143,6 +144,21 @@ impl Runner {
             self.logger.log(&msg);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }
+        if let Some(err) = util::chown_recursive(
+            self.workspace.src(),
+            studio::studio_uid(),
+            studio::studio_gid(),
+        ).err()
+        {
+            let msg = format!(
+                "Failed to change ownership of source repository for {}, err={:?}",
+                self.workspace.job.get_project().get_name(),
+                err
+            );
+            debug!("{}", msg);
+            self.logger.log(&msg);
+            return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:8"));
+        }
 
         self.workspace.job.set_build_started_at(
             UTC::now().to_rfc3339(),
@@ -209,10 +225,7 @@ impl Runner {
                 self.depot_cli.fetch_origin_secret_key(
                     self.job().origin(),
                     &self.config.auth_token,
-                    &*studio::STUDIO_HOME.lock().unwrap().join(format!(
-                        ".{}",
-                        CACHE_KEY_PATH
-                    )),
+                    key_path(),
                 )
             },
             |res| {
@@ -298,6 +311,17 @@ impl Runner {
     fn setup(&mut self) -> Result<()> {
         self.logger.log_worker_job(&self.workspace.job);
 
+        // Ensure that data path group ownership is set to the build user and directory perms are
+        // `0750`.
+        perm::set_owner(
+            &self.config.data_path,
+            users::get_current_username()
+                .unwrap_or(String::from("root"))
+                .as_str(),
+            STUDIO_GROUP,
+        )?;
+        perm::set_permissions(&self.config.data_path, 0o750)?;
+
         if self.workspace.src().exists() {
             if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
                 warn!(
@@ -315,6 +339,18 @@ impl Runner {
         }
         perm::set_owner(self.workspace.root(), STUDIO_USER, STUDIO_GROUP)?;
         perm::set_owner(self.workspace.src(), STUDIO_USER, STUDIO_GROUP)?;
+
+        if let Some(err) = fs::create_dir_all(key_path()).err() {
+            return Err(Error::WorkspaceSetup(
+                format!("{}", key_path().display()),
+                err,
+            ));
+        }
+        util::chown_recursive(
+            (&*studio::STUDIO_HOME).lock().unwrap().join(".hab"),
+            studio::studio_uid(),
+            studio::studio_gid(),
+        )?;
 
         Ok(())
     }
@@ -344,6 +380,13 @@ impl Runner {
     fn has_docker_integration(&self) -> bool {
         !self.workspace.job.get_project_integrations().is_empty()
     }
+}
+
+fn key_path() -> PathBuf {
+    (&*studio::STUDIO_HOME).lock().unwrap().join(format!(
+        ".{}",
+        CACHE_KEY_PATH
+    ))
 }
 
 /// Client for sending and receiving messages to and from the Job Runner
