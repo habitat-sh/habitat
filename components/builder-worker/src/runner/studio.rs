@@ -77,12 +77,29 @@ impl<'a> Studio<'a> {
             STABLE_CHANNEL
         };
 
-        let mut cmd = self.studio_command();
+        let mut cmd = Command::new("airlock");
+        cmd.current_dir(self.workspace.src());
+        cmd.uid(studio_uid());
+        cmd.gid(studio_gid());
+        if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
+            cmd.env("DEBUG", val);
+        }
+        cmd.env(NONINTERACTIVE_ENVVAR, "true"); // Disables progress bars
+        cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
+        cmd.stdout(Stdio::piped());
+        cmd.stderr(Stdio::piped());
+        cmd.arg("run");
+        cmd.arg(&*STUDIO_PROGRAM);
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
         cmd.arg(build_path(self.workspace.job.get_project().get_plan_path()));
         debug!("building studio build command, cmd={:?}", &cmd);
+        cmd.env("AIRLOCK_FS_ROOT", self.workspace.studio());
+        debug!(
+            "setting studio build command env, AIRLOCK_FS_ROOT={}",
+            self.workspace.studio().display()
+        );
         debug!(
             "setting studio build command env, {}={}",
             BLDR_CHANNEL_ENVVAR,
@@ -107,48 +124,6 @@ impl<'a> Studio<'a> {
         })?;
         debug!("completed studio build command, status={:?}", exit_status);
         Ok(exit_status)
-    }
-
-    /// Spawns a Studio rm command and returns the process' `ExitStatus`.
-    ///
-    /// # Errors
-    ///
-    /// * If the child process can't be spawned
-    /// * If the calling thread can't wait on the child process
-    pub fn rm(&self) -> Result<ExitStatus> {
-        let mut cmd = self.studio_command();
-        cmd.arg("rm");
-        debug!("building studio rm command, cmd={:?}", &cmd);
-
-        debug!("spawning studio rm command");
-        let mut child = cmd.spawn().map_err(|e| {
-            Error::StudioTeardown(self.workspace.studio().to_path_buf(), e)
-        })?;
-        let exit_status = child.wait().map_err(|e| {
-            Error::StudioTeardown(self.workspace.studio().to_path_buf(), e)
-        })?;
-        debug!("completed studio rm command, status={:?}", exit_status);
-        Ok(exit_status)
-    }
-
-    /// Builds and returns a `Command` for spawning a Habitat Studio process.
-    fn studio_command(&self) -> Command {
-        let mut cmd = Command::new("airlock");
-        cmd.current_dir(self.workspace.src());
-        cmd.uid(studio_uid());
-        cmd.gid(studio_gid());
-        if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
-            cmd.env("DEBUG", val);
-        }
-        cmd.env(NONINTERACTIVE_ENVVAR, "true"); // Disables progress bars
-        cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
-        cmd.arg("run");
-        cmd.arg(&*STUDIO_PROGRAM);
-        cmd.arg("-r"); // Studio root
-        cmd.arg(self.workspace.studio());
-        cmd.stdout(Stdio::piped());
-        cmd.stderr(Stdio::piped());
-        cmd
     }
 }
 
