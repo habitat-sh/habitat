@@ -60,6 +60,7 @@ use sup::error::{Error, Result, SupError};
 use sup::feat;
 use sup::command;
 use sup::http_gateway;
+use sup::http_gateway::ListenAddr;
 use sup::manager::{Manager, ManagerConfig};
 use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
 use sup::manager::service::{CompositeSpec, ServiceSpec, StartStyle};
@@ -200,9 +201,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand run =>
             (about: "Run the Habitat Supervisor")
             (aliases: &["r", "ru"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if launching more than one [default: default]")
@@ -235,9 +236,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 a package or artifact. If the Habitat Supervisor is not already running this \
                 will additionally start one for you.")
             (aliases: &["sta", "star"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
             (@arg NAME: --("override-name") +takes_value
                 "The name for the state directory if launching more than one Supervisor \
@@ -369,9 +370,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand run =>
             (about: "Run the Habitat Supervisor")
             (aliases: &["r", "ru"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if launching more than one [default: default]")
@@ -404,9 +405,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 a package or artifact. If the Habitat Supervisor is not already running this \
                 will additionally start one for you.")
             (aliases: &["sta", "star"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
             (@arg NAME: --("override-name") +takes_value
                 "The name for the state directory if launching more than one Supervisor \
@@ -1457,6 +1458,20 @@ fn valid_topology(val: String) -> result::Result<(), String> {
     match Topology::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Service topology: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_listen_gossip(val: String) -> result::Result<(), String> {
+    match GossipListenAddr::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Listen gossip address should include both IP and port, eg: '0.0.0.0:9700'"))
+    }
+}
+
+fn valid_listen_http(val: String) -> result::Result<(), String> {
+    match ListenAddr::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Listen http address should include both IP and port, eg: '0.0.0.0:9700'"))
     }
 }
 
