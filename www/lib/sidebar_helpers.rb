@@ -5,6 +5,7 @@ module SidebarHelpers
     build_web_app
     build_web_app_node
     build_web_app_ruby
+    build_web_app_gradle
     docs
     download
     get_started

@@ -53,7 +53,7 @@ section
 
  = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_specify_processes_plan"
 
- p The scaffolding will produce <code>my_app-web</code> and <code>my_app-release</code> processes in the resulting package under <code>$pkg_prefix/bin</code> which will be in the package's <code>$PATH</code> environment. 
+ p The scaffolding will produce <code>my_app-web</code> and <code>my_app-release</code> processes in the <code>$pkg_prefix/bin</code> directory. This directory is included in the package's <code>$PATH</code> environment variable. 
 
  - if "#{current_page.data.platform_short}" == "ruby"
    p By default, the Ruby scaffolding will create the following processes for you as items in the <code>scaffolding_process_bins</code> array.

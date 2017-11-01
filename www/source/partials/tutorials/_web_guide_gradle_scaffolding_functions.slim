@@ -1,0 +1,19 @@
+ul
+  li <b>do_default_prepare</b>: Sets the Gradle user home directory through the <code>GRADLE_USER_HOME</code> environment variable to the temporary cache location used by the Studio to build your application. Also sets <code>GRADLE_OPTS</code> with the following options:
+  ul
+   li 
+    |
+     org.gradle.daemon=false
+   li 
+    |
+     org.gradle.caching=true
+   li 
+    |
+     org.gradle.java.home=/local/path/to/JDK_package
+   li 
+    |
+     org.gradle.project.buildDir=$CACHE_PATH/cache/build
+  
+  p This function is called in the <code>do_prepare()</code> callback and overrides the existing behavior of the default <code>do_default_prepare()</code> function.
+  li <b>do_default_build</b>: Loads local build cache, runs either <code>gradle build</code> for Spring Boot apps, <code>gradle installDist</code> for RatPack apps, or <code>gradle stage</code> for Gradle apps. Also performs the application configuration setup task of adding a <code>port</code> key-value pair to the <code>default.toml</code> created by the #{current_page.data.platform} scaffolding. This function is called in the <code>do_build()</code> callback and it overrides the existing behavior of the default <code>do_default_build()</code> function.
+  li <b>do_default_install</b>: Installs your web application, node modules, and creates a process bin directory for #{link_to 'processes','/tutorials/build-your-own/node/define-processes/'} like <code>web</code> and <code>sh</code>. This function is called in the <code>do_install()</code> callback and overrides the existing behavior of the default <code>do_default_install()</code> function.

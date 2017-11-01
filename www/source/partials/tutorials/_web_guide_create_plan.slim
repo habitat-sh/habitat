@@ -34,9 +34,39 @@ section
  
  = partial "partials/global/versioning_concepts"
 
- h3 Defining the #{current_page.data.platform} version
+ - if "#{current_page.data.platform_short}" != "gradle"
+   h3 Defining the #{current_page.data.platform} version
+ - else
+   h3 Defining #{current_page.data.platform} and Java-related version information
 
  = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_version"
+
+ -if "#{current_page.data.platform_short}" == "node"
+  h2 Package manager detection
+
+  p The #{current_page.data.platform} scaffolding can detect and use either #{link_to 'npm','https://www.npmjs.com/'} or #{link_to 'Yarn','https://yarnpkg.com/en/'} to resolve, download, and install #{current_page.data.platform} package dependencies. 
+
+  p If a <code>yarn.lock</code> file is found in your application's root directory, then Yarn will be used to install dependencies. The <code>core/yarn</code> package will also be injected into your plan's <code>pkg_build_deps</code> array.
+
+  p If no <code>yarn.lock</code> file is found in your applications's root directory, then npm will be used to install dependencies. The version of npm will be the version that ships with the version of #{current_page.data.platform} selected.
+
+  p The next section describes how to override and specify the package manager yourself.
+
+  h3 Specifying the package manager in your plan
+
+  p You can override the default detection logic which determines the package manager by setting the <code>scaffolding_pkg_manager</code> variable in your plan to either <code>"npm"</code> or <code>"yarn"</code>. For example:
+  
+  pre
+   code
+    |
+     pkg_name=my_app
+     pkg_origin=acmecorp
+     pkg_version="0.1.0"
+     pkg_scaffolding=core/scaffolding-node
+
+     scaffolding_pkg_manager=yarn
+
+  p This forces the scaffolding to use Yarn over npm, even if no <code>yarn.lock</code> file was present.
 
  p The rest of the steps in this guide will show you how to customize your plan, connect to common external services, and test your package. The customization steps are not required; however, they may be needed on more advanced #{current_page.data.platform} web applications.
 
