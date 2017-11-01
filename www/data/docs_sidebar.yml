@@ -15,7 +15,7 @@ sidebar_links:
       link: "/docs/using-habitat/#install-faq"
     - title: Using Habitat Packages
       link: "/docs/using-habitat/#using-packages"
-    - title: Monitor Services
+    - title: Monitor Supervisor via API
       link: "/docs/using-habitat/#monitor-services"
     - title: Service Groups
       link: "/docs/using-habitat/#service-groups"
@@ -44,9 +44,9 @@ sidebar_links:
       link: "/docs/developing-packages/#debug-builds"
     - title: Package Export Formats
       link: "/docs/developing-packages/#pkg-exports"
-    - title: Share via Builder
+    - title: Share with Builder
       link: "/docs/developing-packages/#sharing-pkgs"
-    - title: Using Builder with Multiple Plans
+    - title: Multiple Plans with Builder
       link: "/docs/developing-packages/#multiple-plans-builder"
   - title: Commands (CLI)
     link: "/docs/habitat-cli"

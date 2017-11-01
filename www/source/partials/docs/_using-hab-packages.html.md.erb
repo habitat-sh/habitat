@@ -1,4 +1,4 @@
-# <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Habitat Packages</a>
+# <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Running Habitat Packages</a>
 
 Habitat packages used to start services are run under the Habitat Supervisor. At runtime, you can join Supervisors together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
 
@@ -154,27 +154,3 @@ The following exit codes are emitted by the `status` command:
 * `2` - A service identifier was passed to `hab sup status` and that service is not loaded by the Supervisor
 * `3` - There is no local running Supervisor
 
-# <a name="monitor-services" id="monitor-services" data-magellan-target="monitor-services">Monitor services through the HTTP API</a>
-
-When a service starts, the Supervisor exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
-
-The HTTP API provides information on the following endpoints:
-
-* `/census` - Returns the current Census of Services on the Ring (roughly what you see as a service in config.toml).
-* `/services` - Returns an array of all the services running under this Supervisor.
-* `/services/{name}/{group}/config` - Returns this service groups current configuration.
-* `/services/{name}/{group}/{organization}/config` - Same as above, but includes the organization.
-* `/services/{name}/{group}/health` - Returns the current health check for this service.
-* `/services/{name}/{group}/{organization}/health` - Same as above, but includes the organization.
-* `/butterfly` - Debug information about the rumors stored via Butterfly.
-
-## Usage
-Connect to the Supervisor of the running service using the following syntax. This example uses `curl` to do the GET request.
-
-```
-$ curl http://172.17.0.2:9631/services
-```
-
-> Note: The default listening port on the Supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
-
-Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.
