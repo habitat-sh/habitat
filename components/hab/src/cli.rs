@@ -173,6 +173,11 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to Habitat packages")
             (aliases: &["p", "pk", "package"])
             (@setting ArgRequiredElseHelp)
+            (@subcommand binds =>
+                (about: "Displays the binds for a service")
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-statis/1.42.2")
+            )
             (@subcommand binlink =>
                 (about: "Creates a binlink for a package binary in a common 'PATH' location")
                 (aliases: &["bi", "bin", "binl", "binli", "binlin"])
