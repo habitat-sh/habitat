@@ -141,6 +141,9 @@ paths = [
   "support/ci/builder-base-plan.sh",
 ]
 
+[hab-plan-build]
+plan_path = "components/plan-build"
+
 [hab-studio]
 plan_path = "components/studio"
 
