@@ -29,6 +29,7 @@ page 'tutorials/sample-app/*', layout: :tutorials_sidebar, locals: { sidebar_lay
 page 'tutorials/build-your-own/index.html', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app'}
 page 'tutorials/build-your-own/ruby/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_ruby'}
 page 'tutorials/build-your-own/node/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_node'}
+page 'tutorials/build-your-own/gradle/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_gradle'}
 page '/blog/index.html', layout: :blog_index
 page '/demo/steps/*', layout: :demo_index
 

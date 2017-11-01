@@ -280,7 +280,7 @@
           padding-left: 1.2rem;
         }
 
-        @each $platform in (mac, linux, windows, ruby, node) {
+        @each $platform in (mac, linux, windows, ruby, node, gradle) {
 
           a {
             &.#{$platform} {

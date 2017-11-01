@@ -7,7 +7,9 @@ section
 
  h2 Build and runtime dependencies
 
- p Dependencies are broken up into two main types: build dependencies and run dependencies. Build dependencies are needed while your package builds and run dependencies are those packages needed when your Habitat service is running.
+ p Dependencies are broken up into two main types: build dependencies and runtime dependencies. Build dependencies are needed while your package builds and runtime dependencies are those packages needed when your Habitat service is running.
+
+ p By default, the <code>core/busybox-static</code> package will be injected as a runtime dependency in your plan. This is used by #{link_to 'processes',"/tutorials/build-your-own/#{current_page.data.platform_short}/define-processes"} to have valid #{link_to 'shebangs','https://en.wikipedia.org/wiki/Shebang_(Unix)'}.
 
  = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_detected_dependencies"
  
