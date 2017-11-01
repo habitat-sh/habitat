@@ -474,7 +474,7 @@ unpack_file() {
     pushd $HAB_CACHE_SRC_PATH > /dev/null
     case $unpack_file in
       *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
-        $_tar_cmd xf $unpack_file
+        $_tar_cmd xf $unpack_file --no-same-owner
         ;;
       *.bz2)  bunzip2 $unpack_file    ;;
       *.rar)  rar x $unpack_file      ;;
