@@ -885,7 +885,7 @@ function _download_file($url, $dst, $sha) {
       }
 
       Write-BuildLine "Downloading '$url' to '$dst'"
-      Invoke-WebRequest $url -OutFile $dst
+      Invoke-WebRequest $url -OutFile $dst -UserAgent "Habitat"
       Write-BuildLine "Downloaded '$dst'"
   }
   finally {
