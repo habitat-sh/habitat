@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::cmp::Eq;
+use std::hash::{Hash, Hasher};
 use std::result;
 use std::str::FromStr;
 use std::fmt;
-use std::error;
 
 use message::{Persistable, Routable};
 use message::originsrv::OriginPackage;
@@ -26,31 +27,10 @@ use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use sharding::InstaId;
 
+use error::ProtocolError;
 pub use message::jobsrv::*;
 
 pub const GITHUB_PUSH_NOTIFY_ID: u64 = 23;
-
-#[derive(Debug)]
-pub enum Error {
-    BadJobState,
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match *self {
-            Error::BadJobState => "Bad Job State",
-        };
-        write!(f, "{}", msg)
-    }
-}
-
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::BadJobState => "Job state cannot be parsed",
-        }
-    }
-}
 
 impl Into<Job> for JobSpec {
     fn into(mut self) -> Job {
@@ -259,10 +239,9 @@ impl Serialize for JobState {
 }
 
 impl FromStr for JobState {
-    type Err = Error;
+    type Err = ProtocolError;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-
         match value.to_lowercase().as_ref() {
             "pending" => Ok(JobState::Pending),
             "processing" => Ok(JobState::Processing),
@@ -273,7 +252,7 @@ impl FromStr for JobState {
             "cancelpending" => Ok(JobState::CancelPending),
             "cancelprocessing" => Ok(JobState::CancelProcessing),
             "cancelcomplete" => Ok(JobState::CancelComplete),
-            _ => Err(Error::BadJobState),
+            _ => Err(ProtocolError::BadJobState(value.to_string())),
         }
     }
 }
@@ -402,6 +381,14 @@ impl Routable for JobGraphPackagePreCreate {
     }
 }
 
+impl Routable for JobGroupOriginGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
 impl Routable for JobGraphPackageStatsGet {
     type H = String;
 
@@ -418,6 +405,36 @@ impl Routable for JobGraphPackageReverseDependenciesGet {
     }
 }
 
+impl fmt::Display for JobGroupState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            JobGroupState::GroupDispatching => "Dispatching",
+            JobGroupState::GroupPending => "Pending",
+            JobGroupState::GroupComplete => "Complete",
+            JobGroupState::GroupFailed => "Failed",
+            JobGroupState::GroupQueued => "Queued",
+            JobGroupState::GroupCanceled => "Canceled",
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for JobGroupState {
+    type Err = ProtocolError;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "dispatching" => Ok(JobGroupState::GroupDispatching),
+            "pending" => Ok(JobGroupState::GroupPending),
+            "complete" => Ok(JobGroupState::GroupComplete),
+            "failed" => Ok(JobGroupState::GroupFailed),
+            "queued" => Ok(JobGroupState::GroupQueued),
+            "canceled" => Ok(JobGroupState::GroupCanceled),
+            _ => Err(ProtocolError::BadJobGroupState(value.to_string())),
+        }
+    }
+}
+
 impl Serialize for JobGroupState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
@@ -429,7 +446,38 @@ impl Serialize for JobGroupState {
             2 => serializer.serialize_str("Complete"),
             3 => serializer.serialize_str("Failed"),
             4 => serializer.serialize_str("Queued"),
+            5 => serializer.serialize_str("Canceled"),
             _ => panic!("Unexpected enum value"),
+        }
+    }
+}
+
+impl fmt::Display for JobGroupProjectState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            JobGroupProjectState::NotStarted => "NotStarted",
+            JobGroupProjectState::InProgress => "InProgress",
+            JobGroupProjectState::Success => "Success",
+            JobGroupProjectState::Failure => "Failure",
+            JobGroupProjectState::Skipped => "Skipped",
+            JobGroupProjectState::Canceled => "Canceled",
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for JobGroupProjectState {
+    type Err = ProtocolError;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "notstarted" => Ok(JobGroupProjectState::NotStarted),
+            "inprogress" => Ok(JobGroupProjectState::InProgress),
+            "success" => Ok(JobGroupProjectState::Success),
+            "failure" => Ok(JobGroupProjectState::Failure),
+            "skipped" => Ok(JobGroupProjectState::Skipped),
+            "canceled" => Ok(JobGroupProjectState::Canceled),
+            _ => Err(ProtocolError::BadJobGroupProjectState(value.to_string())),
         }
     }
 }
@@ -445,6 +493,7 @@ impl Serialize for JobGroupProjectState {
             2 => serializer.serialize_str("Success"),
             3 => serializer.serialize_str("Failure"),
             4 => serializer.serialize_str("Skipped"),
+            5 => serializer.serialize_str("Canceled"),
             _ => panic!("Unexpected enum value"),
         }
     }
@@ -459,8 +508,22 @@ impl Serialize for JobGroupProject {
         strukt.serialize_field("name", &self.get_name())?;
         strukt.serialize_field("ident", &self.get_ident())?;
         strukt.serialize_field("state", &self.get_state())?;
-        strukt.serialize_field("job_id", &self.get_job_id())?;
+        strukt.serialize_field(
+            "job_id",
+            &self.get_job_id().to_string(),
+        )?;
         strukt.end()
+    }
+}
+
+impl Eq for JobGroup {}
+
+impl Hash for JobGroup {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.get_id().hash(state);
     }
 }
 
@@ -469,8 +532,8 @@ impl Serialize for JobGroup {
     where
         S: Serializer,
     {
-        let mut strukt = serializer.serialize_struct("job_group", 3)?;
-        strukt.serialize_field("id", &self.get_id())?;
+        let mut strukt = serializer.serialize_struct("job_group", 5)?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
         strukt.serialize_field("state", &self.get_state())?;
         strukt.serialize_field("projects", &self.get_projects())?;
         strukt.serialize_field("created_at", &self.get_created_at())?;

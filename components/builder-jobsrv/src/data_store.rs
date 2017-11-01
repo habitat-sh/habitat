@@ -14,6 +14,7 @@
 
 //! The PostgreSQL backend for the Jobsrv.
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::{DateTime, UTC};
@@ -534,6 +535,33 @@ impl DataStore {
         Ok(())
     }
 
+    pub fn get_job_group_origin(
+        &self,
+        msg: &jobsrv::JobGroupOriginGet,
+    ) -> Result<jobsrv::JobGroupOriginResponse> {
+        let origin = msg.get_origin();
+        let conn = self.pool.get_shard(0)?;
+        let rows = &conn.query("SELECT * FROM get_job_groups_for_origin_v1($1)", &[&origin])
+            .map_err(Error::JobGroupOriginGet)?;
+
+        let mut response = jobsrv::JobGroupOriginResponse::new();
+        let mut job_groups = RepeatedField::new();
+        let mut map = HashMap::new();
+
+        for row in rows {
+            let (group, project) = self.row_to_job_group_and_project(&row)?;
+            map.entry(group).or_insert(Vec::new()).push(project);
+        }
+
+        for (mut group, projects) in map.into_iter() {
+            group.set_projects(RepeatedField::from_vec(projects.to_vec()));
+            job_groups.push(group);
+        }
+
+        response.set_job_groups(job_groups);
+        Ok(response)
+    }
+
     pub fn get_job_group(&self, msg: &jobsrv::JobGroupGet) -> Result<Option<jobsrv::JobGroup>> {
         let group_id = msg.get_group_id();
         let conn = self.pool.get_shard(0)?;
@@ -597,21 +625,22 @@ impl DataStore {
         Ok(package)
     }
 
+    fn row_to_job_group_and_project(
+        &self,
+        row: &postgres::rows::Row,
+    ) -> Result<(jobsrv::JobGroup, jobsrv::JobGroupProject)> {
+        let group = self.row_to_job_group(row)?;
+        let project = self.row_to_job_group_project(row)?;
+        Ok((group, project))
+    }
+
     fn row_to_job_group(&self, row: &postgres::rows::Row) -> Result<jobsrv::JobGroup> {
         let mut group = jobsrv::JobGroup::new();
 
         let id: i64 = row.get("id");
         group.set_id(id as u64);
         let js: String = row.get("group_state");
-        let group_state = match &js[..] {
-            "Dispatching" => jobsrv::JobGroupState::GroupDispatching,
-            "Pending" => jobsrv::JobGroupState::GroupPending,
-            "Complete" => jobsrv::JobGroupState::GroupComplete,
-            "Failed" => jobsrv::JobGroupState::GroupFailed,
-            "Queued" => jobsrv::JobGroupState::GroupQueued,
-            "Canceled" => jobsrv::JobGroupState::GroupCanceled,
-            _ => return Err(Error::UnknownJobGroupState),
-        };
+        let group_state = js.parse::<jobsrv::JobGroupState>()?;
         group.set_state(group_state);
 
         let created_at = row.get::<&str, DateTime<UTC>>("created_at");
@@ -633,16 +662,7 @@ impl DataStore {
         let ident: String = row.get("project_ident");
         let state: String = row.get("project_state");
         let job_id: i64 = row.get("job_id");
-
-        let project_state = match &state[..] {
-            "NotStarted" => jobsrv::JobGroupProjectState::NotStarted,
-            "InProgress" => jobsrv::JobGroupProjectState::InProgress,
-            "Success" => jobsrv::JobGroupProjectState::Success,
-            "Failure" => jobsrv::JobGroupProjectState::Failure,
-            "Skipped" => jobsrv::JobGroupProjectState::Skipped,
-            "Canceled" => jobsrv::JobGroupProjectState::Canceled,
-            _ => return Err(Error::UnknownJobGroupProjectState),
-        };
+        let project_state = state.parse::<jobsrv::JobGroupProjectState>()?;
 
         project.set_name(name);
         project.set_ident(ident);
@@ -672,14 +692,7 @@ impl DataStore {
         group_state: jobsrv::JobGroupState,
     ) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
-        let state = match group_state {
-            jobsrv::JobGroupState::GroupDispatching => "Dispatching",
-            jobsrv::JobGroupState::GroupPending => "Pending",
-            jobsrv::JobGroupState::GroupComplete => "Complete",
-            jobsrv::JobGroupState::GroupFailed => "Failed",
-            jobsrv::JobGroupState::GroupQueued => "Queued",
-            jobsrv::JobGroupState::GroupCanceled => "Canceled",
-        };
+        let state = group_state.to_string();
         conn.execute(
             "SELECT set_group_state_v1($1, $2)",
             &[&(group_id as i64), &state],
@@ -694,14 +707,7 @@ impl DataStore {
         project_state: jobsrv::JobGroupProjectState,
     ) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
-        let state = match project_state {
-            jobsrv::JobGroupProjectState::NotStarted => "NotStarted",
-            jobsrv::JobGroupProjectState::InProgress => "InProgress",
-            jobsrv::JobGroupProjectState::Success => "Success",
-            jobsrv::JobGroupProjectState::Failure => "Failure",
-            jobsrv::JobGroupProjectState::Skipped => "Skipped",
-            jobsrv::JobGroupProjectState::Canceled => "Canceled",
-        };
+        let state = project_state.to_string();
         conn.execute(
             "SELECT set_group_project_name_state_v1($1, $2, $3)",
             &[&(group_id as i64), &project_name, &state],

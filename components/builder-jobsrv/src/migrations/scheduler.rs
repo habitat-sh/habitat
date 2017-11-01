@@ -323,8 +323,19 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                 WHERE owner_id = in_gid
                 AND (project_state = 'NotStarted');
             UPDATE groups SET group_state='Canceled' where id = in_gid;
-        $$ LANGUAGE SQL VOLATILE
-        "#,
+        $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION get_job_groups_for_origin_v1 (
+            op_origin text
+        ) RETURNS TABLE(id bigint, group_state text, created_at timestamptz, project_name text, project_ident text, project_state text, job_id bigint) AS $$
+            SELECT g.id, g.group_state, g.created_at, gp.project_name, gp.project_ident, gp.project_state, gp.job_id
+            FROM groups g INNER JOIN group_projects gp ON g.id = gp.owner_id
+            WHERE g.project_name LIKE (op_origin || '/%')
+            ORDER BY g.group_state, g.project_name, gp.project_ident
+        $$ LANGUAGE SQL STABLE"#,
     )?;
 
     Ok(())

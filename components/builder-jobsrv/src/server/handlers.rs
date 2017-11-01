@@ -445,6 +445,24 @@ pub fn job_graph_package_reverse_dependencies_get(
     Ok(())
 }
 
+pub fn job_group_origin_get(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg = req.parse::<proto::JobGroupOriginGet>()?;
+
+    match state.datastore.get_job_group_origin(&msg) {
+        Ok(ref jgor) => conn.route_reply(req, jgor)?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "jb:job-group-origin-get:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn job_group_get(
     req: &mut Message,
     conn: &mut RouteConn,

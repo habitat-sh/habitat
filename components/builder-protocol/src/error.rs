@@ -21,6 +21,9 @@ use protobuf;
 
 #[derive(Debug)]
 pub enum ProtocolError {
+    BadJobGroupProjectState(String),
+    BadJobGroupState(String),
+    BadJobState(String),
     BadSearchEntity(String),
     BadSearchKey(String),
     Decode(protobuf::ProtobufError),
@@ -37,6 +40,11 @@ pub type ProtocolResult<T> = result::Result<T, ProtocolError>;
 impl fmt::Display for ProtocolError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            ProtocolError::BadJobGroupProjectState(ref e) => {
+                format!("Bad Job Group Project State {}", e)
+            }
+            ProtocolError::BadJobGroupState(ref e) => format!("Bad Job Group State {}", e),
+            ProtocolError::BadJobState(ref e) => format!("Bad Job State {}", e),
             ProtocolError::BadSearchEntity(ref e) => {
                 format!("Search not implemented for entity, {}", e)
             }
@@ -69,6 +77,9 @@ impl fmt::Display for ProtocolError {
 impl error::Error for ProtocolError {
     fn description(&self) -> &str {
         match *self {
+            ProtocolError::BadJobGroupProjectState(_) => "Job Group Project state cannot be parsed",
+            ProtocolError::BadJobGroupState(_) => "Job Group state cannot be parsed",
+            ProtocolError::BadJobState(_) => "Job state cannot be parsed",
             ProtocolError::BadSearchEntity(_) => "Search not implemented for entity.",
             ProtocolError::BadSearchKey(_) => "Entity not indexed by the given key.",
             ProtocolError::Decode(_) => "Unable to decode protocol message",
