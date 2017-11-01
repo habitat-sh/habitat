@@ -1,4 +1,5 @@
 UNAME_S := $(shell uname -s)
+HAS_DOCKER := $(shell command -v docker 2> /dev/null)
 ifeq ($(UNAME_S),Darwin)
 	forego := support/mac/bin/forego
 else
@@ -164,6 +165,9 @@ distclean: ## fully cleans up project tree and any associated Docker images and 
 .PHONY: distclean
 
 image: ## create an image
+	ifeq ($(HAS_DOCKER),)
+		$(error "Docker does not seem installed, please install docker first.")
+	endif
 	@if [ -n "${force}" -o -n "${refresh}" -o -z "`$(docker_cmd) images -q $(dimage)`" ]; then \
 		if [ -n "${force}" ]; then \
 		  $(docker_cmd) build --no-cache $(build_args) -t $(dimage) .; \
