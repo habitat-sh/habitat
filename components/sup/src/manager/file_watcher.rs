@@ -2465,7 +2465,7 @@ mod tests {
                             },
                         },
                         events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
-                    }
+                    },
                 ],
             },
         ]
@@ -2732,7 +2732,10 @@ mod tests {
 
         fn pop_level(&mut self) {
             self.logs_per_level.pop();
-            assert!(!self.logs_per_level.is_empty(), "too many pops on DebugInfo");
+            assert!(
+                !self.logs_per_level.is_empty(),
+                "too many pops on DebugInfo"
+            );
         }
 
         fn add(&mut self, str: String) {
