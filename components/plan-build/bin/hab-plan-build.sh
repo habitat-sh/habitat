@@ -2365,12 +2365,12 @@ pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-
 _find_system_commands
 _determine_hab_bin
 
-mkdir -pv "$CACHE_PATH"
-mkdir -pv "$pkg_prefix"
-
 case "${pkg_type}" in
     "composite")
         source "${source_dir}/composite_build_functions.sh"
+
+        mkdir -pv "$CACHE_PATH"
+        mkdir -pv "$pkg_prefix"
 
         # Preliminaries
         _setup_composite_build_global_variables
