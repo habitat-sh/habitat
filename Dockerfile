@@ -1,4 +1,5 @@
-FROM ubuntu:yakkety
+# 17.10 (artful) will be EOL July 2018; update FROM directive before then
+FROM ubuntu:17.10
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 
 ENV CARGO_HOME /cargo-cache
