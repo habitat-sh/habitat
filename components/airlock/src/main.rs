@@ -50,19 +50,19 @@ fn _main() -> Result<()> {
     let app_matches = cli().get_matches();
     debug!("clap cli matches: {:?}", &app_matches);
     match app_matches.subcommand() {
+        ("nsrun", Some(m)) => sub_nsrun(m),
         ("run", Some(m)) => sub_run(m),
-        ("invoke", Some(m)) => sub_invoke(m),
         _ => unreachable!(),
     }
 }
 
-fn sub_invoke(m: &ArgMatches) -> Result<()> {
+fn sub_nsrun(m: &ArgMatches) -> Result<()> {
     let rootfs = Path::new(m.value_of("FS_ROOT").unwrap());
     let mut args: Vec<&OsStr> = m.values_of_os("CMD").unwrap().collect();
     // cmd arg is required and multiple so must contain a first element
     let cmd = args.remove(0);
 
-    command::invoke::run(rootfs, cmd, args)
+    command::nsrun::run(rootfs, cmd, args)
 }
 
 fn sub_run(m: &ArgMatches) -> Result<()> {
@@ -101,19 +101,19 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
-        (@subcommand run =>
-            (about: "stuff")
-            (@setting TrailingVarArg)
-            (@arg CMD: +required +takes_value +multiple
-                "The command and arguments to execute (ex: ls -l /tmp)")
-        )
-        (@subcommand invoke =>
+        (@subcommand nsrun =>
             (@setting Hidden)
-            (about: "invoke stuff")
+            (about: "**Internal** command to run a command inside the created namespace")
             (@setting TrailingVarArg)
             (@arg FS_ROOT: +required +takes_value {dir_exists}
                 "Path to the rootfs (ex: /tmp/rootfs)")
-            (@arg CMD: +required +takes_value
+            (@arg CMD: +required +takes_value +multiple
+                "The command and arguments to execute (ex: ls -l /tmp)")
+        )
+        (@subcommand run =>
+            (about: "Run a command in a namespace")
+            (@setting TrailingVarArg)
+            (@arg CMD: +required +takes_value +multiple
                 "The command and arguments to execute (ex: ls -l /tmp)")
         )
     )

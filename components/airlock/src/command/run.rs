@@ -75,7 +75,7 @@ fn unshare_command(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<unsh
     ];
 
     let mut command = unshare::Command::new(program);
-    command.arg("invoke");
+    command.arg("nsrun");
     command.arg(rootfs);
     command.arg(cmd);
     command.args(&args);
