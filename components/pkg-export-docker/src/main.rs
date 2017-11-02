@@ -234,9 +234,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             "Remote registry username, required for pushing image to remote registry")
         (@arg REGISTRY_PASSWORD: --("password") -P +takes_value requires[REGISTRY_USERNAME]
             "Remote registry password, required for pushing image to remote registry")
-        (@arg REGISTRY_TYPE: --("registry-type") -P +takes_value
+        (@arg REGISTRY_TYPE: --("registry-type") -R +takes_value
             "Remote registry type, Ex: Amazon, Docker, Google (default: docker)")
-        (@arg REGISTRY_URL: --("registry-url") -P +takes_value
+        (@arg REGISTRY_URL: --("registry-url") -G +takes_value
             "Remote registry url")
         // Cleanup
         (@arg RM_IMAGE: --("rm-image")
