@@ -16,6 +16,8 @@
                         - item_link.sub_links.each do |sub_link|
                           li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
                             = link_to sub_link.title, sub_link.link
+          - if sidebar_layout == 'docs'
+            = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download outline'
 
       .main-content__has-sidebar data-swiftype-index="true"
           == yield
