@@ -94,6 +94,16 @@ pub fn get() -> App<'static, 'static> {
                     (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \
                         dependencies")
                 )
+                (@subcommand cancel =>
+                    (about: "Cancel a build job group and any in-progress builds")
+                    (aliases: &["c", "ca", "can", "cance", "cancel"])
+                    (@arg GROUP_ID: +required +takes_value
+                        "The job group id that was returned from \"hab bldr start\" \
+                        (ex: 771100000000000000)")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                )
                 (@subcommand promote =>
                     (about: "Promote every package in completed build job to a specified channel")
                     (aliases: &["p", "pr", "pro", "prom", "promo", "promot"])

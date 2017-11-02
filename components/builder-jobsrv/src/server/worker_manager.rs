@@ -264,6 +264,9 @@ impl WorkerMgr {
             if process_work ||
                 (&now > &(last_processed + Duration::from_millis(DEFAULT_POLL_TIMEOUT_MS)))
             {
+                if let Err(err) = self.process_cancelations() {
+                    warn!("Worker-manager unable to process cancels: err {:?}", err);
+                }
                 if let Err(err) = self.process_work() {
                     warn!("Worker-manager unable to process work: err {:?}", err);
                 }
@@ -305,9 +308,71 @@ impl WorkerMgr {
         self.datastore.delete_busy_worker(&bw)
     }
 
+    fn process_cancelations(&mut self) -> Result<()> {
+        // Get the cancel-pending jobs list
+        let jobs = self.datastore.get_cancel_pending_jobs()?;
+
+        if jobs.len() > 0 {
+            debug!("process_cancelations: Found {} cancels", jobs.len());
+        }
+
+        for job in jobs {
+            let mut job = Job::new(job);
+
+            // Find the worker processing this job
+            // TODO (SA): Would be nice not doing an iterative search here
+            let worker_ident = match self.workers.iter().find(
+                |t| t.1.job_id == Some(job.get_id()),
+            ) {
+                Some(t) => t.0.clone(),
+                None => {
+                    warn!("Did not find any workers with job id: {}", job.get_id());
+                    job.set_state(jobsrv::JobState::CancelComplete);
+                    self.datastore.update_job(&job)?;
+                    continue;
+                }
+            };
+
+            match self.cancel_job(&job, &worker_ident) {
+                Ok(()) => {
+                    job.set_state(jobsrv::JobState::CancelProcessing);
+                    self.datastore.update_job(&job)?;
+                }
+                Err(err) => {
+                    warn!(
+                        "Failed to cancel job on worker {}, err={:?}",
+                        worker_ident,
+                        err
+                    );
+                    job.set_state(jobsrv::JobState::CancelComplete);
+                    self.datastore.update_job(&job)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn cancel_job(&mut self, job: &Job, worker_ident: &str) -> Result<()> {
+        debug!("Canceling job on worker {:?}: {:?}", worker_ident, job);
+
+        let mut wc = jobsrv::WorkerCommand::new();
+        wc.set_op(jobsrv::WorkerOperation::CancelJob);
+
+        self.rq_sock.send_str(&worker_ident, zmq::SNDMORE)?;
+        self.rq_sock.send(&[], zmq::SNDMORE)?;
+        self.rq_sock.send(
+            &wc.write_to_bytes().unwrap(),
+            zmq::SNDMORE,
+        )?;
+        self.rq_sock.send(&job.write_to_bytes().unwrap(), 0)?;
+
+        Ok(())
+    }
+
     fn process_work(&mut self) -> Result<()> {
         loop {
-            // Exit if we don't have any ready workers
+            // Exit if we don't have any Ready workers
             let worker_ident = match self.workers.iter().find(|t| {
                 t.1.state == jobsrv::WorkerState::Ready
             }) {
@@ -353,8 +418,15 @@ impl WorkerMgr {
     fn dispatch_job(&mut self, job: &Job, worker_ident: &str) -> Result<()> {
         debug!("Dispatching job to worker {:?}: {:?}", worker_ident, job);
 
+        let mut wc = jobsrv::WorkerCommand::new();
+        wc.set_op(jobsrv::WorkerOperation::StartJob);
+
         self.rq_sock.send_str(&worker_ident, zmq::SNDMORE)?;
         self.rq_sock.send(&[], zmq::SNDMORE)?;
+        self.rq_sock.send(
+            &wc.write_to_bytes().unwrap(),
+            zmq::SNDMORE,
+        )?;
         self.rq_sock.send(&job.write_to_bytes().unwrap(), 0)?;
 
         Ok(())
@@ -444,9 +516,11 @@ impl WorkerMgr {
 
         match self.datastore.get_job(&req)? {
             Some(mut job) => {
-                debug!("Requeing job {:?}", job_id);
-                job.set_state(jobsrv::JobState::Pending);
-                self.datastore.update_job(&job)?;
+                if job.get_state() == jobsrv::JobState::Dispatched {
+                    debug!("Requeing job {:?}", job_id);
+                    job.set_state(jobsrv::JobState::Pending);
+                    self.datastore.update_job(&job)?;
+                }
             }
             None => {
                 warn!(
@@ -495,9 +569,13 @@ impl WorkerMgr {
                 match job.get_state() {
                     jobsrv::JobState::Pending |
                     jobsrv::JobState::Processing |
-                    jobsrv::JobState::Dispatched => false,
+                    jobsrv::JobState::Dispatched |
+                    jobsrv::JobState::CancelPending |
+                    jobsrv::JobState::CancelProcessing => false,
+
                     jobsrv::JobState::Complete |
                     jobsrv::JobState::Failed |
+                    jobsrv::JobState::CancelComplete |
                     jobsrv::JobState::Rejected => true,
                 }
             }

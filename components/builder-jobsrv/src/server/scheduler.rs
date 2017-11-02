@@ -495,6 +495,9 @@ impl ScheduleMgr {
                         jobsrv::JobState::Pending |
                         jobsrv::JobState::Processing |
                         jobsrv::JobState::Dispatched |
+                        jobsrv::JobState::CancelPending |
+                        jobsrv::JobState::CancelProcessing |
+                        jobsrv::JobState::CancelComplete |
                         jobsrv::JobState::Rejected => (),
                     }
 
@@ -533,12 +536,14 @@ impl ScheduleMgr {
             let mut failed = 0;
             let mut succeeded = 0;
             let mut skipped = 0;
+            let mut canceled = 0;
 
             for project in group.get_projects() {
                 match project.get_state() {
                     jobsrv::JobGroupProjectState::Failure => failed = failed + 1,
                     jobsrv::JobGroupProjectState::Success => succeeded = succeeded + 1,
                     jobsrv::JobGroupProjectState::Skipped => skipped = skipped + 1,
+                    jobsrv::JobGroupProjectState::Canceled => canceled = canceled + 1,
 
                     jobsrv::JobGroupProjectState::NotStarted |
                     jobsrv::JobGroupProjectState::InProgress => (),
@@ -549,6 +554,8 @@ impl ScheduleMgr {
 
             let new_state = if (succeeded + skipped + failed) == group.get_projects().len() {
                 jobsrv::JobGroupState::GroupComplete
+            } else if canceled > 0 {
+                jobsrv::JobGroupState::GroupCanceled
             } else if dispatchable.len() > 0 {
                 jobsrv::JobGroupState::GroupPending
             } else {

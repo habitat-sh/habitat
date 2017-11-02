@@ -29,9 +29,9 @@ use hyper::status::StatusCode;
 use iron::status;
 use params::{FromValue, Params};
 use persistent;
-use protocol::jobsrv::{Job, JobGet, JobLog, JobLogGet, JobState, ProjectJobsGet,
-                       ProjectJobsGetResponse};
-use protocol::jobsrv::{JobGraphPackageReverseDependencies, JobGraphPackageReverseDependenciesGet};
+use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobState, ProjectJobsGet,
+                       ProjectJobsGetResponse, JobGroupCancel, JobGroupGet, JobGroup};
+use protocol::jobsrv::{JobGraphPackageReverseDependenciesGet, JobGraphPackageReverseDependencies};
 use protocol::originsrv::*;
 use protocol::sessionsrv::{Account, AccountGetId, AccountInvitationListRequest,
                            AccountInvitationListResponse, AccountOriginListRequest,
@@ -177,6 +177,44 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
 
     match helpers::promote_job_group_to_channel(req, group_id, &channel) {
         Ok(resp) => Ok(render_json(status::Ok, &resp)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+pub fn job_group_cancel(req: &mut Request) -> IronResult<Response> {
+    let group_id = match get_param(req, "id") {
+        Some(id) => {
+            match id.parse::<u64>() {
+                Ok(g) => g,
+                Err(e) => {
+                    debug!("Error finding group. e = {:?}", e);
+                    return Ok(Response::with(status::BadRequest));
+                }
+            }
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let mut jgg = JobGroupGet::new();
+    jgg.set_group_id(group_id);
+
+    let group = match route_message::<JobGroupGet, JobGroup>(req, &jgg) {
+        Ok(group) => group,
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+
+    let name_split: Vec<&str> = group.get_project_name().split("/").collect();
+    assert!(name_split.len() == 2);
+
+    if !check_origin_access(req, &name_split[0]).unwrap_or(false) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut jgc = JobGroupCancel::new();
+    jgc.set_group_id(group_id);
+
+    match route_message::<JobGroupCancel, NetOk>(req, &jgc) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }

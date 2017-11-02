@@ -53,6 +53,7 @@ pub enum Error {
     HandlebarsRenderError(handlebars::TemplateRenderError),
     IO(io::Error),
     JobGroupPromote(api_client::Error),
+    JobGroupCancel(api_client::Error),
     JobGroupPromoteUnprocessable,
     PackageArchiveMalformed(String),
     ParseIntError(num::ParseIntError),
@@ -136,6 +137,7 @@ impl fmt::Display for Error {
                 format!("Failed to promote job group, the build job is still in progress")
             }
             Error::JobGroupPromote(ref e) => format!("Failed to promote job group: {:?}", e),
+            Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
             Error::PackageArchiveMalformed(ref e) => {
                 format!(
                     "Package archive was unreadable or contained unexpected contents: {:?}",
@@ -190,6 +192,7 @@ impl error::Error for Error {
                 "Failed to promote job group, the build job is still in progress"
             }
             Error::JobGroupPromote(ref err) => err.description(),
+            Error::JobGroupCancel(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => {
                 "Package archive was unreadable or had unexpected contents"
             }

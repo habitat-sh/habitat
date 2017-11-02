@@ -16,6 +16,7 @@
 use hab_core::package::archive::PackageArchive;
 use bldr_core::logger::Logger;
 use config::Config;
+use error::Result;
 
 use super::workspace::Workspace;
 use super::publisher::Publisher;
@@ -25,7 +26,7 @@ pub fn post_process(
     workspace: &Workspace,
     config: &Config,
     logger: &mut Logger,
-) -> bool {
+) -> Result<()> {
     let channel_opt = if workspace.job.has_channel() {
         Some(workspace.job.get_channel().to_string())
     } else {

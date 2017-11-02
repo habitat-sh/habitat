@@ -21,6 +21,7 @@ use {PRODUCT, VERSION};
 use depot_client;
 use hyper::status::StatusCode;
 use retry::retry;
+use error::{Error, Result};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Publisher {
@@ -35,10 +36,10 @@ impl Publisher {
         archive: &mut PackageArchive,
         auth_token: &str,
         logger: &mut Logger,
-    ) -> bool {
+    ) -> Result<()> {
         if !self.enabled {
             debug!("Publishing skipped (not enabled)");
-            return true;
+            return Ok(());
         }
         debug!(
             "Publisher (url: {}, channel: {:?})",
@@ -62,11 +63,11 @@ impl Publisher {
             }
         }) {
             Ok(_) => (),
-            Err(_) => {
+            Err(err) => {
                 let msg = format!("Failed to upload {} after {} retries", ident, RETRIES);
                 warn!("{}", msg);
                 logger.log(&msg);
-                return false;
+                return Err(Error::Retry(err));
             }
         }
 
@@ -96,12 +97,12 @@ impl Publisher {
                     },
                 ) {
                     Ok(_) => (),
-                    Err(_) => {
+                    Err(err) => {
                         let msg = format!("Failed to create channel {} after {} retries",
                             channel, RETRIES);
                         warn!("{}", msg);
                         logger.log(&msg);
-                        return false;
+                        return Err(Error::Retry(err));
                     }
                 }
             }
@@ -119,15 +120,15 @@ impl Publisher {
                 },
             ) {
                 Ok(_) => (),
-                Err(_) => {
+                Err(err) => {
                     let msg = format!("Failed to promote {} to {} after {} retries",
                         ident, channel, RETRIES);
                     warn!("{}", msg);
                     logger.log(&msg);
-                    return false;
+                    return Err(Error::Retry(err));
                 }
             }
         }
-        true
+        Ok(())
     }
 }

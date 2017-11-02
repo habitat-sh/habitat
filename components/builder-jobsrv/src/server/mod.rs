@@ -45,6 +45,7 @@ lazy_static! {
         map.register(JobLogGet::descriptor_static(None), handlers::job_log_get);
         map.register(JobGroupSpec::descriptor_static(None), handlers::job_group_create);
         map.register(JobGroupAbort::descriptor_static(None), handlers::job_group_abort);
+        map.register(JobGroupCancel::descriptor_static(None), handlers::job_group_cancel);
         map.register(JobGroupGet::descriptor_static(None), handlers::job_group_get);
         map.register(JobGraphPackageCreate::descriptor_static(None), handlers::job_graph_package_create);
         map.register(JobGraphPackagePreCreate::descriptor_static(None), handlers::job_graph_package_precreate);

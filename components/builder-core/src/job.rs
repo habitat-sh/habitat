@@ -18,6 +18,7 @@ use std::ops::{Deref, DerefMut};
 use protocol::jobsrv;
 use protocol::originsrv;
 
+#[derive(Clone)]
 pub struct Job(jobsrv::Job);
 
 impl Job {

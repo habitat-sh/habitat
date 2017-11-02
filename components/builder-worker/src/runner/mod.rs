@@ -24,6 +24,7 @@ mod workspace;
 use std::path::PathBuf;
 use std::fs;
 use std::sync::{mpsc, Arc};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::{self, JoinHandle};
 
 pub use protocol::jobsrv::JobState;
@@ -36,7 +37,7 @@ use hab_core::os::users;
 use hab_core::package::archive::PackageArchive;
 use hab_core::util::perm;
 use hab_net::socket::DEFAULT_CONTEXT;
-use protocol::{message, jobsrv as proto};
+use protocol::{message, jobsrv};
 use protocol::originsrv::OriginPackageIdent;
 use protocol::net::{self, ErrCode};
 use zmq;
@@ -66,6 +67,10 @@ const INPROC_ADDR: &'static str = "inproc://runner";
 const WORK_ACK: &'static str = "A";
 /// Protocol message to indicate the Job Runner has completed a work request
 const WORK_COMPLETE: &'static str = "C";
+/// Protocol message to indicate the Runner Cli is sending a work request
+const WORK_START: &'static str = "S";
+/// Protocol message to indicate the Runner Cli is sending a cancel request
+const WORK_CANCEL: &'static str = "X";
 
 pub const RETRIES: u64 = 10;
 pub const RETRY_WAIT: u64 = 60000;
@@ -74,11 +79,13 @@ pub struct Runner {
     config: Arc<Config>,
     depot_cli: depot_client::Client,
     workspace: Workspace,
+    archive: Option<PackageArchive>,
     logger: Logger,
+    cancel: Arc<AtomicBool>,
 }
 
 impl Runner {
-    pub fn new(job: Job, config: Arc<Config>, net_ident: &str) -> Self {
+    pub fn new(job: Job, config: Arc<Config>, net_ident: &str, cancel: Arc<AtomicBool>) -> Self {
         let depot_cli = depot_client::Client::new(&config.bldr_url, PRODUCT, VERSION, None)
             .unwrap();
 
@@ -88,9 +95,11 @@ impl Runner {
 
         Runner {
             workspace: Workspace::new(&config.data_path, job),
+            archive: None,
             config: config,
             depot_cli: depot_cli,
             logger: logger,
+            cancel: cancel,
         }
     }
 
@@ -102,7 +111,25 @@ impl Runner {
         &mut self.workspace.job
     }
 
-    pub fn run(mut self) -> Job {
+    fn is_canceled(&mut self) -> bool {
+        self.cancel.load(Ordering::SeqCst)
+    }
+
+    fn check_cancel(&mut self, tx: &mpsc::Sender<Job>) -> Result<()> {
+        if self.is_canceled() {
+            debug!("Runner canceling job id: {}", self.job().get_id());
+            self.cancel();
+            self.cleanup();
+            tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+            return Err(Error::JobCanceled);
+        }
+
+        Ok(())
+    }
+
+    fn do_validate(&mut self, tx: &mpsc::Sender<Job>) -> Result<()> {
+        self.check_cancel(tx)?;
+
         if let Some(err) = util::validate_integrations(&self.workspace).err() {
             let msg = format!(
                 "Failed to validate integrations for {}, err={:?}",
@@ -111,8 +138,18 @@ impl Runner {
             );
             debug!("{}", msg);
             self.logger.log(&msg);
-            return self.fail(net::err(ErrCode::INVALID_INTEGRATIONS, "wk:run:7"));
+
+            self.fail(net::err(ErrCode::INVALID_INTEGRATIONS, "wk:run:7"));
+            tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+            return Err(err);
         };
+
+        Ok(())
+    }
+
+    fn do_setup(&mut self, tx: &mpsc::Sender<Job>) -> Result<()> {
+        self.check_cancel(tx)?;
+
         if let Some(err) = self.setup().err() {
             let msg = format!(
                 "Failed to setup workspace for {}, err={:?}",
@@ -121,8 +158,18 @@ impl Runner {
             );
             warn!("{}", msg);
             self.logger.log(&msg);
-            return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
+
+            self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
+            tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+            return Err(err);
         }
+
+        Ok(())
+    }
+
+    fn do_install_key(&mut self, tx: &mpsc::Sender<Job>) -> Result<()> {
+        self.check_cancel(tx)?;
+
         if let Some(err) = self.install_origin_secret_key().err() {
             let msg = format!(
                 "Failed to install origin secret key {}, err={:?}",
@@ -131,8 +178,17 @@ impl Runner {
             );
             debug!("{}", msg);
             self.logger.log(&msg);
-            return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
+            self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
+            tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+            return Err(err);
         }
+
+        Ok(())
+    }
+
+    fn do_clone(&mut self, tx: &mpsc::Sender<Job>) -> Result<()> {
+        self.check_cancel(tx)?;
+
         let vcs = VCS::from_job(&self.job(), self.config.github.clone());
         if let Some(err) = vcs.clone(&self.workspace.src()).err() {
             let msg = format!(
@@ -142,7 +198,9 @@ impl Runner {
             );
             debug!("{}", msg);
             self.logger.log(&msg);
-            return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
+            self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
+            tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+            return Err(err);
         }
         if let Some(err) = util::chown_recursive(
             self.workspace.src(),
@@ -157,8 +215,16 @@ impl Runner {
             );
             debug!("{}", msg);
             self.logger.log(&msg);
-            return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:8"));
+            self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:8"));
+            tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+            return Err(err);
         }
+
+        Ok(())
+    }
+
+    fn do_build(&mut self, tx: &mpsc::Sender<Job>) -> Result<PackageArchive> {
+        self.check_cancel(tx)?;
 
         self.workspace.job.set_build_started_at(
             UTC::now().to_rfc3339(),
@@ -188,7 +254,9 @@ impl Runner {
                 );
                 debug!("{}", msg);
                 self.logger.log(&msg);
-                return self.fail(net::err(ErrCode::BUILD, "wk:run:5"));
+                self.fail(net::err(ErrCode::BUILD, "wk:run:5"));
+                tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+                return Err(err);
             }
         };
 
@@ -196,16 +264,36 @@ impl Runner {
         let ident = OriginPackageIdent::from(archive.ident().unwrap());
         self.workspace.job.set_package_ident(ident);
 
-        if !post_process(
-            &mut archive,
-            &self.workspace,
-            &self.config,
-            &mut self.logger,
-        )
-        {
-            return self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
+        Ok(archive)
+    }
+
+    fn do_postprocess(
+        &mut self,
+        tx: &mpsc::Sender<Job>,
+        mut archive: PackageArchive,
+    ) -> Result<()> {
+        self.check_cancel(tx)?;
+
+        if self.archive.is_some() {
+            match post_process(
+                &mut archive,
+                &self.workspace,
+                &self.config,
+                &mut self.logger,
+            ) {
+                Ok(_) => (),
+                Err(err) => {
+                    self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
+                    tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+                    return Err(err);
+                }
+            }
         }
 
+        Ok(())
+    }
+
+    fn cleanup(&mut self) {
         if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
             warn!(
                 "Failed to delete directory during cleanup, dir={}, err={:?}",
@@ -213,8 +301,23 @@ impl Runner {
                 err
             )
         }
-        self.teardown().err().map(|e| error!("{}", e));
-        self.complete()
+        self.teardown();
+    }
+
+    pub fn run(mut self, tx: mpsc::Sender<Job>) -> Result<()> {
+        self.do_validate(&tx)?;
+        self.do_setup(&tx)?;
+        self.do_install_key(&tx)?;
+        self.do_clone(&tx)?;
+
+        let archive = self.do_build(&tx)?;
+        self.do_postprocess(&tx, archive)?;
+
+        self.cleanup();
+        self.complete();
+        tx.send(self.workspace.job).map_err(Error::Mpsc)?;
+
+        Ok(())
     }
 
     fn install_origin_secret_key(&mut self) -> Result<()> {
@@ -294,18 +397,21 @@ impl Runner {
         }
     }
 
-    fn complete(mut self) -> Job {
-        self.workspace.job.set_state(JobState::Complete);
+    fn cancel(&mut self) {
+        self.workspace.job.set_state(JobState::CancelComplete);
         self.logger.log_worker_job(&self.workspace.job);
-        self.workspace.job
     }
 
-    fn fail(mut self, err: net::NetError) -> Job {
-        self.teardown().err().map(|e| error!("{}", e));
+    fn complete(&mut self) {
+        self.workspace.job.set_state(JobState::Complete);
+        self.logger.log_worker_job(&self.workspace.job);
+    }
+
+    fn fail(&mut self, err: net::NetError) {
+        self.teardown();
         self.workspace.job.set_state(JobState::Failed);
         self.workspace.job.set_error(err);
         self.logger.log_worker_job(&self.workspace.job);
-        self.workspace.job
     }
 
     fn setup(&mut self) -> Result<()> {
@@ -355,21 +461,22 @@ impl Runner {
         Ok(())
     }
 
-    fn teardown(&mut self) -> Result<()> {
+    fn teardown(&mut self) {
         if let Some(err) = fs::remove_dir_all(self.workspace.studio()).err() {
-            return Err(Error::StudioTeardown(
-                self.workspace.studio().to_path_buf(),
-                err,
-            ));
+            warn!(
+                "Failed to remove studio dir {}, err: {:?}",
+                self.workspace.studio().display(),
+                err
+            );
         }
         if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
-            return Err(Error::WorkspaceTeardown(
-                format!("{}", self.workspace.src().display()),
-                err,
-            ));
+            warn!(
+                "Failed to remove studio dir {}, err: {:?}",
+                self.workspace.src().display(),
+                err
+            );
         }
         // TODO fn: purge the secret origin key from worker
-        Ok(())
     }
 
     /// Determines whether or not there is a Docker integration for the job.
@@ -438,8 +545,16 @@ impl RunnerCli {
         Ok(&self.msg)
     }
 
-    /// Send a message to the Job Runner
-    pub fn send(&mut self, msg: &zmq::Message) -> Result<()> {
+    /// Send a message to the Job Runner to start a Job
+    pub fn start_job(&mut self, msg: &zmq::Message) -> Result<()> {
+        self.sock.send_str(WORK_START, zmq::SNDMORE)?;
+        self.sock.send(&*msg, 0)?;
+        Ok(())
+    }
+
+    /// Send a message to the Job Runner to cancel a Job
+    pub fn cancel_job(&mut self, msg: &zmq::Message) -> Result<()> {
+        self.sock.send_str(WORK_CANCEL, zmq::SNDMORE)?;
         self.sock.send(&*msg, 0)?;
         Ok(())
     }
@@ -452,6 +567,7 @@ pub struct RunnerMgr {
     net_ident: Arc<String>,
     msg: zmq::Message,
     sock: zmq::Socket,
+    cancel: Arc<AtomicBool>,
 }
 
 impl RunnerMgr {
@@ -476,6 +592,7 @@ impl RunnerMgr {
             msg: zmq::Message::new().unwrap(),
             net_ident: net_ident,
             sock: sock,
+            cancel: Arc::new(AtomicBool::new(false)),
         })
     }
 
@@ -483,23 +600,68 @@ impl RunnerMgr {
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
         self.sock.bind(INPROC_ADDR)?;
         rz.send(()).unwrap();
+
+        let mut srv_msg = false;
+        let (tx, rx): (_, mpsc::Receiver<Job>) = mpsc::channel();
+
         loop {
-            let job = self.recv_job()?;
-            self.send_ack(&job)?;
-            self.execute_job(job)?;
+            {
+                let mut items = [self.sock.as_poll_item(1)];
+                zmq::poll(&mut items, 60000)?;
+                if items[0].get_revents() & zmq::POLLIN > 0 {
+                    srv_msg = true;
+                }
+            }
+
+            if srv_msg {
+                srv_msg = false;
+                self.sock.recv(&mut self.msg, 0)?;
+                let op = self.msg.as_str().unwrap().to_owned();
+                let mut job = self.recv_job()?;
+
+                match &op[..] {
+                    WORK_START => {
+                        self.cancel.store(false, Ordering::SeqCst);
+                        self.send_ack(&job)?;
+                        self.spawn_job(job, tx.clone())?;
+                    }
+                    WORK_CANCEL => {
+                        self.cancel.store(true, Ordering::SeqCst);
+                        job.set_state(jobsrv::JobState::CancelProcessing);
+                        self.send_ack(&job)?;
+                    }
+                    _ => error!("Unexpected operation"),
+                }
+            }
+
+            let res = rx.try_recv();
+            if res.is_ok() {
+                let job: Job = res.unwrap();
+                debug!("Got result from spawned runner: {:?}", job);
+                self.send_complete(&job)?;
+            }
         }
     }
 
-    fn execute_job(&mut self, job: Job) -> Result<()> {
-        let runner = Runner::new(job, self.config.clone(), &self.net_ident);
-        debug!("Executing work, job={:?}", runner.job());
-        let job = runner.run();
-        self.send_complete(&job)
+    fn spawn_job(&mut self, job: Job, tx: mpsc::Sender<Job>) -> Result<()> {
+        let runner = Runner::new(
+            job,
+            self.config.clone(),
+            &self.net_ident,
+            self.cancel.clone(),
+        );
+
+        let _ = thread::Builder::new()
+            .name("job_runner".to_string())
+            .spawn(move || runner.run(tx))
+            .unwrap();
+
+        Ok(())
     }
 
     fn recv_job(&mut self) -> Result<Job> {
         self.sock.recv(&mut self.msg, 0)?;
-        let job = message::decode::<proto::Job>(&self.msg)?;
+        let job = message::decode::<jobsrv::Job>(&self.msg)?;
         Ok(Job::new(job))
     }
 

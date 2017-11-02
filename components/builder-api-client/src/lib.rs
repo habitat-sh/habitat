@@ -180,6 +180,25 @@ impl Client {
         }
     }
 
+    /// Cancel a job group
+    ///
+    /// # Failures
+    ///
+    /// * Remote API Server is not available
+    pub fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
+        let url = format!("jobs/group/{}/cancel", group_id);
+        let res = self.add_authz(self.0.post(&url), token).send().map_err(
+            Error::HyperError,
+        )?;
+
+        if res.status != StatusCode::NoContent {
+            debug!("Failed to cancel group, status: {:?}", res.status);
+            return Err(err_from_response(res));
+        }
+
+        Ok(())
+    }
+
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
         rb.header(Authorization(Bearer { token: token.to_string() }))
     }
