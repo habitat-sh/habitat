@@ -85,21 +85,9 @@ fn start(ui: &mut UI) -> Result<()> {
     };
     let naming = Naming {
         custom_image_name: m.value_of("IMAGE_NAME"),
-        latest_tag: if m.is_present("NO_TAG_LATEST") {
-            false
-        } else {
-            true
-        },
-        version_tag: if m.is_present("NO_TAG_VERSION") {
-            false
-        } else {
-            true
-        },
-        version_release_tag: if m.is_present("NO_TAG_VERSION_RELEASE") {
-            false
-        } else {
-            true
-        },
+        latest_tag: !m.is_present("NO_TAG_LATEST"),
+        version_tag: !m.is_present("NO_TAG_VERSION"),
+        version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
         custom_tag: m.value_of("TAG_CUSTOM"),
         registry_url: registry_url,
         registry_type: registry_type,
