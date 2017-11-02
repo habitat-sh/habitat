@@ -16,7 +16,14 @@ if [ -f /etc/arch-release ]; then
   # the Docker package is managed by the Arch Linux community
   sudo -E pacman -S --noconfirm docker
 else
-  curl -sSL https://get.docker.io | sudo -E sh
+  if ! curl -sSL https://get.docker.io | sudo -E sh; then
+    echo "Docker install from https://get.docker.io failed"
+    if command -v lsb_release >/dev/null 2>&1; then
+      echo "Check that this release version is still supported:"
+      lsb_release -a
+    fi
+    exit 1
+  fi
 fi
 docker --version
 
