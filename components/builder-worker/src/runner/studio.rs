@@ -93,17 +93,15 @@ impl<'a> Studio<'a> {
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
         cmd.arg("run");
+        cmd.arg("--fs-root");
+        cmd.arg(self.workspace.studio());
+        cmd.arg("--no-rm");
         cmd.arg(&*STUDIO_PROGRAM);
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
         cmd.arg(build_path(self.workspace.job.get_project().get_plan_path()));
         debug!("building studio build command, cmd={:?}", &cmd);
-        cmd.env("AIRLOCK_FS_ROOT", self.workspace.studio());
-        debug!(
-            "setting studio build command env, AIRLOCK_FS_ROOT={}",
-            self.workspace.studio().display()
-        );
         debug!(
             "setting studio build command env, {}={}",
             BLDR_CHANNEL_ENVVAR,
