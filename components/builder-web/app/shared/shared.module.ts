@@ -37,7 +37,7 @@ import { PlatformIconComponent } from './platform-icon/platform-icon.component';
 import { VisibilitySelectorComponent } from './visibility-selector/visibility-selector.component';
 import { KeysPipe } from './pipes/keys.pipe';
 import { SimpleConfirmDialog } from './dialog/simple-confirm/simple-confirm.dialog';
-import { UserLoggedInGuard } from './user/user.guard';
+import { SignedInGuard } from './guards/signed-in.guard';
 
 @NgModule({
   imports: [
@@ -96,7 +96,7 @@ import { UserLoggedInGuard } from './user/user.guard';
     SimpleConfirmDialog,
   ],
   providers: [
-    UserLoggedInGuard
+    SignedInGuard
   ]
 })
 export class SharedModule {

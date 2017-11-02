@@ -24,7 +24,7 @@ export default Record({
     currentYear: new Date().getFullYear(),
   })(),
   session: Record({
-    token: ''
+    token: undefined
   })(),
   gitHub: Record({
     authState: undefined,
@@ -271,9 +271,13 @@ export default Record({
     })()
   })(),
   router: Record({
-    requestedRoute: '',
-    route: '',
-    redirectRoute: ''
+    requestedRoute: undefined,
+    route: Record({
+      id: undefined,
+      description: undefined,
+      url: undefined,
+      urlAfterRedirects: undefined
+    })()
   })(),
   ui: Record({
     layout: 'default'
@@ -281,7 +285,7 @@ export default Record({
   users: Record({
     current: Record({
       email: undefined,
-      isSignedIn: false,
+      failedSignIn: false,
       isSigningIn: false,
       isUserNavOpen: false,
       username: undefined,

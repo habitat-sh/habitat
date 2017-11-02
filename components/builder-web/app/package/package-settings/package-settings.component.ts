@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material';
 import { Subscription } from 'rxjs/subscription';
-import { requireSignIn } from '../../util';
 import { AppStore } from '../../app.store';
 
 @Component({
   selector: 'hab-package-settings',
   template: require('./package-settings.component.html')
 })
-export class PackageSettingsComponent implements OnInit, OnDestroy {
+export class PackageSettingsComponent implements OnDestroy {
   name: string;
   origin: string;
 
@@ -34,10 +33,6 @@ export class PackageSettingsComponent implements OnInit, OnDestroy {
       this.origin = params['origin'];
       this.name = params['name'];
     });
-  }
-
-  ngOnInit() {
-    requireSignIn(this);
   }
 
   ngOnDestroy() {

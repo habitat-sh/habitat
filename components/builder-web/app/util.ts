@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import * as moment from 'moment';
-import { requestRoute } from './actions/index';
 import config from './config';
 import { Project } from './records/Project';
 import { AppStore } from './app.store';
@@ -126,14 +125,6 @@ export function isEarlyAccess() {
   const store = new AppStore();
   const flags = store.getState().users.current.flags;
   return !!(flags & FeatureFlags.EARLY_ACCESS);
-}
-
-// Given a page component, check if the user is signed in and redirect if not
-export function requireSignIn(pageComponent) {
-  const store = pageComponent.store;
-  const hasToken = !!store.getState().session.token;
-
-  if (!hasToken) { store.dispatch(requestRoute(['/sign-in'])); }
 }
 
 // Plucks the os portion out of a target string (e.g., "x86_64-linux" -> "linux")

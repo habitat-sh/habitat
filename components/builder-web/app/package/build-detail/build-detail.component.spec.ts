@@ -13,16 +13,14 @@
 // limitations under the License.
 
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { Component, DebugElement } from '@angular/core';
+import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { Record } from 'immutable';
 import { MockComponent } from 'ng2-mock-component';
 import { AppStore } from '../../app.store';
 import * as actions from '../../actions/index';
-import * as util from '../../util';
 import { BuildDetailComponent } from './build-detail.component';
 
 class MockAppStore {
@@ -56,7 +54,6 @@ describe('BuildDetailComponent', () => {
   let store: AppStore;
 
   beforeEach(() => {
-    spyOn(util, 'requireSignIn');
 
     TestBed.configureTestingModule({
       imports: [

@@ -16,7 +16,7 @@ import 'whatwg-fetch';
 import config from '../config';
 import { packageString } from '../util';
 import { AppStore } from '../app.store';
-import { requestRoute, addNotification } from '../actions/index';
+import { addNotification, signOut } from '../actions/index';
 import { WARNING } from '../actions/notifications';
 
 const urlPrefix = `${config['habitat_api_url']}/v1` || 'v1';
@@ -38,7 +38,7 @@ function opts() {
 function handleError(error, reject) {
   const store = new AppStore();
   const state = store.getState();
-  store.dispatch(requestRoute(['/sign-in']));
+  store.dispatch(signOut(true, state.router.route.url));
   reject(error);
 
   if (state.session.token) {

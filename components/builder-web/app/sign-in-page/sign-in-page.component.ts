@@ -12,17 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { AppStore } from '../app.store';
-import { setGitHubAuthState, signOut, setLayout } from '../actions/index';
-import config from '../config';
+import { setLayout, signOut } from '../actions/index';
 import { createGitHubLoginUrl } from '../util';
+import config from '../config';
 
 @Component({
   template: require('./sign-in-page.component.html')
 })
-export class SignInPageComponent implements OnInit, OnDestroy {
-  constructor(private store: AppStore) { }
+export class SignInPageComponent implements OnDestroy {
+
+  constructor(private store: AppStore) {
+    store.dispatch(signOut(false));
+    this.store.dispatch(setLayout('centered'));
+  }
 
   get wwwUrl() {
     return config['www_url'];
@@ -34,12 +38,6 @@ export class SignInPageComponent implements OnInit, OnDestroy {
 
   get gitHubLoginUrl() {
     return createGitHubLoginUrl(this.store.getState().gitHub.authState);
-  }
-
-  ngOnInit() {
-    this.store.dispatch(signOut());
-    this.store.dispatch(setGitHubAuthState());
-    this.store.dispatch(setLayout('centered'));
   }
 
   ngOnDestroy() {

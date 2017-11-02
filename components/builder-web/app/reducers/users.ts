@@ -28,17 +28,17 @@ export default function users(state = initialState['users'], action) {
     case actionTypes.SET_PRIVILEGES:
       return state.setIn(['current', 'flags'], action.payload);
 
-    case actionTypes.SIGN_IN_ATTEMPT:
-      return state.
-        setIn(['current', 'username'], action.payload.username).
-        setIn(['current', 'isSignedIn'], true);
+    case actionTypes.SET_CURRENT_USERNAME:
+      return state.setIn(['current', 'username'], action.payload);
+
+    case actionTypes.SIGN_IN_FAILED:
+      return state.setIn(['current', 'failedSignIn'], true);
+
+    case actionTypes.SIGNING_IN:
+      return state.setIn(['current', 'isSigningIn'], action.payload);
 
     case actionTypes.TOGGLE_USER_NAV_MENU:
-      return state.setIn(['current', 'isUserNavOpen'],
-        !state.getIn(['current', 'isUserNavOpen']));
-
-    case actionTypes.SET_SIGNING_IN_FLAG:
-      return state.setIn(['current', 'isSigningIn'], action.payload);
+      return state.setIn(['current', 'isUserNavOpen'], !state.getIn(['current', 'isUserNavOpen']));
 
     default:
       return state;

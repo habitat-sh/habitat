@@ -1,20 +1,19 @@
 <hab-banner></hab-banner>
 <div id="main-nav">
-  <hab-notifications
-    [notifications]="state.notifications.all"
-    [removeNotification]="removeNotification"></hab-notifications>
-  <hab-header
-    [appName]="state.app.name"
-    [isUserNavOpen]="user.isUserNavOpen"
-    [isSignedIn]="user.isSignedIn"
-    [username]="user.username"
-    [avatarUrl]="user.gitHub.get('avatar_url')"
-    [signOut]="signOut"
-    [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
+  <hab-notifications [notifications]="state.notifications.all" [removeNotification]="removeNotification"></hab-notifications>
+  <hab-header [appName]="state.app.name" [isUserNavOpen]="isUserNavOpen" [isSignedIn]="isSignedIn" [username]="username" [avatarUrl]="avatarUrl"
+    [signOut]="signOut" [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
 </div>
 <div class="hab-container" [class.full]="fullView">
-  <hab-side-nav [isSignedIn]="user.isSignedIn" *ngIf="!hideNav"></hab-side-nav>
-  <section class="hab-main" [class.centered]="hideNav">
+  <hab-side-nav [isSignedIn]="isSignedIn" *ngIf="!hideNav"></hab-side-nav>
+  <section class="hab-main" *ngIf="isSigningIn">
+    <div class="page-title"></div>
+    <div class="page-body">
+      <hab-icon symbol="loading" class="spinning"></hab-icon>
+      Loading...
+    </div>
+  </section>
+  <section class="hab-main" *ngIf="!isSigningIn" [class.centered]="hideNav">
     <router-outlet></router-outlet>
   </section>
 </div>

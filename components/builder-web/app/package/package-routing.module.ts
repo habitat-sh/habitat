@@ -22,6 +22,7 @@ import { PackageSettingsComponent } from './package-settings/package-settings.co
 import { PackageReadmeComponent } from './package-readme/package-readme.component';
 import { PackageReleaseComponent } from './package-release/package-release.component';
 import { PackageVersionsComponent } from './package-versions/package-versions.component';
+import { SignedInGuard } from '../shared/guards/signed-in.guard';
 
 const routes: Routes = [
   {
@@ -50,7 +51,8 @@ const routes: Routes = [
       },
       {
         path: 'settings',
-        component: PackageSettingsComponent
+        component: PackageSettingsComponent,
+        canActivate: [SignedInGuard]
       },
       {
         path: ':version',

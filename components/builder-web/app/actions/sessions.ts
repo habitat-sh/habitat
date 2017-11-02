@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as cookies from 'js-cookie';
-import { setCookie } from './gitHub';
+import { Browser } from '../browser';
 
 export const SET_BLDR_SESSION_TOKEN = 'SET_BLDR_SESSION_TOKEN';
 export const LOAD_BLDR_SESSION_STATE = 'LOAD_BLDR_SESSION_STATE';
 
 export function setBldrSessionToken(payload) {
-  setCookie('bldrSessionToken', payload);
+  Browser.setCookie('bldrSessionToken', payload);
 
   return {
     type: SET_BLDR_SESSION_TOKEN,
@@ -30,6 +29,6 @@ export function setBldrSessionToken(payload) {
 export function loadBldrSessionState() {
   return {
     type: LOAD_BLDR_SESSION_STATE,
-    payload: cookies.get('bldrSessionToken')
+    payload: Browser.getCookie('bldrSessionToken')
   };
 }

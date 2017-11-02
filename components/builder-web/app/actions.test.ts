@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import * as cookies from 'js-cookie';
-import * as gitHub from './actions/gitHub';
 import * as actions from './actions/index';
 import * as depotApi from './client/depot-api';
+import { Browser } from './browser';
 
 describe('actions', () => {
 
@@ -62,23 +62,23 @@ describe('actions', () => {
       it('applies the proper domain', () => {
         spyOn(cookies, 'set');
 
-        spyOn(gitHub, 'currentHostname').and.returnValues(
+        spyOnProperty(Browser, 'currentHostname', 'get').and.returnValues(
           'localhost',
           'builder.habitat.sh',
           'builder.acceptance.habitat.foo',
           '1.2.3.4'
         );
 
-        gitHub.setCookie('gitHubAuthToken', 'some-token');
-        gitHub.setCookie('gitHubAuthToken', 'some-token');
-        gitHub.setCookie('gitHubAuthToken', 'some-token');
-        gitHub.setCookie('gitHubAuthToken', 'some-token');
+        Browser.setCookie('gitHubAuthToken', 'some-token');
+        Browser.setCookie('gitHubAuthToken', 'some-token');
+        Browser.setCookie('gitHubAuthToken', 'some-token');
+        Browser.setCookie('gitHubAuthToken', 'some-token');
 
         expect(cookies.set.calls.allArgs()).toEqual(
           [
             ['gitHubAuthToken', 'some-token', { domain: 'localhost', secure: false }],
             ['gitHubAuthToken', 'some-token', { domain: 'habitat.sh', secure: false }],
-            ['gitHubAuthToken', 'some-token', { domain: 'habitat.foo', secure: false }],
+            ['gitHubAuthToken', 'some-token', { domain: 'acceptance.habitat.foo', secure: false }],
             ['gitHubAuthToken', 'some-token', { domain: '1.2.3.4', secure: false }]
           ]
         );
