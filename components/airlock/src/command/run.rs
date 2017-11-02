@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
 use FsRoot;
+use namespace;
 use unshare::{self, Namespace};
 use users;
 use users::os::unix::GroupExt;
@@ -28,10 +29,19 @@ use {Error, Result};
 
 const MIN_SUB_RANGE: u32 = 65536;
 
-pub fn run(cmd: &OsStr, args: Vec<&OsStr>, fs_root: FsRoot) -> Result<()> {
+pub fn run(
+    fs_root: FsRoot,
+    cmd: &OsStr,
+    args: Vec<&OsStr>,
+    namespaces: Option<(&Path, &Path)>,
+) -> Result<()> {
     check_required_packages()?;
     check_user_group_membership()?;
-    let mut command = unshare_command(fs_root.as_ref(), cmd, args)?;
+    if let Some((userns, netns)) = namespaces {
+        join_network_namespaces(userns, netns)?;
+    }
+    let new_userns = namespaces == None;
+    let mut command = unshare_command(fs_root.as_ref(), cmd, args, new_userns)?;
     debug!("running, command={:?}", command);
     let exit_status = command.spawn()?.wait()?;
     fs_root.finish()?;
@@ -65,15 +75,28 @@ fn check_user_group_membership() -> Result<()> {
     Ok(())
 }
 
-fn unshare_command(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<unshare::Command> {
+fn join_network_namespaces(userns: &Path, netns: &Path) -> Result<()> {
+    namespace::setns_user(userns)?;
+    namespace::setns_network(netns)?;
+    Ok(())
+}
+
+fn unshare_command(
+    rootfs: &Path,
+    cmd: &OsStr,
+    args: Vec<&OsStr>,
+    new_userns: bool,
+) -> Result<unshare::Command> {
     let program = proc_exe()?;
-    let namespaces = vec![
-        Namespace::User,
+    let mut namespaces = vec![
         Namespace::Mount,
         Namespace::Uts,
         Namespace::Ipc,
         Namespace::Pid,
     ];
+    if new_userns {
+        namespaces.push(Namespace::User);
+    }
 
     let mut command = unshare::Command::new(program);
     command.arg("nsrun");
@@ -81,8 +104,10 @@ fn unshare_command(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<unsh
     command.arg(cmd);
     command.args(&args);
     command.unshare(namespaces.iter().cloned());
-    command.set_id_maps(uid_maps()?, gid_maps()?);
-    command.set_id_map_commands(find_command("newuidmap")?, find_command("newgidmap")?);
+    if new_userns {
+        command.set_id_maps(uid_maps()?, gid_maps()?);
+        command.set_id_map_commands(find_command("newuidmap")?, find_command("newgidmap")?);
+    }
     command.uid(0);
     command.gid(0);
 

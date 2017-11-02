@@ -53,12 +53,12 @@ fn _main() -> Result<()> {
 }
 
 fn sub_nsrun(m: &ArgMatches) -> Result<()> {
-    let rootfs = Path::new(m.value_of("FS_ROOT").unwrap());
+    let fs_root = Path::new(m.value_of("FS_ROOT").unwrap());
     let mut args: Vec<&OsStr> = m.values_of_os("CMD").unwrap().collect();
     // cmd arg is required and multiple so must contain a first element
     let cmd = args.remove(0);
 
-    command::nsrun::run(rootfs, cmd, args)
+    command::nsrun::run(fs_root, cmd, args)
 }
 
 fn sub_run(m: &ArgMatches) -> Result<()> {
@@ -76,7 +76,14 @@ fn sub_run(m: &ArgMatches) -> Result<()> {
         None => FsRoot::in_tmpdir(policy)?,
     };
 
-    command::run::run(cmd, args, fs_root)
+    // If a network namespace is to be used, the corresponding user namespace must be used as the
+    // kernel checks for this
+    let namespaces = match m.value_of("NETNS") {
+        Some(netns) => Some((Path::new(m.value_of("USERNS").unwrap()), Path::new(netns))),
+        None => None,
+    };
+
+    command::run::run(fs_root, cmd, args, namespaces)
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
@@ -112,10 +119,22 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Remove the filsystem root on exit (default: yes)")
             (@arg NO_RM: --("no-rm") conflicts_with[RM]
                 "Do not remove the filsystem root on exit (default: no)")
+            (@arg NETNS: --("use-netns") +takes_value {validate_file_exists} requires[USERNS]
+                "Use network namespace (ex: /tmp/airlock-ns/netns)")
+            (@arg USERNS: --("use-userns") +takes_value {validate_file_exists} requires[NETNS]
+                "Use user namespace (ex: /tmp/airlock-ns/userns)")
             (@arg CMD: +required +takes_value +multiple
                 "The command and arguments to execute (ex: ls -l /tmp)")
         )
     )
+}
+
+fn validate_file_exists(val: String) -> result::Result<(), String> {
+    if Path::new(&val).is_file() {
+        Ok(())
+    } else {
+        Err(format!("file '{}' cannot be found, must exist", &val))
+    }
 }
 
 fn validate_dir_exists(val: String) -> result::Result<(), String> {

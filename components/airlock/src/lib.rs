@@ -25,6 +25,7 @@ mod error;
 mod fs_root;
 mod filesystem;
 mod mount;
+mod namespace;
 mod pty;
 
 pub use error::{Error, Result};
