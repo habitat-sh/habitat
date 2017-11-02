@@ -21,21 +21,17 @@ extern crate clap;
 extern crate env_logger;
 #[macro_use]
 extern crate log;
-extern crate tempdir;
 
 use std::env;
 use std::ffi::OsStr;
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 use std::result;
 
+use airlock::{FsRoot, FsRootPolicy, Result};
 use airlock::command;
-use airlock::{Error, Result};
 use clap::{App, ArgMatches};
-use tempdir::TempDir;
 
-const FS_ROOT_ENVVAR: &'static str = "AIRLOCK_FS_ROOT";
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 fn main() {
@@ -70,20 +66,17 @@ fn sub_run(m: &ArgMatches) -> Result<()> {
     // cmd arg is required and multiple so must contain a first element
     let cmd = args.remove(0);
 
-    match env::var(FS_ROOT_ENVVAR) {
-        Ok(ref val) => {
-            let rootfs = Path::new(val);
-            if rootfs.exists() {
-                return Err(Error::Rootfs(val.to_string()));
-            }
-            fs::create_dir(&rootfs)?;
-            command::run::run(cmd, args, rootfs)
-        }
-        Err(_) => {
-            let tmpdir = TempDir::new("rootfs")?;
-            command::run::run(cmd, args, tmpdir.path())
-        }
-    }
+    let policy = if m.is_present("NO_RM") {
+        FsRootPolicy::Persist
+    } else {
+        FsRootPolicy::Cleanup
+    };
+    let fs_root = match m.value_of("FS_ROOT") {
+        Some(val) => FsRoot::at(PathBuf::from(val), policy)?,
+        None => FsRoot::in_tmpdir(policy)?,
+    };
+
+    command::run::run(cmd, args, fs_root)
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
@@ -105,7 +98,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@setting Hidden)
             (about: "**Internal** command to run a command inside the created namespace")
             (@setting TrailingVarArg)
-            (@arg FS_ROOT: +required +takes_value {dir_exists}
+            (@arg FS_ROOT: +required +takes_value {validate_dir_exists}
                 "Path to the rootfs (ex: /tmp/rootfs)")
             (@arg CMD: +required +takes_value +multiple
                 "The command and arguments to execute (ex: ls -l /tmp)")
@@ -113,16 +106,33 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand run =>
             (about: "Run a command in a namespace")
             (@setting TrailingVarArg)
+            (@arg FS_ROOT: --("fs-root") -r +takes_value {validate_dir_not_exists}
+                "Path to use for the filesystem root (default: randomly generated under TMPDIR)")
+            (@arg RM: --rm conflicts_with[NO_RM]
+                "Remove the filsystem root on exit (default: yes)")
+            (@arg NO_RM: --("no-rm") conflicts_with[RM]
+                "Do not remove the filsystem root on exit (default: no)")
             (@arg CMD: +required +takes_value +multiple
                 "The command and arguments to execute (ex: ls -l /tmp)")
         )
     )
 }
 
-fn dir_exists(val: String) -> result::Result<(), String> {
+fn validate_dir_exists(val: String) -> result::Result<(), String> {
     if Path::new(&val).is_dir() {
         Ok(())
     } else {
-        Err(format!("Directory: '{}' cannot be found", &val))
+        Err(format!("directory '{}' cannot be found, must exist", &val))
+    }
+}
+
+fn validate_dir_not_exists(val: String) -> result::Result<(), String> {
+    if Path::new(&val).exists() {
+        Err(format!(
+            "directory or file '{}' found, this directory must not exist",
+            &val
+        ))
+    } else {
+        Ok(())
     }
 }

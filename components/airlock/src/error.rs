@@ -15,6 +15,7 @@
 use std::ffi;
 use std::fmt;
 use std::io;
+use std::path::PathBuf;
 use std::result;
 
 use unshare;
@@ -25,6 +26,7 @@ pub enum Error {
     CreateMaster(String),
     FileEntryNotFound(String, String),
     FileNotFound(String),
+    FsRoot(PathBuf, io::Error),
     Grantpt(String),
     GroupnameNotFound,
     GroupNotFound(String),
@@ -36,7 +38,6 @@ pub enum Error {
     PivotRoot(String),
     ProgramNotFound(String),
     Ptsname(String),
-    Rootfs(String),
     SubGidRangeTooSmall(u32, u32),
     SubUidRangeTooSmall(u32, u32),
     Unlockpt(String),
@@ -53,6 +54,7 @@ impl fmt::Display for Error {
                 format!("Could not find file entry {} in {}", e, f)
             }
             Error::FileNotFound(ref f) => format!("Could not find file {}", f),
+            Error::FsRoot(ref p, ref e) => format!("FsRoot error for {}, {}", p.display(), e),
             Error::Grantpt(ref e) => format!("Error calling grantpt, {}", e),
             Error::GroupnameNotFound => String::from("Could not determine groupname of process"),
             Error::GroupNotFound(ref g) => format!("Could not find {} unix group", g),
@@ -66,7 +68,6 @@ impl fmt::Display for Error {
             Error::PivotRoot(ref e) => format!("Error calling pivot_root, {}", e),
             Error::ProgramNotFound(ref p) => format!("Could not find program {}", p),
             Error::Ptsname(ref e) => format!("Error calling ptsname, {}", e),
-            Error::Rootfs(ref p) => format!("Rootfs directory {} must not exist", p),
             Error::SubGidRangeTooSmall(ref r, ref m) => {
                 format!(
                     "Range '{}' in subgid is too small for user, minimum required: '{}'",

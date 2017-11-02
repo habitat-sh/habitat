@@ -19,6 +19,7 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
+use FsRoot;
 use unshare::{self, Namespace};
 use users;
 use users::os::unix::GroupExt;
@@ -27,13 +28,13 @@ use {Error, Result};
 
 const MIN_SUB_RANGE: u32 = 65536;
 
-pub fn run<P: AsRef<Path>>(cmd: &OsStr, args: Vec<&OsStr>, rootfs: P) -> Result<()> {
+pub fn run(cmd: &OsStr, args: Vec<&OsStr>, fs_root: FsRoot) -> Result<()> {
     check_required_packages()?;
     check_user_group_membership()?;
-    debug!("created rootfs, path={}", rootfs.as_ref().display());
-    let mut command = unshare_command(rootfs.as_ref(), cmd, args)?;
+    let mut command = unshare_command(fs_root.as_ref(), cmd, args)?;
     debug!("running, command={:?}", command);
     let exit_status = command.spawn()?.wait()?;
+    fs_root.finish()?;
     process::exit(exit_status.code().unwrap_or(127));
 }
 

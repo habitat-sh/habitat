@@ -16,14 +16,16 @@ extern crate errno;
 extern crate libc;
 #[macro_use]
 extern crate log;
+extern crate rand;
 extern crate unshare;
 extern crate users;
 
 pub mod command;
-pub mod error;
-pub mod filesystem;
-pub mod mount;
-pub mod pty;
+mod error;
+mod fs_root;
+mod filesystem;
+mod mount;
+mod pty;
 
-pub use error::Error;
-pub use error::Result;
+pub use error::{Error, Result};
+pub use fs_root::{FsRoot, FsRootPolicy};
