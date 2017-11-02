@@ -85,21 +85,9 @@ fn start(ui: &mut UI) -> Result<()> {
     };
     let naming = Naming {
         custom_image_name: m.value_of("IMAGE_NAME"),
-        latest_tag: if m.is_present("NO_TAG_LATEST") {
-            false
-        } else {
-            true
-        },
-        version_tag: if m.is_present("NO_TAG_VERSION") {
-            false
-        } else {
-            true
-        },
-        version_release_tag: if m.is_present("NO_TAG_VERSION_RELEASE") {
-            false
-        } else {
-            true
-        },
+        latest_tag: !m.is_present("NO_TAG_LATEST"),
+        version_tag: !m.is_present("NO_TAG_VERSION"),
+        version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
         custom_tag: m.value_of("TAG_CUSTOM"),
         registry_url: registry_url,
         registry_type: registry_type,
@@ -234,9 +222,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             "Remote registry username, required for pushing image to remote registry")
         (@arg REGISTRY_PASSWORD: --("password") -P +takes_value requires[REGISTRY_USERNAME]
             "Remote registry password, required for pushing image to remote registry")
-        (@arg REGISTRY_TYPE: --("registry-type") -P +takes_value
+        (@arg REGISTRY_TYPE: --("registry-type") -R +takes_value
             "Remote registry type, Ex: Amazon, Docker, Google (default: docker)")
-        (@arg REGISTRY_URL: --("registry-url") -P +takes_value
+        (@arg REGISTRY_URL: --("registry-url") -G +takes_value
             "Remote registry url")
         // Cleanup
         (@arg RM_IMAGE: --("rm-image")
