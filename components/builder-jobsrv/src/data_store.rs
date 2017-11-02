@@ -210,20 +210,6 @@ impl DataStore {
         Ok(jobs)
     }
 
-    /// Reset any Dispatched jobs back to Pending state
-    /// This is used for recovery scenario
-    ///
-    /// # Errors
-    /// * If a connection cannot be gotten from the pool
-    /// * If the dispatched jobs cannot be selected from the database
-    pub fn reset_jobs(&self) -> Result<()> {
-        let conn = self.pool.get_shard(0)?;
-        conn.query("SELECT reset_jobs_v1()", &[]).map_err(
-            Error::JobReset,
-        )?;
-        Ok(())
-    }
-
     /// Updates a job. Currently, this entails updating the state,
     /// build start and stop times, and recording the identifier of
     /// the package the job produced, if any.
@@ -273,7 +259,7 @@ impl DataStore {
         };
 
         conn.execute(
-            "SELECT update_job_v2($1, $2, $3, $4, $5, $6, $7)",
+            "SELECT update_job_v3($1, $2, $3, $4, $5, $6, $7)",
             &[
                 &job_id,
                 &job_state,
@@ -795,7 +781,7 @@ impl DataStore {
         let mut jobs = Vec::new();
         let conn = self.pool.get_shard(0)?;
 
-        let rows = &conn.query("SELECT * FROM sync_jobs_v1()", &[]).map_err(
+        let rows = &conn.query("SELECT * FROM sync_jobs_v2()", &[]).map_err(
             Error::SyncJobs,
         )?;
 
@@ -814,7 +800,7 @@ impl DataStore {
     pub fn set_job_sync(&self, job_id: u64) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
 
-        conn.query("SELECT * FROM set_jobs_sync_v1($1)", &[&(job_id as i64)])
+        conn.query("SELECT * FROM set_jobs_sync_v2($1)", &[&(job_id as i64)])
             .map_err(Error::SyncJobs)?;
 
         Ok(())
