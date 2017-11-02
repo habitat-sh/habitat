@@ -55,8 +55,6 @@ sidebar_links:
   - title: Best Practice Guides
     link: "/docs/best-practices"
     sub_links:
-    - title: Quickstart Guide
-      link: "/docs/best-practices/#quickstart-guide"
     - title: Container Orchestration
       link: "/docs/best-practices/#container-orchestration"
     - title: Kubernetes
