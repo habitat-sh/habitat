@@ -24,7 +24,7 @@ extern crate log;
 extern crate tempdir;
 
 use std::env;
-use std::ffi::OsString;
+use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
@@ -47,27 +47,28 @@ fn main() {
 }
 
 fn _main() -> Result<()> {
-    let (args, remaining_args) = raw_parse_args();
-    debug!("clap cli args: {:?}", &args);
-    debug!("remaining cli args: {:?}", &remaining_args);
-    let app_matches = cli()
-        .get_matches_from_safe(&mut args.iter())
-        .unwrap_or_else(|e| e.exit());
+    let app_matches = cli().get_matches();
+    debug!("clap cli matches: {:?}", &app_matches);
     match app_matches.subcommand() {
-        ("run", Some(m)) => sub_run(m, remaining_args),
-        ("invoke", Some(m)) => sub_invoke(m, remaining_args),
+        ("run", Some(m)) => sub_run(m),
+        ("invoke", Some(m)) => sub_invoke(m),
         _ => unreachable!(),
     }
 }
 
-fn sub_invoke(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
+fn sub_invoke(m: &ArgMatches) -> Result<()> {
     let rootfs = Path::new(m.value_of("FS_ROOT").unwrap());
-    let cmd = m.value_of("CMD").unwrap();
-    command::invoke::run(rootfs, cmd, cmd_args)
+    let mut args: Vec<&OsStr> = m.values_of_os("CMD").unwrap().collect();
+    // cmd arg is required and multiple so must contain a first element
+    let cmd = args.remove(0);
+
+    command::invoke::run(rootfs, cmd, args)
 }
 
-fn sub_run(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
-    let cmd = m.value_of("CMD").unwrap();
+fn sub_run(m: &ArgMatches) -> Result<()> {
+    let mut args: Vec<&OsStr> = m.values_of_os("CMD").unwrap().collect();
+    // cmd arg is required and multiple so must contain a first element
+    let cmd = args.remove(0);
 
     match env::var(FS_ROOT_ENVVAR) {
         Ok(ref val) => {
@@ -76,11 +77,11 @@ fn sub_run(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
                 return Err(Error::Rootfs(val.to_string()));
             }
             fs::create_dir(&rootfs)?;
-            command::run::run(cmd, cmd_args, rootfs)
+            command::run::run(cmd, args, rootfs)
         }
         Err(_) => {
             let tmpdir = TempDir::new("rootfs")?;
-            command::run::run(cmd, cmd_args, tmpdir.path())
+            command::run::run(cmd, args, tmpdir.path())
         }
     }
 }
@@ -102,49 +103,20 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@setting ArgRequiredElseHelp)
         (@subcommand run =>
             (about: "stuff")
-            (@arg CMD: +required +takes_value
-                "The command to execute (ex: ls)")
-            (@arg ARGS: +takes_value +multiple
-                "Arguments to the command (ex: -l /tmp)")
+            (@setting TrailingVarArg)
+            (@arg CMD: +required +takes_value +multiple
+                "The command and arguments to execute (ex: ls -l /tmp)")
         )
         (@subcommand invoke =>
             (@setting Hidden)
             (about: "invoke stuff")
+            (@setting TrailingVarArg)
             (@arg FS_ROOT: +required +takes_value {dir_exists}
                 "Path to the rootfs (ex: /tmp/rootfs)")
             (@arg CMD: +required +takes_value
-                "The command to execute (ex: ls)")
-            (@arg ARGS: +takes_value +multiple
-                "Arguments to the command (ex: -l /tmp)")
+                "The command and arguments to execute (ex: ls -l /tmp)")
         )
     )
-}
-
-fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
-    let mut args = env::args();
-    match args.nth(1).unwrap_or_default().as_str() {
-        "run" => {
-            if args.by_ref().count() > 1 {
-                return (
-                    env::args_os().take(3).collect(),
-                    env::args_os().skip(3).collect(),
-                );
-            } else {
-                (env::args_os().collect(), Vec::new())
-            }
-        }
-        "invoke" => {
-            if args.by_ref().count() > 2 {
-                return (
-                    env::args_os().take(4).collect(),
-                    env::args_os().skip(4).collect(),
-                );
-            } else {
-                (env::args_os().collect(), Vec::new())
-            }
-        }
-        _ => (env::args_os().collect(), Vec::new()),
-    }
 }
 
 fn dir_exists(val: String) -> result::Result<(), String> {

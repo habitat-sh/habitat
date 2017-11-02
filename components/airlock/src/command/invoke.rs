@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::env;
-use std::ffi::OsString;
+use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::Write;
 use std::os::unix::fs::{symlink as fs_symlink, PermissionsExt};
@@ -61,7 +61,7 @@ const MASKED_PATHS: &'static [&'static str] = &[
     "/sys/firmware",
 ];
 
-pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
+pub fn run(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {
     let umask_val = 0o0022;
     debug!("setting umask, value={:#o}", umask_val);
     umask(umask_val);
@@ -314,8 +314,10 @@ fn chmod<P: AsRef<Path>>(path: P, mode: u32) -> Result<()> {
     Ok(())
 }
 
-fn exec_command(cmd: &str, args: Vec<OsString>) -> Result<()> {
-    debug!("running, command={} args={:?}", cmd, args);
-    Command::new(cmd).args(args).exec();
+fn exec_command(cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {
+    let mut command = Command::new(cmd);
+    command.args(args);
+    debug!("calling exec, command={:?}", command);
+    command.exec();
     Ok(())
 }

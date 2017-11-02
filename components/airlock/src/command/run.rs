@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::env;
-use std::ffi::OsString;
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -27,7 +27,7 @@ use {Error, Result};
 
 const MIN_SUB_RANGE: u32 = 65536;
 
-pub fn run<P: AsRef<Path>>(cmd: &str, args: Vec<OsString>, rootfs: P) -> Result<()> {
+pub fn run<P: AsRef<Path>>(cmd: &OsStr, args: Vec<&OsStr>, rootfs: P) -> Result<()> {
     check_required_packages()?;
     check_user_group_membership()?;
     debug!("created rootfs, path={}", rootfs.as_ref().display());
@@ -64,7 +64,7 @@ fn check_user_group_membership() -> Result<()> {
     Ok(())
 }
 
-fn unshare_command(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<unshare::Command> {
+fn unshare_command(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<unshare::Command> {
     let program = proc_exe()?;
     let namespaces = vec![
         Namespace::User,
