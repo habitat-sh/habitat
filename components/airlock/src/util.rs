@@ -22,7 +22,7 @@ use users::os::unix::GroupExt;
 use {Error, Result};
 
 pub const IP_PKG: &'static str = "core/iproute2";
-pub const DEBUG_ENVVAR: &'static str = "RUST_LOG";
+pub const DEBUG_ENVVARS: &'static [&'static str] = &["RUST_LOG", "DEBUG"];
 
 pub fn find_command<P: AsRef<Path>>(command: P) -> Result<PathBuf> {
     match env::var_os("PATH") {
@@ -59,7 +59,9 @@ pub fn run_cmd(mut command: Command) -> Result<()> {
 
 pub fn hab_cmd() -> Result<Command> {
     let mut command = Command::new(find_command("hab")?);
-    command.env_remove(DEBUG_ENVVAR);
+    for var in DEBUG_ENVVARS {
+        command.env_remove(var);
+    }
 
     Ok(command)
 }

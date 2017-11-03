@@ -14,9 +14,8 @@
 
 use std::env;
 use std::ffi::OsStr;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
-use std::os::unix::fs::{symlink as fs_symlink, PermissionsExt};
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -24,6 +23,7 @@ use std::process::{Command, Stdio};
 use libc;
 
 use {Error, Result};
+use coreutils::{chmod, mkdir_p, rmdir, symlink, touch, umask};
 use mount::{self, Mount};
 use filesystem;
 use pty;
@@ -272,46 +272,6 @@ pub fn run(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {
 
     // Finally, call `exec` to become the target program
     exec_command(cmd, args)
-}
-
-fn mkdir_p<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("creating directory, path={}", path.as_ref().display());
-    Ok(fs::create_dir_all(path)?)
-}
-
-fn rmdir<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("removing directory, path={}", path.as_ref().display());
-    Ok(fs::remove_dir(path)?)
-}
-
-fn symlink<S, T>(source: S, target: T) -> Result<()>
-where
-    S: AsRef<Path>,
-    T: AsRef<Path>,
-{
-    debug!(
-        "symlinking, src={}, target={}",
-        source.as_ref().display(),
-        target.as_ref().display()
-    );
-    Ok(fs_symlink(source, target)?)
-}
-
-fn touch<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("creating file, path={}", path.as_ref().display());
-    let _ = File::create(path)?;
-    Ok(())
-}
-
-fn umask(mode: libc::mode_t) -> libc::mode_t {
-    unsafe { libc::umask(mode) }
-}
-
-fn chmod<P: AsRef<Path>>(path: P, mode: u32) -> Result<()> {
-    let md = path.as_ref().metadata()?;
-    let mut perms = md.permissions();
-    perms.set_mode(mode);
-    Ok(())
 }
 
 fn exec_command(cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {

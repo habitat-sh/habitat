@@ -25,11 +25,14 @@ use user;
 pub fn run<P: AsRef<Path>>(ns_dir: P) -> Result<()> {
     user::check_running_user_is_root()?;
 
+    // unmount namespace files which were bind-mounted
     mount::umount(namespace::netns_file(&ns_dir), Some(libc::MNT_DETACH))?;
     mount::umount(namespace::userns_file(&ns_dir), Some(libc::MNT_DETACH))?;
+
+    // remove the parent namespace directory
     fs::remove_dir_all(&ns_dir)?;
 
-    info!(
+    println!(
         "Network namespace directory {} destroyed.",
         ns_dir.as_ref().display()
     );

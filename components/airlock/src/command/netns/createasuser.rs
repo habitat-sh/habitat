@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::process;
@@ -20,6 +20,7 @@ use std::process;
 use unshare::{self, Namespace};
 
 use Result;
+use coreutils::{mkdir_p, touch};
 use namespace;
 use user;
 use util;
@@ -33,8 +34,7 @@ pub fn run<P: AsRef<Path>>(
 ) -> Result<()> {
     util::check_user_group_membership(&user::my_username()?)?;
 
-    debug!("creating directory, path={}", ns_dir.as_ref().display());
-    fs::create_dir_all(&ns_dir)?;
+    mkdir_p(&ns_dir)?;
 
     let mut command = network_unshare_command(util::proc_exe()?)?;
     command.arg("netns");
@@ -68,12 +68,6 @@ pub fn run<P: AsRef<Path>>(
 fn write_ns_pid<P: AsRef<Path>>(ns_dir: P, pid: u32) -> Result<()> {
     let mut file = File::create(namespace::ns_pid_file(ns_dir))?;
     file.write_all(pid.to_string().as_bytes())?;
-    Ok(())
-}
-
-fn touch<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("creating file, path={}", path.as_ref().display());
-    let _ = File::create(path)?;
     Ok(())
 }
 

@@ -25,6 +25,7 @@ use pnet_datalink as pnet;
 use pnet_datalink::NetworkInterface;
 
 use {Error, Result};
+use coreutils::touch;
 use mount::{self, Mount};
 use namespace;
 use user;
@@ -62,13 +63,14 @@ pub fn run<P: AsRef<Path>>(ns_dir: P, user: &str, interface: &str, gateway: &str
     touch(namespace::ns_created_file(&ns_dir))?;
 
     let exit_status = child.wait()?;
-    process::exit(exit_status.code().unwrap_or(127));
-}
 
-fn touch<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("creating file, path={}", path.as_ref().display());
-    let _ = File::create(path)?;
-    Ok(())
+    println!(
+        "Network namespace created: userns={}, netns={}",
+        namespace::userns_file(&ns_dir).display(),
+        namespace::netns_file(&ns_dir).display(),
+    );
+
+    process::exit(exit_status.code().unwrap_or(127));
 }
 
 fn wait_for_ns_pid<P: AsRef<Path>>(ns_dir: P) -> Result<u32> {
@@ -135,8 +137,10 @@ fn command_as_user<P: AsRef<Path>>(program: P, username: &str) -> Result<Command
     command.env("USER", username);
     command.env("HOME", user::home_dir_for_username(username)?);
     command.env("PATH", env::var("PATH").unwrap_or(String::new()));
-    if let Ok(val) = env::var(util::DEBUG_ENVVAR) {
-        command.env(util::DEBUG_ENVVAR, val);
+    for var in util::DEBUG_ENVVARS {
+        if let Ok(val) = env::var(var) {
+            command.env(var, val);
+        }
     }
 
     Ok(command)

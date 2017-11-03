@@ -22,6 +22,7 @@ extern crate unshare;
 extern crate users;
 
 pub mod command;
+mod coreutils;
 mod error;
 mod fs_root;
 mod filesystem;
