@@ -43,7 +43,7 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Cfg {
     /// Default level configuration loaded by a Package's `default.toml`
     pub default: Option<toml::Value>,
@@ -63,11 +63,16 @@ impl Cfg {
         let pkg_root = config_from.and_then(|p| Some(p.as_path())).unwrap_or(
             &package.path,
         );
-        let mut cfg = Cfg::default();
-        cfg.load_default(&pkg_root)?;
-        cfg.load_user(&package)?;
-        cfg.load_environment(&package)?;
-        Ok(cfg)
+        let default = Self::load_default(&pkg_root)?;
+        let user = Self::load_user(&package)?;
+        let environment = Self::load_environment(&package)?;
+        return Ok(Self {
+            default: default,
+            user: user,
+            gossip: None,
+            environment: environment,
+            gossip_incarnation: 0,
+        });
     }
 
     /// Updates the service configuration with data from a census group if the census group has
@@ -118,14 +123,22 @@ impl Cfg {
         Ok(map)
     }
 
-    fn load_default<T: AsRef<Path>>(&mut self, config_from: T) -> Result<()> {
-        let path = config_from.as_ref().join("default.toml");
+    fn load_toml_file<T1: AsRef<Path>, T2: AsRef<Path>>(
+        dir: T1,
+        file: T2,
+    ) -> Result<Option<toml::Value>> {
+        let filename = file.as_ref();
+        let path = dir.as_ref().join(&filename);
         let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => {
-                debug!("Failed to open 'default.toml', {}, {}", path.display(), e);
-                self.default = None;
-                return Ok(());
+                debug!(
+                    "Failed to open '{}', {}, {}",
+                    filename.display(),
+                    path.display(),
+                    e
+                );
+                return Ok(None);
             }
         };
         let mut config = String::new();
@@ -134,43 +147,29 @@ impl Cfg {
                 let toml = toml::de::from_str(&config).map_err(|e| {
                     sup_error!(Error::TomlParser(e))
                 })?;
-                self.default = Some(toml::Value::Table(toml));
+                Ok(Some(toml::Value::Table(toml)))
             }
             Err(e) => {
-                outputln!("Failed to read 'default.toml', {}, {}", path.display(), e);
-                self.default = None;
+                outputln!(
+                    "Failed to read '{}', {}, {}",
+                    filename.display(),
+                    path.display(),
+                    e
+                );
+                Ok(None)
             }
         }
-        Ok(())
     }
 
-    fn load_user(&mut self, package: &Pkg) -> Result<()> {
-        let path = package.svc_path.join("user.toml");
-        let mut file = match File::open(&path) {
-            Ok(file) => file,
-            Err(e) => {
-                debug!("Failed to open 'user.toml', {}, {}", path.display(), e);
-                self.user = None;
-                return Ok(());
-            }
-        };
-        let mut config = String::new();
-        match file.read_to_string(&mut config) {
-            Ok(_) => {
-                let toml = toml::de::from_str(&config).map_err(|e| {
-                    sup_error!(Error::TomlParser(e))
-                })?;
-                self.user = Some(toml::Value::Table(toml));
-            }
-            Err(e) => {
-                outputln!("Failed to load 'user.toml', {}, {}", path.display(), e);
-                self.user = None;
-            }
-        }
-        Ok(())
+    fn load_default<T: AsRef<Path>>(config_from: T) -> Result<Option<toml::Value>> {
+        Self::load_toml_file(config_from, "default.toml")
     }
 
-    fn load_environment(&mut self, package: &Pkg) -> Result<()> {
+    fn load_user(package: &Pkg) -> Result<Option<toml::Value>> {
+        Self::load_toml_file(&package.svc_path, "user.toml")
+    }
+
+    fn load_environment(package: &Pkg) -> Result<Option<toml::Value>> {
         let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name)
             .to_ascii_uppercase()
             .replace("-", "_");
@@ -178,19 +177,16 @@ impl Cfg {
             Ok(config) => {
                 match toml::de::from_str(&config) {
                     Ok(toml) => {
-                        self.environment = Some(toml::Value::Table(toml));
-                        return Ok(());
+                        return Ok(Some(toml::Value::Table(toml)));
                     }
                     Err(err) => debug!("Attempted to parse env config as toml and failed {}", err),
                 }
                 match serde_json::from_str(&config) {
                     Ok(json) => {
-                        self.environment = Some(toml::Value::Table(json));
-                        return Ok(());
+                        return Ok(Some(toml::Value::Table(json)));
                     }
                     Err(err) => debug!("Attempted to parse env config as json and failed {}", err),
                 }
-                self.environment = None;
                 Err(sup_error!(Error::BadEnvConfig(var_name)))
             }
             Err(e) => {
@@ -199,8 +195,7 @@ impl Cfg {
                     var_name,
                     e
                 );
-                self.environment = None;
-                Ok(())
+                Ok(None)
             }
         }
     }
