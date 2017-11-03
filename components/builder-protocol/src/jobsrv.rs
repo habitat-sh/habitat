@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::cmp::Eq;
-use std::hash::{Hash, Hasher};
 use std::result;
 use std::str::FromStr;
 use std::fmt;
@@ -513,17 +511,6 @@ impl Serialize for JobGroupProject {
             &self.get_job_id().to_string(),
         )?;
         strukt.end()
-    }
-}
-
-impl Eq for JobGroup {}
-
-impl Hash for JobGroup {
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
-    {
-        self.get_id().hash(state);
     }
 }
 

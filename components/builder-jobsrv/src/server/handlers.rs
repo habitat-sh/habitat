@@ -450,7 +450,7 @@ pub fn job_group_origin_get(
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg = req.parse::<proto::JobGroupOriginGet>()?;
+    let msg = req.parse::<jobsrv::JobGroupOriginGet>()?;
 
     match state.datastore.get_job_group_origin(&msg) {
         Ok(ref jgor) => conn.route_reply(req, jgor)?,

@@ -5,6 +5,7 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 workspace = "../../"
 
 [dependencies]
+chrono = "*"
 clippy = {version = "*", optional = true}
 broadcast = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }

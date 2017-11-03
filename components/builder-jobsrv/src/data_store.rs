@@ -14,7 +14,6 @@
 
 //! The PostgreSQL backend for the Jobsrv.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::{DateTime, UTC};
@@ -546,15 +545,15 @@ impl DataStore {
 
         let mut response = jobsrv::JobGroupOriginResponse::new();
         let mut job_groups = RepeatedField::new();
-        let mut map = HashMap::new();
 
         for row in rows {
-            let (group, project) = self.row_to_job_group_and_project(&row)?;
-            map.entry(group).or_insert(Vec::new()).push(project);
-        }
-
-        for (mut group, projects) in map.into_iter() {
-            group.set_projects(RepeatedField::from_vec(projects.to_vec()));
+            let mut group = self.row_to_job_group(&row)?;
+            let project_rows = &conn.query(
+                "SELECT * FROM get_group_projects_for_group_v1($1)",
+                &[&(group.get_id() as i64)],
+            ).map_err(Error::JobGroupGet)?;
+            let projects = self.rows_to_job_group_projects(&project_rows)?;
+            group.set_projects(projects);
             job_groups.push(group);
         }
 
@@ -623,15 +622,6 @@ impl DataStore {
         package.set_deps(pb_deps);
 
         Ok(package)
-    }
-
-    fn row_to_job_group_and_project(
-        &self,
-        row: &postgres::rows::Row,
-    ) -> Result<(jobsrv::JobGroup, jobsrv::JobGroupProject)> {
-        let group = self.row_to_job_group(row)?;
-        let project = self.row_to_job_group_project(row)?;
-        Ok((group, project))
     }
 
     fn row_to_job_group(&self, row: &postgres::rows::Row) -> Result<jobsrv::JobGroup> {
