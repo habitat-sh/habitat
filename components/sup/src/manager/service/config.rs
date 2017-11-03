@@ -467,8 +467,6 @@ mod test {
     use toml;
     use tempdir::TempDir;
 
-    use hcore::package::{PackageIdent, PackageInstall};
-
     use super::*;
     use error::Error;
 
@@ -763,20 +761,14 @@ mod test {
 
     #[test]
     fn serialize_config() {
-        let pkg_id = PackageIdent::new("testing", "testing", Some("1.0.0"), Some("20170712000000"));
-        let pkg_install = PackageInstall::new_from_parts(
-            pkg_id.clone(),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-        );
-        let pkg = Pkg::from_install(pkg_install).expect("Could not create package!");
         let concrete_path = TempDir::new("habitat_config_test").expect("create temp dir");
-
-        let mut cfg = Cfg::new(&pkg, Some(&concrete_path.as_ref().to_path_buf()))
-            .expect("Could not create config");
-
-        let default_toml = "shards = []\n\n[datastore]\ndatabase = \"builder_originsrv\"\npassword = \"\"\nuser = \"hab\"\n";
+        let pkg = TestPkg::new(&concrete_path);
+        let mut cfg = Cfg::new(&pkg, None).expect("Could not create config");
+        let default_toml = "shards = []\n\n\
+                            [datastore]\n\
+                            database = \"builder_originsrv\"\n\
+                            password = \"\"\n\
+                            user = \"hab\"\n";
 
         cfg.default = Some(toml::Value::Table(
             toml::de::from_str(default_toml).unwrap(),
