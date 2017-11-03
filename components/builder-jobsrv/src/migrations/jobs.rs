@@ -118,22 +118,6 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                             END
                             $$ LANGUAGE plpgsql VOLATILE"#)?;
 
-    // Reset the state of Dispatched jobs back to Pending (for failure recovery)
-    migrator.migrate("jobsrv",
-                     r#"CREATE OR REPLACE FUNCTION reset_jobs_v1 () RETURNS void AS $$
-                            BEGIN
-                                UPDATE jobs SET job_state='Pending', scheduler_sync=false, updated_at=now() WHERE job_state='Dispatched';
-                            END
-                            $$ LANGUAGE plpgsql VOLATILE"#)?;
-
-    // Update the state of a job. Takes a job id and a state, and updates that row.
-    migrator.migrate("jobsrv",
-                     r#"CREATE OR REPLACE FUNCTION set_job_state_v1 (jid bigint, jstate text) RETURNS void AS $$
-                        BEGIN
-                            UPDATE jobs SET job_state=jstate, scheduler_sync=false, updated_at=now() WHERE id=jid;
-                        END
-                     $$ LANGUAGE plpgsql VOLATILE"#)?;
-
     // Helpers to sync job state notifications
     migrator.migrate(
         "jobsrv",
@@ -195,12 +179,6 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
         r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS package_ident TEXT DEFAULT NULL"#,
     )?;
 
-    // Removing the `set_job_state_v1` function in favor of a more
-    // general `update_job_v1` function.
-    migrator.migrate(
-        "jobsrv",
-        r#"DROP FUNCTION IF EXISTS set_job_state_v1(bigint, text)"#,
-    )?;
     migrator.migrate(
         "jobsrv",
         r#"CREATE OR REPLACE FUNCTION update_job_v1(
@@ -261,6 +239,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                        WHERE id = p_job_id;
                      $$"#,
     )?;
+
     migrator.migrate(
         "jobsrv",
         r#"CREATE OR REPLACE FUNCTION get_jobs_for_project_v2(p_project_name TEXT, p_limit bigint, p_offset bigint)
@@ -363,6 +342,59 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                        SELECT *
                        FROM jobs
                        WHERE job_state = 'CancelPending'
+                     $$"#,
+    )?;
+
+    // Removing the `reset_jobs_v1` function as it is no longer used
+    migrator.migrate(
+        "jobsrv",
+        r#"DROP FUNCTION IF EXISTS reset_jobs_v1()"#,
+    )?;
+
+    // Add a sync_count for scheduler sync
+    migrator.migrate(
+        "jobsrv",
+        r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS sync_count INTEGER DEFAULT 0"#,
+    )?;
+
+    // Helpers to sync job state notifications
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION sync_jobs_v2() RETURNS SETOF jobs AS $$
+                     SELECT * FROM jobs WHERE (scheduler_sync = false) OR (sync_count > 0);
+                 $$ LANGUAGE SQL STABLE"#,
+    )?;
+
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION set_jobs_sync_v2(in_job_id bigint) RETURNS VOID AS $$
+                    UPDATE jobs SET scheduler_sync = true, sync_count = sync_count-1 WHERE id = in_job_id;
+                $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION update_job_v3(
+                       p_job_id bigint,
+                       p_state text,
+                       p_build_started_at timestamptz,
+                       p_build_finished_at timestamptz,
+                       p_package_ident text,
+                       p_err_code int,
+                       p_err_msg text)
+                     RETURNS VOID
+                     LANGUAGE SQL VOLATILE AS $$
+                       UPDATE jobs
+                       SET job_state = p_state,
+                           scheduler_sync = false,
+                           sync_count = sync_count + 1,
+                           updated_at = now(),
+                           build_started_at = p_build_started_at,
+                           build_finished_at = p_build_finished_at,
+                           package_ident = p_package_ident,
+                           net_error_code = p_err_code,
+                           net_error_msg = p_err_msg
+                       WHERE id = p_job_id;
                      $$"#,
     )?;
 
