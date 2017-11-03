@@ -42,13 +42,6 @@ pub fn primary_gid_for_username(username: &str) -> Result<u32> {
     Ok(user_by_username(username)?.primary_group_id())
 }
 
-// pub fn primary_groupname_for(username: &str) -> Result<String> {
-//     let gid = primary_gid_for_username(username)?;
-//     let group = users::get_group_by_gid(gid).ok_or(Error::GidNotFound(gid))?;
-
-//     Ok(String::from(group.name()))
-// }
-
 pub fn home_dir_for_username(username: &str) -> Result<PathBuf> {
     Ok(PathBuf::from(user_by_username(username)?.home_dir()))
 }
