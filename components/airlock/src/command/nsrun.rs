@@ -28,8 +28,6 @@ use mount::{self, Mount};
 use filesystem;
 use pty;
 
-const MOUNT_ARTIFACT_CACHE_ENVVAR: &'static str = "MOUNT_ARTIFACT_CACHE";
-
 const ROOTFS_DIRS: &'static [&'static str] = &[
     "etc",
     "run",
@@ -61,7 +59,7 @@ const MASKED_PATHS: &'static [&'static str] = &[
     "/sys/firmware",
 ];
 
-pub fn run(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {
+pub fn run(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>, mount_artifacts: bool) -> Result<()> {
     let umask_val = 0o0022;
     debug!("setting umask, value={:#o}", umask_val);
     umask(umask_val);
@@ -187,7 +185,7 @@ pub fn run(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {
         Some(libc::MS_RDONLY),
     )?;
 
-    if env::var(MOUNT_ARTIFACT_CACHE_ENVVAR).is_ok() {
+    if mount_artifacts {
         // Bind mount outside artifact cache (and ensure outside directory exists)
         let source = env::home_dir().ok_or(Error::HomeDirectoryNotFound)?.join(
             ".hab/cache/artifacts",

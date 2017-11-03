@@ -98,11 +98,12 @@ fn sub_netns_destroy(m: &ArgMatches) -> Result<()> {
 
 fn sub_nsrun(m: &ArgMatches) -> Result<()> {
     let fs_root = Path::new(m.value_of("FS_ROOT").unwrap());
+    let mount_artifacts = m.is_present("MOUNT_ARTIFACT_CACHE");
     let mut args: Vec<&OsStr> = m.values_of_os("CMD").unwrap().collect();
     // cmd arg is required and multiple so must contain a first element
     let cmd = args.remove(0);
 
-    command::nsrun::run(fs_root, cmd, args)
+    command::nsrun::run(fs_root, cmd, args, mount_artifacts)
 }
 
 fn sub_run(m: &ArgMatches) -> Result<()> {
@@ -126,8 +127,9 @@ fn sub_run(m: &ArgMatches) -> Result<()> {
         Some(netns) => Some((Path::new(m.value_of("USERNS").unwrap()), Path::new(netns))),
         None => None,
     };
+    let mount_artifacts = m.is_present("MOUNT_ARTIFACT_CACHE");
 
-    command::run::run(fs_root, cmd, args, namespaces)
+    command::run::run(fs_root, cmd, args, namespaces, mount_artifacts)
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
@@ -149,6 +151,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@setting Hidden)
             (about: "**Internal** command to run a command inside the created namespace")
             (@setting TrailingVarArg)
+            (@arg MOUNT_ARTIFACT_CACHE: --("mount-artifact-cache") -m
+                "Mount the user's Habitat artifact cache directory (default: no)")
             (@arg FS_ROOT: +required +takes_value {validate_dir_exists}
                 "Path to the rootfs (ex: /tmp/rootfs)")
             (@arg CMD: +required +takes_value +multiple
@@ -167,6 +171,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Use network namespace (ex: /tmp/airlock-ns/netns)")
             (@arg USERNS: --("use-userns") +takes_value {validate_file_exists} requires[NETNS]
                 "Use user namespace (ex: /tmp/airlock-ns/userns)")
+            (@arg MOUNT_ARTIFACT_CACHE: --("mount-artifact-cache") -m
+                "Mount the user's Habitat artifact cache directory (default: no)")
             (@arg CMD: +required +takes_value +multiple
                 "The command and arguments to execute (ex: ls -l /tmp)")
         )

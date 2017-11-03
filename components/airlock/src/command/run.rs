@@ -30,6 +30,7 @@ pub fn run(
     cmd: &OsStr,
     args: Vec<&OsStr>,
     namespaces: Option<(&Path, &Path)>,
+    mount_artifacts: bool,
 ) -> Result<()> {
     check_required_packages()?;
     util::check_user_group_membership(&user::my_username()?)?;
@@ -37,7 +38,7 @@ pub fn run(
         join_network_namespaces(userns, netns)?;
     }
     let new_userns = namespaces == None;
-    let mut command = unshare_command(fs_root.as_ref(), cmd, args, new_userns)?;
+    let mut command = unshare_command(fs_root.as_ref(), cmd, args, new_userns, mount_artifacts)?;
     debug!("running, command={:?}", command);
     let exit_status = command.spawn()?.wait()?;
     fs_root.finish()?;
@@ -69,6 +70,7 @@ fn unshare_command(
     cmd: &OsStr,
     args: Vec<&OsStr>,
     new_userns: bool,
+    mount_artifacts: bool,
 ) -> Result<unshare::Command> {
     let program = util::proc_exe()?;
     let mut namespaces = vec![
@@ -83,6 +85,9 @@ fn unshare_command(
 
     let mut command = unshare::Command::new(program);
     command.arg("nsrun");
+    if mount_artifacts {
+        command.arg("--mount-artifacts");
+    }
     command.arg(rootfs);
     command.arg(cmd);
     command.args(&args);
