@@ -461,6 +461,9 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(test)]
 mod test {
+    use std::fs;
+    use std::fs::OpenOptions;
+
     use toml;
     use tempdir::TempDir;
 
@@ -649,6 +652,113 @@ mod test {
             }
             Ok(_) => panic!("Should not complete successfully"),
         }
+    }
+
+    struct TestPkg {
+        base_path: PathBuf,
+    }
+
+    impl TestPkg {
+        fn new(tmp: &TempDir) -> Self {
+            let pkg = Self { base_path: tmp.path().to_owned() };
+
+            fs::create_dir_all(pkg.default_config_dir()).expect(
+                "create deprecated user config dir",
+            );
+            fs::create_dir_all(pkg.recommended_user_config_dir())
+                .expect("create recommended user config dir");
+            fs::create_dir_all(pkg.deprecated_user_config_dir())
+                .expect("create default config dir");
+            pkg
+        }
+    }
+
+    impl PackageConfigPaths for TestPkg {
+        fn name(&self) -> String {
+            String::from("testing")
+        }
+        fn default_config_dir(&self) -> PathBuf {
+            self.base_path.join("root")
+        }
+        fn recommended_user_config_dir(&self) -> PathBuf {
+            self.base_path.join("user")
+        }
+        fn deprecated_user_config_dir(&self) -> PathBuf {
+            self.base_path.join("svc")
+        }
+    }
+
+    struct CfgTestData {
+        // We hold tmp here only to make sure that the temporary
+        // directory gets deleted at the end of the test.
+        #[allow(dead_code)]
+        tmp: TempDir,
+        pkg: TestPkg,
+        rucp: PathBuf,
+        ducp: PathBuf,
+    }
+
+    impl CfgTestData {
+        fn new() -> Self {
+            let tmp = TempDir::new("habitat_config_test").expect("create temp dir");
+            let pkg = TestPkg::new(&tmp);
+            let rucp = pkg.recommended_user_config_dir().join("user.toml");
+            let ducp = pkg.deprecated_user_config_dir().join("user.toml");
+            Self {
+                tmp: tmp,
+                pkg: pkg,
+                rucp: rucp,
+                ducp: ducp,
+            }
+        }
+    }
+
+    fn write_toml<P: AsRef<Path>>(path: &P, text: &str) {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)
+            .expect("create toml file");
+        file.write_all(text.as_bytes()).expect(
+            "write raw toml value",
+        );
+        file.flush().expect("flush changes in toml file");
+    }
+
+    fn toml_value_from_str(text: &str) -> toml::Value {
+        toml::Value::Table(toml_from_str(text))
+    }
+
+    #[test]
+    fn load_deprecated_user_toml() {
+        let cfg_data = CfgTestData::new();
+        let toml = "foo = 42";
+        write_toml(&cfg_data.ducp, toml);
+        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+    }
+
+    #[test]
+    fn load_recommended_user_toml() {
+        let cfg_data = CfgTestData::new();
+        let toml = "foo = 42";
+        write_toml(&cfg_data.rucp, toml);
+        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+    }
+
+    #[test]
+    fn prefer_recommended_to_deprecated() {
+        let cfg_data = CfgTestData::new();
+        let toml = "foo = 42";
+        write_toml(&cfg_data.rucp, toml);
+        write_toml(&cfg_data.ducp, "foo = 13");
+        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
     }
 
     #[test]
