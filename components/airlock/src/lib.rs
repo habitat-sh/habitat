@@ -16,6 +16,7 @@ extern crate errno;
 extern crate libc;
 #[macro_use]
 extern crate log;
+extern crate pnet_datalink;
 extern crate rand;
 extern crate unshare;
 extern crate users;
@@ -27,6 +28,8 @@ mod filesystem;
 mod mount;
 mod namespace;
 mod pty;
+mod user;
+mod util;
 
 pub use error::{Error, Result};
 pub use fs_root::{FsRoot, FsRootPolicy};

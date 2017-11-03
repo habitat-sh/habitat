@@ -48,8 +48,50 @@ fn _main() -> Result<()> {
     match app_matches.subcommand() {
         ("nsrun", Some(m)) => sub_nsrun(m),
         ("run", Some(m)) => sub_run(m),
+        ("netns", Some(m)) => {
+            match m.subcommand() {
+                ("create", Some(m)) => sub_netns_create(m),
+                ("createasuser", Some(m)) => sub_netns_createasuser(m),
+                ("createinns", Some(m)) => sub_netns_createinns(m),
+                ("destroy", Some(m)) => sub_netns_destroy(m),
+                _ => unreachable!(),
+            }
+        }
         _ => unreachable!(),
     }
+}
+
+fn sub_netns_create(m: &ArgMatches) -> Result<()> {
+    let ns_dir = Path::new(m.value_of("NS_DIR").unwrap());
+    let user = m.value_of("USER").unwrap();
+    let interface = m.value_of("INTERFACE").unwrap();
+    let gateway = m.value_of("GATEWAY").unwrap();
+
+    command::netns::create::run(ns_dir, user, interface, gateway)
+}
+
+fn sub_netns_createasuser(m: &ArgMatches) -> Result<()> {
+    let ns_dir = Path::new(m.value_of("NS_DIR").unwrap());
+    let interface = m.value_of("INTERFACE").unwrap();
+    let gateway = m.value_of("GATEWAY").unwrap();
+    let ipv4s: Vec<_> = m.values_of("IPV4").unwrap().collect();
+    let ipv6s: Vec<_> = m.values_of("IPV6").unwrap().collect();
+
+    command::netns::createasuser::run(ns_dir, interface, gateway, ipv4s, ipv6s)
+}
+
+fn sub_netns_createinns(m: &ArgMatches) -> Result<()> {
+    let ns_dir = Path::new(m.value_of("NS_DIR").unwrap());
+    let interface = m.value_of("INTERFACE").unwrap();
+    let gateway = m.value_of("GATEWAY").unwrap();
+    let ipv4s: Vec<_> = m.values_of("IPV4").unwrap().collect();
+    let ipv6s: Vec<_> = m.values_of("IPV6").unwrap().collect();
+
+    command::netns::createinns::run(ns_dir, interface, gateway, ipv4s, ipv6s)
+}
+
+fn sub_netns_destroy(_m: &ArgMatches) -> Result<()> {
+    command::netns::destroy::run()
 }
 
 fn sub_nsrun(m: &ArgMatches) -> Result<()> {
@@ -125,6 +167,58 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Use user namespace (ex: /tmp/airlock-ns/userns)")
             (@arg CMD: +required +takes_value +multiple
                 "The command and arguments to execute (ex: ls -l /tmp)")
+        )
+        (@subcommand netns =>
+            (about: "Commands relating to network namespaces")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand create =>
+                (about: "Create a network namespace for a user")
+                (@arg NS_DIR: --("ns-dir") -d +takes_value +required {validate_dir_not_exists}
+                    "Path where the namespace files will be mounted")
+                (@arg USER: --user -u +required +takes_value
+                    "Username of the user who will own the namespace (ex: jdoe)")
+                (@arg INTERFACE: --interface -i +required +takes_value
+                    "Network interface which will be assigned to the namespace (ex: eth1)")
+                (@arg GATEWAY: --gateway -g +required +takes_value
+                    "Network gateway address which will be assigned to the interface (ex: eth1)")
+            )
+            (@subcommand createasuser =>
+                (@setting Hidden)
+                (about: "**Internal** Create the network namespace as the non-root user")
+                (@arg NS_DIR: --("ns-dir") -d +takes_value +required {validate_dir_not_exists}
+                    "Path where the namespace files will be mounted")
+                (@arg INTERFACE: --interface -i +required +takes_value
+                    "Network interface which will be assigned to the namespace (ex: eth1)")
+                (@arg GATEWAY: --gateway -g +required +takes_value
+                    "Network gateway address which will be assigned to the interface (ex: eth1)")
+                (@arg IPV4: --ipv4addr +required +takes_value +multiple
+                    "IPv4 addresses which will be assigned to the newtwork interface \
+                    (ex: 192.168.211.134/24)")
+                (@arg IPV6: --ipv6addr +takes_value +multiple
+                    "IPv6 addresses which will be assigned to the newtwork interface \
+                    (ex: fe80::20c:29ff:fef4:ae/64)")
+            )
+            (@subcommand createinns =>
+                (@setting Hidden)
+                (about: "**Internal** Setup the network namespace inside the namespace")
+                (@arg NS_DIR: --("ns-dir") -d +takes_value +required {validate_dir_exists}
+                    "Path where the namespace files will be mounted")
+                (@arg INTERFACE: --interface -i +required +takes_value
+                    "Network interface which will be assigned to the namespace (ex: eth1)")
+                (@arg GATEWAY: --gateway -g +required +takes_value
+                    "Network gateway address which will be assigned to the interface (ex: eth1)")
+                (@arg IPV4: --ipv4addr +required +takes_value +multiple
+                    "IPv4 addresses which will be assigned to the newtwork interface \
+                    (ex: 192.168.211.134/24)")
+                (@arg IPV6: --ipv6addr +takes_value +multiple
+                    "IPv6 addresses which will be assigned to the newtwork interface \
+                    (ex: fe80::20c:29ff:fef4:ae/64)")
+            )
+            (@subcommand destroy =>
+                (about: "Destroy a created network namespace")
+                (@arg NS_DIR: --("ns-dir") -d +takes_value +required {validate_dir_not_exists}
+                    "Path where the namespace files will be mounted")
+            )
         )
     )
 }
