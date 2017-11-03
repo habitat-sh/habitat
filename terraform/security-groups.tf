@@ -221,3 +221,22 @@ resource "aws_security_group" "worker" {
     X-ManagedBy   = "Terraform"
   }
 }
+
+resource "aws_security_group" "worker_studio" {
+  name   = "builder-worker-studio-${var.env}"
+  vpc_id = "${var.aws_vpc_id}"
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Environment = "${var.env}"
+    X-Application = "builder"
+    X-ManagedBy   = "Terraform"
+  }
+}
