@@ -90,8 +90,10 @@ fn sub_netns_createinns(m: &ArgMatches) -> Result<()> {
     command::netns::createinns::run(ns_dir, interface, gateway, ipv4s, ipv6s)
 }
 
-fn sub_netns_destroy(_m: &ArgMatches) -> Result<()> {
-    command::netns::destroy::run()
+fn sub_netns_destroy(m: &ArgMatches) -> Result<()> {
+    let ns_dir = Path::new(m.value_of("NS_DIR").unwrap());
+
+    command::netns::destroy::run(ns_dir)
 }
 
 fn sub_nsrun(m: &ArgMatches) -> Result<()> {
@@ -216,7 +218,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             )
             (@subcommand destroy =>
                 (about: "Destroy a created network namespace")
-                (@arg NS_DIR: --("ns-dir") -d +takes_value +required {validate_dir_not_exists}
+                (@arg NS_DIR: --("ns-dir") -d +takes_value +required {validate_dir_exists}
                     "Path where the namespace files will be mounted")
             )
         )

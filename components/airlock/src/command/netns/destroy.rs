@@ -12,8 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use Result;
+use std::fs;
+use std::path::Path;
 
-pub fn run() -> Result<()> {
+use libc;
+
+use Result;
+use mount;
+use namespace;
+use user;
+
+pub fn run<P: AsRef<Path>>(ns_dir: P) -> Result<()> {
+    user::check_running_user_is_root()?;
+
+    mount::umount(namespace::netns_file(&ns_dir), Some(libc::MNT_DETACH))?;
+    mount::umount(namespace::userns_file(&ns_dir), Some(libc::MNT_DETACH))?;
+    fs::remove_dir_all(&ns_dir)?;
+
+    info!(
+        "Network namespace directory {} destroyed.",
+        ns_dir.as_ref().display()
+    );
+
     Ok(())
 }
