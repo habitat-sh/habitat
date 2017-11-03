@@ -53,7 +53,7 @@ use census::{ServiceFile, CensusRing, ElectionStatus};
 use templating::RenderContext;
 use util;
 
-pub use self::config::Cfg;
+pub use self::config::{Cfg, UserConfigPath};
 pub use self::health::{HealthCheck, SmokeCheck};
 pub use self::package::Pkg;
 pub use self::composite_spec::CompositeSpec;

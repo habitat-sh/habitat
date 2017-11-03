@@ -45,6 +45,32 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
 pub const CONFIG_PERMISSIONS: u32 = 0o740;
 
+/// Describes the path to user configuration that is used by the
+/// service.
+#[derive(Clone, Debug, PartialEq)]
+pub enum UserConfigPath {
+    Recommended(PathBuf),
+    Deprecated(PathBuf),
+}
+
+impl UserConfigPath {
+    pub fn get_path(&self) -> &PathBuf {
+        match self {
+            &UserConfigPath::Recommended(ref p) |
+            &UserConfigPath::Deprecated(ref p) => p,
+        }
+    }
+}
+
+impl From<UserConfigPath> for PathBuf {
+    fn from(ucp: UserConfigPath) -> Self {
+        match ucp {
+            UserConfigPath::Recommended(p) |
+            UserConfigPath::Deprecated(p) => p,
+        }
+    }
+}
+
 /// Trait for getting paths to directories where various configuration
 /// files are expected to be.
 pub trait PackageConfigPaths {
@@ -86,6 +112,9 @@ pub struct Cfg {
 
     /// Last known incarnation number of the census group's service config
     gossip_incarnation: u64,
+
+    /// Source of the user configuration
+    pub user_config_path: UserConfigPath,
 }
 
 impl Cfg {
@@ -95,7 +124,7 @@ impl Cfg {
         );
         let default = Self::load_default(pkg_root)?;
         let user_config_path = Self::determine_user_config_path(package);
-        let user = Self::load_user(&user_config_path)?;
+        let user = Self::load_user(user_config_path.get_path())?;
         let environment = Self::load_environment(package)?;
         return Ok(Self {
             default: default,
@@ -103,6 +132,7 @@ impl Cfg {
             gossip: None,
             environment: environment,
             gossip_incarnation: 0,
+            user_config_path: user_config_path,
         });
     }
 
@@ -196,11 +226,11 @@ impl Cfg {
         Self::load_toml_file(config_from, "default.toml")
     }
 
-    fn determine_user_config_path<P: PackageConfigPaths>(package: &P) -> PathBuf {
+    fn determine_user_config_path<P: PackageConfigPaths>(package: &P) -> UserConfigPath {
         let recommended_dir = package.recommended_user_config_dir();
         let recommended_path = recommended_dir.join(USER_CONFIG_FILE);
         if recommended_path.exists() {
-            return recommended_dir;
+            return UserConfigPath::Recommended(recommended_dir);
         }
         debug!(
             "'{}' at {} does not exist",
@@ -216,18 +246,24 @@ impl Cfg {
                 deprecated_path.display(),
                 recommended_path.display(),
             );
-            return deprecated_dir;
+            return UserConfigPath::Deprecated(deprecated_dir);
         }
         debug!(
             "'{}' at {} does not exist",
             USER_CONFIG_FILE,
             deprecated_path.display()
         );
-        recommended_dir
+        UserConfigPath::Recommended(recommended_dir)
     }
 
     fn load_user<T: AsRef<Path>>(path: T) -> Result<Option<toml::Value>> {
         Self::load_toml_file(path, USER_CONFIG_FILE)
+    }
+
+    pub fn reload_user(&mut self) -> Result<()> {
+        let user = Self::load_user(self.user_config_path.get_path())?;
+        self.user = user;
+        Ok(())
     }
 
     fn load_environment<P: PackageConfigPaths>(package: &P) -> Result<Option<toml::Value>> {
@@ -740,12 +776,28 @@ mod test {
     }
 
     #[test]
+    fn default_to_recommended_user_toml_if_missing() {
+        let cfg_data = CfgTestData::new();
+        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(
+            cfg.user_config_path,
+            UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
+        );
+        assert!(cfg.user.is_none());
+    }
+
+    #[test]
     fn load_deprecated_user_toml() {
         let cfg_data = CfgTestData::new();
         let toml = "foo = 42";
         write_toml(&cfg_data.ducp, toml);
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
+        assert_eq!(
+            cfg.user_config_path,
+            UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
+        );
         assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
     }
 
@@ -756,6 +808,10 @@ mod test {
         write_toml(&cfg_data.rucp, toml);
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
+        assert_eq!(
+            cfg.user_config_path,
+            UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
+        );
         assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
     }
 
@@ -767,6 +823,35 @@ mod test {
         write_toml(&cfg_data.ducp, "foo = 13");
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
+        assert_eq!(
+            cfg.user_config_path,
+            UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
+        );
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+    }
+
+    #[test]
+    fn keep_loading_deprecated_after_initial_load() {
+        let cfg_data = CfgTestData::new();
+        let mut toml = "foo = 13";
+        write_toml(&cfg_data.ducp, toml);
+        let mut cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(
+            cfg.user_config_path,
+            UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
+        );
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+
+        toml = "foo = 85";
+        write_toml(&cfg_data.ducp, toml);
+        write_toml(&cfg_data.rucp, "foo = 42");
+        cfg.reload_user().expect("reload user config");
+
+        assert_eq!(
+            cfg.user_config_path,
+            UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
+        );
         assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
     }
 
