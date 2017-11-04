@@ -107,14 +107,14 @@ where
     )?;
     let tdeps = archive.tdeps()?;
     let ident = archive.ident()?;
-    match depot_client.show_package(&ident, None) {
+    match depot_client.show_package(&ident, None, Some(token)) {
         Ok(_) => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
             for dep in tdeps.into_iter() {
-                match depot_client.show_package(&dep, None) {
+                match depot_client.show_package(&dep, None, Some(token)) {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
                         let candidate_path = match archive_path.as_ref().parent() {

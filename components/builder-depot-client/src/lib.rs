@@ -553,6 +553,7 @@ impl Client {
         &self,
         package: &I,
         channel: Option<&str>,
+        token: Option<&str>,
     ) -> Result<originsrv::OriginPackage>
     where
         I: Identifiable,
@@ -564,10 +565,12 @@ impl Client {
         } else {
             package_path(package)
         };
+
         if !package.fully_qualified() {
             url.push_str("/latest");
         }
-        let mut res = self.0.get(&url).send()?;
+
+        let mut res = self.maybe_add_authz(self.0.get(&url), token).send()?;
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
         }

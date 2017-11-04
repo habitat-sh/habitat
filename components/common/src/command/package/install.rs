@@ -201,7 +201,6 @@ where
         return Err(Error::RootRequired);
     }
 
-
     // TODO (CM): rename fs::cache_key_path so the naming is
     // consistent and flows better.
     let key_cache_path = cache_key_path(Some(fs_root_path.as_ref()));
@@ -277,15 +276,14 @@ impl<'a> InstallTask<'a> {
             ui.begin(format!("Installing {}", &ident))?;
         }
 
-
         // The "target_ident" will be the fully-qualified identifier
         // of the package we will ultimately install, once we
         // determine if we need to get a more recent version or not.
         let target_ident = if !ident.fully_qualified() {
-            match self.fetch_latest_pkg_ident_for(&ident, channel) {
+            match self.fetch_latest_pkg_ident_for(&ident, channel, token) {
                 Ok(latest_ident) => latest_ident,
                 Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
-                    if let Ok(recommendations) = self.get_channel_recommendations(&ident) {
+                    if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
                         if !recommendations.is_empty() {
                             ui.warn(
                                 "The package does not have any versions in the specified channel.",
@@ -356,7 +354,11 @@ impl<'a> InstallTask<'a> {
     /// channels. This is used to generate actionable user feedback
     /// when the desired package was not found in the specified
     /// channel.
-    fn get_channel_recommendations(&self, ident: &PackageIdent) -> Result<Vec<(String, String)>> {
+    fn get_channel_recommendations(
+        &self,
+        ident: &PackageIdent,
+        token: Option<&str>,
+    ) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
         let channels = match self.depot_client.list_channels(ident.origin(), false) {
@@ -368,7 +370,7 @@ impl<'a> InstallTask<'a> {
         };
 
         for channel in channels {
-            match self.fetch_latest_pkg_ident_for(ident, Some(&channel)) {
+            match self.fetch_latest_pkg_ident_for(ident, Some(&channel), token) {
                 Ok(pkg) => res.push((channel, format!("{}", pkg))),
                 Err(_) => (),
             };
@@ -533,8 +535,13 @@ impl<'a> InstallTask<'a> {
         &self,
         ident: &PackageIdent,
         channel: Option<&str>,
+        token: Option<&str>,
     ) -> Result<PackageIdent> {
-        Ok(self.depot_client.show_package(ident, channel)?.into())
+        Ok(
+            self.depot_client
+                .show_package(ident, channel, token)?
+                .into(),
+        )
     }
 
     /// Retrieve the identified package from the depot, ensuring that
