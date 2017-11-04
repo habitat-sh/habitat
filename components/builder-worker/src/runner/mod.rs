@@ -32,7 +32,6 @@ use bldr_core::job::Job;
 use bldr_core::logger::Logger;
 use chrono::UTC;
 use depot_client;
-use hab_core::fs::CACHE_KEY_PATH;
 use hab_core::os::users;
 use hab_core::package::archive::PackageArchive;
 use hab_core::util::perm;
@@ -45,7 +44,7 @@ use zmq;
 use {PRODUCT, VERSION};
 use self::log_pipe::LogPipe;
 use self::postprocessor::post_process;
-use self::studio::{Studio, STUDIO_GROUP, STUDIO_USER};
+use self::studio::{key_path, Studio, STUDIO_GROUP, STUDIO_USER};
 use self::docker::DockerExporter;
 use self::workspace::Workspace;
 use config::Config;
@@ -360,10 +359,21 @@ impl Runner {
     fn build(&mut self) -> Result<PackageArchive> {
         let mut log_pipe = LogPipe::new(&self.workspace);
         log_pipe.pipe_stdout(b"\n--- BEGIN: Studio build ---\n")?;
+        let networking = match (
+            self.config.network_interface.as_ref(),
+            self.config.network_gateway.as_ref(),
+        ) {
+            (Some(interface), Some(gateway)) => Some((interface.as_str(), gateway)),
+            (None, None) => None,
+            (None, Some(_)) => return Err(Error::NoNetworkInterfaceError),
+            (Some(_), None) => return Err(Error::NoNetworkGatewayError),
+        };
         let mut status = Studio::new(
             &self.workspace,
             &self.config.bldr_url,
             &self.config.auth_token,
+            self.config.airlock_enabled,
+            networking,
         ).build(&mut log_pipe)?;
         log_pipe.pipe_stdout(b"\n--- END: Studio build ---\n")?;
 
@@ -487,13 +497,6 @@ impl Runner {
     fn has_docker_integration(&self) -> bool {
         !self.workspace.job.get_project_integrations().is_empty()
     }
-}
-
-fn key_path() -> PathBuf {
-    (&*studio::STUDIO_HOME).lock().unwrap().join(format!(
-        ".{}",
-        CACHE_KEY_PATH
-    ))
 }
 
 /// Client for sending and receiving messages to and from the Job Runner

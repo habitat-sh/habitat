@@ -3,7 +3,7 @@ pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 # The result is a portable, static binary in a zero-dependency package.
-pkg_deps=(core/shadow)
+pkg_deps=(core/shadow core/iproute2)
 pkg_build_deps=(core/musl core/coreutils core/rust core/gcc core/git)
 pkg_bin_dirs=(bin)
 

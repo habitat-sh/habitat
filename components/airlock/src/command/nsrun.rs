@@ -13,10 +13,9 @@
 // limitations under the License.
 
 use std::env;
-use std::ffi::OsString;
-use std::fs::{self, File};
+use std::ffi::OsStr;
+use std::fs::File;
 use std::io::Write;
-use std::os::unix::fs::{symlink as fs_symlink, PermissionsExt};
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -24,11 +23,10 @@ use std::process::{Command, Stdio};
 use libc;
 
 use {Error, Result};
+use coreutils::{chmod, mkdir_p, rmdir, symlink, touch, umask};
 use mount::{self, Mount};
 use filesystem;
 use pty;
-
-const MOUNT_ARTIFACT_CACHE_ENVVAR: &'static str = "MOUNT_ARTIFACT_CACHE";
 
 const ROOTFS_DIRS: &'static [&'static str] = &[
     "etc",
@@ -61,7 +59,7 @@ const MASKED_PATHS: &'static [&'static str] = &[
     "/sys/firmware",
 ];
 
-pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
+pub fn run(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>, mount_artifacts: bool) -> Result<()> {
     let umask_val = 0o0022;
     debug!("setting umask, value={:#o}", umask_val);
     umask(umask_val);
@@ -187,7 +185,7 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
         Some(libc::MS_RDONLY),
     )?;
 
-    if env::var(MOUNT_ARTIFACT_CACHE_ENVVAR).is_ok() {
+    if mount_artifacts {
         // Bind mount outside artifact cache (and ensure outside directory exists)
         let source = env::home_dir().ok_or(Error::HomeDirectoryNotFound)?.join(
             ".hab/cache/artifacts",
@@ -274,48 +272,10 @@ pub fn run(rootfs: &Path, cmd: &str, args: Vec<OsString>) -> Result<()> {
     exec_command(cmd, args)
 }
 
-fn mkdir_p<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("creating directory, path={}", path.as_ref().display());
-    Ok(fs::create_dir_all(path)?)
-}
-
-fn rmdir<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("removing directory, path={}", path.as_ref().display());
-    Ok(fs::remove_dir(path)?)
-}
-
-fn symlink<S, T>(source: S, target: T) -> Result<()>
-where
-    S: AsRef<Path>,
-    T: AsRef<Path>,
-{
-    debug!(
-        "symlinking, src={}, target={}",
-        source.as_ref().display(),
-        target.as_ref().display()
-    );
-    Ok(fs_symlink(source, target)?)
-}
-
-fn touch<P: AsRef<Path>>(path: P) -> Result<()> {
-    debug!("creating file, path={}", path.as_ref().display());
-    let _ = File::create(path)?;
-    Ok(())
-}
-
-fn umask(mode: libc::mode_t) -> libc::mode_t {
-    unsafe { libc::umask(mode) }
-}
-
-fn chmod<P: AsRef<Path>>(path: P, mode: u32) -> Result<()> {
-    let md = path.as_ref().metadata()?;
-    let mut perms = md.permissions();
-    perms.set_mode(mode);
-    Ok(())
-}
-
-fn exec_command(cmd: &str, args: Vec<OsString>) -> Result<()> {
-    debug!("running, command={} args={:?}", cmd, args);
-    Command::new(cmd).args(args).exec();
+fn exec_command(cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {
+    let mut command = Command::new(cmd);
+    command.args(args);
+    debug!("calling exec, command={:?}", command);
+    command.exec();
     Ok(())
 }

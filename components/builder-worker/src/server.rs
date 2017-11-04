@@ -77,6 +77,20 @@ impl Server {
             );
             return Err(Error::NoAuthTokenError);
         }
+        if self.config.network_interface.is_some() && self.config.network_gateway.is_none() {
+            error!(
+                "ERROR: No 'network_gateway' config value specfied when 'network_interface' \
+                   was provided. Both must be present to work correctly."
+            );
+            return Err(Error::NoNetworkGatewayError);
+        }
+        if self.config.network_gateway.is_some() && self.config.network_interface.is_some() {
+            error!(
+                "ERROR: No 'network_interface' config value specfied when 'network_gateway' \
+                   was provided. Both must be present to work correctly."
+            );
+            return Err(Error::NoNetworkInterfaceError);
+        }
         init_users()?;
         self.enable_features_from_config();
 

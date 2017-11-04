@@ -26,6 +26,7 @@ pub struct Workspace {
     out: PathBuf,
     src: PathBuf,
     studio: PathBuf,
+    ns_dir: PathBuf,
     root: PathBuf,
 }
 
@@ -40,6 +41,7 @@ impl Workspace {
             out: root.join("out"),
             src: root.join("src"),
             studio: root.join("studio"),
+            ns_dir: root.join("airlock-ns"),
             root: root,
         }
     }
@@ -91,6 +93,11 @@ impl Workspace {
     /// Directory containing the studio for the build
     pub fn studio(&self) -> &Path {
         &self.studio
+    }
+
+    /// Directory containing the airlock namespace state for the build
+    pub fn ns_dir(&self) -> &Path {
+        &self.ns_dir
     }
 
     fn last_build_env(&self) -> PathBuf {

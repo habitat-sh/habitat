@@ -12,6 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod netns;
-pub mod nsrun;
-pub mod run;
+use std::fs;
+use std::path::Path;
+
+use libc;
+
+use Result;
+use mount;
+use namespace;
+use user;
+
+pub fn run<P: AsRef<Path>>(ns_dir: P) -> Result<()> {
+    user::check_running_user_is_root()?;
+
+    // unmount namespace files which were bind-mounted
+    mount::umount(namespace::netns_file(&ns_dir), Some(libc::MNT_DETACH))?;
+    mount::umount(namespace::userns_file(&ns_dir), Some(libc::MNT_DETACH))?;
+
+    // remove the parent namespace directory
+    fs::remove_dir_all(&ns_dir)?;
+
+    println!(
+        "Network namespace directory {} destroyed.",
+        ns_dir.as_ref().display()
+    );
+
+    Ok(())
+}
