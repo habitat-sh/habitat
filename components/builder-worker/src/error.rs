@@ -50,6 +50,8 @@ pub enum Error {
     HabitatCore(hab_core::Error),
     InvalidIntegrations(String),
     NoAuthTokenError,
+    NoNetworkGatewayError,
+    NoNetworkInterfaceError,
     NotHTTPSCloneUrl(url::Url),
     NoStudioGroup,
     NoStudioUser,
@@ -109,6 +111,8 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::InvalidIntegrations(ref s) => format!("Invalid integration: {}", s),
             Error::NoAuthTokenError => format!("No auth_token config specified"),
+            Error::NoNetworkGatewayError => format!("No network_gateway config specified"),
+            Error::NoNetworkInterfaceError => format!("No network_interface config specified"),
             Error::NotHTTPSCloneUrl(ref e) => {
                 format!(
                     "Attempted to clone {}. Only HTTPS clone urls are supported",
@@ -170,6 +174,8 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::InvalidIntegrations(_) => "Invalid integrations detected",
             Error::NoAuthTokenError => "No auth_token config specified",
+            Error::NoNetworkGatewayError => "No network_gateway config specified",
+            Error::NoNetworkInterfaceError => "No network_interface config specified",
             Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::NoStudioGroup => "System missing group to run studio",
             Error::NoStudioUser => "System missing user to run studio",

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::net::IpAddr;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
@@ -51,15 +52,25 @@ pub struct Studio<'a> {
     workspace: &'a Workspace,
     bldr_url: &'a str,
     auth_token: &'a str,
+    airlock_enabled: bool,
+    networking: Option<(&'a str, &'a IpAddr)>,
 }
 
 impl<'a> Studio<'a> {
     /// Creates a new Studio runner for a given `Workspace` and Builder URL.
-    pub fn new(workspace: &'a Workspace, bldr_url: &'a str, auth_token: &'a str) -> Self {
+    pub fn new(
+        workspace: &'a Workspace,
+        bldr_url: &'a str,
+        auth_token: &'a str,
+        airlock_enabled: bool,
+        networking: Option<(&'a str, &'a IpAddr)>,
+    ) -> Self {
         Studio {
             workspace,
             bldr_url,
             auth_token,
+            airlock_enabled,
+            networking,
         }
     }
 
@@ -72,7 +83,11 @@ impl<'a> Studio<'a> {
     /// * If the calling thread can't wait on the child process
     /// * If the `LogPipe` fails to pipe output
     pub fn build(&self, log_pipe: &mut LogPipe) -> Result<ExitStatus> {
-        self.create_network_namespace()?;
+        if self.networking.is_some() {
+            self.create_network_namespace()?;
+        } else {
+            info!("Airlock networking is not configured, skipping network creation");
+        }
 
         let channel = if self.workspace.job.has_channel() {
             self.workspace.job.get_channel()
@@ -80,17 +95,11 @@ impl<'a> Studio<'a> {
             STABLE_CHANNEL
         };
 
-        let mut cmd = Command::new("airlock");
+        let mut cmd = self.studio_command()?;
         cmd.current_dir(self.workspace.src());
-        cmd.uid(studio_uid());
-        cmd.gid(studio_gid());
-        cmd.env_clear();
         if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
             cmd.env("DEBUG", val);
         }
-        cmd.env("HOME", &*STUDIO_HOME.lock().unwrap()); // Sets `$HOME` for build user
-        cmd.env("USER", STUDIO_USER); // Sets `$USER` for build user
-        cmd.env("PATH", env::var("PATH").unwrap_or(String::from(""))); // Sets `$PATH`
         cmd.env(NONINTERACTIVE_ENVVAR, "true"); // Disables progress bars
         cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
         // propagate debugging environment variables into Airlock and Studio
@@ -101,11 +110,6 @@ impl<'a> Studio<'a> {
         }
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
-        cmd.arg("run");
-        cmd.arg("--fs-root");
-        cmd.arg(self.workspace.studio());
-        cmd.arg("--no-rm");
-        cmd.arg(&*STUDIO_PROGRAM);
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
@@ -135,19 +139,56 @@ impl<'a> Studio<'a> {
         })?;
         debug!("completed studio build command, status={:?}", exit_status);
 
-        self.destroy_network_namespace()?;
+        if self.networking.is_some() {
+            self.destroy_network_namespace()?;
+        } else {
+            info!("Airlock networking is not configured, skipping network destruction");
+        }
 
         Ok(exit_status)
+    }
+
+    fn studio_command(&self) -> Result<Command> {
+        if self.airlock_enabled {
+            let mut cmd = Command::new("airlock");
+            cmd.uid(studio_uid());
+            cmd.gid(studio_gid());
+            cmd.env_clear();
+            cmd.env("HOME", &*STUDIO_HOME.lock().unwrap()); // Sets `$HOME` for build user
+            cmd.env("USER", STUDIO_USER); // Sets `$USER` for build user
+            cmd.env("PATH", env::var("PATH").unwrap_or(String::from(""))); // Sets `$PATH`
+            cmd.arg("run");
+            cmd.arg("--fs-root");
+            cmd.arg(self.workspace.studio());
+            cmd.arg("--no-rm");
+            if self.networking.is_some() {
+                cmd.arg("--use-userns");
+                cmd.arg(self.workspace.ns_dir().join("userns"));
+                cmd.arg("--use-netns");
+                cmd.arg(self.workspace.ns_dir().join("netns"));
+            }
+            cmd.arg(&*STUDIO_PROGRAM);
+
+            Ok(cmd)
+        } else {
+            let mut cmd = Command::new(&*STUDIO_PROGRAM);
+            cmd.env_clear();
+            cmd.env("NO_ARTIFACT_PATH", "true"); // Disables artifact cache mounting
+            cmd.env("HAB_CACHE_KEY_PATH", key_path()); // Sets key cache to build user's home
+
+            info!("Airlock is not enabled, running uncontained Studio");
+            Ok(cmd)
+        }
     }
 
     fn create_network_namespace(&self) -> Result<()> {
         let mut cmd = Command::new("airlock");
         cmd.arg("netns");
         cmd.arg("create");
-        cmd.arg("--gateway");
-        cmd.arg("poop"); // TODO fn: get gateway ip
         cmd.arg("--interface");
-        cmd.arg("poop"); // TODO fn: get interface
+        cmd.arg(self.networking.unwrap().0);
+        cmd.arg("--gateway");
+        cmd.arg(self.networking.unwrap().1.to_string());
         cmd.arg("--ns-dir");
         cmd.arg(self.workspace.ns_dir());
         cmd.arg("--user");
@@ -218,6 +259,13 @@ pub fn set_studio_gid(gid: u32) {
 
 pub fn set_studio_uid(uid: u32) {
     STUDIO_UID.store(uid as usize, Ordering::Relaxed);
+}
+
+pub fn key_path() -> PathBuf {
+    (&*STUDIO_HOME).lock().unwrap().join(format!(
+        ".{}",
+        fs::CACHE_KEY_PATH
+    ))
 }
 
 /// Returns a path argument suitable to pass to a Studio build command.

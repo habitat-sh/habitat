@@ -4,11 +4,18 @@ data_path = "{{pkg.svc_data_path}}"
 log_path = "{{pkg.svc_var_path}}"
 bldr_channel = "{{cfg.bldr_channel}}"
 features_enabled = "{{cfg.features_enabled}}"
+airlock_enabled = {{cfg.airlock_enabled}}
 {{~#eachAlive bind.depot.members as |member|}}
 {{~#if @first}}
 bldr_url = "{{member.cfg.url}}"
 {{~/if}}
 {{~/eachAlive}}
+{{~#if cfg.network_interface}}
+network_interface = "{{cfg.network_interface}}"
+{{~/if}}
+{{~#if cfg.network_gateway}}
+network_gateway = "{{cfg.network_gateway}}"
+{{~/if}}
 
 [github]
 app_private_key = "{{pkg.svc_files_path}}/builder-github-app.pem"

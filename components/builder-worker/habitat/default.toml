@@ -4,6 +4,7 @@ auto_publish = true
 bldr_channel = "unstable"
 bldr_url = "https://bldr.habitat.sh"
 features_enabled = ""
+airlock_enabled = true
 
 [github]
 url = "https://api.github.com"
