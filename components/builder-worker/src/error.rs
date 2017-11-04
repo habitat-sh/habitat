@@ -16,6 +16,7 @@ use std::error;
 use std::fmt;
 use std::io;
 use std::path::PathBuf;
+use std::process;
 use std::result;
 use std::sync::mpsc;
 
@@ -35,6 +36,8 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    AirlockNetworking(PathBuf, io::Error),
+    AirlockFailure(process::ExitStatus),
     BuildEnvFile(PathBuf, io::Error),
     BuildFailure(i32),
     BuilderCore(bldr_core::Error),
@@ -66,6 +69,16 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::AirlockFailure(ref e) => {
+                format!("Airlock networking exited with non-zero exit code, {}", e)
+            }
+            Error::AirlockNetworking(ref p, ref e) => {
+                format!(
+                    "Error while running airlock networking command for {}, err={}",
+                    p.display(),
+                    e
+                )
+            }
             Error::BuildEnvFile(ref p, ref e) => {
                 format!(
                     "Unable to read workspace build env file, {}, {}",
@@ -143,6 +156,8 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::AirlockFailure(_) => "Airlock networking exited with a non-zero exit code",
+            Error::AirlockNetworking(_, _) => "IO Error while running airlock networking command",
             Error::BuildEnvFile(_, _) => "Unable to read workspace build env file",
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
             Error::BuilderCore(ref err) => err.description(),

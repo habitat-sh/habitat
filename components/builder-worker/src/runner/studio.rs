@@ -31,6 +31,7 @@ use runner::workspace::Workspace;
 
 pub static STUDIO_UID: AtomicUsize = ATOMIC_USIZE_INIT;
 pub static STUDIO_GID: AtomicUsize = ATOMIC_USIZE_INIT;
+pub const DEBUG_ENVVARS: &'static [&'static str] = &["RUST_LOG", "DEBUG"];
 pub const STUDIO_USER: &'static str = "krangschnak";
 pub const STUDIO_GROUP: &'static str = "krangschnak";
 
@@ -71,6 +72,8 @@ impl<'a> Studio<'a> {
     /// * If the calling thread can't wait on the child process
     /// * If the `LogPipe` fails to pipe output
     pub fn build(&self, log_pipe: &mut LogPipe) -> Result<ExitStatus> {
+        self.create_network_namespace()?;
+
         let channel = if self.workspace.job.has_channel() {
             self.workspace.job.get_channel()
         } else {
@@ -90,6 +93,12 @@ impl<'a> Studio<'a> {
         cmd.env("PATH", env::var("PATH").unwrap_or(String::from(""))); // Sets `$PATH`
         cmd.env(NONINTERACTIVE_ENVVAR, "true"); // Disables progress bars
         cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
+        // propagate debugging environment variables into Airlock and Studio
+        for var in DEBUG_ENVVARS {
+            if let Ok(val) = env::var(var) {
+                cmd.env(var, val);
+            }
+        }
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
         cmd.arg("run");
@@ -125,7 +134,73 @@ impl<'a> Studio<'a> {
             Error::StudioBuild(self.workspace.studio().to_path_buf(), e)
         })?;
         debug!("completed studio build command, status={:?}", exit_status);
+
+        self.destroy_network_namespace()?;
+
         Ok(exit_status)
+    }
+
+    fn create_network_namespace(&self) -> Result<()> {
+        let mut cmd = Command::new("airlock");
+        cmd.arg("netns");
+        cmd.arg("create");
+        cmd.arg("--gateway");
+        cmd.arg("poop"); // TODO fn: get gateway ip
+        cmd.arg("--interface");
+        cmd.arg("poop"); // TODO fn: get interface
+        cmd.arg("--ns-dir");
+        cmd.arg(self.workspace.ns_dir());
+        cmd.arg("--user");
+        cmd.arg(STUDIO_USER);
+        debug!("building airlock networking setup command, cmd={:?}", &cmd);
+
+        debug!("spawning airlock networking setup command");
+        let mut child = cmd.spawn().map_err(|e| {
+            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
+        })?;
+        let exit_status = child.wait().map_err(|e| {
+            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
+        })?;
+        debug!(
+            "completed airlock networking setup command, status={:?}",
+            exit_status
+        );
+
+        if exit_status.success() {
+            Ok(())
+        } else {
+            Err(Error::AirlockFailure(exit_status))
+        }
+    }
+
+    fn destroy_network_namespace(&self) -> Result<()> {
+        let mut cmd = Command::new("airlock");
+        cmd.arg("netns");
+        cmd.arg("destroy");
+        cmd.arg("--ns-dir");
+        cmd.arg(self.workspace.ns_dir());
+        debug!(
+            "building airlock networking destroy command, cmd={:?}",
+            &cmd
+        );
+
+        debug!("spawning airlock networking destroy command");
+        let mut child = cmd.spawn().map_err(|e| {
+            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
+        })?;
+        let exit_status = child.wait().map_err(|e| {
+            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
+        })?;
+        debug!(
+            "completed airlock networking destroy command, status={:?}",
+            exit_status
+        );
+
+        if exit_status.success() {
+            Ok(())
+        } else {
+            Err(Error::AirlockFailure(exit_status))
+        }
     }
 }
 
