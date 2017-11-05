@@ -84,7 +84,7 @@ impl Server {
             );
             return Err(Error::NoNetworkGatewayError);
         }
-        if self.config.network_gateway.is_some() && self.config.network_interface.is_some() {
+        if self.config.network_gateway.is_some() && self.config.network_interface.is_none() {
             error!(
                 "ERROR: No 'network_interface' config value specfied when 'network_gateway' \
                    was provided. Both must be present to work correctly."
