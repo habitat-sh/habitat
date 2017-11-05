@@ -710,10 +710,10 @@ resource "aws_network_interface" "worker_studio" {
 }
 
 resource "null_resource" "worker_studio_network" {
-  count = "${aws_instance.worker.count}"
+  count = "${aws_network_interface.worker_studio.count}"
 
   triggers {
-    network_interfaces = "${element(aws_network_interface.worker_studio.*.id, count.index)}"
+    network_interface_id = "${element(aws_network_interface.worker_studio.*.id, count.index)}"
   }
 
   connection {
@@ -729,9 +729,12 @@ resource "null_resource" "worker_studio_network" {
   }
 
   provisioner "remote-exec" {
+    // This sleep appears to be required. This provisioner runs and the network interface still
+    // hasn't been attached.
     inline = [
       "sudo mv /tmp/51-studio-init.cfg /etc/network/interfaces.d/51-studio-init.cfg",
-      "sudo /etc/init.d/networking restart",
+      "sleep 60",
+      "sudo systemctl restart networking.service",
     ]
   }
 }
