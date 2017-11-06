@@ -78,7 +78,6 @@ pub struct Runner {
     config: Arc<Config>,
     depot_cli: depot_client::Client,
     workspace: Workspace,
-    archive: Option<PackageArchive>,
     logger: Logger,
     cancel: Arc<AtomicBool>,
 }
@@ -94,7 +93,6 @@ impl Runner {
 
         Runner {
             workspace: Workspace::new(&config.data_path, job),
-            archive: None,
             config: config,
             depot_cli: depot_cli,
             logger: logger,
@@ -273,19 +271,17 @@ impl Runner {
     ) -> Result<()> {
         self.check_cancel(tx)?;
 
-        if self.archive.is_some() {
-            match post_process(
-                &mut archive,
-                &self.workspace,
-                &self.config,
-                &mut self.logger,
-            ) {
-                Ok(_) => (),
-                Err(err) => {
-                    self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
-                    tx.send(self.job().clone()).map_err(Error::Mpsc)?;
-                    return Err(err);
-                }
+        match post_process(
+            &mut archive,
+            &self.workspace,
+            &self.config,
+            &mut self.logger,
+        ) {
+            Ok(_) => (),
+            Err(err) => {
+                self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
+                tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+                return Err(err);
             }
         }
 
