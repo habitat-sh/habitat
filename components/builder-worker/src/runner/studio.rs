@@ -100,6 +100,7 @@ impl<'a> Studio<'a> {
         if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
             cmd.env("DEBUG", val);
         }
+        cmd.env("PATH", env::var("PATH").unwrap_or(String::from(""))); // Sets `$PATH`
         cmd.env(NONINTERACTIVE_ENVVAR, "true"); // Disables progress bars
         cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
         // propagate debugging environment variables into Airlock and Studio
@@ -156,7 +157,6 @@ impl<'a> Studio<'a> {
             cmd.env_clear();
             cmd.env("HOME", &*STUDIO_HOME.lock().unwrap()); // Sets `$HOME` for build user
             cmd.env("USER", STUDIO_USER); // Sets `$USER` for build user
-            cmd.env("PATH", env::var("PATH").unwrap_or(String::from(""))); // Sets `$PATH`
             cmd.arg("run");
             cmd.arg("--fs-root");
             cmd.arg(self.workspace.studio());
