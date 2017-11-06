@@ -14,7 +14,7 @@
 
 use std::collections::HashMap;
 use std::env;
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
 use hcore::fs::FS_ROOT_PATH;
@@ -36,12 +36,6 @@ impl Deref for Env {
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl DerefMut for Env {
-    fn deref_mut(&mut self) -> &mut HashMap<String, String> {
-        &mut self.0
     }
 }
 
