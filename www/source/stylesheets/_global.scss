@@ -262,6 +262,12 @@ code {
   &.outline {
     @include button;
   }
+
+  &.download {
+    border-color: $hab-green;
+    background: url('/images/icons/icon-download.svg') 15px center no-repeat;
+    padding-left: 1.75rem;
+  }
 }
 
 .button.cta{
