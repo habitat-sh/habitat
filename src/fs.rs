@@ -43,6 +43,8 @@ pub const PKG_PATH: &'static str = "hab/pkgs";
 /// be used with extreme caution.
 pub const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 pub const SYSTEMDRIVE_ENVVAR: &'static str = "SYSTEMDRIVE";
+/// The file where user-defined configuration for each service is found.
+pub const USER_CONFIG_FILE: &'static str = "user.toml";
 
 lazy_static! {
     /// The default filesystem root path.
