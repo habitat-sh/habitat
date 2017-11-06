@@ -54,10 +54,17 @@ impl Env {
     /// without having to worry much about context.
     pub fn new(package: &PackageInstall) -> Result<Self> {
         let mut env = package.runtime_environment()?;
-        let mut paths: Vec<PathBuf> = match env.get(PATH_KEY) {
+        let path = Self::transform_path(env.get(PATH_KEY))?;
+        env.insert(PATH_KEY.to_string(), path);
+        Ok(Env(env))
+    }
+
+    fn transform_path(path: Option<&String>) -> Result<String> {
+        let mut paths: Vec<PathBuf> = match path {
             Some(path) => env::split_paths(&path).collect(),
             None => vec![],
         };
+
         // Lets join the run paths to the FS_ROOT
         // In most cases, this does nothing and should only mutate
         // the paths in a windows studio where FS_ROOT_PATH will
@@ -69,11 +76,8 @@ impl Env {
                 paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
             }
         }
-        env.insert(
-            PATH_KEY.to_string(),
-            util::path::append_interpreter_and_path(&mut paths)?,
-        );
-        Ok(Env(env))
+
+        util::path::append_interpreter_and_path(&mut paths)
     }
 }
 
