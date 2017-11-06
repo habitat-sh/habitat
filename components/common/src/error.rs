@@ -18,7 +18,7 @@ use std::fmt;
 use std::result;
 use std::str;
 use std::string;
-
+use std::env;
 use toml;
 
 use depot_client;
@@ -34,6 +34,7 @@ pub enum Error {
     CryptoKeyError(String),
     GossipFileRelativePath(String),
     DepotClient(depot_client::Error),
+    EditStatus,
     FileNameError,
     HabitatCore(hcore::Error),
     /// Occurs when making lower level IO calls.
@@ -43,6 +44,7 @@ pub enum Error {
     StringFromUtf8Error(string::FromUtf8Error),
     TomlSerializeError(toml::ser::Error),
     WireDecode(String),
+    VarError(env::VarError),
     PackageNotFound,
 }
 
@@ -69,6 +71,7 @@ impl fmt::Display for Error {
                 )
             }
             Error::DepotClient(ref err) => format!("{}", err),
+            Error::EditStatus => format!("Failed edit text command"),
             Error::FileNameError => format!("Failed to extract a filename"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
@@ -79,6 +82,7 @@ impl fmt::Display for Error {
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::WireDecode(ref m) => format!("Failed to decode wire message: {}", m),
+            Error::VarError(ref e) => format!("Failed to get environment variable: {}", e),
             Error::PackageNotFound => format!("Package not found"),
         };
         write!(f, "{}", msg)
@@ -98,6 +102,7 @@ impl error::Error for Error {
                 "Path for gossip file cannot have relative components (eg: ..)"
             }
             Error::DepotClient(ref err) => err.description(),
+            Error::EditStatus => "Failed edit text command",
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
@@ -108,6 +113,7 @@ impl error::Error for Error {
             Error::StringFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::WireDecode(_) => "Failed to decode wire message",
+            Error::VarError(_) => "Failed to get environment variable",
             Error::PackageNotFound => "Package not found",
         }
     }

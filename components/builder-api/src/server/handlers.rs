@@ -175,8 +175,17 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    match helpers::promote_job_group_to_channel(req, group_id, &channel) {
-        Ok(resp) => Ok(render_json(status::Ok, &resp)),
+    let idents = match req.get::<bodyparser::Struct<GroupPromoteReq>>() {
+        Ok(Some(gpr)) => Some(gpr.idents),
+        Ok(None) => None,
+        Err(err) => {
+            debug!("Error decoding json struct: {:?}", err);
+            return Ok(Response::with(status::BadRequest));
+        }
+    };
+
+    match helpers::promote_job_group_to_channel(req, group_id, idents, &channel) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }

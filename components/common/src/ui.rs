@@ -13,8 +13,11 @@
 // limitations under the License.
 
 use std::fmt;
+use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Read, Stdout, Write};
-use std::process;
+use std::process::{self, Command};
+use std::env;
+use uuid::Uuid;
 
 use ansi_term::Colour;
 use depot_client::DisplayProgress;
@@ -22,7 +25,7 @@ use pbr;
 use term::terminfo::TermInfo;
 use term::{Terminal, TerminfoTerminal};
 
-use error::Result;
+use error::{Error, Result};
 use self::tty::StdStream;
 
 pub const NONINTERACTIVE_ENVVAR: &'static str = "HAB_NONINTERACTIVE";
@@ -404,6 +407,38 @@ impl UI {
             }
             return Ok(response.trim().to_string());
         }
+    }
+
+    pub fn edit<T: AsRef<str>>(&mut self, contents: &[T]) -> Result<String> {
+        let editor = env::var("EDITOR").map_err(|e| Error::VarError(e))?;
+
+        let mut tmp_file_path = env::temp_dir();
+        tmp_file_path.push(format!("_hab_{}.tmp", Uuid::new_v4()));
+
+        let mut tmp_file = File::create(&tmp_file_path)?;
+
+        if contents.len() > 0 {
+            for line in contents {
+                write!(tmp_file, "{}", line.as_ref())?;
+            }
+            tmp_file.sync_all()?;
+        }
+
+        let mut cmd = Command::new(editor);
+        cmd.arg(tmp_file_path.display().to_string());
+        let status = cmd.spawn()?.wait()?;
+        if !status.success() {
+            debug!("Failed edit with status: {:?}", status);
+            return Err(Error::EditStatus);
+        }
+
+        let mut out = String::new();
+        tmp_file = File::open(&tmp_file_path)?;
+        tmp_file.read_to_string(&mut out)?;
+
+        fs::remove_file(tmp_file_path)?;
+
+        Ok(out)
     }
 
     fn write_heading<T: ToString>(

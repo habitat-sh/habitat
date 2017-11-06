@@ -325,7 +325,7 @@ impl Client {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn get_schedule(&self, group_id: i64) -> Result<String> {
+    pub fn get_schedule(&self, group_id: i64) -> Result<SchedulerResponse> {
         debug!("Retrieving schedule for job group {}", group_id);
 
         let path = format!("depot/pkgs/schedule/{}", group_id);
@@ -336,7 +336,7 @@ impl Client {
         }
 
         let sr: SchedulerResponse = decoded_response(res)?;
-        Ok(sr.to_string())
+        Ok(sr)
     }
 
     /// Schedules a job for a package ident
