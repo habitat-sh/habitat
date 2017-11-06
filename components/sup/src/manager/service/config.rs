@@ -24,6 +24,7 @@ use std::result;
 
 use fs;
 use hcore::{crypto, util};
+use hcore::fs::USER_CONFIG_FILE;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use serde_json;
@@ -197,16 +198,17 @@ impl Cfg {
 
     fn determine_user_config_path<P: PackageConfigPaths>(package: &P) -> PathBuf {
         let recommended_dir = package.recommended_user_config_dir();
-        let recommended_path = recommended_dir.join("user.toml");
+        let recommended_path = recommended_dir.join(USER_CONFIG_FILE);
         if recommended_path.exists() {
             return recommended_dir;
         }
         debug!(
-            "'user.toml' at {} does not exist",
+            "'{}' at {} does not exist",
+            USER_CONFIG_FILE,
             recommended_path.display()
         );
         let deprecated_dir = package.deprecated_user_config_dir();
-        let deprecated_path = deprecated_dir.join("user.toml");
+        let deprecated_path = deprecated_dir.join(USER_CONFIG_FILE);
         if deprecated_path.exists() {
             outputln!(
                 "The user configuration location at {} is deprecated, \
@@ -217,14 +219,15 @@ impl Cfg {
             return deprecated_dir;
         }
         debug!(
-            "'user.toml' at {} does not exist",
+            "'{}' at {} does not exist",
+            USER_CONFIG_FILE,
             deprecated_path.display()
         );
         recommended_dir
     }
 
     fn load_user<T: AsRef<Path>>(path: T) -> Result<Option<toml::Value>> {
-        Self::load_toml_file(path, "user.toml")
+        Self::load_toml_file(path, USER_CONFIG_FILE)
     }
 
     fn load_environment<P: PackageConfigPaths>(package: &P) -> Result<Option<toml::Value>> {
@@ -708,8 +711,8 @@ mod test {
         fn new() -> Self {
             let tmp = TempDir::new("habitat_config_test").expect("create temp dir");
             let pkg = TestPkg::new(&tmp);
-            let rucp = pkg.recommended_user_config_dir().join("user.toml");
-            let ducp = pkg.deprecated_user_config_dir().join("user.toml");
+            let rucp = pkg.recommended_user_config_dir().join(USER_CONFIG_FILE);
+            let ducp = pkg.deprecated_user_config_dir().join(USER_CONFIG_FILE);
             Self {
                 tmp: tmp,
                 pkg: pkg,
