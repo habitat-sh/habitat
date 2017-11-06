@@ -20,6 +20,10 @@ lazy_static! {
     pub static ref SVC_ROOT: PathBuf = {
         Path::new(&*FS_ROOT_PATH).join("hab/svc")
     };
+
+    pub static ref USER_ROOT: PathBuf = {
+        Path::new(&*FS_ROOT_PATH).join("hab/user")
+    };
 }
 
 /// Returns the root path for a given service's configuration, files, and data.
@@ -65,4 +69,16 @@ pub fn svc_logs_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
 /// Returns the path to a given service's pid file.
 pub fn svc_pid_file<T: AsRef<Path>>(service_name: T) -> PathBuf {
     svc_path(service_name).join("PID")
+}
+
+/// Returns the root path for a given service's user configuration,
+/// files, and data.
+pub fn user_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    USER_ROOT.join(service_name)
+}
+
+/// Returns the path to a given service's user configuration
+/// directory.
+pub fn user_config_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    user_path(service_name).join("config")
 }
