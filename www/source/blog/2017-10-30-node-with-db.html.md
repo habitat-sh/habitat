@@ -305,4 +305,4 @@ $ docker-compose up
 
 And, once both containers are up, you can access your application on http://localhost:8000!
 
-If you'd like to see a working example, check out [this Github repo](https://github.com/nellshamrell/Express.js-in-Action-code/Chapter_08/learn-about-me).
+If you'd like to see a working example, check out [this Github repo](https://github.com/nellshamrell/Express.js-in-Action-code/tree/master/Chapter_08/learn-about-me).
