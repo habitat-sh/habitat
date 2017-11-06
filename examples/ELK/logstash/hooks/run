@@ -1,0 +1,14 @@
+#!/bin/sh
+
+exec 2>&1
+
+export USE_RUBY=1
+
+find "{{pkg.svc_config_path}}" -maxdepth 1 -mindepth 1 -type f -not -name "*.conf" \
+  -exec mv {} "{{pkg.svc_var_path}}/settings/" \;
+
+exec {{pkg.path}}/bin/logstash \
+  --path.config "{{pkg.svc_config_path}}" \
+  --path.data "{{pkg.svc_data_path}}" \
+  --path.logs "{{pkg.svc_var_path}}/log" \
+  --path.settings "{{pkg.svc_var_path}}/settings" \
