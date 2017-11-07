@@ -15,6 +15,7 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate chrono;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_http_client as hab_http;
@@ -39,12 +40,14 @@ extern crate url;
 pub mod error;
 pub use error::{Error, Result};
 
+use std::fmt;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 
 use broadcast::BroadcastWriter;
+use chrono::DateTime;
 use hab_core::package::{Identifiable, PackageArchive};
 use hab_http::ApiClient;
 use hab_http::util::decoded_response;
@@ -86,20 +89,65 @@ pub struct OriginKeyIdent {
     pub location: String,
 }
 
-#[derive(Default, Deserialize)]
+#[derive(Clone, Default, Deserialize)]
 pub struct Project {
     pub name: String,
     pub ident: String,
     pub state: String,
-    pub job_id: u64,
+    pub job_id: String,
+}
+
+impl fmt::Display for Project {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = format!("{:50} {}", self.ident, self.state);
+
+        if let Ok(j) = self.job_id.parse::<i64>() {
+            if j > 0 {
+                let job_ids = format!(" (Job ID {})", self.job_id);
+                s = s + &job_ids;
+            }
+        }
+
+        write!(f, "{}", s)
+    }
 }
 
 #[derive(Default, Deserialize)]
 pub struct SchedulerResponse {
-    pub id: i64,
+    pub id: String,
     pub state: String,
     pub projects: Vec<Project>,
     pub created_at: String,
+    pub project_name: String,
+}
+
+impl fmt::Display for SchedulerResponse {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = Vec::new();
+        output.push(format!(
+            "Status for Job Group {} ({}): {}",
+            self.id,
+            self.project_name,
+            self.state
+        ));
+
+        if let Ok(c) = DateTime::parse_from_rfc3339(&self.created_at) {
+            output.push(format!("Created at: {}", c.to_string()));
+        }
+
+        if self.projects.len() > 0 {
+            output.push("".to_string());
+            output.push(format!("Reverse dependencies:"));
+            let mut projects = self.projects.clone();
+            projects.sort_by(|a, b| a.ident.cmp(&b.ident));
+
+            for project in projects.iter() {
+                output.push(project.to_string())
+            }
+        }
+
+        write!(f, "{}", output.join("\n"))
+    }
 }
 
 impl Into<originsrv::OriginKeyIdent> for OriginKeyIdent {
@@ -241,6 +289,56 @@ impl Client {
         ))
     }
 
+    /// Retrieves the status of every group job in an origin
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    pub fn get_origin_schedule(&self, origin: &str) -> Result<String> {
+        debug!(
+            "Retrieving schedule for all job groups in the {} origin",
+            origin
+        );
+
+        let path = format!("depot/pkgs/schedule/{}/status", origin);
+        let res = self.0.get(&path).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+
+        let sr: Vec<SchedulerResponse> = decoded_response(res)?;
+        let mut resp = Vec::new();
+
+        for s in sr.iter() {
+            resp.push(s.to_string());
+            resp.push("".to_string());
+            resp.push("-------------------------------------".to_string());
+            resp.push("".to_string());
+        }
+
+        Ok(resp.join("\n"))
+    }
+
+    /// Retrieves the status of a group job
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    pub fn get_schedule(&self, group_id: i64) -> Result<String> {
+        debug!("Retrieving schedule for job group {}", group_id);
+
+        let path = format!("depot/pkgs/schedule/{}", group_id);
+        let res = self.0.get(&path).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+
+        let sr: SchedulerResponse = decoded_response(res)?;
+        Ok(sr.to_string())
+    }
+
     /// Schedules a job for a package ident
     ///
     /// # Failures
@@ -265,7 +363,10 @@ impl Client {
             Ok(response) => {
                 if response.status == StatusCode::Ok {
                     let sr: SchedulerResponse = decoded_response(response)?;
-                    Ok(sr.id)
+                    match sr.id.parse::<i64>() {
+                        Ok(s) => Ok(s),
+                        Err(e) => Err(Error::ParseIntError(e)),
+                    }
                 } else {
                     Err(err_from_response(response))
                 }

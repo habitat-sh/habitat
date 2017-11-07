@@ -136,6 +136,7 @@ fn start(ui: &mut UI) -> Result<()> {
                         ("start", Some(m)) => sub_bldr_job_start(ui, m)?,
                         ("cancel", Some(m)) => sub_bldr_job_cancel(ui, m)?,
                         ("promote", Some(m)) => sub_bldr_job_promote(ui, m)?,
+                        ("status", Some(m)) => sub_bldr_job_status(ui, m)?,
                         _ => unreachable!(),
                     }
                 }
@@ -429,6 +430,13 @@ fn sub_bldr_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
     command::bldr::job::promote::start(ui, &url, &group_id, &channel, &token)
+}
+
+fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let group_id = m.value_of("GROUP_ID");
+    let origin = m.value_of("ORIGIN");
+    command::bldr::job::status::start(ui, &url, group_id, origin)
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {

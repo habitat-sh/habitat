@@ -42,8 +42,9 @@ use iron::request::Body;
 use persistent;
 use protobuf;
 use protocol::originsrv::*;
-use protocol::jobsrv::{JobGroup, JobGroupSpec, JobGroupGet, JobGraphPackageStatsGet,
-                       JobGraphPackageStats, JobGraphPackagePreCreate, JobGroupAbort};
+use protocol::jobsrv::{JobGroup, JobGroupOriginGet, JobGroupOriginResponse, JobGroupSpec,
+                       JobGroupGet, JobGraphPackageStatsGet, JobGraphPackageStats,
+                       JobGraphPackagePreCreate, JobGroupAbort};
 use protocol::sessionsrv::{Account, AccountGet, AccountOriginRemove};
 use regex::Regex;
 use router::{Params, Router};
@@ -1035,6 +1036,20 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
             Ok(response)
         }
         Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+fn get_origin_schedule_status(req: &mut Request) -> IronResult<Response> {
+    let mut request = JobGroupOriginGet::new();
+
+    match get_param(req, "origin") {
+        Some(origin) => request.set_origin(origin),
+        None => return Ok(Response::with(status::BadRequest)),
+    }
+
+    match route_message::<JobGroupOriginGet, JobGroupOriginResponse>(req, &request) {
+        Ok(jgor) => Ok(render_json(status::Ok, &jgor.get_job_groups())),
+        Err(e) => Ok(render_net_error(&e)),
     }
 }
 
@@ -2138,6 +2153,7 @@ where
             XHandler::new(schedule).before(basic.clone())
         },
         schedule_get: get "/pkgs/schedule/:groupid" => get_schedule,
+        schedule_get_global: get "/pkgs/schedule/:origin/status" => get_origin_schedule_status,
         schedule_abort: delete "/pkgs/schedule/:groupid" => {
             XHandler::new(abort_schedule).before(worker.clone())
         },

@@ -115,6 +115,20 @@ pub fn get() -> App<'static, 'static> {
                         "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
+                (@subcommand status =>
+                    (@group status =>
+                        (@attributes +required)
+                        (@arg GROUP_ID: +required +takes_value
+                            "The group id that was returned from \"hab bldr job start\" \
+                            (ex: 771100000000000000)")
+                        (@arg ORIGIN: -o --origin +takes_value
+                            "You can see the status of every group in an origin by providing this value")
+                    )
+                    (about: "Get the status of a job group")
+                    (aliases: &["stat", "statu"])
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                )
             )
             (@subcommand encrypt =>
                 (about: "Reads a stdin stream containing plain text and outputs \

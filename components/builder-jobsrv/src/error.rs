@@ -48,6 +48,7 @@ pub enum Error {
     JobGroupCreate(postgres::error::Error),
     JobGroupCancel(postgres::error::Error),
     JobGroupGet(postgres::error::Error),
+    JobGroupOriginGet(postgres::error::Error),
     JobGroupPending(postgres::error::Error),
     JobGroupSetState(postgres::error::Error),
     JobGraphPackageInsert(postgres::error::Error),
@@ -77,7 +78,7 @@ pub enum Error {
     UnknownJobGroupState,
     UnknownJobGraphPackage,
     UnknownJobGroupProjectState,
-    UnknownJobState(protocol::jobsrv::Error),
+    UnknownJobState(protocol::ProtocolError),
     Zmq(zmq::Error),
 }
 
@@ -118,6 +119,9 @@ impl fmt::Display for Error {
             Error::JobGroupCreate(ref e) => format!("Database error creating a new group, {}", e),
             Error::JobGroupCancel(ref e) => format!("Database error canceling a job group, {}", e),
             Error::JobGroupGet(ref e) => format!("Database error getting group data, {}", e),
+            Error::JobGroupOriginGet(ref e) => {
+                format!("Database error getting group data for an origin, {}", e)
+            }
             Error::JobGroupPending(ref e) => format!("Database error getting pending group, {}", e),
             Error::JobGroupSetState(ref e) => format!("Database error setting group state, {}", e),
             Error::JobGraphPackageInsert(ref e) => {
@@ -198,6 +202,7 @@ impl error::Error for Error {
             Error::JobGroupCreate(ref err) => err.description(),
             Error::JobGroupCancel(ref err) => err.description(),
             Error::JobGroupGet(ref err) => err.description(),
+            Error::JobGroupOriginGet(ref err) => err.description(),
             Error::JobGroupPending(ref err) => err.description(),
             Error::JobGroupSetState(ref err) => err.description(),
             Error::JobGraphPackageInsert(ref err) => err.description(),

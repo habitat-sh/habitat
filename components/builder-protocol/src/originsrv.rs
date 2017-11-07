@@ -187,9 +187,12 @@ impl Serialize for OriginChannel {
         S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("origin", 4)?;
-        strukt.serialize_field("id", &self.get_id())?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
         strukt.serialize_field("name", self.get_name())?;
-        strukt.serialize_field("owner_id", &self.get_owner_id())?;
+        strukt.serialize_field(
+            "owner_id",
+            &self.get_owner_id().to_string(),
+        )?;
         strukt.end()
     }
 }
@@ -949,10 +952,10 @@ impl Routable for OriginPackageGroupPromote {
 }
 
 impl Routable for OriginPackageGroupPromoteResponse {
-    type H = String;
+    type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_group_id().to_string())
+        Some(self.get_group_id())
     }
 }
 
@@ -965,7 +968,10 @@ impl Serialize for OriginPackageGroupPromoteResponse {
             "origin_package_group_promote_response",
             2,
         )?;
-        strukt.serialize_field("group_id", &self.get_group_id())?;
+        strukt.serialize_field(
+            "group_id",
+            &self.get_group_id().to_string(),
+        )?;
         strukt.serialize_field(
             "not_promoted",
             self.get_not_promoted(),
