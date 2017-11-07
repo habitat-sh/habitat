@@ -39,6 +39,16 @@ _render_metadata_BUILD_ENVIRONMENT() {
     _render_associative_array_file ${pkg_prefix} BUILD_ENVIRONMENT pkg_build_env
 }
 
+_render_metadata_BUILDTIME_ENVIRONMENT(){
+    debug "Rendering BUILDTIME_ENVIRONMENT metadata file"
+    _render_associative_array_file ${pkg_prefix} BUILDTIME_ENVIRONMENT __buildtime_environment
+}
+
+_render_metadata_BUILDTIME_ENVIRONMENT_PROVENANCE(){
+    debug "Rendering BUILDTIME_ENVIRONMENT_PROVENANCE metadata file"
+    _render_associative_array_file ${pkg_prefix} BUILDTIME_ENVIRONMENT_PROVENANCE __buildtime_environment_provenance
+}
+
 _render_metadata_DEPS() {
   _render_dependency_metadata_file ${pkg_prefix} DEPS pkg_deps_resolved
 }
@@ -145,12 +155,27 @@ _render_metadata_LD_RUN_PATH() {
     fi
 }
 
-# Create PATH metadata for older versions of Habitat
+# Simply converts contents of pkg_bin_dirs into a PATH variable
+__process_path() {
+    local path=()
+
+    # Contents of `pkg_bin_dirs` are relative to the plan root;
+    # prepend the full path to this release so everything resolves
+    # properly once the package is installed.
+    for bin in "${pkg_bin_dirs[@]}"; do
+        path+=("${pkg_prefix}/${bin}")
+    done
+
+    echo "$(join_by ":" ${path[@]})"
+}
+
+# The PATH metadata file contains full paths to every directory listed
+# in `pkg_bin_dirs`, as well as all dependencies.
+#
+# NOTE: This is to support older Habitat supervisors (pre-0.50.0).
 _render_metadata_PATH() {
-  if [[ ${pkg_env[PATH]+abc} ]]; then
     debug "Rendering PATH metadata file"
-    echo "${pkg_env[PATH]}" > "$pkg_prefix/PATH"
-  fi
+    echo "${__runtime_environment[PATH]}" > "${pkg_prefix}/PATH"
 }
 
 _render_metadata_PKG_CONFIG_PATH() {
@@ -178,6 +203,16 @@ _render_metadata_PKG_CONFIG_PATH() {
   else
       debug "Would have rendered ${metadata_file_name}, but there was no data for it"
   fi
+}
+
+_render_metadata_RUNTIME_ENVIRONMENT(){
+    debug "Rendering RUNTIME_ENVIRONMENT metadata file"
+    _render_associative_array_file ${pkg_prefix} RUNTIME_ENVIRONMENT __runtime_environment
+}
+
+_render_metadata_RUNTIME_ENVIRONMENT_PROVENANCE(){
+    debug "Rendering RUNTIME_ENVIRONMENT_PROVENANCE metadata file"
+    _render_associative_array_file ${pkg_prefix} RUNTIME_ENVIRONMENT_PROVENANCE __runtime_environment_provenance
 }
 
 _render_metadata_SVC_GROUP() {

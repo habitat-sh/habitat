@@ -644,9 +644,42 @@ update_pkg_version() {
     SRC_PATH="$CACHE_PATH"
   fi
   # Replace the unset placeholders with the computed value
-  val="$(echo "$PATH" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  PATH="$val"
+  PATH=$(__resolve_version_placeholder "$PATH" "${pkg_version}")
   build_line "Updating PATH=$PATH"
-  val="$(echo "${pkg_env[PATH]}" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  pkg_env[PATH]="$val"
+
+  # TODO (CM): Do not like this separation of concerns (or lack of
+  # separation, as the case may be).
+  #
+  # NOTE: we specifically handle PATH above (and make that live in the
+  # environment). We are implicitly assuming that any other instances
+  # of the version placeholder are not going to need to be propagated
+  # back into the active environment.
+  __resolve_all_version_placeholders "__runtime_environment" "${pkg_version}"
+  __resolve_all_version_placeholders "__buildtime_environment" "${pkg_version}"
+  __resolve_all_version_placeholders "__runtime_environment_provenance" "${pkg_version}"
+  __resolve_all_version_placeholders "__buildtime_environment_provenance" "${pkg_version}"
+}
+
+# Replace all instances of the "__pkg__version__unset__" placeholder
+# in the given string with the real version number.
+__resolve_version_placeholder(){
+    local original=${1}
+    local real_version=${2}
+    echo "${original}" | sed "s,__pkg__version__unset__,${real_version},g"
+}
+
+# Replace all instances of the "__pkg__version__unset__" placeholder
+# in the values of the given associative array with the real version number.
+#
+# NOTE: the associative array is specified *by name*.
+__resolve_all_version_placeholders() {
+    local datastructure_name=${1}
+    local real_version=${2}
+
+    declare -n map="${datastructure_name}"
+
+    for k in "${!map[@]}"; do
+        v=$(__resolve_version_placeholder "${map[${k}]}" "${real_version}")
+        map["${k}"]="${v}"
+    done
 }
