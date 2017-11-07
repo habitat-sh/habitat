@@ -250,6 +250,9 @@ impl Serialize for JobState {
             3 => serializer.serialize_str("Rejected"),
             4 => serializer.serialize_str("Failed"),
             5 => serializer.serialize_str("Dispatched"),
+            6 => serializer.serialize_str("CancelPending"),
+            7 => serializer.serialize_str("CancelProcessing"),
+            8 => serializer.serialize_str("CancelComplete"),
             _ => panic!("Unexpected enum value"),
         }
     }

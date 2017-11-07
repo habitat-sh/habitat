@@ -336,7 +336,9 @@ impl Runner {
             Ok(res) => {
                 let dst = res.unwrap();
                 debug!("Imported origin secret key, dst={:?}.", dst);
-                perm::set_owner(dst, STUDIO_USER, STUDIO_GROUP)?;
+                if self.config.airlock_enabled {
+                    perm::set_owner(dst, STUDIO_USER, STUDIO_GROUP)?;
+                }
                 Ok(())
             }
             Err(err) => {
@@ -425,14 +427,16 @@ impl Runner {
 
         // Ensure that data path group ownership is set to the build user and directory perms are
         // `0750`.
-        perm::set_owner(
-            &self.config.data_path,
-            users::get_current_username()
-                .unwrap_or(String::from("root"))
-                .as_str(),
-            STUDIO_GROUP,
-        )?;
-        perm::set_permissions(&self.config.data_path, 0o750)?;
+        if self.config.airlock_enabled {
+            perm::set_owner(
+                &self.config.data_path,
+                users::get_current_username()
+                    .unwrap_or(String::from("root"))
+                    .as_str(),
+                STUDIO_GROUP,
+            )?;
+            perm::set_permissions(&self.config.data_path, 0o750)?;
+        }
 
         if self.workspace.src().exists() {
             if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
@@ -449,8 +453,11 @@ impl Runner {
                 err,
             ));
         }
-        perm::set_owner(self.workspace.root(), STUDIO_USER, STUDIO_GROUP)?;
-        perm::set_owner(self.workspace.src(), STUDIO_USER, STUDIO_GROUP)?;
+
+        if self.config.airlock_enabled {
+            perm::set_owner(self.workspace.root(), STUDIO_USER, STUDIO_GROUP)?;
+            perm::set_owner(self.workspace.src(), STUDIO_USER, STUDIO_GROUP)?;
+        }
 
         if let Some(err) = fs::create_dir_all(key_path()).err() {
             return Err(Error::WorkspaceSetup(
