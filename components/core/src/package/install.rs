@@ -482,32 +482,26 @@ impl PackageInstall {
         Ok(pkg_envs)
     }
 
-    /// Returns a flattened `HashMap<String, String>` with the runtime environment, omitting
-    /// overwritten values.
+    /// Return the embedded runtime environment specification for a
+    /// package.
     pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
-        let mut env: HashMap<String, String> = HashMap::new();
-        let pkg_envs = self.package_environments()?;
-
-        for pkg_env in pkg_envs.into_iter() {
-            for env_var in pkg_env.into_iter() {
-                match env.entry(env_var.key) {
-                    Occupied(entry) => {
-                        if let Some(sep) = env_var.separator {
-                            let v = entry.into_mut();
-                            v.push(sep);
-                            v.push_str(&env_var.value);
-                        } else {
-                            warn!("Cannot join {}, no separator defined", entry.key());
-                        }
+        match self.read_metafile(MetaFile::RuntimeEnvironment) {
+            Ok(body) => {
+                let mut env = HashMap::new();
+                for line in body.lines() {
+                    let parts: Vec<&str> = line.splitn(2, "=").collect();
+                    if parts.len() != 2 {
+                        return Err(Error::MetaFileMalformed(MetaFile::RuntimeEnvironment));
                     }
-                    Vacant(entry) => {
-                        entry.insert(env_var.value);
-                    }
+                    let key = parts[0].to_string();
+                    let value = parts[1].to_string();
+                    env.insert(key, value);
                 }
+                Ok(env)
             }
+            Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => Ok(HashMap::new()),
+            Err(e) => Err(e),
         }
-
-        Ok(env)
     }
 
     pub fn installed_path(&self) -> &Path {
