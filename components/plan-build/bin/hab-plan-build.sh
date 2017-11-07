@@ -377,8 +377,6 @@ export HAB_BLDR_URL
 export HAB_BLDR_CHANNEL
 # Fall back here if package can't be installed from $HAB_BLDR_CHANNEL
 FALLBACK_CHANNEL="stable"
-# The value of `$PATH` on initial start of this program
-INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
 # The target architecture this plan will be built for
@@ -414,22 +412,6 @@ declare -A pkg_binds_optional
 pkg_svc_user=hab
 # The group to run the service as
 pkg_svc_group=$pkg_svc_user
-
-# The environment variables inside a package
-declare -A pkg_env
-# The build environment variables inside a package
-declare -A pkg_build_env
-# The internal field separator used to join `env` variables for cascading
-declare -A _env_default_sep=(
-  ['CFLAGS']=' '
-  ['CPPFLAGS']=' '
-  ['CXXFLAGS']=' '
-  ['LDFLAGS']=' '
-  ['LD_RUN_PATH']=':'
-  ['PATH']=':'
-  ['PKG_CONFIG_PATH']=':'
-)
-declare -A pkg_env_sep
 
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
@@ -1063,25 +1045,6 @@ _populate_dependency_arrays() {
     "${pkg_deps_resolved[@]}"
     "${pkg_build_deps_resolved[@]}"
   )
-
-  # Build an ordered set of all build and run dependencies (direct and
-  # transitive). The order is important as this gets used when setting the
-  # `$PATH` ordering in the build environment. To give priority to direct
-  # dependencies over transitive ones the order of packages is the following:
-  #
-  # 1. All direct run dependencies
-  # 2. All direct build dependencies
-  # 3. All unique transitive run dependencies that aren't already added
-  # 4. All unique transitive build dependencies that aren't already added
-  pkg_all_tdeps_resolved=(
-    "${pkg_deps_resolved[@]}"
-    "${pkg_build_deps_resolved[@]}"
-  )
-  for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
-    pkg_all_tdeps_resolved=(
-      $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
-    )
-  done
 }
 
 # **Internal** Validates that the computed dependencies are reasonable and that
@@ -1293,7 +1256,6 @@ _pkg_path_for_deps() {
   return 1
 }
 
-
 # ## Public helper functions
 #
 # These functions intended for use in this program and by Plan authors in their
@@ -1361,10 +1323,6 @@ do_default_begin() {
 #    and the run dependencies for each direct run dependency.
 # * `$pkg_all_deps_resolved`: A package-path array of all direct build and
 #    run dependencies, declared in `$pkg_build_deps` and `$pkg_deps`.
-# * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
-#    build and run dependencies, and the run dependencies for each direct
-#    dependency. Further details for this array is described in the
-#    `_populate_dependency_arrays()` function.
 _resolve_dependencies() {
   # Create initial package arrays
   _init_dependencies
@@ -1424,106 +1382,6 @@ pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 EOF
 
   chown "$plan_owner" "$pre_build_file" || true
-}
-
-# **Internal**  Build `$PATH` containing each path in our own
-# `${pkg_bin_dirs[@]}` array, and then any dependency's `PATH` entry (direct
-# or transitive) if one exists. The ordering of the path is specific to
-# `${pkg_all_tdeps_resolved[@]}` which is further explained in the
-# `_resolve_dependencies()` function.
-_set_environment() {
-  local -A _environment
-
-  # Set any package pre-build environment variables
-  if [[ -n ${pkg_bin_dirs} ]]; then
-    add_path_env 'PATH' ${pkg_bin_dirs[@]}
-  fi
-
-  # Copy `$pkg_env` to `$_environment`
-  for env in "${!pkg_env[@]}"; do
-    _environment[$env]=${pkg_env[$env]}
-  done
-
-  # Copy `$pkg_build_env` to `$_environment`
-  for env in "${!pkg_build_env[@]}"; do
-    if [[ ${_environment[$env]+abc} && ${pkg_env_sep[$env]+abc} ]]; then
-      _environment[$env]=$(join_by ${pkg_env_sep[$env]} ${_environment[$env]} ${pkg_build_env[$env]})
-    elif [[ ! ${_environment[$env]+abc} ]]; then
-      _environment[$env]=${pkg_build_env[$env]}
-    else
-      exit_with "Cannot add $$pkg_build_env without setting a separator for $env"
-    fi
-  done
-
-  for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
-    # If we have a ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
-    if [[ -f "$dep_path/ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
-      local -A env_sep
-
-      if [[ -f "$dep_path/ENVIRONMENT_SEP" ]]; then
-        while read -r line; do
-          local -u env=${line%%=*}
-          local value=${line#*=}
-          if [[ -n "$env" && -n "$value" ]]; then
-            env_sep[$env]=${value}
-          fi
-        done < "$dep_path/ENVIRONMENT_SEP"
-      fi
-
-      if [[ -f "$dep_path/ENVIRONMENT" ]]; then
-        while read -r line; do
-          local -u env=${line%%=*}
-          local value=${line#*=}
-          if [[ -n "$env" && -n "$value" ]]; then
-            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
-              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
-            elif [[ ! ${_environment[$env]+abc} ]]; then
-              _environment[$env]=${value}
-            else
-              exit_with "Artifact $dep_path does not have a separator set for $env"
-            fi
-          fi
-        done < "$dep_path/ENVIRONMENT"
-      fi
-
-      if [[ -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
-        while read -r line; do
-          local -u env=${line%%=*}
-          local value=${line#*=}
-          if [[ -n "$env" && -n "$value" ]]; then
-            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
-              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
-            elif [[ ! ${_environment[$env]+abc} ]]; then
-              _environment[$env]=${value}
-            else
-              exit_with "Artifact $dep_path does not have a separator set for $env"
-            fi
-          fi
-        done < "$dep_path/BUILD_ENVIRONMENT"
-      fi
-    else # Look for legacy files
-      if [[ -f "$dep_path/PATH" ]]; then
-        local data=$(cat "$dep_path/PATH")
-        local trimmed=$(trim $data)
-        if [[ ${_environment[PATH]+abc} ]]; then
-            _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${trimmed})
-        else
-            _environment[PATH]=${trimmed}
-        fi
-      fi
-    fi
-  done
-  # Insert all the package PATH fragments before the default PATH to ensure
-  # package binaries are used before any userland/operating system binaries
-  if [[ ${_environment[PATH]+abc} ]]; then
-    _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${INITIAL_PATH})
-  fi
-
-  # Export out computed environment
-  for env in "${!_environment[@]}"; do
-    build_line "Setting $env=${_environment[$env]}"
-    export ${env}=${_environment[$env]}
-  done
 }
 
 # At this phase of the build, all dependencies are downloaded, the build
@@ -1859,12 +1717,9 @@ do_default_install() {
 # **Internal** Write out the package data to files:
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
-# * `$pkg_prefix/BUILD_ENVIRONMENT` - A list of build environment keys and their values
 # * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
-# * `$pkg_prefix/ENVIRONMENT` - A list of environment keys and their values
-# * `$pkg_prefix/ENVIRONMENT_SEP` - A list of Internal Field Separators for environment keys
 # * `$pkg_prefix/EXPORTS` - A list of exported configuration keys and their public name
 # * `$pkg_prefix/EXPOSES` - An array of `pkg_exports` for which ports that this package exposes
 # * `$pkg_prefix/BINDS` - A list of services you connect to and keys that you expect to be exported
@@ -1881,12 +1736,9 @@ _build_metadata() {
   _render_metadata_CPPFLAGS
   _render_metadata_CXXFLAGS
   _render_metadata_PKG_CONFIG_PATH
-  _render_metadata_BUILD_ENVIRONMENT
 
   _render_metadata_BUILDTIME_ENVIRONMENT
   _render_metadata_BUILDTIME_ENVIRONMENT_PROVENANCE
-  _render_metadata_ENVIRONMENT
-  _render_metadata_ENVIRONMENT_SEP
   _render_metadata_PATH
   _render_metadata_EXPORTS
   _render_metadata_BINDS

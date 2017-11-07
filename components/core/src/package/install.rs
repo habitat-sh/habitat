@@ -13,8 +13,7 @@
 // limitations under the License.
 
 use std;
-use std::collections::{HashMap, HashSet};
-use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::collections::HashMap;
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
 use std::fmt;
@@ -27,7 +26,7 @@ use toml;
 use toml::Value;
 
 use super::{Identifiable, PackageIdent, Target, PackageTarget};
-use super::metadata::{Bind, BindMapping, MetaFile, PackageType, PkgEnv, parse_key_value};
+use super::metadata::{Bind, BindMapping, MetaFile, PackageType, parse_key_value};
 use error::{Error, Result};
 use fs;
 
@@ -319,47 +318,8 @@ impl PackageInstall {
         }
     }
 
-    fn deps(&self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::Deps)
-    }
-
     pub fn tdeps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::TDeps)
-    }
-
-    /// Returns a Rust representation of the mappings defined by the `pkg_env` plan variable.
-    ///
-    /// # Failures
-    ///
-    /// * The package contains a Environment metafile but it could not be read or it was malformed.
-    fn environment(&self) -> Result<HashMap<String, String>> {
-        match self.read_metafile(MetaFile::Environment) {
-            Ok(body) => {
-                Ok(parse_key_value(&body).map_err(|_| {
-                    Error::MetaFileMalformed(MetaFile::Environment)
-                })?)
-            }
-            Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(HashMap::new()),
-            Err(e) => Err(e),
-        }
-    }
-
-    /// Returns a Rust representation of the mappings defined by the `pkg_env_sep` plan variable.
-    ///
-    /// # Failures
-    ///
-    /// * The package contains a EnvironmentSep metafile but it could not be read or it was
-    ///   malformed.
-    fn environment_sep(&self) -> Result<HashMap<String, String>> {
-        match self.read_metafile(MetaFile::EnvironmentSep) {
-            Ok(body) => {
-                Ok(parse_key_value(&body).map_err(|_| {
-                    Error::MetaFileMalformed(MetaFile::EnvironmentSep)
-                })?)
-            }
-            Err(Error::MetaFileNotFound(MetaFile::EnvironmentSep)) => Ok(HashMap::new()),
-            Err(e) => Err(e),
-        }
     }
 
     /// Returns a Rust representation of the mappings defined by the `pkg_exports` plan variable.
@@ -434,52 +394,6 @@ impl PackageInstall {
                 }
             }
         }
-    }
-
-    /// Returns a `Vec<PkgEnv>` with the full runtime environment for this package. This is
-    /// constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
-    /// *direct* dependencies first (in declared order) and then from any remaining transitive
-    /// dependencies last (in lexically sorted order).
-    ///
-    /// If a package is missing the aforementioned metadata files, fall back to the
-    /// legacy `PATH` metadata files.
-    pub fn package_environments(&self) -> Result<Vec<PkgEnv>> {
-        let mut idents = HashSet::new();
-        let mut pkg_envs: Vec<PkgEnv> = Vec::new();
-
-        let env = self.environment()?;
-        pkg_envs.push(if !env.is_empty() {
-            PkgEnv::new(env, self.environment_sep()?)
-        } else {
-            PkgEnv::from_paths(self.paths()?)
-        });
-
-        let deps = self.load_deps()?;
-        for dep in deps.iter() {
-            let env = dep.environment()?;
-            pkg_envs.push(if !env.is_empty() {
-                PkgEnv::new(env, dep.environment_sep()?)
-            } else {
-                PkgEnv::from_paths(dep.paths()?)
-            });
-            idents.insert(dep.ident().clone());
-        }
-
-        let tdeps = self.load_tdeps()?;
-        for dep in tdeps.iter() {
-            if idents.contains(dep.ident()) {
-                continue;
-            }
-            let env = dep.environment()?;
-            pkg_envs.push(if !env.is_empty() {
-                PkgEnv::new(env, dep.environment_sep()?)
-            } else {
-                PkgEnv::from_paths(dep.paths()?)
-            });
-            idents.insert(dep.ident().clone());
-        }
-
-        Ok(pkg_envs)
     }
 
     /// Return the embedded runtime environment specification for a
@@ -610,40 +524,6 @@ impl PackageInstall {
             Err(Error::MetaFileNotFound(_)) => Ok(deps),
             Err(e) => Err(e),
         }
-    }
-
-    /// Attempts to load the extracted package for each direct dependency and returns a
-    /// `Package` struct representation of each in the returned vector.
-    ///
-    /// # Failures
-    ///
-    /// * Any direct dependency could not be located or it's contents could not be read
-    ///   from disk
-    fn load_deps(&self) -> Result<Vec<PackageInstall>> {
-        let ddeps = self.deps()?;
-        let mut deps = Vec::with_capacity(ddeps.len());
-        for dep in ddeps.iter() {
-            let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
-            deps.push(dep_install);
-        }
-        Ok(deps)
-    }
-
-    /// Attempts to load the extracted package for each transitive dependency and returns a
-    /// `Package` struct representation of each in the returned vector.
-    ///
-    /// # Failures
-    ///
-    /// * Any transitive dependency could not be located or it's contents could not be read
-    ///   from disk
-    fn load_tdeps(&self) -> Result<Vec<PackageInstall>> {
-        let tdeps = self.tdeps()?;
-        let mut deps = Vec::with_capacity(tdeps.len());
-        for dep in tdeps.iter() {
-            let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
-            deps.push(dep_install);
-        }
-        Ok(deps)
     }
 
     /// Returns a list of package structs built from the contents of the given directory.

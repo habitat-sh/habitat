@@ -35,10 +35,6 @@ _render_metadata_CXXFLAGS() {
     _render_c_includes_metadata_file ${pkg_prefix} CXXFLAGS pkg_include_dirs
 }
 
-_render_metadata_BUILD_ENVIRONMENT() {
-    _render_associative_array_file ${pkg_prefix} BUILD_ENVIRONMENT pkg_build_env
-}
-
 _render_metadata_BUILDTIME_ENVIRONMENT(){
     debug "Rendering BUILDTIME_ENVIRONMENT metadata file"
     _render_associative_array_file ${pkg_prefix} BUILDTIME_ENVIRONMENT __buildtime_environment
@@ -51,14 +47,6 @@ _render_metadata_BUILDTIME_ENVIRONMENT_PROVENANCE(){
 
 _render_metadata_DEPS() {
   _render_dependency_metadata_file ${pkg_prefix} DEPS pkg_deps_resolved
-}
-
-_render_metadata_ENVIRONMENT() {
-    _render_associative_array_file ${pkg_prefix} ENVIRONMENT pkg_env
-}
-
-_render_metadata_ENVIRONMENT_SEP() {
-    _render_associative_array_file ${pkg_prefix} ENVIRONMENT_SEP pkg_env_sep
 }
 
 _render_metadata_EXPORTS() {
