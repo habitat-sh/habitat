@@ -180,6 +180,7 @@ pub enum MetaFile {
     Manifest,
     Path,
     ResolvedServices, // Composite-only
+    RuntimeEnvironment,
     Services, // Composite-only
     SvcGroup,
     SvcUser,
@@ -207,6 +208,7 @@ impl fmt::Display for MetaFile {
             MetaFile::Manifest => "MANIFEST",
             MetaFile::Path => "PATH",
             MetaFile::ResolvedServices => "RESOLVED_SERVICES",
+            MetaFile::RuntimeEnvironment => "RUNTIME_ENVIRONMENT",
             MetaFile::Services => "SERVICES",
             MetaFile::SvcGroup => "SVC_GROUP",
             MetaFile::SvcUser => "SVC_USER",
