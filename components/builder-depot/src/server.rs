@@ -672,6 +672,7 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
     let ident = ident_from_req(req);
+    let session_id = helpers::get_optional_session_id(req);
 
     if !ident.valid() || !ident.fully_qualified() {
         info!(
@@ -743,19 +744,29 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
     let mut ident_req = OriginPackageGet::new();
     ident_req.set_ident(ident.clone());
+    ident_req.set_visibilities(visibility_for_optional_session(
+        req,
+        session_id,
+        &ident.get_origin(),
+    ));
 
-    match route_message::<OriginPackageGet, OriginPackage>(req, &ident_req) {
-        Ok(_) => return Ok(Response::with((status::Conflict))),
-        Err(err) => {
-            if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
-                if depot.archive(&ident, &target_from_artifact).is_some() {
-                    return Ok(Response::with((status::Conflict)));
+    // Return conflict only if we have BOTH package metadata and a valid
+    // archive on disk.
+    let origin_package_found =
+        match route_message::<OriginPackageGet, OriginPackage>(req, &ident_req) {
+            Ok(_) => true,
+            Err(err) => {
+                if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
+                    false
+                } else {
+                    return Ok(render_net_error(&err));
                 }
-            } else {
-                return Ok(render_net_error(&err));
             }
-        }
-    }
+        };
+
+    if origin_package_found && depot.archive(&ident, &target_from_artifact).is_some() {
+        return Ok(Response::with((status::Conflict)));
+    };
 
     let checksum_from_artifact = match archive.checksum() {
         Ok(cksum) => cksum,
@@ -881,37 +892,40 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             package.set_visibility(OriginPackageVisibility::Public);
         }
 
-        if let Err(err) = route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
-            return Ok(render_net_error(&err));
-        }
-
-        // Schedule re-build of dependent packages (if requested)
-        // Don't schedule builds if the upload is being done by the builder
-        if depot.config.builds_enabled &&
-            (ident.get_origin() == "core" || depot.config.non_core_builds_enabled) &&
-            !match helpers::extract_query_value("builder", req) {
-                Some(_) => true,
-                None => false,
+        // Don't re-create the origin package if it already exists
+        if !origin_package_found {
+            if let Err(err) = route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
+                return Ok(render_net_error(&err));
             }
-        {
-            let mut request = JobGroupSpec::new();
-            request.set_origin(ident.get_origin().to_string());
-            request.set_package(ident.get_name().to_string());
-            request.set_target(target_from_artifact.to_string());
-            request.set_deps_only(true);
-            request.set_origin_only(!depot.config.non_core_builds_enabled);
-            request.set_package_only(false);
 
-            match route_message::<JobGroupSpec, JobGroup>(req, &request) {
-                Ok(group) => {
-                    debug!(
-                        "Scheduled reverse dependecy build for {}, group id: {}, origin_only: {}",
-                        ident,
-                        group.get_id(),
-                        !depot.config.non_core_builds_enabled
-                    )
+            // Schedule re-build of dependent packages (if requested)
+            // Don't schedule builds if the upload is being done by the builder
+            if depot.config.builds_enabled &&
+                (ident.get_origin() == "core" || depot.config.non_core_builds_enabled) &&
+                !match helpers::extract_query_value("builder", req) {
+                    Some(_) => true,
+                    None => false,
                 }
-                Err(err) => warn!("Unable to schedule build, err: {:?}", err),
+            {
+                let mut request = JobGroupSpec::new();
+                request.set_origin(ident.get_origin().to_string());
+                request.set_package(ident.get_name().to_string());
+                request.set_target(target_from_artifact.to_string());
+                request.set_deps_only(true);
+                request.set_origin_only(!depot.config.non_core_builds_enabled);
+                request.set_package_only(false);
+
+                match route_message::<JobGroupSpec, JobGroup>(req, &request) {
+                    Ok(group) => {
+                        debug!(
+                            "Scheduled reverse dependecy build for {}, group id: {}, origin_only: {}",
+                            ident,
+                            group.get_id(),
+                            !depot.config.non_core_builds_enabled
+                        )
+                    }
+                    Err(err) => warn!("Unable to schedule build, err: {:?}", err),
+                }
             }
         }
 
@@ -1712,10 +1726,23 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
             session_id,
             &ident.get_origin(),
         ));
-        request.set_ident(ident);
+        request.set_ident(ident.clone());
 
         match route_message::<OriginPackageGet, OriginPackage>(req, &request) {
             Ok(pkg) => {
+                let lock = req.get::<persistent::State<DepotUtil>>().expect(
+                    "depot not found",
+                );
+
+                let depot = lock.read().expect("depot read lock is poisoned");
+
+                // If we don't have a valid archive on disk, return NotFound
+                let target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
+
+                if !depot.archive(&ident, &target).is_some() {
+                    return Ok(Response::with((status::NotFound)));
+                };
+
                 // If the request was for a fully qualified ident, cache the response, otherwise do
                 // not cache
                 if qualified {
