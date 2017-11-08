@@ -345,7 +345,7 @@ impl Client {
     ///
     /// * Key cannot be found
     /// * Remote Builder is not available
-    pub fn schedule_job<I>(&self, ident: &I, package_only: bool, token: &str) -> Result<(i64)>
+    pub fn schedule_job<I>(&self, ident: &I, package_only: bool, token: &str) -> Result<(String)>
     where
         I: Identifiable,
     {
@@ -363,10 +363,7 @@ impl Client {
             Ok(response) => {
                 if response.status == StatusCode::Ok {
                     let sr: SchedulerResponse = decoded_response(response)?;
-                    match sr.id.parse::<i64>() {
-                        Ok(s) => Ok(s),
-                        Err(e) => Err(Error::ParseIntError(e)),
-                    }
+                    Ok(sr.id)
                 } else {
                     Err(err_from_response(response))
                 }
