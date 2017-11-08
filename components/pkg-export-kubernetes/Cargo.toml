@@ -15,6 +15,7 @@ clap = { version = "*", features = ["suggestions", "color", "unstable"] }
 env_logger = "*"
 habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
+habitat_pkg_export_docker = { path = "../pkg-export-docker" }
 handlebars = { version = "*", default-features = false }
 log = "*"
 serde = "1.0.2"
