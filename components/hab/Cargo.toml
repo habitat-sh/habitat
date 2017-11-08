@@ -38,6 +38,9 @@ path = "../core"
 [dependencies.habitat_common]
 path = "../common"
 
+[dependencies.habitat_sup]
+path = "../sup"
+
 [dependencies.habitat_depot_client]
 path = "../builder-depot-client"
 
