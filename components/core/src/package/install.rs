@@ -400,22 +400,39 @@ impl PackageInstall {
         &self.ident
     }
 
-    /// Return the PATH string from the package metadata, if it exists
+    /// Returns the contents of a package's runtime PATH environment
+    /// variable (if set), split into individual entries.
     ///
-    /// # Failures
+    /// Preferentially looks in the `RUNTIME_ENVIRONMENT` metadata file
+    /// to find a `PATH` variable. If this metadata file is not
+    /// present, we're dealing with an older Habitat package, and will
+    /// instead look in the `PATH` metadata file.
     ///
-    /// * The package contains a Path metafile but it could not be read or it was malformed
+    /// If no value for `PATH` can be found, return an empty `Vec`.
     pub fn paths(&self) -> Result<Vec<PathBuf>> {
-        match self.read_metafile(MetaFile::Path) {
-            Ok(body) => {
-                let v = env::split_paths(&body).map(|p| PathBuf::from(&p)).collect();
-                Ok(v)
+        match self.existing_metafile(MetaFile::RuntimeEnvironment) {
+            Some(_) => {
+                // A RUNTIME_ENVIRONMENT file exists!
+                let env = self.runtime_environment()?;
+                match env.get("PATH") {
+                    Some(path) => {
+                        let v = env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
+                        Ok(v)
+                    }
+                    None => Ok(vec![]),
+                }
             }
-            Err(Error::MetaFileNotFound(MetaFile::Path)) => {
-                let v: Vec<PathBuf> = Vec::new();
-                Ok(v)
+            None => {
+                // No RUNTIME_ENVIRONMENT file exists; fall back to PATH
+                match self.read_metafile(MetaFile::Path) {
+                    Ok(body) => {
+                        let v = env::split_paths(&body).map(|p| PathBuf::from(&p)).collect();
+                        Ok(v)
+                    }
+                    Err(Error::MetaFileNotFound(MetaFile::Path)) => Ok(vec![]),
+                    Err(e) => Err(e),
+                }
             }
-            Err(e) => Err(e),
         }
     }
 
@@ -532,9 +549,8 @@ impl PackageInstall {
     /// * Contents of the metafile could not be read
     /// * Contents of the metafile are unreadable or malformed
     fn read_metafile(&self, file: MetaFile) -> Result<String> {
-        let filepath = self.installed_path.join(file.to_string());
-        match std::fs::metadata(&filepath) {
-            Ok(_) => {
+        match self.existing_metafile(file.clone()) {
+            Some(filepath) => {
                 match File::open(&filepath) {
                     Ok(mut f) => {
                         let mut data = String::new();
@@ -546,7 +562,19 @@ impl PackageInstall {
                     Err(e) => Err(Error::MetaFileIO(e)),
                 }
             }
-            Err(_) => Err(Error::MetaFileNotFound(file)),
+            None => Err(Error::MetaFileNotFound(file)),
+        }
+    }
+
+    /// Returns the path to a package's specified MetaFile if it exists.
+    ///
+    /// Useful for fallback logic for dealing with older Habitat
+    /// packages.
+    fn existing_metafile(&self, file: MetaFile) -> Option<PathBuf> {
+        let filepath = self.installed_path.join(file.to_string());
+        match std::fs::metadata(&filepath) {
+            Ok(_) => Some(filepath),
+            Err(_) => None,
         }
     }
 
