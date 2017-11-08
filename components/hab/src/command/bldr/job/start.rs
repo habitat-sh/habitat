@@ -65,7 +65,7 @@ pub fn start(
 
     ui.status(
         Status::Created,
-        format!("build job, the id is {}", id),
+        format!("build job. The id is {}", id),
     )?;
 
     Ok(())
