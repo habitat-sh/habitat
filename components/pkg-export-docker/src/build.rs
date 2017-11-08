@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use clap;
 use std::fs as stdfs;
 use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
@@ -31,6 +32,10 @@ use fs;
 use rootfs;
 use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
 use util;
+
+const DEFAULT_HAB_IDENT: &'static str = "core/hab";
+const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
+const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
@@ -59,6 +64,26 @@ pub struct BuildSpec<'a> {
 }
 
 impl<'a> BuildSpec<'a> {
+    /// Creates a `BuildSpec` from cli arguments.
+    pub fn new_from_cli_matches(
+        m: &'a clap::ArgMatches,
+        default_channel: &'a str,
+        default_url: &'a str,
+    ) -> Self {
+        BuildSpec {
+            hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
+            hab_launcher: m.value_of("HAB_LAUNCHER_PKG").unwrap_or(
+                DEFAULT_LAUNCHER_IDENT,
+            ),
+            hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
+            url: m.value_of("BLDR_URL").unwrap_or(&default_url),
+            channel: m.value_of("CHANNEL").unwrap_or(&default_channel),
+            base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
+            base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL").unwrap_or(&default_channel),
+            idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap().collect(),
+        }
+    }
+
     /// Creates a `BuildRoot` for the given specification.
     ///
     /// # Errors

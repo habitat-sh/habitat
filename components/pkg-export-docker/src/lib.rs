@@ -15,6 +15,8 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+#[macro_use]
+extern crate clap;
 extern crate hab;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
@@ -28,8 +30,10 @@ extern crate log;
 extern crate serde_json;
 extern crate tempdir;
 extern crate base64;
+extern crate url;
 
 mod build;
+pub mod cli;
 mod docker;
 mod error;
 mod fs;
@@ -38,6 +42,7 @@ mod util;
 
 use common::ui::UI;
 
+pub use cli::Cli;
 pub use build::BuildSpec;
 pub use docker::{DockerImage, DockerBuildRoot};
 pub use error::{Error, Result};
@@ -72,6 +77,24 @@ pub struct Naming<'a> {
     pub registry_url: Option<&'a str>,
     /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
     pub registry_type: &'a str,
+}
+
+impl<'a> Naming<'a> {
+    /// Creates a `Naming` from cli arguments.
+    pub fn new_from_cli_matches(m: &'a clap::ArgMatches) -> Self {
+        let registry_type = m.value_of("REGISTRY_TYPE").unwrap_or("docker");
+        let registry_url = m.value_of("REGISTRY_URL");
+
+        Naming {
+            custom_image_name: m.value_of("IMAGE_NAME"),
+            latest_tag: !m.is_present("NO_TAG_LATEST"),
+            version_tag: !m.is_present("NO_TAG_VERSION"),
+            version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
+            custom_tag: m.value_of("TAG_CUSTOM"),
+            registry_url: registry_url,
+            registry_type: registry_type,
+        }
+    }
 }
 
 /// A credentials username and password pair.
