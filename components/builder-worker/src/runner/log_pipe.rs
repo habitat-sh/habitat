@@ -70,13 +70,6 @@ impl LogPipe {
             self.stream_lines(reader)?;
         }
         self.logger.log("Finished logging stdout");
-        self.logger.log("About to log stderr");
-        if let Some(ref mut stderr) = process.stderr {
-            let reader = BufReader::new(stderr);
-            self.stream_lines(reader)?;
-        }
-        self.logger.log("Finished logging stderr");
-
         Ok(())
     }
 

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::net::IpAddr;
+use std::os::unix::io::FromRawFd;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
@@ -110,7 +111,10 @@ impl<'a> Studio<'a> {
             }
         }
         cmd.stdout(Stdio::piped());
-        cmd.stderr(Stdio::piped());
+        // TED TODO: This will not work on windows. A more robust threading solution will be required for log_pipe
+        // to support consuming stderr and stdout.
+        // This manifests when a child starts (studio) and has an error (often unseen) then suddenly stops all execution.
+        cmd.stderr(unsafe { Stdio::from_raw_fd(1) }); // Log stderr to stdout
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
