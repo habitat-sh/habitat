@@ -165,6 +165,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("header", Some(m)) => sub_pkg_header(ui, m)?,
                 ("promote", Some(m)) => sub_pkg_promote(ui, m)?,
                 ("demote", Some(m)) => sub_pkg_demote(ui, m)?,
+                ("remove", Some(m)) => sub_pkg_remove(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -397,6 +398,12 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
             Ok(())
         }
     }
+}
+
+fn sub_pkg_remove(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+
+    command::pkg::remove::start(ui, &ident, &*FS_ROOT)
 }
 
 fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {

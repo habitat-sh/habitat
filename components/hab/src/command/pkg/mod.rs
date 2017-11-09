@@ -28,3 +28,4 @@ pub mod search;
 pub mod sign;
 pub mod upload;
 pub mod verify;
+pub mod remove;
