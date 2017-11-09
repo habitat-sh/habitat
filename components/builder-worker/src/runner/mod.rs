@@ -379,7 +379,14 @@ impl Runner {
             return Err(Error::BuildFailure(status.code().unwrap_or(-2)));
         }
 
-        if self.has_docker_integration() && status.success() {
+        if !status.success() {
+            let ident = self.workspace.attempted_build()?;
+            let op_ident = OriginPackageIdent::from(ident);
+            self.workspace.job.set_package_ident(op_ident);
+            return Err(Error::BuildFailure(status.code().unwrap_or(-1)));
+        }
+
+        if self.has_docker_integration() {
             // TODO fn: This check should be updated in PackageArchive is check for run hooks.
             if self.workspace.last_built()?.is_a_service() {
                 debug!("Found runnable package, running docker export");
@@ -398,9 +405,7 @@ impl Runner {
         if status.success() {
             self.workspace.last_built()
         } else {
-            let ident = self.workspace.attempted_build()?;
-            let op_ident = OriginPackageIdent::from(ident);
-            self.workspace.job.set_package_ident(op_ident);
+            // TED: leaving this as a build failure until we move the export process out of build
             Err(Error::BuildFailure(status.code().unwrap_or(-1)))
         }
     }
