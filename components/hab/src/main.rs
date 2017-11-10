@@ -674,6 +674,9 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("pkg", "export", "cf") => {
             command::pkg::export::cf::start(ui, env::args_os().skip(4).collect())
         }
+        ("pkg", "export", "kubernetes") => {
+            command::pkg::export::kubernetes::start(ui, env::args_os().skip(4).collect())
+        }
         ("run", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
         ("stu", _, _) | ("stud", _, _) | ("studi", _, _) | ("studio", _, _) => {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
