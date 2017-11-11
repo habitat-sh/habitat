@@ -1457,8 +1457,8 @@ _set_environment() {
   done
 
   for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
-    # If we have a ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
-    if [[ -f "$dep_path/ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
+    # If we have a PKG_ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
+    if [[ -f "$dep_path/PKG_ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
       local -A env_sep
 
       if [[ -f "$dep_path/ENVIRONMENT_SEP" ]]; then
@@ -1471,7 +1471,7 @@ _set_environment() {
         done < "$dep_path/ENVIRONMENT_SEP"
       fi
 
-      if [[ -f "$dep_path/ENVIRONMENT" ]]; then
+      if [[ -f "$dep_path/PKG_ENVIRONMENT" ]]; then
         while read -r line; do
           local -u env=${line%%=*}
           local value=${line#*=}
@@ -1484,7 +1484,7 @@ _set_environment() {
               exit_with "Artifact $dep_path does not have a separator set for $env"
             fi
           fi
-        done < "$dep_path/ENVIRONMENT"
+        done < "$dep_path/PKG_ENVIRONMENT"
       fi
 
       if [[ -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
@@ -1861,6 +1861,7 @@ do_default_install() {
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
 # * `$pkg_prefix/BUILD_ENVIRONMENT` - A list of build environment keys and their values
+# * `$pkg_prefix/PKG_ENVIRONMENT` - A list of package environment keys and their values
 # * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
@@ -1883,6 +1884,7 @@ _build_metadata() {
   _render_metadata_CXXFLAGS
   _render_metadata_PKG_CONFIG_PATH
   _render_metadata_BUILD_ENVIRONMENT
+  _render_metadata_PKG_ENVIRONMENT
   _render_metadata_ENVIRONMENT
   _render_metadata_ENVIRONMENT_SEP
   _render_metadata_PATH
