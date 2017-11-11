@@ -78,7 +78,6 @@ pub struct Runner {
     config: Arc<Config>,
     depot_cli: depot_client::Client,
     workspace: Workspace,
-    archive: Option<PackageArchive>,
     logger: Logger,
     cancel: Arc<AtomicBool>,
 }
@@ -94,7 +93,6 @@ impl Runner {
 
         Runner {
             workspace: Workspace::new(&config.data_path, job),
-            archive: None,
             config: config,
             depot_cli: depot_cli,
             logger: logger,
@@ -273,19 +271,17 @@ impl Runner {
     ) -> Result<()> {
         self.check_cancel(tx)?;
 
-        if self.archive.is_some() {
-            match post_process(
-                &mut archive,
-                &self.workspace,
-                &self.config,
-                &mut self.logger,
-            ) {
-                Ok(_) => (),
-                Err(err) => {
-                    self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
-                    tx.send(self.job().clone()).map_err(Error::Mpsc)?;
-                    return Err(err);
-                }
+        match post_process(
+            &mut archive,
+            &self.workspace,
+            &self.config,
+            &mut self.logger,
+        ) {
+            Ok(_) => (),
+            Err(err) => {
+                self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
+                tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+                return Err(err);
             }
         }
 
@@ -340,7 +336,9 @@ impl Runner {
             Ok(res) => {
                 let dst = res.unwrap();
                 debug!("Imported origin secret key, dst={:?}.", dst);
-                perm::set_owner(dst, STUDIO_USER, STUDIO_GROUP)?;
+                if self.config.airlock_enabled {
+                    perm::set_owner(dst, STUDIO_USER, STUDIO_GROUP)?;
+                }
                 Ok(())
             }
             Err(err) => {
@@ -381,7 +379,14 @@ impl Runner {
             return Err(Error::BuildFailure(status.code().unwrap_or(-2)));
         }
 
-        if self.has_docker_integration() && status.success() {
+        if !status.success() {
+            let ident = self.workspace.attempted_build()?;
+            let op_ident = OriginPackageIdent::from(ident);
+            self.workspace.job.set_package_ident(op_ident);
+            return Err(Error::BuildFailure(status.code().unwrap_or(-1)));
+        }
+
+        if self.has_docker_integration() {
             // TODO fn: This check should be updated in PackageArchive is check for run hooks.
             if self.workspace.last_built()?.is_a_service() {
                 debug!("Found runnable package, running docker export");
@@ -400,9 +405,7 @@ impl Runner {
         if status.success() {
             self.workspace.last_built()
         } else {
-            let ident = self.workspace.attempted_build()?;
-            let op_ident = OriginPackageIdent::from(ident);
-            self.workspace.job.set_package_ident(op_ident);
+            // TED: leaving this as a build failure until we move the export process out of build
             Err(Error::BuildFailure(status.code().unwrap_or(-1)))
         }
     }
@@ -429,14 +432,16 @@ impl Runner {
 
         // Ensure that data path group ownership is set to the build user and directory perms are
         // `0750`.
-        perm::set_owner(
-            &self.config.data_path,
-            users::get_current_username()
-                .unwrap_or(String::from("root"))
-                .as_str(),
-            STUDIO_GROUP,
-        )?;
-        perm::set_permissions(&self.config.data_path, 0o750)?;
+        if self.config.airlock_enabled {
+            perm::set_owner(
+                &self.config.data_path,
+                users::get_current_username()
+                    .unwrap_or(String::from("root"))
+                    .as_str(),
+                STUDIO_GROUP,
+            )?;
+            perm::set_permissions(&self.config.data_path, 0o750)?;
+        }
 
         if self.workspace.src().exists() {
             if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
@@ -453,8 +458,11 @@ impl Runner {
                 err,
             ));
         }
-        perm::set_owner(self.workspace.root(), STUDIO_USER, STUDIO_GROUP)?;
-        perm::set_owner(self.workspace.src(), STUDIO_USER, STUDIO_GROUP)?;
+
+        if self.config.airlock_enabled {
+            perm::set_owner(self.workspace.root(), STUDIO_USER, STUDIO_GROUP)?;
+            perm::set_owner(self.workspace.src(), STUDIO_USER, STUDIO_GROUP)?;
+        }
 
         if let Some(err) = fs::create_dir_all(key_path()).err() {
             return Err(Error::WorkspaceSetup(

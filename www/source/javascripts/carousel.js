@@ -24,13 +24,19 @@ Carousel.prototype.init = function() {
     $(el).attr('data-idx', idx).on('click', this.rotate.bind(this, idx));
   }.bind(this));
 
+  $(this.dom.slides).mouseenter(this.stop.bind(this)).mouseleave(this.start.bind(this));
+
   this.resizeParent();
   this.rotate(0, true);
 }
 
-Carousel.prototype.startTimeout = function(delay) {
-  clearTimeout(this.timeout);
+Carousel.prototype.start = function(delay) {
+  this.stop();
   this.timeout = setTimeout(this.rotate.bind(this), delay || 1)
+}
+
+Carousel.prototype.stop = function() {
+  clearTimeout(this.timeout);
 }
 
 Carousel.prototype.rotate = function(target, initialRotate) {
@@ -46,7 +52,7 @@ Carousel.prototype.rotate = function(target, initialRotate) {
   this.dom.navParent.attr('data-currentIdx', next);
   this.current = next;
 
-  this.startTimeout(target !== undefined && initialRotate !== true ? this.intervalLength * 6 : this.intervalLength);
+  this.start(target !== undefined && initialRotate !== true ? this.intervalLength * 6 : this.intervalLength);
 }
 
 Carousel.prototype.resizeParent = function() {

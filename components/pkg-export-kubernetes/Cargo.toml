@@ -1,0 +1,25 @@
+[package]
+name = "habitat_pkg_export_kubernetes"
+version = "0.0.0"
+authors = ["Krzesimir Nowak <krzesimir@kinvolk.io>"]
+build = "../build-habitat.rs"
+workspace = "../../"
+
+[[bin]]
+name = "hab-pkg-export-kubernetes"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap = { version = "*", features = ["suggestions", "color", "unstable"] }
+env_logger = "*"
+habitat_core = { path = "../core" }
+habitat_common = { path = "../common" }
+handlebars = { version = "*", default-features = false }
+log = "*"
+serde = "1.0.2"
+serde_json = "1.0.0"
+
+[features]
+default = []
+functional = []

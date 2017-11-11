@@ -323,8 +323,19 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                 WHERE owner_id = in_gid
                 AND (project_state = 'NotStarted');
             UPDATE groups SET group_state='Canceled' where id = in_gid;
-        $$ LANGUAGE SQL VOLATILE
-        "#,
+        $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION get_job_groups_for_origin_v1 (
+            op_origin text
+        ) RETURNS SETOF groups AS $$
+            SELECT *
+            FROM groups
+            WHERE project_name LIKE (op_origin || '/%')
+            ORDER BY project_name
+        $$ LANGUAGE SQL STABLE"#,
     )?;
 
     Ok(())

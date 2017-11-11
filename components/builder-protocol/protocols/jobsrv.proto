@@ -157,6 +157,14 @@ message JobGroupGet {
   optional uint64 group_id = 1;
 }
 
+message JobGroupOriginGet {
+  optional string origin = 1;
+}
+
+message JobGroupOriginResponse {
+  repeated JobGroup job_groups = 1;
+}
+
 message JobGroup {
   optional uint64 id = 1;
   optional JobGroupState state = 2;

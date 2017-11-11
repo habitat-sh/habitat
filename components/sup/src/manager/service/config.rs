@@ -23,6 +23,7 @@ use std::path::{Path, PathBuf};
 use std::result;
 
 use ansi_term::Colour::Purple;
+use fs;
 use hcore::crypto;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
@@ -43,7 +44,35 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
 
-#[derive(Clone, Debug, Default)]
+/// Trait for getting paths to directories where various configuration
+/// files are expected to be.
+pub trait PackageConfigPaths {
+    /// Get name of the package (basically name part of package ident.
+    fn name(&self) -> String;
+    /// Get path to directory which holds default.toml.
+    fn default_config_dir(&self) -> PathBuf;
+    /// Get recommended path to directory which holds user.toml.
+    fn recommended_user_config_dir(&self) -> PathBuf;
+    /// Get deprecated path to directory which holds user.toml.
+    fn deprecated_user_config_dir(&self) -> PathBuf;
+}
+
+impl PackageConfigPaths for Pkg {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+    fn default_config_dir(&self) -> PathBuf {
+        self.path.clone()
+    }
+    fn recommended_user_config_dir(&self) -> PathBuf {
+        fs::user_config_path(&self.name)
+    }
+    fn deprecated_user_config_dir(&self) -> PathBuf {
+        self.svc_path.clone()
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Cfg {
     /// Default level configuration loaded by a Package's `default.toml`
     pub default: Option<toml::Value>,
@@ -59,15 +88,21 @@ pub struct Cfg {
 }
 
 impl Cfg {
-    pub fn new(package: &Pkg, config_from: Option<&PathBuf>) -> Result<Cfg> {
-        let pkg_root = config_from.and_then(|p| Some(p.as_path())).unwrap_or(
-            &package.path,
+    pub fn new<P: PackageConfigPaths>(package: &P, config_from: Option<&PathBuf>) -> Result<Cfg> {
+        let pkg_root = config_from.and_then(|p| Some(p.clone())).unwrap_or(
+            package.default_config_dir(),
         );
-        let mut cfg = Cfg::default();
-        cfg.load_default(&pkg_root)?;
-        cfg.load_user(&package)?;
-        cfg.load_environment(&package)?;
-        Ok(cfg)
+        let default = Self::load_default(pkg_root)?;
+        let user_config_path = Self::determine_user_config_path(package);
+        let user = Self::load_user(&user_config_path)?;
+        let environment = Self::load_environment(package)?;
+        return Ok(Self {
+            default: default,
+            user: user,
+            gossip: None,
+            environment: environment,
+            gossip_incarnation: 0,
+        });
     }
 
     /// Updates the service configuration with data from a census group if the census group has
@@ -118,14 +153,22 @@ impl Cfg {
         Ok(map)
     }
 
-    fn load_default<T: AsRef<Path>>(&mut self, config_from: T) -> Result<()> {
-        let path = config_from.as_ref().join("default.toml");
+    fn load_toml_file<T1: AsRef<Path>, T2: AsRef<Path>>(
+        dir: T1,
+        file: T2,
+    ) -> Result<Option<toml::Value>> {
+        let filename = file.as_ref();
+        let path = dir.as_ref().join(&filename);
         let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => {
-                debug!("Failed to open 'default.toml', {}, {}", path.display(), e);
-                self.default = None;
-                return Ok(());
+                debug!(
+                    "Failed to open '{}', {}, {}",
+                    filename.display(),
+                    path.display(),
+                    e
+                );
+                return Ok(None);
             }
         };
         let mut config = String::new();
@@ -134,63 +177,74 @@ impl Cfg {
                 let toml = toml::de::from_str(&config).map_err(|e| {
                     sup_error!(Error::TomlParser(e))
                 })?;
-                self.default = Some(toml::Value::Table(toml));
+                Ok(Some(toml::Value::Table(toml)))
             }
             Err(e) => {
-                outputln!("Failed to read 'default.toml', {}, {}", path.display(), e);
-                self.default = None;
+                outputln!(
+                    "Failed to read '{}', {}, {}",
+                    filename.display(),
+                    path.display(),
+                    e
+                );
+                Ok(None)
             }
         }
-        Ok(())
     }
 
-    fn load_user(&mut self, package: &Pkg) -> Result<()> {
-        let path = package.svc_path.join("user.toml");
-        let mut file = match File::open(&path) {
-            Ok(file) => file,
-            Err(e) => {
-                debug!("Failed to open 'user.toml', {}, {}", path.display(), e);
-                self.user = None;
-                return Ok(());
-            }
-        };
-        let mut config = String::new();
-        match file.read_to_string(&mut config) {
-            Ok(_) => {
-                let toml = toml::de::from_str(&config).map_err(|e| {
-                    sup_error!(Error::TomlParser(e))
-                })?;
-                self.user = Some(toml::Value::Table(toml));
-            }
-            Err(e) => {
-                outputln!("Failed to load 'user.toml', {}, {}", path.display(), e);
-                self.user = None;
-            }
+    fn load_default<T: AsRef<Path>>(config_from: T) -> Result<Option<toml::Value>> {
+        Self::load_toml_file(config_from, "default.toml")
+    }
+
+    fn determine_user_config_path<P: PackageConfigPaths>(package: &P) -> PathBuf {
+        let recommended_dir = package.recommended_user_config_dir();
+        let recommended_path = recommended_dir.join("user.toml");
+        if recommended_path.exists() {
+            return recommended_dir;
         }
-        Ok(())
+        debug!(
+            "'user.toml' at {} does not exist",
+            recommended_path.display()
+        );
+        let deprecated_dir = package.deprecated_user_config_dir();
+        let deprecated_path = deprecated_dir.join("user.toml");
+        if deprecated_path.exists() {
+            outputln!(
+                "The user configuration location at {} is deprecated, \
+                 consider putting it in {}",
+                deprecated_path.display(),
+                recommended_path.display(),
+            );
+            return deprecated_dir;
+        }
+        debug!(
+            "'user.toml' at {} does not exist",
+            deprecated_path.display()
+        );
+        recommended_dir
     }
 
-    fn load_environment(&mut self, package: &Pkg) -> Result<()> {
-        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name)
+    fn load_user<T: AsRef<Path>>(path: T) -> Result<Option<toml::Value>> {
+        Self::load_toml_file(path, "user.toml")
+    }
+
+    fn load_environment<P: PackageConfigPaths>(package: &P) -> Result<Option<toml::Value>> {
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name())
             .to_ascii_uppercase()
             .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 match toml::de::from_str(&config) {
                     Ok(toml) => {
-                        self.environment = Some(toml::Value::Table(toml));
-                        return Ok(());
+                        return Ok(Some(toml::Value::Table(toml)));
                     }
                     Err(err) => debug!("Attempted to parse env config as toml and failed {}", err),
                 }
                 match serde_json::from_str(&config) {
                     Ok(json) => {
-                        self.environment = Some(toml::Value::Table(json));
-                        return Ok(());
+                        return Ok(Some(toml::Value::Table(json)));
                     }
                     Err(err) => debug!("Attempted to parse env config as json and failed {}", err),
                 }
-                self.environment = None;
                 Err(sup_error!(Error::BadEnvConfig(var_name)))
             }
             Err(e) => {
@@ -199,8 +253,7 @@ impl Cfg {
                     var_name,
                     e
                 );
-                self.environment = None;
-                Ok(())
+                Ok(None)
             }
         }
     }
@@ -408,10 +461,11 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(test)]
 mod test {
+    use std::fs;
+    use std::fs::OpenOptions;
+
     use toml;
     use tempdir::TempDir;
-
-    use hcore::package::{PackageIdent, PackageInstall};
 
     use super::*;
     use error::Error;
@@ -598,22 +652,123 @@ mod test {
         }
     }
 
+    struct TestPkg {
+        base_path: PathBuf,
+    }
+
+    impl TestPkg {
+        fn new(tmp: &TempDir) -> Self {
+            let pkg = Self { base_path: tmp.path().to_owned() };
+
+            fs::create_dir_all(pkg.default_config_dir()).expect(
+                "create deprecated user config dir",
+            );
+            fs::create_dir_all(pkg.recommended_user_config_dir())
+                .expect("create recommended user config dir");
+            fs::create_dir_all(pkg.deprecated_user_config_dir())
+                .expect("create default config dir");
+            pkg
+        }
+    }
+
+    impl PackageConfigPaths for TestPkg {
+        fn name(&self) -> String {
+            String::from("testing")
+        }
+        fn default_config_dir(&self) -> PathBuf {
+            self.base_path.join("root")
+        }
+        fn recommended_user_config_dir(&self) -> PathBuf {
+            self.base_path.join("user")
+        }
+        fn deprecated_user_config_dir(&self) -> PathBuf {
+            self.base_path.join("svc")
+        }
+    }
+
+    struct CfgTestData {
+        // We hold tmp here only to make sure that the temporary
+        // directory gets deleted at the end of the test.
+        #[allow(dead_code)]
+        tmp: TempDir,
+        pkg: TestPkg,
+        rucp: PathBuf,
+        ducp: PathBuf,
+    }
+
+    impl CfgTestData {
+        fn new() -> Self {
+            let tmp = TempDir::new("habitat_config_test").expect("create temp dir");
+            let pkg = TestPkg::new(&tmp);
+            let rucp = pkg.recommended_user_config_dir().join("user.toml");
+            let ducp = pkg.deprecated_user_config_dir().join("user.toml");
+            Self {
+                tmp: tmp,
+                pkg: pkg,
+                rucp: rucp,
+                ducp: ducp,
+            }
+        }
+    }
+
+    fn write_toml<P: AsRef<Path>>(path: &P, text: &str) {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)
+            .expect("create toml file");
+        file.write_all(text.as_bytes()).expect(
+            "write raw toml value",
+        );
+        file.flush().expect("flush changes in toml file");
+    }
+
+    fn toml_value_from_str(text: &str) -> toml::Value {
+        toml::Value::Table(toml_from_str(text))
+    }
+
+    #[test]
+    fn load_deprecated_user_toml() {
+        let cfg_data = CfgTestData::new();
+        let toml = "foo = 42";
+        write_toml(&cfg_data.ducp, toml);
+        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+    }
+
+    #[test]
+    fn load_recommended_user_toml() {
+        let cfg_data = CfgTestData::new();
+        let toml = "foo = 42";
+        write_toml(&cfg_data.rucp, toml);
+        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+    }
+
+    #[test]
+    fn prefer_recommended_to_deprecated() {
+        let cfg_data = CfgTestData::new();
+        let toml = "foo = 42";
+        write_toml(&cfg_data.rucp, toml);
+        write_toml(&cfg_data.ducp, "foo = 13");
+        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
+
+        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+    }
+
     #[test]
     fn serialize_config() {
-        let pkg_id = PackageIdent::new("testing", "testing", Some("1.0.0"), Some("20170712000000"));
-        let pkg_install = PackageInstall::new_from_parts(
-            pkg_id.clone(),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-        );
-        let pkg = Pkg::from_install(pkg_install).expect("Could not create package!");
         let concrete_path = TempDir::new("habitat_config_test").expect("create temp dir");
-
-        let mut cfg = Cfg::new(&pkg, Some(&concrete_path.as_ref().to_path_buf()))
-            .expect("Could not create config");
-
-        let default_toml = "shards = []\n\n[datastore]\ndatabase = \"builder_originsrv\"\npassword = \"\"\nuser = \"hab\"\n";
+        let pkg = TestPkg::new(&concrete_path);
+        let mut cfg = Cfg::new(&pkg, None).expect("Could not create config");
+        let default_toml = "shards = []\n\n\
+                            [datastore]\n\
+                            database = \"builder_originsrv\"\n\
+                            password = \"\"\n\
+                            user = \"hab\"\n";
 
         cfg.default = Some(toml::Value::Table(
             toml::de::from_str(default_toml).unwrap(),

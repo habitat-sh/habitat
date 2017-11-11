@@ -136,6 +136,7 @@ fn start(ui: &mut UI) -> Result<()> {
                         ("start", Some(m)) => sub_bldr_job_start(ui, m)?,
                         ("cancel", Some(m)) => sub_bldr_job_cancel(ui, m)?,
                         ("promote", Some(m)) => sub_bldr_job_promote(ui, m)?,
+                        ("status", Some(m)) => sub_bldr_job_status(ui, m)?,
                         _ => unreachable!(),
                     }
                 }
@@ -431,6 +432,13 @@ fn sub_bldr_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     command::bldr::job::promote::start(ui, &url, &group_id, &channel, &token)
 }
 
+fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let group_id = m.value_of("GROUP_ID");
+    let origin = m.value_of("ORIGIN");
+    command::bldr::job::status::start(ui, &url, group_id, origin)
+}
+
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let name = m.value_of("PKG_NAME").map(|v| v.into());
     let origin = origin_param_or_env(&m)?;
@@ -665,6 +673,9 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         }
         ("pkg", "export", "cf") => {
             command::pkg::export::cf::start(ui, env::args_os().skip(4).collect())
+        }
+        ("pkg", "export", "kubernetes") => {
+            command::pkg::export::kubernetes::start(ui, env::args_os().skip(4).collect())
         }
         ("run", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
         ("stu", _, _) | ("stud", _, _) | ("studi", _, _) | ("studio", _, _) => {

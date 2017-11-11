@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::net::IpAddr;
+use std::os::unix::io::FromRawFd;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
@@ -100,6 +101,7 @@ impl<'a> Studio<'a> {
         if let Some(val) = env::var_os(RUNNER_DEBUG_ENVVAR) {
             cmd.env("DEBUG", val);
         }
+        cmd.env("PATH", env::var("PATH").unwrap_or(String::from(""))); // Sets `$PATH`
         cmd.env(NONINTERACTIVE_ENVVAR, "true"); // Disables progress bars
         cmd.env("TERM", "xterm-256color"); // Emits ANSI color codes
         // propagate debugging environment variables into Airlock and Studio
@@ -109,7 +111,10 @@ impl<'a> Studio<'a> {
             }
         }
         cmd.stdout(Stdio::piped());
-        cmd.stderr(Stdio::piped());
+        // TED TODO: This will not work on windows. A more robust threading solution will be required for log_pipe
+        // to support consuming stderr and stdout.
+        // This manifests when a child starts (studio) and has an error (often unseen) then suddenly stops all execution.
+        cmd.stderr(unsafe { Stdio::from_raw_fd(1) }); // Log stderr to stdout
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
@@ -156,7 +161,6 @@ impl<'a> Studio<'a> {
             cmd.env_clear();
             cmd.env("HOME", &*STUDIO_HOME.lock().unwrap()); // Sets `$HOME` for build user
             cmd.env("USER", STUDIO_USER); // Sets `$USER` for build user
-            cmd.env("PATH", env::var("PATH").unwrap_or(String::from(""))); // Sets `$PATH`
             cmd.arg("run");
             cmd.arg("--fs-root");
             cmd.arg(self.workspace.studio());

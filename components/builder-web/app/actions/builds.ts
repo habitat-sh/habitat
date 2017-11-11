@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { BuilderApiClient } from '../client/builder-api';
 import * as depotApi from '../client/depot-api';
+import { BuilderApiClient } from '../client/builder-api';
 import { addNotification } from './notifications';
-import { SUCCESS } from './notifications';
+import { DANGER, SUCCESS } from './notifications';
 
 export const CLEAR_BUILD = 'CLEAR_BUILD';
 export const CLEAR_BUILD_LOG = 'CLEAR_BUILD_LOG';
@@ -54,7 +54,13 @@ export function submitJob(origin: string, name: string, token: string) {
         }));
         setTimeout(() => { dispatch(fetchBuilds(origin, name, token)); }, 5000);
       })
-      .catch(error => console.error(error));
+      .catch(error => {
+        dispatch(addNotification({
+          title: 'Build request failed',
+          body: `Reason: ${error}`,
+          type: DANGER
+        }));
+      });
   };
 }
 

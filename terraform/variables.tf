@@ -79,6 +79,14 @@ variable "private_subnet_id" {
   description = "Identifier for private AWS subnet"
 }
 
+variable "worker_studio_subnet_id" {
+  description = "Identifier for a Worker's Studio AWS subnet"
+}
+
+variable "worker_studio_gateway_ip" {
+  description = "IP Address for the Worker's Studio internet gateway"
+}
+
 variable "peers" {
   type        = "list"
   description = "List of addresses for initial Supervisor peer(s)"

@@ -115,6 +115,20 @@ pub fn get() -> App<'static, 'static> {
                         "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
+                (@subcommand status =>
+                    (@group status =>
+                        (@attributes +required)
+                        (@arg GROUP_ID: +required +takes_value
+                            "The group id that was returned from \"hab bldr job start\" \
+                            (ex: 771100000000000000)")
+                        (@arg ORIGIN: -o --origin +takes_value
+                            "You can see the status of every group in an origin by providing this value")
+                    )
+                    (about: "Get the status of a job group")
+                    (aliases: &["stat", "statu"])
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                )
             )
             (@subcommand encrypt =>
                 (about: "Reads a stdin stream containing plain text and outputs \
@@ -225,7 +239,7 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Exports the package to the specified format")
                 (aliases: &["exp"])
                 (@arg FORMAT: +required +takes_value
-                    "The export format (ex: aci, cf, docker, mesos, or tar)")
+                    "The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
                     filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")

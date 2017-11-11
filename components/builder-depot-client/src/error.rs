@@ -15,6 +15,7 @@
 use std::error;
 use std::io;
 use std::fmt;
+use std::num;
 use std::result;
 
 use hyper;
@@ -35,6 +36,7 @@ pub enum Error {
     Json(serde_json::Error),
     NoFilePart,
     NoXFilename,
+    ParseIntError(num::ParseIntError),
     IdentNotFullyQualified,
     UploadFailed(String),
     UrlParseError(url::ParseError),
@@ -63,6 +65,7 @@ impl fmt::Display for Error {
             Error::NoXFilename => {
                 format!("Invalid download from Builder - missing X-Filename header")
             }
+            Error::ParseIntError(ref err) => format!("{}", err),
             Error::IdentNotFullyQualified => {
                 format!(
                     "Cannot perform the specified operation. \
@@ -93,6 +96,7 @@ impl error::Error for Error {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
             Error::NoXFilename => "Invalid download from Builder - missing X-Filename header",
+            Error::ParseIntError(ref err) => err.description(),
             Error::IdentNotFullyQualified => {
                 "Cannot perform the specified operation. \
                 Specify a fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)"

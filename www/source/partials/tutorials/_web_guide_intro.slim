@@ -1,7 +1,10 @@
 section
  h1 Build your #{current_page.data.platform} web application with Habitat
 
- p This guide shows how to use the #{current_page.data.platform} scaffolding to build and run your web application with Habitat. It explores how to extend and customize your Habitat package based on some common overrides to the default scaffolding behavior. For the complete reference on how to use the #{current_page.data.platform} scaffolding, see the  #{link_to 'reference topic', "https://github.com/habitat-sh/core-plans/blob/master/scaffolding-#{current_page.data.platform_short}/doc/reference.md"} that accomplanies the #{current_page.data.platform} scaffolding.
+ - if "#{current_page.data.platform_short}" == "gradle"
+   p This guide shows how to use the #{current_page.data.platform} scaffolding to build and run your Java web application with Habitat. It explores how to extend and customize your Habitat package based on common overrides to the default scaffolding behavior. For the complete reference on how to use the #{current_page.data.platform} scaffolding, see the  #{link_to 'reference topic', "https://github.com/habitat-sh/core-plans/blob/master/scaffolding-#{current_page.data.platform_short}/doc/reference.md"} that accomplanies the scaffolding source code.
+ - else
+   p This guide shows how to use the #{current_page.data.platform} scaffolding to build and run your #{current_page.data.platform} web application with Habitat. It explores how to extend and customize your Habitat package based on common overrides to the default scaffolding behavior. For the complete reference on how to use the #{current_page.data.platform} scaffolding, see the  #{link_to 'reference topic', "https://github.com/habitat-sh/core-plans/blob/master/scaffolding-#{current_page.data.platform_short}/doc/reference.md"} that accomplanies the scaffolding source code.
 
  h2 In this guide
 

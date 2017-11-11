@@ -60,6 +60,7 @@ pub enum Error {
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
     RootRequired,
+    ScheduleStatus(depot_client::Error),
     SubcommandNotSupported(String),
     UnsupportedExportFormat(String),
     TomlDeserializeError(toml::de::Error),
@@ -150,6 +151,7 @@ impl fmt::Display for Error {
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
+            Error::ScheduleStatus(ref e) => format!("Failed to retrieve job group status: {:?}", e),
             Error::SubcommandNotSupported(ref e) => {
                 format!("Subcommand `{}' not supported on this operating system", e)
             }
@@ -204,6 +206,7 @@ impl error::Error for Error {
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation"
             }
+            Error::ScheduleStatus(ref err) => err.description(),
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
             Error::UnsupportedExportFormat(_) => "Unsupported export format",
             Error::TomlDeserializeError(_) => "Can't deserialize TOML",
