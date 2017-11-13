@@ -21,6 +21,8 @@ section
   li #{link_to 'Build and Test',"/tutorials/build-your-own/#{current_page.data.platform_short}/build-test/"}: Learn how to build, test, and run your web application package.
   - if "#{current_page.data.platform_short}" == "ruby"
     li #{link_to 'Connect to a Database',"/tutorials/build-your-own/#{current_page.data.platform_short}/connect-database/"}: Describes how to connect your web application to a PostgreSQL database through a container, in the cloud, or in a lcoal cluster.
+  - if "#{current_page.data.platform_short}" == "node"
+    li #{link_to 'Connect to a Database',"/tutorials/build-your-own/#{current_page.data.platform_short}/connect-database/"}: Describes how to connect your web application to a mongoDB database through a container or in a lcoal cluster.
   li #{link_to 'Connect to Nginx',"/tutorials/build-your-own/#{current_page.data.platform_short}/connect-nginx/"}: Explains how you can use the popular web server Nginx as a reverse proxy for your web application.
   li #{link_to 'Next Steps',"/tutorials/build-your-own/#{current_page.data.platform_short}/next-steps/"}: Provides suggested topics for further reading within the reference documentation and blog posts.
 
