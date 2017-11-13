@@ -105,12 +105,18 @@ pub fn get() -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand promote =>
-                    (about: "Promote every package in completed build job to a specified channel")
+                    (about: "Promote packages from a completed build job to a specified channel")
                     (aliases: &["p", "pr", "pro", "prom", "promo", "promot"])
                     (@arg GROUP_ID: +required +takes_value
                         "The job id that was returned from \"hab bldr start\" \
                         (ex: 771100000000000000)")
                     (@arg CHANNEL: +takes_value +required "The target channel name")
+                    (@arg ORIGIN: -o --origin +takes_value
+                        "Limit the promotable packages to the specified origin")
+                    (@arg INTERACTIVE: -i --interactive
+                        "Allow editing the list of promotable packages")
+                    (@arg VERBOSE: -v --verbose
+                        "Show full list of promotable packages")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")

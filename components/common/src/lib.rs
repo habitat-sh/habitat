@@ -29,6 +29,7 @@ extern crate tempdir;
 extern crate term;
 extern crate time;
 extern crate toml;
+extern crate uuid;
 
 pub use self::error::{Error, Result};
 

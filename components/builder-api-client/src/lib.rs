@@ -55,7 +55,7 @@ pub struct ReverseDependencies {
 
 #[derive(Default, Deserialize)]
 pub struct JobGroupPromoteResponse {
-    pub group_id: u64,
+    pub group_id: String,
     pub not_promoted: Vec<PackageIdent>,
 }
 
@@ -155,16 +155,25 @@ impl Client {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn job_group_promote(
+    pub fn job_group_promote<T: AsRef<str> + serde::Serialize>(
         &self,
         group_id: u64,
+        idents: &[T],
         channel: &str,
         token: &str,
     ) -> Result<Vec<PackageIdent>> {
+        let json_idents = json!(idents);
+        let body = json!({
+            "idents": json_idents
+        });
+        let sbody = serde_json::to_string(&body).unwrap();
         let url = format!("jobs/group/{}/promote/{}", group_id, channel);
-        let res = self.add_authz(self.0.post(&url), token).send().map_err(
-            Error::HyperError,
-        )?;
+        let res = self.add_authz(self.0.post(&url), token)
+            .body(&sbody)
+            .header(Accept::json())
+            .header(ContentType::json())
+            .send()
+            .map_err(Error::HyperError)?;
 
         if res.status != StatusCode::Ok {
             debug!("Failed to promote group, status: {:?}", res.status);

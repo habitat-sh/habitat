@@ -38,3 +38,8 @@ pub struct ProjectUpdateReq {
 pub struct UserUpdateReq {
     pub email: String,
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct GroupPromoteReq {
+    pub idents: Vec<String>,
+}

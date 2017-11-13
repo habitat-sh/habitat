@@ -29,15 +29,13 @@ use protocol::originsrv::{CheckOriginOwnerRequest, CheckOriginOwnerResponse,
                           OriginPackageChannelListResponse, OriginPackageGet,
                           OriginPackageGroupPromote, OriginPackageIdent,
                           OriginPackagePlatformListRequest, OriginPackagePlatformListResponse,
-                          OriginPackagePromote, OriginPackageGroupPromoteResponse,
-                          OriginPackageVisibility, OriginPublicKeyCreate, OriginPublicKey,
-                          OriginSecretKey, OriginSecretKeyCreate};
+                          OriginPackagePromote, OriginPackageVisibility, OriginPublicKeyCreate,
+                          OriginPublicKey, OriginSecretKey, OriginSecretKeyCreate};
 use protocol::jobsrv::{JobGroup, JobGroupGet, JobGroupProject, JobGroupProjectState};
 use protocol::sessionsrv::Session;
 use serde::Serialize;
 use serde_json;
 use urlencoded::UrlEncodedQuery;
-use protobuf::RepeatedField;
 
 use router::Router;
 use super::controller::route_message;
@@ -339,8 +337,9 @@ pub fn promote_package_to_channel(
 pub fn promote_job_group_to_channel(
     req: &mut Request,
     group_id: u64,
+    idents: Option<Vec<String>>,
     channel: &str,
-) -> NetResult<OriginPackageGroupPromoteResponse> {
+) -> NetResult<NetOk> {
     let mut group_get = JobGroupGet::new();
     group_get.set_group_id(group_id);
     let group = route_message::<JobGroupGet, JobGroup>(req, &group_get)?;
@@ -360,9 +359,17 @@ pub fn promote_job_group_to_channel(
         ));
     }
 
-    let mut opgpr = OriginPackageGroupPromoteResponse::new();
-    let mut not_promoted = RepeatedField::new();
     let mut origin_map = HashMap::new();
+
+    let mut ident_map = HashMap::new();
+    let has_idents = if idents.is_some() {
+        for ident in idents.unwrap().iter() {
+            ident_map.insert(ident.clone(), 1);
+        }
+        true
+    } else {
+        false
+    };
 
     // We can't assume that every project in the group belongs to the same origin. It's entirely
     // possible that there are multiple origins present within the group. Because of this, there's
@@ -373,14 +380,16 @@ pub fn promote_job_group_to_channel(
     // currently have.
     for project in group.get_projects().into_iter() {
         if project.get_state() == JobGroupProjectState::Success {
-            let ident = OriginPackageIdent::from_str(project.get_ident()).unwrap();
+            let ident_str = project.get_ident();
+            if has_idents && !ident_map.contains_key(ident_str) {
+                continue;
+            }
 
+            let ident = OriginPackageIdent::from_str(ident_str).unwrap();
             let project_list = origin_map.entry(ident.get_origin().to_string()).or_insert(
                 Vec::new(),
             );
             project_list.push(project);
-        } else {
-            not_promoted.push(OriginPackageIdent::from_str(project.get_name()).unwrap());
         }
     }
 
@@ -396,9 +405,7 @@ pub fn promote_job_group_to_channel(
         }
     }
 
-    opgpr.set_group_id(group_id);
-    opgpr.set_not_promoted(not_promoted);
-    Ok(opgpr)
+    Ok(NetOk::new())
 }
 
 pub fn get_optional_session_id(req: &mut Request) -> Option<u64> {

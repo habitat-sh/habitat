@@ -57,7 +57,7 @@ fn do_job_group_status(
     match depot_client.get_schedule(gid) {
         Ok(status) => {
             println!("");
-            println!("{}", status);
+            println!("{}", status.to_string());
             Ok(())
         }
         Err(e) => Err(Error::ScheduleStatus(e)),

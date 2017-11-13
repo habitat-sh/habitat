@@ -428,8 +428,20 @@ fn sub_bldr_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let origin = m.value_of("ORIGIN");
+    let interactive = m.is_present("INTERACTIVE");
+    let verbose = m.is_present("VERBOSE");
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::promote::start(ui, &url, &group_id, &channel, &token)
+    command::bldr::job::promote::start(
+        ui,
+        &url,
+        &group_id,
+        &channel,
+        origin,
+        interactive,
+        verbose,
+        &token,
+    )
 }
 
 fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches) -> Result<()> {
