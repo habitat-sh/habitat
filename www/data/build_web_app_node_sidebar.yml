@@ -21,6 +21,8 @@ sidebar_links:
       link: /tutorials/build-your-own/node/add-config/
     - title: Build and Test
       link: /tutorials/build-your-own/node/build-test/
+    - title: Connect to a Database
+      link: /tutorials/build-your-own/node/connect-database/
     - title: Connect to Nginx
       link: /tutorials/build-your-own/node/connect-nginx/
   - title: Next Steps
