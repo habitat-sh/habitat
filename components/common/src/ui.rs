@@ -410,7 +410,7 @@ impl UI {
     }
 
     pub fn edit<T: AsRef<str>>(&mut self, contents: &[T]) -> Result<String> {
-        let editor = env::var("EDITOR").map_err(|e| Error::VarError(e))?;
+        let editor = env::var("EDITOR").map_err(|e| Error::EditorEnv(e))?;
 
         let mut tmp_file_path = env::temp_dir();
         tmp_file_path.push(format!("_hab_{}.tmp", Uuid::new_v4()));
