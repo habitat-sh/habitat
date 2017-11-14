@@ -20,7 +20,7 @@ import { List } from 'immutable';
 import { MockComponent } from 'ng2-mock-component';
 import { SearchResultsComponent } from './results.component';
 
-describe('SearchResultsListComponent', () => {
+describe('SearchResultsComponent', () => {
   let fixture: ComponentFixture<SearchResultsComponent>;
   let component: SearchResultsComponent;
   let element: DebugElement;
@@ -75,6 +75,6 @@ describe('SearchResultsListComponent', () => {
   });
 
   it('renders a list of packages', () => {
-    expect(element.queryAll(By.css('.hab-search-results li .name')).length).toBe(3);
+    expect(element.queryAll(By.css('.results-component li .name')).length).toBe(3);
   });
 });

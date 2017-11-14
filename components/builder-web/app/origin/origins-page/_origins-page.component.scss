@@ -1,91 +1,41 @@
-.hab-origins {
+.origins-page-component {
 
-  .page-body {
+  .nav-list {
+    font-size: $base-font-size;
+  }
 
-    .origin-create {
-      margin-bottom: $base-spacing;
-    }
+  .invitation {
 
-    .origin-create-intro {
-      @include span-columns(8);
-      @include omega;
-      font-size: rem(14);
+    .actions {
+      text-align: right;
+      color: $hab-blue;
+      flex: 0;
+      white-space: nowrap;
+      padding-right: $default-padding;
 
-      p {
-        margin-bottom: inherit;
+      &.column {
+        flex: none;
+      }
 
-        &:first-child {
-          margin-top: 0;
+      @include tablet-up {
+        flex: 1;
+        padding-right: $default-padding * 2;
+
+        &.column {
+          flex: 1;
         }
       }
-    }
-
-    ul {
-
-      li {
-        @include row;
-        border-bottom: 1px solid $very-light-gray;
-        font-size: rem(14);
-        padding: 15px 10px;
-        position: relative;
+  
+      .action {
+        border-radius: $default-radius;
+        padding: $default-padding / 4 $default-padding / 2;
         cursor: pointer;
-
-        h3, > span {
-          @include span-columns(4);
-          margin: 0;
-        }
-
-        h3 {
-          font-size: rem(12);
-          text-transform: uppercase;
-        }
-
-        .name {
-          font-weight: 600;
-        }
-
-        &.invitation {
-          cursor: auto;
-
-          .name {
-            color: $medium-gray;
-          }
-        }
-
-        .package-count {
-          font-size: rem(12);
-          color: $medium-gray;
-        }
-
-        .actions {
-          text-align: right;
-          color: $hab-blue;
-
-          .action {
-            border-radius: $global-radius;
-            padding: 4px 8px;
-            cursor: pointer;
-            margin-left: 8px;
-            transition: color .2s, background-color .2s;
-
-            &:hover {
-              background-color: lighten($hab-blue, 10%);
-              color: white;
-            }
-          }
-        }
-
-        hab-icon[symbol="chevron-right"] {
-          @include chevron-right;
-          display: none;
-        }
-
-        &:not(.heading):hover {
-          background-color: rgba($medium-gray, 0.05);
-
-          hab-icon[symbol="chevron-right"] {
-            display: block;
-          }
+        margin-left: 8px;
+        transition: color .2s, background-color .2s;
+  
+        &:hover {
+          background-color: $hab-blue;
+          color: white;
         }
       }
     }

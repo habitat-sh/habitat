@@ -1,27 +1,25 @@
-<div class="page-body origin-keys-tab">
-  <div class="page-content">
+<div class="origin-keys-tab-component body">
+  <div class="content">
     <section class="generate" *ngIf="memberOfOrigin">
       <button mat-raised-button color="primary" (click)="generateKeys()">
         Generate a key pair
       </button>
     </section>
     <section class="private" *ngIf="memberOfOrigin">
-      <ul>
-        <li>
-          <h3 class="key">Private Key</h3>
-          <h3 class="actions">Actions</h3>
+      <ul class="action-list">
+        <li class="heading">
+          <h4>Private Key</h4>
+          <h4>Actions</h4>
         </li>
-        <li *ngIf="!privateKey">
-          <span class="none">
-            <strong>No private key found</strong>. You can generate a key pair above.
-          </span>
+        <li class="none" *ngIf="!privateKey">
+          <span>No private key found. You can generate a key pair above.</span>
         </li>
-        <li *ngIf="privateKey">
-          <span class="key">
+        <li class="item" *ngIf="privateKey">
+          <span class="column name">
             <hab-icon symbol="visibility-off"></hab-icon>
             <span>{{ privateKey }}</span>
           </span>
-          <span class="actions">
+          <span class="column actions">
             <a (click)="downloadPrivateKey()">
               <hab-icon symbol="file-download" title="Download this key"></hab-icon>
             </a>
@@ -35,22 +33,22 @@
     </section>
     <hr>
     <section class="public">
-      <ul>
-        <li>
-          <h3 class="key">Public Keys</h3>
-          <h3 class="actions">Actions</h3>
+      <ul class="action-list">
+        <li class="heading">
+          <h4>Public Keys</h4>
+          <h4>Actions</h4>
         </li>
         <li class="none" *ngIf="publicKeys.size === 0">
           <span class="none">
             <strong>No public key found</strong>. You can generate a key pair above.
           </span>
         </li>
-        <li *ngFor="let key of publicKeys">
-          <span class="key">
+        <li class="item" *ngFor="let key of publicKeys">
+          <span class="column name">
             <hab-icon symbol="visibility"></hab-icon>
             <span>{{ key.origin }}-{{ key.revision }}</span>
           </span>
-          <span class="actions">
+          <span class="column actions">
             <a href="{{ urlFor(key) }}">
               <hab-icon symbol="file-download" title="Download this key"></hab-icon>
             </a>
@@ -63,7 +61,7 @@
       </button>
     </section>
   </div>
-  <div class="page-sidebar">
+  <aside>
     <h3>About Origin Keys</h3>
     <p>
       Origin keys are used to sign .hart files, providing the capability to verify their authenticity at both build and runtime.
@@ -76,5 +74,6 @@
       Read the docs for more information on
       <a href="{{ config['docs_url'] }}/glossary/#sts=Origin Keys" target="_blank">Origin Keys</a>.
     </p>
-  </div>
+  </aside>
 </div>
+

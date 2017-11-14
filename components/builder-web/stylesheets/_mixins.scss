@@ -1,114 +1,43 @@
-// Sass Mixins
-// Shared between Habitat web properties
+$tablet-width: 768px;
+$desktop-width: 1024px;
 
-// Boxes and shadows
-@mixin shadow-float {
-  box-shadow: 0 2px 14px 0 $medium-gray-20;
+@mixin shadow {
+  box-shadow: 0 0 $small-margin 0 $medium-gray;
 }
 
-@mixin shadow-float-more {
-  box-shadow: 0 2px 20px 0 $medium-gray-40;
-}
-
-@mixin dropdown-panel {
-  @include shadow-float-more;
+@mixin shadow-panel {
+  @include shadow;
   background-color: $white;
-  border-radius: $global-radius;
+  border-radius: $default-radius;
+  padding: $default-padding;
   height: auto;
-  padding: rem(15);
   width: auto;
 }
 
-@mixin chevron-right {
+@mixin icon-size($size: 16) {
+  width: #{$size}px;
+  height: #{$size}px;
+}
+
+@mixin clickable-icon {
+  cursor: pointer;
+  @include icon-size(16);
+}
+
+@mixin tablet-up {
+  @media (min-width: #{$tablet-width}) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: #{$desktop-width}) {
+    @content;
+  }
+}
+
+@mixin vertically-centered {
   position: absolute;
-  right: $small-spacing;
-  height: rem(24);
-  width: rem(24);
   top: 50%;
   transform: translateY(-50%);
-  font-size: rem(24);
-}
-
-// Buttons
-@mixin hab-button ($color1: $hab-green, $color2: $hab-green-dark, $textcolor: $hab-white) {
-  background-color: $color1;
-  background-image: linear-gradient(to left, lighten($color1, 5%), lighten($color2, 3%) 100%);
-  border: 0;
-  border-radius: 2px;
-  color: $textcolor;
-  font-size: rem-calc(16);
-  letter-spacing: rem-calc(1);
-  padding: rem(10) rem(25);
-
-  &:hover {
-    @include shadow-float-more;
-    @include transition(all 0.2s ease-in-out);
-    background-color: $color1;
-  }
-}
-
-@mixin primary-button($color1: $hab-orange, $color2: $hab-orange-dark) {
-  @include hab-button;
-  @include shadow-float;
-  @include transition(all 0.2s ease-in-out);
-  background-color: $color1;
-  background-image: linear-gradient(to left, lighten($color1, 13%), lighten($color2, 5%) 100%);
-}
-
-@mixin secondary-button {
-  @include hab-button($hab-orange-dark);
-  background-color: transparent;
-}
-
-@mixin cta-button {
-  @include primary-button($hab-orange, $hab-orange-dark);
-  color: $hab-blue-dark;
-}
-
-
-// ------------------------------------------------------------
-// Omega Reset (http://www.joshfry.me/blog/2013/05/13/omega-reset-for-bourbon-neat)
-// ------------------------------------------------------------
-
-@mixin omega-reset($nth, $columns: 12) {
-  &:nth-child(#{$nth}) { margin-right: flex-gutter($columns); }
-  &:nth-child(#{$nth}+1) { clear: none; }
-}
-
-// ------------------------------------------------------------
-// Social links
-// ------------------------------------------------------------
-
-%social-icons {
-  .social {
-
-    li {
-      margin-bottom: 0.625rem;
-    }
-
-    a {
-      background: url("/assets/images/icons-social.svg") no-repeat;
-      padding-left: 1.875rem;
-
-      &.github {
-        background-position: left top;
-      }
-
-      &.slack {
-        background-position: left -32px;
-      }
-
-      &.youtube {
-        background-position: left -64px;
-      }
-
-      &.rss {
-        background-position: left -94px;
-      }
-
-      &.twitter {
-        background-position: left bottom;
-      }
-    }
-  }
 }

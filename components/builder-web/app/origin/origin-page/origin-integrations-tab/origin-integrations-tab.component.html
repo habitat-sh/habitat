@@ -1,95 +1,53 @@
-<div class="page-body integrations-tab">
-  <div>
-    <h3>
-      <hab-icon symbol="docker"></hab-icon>
-      Container Registries
-    </h3>
-    <p>
-      When connecting a plan file to the Habitat Build Service, you can optionally export the result of your package build jobs
-      (.hart file) to a Docker container and publish it to your registry account(s).
-    </p>
-    <mat-grid-list cols="2" gutterSize="15px" rowHeight=60 class="registries">
-      <mat-grid-tile>
-        <button id="docker" mat-raised-button (click)="addIntegration('docker')" class="mat-elevation-z">
-          <span class="icon logo docker">
-            <hab-icon symbol="docker"></hab-icon>
-          </span>
-          <span class="icon">
-            <hab-icon symbol="add-circle"></hab-icon>
-          </span>
-          <span>
-            <strong>Docker Hub</strong>
-          </span>
-        </button>
-      </mat-grid-tile>
-      <!--
-        Coming Soon.cat!
-      <mat-grid-tile>
-        <button id="google" mat-raised-button disabled (click)="addIntegration('google')">
-          <span class="icon logo google">
-            <hab-icon symbol="google"></hab-icon>
-          </span>
-          <span class="icon">
-            <hab-icon symbol="add-circle"></hab-icon>
-          </span>
-          <span>
-            <strong>Google Container Registry</strong>
-          </span>
-        </button>
-      </mat-grid-tile>
-      -->
-      <mat-grid-tile>
-        <button id="amazon" mat-raised-button (click)="addIntegration('amazon')" class="mat-elevation-z">
-          <span class="icon logo amazon">
-            <hab-icon symbol="amazon"></hab-icon>
-          </span>
-          <span class="icon">
-            <hab-icon symbol="add-circle"></hab-icon>
-          </span>
-          <span>
-            <strong>Amazon Container Registry</strong>
-          </span>
-        </button>
-      </mat-grid-tile>
-      <!--
-      <mat-grid-tile>
-        <button id="azure" mat-raised-button disabled (click)="addIntegration('azure')">
-          <span class="icon logo azure">
-            <hab-icon symbol="windows"></hab-icon>
-          </span>
-          <span class="icon">
-            <hab-icon symbol="add-circle"></hab-icon>
-          </span>
-          <span>
-            <strong>Azure Container Registry</strong>
-          </span>
-        </button>
-      </mat-grid-tile>
-    -->
-    </mat-grid-list>
-  </div>
-  <section>
-    <ul>
-      <li>
-        <h3 class="name">Registry Account</h3>
-        <h3 class="actions">Actions</h3>
-      </li>
-      <li class="none" *ngIf="(integrations | habKeysPipe).length === 0">
-        <span class="none">
-          <strong>No container registry accounts found.</strong>
-        </span>
-      </li>
-      <ng-container *ngFor="let type of integrations | habKeysPipe">
-        <li *ngFor="let integration of integrations[type]">
-          <span class="name">
-            <hab-icon [symbol]="type"></hab-icon>
-            <span>{{ integration }}</span>
-          </span>
-          <span class="actions">
-            <hab-icon symbol="cancel" title="Delete this integration" (click)="deleteIntegration(integration, type)"></hab-icon>
+<div class="origin-integrations-tab-component body">
+  <div class="content">
+    <section>
+      <h3>
+        <hab-icon symbol="docker"></hab-icon>
+          Container Registries
+      </h3>
+      <p>
+        When connecting a plan file to the Habitat Build Service, you can optionally export the result of your package build jobs
+        (.hart file) to a Docker container and publish it to your registry account(s).
+      </p>
+      <div class="buttons">
+        <div class="wrapper" *ngFor="let provider of providers">
+          <button mat-raised-button (click)="addIntegration(provider.key)">
+            <div class="tile {{ provider.key }}">
+              <hab-icon [symbol]="provider.key"></hab-icon>
+            </div>
+            <div class="add-icon">
+              <hab-icon symbol="add-circle"></hab-icon>
+            </div>
+            <div class="label">
+              {{ provider.name }}
+            </div>
+          </button>
+        </div>
+      </div>
+    </section>
+    <section>
+      <ul class="action-list">
+        <li class="heading">
+          <h4>Registry Account</h4>
+          <h4>Actions</h4>
+        </li>
+        <li class="none" *ngIf="(integrations | habKeysPipe).length === 0">
+          <span class="none">
+            No container registry accounts found.
           </span>
         </li>
-      </ng-container>
-    </ul>
-  </section>
+        <ng-container *ngFor="let type of integrations | habKeysPipe">
+          <li class="item" *ngFor="let integration of integrations[type]">
+            <span class="column name">
+              <hab-icon [symbol]="type"></hab-icon>
+              <span>{{ integration }}</span>
+            </span>
+            <span class="column actions">
+              <hab-icon symbol="cancel" title="Delete this integration" (click)="deleteIntegration(integration, type)"></hab-icon>
+            </span>
+          </li>
+        </ng-container>
+      </ul>
+    </section>
+  </div>
 </div>

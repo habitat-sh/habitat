@@ -1,13 +1,8 @@
 .hab-build-notice {
-  @include row;
-  font-size: rem(14);
-  padding: 0 8px 8px 8px;
-  margin-bottom: 22px;
+  padding-bottom: $default-padding / 2;
+  margin-bottom: $default-margin;
 
   hab-icon {
-    width: 1.4em;
-    margin-right: 2px;
-
     &.dispatched, &.processing {
       @extend hab-icon.spinning;
     }
@@ -18,20 +13,22 @@
   }
 
   &.dispatched, &.processing {
-    border-bottom: 2px solid $hab-orange;
-    color: $hab-orange;
+    $processing: map-get($status-colors, processing);
+    border-bottom: 2px solid $processing;
+    color: $processing;
 
     a {
-      color: $hab-orange;
+      color: $processing;
     }
   }
 
   &.pending {
-    border-bottom: 2px solid $hab-blue;
-    color: $hab-blue;
+    $pending: map-get($status-colors, pending);
+    border-bottom: 2px solid $pending;
+    color: $pending;
 
     a {
-      color: $hab-blue;
+      color: $pending;
     }
   }
 }

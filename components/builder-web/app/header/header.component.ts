@@ -14,6 +14,7 @@
 
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
+import { AppStore } from '../app.store';
 import config from '../config';
 
 @Component({
@@ -29,7 +30,9 @@ export class HeaderComponent {
   @Input() signOut;
   @Input() toggleUserNavMenu;
 
-  constructor(private router: Router) { }
+  private open: boolean = false;
+
+  constructor(private store: AppStore, private router: Router) { }
 
   get config() {
     return config;
@@ -41,6 +44,24 @@ export class HeaderComponent {
     }
     else {
       return 'depot';
+    }
+  }
+
+  get signedIn() {
+    return !!this.store.getState().session.token;
+  }
+
+  get isOpen() {
+    return this.open;
+  }
+
+  toggleMenu() {
+    this.open = !this.open;
+  }
+
+  handleClick() {
+    if (this.open) {
+      this.open = false;
     }
   }
 }

@@ -86,7 +86,7 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
     }
 
     function rectFor(selector) {
-      return document.querySelector(`.hab-build ${selector}`).getBoundingClientRect();
+      return document.querySelector(`.build-detail-component ${selector}`).getBoundingClientRect();
     }
 
     return props;

@@ -17,7 +17,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { MatTabsModule, MatRadioModule, MatButtonModule, MatDialogModule, MatGridListModule } from '@angular/material';
+import { MatTabsModule, MatRadioModule, MatButtonModule, MatDialogModule } from '@angular/material';
 import { IntegrationDeleteConfirmDialog } from './origin-integrations-tab/dialog/integration-delete-confirm/integration-delete-confirm.dialog';
 import { GenerateKeysConfirmDialog } from './origin-keys-tab/dialog/generate-keys-confirm/generate-keys-confirm.dialog';
 import { KeyAddFormDialog } from './origin-keys-tab/key-add-form/key-add-form.dialog';
@@ -44,7 +44,6 @@ import { OriginSettingsTabComponent } from './origin-settings-tab/origin-setting
 import { OriginIntegrationsTabComponent } from './origin-integrations-tab/origin-integrations-tab.component';
 import { IntegrationCredentialsFormDialog } from './integration-credentials-form/integration-credentials-form.dialog';
 import { SharedModule } from '../../shared/shared.module';
-import { MatMenuModule } from '@angular/material';
 
 export const imports = [
   BrowserAnimationsModule,
@@ -54,8 +53,6 @@ export const imports = [
   MatRadioModule,
   MatDialogModule,
   MatButtonModule,
-  MatMenuModule,
-  MatGridListModule,
   ReactiveFormsModule,
   RouterModule,
   OriginPageRoutingModule,

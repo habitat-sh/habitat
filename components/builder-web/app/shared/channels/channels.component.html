@@ -1,5 +1,7 @@
-<ul class="channels">
-  <li class="channel {{ channel }}" *ngFor="let channel of channels">
-    <span>{{ channel }}</span>
-  </li>
-</ul>
+<div class="channels-component">
+  <ul>
+    <li [class]="channel" *ngFor="let channel of channels">
+      <span>{{ channel }}</span>
+    </li>
+  </ul>
+</div>

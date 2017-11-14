@@ -1,4 +1,4 @@
-<div class="content">
+<div class="project-settings-component">
   <div class="connect" *ngIf="!project && !connecting">
     <button mat-raised-button color="primary" class="button" (click)="connect()" [disabled]="!hasPrivateKey">
       Connect a plan file
@@ -22,46 +22,44 @@
     </div>
   </div>
   <div class="connected-plans" *ngIf="project && !connecting">
-    <ul>
+    <ul class="action-list">
       <li class="heading">
-        <h3 class="plan-path">Plan</h3>
-        <h3 class="plan-exports">&nbsp;</h3>
-        <h3 class="plan-status">Status</h3>
-        <h3 class="plan-actions">Actions</h3>
+        <h4>Plan</h4>
+        <h4>Status</h4>
+        <h4>Actions</h4>
       </li>
       <li class="item">
-        <div class="plan-path">
+        <span class="column name">
           <hab-icon [symbol]="iconFor(project.plan_path)"></hab-icon>
           <span>{{ project.plan_path }}</span>
-        </div>
-        <div class="plan-exports">
-          &nbsp;
-        </div>
-        <div class="plan-status">
+        </span>
+        <span class="column plan-status">
           <hab-icon symbol="check" class="success"></hab-icon>
           <span>connected</span>
-        </div>
-        <div class="plan-actions">
-          <hab-icon symbol="cancel" (click)="disconnect()"></hab-icon>
-          <hab-icon symbol="settings" (click)="editConnection()"></hab-icon>
-        </div>
+        </span>
+        <span class="column actions">
+          <hab-icon symbol="cancel" (click)="disconnect()" title="Remove this connection"></hab-icon>
+          <hab-icon symbol="settings" (click)="editConnection()" title="Edit this connection"></hab-icon>
+        </span>
       </li>
     </ul>
   </div>
   <div class="connecting" *ngIf="connecting">
     <form [formGroup]="form" #formValues="ngForm">
-      <p class="note">
-        <hab-icon symbol="github"></hab-icon>
-        <span class="info">
+      <div class="note">
+        <div class="icon">
+          <hab-icon symbol="github"></hab-icon>
+        </div>
+        <div class="info">
           In order to connect a plan file in your repo, you must first install the Habitat Builder GitHub app and allow access to that
           repository.
-        </span>
-        <span class="cta">
+        </div>
+        <div class="cta">
           <a href="{{ config['github_app_url'] }}" mat-raised-button color="accent" class="button" target="_blank">
             Install GitHub App
           </a>
-        </span>
-      </p>
+        </div>
+      </div>
       <ol>
         <li [class.active]="!selectedInstallation" (click)="clearConnection()">Select a GitHub repo</li>
         <li [class.active]="selectedInstallation">Set path to Habitat plan file</li>
@@ -124,5 +122,5 @@
         <a (click)="clearConnection()">Cancel</a>
       </div>
     </form>
-  </div>
+  </div>  
 </div>

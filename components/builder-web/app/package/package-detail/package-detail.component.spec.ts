@@ -71,10 +71,10 @@ describe('PackageDetailComponent', () => {
       fixture.detectChanges();
 
       function textOf(selector) {
-        return element.query(By.css(`.hab-package-detail ${selector}`)).nativeElement.textContent;
+        return element.query(By.css(`.package-detail-component ${selector}`)).nativeElement.textContent;
       }
 
-      expect(textOf('h2')).toContain('core/nginx');
+      expect(textOf('h3')).toContain('core/nginx');
       expect(textOf('.metadata')).toContain('1.11.10');
       expect(textOf('.metadata')).toContain('20170829004822');
       expect(textOf('.metadata')).toContain('some-checksum');

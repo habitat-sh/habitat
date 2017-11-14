@@ -26,7 +26,6 @@ import { deleteOriginMember, fetchOriginMembers, fetchOriginInvitations } from '
 import config from '../../../config';
 
 @Component({
-  selector: 'hab-origin-members-tab',
   template: require('./origin-members-tab.component.html')
 })
 export class OriginMembersTabComponent implements OnInit, OnDestroy {

@@ -12,101 +12,87 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fieldset {
-  background-color: transparent;
-  border: 0;
-  margin: 0;
-  padding: 0;
-}
-
-legend {
-  font-weight: 600;
-  margin-bottom: $small-spacing / 2;
-  padding: 0;
-}
-
-label {
-  color: $hab-gray;
-  font-size: rem(14);
-  display: block;
-  margin-bottom: $small-spacing / 2;
-  text-transform: uppercase;
-}
-
 form {
-  small {
-    color: $hab-gray;
+  color: $hab-text;
+
+  label:not(.mat-radio-label):not(.mat-slide-toggle-label):not(.mat-checkbox-layout) {
+    font-weight: 600;
     display: block;
-    margin-bottom: $small-spacing / 2;
-    margin-top: -($small-spacing / 2);
+    margin-bottom: $small-margin;
   }
 
-  button {
-    margin-top: rem(20);
+  .waiting {
+    color: map-get($form-colors, waiting);
   }
-  .hint, .error {
-    font-size: rem(12px);
+
+  .success {
+    color: map-get($form-colors, success);
   }
+
   .error {
-    color: $hab-red;
+    color: map-get($form-colors, error);
+  }
+
+  p {
+    margin: $default-margin 0;
+  }
+
+  .controls {
+    margin: $default-margin 0;
+
+    button, a {
+      margin-right: $default-margin;
+      cursor: pointer;
+    }
   }
 }
 
-input,
-select {
+input, select {
   display: block;
-  font-family: $base-font-family;
-  font-size: $base-font-size;
 }
 
 input {
-
   &[type="text"], &[type="search"], &[type="password"] {
     -webkit-appearance: textfield
   }
 }
 
-#{$all-text-inputs},
+input[type="text"],
+input[type="password"],
+input[type="search"],
+input[type="email"],
+textarea,
 select,
 select[multiple] {
-  background-color: $base-background-color;
-  border: $base-border;
-  border-radius: $base-border-radius;
-  box-sizing: border-box;
-  font-family: $base-font-family;
-  font-size: rem(14);
-  margin-bottom: $small-spacing * 2;
-  padding: $small-spacing $small-spacing * 1.5;
-  transition: border-color $base-duration $base-timing;
+  background-color: $white;
+  border: $default-border;
+  border-radius: $default-radius;
+  padding: $default-padding / 2;
+  margin-bottom: $default-margin;
   width: 100%;
 
-  &:hover {
-    border-color: shade($base-border-color, 20%);
-  }
-
   &:focus {
-    border-color: $action-color;
-    box-shadow: $form-box-shadow-focus;
     outline: none;
   }
 
   &:disabled {
-    background-color: shade($base-background-color, 5%);
     cursor: not-allowed;
 
     &:hover {
-      border: $base-border;
+      border: $default-border;
     }
   }
 
   &.ng-invalid:focus {
-    border-color: $failure-color;
-    box-shadow: $form-box-shadow-focus-failure;
+    border-color: map-get($form-colors, error);
   }
 
   &.ng-valid:focus {
-    border-color: $success-color;
-    border-color: $form-box-shadow-focus-success;
+    border-color: map-get($form-colors, success);
+  }
+
+  &.ng-pristine:focus {
+    border: 1px solid $medium-gray;
   }
 }
 
@@ -114,33 +100,18 @@ textarea {
   resize: vertical;
 }
 
-[type="checkbox"],
-[type="radio"] {
-  display: inline;
-  margin-right: $small-spacing / 2;
-}
-
-[type="file"] {
-  margin-bottom: $small-spacing;
-  width: 100%;
-}
-
 select {
-  background: $base-background-color url("/assets/images/icons/drop-down.svg") no-repeat right 15px center;
-  margin-bottom: $base-spacing;
+  background: $white url("/assets/images/icons/drop-down.svg") no-repeat right 15px center;
+  margin-bottom: $default-margin;
   max-width: 100%;
   -webkit-appearance: none;
   width: auto;
 }
 
 ::placeholder {
-  color: $hab-gray;
+  color: $medium-gray;
 }
 
-// Angular Material button overrides
-
-.mat-fab:not([class*=mat-elevation-z]),
-.mat-mini-fab:not([class*=mat-elevation-z]),
-.mat-raised-button:not([class*=mat-elevation-z]) {
-    box-shadow: none !important;
+mat-checkbox {
+  display: block;
 }

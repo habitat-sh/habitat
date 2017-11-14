@@ -12,16 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.hab-search {
+.search-component {
+
+  header {
+    position: relative;
+  }
 
   hab-icon[symbol="loading"] {
     position: absolute;
-    right: 20px;
-    bottom: 20px;
+    right: $default-margin;
+    bottom: $default-margin;
   }
 
   .more {
-    margin-top: 16px;
+    margin-top: $default-margin;
 
     a {
       cursor: pointer;

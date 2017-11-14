@@ -2,7 +2,7 @@
 set -x
 
 node-sass \
-  --include-path=node_modules/bourbon-neat/app/assets/stylesheets \
+  --include-path=node_modules/bourbon-neat/core \
   --include-path=node_modules/bourbon/app/assets/stylesheets \
   --include-path=node_modules/normalize-scss/sass \
   --include-path=node_modules/normalize-scss/node_modules/support-for/sass \

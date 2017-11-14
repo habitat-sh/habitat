@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Include the nav control from the main website
-require('./zepto-custom');
-import './nav';
-
 import 'reflect-metadata';
 import 'zone.js/dist/zone';
-
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { enableProdMode } from '@angular/core';
 import { AppModule } from './app.module';

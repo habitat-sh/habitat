@@ -5,10 +5,12 @@
 # Rule Configuration
 rules:
   clean-import-paths: 0
+  empty-line-between-blocks: false
   force-element-nesting: 0
   leading-zero:
     - 2
     - include: true
+  mixins-before-declarations: false
   nesting-depth: 0
   no-misspelled-properties:
     - 1
@@ -24,4 +26,6 @@ rules:
   property-sort-order: 0
   quotes:
     - 2
-    - style: double
+    - style: single
+  shorthand-values: false
+  single-line-per-selector: false

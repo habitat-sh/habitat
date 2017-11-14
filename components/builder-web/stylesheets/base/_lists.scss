@@ -12,30 +12,143 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ul,
-ol {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+@mixin chevron {
+  @include icon-size(22);
+  @include vertically-centered;
+  color: $hab-text;
+  right: 0;
+}
 
-  &.bullet {
-    list-style: disc;
-    margin-left: rem(20);
+.list {
+  color: $hab-text;
+  list-style-type: none;
+  font-size: 12px;
+
+  li {
+    position: relative;
+    display: flex;
+  }
+
+  .heading {
+    padding: 0;
+    border-bottom: $default-border;
+
+    h4 {
+      flex: 1;
+    }
+  }
+
+  .item {
+    padding: 14px 0;
+    color: $dim-slate-gray;
+    border-bottom: $default-border;
+
+    > a {
+      position: relative;
+      color: $dim-slate-gray;
+    }
+
+    .column {
+      flex: 1;
+    }
+
+    .name {
+      color: $hab-text;
+      font-weight: 600;
+    }
+
+    .list {
+
+      .heading, .item {
+        padding: 0;
+      }
+    }
+  }
+
+  .none {
+    flex: 1;
+    padding: $default-padding / 2 0;
+    font-size: $base-font-size;
+    font-weight: 600;
   }
 }
 
-dl {
-  margin-bottom: $small-spacing;
+.nav-list {
+  @extend .list;
 
-  dt {
-    min-width: 0.100px;
-    font-weight: bold;
-    clear: left;
-    float: left;
-    margin: 0 $small-spacing 0 0;
+  .item {
+    padding: 0;
+    display: block;
+
+    a {
+      cursor: pointer;
+      display: flex;
+      padding: $default-padding 0;
+    }
+
+    hab-icon[symbol="chevron-right"] {
+      display: none;
+      @include chevron;
+    }
+
+    &:hover {
+      background-color: $off-white;
+
+      hab-icon[symbol="chevron-right"] {
+        display: block;
+      }
+    }
+
+    &.hover {
+      transition: all 0.6s;
+      background-blend-mode: overlay;
+      border: $default-border;
+      border-color: $light-blue;
+      border-radius: $default-radius;
+      margin-bottom: 8px;
+
+      &:hover, &.active {
+        transform: scale(1.01);
+        transition: all 0.2s ease-in-out;
+        box-shadow: $default-shadow;
+      }
+    }
+  }
+}
+
+.toggle-list {
+  @extend .list;
+
+  .item {
+    cursor: pointer;
+    background-color: $white;
+
+    &:hover {
+      background-color: $off-white;
+    }
+
+    hab-icon.toggle {
+      @include chevron;
+    }
+  }
+}
+
+.action-list {
+  @extend .list;
+
+  .heading h4:last-child:not(:first-child), .item .column {
+    &:last-child {
+      text-align: right;
+    }
   }
 
-  dd {
-    margin: 0;
+  .item {
+    .actions {
+      hab-icon {
+        @include clickable-icon;
+        margin-left: $default-margin / 2;
+        color: $hab-blue;
+      }
+    }
   }
 }

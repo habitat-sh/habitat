@@ -1,9 +1,9 @@
-<div class="hab-origin-create">
-  <div class="page-title">
-    <h2>Create New Origin</h2>
-  </div>
-  <div class="page-body">
-    <form class="hab-origin-create--form" [formGroup]="form" (ngSubmit)="createOrigin(form.value)" #formValues="ngForm">
+<header>
+  <h1>Create New Origin</h1>
+</header>
+<div class="body">
+  <div class="content">
+    <form [formGroup]="form" (ngSubmit)="createOrigin(form.value)" #formValues="ngForm">
       <section>
         <h3>Origin Name</h3>
         <p>
@@ -13,7 +13,13 @@
           <strong>_</strong>, and
           <strong>-</strong>. No more than {{maxLength}} characters.
         </p>
-        <hab-checking-input displayName="Name" [form]="form" id="origin-name" [isAvailable]="isOriginAvailable" name="name" [value]="isFirstOrigin ? username : ''">
+        <hab-checking-input
+          displayName="Name"
+          [form]="form"
+          id="origin-name"
+          [isAvailable]="isOriginAvailable"
+          name="name"
+          [value]="isFirstOrigin ? username : ''">
         </hab-checking-input>
       </section>
       <section>
@@ -29,7 +35,7 @@
           Required for signing .hart files. Available for download once origin is created.
         </p>
         <p>
-          <hab-icon symbol="info-outline"></hab-icon>
+          <hab-icon symbol="info-outline" class="info"></hab-icon>
           A key pair will be generated automatically and stored under the Keys tab.
         </p>
       </section>

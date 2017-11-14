@@ -1,4 +1,6 @@
-<span>{{ command }}</span>
-<button (click)="copy()" [class.copied]="copied" [matTooltip]="title" matTooltipPosition="above">
-  <hab-icon [symbol]="symbol"></hab-icon>
-</button>
+<div class="copyable-component">
+  <span>{{ command }}</span>
+  <button (click)="copy()" [class.copied]="copied" [matTooltip]="title" matTooltipPosition="above">
+    <hab-icon [symbol]="symbol"></hab-icon>
+  </button>
+</div>

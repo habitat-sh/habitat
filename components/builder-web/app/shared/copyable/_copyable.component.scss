@@ -1,35 +1,38 @@
-hab-copyable {
-  display: block;
+.copyable-component {
   position: relative;
+
+  $button-width: 40px;
+  $button-height: 36px;
 
   span {
     display: block;
-    font-size: rem(14);
     font-weight: 600;
     padding: 6px 8px;
-    border: 1px solid $very-light-gray;
-    border-radius: 2px 0 0 2px;
+    border: $default-border;
+    border-radius: $default-radius 0 0 $default-radius;
     overflow-x: auto;
-    margin-right: 40px;
+    margin-right: $button-width;
     white-space: nowrap;
-    height: 35px;
+    height: $button-height;
   }
 
   button {
     position: absolute;
-    padding: 8px 10px 10px 10px;
-    border-radius: 0 2px 2px 0;
+    padding: 6px 10px 10px 10px;
+    border-radius: 0 $default-radius $default-radius 0;
     background-color: $very-light-gray;
     background-image: unset;
     color: $dark-gray;
-    width: 40px;
+    cursor: pointer;
+    width: $button-width;
     top: 0;
     right: 0;
     bottom: 0;
-    height: 35px;
+    height: $button-height;
     vertical-align: middle;
     display: inline-block;
     border: none;
+    outline: none;
 
     &:hover, &:focus {
       box-shadow: none;
@@ -38,11 +41,11 @@ hab-copyable {
     }
 
     &.copied {
-      color: $hab-green-dark;
+      color: $hab-green;
     }
 
     hab-icon {
-      width: 20px;
+      @include icon-size(20);
 
       svg {
         animation: fade 300ms linear;

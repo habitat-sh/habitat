@@ -1,27 +1,20 @@
-hab-banner {
+.banner-component {
+  padding: $default-padding 0;
+  position: relative;
+  background-color: $hab-blue;
+  color: $white;
+  text-align: center;
 
-  .banner {
-    padding: 14px 0;
-    position: relative;
-    background-color: $hab-blue;
+  a {
     color: $white;
-    text-align: center;
-    font-size: rem(14);
+    text-decoration: underline;
+  }
 
-    a {
-      color: $white;
-      text-decoration: underline;
-    }
-
-    .dismiss {
-      width: 16px;
-      height: 16px;
-      display: block;
-      position: absolute;
-      top: 50%;
-      right: 32px;
-      transform: translateY(-50%);
-      cursor: pointer;
-    }
+  .dismiss {
+    display: block;
+    @include icon-size(16);
+    @include vertically-centered;
+    right: $default-margin * 2;
+    cursor: pointer;
   }
 }

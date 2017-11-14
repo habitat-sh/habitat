@@ -13,59 +13,64 @@
 // limitations under the License.
 
 .hab-notifications {
-  @include outer-container;
   position: fixed;
-  right: rem(15);
-  bottom: rem(15);
-  min-width: rem(300);
-  max-width: rem(420);
+  right: $default-margin;
+  bottom: $default-margin;
+  left: $default-margin;
+  margin-bottom: 0;
+  min-width: 300px;
+  max-width: 420px;
   z-index: 9999;
 
+  @include tablet-up {
+    left: auto;
+  }
+
   li {
-    @include dropdown-panel;
+    @include shadow-panel;
     border-left: 4px solid $light-gray;
     display: block;
-    margin: $small-spacing 0;
-    padding: $small-spacing;
+    margin: $default-margin / 2 0;
+    padding: $default-margin / 2;
     position: relative;
 
     h1 {
-      font-size: rem(16);
+      font-size: 16px;
+      margin: 0;
     }
 
     small {
       color: $medium-gray;
       display: block;
-      font-size: rem(12);
-      padding-bottom: rem(10);
+      font-size: $small-font-size;
       text-transform: uppercase;
     }
 
     p {
-      margin-bottom: rem(15);
+      margin: 0;
     }
 
     a.dismiss {
       color: inherit;
       display: block;
       float: right;
-      margin-top: -($small-spacing / 2);
+      margin-top: -(($default-margin / 2) / 2);
     }
 
     &.danger {
-      border-color: $notification-danger-color;
+      border-color: $error;
     }
 
     &.info {
-      border-color: $notification-info-color;
+      border-color: $pending;
     }
 
     &.success {
-      border-color: $notification-success-color;
+      border-color: $success;
     }
 
     &.warning {
-      border-color: $notification-warning-color;
+      border-color: $warn;
     }
   }
 }

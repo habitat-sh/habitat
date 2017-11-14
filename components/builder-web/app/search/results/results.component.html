@@ -1,18 +1,13 @@
-<ul class="hab-search-results">
-  <div *ngIf="noPackages">
-    <p>
-      No packages found.
-      <span *ngIf="errorMessage">
-        Error: {{errorMessage}}
-      </span>
-    </p>
-  </div>
-  <li *ngFor="let pkg of packages">
-    <a [routerLink]="routeFor(pkg)">
-      <div class="name">
-        <span>{{ packageString(pkg) }}</span>
-      </div>
-      <hab-icon symbol="chevron-right"></hab-icon>
-    </a>
-  </li>
-</ul>
+<div class="results-component">
+  <ul class="nav-list">
+    <div class="none" *ngIf="noPackages">
+      <span>No packages found.</span>
+    </div>
+    <li class="item hover" *ngFor="let pkg of packages">
+      <a [routerLink]="routeFor(pkg)">
+        <span class="name">{{ packageString(pkg) }}</span>
+        <hab-icon symbol="chevron-right"></hab-icon>
+      </a>
+    </li>
+  </ul>
+</div>

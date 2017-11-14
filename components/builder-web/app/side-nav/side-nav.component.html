@@ -1,6 +1,6 @@
-<nav class="hab-side-nav">
-  <h4>Builder</h4>
-  <ul class="hab-side-nav--list">
+<nav>
+  <h3>Builder</h3>
+  <ul>
     <li *ngIf="isSignedIn">
       <a [routerLink]="['/origins']">My Origins</a>
     </li>
@@ -8,8 +8,8 @@
       <a [routerLink]="['/pkgs']">Search Packages</a>
     </li>
   </ul>
-  <h4>Quick Links</h4>
-  <ul class="hab-side-nav--list">
+  <h3>Quick Links</h3>
+  <ul>
     <li>
       <a href="{{ config['docs_url'] }}/using-habitat/#install-habitat">Download CLI</a>
     </li>

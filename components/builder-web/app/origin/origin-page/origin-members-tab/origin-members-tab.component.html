@@ -1,51 +1,58 @@
-<div class="page-body members-tab">
-  <div class="members-actions">
-    <div class="members-invites">
-      <div class="members-invite">
-        <h3>Invite Member</h3>
-        <form #formValues="ngForm" [formGroup]="form" (ngSubmit)="submit(formValues.value.username)">
-          <div class="members-search">
-            <span class="label">Add existing Habitat users by GitHub username.</span>
-            <input type="search" name="username" [formControl]="form.controls['username']" placeholder="GitHub username">
-            <span class="error" *ngIf="errorMessage">{{errorMessage}}</span>
-          </div>
-          <div>
-            <button mat-raised-button color="primary" [disabled]="!control.valid">
-              Send invitation
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-    <div class="members">
-      <ul>
+<div class="origin-members-tab-component body">
+  <div class="content">
+    <section>
+      <h3>Invite Member</h3>
+      <form #formValues="ngForm" [formGroup]="form" (ngSubmit)="submit(formValues.value.username)">
+        <p>
+          Add existing Habitat users by GitHub username.
+        </p>
+        <input type="search" name="username" [formControl]="form.controls['username']" placeholder="GitHub username">
+        <p class="error" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </p>
+        <div class="controls">
+          <button mat-raised-button color="primary" [disabled]="!control.valid">
+            Send invitation
+          </button>
+        </div>
+      </form>
+    </section>
+    <hr>
+    <section>
+      <ul class="action-list">
         <li class="heading">
-          <h3>Pending Invites</h3>
-          <p *ngIf="invitations.size === 0">No pending invitations.</p>
+          <h4>Pending Invites</h4>
         </li>
-        <li *ngFor="let invitation of invitations" class="pending-invite">
-          <span class="name">{{ invitation.account_name }}</span>
-          <span class="actions">
+        <li class="none" *ngIf="invitations.size === 0">
+          <span>No pending invitations.</span>
+        </li>
+        <li *ngFor="let invitation of invitations" class="item pending-invite">
+          <span class="column name">{{ invitation.account_name }}</span>
+          <span class="column actions">
             <hab-icon symbol="cancel" (click)="rescind(invitation)" title="Rescind this invitation"></hab-icon>
           </span>
         </li>
       </ul>
-      <hr>
-      <ul>
+    </section>
+    <hr>
+    <section>
+      <ul class="action-list">
         <li class="heading">
-          <h3>Current Members</h3>
-          <p *ngIf="members.size === 0">No Members.</p>
+          <h4>Current Members</h4>
         </li>
-        <li *ngFor="let member of members">
-          <span class="name">{{ member }}</span>
-          <span class="actions">
+        <li class="none" *ngIf="members.size === 0">
+          <span>No members.</span>
+        </li>
+        <li *ngFor="let member of members" class="item">
+          <span class="column name">{{ member }}</span>
+          <span class="column actions">
             <hab-icon symbol="cancel" (click)="delete(member)" *ngIf="canDelete(member)" title="Remove this member from this origin"></hab-icon>
           </span>
         </li>
       </ul>
-    </div>
+    </section>
   </div>
-  <div class="members-sidebar">
+  <aside>
     <h3>About Members</h3>
     <p>
       Members are able to upload and utilize both private and public packages. They can also invite new members.
@@ -56,5 +63,5 @@
     <p>
       In addition to regular member privelege, the owner can also remove other members.
     </p>
-  </div>
+  </aside>
 </div>

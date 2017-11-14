@@ -1,15 +1,5 @@
-.hab-build {
+.build-detail-component {
   position: relative;
-
-  .back {
-    margin-bottom: 20px;
-    color: $medium-gray;
-    font-size: rem(14);
-
-    a {
-      color: $medium-gray;
-    }
-  }
 
   @each $status, $color in $status-colors {
     .#{$status} {
@@ -18,27 +8,28 @@
   }
 
   .summary {
-    @include row;
-    border: 1px solid $very-light-gray;
-    border-radius: 7px;
-    padding: 14px;
-    font-size: rem(12);
+    border: $default-border;
+    border-radius: $default-radius;
+    padding: $default-padding;
+    font-size: $small-font-size;;
     color: $dark-gray;
-    margin-bottom: 20px;
+    margin-bottom: $default-margin;
+
+    @include tablet-up {
+      display: flex;
+    }
 
     .status {
-      @include span-columns(6);
-      position: relative;
-      font-size: rem(14);
+      flex: 6;
+      font-weight: 600;
 
-      strong {
-        padding-left: 26px;
+      div {
+        display: block;
+        font-size: $base-font-size;
+        margin-bottom: $default-margin;
       }
 
       hab-icon {
-        width: 1.5em;
-        position: absolute;
-
         &.dispatched, &.processing {
           @extend hab-icon.spinning;
         }
@@ -46,39 +37,43 @@
     }
 
     .detail {
-      @include span-columns(6);
+      flex: 6;
 
       .item {
+        
+        @include tablet-up {
+          display: flex;
+        }
 
         .label {
-          @include span-columns(1 of 6);
+          flex: 2;
           font-weight: 600;
         }
 
         .data {
-          @include span-columns(5 of 6);
+          flex: 6;
         }
       }
     }
   }
 
   .controls {
-    padding: 4px;
-    background: $hab-white;
-    border-radius: $global-radius;
-    box-shadow: 0 1px 14px 0 $hab-gray-dark;
+    padding: $default-padding / 4;
+    background: $white;
+    border-radius: $default-radius;
+    @include shadow;
 
     button {
       display: block;
       background: $dark-blue;
-      font-size: rem(12);
+      font-size: $small-font-size;
       text-transform: none;
       text-align: left;
       width: 100%;
       padding: 2px 8px;
       outline: none;
       border: none;
-      color: $hab-white;
+      color: $white;
       font-family: $base-font-family;
       cursor: pointer;
 
@@ -92,7 +87,7 @@
       }
 
       &:hover {
-        background-color: $hab-green-dark;
+        background-color: $hab-green;
       }
 
       &.active {
@@ -106,7 +101,7 @@
   }
 
   .output-container {
-    padding-left: 6px;
+    padding-left: $default-padding / 2;
     border-left: 2px solid transparent;
     border-radius: 2px;
 
@@ -118,11 +113,12 @@
   }
 
   .output {
+    min-height: 120px;
     font-family: $monospace-font-family;
     font-size: $monospace-font-size;
-    @include pad($base-spacing);
+    padding: $default-padding;
     background: $dark-blue;
-    border-radius: $global-radius;
+    border-radius: $default-radius;
     color: $medium-gray;
     overflow: auto;
   }

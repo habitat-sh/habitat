@@ -1,37 +1,37 @@
 .dialog {
-  color: $hab-gray-dark;
+  color: $hab-text;
 
   section {
 
     &.heading {
+      margin: 0 0 $default-margin 0;
+      font-size: 16px;
+      
       h1 {
-        font-size: rem(16);
-      }
-
-      hab-icon,
-      h1 {
+        font-family: $heading-font-family;
         display: inline-block;
+        font-size: 16px;
+        line-height: 16px;
+        margin: 0;
       }
     }
 
     &.body {
-      font-size: rem(14);
+      margin: $default-margin 0;
+
+      p, textarea {
+        margin: 0;
+      }
     }
 
     &.controls {
-      font-size: rem(14);
+      margin: $default-margin 0 0 0;
 
-      button,
-      a {
+      button, a {
         display: inline-block;
-        margin-right: 18px;
+        margin-right: $default-margin;
         cursor: pointer;
       }
     }
   }
-}
-
-// Angular Material overrides
-.cdk-overlay-dark-backdrop {
-  background: $hab-blue-dark;
 }

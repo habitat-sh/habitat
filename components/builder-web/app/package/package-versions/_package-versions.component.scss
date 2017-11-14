@@ -1,122 +1,13 @@
-.hab-package-versions {
+.package-versions-component {
+  
+  .nav-list {
+  
+    .name {
+      flex: 6;
+    }
 
-  ul.versions {
-
-    li {
-
-      &.heading, &.version {
-        @include row;
-        border-bottom: 1px solid $very-light-gray;
-
-        h3, .version-name, .version-release-count, .version-latest{
-          @include span-columns(3);
-        }
-      }
-
-      &.heading {
-        padding: 0 10px;
-
-        h3 {
-          padding: 0;
-        }
-      }
-
-      &.none {
-        padding: 10px;
-        font-size: 14px;
-      }
-
-      &.version {
-        cursor: pointer;
-        font-size: rem(12);
-
-        .summary {
-          @include row;
-          padding: 15px 0;
-          position: relative;
-
-          .version-name {
-            font-weight: 600;
-            padding-left: 10px;
-          }
-
-          .version-release-count, .version-latest {
-            color: $hab-gray;
-          }
-
-          .version-release-count {
-            padding-left: 8px;
-          }
-
-          hab-icon.toggle {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-          }
-        }
-
-        &:hover {
-          background-color: rgba($medium-gray, 0.05);
-        }
-      }
-
-      .version-packages {
-        @include row;
-
-        ul.version-container {
-          @include span-columns(12);
-
-          li.package-container {
-            @include row;
-            padding: 15px 0;
-            position: relative;
-            cursor: pointer;
-            border-top: 1px solid $very-light-gray;
-
-            .release {
-              @include span-columns(6);
-              padding-left: 10px;
-
-              .release-name {
-                font-family: $heading-font-family;
-              }
-
-              ul.channels {
-                display: block;
-
-                li.channel {
-                  font-size: rem(10);
-                }
-              }
-            }
-
-            .os, .visibility, .build-source {
-              @include span-columns(1);
-            }
-
-            .build-date {
-              @include span-columns(3);
-              color: $hab-gray;
-            }
-
-            hab-icon[symbol="chevron-right"] {
-              @include chevron-right;
-              display: none;
-            }
-
-            &:hover {
-              background-color: rgba($medium-gray, 0.05);
-
-              hab-icon[symbol="chevron-right"] {
-                display: block;
-              }
-            }
-          }
-        }
-      }
+    .build-date {
+      flex: 3;
     }
   }
 }

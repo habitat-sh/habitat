@@ -1,125 +1,70 @@
-.integrations-tab {
-  @include span-columns(10);
-  @include omega;
+.origin-integrations-tab-component {
 
-  h3 {
-    font-family: $heading-font-family;
-    font-size: rem(12);
-    text-transform: uppercase;
+  .buttons {
 
-    hab-icon {
-      margin-right: 6px;
+    @include tablet-up {
+      display: flex;
     }
-  }
 
-  p {
-    margin: 0 auto rem(30);
-  }
+    .wrapper {
+      @include shadow;
+      margin: $default-margin $default-margin $default-margin 0;
+      width: 100%;
 
-  .registries {
-    .mat-grid-tile {
-      overflow: unset;
-
-      button {
-        width: 355px;
-        height: 54px;
-        position: relative;
-
-        &#docker,
-        &#amazon {
-          box-shadow: 0 2px 15px 0 rgba(0,0,0,0.08);
-        }
-
-        span:last-child {
-          line-height: 55px;
-          float: left;
-        }
-
-        hab-icon {
-          width: 24px;
-          height: 24px;
-          margin: 0;
-        }
-
-        .icon {
-          float: left;
-          padding: 9px;
-          margin-left: 10px;
-
-          &.logo {
-            margin-left: -16px;
-            width: 68px;
-            color: $hab-white;
-          }
-
-          &.docker {
-            background-color: $docker-blue;
-          }
-
-          &.google {
-            background-color: $google-blue;
-          }
-
-          &.amazon {
-            background-color: $amazon-orange;
-          }
-
-          &.azure {
-            background-color: $azure-blue;
-          }
-        }
+      @include tablet-up {
+        width: 360px;
       }
     }
-  }
 
-  section {
-    margin-bottom: 28px;
-    margin-top: rem(30);
+    button {
+      padding: 0;
+      width: 100%;
 
-    ul {
-      margin-bottom: 20px;
+      .mat-button-wrapper {
+        position: relative;
 
-      li {
-        @include row;
-        border-bottom: 1px solid $very-light-gray;
-        padding: 14px;
-        font-size: rem(12);
-
-        .none {
-          font-size: rem(14);
+        @include tablet-up {
+          flex: 1;
         }
+  
+        display: flex;
+        align-items: center;
+      }
 
-        .name {
-          @include span-columns(9);
-          font-family: $base-font-family;
+      .tile {
+        padding: $default-padding - 4px $default-padding + 2px;
+        color: $white;
 
-          hab-icon {
-            margin-right: 10px;
-            width: 16px;
-            height: 16px;
-          }
+        &.docker {
+          background-color: $docker-blue;
         }
-
-        .actions {
-          @include span-columns(3);
-          text-align: right;
-
-          a {
-            cursor: pointer;
-            display: block;
-          }
-
-          hab-icon {
-            color: $hab-blue;
-            transition: color .2s linear;
-            width: 16px;
-            height: 16px;
-
-            &:hover {
-              color: darken($hab-blue, 10%);
-            }
-          }
+  
+        &.google {
+          background-color: $google-blue;
         }
+  
+        &.amazon {
+          background-color: $amazon-orange;
+        }
+  
+        &.azure {
+          background-color: $azure-blue;
+        }
+      }
+
+      .add-icon {
+        margin: 0 $default-margin / 2;
+      }
+
+      .label {
+        margin-right: $default-margin;
+        font-weight: 600;
+        line-height: normal;
+      }
+
+      hab-icon {
+        @include icon-size(24);
+        margin: 0;
       }
     }
   }

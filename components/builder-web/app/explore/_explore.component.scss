@@ -12,39 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.hab-explore {
+.explore-component {
   $default-sep: 40px;
   $medium-sep: 90px;
+  $local-radius: 7px;
 
-  padding-top: $medium-sep;
-
-  @include media($medium-screen) {
+  padding-top: $medium-sep / 2;
+  
+  @include tablet-up {
     padding-top: 60px;
+    padding-top: $medium-sep;
   }
 
   section {
-    @include row;
 
     &.heading, &.search {
-      > div {
-        @include span-columns(10);
-        @include shift(1);
+      display: flex;
+      justify-content: center;
 
-        @include media($large-screen) {
-          @include span-columns(5.5);
-          @include shift(3.25);
+      > div {
+        flex: 0.9;
+
+        @include desktop-up {
+          flex: 0.44;
         }
       }
     }
 
-    &.packages, &.stats, &.getting-started, &.scaffolding, &.compliance, &.community {
-      > div {
-        @include span-columns(10);
-        @include shift(1);
+    &.packages, &.stats, &.scaffolding, &.compliance, &.community {
 
-        @include media($large-screen) {
-          @include span-columns(8);
-          @include shift(2);
+      @include desktop-up {
+        display: flex;
+        justify-content: center;
+      }
+      
+      > div {
+        
+        @include tablet-up {
+          display: flex;
+          justify-content: center;
+          flex: 0.9;
+        }
+
+        @include desktop-up {
+          display: flex;
+          flex: 0.8;
         }
       }
     }
@@ -54,8 +66,10 @@
 
     h1 {
       margin: 0 0 $default-sep 0;
-      color: $hab-white;
-      font-size: rem(30);
+      color: $white;
+      font-size: 30px;
+      font-family: $heading-font-family;
+      font-weight: 600;
       line-height: 42px;
       text-align: center;
     }
@@ -63,7 +77,7 @@
     .search {
       margin-bottom: $default-sep;
 
-      @include media($medium-screen) {
+      @include tablet-up {
         margin-bottom: $medium-sep;
       }
 
@@ -73,8 +87,8 @@
         ::placeholder {
           opacity: 0;
 
-          @include media($medium-screen) {
-            color: $hab-white;
+          @include tablet-up {
+            color: $white;
             opacity: 0.6;
           }
         }
@@ -85,46 +99,44 @@
         padding-right: 140px;
         padding-left: 20px;
         position: relative;
-        border-radius: 7px;
+        border-radius: $local-radius;
         border: 1px solid $hab-green;
         background: none;
         height: 48px;
-        color: $hab-white;
-        width: 100%;
+        color: $white;
         outline: none;
-        font-size: rem(14);
       }
 
       button {
         position: absolute;
         width: 136px;
-        border-radius: 0 7px 7px 0;
+        border-radius: 0 $local-radius $local-radius 0;
         border: 1px solid $hab-green;
         margin: 0;
         right: 0;
         top: 0;
         height: 48px;
-        font-size: rem(16);
+        font-size: 16px;
       }
     }
 
     .packages {
       margin-bottom: $default-sep;
 
-      @include media($medium-screen) {
+      @include tablet-up {
         margin-bottom: $medium-sep;
       }
 
       ul {
-        @include span-columns(12);
+        margin: 0 $default-margin;
         margin-bottom: 18px;
 
-        @include media($medium-screen) {
-          @include span-columns(2 of 6);
+        @include tablet-up {
+          flex: 1;
           margin-bottom: 0;
         }
 
-        border-radius: 7px;
+        border-radius: $local-radius;
         background-color: $blue-gray;
         padding-bottom: 10px;
 
@@ -133,12 +145,10 @@
           position: relative;
 
           .caret {
+            @include vertically-centered;
             opacity: 0;
-            padding-right: 14px;
-            position: absolute;
+            padding-right: $default-padding;
             right: 0;
-            top: 50%;
-            transform: translateY(-50%);
             transition: opacity 0.2s;
 
             hab-icon {
@@ -150,18 +160,17 @@
           &.heading {
             padding: 10px 0 0 0;
             background-color: $hab-green;
-            border-radius: 7px 7px 0 0;
+            border-radius: $local-radius $local-radius 0 0;
 
             &:hover {
               background-color: $hab-green;
             }
 
             h4 {
-              font-size: rem(14);
               display: block;
               padding: 8px 20px;
               background-color: $light-blue-gray;
-              color: $hab-white;
+              color: $white;
               text-transform: none;
             }
           }
@@ -178,7 +187,6 @@
             display: block;
             color: $very-light-gray;
             padding: 8px 20px;
-            font-size: rem(14);
             font-weight: 600;
           }
         }
@@ -186,78 +194,88 @@
     }
 
     .stats {
+      padding: 0 $default-padding;
 
        > div {
         background: url(/assets/images/vertical-chart.svg) no-repeat;
-        background-position: bottom;
+        background-position: bottom right;
         background-size: contain;
+        display: block;
 
-        @include media($large-screen) {
+        @include desktop-up {
           background-position: right;
         }
       }
 
       .group {
-        color: $hab-white;
+        color: $white;
         display: inline-block;
         margin-right: $default-sep;
-        font-size: rem(14);
 
         strong {
           display: block;
-          font-size: rem(30);
+          font-size: 30px;
+          margin-bottom: $small-margin;
         }
       }
 
       p {
-        color: $hab-white;
+        color: $white;
         opacity: 0.6;
         font-style: italic;
+        font-size: 16px;
         line-height: 24px;
         max-width: 570px;
         margin-right: 80px;
-        margin-bottom: 80px;
+        margin-bottom: 0;
+        padding-bottom: 80px;
+
+        @include desktop-up {
+          padding-bottom: 0;
+          margin-bottom: 80px;
+        }
       }
     }
   }
 
   .lower {
-    background-color: $hab-white;
-    padding-top: $default-sep;
+    background-color: $white;
 
-    @include media($medium-screen) {
+    @include tablet-up {
       padding-top: $medium-sep;
-    }
 
-    .image, .content {
-      @include span-columns(12);
-
-      @include media($medium-screen) {
-        @include span-columns(4 of 8);
+      .item {
+        display: flex;
+      }
+  
+      .image, .content {
+        flex: 1;
       }
     }
 
+    .image, .content {
+      margin: 0 $default-margin;
+    }
+
     .community .content {
-      @include media($medium-screen) {
-        @include span-columns(8 of 8);
+      @include tablet-up {
         margin-left: 0;
       }
     }
 
-    .image {
-      text-align: center;
-    }
-
     .content {
+      font-size: 16px;
 
       h3 {
         font-size: 30px;
         font-weight: normal;
+        line-height: 32px;
+        text-transform: none;
         color: $dark-gray;
       }
 
       p {
-        margin-bottom: $base-spacing;
+        margin-bottom: $default-margin;
         font-style: italic;
         color: $dark-gray;
         opacity: 0.6;
@@ -270,7 +288,6 @@
       .links {
         a {
           display: block;
-          font-size: rem(16);
           color: $hab-red;
           text-decoration: underline;
           font-weight: normal;
@@ -293,7 +310,6 @@
           display: inline-block;
           margin-right: 8px;
           margin-bottom: 8px;
-          font-size: rem(14);
 
           a {
             display: inline-block;
@@ -304,7 +320,7 @@
             transition: background-color 0.2s;
 
             &:hover {
-              color: $hab-white;
+              color: $white;
               background-color: $hab-red;
             }
           }
@@ -316,76 +332,35 @@
         margin-bottom: 0;
         color: $medium-gray;
         font-style: normal;
-        font-size: rem(14);
-      }
-    }
-
-    .getting-started {
-      margin-bottom: $default-sep;
-
-      @include media($medium-screen) {
-        margin-bottom: 120px;
-      }
-
-      img {
-        padding: 24px;
-        border-radius: 8px;
-        background-color: $hab-white;
-        box-shadow: 0 1px 24px 0 $very-light-gray;
-      }
-
-      .content {
-        padding-top: $default-sep;
       }
     }
 
     .scaffolding {
       margin-bottom: $default-sep;
 
-      @include media($medium-screen) {
+      @include tablet-up {
         margin-bottom: 120px;
       }
 
       > div {
-        box-shadow: 0 1px 44px 0 $very-light-gray;
+        flex: none;
 
-        @include media($medium-screen) {
-          @include span-columns(10);
-          @include shift(1);
+        @include tablet-up {
+          box-shadow: 0 1px 44px 0 $very-light-gray;
         }
 
-        img {
-          padding-bottom: 20px;
-
-          @include media($medium-screen) {
-            padding: 0 $default-sep;
-          }
+        .image {
+          background: url(/assets/images/scaffolding.svg) no-repeat top center;
+          background-size: contain;
+          min-height: 260px;
+          margin-bottom: 20px;
         }
 
         > div {
-          @include row;
           padding: 60px;
 
-          .image {
-            @include media($medium-screen) {
-              @include span-columns(4 of 10);
-            }
-          }
-
-          .content {
-            @include media($medium-screen) {
-              @include span-columns(6 of 10);
-            }
-          }
           .links a {
-            display: inline-block;
-            line-height: 20px;
-
-            + a {
-              margin-left: 1rem;
-              padding-left: 1rem;
-              border-left: 1px solid currentColor;
-            }
+            display: block;  
           }
         }
       }
@@ -394,29 +369,31 @@
     .compliance {
       padding-bottom: $default-sep;
 
-      @include media($medium-screen) {
+      @include tablet-up {
         padding-bottom: $medium-sep;
       }
 
       iframe {
-        margin-bottom: $default-sep;
+        margin-bottom: $default-margin;
         min-height: 348px;
         max-width: 100%;
         padding: 24px;
         border-radius: 8px;
-        background-color: $hab-white;
+        background-color: $white;
         box-shadow: 0 1px 24px 0 $very-light-gray;
 
-        @include media($medium-screen) {
+        @include tablet-up {
           margin-bottom: 0;
         }
       }
     }
   }
+
   .community {
     padding: $default-sep 0;
+    font-size: 16px;
 
-    @include media($medium-screen) {
+    @include tablet-up {
       padding: $medium-sep 0;
     }
 
@@ -424,18 +401,25 @@
       text-align: center;
 
       h3 {
-        font-size: rem(24);
+        font-size: 24px;
+        line-height: 28px;
+        text-transform: none;
       }
 
       h3, p {
-        color: $hab-white;
+        color: $white;
       }
 
-      .mat-raised-button:not([class*=mat-elevation-z]) {
-        @include cta-button;
-        padding: rem(10) rem(80);
-        font-size: rem(16);
-        line-height: rem(24);
+      p {
+        margin-bottom: 24px;
+      }
+
+      .cta {
+        background-color: $hab-orange;
+        color: $white;
+        padding: 10px 80px;
+        font-size: 16px;
+        line-height: 24px;
       }
     }
   }

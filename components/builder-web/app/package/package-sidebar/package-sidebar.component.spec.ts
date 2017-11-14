@@ -104,7 +104,7 @@ describe('PackageSidebarComponent', () => {
     });
 
     it('hides the build button', () => {
-      expect(element.query(By.css('.hab-package-sidebar .build button'))).toBeNull();
+      expect(element.query(By.css('.package-sidebar-component button.build'))).toBeNull();
     });
 
     describe('when buildable', () => {
@@ -115,7 +115,7 @@ describe('PackageSidebarComponent', () => {
 
       it('shows the build button', () => {
         fixture.detectChanges();
-        expect(element.query(By.css('.hab-package-sidebar .build button'))).not.toBeNull();
+        expect(element.query(By.css('.package-sidebar-component button.build'))).not.toBeNull();
       });
 
       describe('and building', () => {
@@ -127,7 +127,7 @@ describe('PackageSidebarComponent', () => {
         it('disables the build button', () => {
           fixture.detectChanges();
 
-          let el = element.query(By.css('.hab-package-sidebar .build button')).nativeElement;
+          let el = element.query(By.css('.package-sidebar-component button.build')).nativeElement;
           expect(el.getAttribute('disabled')).not.toBeNull();
         });
       });
