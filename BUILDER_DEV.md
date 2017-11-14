@@ -55,6 +55,7 @@ early_access_teams = [1995301]
 auth_token = "<your github token>"
 bldr_url = "http://localhost:9636"
 auto_publish = true
+airlock_enabled = false
 ```
 
 
