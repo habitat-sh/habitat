@@ -25,6 +25,7 @@ extern crate log;
 
 use clap::App;
 use handlebars::Handlebars;
+use std::fmt;
 use std::result;
 use std::str::FromStr;
 use std::io::prelude::*;
@@ -71,14 +72,14 @@ fn ui() -> UI {
     UI::default_with(coloring, isatty)
 }
 
-fn start(ui: &mut UI) -> result::Result<(), String> {
+fn start(ui: &mut UI) -> result::Result<(), Error> {
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
 
     gen_k8s_manifest(ui, &m)
 }
 
-fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<(), String> {
+fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<(), Error> {
     let count = matches.value_of("COUNT").unwrap_or("1");
     let topology = matches.value_of("TOPOLOGY").unwrap_or("standalone");
     let group = matches.value_of("GROUP");
@@ -86,10 +87,7 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<
     let ring_secret_name = matches.value_of("RING_SECRET_NAME");
     // clap_app!() ensures that we do have the mandatory args so unwrap() is fine here
     let pkg_ident_str = matches.value_of("PKG_IDENT").unwrap();
-    let pkg_ident = match PackageIdent::from_str(pkg_ident_str) {
-        Ok(pi) => pi,
-        Err(e) => return Err(format!("{}", e)),
-    };
+    let pkg_ident = PackageIdent::from_str(pkg_ident_str)?;
     let image = matches.value_of("IMAGE").unwrap_or(pkg_ident_str);
 
     let json = json!({
@@ -103,29 +101,18 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<
     });
 
     let mut write: Box<Write> = match matches.value_of("OUTPUT") {
-        Some(o) if o != "-" => {
-            match File::create(o) {
-                Ok(f) => Box::new(f),
-                Err(e) => return Err(format!("{}", e)),
-            }
-        }
+        Some(o) if o != "-" => Box::new(File::create(o)?),
         _ => Box::new(io::stdout()),
     };
 
-    match Handlebars::new().template_render(MANIFESTFILE, &json) {
-        Ok(r) => {
-            let out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-                "\n",
-            ) + "\n";
+    let r = Handlebars::new().template_render(MANIFESTFILE, &json)?;
+    let out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
+        "\n",
+    ) + "\n";
 
-            match write.write(out.as_bytes()) {
-                Ok(_) => Ok(()),
-                Err(e) => Err(format!("{}", e)),
-            }
-        }
+    write.write(out.as_bytes())?;
 
-        Err(e) => Err(format!("{}", e)),
-    }
+    Ok(())
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
@@ -165,5 +152,42 @@ fn valid_natural_number(val: String) -> result::Result<(), String> {
     match val.parse::<u32>() {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("{} is not a natural number", val)),
+    }
+}
+
+// TODO: We should remove this Error & all impl below after we start using docker crate
+#[derive(Debug)]
+pub enum Error {
+    HabitatCore(hcore::Error),
+    TemplateRenderError(handlebars::TemplateRenderError),
+    IO(io::Error),
+}
+
+impl From<hcore::Error> for Error {
+    fn from(err: hcore::Error) -> Self {
+        Error::HabitatCore(err)
+    }
+}
+
+impl From<handlebars::TemplateRenderError> for Error {
+    fn from(err: handlebars::TemplateRenderError) -> Self {
+        Error::TemplateRenderError(err)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::IO(err)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let msg = match *self {
+            Error::HabitatCore(ref err) => format!("{}", err),
+            Error::TemplateRenderError(ref err) => format!("{}", err),
+            Error::IO(ref err) => format!("{}", err),
+        };
+        write!(f, "{}", msg)
     }
 }
