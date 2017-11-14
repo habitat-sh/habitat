@@ -21,7 +21,8 @@ COPY support/builder/init-datastore.sh /tmp/init-datastore.sh
 COPY terraform/scripts/install_base_packages.sh /tmp/install_base_packages.sh
 COPY terraform/scripts/foundation.sh /tmp/foundation.sh
 
-RUN addgroup -S hab && adduser -S -G hab hab \
+RUN adduser -g tty -h /home/krangschnak -D krangschnak \
+  && addgroup -S hab && adduser -S -G hab hab \
   && apk add --no-cache \
   bash \
   curl \
