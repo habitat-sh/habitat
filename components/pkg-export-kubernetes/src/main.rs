@@ -26,6 +26,7 @@ extern crate log;
 use clap::{App, Arg};
 use handlebars::Handlebars;
 use std::env;
+use std::fmt;
 use std::result;
 use std::str::FromStr;
 use std::io::prelude::*;
@@ -40,13 +41,64 @@ use hcore::env as henv;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 
-use export_docker::{Cli, Credentials, BuildSpec, Error, Naming};
+use export_docker::{Cli, Credentials, BuildSpec, Naming};
+use export_docker::Error as DockerError;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
 
 // Kubernetes manifest template
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
+const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
+
+#[derive(Debug)]
+enum Error {
+    Docker(DockerError),
+    HabitatCore(hcore::Error),
+    InvalidBindSpec(String),
+    TemplateRenderError(handlebars::TemplateRenderError),
+    IO(io::Error),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let msg = match *self {
+            Error::Docker(ref err) => format!("{}", err),
+            Error::HabitatCore(ref err) => format!("{}", err),
+            Error::InvalidBindSpec(ref bind_spec) => {
+                format!("Invalid bind specification '{}'", bind_spec)
+            }
+            Error::TemplateRenderError(ref err) => format!("{}", err),
+            Error::IO(ref err) => format!("{}", err),
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+impl From<DockerError> for Error {
+    fn from(err: DockerError) -> Self {
+        Error::Docker(err)
+    }
+}
+
+
+impl From<handlebars::TemplateRenderError> for Error {
+    fn from(err: handlebars::TemplateRenderError) -> Self {
+        Error::TemplateRenderError(err)
+    }
+}
+
+impl From<hcore::Error> for Error {
+    fn from(err: hcore::Error) -> Self {
+        Error::HabitatCore(err)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::IO(err)
+    }
+}
 
 fn main() {
     env_logger::init().unwrap();
@@ -133,6 +185,7 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<
         Some(i) => i.to_string(),
         None => pkg_ident.origin + "/" + &pkg_ident.name,
     };
+    let bind = matches.value_of("BIND");
 
     let json = json!({
         "metadata_name": pkg_ident.name,
@@ -142,6 +195,7 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<
         "service_group": group,
         "config_secret_name": config_secret_name,
         "ring_secret_name": ring_secret_name,
+        "bind": bind,
     });
 
     let mut write: Box<Write> = match matches.value_of("OUTPUT") {
@@ -150,9 +204,26 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<
     };
 
     let r = Handlebars::new().template_render(MANIFESTFILE, &json)?;
-    let out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
+    let mut out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
         "\n",
     ) + "\n";
+
+    if let Some(binds) = matches.values_of("BIND") {
+        for bind in binds {
+            let split: Vec<&str> = bind.split(":").collect();
+            if split.len() < 3 {
+                return Err(Error::InvalidBindSpec(bind.to_string()));
+            }
+
+            let json = json!({
+                "name": split[0],
+                "service": split[1],
+                "group": split[2],
+            });
+
+            out += &Handlebars::new().template_render(BINDFILE, &json)?;
+        }
+    }
 
     write.write(out.as_bytes())?;
 
@@ -228,6 +299,18 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 .help(
                     "name of the Kubernetes Secret that contains the ring key, which \
                     encrypts the communication between Habitat supervisors",
+                ),
+        )
+        .arg(
+            Arg::with_name("BIND")
+                .value_name("BIND")
+                .long("bind")
+                .short("b")
+                .multiple(true)
+                .number_of_values(1)
+                .help(
+                    "Bind to another service to form a producer/consumer relationship, \
+                    specified as name:service:group",
                 ),
         )
         .arg(
