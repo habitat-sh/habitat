@@ -44,7 +44,7 @@ pub enum Error {
     StringFromUtf8Error(string::FromUtf8Error),
     TomlSerializeError(toml::ser::Error),
     WireDecode(String),
-    VarError(env::VarError),
+    EditorEnv(env::VarError),
     PackageNotFound,
 }
 
@@ -82,7 +82,7 @@ impl fmt::Display for Error {
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::WireDecode(ref m) => format!("Failed to decode wire message: {}", m),
-            Error::VarError(ref e) => format!("Failed to get environment variable: {}", e),
+            Error::EditorEnv(ref e) => format!("Missing EDITOR environment variable: {}", e),
             Error::PackageNotFound => format!("Package not found"),
         };
         write!(f, "{}", msg)
@@ -113,7 +113,7 @@ impl error::Error for Error {
             Error::StringFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::WireDecode(_) => "Failed to decode wire message",
-            Error::VarError(_) => "Failed to get environment variable",
+            Error::EditorEnv(_) => "Missing EDITOR environment variable",
             Error::PackageNotFound => "Package not found",
         }
     }
