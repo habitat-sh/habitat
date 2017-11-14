@@ -6,7 +6,7 @@ shards = []
 [permissions]
 app_install_id = 56215
 admin_team = 1995301
-build_worker_teams = [1995301, 1996256]
+build_worker_teams = [2555389, 1996256]
 early_access_teams = [1995301]
 
 [datastore]
