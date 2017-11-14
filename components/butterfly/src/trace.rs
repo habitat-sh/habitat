@@ -166,14 +166,25 @@ impl Trace {
         if self.file.is_none() {
             let now = time::now_utc();
             let filename = format!("{}-{}.swimtrace", server.name(), now.rfc3339());
-            match fs::File::create(self.directory.join(&filename)) {
-                Ok(f) => self.file = Some(f),
+            match fs::create_dir_all(&self.directory) {
+                Ok(_) => {
+                    match fs::File::create(self.directory.join(&filename)) {
+                        Ok(f) => self.file = Some(f),
+                        Err(e) => {
+                            panic!(
+                                "Trace requested, but cannot create file {:?}: {}",
+                                self.directory.join(&filename),
+                                e
+                            )
+                        }
+                    }
+                }
                 Err(e) => {
                     panic!(
-                        "Trace requested, but cannot create file {:?}: {}",
-                        self.directory.join(&filename),
+                        "Trace requested, but cannot create directory {:?}: {}",
+                        self.directory,
                         e
-                    )
+                    );
                 }
             }
         }
