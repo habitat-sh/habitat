@@ -109,15 +109,15 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
 
     match Handlebars::new().template_render(MANIFESTFILE, &json) {
         Ok(r) => {
-            let out = r.lines().filter(|l| {
-                *l != ""
-            }).collect::<Vec<_>>().join("\n") + "\n";
+            let out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
+                "\n",
+            ) + "\n";
 
             match write.write(out.as_bytes()) {
                 Ok(_) => Ok(()),
                 Err(e) => Err(format!("{}", e)),
             }
-        },
+        }
 
         Err(e) => Err(format!("{}", e)),
     }
