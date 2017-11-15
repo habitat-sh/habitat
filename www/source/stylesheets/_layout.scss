@@ -41,9 +41,6 @@ body.body-article {
 }
 
 .main-sidebar {
-  @include grid-column(12);
-  padding: rem-calc(20);
-
   a {
     display: block;
     position: relative;
@@ -67,12 +64,7 @@ body.body-article {
     font-weight: bold;
     color: $hab-primary;
   }
-
-  @include breakpoint(medium) {
-    @include grid-column(3);
-    padding: rem-calc(20) 0;
-  }
-
+  
   .sticky {
     width: rem-calc(260);
 
@@ -147,7 +139,6 @@ body.body-article {
 }
 
 .main-content__has-sidebar {
-  @include grid-column(12);
   background-color: $hab-white; // fallback
   background: url("/images/graphics/article-watermark.png") no-repeat right bottom $white-slightly-transparent;
   background: url("/images/graphics/article-watermark.svg") no-repeat right bottom $white-slightly-transparent;
@@ -155,9 +146,4 @@ body.body-article {
   height: 100%;
   min-height: 70vh;
   padding: rem-calc(30) rem-calc(20) rem-calc(90);
-
-  @include breakpoint(medium) {
-    @include grid-column(9);
-    padding: rem-calc(40) rem-calc(30) rem-calc(120) !important;
-  }
 }
