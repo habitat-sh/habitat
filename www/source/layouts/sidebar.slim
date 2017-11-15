@@ -1,7 +1,7 @@
 = wrap_layout :layout do
   .container__has-sidebar
     .row
-      .main-sidebar data-sticky-container=""
+      .main-sidebar.columns.small-12.medium-3 data-sticky-container=""
         .sticky data-sticky="" data-margin-top="1" data-top-anchor="main-nav:bottom" data-btm-anchor="main-footer:top"
           - if sidebar_layout == 'docs'
             form.main-sidebar--search action="/docs/search/" method="get"
@@ -19,7 +19,7 @@
           - if sidebar_layout == 'docs'
             = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download outline'
 
-      .main-content__has-sidebar data-swiftype-index="true"
+      .main-content__has-sidebar.columns.small-12.medium-9 data-swiftype-index="true"
           == yield
 
   / Swiftype JS Snippet
