@@ -31,7 +31,7 @@ body.body-article {
 .container__has-sidebar {
   position: relative;
   max-width: rem-calc(1200);
-  margin: 0 auto;
+  margin: 0 auto rem-calc(150) auto;
   min-height: 675px;
   max-height: auto;
 
@@ -41,6 +41,8 @@ body.body-article {
 }
 
 .main-sidebar {
+  padding-bottom: rem-calc(100);
+
   a {
     display: block;
     position: relative;
@@ -64,14 +66,14 @@ body.body-article {
     font-weight: bold;
     color: $hab-primary;
   }
-  
+
   .sticky {
     width: rem-calc(260);
 
     &.is-at-top, &.is-anchored {
       max-height: 100%;
       overflow-y: scroll;
-      padding: 100px;
+      // padding: 100px;
     }
   }
 }
