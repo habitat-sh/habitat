@@ -290,7 +290,11 @@ where
         let file = File::open(dir_entry.path())?;
         let mut reader = BufReader::new(file);
         let mut buf = String::new();
-        reader.read_line(&mut buf)?;
+
+        if let Err(e) = reader.read_line(&mut buf) {
+            debug!("Invalid content: {}", e);
+            continue;
+        }
 
         if !buf.starts_with(&key_type.to_string().to_uppercase()) {
             debug!(
