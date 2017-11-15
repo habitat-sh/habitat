@@ -1478,6 +1478,25 @@ impl DataStore {
         Ok(())
     }
 
+    pub fn demote_origin_package_group(
+        &self,
+        opp: &originsrv::OriginPackageGroupDemote,
+    ) -> SrvResult<()> {
+        let conn = self.pool.get(opp)?;
+        let pkg_ids: Vec<i64> = opp.get_package_ids()
+            .to_vec()
+            .iter()
+            .map(|&x| x as i64)
+            .collect();
+
+        &conn.query(
+            "SELECT FROM demote_origin_package_group_v1($1, $2)",
+            &[&(opp.get_channel_id() as i64), &(pkg_ids)],
+        ).map_err(SrvError::OriginPackageGroupDemote)?;
+
+        Ok(())
+    }
+
     pub fn demote_origin_package(&self, opp: &originsrv::OriginPackageDemote) -> SrvResult<()> {
         let conn = self.pool.get(opp)?;
         &conn.query(

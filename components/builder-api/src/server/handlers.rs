@@ -157,6 +157,15 @@ pub fn get_profile(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
+    job_group_promote_or_demote(req, true)
+
+}
+
+pub fn job_group_demote(req: &mut Request) -> IronResult<Response> {
+    job_group_promote_or_demote(req, false)
+}
+
+fn job_group_promote_or_demote(req: &mut Request, promote: bool) -> IronResult<Response> {
     let group_id = match get_param(req, "id") {
         Some(id) => {
             match id.parse::<u64>() {
@@ -175,16 +184,27 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let idents = match req.get::<bodyparser::Struct<GroupPromoteReq>>() {
-        Ok(Some(gpr)) => Some(gpr.idents),
-        Ok(None) => None,
-        Err(err) => {
-            debug!("Error decoding json struct: {:?}", err);
-            return Ok(Response::with(status::BadRequest));
+    let idents = if promote {
+        match req.get::<bodyparser::Struct<GroupPromoteReq>>() {
+            Ok(Some(gpr)) => Some(gpr.idents),
+            Ok(None) => None,
+            Err(err) => {
+                debug!("Error decoding json struct: {:?}", err);
+                return Ok(Response::with(status::BadRequest));
+            }
+        }
+    } else {
+        match req.get::<bodyparser::Struct<GroupDemoteReq>>() {
+            Ok(Some(gpr)) => Some(gpr.idents),
+            Ok(None) => None,
+            Err(err) => {
+                debug!("Error decoding json struct: {:?}", err);
+                return Ok(Response::with(status::BadRequest));
+            }
         }
     };
 
-    match helpers::promote_job_group_to_channel(req, group_id, idents, &channel) {
+    match helpers::promote_or_demote_job_group(req, group_id, idents, &channel, promote) {
         Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => Ok(render_net_error(&err)),
     }

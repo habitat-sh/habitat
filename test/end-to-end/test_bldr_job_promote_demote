@@ -1,0 +1,120 @@
+#!/bin/bash
+
+set -euo pipefail
+
+print_help() {
+    program=$(basename "$0")
+    echo "$program
+
+Test hab bldr job promote/demote
+
+USAGE:
+        $program [OPTIONS] <PKG_IDENT|-g <GROUP_ID>>
+
+OPTIONS:
+    -g <GROUP_ID>  The job id that was returned from \"hab bldr start\" (ex: 771100000000000000)
+
+ARGS:
+    <PKG_IDENT>  The origin and name of the package to schedule a job for (eg: core/redis) or
+                 A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+"
+}
+
+if [ -n "${DEBUG:-}" ]; then
+    set -x
+    export DEBUG
+fi
+
+while getopts "g:h" opt; do
+    case $opt in
+        g)
+            group_id=$OPTARG
+            ;;
+        h)
+            print_help
+            exit 0
+            ;;
+        \?)
+            print_help
+            exit 1
+            ;;
+    esac
+
+done
+
+out_dir=$(mktemp -d)
+channel=$(basename "$out_dir")
+
+# Shift off all parsed tokens in `$*` so that non getopts args start at `$1`.
+shift "$((OPTIND - 1))"
+
+if [ -z "${group_id:-}" ]; then
+    if [ -z "${1:-}" ]; then
+        print_help
+        echo
+        echo "Either -g <GROUP_ID> or <PKG_IDENT> must be specified"
+        exit 1
+    else
+        pkg_ident="$1"
+    fi
+
+    /src/target/debug/hab bldr job start -g "$pkg_ident" > "$out_dir"/bldr_job_start.out
+
+    read -r _ _ group_id < <(grep -E -o "id is [[:digit:]]+" "$out_dir"/bldr_job_start.out)
+
+    echo "Started build with group_id $group_id"
+fi
+
+while /src/target/debug/hab bldr job status "$group_id" | grep "$group_id" | grep -q Dispatching; do
+    echo -n "."
+    sleep 5
+done
+echo
+echo "Build Complete"
+
+/src/target/debug/hab bldr job status "$group_id" > "$out_dir"/bldr_job_status.out
+
+grep "$group_id" "$out_dir"/bldr_job_status.out | grep -q Complete
+
+fq_pkg_idents=$(grep -w Success "$out_dir"/bldr_job_status.out | cut -d ' ' -f 1)
+echo "Checking promote/demote with successfully built packages:"
+echo "$fq_pkg_idents"
+echo
+
+for package in $fq_pkg_idents; do
+    /src/target/debug/hab pkg channels "$package" > "$out_dir"/pkg_channels.out
+
+    if grep -F -wq "$channel" "$out_dir"/pkg_channels.out; then
+        echo "Error: $package already on $channel channel"
+        exit 1
+    fi
+done
+
+echo "Yes" | /src/target/debug/hab bldr job promote -v "$group_id" "$channel"
+
+for package in $fq_pkg_idents; do
+    /src/target/debug/hab pkg channels "$package" > "$out_dir"/pkg_channels.out
+    if grep -F -wq "$channel" "$out_dir"/pkg_channels.out; then
+        echo "$package now in $channel"
+    else
+        echo "Error: $package not in $channel"
+        exit 2
+    fi
+done
+echo
+
+echo "Yes" | /src/target/debug/hab bldr job demote -v "$group_id" "$channel"
+
+for package in $fq_pkg_idents; do
+    /src/target/debug/hab pkg channels "$package" > "$out_dir"/pkg_channels.out
+
+    if grep -F -wq "$channel" "$out_dir"/pkg_channels.out; then
+        echo "Error: $package still in $channel"
+        exit 3
+    else
+        echo "$package no longer in $channel"
+    fi
+done
+echo
+
+echo "Woo!"

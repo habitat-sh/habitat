@@ -87,9 +87,28 @@ pub fn start(
     interactive: bool,
     verbose: bool,
     token: &str,
+    promote: bool,
 ) -> Result<()> {
     let api_client = api_client::Client::new(bldr_url, PRODUCT, VERSION, None)
         .map_err(Error::APIClient)?;
+    let (promoted_demoted, promoting_demoting, to_from, changing_status, changed_status) =
+        if promote {
+            (
+                "promoted",
+                "Promoting",
+                "to",
+                Status::Promoting,
+                Status::Promoted,
+            )
+        } else {
+            (
+                "demoted",
+                "Demoting",
+                "from",
+                Status::Demoting,
+                Status::Demoted,
+            )
+        };
 
     let gid = match group_id.parse::<u64>() {
         Ok(g) => g,
@@ -102,19 +121,20 @@ pub fn start(
     let idents = get_ident_list(ui, bldr_url, gid, origin, interactive)?;
 
     if idents.len() == 0 {
-        ui.warn("No matching packages found for promotion")?;
+        ui.warn("No matching packages found")?;
         return Ok(());
     }
 
     if verbose {
-        println!("Packages being promoted:");
+        println!("Packages being {}:", promoted_demoted);
         for ident in idents.iter() {
             println!("  {}", ident)
         }
     }
 
     let question = format!(
-        "Promoting {} package(s) to channel '{}'. Continue?",
+        "{} {} package(s) to channel '{}'. Continue?",
+        promoting_demoting,
         idents.len(),
         channel
     );
@@ -125,22 +145,32 @@ pub fn start(
     }
 
     ui.status(
-        Status::Promoting,
-        format!("job group {} to channel '{}'", group_id, channel),
+        changing_status,
+        format!(
+            "job group {} {} channel '{}'",
+            group_id,
+            to_from,
+            channel
+        ),
     )?;
 
-    match api_client.job_group_promote(gid, &idents, channel, token) {
+    match api_client.job_group_promote_or_demote(gid, &idents, channel, token, promote) {
         Ok(_) => {
             ui.status(
-                Status::Promoted,
-                format!("job group {} to channel '{}'", group_id, channel),
+                changed_status,
+                format!(
+                    "job group {} {} channel '{}'",
+                    group_id,
+                    to_from,
+                    channel
+                ),
             )?;
         }
         Err(api_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
-            return Err(Error::JobGroupPromoteUnprocessable);
+            return Err(Error::JobGroupPromoteOrDemoteUnprocessable(promote));
         }
         Err(e) => {
-            return Err(Error::JobGroupPromote(e));
+            return Err(Error::JobGroupPromoteOrDemote(e, promote));
         }
     };
 

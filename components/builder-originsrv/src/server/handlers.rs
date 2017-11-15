@@ -976,6 +976,23 @@ pub fn origin_package_promote(
     Ok(())
 }
 
+pub fn origin_package_group_demote(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginPackageGroupDemote>()?;
+    match state.datastore.demote_origin_package_group(&msg) {
+        Ok(()) => conn.route_reply(req, &net::NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-package-group-demote:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_demote(
     req: &mut Message,
     conn: &mut RouteConn,
