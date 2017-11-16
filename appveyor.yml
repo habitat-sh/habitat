@@ -1,5 +1,5 @@
 
-image: Visual Studio 2015
+image: Visual Studio 2017
 
 cache:
   - c:\cargo\registry
