@@ -25,6 +25,9 @@ environment:
   RUSTUP_USE_HYPER: 1
   CARGO_HTTP_CHECK_REVOKE: false
   HAB_WINDOWS_STUDIO: true
+  BINTRAY_USER: chef-releng-ops
+  BINTRAY_KEY:
+    secure: KGpNfhM18alwGRviNGcMUStNMw3W2u002bf38+fs+mt9wf+4BGGuiUMKtu7Nrs8i
   HAB_AUTH_TOKEN:
     secure: il1kqjDtQSFOoD12nDaJhCBntC905Q8T9jRzyTZtqlJPxc3vCoS1bBeNbB55J82M
   ORIGIN_KEY:
@@ -38,7 +41,7 @@ environment:
 
     - hab_build_action: "package"
       hab_exe_version: "%24latest"
-      hab_components: "hab;plan-build-ps1;studio;sup;hab-butterfly"
+      hab_components: "hab;plan-build-ps1;studio;sup;hab-butterfly;bintray-publish"
 
 build_script:
   - ps: Update-AppveyorBuild -Version "$((gc -raw ./VERSION).trim())-$((Get-Date).ToString('yyyyMMddHHmmss'))"

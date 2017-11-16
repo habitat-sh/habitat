@@ -286,11 +286,21 @@ function Enter-Studio {
     function build {
       & "$env:STUDIO_SCRIPT_ROOT\hab-plan-build.ps1" @args
     }
-    # This streams the tail of the Supervisor log in a new window
-    # We do this because breaking out of the tail stream via ctrl-C breaks
-    # nested shells.
+
     function Get-SupervisorLog {
-      Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\powershell.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
+      # If we are not running in a container then the powershell studio was
+      # spawned by hab.exe and ctrl+c behaves poorly in this scenario. So
+      # we work around the issue by tailing the log in a new window that can
+      # simply be closed. If we are inside a container then we cannot launch 
+      # new windows but thats ok because docker run launched the studio directly
+      # from powershell so the ctrl+c issue is not a problem so we can do
+      # a simple tail
+      if ((Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -eq $null) {
+        Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\powershell.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
+      }
+      else {
+        Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait
+      }
     }
 
     function Stop-Supervisor {

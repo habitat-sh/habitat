@@ -30,6 +30,7 @@ use VERSION;
 const DOCKER_CMD: &'static str = "docker";
 const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
 const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
+const DOCKER_WINDOWS_IMAGE: &'static str = "habitat-docker-registry.bintray.io/win-studio";
 const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 const DOCKER_OPTS_ENVVAR: &'static str = "HAB_DOCKER_OPTS";
 const DOCKER_SOCKET: &'static str = "/var/run/docker.sock";
@@ -44,18 +45,35 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         pull_image(&docker_cmd)?;
     }
 
+    let mnt_prefix = match is_serving_windows_containers(&docker_cmd) {
+        true => "c:",
+        false => "",
+    };
     let mut volumes = vec![
-        format!("{}:/src", env::current_dir().unwrap().to_string_lossy()),
         format!(
-            "{}:/{}",
+            "{}:{}{}",
+            env::current_dir().unwrap().to_string_lossy(),
+            mnt_prefix,
+            "/src"
+        ),
+        format!(
+            "{}:{}/{}",
             default_cache_key_path(None).to_string_lossy(),
+            mnt_prefix,
             CACHE_KEY_PATH
         ),
     ];
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
-        volumes.push(format!("{}:/{}", cache_artifact_path, CACHE_ARTIFACT_PATH));
+        volumes.push(format!(
+            "{}:{}/{}",
+            cache_artifact_path,
+            mnt_prefix,
+            CACHE_ARTIFACT_PATH
+        ));
     }
-    if Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows") {
+    if !is_serving_windows_containers(&docker_cmd) &&
+        (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows"))
+    {
         volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
     }
 
@@ -71,6 +89,7 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
         "http_proxy",
         "https_proxy",
+        "RUST_LOG",
     ];
     // We need to strip out the -D if it exists to avoid
     // it getting passed to the sup on entering the studio
@@ -95,15 +114,25 @@ fn find_docker_cmd() -> Result<PathBuf> {
 
 fn is_image_present(docker_cmd: &Path) -> bool {
     let mut cmd = Command::new(docker_cmd);
-    cmd.arg("images").arg(&image_identifier()).arg("-q");
+    cmd.arg("images").arg(&image_identifier(docker_cmd)).arg(
+        "-q",
+    );
     debug!("Running command: {:?}", cmd);
     let result = cmd.output().expect("Docker command failed to spawn");
 
     !String::from_utf8_lossy(&result.stdout).as_ref().is_empty()
 }
 
+fn is_serving_windows_containers(docker_cmd: &Path) -> bool {
+    let mut cmd = Command::new(docker_cmd);
+    cmd.arg("version").arg("--format='{{.Server.Os}}'");
+    debug!("Running command: {:?}", cmd);
+    let result = cmd.output().expect("Docker command failed to spawn");
+    String::from_utf8_lossy(&result.stdout).contains("windows")
+}
+
 fn pull_image(docker_cmd: &Path) -> Result<()> {
-    let image = image_identifier();
+    let image = image_identifier(docker_cmd);
     let mut cmd = Command::new(docker_cmd);
     cmd.arg("pull")
         .arg(&image)
@@ -127,11 +156,15 @@ fn pull_image(docker_cmd: &Path) -> Result<()> {
         let err_output = String::from_utf8_lossy(&result.stderr);
 
         if err_output.contains("image") && err_output.contains("not found") {
-            return Err(Error::DockerImageNotFound(image_identifier().to_string()));
+            return Err(Error::DockerImageNotFound(
+                image_identifier(docker_cmd).to_string(),
+            ));
         } else if err_output.contains("Cannot connect to the Docker daemon") {
             return Err(Error::DockerDaemonDown);
         } else {
-            return Err(Error::DockerNetworkDown(image_identifier().to_string()));
+            return Err(Error::DockerNetworkDown(
+                image_identifier(docker_cmd).to_string(),
+            ));
         }
     }
 
@@ -149,21 +182,20 @@ where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
 {
-    let mut volume_args: Vec<OsString> = Vec::new();
+    let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
     for vol in volumes {
-        volume_args.push("--volume".into());
-        volume_args.push(vol.as_ref().into());
+        cmd_args.push("--volume".into());
+        cmd_args.push(vol.as_ref().into());
     }
 
-    let version_output = Command::new(docker_cmd)
-        .arg("run")
-        .arg("--rm")
-        .arg("--privileged")
-        .args(volume_args)
-        .arg(image_identifier())
-        .arg("-V")
-        .output()
-        .expect("docker failed to start");
+    if !is_serving_windows_containers(docker_cmd) {
+        cmd_args.push("--privileged".into());
+    }
+    cmd_args.push(image_identifier(docker_cmd).into());
+    cmd_args.push("-V".into());
+    let version_output = Command::new(docker_cmd).args(&cmd_args).output().expect(
+        "docker failed to start",
+    );
 
     let stderr = String::from_utf8(version_output.stderr).unwrap();
     if !stderr.is_empty() &&
@@ -187,7 +219,10 @@ where
     S: AsRef<OsStr>,
     T: AsRef<str>,
 {
-    let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into(), "--privileged".into()];
+    let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
+    if !is_serving_windows_containers(&docker_cmd) {
+        cmd_args.push("--privileged".into());
+    }
     match args.first().map(|f| f.to_str().unwrap_or_default()) {
         Some("build") => {}
         _ => {
@@ -221,9 +256,14 @@ where
         cmd_args.push("--volume".into());
         cmd_args.push(vol.as_ref().into());
     }
-    cmd_args.push(image_identifier().into());
+    cmd_args.push(image_identifier(&docker_cmd).into());
     cmd_args.extend_from_slice(args.as_slice());
-
+    if is_serving_windows_containers(&docker_cmd) {
+        cmd_args.push("-w".into());
+        cmd_args.push("-n".into());
+        cmd_args.push("-o".into());
+        cmd_args.push("c:/".into());
+    }
     unset_proxy_env_vars();
     Ok(process::become_command(docker_cmd, cmd_args)?)
 }
@@ -239,18 +279,27 @@ fn unset_proxy_env_vars() {
 
 /// Returns the Docker Studio image with tag for the desired version which corresponds to the
 /// same version (minus release) as this program.
-fn image_identifier() -> String {
+fn image_identifier(docker_cmd: &Path) -> String {
     let version: Vec<&str> = VERSION.split("/").collect();
-    henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}:{}", DOCKER_IMAGE, version[0]))
+    let img = match is_serving_windows_containers(docker_cmd) {
+        true => DOCKER_WINDOWS_IMAGE,
+        false => DOCKER_IMAGE,
+    };
+    henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}:{}", img, version[0]))
 }
 
 #[cfg(test)]
+#[cfg(target_os = "linux")]
 mod tests {
-    use super::{image_identifier, DOCKER_IMAGE};
+    use super::{find_docker_cmd, image_identifier, DOCKER_IMAGE};
     use VERSION;
 
     #[test]
     fn retrieve_image_identifier() {
-        assert_eq!(image_identifier(), format!("{}:{}", DOCKER_IMAGE, VERSION));
+        let docker_cmd = find_docker_cmd().unwrap();
+        assert_eq!(
+            image_identifier(&docker_cmd),
+            format!("{}:{}", DOCKER_IMAGE, VERSION)
+        );
     }
 }

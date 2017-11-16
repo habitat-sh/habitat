@@ -151,6 +151,9 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" (Split-Path $habExe -Parent) -Force
                 }
             }
+            if(!(Test-PullRequest)) {
+                & $habExe pkg exec core/hab-bintray-publish publish-studio
+            }
         }
         else {
             Write-Warning "Unsupported Build Action: $BuildAction."
