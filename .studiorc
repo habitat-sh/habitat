@@ -11,6 +11,45 @@ export GITHUB_WEBHOOK_SECRET
 export WORKER_AUTH_TOKEN
 export SSL_CERT_FILE
 
+sup-run() {
+  mkdir -p /hab/sup/default
+  echo "--> Launching the Habitat Supervisor in the background..."
+  echo "    Running: hab sup run $*"
+  hab sup run $* > /hab/sup/default/sup.log 2>&1 &
+  echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
+  echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
+  echo "    * Use 'sup-term' to terminate the Supervisor"
+  if [[ -z "${HAB_STUDIO_SUP:-}" ]]; then
+    echo "    * To pass custom arguments to run the Supervisor, export"
+    echo "      'HAB_STUDIO_SUP' with the arguments before running"
+    echo "      'hab studio enter'."
+  fi
+  echo ""
+}
+
+sup-term() {
+  local pid_file="/hab/sup/default/LOCK "
+  if [ -f $pid_file ]; then
+    echo "--> Killing Habitat Supervisor running in the background..."
+    kill $(cat $pid_file) \
+      && (echo "    Supervisor killed." && rm -f $pid_file) \
+      || echo "--> Error killing Supervisor."
+  else
+    echo "--> No Launcher pid file found, Supervisor may not be running."
+  fi
+}
+
+sup-log() {
+  mkdir -p /hab/sup/default
+  touch /hab/sup/default/sup.log
+  echo "--> Tailing the Habitat Supervisor's output (use 'Ctrl+c' to stop)"
+  tail -f /hab/sup/default/sup.log
+}
+
+alias sr='sup-run'
+alias st='sup-term'
+alias sl='sup-log'
+
 init-datastore() {
   mkdir -p /hab/svc/builder-datastore
   cp -f /src/support/builder/datastore.toml /hab/svc/builder-datastore/user.toml
@@ -26,7 +65,7 @@ configure() {
 }
 
 install-packages() {
-  hab pkg install core/cacerts core/net-tools core/procps-ng core/postgresql -b -c stable
+  hab pkg install core/cacerts core/net-tools core/procps-ng core/postgresql core/shadow -b -c stable
   hab pkg install \
   core/builder-admin \
   core/builder-admin-proxy \
@@ -132,6 +171,7 @@ start-builder() {
   start-originsrv
   start-sessionsrv
   start-worker
+  sleep 2
   upload_github_keys
   generate_bldr_keys
 }
@@ -231,8 +271,10 @@ stop-worker() {
 
 generate_bldr_keys() {
   KEY_NAME=$(hab user key generate bldr | grep -Po "bldr-\d+")
-  hab file upload builder-api.default $(date +%s) "/hab/cache/keys/${KEY_NAME}.pub"
-  hab file upload builder-api.default $(date +%s) "/hab/cache/keys/${KEY_NAME}.box.key"
+  for svc in builder-api builder-jobsrv builder-worker ; do
+    hab file upload "${svc}.default" $(date +%s) "/hab/cache/keys/${KEY_NAME}.pub"
+    hab file upload "${svc}.default" $(date +%s) "/hab/cache/keys/${KEY_NAME}.box.key"
+  done
 }
 
 load_packages() {
@@ -250,6 +292,14 @@ origin() {
 }
 
 keys() {
+  if [ -f ~/.hab/cache/keys/core-20160810182414.pub ]; then
+    cat ~/.hab/cache/keys/core-20160810182414.pub | hab origin key import
+  fi
+
+  if [ -f ~/.hab/cache/keys/core-20160810182414.sig.key ]; then
+    cat ~/.hab/cache/keys/core-20160810182414.sig.key | hab origin key import
+  fi
+
   cat /hab/cache/keys/core-20160810182414.pub | \
   curl http://localhost:9636/v1/depot/origins/core/keys/20160810182414 \
     --data-binary @- \
@@ -315,6 +365,7 @@ DOCS
 }
 
 install-packages
+hab pkg exec core/shadow useradd hab || echo "User 'hab' already exists"
 
 # NOTE: these are dev secrets (not for the actual Builder services);
 # it's OK
@@ -338,8 +389,10 @@ configure
 start-builder
 fi
 
-hab pkg exec core/busybox-static addgroup krangschnak
-hab pkg exec core/busybox-static adduser krangschnak -G krangschnak -D
+touch /etc/subuid
+touch /etc/subgid
+hab pkg exec core/shadow groupadd --force krangschnak
+hab pkg exec core/shadow useradd --groups=tty --create-home -g krangschnak krangschnak || echo "User 'krangschnak' already exists"
 
 # Print out the docs
 dev_docs

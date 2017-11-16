@@ -1,9 +1,8 @@
-web: support/builder_web.sh
-postgres: support/db/start.sh
-api: target/debug/bldr-api start --path /tmp/depot
-admin: target/debug/bldr-admin start
-router: target/debug/bldr-router start
-jobsrv: target/debug/bldr-jobsrv start
-sessionsrv: target/debug/bldr-sessionsrv start
-originsrv: target/debug/bldr-originsrv start
-worker: target/debug/bldr-worker start
+postgres: hab svc start core/builder-datastore
+api: /src/target/debug/bldr-api start --config /hab/svc/builder-api/user.toml
+admin: /src/target/debug/bldr-admin start
+router: /src/target/debug/bldr-router start
+jobsrv: /src/target/debug/bldr-jobsrv start --config /hab/svc/builder-jobsrv/user.toml
+sessionsrv: /src/target/debug/bldr-sessionsrv start --config /hab/svc/builder-sessionsrv/user.toml
+originsrv: /src/target/debug/bldr-originsrv start --config /hab/svc/builder-originsrv/user.toml
+worker: /src/target/debug/bldr-worker start --config /hab/svc/builder-worker/user.toml

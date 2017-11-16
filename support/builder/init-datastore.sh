@@ -16,6 +16,15 @@ while [ $running -eq 0 ]; do
   sleep 2
 done
 
+for dbname in builder_sessionsrv builder_jobsrv builder_originsrv; do
+  if sudo -E TERM=vt100 hab pkg exec core/postgresql psql -lqt --host 127.0.0.1 -U hab | cut -d \| -f 1 | grep -qw $dbname; then
+    echo "Database $dbname exists"
+  else
+    echo "Creating database $dbname"
+    sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 $dbname
+  fi
+done
+
 hab stop core/builder-datastore
 
 # JW: This hack needs to stay until stop actually waits until the service has stopped

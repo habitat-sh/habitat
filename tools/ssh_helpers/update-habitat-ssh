@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Query AWS for habitat servers in a specified environment and inserts
+# entries into ~/.ssh/config for them. Any previous entries for the
+# environment are removed (but are available in
+# ~/.ssh/config.habitat_backup until the next time this script is run)
+#
+# Use this to quickly add or refresh all your infrastructure records.
+
+set -euo pipefail
+
+environment=${1}
+start_pattern="###HABITAT-${environment}-START###"
+stop_pattern="###HABITAT-${environment}-STOP###"
+
+# Remove the entries from the config file
+sed -i '.habitat_backup' '/'${start_pattern}'/,/'${stop_pattern}'/d' ~/.ssh/config
+
+echo "" >> ~/.ssh/config
+echo "${start_pattern}" >> ~/.ssh/config
+echo "" >> ~/.ssh/config
+
+for l in $(./hab-instances $environment | jq -r '.Reservations[] | .Instances[0] | .PublicDnsName + ";" + (.Tags | from_entries | ."X-Environment" + "-" + .Name)')
+do
+    dns=${l%;*}
+    name=${l#*;}
+    echo "Host ${name}" >> ~/.ssh/config
+    echo "  HostName ${dns}" >> ~/.ssh/config
+    echo "  User ubuntu" >> ~/.ssh/config
+    echo "  IdentitiesOnly yes" >> ~/.ssh/config
+    echo "  IdentityFile ~/.ssh/habitat-srv-admin" >> ~/.ssh/config
+    echo "" >> ~/.ssh/config
+done
+
+echo "${stop_pattern}" >> ~/.ssh/config

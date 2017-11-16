@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -euo pipefail
+
+HAB_ENV=${1}
+
+aws ec2 describe-instances \
+    --filter Name=tag:X-Environment,Values=${HAB_ENV} \
+    --region=us-west-2
