@@ -336,7 +336,7 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
         }
         Err(err) => {
             panic!(format!(
-                "Package installation for '{}' not found! This is required for the \
+                "Package installation for '{}' not found on disk! This is required for the \
                 proper operation of this program (Err: {:?})",
                 &ident,
                 err
