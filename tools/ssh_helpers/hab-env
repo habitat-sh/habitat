@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+HAB_ENV=${1}
+SESSION="hab_${HAB_ENV}"
+
+# TODO: constrain the list of possible environments?
+
+# (Re-)generate a tmuxinator session description. This ensures we're
+# always up-to-date
+~/bin/generate-habitat-env-tmuxinator.sh ${HAB_ENV} \
+    > ~/.tmuxinator/${SESSION}.yml
+
+# TODO: What if the session is already running?
+tmuxinator start ${SESSION}

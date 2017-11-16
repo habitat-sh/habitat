@@ -30,6 +30,7 @@ Create the following files somewhere on your local filesystem:
 `config_api.toml`
 ```toml
 [depot]
+path = "/hab/svc/builder-api/data"
 key_dir = "/path/to/bldr-key-pair"
 ```
 
@@ -64,7 +65,7 @@ airlock_enabled = false
 Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, jobsrv and worker services to the previously created config files, e.g.
 
 ```
-api: target/debug/bldr-api start --path /tmp/depot --config /home/your_alias/habitat/config_api.toml
+api: target/debug/bldr-api start --config /home/your_alias/habitat/config_api.toml
 sessionsrv: target/debug/bldr-sessionsrv start --config /home/your_alias/habitat/config_sessionsrv.toml
 worker: target/debug/bldr-worker start --config /home/your_alias/habitat/config_worker.toml
 jobsrv: target/debug/bldr-jobsrv start --config /home/your_alias/habitat/config_jobsrv.toml
