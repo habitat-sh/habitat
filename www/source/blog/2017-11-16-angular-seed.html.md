@@ -1,6 +1,6 @@
 ---
 title: NodeJS Scaffolding with Angular Seed!
-date: 2017-11-17
+date: 2017-11-16
 author: Nell Shamrell-Harrington
 tags: Scaffolding, Node, Angular
 category: community
