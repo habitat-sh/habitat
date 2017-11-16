@@ -31,6 +31,8 @@ matrix:
         - AFFECTED_DIRS="$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
       rust: stable
       sudo: false
+      services:
+        - docker
       addons:
         apt:
           sources:
