@@ -45,6 +45,8 @@ const DOCKER_HOST_ENVVAR: &'static str = "DOCKER_HOST";
 pub struct DockerExporterSpec {
     pub username: String,
     pub password: String,
+    pub registry_type: String,
+    pub registry_url: Option<String>,
     pub docker_hub_repo_name: String,
     pub latest_tag: bool,
     pub version_tag: bool,
@@ -115,6 +117,13 @@ impl<'a> DockerExporter<'a> {
         cmd.arg("--password");
         cmd.arg(&self.spec.password);
         cmd.arg("--rm-image");
+        if let Some(ref registry_url) = self.spec.registry_url {
+            cmd.arg("--registry-url");
+            cmd.arg(registry_url);
+        }
+        cmd.arg("--registry-type");
+        cmd.arg(&self.spec.registry_type);
+
         cmd.arg(self.workspace.last_built()?.path); // Locally built artifact
         debug!(
             "building docker export command, cmd={}",

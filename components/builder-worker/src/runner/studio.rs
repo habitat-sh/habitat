@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use std::net::IpAddr;
-use std::os::unix::io::FromRawFd;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
@@ -114,7 +113,7 @@ impl<'a> Studio<'a> {
         // TED TODO: This will not work on windows. A more robust threading solution will be required for log_pipe
         // to support consuming stderr and stdout.
         // This manifests when a child starts (studio) and has an error (often unseen) then suddenly stops all execution.
-        cmd.stderr(unsafe { Stdio::from_raw_fd(1) }); // Log stderr to stdout
+        cmd.stderr(Stdio::null()); // Log stderr to stdout
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
@@ -177,6 +176,7 @@ impl<'a> Studio<'a> {
         } else {
             let mut cmd = Command::new(&*STUDIO_PROGRAM);
             cmd.env_clear();
+            debug!("HAB_CACHE_KEY_PATH: {:?}", key_path());
             cmd.env("NO_ARTIFACT_PATH", "true"); // Disables artifact cache mounting
             cmd.env("HAB_CACHE_KEY_PATH", key_path()); // Sets key cache to build user's home
 
