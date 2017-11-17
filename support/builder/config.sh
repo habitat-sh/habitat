@@ -25,7 +25,7 @@ tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "http://$APP_HOSTNAME/#/sign-in"
 
 [depot]
-path = /hab/svc/builder-api/data
+path = "/hab/svc/builder-api/data"
 EOT
 
 mkdir -p /hab/svc/builder-api-proxy
