@@ -37,7 +37,6 @@ use std::path::Path;
 
 use hab_core::package::PackageIdent;
 use hab_http::ApiClient;
-use hab_http::util::decoded_response;
 use hyper::client::{IntoUrl, Response, RequestBuilder};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
@@ -161,7 +160,7 @@ impl Client {
         idents: &[T],
         channel: &str,
         token: &str,
-    ) -> Result<Vec<PackageIdent>> {
+    ) -> Result<()> {
         let json_idents = json!(idents);
         let body = json!({
             "idents": json_idents
@@ -175,18 +174,12 @@ impl Client {
             .send()
             .map_err(Error::HyperError)?;
 
-        if res.status != StatusCode::Ok {
+        if res.status != StatusCode::NoContent {
             debug!("Failed to promote group, status: {:?}", res.status);
             return Err(err_from_response(res));
         }
 
-        match decoded_response::<JobGroupPromoteResponse>(res).map_err(Error::HabitatHttpClient) {
-            Ok(value) => Ok(value.not_promoted),
-            Err(e) => {
-                debug!("Failed to decode response, err: {:?}", e);
-                return Err(e);
-            }
-        }
+        Ok(())
     }
 
     /// Cancel a job group
