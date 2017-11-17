@@ -131,11 +131,7 @@ pub fn start(
     )?;
 
     let rendered_readme_md = handlebars.template_render(README_TEMPLATE, &data)?;
-    create_with_template(
-        ui,
-        &format!("{}/README.md", root),
-        &rendered_readme_md,
-    )?;
+    create_with_template(ui, &format!("{}/README.md", root), &rendered_readme_md)?;
     ui.para(
         "`README.md` contains a basic README document which you should update.",
     )?;
