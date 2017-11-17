@@ -26,6 +26,14 @@ use url::Url;
 /// The version of this library and program when built.
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
+arg_enum!{
+    #[derive(Debug)]
+    pub enum RegistryType {
+        Amazon,
+        Docker
+    }
+}
+
 /// A Docker-specific clap:App wrapper
 #[derive(Clone)]
 pub struct Cli<'a, 'b>
@@ -214,11 +222,16 @@ impl<'a, 'b> Cli<'a, 'b> {
                  .requires("REGISTRY_USERNAME")
                  .help("Remote registry password, required for pushing image to remote registry"))
             .arg(Arg::with_name("REGISTRY_TYPE")
+                 .possible_values(&RegistryType::variants())
+                 .case_insensitive(true)
                  .long("registry-type")
                  .short("R")
                  .value_name("REGISTRY_TYPE")
-                 .help("Remote registry type, Ex: Amazon, Docker, Google (default: docker)"))
+                 .help("Remote registry type, Ex: Amazon, Docker (default: docker)"))
             .arg(Arg::with_name("REGISTRY_URL")
+                 // This is not strictly a requirement but will keep someone from making a mistake when
+                 // inputing an ECR URL
+                 .requires("REGISTRY_TYPE")
                  .long("registry-url")
                  .short("G")
                  .value_name("REGISTRY_URL")
