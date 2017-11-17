@@ -41,6 +41,10 @@ const GITIGNORE_TEMPLATE: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/template_gitignore"
 ));
+const README_TEMPLATE: &'static str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/static/template_README.md"
+));
 
 const DEFAULT_PKG_VERSION: &'static str = "0.1.0";
 
@@ -124,6 +128,16 @@ pub fn start(
     )?;
     ui.para(
         "`default.toml` contains default values for `cfg` prefixed variables.",
+    )?;
+
+    let rendered_readme_md = handlebars.template_render(README_TEMPLATE, &data)?;
+    create_with_template(
+        ui,
+        &format!("{}/README.md", root),
+        &rendered_readme_md,
+    )?;
+    ui.para(
+        "`README.md` contains a basic README document which you should update.",
     )?;
 
     let config_path = format!("{}/config/", root);
