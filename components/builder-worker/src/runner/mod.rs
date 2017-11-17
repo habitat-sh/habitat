@@ -385,7 +385,6 @@ impl Runner {
             self.workspace.job.set_package_ident(op_ident);
             return Err(Error::BuildFailure(status.code().unwrap_or(-1)));
         }
-
         if self.has_docker_integration() {
             // TODO fn: This check should be updated in PackageArchive is check for run hooks.
             if self.workspace.last_built()?.is_a_service() {
