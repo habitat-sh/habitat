@@ -1,5 +1,31 @@
 # Habitat CHANGELOG
 
+## [0.39.1](https://github.com/habitat-sh/habitat/tree/0.39.1) (11-17-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.39.0...0.39.1)
+
+## Features & Enhancements
+
+- Amazon Container Registry post processor [\#3743](https://github.com/habitat-sh/habitat/issues/3743)
+
+## Bug fixes
+
+- Permission denied issue on builder-api-proxy directory [\#3521](https://github.com/habitat-sh/habitat/issues/3521)
+
+**Closed issues:**
+
+- Tracking Issue - core/node8 is not building [\#3320](https://github.com/habitat-sh/habitat/issues/3320)
+
+**Merged pull requests:**
+
+- Fix permissions errors on api proxy by adding a reconfigure hook [\#4082](https://github.com/habitat-sh/habitat/pull/4082) ([elliott-davis](https://github.com/elliott-davis))
+- Fix hab job group promote result check [\#4081](https://github.com/habitat-sh/habitat/pull/4081) ([chefsalim](https://github.com/chefsalim))
+- Fix studio to honor airlock and local vm dev [\#4080](https://github.com/habitat-sh/habitat/pull/4080) ([elliott-davis](https://github.com/elliott-davis))
+- bump dev version to 0.40.0-dev [\#4076](https://github.com/habitat-sh/habitat/pull/4076) ([mwrock](https://github.com/mwrock))
+- add blog post on windows container studio [\#4075](https://github.com/habitat-sh/habitat/pull/4075) ([mwrock](https://github.com/mwrock))
+- Update builder worker teams with new GH id [\#4053](https://github.com/habitat-sh/habitat/pull/4053) ([raskchanky](https://github.com/raskchanky))
+- BLDR-Dockerfile: Add missing worker bootstrap [\#4050](https://github.com/habitat-sh/habitat/pull/4050) ([indradhanush](https://github.com/indradhanush))
+- Add registry type and url to worker payload for ECR dispatching [\#3967](https://github.com/habitat-sh/habitat/pull/3967) ([elliott-davis](https://github.com/elliott-davis))
+
 ## [0.39.0](https://github.com/habitat-sh/habitat/tree/0.39.0) (11-16-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.38.0...0.39.0)
 
@@ -92,6 +118,8 @@
 
 **Merged pull requests:**
 
+- prep 0.39 release [\#4073](https://github.com/habitat-sh/habitat/pull/4073) ([mwrock](https://github.com/mwrock))
+- Improve development quality of life [\#4072](https://github.com/habitat-sh/habitat/pull/4072) ([elliott-davis](https://github.com/elliott-davis))
 - update appveyor image to one with docker installed [\#4071](https://github.com/habitat-sh/habitat/pull/4071) ([mwrock](https://github.com/mwrock))
 - run studio in a windows container when in window container mode [\#4068](https://github.com/habitat-sh/habitat/pull/4068) ([mwrock](https://github.com/mwrock))
 - \#4040 - fixing breaking change [\#4064](https://github.com/habitat-sh/habitat/pull/4064) ([mgamini](https://github.com/mgamini))
