@@ -73,21 +73,19 @@ _render_metadata_ENVIRONMENT() {
         done < "$dep_path/ENVIRONMENT_SEP"
       fi
 
-      if [[ -f "$dep_path/PKG_ENVIRONMENT" ]]; then
-        while read -r line; do
-          local -u env=${line%%=*}
-          local value=${line#*=}
-          if [[ -n "$env" && -n "$value" ]]; then
-            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
-              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
-            elif [[ ! ${_environment[$env]+abc} ]]; then
-              _environment[$env]=${value}
-            else
-              debug "Ignored $env in $dep_path, value already set and no separator is defined"
-            fi
+      while read -r line; do
+        local -u env=${line%%=*}
+        local value=${line#*=}
+        if [[ -n "$env" && -n "$value" ]]; then
+          if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+            _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
+          elif [[ ! ${_environment[$env]+abc} ]]; then
+            _environment[$env]=${value}
+          else
+            debug "Ignored $env in $dep_path, value already set and no separator is defined"
           fi
-        done < "$dep_path/PKG_ENVIRONMENT"
-      fi
+        fi
+      done < "$dep_path/PKG_ENVIRONMENT"
     else # Look for legacy files
       if [[ -f "$dep_path/PATH" ]]; then
         local data=$(cat "$dep_path/PATH")
