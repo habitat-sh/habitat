@@ -410,7 +410,7 @@ new_studio() {
   # nerdy like that
   if [ -z "${NO_MOUNT}" ]; then
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
-      $bb mount $v --rbind /dev $HAB_STUDIO_ROOT/dev
+      $bb mount $v --bind /dev $HAB_STUDIO_ROOT/dev
     fi
 
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
@@ -420,7 +420,11 @@ new_studio() {
       $bb mount $v -t proc proc $HAB_STUDIO_ROOT/proc
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
-      $bb mount $v --rbind /sys $HAB_STUDIO_ROOT/sys
+      if [ -z "${KRANGSCHNAK+x}" ]; then
+        $bb mount $v -t sysfs sysfs $HAB_STUDIO_ROOT/sys
+      else
+        $bb mount $v --rbind /sys $HAB_STUDIO_ROOT/sys
+      fi
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
       $bb mount $v -t tmpfs tmpfs $HAB_STUDIO_ROOT/run
@@ -1098,7 +1102,11 @@ unmount_filesystems() {
   fi
 
   if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
-    $bb umount $v -l $HAB_STUDIO_ROOT/sys
+    if [ -z "${KRANGSCHNAK+x}" ]; then
+      $bb umount $v $HAB_STUDIO_ROOT/sys
+    else
+      $bb umount $v -l $HAB_STUDIO_ROOT/sys
+    fi
   fi
 
   if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then

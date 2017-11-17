@@ -275,6 +275,7 @@ pub fn run(rootfs: &Path, cmd: &OsStr, args: Vec<&OsStr>, mount_artifacts: bool)
 fn exec_command(cmd: &OsStr, args: Vec<&OsStr>) -> Result<()> {
     let mut command = Command::new(cmd);
     command.args(args);
+    command.env("KRANGSCHNAK", "true");
     debug!("calling exec, command={:?}", command);
     command.exec();
     Ok(())
