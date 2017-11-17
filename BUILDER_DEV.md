@@ -47,7 +47,7 @@ local_dir = "/tmp"
 ```toml
 [permissions]
 admin_team = 1995301
-build_worker_teams = [1995301]
+build_worker_teams = [2555389]
 early_access_teams = [1995301]
 ```
 

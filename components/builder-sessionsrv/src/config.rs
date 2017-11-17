@@ -72,7 +72,7 @@ impl Default for PermissionsCfg {
         PermissionsCfg {
             app_install_id: 56940,
             admin_team: 1995301,
-            build_worker_teams: vec![1995301, 1996256],
+            build_worker_teams: vec![2555389, 1996256],
             early_access_teams: vec![1995301],
         }
     }
