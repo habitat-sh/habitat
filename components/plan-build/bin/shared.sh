@@ -39,12 +39,67 @@ _render_metadata_BUILD_ENVIRONMENT() {
     _render_associative_array_file ${pkg_prefix} BUILD_ENVIRONMENT pkg_build_env
 }
 
+_render_metadata_PKG_ENVIRONMENT() {
+    _render_associative_array_file ${pkg_prefix} PKG_ENVIRONMENT pkg_env
+}
+
 _render_metadata_DEPS() {
   _render_dependency_metadata_file ${pkg_prefix} DEPS pkg_deps_resolved
 }
 
+# Start with the current package and traverse down through all deps/tdeps
+# packages. Ignoring any variables that are already set and do not have a join
+# separator. (top-down strategy)
 _render_metadata_ENVIRONMENT() {
-    _render_associative_array_file ${pkg_prefix} ENVIRONMENT pkg_env
+  local -A _environment
+
+  # Copy `$pkg_env` to `$_environment`
+  for env in "${!pkg_env[@]}"; do
+    _environment[$env]=${pkg_env[$env]}
+  done
+
+  for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
+    # If we have a PKG_ENVIRONMENT skip looking for legacy files
+    if [[ -f "$dep_path/PKG_ENVIRONMENT" ]]; then
+      local -A env_sep
+
+      if [[ -f "$dep_path/ENVIRONMENT_SEP" ]]; then
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            env_sep[$env]=${value}
+          fi
+        done < "$dep_path/ENVIRONMENT_SEP"
+      fi
+
+      while read -r line; do
+        local -u env=${line%%=*}
+        local value=${line#*=}
+        if [[ -n "$env" && -n "$value" ]]; then
+          if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+            _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
+          elif [[ ! ${_environment[$env]+abc} ]]; then
+            _environment[$env]=${value}
+          else
+            debug "Ignored $env in $dep_path, value already set and no separator is defined"
+          fi
+        fi
+      done < "$dep_path/PKG_ENVIRONMENT"
+    else # Look for legacy files
+      if [[ -f "$dep_path/PATH" ]]; then
+        local data=$(cat "$dep_path/PATH")
+        local trimmed=$(trim $data)
+        if [[ ${_environment[PATH]+abc} ]]; then
+            _environment[PATH]=$(join_by ${env_sep[PATH]} ${_environment[PATH]} ${trimmed})
+        else
+            _environment[PATH]=${trimmed}
+        fi
+      fi
+    fi
+  done
+
+  _render_associative_array_file ${pkg_prefix} ENVIRONMENT _environment
 }
 
 _render_metadata_ENVIRONMENT_SEP() {

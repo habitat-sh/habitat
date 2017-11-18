@@ -14,6 +14,7 @@
 
 use std::collections::HashMap;
 use std::env;
+use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 
@@ -53,10 +54,10 @@ impl Env {
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
     pub fn new(package: &PackageInstall) -> Result<Self> {
-        let mut env = package.runtime_environment()?;
+        let mut env = HashMap::from_iter(package.environment()?);
         let mut paths: Vec<PathBuf> = match env.get(PATH_KEY) {
             Some(path) => env::split_paths(&path).collect(),
-            None => vec![],
+            None => Vec::new(),
         };
         // Lets join the run paths to the FS_ROOT
         // In most cases, this does nothing and should only mutate

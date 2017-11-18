@@ -14,7 +14,6 @@
 
 use std;
 use std::collections::{HashMap, HashSet};
-use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
 use std::fmt;
@@ -332,32 +331,12 @@ impl PackageInstall {
     /// # Failures
     ///
     /// * The package contains a Environment metafile but it could not be read or it was malformed.
-    fn environment(&self) -> Result<HashMap<String, String>> {
+    pub fn environment(&self) -> Result<PkgEnv> {
         match self.read_metafile(MetaFile::Environment) {
-            Ok(body) => {
-                Ok(parse_key_value(&body).map_err(|_| {
-                    Error::MetaFileMalformed(MetaFile::Environment)
-                })?)
+            Ok(body) => PkgEnv::from_str(&body),
+            Err(Error::MetaFileNotFound(MetaFile::Environment)) => {
+                self.runtime_path().and_then(PkgEnv::from_paths)
             }
-            Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(HashMap::new()),
-            Err(e) => Err(e),
-        }
-    }
-
-    /// Returns a Rust representation of the mappings defined by the `pkg_env_sep` plan variable.
-    ///
-    /// # Failures
-    ///
-    /// * The package contains a EnvironmentSep metafile but it could not be read or it was
-    ///   malformed.
-    fn environment_sep(&self) -> Result<HashMap<String, String>> {
-        match self.read_metafile(MetaFile::EnvironmentSep) {
-            Ok(body) => {
-                Ok(parse_key_value(&body).map_err(|_| {
-                    Error::MetaFileMalformed(MetaFile::EnvironmentSep)
-                })?)
-            }
-            Err(Error::MetaFileNotFound(MetaFile::EnvironmentSep)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -419,78 +398,36 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a `Vec<PkgEnv>` with the full runtime environment for this package. This is
-    /// constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
-    /// *direct* dependencies first (in declared order) and then from any remaining transitive
-    /// dependencies last (in lexically sorted order).
-    ///
-    /// If a package is missing the aforementioned metadata files, fall back to the
-    /// legacy `PATH` metadata files.
-    pub fn package_environments(&self) -> Result<Vec<PkgEnv>> {
+    /// Returns a `Vec<PathBuf>` with the full run path for this package. The `PATH` string will be
+    /// constructed by adding all `PATH` metadata entries from the *direct* dependencies first (in
+    /// declared order) and then from any remaining transitive dependencies last (in lexically
+    /// sorted order).
+    pub fn runtime_path(&self) -> Result<Vec<PathBuf>> {
         let mut idents = HashSet::new();
-        let mut pkg_envs: Vec<PkgEnv> = Vec::new();
+        let mut run_paths: Vec<PathBuf> = Vec::new();
 
-        let env = self.environment()?;
-        pkg_envs.push(if !env.is_empty() {
-            PkgEnv::new(env, self.environment_sep()?)
-        } else {
-            PkgEnv::from_paths(self.paths()?)
-        });
+        let mut p = self.paths()?;
+        run_paths.append(&mut p);
+        idents.insert(self.ident().clone());
 
-        let deps = self.load_deps()?;
+        let deps: Vec<PackageInstall> = self.load_deps()?;
         for dep in deps.iter() {
-            let env = dep.environment()?;
-            pkg_envs.push(if !env.is_empty() {
-                PkgEnv::new(env, dep.environment_sep()?)
-            } else {
-                PkgEnv::from_paths(dep.paths()?)
-            });
+            let mut p = dep.paths()?;
+            run_paths.append(&mut p);
             idents.insert(dep.ident().clone());
         }
 
-        let tdeps = self.load_tdeps()?;
+        let tdeps: Vec<PackageInstall> = self.load_tdeps()?;
         for dep in tdeps.iter() {
             if idents.contains(dep.ident()) {
                 continue;
             }
-            let env = dep.environment()?;
-            pkg_envs.push(if !env.is_empty() {
-                PkgEnv::new(env, dep.environment_sep()?)
-            } else {
-                PkgEnv::from_paths(dep.paths()?)
-            });
+            let mut p = dep.paths()?;
+            run_paths.append(&mut p);
             idents.insert(dep.ident().clone());
         }
 
-        Ok(pkg_envs)
-    }
-
-    /// Returns a flattened `HashMap<String, String>` with the runtime environment, omitting
-    /// overwritten values.
-    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
-        let mut env: HashMap<String, String> = HashMap::new();
-        let pkg_envs = self.package_environments()?;
-
-        for pkg_env in pkg_envs.into_iter() {
-            for env_var in pkg_env.into_iter() {
-                match env.entry(env_var.key) {
-                    Occupied(entry) => {
-                        if let Some(sep) = env_var.separator {
-                            let v = entry.into_mut();
-                            v.push(sep);
-                            v.push_str(&env_var.value);
-                        } else {
-                            warn!("Cannot join {}, no separator defined", entry.key());
-                        }
-                    }
-                    Vacant(entry) => {
-                        entry.insert(env_var.value);
-                    }
-                }
-            }
-        }
-
-        Ok(env)
+        Ok(run_paths)
     }
 
     pub fn installed_path(&self) -> &Path {

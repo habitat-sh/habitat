@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::env;
 use std::ffi::OsString;
+use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 
 use hcore::os::process;
@@ -28,11 +30,11 @@ where
 {
     let command = command.into();
     let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;
-    let mut run_env = pkg_install.runtime_environment()?;
+    let mut run_env: HashMap<_, _> = HashMap::from_iter(pkg_install.environment()?);
 
     let mut paths: Vec<PathBuf> = match run_env.get("PATH") {
         Some(path) => env::split_paths(&path).collect(),
-        None => vec![],
+        None => Vec::default(),
     };
     for i in 0..paths.len() {
         if paths[i].starts_with("/") {

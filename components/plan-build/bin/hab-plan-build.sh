@@ -431,6 +431,7 @@ declare -A _env_default_sep=(
   ['PKG_CONFIG_PATH']=':'
 )
 declare -A pkg_env_sep
+pkg_env_overrides=()
 
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
@@ -1434,31 +1435,17 @@ EOF
 # `_resolve_dependencies()` function.
 _set_environment() {
   local -A _environment
+  local -A _locks
 
   # Set any package pre-build environment variables
   if [[ -n ${pkg_bin_dirs} ]]; then
     add_path_env 'PATH' ${pkg_bin_dirs[@]}
   fi
 
-  # Copy `$pkg_env` to `$_environment`
-  for env in "${!pkg_env[@]}"; do
-    _environment[$env]=${pkg_env[$env]}
-  done
-
-  # Copy `$pkg_build_env` to `$_environment`
-  for env in "${!pkg_build_env[@]}"; do
-    if [[ ${_environment[$env]+abc} && ${pkg_env_sep[$env]+abc} ]]; then
-      _environment[$env]=$(join_by ${pkg_env_sep[$env]} ${_environment[$env]} ${pkg_build_env[$env]})
-    elif [[ ! ${_environment[$env]+abc} ]]; then
-      _environment[$env]=${pkg_build_env[$env]}
-    else
-      exit_with "Cannot add $$pkg_build_env without setting a separator for $env"
-    fi
-  done
-
+  # Load the base environment from `pkg_tdeps_resolved`
   for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
-    # If we have a ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
-    if [[ -f "$dep_path/ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
+    # If we have a PKG_ENVIRONMENT skip looking for legacy files
+    if [[ -f "$dep_path/PKG_ENVIRONMENT" ]]; then
       local -A env_sep
 
       if [[ -f "$dep_path/ENVIRONMENT_SEP" ]]; then
@@ -1471,53 +1458,116 @@ _set_environment() {
         done < "$dep_path/ENVIRONMENT_SEP"
       fi
 
-      if [[ -f "$dep_path/ENVIRONMENT" ]]; then
-        while read -r line; do
-          local -u env=${line%%=*}
-          local value=${line#*=}
-          if [[ -n "$env" && -n "$value" ]]; then
-            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
-              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
-            elif [[ ! ${_environment[$env]+abc} ]]; then
-              _environment[$env]=${value}
-            else
-              exit_with "Artifact $dep_path does not have a separator set for $env"
+      while read -r line; do
+        local -u env=${line%%=*}
+        local value=${line#*=}
+        if [[ -n "$env" && -n "$value" ]]; then
+          if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+            _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
+          elif [[ ! ${_environment[$env]+abc} ]]; then
+            # If we don't have a separator mark the var as locked.
+            if [[ ! ${env_sep[$env]+abc} ]]; then
+              _locks[$env]=${dep_path}
             fi
-          fi
-        done < "$dep_path/ENVIRONMENT"
-      fi
 
-      if [[ -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
-        while read -r line; do
-          local -u env=${line%%=*}
-          local value=${line#*=}
-          if [[ -n "$env" && -n "$value" ]]; then
-            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
-              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
-            elif [[ ! ${_environment[$env]+abc} ]]; then
-              _environment[$env]=${value}
+            _environment[$env]=${value}
+          else
+            if [[ ${_locks[$env]+abc} ]]; then
+              warn "$dep_path tried to set '$env', but it is locked by ${_locks[$env]}"
             else
-              exit_with "Artifact $dep_path does not have a separator set for $env"
+              warn "$dep_path tried to set '$env'"
             fi
           fi
-        done < "$dep_path/BUILD_ENVIRONMENT"
-      fi
+        fi
+      done < "$dep_path/PKG_ENVIRONMENT"
     else # Look for legacy files
       if [[ -f "$dep_path/PATH" ]]; then
         local data=$(cat "$dep_path/PATH")
         local trimmed=$(trim $data)
         if [[ ${_environment[PATH]+abc} ]]; then
-            _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${trimmed})
+            _environment[PATH]=$(join_by ${env_sep[PATH]} ${_environment[PATH]} ${trimmed})
         else
             _environment[PATH]=${trimmed}
         fi
       fi
     fi
   done
+
+  # Load the base build environment from `pkg_build_deps_resolved`, skipping
+  # transitive dependencies. The build environment is special for its ability
+  # to override normal variables.
+  for dep_path in "${pkg_build_deps_resolved[@]}"; do
+    # If we have a BUILD_ENVIRONMENT skip looking for legacy files
+    if [[ -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
+      local -A env_sep
+
+      if [[ -f "$dep_path/ENVIRONMENT_SEP" ]]; then
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            env_sep[$env]=${value}
+          fi
+        done < "$dep_path/ENVIRONMENT_SEP"
+      fi
+
+      while read -r line; do
+        local -u env=${line%%=*}
+        local value=${line#*=}
+        if [[ -n "$env" && -n "$value" ]]; then
+          if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+            # Append our values to the front instead of the back
+            _environment[$env]=$(join_by ${env_sep[$env]} ${value} ${_environment[$env]})
+          elif [[ ! ${_environment[$env]+abc} ]]; then
+            # If we don't have a separator mark the var as locked.
+            if [[ ! ${env_sep[$env]+abc} ]]; then
+              _locks[$env]=${dep_path}
+            fi
+
+            _environment[$env]=${value}
+          else
+            if [[ ${_locks[$env]+abc} ]]; then
+              warn "$dep_path overwrote '$env', which was set by ${_locks[$env]}'"
+            else
+              warn "$dep_path overwrote '$env'"
+            fi
+
+            _environment[$env]=${value}
+            _locks[$env]=${dep_path}
+          fi
+        fi
+      done < "$dep_path/BUILD_ENVIRONMENT"
+    fi
+  done
+
+  # TODO (GM): implement `pkg_env_overrides` and _locks support
+
+  # Copy `$pkg_env` to `$_environment`
+  for env in "${!pkg_env[@]}"; do
+    if [[ ${_environment[$env]+abc} && ${pkg_env_sep[$env]+abc} ]]; then
+      _environment[$env]=$(join_by ${pkg_env_sep[$env]} ${pkg_env[$env]} ${_environment[$env]})
+    elif [[ ! ${_environment[$env]+abc} ]]; then
+      _environment[$env]=${pkg_build_env[$env]}
+    else
+      exit_with "Cannot add $$pkg_env without setting a separator for $env"
+    fi
+  done
+
+  # Copy `$pkg_build_env` to `$_environment`
+  for env in "${!pkg_build_env[@]}"; do
+    if [[ ${_environment[$env]+abc} && ${pkg_env_sep[$env]+abc} ]]; then
+      _environment[$env]=$(join_by ${pkg_env_sep[$env]} ${pkg_build_env[$env]} ${_environment[$env]})
+    elif [[ ! ${_environment[$env]+abc} ]]; then
+      _environment[$env]=${pkg_build_env[$env]}
+    else
+      exit_with "Cannot add $$pkg_build_env without setting a separator for $env"
+    fi
+  done
+
   # Insert all the package PATH fragments before the default PATH to ensure
   # package binaries are used before any userland/operating system binaries
   if [[ ${_environment[PATH]+abc} ]]; then
-    _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${INITIAL_PATH})
+    _environment[PATH]=$(join_by ${env_sep[PATH]} ${_environment[PATH]} ${INITIAL_PATH})
   fi
 
   # Export out computed environment
@@ -1861,6 +1911,7 @@ do_default_install() {
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
 # * `$pkg_prefix/BUILD_ENVIRONMENT` - A list of build environment keys and their values
+# * `$pkg_prefix/PKG_ENVIRONMENT` - A list of package environment keys and their values
 # * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
@@ -1883,6 +1934,7 @@ _build_metadata() {
   _render_metadata_CXXFLAGS
   _render_metadata_PKG_CONFIG_PATH
   _render_metadata_BUILD_ENVIRONMENT
+  _render_metadata_PKG_ENVIRONMENT
   _render_metadata_ENVIRONMENT
   _render_metadata_ENVIRONMENT_SEP
   _render_metadata_PATH
