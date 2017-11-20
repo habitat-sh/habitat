@@ -27,7 +27,6 @@ declare -A -g __well_known_aggregate_env_vars=(
     [NODE_PATH]=":"
 
     # Python
-    [PYTHONHOME]=":"
     [PYTHONPATH]=":"
 
     # Ruby
