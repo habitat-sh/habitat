@@ -21,6 +21,7 @@ extern crate env_logger;
 extern crate hab;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
+extern crate habitat_sup as sup;
 extern crate handlebars;
 #[macro_use]
 extern crate lazy_static;
@@ -187,6 +188,19 @@ fn start(ui: &mut UI) -> Result<()> {
                 _ => unreachable!(),
             }
         }
+        ("run", Some(_)) => command::launcher::start(ui, env::args_os().skip(1).collect())?,
+        ("start", Some(_)) => command::launcher::start(ui, env::args_os().skip(1).collect())?,
+        ("stop", Some(_)) |
+        ("term", Some(_)) => command::sup::start(ui, env::args_os().skip(1).collect())?,
+        ("sup", Some(matches)) => {
+            match matches.subcommand() {
+                ("run", Some(_)) |
+                ("start", Some(_)) => {
+                    command::launcher::start(ui, env::args_os().skip(2).collect())?
+                }
+                _ => command::sup::start(ui, env::args_os().skip(2).collect())?,
+            }
+        }
         ("svc", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -194,6 +208,10 @@ fn start(ui: &mut UI) -> Result<()> {
                         ("generate", Some(sc)) => sub_service_key_generate(ui, sc)?,
                         _ => unreachable!(),
                     }
+                }
+                ("start", _) => command::launcher::start(ui, env::args_os().skip(2).collect())?,
+                ("load", _) | ("unload", _) | ("status", _) | ("stop", _) => {
+                    command::sup::start(ui, env::args_os().skip(2).collect())?
                 }
                 _ => unreachable!(),
             }
@@ -689,21 +707,9 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("pkg", "export", "kubernetes") => {
             command::pkg::export::kubernetes::start(ui, env::args_os().skip(4).collect())
         }
-        ("run", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
         ("stu", _, _) | ("stud", _, _) | ("studi", _, _) | ("studio", _, _) => {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
-        ("sup", "run", _) |
-        ("sup", "start", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
-        ("sup", _, _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("start", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
-        ("stop", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
-        ("svc", "start", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
-        ("svc", "load", _) |
-        ("svc", "unload", _) |
-        ("svc", "status", _) |
-        ("svc", "stop", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("term", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
     }
 }

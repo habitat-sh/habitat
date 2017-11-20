@@ -728,6 +728,7 @@ dependencies = [
  "habitat_core 0.0.0",
  "habitat_depot_client 0.0.0",
  "habitat_http_client 0.0.0",
+ "habitat_sup 0.0.0",
  "handlebars 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.10.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",

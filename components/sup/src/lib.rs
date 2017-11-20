@@ -43,6 +43,8 @@ extern crate ansi_term;
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;
+#[macro_use]
+extern crate clap;
 #[cfg(windows)]
 extern crate ctrlc;
 #[macro_use]
@@ -94,6 +96,7 @@ macro_rules! sup_error {
     }
 }
 
+pub mod cli;
 pub mod command;
 pub mod config;
 pub mod census;

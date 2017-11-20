@@ -18,6 +18,7 @@ use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
 use hcore::crypto::keys::PairType;
+use sup;
 use regex::Regex;
 use url::Url;
 
@@ -35,7 +36,7 @@ pub fn get() -> App<'static, 'static> {
         .aliases(&["set", "setu"])
         .setting(AppSettings::Hidden);
 
-    clap_app!(hab =>
+    let base = clap_app!(hab =>
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
         (version: super::VERSION)
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
@@ -381,7 +382,7 @@ pub fn get() -> App<'static, 'static> {
         )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")
-            (aliases: &["r", "ri", "rin"])
+            (aliases: &["ri", "rin"]) // No "r" due to ambiguity with "run"
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
                 (about: "Commands relating to Habitat ring keys")
@@ -404,6 +405,9 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
         )
+        (subcommand: sup::cli::run(&["ru"])) // No "r" due to ambiguity with "ring"
+        (subcommand: sup::cli::start())
+        (subcommand: sup::cli::stop())
         (@subcommand svc =>
             (about: "Commands relating to Habitat services")
             (aliases: &["sv", "ser", "serv", "service"])
@@ -420,28 +424,11 @@ pub fn get() -> App<'static, 'static> {
                     (@arg ORG: "The service organization")
                 )
             )
-            (@subcommand load =>
-                (about: "Load a service to be started and supervised by Habitat from a package or \
-                    artifact. Services started in this manner will persist through Supervisor \
-                    restarts.")
-                (@setting Hidden)
-            )
-            (@subcommand unload =>
-                (about: "Unload a persistent or transient service started by the Habitat \
-                    Supervisor. If the Supervisor is running when the service is unloaded the \
-                    service will be stopped.")
-                (@setting Hidden)
-            )
-            (@subcommand start =>
-                (about: "Start a loaded, but stopped, Habitat service or a transient service from \
-                    a package or artifact. If the Habitat Supervisor is not already running this \
-                    will additionally start one for you.")
-                (@setting Hidden)
-            )
-            (@subcommand stop =>
-                (about: "Stop a running Habitat service.")
-                (@setting Hidden)
-            )
+            (subcommand: sup::cli::load())
+            (subcommand: sup::cli::unload())
+            (subcommand: sup::cli::start())
+            (subcommand: sup::cli::status())
+            (subcommand: sup::cli::stop())
             (after_help: "\nALIASES:\
                 \n    load       Alias for: 'sup load'\
                 \n    unload     Alias for: 'sup unload'\
@@ -455,10 +442,7 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to Habitat Studios")
             (aliases: &["stu", "stud", "studi"])
         )
-        (@subcommand sup =>
-            (about: "Commands relating to the Habitat Supervisor")
-            (aliases: &["su"])
-        )
+        (subcommand: sup::cli::get("sup"))
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
             (aliases: &["u", "us", "use"])
@@ -491,7 +475,9 @@ pub fn get() -> App<'static, 'static> {
             \n    term       Alias for: 'sup term'\
             \n"
         )
-    )
+    );
+
+    sup::cli::maybe_add_term_subcommand(base)
 }
 
 fn alias_run() -> App<'static, 'static> {
