@@ -31,12 +31,13 @@ use std::str::FromStr;
 use std::io::prelude::*;
 use std::io;
 use std::fs::File;
+use std::path::Path;
 
 use hcore::channel;
 use hcore::PROGRAM_NAME;
 use hcore::url as hurl;
 use hcore::env as henv;
-use hcore::package::PackageIdent;
+use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 
 use export_docker::{Cli, BuildSpec, Error, Naming};
@@ -109,8 +110,17 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<
     let ring_secret_name = matches.value_of("RING_SECRET_NAME");
     // clap ensures that we do have the mandatory args so unwrap() is fine here
     let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
-    let pkg_ident = PackageIdent::from_str(pkg_ident_str)?;
-    let image = matches.value_of("IMAGE_NAME").unwrap_or(pkg_ident_str);
+    let pkg_ident = if Path::new(pkg_ident_str).is_file() {
+        // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
+        // identifier to ensure that update strategies will work if desired
+        PackageArchive::new(pkg_ident_str).ident()?
+    } else {
+        PackageIdent::from_str(pkg_ident_str)?
+    };
+    let image = match matches.value_of("IMAGE_NAME") {
+        Some(i) => i.to_string(),
+        None => pkg_ident.origin + "/" + &pkg_ident.name,
+    };
 
     let json = json!({
         "metadata_name": pkg_ident.name,
