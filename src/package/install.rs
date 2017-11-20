@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
 use std::fmt;
@@ -318,6 +318,10 @@ impl PackageInstall {
         }
     }
 
+    fn deps(&self) -> Result<Vec<PackageIdent>> {
+        self.read_deps(MetaFile::Deps)
+    }
+
     pub fn tdeps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::TDeps)
     }
@@ -384,16 +388,110 @@ impl PackageInstall {
             }
             None => {
                 // No RUNTIME_ENVIRONMENT file exists; fall back to PATH
-                match self.read_metafile(MetaFile::Path) {
-                    Ok(body) => {
-                        let v = env::split_paths(&body).map(|p| PathBuf::from(&p)).collect();
-                        Ok(v)
-                    }
-                    Err(Error::MetaFileNotFound(MetaFile::Path)) => Ok(vec![]),
-                    Err(e) => Err(e),
+                self.legacy_path()
+            }
+        }
+    }
+
+    /// Attempts to load the extracted package for each direct dependency and returns a
+    /// `Package` struct representation of each in the returned vector.
+    ///
+    /// # Failures
+    ///
+    /// * Any direct dependency could not be located or it's contents could not be read
+    ///   from disk
+    fn load_deps(&self) -> Result<Vec<PackageInstall>> {
+        let ddeps = self.deps()?;
+        let mut deps = Vec::with_capacity(ddeps.len());
+        for dep in ddeps.iter() {
+            let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
+            deps.push(dep_install);
+        }
+        Ok(deps)
+    }
+
+    /// Attempts to load the extracted package for each transitive dependency and returns a
+    /// `Package` struct representation of each in the returned vector.
+    ///
+    /// # Failures
+    ///
+    /// * Any transitive dependency could not be located or it's contents could not be read
+    ///   from disk
+    fn load_tdeps(&self) -> Result<Vec<PackageInstall>> {
+        let tdeps = self.tdeps()?;
+        let mut deps = Vec::with_capacity(tdeps.len());
+        for dep in tdeps.iter() {
+            let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
+            deps.push(dep_install);
+        }
+        Ok(deps)
+    }
+
+    // Extract the contents of the PATH metadata file, if present.
+    fn legacy_path(&self) -> Result<Vec<PathBuf>> {
+        match self.read_metafile(MetaFile::Path) {
+            Ok(body) => {
+                let v = env::split_paths(&body).collect();
+                Ok(v)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::Path)) => Ok(vec![]),
+            Err(e) => Err(e),
+        }
+    }
+
+    // Determine the complete path for this package, taking into
+    // account all its dependencies. Normally we would take this from
+    // `RUNTIME_ENVIRONMENT`, but for packages that were made before
+    // that was introduced, this is how we compute it.
+    fn full_legacy_path(&self) -> Result<Vec<PathBuf>> {
+        let mut full_path = Vec::new(); // TODO (CM): determine capacity first
+        let mut seen = HashSet::new();
+
+        // Take care of our own path entries first
+        for path in self.legacy_path()? {
+            if !seen.contains(&path) {
+                seen.insert(path.clone());
+                full_path.push(path);
+            }
+        }
+        // Given a list of transitive dependencies:
+        //
+        // [ A, B, C, D ]
+        //
+        // and a list of direct dependencies:
+        //
+        // [ B, D ]
+        //
+        // we construct a final dependency list of:
+        //
+        // [ A, B, C, D, B, D]
+        //
+        // We then reverse this to mirror the priority that a system
+        // path would use:
+        //
+        // [ D, B, D, C, B, A ]
+        //
+        // That is, since D comes after B in the dependency list, it's
+        // path should supersede that of B, and likewise for any
+        // transitive dependencies.
+        //
+        // By processing the list this way, we extend the final system
+        // path by placing an entry at the *end* of the path only if
+        // we have not encountered it before.
+        let all_deps = self.load_tdeps()?
+            .into_iter()
+            .chain(self.load_deps()?.into_iter())
+            .rev();
+
+        for dep in all_deps {
+            for p in dep.legacy_path()? {
+                if !seen.contains(&p) {
+                    seen.insert(p.clone());
+                    full_path.push(p);
                 }
             }
         }
+        Ok(full_path)
     }
 
     /// Return the embedded runtime environment specification for a
@@ -413,7 +511,17 @@ impl PackageInstall {
                 }
                 Ok(env)
             }
-            Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => Ok(HashMap::new()),
+            Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => {
+                // If there was no RUNTIME_ENVIRONMENT, we can at
+                // least return a proper PATH
+                let path = env::join_paths(self.full_legacy_path()?.iter())?
+                    .into_string()?;
+
+                let mut env = HashMap::new();
+                env.insert(String::from("PATH"), path);
+                Ok(env)
+
+            }
             Err(e) => Err(e),
         }
     }
