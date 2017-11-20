@@ -85,7 +85,7 @@ sidebar_links:
     - title: Application Lifecycle Hooks
       link: "/docs/reference/#reference-hooks"
     - title: Handlebars Helpers
-      link: "/docs/reference/#handlebars-helpers"
+      link: "/docs/reference/#helpers"
     - title: Template Data
       link: "/docs/reference/#template-data"
     - title: Package Contents
