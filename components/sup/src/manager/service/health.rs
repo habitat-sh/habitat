@@ -28,6 +28,12 @@ impl Default for HealthCheck {
     }
 }
 
+impl HealthCheck {
+    pub fn success(&self) -> bool {
+        return self == &HealthCheck::Ok;
+    }
+}
+
 impl From<i8> for HealthCheck {
     fn from(value: i8) -> HealthCheck {
         match value {
