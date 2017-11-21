@@ -991,33 +991,45 @@ impl Paths {
     }
 
     fn drop_watch(&mut self, path: &PathBuf) -> Option<PathBuf> {
-        match self.paths.remove(path) {
-            Some(watched_file) => {
-                let common = watched_file.steal_common();
-                let dir_path = common.dir_file_name.directory;
-                let unwatch_directory = match self.get_mut_directory(&dir_path) {
-                    Some(count) => {
-                        *count -= 1;
-                        *count == 0
-                    }
-                    None => {
-                        error!("Dirs inconsistency in drop_watch, expect strange results");
-                        false
-                    }
-                };
-                self.symlink_loop_catcher.remove(path);
-                if unwatch_directory {
-                    self.dirs.remove(&dir_path);
-
-                    return Some(dir_path);
+        if let Some(watched_file) = self.paths.remove(path) {
+            let common = watched_file.steal_common();
+            let dir_path = common.dir_file_name.directory;
+            let unwatch_directory = match self.get_mut_directory(&dir_path) {
+                Some(count) => {
+                    *count -= 1;
+                    *count == 0
                 }
-            }
-            None => {
-                error!("Paths inconsistency in drop_watch, expect strange results");
-            }
-        }
+                None => {
+                    error!("Dirs inconsistency in drop_watch, expect strange results");
+                    false
+                }
+            };
+            self.symlink_loop_catcher.remove(path);
+            let dir_to_unwatch = if unwatch_directory {
+                self.dirs.remove(&dir_path);
 
-        None
+                Some(dir_path)
+            } else {
+                None
+            };
+            // any watch drop means that we don't see the real file anymore
+            self.real_file = None;
+            if let Some(prev) = common.prev {
+                // The `prev` patch may not be watched anymore when we
+                // stop watching a bunch of files in a batch (like
+                // when we move the watched directory away, so we stop
+                // watching everything inside it).
+                if let Some(watched_prev) = self.get_mut_watched_file(&prev) {
+                    watched_prev.get_mut_common().next = None;
+                }
+            } else {
+                error!("Prev path inconsistency in drop_watch, expect strange results");
+            }
+            dir_to_unwatch
+        } else {
+            error!("Paths inconsistency in drop_watch, expect strange results");
+            None
+        }
     }
 
     fn symlink_loop(
@@ -1849,6 +1861,64 @@ mod tests {
             },
 
             TestCase {
+                name: "Quick remove directories/files",
+                init: Init {
+                    path: Some(pb!("/a/b/c")),
+                    commands: vec![
+                        InitCommand::MkdirP(pb!("/a/b")),
+                        InitCommand::Touch(pb!("/a/b/c")),
+                    ],
+                    initial_file: Some(pb!("/a/b/c")),
+                },
+                steps: vec![
+                    Step {
+                        action: StepAction::Nop,
+                        dirs: hm!{
+                            pb!("/") => 1,
+                            pb!("/a") => 1,
+                            pb!("/a/b") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: Some(pb!("/a/b")),
+                            },
+                            pb!("/a/b") => PathState {
+                                kind: PathKind::Directory,
+                                path_rest: vec![os!("c")],
+                                prev: Some(pb!("/a")),
+                                next: Some(pb!("/a/b/c")),
+                            },
+                            pb!("/a/b/c") => PathState {
+                                kind: PathKind::Regular,
+                                path_rest: vec![],
+                                prev: Some(pb!("/a/b")),
+                                next: None,
+                            },
+                        },
+                        events: vec![],
+                    },
+                    Step {
+                        action: StepAction::RmRF(pb!("/a")),
+                        dirs: hm!{
+                            pb!("/") => 1,
+                        },
+                        paths: hm!{
+                            pb!("/a") => PathState {
+                                kind: PathKind::MissingDirectory,
+                                path_rest: vec![os!("b"), os!("c")],
+                                prev: None,
+                                next: None,
+                            },
+                        },
+                        events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
+                    },
+                ],
+            },
+
+            TestCase {
                 name: "Basic symlink tracking",
                 init: Init {
                     path: Some(pb!("/a")),
@@ -2465,7 +2535,7 @@ mod tests {
                             },
                         },
                         events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
-                    }
+                    },
                 ],
             },
         ]
@@ -2732,7 +2802,10 @@ mod tests {
 
         fn pop_level(&mut self) {
             self.logs_per_level.pop();
-            assert!(!self.logs_per_level.is_empty(), "too many pops on DebugInfo");
+            assert!(
+                !self.logs_per_level.is_empty(),
+                "too many pops on DebugInfo"
+            );
         }
 
         fn add(&mut self, str: String) {
