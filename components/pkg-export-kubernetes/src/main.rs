@@ -40,7 +40,7 @@ use hcore::env as henv;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 
-use export_docker::{Cli, BuildSpec, Error, Naming};
+use export_docker::{Cli, Credentials, BuildSpec, Error, Naming};
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
@@ -98,6 +98,18 @@ fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<(),
         ui,
         env::current_dir()?.join("results"),
     )?;
+
+    if matches.is_present("PUSH_IMAGE") {
+        let credentials = Credentials::new(
+            naming.registry_type,
+            matches.value_of("REGISTRY_USERNAME").unwrap(),
+            matches.value_of("REGISTRY_PASSWORD").unwrap(),
+        )?;
+        docker_image.push(ui, &credentials, naming.registry_url)?;
+    }
+    if matches.is_present("RM_IMAGE") {
+        docker_image.rm(ui)?;
+    }
 
     Ok(())
 }
@@ -157,6 +169,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         .add_base_packages_args()
         .add_builder_args()
         .add_tagging_args()
+        .add_publishing_args()
         .app;
 
     app.arg(
