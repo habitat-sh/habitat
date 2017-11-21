@@ -1,15 +1,22 @@
 #!/bin/bash
 
-export APP_HOSTNAME=localhost:3000
-export GITHUB_API_URL=https://api.github.com
-export GITHUB_WEB_URL=https://github.com
-export GITHUB_CLIENT_ID=Iv1.732260b62f84db15
-export GITHUB_CLIENT_SECRET=fc7654ed8c65ccfe014cd339a55e3538f935027a
-export WORKER_AUTH_TOKEN=fc7654ed8c65ccfe014cd339a55e3538f935027a
-export GITHUB_ADMIN_TEAM=1995301
-export GITHUB_WORKER_TEAM=2555389
-export GITHUB_WEBHOOK_SECRET=58d4afaf5e5617ab0f8c39e505605e78a054d003
-export GITHUB_APP_ID=5629
+ENV_CONFIG="/src/.secrets/habitat-env"
+
+if [[ -f $ENV_CONFIG ]]; then
+    source $ENV_CONFIG
+else
+    export APP_HOSTNAME=localhost:3000
+    export GITHUB_API_URL=https://api.github.com
+    export GITHUB_WEB_URL=https://github.com
+    export GITHUB_APP_ID=5629
+    export GITHUB_CLIENT_ID=Iv1.732260b62f84db15
+    export GITHUB_CLIENT_SECRET=fc7654ed8c65ccfe014cd339a55e3538f935027a
+    export WORKER_AUTH_TOKEN=fc7654ed8c65ccfe014cd339a55e3538f935027a
+    export GITHUB_ADMIN_TEAM=1995301
+    export GITHUB_WORKER_TEAM=2555389
+    export GITHUB_WEBHOOK_SECRET=58d4afaf5e5617ab0f8c39e505605e78a054d003
+fi
+
 pushd /src
 cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
