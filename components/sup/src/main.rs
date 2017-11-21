@@ -26,6 +26,7 @@ extern crate libc;
 extern crate clap;
 extern crate time;
 extern crate url;
+extern crate tabwriter;
 
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
@@ -52,6 +53,7 @@ use hcore::package::metadata::{BindMapping, PackageType};
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
+use tabwriter::TabWriter;
 use url::Url;
 
 use sup::VERSION;
@@ -61,7 +63,7 @@ use sup::feat;
 use sup::command;
 use sup::http_gateway;
 use sup::http_gateway::ListenAddr;
-use sup::manager::{Manager, ManagerConfig};
+use sup::manager::{Manager, ManagerConfig, ServiceStatus};
 use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
 use sup::manager::service::{CompositeSpec, ServiceSpec, StartStyle};
 use sup::util;
@@ -851,24 +853,38 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
                     process::exit(2);
                 }
             };
-
-            for spec in specs {
-                let status = Manager::service_status(&cfg, &spec.ident)?;
-                outputln!("{}", status);
-            }
+            print_statuses(specs.iter()
+                                .filter_map(|spec| Manager::service_status(&cfg, &spec.ident).ok())
+                                .collect::<Vec<ServiceStatus>>())?;
         }
         None => {
-            let statuses = Manager::status(&cfg)?;
-            if statuses.is_empty() {
-                println!("No services loaded.");
-                return Ok(());
-            }
-            for status in statuses {
-                println!("{}", status);
-            }
+            print_statuses(Manager::status(&cfg)?)?;
         }
     }
     Ok(())
+}
+
+fn print_statuses(statuses: Vec<ServiceStatus>) -> Result<()> {
+    if statuses.is_empty() {
+        println!("No services loaded.");
+        return Ok(());
+    }
+    let titles = vec!("package", "type", "state", "uptime (s)", "pid", "group", "style");
+    let mut tw = TabWriter::new(io::stdout());
+    write!(tw, "{}\n", titles.join("\t"));
+    for status in statuses {
+        write!(tw, "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            status.pkg.ident,
+            status.composite.unwrap_or("standalone".to_string()),
+            status.process.state,
+            status.process.elapsed.num_seconds(),
+            status.process.pid.map(|p| p.to_string()).unwrap_or("<none>".to_string()),
+            status.service_group,
+            status.start_style
+        );
+    }
+    tw.flush()?;
+    return Ok(());
 }
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {

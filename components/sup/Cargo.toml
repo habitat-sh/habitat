@@ -45,6 +45,7 @@ serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"
 serde_yaml = "*"
+tabwriter = "*"
 tempdir = "*"
 time = "*"
 toml = { version = "*", default-features = false }
