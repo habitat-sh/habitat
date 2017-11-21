@@ -205,7 +205,6 @@ _render_composite_metadata() {
     # NOTE: These come from the shared.sh library
     _render_metadata_IDENT
     _render_metadata_TARGET
-    _render_metadata_FILES
     _render_metadata_TYPE
 }
 

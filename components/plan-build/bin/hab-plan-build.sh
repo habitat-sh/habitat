@@ -2456,6 +2456,10 @@ esac
 
 # Common processing for both composite and standalone packages
 
+# The FILES file must be the last metadata file generated, as it lists
+# all the other metadata files within it.
+_render_metadata_FILES
+
 # Write the manifest
 _build_manifest
 
