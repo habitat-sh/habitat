@@ -165,9 +165,9 @@ distclean: ## fully cleans up project tree and any associated Docker images and 
 .PHONY: distclean
 
 image: ## create an image
-	ifeq ($(HAS_DOCKER),)
-		$(error "Docker does not seem installed, please install docker first.")
-	endif
+ifeq ($(HAS_DOCKER),)
+	$(error "Docker does not seem installed, please install docker first.")
+endif
 	@if [ -n "${force}" -o -n "${refresh}" -o -z "`$(docker_cmd) images -q $(dimage)`" ]; then \
 		if [ -n "${force}" ]; then \
 		  $(docker_cmd) build --no-cache $(build_args) -t $(dimage) .; \
