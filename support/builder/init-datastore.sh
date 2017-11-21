@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 hab start core/builder-datastore &
 

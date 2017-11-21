@@ -6,7 +6,7 @@ curl -sSf https://sh.rustup.rs \
   | env -u CARGO_HOME sh -s -- -y --default-toolchain stable
 . $HOME/.cargo/env
 env -u CARGO_HOME rustup target add x86_64-unknown-linux-musl
-env -u CARGO_HOME cargo install protobuf
+env -u CARGO_HOME cargo install --force protobuf
 rustc --version
 cargo --version
 

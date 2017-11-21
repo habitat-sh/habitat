@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 export PGPASSWORD
 PGPASSWORD=$(cat /hab/svc/builder-datastore/config/pwfile)

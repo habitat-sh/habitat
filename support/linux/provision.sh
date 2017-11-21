@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 export APP_HOSTNAME=localhost:3000
 export GITHUB_API_URL=https://api.github.com

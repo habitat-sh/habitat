@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # GitHub secret keys
 if [[ -f "/src/.secrets/builder-github-app.pem" ]]; then
