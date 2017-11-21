@@ -452,7 +452,9 @@ impl DockerBuildRoot {
         ui.status(Status::Creating, "image Dockerfile")?;
         let ctx = self.0.ctx();
         let json = json!({
-            "rootfs": ctx.rootfs().file_name().expect("file_name exists").to_string_lossy().as_ref(),
+            "rootfs": ctx.rootfs().file_name().expect("file_name exists")
+                .to_string_lossy()
+                .as_ref(),
             "path": ctx.env_path(),
             "volumes": ctx.svc_volumes().join(" "),
             "exposes": ctx.svc_exposes().join(" "),
