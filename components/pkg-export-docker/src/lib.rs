@@ -21,7 +21,9 @@ extern crate hab;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate handlebars;
+extern crate rusoto_core;
 extern crate rusoto_ecr;
+extern crate rusoto_credential as aws_creds;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -41,6 +43,10 @@ pub mod rootfs;
 mod util;
 
 use common::ui::UI;
+use aws_creds::StaticProvider;
+use rusoto_core::Region;
+use rusoto_core::request::*;
+use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
 pub use cli::Cli;
 pub use build::BuildSpec;
@@ -101,9 +107,55 @@ impl<'a> Naming<'a> {
 ///
 /// This is a value struct which references username and password values.
 #[derive(Debug)]
-pub struct Credentials<'a> {
-    pub username: &'a str,
-    pub password: &'a str,
+pub struct Credentials {
+    pub username: String,
+    pub password: String,
+}
+
+impl Credentials {
+    pub fn new(registry_type: &str, username: &str, password: &str) -> Result<Self> {
+        match registry_type {
+            "amazon" => {
+                // The username and password should be valid IAM credentials
+                let provider =
+                    StaticProvider::new_minimal(username.to_string(), password.to_string());
+                // TODO TED: Make the region configurable
+                let client =
+                    EcrClient::new(default_tls_client().unwrap(), provider, Region::UsWest2);
+                let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
+                let token = match client.get_authorization_token(&auth_token_req) {
+                    Ok(resp) => {
+                        match resp.authorization_data {
+                            Some(auth_data) => auth_data[0].clone().authorization_token.unwrap(),
+                            None => return Err(Error::NoECRTokensReturned),
+                        }
+                    }
+                    Err(e) => return Err(Error::TokenFetchFailed(e)),
+                };
+
+                let creds: Vec<String> = match base64::decode(&token) {
+                    Ok(decoded_token) => {
+                        match String::from_utf8(decoded_token) {
+                            Ok(dts) => dts.split(':').map(String::from).collect(),
+                            Err(err) => return Err(Error::InvalidToken(err)),
+                        }
+                    }
+                    Err(err) => return Err(Error::Base64DecodeError(err)),
+                };
+
+                Ok(Credentials {
+                    username: creds[0].to_string(),
+                    password: creds[1].to_string(),
+                })
+            }
+            _ => {
+                Ok(Credentials {
+                    username: username.to_string(),
+                    password: password.to_string(),
+                })
+            }
+        }
+    }
 }
 
 /// Exports a Docker image to a Docker engine from a build specification and naming policy.

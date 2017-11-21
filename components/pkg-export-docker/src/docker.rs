@@ -265,9 +265,9 @@ impl<'a> DockerImage {
         let mut cmd = docker_cmd();
         cmd.arg("login")
             .arg("--username")
-            .arg(credentials.username)
+            .arg(&credentials.username)
             .arg("--password")
-            .arg(credentials.password);
+            .arg(&credentials.password);
 
         if let Some(arg) = registry_url {
             cmd.arg(arg);
@@ -276,8 +276,8 @@ impl<'a> DockerImage {
         debug!(
             "Running: {}",
             format!("{:?}", &cmd)
-                .replace(credentials.username, "<username-redacted>")
-                .replace(credentials.password, "<password-redacted>")
+                .replace(&credentials.username, "<username-redacted>")
+                .replace(&credentials.password, "<password-redacted>")
         );
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
