@@ -21,9 +21,6 @@ extern crate env_logger;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate habitat_pkg_export_docker as export_docker;
-extern crate rusoto_core;
-extern crate rusoto_credential as aws_creds;
-extern crate rusoto_ecr;
 extern crate chrono;
 #[macro_use]
 extern crate log;
@@ -37,11 +34,7 @@ use hcore::env as henv;
 use hcore::PROGRAM_NAME;
 use hcore::url as hurl;
 
-use aws_creds::StaticProvider;
-use rusoto_core::Region;
-use rusoto_core::request::*;
-use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
-use export_docker::{Cli, BuildSpec, Credentials, Error, Result, Naming};
+use export_docker::{Cli, BuildSpec, Credentials, Result, Naming};
 
 fn main() {
     env_logger::init().unwrap();
@@ -67,51 +60,12 @@ fn start(ui: &mut UI) -> Result<()> {
         env::current_dir()?.join("results"),
     )?;
     if m.is_present("PUSH_IMAGE") {
-        match naming.registry_type {
-            "amazon" => {
-                // The username and password should be valid IAM credentials
-                let provider = StaticProvider::new_minimal(
-                    m.value_of("REGISTRY_USERNAME").unwrap().to_string(),
-                    m.value_of("REGISTRY_PASSWORD").unwrap().to_string(),
-                );
-                // TODO TED: Make the region configurable
-                let client =
-                    EcrClient::new(default_tls_client().unwrap(), provider, Region::UsWest2);
-                let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
-                let token = match client.get_authorization_token(&auth_token_req) {
-                    Ok(resp) => {
-                        match resp.authorization_data {
-                            Some(auth_data) => auth_data[0].clone().authorization_token.unwrap(),
-                            None => return Err(Error::NoECRTokensReturned),
-                        }
-                    }
-                    Err(e) => return Err(Error::TokenFetchFailed(e)),
-                };
-
-                let creds: Vec<String> = match base64::decode(&token) {
-                    Ok(decoded_token) => {
-                        match String::from_utf8(decoded_token) {
-                            Ok(dts) => dts.split(':').map(String::from).collect(),
-                            Err(err) => return Err(Error::InvalidToken(err)),
-                        }
-                    }
-                    Err(err) => return Err(Error::Base64DecodeError(err)),
-                };
-
-                let credentials = Credentials {
-                    username: &creds[0],
-                    password: &creds[1],
-                };
-                docker_image.push(ui, &credentials, naming.registry_url)?;
-            }
-            _ => {
-                let credentials = Credentials {
-                    username: m.value_of("REGISTRY_USERNAME").unwrap(),
-                    password: m.value_of("REGISTRY_PASSWORD").unwrap(),
-                };
-                docker_image.push(ui, &credentials, naming.registry_url)?;
-            }
-        }
+        let credentials = Credentials::new(
+            naming.registry_type,
+            m.value_of("REGISTRY_USERNAME").unwrap(),
+            m.value_of("REGISTRY_PASSWORD").unwrap(),
+        )?;
+        docker_image.push(ui, &credentials, naming.registry_url)?;
     }
     if m.is_present("RM_IMAGE") {
         docker_image.rm(ui)?;
