@@ -1,7 +1,6 @@
 p By default, the latest version of the <code>core/gradle</code> package will be injected into your plan's <code>pkg_build_deps</code> array. If you want to use a different version of Gradle, set the <code>scaffolding_gradle_pkg</code> variable in your plan. For example:
 
-pre
- code
+= code(:bash) do
   |
    pkg_name=my_app
    pkg_origin=acmecorp
@@ -16,8 +15,7 @@ h4 Java Development Kit Version
 
 p By default, the latest version of the <code>core/jdk8</code> package will be injected into your plan's <code>pkg_build_deps</code> array. If you want to use a different version of the Java Development Kit (JDK), set the <code>scaffolding_jdk_pkg</code> variable in your plan. For example:
 
-pre
- code
+= code(:bash) do
   |
    pkg_name=my_app
    pkg_origin=acmecorp
@@ -32,8 +30,7 @@ h4 Java Runtime Environment Version
 
 p By default, the latest version of the <code>core/jre8</code> package will be injected into your plan's <code>pkg_deps</code> array. If you want to use a different version of the Java Runtime Environment (JRE), set the <code>scaffolding_jre_pkg</code> variable in your plan. For example:
 
-pre
- code
+= code(:bash) do
   |
    pkg_name=my_app
    pkg_origin=acmecorp

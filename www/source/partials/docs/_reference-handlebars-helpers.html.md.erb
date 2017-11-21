@@ -15,19 +15,25 @@ Habitat's templating flavour includes a number of custom helpers for writing con
 
 Returns the lowercase equivalent of the given string literal.
 
-    my_value={{toLowercase "UPPER-CASE"}}
+```handlebars
+my_value={{toLowercase "UPPER-CASE"}}
+```
 
 ### toUppercase Helper
 
 Returns the uppercase equivalent of the given string literal.
 
-    my_value={{toUppercase "lower-case"}}
+```handlebars
+my_value={{toUppercase "lower-case"}}
+```
 
 ### strReplace Helper
 
 Replaces all matches of a pattern within the given string literal.
 
-    my_value={{strReplace "this is old" "old" "new"}}
+```handlebars
+my_value={{strReplace "this is old" "old" "new"}}
+```
 
 This sets `my_value` to "this is new".
 
@@ -37,23 +43,31 @@ Returns the absolute filepath to the package directory of the package best resol
 
 Example Plan Contents:
 
-    pkg_deps=("core/jre8")
+```bash
+pkg_deps=("core/jre8")
+```
 
 Example Template:
 
-    export JAVA_HOME={{pkgPathFor "core/jre8"}}
+```handlebars
+export JAVA_HOME={{pkgPathFor "core/jre8"}}
+```
 
 Example pointing to specific file in <code>core/nginx</code> package on disk:
 
-    {{pkgPathFor "core/nginx"}}/config/fastcgi.conf
+```handlebars
+{{pkgPathFor "core/nginx"}}/config/fastcgi.conf
+```
 
 ### eachAlive Helper
 
 Iterates over a collection of members and renders the template for members that are marked alive.
 
-    {{~#eachAlive bind.backend.members as |member|}}
-    server ip {{member.sys.ip}}:{{member.cfg.port}}
-    {{~/eachAlive}}
+```handlebars
+{{~#eachAlive bind.backend.members as |member|}}
+server ip {{member.sys.ip}}:{{member.cfg.port}}
+{{~/eachAlive}}
+```
 
 ### toJson Helper
 
@@ -61,34 +75,40 @@ To output configuration data as JSON, you can use the `toJson` helper.
 
 Given a default.toml that looks like:
 
-    [web]
+```toml
+[web]
 
-    [[servers]]
-    host = "host-1"
-    port = 4545
+[[servers]]
+host = "host-1"
+port = 4545
 
-    [[servers]]
-    host = "host-2"
-    port = 3434
+[[servers]]
+host = "host-2"
+port = 3434
+```
 
 and a template:
 
-    {{toJson cfg.web}}
+```handlebars
+{{toJson cfg.web}}
+```
 
 when rendered, it will look like:
 
+```json
+{
+  "servers": [
     {
-      "servers": [
-        {
-          "host": "host-1",
-          "port": 4545
-        },
-        {
-          "host": "host-2",
-          "port": 3434
-        }
-      ]
+      "host": "host-1",
+      "port": 4545
+    },
+    {
+      "host": "host-2",
+      "port": 3434
     }
+  ]
+}
+```
 
 This can be useful if you have a configuration file that is in JSON format and
 has the same structure as your TOML configuration data.
@@ -99,17 +119,23 @@ The `toToml` helper can be used to output TOML.
 
 Given a default.toml that looks like:
 
-    [web]
+```toml default.toml
+[web]
 
-    port = 80
+port = 80
+```
 
 and a template:
 
-    {{toToml cfg.web}}
+```handlebars
+{{toToml cfg.web}}
+```
 
 when rendered, it will look like:
 
-    port = 80
+```toml
+port = 80
+```
 
 This can be useful if you have an app that uses TOML as its configuration file
 format, but may have not been designed for Habitat, and you only need certain
@@ -121,19 +147,25 @@ The `toYaml` helper can be used to output [YAML](http://yaml.org/).
 
 Given a default.toml that looks like:
 
-    [web]
+```toml default.toml
+[web]
 
-    port = 80
+port = 80
+```
 
 and a template:
 
-    {{toYaml cfg}}
+```handlebars
+{{toYaml cfg}}
+```
 
 when rendered, it will look like:
 
-    ---
-    web:
-      port: 80
+```yaml
+---
+web:
+  port: 80
+```
 
 The helper outputs a YAML document (with a line beginning with `---`), so it
 must be used to create complete documents: you cannot insert a section of YAML

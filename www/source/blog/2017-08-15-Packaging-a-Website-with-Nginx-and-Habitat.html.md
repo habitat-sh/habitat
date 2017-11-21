@@ -22,23 +22,27 @@ In this post, I'll show you how to package a simple website with Habitat and ser
 
 We'll compose our website by building two Habitat packages &mdash; one for the website, one for the server. We want to be able to ship these packages independently of one another, so let's start by creating a folder with a subfolder for each of them:
 
-    $ cd ~
-    $ mkdir -p hello-hab/site hello-hab/server
-    $ touch ~/hello-hab/site/index.html
-    $ cd hello-hab
+```shell
+$ cd ~
+$ mkdir -p hello-hab/site hello-hab/server
+$ touch ~/hello-hab/site/index.html
+$ cd hello-hab
+```
 
 With your editor of choice, copy the markup below into `index.html` and save it:
 
-    <!doctype html>
-    <html lang="en">
-      <head>
-        <title>Hello!</title>
-        <meta charset="utf-8">
-      </head>
-      <body>
-        <h1>Hello, Habitat!</h1>
-      </body>
-    </html>
+```html ~/hello-hab/index.html
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Hello!</title>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <h1>Hello, Habitat!</h1>
+  </body>
+</html>
+```
 
 Excellent &mdash; we have a website! We're just about ready to start packaging.
 
@@ -55,13 +59,17 @@ Ideally, you've also made it through some [tutorials](/tutorials/) and [docs](/d
 
 As a quick test, try running `hab --version`. Here's what I see when I do that today:
 
-    $ hab --version
-    hab 0.29.1/20170810235219
+```shell
+$ hab --version
+hab 0.29.1/20170810235219
+```
 
 I mentioned the need for your origin's public and private keys; we'll need those on your machine as well. I'm presently on a Mac, so when I ran `hab setup` for the first time, Habitat created those keys for me and placed them at `~/.hab/cache/keys`:
 
-    $ ls ~/.hab/cache/keys
-    cnunciato-20170304222818.pub cnunciato-20170304222818.sig.key
+```shell
+$ ls ~/.hab/cache/keys
+cnunciato-20170304222818.pub cnunciato-20170304222818.sig.key
+```
 
 If what you see when you run these commands looks significantly different, take a pass through [Download and Install](/download) and doublecheck that you covered everything, then come back here when you're done. (And as always, if you run into trouble, hop into the **#general** channel [on the Habitat Slack](http://slack.habitat.sh/) and we'll help get you unstuck.)
 
@@ -71,30 +79,36 @@ All right! Let's do some packaging.
 
 Let's start in the containing folder we created a moment ago:
 
-    $ cd ~/hello-hab
-    $ ls
-    server site
+```shell
+$ cd ~/hello-hab
+$ ls
+server site
+```
 
 We'll begin by creating a plan for the site. The goal for this plan is to produce a Habitat package containing just our humble little HTML page, so we can keep our plan pretty simple by creating just [a `plan.sh` file](/docs/developing-packages#write-plans):
 
-    $ mkdir site/habitat
-    $ touch site/habitat/plan.sh
+```shell
+$ mkdir site/habitat
+$ touch site/habitat/plan.sh
+```
 
 In `site/habitat/plan.sh`, place the following plan definition (substituting your own values for `pkg_origin` and `pkg_maintainer`, of course):
 
-    pkg_name="hello-hab-site"
-    pkg_origin="cnunciato"
-    pkg_version="0.1.0"
-    pkg_maintainer="Chris Nunciato <chris@nunciato.org>"
+```bash ~/hello-hab/site/habitat/plan.sh
+pkg_name="hello-hab-site"
+pkg_origin="cnunciato"
+pkg_version="0.1.0"
+pkg_maintainer="Chris Nunciato <chris@nunciato.org>"
 
-    do_build() {
-      return 0
-    }
+do_build() {
+  return 0
+}
 
-    do_install() {
-      mkdir -p "${pkg_prefix}/dist"
-      cp -v index.html "${pkg_prefix}/dist/"
-    }
+do_install() {
+  mkdir -p "${pkg_prefix}/dist"
+  cp -v index.html "${pkg_prefix}/dist/"
+}
+```
 
 As noted in [the plan docs](/docs/reference), the `do_build` step runs `make` by default &mdash; but since we don't have a Makefile in our source code (and don't really have any processing to do on it otherwise), we can bypass this step by providing our own "do nothing" implementation and return `0` to indicate success. (Yay!)
 
@@ -104,51 +118,58 @@ Now, Habitat recognizes a number of [environment variables](/docs/reference#envi
 
 Let's do that now, as it'll come in handy later when we start the web server. And let's also make sure we enter the Studio at a level *above* our two packages so we can work with them both in a single Studio session:
 
-    $ export HAB_DOCKER_OPTS="-p 8080:80"   # Maps localhost:8080 to port 80 in the Studio
-    $ cd ~/hello-hab
-    $ hab studio enter
-
-    hab-studio: Creating Studio at /hab/studios/src (default)
-      hab-studio: Importing cnunciato secret origin key
-    » Importing origin key from standard input
-    ★ Imported secret origin key cnunciato-20170304222818.
-      hab-studio: Entering Studio at /hab/studios/src (default)
-      hab-studio: Exported: HAB_ORIGIN=cnunciato
+```shell
+$ export HAB_DOCKER_OPTS="-p 8080:80"   # Maps localhost:8080 to port 80 in the Studio
+$ cd ~/hello-hab
+$ hab studio enter
+hab-studio: Creating Studio at /hab/studios/src (default)
+  hab-studio: Importing cnunciato secret origin key
+» Importing origin key from standard input
+★ Imported secret origin key cnunciato-20170304222818.
+  hab-studio: Entering Studio at /hab/studios/src (default)
+  hab-studio: Exported: HAB_ORIGIN=cnunciato
+```
 
 Note that Habitat recognized my personal origin (`cnunciato`) and secret key, which I'll use for signing my site and server packages. Now I can tell Habitat to build the package we've defined at `./site/habitat/plan.sh`:
 
-    [1][default:/src:0]# build site
+```studio
+[1][default:/src:0]# build site
+```
 
 Your output should look something like this (I've removed a few lines to point out the good parts):
 
-    : Loading /src/site/habitat/plan.sh
-      hello-hab-site: Plan loaded
-    ...
-      hello-hab-site: Preparing to build
-      hello-hab-site: Building
-    'index.html' -> '/hab/pkgs/cnunciato/hello-hab-site/0.1.0/20170810182846/site/index.html'
-      hello-hab-site: Installing
-    ...
-    ★ Signed artifact /hab/cache/artifacts/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart.
-    mkdir: created directory '/src/results'
-    '/hab/cache/artifacts/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart' -> '/src/results/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart'
-      hello-hab-site: hab-plan-build cleanup
-      hello-hab-site:
-      hello-hab-site: Source Path: /src/site
-      hello-hab-site: Installed Path: /hab/pkgs/cnunciato/hello-hab-site/0.1.0/20170810182846
-      hello-hab-site: Artifact: /src/results/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart
-      hello-hab-site: Build Report: /src/results/last_build.env
-      hello-hab-site: SHA256 Checksum: e52f40cac4e606683be94b3beccbd86a3c8e5e2a8a1e804351fc39c2564af6e3
-      hello-hab-site: Blake2b Checksum: d08a05238de1341a1de23242e140ebe77ca59411dc69d1f4aabb5c35f4e06e6a
-      hello-hab-site:
-      hello-hab-site: I love it when a plan.sh comes together.
-      hello-hab-site:
-      hello-hab-site: Build time: 0m0s
+```studio
+: Loading /src/site/habitat/plan.sh
+  hello-hab-site: Plan loaded
+...
+  hello-hab-site: Preparing to build
+  hello-hab-site: Building
+'index.html' -> '/hab/pkgs/cnunciato/hello-hab-site/0.1.0/20170810182846/site/index.html'
+  hello-hab-site: Installing
+...
+★ Signed artifact /hab/cache/artifacts/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart.
+mkdir: created directory '/src/results'
+'/hab/cache/artifacts/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart' -> '/src/results/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart'
+  hello-hab-site: hab-plan-build cleanup
+  hello-hab-site:
+  hello-hab-site: Source Path: /src/site
+  hello-hab-site: Installed Path: /hab/pkgs/cnunciato/hello-hab-site/0.1.0/20170810182846
+  hello-hab-site: Artifact: /src/results/cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart
+  hello-hab-site: Build Report: /src/results/last_build.env
+  hello-hab-site: SHA256 Checksum: e52f40cac4e606683be94b3beccbd86a3c8e5e2a8a1e804351fc39c2564af6e3
+  hello-hab-site: Blake2b Checksum: d08a05238de1341a1de23242e140ebe77ca59411dc69d1f4aabb5c35f4e06e6a
+  hello-hab-site:
+  hello-hab-site: I love it when a plan.sh comes together.
+  hello-hab-site:
+  hello-hab-site: Build time: 0m0s
+```
 
 Okay! According to this, we should now have a signed Habitat package containing our website:
 
-    [2][default:/src:0]# ls ./results
-    cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart  last_build.env
+```studio
+[2][default:/src:0]# ls ./results
+cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart  last_build.env
+```
 
 Great! Our website is done. Let's move on to the server.
 
@@ -156,8 +177,10 @@ Great! Our website is done. Let's move on to the server.
 
 Keeping the Habitat Studio open, in a new terminal tab, change to the `server` folder and run `hab plan init` to generate a bare-bones Habitat plan and folder structure:
 
-    $ cd ~/hello-hab/server
-    $ hab plan init
+```shell
+$ cd ~/hello-hab/server
+$ hab plan init
+```
 
 That should leave you with some folders and files shaped generally like this:
 
@@ -174,33 +197,39 @@ We'll do so by composing a new plan that *depends* on `core/nginx`, bundle an Ng
 
 In `server/habitat/plan.sh`, modify the generated plan file to include only the parts we need for now (again, substituting your own values where appropriate):
 
-    pkg_name="hello-hab-server"
-    pkg_origin="cnunciato"
-    pkg_version="0.1.0"
-    pkg_maintainer="Christian Nunciato <chris@nunciato.org>"
-    pkg_svc_user="root"
-    pkg_deps=(core/nginx)
+```bash ~/hello-hab/server/habitat/plan.sh
+pkg_name="hello-hab-server"
+pkg_origin="cnunciato"
+pkg_version="0.1.0"
+pkg_maintainer="Christian Nunciato <chris@nunciato.org>"
+pkg_svc_user="root"
+pkg_deps=(core/nginx)
 
-    do_build() {
-      return 0
-    }
+do_build() {
+  return 0
+}
 
-    do_install() {
-      return 0
-    }
+do_install() {
+  return 0
+}
+```
 
 There are a couple of things worth pointing out here (all of which is detailed in the [plan-authoring docs](/docs/reference)). One is the specification of `pkg_svc_user`, which we set here as `root` because we'll need the [Nginx master process](http://nginx.org/en/docs/beginners_guide.html) to be able to bind to port 80, which typically requires elevated privileges. (Worker processes, as you'll see later, will be run as a different user.) Another is the declaration of `core/nginx` as a dependency, and then finally, since `core/nginx` takes care of building the Nginx server for us, we're left with nothing to do in our own build and install steps, so we can return zero for both of them.
 
 Now let's run a build just to make sure we're on the right track. Back in our still-open Habitat Studio:
 
-    [3][default:/src:0]# build server
+```studio
+[3][default:/src:0]# build server
+```
 
 If all goes well, you should end up with a server package in `./results` now, too:
 
-    [4][default:/src:0]# ls ./results
-    cnunciato-hello-hab-server-0.1.0-20170810222842-x86_64-linux.hart
-    cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart
-    last_build.env
+```studio
+[4][default:/src:0]# ls ./results
+cnunciato-hello-hab-server-0.1.0-20170810222842-x86_64-linux.hart
+cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart
+last_build.env
+```
 
 We aren't done yet &mdash; we've just validated we can build &mdash; but we're well on our way. Two small steps remain: making our service configurable and describing how to start it.
 
@@ -208,32 +237,36 @@ We aren't done yet &mdash; we've just validated we can build &mdash; but we're w
 
 Let's keep the configuration as simple as possible for now. (Amazing things can be done with an [Nginx config](http://nginx.org/en/docs/beginners_guide.html), but only a few of them matter to us today.) Make a new file to hold our initial configuration:
 
-    $ cd ~/hello-hab
-    $ touch server/habitat/config/nginx.conf
+```shell
+$ cd ~/hello-hab
+$ touch server/habitat/config/nginx.conf
+```
 
 And inside that new file, place the following Habitat [configuration template](/docs/developing-packages#add-configuration#sts=Add configuration to plans):
 
-    daemon off;
-    pid {{ pkg.svc_var_path }}/pid;
-    worker_processes {{ cfg.worker_processes }};
+```handlebars
+daemon off;
+pid {{ pkg.svc_var_path }}/pid;
+worker_processes {{ cfg.worker_processes }};
 
-    events {
-      worker_connections {{ cfg.events.worker_connections }};
-    }
+events {
+  worker_connections {{ cfg.events.worker_connections }};
+}
 
-    http {
-      client_body_temp_path {{ pkg.svc_var_path }}/client-body;
-      fastcgi_temp_path {{ pkg.svc_var_path }}/fastcgi;
-      proxy_temp_path {{ pkg.svc_var_path }}/proxy;
-      scgi_temp_path {{ pkg.svc_var_path }}/scgi_temp_path;
-      uwsgi_temp_path {{ pkg.svc_var_path }}/uwsgi;
+http {
+  client_body_temp_path {{ pkg.svc_var_path }}/client-body;
+  fastcgi_temp_path {{ pkg.svc_var_path }}/fastcgi;
+  proxy_temp_path {{ pkg.svc_var_path }}/proxy;
+  scgi_temp_path {{ pkg.svc_var_path }}/scgi_temp_path;
+  uwsgi_temp_path {{ pkg.svc_var_path }}/uwsgi;
 
-      server {
-        listen {{ cfg.http.server.listen }};
-        root {{ cfg.http.server.root }};
-        index {{ cfg.http.server.index }};
-      }
-    }
+  server {
+    listen {{ cfg.http.server.listen }};
+    root {{ cfg.http.server.root }};
+    index {{ cfg.http.server.index }};
+  }
+}
+```
 
 A few things to note about what we've included here:
 
@@ -245,19 +278,21 @@ A few things to note about what we've included here:
 
 When we start our web-server service, Habitat will combine the template above with metadata supplied by our package (the `pkg.*` expressions) and values we provide in our TOML files (the `cfg.*` ones) and produce a well-formed configuration file that `nginx` can consume when it starts. Let's finish this off by adding some default values to `server/habitat/default.toml`, which was created for you when you ran `hab plan init`:
 
-    # Use this file to templatize your application's native configuration files.
-    # See the docs at https://www.habitat.sh/docs/developing-packages#add-configuration.
-    # You can safely delete this file if you don't need it.
+```toml
+# Use this file to templatize your application's native configuration files.
+# See the docs at https://www.habitat.sh/docs/developing-packages#add-configuration.
+# You can safely delete this file if you don't need it.
 
-    worker_processes = 1
+worker_processes = 1
 
-    [events]
-    worker_connections = 512
+[events]
+worker_connections = 512
 
-    [http.server]
-    listen = 80
-    root = "/hab/svc/hello-hab-server/static"
-    index = "index.html"
+[http.server]
+listen = 80
+root = "/hab/svc/hello-hab-server/static"
+index = "index.html"
+```
 
 Perfect. All we have left are the scripts that start up the service.
 
@@ -270,8 +305,9 @@ The Habitat docs explain all there is to know about [service hooks and how to us
 
 If you glance back at `config/nginx.conf` and `default.toml`, you'll see we're essentially telling Nginx that when it starts, it can expect to find a web page at `/hab/svc/hello-hab-server/static/index.html` &mdash; but we haven't done anything to make that happen yet. While our ultimate plan is to serve the file we bundled into `hello-hab-site`, we might also want to package a default home page *with* our web-server package, and the `init` hook gives us an opportunity to demonstrate one (slightly contrived) way to do that.
 
-Make a new file, `server/hooks/init`, and give it the following contents:
+Make a new file, `server/habitat/hooks/init`, and give it the following contents:
 
+```handlebars ~/hello-hab/server/habitat/hooks/init
     #!/bin/sh
 
     # Make an empty HTML file to be served by default.
@@ -279,6 +315,7 @@ Make a new file, `server/hooks/init`, and give it the following contents:
 
     # Apply permissions allowing Nginx workers to read what's in our static path.
     chown hab:hab "{{ pkg.svc_static_path }}"
+```
 
 It might seem a little wierd to serve up an empty web page like this, but my intention is just to explain why we need the *next* line, wherein we change the ownership of `pkg.svc_static_path`.
 
@@ -286,10 +323,12 @@ Recall that our server plan sets `pkg_svc_user` to `root` (we explained why earl
 
 With our minimally helpful init hook in place, let's finish off with a `run` hook. Make a new file, `server/habitat/hooks/run`, containing:
 
-    #!/bin/sh
+```handlebars ~/hello-hab/server/habitat/hooks/run
+#!/bin/sh
 
-    # Start the Nginx server, passing it our bundled configuration file.
-    exec {{ pkgPathFor "core/nginx" }}/bin/nginx -c "{{ pkg.svc_config_path }}/nginx.conf" 2>&1
+# Start the Nginx server, passing it our bundled configuration file.
+exec {{ pkgPathFor "core/nginx" }}/bin/nginx -c "{{ pkg.svc_config_path }}/nginx.conf" 2>&1
+```
 
 With this line, we're instructing the Habitat Supervisor to:
 
@@ -299,12 +338,16 @@ With this line, we're instructing the Habitat Supervisor to:
 
 And that's it. We should now be able to build the server package:
 
-    [5][default:/src:0]# build server
+```studio
+[5][default:/src:0]# build server
+```
 
 And when that's done, start it up:
 
-    [6][default:/src:0]# hab start cnunciato/hello-hab-server
-    hab-sup(MN): Supervisor starting cnunciato/hello-hab-server. See the Supervisor output for more details.
+```studio
+[6][default:/src:0]# hab start cnunciato/hello-hab-server
+hab-sup(MN): Supervisor starting cnunciato/hello-hab-server. See the Supervisor output for more details.
+```
 
 Success! We can tail the server logs by running `sl` (short for `sup-log`). `Ctrl-C` stops the tailing.
 
@@ -318,16 +361,20 @@ That's great, and you should be proud &mdash; but a blank page isn't going to wi
 
 To do that, we'll [use `hab config apply` to send a bit of TOML](/docs/using-habitat#config-updates/) to our server's [service group](/docs/glossary#glossary-services) (and mind that line break &mdash; it needs to be included, or you'll get complaints about malformed TOML, and the change wont' be applied):
 
-    [7][default:/src:0]# echo "[http.server]
-    root = '$(hab pkg path cnunciato/hello-hab-site)/dist'" | hab config apply hello-hab-server.default 1
+```studio
+[7][default:/src:0]# echo "[http.server]
+root = '$(hab pkg path cnunciato/hello-hab-site)/dist'" | hab config apply hello-hab-server.default 1
+```
 
 In response, you should see that the change was applied successfully:
 
-    » Applying configuration for hello-hab-server.default incarnation 1
-    Ω Creating service configuration
-    ✓ Verified this configuration is valid TOML
-    ↑ Applying to peer 127.0.0.1:9638
-    ★ Applied configuration
+```studio
+» Applying configuration for hello-hab-server.default incarnation 1
+Ω Creating service configuration
+✓ Verified this configuration is valid TOML
+↑ Applying to peer 127.0.0.1:9638
+★ Applied configuration
+```
 
 Now go ahead and give that browser a reload, and you should finally see what you've been waiting for:
 

@@ -229,7 +229,7 @@ were taking a while to start up because they were re-creating various files at
 init time. For example, the `automate-nginx` container had a bit of code like
 this:
 
-```bash
+```handlebars
     # Generate a private key if one does not exist.
     cert_file="{{pkg.svc_data_path}}/cert"
     key_file="{{pkg.svc_data_path}}/key"

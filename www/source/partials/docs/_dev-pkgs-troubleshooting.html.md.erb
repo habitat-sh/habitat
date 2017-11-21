@@ -4,19 +4,26 @@ While working on plans, you may wish to stop the build and inspect the environme
 
 To use `attach`, insert it into your plan at the point where you would like to use it, e.g.
 
-       do_build() {
-         attach
-         make
-       }
+```bash
+ do_build() {
+   attach
+   make
+ }
+```
 
 Now, perform a [build](/docs/developing-packages/#plan-builds) -- we recommend using an interactive studio so you do not need to set up the environment from scratch for every build.
 
-       $ hab studio enter
-       $ build yourapp
+```shell
+$ hab studio enter
+```
+
+```studio
+$ build yourapp
+```
 
 The build system will proceed until the point where the `attach` function is invoked, and then drop you into a limited shell:
 
-~~~
+```studio
 ### Attaching to debugging session
 
 From: /src/yourapp/plan.sh @ line 15 :
@@ -37,11 +44,11 @@ From: /src/yourapp/plan.sh @ line 15 :
     18: }
 
 [1] yourapp(do_build)>
-~~~
+```
 
 You can use basic Linux commands like `ls` in this environment. You can also use the `help` command the Habitat build system provides in this context to see what other functions can help you debug the plan.
 
-~~~
+```studio
 [1] yourapp(do_build)> help
 Help
   help          Show a list of command or information about a specific command.
@@ -61,7 +68,7 @@ Aliases
   @             Alias for `whereami`.
   quit          Alias for `exit`.
   quit-program  Alias for `exit-program`.
-~~~
+```
 
   Type `quit` when you are done with the debugger, and the remainder of the build will continue. If you wish to abort the build entirely, type `quit-program`.
 
@@ -70,8 +77,9 @@ Aliases
   If you want to output your run hook to STDOUT you can add this underneath the
   top line.
 
-~~~
+```bash
+# hooks/run
 #!/bin/bash -xe
 
 exec 2>&1 # output to STDOUT
-~~~
+```

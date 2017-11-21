@@ -2,8 +2,7 @@ p Connecting to the PostgreSQL database from Rails requires setting the database
 
 p In the <code>habitat</code> directory inside your project repo, edit the <code>default.toml</code> to set the correct database connection information.
 
-pre
- code
+= code(:toml, title: 'habitat/default.toml') do
   |
    [db]
    user = "admin"
@@ -11,15 +10,13 @@ pre
 
 p By default, the Ruby scaffolding sets both the Rails and Rack #{link_to 'environment variables','/tutorials/build-your-own/define-variables/'} to 'production'. If you want to override either value, add the following to your <code>default.toml</code>:
 
-pre
- code
+= code(:toml, title: 'habitat/default.toml') do
   |
    rails_env|rack_env = "development|test"
 
 p Also, by default, because <code>RAILS_ENV</code> is set to 'production', the database name that the scaffolding will try to connect to will be named <i>package_</i>production. If you want to override that value, add the following in the <code>db</code> TOML table:
 
-pre
- code 
+= code(:toml) do
   |
    name = "databasename"
 
