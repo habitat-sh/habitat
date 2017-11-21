@@ -185,12 +185,12 @@ distclean: clean ## fully cleans up project tree
 endif
 
 bundle: image
-	$(run) sh -c 'AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) AWS_KEYPAIR_NAME=$(AWS_KEYPAIR_NAME) \
+	@$(run) sh -c 'AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) AWS_KEYPAIR_NAME=$(AWS_KEYPAIR_NAME) \
 		AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) terraform/scripts/create_bootstrap_bundle.sh \
 		$(VERSION)'
 
 changelog: image
-	$(run) sh -c 'hab pkg install core/github_changelog_generator && \
+	@$(run) sh -c 'hab pkg install core/github_changelog_generator && \
 		hab pkg binlink core/github_changelog_generator github_changelog_generator --force && \
 		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN)' --max-issues=1000
 
