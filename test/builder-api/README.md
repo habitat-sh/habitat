@@ -10,8 +10,3 @@ To run these tests, you need to do:
 
 * `npm install`
 * `npm test`
-
-These instructions will trigger an error. Only after you have read that
-message and done what it says should you run the test suite. ;)test
-
-

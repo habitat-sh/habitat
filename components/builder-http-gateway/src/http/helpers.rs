@@ -21,6 +21,8 @@ use hab_net::{ErrCode, NetError, NetOk, NetResult};
 use hab_net::privilege::FeatureFlags;
 use http::controller::*;
 
+use iron::mime::{Attr, Mime, SubLevel, TopLevel, Value};
+use iron::modifiers::Header;
 use iron::status::{self, Status};
 use protocol::originsrv::{CheckOriginOwnerRequest, CheckOriginOwnerResponse,
                           CheckOriginAccessRequest, CheckOriginAccessResponse, Origin,
@@ -94,11 +96,16 @@ where
     T: Serialize,
 {
     let body = package_results_json(body, count, start, end);
+    let headers = Header(ContentType(Mime(
+        TopLevel::Application,
+        SubLevel::Json,
+        vec![(Attr::Charset, Value::Utf8)],
+    )));
 
     if count > end + 1 {
-        Ok(Response::with((status::PartialContent, body)))
+        Ok(Response::with((status::PartialContent, body, headers)))
     } else {
-        Ok(Response::with((status::Ok, body)))
+        Ok(Response::with((status::Ok, body, headers)))
     }
 }
 
@@ -167,6 +174,7 @@ pub fn visibility_for_optional_session(
     v.push(OriginPackageVisibility::Public);
 
     if optional_session_id.is_some() && check_origin_access(req, origin).unwrap_or(false) {
+        v.push(OriginPackageVisibility::Hidden);
         v.push(OriginPackageVisibility::Private);
     }
 
@@ -461,7 +469,7 @@ fn do_group_promotion_or_demotion(
     if !check_origin_access(req, origin).unwrap_or(false) {
         return Err(NetError::new(
             ErrCode::ACCESS_DENIED,
-            "hg:promote-demote-job-group:0",
+            "hg:promote-or-demote-job-group:1",
         ));
     }
 

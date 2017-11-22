@@ -14,7 +14,7 @@
 
 use hab_net::NetError;
 use iron::headers::ContentType;
-use iron::mime::{Mime, TopLevel, SubLevel};
+use iron::mime::{Attr, Mime, SubLevel, TopLevel, Value};
 use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::status;
@@ -28,9 +28,11 @@ where
     T: Serialize,
 {
     let encoded = serde_json::to_string(response).unwrap();
-    let headers = Header(ContentType(
-        Mime(TopLevel::Application, SubLevel::Json, vec![]),
-    ));
+    let headers = Header(ContentType(Mime(
+        TopLevel::Application,
+        SubLevel::Json,
+        vec![(Attr::Charset, Value::Utf8)],
+    )));
     Response::with((status, encoded, headers))
 }
 

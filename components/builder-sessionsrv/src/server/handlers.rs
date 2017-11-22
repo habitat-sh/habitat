@@ -127,7 +127,7 @@ pub fn session_create(
     if env::var_os("HAB_FUNC_TEST").is_some() ||
         msg.get_session_type() == proto::SessionType::Builder
     {
-        flags = FeatureFlags::all();
+        flags = FeatureFlags::empty();
     } else if msg.get_provider() == proto::OAuthProvider::GitHub {
         assign_permissions(msg.get_name(), &mut flags, state)
     }
