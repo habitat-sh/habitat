@@ -10,6 +10,9 @@ ifneq (${IN_DOCKER},)
 else ifeq ($(UNAME_S),Darwin)
 	IN_DOCKER := true
 endif
+ifeq ($(HAB_NO_DOCKER),true)
+	IN_DOCKER := false
+endif
 
 ifeq ($(IN_DOCKER),true)
 	build_args := --build-arg HAB_BLDR_URL=$(HAB_BLDR_URL)
