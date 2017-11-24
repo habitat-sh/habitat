@@ -34,6 +34,10 @@ extern crate tempdir;
 extern crate base64;
 extern crate url;
 
+extern crate failure;
+#[macro_use]
+extern crate failure_derive;
+
 mod build;
 pub mod cli;
 mod docker;
@@ -127,20 +131,20 @@ impl Credentials {
                     Ok(resp) => {
                         match resp.authorization_data {
                             Some(auth_data) => auth_data[0].clone().authorization_token.unwrap(),
-                            None => return Err(Error::NoECRTokensReturned),
+                            None => return Err(Error::NoECRTokensReturned)?,
                         }
                     }
-                    Err(e) => return Err(Error::TokenFetchFailed(e)),
+                    Err(e) => return Err(Error::TokenFetchFailed(e))?,
                 };
 
                 let creds: Vec<String> = match base64::decode(&token) {
                     Ok(decoded_token) => {
                         match String::from_utf8(decoded_token) {
                             Ok(dts) => dts.split(':').map(String::from).collect(),
-                            Err(err) => return Err(Error::InvalidToken(err)),
+                            Err(err) => return Err(Error::InvalidToken(err))?,
                         }
                     }
-                    Err(err) => return Err(Error::Base64DecodeError(err)),
+                    Err(err) => return Err(Error::Base64DecodeError(err))?,
                 };
 
                 Ok(Credentials {

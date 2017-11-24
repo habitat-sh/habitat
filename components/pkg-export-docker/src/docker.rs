@@ -96,7 +96,7 @@ impl<'a> DockerBuilder<'a> {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::BuildFailed(exit_status));
+            return Err(Error::BuildFailed(exit_status))?;
         }
 
         let id = match self.tags.first() {
@@ -120,7 +120,7 @@ impl<'a> DockerBuilder<'a> {
 
         match stdout.lines().next() {
             Some(id) => Ok(id.to_string()),
-            None => Err(Error::DockerImageIdNotFound(image_tag.to_string())),
+            None => Err(Error::DockerImageIdNotFound(image_tag.to_string()))?,
         }
     }
 }
@@ -281,7 +281,7 @@ impl<'a> DockerImage {
         );
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::LoginFailed(exit_status));
+            return Err(Error::LoginFailed(exit_status))?;
         }
 
         Ok(())
@@ -301,7 +301,7 @@ impl<'a> DockerImage {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::LogoutFailed(exit_status));
+            return Err(Error::LogoutFailed(exit_status))?;
         }
 
         Ok(())
@@ -321,7 +321,7 @@ impl<'a> DockerImage {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::PushImageFailed(exit_status));
+            return Err(Error::PushImageFailed(exit_status))?;
         }
         ui.status(
             Status::Uploaded,
@@ -345,7 +345,7 @@ impl<'a> DockerImage {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::RemoveImageFailed(exit_status));
+            return Err(Error::RemoveImageFailed(exit_status))?;
         }
 
         Ok(())

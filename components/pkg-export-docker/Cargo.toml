@@ -32,6 +32,8 @@ serde = { version = "*", features = ["rc"] }
 serde_json = "*"
 tempdir = "*"
 url = "*"
+failure = "0.1"
+failure_derive = "0.1"
 
 [features]
 default = []
