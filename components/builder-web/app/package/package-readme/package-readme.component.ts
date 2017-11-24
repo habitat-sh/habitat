@@ -14,7 +14,7 @@
 
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs/subscription';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   template: require('./package-readme.component.html')
