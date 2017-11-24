@@ -23,10 +23,13 @@ extern crate serde_json;
 #[macro_use]
 extern crate log;
 
+extern crate failure;
+#[macro_use]
+extern crate failure_derive;
+
 use clap::{App, Arg};
 use handlebars::Handlebars;
 use std::env;
-use std::fmt;
 use std::result;
 use std::str::FromStr;
 use std::io::prelude::*;
@@ -41,8 +44,7 @@ use hcore::env as henv;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 
-use export_docker::{Cli, Credentials, BuildSpec, Naming};
-use export_docker::Error as DockerError;
+use export_docker::{Cli, Credentials, BuildSpec, Naming, Result};
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
@@ -51,53 +53,10 @@ pub const VERSION: &'static str = "0.1.0";
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
 const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 enum Error {
-    Docker(DockerError),
-    HabitatCore(hcore::Error),
+    #[fail(display = "Invalid bind specification '{}'", _0)]
     InvalidBindSpec(String),
-    TemplateRenderError(handlebars::TemplateRenderError),
-    IO(io::Error),
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match *self {
-            Error::Docker(ref err) => format!("{}", err),
-            Error::HabitatCore(ref err) => format!("{}", err),
-            Error::InvalidBindSpec(ref bind_spec) => {
-                format!("Invalid bind specification '{}'", bind_spec)
-            }
-            Error::TemplateRenderError(ref err) => format!("{}", err),
-            Error::IO(ref err) => format!("{}", err),
-        };
-        write!(f, "{}", msg)
-    }
-}
-
-impl From<DockerError> for Error {
-    fn from(err: DockerError) -> Self {
-        Error::Docker(err)
-    }
-}
-
-
-impl From<handlebars::TemplateRenderError> for Error {
-    fn from(err: handlebars::TemplateRenderError) -> Self {
-        Error::TemplateRenderError(err)
-    }
-}
-
-impl From<hcore::Error> for Error {
-    fn from(err: hcore::Error) -> Self {
-        Error::HabitatCore(err)
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IO(err)
-    }
 }
 
 fn main() {
@@ -129,7 +88,7 @@ fn get_ui() -> UI {
     UI::default_with(coloring, isatty)
 }
 
-fn start(ui: &mut UI) -> result::Result<(), Error> {
+fn start(ui: &mut UI) -> Result<()> {
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
 
@@ -139,7 +98,7 @@ fn start(ui: &mut UI) -> result::Result<(), Error> {
     gen_k8s_manifest(ui, &m)
 }
 
-fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<(), Error> {
+fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     let default_channel = channel::default();
     let default_url = hurl::default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
@@ -166,7 +125,7 @@ fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<(),
     Ok(())
 }
 
-fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<(), Error> {
+fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     let count = matches.value_of("COUNT").unwrap_or("1");
     let topology = matches.value_of("TOPOLOGY").unwrap_or("standalone");
     let group = matches.value_of("GROUP");
@@ -212,7 +171,7 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> result::Result<
         for bind in binds {
             let split: Vec<&str> = bind.split(":").collect();
             if split.len() < 3 {
-                return Err(Error::InvalidBindSpec(bind.to_string()));
+                return Err(Error::InvalidBindSpec(bind.to_string()).into());
             }
 
             let json = json!({
