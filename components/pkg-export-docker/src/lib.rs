@@ -127,25 +127,24 @@ impl Credentials {
                 let client =
                     EcrClient::new(default_tls_client().unwrap(), provider, Region::UsWest2);
                 let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
-                let token = match client.get_authorization_token(&auth_token_req) {
-                    Ok(resp) => {
-                        match resp.authorization_data {
-                            Some(auth_data) => auth_data[0].clone().authorization_token.unwrap(),
-                            None => return Err(Error::NoECRTokensReturned)?,
-                        }
-                    }
-                    Err(e) => return Err(Error::TokenFetchFailed(e))?,
-                };
+                let token = client
+                    .get_authorization_token(&auth_token_req)
+                    .map_err(|e| Error::TokenFetchFailed(e))
+                    .and_then(|resp| {
+                        resp.authorization_data
+                            .map(|auth_data| {
+                                auth_data[0].clone().authorization_token.unwrap()
+                            })
+                            .ok_or(Error::NoECRTokensReturned)
+                    })?;
 
-                let creds: Vec<String> = match base64::decode(&token) {
-                    Ok(decoded_token) => {
-                        match String::from_utf8(decoded_token) {
-                            Ok(dts) => dts.split(':').map(String::from).collect(),
-                            Err(err) => return Err(Error::InvalidToken(err))?,
-                        }
-                    }
-                    Err(err) => return Err(Error::Base64DecodeError(err))?,
-                };
+                let creds: Vec<String> = base64::decode(&token)
+                    .map_err(|e| Error::Base64DecodeError(e))
+                    .and_then(|decoded_token| {
+                        String::from_utf8(decoded_token)
+                            .map_err(|e| Error::InvalidToken(e))
+                            .and_then(|dts| Ok(dts.split(':').map(String::from).collect()))
+                    })?;
 
                 Ok(Credentials {
                     username: creds[0].to_string(),
