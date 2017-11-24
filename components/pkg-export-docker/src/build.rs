@@ -525,7 +525,7 @@ impl BuildRootContext {
         if let None = self.svc_idents().first().map(|e| *e) {
             return Err(Error::PrimaryServicePackageNotFound(
                 self.idents.iter().map(|e| e.ident().to_string()).collect(),
-            ));
+            ))?;
         }
 
         Ok(())
