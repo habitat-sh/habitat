@@ -510,13 +510,13 @@ impl BuildRootContext {
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
-        if let None = self.svc_idents().first().map(|e| *e) {
-            return Err(Error::PrimaryServicePackageNotFound(
+        self.svc_idents()
+            .first()
+            .map(|e| *e)
+            .ok_or(Err(Error::PrimaryServicePackageNotFound(
                 self.idents.iter().map(|e| e.ident().to_string()).collect(),
-            ))?;
-        }
-
-        Ok(())
+            ))?)
+            .and(Ok(()))
     }
 }
 
