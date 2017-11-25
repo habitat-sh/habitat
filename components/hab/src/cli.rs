@@ -216,7 +216,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BINARY: +takes_value
                     "The command to binlink (ex: bash)")
                 (@arg DEST_DIR: -d --dest +takes_value
-                    "Sets the destination directory (default: /bin)")
+                    "Sets the destination directory (default: /usr/local/bin or /usr/bin or /bin)")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
             )
             (@subcommand config =>
