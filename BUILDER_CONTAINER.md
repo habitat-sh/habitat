@@ -14,7 +14,7 @@
 
 ### Setup GitHub Teams
 
-1. Create a GitHub team in your organization for bots and retrieve the team-id. This will be used for the value of `GITHUB_WORKER_TEAM`
+1. Create a GitHub team in your organization for bots and retrieve the team-id. This will be used for the value of `GITHUB_WORKER_TEAM`. You can retrieve the team-id with curl and an authorization token: `curl -H "Authorization: token <personal access token here>" https://api.github.com/orgs/orgName/teams`
 1. Create a GitHub team in your organization for administrators and retrieve the team-id. This will be used for the value of `GITHUB_ADMIN_TEAM`
 
 > note: The only way to retrieve the ID for a GitHub team is currently [by the API](https://github.com/rei/github-api-utils/blob/master/bash/get-team-id.sh)
