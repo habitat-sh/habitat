@@ -85,10 +85,10 @@ describe('BuildListComponent', () => {
     });
 
     it('renders them', () => {
-      let items = element.queryAll(By.css('.hab-build-list ol li.item'));
+      let items = element.queryAll(By.css('.build-list-component ol li.item'));
 
       expect(items.length).toBe(3);
-      expect(items[0].query(By.css('.version')).nativeElement.textContent).toContain('1.0.0');
+      expect(items[0].query(By.css('.name')).nativeElement.textContent).toContain('1.0.0');
       expect(items[0].query(By.css('.status')).nativeElement.getAttribute('title')).toBe('Complete');
       expect(items[0].query(By.css('.status')).nativeElement.getAttribute('class')).toContain('complete');
       expect(items[1].query(By.css('.status')).nativeElement.getAttribute('class')).toContain('pending');
@@ -98,7 +98,7 @@ describe('BuildListComponent', () => {
     describe('when a build item is clicked', () => {
 
       it('emits an event containing the build', () => {
-        let items = element.queryAll(By.css('.hab-build-list ol li.item'));
+        let items = element.queryAll(By.css('.build-list-component ol li.item'));
 
         spyOn(component.select, 'emit');
         items[1].nativeElement.click();
@@ -116,12 +116,12 @@ describe('BuildListComponent', () => {
     });
 
     it('hides the list', () => {
-      let el = element.query(By.css('.hab-build-list ol li.item'));
+      let el = element.query(By.css('.build-list-component ol li.item'));
       expect(el).toBeNull();
     });
 
     it('renders an appropriate message', () => {
-      let el = element.query(By.css('.hab-build-list ol li.none'));
+      let el = element.query(By.css('.build-list-component ol li.none'));
       expect(el.nativeElement.textContent).toContain('There are no available build jobs for this package.');
     });
   });

@@ -1,6 +1,6 @@
-<div class="hab-package-latest">
+<div class="package-latest-component">
   <hab-icon symbol="loading" class="spinning" *ngIf="ui.loading"></hab-icon>
-  <div *ngIf="!ui.loading">
+  <ng-container *ngIf="!ui.loading">
     <hab-package-detail [package]="latest" *ngIf="hasLatest"></hab-package-detail>
     <div class="none" *ngIf="!hasLatest">
       <p>
@@ -22,8 +22,8 @@
       </ol>
       <p>
         <em>Don't have a plan file?
-          <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
+        <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
       </p>
     </div>
-  </div>
+  </ng-container>
 </div>

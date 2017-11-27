@@ -47,6 +47,19 @@ export class OriginIntegrationsTabComponent implements OnInit {
     return this.store.getState().origins.current.default_package_visibility;
   }
 
+  get providers() {
+    return [
+      {
+        key: 'docker',
+        name: 'Docker Hub'
+      },
+      {
+        key: 'amazon',
+        name: 'Amazon Container Registry'
+      }
+    ];
+  }
+
   get token() {
     return this.store.getState().session.token;
   }

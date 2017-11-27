@@ -1,36 +1,35 @@
-<div class="page-body origin-packages-tab">
-  <div class="hab-origin--left hab-origin--pkg-list">
-    <hab-project-settings [origin]="origin" [integrations]="integrations" (toggled)="toggled($event)" (saved)="saved($event)"></hab-project-settings>
-    <div *ngIf="!selectingPlan">
-      <ul class="packages-list">
+<div class="body">
+  <div class="content">
+    <section>
+      <hab-project-settings
+        [origin]="origin"
+        [integrations]="integrations"
+        (toggled)="toggled($event)"
+        (saved)="saved($event)">
+      </hab-project-settings>
+    </section>
+    <section *ngIf="!selectingPlan">
+      <ul class="nav-list">
         <li class="heading" *ngIf="projectsExist">
-          <div class="pkg-col-1">
-            <h3>Connected Plans</h3>
-          </div>
+          <h4>Connected Plans</h4>
         </li>
-        <li *ngFor="let proj of projects">
+        <li class="item" *ngFor="let proj of projects">
           <a [routerLink]="['/pkgs', origin, proj, 'latest']">
-            <span class="pkg-col-1">{{ proj }}</span>
+            <span class="column name">{{ proj }}</span>
           </a>
           <hab-icon symbol="chevron-right"></hab-icon>
         </li>
-        <li *ngIf="projectsExist">
-          <div class="pkg-col-1">&nbsp;
-          </div>
-        </li>
+      </ul>
+      <ul class="nav-list">
         <li class="heading">
-          <div class="pkg-col-1">
-            <h3>Packages</h3>
-          </div>
+          <h4>Packages</h4>
         </li>
-        <li *ngIf="noPackages">
-          <span class="none">
-            No packages found.
-          </span>
+        <li class="none" *ngIf="noPackages">
+          <span>No packages found.</span>
         </li>
-        <li *ngFor="let pkg of packages">
+        <li class="item" *ngFor="let pkg of packages">
           <a [routerLink]="['/pkgs', pkg.origin, pkg.name, 'latest']">
-            <span class="pkg-col-1">{{ pkg.name }}</span>
+            <span class="column name">{{ pkg.name }}</span>
           </a>
           <hab-icon symbol="chevron-right"></hab-icon>
         </li>
@@ -41,6 +40,6 @@
           Load {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }} more
         </a>.
       </div>
-    </div>
+    </section>
   </div>
 </div>

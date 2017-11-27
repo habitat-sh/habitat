@@ -1,11 +1,8 @@
-<div class="main-nav--cta" *ngIf="!isSignedIn">
-  <a mat-button color="accent" class="button" href="{{ config['www_url'] }}/try">Get Started</a>
-</div>
-<div class="main-nav--profile" *ngIf="isSignedIn">
-  <span class="main-nav--avatar">
+<div class="user-nav-component" *ngIf="isSignedIn">
+  <span>
     <img src="{{avatarUrl}}" />
   </span>
-  <ul class="main-nav--dropdown" *ngIf="isOpen">
+  <ul class="dropdown" *ngIf="isOpen">
     <li class="username">
       <hab-icon symbol="github"></hab-icon>
       {{ username }}

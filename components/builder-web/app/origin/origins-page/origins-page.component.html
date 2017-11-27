@@ -1,54 +1,57 @@
-<div class="hab-origins">
-  <div class="page-title">
-    <h2>My Origins</h2>
-  </div>
-  <div class="page-body">
-    <div class="origin-create">
-      <a mat-raised-button color="primary" [routerLink]="['/origins', 'create']">Create origin</a>
-    </div>
-    <hab-icon symbol="loading" class="spinning" *ngIf="ui.loading"></hab-icon>
-    <div *ngIf="!ui.loading">
-      <p *ngIf="ui.errorMessage">
-        Failed to load origins: {{ui.errorMessage}}
-      </p>
-      <div class="origin-create-intro" *ngIf="origins.size === 0 && !ui.errorMessage">
-        <p>
-          <strong>You are not currently an owner or member of any origins.</strong>
-        </p>
-        <p>
-          Note: If you've already created an origin with the Habitat CLI tool, then you'll need to create it here, too, using the same
-          name.
-        </p>
-        <p>
-          <em>New to Habitat?
-            <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
-        </p>
-      </div>
-      <div *ngIf="origins.size > 0">
-        <ul>
-          <li class="heading">
-            <h3>Origin Name</h3>
-            <h3>Packages</h3>
-            <h3>&nbsp;</h3>
-          </li>
-          <li [class.invitation]="isInvitation(item)" *ngFor="let item of origins" (click)="navigateTo(item)">
-            <span class="name">{{ name(item) }}</span>
-            <span class="package-count">{{ packageCount(item) }}</span>
-            <span class="actions">
-              <span *ngIf="isInvitation(item)">
-                <span class="action" (click)="accept(item)">
-                  <hab-icon symbol="check"></hab-icon>
-                  Accept Invitation
+<div class="origins-page-component">
+  <header>
+    <h1>My Origins</h1>
+  </header>
+  <div class="body">
+    <div class="content">
+      <section *ngIf="ui.loading">
+        <hab-icon symbol="loading" class="spinning"></hab-icon>
+      </section>
+      <section>
+        <a mat-raised-button color="primary" [routerLink]="['/origins', 'create']">Create origin</a>
+      </section>
+      <div *ngIf="!ui.loading">
+        <section *ngIf="origins.size === 0 && !ui.errorMessage">
+          <p>
+            <strong>You are not currently an owner or member of any origins.</strong>
+          </p>
+          <p>
+            Note: If you've already created an origin with the Habitat CLI tool, then you'll need to create it here, too, using the same
+            name.
+          </p>
+          <p>
+            <em>New to Habitat?
+              <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
+          </p>
+        </section>
+        <section *ngIf="origins.size > 0">
+          <ul class="nav-list">
+            <li class="heading">
+              <h4>Origin Name</h4>
+              <h4>Packages</h4>
+              <h4></h4>
+            </li>
+            <li class="item" [class.invitation]="isInvitation(item)" *ngFor="let item of origins" (click)="navigateTo(item)">
+              <a>
+                <span class="column name">{{ name(item) }}</span>
+                <span class="column package-count">{{ packageCount(item) }}</span>
+                <span class="column actions">
+                  <span *ngIf="isInvitation(item)">
+                    <span class="action" (click)="accept(item)">
+                      <hab-icon symbol="check"></hab-icon>
+                      Accept Invitation
+                    </span>
+                    <span class="action" (click)="ignore(item)">
+                      <hab-icon symbol="no"></hab-icon>
+                      Ignore Invitation
+                    </span>
+                  </span>
                 </span>
-                <span class="action" (click)="ignore(item)">
-                  <hab-icon symbol="no"></hab-icon>
-                  Ignore Invitation
-                </span>
-              </span>
-            </span>
-            <hab-icon symbol="chevron-right"></hab-icon>
-          </li>
-        </ul>
+                <hab-icon symbol="chevron-right"></hab-icon>
+              </a>
+            </li>
+          </ul>
+        </section>
       </div>
     </div>
   </div>

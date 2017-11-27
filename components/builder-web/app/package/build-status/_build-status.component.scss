@@ -1,27 +1,18 @@
-hab-build-status {
-
+.build-status-component {
+  display: inline-block;
+  
   hab-icon {
-    width: 16px;
-    position: absolute;
+    @include icon-size(16);
     right: 52px;
-    top: 50%;
-    transform: translateY(-50%);
 
-    &.complete {
-      color: $hab-green;
+    @each $status, $color in $status-colors {
+      &.#{$status} {
+        color: #{$color};
+      }
     }
-
+    
     &.dispatched, &.processing {
       @extend hab-icon.spinning;
-      color: $hab-orange;
-    }
-
-    &.pending {
-      color: $hab-blue;
-    }
-
-    &.failed, &.rejected {
-      color: $hab-red;
     }
   }
 }

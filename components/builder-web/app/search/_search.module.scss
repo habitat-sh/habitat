@@ -12,48 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-.hab-origin-create {
-
-  section {
-    @include span-columns(8);
-    @include omega;
-    margin-bottom: 24px;
-    padding-bottom: 8px;
-
-    &:not(:last-child) {
-      border-bottom: 1px solid $very-light-gray;
-    }
-  }
-
-  h3 {
-    text-transform: uppercase;
-    font-size: rem(12);
-  }
-
-  p {
-    display: block;
-    font-size: rem(14);
-    margin-bottom: 12px;
-  }
-
-  hab-checking-input {
-
-    input {
-      margin-bottom: 16px;
-    }
-
-    small {
-      text-align: left;
-
-      span {
-        margin-left: 0;
-      }
-    }
-  }
-
-  hab-icon[symbol="info-outline"] {
-    color: $hab-blue;
-    margin-right: 4px;
-  }
-}
+@import 'results/results.component';
+@import 'search/search.component';

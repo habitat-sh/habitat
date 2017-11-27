@@ -19,10 +19,9 @@ import { AppStore } from '../../app.store';
 @Component({
   selector: 'hab-build-status',
   template: `
-    <hab-icon
-      [symbol]="iconFor(state)"
-      class="status {{ state | lowercase }}"
-      *ngIf="state"></hab-icon>
+    <div class="build-status-component">
+      <hab-icon [symbol]="iconFor(state)" class="status {{ state | lowercase }}" *ngIf="state"></hab-icon>
+    </div>
   `
 })
 export class BuildStatusComponent {

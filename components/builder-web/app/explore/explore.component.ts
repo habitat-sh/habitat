@@ -18,7 +18,6 @@ import { Router } from '@angular/router';
 import { fetchExplore, setLayout } from '../actions/index';
 
 @Component({
-  selector: 'hab-explore',
   template: require('./explore.component.html'),
 })
 export class ExploreComponent implements OnInit, OnDestroy {

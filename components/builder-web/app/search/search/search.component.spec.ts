@@ -43,7 +43,7 @@ class MockRoute {
   }
 }
 
-describe('SearchResultsComponent', () => {
+describe('SearchComponent', () => {
   let fixture: ComponentFixture<SearchComponent>;
   let component: SearchComponent;
   let element: DebugElement;
@@ -97,7 +97,7 @@ describe('SearchResultsComponent', () => {
     });
 
     it('shows the Search Packages heading', () => {
-      let heading = element.query(By.css('.hab-search h2'));
+      let heading = element.query(By.css('.search-component h1'));
       expect(heading.nativeElement.textContent).toBe('Search Packages');
     });
   });
@@ -114,12 +114,12 @@ describe('SearchResultsComponent', () => {
       });
 
       it('shows the Search Packages heading', () => {
-        let heading = element.query(By.css('.hab-search h2'));
+        let heading = element.query(By.css('.search-component h1'));
         expect(heading.nativeElement.textContent).toBe('Search Packages');
       });
 
       it('shows the search box', () => {
-        expect(element.query(By.css('.page-body input[type=\'search\']'))).not.toBeNull();
+        expect(element.query(By.css('.body input[type=\'search\']'))).not.toBeNull();
       });
 
       describe('fetchPackages', () => {

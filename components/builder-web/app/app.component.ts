@@ -105,12 +105,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.handleSignIn();
   }
 
-  get fullView() {
-    return this.store.getState().ui.layout === 'full';
-  }
-
-  get hideNav() {
-    return this.store.getState().ui.layout === 'centered';
+  get layout() {
+    return this.store.getState().ui.layout;
   }
 
   private handleSignIn() {

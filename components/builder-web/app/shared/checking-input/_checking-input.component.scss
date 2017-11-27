@@ -1,0 +1,34 @@
+.checking-input-component {
+  margin: $default-margin 0;
+
+  .wrapper {
+    position: relative;
+
+    input {
+      margin-bottom: $small-margin;
+    }
+
+    hab-icon {
+      @include vertically-centered;
+      @include icon-size(16);
+      right: $small-margin;
+    }
+  }
+
+  .validation-message {
+    font-size: $small-font-size;
+    line-height: $small-line-height;
+  }
+
+  .spinning {
+    color: $waiting;
+  }
+
+  .invalid {
+    color: $error;
+  }
+
+  .valid {
+    color: $success;
+  }
+}

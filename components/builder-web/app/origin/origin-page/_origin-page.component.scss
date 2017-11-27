@@ -12,94 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.hab-origin {
-  font-size: rem(14);
+.origin-page-component {
+
+  .nav-list {
+    font-size: $base-font-size;
+  }
 
   .private-builds {
+    font-family: $base-font-family;
     position: absolute;
-    right: 20px;
-    top: 48px;
+    top: $default-margin;
+    right: $default-margin;
     background-color: $white;
-    border-radius: $base-border-radius;
-    padding: 2px 4px;
-    font-size: rem(10);
-  }
-
-  .connect-button {
-    @include row;
-    margin-bottom: 20px;
-  }
-
-  &--left {
-
-    .packages-list {
-      @include row;
-
-      li {
-        @include row;
-        position: relative;
-        border-bottom: 1px solid $very-light-gray;
-
-        &.heading {
-
-          h3 {
-            font-size: rem(12);
-            text-transform: uppercase;
-            margin-bottom: 0;
-          }
-        }
-
-        a {
-          display: block;
-          color: $hab-gray-dark;
-          font-weight: bold;
-        }
-
-        hab-icon {
-
-          &[symbol="chevron-right"] {
-            width: 20px;
-            height: 20px;
-            display: none;
-            @include chevron-right;
-          }
-        }
-
-        &:not(.heading):hover {
-          background-color: rgba($medium-gray, 0.05);
-
-          hab-icon[symbol="chevron-right"] {
-            display: block;
-          }
-        }
-      }
-    }
-
-    .pkg-col-1 {
-      @include span-columns(12);
-      padding: 12px 10px;
-    }
-
-    .disabled-settings {
-      opacity: 0.2;
-    }
-  }
-
-  &--right {
-    @include span-columns(4);
-    border-left: 1px solid $light-gray;
-    padding-left: $base-spacing;
-  }
-
-  &--deny-delete {
-    background-color: $hab-red;
-    color: $off-white;
-    padding: $small-spacing;
-    text-align: center;
-  }
-
-  &--pkgs-link.button {
-    @include primary-button;
-    float: right;
+    border-radius: $default-radius;
+    padding: 0 $default-padding / 4;
+    font-size: $tiny-font-size;
   }
 }
+

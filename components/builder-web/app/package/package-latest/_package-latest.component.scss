@@ -1,22 +1,12 @@
-.hab-package-latest {
-
+.package-latest-component {
+  
   .none {
-    font-size: rem(14);
-    padding: 0 10px;
-
-    p {
-      margin-bottom: 12px;
-
-      &:first-child {
-        margin-top: 0;
-      }
-    }
-
+  
     ol {
       list-style-type: decimal;
 
       li {
-        margin-left: 24px;
+        margin-left: $default-margin * 2;
       }
     }
   }

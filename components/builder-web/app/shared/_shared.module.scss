@@ -1,7 +1,8 @@
-@import "channels/channels.component";
-@import "icon/icon.component";
+@import 'breadcrumbs/breadcrumbs.component';
+@import 'channels/channels.component';
+@import 'checking-input/checking-input.component';
 @import "copyable/copyable.component";
 @import "docker-export-settings/docker-export-settings.component";
-@import "progress-bar/progress-bar.component";
-@import "project-settings/project-settings.component";
-@import "visibility-selector/visibility-selector.component";
+@import 'icon/icon.component';
+@import 'project-settings/project-settings.component';
+@import 'visibility-selector/visibility-selector.component';

@@ -1,26 +1,9 @@
-.hab-package-sidebar {
+.package-sidebar-component {
 
-  .build button {
-    font-size: rem(14);
-  }
+  .latest-stable {
 
-  .build, .platforms, .latest-stable, .command {
-    margin-bottom: 30px;
-  }
-
-  .platforms, .latest-stable {
-
-    p {
-      font-size: rem(14);
-
-      a {
-        color: $hab-gray-dark;
-        text-decoration: underline;
-      }
-
-      hab-icon {
-        float: right;
-      }
+    hab-icon {
+      float: right;
     }
   }
 }

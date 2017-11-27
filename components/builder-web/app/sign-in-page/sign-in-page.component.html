@@ -1,25 +1,27 @@
-<div class="hab-sign-in">
-  <div class="page-title">
-    <h2>Sign In</h2>
-  </div>
-  <div class="page-body">
-    <div class="button-area">
-      <a mat-raised-button color="accent" class="button cta" href="{{ gitHubLoginUrl }}">
-        <hab-icon symbol="github"></hab-icon>
-        <span>Sign In with GitHub</span>
-      </a>
+<div class="sign-in-page-component">
+  <header>
+      <h1>Sign In</h1>
+    </header>
+    <div class="body">
+      <div class="content">
+        <section>
+          <a mat-raised-button color="accent" class="button cta" href="{{ gitHubLoginUrl }}">
+            <hab-icon symbol="github"></hab-icon>
+            <span>Sign In with GitHub</span>
+          </a>
+        </section>
+        <p>
+          New to Habitat? An account will be created for you when you sign in.
+        </p>
+        <p>
+          Don't have a GitHub account?
+          <a href="{{ gitHubJoinUrl }}" target="_blank">Sign up, it's free</a>.
+        </p>
+        <p class="footnote">
+          By clicking on "Sign in with GitHub", you are agreeing to the
+          <a href="{{ wwwUrl }}/legal/terms-and-conditions/" target="_blank">Terms of Service</a> and
+          <a href="{{ wwwUrl }}/legal/privacy-policy/" target="_blank">Privacy Policy</a>.
+        </p>
+      </div>
     </div>
-    <p>
-      New to Habitat? An account will be created for you when you sign in.
-    </p>
-    <p>
-      Don't have a GitHub account?
-      <a href="{{ gitHubJoinUrl }}" target="_blank">Sign up, it's free</a>.
-    </p>
-    <p class="footnote">
-      By clicking on "Sign in with GitHub", you are agreeing to the
-      <a href="{{ wwwUrl }}/legal/terms-and-conditions/" target="_blank">Terms of Service</a> and
-      <a href="{{ wwwUrl }}/legal/privacy-policy/" target="_blank">Privacy Policy</a>.
-    </p>
-  </div>
 </div>

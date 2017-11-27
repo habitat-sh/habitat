@@ -1,47 +1,50 @@
-<div class="hab-package-versions">
-  <ul class="versions">
+<div class="package-versions-component">
+  <ul class="toggle-list">
     <li class="heading">
-      <h3>Version</h3>
-      <h3>Releases</h3>
-      <h3>Updated</h3>
-      <h3>Platforms</h3>
+      <h4>Version</h4>
+      <h4>Releases</h4>
+      <h4>Updated</h4>
+      <h4>Platforms</h4>
     </li>
     <li class="none" *ngIf="versions.length === 0">
       <span>There are no available versions for this package.</span>
     </li>
-    <li class="version" *ngFor="let version of versions" (click)="toggle(version)">
-      <div class="summary">
-        <span class="version-name">{{ version.version }}</span>
-        <span class="version-release-count">{{ version.release_count }}</span>
-        <span class="version-latest">{{ releaseToDate(version.latest) }}</span>
-        <span class="version-platforms">
+    <div *ngFor="let version of versions" (click)="toggle(version)">
+      <li class="item">
+        <span class="column name">{{ version.version }}</span>
+        <span class="column">{{ version.release_count }}</span>
+        <span class="column">{{ releaseToDate(version.latest) }}</span>
+        <span class="column">
           <hab-platform-icon [platform]="platform" *ngFor="let platform of platforms"></hab-platform-icon>
         </span>
         <hab-icon class="toggle" [symbol]="toggleFor(version)"></hab-icon>
-      </div>
-      <div class="version-packages" *ngIf="selected === version">
-        <ul class="version-container">
-          <li class="package-container" *ngFor="let pkg of packagesFor(version)" (click)="navigateTo(pkg)">
-            <div class="release">
-              <span class="release-name">{{ packageString(pkg) }}</span>
-              <hab-channels [channels]="pkg.channels"></hab-channels>
-            </div>
-            <div class="build-date">
-              {{ releaseToDate(pkg.release) }}
-            </div>
-            <div class="os">
-              <hab-platform-icon [platform]="pkg.platforms[0]"></hab-platform-icon>
-            </div>
-            <div class="visibility">
-              <!-- TBD -->
-            </div>
-            <div class="build-source">
-              <!-- TBD -->
-            </div>
-            <hab-icon symbol="chevron-right"></hab-icon>
+      </li>
+      <div *ngIf="selected === version">
+        <ul class="nav-list">
+          <li class="item" *ngFor="let pkg of packagesFor(version)" (click)="navigateTo(pkg)">
+            <a>
+              <div class="column name release">
+                <span class="release-name">{{ packageString(pkg) }}</span>
+                <hab-channels [channels]="pkg.channels"></hab-channels>
+              </div>
+              <div class="column build-date">
+                {{ releaseToDate(pkg.release) }}
+              </div>
+              <div class="column os">
+                <hab-platform-icon [platform]="pkg.platforms[0]"></hab-platform-icon>
+              </div>
+              <div class="column visibility">
+                <!-- TBD -->
+              </div>
+              <div class="column build-source">
+                <!-- TBD -->
+              </div>
+              <hab-icon symbol="chevron-right"></hab-icon>
+            </a>
           </li>
         </ul>
       </div>
-    </li>
+    </div>
   </ul>
 </div>
+

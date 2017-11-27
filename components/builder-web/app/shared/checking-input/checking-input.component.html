@@ -1,12 +1,20 @@
-<div class="hab-checking-input">
-  <div class="hab-checking-input--input-wrapper">
-    <hab-icon [symbol]="symbolForState(control)" class="hab-checking-input--input-icon" [class.spinning]="control.pending" [class.invalid]="control.dirty && !control.pending && !control.valid"
+<div class="checking-input-component">
+  <div class="wrapper">
+    <hab-icon [symbol]="symbolForState(control)"
+      [class.spinning]="control.pending"
+      [class.invalid]="control.dirty && !control.pending && !control.valid"
       [class.valid]="!control.pending && control.valid">
     </hab-icon>
-    <input class="hab-checking-input--input" [class.loading]="control.pending" autocomplete="off" autofocus="{{autofocus}}" id="{{id}}"
-      [formControl]="form.controls[name]" placeholder="{{placeholder}}">
+    <input
+      type="text"
+      [class.loading]="control.pending"
+      autocomplete="off"
+      autofocus="{{autofocus}}"
+      id="{{id}}"
+      [formControl]="form.controls[name]"
+      placeholder="{{placeholder}}">
   </div>
-  <small *ngIf="control.dirty && !control.pending " class="hab-checking-input--input-msg-wrap">
+  <div class="validation-message" *ngIf="control.dirty && !control.pending ">
     <span *ngIf="!control.valid" class="hab-checking-input--input-msg invalid">
       <span *ngIf="control.errors.invalidFormat">
         {{displayName}} {{unmatchedMessage}}
@@ -24,5 +32,5 @@
     <span *ngIf="control.valid" class="hab-checking-input--input-msg valid">
       {{displayName}} {{availableMessage}}
     </span>
-  </small>
+  </div>
 </div>

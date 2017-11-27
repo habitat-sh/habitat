@@ -18,7 +18,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  MatCheckbox, MatCheckboxModule, MatIconModule, MatIconRegistry, MatProgressBarModule, MatRadioModule,
+  MatCheckbox, MatCheckboxModule, MatIconModule, MatIconRegistry, MatRadioModule,
   MatRadioGroup, MatRadioButton, MatSlideToggleModule, MatSlideToggle, MatTooltipModule, MatTabsModule,
   MatButtonModule
 } from '@angular/material';
@@ -31,7 +31,6 @@ import { DockerExportSettingsComponent } from './docker-export-settings/docker-e
 import { DisconnectConfirmDialog } from './project-settings/dialog/disconnect-confirm/disconnect-confirm.dialog';
 import { IconComponent } from './icon/icon.component';
 import { PackageListComponent } from './package-list/package-list.component';
-import { ProgressBarComponent } from './progress-bar/progress-bar.component';
 import { ProjectSettingsComponent } from './project-settings/project-settings.component';
 import { PlatformIconComponent } from './platform-icon/platform-icon.component';
 import { VisibilitySelectorComponent } from './visibility-selector/visibility-selector.component';
@@ -47,7 +46,6 @@ import { SignedInGuard } from './guards/signed-in.guard';
     MatCheckboxModule,
     MatIconModule,
     MatTabsModule,
-    MatProgressBarModule,
     MatRadioModule,
     MatSlideToggleModule,
     MatTooltipModule,
@@ -64,7 +62,6 @@ import { SignedInGuard } from './guards/signed-in.guard';
     DockerExportSettingsComponent,
     IconComponent,
     PackageListComponent,
-    ProgressBarComponent,
     ProjectSettingsComponent,
     PlatformIconComponent,
     VisibilitySelectorComponent,
@@ -89,7 +86,6 @@ import { SignedInGuard } from './guards/signed-in.guard';
     MatSlideToggle,
     PackageListComponent,
     VisibilitySelectorComponent,
-    ProgressBarComponent,
     ProjectSettingsComponent,
     PlatformIconComponent,
     KeysPipe,

@@ -1,0 +1,89 @@
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+.footer-component {
+  margin-top: $default-margin * 5;
+  padding-top: $default-padding * 5;
+  background-color: $hab-light-green;
+  background: url('/assets/images/footer-background.svg');
+  background: url('/assets/images/footer-background.svg') left top repeat-x, linear-gradient($hab-light-green-2, $hab-blue-green) left 84px no-repeat;
+  color: $white;
+
+  footer {
+    margin: 0 auto;
+    padding: $default-padding;
+    max-width: $max-grid-width;
+  }
+
+  h6 {
+    font-family: $heading-font-family;
+    font-size: $base-font-size;
+    font-weight: normal;
+  }
+
+  a {
+    color: $hab-very-light-green;
+    line-height: $base-font-size * 2;
+
+    &:hover {
+      color: $white;
+    }
+  }
+
+  hr {
+    border-top: 1px solid $hab-light-green-3;
+  }
+
+  .groups {
+    margin: $default-margin 0;
+    overflow: auto;
+
+    .group {
+      float: left;
+      margin: 0 $default-margin;
+      font-size: 16px;
+      
+      a {
+        display: block;
+      }
+    }
+  }
+
+  @include tablet-up {
+    .groups {
+      display: flex;
+  
+      .group {
+        float: none;
+        flex: 1;
+      }
+    }
+  }
+
+  .legal {
+    color: $hab-very-light-green;
+    font-size: $smaller-font-size;
+    text-align: center;
+    margin: 0 auto;
+
+    ul {
+      margin: 0;
+
+      li {
+        display: inline-block;
+        margin: 0 $default-margin;
+      }
+    }
+  }
+}

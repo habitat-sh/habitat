@@ -1,21 +1,13 @@
-<div class="hab-origin">
-  <div class="page-title">
-    <h2>{{ origin.name }}</h2>
-    <h4>origin</h4>
+<div class="origin-page-component">
+  <header>
+    <h1>{{ origin.name }}</h1>
+    <h2>origin</h2>
     <div class="private-builds">
       <hab-icon [symbol]="iconFor(origin.default_package_visibility)"></hab-icon>
       <span>Private Builds {{ labelFor(origin.default_package_visibility) }}</span>
     </div>
-  </div>
-  <div *ngIf="!ui.exists && !ui.loading" class="page-body">
-    <p>
-      Failed to load origin.
-      <span *ngIf="ui.errorMessage">
-        Error: {{ui.errorMessage}}
-      </span>
-    </p>
-  </div>
-  <nav mat-tab-nav-bar>
+  </header>
+  <nav class="tabs" mat-tab-nav-bar>
     <a mat-tab-link *ngFor="let link of navLinks" [routerLink]="link" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
       {{link}}
     </a>

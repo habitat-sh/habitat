@@ -1,29 +1,27 @@
-.hab-package-detail {
+.package-detail-component {
 
-  h1, h2 {
+  h3 {
     font-family: $base-font-family;
-    font-weight: 600;
-    font-size: rem(18);
+    font-size: 18px;
+    text-transform: none;
   }
 
   dl {
-    font-size: rem(14);
-    margin-bottom: 18px;
 
     hab-icon {
       margin-left: 8px;
-      width: 18px;
+      @include icon-size(18);
     }
-
+    
     > div {
-      @include row;
+      display: flex;
 
       dt {
-        @include span-columns(2);
+        flex: 2;
       }
 
       dd {
-        @include span-columns(10);
+        flex: 10;
         overflow-wrap: break-word;
         word-wrap: break-word;
       }
@@ -31,26 +29,20 @@
   }
 
   .channels {
-    margin-bottom: 8px;
+    margin-bottom: $small-margin;
   }
 
   .manifest {
-    margin-bottom: 18px;
 
     h1:first-child, p {
       display: none;
     }
 
     h1 {
-      margin-top: 28px;
-    }
-
-    h2 {
-      font-size: rem(14);
+      margin-top: $default-margin * 2;
     }
 
     ul {
-      font-size: rem(14);
 
       li {
         overflow-wrap: break-word;
@@ -64,28 +56,17 @@
     }
   }
 
-  .config {
-    margin-bottom: 18px;
-
-    h2 {
-      font-size: rem(14);
-    }
-  }
-
-  .deps {
-    @include row;
-    font-size: rem(14);
-
-    h2 {
-      font-size: rem(14);
-    }
-
-    .direct-deps {
-      @include span-columns(6);
-    }
-
-    .transitive-deps {
-      @include span-columns(6);
+  @include desktop-up {
+    .deps {
+      display: flex;
+  
+      .direct-deps {
+        flex: 6;
+      }
+  
+      .transitive-deps {
+        flex: 6;
+      }
     }
   }
 
@@ -93,10 +74,10 @@
     font-family: $monospace-font-family;
     font-size: 12px;
     line-height: 1.6;
-    @include pad($base-spacing);
+    padding: $default-padding;
     background: $dark-blue;
-    border-radius: $global-radius;
-    color: $hab-white;
+    border-radius: $default-radius;
+    color: $white;
     overflow: auto;
   }
 }

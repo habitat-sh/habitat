@@ -1,18 +1,18 @@
-<div class="hab-package-sidebar">
-  <div class="build" *ngIf="buildable">
+<div class="package-sidebar-component">
+  <section *ngIf="buildable">
     <h3>Build</h3>
-    <button mat-raised-button color="primary" class="button" (click)="build()" [disabled]="building">
+    <button class="build" mat-raised-button color="primary" (click)="build()" [disabled]="building">
       {{ buildButtonLabel }}
     </button>
-  </div>
-  <div class="platforms">
+  </section>
+  <section class="platforms">
     <h3>Supported Platforms</h3>
     <p *ngIf="platforms.length === 0">
       None.
     </p>
     <hab-platform-icon [platform]="platform" *ngFor="let platform of platforms"></hab-platform-icon>
-  </div>
-  <div class="latest-stable">
+  </section>
+  <section class="latest-stable">
     <h3>Latest Stable</h3>
     <p *ngIf="latestStable">
       <a [routerLink]="['./', latestStable.ident.version, latestStable.ident.release]">
@@ -24,15 +24,15 @@
       None.
       <a [routerLink]="['./']">View available versions</a>.
     </p>
-  </div>
-  <div *ngIf="isAService">
-    <div class="command">
+  </section>
+  <ng-container *ngIf="isAService">
+    <section>
       <h3>Run Command</h3>
       <hab-copyable [command]="runCommand"></hab-copyable>
-    </div>
-    <div class="command">
+    </section>
+    <section>
       <h3>Export Command</h3>
       <hab-copyable [command]="exportCommand"></hab-copyable>
-    </div>
-  </div>
+    </section>
+  </ng-container>
 </div>

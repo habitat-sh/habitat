@@ -1,84 +1,24 @@
-.docker-export-settings {
+.docker-export-settings-component {
 
-  h3 {
-    font-size: rem(12);
-    text-transform: uppercase;
-  }
+  .toggle {
+    display: flex;
 
-  .unconfigured {
-    font-style: italic;
-    margin-left: 18px;
-    font-size: rem(13);
-  }
-
-  .integrations {
-    @include row;
+    .unconfigured {
+      font-style: italic;
+      margin-left: $default-margin;
+      line-height: 20px;
+    }
   }
 
   .fields {
-    @include row;
-    margin-top: 18px;
 
     label {
-      font-weight: 600;
-      text-transform: none;
-      font-size: rem(12);
+      font-size: $small-font-size;
     }
 
-    .mat-checkbox {
-      display: block;
-    }
-  }
-
-  .toggle {
-    @include row;
-    margin-bottom: 12px;
-
-    .mat-slide-toggle {
-      @include span-columns(1.5);
-    }
-
-    span {
-      @include span-columns(6);
-      @include omega;
-    }
-  }
-
-  .mat-radio-group {
-    display: block;
-    border-top: 1px solid $very-light-gray;
-    margin-bottom: 18px;
-
-    .mat-radio-button {
-      display: block;
-      line-height: rem(40);
-      border-bottom: 1px solid $very-light-gray;
-
-      .mat-radio-container {
-        margin-right: 40px;
-      }
-
-      label {
-        margin-bottom: 2px;
-      }
-
-      hab-icon {
-        margin-right: 12px;
-      }
-
-      span {
-        font-size: rem(12);
-        text-transform: none;
-      }
-    }
-  }
-
-  input[type="text"] {
-    font-family: $monospace-font-family;
-    font-size: rem(12);
-
-    &::placeholder {
-      color: $medium-gray;
+    input[type="text"] {
+      font-family: $monospace-font-family;
+      font-size: $small-font-size;
     }
   }
 }

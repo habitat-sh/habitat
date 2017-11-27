@@ -1,6 +1,6 @@
 hab-icon {
   display: inline-block;
-  margin-right: rem(5);
+  margin-right: 5px;
   vertical-align: middle;
   line-height: initial;
   width: 1em;
@@ -18,6 +18,12 @@ hab-icon {
       path {
         fill: currentColor;
       }
+    }
+  }
+
+  @each $key, $color in $icon-colors {
+    &.#{$key} {
+      color: #{$color};
     }
   }
 

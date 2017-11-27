@@ -12,15 +12,114 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@import "normalize";
-@import "variables";
+@import 'fonts';
+@import 'colors';
 
-// Neat Settings -- uncomment if using Neat -- must be imported before Neat
-@import "grid-settings";
+$base-font-size: 14px;
+$base-line-height: 22px;
+$base-unit: 'px';
+$base-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+$h1-font-size: 1.71 * $base-font-size;
+$h2-font-size: 1.14 * $base-font-size;
+$h3-font-size: 0.83 * $base-font-size;
+$h4-font-size: 0.83 * $base-font-size;
+$h5-font-size: 1    * $base-font-size;
+$h6-font-size: 0.67 * $base-font-size;
+$indent-amount: 0;
+$normalize-vertical-rhythm: true;
+@import 'normalize';
+@include normalize;
 
-@import "lists";
-@import "forms";
-@import "tables";
-@import "fonts";
-@import "typography";
-@import "theme";
+$heading-font-family: Montserrat, Verdana;
+$monospace-font-family: 'Source Code Pro', Menlo, Consolas, monospace;
+$monospace-font-size: 12px;
+$tabs-font-family: $heading-font-family;
+@import 'theme';
+
+$default-spacing: 20px;
+$default-margin: 16px;
+$default-padding: 16px;
+$default-shadow: 0 0 12px 0 $light-blue;
+$default-radius: 2px;
+$default-border: 1px solid $very-light-gray;
+
+$max-grid-width: 1180px;
+
+$small-margin: $default-margin / 2;
+$small-font-size: 12px;
+$small-line-height: 16px;
+$smaller-font-size: 11px;
+$smaller-line-height: 14px;
+$tiny-font-size: 10px;
+$tiny-line-height: 12px;
+
+:root {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+  min-width: 0;
+}
+
+body {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  color: $hab-text;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  margin: $default-margin 0;
+  padding: 0;
+}
+
+dl {
+  line-height: $base-line-height;
+  margin: $default-margin 0;
+
+  dt {
+    font-weight: 600;
+  }
+}
+
+ul, ol {
+  margin: $default-margin 0;
+  line-height: $base-line-height;
+  list-style-type: none;
+}
+
+h1 {
+  font-weight: normal;
+}
+
+h3, h4 {
+  font-family: $heading-font-family;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-family: $base-font-family;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid $off-white;
+  height: 1px;
+}
+
+a {
+  color: $hab-green;
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: darken($hab-green, 10%);
+  }
+}
+
+.footnote {
+  font-size: $small-font-size;
+}
+
+@import 'forms';

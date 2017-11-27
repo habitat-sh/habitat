@@ -1,8 +1,10 @@
-<div class="hab-build">
+<div class="build-detail-component">
   <div class="summary" *ngIf="info.state">
     <div class="status {{ statusClass }}">
-      <hab-icon [symbol]="statusIcon" [class]="statusClass" [title]="info.state | titlecase"></hab-icon>
-      <strong>Build {{ info.state }}</strong>
+      <div>
+        <hab-icon [symbol]="statusIcon" [class]="statusClass" [title]="info.state | titlecase"></hab-icon>
+        Build {{ info.state }}
+      </div>
     </div>
     <div class="detail">
       <div class="item">

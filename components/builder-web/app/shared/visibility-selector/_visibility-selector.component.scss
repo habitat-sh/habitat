@@ -1,60 +1,52 @@
-hab-visibility-selector {
+.visibility-selector-component {
 
-  .pkg-selector-wrapper {
+  .wrapper {
     display: flex;
-    margin-bottom: 18px;
+    flex-direction: column;
+
+    @include tablet-up {
+      flex-direction: row;
+    }
 
     .active {
       background-color: $very-light-gray;
     }
 
-    .pkg-visibility-selector {
+    .selector {
       flex: 1;
-      border: 1px solid $very-light-gray;
-      padding: 10px;
-      margin-left: 10px;
-      border-radius: $base-border-radius;
+      border: $default-border;
+      padding: $default-padding;
+      border-radius: $default-radius;
+      margin-bottom: $default-margin;
 
-      h3 {
-        font-size: rem(12);
-        text-transform: uppercase;
-      }
-
-      h4 {
-        margin-bottom: 0;
-        font-family: $base-font-family;
-        font-weight: 600;
-        font-size: rem(14);
-        letter-spacing: normal;
-        text-transform: none;
+      h5 {
+        margin-top: 0;
       }
 
       .mat-radio-label {
         position: relative;
-        text-transform: none;
 
         .mat-radio-container {
           position: absolute;
-          top: 2px;
-          left: 3px;
+          top: 0;
+          left: 0;
         }
 
         .mat-radio-label-content {
           white-space: normal;
-          margin-left: rem(35);
+          margin-left: $default-margin;
+          padding-left: $default-padding;
 
           hab-icon {
-            margin-left: 5px;
-          }
-
-          span {
-            color: $hab-gray-dark;
+            margin-left: $small-margin;
           }
         }
       }
 
-      &:first-of-type {
-        margin-left: 0;
+      @include tablet-up {
+        &:first-of-type {
+          margin-right: $default-margin;
+        }
       }
     }
   }

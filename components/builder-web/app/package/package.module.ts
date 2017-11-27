@@ -27,7 +27,6 @@ import { PackageBuildsComponent } from './package-builds/package-builds.componen
 import { PackageLatestComponent } from './package-latest/package-latest.component';
 import { PackageDetailComponent } from './package-detail/package-detail.component';
 import { PackageSettingsComponent } from './package-settings/package-settings.component';
-import { PackageReadmeComponent } from './package-readme/package-readme.component';
 import { PackageReleaseComponent } from './package-release/package-release.component';
 import { PackageSidebarComponent } from './package-sidebar/package-sidebar.component';
 import { PackageVersionsComponent } from './package-versions/package-versions.component';
@@ -58,7 +57,6 @@ import { PackageRoutingModule } from './package-routing.module';
     PackageBuildsComponent,
     PackageLatestComponent,
     PackageDetailComponent,
-    PackageReadmeComponent,
     PackageReleaseComponent,
     PackageSidebarComponent,
     PackageSettingsComponent,

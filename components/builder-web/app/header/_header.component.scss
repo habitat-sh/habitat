@@ -1,0 +1,134 @@
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+.header-component {
+
+  .header-container {
+    position: relative;
+    margin-bottom: $default-margin;
+  }
+
+  .logo {
+    width: 160px;
+  }
+
+  hab-user-nav, hab-icon.toggle {
+    position: absolute;
+    @include vertically-centered;
+  }
+
+  .links {
+    display: none;
+    text-align: left;
+
+    @include tablet-up {
+      position: absolute;
+      top: 4px;
+      right: 0;
+      display: flex;
+      align-items: center;
+
+      li {
+        margin: 0 $default-margin;
+
+        &:last-child {
+          margin-right: 0;
+        }
+
+        a {
+          padding: $default-padding * 1.6 0;
+          
+          &.is-current-page {
+            background: url("/assets/images/nav-active-icon.svg") no-repeat center bottom;
+          }
+        }
+      }
+    }
+
+    li {
+      display: block;
+
+      &.menu {
+        display: block;
+    
+        @include tablet-up {
+          display: none;
+        }
+      }
+    }
+
+    .sign-in {
+      a {
+        color: $hab-orange;
+      }
+    }
+
+    .get-started {
+      margin-top: $default-margin / 2;
+
+      @include tablet-up {
+        margin-top: 0;
+      }
+
+      a {
+        border: 1px solid $hab-orange;
+        border-radius: $default-radius * 4;
+        padding: $default-padding / 4 $default-padding;
+        color: $hab-orange;
+
+        &:hover {
+          color: $white;
+          background-color: $hab-orange;
+        }
+      }
+    }
+  }
+
+  hab-user-nav {
+    z-index: 9998;
+    right: $default-margin * 3;
+
+    @include tablet-up {
+      right: 0;
+    }
+  }
+
+  .toggle {
+    @include icon-size(24);
+    cursor: pointer;
+    right: 0;
+
+    @include tablet-up {
+      display: none;
+    }
+  }
+
+  .outer-wrapper {
+    position: relative;
+
+    &.open {
+      .links {
+        display: block;
+      }
+    }
+
+    @include tablet-up {
+      &.signed-in {
+        .links {
+          right: $default-margin * 5;
+        }
+      }
+    }
+  }
+}

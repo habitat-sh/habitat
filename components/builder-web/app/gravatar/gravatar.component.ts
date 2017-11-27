@@ -18,11 +18,9 @@ const md5 = require('blueimp-md5');
 @Component({
   selector: 'hab-gravatar',
   template: `
-    <img class="hab-gravatar"
-        width="{{size || DEFAULT_SIZE}}" height="{{size || DEFAULT_SIZE}}"
-        src='{{gravatarUrl(defaultStyle, email, size)}}'>`
+    <img width="{{size || DEFAULT_SIZE}}" height="{{size || DEFAULT_SIZE}}" src='{{gravatarUrl(defaultStyle, email, size)}}'>
+  `
 })
-
 export class GravatarComponent {
   @Input() defaultStyle;
   @Input() email;

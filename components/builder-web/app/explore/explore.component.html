@@ -1,4 +1,4 @@
-<div class="hab-explore">
+<div class="explore-component">
   <div class="upper">
     <section class="heading">
       <div>
@@ -8,7 +8,7 @@
     <section class="search">
       <div>
         <form (ngSubmit)="search(term.value)">
-          <input #term placeholder="What dependencies does your app have?">
+          <input #term type="search" placeholder="What dependencies does your app have?">
           <button mat-raised-button color="primary" type="submit">Find Packages</button>
         </form>
       </div>
@@ -75,33 +75,10 @@
     </section>
   </div>
   <div class="lower">
-    <!-- <section class="getting-started">
-      <div>
-        <div class="image">
-          <img src="/assets/images/habitat-box.svg">
-        </div>
-        <div class="content">
-          <h3>Getting Started with Habitat</h3>
-          <div class="subhead">11:29</div>
-          <p>
-            New to Habitat? Building and managing apps is a complex endeavor, but with
-            Habitat's built-in features you'll soon have your app up and running easier
-            than ever before. We recommend you start with the short demo, then roll up
-            your sleeves and package your first app with Habitat.
-          </p>
-          <div class="links">
-            <a href="https://www.habitat.sh/try/">Try the Habitat Quick Start Demo</a>
-            <a href="https://www.habitat.sh/tutorials/">Tutorial: Packaging Your First Habitat App</a>
-          </div>
-        </div>
-      </div>
-    </section> -->
     <section class="scaffolding">
       <div>
-        <div>
-          <div class="image">
-            <img src="/assets/images/scaffolding.svg">
-          </div>
+        <div class="item">
+          <div class="image"></div>
           <div class="content">
             <h3>Automate Your Own App</h3>
             <div class="subhead">Habitat Docs</div>
@@ -117,18 +94,15 @@
             </p>
             <div class="links">
               <a href="https://www.habitat.sh/docs/concepts-scaffolding/">Learn about scaffolding</a>
-              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node">Try node scaffolding</a>
-              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">Try ruby scaffolding</a>
+              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node">Try Node scaffolding</a>
+              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">Try Ruby scaffolding</a>
             </div>
-            <!-- <ul class="tags">
-              <li><a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">ruby</a></li>
-            </ul> -->
           </div>
         </div>
       </div>
     </section>
     <section class="compliance">
-      <div>
+      <div class="item">
         <div class="image">
           <iframe width="100%" height="300" src="https://www.youtube.com/embed/rTTL-HekZpw" frameborder="0" allowfullscreen></iframe>
         </div>
@@ -157,7 +131,7 @@
         <p>
           Join the community today to ramp up your knowledge, share your ideas, and contribute to the project.
         </p>
-        <a mat-raised-button color="accent" href="https://www.habitat.sh/community/">Join the Community</a>
+        <a class="cta" mat-raised-button color="accent" href="https://www.habitat.sh/community/">Join the Community</a>
       </div>
     </div>
   </section>

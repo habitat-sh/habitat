@@ -29,6 +29,19 @@ class MockAppStore {
 
   getState() {
     return {
+      builds: {
+        visible: []
+      },
+      origins: {
+        mine: []
+      },
+      projects: {
+        ui: {
+          current: {
+            exists: true
+          }
+        }
+      },
       session: {
         token: 'some-token'
       }
@@ -41,6 +54,8 @@ class MockRoute {
     origin: 'core',
     name: 'nginx'
   });
+
+  snapshot = Observable.of([]);
 }
 
 describe('PackageComponent', () => {
@@ -75,6 +90,9 @@ describe('PackageComponent', () => {
   describe('given origin and name', () => {
 
     it('renders breadcrumbs and sidebar', () => {
+      component.showSidebar = true;
+      fixture.detectChanges();
+    
       expect(element.query(By.css('hab-package-breadcrumbs'))).not.toBeNull();
       expect(element.query(By.css('hab-package-sidebar'))).not.toBeNull();
     });

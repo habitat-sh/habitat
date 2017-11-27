@@ -12,74 +12,55 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.main-nav--profile {
-  float: right;
-  margin: rem(10) 0;
-  position: relative;
-
-  @include large-nav{
-    margin: rem(32) 0 0;
-  }
-}
-
-.main-nav--avatar {
+.user-nav-component {
   display: block;
   border-radius: 50%;
   border: 1px solid $hab-orange;
   padding: 2px;
+  position: relative;
   cursor: pointer;
 
   img {
     display: block;
-    border: solid 2px $hab-white;
+    border: solid 2px $white;
     border-radius: 50%;
     height: 40px;
     width: 40px;
   }
 
-  span {
-    font-size: 75%;
-  }
+  .dropdown {
+    @include shadow-panel;
+    color: $hab-text;
+    position: absolute;
+    right: 0;
+    top: 38px;
+    z-index: 9999;
 
-  &:hover {
-    color: $hab-white;
-  }
-}
+    > li {
+      display: block;
+      padding: $default-padding / 4;
+      min-width: 8em;
+      padding: $default-padding / 2 0;
+      text-align: left;
 
-.main-nav--dropdown {
-  @include dropdown-panel;
-  color: $hab-gray;
-  position: absolute;
-  right: 0;
-  top: 52px;
-  z-index: 9999;
-  font-size: rem(14);
+      &.username {
+        color: $hab-text;
+        padding: 0;
+      }
 
-  li {
-    display: block;
-    min-width: 8em;
-    padding-bottom: rem(10);
-    text-align: left;
+      &:last-child {
+        border-top: 1px solid $light-gray;
+        margin-top: rem(8);
+        padding-bottom: 0;
+        padding-top: rem(12);
+      }
 
-    &.username {
-      color: $hab-gray-dark;
+      a {
+        font-size: $base-font-size;
+        color: $hab-green;
+        margin-left: 0;
+      }
     }
-
-    &:last-child {
-      border-top: 1px solid $light-gray;
-      margin-top: rem(8);
-      padding-bottom: 0;
-      padding-top: rem(12);
-    }
   }
-
-  li a {
-    line-height: 1.5em;
-    margin-left: 0;
-  }
-
 }
 
-li.sign-in-button {
-  @extend .hab-drop-down;
-}

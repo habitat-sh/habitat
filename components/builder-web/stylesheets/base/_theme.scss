@@ -25,3 +25,21 @@ $hab-theme: mat-light-theme(
 @include mat-core($custom-typography);
 @include mat-tabs-typography($tabs-typography);
 @include angular-material-theme($hab-theme);
+
+// Angular Material overrides
+
+html {
+  background-color: $dark-blue; // Firefox needs this for Material dialogs.
+}
+
+.mat-raised-button:not([class*=mat-elevation-z]) {
+  box-shadow: none !important;
+}
+
+.cdk-overlay-dark-backdrop {
+  background: $dark-blue;
+}
+
+.mat-dialog-container {
+  margin: 0 auto; // Centers the dialog on smaller screens
+}

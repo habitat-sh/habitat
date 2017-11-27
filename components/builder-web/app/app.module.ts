@@ -15,10 +15,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
-import { MatButtonModule, MAT_PLACEHOLDER_GLOBAL_OPTIONS } from '@angular/material';
+import { MatButtonModule, MatIconModule, MatRadioModule, MatTabsModule, MAT_PLACEHOLDER_GLOBAL_OPTIONS } from '@angular/material';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpModule } from '@angular/http';
-import { MatIconModule, MatRadioModule, MatTabsModule } from '@angular/material';
 import { routing } from './routes';
 import { AppStore } from './app.store';
 import { AppComponent } from './app.component';

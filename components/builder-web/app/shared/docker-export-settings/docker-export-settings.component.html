@@ -1,4 +1,4 @@
-<div class="docker-export-settings">
+<div class="docker-export-settings-component">
   <h3>
     <hab-icon symbol="docker"></hab-icon>
     Publish to Docker Hub
@@ -7,16 +7,16 @@
     Export the resulting .hart file as a Docker container and publish it to your Docker Hub account. Integration settings are
     managed under the origin Settings tab.
   </p>
-  <div class="toggle">
+  <section class="toggle">
     <mat-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
       {{ enabled ? "On" : "Off" }}
     </mat-slide-toggle>
     <span class="unconfigured" *ngIf="!configured">
       You can configure this integration in the origin Integrations tab.
     </span>
-  </div>
-  <div *ngIf="enabled && configured">
-    <div class="integrations">
+  </section>
+  <ng-container *ngIf="enabled && configured">
+    <section class="integrations">
       <mat-radio-group [(ngModel)]="name">
         <ng-container *ngFor="let type of integrations | habKeysPipe">
           <mat-radio-button *ngFor="let integration of integrations[type]" [value]="integration">
@@ -25,16 +25,16 @@
           </mat-radio-button>
         </ng-container>
       </mat-radio-group>
-    </div>
-    <div class="fields">
-      <label>Docker Organization and Repository</label>
-      <input type="text" [(ngModel)]="repoName" placeholder="{{ repoPlaceholder }}">
-      <label>Custom Tag (Optional)</label>
-      <input type="text" [(ngModel)]="customTag" [placeholder]="'yourtag or \{\{ channel \}\}'">
+    </section>
+    <section class="fields">
+      <label for="repo_name" >Docker Organization and Repository</label>
+      <input type="text" name="repo_name" [(ngModel)]="repoName" placeholder="{{ repoPlaceholder }}">
+      <label for="custom_tag">Custom Tag (Optional)</label>
+      <input type="text" name="custom_tag" [(ngModel)]="customTag" [placeholder]="'yourtag or \{\{ channel \}\}'">
       <label>Additional Tags</label>
       <mat-checkbox [(ngModel)]="latestTag">:latest</mat-checkbox>
       <mat-checkbox [(ngModel)]="versionTag">:pkg_version</mat-checkbox>
       <mat-checkbox [(ngModel)]="releaseTag">:pkg_version-pkg_release</mat-checkbox>
-    </div>
-  </div>
+    </section>
+  </ng-container>
 </div>

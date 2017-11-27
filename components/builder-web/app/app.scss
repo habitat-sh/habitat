@@ -12,132 +12,133 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-$output-bourbon-deprecation-warnings: false !default;
-
-@import "mixins";
-@import "bourbon";
-@import "base/base";
-@import "neat";
-@import "checking-input";
-@import "dialog";
-@import "drop-down";
-@import "tabs";
-
-@import "banner/banner.component";
-@import "explore/explore";
-@import "footer/footer";
-@import "header/header";
-@import "header/user-nav/user-nav";
-@import "notifications/notifications";
-
-@import "origin/origin.module";
-@import "shared/shared.module";
-@import "package/package.module";
-@import "profile/profile.module";
-
-@import "search/results/results.component";
-@import "search/search/search.component";
-@import "side-nav/side-nav";
-@import "sign-in-page/sign-in-page";
-
-html {
-  background-color: $dark-blue; // Firefox needs this for Material dialogs.
-}
+@import 'mixins';
+@import 'base/base';
+@import 'base/grid';
+@import 'base/lists';
 
 body {
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
   background: linear-gradient(to top, $medium-blue, $dark-blue);
-  margin: 0;
 }
 
-.hab-container {
-  @include outer-container;
-  max-width: rem(1200);
-  min-height: 70vh;
+.app {
+  padding: $default-padding;
 
-  &.full {
-    max-width: $max-width;
+  > nav {
+    color: $white;
 
-    .hab-main {
-      @include span-columns(12);
-      background: none;
-    }
+    a {
+      font-size: 16px;
+      color: $white;
 
-    .hab-side-nav {
-      display: none;
-    }
-
-    + hab-footer {
-      footer {
-        margin-top: 0;
+      &:hover {
+        color: $hab-green;
       }
     }
   }
 }
 
-.hab-main {
-  @include span-columns(10);
+nav {
+
+  &.menu {
+    display: none;
+
+    @include tablet-up {
+      display: block;
+    }
+  }
+
+  &.tabs {
+    background-color: $light-blue;
+
+    .mat-tab-links {
+      display: flex;
+    }
+    
+    .mat-tab-link {
+      color: $black;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      opacity: 1;
+      min-width: inherit;
+
+      @include tablet-up {
+        min-width: 100px;
+      }
+    }
+  }
+
+  .footer {
+    grid-area: footer;
+  }
+}
+
+main {
+  border-radius: $default-radius;
   background-color: $white;
-  border-radius: $global-radius;
-  height: 100%;
-  position: relative;
-  z-index: 50;
 
-  &.centered {
-    @include media($medium-screen) {
-      @include span-columns(6);
-      @include shift(3);
-      margin-top: rem(20);
+  .full & {
+    background: transparent;
+  }
+
+  header {
+    position: relative;
+    padding: $default-padding;
+    border-radius: $default-radius $default-radius 0 0;
+    background: linear-gradient(205deg, $light-blue 5%, $light-slate-gray 100%);
+    font-family: $heading-font-family;
+
+    h1, h2 {
+      margin: 0;
     }
 
-    @include span-columns(12);
+    h2 {
+      font-weight: normal;
+    };
+  }
+
+  .body {
+    padding: $default-padding;
+  }
+
+  .content, aside {
+
+    section, p {
+      margin: $default-margin 0;
+    }
+  }
+
+  .content {
+    padding-right: $default-padding;
+  }
+
+  aside {
+    margin-top: $default-margin;
+    padding-top: $default-padding;
+    border-top: $default-border;
+  }
+
+  @include tablet-up {
+    aside {
+      margin-top: 0;
+      padding-top: 0;
+      border-top-width: 0;
+      padding-left: $default-padding;
+      border-left: $default-border;
+    }
   }
 }
 
-.page-title {
-  @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
-  padding: rem(30) rem(20) rem(20);
-  position: relative;
-  border-radius: $global-radius $global-radius 0 0;
-
-  a {
-    &.create {
-      @include hab-button;
-      margin-bottom: 0.5em;
-      margin-top: 1.5em;
-    }
-  }
-
-  p {
-    color: $dark-gray;
-    margin-top: rem(20);
-    max-width: 32em;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .hab-package-breadcrumbs {
-    span {
-      color: $hab-green;
-    }
-  }
-}
-
-.page-body {
-  min-height: 50vh;
-  padding: rem(30) rem(20);
-
-  .hero {
-    p {
-      margin-bottom: rem(15);
-      text-align: center;
-    }
-  }
-
-  .hab-sign-in & {
-    min-height: inherit;
-  }
-}
+@import 'dialog';
+@import 'banner/banner.component';
+@import 'explore/explore.component';
+@import 'footer/footer.component';
+@import 'header/header.component';
+@import 'header/user-nav/user-nav.component';
+@import 'notifications/notifications';
+@import 'origin/origin.module';
+@import 'package/package.module';
+@import 'search/search.module';
+@import 'search/results/results.component';
+@import 'shared/shared.module';
+@import 'sign-in-page/sign-in-page.component';

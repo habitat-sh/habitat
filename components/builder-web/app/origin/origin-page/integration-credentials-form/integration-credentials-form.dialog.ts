@@ -62,7 +62,7 @@ export class IntegrationCredentialsFormDialog implements OnDestroy {
     if (creds.validating) {
       return {
         icon: 'loading',
-        className: 'validating'
+        className: 'waiting'
       };
     }
     else if (creds.validated) {
