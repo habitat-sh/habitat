@@ -109,6 +109,8 @@ pub enum Error {
     InvalidServiceGroup(String),
     /// Occurs when an origin is in an invalid format
     InvalidOrigin(String),
+    /// Occurs when an OsString path cannot be converted to a String
+    InvalidPathString(ffi::OsString),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     /// Errors when joining paths :)
@@ -130,8 +132,6 @@ pub enum Error {
     NoOutboundAddr,
     /// Occurs when a call to OpenDesktopW fails
     OpenDesktopFailed(String),
-    /// Occurs when dealing an OsString cannot be converted to a String
-    OsString(ffi::OsString),
     /// Occurs when a suitable installed package cannot be found.
     PackageNotFound(package::PackageIdent),
     /// When an error occurs parsing an integer.
@@ -328,6 +328,9 @@ impl fmt::Display for Error {
                     origin
                 )
             }
+            Error::InvalidPathString(ref s) => {
+                format!("Could not generate String from path: {:?}", s)
+            }
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {
@@ -347,7 +350,6 @@ impl fmt::Display for Error {
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             Error::NoOutboundAddr => format!("Failed to discover this hosts outbound IP address"),
             Error::OpenDesktopFailed(ref e) => format!("{}", e),
-            Error::OsString(ref s) => format!("Failed to convert to String: {:?}", s),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
@@ -476,6 +478,7 @@ impl error::Error for Error {
                 "Origins must begin with a lowercase letter or number.  \
                     Allowed characters include a - z, 0 - 9, _, and -. No more than 255 characters."
             }
+            Error::InvalidPathString(_) => "Failed to convert an OsString Path to a String",
             Error::IO(ref err) => err.description(),
             Error::JoinPathsError(ref err) => err.description(),
             Error::LogonTypeNotGranted => {
@@ -490,7 +493,6 @@ impl error::Error for Error {
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NoOutboundAddr => "Failed to discover the outbound IP address",
             Error::OpenDesktopFailed(_) => "OpenDesktopW failed",
-            Error::OsString(_) => "Failed to convert an OsString to a String",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
             Error::PermissionFailed(_) => "Failed to set permissions",
@@ -514,12 +516,6 @@ impl error::Error for Error {
 impl From<env::JoinPathsError> for Error {
     fn from(err: env::JoinPathsError) -> Self {
         Error::JoinPathsError(err)
-    }
-}
-
-impl From<ffi::OsString> for Error {
-    fn from(s: ffi::OsString) -> Self {
-        Error::OsString(s)
     }
 }
 
