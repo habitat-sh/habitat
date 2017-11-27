@@ -124,18 +124,19 @@ impl Credentials {
                 let provider =
                     StaticProvider::new_minimal(username.to_string(), password.to_string());
                 // TODO TED: Make the region configurable
-                let client =
-                    EcrClient::new(default_tls_client().unwrap(), provider, Region::UsWest2);
+                let client = EcrClient::new(default_tls_client()?, provider, Region::UsWest2);
                 let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
                 let token = client
                     .get_authorization_token(&auth_token_req)
                     .map_err(|e| Error::TokenFetchFailed(e))
                     .and_then(|resp| {
                         resp.authorization_data
-                            .map(|auth_data| {
-                                auth_data[0].clone().authorization_token.unwrap()
-                            })
                             .ok_or(Error::NoECRTokensReturned)
+                            .and_then(|auth_data| {
+                                auth_data[0].clone().authorization_token.ok_or(
+                                    Error::NoECRTokensReturned,
+                                )
+                            })
                     })?;
 
                 let creds: Vec<String> = base64::decode(&token)
