@@ -515,7 +515,8 @@ impl PackageInstall {
                 // If there was no RUNTIME_ENVIRONMENT, we can at
                 // least return a proper PATH
                 let path = env::join_paths(self.full_legacy_path()?.iter())?
-                    .into_string()?;
+                    .into_string()
+                    .map_err(|os_string| Error::InvalidPathString(os_string))?;
 
                 let mut env = HashMap::new();
                 env.insert(String::from("PATH"), path);
