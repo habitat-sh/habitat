@@ -171,14 +171,13 @@ describe('BuildDetailComponent', () => {
 
             spyOn(window, 'scrollTo');
             spyOn(document, 'querySelector').and.returnValues(
-              { getBoundingClientRect: () => { return { height: 100 }; } }, // contentHeight
-              { getBoundingClientRect: () => { return { height: 50 }; } },  // footerHeight
-              { getBoundingClientRect: () => { return { height: 10 }; } }   // navHeight
+              { getBoundingClientRect: () => { return { height: 54 }; } }, // bannerHeight
+              { getBoundingClientRect: () => { return { height: 1200 }; } },  // appHeight
             );
 
             element.query(By.css('button.jump-to-end')).triggerEventHandler('click', {});
 
-            expect(window.scrollTo).toHaveBeenCalledWith(0, 30);
+            expect(window.scrollTo).toHaveBeenCalledWith(0, 954);
             expect(component.followLog).toBe(true);
           });
         });

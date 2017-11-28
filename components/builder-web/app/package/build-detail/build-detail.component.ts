@@ -181,14 +181,19 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
   }
 
   private scrollToEnd() {
-    let contentHeight = heightOf('.hab-container');
-    let footerHeight = heightOf('.hab-footer');
-    let navHeight = heightOf('#main-nav');
+    let appHeight = heightOf('.app');
+    let bannerHeight = heightOf('.banner-component');
 
-    window.scrollTo(0, contentHeight - footerHeight - navHeight * 2);
+    window.scrollTo(0, appHeight + bannerHeight - window.innerHeight);
 
     function heightOf(selector) {
-      return document.querySelector(selector).getBoundingClientRect().height;
+      let el = document.querySelector(selector);
+
+      if (el) {
+        return el.getBoundingClientRect().height;
+      }
+
+      return 0;
     }
   }
 }
