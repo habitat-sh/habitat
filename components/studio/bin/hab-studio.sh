@@ -410,7 +410,11 @@ new_studio() {
   # nerdy like that
   if [ -z "${NO_MOUNT}" ]; then
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
-      $bb mount $v --bind /dev $HAB_STUDIO_ROOT/dev
+      if [ -z "${KRANGSCHNAK+x}" ]; then
+        $bb mount $v --bind /dev $HAB_STUDIO_ROOT/dev
+      else
+        $bb mount $v --rbind /dev $HAB_STUDIO_ROOT/dev
+      fi
     fi
 
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
