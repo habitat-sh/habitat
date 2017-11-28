@@ -1,5 +1,7 @@
 FROM microsoft/windowsservercore
 ADD {{rootfs}} /
-VOLUME {{volumes}}
+{{#each volumes}}
+VOLUME {{this}}
+{{/each}}
 EXPOSE 9631 {{exposes}}
 ENTRYPOINT ["{{hab_path}}", "sup", "start", "{{primary_svc_ident}}"]
