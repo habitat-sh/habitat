@@ -1,5 +1,52 @@
 # Habitat CHANGELOG
 
+## [0.40.0](https://github.com/habitat-sh/habitat/tree/0.40.0) (11-28-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.39.1...0.40.0)
+
+## Features & Enhancements
+
+- API docs and tests [\#4017](https://github.com/habitat-sh/habitat/issues/4017)
+- API docs and tests [\#4017](https://github.com/habitat-sh/habitat/issues/4017)
+- Add note on using the correct path for cfg keys with \#each helper [\#3965](https://github.com/habitat-sh/habitat/issues/3965)
+- want formatted output for `hab svc status` [\#3859](https://github.com/habitat-sh/habitat/issues/3859)
+- \[Documentation\] Create one site about what an artifact is [\#2586](https://github.com/habitat-sh/habitat/issues/2586)
+- \\[Documentation\\] Create one site about what an artifact is [\#2586](https://github.com/habitat-sh/habitat/issues/2586)
+- \[Feature-Homepage\] Add feature to make subheader easily shareable  [\#2557](https://github.com/habitat-sh/habitat/issues/2557)
+- \\[Feature-Homepage\\] Add feature to make subheader easily shareable  [\#2557](https://github.com/habitat-sh/habitat/issues/2557)
+- Added note about 'each' helper [\#4092](https://github.com/habitat-sh/habitat/pull/4092) ([davidwrede](https://github.com/davidwrede))
+
+## Bug fixes
+
+- FILES metadata file is no longer generated [\#4100](https://github.com/habitat-sh/habitat/issues/4100)
+- \[www\] Adjust the home page feature slider [\#3911](https://github.com/habitat-sh/habitat/issues/3911)
+- Panic on binary files in `hab/cache/keys` folder [\#3002](https://github.com/habitat-sh/habitat/issues/3002)
+- Fix paths inconsistencies errors [\#4089](https://github.com/habitat-sh/habitat/pull/4089) ([krnowak](https://github.com/krnowak))
+
+**Closed issues:**
+
+- \[xxxproto\] Make sure dependencies are ok [\#4110](https://github.com/habitat-sh/habitat/issues/4110)
+- builder 0.39 or newer fails with "a password was requested but not provided" [\#4096](https://github.com/habitat-sh/habitat/issues/4096)
+- Tracking Issue - add redis detection to scaffolding-ruby [\#3224](https://github.com/habitat-sh/habitat/issues/3224)
+- Tracking Issue - Modify node scaffold so it runs out of the service var directory [\#3069](https://github.com/habitat-sh/habitat/issues/3069)
+
+**Merged pull requests:**
+
+- Use Krangschnak to rbind /dev to fix airlock [\#4133](https://github.com/habitat-sh/habitat/pull/4133) ([elliott-davis](https://github.com/elliott-davis))
+- Get builds working again [\#4132](https://github.com/habitat-sh/habitat/pull/4132) ([chefsalim](https://github.com/chefsalim))
+- Fix up a few last visibility settings [\#4131](https://github.com/habitat-sh/habitat/pull/4131) ([raskchanky](https://github.com/raskchanky))
+- Fix log following [\#4130](https://github.com/habitat-sh/habitat/pull/4130) ([cnunciato](https://github.com/cnunciato))
+- \#4125 : text, link, style updates [\#4128](https://github.com/habitat-sh/habitat/pull/4128) ([mgamini](https://github.com/mgamini))
+- Add myself as codeowner for plan-build and hab\* components [\#4124](https://github.com/habitat-sh/habitat/pull/4124) ([christophermaier](https://github.com/christophermaier))
+- Web: Fix incorrect imports [\#4116](https://github.com/habitat-sh/habitat/pull/4116) ([indradhanush](https://github.com/indradhanush))
+- Refactor the CSS [\#4112](https://github.com/habitat-sh/habitat/pull/4112) ([cnunciato](https://github.com/cnunciato))
+- silence commands that have secret keys in them [\#4102](https://github.com/habitat-sh/habitat/pull/4102) ([echohack](https://github.com/echohack))
+- Fix indent in makefile [\#4101](https://github.com/habitat-sh/habitat/pull/4101) ([echohack](https://github.com/echohack))
+- Generate FILES metadata file again [\#4099](https://github.com/habitat-sh/habitat/pull/4099) ([christophermaier](https://github.com/christophermaier))
+- Upgrade clippy to 0.0.172 from 0.0.144 and url to 1.6.0 from 1.4.0 [\#4088](https://github.com/habitat-sh/habitat/pull/4088) ([georgemarshall](https://github.com/georgemarshall))
+- Update to next version [\#4086](https://github.com/habitat-sh/habitat/pull/4086) ([elliott-davis](https://github.com/elliott-davis))
+- Added README generation for hab plan init [\#4077](https://github.com/habitat-sh/habitat/pull/4077) ([predominant](https://github.com/predominant))
+- Uses tabwriter to format hab svc status output [\#4005](https://github.com/habitat-sh/habitat/pull/4005) ([rsertelon](https://github.com/rsertelon))
+
 ## [0.39.1](https://github.com/habitat-sh/habitat/tree/0.39.1) (11-17-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.39.0...0.39.1)
 
@@ -17,6 +64,7 @@
 
 **Merged pull requests:**
 
+- prep 0.39.1 release [\#4085](https://github.com/habitat-sh/habitat/pull/4085) ([mwrock](https://github.com/mwrock))
 - Fix permissions errors on api proxy by adding a reconfigure hook [\#4082](https://github.com/habitat-sh/habitat/pull/4082) ([elliott-davis](https://github.com/elliott-davis))
 - Fix hab job group promote result check [\#4081](https://github.com/habitat-sh/habitat/pull/4081) ([chefsalim](https://github.com/chefsalim))
 - Fix studio to honor airlock and local vm dev [\#4080](https://github.com/habitat-sh/habitat/pull/4080) ([elliott-davis](https://github.com/elliott-davis))
