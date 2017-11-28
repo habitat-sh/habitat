@@ -173,6 +173,14 @@ pub fn visibility_for_optional_session(
     v
 }
 
+pub fn all_visibilities() -> Vec<OriginPackageVisibility> {
+    vec![
+        OriginPackageVisibility::Public,
+        OriginPackageVisibility::Private,
+        OriginPackageVisibility::Hidden,
+    ]
+}
+
 // Get channels for a package
 pub fn channels_for_package_ident(
     req: &mut Request,
@@ -320,11 +328,7 @@ pub fn promote_package_to_channel(
     let origin_channel = route_message::<OriginChannelGet, OriginChannel>(req, &channel_req)?;
     let mut request = OriginPackageGet::new();
     request.set_ident(ident.clone());
-    request.set_visibilities(vec![
-        OriginPackageVisibility::Public,
-        OriginPackageVisibility::Private,
-        OriginPackageVisibility::Hidden,
-    ]);
+    request.set_visibilities(all_visibilities());
 
     let package = route_message::<OriginPackageGet, OriginPackage>(req, &request)?;
     let mut promote = OriginPackagePromote::new();
@@ -486,11 +490,7 @@ fn do_group_promotion(
         let opi = OriginPackageIdent::from_str(project.get_ident()).unwrap();
         let mut opg = OriginPackageGet::new();
         opg.set_ident(opi);
-        opg.set_visibilities(vec![
-            OriginPackageVisibility::Public,
-            OriginPackageVisibility::Private,
-            OriginPackageVisibility::Hidden,
-        ]);
+        opg.set_visibilities(all_visibilities());
 
         let op = route_message::<OriginPackageGet, OriginPackage>(req, &opg)?;
         package_ids.push(op.get_id());

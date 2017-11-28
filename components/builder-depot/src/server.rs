@@ -30,7 +30,7 @@ use hab_core::crypto::{BoxKeyPair, SigKeyPair};
 use hab_core::crypto::PUBLIC_BOX_KEY_VERSION;
 use hab_core::event::*;
 use http_gateway::http::controller::*;
-use http_gateway::http::helpers::{self, check_origin_access, check_origin_owner,
+use http_gateway::http::helpers::{self, all_visibilities, check_origin_access, check_origin_owner,
                                   dont_cache_response, get_param, visibility_for_optional_session};
 use http_gateway::http::middleware::{SegmentCli, XRouteClient};
 use hab_net::{privilege, ErrCode, NetOk, NetResult};
@@ -1412,7 +1412,7 @@ fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
 
     let mut opg = OriginPackageGet::new();
     opg.set_ident(ident);
-    opg.set_visibilities(vec![OriginPackageVisibility::Private]);
+    opg.set_visibilities(all_visibilities());
 
     match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
         Ok(mut package) => {
@@ -1955,7 +1955,7 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
         Ok(origin_channel) => {
             let mut request = OriginPackageGet::new();
             request.set_ident(ident.clone());
-            request.set_visibilities(vec![OriginPackageVisibility::Private]);
+            request.set_visibilities(all_visibilities());
             match route_message::<OriginPackageGet, OriginPackage>(req, &request) {
                 Ok(package) => {
                     let mut demote = OriginPackageDemote::new();
