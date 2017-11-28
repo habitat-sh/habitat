@@ -33,9 +33,9 @@ blocks.
 Here's an example that will only write out configuration for the
 unixsocket tunable if a value was set by the user:
 
-    {{~#if cfg.unixsocket}}
+    {{#if cfg.unixsocket ~}}
     unixsocket {{cfg.unixsocket}}
-    {{~/if}}
+    {{/if ~}}
 
 > **Note** The `~` indicates that whitespace should be omitted when rendering
 
@@ -48,26 +48,26 @@ TOML allows you to create sections (called [TOML tables](https://github.com/toml
 
 When writing your template, you can use the `with` helper to reduce duplication:
 
-    {{#with cfg.repl}}
+    {{#with cfg.repl ~}}
       repl-backlog-size {{backlog-size}}
       repl-backlog-ttl {{backlog-ttl}}
       repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
-    {{/with}}
+    {{/with ~}}
 
 Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Habitat services  in a leader-follower topology.
 
-    {{#if svc.me.follower}}
+    {{#if svc.me.follower ~}}
       slaveof {{svc.leader.sys.ip}} {{svc.leader.cfg.port}}
-    {/if}}
+    {/if ~}}
 
 Here's an example using `each` to render multiple server entries:
 
-    {{~#each cfg.servers as |server| }}
+    {{#each cfg.servers as |server| ~}}
     server {
       host {{server.host}}
       port {{server.port}}
     }
-    {{~/each}}
+    {{/each ~}}
 
 You would specify the corresponding values in a TOML file using an
 [array of tables](https://github.com/toml-lang/toml#array-of-tables)
@@ -80,3 +80,25 @@ like this:
     [[servers]]
     host = "host-2"
     port = 3434
+
+And for both `each` and `unless`, you can use `@first` and `@last` to specify which item in an array you want to perform business logic on. For example:
+
+    "mongo": {
+      {{#each bind.database.members as |member| ~}}
+        {{#if @first ~}}
+          "host" : "{{member.sys.ip}}",
+          "port" : "{{member.cfg.port}}"
+        {{/if ~}}
+      {{/each ~}}
+    }
+
+> **Note** The `@first` and `@last` variables also work with the Habitat helper `eachAlive`, and in the example above, it would be preferrable to the built-in `each` helper because it checks whether the service is available before trying to retrieve any values.
+
+For `unless`, using `@last` can also be helpful when you need to optionally include delimiters. In the example below, the IP addresses of the alive members returned by the `servers` binding is comma-separated. The logic check `{{#unless @last}}, {{/unless}}` at the end ensures that the comma is written after each element except the last element.
+
+    {{#eachAlive bind.servers.members as |member| ~}}
+      "{{member.sys.ip}}"
+      {{#unless @last ~}}, {{/unless ~}} 
+    {{/eachAlive ~}}]
+
+
