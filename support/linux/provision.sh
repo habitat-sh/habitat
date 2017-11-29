@@ -10,7 +10,7 @@ export WORKER_AUTH_TOKEN=fc7654ed8c65ccfe014cd339a55e3538f935027a
 export GITHUB_ADMIN_TEAM=1995301
 export GITHUB_WORKER_TEAM=2555389
 export GITHUB_WEBHOOK_SECRET=58d4afaf5e5617ab0f8c39e505605e78a054d003
-
+export GITHUB_APP_ID=5629
 pushd /src
 cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
@@ -33,6 +33,6 @@ mkdir -p /hab/svc/builder-jobsrv/data
 mkdir -p /hab/svc/builder-datastore
 cp -f support/builder/datastore.toml /hab/svc/builder-datastore/user.toml
 support/builder/init-datastore.sh
-support/builder/config.sh
+support/builder/dev-config.sh
 support/linux/setup_keys.sh
 popd
