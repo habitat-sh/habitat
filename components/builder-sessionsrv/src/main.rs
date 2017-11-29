@@ -19,7 +19,7 @@
 extern crate clap;
 extern crate env_logger;
 extern crate habitat_core as hab_core;
-extern crate habitat_builder_sessionsrv as hab_sessionsrv;
+extern crate habitat_builder_sessionsrv as sessionsrv;
 #[macro_use]
 extern crate log;
 
@@ -27,7 +27,7 @@ use std::fmt;
 use std::process;
 
 use hab_core::config::ConfigFile;
-use hab_sessionsrv::{server, Config, SrvResult};
+use sessionsrv::{Config, SrvResult};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-sessionsrv/config.toml";
@@ -36,11 +36,12 @@ fn main() {
     env_logger::init().unwrap();
     let matches = app().get_matches();
     debug!("CLI matches: {:?}", matches);
-    let config = match config_from_args(&matches) {
-        Ok(result) => result,
+    let (subcmd, mut config) = match subcmd_and_config_from_args(&matches) {
+        Ok((s, c)) => (s, c),
         Err(e) => return exit_with(e, 1),
     };
-    match server::run(config) {
+    config.action = subcmd;
+    match sessionsrv::server::run(config) {
         Ok(_) => std::process::exit(0),
         Err(e) => exit_with(e, 1),
     }
@@ -52,6 +53,11 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (about: "Habitat builder-sessionsrv")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
+        (@subcommand migrate =>
+            (about: "Run database migrations")
+            (@arg config: -c --config +takes_value +global
+                "Filepath to configuration file. [default: /hab/svc/builder-originsrv/config.toml]")
+        )
         (@subcommand start =>
             (about: "Run a Habitat-Builder session server")
             (@arg config: -c --config +takes_value
@@ -61,14 +67,14 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
     )
 }
 
-fn config_from_args(matches: &clap::ArgMatches) -> SrvResult<Config> {
+fn subcmd_and_config_from_args(matches: &clap::ArgMatches) -> SrvResult<(String, Config)> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let config = match args.value_of("config") {
         Some(cfg_path) => Config::from_file(cfg_path)?,
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
-    Ok(config)
+    Ok((cmd.to_string(), config))
 }
 
 fn exit_with<T>(err: T, code: i32)

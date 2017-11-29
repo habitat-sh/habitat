@@ -14,6 +14,8 @@
 
 mod handlers;
 
+use std::process;
+
 use hab_net::app::prelude::*;
 use protocol::originsrv::*;
 
@@ -151,9 +153,16 @@ impl Dispatcher for OriginSrv {
         config: Self::Config,
         router_pipe: Arc<String>,
     ) -> SrvResult<<Self::State as AppState>::InitState> {
+        let action = config.action.clone();
         let state = ServerState::new(config, router_pipe)?;
-        state.datastore.setup()?;
-        state.datastore.start_async();
+
+        if action == "migrate" {
+            state.datastore.setup()?;
+            state.datastore.start_async();
+            println!("Migrations finished. Exiting.");
+            process::exit(0);
+        }
+
         Ok(state)
     }
 

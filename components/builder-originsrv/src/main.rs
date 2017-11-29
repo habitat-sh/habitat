@@ -37,12 +37,13 @@ fn main() {
     env_logger::init().unwrap();
     let matches = app().get_matches();
     debug!("CLI matches: {:?}", matches);
-    let config = match config_from_args(&matches) {
-        Ok(result) => result,
+    let (subcmd, mut config) = match subcmd_and_config_from_args(&matches) {
+        Ok((s, c)) => (s, c),
         Err(e) => return exit_with(e, 1),
     };
+    config.action = subcmd;
     match originsrv::server::run(config) {
-        Ok(_) => std::process::exit(0),
+        Ok(_) => process::exit(0),
         Err(e) => exit_with(e, 1),
     }
 }
@@ -53,6 +54,11 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (about: "Habitat builder-originsrv")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
+        (@subcommand migrate =>
+            (about: "Run database migrations")
+            (@arg config: -c --config +takes_value +global
+                "Filepath to configuration file. [default: /hab/svc/builder-originsrv/config.toml]")
+        )
         (@subcommand start =>
             (about: "Run a Habitat-Builder origin server")
             (@arg config: -c --config +takes_value +global
@@ -61,14 +67,14 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
     )
 }
 
-fn config_from_args(matches: &clap::ArgMatches) -> SrvResult<Config> {
+fn subcmd_and_config_from_args(matches: &clap::ArgMatches) -> SrvResult<(String, Config)> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let config = match args.value_of("config") {
         Some(cfg_path) => Config::from_file(cfg_path)?,
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
-    Ok(config)
+    Ok((cmd.to_string(), config))
 }
 
 fn exit_with<T>(err: T, code: i32)

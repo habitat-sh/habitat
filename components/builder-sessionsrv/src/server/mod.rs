@@ -18,6 +18,7 @@ use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
+use std::process;
 use std::sync::RwLock;
 use std::time::{Duration, Instant};
 
@@ -186,8 +187,15 @@ impl Dispatcher for SessionSrv {
         cfg: Self::Config,
         _: Arc<String>,
     ) -> SrvResult<<Self::State as AppState>::InitState> {
+        let action = cfg.action.clone();
         let state = ServerState::new(cfg)?;
-        state.datastore.setup()?;
+
+        if action == "migrate" {
+            state.datastore.setup()?;
+            println!("Migrations finished. Exiting.");
+            process::exit(0);
+        }
+
         Ok(state)
     }
 
