@@ -42,4 +42,5 @@ do_install() {
   install -D $PLAN_CONTEXT/bin/shared.sh $pkg_prefix/bin/
   install -D $PLAN_CONTEXT/bin/public.sh $pkg_prefix/bin/
   install -D $PLAN_CONTEXT/bin/composite_build_functions.sh $pkg_prefix/bin/
+  install -D $PLAN_CONTEXT/bin/environment.sh $pkg_prefix/bin/
 }

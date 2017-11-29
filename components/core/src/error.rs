@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
 use std::error;
+use std::ffi;
 use std::io;
 use std::fmt;
 use std::num;
@@ -107,8 +109,12 @@ pub enum Error {
     InvalidServiceGroup(String),
     /// Occurs when an origin is in an invalid format
     InvalidOrigin(String),
+    /// Occurs when an OsString path cannot be converted to a String
+    InvalidPathString(ffi::OsString),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
+    /// Errors when joining paths :)
+    JoinPathsError(env::JoinPathsError),
     // When LogonUserW does not have the correct logon type
     LogonTypeNotGranted,
     /// Occurs when a call to LogonUserW fails
@@ -322,7 +328,11 @@ impl fmt::Display for Error {
                     origin
                 )
             }
+            Error::InvalidPathString(ref s) => {
+                format!("Could not generate String from path: {:?}", s)
+            }
             Error::IO(ref err) => format!("{}", err),
+            Error::JoinPathsError(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {
                 format!(
                     "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' \
@@ -468,7 +478,9 @@ impl error::Error for Error {
                 "Origins must begin with a lowercase letter or number.  \
                     Allowed characters include a - z, 0 - 9, _, and -. No more than 255 characters."
             }
+            Error::InvalidPathString(_) => "Failed to convert an OsString Path to a String",
             Error::IO(ref err) => err.description(),
+            Error::JoinPathsError(ref err) => err.description(),
             Error::LogonTypeNotGranted => {
                 "Logon type not granted to hab_svc_user to be spawned by the Supervisor"
             }
@@ -498,6 +510,12 @@ impl error::Error for Error {
             Error::TerminateProcessFailed(_) => "Failed to call TerminateProcess",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
         }
+    }
+}
+
+impl From<env::JoinPathsError> for Error {
+    fn from(err: env::JoinPathsError) -> Self {
+        Error::JoinPathsError(err)
     }
 }
 

@@ -289,101 +289,20 @@ join_by() {
   echo "$*"
 }
 
-# Sets environment variable for package
-#
-# ```sh
-# add_env PATH 'bin' 'sbin'
-# add_env SETTINGS_MODULE 'app.settings'
-# ```
 add_env() {
-  local -u key=$1
-  shift
-  local values=($*)
-
-  if [[ ${pkg_env[$key]+abc} ]]; then
-    exit_with "Cannot add $key to pkg_env once the value is already set"
-  fi
-
-  if [[ -n ${values} ]]; then
-    # Set a default separator if none is defined
-    if [[ ! ${pkg_env_sep[$key]+abc} && ${_env_default_sep[$key]+abc} ]]; then
-      pkg_env_sep[$key]=${_env_default_sep[$key]}
-    fi
-
-    if [[ ${#values[@]} -gt 1 ]]; then
-      if [[ ${pkg_env_sep[$key]+abc} ]]; then
-        pkg_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
-      else
-        exit_with "Cannot add multiple values without setting a separator for $key"
-      fi
-    else
-      pkg_env[$key]=${values[0]}
-    fi
-  fi
+    exit_with "DEPRECATED: use 'set_runtime_env' instead!"
 }
 
-# Adds `$pkg_prefix` to supplied paths
-#
-# ```sh
-# add_path_env PATH 'bin' 'sbin'
-# ```
 add_path_env() {
-  local key=$1
-  shift
-  local paths=()
-  for path in $*; do
-    paths+=("${pkg_prefix}/${path}")
-  done
-  add_env ${key} ${paths[@]}
+    exit_with "DEPRECATED: use 'push_runtime_env' instead!"
 }
 
-# TODO: Make `add_build_env` and `add_build_path_env` more generic
-# Sets build environment variable for package
-#
-# ```sh
-# add_build_env PATH 'bin' 'sbin'
-# add_build_env SETTINGS_MODULE 'app.settings'
-# ```
 add_build_env() {
-  local -u key=$1
-  shift
-  local values=($*)
-
-  if [[ ${pkg_build_env[$key]+abc} ]]; then
-    exit_with "Cannot add $key to pkg_build_env once the value is already set"
-  fi
-
-  if [[ -n ${values} ]]; then
-    # Set a default separator if none is defined
-    if [[ ! ${pkg_env_sep[$key]+abc} && ${_env_default_sep[$key]+abc} ]]; then
-      pkg_env_sep[$key]=${_env_default_sep[$key]}
-    fi
-
-    if [[ ${#values[@]} -gt 1 ]]; then
-      if [[ ${pkg_env_sep[$key]+abc} ]]; then
-        pkg_build_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
-      else
-        exit_with "Cannot add multiple values without setting a separator for $key"
-      fi
-    else
-      pkg_build_env[$key]=${values[0]}
-    fi
-  fi
+    exit_with "DEPRECATED: use 'set_buildtime_env' instead!"
 }
 
-# Adds `$pkg_prefix` to supplied paths
-#
-# ```sh
-# add_build_path_env PATH 'bin' 'sbin'
-# ```
 add_build_path_env() {
-  local key=$1
-  shift
-  local paths=()
-  for path in $*; do
-    paths+=("${pkg_prefix}/${path}")
-  done
-  add_build_env ${key} ${paths[@]}
+    exit_with "DEPRECATED: use 'push_buildtime_env' instead!"
 }
 
 # Downloads a file from a source URL to a local file and uses an optional
@@ -644,9 +563,42 @@ update_pkg_version() {
     SRC_PATH="$CACHE_PATH"
   fi
   # Replace the unset placeholders with the computed value
-  val="$(echo "$PATH" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  PATH="$val"
+  PATH=$(__resolve_version_placeholder "$PATH" "${pkg_version}")
   build_line "Updating PATH=$PATH"
-  val="$(echo "${pkg_env[PATH]}" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  pkg_env[PATH]="$val"
+
+  # TODO (CM): Do not like this separation of concerns (or lack of
+  # separation, as the case may be).
+  #
+  # NOTE: we specifically handle PATH above (and make that live in the
+  # environment). We are implicitly assuming that any other instances
+  # of the version placeholder are not going to need to be propagated
+  # back into the active environment.
+  __resolve_all_version_placeholders "__runtime_environment" "${pkg_version}"
+  __resolve_all_version_placeholders "__buildtime_environment" "${pkg_version}"
+  __resolve_all_version_placeholders "__runtime_environment_provenance" "${pkg_version}"
+  __resolve_all_version_placeholders "__buildtime_environment_provenance" "${pkg_version}"
+}
+
+# Replace all instances of the "__pkg__version__unset__" placeholder
+# in the given string with the real version number.
+__resolve_version_placeholder(){
+    local original=${1}
+    local real_version=${2}
+    echo "${original}" | sed "s,__pkg__version__unset__,${real_version},g"
+}
+
+# Replace all instances of the "__pkg__version__unset__" placeholder
+# in the values of the given associative array with the real version number.
+#
+# NOTE: the associative array is specified *by name*.
+__resolve_all_version_placeholders() {
+    local datastructure_name=${1}
+    local real_version=${2}
+
+    declare -n map="${datastructure_name}"
+
+    for k in "${!map[@]}"; do
+        v=$(__resolve_version_placeholder "${map[${k}]}" "${real_version}")
+        map["${k}"]="${v}"
+    done
 }
