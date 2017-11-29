@@ -84,6 +84,7 @@ impl fmt::Debug for Job {
             .field("package_ident", &self.0.get_package_ident())
             .field("integrations", &integrations)
             .field("project_integrations", &self.0.get_project_integrations())
+            .field("worker", &self.0.get_worker())
             .finish()
     }
 }
