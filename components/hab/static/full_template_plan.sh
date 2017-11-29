@@ -35,7 +35,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 {{#if pkg_license ~}}
 pkg_license={{ pkg_license }}
 {{else ~}}
-pkg_license=('Apache-2.0')
+pkg_license=("Apache-2.0")
 {{/if}}
 
 # Optional.
@@ -367,7 +367,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 {{#if pkg_license ~}}
 pkg_license={{ pkg_license }}
 {{else ~}}
-pkg_license=('Apache-2.0')
+pkg_license=("Apache-2.0")
 {{/if ~}}
 {{#if scaffolding_ident ~}}
 pkg_scaffolding="{{ scaffolding_ident }}"
