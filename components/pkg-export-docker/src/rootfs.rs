@@ -58,6 +58,7 @@ where
     Ok(())
 }
 
+#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod test {
     use std::fs::File;

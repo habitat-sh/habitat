@@ -32,6 +32,7 @@ pub enum Error {
     Base64DecodeError(DecodeError),
     BuildFailed(ExitStatus),
     DockerImageIdNotFound(String),
+    DockerNotInWindowsMode(String),
     InvalidToken(FromUtf8Error),
     Hab(hab::error::Error),
     HabitatCommon(common::Error),
@@ -56,6 +57,13 @@ impl fmt::Display for Error {
                 format!(
                     "Could not determine Docker image ID for image: {}",
                     image_tag
+                )
+            }
+            Error::DockerNotInWindowsMode(ref server_os) => {
+                format!(
+                    "Switch to Windows containers to export Docker images on Windows. \
+                    Current Docker Server OS is set to: {}",
+                    server_os
                 )
             }
             Error::Hab(ref err) => format!("{}", err),

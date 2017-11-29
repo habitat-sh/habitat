@@ -95,7 +95,7 @@ pub struct Service {
     hooks: HookTable,
     config_from: Option<PathBuf>,
     #[serde(skip_serializing)]
-    last_health_check: Instant,
+    last_health_check: Option<Instant>,
     manager_fs_cfg: Arc<manager::FsCfg>,
     #[serde(rename = "process")]
     supervisor: Supervisor,
@@ -150,7 +150,7 @@ impl Service {
             topology: spec.topology,
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
-            last_health_check: Instant::now() - *HEALTH_CHECK_INTERVAL,
+            last_health_check: None,
             svc_encrypted_password: spec.svc_encrypted_password,
             composite: spec.composite,
         })
@@ -652,8 +652,13 @@ impl Service {
             }
         } else {
             self.check_process();
-            if Instant::now().duration_since(self.last_health_check) >= *HEALTH_CHECK_INTERVAL {
-                self.run_health_check_hook();
+            match self.last_health_check {
+                Some(last_check) => {
+                    if Instant::now().duration_since(last_check) >= *HEALTH_CHECK_INTERVAL {
+                        self.run_health_check_hook();
+                    }
+                }
+                None => self.run_health_check_hook(),
             }
 
             // NOTE: if you need reconfiguration and you DON'T have a
@@ -740,7 +745,7 @@ impl Service {
                 (false, _) => HealthCheck::Critical,
             }
         };
-        self.last_health_check = Instant::now();
+        self.last_health_check = Some(Instant::now());
         self.cache_health_check(check_result);
     }
 
