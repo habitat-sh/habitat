@@ -13,7 +13,10 @@
 // limitations under the License.
 
 use std::fs as stdfs;
+#[cfg(target_os = "linux")]
 use std::os::unix::fs::symlink;
+#[cfg(target_os = "windows")]
+use std::os::windows::fs::symlink_dir as symlink;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
@@ -85,14 +88,18 @@ impl<'a> BuildSpec<'a> {
 
     fn prepare_rootfs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
         ui.status(Status::Creating, "root filesystem")?;
-        rootfs::create(&rootfs)?;
+        if cfg!(target_os = "linux") {
+            rootfs::create(&rootfs)?;
+        }
         self.create_symlink_to_artifact_cache(ui, &rootfs)?;
         self.create_symlink_to_key_cache(ui, &rootfs)?;
         let base_pkgs = self.install_base_pkgs(ui, &rootfs)?;
-        self.link_binaries(ui, &rootfs, &base_pkgs)?;
-        self.link_cacerts(ui, &rootfs, &base_pkgs)?;
         let user_pkgs = self.install_user_pkgs(ui, &rootfs)?;
-        self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
+        if cfg!(target_os = "linux") {
+            self.link_binaries(ui, &rootfs, &base_pkgs)?;
+            self.link_cacerts(ui, &rootfs, &base_pkgs)?;
+            self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
+        }
         self.remove_symlink_to_key_cache(ui, &rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
 
@@ -135,7 +142,11 @@ impl<'a> BuildSpec<'a> {
         let hab = self.install_base_pkg(ui, self.hab, &rootfs)?;
         let sup = self.install_base_pkg(ui, self.hab_sup, &rootfs)?;
         let launcher = self.install_base_pkg(ui, self.hab_launcher, &rootfs)?;
-        let busybox = self.install_base_pkg(ui, BUSYBOX_IDENT, &rootfs)?;
+        let busybox = if cfg!(target_os = "linux") {
+            Some(self.install_base_pkg(ui, BUSYBOX_IDENT, &rootfs)?)
+        } else {
+            None
+        };
         let cacerts = self.install_base_pkg(ui, CACERTS_IDENT, &rootfs)?;
 
         Ok(BasePkgIdents {
@@ -183,7 +194,7 @@ impl<'a> BuildSpec<'a> {
         let dst = util::bin_path();
         hab::command::pkg::binlink::binlink_all_in_pkg(
             ui,
-            &base_pkgs.busybox,
+            &base_pkgs.busybox.clone().expect("No busybox in idents"),
             &dst,
             rootfs.as_ref(),
             true,
@@ -220,14 +231,13 @@ impl<'a> BuildSpec<'a> {
         rootfs: P,
     ) -> Result<()> {
         ui.status(Status::Deleting, "artifact cache symlink")?;
-        stdfs::remove_file(rootfs.as_ref().join(CACHE_ARTIFACT_PATH))?;
-
+        stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_ARTIFACT_PATH))?;
         Ok(())
     }
 
     fn remove_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
         ui.status(Status::Deleting, "artifact key symlink")?;
-        stdfs::remove_file(rootfs.as_ref().join(CACHE_KEY_PATH))?;
+        stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_KEY_PATH))?;
 
         Ok(())
     }
@@ -433,12 +443,14 @@ impl BuildRootContext {
     pub fn svc_volumes(&self) -> Vec<String> {
         let mut vols = Vec::new();
         for svc in self.svc_idents() {
-            vols.push(fs::svc_data_path(&svc.name).to_string_lossy().into_owned());
-            vols.push(
-                fs::svc_config_path(&svc.name)
-                    .to_string_lossy()
-                    .into_owned(),
-            );
+            vols.push(fs::svc_data_path(&svc.name).to_string_lossy().replace(
+                "\\",
+                "/",
+            ));
+            vols.push(fs::svc_config_path(&svc.name).to_string_lossy().replace(
+                "\\",
+                "/",
+            ));
         }
         vols
     }
@@ -505,7 +517,7 @@ struct BasePkgIdents {
     /// Installed package identifer for the Launcher package.
     pub launcher: PackageIdent,
     /// Installed package identifer for the Busybox package.
-    pub busybox: PackageIdent,
+    pub busybox: Option<PackageIdent>,
     /// Installed package identifer for the CA certs package.
     pub cacerts: PackageIdent,
 }
@@ -636,6 +648,7 @@ mod test {
             assert_eq!(cache_key_path(None::<&Path>), link.read_link().unwrap());
         }
 
+        #[cfg(target_os = "linux")]
         #[test]
         fn link_binaries() {
             let rootfs = TempDir::new("rootfs").unwrap();
@@ -646,12 +659,14 @@ mod test {
                 .unwrap();
 
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.busybox, None::<&Path>).join("bin/busybox"),
+                hcore::fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(), None::<&Path>)
+                    .join("bin/busybox"),
                 rootfs.path().join("bin/busybox").read_link().unwrap(),
                 "busybox program is symlinked into /bin"
             );
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.busybox, None::<&Path>).join("bin/sh"),
+                hcore::fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
+                    .join("bin/sh"),
                 rootfs.path().join("bin/sh").read_link().unwrap(),
                 "busybox's sh program is symlinked into /bin"
             );
@@ -698,7 +713,7 @@ mod test {
                 hab: fake_hab_install(&rootfs),
                 sup: fake_sup_install(&rootfs),
                 launcher: fake_launcher_install(&rootfs),
-                busybox: fake_busybox_install(&rootfs),
+                busybox: Some(fake_busybox_install(&rootfs)),
                 cacerts: fake_cacerts_install(&rootfs),
             }
         }
@@ -765,6 +780,7 @@ mod test {
         use std::str::FromStr;
 
         use hcore::package::PackageIdent;
+        use hcore::fs::FS_ROOT_PATH;
 
         use super::super::*;
         use super::*;
@@ -803,10 +819,22 @@ mod test {
 
             // Order of paths should not matter, this is why we set-compare
             let vol_paths = vec![
-                "/hab/svc/jogga/config".to_string(),
-                "/hab/svc/jogga/data".to_string(),
-                "/hab/svc/runna/config".to_string(),
-                "/hab/svc/runna/data".to_string(),
+                (&*FS_ROOT_PATH)
+                    .join("hab/svc/jogga/config")
+                    .to_string_lossy()
+                    .to_string(),
+                (&*FS_ROOT_PATH)
+                    .join("hab/svc/jogga/data")
+                    .to_string_lossy()
+                    .to_string(),
+                (&*FS_ROOT_PATH)
+                    .join("hab/svc/runna/config")
+                    .to_string_lossy()
+                    .to_string(),
+                (&*FS_ROOT_PATH)
+                    .join("hab/svc/runna/data")
+                    .to_string_lossy()
+                    .to_string(),
             ];
             let vol_paths: HashSet<String> = HashSet::from_iter(vol_paths.iter().cloned());
             assert_eq!(

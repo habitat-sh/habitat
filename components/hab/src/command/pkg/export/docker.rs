@@ -24,7 +24,7 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(not(target_os = "macos"))]
 mod inner {
     use std::ffi::OsString;
     use std::path::PathBuf;
@@ -76,7 +76,7 @@ mod inner {
     }
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "macos")]
 mod inner {
     use std::ffi::OsString;
 

@@ -16,10 +16,12 @@ use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::str::FromStr;
 
 use common::ui::{UI, Status};
 use hcore::os::filesystem;
 use hcore::fs as hfs;
+use hcore::package::PackageIdent;
 use handlebars::Handlebars;
 
 use build::BuildRoot;
@@ -28,7 +30,10 @@ use super::{Credentials, Naming};
 use util;
 
 /// The `Dockerfile` template.
+#[cfg(target_os = "linux")]
 const DOCKERFILE: &'static str = include_str!("../defaults/Dockerfile.hbs");
+#[cfg(target_os = "windows")]
+const DOCKERFILE: &'static str = include_str!("../defaults/Dockerfile_win.hbs");
 /// The entrypoint script template.
 const INIT_SH: &'static str = include_str!("../defaults/init.sh.hbs");
 /// The build report template.
@@ -364,8 +369,10 @@ impl DockerBuildRoot {
     /// * If any remaining tasks cannot be performed in the build root
     pub fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
         let root = DockerBuildRoot(build_root);
-        root.add_users_and_groups(ui)?;
-        root.create_entrypoint(ui)?;
+        if cfg!(target_os = "linux") {
+            root.add_users_and_groups(ui)?;
+            root.create_entrypoint(ui)?;
+        }
         root.create_dockerfile(ui)?;
 
         Ok(root)
@@ -389,7 +396,22 @@ impl DockerBuildRoot {
     /// # Errors
     ///
     /// * If the Docker image cannot be created successfully
+    #[cfg(target_os = "linux")]
     pub fn export(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
+        self.build_docker_image(ui, naming)
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn export(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
+        let mut cmd = docker_cmd();
+        cmd.arg("version").arg("--format='{{.Server.Os}}'");
+        debug!("Running command: {:?}", cmd);
+        let result = cmd.output().expect("Docker command failed to spawn");
+        let os = String::from_utf8_lossy(&result.stdout);
+        if !os.contains("windows") {
+            return Err(Error::DockerNotInWindowsMode(os.to_string()));
+        }
+
         self.build_docker_image(ui, naming)
     }
 
@@ -454,6 +476,7 @@ impl DockerBuildRoot {
         let json = json!({
             "rootfs": ctx.rootfs().file_name().expect("file_name exists").to_string_lossy().as_ref(),
             "path": ctx.env_path(),
+            "hab_path": util::pkg_path_for(&PackageIdent::from_str("core/hab")?, ctx.rootfs())?.join("bin/hab").to_string_lossy().replace("\\", "/"),
             "volumes": ctx.svc_volumes().join(" "),
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
