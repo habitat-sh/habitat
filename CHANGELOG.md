@@ -1,5 +1,37 @@
 # Habitat CHANGELOG
 
+## [0.50.0](https://github.com/habitat-sh/habitat/tree/0.50.0) (11-30-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.40.0...0.50.0)
+
+## Features & Enhancements
+
+- Allow packages to define runtime environment variables [\#3978](https://github.com/habitat-sh/habitat/issues/3978)
+- Templating and Bind/Export documentation example should show uses of \#each's @first and @last [\#3805](https://github.com/habitat-sh/habitat/issues/3805)
+- Templating and Bind/Export documentation example should show uses of \\#each's @first and @last [\#3805](https://github.com/habitat-sh/habitat/issues/3805)
+- Review and update `Add Configuration` topic [\#2137](https://github.com/habitat-sh/habitat/issues/2137)
+- RFC: a mechanism to declare runtime environment variables at build time [\#1579](https://github.com/habitat-sh/habitat/issues/1579)
+- Automatic Environment Variable Dependency Propagation [\#949](https://github.com/habitat-sh/habitat/issues/949)
+- Implement docker exporter for windows containers [\#4147](https://github.com/habitat-sh/habitat/pull/4147) ([mwrock](https://github.com/mwrock))
+- Adds examples using the @first and @last Handlebars variables [\#4113](https://github.com/habitat-sh/habitat/pull/4113) ([davidwrede](https://github.com/davidwrede))
+- Specify runtime environments for packages [\#4067](https://github.com/habitat-sh/habitat/pull/4067) ([christophermaier](https://github.com/christophermaier))
+
+## Bug fixes
+
+- Make it work in IE11 [\#3394](https://github.com/habitat-sh/habitat/issues/3394)
+
+**Closed issues:**
+
+- in certain cases, `hab studio rm` can fail due to stale `LOCK` file [\#4134](https://github.com/habitat-sh/habitat/issues/4134)
+
+**Merged pull requests:**
+
+- Add AWS ECR under 'Unlimited publishing'. [\#4156](https://github.com/habitat-sh/habitat/pull/4156) ([apriofrost](https://github.com/apriofrost))
+- plan.sh - Wrap license value in double quotes [\#4150](https://github.com/habitat-sh/habitat/pull/4150) ([nathenharvey](https://github.com/nathenharvey))
+- Update ssh config creation script [\#4142](https://github.com/habitat-sh/habitat/pull/4142) ([chefsalim](https://github.com/chefsalim))
+- update dev to version 0.50.0-dev [\#4138](https://github.com/habitat-sh/habitat/pull/4138) ([elliott-davis](https://github.com/elliott-davis))
+- Some very minor copy updates. [\#4135](https://github.com/habitat-sh/habitat/pull/4135) ([nathenharvey](https://github.com/nathenharvey))
+- Make setup scripts safer by adding `set -euo pipefail` [\#4093](https://github.com/habitat-sh/habitat/pull/4093) ([baumanj](https://github.com/baumanj))
+
 ## [0.40.0](https://github.com/habitat-sh/habitat/tree/0.40.0) (11-28-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.39.1...0.40.0)
 
@@ -31,6 +63,7 @@
 
 **Merged pull requests:**
 
+- Release version 0.40.0 [\#4136](https://github.com/habitat-sh/habitat/pull/4136) ([elliott-davis](https://github.com/elliott-davis))
 - Use Krangschnak to rbind /dev to fix airlock [\#4133](https://github.com/habitat-sh/habitat/pull/4133) ([elliott-davis](https://github.com/elliott-davis))
 - Get builds working again [\#4132](https://github.com/habitat-sh/habitat/pull/4132) ([chefsalim](https://github.com/chefsalim))
 - Fix up a few last visibility settings [\#4131](https://github.com/habitat-sh/habitat/pull/4131) ([raskchanky](https://github.com/raskchanky))
@@ -53,10 +86,6 @@
 ## Features & Enhancements
 
 - Amazon Container Registry post processor [\#3743](https://github.com/habitat-sh/habitat/issues/3743)
-
-## Bug fixes
-
-- Permission denied issue on builder-api-proxy directory [\#3521](https://github.com/habitat-sh/habitat/issues/3521)
 
 **Closed issues:**
 
