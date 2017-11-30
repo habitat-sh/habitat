@@ -36,14 +36,25 @@ fn main() {
     env_logger::init().unwrap();
     let matches = app().get_matches();
     debug!("CLI matches: {:?}", matches);
-    let (subcmd, mut config) = match subcmd_and_config_from_args(&matches) {
+    let (subcmd, config) = match subcmd_and_config_from_args(&matches) {
         Ok((s, c)) => (s, c),
         Err(e) => return exit_with(e, 1),
     };
-    config.action = subcmd;
-    match sessionsrv::server::run(config) {
-        Ok(_) => std::process::exit(0),
-        Err(e) => exit_with(e, 1),
+
+    match subcmd {
+        "migrate" => {
+            match sessionsrv::server::migrate(config) {
+                Ok(_) => process::exit(0),
+                Err(e) => exit_with(e, 1),
+            }
+        }
+        "start" => {
+            match sessionsrv::server::run(config) {
+                Ok(_) => process::exit(0),
+                Err(e) => exit_with(e, 1),
+            }
+        }
+        _ => unreachable!(),
     }
 }
 
@@ -67,14 +78,14 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
     )
 }
 
-fn subcmd_and_config_from_args(matches: &clap::ArgMatches) -> SrvResult<(String, Config)> {
+fn subcmd_and_config_from_args<'a>(matches: &'a clap::ArgMatches) -> SrvResult<(&'a str, Config)> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let config = match args.value_of("config") {
         Some(cfg_path) => Config::from_file(cfg_path)?,
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
-    Ok((cmd.to_string(), config))
+    Ok((cmd, config))
 }
 
 fn exit_with<T>(err: T, code: i32)

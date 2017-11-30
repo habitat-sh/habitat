@@ -24,8 +24,6 @@ use error::SrvError;
 pub struct Config {
     pub app: AppCfg,
     pub datastore: DataStoreCfg,
-    /// What this server should do when it starts up
-    pub action: String,
 }
 
 impl Default for Config {
@@ -35,7 +33,6 @@ impl Default for Config {
         Config {
             app: AppCfg::default(),
             datastore: datastore,
-            action: String::from("start"),
         }
     }
 }

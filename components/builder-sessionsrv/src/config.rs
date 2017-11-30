@@ -26,8 +26,6 @@ pub struct Config {
     pub datastore: DataStoreCfg,
     pub github: GitHubCfg,
     pub permissions: PermissionsCfg,
-    /// What this server should do when it starts up
-    pub action: String,
 }
 
 impl Default for Config {
@@ -39,7 +37,6 @@ impl Default for Config {
             datastore: datastore,
             github: GitHubCfg::default(),
             permissions: PermissionsCfg::default(),
-            action: String::from("start"),
         }
     }
 }

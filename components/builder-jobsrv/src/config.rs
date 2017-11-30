@@ -42,8 +42,6 @@ pub struct Config {
     pub log_path: PathBuf,
     /// Max time (in minutes) allowed for a build job
     pub job_timeout: u64,
-    /// What this server should do when it starts up
-    pub action: String,
 }
 
 impl Default for Config {
@@ -59,7 +57,6 @@ impl Default for Config {
             key_dir: PathBuf::from("/hab/svc/hab-depot/files"),
             log_path: PathBuf::from("/tmp"),
             job_timeout: 60,
-            action: String::from("start"),
         }
     }
 }

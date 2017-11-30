@@ -19,7 +19,6 @@ mod log_directory;
 mod log_ingester;
 mod scheduler;
 
-use std::process;
 use std::sync::RwLock;
 use time::PreciseTime;
 
@@ -119,15 +118,7 @@ impl Dispatcher for JobSrv {
         config: Self::Config,
         router_pipe: Arc<String>,
     ) -> Result<<Self::State as AppState>::InitState> {
-        let action = config.action.clone();
         let datastore = DataStore::new(&config.datastore)?;
-
-        if action == "migrate" {
-            datastore.setup()?;
-            println!("Migrations finished. Exiting.");
-            process::exit(0);
-        }
-
         let mut graph = TargetGraph::new();
         let packages = datastore.get_job_graph_packages()?;
         let start_time = PreciseTime::now();
@@ -161,4 +152,9 @@ impl Dispatcher for JobSrv {
 
 pub fn run(config: Config) -> AppResult<(), Error> {
     app_start::<JobSrv>(config)
+}
+
+pub fn migrate(config: Config) -> Result<()> {
+    let ds = DataStore::new(&config.datastore)?;
+    ds.setup()
 }

@@ -14,8 +14,6 @@
 
 mod handlers;
 
-use std::process;
-
 use hab_net::app::prelude::*;
 use protocol::originsrv::*;
 
@@ -153,16 +151,9 @@ impl Dispatcher for OriginSrv {
         config: Self::Config,
         router_pipe: Arc<String>,
     ) -> SrvResult<<Self::State as AppState>::InitState> {
-        let action = config.action.clone();
         let state = ServerState::new(config, router_pipe)?;
-
-        if action == "migrate" {
-            state.datastore.setup()?;
-            state.datastore.start_async();
-            println!("Migrations finished. Exiting.");
-            process::exit(0);
-        }
-
+        state.datastore.register_async_events();
+        state.datastore.start_async();
         Ok(state)
     }
 
@@ -173,4 +164,14 @@ impl Dispatcher for OriginSrv {
 
 pub fn run(config: Config) -> AppResult<(), SrvError> {
     app_start::<OriginSrv>(config)
+}
+
+pub fn migrate(config: Config) -> SrvResult<()> {
+    // Why does it not matter? Because we're not staying alive and communicating with other
+    // services. We're just running migrations and quitting.
+    let router_pipe = Arc::new(format!(
+        "inproc://this.is.not.a.real.router.pipe.but.it.doesnt.matter"
+    ));
+    let ds = DataStore::new(&config.datastore, config.app.shards.unwrap(), router_pipe)?;
+    ds.setup()
 }
