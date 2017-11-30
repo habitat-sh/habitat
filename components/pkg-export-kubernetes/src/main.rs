@@ -191,9 +191,9 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
-    let about = "Creates a docker image and Kubernetes manifest for a Habitat package. Habitat \
-                 operator must be deployed within the Kubernetes cluster to intercept the created \
-                 objects.";
+    let about = "Creates a Docker image and Kubernetes manifest for a Habitat package. Habitat \
+                 operator must be deployed within the Kubernetes cluster before the generated \
+                 manifest can be applied to this cluster.";
 
     let app = Cli::new(name, about)
         .add_base_packages_args()
@@ -225,7 +225,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 .possible_values(&["standalone", "leader"])
                 .help(
                     "A topology describes the intended relationship between peers \
-                    within a service group. Specify either standalone or leader \
+                    within a Habitat service group. Specify either standalone or leader \
                     topology (default: standalone)",
                 ),
         )
@@ -277,7 +277,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 .long("no-docker-image")
                 .short("d")
                 .help(
-                    "Disable creation of docker image and only create Kubernetes manifest",
+                    "Disable creation of the Docker image and only create a Kubernetes manifest",
                 ),
         )
         .arg(
