@@ -10,9 +10,10 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "~/.hab/cache/keys", "/hab/cache/keys"
   config.vm.synced_folder "~/.hab/etc", "/hab/etc"
 
-  config.vm.network "forwarded_port", guest: 80, host: 9636
-  config.vm.network "forwarded_port", guest: 9631, host: 9631
-  config.vm.network "forwarded_port", guest: 9636, host: 9636
+  config.vm.network "forwarded_port", guest: 9631, host: 9631 # Supervisor API
+  config.vm.network "forwarded_port", guest: 9636, host: 9636 # Builder API
+  config.vm.network "forwarded_port", guest: 3000, host: 3000 # Builder UI
+  config.vm.network "forwarded_port", guest: 3001, host: 3001 # Browsersync UI
 
   config.vm.provider "virtualbox" do |v|
     v.memory = 4096
