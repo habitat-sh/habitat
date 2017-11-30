@@ -49,11 +49,15 @@ Once Builder possesses at least the public key of the origin, you may upload one
 
 ## Promoting packages
 
-By default, newly uploaded packages are placed in the unstable channel, however, the default package that is downloaded is the latest _stable_ version of a package, unless overridden in commands such as `hab start`, `hab svc load`, and `hab install`. If you want to promote your package to the stable channel, run the `hab pkg promote` command as follows:
+<%= partial "/partials/global/channel-overview" %>
+
+By default, newly uploaded packages are placed in the `unstable` channel, however, the default package that is downloaded is the latest `stable` version of a package, unless overridden in commands such as `hab start`, `hab svc load`, and `hab install`. If you want to promote your package to the `stable` channel, run the `hab pkg promote` command as follows:
 
 ```shell
 $ hab pkg promote -z <OAuth_token> origin/package/version/release stable
 ```
+
+For more information on how to use channels, see [Continuous Deployment Using Channels](/docs/using-habitat/#continuous-deployment).
 
 ## Running packages from Builder
 
