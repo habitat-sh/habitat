@@ -87,6 +87,10 @@ impl DataStore {
 
         migrator.finish()?;
 
+        Ok(())
+    }
+
+    pub fn register_async_events(&self) {
         self.async.register(
             "sync_invitations".to_string(),
             sync_invitations,
@@ -99,8 +103,6 @@ impl DataStore {
             "sync_packages".to_string(),
             sync_packages,
         );
-
-        Ok(())
     }
 
     pub fn start_async(&self) {
