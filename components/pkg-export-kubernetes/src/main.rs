@@ -12,63 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[macro_use]
 extern crate clap;
 extern crate env_logger;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
-extern crate habitat_pkg_export_docker as export_docker;
 extern crate handlebars;
 #[macro_use]
 extern crate serde_json;
 #[macro_use]
 extern crate log;
 
-extern crate failure;
-#[macro_use]
-extern crate failure_derive;
-
-use clap::{App, Arg};
+use clap::App;
 use handlebars::Handlebars;
-use std::env;
 use std::result;
 use std::str::FromStr;
 use std::io::prelude::*;
 use std::io;
 use std::fs::File;
-use std::path::Path;
 
-use hcore::channel;
 use hcore::PROGRAM_NAME;
-use hcore::url as hurl;
 use hcore::env as henv;
-use hcore::package::{PackageArchive, PackageIdent};
+use hcore::package::PackageIdent;
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
-
-use export_docker::{Cli, Credentials, BuildSpec, Naming, Result};
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
 
 // Kubernetes manifest template
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
-const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
-
-#[derive(Debug, Fail)]
-enum Error {
-    #[fail(display = "Invalid bind specification '{}'", _0)]
-    InvalidBindSpec(String),
-}
 
 fn main() {
     env_logger::init().unwrap();
-    let mut ui = get_ui();
+    let mut ui = ui();
     if let Err(e) = start(&mut ui) {
         let _ = ui.fatal(e);
         std::process::exit(1)
     }
 }
 
-fn get_ui() -> UI {
+fn ui() -> UI {
     let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
         .map(|val| val == "true")
         .unwrap_or(false)
@@ -88,63 +71,21 @@ fn get_ui() -> UI {
     UI::default_with(coloring, isatty)
 }
 
-fn start(ui: &mut UI) -> Result<()> {
+fn start(_ui: &mut UI) -> result::Result<(), String> {
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
-
-    if !m.is_present("NO_DOCKER_IMAGE") {
-        gen_docker_img(ui, &m)?;
-    }
-    gen_k8s_manifest(ui, &m)
-}
-
-fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
-    let default_channel = channel::default();
-    let default_url = hurl::default_bldr_url();
-    let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
-    let naming = Naming::new_from_cli_matches(&matches);
-
-    let docker_image = export_docker::export(ui, spec, &naming)?;
-    docker_image.create_report(
-        ui,
-        env::current_dir()?.join("results"),
-    )?;
-
-    if matches.is_present("PUSH_IMAGE") {
-        let credentials = Credentials::new(
-            naming.registry_type,
-            matches.value_of("REGISTRY_USERNAME").unwrap(),
-            matches.value_of("REGISTRY_PASSWORD").unwrap(),
-        )?;
-        docker_image.push(ui, &credentials, naming.registry_url)?;
-    }
-    if matches.is_present("RM_IMAGE") {
-        docker_image.rm(ui)?;
-    }
-
-    Ok(())
-}
-
-fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
-    let count = matches.value_of("COUNT").unwrap_or("1");
-    let topology = matches.value_of("TOPOLOGY").unwrap_or("standalone");
-    let group = matches.value_of("GROUP");
-    let config_secret_name = matches.value_of("CONFIG_SECRET_NAME");
-    let ring_secret_name = matches.value_of("RING_SECRET_NAME");
-    // clap ensures that we do have the mandatory args so unwrap() is fine here
-    let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
-    let pkg_ident = if Path::new(pkg_ident_str).is_file() {
-        // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
-        // identifier to ensure that update strategies will work if desired
-        PackageArchive::new(pkg_ident_str).ident()?
-    } else {
-        PackageIdent::from_str(pkg_ident_str)?
+    let count = m.value_of("COUNT").unwrap_or("1");
+    let topology = m.value_of("TOPOLOGY").unwrap_or("standalone");
+    let group = m.value_of("GROUP");
+    let config_secret_name = m.value_of("CONFIG_SECRET_NAME");
+    let ring_secret_name = m.value_of("RING_SECRET_NAME");
+    // clap_app!() ensures that we do have the mandatory args so unwrap() is fine here
+    let pkg_ident_str = m.value_of("PKG_IDENT").unwrap();
+    let pkg_ident = match PackageIdent::from_str(pkg_ident_str) {
+        Ok(pi) => pi,
+        Err(e) => return Err(format!("{}", e)),
     };
-    let image = match matches.value_of("IMAGE_NAME") {
-        Some(i) => i.to_string(),
-        None => pkg_ident.origin + "/" + &pkg_ident.name,
-    };
-    let bind = matches.value_of("BIND");
+    let image = m.value_of("IMAGE").unwrap_or(pkg_ident_str);
 
     let json = json!({
         "metadata_name": pkg_ident.name,
@@ -154,138 +95,65 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
         "service_group": group,
         "config_secret_name": config_secret_name,
         "ring_secret_name": ring_secret_name,
-        "bind": bind,
     });
 
-    let mut write: Box<Write> = match matches.value_of("OUTPUT") {
-        Some(o) if o != "-" => Box::new(File::create(o)?),
+    let mut write: Box<Write> = match m.value_of("OUTPUT") {
+        Some(o) if o != "-" => {
+            match File::create(o) {
+                Ok(f) => Box::new(f),
+                Err(e) => return Err(format!("{}", e)),
+            }
+        }
         _ => Box::new(io::stdout()),
     };
 
-    let r = Handlebars::new().template_render(MANIFESTFILE, &json)?;
-    let mut out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-        "\n",
-    ) + "\n";
+    match Handlebars::new().template_render(MANIFESTFILE, &json) {
+        Ok(r) => {
+            let out = r.lines().filter(|l| {
+                *l != ""
+            }).collect::<Vec<_>>().join("\n") + "\n";
 
-    if let Some(binds) = matches.values_of("BIND") {
-        for bind in binds {
-            let split: Vec<&str> = bind.split(":").collect();
-            if split.len() < 3 {
-                return Err(Error::InvalidBindSpec(bind.to_string()).into());
+            match write.write(out.as_bytes()) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(format!("{}", e)),
             }
+        },
 
-            let json = json!({
-                "name": split[0],
-                "service": split[1],
-                "group": split[2],
-            });
-
-            out += &Handlebars::new().template_render(BINDFILE, &json)?;
-        }
+        Err(e) => Err(format!("{}", e)),
     }
-
-    write.write(out.as_bytes())?;
-
-    Ok(())
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
-    let about = "Creates a Docker image and Kubernetes manifest for a Habitat package. Habitat \
-                 operator must be deployed within the Kubernetes cluster before the generated \
-                 manifest can be applied to this cluster.";
-
-    let app = Cli::new(name, about)
-        .add_base_packages_args()
-        .add_builder_args()
-        .add_tagging_args()
-        .add_publishing_args()
-        .app;
-
-    app.arg(
-        Arg::with_name("OUTPUT")
-            .value_name("OUTPUT")
-            .long("output")
-            .short("o")
-            .help(
-                "Name of manifest file to create. Pass '-' for stdout (default: -)",
-            ),
-    ).arg(
-            Arg::with_name("COUNT")
-                .value_name("COUNT")
-                .long("count")
-                .validator(valid_natural_number)
-                .help("Count is the number of desired instances"),
-        )
-        .arg(
-            Arg::with_name("TOPOLOGY")
-                .value_name("TOPOLOGY")
-                .long("topology")
-                .short("t")
-                .possible_values(&["standalone", "leader"])
-                .help(
-                    "A topology describes the intended relationship between peers \
-                    within a Habitat service group. Specify either standalone or leader \
-                    topology (default: standalone)",
-                ),
-        )
-        .arg(
-            Arg::with_name("GROUP")
-                .value_name("GROUP")
-                .long("service-group")
-                .short("g")
-                .help(
-                    "group is a logical grouping of services with the same package and \
-                    topology type connected together in a ring (default: default)",
-                ),
-        )
-        .arg(
-            Arg::with_name("CONFIG_SECRET_NAME")
-                .value_name("CONFIG_SECRET_NAME")
-                .long("config-secret-name")
-                .short("n")
-                .help(
-                    "name of the Kubernetes Secret containing the config file - \
-                    user.toml - that the user has previously created. Habitat will \
-                    use it for initial configuration of the service",
-                ),
-        )
-        .arg(
-            Arg::with_name("RING_SECRET_NAME")
-                .value_name("RING_SECRET_NAME")
-                .long("ring-secret-name")
-                .short("r")
-                .help(
-                    "name of the Kubernetes Secret that contains the ring key, which \
-                    encrypts the communication between Habitat supervisors",
-                ),
-        )
-        .arg(
-            Arg::with_name("BIND")
-                .value_name("BIND")
-                .long("bind")
-                .short("b")
-                .multiple(true)
-                .number_of_values(1)
-                .help(
-                    "Bind to another service to form a producer/consumer relationship, \
-                    specified as name:service:group",
-                ),
-        )
-        .arg(
-            Arg::with_name("NO_DOCKER_IMAGE")
-                .long("no-docker-image")
-                .short("d")
-                .help(
-                    "Disable creation of the Docker image and only create a Kubernetes manifest",
-                ),
-        )
-        .arg(
-            Arg::with_name("PKG_IDENT_OR_ARTIFACT")
-                .value_name("PKG_IDENT_OR_ARTIFACT")
-                .required(true)
-                .help("Habitat package identifier (ex: acme/redis)"),
-        )
+    clap_app!((name) =>
+        (about: "Creates a Kubernetes manifest for a Habitat package. Habitat \
+                 operator must be deployed within the Kubernetes cluster to \
+                 intercept the created objects.")
+        (version: VERSION)
+        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
+        (@arg IMAGE: --("image") +takes_value
+            "Image of the Habitat service exported as a Docker image")
+        (@arg OUTPUT: -o --("output") +takes_value
+            "Name of manifest file to create. Pass '-' for stdout (default: -)")
+        (@arg COUNT: --("count") +takes_value {valid_natural_number}
+            "Count is the number of desired instances")
+        (@arg TOPOLOGY: -t --("service-topology") +takes_value
+            "A topology describes the intended relationship between peers \
+             within a service group. Specify either standalone or leader \
+             topology (default: standalone)")
+        (@arg GROUP: -g --("service-group") +takes_value
+            "group is a logical grouping of services with the same package and \
+             topology type connected together in a ring (default: default)")
+        (@arg CONFIG_SECRET_NAME: -n --("config-secret-name") +takes_value
+            "name of the Kubernetes Secret containing the config file - \
+             user.toml - that the user has previously created. Habitat will \
+             use it for initial configuration of the service")
+        (@arg RING_SECRET_NAME: -r --("ring-secret-name") +takes_value
+             "name of the Kubernetes Secret that contains the ring key, which \
+              encrypts the communication between Habitat supervisors")
+        (@arg PKG_IDENT: +required
+            "Habitat package identifier (ex: acme/redis)")
+    )
 }
 
 fn valid_natural_number(val: String) -> result::Result<(), String> {

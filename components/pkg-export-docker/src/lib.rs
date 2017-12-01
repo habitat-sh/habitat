@@ -15,15 +15,11 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-#[macro_use]
-extern crate clap;
 extern crate hab;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate handlebars;
-extern crate rusoto_core;
 extern crate rusoto_ecr;
-extern crate rusoto_credential as aws_creds;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -32,14 +28,8 @@ extern crate log;
 extern crate serde_json;
 extern crate tempdir;
 extern crate base64;
-extern crate url;
-
-extern crate failure;
-#[macro_use]
-extern crate failure_derive;
 
 mod build;
-pub mod cli;
 mod docker;
 mod error;
 mod fs;
@@ -47,12 +37,7 @@ pub mod rootfs;
 mod util;
 
 use common::ui::UI;
-use aws_creds::StaticProvider;
-use rusoto_core::Region;
-use rusoto_core::request::*;
-use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use cli::Cli;
 pub use build::BuildSpec;
 pub use docker::{DockerImage, DockerBuildRoot};
 pub use error::{Error, Result};
@@ -89,77 +74,13 @@ pub struct Naming<'a> {
     pub registry_type: &'a str,
 }
 
-impl<'a> Naming<'a> {
-    /// Creates a `Naming` from cli arguments.
-    pub fn new_from_cli_matches(m: &'a clap::ArgMatches) -> Self {
-        let registry_type = m.value_of("REGISTRY_TYPE").unwrap_or("docker");
-        let registry_url = m.value_of("REGISTRY_URL");
-
-        Naming {
-            custom_image_name: m.value_of("IMAGE_NAME"),
-            latest_tag: !m.is_present("NO_TAG_LATEST"),
-            version_tag: !m.is_present("NO_TAG_VERSION"),
-            version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
-            custom_tag: m.value_of("TAG_CUSTOM"),
-            registry_url: registry_url,
-            registry_type: registry_type,
-        }
-    }
-}
-
 /// A credentials username and password pair.
 ///
 /// This is a value struct which references username and password values.
 #[derive(Debug)]
-pub struct Credentials {
-    pub username: String,
-    pub password: String,
-}
-
-impl Credentials {
-    pub fn new(registry_type: &str, username: &str, password: &str) -> Result<Self> {
-        match registry_type {
-            "amazon" => {
-                // The username and password should be valid IAM credentials
-                let provider =
-                    StaticProvider::new_minimal(username.to_string(), password.to_string());
-                // TODO TED: Make the region configurable
-                let client = EcrClient::new(default_tls_client()?, provider, Region::UsWest2);
-                let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
-                let token = client
-                    .get_authorization_token(&auth_token_req)
-                    .map_err(|e| Error::TokenFetchFailed(e))
-                    .and_then(|resp| {
-                        resp.authorization_data
-                            .ok_or(Error::NoECRTokensReturned)
-                            .and_then(|auth_data| {
-                                auth_data[0].clone().authorization_token.ok_or(
-                                    Error::NoECRTokensReturned,
-                                )
-                            })
-                    })?;
-
-                let creds: Vec<String> = base64::decode(&token)
-                    .map_err(|e| Error::Base64DecodeError(e))
-                    .and_then(|decoded_token| {
-                        String::from_utf8(decoded_token)
-                            .map_err(|e| Error::InvalidToken(e))
-                            .and_then(|dts| Ok(dts.split(':').map(String::from).collect()))
-                    })?;
-
-                Ok(Credentials {
-                    username: creds[0].to_string(),
-                    password: creds[1].to_string(),
-                })
-            }
-            _ => {
-                Ok(Credentials {
-                    username: username.to_string(),
-                    password: password.to_string(),
-                })
-            }
-        }
-    }
+pub struct Credentials<'a> {
+    pub username: &'a str,
+    pub password: &'a str,
 }
 
 /// Exports a Docker image to a Docker engine from a build specification and naming policy.
