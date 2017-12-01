@@ -226,7 +226,6 @@ matrix:
             - wget
       cache:
         apt: true
-        cargo: true
         directories:
           - /root/travis_bootstrap
           - /hab/studios/home--travis--build--habitat-sh
