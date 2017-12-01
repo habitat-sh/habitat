@@ -1,23 +1,33 @@
 # Habitat CHANGELOG
 
-## [0.50.3](https://github.com/habitat-sh/habitat/tree/0.50.3) (12-02-2017)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.2...0.50.3)
+## [0.50.3](https://github.com/habitat-sh/habitat/tree/0.50.3) (12-01-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.3...0.50.3)
 
 **Merged pull requests:**
 
-- Update project integrations to cascade delete project integrations [\#4106](https://github.com/habitat-sh/habitat/pull/4106) ([elliott-davis](https://github.com/elliott-davis))
+- Revert "k8s exporter: Add docker image generation" [\#4191](https://github.com/habitat-sh/habitat/pull/4191) ([mwrock](https://github.com/mwrock))
+
+## [0.50.3](https://github.com/habitat-sh/habitat/tree/0.50.3) (12-01-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.2...0.50.3)
+
+## Bug fixes
+
+- Ability to delete an origin integration [\#4090](https://github.com/habitat-sh/habitat/issues/4090)
+- Update project integrations to cascade delete project integrations  [\#4106](https://github.com/habitat-sh/habitat/pull/4106) ([elliott-davis](https://github.com/elliott-davis))
+
+**Merged pull requests:**
+
+- Prep for 0.50.3 release [\#4182](https://github.com/habitat-sh/habitat/pull/4182) ([christophermaier](https://github.com/christophermaier))
+- bumpm dev versioni and revert travis hack [\#4178](https://github.com/habitat-sh/habitat/pull/4178) ([mwrock](https://github.com/mwrock))
+- add blog post on exporting windows containers [\#4159](https://github.com/habitat-sh/habitat/pull/4159) ([mwrock](https://github.com/mwrock))
 - k8s exporter: Add docker image generation [\#4041](https://github.com/habitat-sh/habitat/pull/4041) ([zeenix](https://github.com/zeenix))
-
-## Features & Enhancements
-
-- Update project integrations to cascade delete project integrations [\#4106](https://github.com/habitat-sh/habitat/pull/4106)
-- k8s exporter: Add docker image generation [\#4041](https://github.com/habitat-sh/habitat/pull/4041)
 
 ## [0.50.2](https://github.com/habitat-sh/habitat/tree/0.50.2) (12-01-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.1...0.50.2)
 
 **Merged pull requests:**
 
+- release 0.50.2 [\#4176](https://github.com/habitat-sh/habitat/pull/4176) ([mwrock](https://github.com/mwrock))
 - build the studio before backline [\#4175](https://github.com/habitat-sh/habitat/pull/4175) ([mwrock](https://github.com/mwrock))
 
 ## [0.50.1](https://github.com/habitat-sh/habitat/tree/0.50.1) (12-01-2017)
