@@ -70,7 +70,7 @@ $hab-green-dark: #78b57d;
 $hab-green-light: #7da28e;
 $hab-green-light-2: #87B09A;
 $hab-blue-green: #6F8E92;
-$hab-blue-medium: #dce6ed;
+$hab-blue-medium: #007FAB;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
 $hab-green-terminal: #82FF69;
 $hab-slate: #243442;
@@ -153,7 +153,7 @@ $block-grid-max: 8;
 // 4. Base Typography
 // ------------------
 
-$header-font-family: 'Montserrat Alternates', 'Verdana', 'Geneva', sans-serif;
+$header-font-family: 'Montserrat', 'Verdana', 'Geneva', sans-serif;
 $header-font-weight: $global-weight-normal;
 $header-font-style: normal;
 $font-family-monospace: 'Source Code Pro', Consolas, 'Liberation Mono', Courier, monospace;
@@ -191,7 +191,7 @@ $code-font-weight: $global-weight-bold;
 $code-background: lighten($hab-gray-light,6);
 $code-border: none;
 $code-padding: rem-calc(8 16);
-$anchor-color: $primary-color;
+$anchor-color: $hab-blue-medium;
 $anchor-color-hover: scale-color($anchor-color, $lightness: -14%);
 $anchor-text-decoration: none;
 $anchor-text-decoration-hover: none;

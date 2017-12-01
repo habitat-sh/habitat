@@ -3,7 +3,7 @@
 //
 //  Table of Contents:
 //
-//  1. Page Elements
+//  1. Global Page Elements
 //  2. Code Overrides
 //  3. Buttons
 //  4. Typography
@@ -13,8 +13,10 @@
 //  8. Anchor Links
 //  9. Global Message
 //  10. 404
-//  11. Social links
+//  11. Social Links
 //  12. Cards
+//  13. Helper Classes
+//  14. Misc HTML Elements
 
 $main-nav-breakpoint: 769px;
 
@@ -30,7 +32,7 @@ $main-nav-breakpoint: 769px;
   }
 }
 
-// 1. Global
+// 1. Global Page Elements
 // ---------
 body {
   background: $body-background;
@@ -81,6 +83,24 @@ body {
     margin-bottom: 0;
     margin-left: rem-calc(-30);
     padding: rem-calc(10) rem-calc(30);
+  }
+}
+
+.main-content {
+  .heading {
+    margin-bottom: rem-calc(56);
+    margin-top: rem-calc(72);
+    color: $white;
+    font-size: rem-calc(36);
+    text-align: center;
+
+    h2 {
+      margin-top: rem-calc(16);
+    }
+
+    @include small-nav {
+      font-size: rem-calc(20);
+    }
   }
 }
 
@@ -475,7 +495,7 @@ img {
   }
 }
 
-// 11. Cards
+// 12. Cards
 // -------------------
 
 %card-box {
@@ -543,4 +563,24 @@ img {
       border-bottom: 1px solid $hab-gray-light;
     }
   }
+}
+
+// 13. Helper Classes
+// -------------------
+
+.np-left {
+  padding-left: 0;
+}
+
+.np-right {
+  padding-right: 0;
+}
+
+// 14. Misc HTML Elements
+// -------------------
+
+hr {
+  border: 0;
+  height: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }

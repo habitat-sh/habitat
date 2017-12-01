@@ -34,7 +34,7 @@
   @include button;
   background-image: linear-gradient(to left, lighten($hab-orange, 13%), lighten($hab-orange-dark, 5%) 100%);
   color: $hab-navy;
-  font-weight: normal;  
+  font-weight: normal;
 }
 
 @mixin linear-gradient($pos, $g1, $g2: null,
@@ -74,4 +74,21 @@
   background-color: $fallback-color;
   background-image: -webkit-linear-gradient($pos-degree $full); // Safari 5.1+, Chrome
   background-image: unquote("linear-gradient(#{$pos-spec}#{$full})");
+}
+
+@mixin card {
+  position: relative;
+  margin-bottom: rem-calc(32);
+  background-color: #FFF;
+  border: 1px solid rgba($hab-gray, .25);
+  border-radius: $global-radius;
+  transition: all 100ms ease-in;
+  transform: scale(1);
+
+  &:hover {
+    @include shadow-float-hover;
+    transition: all 100ms ease-in;
+    transform: scale(1.02);
+    z-index: 9999;
+  }
 }

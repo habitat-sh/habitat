@@ -1,0 +1,118 @@
+$main-nav-breakpoint: 769px;
+
+@mixin large-nav {
+  @media (min-width: $main-nav-breakpoint) {
+    @content;
+  }
+}
+
+@mixin small-nav {
+  @media (max-width: $main-nav-breakpoint - 1px) {
+    @content;
+  }
+}
+
+.get-started {
+
+  #content-outer {
+    background: url(/images/polygons.svg) no-repeat bottom;
+    background-size: inherit;
+  }
+}
+
+.container__getstarted {
+  margin-bottom: 80px;
+
+  .get-started--container {
+    margin-bottom: 182px;
+    padding: rem-calc(40);
+    position: relative;
+    background-color: #FFF;
+    border-radius: $global-radius;
+
+    h2,
+    h3 {
+      font-family: $body-font-family;
+    }
+
+    h2 {
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-bottom: 1rem;
+    }
+
+    section {
+      margin-top: rem-calc(40);
+
+      .description {
+        margin-bottom: rem-calc(32);
+        max-width: rem-calc(760);
+        color: $hab-gray-dark;
+      }
+
+      &.get-started--icon-list {
+        .tech-icons {
+          margin-bottom: 0;
+        }
+
+        .tech-icons--item {
+          @include card;
+        }
+
+        .tech-icon {
+          padding: rem-calc(24);
+          height: auto;
+          width: auto;
+          border-radius: 0;
+          background-color: transparent;
+
+          span {
+            display: block;
+            text-align: center;
+            font-weight: bold;
+          }
+        }
+        img {
+          height: 60px;
+          width: 60px;
+        }
+      }
+
+      &.get-started--boxes {
+
+        h4 {
+          margin-bottom: rem-calc(12);
+        }
+
+        h6 {
+          color: $hab-gray;
+          text-transform: uppercase;
+        }
+
+        ul {
+          margin: 0 0 rem-calc(32);
+          padding: 0;
+        }
+
+        li {
+          margin-bottom: rem-calc(8);
+          list-style: none;
+        }
+
+        .card {
+          @include card;
+          padding: rem-calc(24);
+        }
+
+        .small-12 {
+          @include small-nav {
+            padding-left: 0;
+            padding-right: 0;
+          }
+        }
+      }
+    }
+  }
+}
