@@ -187,7 +187,6 @@ impl Dispatcher for SessionSrv {
         _: Arc<String>,
     ) -> SrvResult<<Self::State as AppState>::InitState> {
         let state = ServerState::new(cfg)?;
-        state.datastore.setup()?;
         Ok(state)
     }
 
@@ -209,6 +208,11 @@ pub fn decode_token(value: &str) -> SrvResult<proto::SessionToken> {
 
 pub fn run(config: Config) -> AppResult<(), SrvError> {
     app_start::<SessionSrv>(config)
+}
+
+pub fn migrate(config: Config) -> SrvResult<()> {
+    let ds = DataStore::new(&config.datastore, config.app.shards.unwrap())?;
+    ds.setup()
 }
 
 #[cfg(test)]

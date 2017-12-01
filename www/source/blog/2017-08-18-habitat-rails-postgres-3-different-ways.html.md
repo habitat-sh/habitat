@@ -137,7 +137,7 @@ $ hab studio enter
 Since we're running our rails application in a docker container, let's export our package as a docker image.
 
 ```console
-(studio) $ hab pkg export docker originname/widget_world
+(studio) $ hab pkg export docker ./results/<your-hart-package>.hart
 ```
 
 And we are going to be running the postgresql database in another container using the [core/postgresql](https://bldr.habitat.sh/#/pkgs/core/postgresql) package.  Let's export that package as a docker image as well (Habitat will automatically download it for us from public Builder).
@@ -200,7 +200,7 @@ railsapp_1  | widget_world.default(HK): Initialization failed! 'init' exited wit
 To fix this, we need to set up the database.  Currently, the ruby scaffolding does not automatically set up the database for you, this still needs to be done manually.
 
 ```console
-  $ docker-compose exec railsapp widget_world-rake db:setup
+  $ docker-compose exec railsapp hab pkg exec your-origin/widget_world widget_world-rake db:setup
 ```
 
 And now we have a running Rails app and database running in Docker containers!  Head on over to https://localhost:8000/widgets to check it out!
@@ -252,7 +252,7 @@ Now, head back into the Studio, build your package, export that newly built pack
 ```console
 $ hab studio enter
 (studio) $ build
-(studio) $ hab pkg export docker your_origin/widget_world
+(studio) $ hab pkg export docker ./results/<your-hart-package>.hart
 (studio) $ exit
 ```
 
@@ -271,7 +271,7 @@ $ docker ps
 Now, execute the database setup on that container with:
 
 ```console
-$ docker exec -it container_id widget_world-rake db:setup
+$ docker exec -it container_id hab pkg exec your-origin/widget_world widget_world-rake db:setup
 ```
 
 Once this runs, head back to your browser, navigate to localhost:8000/widgets and check out your app - even though the app is in a container, it's database is an RDS instance.
@@ -371,7 +371,7 @@ rails_env = 'production'
 [db]
 user = "admin"
 password = "admin"
-host: "leader_public_ip_address"
+host = "leader_public_ip_address"
 `
 ```
 
@@ -380,7 +380,7 @@ Now, enter back into Studio, build your package again, then export that new pack
 ```console
 $ hab studio enter
 (studio) $ build
-(studio) $ hab pkg export docker your_origin/widget_world
+(studio) $ hab pkg export docker ./results/<your-hart-package>.hart
 (studio) $ exit
 ```
 
@@ -399,7 +399,7 @@ $ docker ps
 Now, execute the database setup on that container with:
 
 ```console
-$ docker exec -it container_id widget_world-rake db:setup
+$ docker exec -it container_id hab pkg exec your-origin/widget_world widget_world-rake db:setup
 ```
 
 (This runs the setup and migrations on your postgresql cluster)

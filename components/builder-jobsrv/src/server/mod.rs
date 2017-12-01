@@ -119,14 +119,13 @@ impl Dispatcher for JobSrv {
         router_pipe: Arc<String>,
     ) -> Result<<Self::State as AppState>::InitState> {
         let datastore = DataStore::new(&config.datastore)?;
-        datastore.setup()?;
-
         let mut graph = TargetGraph::new();
         let packages = datastore.get_job_graph_packages()?;
         let start_time = PreciseTime::now();
         let res = graph.build(packages.into_iter());
         let end_time = PreciseTime::now();
         info!("Graph build stats ({} sec):", start_time.to(end_time));
+
         for stat in res {
             info!(
                 "Target {}: {} nodes, {} edges",
@@ -153,4 +152,9 @@ impl Dispatcher for JobSrv {
 
 pub fn run(config: Config) -> AppResult<(), Error> {
     app_start::<JobSrv>(config)
+}
+
+pub fn migrate(config: Config) -> Result<()> {
+    let ds = DataStore::new(&config.datastore)?;
+    ds.setup()
 }

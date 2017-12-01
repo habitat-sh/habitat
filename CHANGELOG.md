@@ -1,5 +1,19 @@
 # Habitat CHANGELOG
 
+## [0.50.2](https://github.com/habitat-sh/habitat/tree/0.50.2) (12-01-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.1...0.50.2)
+
+**Merged pull requests:**
+
+- build the studio before backline [\#4175](https://github.com/habitat-sh/habitat/pull/4175) ([mwrock](https://github.com/mwrock))
+
+## [0.50.1](https://github.com/habitat-sh/habitat/tree/0.50.1) (12-01-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.0...0.50.1)
+
+**Merged pull requests:**
+
+- updates rails db blog post with current commands [\#4171](https://github.com/habitat-sh/habitat/pull/4171) ([nellshamrell](https://github.com/nellshamrell))
+
 ## [0.50.0](https://github.com/habitat-sh/habitat/tree/0.50.0) (11-30-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.40.0...0.50.0)
 
@@ -17,6 +31,7 @@
 
 ## Bug fixes
 
+- \[STABILITY\] Stop doing migrations on server start [\#3780](https://github.com/habitat-sh/habitat/issues/3780)
 - Make it work in IE11 [\#3394](https://github.com/habitat-sh/habitat/issues/3394)
 
 **Closed issues:**
@@ -25,7 +40,12 @@
 
 **Merged pull requests:**
 
+- points to on call documentation in the wiki [\#4166](https://github.com/habitat-sh/habitat/pull/4166) ([nellshamrell](https://github.com/nellshamrell))
+- prepping 0.50.0 release [\#4165](https://github.com/habitat-sh/habitat/pull/4165) ([mwrock](https://github.com/mwrock))
+- Add blog post about runtime environment variables feature [\#4163](https://github.com/habitat-sh/habitat/pull/4163) ([christophermaier](https://github.com/christophermaier))
+- Don't run migrations at startup [\#4157](https://github.com/habitat-sh/habitat/pull/4157) ([raskchanky](https://github.com/raskchanky))
 - Add AWS ECR under 'Unlimited publishing'. [\#4156](https://github.com/habitat-sh/habitat/pull/4156) ([apriofrost](https://github.com/apriofrost))
+- Added Blog Post on Upcoming Discourse Migration [\#4154](https://github.com/habitat-sh/habitat/pull/4154) ([eeyun](https://github.com/eeyun))
 - plan.sh - Wrap license value in double quotes [\#4150](https://github.com/habitat-sh/habitat/pull/4150) ([nathenharvey](https://github.com/nathenharvey))
 - Update ssh config creation script [\#4142](https://github.com/habitat-sh/habitat/pull/4142) ([chefsalim](https://github.com/chefsalim))
 - update dev to version 0.50.0-dev [\#4138](https://github.com/habitat-sh/habitat/pull/4138) ([elliott-davis](https://github.com/elliott-davis))
