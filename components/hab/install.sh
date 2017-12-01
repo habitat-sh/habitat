@@ -85,7 +85,7 @@ FLAGS:
     -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
 
 ENVIRONMENT VARIABLES:
-    $SSL_CERT_FILE   allows you to verify against a custom cert such as one
+     SSL_CERT_FILE   allows you to verify against a custom cert such as one
                      generated from a corporate firewall
 
 USAGE
