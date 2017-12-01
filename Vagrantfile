@@ -10,6 +10,8 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "~/.hab/cache/keys", "/hab/cache/keys"
   config.vm.synced_folder "~/.hab/etc", "/hab/etc"
 
+  config.vm.network "private_network", ip: "192.168.198.7"
+
   config.vm.network "forwarded_port", guest: 9631, host: 9631 # Supervisor API
   config.vm.network "forwarded_port", guest: 9636, host: 9636 # Builder API
   config.vm.network "forwarded_port", guest: 3000, host: 3000 # Builder UI
