@@ -277,3 +277,12 @@ notifications:
     on_success: always
     on_failure: always
     on_start: always
+  slack:
+    template:
+      - "%{repository} (%{commit}) : %{message}"
+      - "Build details: %{build_url}"
+      - "Status: %{result}"
+    secure: "bRaFFuuxhV4bv53JzWRWXqe2vZNfQ3UvhNJnqwxp+hPG6wYxJ8hsvPQtUq7esetDhnlru5aje2tUMioBcZB33ByO/DF4Q52WEi3nwdOmVkcmbn+FJEpCX7y+vfwglzHC1UvtOm2qIaIKjSsWY5vK05Ee5QIZtZtO0Qa6jg9JF521erSYqNV40qJwsEfvsm16RHVuV6tJGmz20EDXt47c3D1aTkhDCtufJWHNOj0pG6nGw7UVlh/xpEm3SikW141s6PtZ8dsG57emYW902s1F1G+DJRGVC0TquatWCqc7PYnmuZMofR01LMfXvya0O6TcXqppHBBm2snnucQeeB+r/tyPJTFulXpUOvDHz/Elhj+Bu6hxOufyWBRQCOnr6ubclxiFYMK4At8qAQE51HjhT4aqfxqHaOZdy2STwi6HPVdQvd8wCVnWYz6DbBLx6c1FBX93uuj/n3nP3LX9+IOc5O/gpHC91m/Fids5QvKVVpKV71ZNMNouJANIw/qAa2bZ6b14RNusUo0zTB4CjzvNbItUNvG5hIhtQXHS3jobfZekYFW42e+jlCMVYpBzSCNi9dwsfXvMsRKoW7Cel5fnscYneCagHbGDC1azi+Uv+dWY13y2MaGFv8QForFt2yQRGHl82ht91sEqrBiF1F4fs9mTBcrLq3oFDrUKKaH87WI="
+    on_pull_requests: false
+    on_failure: always
+    on_success: change
