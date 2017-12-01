@@ -1,5 +1,18 @@
 # Habitat CHANGELOG
 
+## [0.50.3](https://github.com/habitat-sh/habitat/tree/0.50.3) (12-02-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.2...0.50.3)
+
+**Merged pull requests:**
+
+- Update project integrations to cascade delete project integrations [\#4106](https://github.com/habitat-sh/habitat/pull/4106) ([elliott-davis](https://github.com/elliott-davis))
+- k8s exporter: Add docker image generation [\#4041](https://github.com/habitat-sh/habitat/pull/4041) ([zeenix](https://github.com/zeenix))
+
+## Features & Enhancements
+
+- Update project integrations to cascade delete project integrations [\#4106](https://github.com/habitat-sh/habitat/pull/4106)
+- k8s exporter: Add docker image generation [\#4041](https://github.com/habitat-sh/habitat/pull/4041)
+
 ## [0.50.2](https://github.com/habitat-sh/habitat/tree/0.50.2) (12-01-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.1...0.50.2)
 
