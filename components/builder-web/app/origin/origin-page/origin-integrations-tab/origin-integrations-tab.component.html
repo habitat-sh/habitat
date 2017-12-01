@@ -3,7 +3,7 @@
     <section>
       <h3>
         <hab-icon symbol="docker"></hab-icon>
-          Container Registries
+        Container Registries
       </h3>
       <p>
         When connecting a plan file to the Habitat Build Service, you can optionally export the result of your package build jobs
@@ -40,7 +40,7 @@
           <li class="item" *ngFor="let integration of integrations[type]">
             <span class="column name">
               <hab-icon [symbol]="type"></hab-icon>
-              <span>{{ integration }}</span>
+              <span>{{ decode(integration) }}</span>
             </span>
             <span class="column actions">
               <hab-icon symbol="cancel" title="Delete this integration" (click)="deleteIntegration(integration, type)"></hab-icon>

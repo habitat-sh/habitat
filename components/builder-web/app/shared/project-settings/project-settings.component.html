@@ -108,8 +108,8 @@
         </div>
         <hab-visibility-selector [setting]="visibility" (changed)="settingChanged($event)">
         </hab-visibility-selector>
-        <hab-docker-export-settings #docker *ngIf="selectedInstallation" [integrations]="integrations" [current]="dockerSettings"
-          [enabled]="dockerEnabled">
+        <hab-docker-export-settings #docker *ngIf="selectedInstallation" [origin]="origin" [package]="name" [integrations]="integrations"
+          [current]="dockerSettings" [enabled]="dockerEnabled">
         </hab-docker-export-settings>
       </div>
       <div class="controls">
@@ -122,5 +122,5 @@
         <a (click)="clearConnection()">Cancel</a>
       </div>
     </form>
-  </div>  
+  </div>
 </div>

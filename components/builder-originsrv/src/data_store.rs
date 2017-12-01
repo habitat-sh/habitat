@@ -299,7 +299,7 @@ impl DataStore {
         let conn = self.pool.get(opic)?;
 
         let rows = conn.query(
-            "SELECT * FROM upsert_origin_project_integration_v2($1, $2, $3, $4)",
+            "SELECT * FROM upsert_origin_project_integration_v3($1, $2, $3, $4)",
             &[
                 &opic.get_integration().get_origin(),
                 &opic.get_integration().get_name(),
@@ -341,9 +341,6 @@ impl DataStore {
     ) -> originsrv::OriginProjectIntegration {
         let mut opi = originsrv::OriginProjectIntegration::new();
         opi.set_origin(row.get("origin"));
-        opi.set_name(row.get("name"));
-        opi.set_integration(row.get("integration"));
-        opi.set_integration_name(row.get("integration_name"));
         opi.set_body(row.get("body"));
         opi
     }

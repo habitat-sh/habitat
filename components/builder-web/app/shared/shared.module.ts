@@ -28,6 +28,7 @@ import { ChannelsComponent } from './channels/channels.component';
 import { CheckingInputComponent } from './checking-input/checking-input.component';
 import { CopyableComponent } from './copyable/copyable.component';
 import { DockerExportSettingsComponent } from './docker-export-settings/docker-export-settings.component';
+import { DockerExportSettingsDialog } from './docker-export-settings/dialog/docker-export-settings.dialog';
 import { DisconnectConfirmDialog } from './project-settings/dialog/disconnect-confirm/disconnect-confirm.dialog';
 import { IconComponent } from './icon/icon.component';
 import { PackageListComponent } from './package-list/package-list.component';
@@ -60,6 +61,7 @@ import { SignedInGuard } from './guards/signed-in.guard';
     CopyableComponent,
     DisconnectConfirmDialog,
     DockerExportSettingsComponent,
+    DockerExportSettingsDialog,
     IconComponent,
     PackageListComponent,
     ProjectSettingsComponent,
@@ -70,6 +72,7 @@ import { SignedInGuard } from './guards/signed-in.guard';
   ],
   entryComponents: [
     DisconnectConfirmDialog,
+    DockerExportSettingsDialog,
     SimpleConfirmDialog
   ],
   exports: [

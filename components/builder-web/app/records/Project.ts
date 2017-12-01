@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Record } from 'immutable';
+import { Map, Record } from 'immutable';
 
 export const Project = Record({
   id: undefined,
@@ -26,6 +26,6 @@ export const Project = Record({
   vcs_data: undefined,
   vcs_type: undefined,
   vcs_username: undefined,
-  settings: undefined,
+  settings: Map(),
   visibility: undefined
 });
