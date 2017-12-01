@@ -1,5 +1,12 @@
 # Habitat CHANGELOG
 
+## [0.50.2](https://github.com/habitat-sh/habitat/tree/0.50.2) (12-01-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.1...0.50.2)
+
+**Merged pull requests:**
+
+- build the studio before backline [\#4175](https://github.com/habitat-sh/habitat/pull/4175) ([mwrock](https://github.com/mwrock))
+
 ## [0.50.1](https://github.com/habitat-sh/habitat/tree/0.50.1) (12-01-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.0...0.50.1)
 
