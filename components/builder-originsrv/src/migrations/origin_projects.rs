@@ -446,5 +446,93 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE IF EXISTS origin_project_integrations
+            ADD COLUMN IF NOT EXISTS project_id bigint REFERENCES origin_projects(id) ON DELETE CASCADE NOT NULL,
+            ADD COLUMN IF NOT EXISTS integration_id bigint REFERENCES origin_integrations(id) ON DELETE CASCADE NOT NULL"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='origin_project_integrations' AND column_name='name') THEN
+                INSERT INTO origin_project_integrations (project_id, integration_id)
+                    SELECT op.id as project_id, oi.id as integrations_id
+                    FROM origin_project_integrations opi
+                    JOIN origin_projects op ON opi.name = op.package_name
+                    JOIN origin_integrations as oi on opi.integration = oi.name
+                    WHERE opi.project_id IS NULL
+                    AND opi.integration_id IS NULL;
+            END IF;
+        END $$"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE origin_project_integrations
+            DROP COLUMN IF EXISTS name,
+            DROP COLUMN IF EXISTS integration,
+            DROP COLUMN IF EXISTS integration_name,
+            ALTER COLUMN body SET NOT NULL,
+            ALTER COLUMN created_at SET NOT NULL,
+            ALTER COLUMN updated_at SET NOT NULL,
+            ALTER COLUMN origin SET NOT NULL,
+            ADD UNIQUE (project_id, integration_id);"#,
+    )?;
+    migrator.migrate(
+    "originsrv",
+    r#"CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v2 (
+                                    in_origin text,
+                                    in_name text,
+                                    in_integration text,
+                                    in_body text
+                            ) RETURNS SETOF origin_project_integrations AS $$
+                                BEGIN
+                                    RETURN QUERY INSERT INTO origin_project_integrations(
+                                        origin,
+                                        body,
+                                        updated_at,
+                                        project_id,
+                                        integration_id)
+                                        VALUES (
+                                            in_origin,
+                                            in_body,
+                                            NOW(),
+                                            (SELECT id FROM origin_projects WHERE package_name = in_name AND origin_name = in_origin),
+                                            (SELECT id FROM origin_integrations WHERE origin = in_origin AND name = in_integration)
+                                        )
+                                        ON CONFLICT(project_id, integration_id)
+                                        DO UPDATE SET body=in_body RETURNING *;
+                                    RETURN;
+                                END
+                            $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_integrations_v2 (
+                                     in_origin text,
+                                     in_name text,
+                                     in_integration text
+                              ) RETURNS SETOF origin_project_integrations AS $$
+                                     SELECT opi.* FROM origin_project_integrations opi
+                                     JOIN origin_integrations oi ON oi.id = opi.integration_id
+                                     JOIN origin_projects op ON op.id = opi.project_id
+                                     WHERE opi.origin = in_origin
+                                     AND op.package_name = in_name
+                                     AND oi.name = in_integration
+                                 $$ LANGUAGE SQL STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_integrations_for_project_v2 (
+                        in_origin text,
+                        in_name text
+                 ) RETURNS SETOF origin_project_integrations AS $$
+                        SELECT opi.* FROM origin_project_integrations opi
+                        JOIN origin_projects op ON op.id = opi.project_id
+                        WHERE origin = in_origin
+                        AND package_name = in_name
+                    $$ LANGUAGE SQL STABLE"#,
+    )?;
     Ok(())
 }
