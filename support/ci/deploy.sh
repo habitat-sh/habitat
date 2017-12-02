@@ -12,7 +12,7 @@ fi
 BOOTSTRAP_DIR=/root/travis_bootstrap
 TEST_BIN_DIR=/root/hab_bins
 TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
-HAB_DOWNLOAD_URL="https://s3-us-west-2.amazonaws.com/habitat-builder-bootstrap/hab"
+HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
 export HAB_ORIGIN=core
 
 BINTRAY_REPO=unstable
@@ -24,10 +24,9 @@ fi
 
 mkdir -p ${BOOTSTRAP_DIR}
 # download a hab binary to build hab from source in a studio
-wget -O ${BOOTSTRAP_DIR}/hab "${HAB_DOWNLOAD_URL}"
-chmod +x ${BOOTSTRAP_DIR}/hab
+wget -O hab.tar.gz "${HAB_DOWNLOAD_URL}"
 # install it in a custom location
-# tar xvzf ./hab.tar.gz --strip 1 -C ${BOOTSTRAP_DIR}
+tar xvzf ./hab.tar.gz --strip 1 -C ${BOOTSTRAP_DIR}
 
 # so key stuff doesn't get funky
 unset SUDO_USER
