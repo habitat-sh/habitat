@@ -2,7 +2,7 @@ The goal for of this tutorial is for you to create a portable, immutable, crypto
 
 A plan is a directory comprised
 of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the
-software in the Habitat package. Creating a plan starts with identifying and referencing the application code for your package. 
+software in the Habitat package. Creating a plan starts with identifying and referencing the application code for your package.
 
 Habitat provides several different ways to refer and include application code in your package: by downloading a tarball of the source and compiling it when building the package, by referring to a local source directory, or by using a pre-built binary and bundling it up in your package.
 
@@ -28,18 +28,18 @@ Open a new PowerShell window on your workstation and perform the following steps
 1. Change the default Git for Windows CRLF line endings setting to be LF line endings.
 
     ```powershell
-    PS > git config --global core.eol lf
-    PS > git config --global core.autocrlf input
+    $ git config --global core.eol lf
+    $ git config --global core.autocrlf input
     ```
 <% end %>
 
-1. Fork the <%= link_to ' sample application repo', 'https://github.com/habitat-sh/sample-rails-app', target: '_blank' %>  in the GitHub UI by navigating to the top-right corner of the page and clicking the `Fork` button. Select the org destination to fork the repo into. 
+1. Fork the <%= link_to ' sample application repo', 'https://github.com/habitat-sh/sample-rails-app', target: '_blank' %>  in the GitHub UI by navigating to the top-right corner of the page and clicking the `Fork` button. Select the org destination to fork the repo into.
 
 1. Clone your forked `sample-rails-app` repo onto your local machine. In this example, a directory called `sample-rails-app` will be created
 in the `$HOME` directory.
 
 <% if !is_windows %>
-    ```console
+    ```shell
     $ cd ~
     $ git clone https://github.com/yourorg/sample-rails-app
     ```
@@ -47,15 +47,15 @@ in the `$HOME` directory.
 
 <% if is_windows %>
     ```powershell
-    PS > cd ~
-    PS > git clone https://github.com/yourorg/sample-rails-app
+    $ cd ~
+    $ git clone https://github.com/yourorg/sample-rails-app
     ```
 <% end%>
 
 1. After you have successfully cloned the repo, change directory to the `sample-rails-app` directory.
 
 <% if !is_windows %>
-    ```console
+    ```shell
     $ cd ~/sample-rails-app
     ```
 <% end %>
@@ -69,25 +69,25 @@ in the `$HOME` directory.
 ## Start with the Basics
 
 At a bare minimum, a plan must have a `plan.sh` at the root of the directory. This file specifies where the source code or binary is, how
-it should be built, and how the [Supervisor](/docs/glossary#glossary-supervisor) should start the application or service it at runtime. 
+it should be built, and how the [Supervisor](/docs/glossary#glossary-supervisor) should start the application or service it at runtime.
 
 To create your plan, do the following in your terminal window:
 
 1. From within the `sample-rails-app` directory, run `hab plan init -s ruby`. Because the sample-rails-app web application is a Rails application, specifying `-s ruby` will create a plan that references the Ruby scaffolding.
 
 <% if !is_windows %>
-    ```console
+    ```shell
     $ hab plan init -s ruby
     ```
 <% end %>
 
 <% if is_windows %>
-    ~~~powershell
-    PS > hab plan init -s ruby
-    ~~~
+    ```powershell
+    $ hab plan init -s ruby
+    ```
 <% end%>
 
-    A scaffolding is a meta-package for applications and services that provide a default configuration and behavior experience to get application developers up and running quickly with Habitat.  
+    A scaffolding is a meta-package for applications and services that provide a default configuration and behavior experience to get application developers up and running quickly with Habitat.
 
     And if you set up PostgreSQL as your database (as we did in the sample-rails-app sample code), the Ruby scaffolding will create configuration and credential information to connect to that database. For more information on scaffoldings, see the scaffolding [concepts topic](/docs/glossary#glossary-scaffolding).
 
@@ -95,7 +95,7 @@ To create your plan, do the following in your terminal window:
 
     Your `plan.sh` should now look like this:
 
-    ```bash
+    ```bash ~/sample-rails-app/habitat/plan.sh
     pkg_name=sample-rails-app
     pkg_origin=<originname>
     pkg_version="0.1.0"
@@ -105,7 +105,7 @@ To create your plan, do the following in your terminal window:
 
 3. As part of the `health_check` hook that you will create in the next step, you also need to add a runtime dependency on `core/curl`.
 
-    ```bash
+    ```bash ~/sample-rails-app/habitat/plan.sh
     pkg_deps=( core/curl )
     ```
 For more information on other plan settings, see [Basic Settings](/docs/reference#plan-settings).
@@ -114,10 +114,12 @@ For more information on other plan settings, see [Basic Settings](/docs/referenc
 
 Your finished plan should look like the following:
 
-    pkg_name=sample-rails-app
-    pkg_origin=<originname>
-    pkg_version="0.1.0"
-    pkg_scaffolding="core/scaffolding-ruby"
-    pkg_deps=( core/curl )
+```bash ~/sample-rails-app/habitat/plan.sh
+pkg_name=sample-rails-app
+pkg_origin=<originname>
+pkg_version="0.1.0"
+pkg_scaffolding="core/scaffolding-ruby"
+pkg_deps=( core/curl )
+```
 
 Now it is time to add custom health monitoring to your plan.

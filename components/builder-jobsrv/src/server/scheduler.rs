@@ -490,14 +490,16 @@ impl ScheduleMgr {
 
                     match job.get_state() {
                         jobsrv::JobState::Complete |
-                        jobsrv::JobState::Failed => self.update_group_state(job.get_owner_id())?,
+                        jobsrv::JobState::Failed |
+                        jobsrv::JobState::CancelComplete => {
+                            self.update_group_state(job.get_owner_id())?
+                        }
 
                         jobsrv::JobState::Pending |
                         jobsrv::JobState::Processing |
                         jobsrv::JobState::Dispatched |
                         jobsrv::JobState::CancelPending |
                         jobsrv::JobState::CancelProcessing |
-                        jobsrv::JobState::CancelComplete |
                         jobsrv::JobState::Rejected => (),
                     }
 

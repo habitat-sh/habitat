@@ -11,9 +11,7 @@ We have just released a new version of the Node scaffolding that supports script
 
 It is common for Node applications to include scripts in their package.json files like so:
 
-**package.json**
-
-```
+```json package.json
 "scripts": {
 	"start": "react-scripts start",
 	"build": "react-scripts build",
@@ -32,22 +30,20 @@ Let's Habitize this application and deploy it in a Docker container!
 
 First, clone the Github repo:
 
-```console
+```shell
 $ git clone git@github.com:alik0211/pokedex.git
 $ cd pokedex
 ```
 
 Now install the dependencies:
 
-```console
+```shell pokedex
 $ npm install
 ```
 
 Check out the package.json - notice the scripts section? We will be able to run these to start, build, etc. the application through the Node Scaffolding.
 
-**package.json***
-
-```
+```json package.json
 {
 	"name": "pokedex",
 		"version": "1.1.5",
@@ -75,24 +71,24 @@ Check out the package.json - notice the scripts section? We will be able to run 
 
 Let's Habitize this app:
 
-```
+```shell
 $ hab plan init -s node
 $ hab studio enter
-(studio) $ build
+[1][default:/src:0]# build
 ```
 
 Currently, this only builds your application as a HART package - scripts within the package.json file will run when installing this package to wherever you want to run it.
 
 Once the build completes, export your new HART package as a Docker image:
 
-```console
-(studio) $ hab pkg export docker ./results/your_new_hart_file.hart
-(studio) $ exit
+```studio
+[1][default:/src:0]# $ hab pkg export docker ./results/your_new_hart_file.hart
+[1][default:/src:0]# $ exit
 ```
 
 Now, start up a new container with your container image
 
-```console
+```shell
 $ docker run -it -p 8000:8000 your_origin/pokedex
 ```
 

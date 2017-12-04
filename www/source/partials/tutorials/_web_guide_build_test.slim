@@ -6,7 +6,7 @@ section
  p This topic covers the following areas:
 
  ul
-  li #{link_to 'Building your package','#build-your-package'} 
+  li #{link_to 'Building your package','#build-your-package'}
   li #{link_to 'Testing your package locally','#test-locally'}
   li #{link_to 'Exporting and Running your Docker container','#export-container'}
   li #{link_to 'Building with Builder','#build-builder'}
@@ -16,17 +16,17 @@ section
 
  p From the root of your local project, run the following:
 
- pre
-  code $ hab studio enter
+ = code(:shell) do
+   | $ hab studio enter
 
- p If you are building a Linux-based Habitat package on a Windows or Mac workstation, you will enter a Docker container because the Habitat Studio is a Linux-based Habitat package. 
+ p If you are building a Linux-based Habitat package on a Windows or Mac workstation, you will enter a Docker container because the Habitat Studio is a Linux-based Habitat package.
 
- p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project. 
- 
- p Run <code>build</code> to build your package. 
+ p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project.
 
- pre
-  code # build
+ p Run <code>build</code> to build your package.
+
+ = code(:studio) do
+   | $ build
 
  blockquote
   p <b>Note</b> If you build your web application in a CI/CD workflow, you can use the non-interactive build option to build your package. To do this, change directory to the root of your project and run <code>hab pkg build</code>. A Studio will be created, your package will be built, and then Studio will exit without requiring user input.
@@ -35,40 +35,37 @@ section
 
  p If you are building your package on either a Windows or macOS workstation, set the <code>HAB_DOCKER_OPTS</code> environment variable before entering the Studio to set the Docker <code>exposes</code> value when the Studio environment initializes. This allows you to browse any local web site from your host browser while remaining inside the Studio. If you are running the Studio natively on a Linux workstation, you can omit this step.
 
- pre
-  code
-   |
-    $ export HAB_DOCKER_OPTS="-p 8080:80"   # Maps localhost:8080 to port 80 in the Studio
+ = code(:shell) do
+   | $ export HAB_DOCKER_OPTS="-p 8080:80"   # Maps localhost:8080 to port 80 in the Studio
 
  p Whenever you enter the Habitat Studio, a Supervisor begins running in the background. When you are ready to test your application, run <code>hab svc load origin/package</code>. If you need to run multiple services together, run the following. The loaded packages will start after they are loaded.
 
- pre
-  code
+ = code(:studio) do
    |
-    hab svc load origin/package
-    hab svc load origin/anotherpackage
+    $ hab svc load origin/package
+    $ hab svc load origin/anotherpackage
     ...
- 
+
  p You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
  = partial '/partials/global/iterative_development'
 
- p For large web applications with multiple runtime dependencies, using the existing build could save you a large amount of time. 
+ p For large web applications with multiple runtime dependencies, using the existing build could save you a large amount of time.
 
- h2 <a name="export-container">Exporting and Running your Docker container</a> 
+ h2 <a name="export-container">Exporting and Running your Docker container</a>
 
  p After you have built your package and are ready to test it outside of the Studio, export it to a Docker container.
 
- pre
-  code # hab pkg export docker ./results/&lt;hart-filename>.hart && exit
+ = code(:studio) do
+   | $ hab pkg export docker ./results/<hart-filename>.hart && exit
 
  blockquote
   p <b>Note</b> The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
- p The following example shows how to start the Docker container running your Habitat package.  
+ p The following example shows how to start the Docker container running your Habitat package.
 
- pre
-  code $ docker run -it origin/package
+ = code(:shell) do
+   | $ docker run -it origin/package
 
  - if "#{current_page.data.platform_short}" == "ruby"
    p If you packaged up a Rails app, then the default behavior is use a production Rails environment. This means you will not be able to start up your rails package without supplying a <code>SECRET_KEY_BASE</code> value because the default <code>init</code> hook generated by the Ruby scaffolding puts in a conditional check to make sure you have that entered before completing the initialization process.
@@ -79,22 +76,20 @@ section
     li You can use an environment variable that is passed in when starting the web application container.
     li You can update your default.toml (either through a configuration update, or when the service starts up).
 
-   p Either choice involves you creating an alphanumeric value. If you are using Rails, you can generate this by running the following command from within the local repo directory of your rails app project. 
+   p Either choice involves you creating an alphanumeric value. If you are using Rails, you can generate this by running the following command from within the local repo directory of your rails app project.
 
-   pre 
-    code $ rails secret
+   = code(:shell) do
+     | $ rails secret
 
-   p To pass in an environment variable, make sure the value to pass in is quoted correctly. 
+   p To pass in an environment variable, make sure the value to pass in is quoted correctly.
 
-   pre
-    code $ echo -n 'secret_key_base="$(rails secret)"' | hab apply --peer RAILS_IP_ADDRESS yourapp.default $(date +%s)
+   = code(:shell) do
+     | $ echo -n 'secret_key_base="$(rails secret)"' | hab apply --peer RAILS_IP_ADDRESS yourapp.default $(date +%s)
 
    p To pass in <code>secret_key_base</code> in TOML, you can do that by either running <code>hab apply</code> or defining the value in the <code>default.toml</code> in your web application's Habitat plan. To do the latter, add this to your <code>default.toml</code>:
 
-   pre
-    code
-     |
-      secret_key_base = "some_secret_key_value"
+   = code(:toml) do
+     | secret_key_base = "some_secret_key_value"
 
  p For more information on using the Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
 
@@ -112,43 +107,35 @@ section
 
  h3 Debugging at runtime
 
- p Debugging at runtime involves using a few different techniques to understand how your running service is behaving, how it interacts with peers in different topologies, how it handles configuration updates, and so on. 
+ p Debugging at runtime involves using a few different techniques to understand how your running service is behaving, how it interacts with peers in different topologies, how it handles configuration updates, and so on.
 
  p For verifying that files were copied into the appropriate paths for your service and paths resolve correctly in runtime hooks, log into the VM or connect to the Docker container that is running the service and examine the files and directories at <code>/hab/svc/package/</code>. Because the Bourne shell is included in the Docker image for every package, you can access the file structure by running the following command.
 
- pre
-  code $ docker exec -it CONTAINERID sh
+ = code(:shell) do
+   | $ docker exec -it CONTAINERID sh
 
  p To observe HTTP endpoint data (such as census or butterfly information), start up your service, then connect to the HTTP endpoint using a tool such as curl. You can pipe the JSON output to packages such as <code>core/jq-static</code> to provide a filtered and readable view on the output.
 
- p First, install the <code>jq</code> and <code>curl</code> binaries through their respective packages. 
+ p First, install the <code>jq</code> and <code>curl</code> binaries through their respective packages.
 
- pre
-  code
-   | 
-    $ hab pkg install -b core/{curl,jq-static}
+ = code(:shell) do
+   | $ hab pkg install -b core/{curl,jq-static}
 
  p Next run the following to retrieve all of the live members of the "production" group:
 
- pre
-  code
-   |
-    $ curl localhost:9631/census | jq '.census_groups."yourapp.production".population | map(select(.alive == true))'
+ = code(:shell) do
+   | $ curl localhost:9631/census | jq '.census_groups."yourapp.production".population | map(select(.alive == true))'
 
  p Finally, if you use Docker Compose to start up up your Docker containers, you can use it to scale out Habitat services for debugging and testing leader-follower topology deployments, such as for a PostgreSQL cluster.
 
- pre
-  code
-   | 
-    $ docker-compose up --scale db=3 
+ = code(:shell) do
+   | $ docker-compose up --scale db=3
 
  p Piping output from one of the HTTP endpoints in the "cluster" group will provide you with leader election data.
 
- pre
-  code
-   |
-    $ curl http://172.18.0.4:9631/census | jq '.census_groups."postgresql.cluster".leader_id'
- 
+ = code(:shell) do
+   | $ curl http://172.18.0.4:9631/census | jq '.census_groups."postgresql.cluster".leader_id'
+
  p For information on what endpoint information you can query, see #{link_to 'Monitoring services','https://www.habitat.sh/docs/run-packages-monitoring/'}.
 
 - if "#{current_page.data.platform_short}" == "ruby"

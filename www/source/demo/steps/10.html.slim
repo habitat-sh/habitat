@@ -41,8 +41,10 @@ classes: demo_step
           p
             ' Habitat Builder will detect the change and start a new build automatically. You can view the resulting output in the Habitat Builder web app.
             ' Once the build job completes, re-run the docker commands to verify the updated container:
-          p.code $ docker pull your-docker-org/your-docker-repo
-          p.code $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
+          = code(:shell) do
+            | $ docker pull your-docker-org/your-docker-repo
+          = code(:shell) do
+            | $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
         .columns.large-6
           p
             ' With the container runnning, visit

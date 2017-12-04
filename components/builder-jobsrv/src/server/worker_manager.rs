@@ -19,7 +19,6 @@ use std::thread::{self, JoinHandle};
 
 use bldr_core;
 use bldr_core::job::Job;
-use hab_net::{ErrCode, NetError};
 use hab_net::conn::RouteClient;
 use hab_net::socket::DEFAULT_CONTEXT;
 use linked_hash_map::LinkedHashMap;
@@ -70,7 +69,6 @@ pub struct Worker {
     pub expiry: Instant,
     pub job_id: Option<u64>,
     pub job_expiry: Option<Instant>,
-    pub quarantined: bool,
 }
 
 impl Worker {
@@ -81,7 +79,6 @@ impl Worker {
             expiry: Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS),
             job_id: None,
             job_expiry: None,
-            quarantined: false,
         }
     }
 
@@ -90,7 +87,6 @@ impl Worker {
         self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
         self.job_id = None;
         self.job_expiry = None;
-        self.quarantined = false;
     }
 
     pub fn busy(&mut self, job_id: u64, job_timeout: u64) {
@@ -106,21 +102,10 @@ impl Worker {
         } else {
             assert!(self.job_id.unwrap() == job_id);
         }
-
-        self.quarantined = false;
     }
 
     pub fn refresh(&mut self) {
         self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
-    }
-
-    pub fn quarantine(&mut self) {
-        self.expiry = Instant::now() + Duration::from_millis(WORKER_TIMEOUT_MS);
-        self.quarantined = true;
-    }
-
-    pub fn is_quarantined(&self) -> bool {
-        self.quarantined
     }
 
     pub fn is_expired(&self) -> bool {
@@ -208,6 +193,9 @@ impl WorkerMgr {
         // Load busy worker state
         self.load_workers()?;
 
+        // Re-queue any Dispatched jobs that don't have a busy worker
+        self.requeue_jobs()?;
+
         info!("builder-jobsrv is ready to go.");
 
         loop {
@@ -281,10 +269,6 @@ impl WorkerMgr {
         for worker in workers {
             let mut bw = Worker::new(worker.get_ident());
             bw.busy(worker.get_job_id(), self.job_timeout);
-            if worker.get_quarantined() {
-                bw.quarantine();
-            }
-
             self.workers.insert(worker.get_ident().to_owned(), bw);
         }
 
@@ -295,7 +279,6 @@ impl WorkerMgr {
         let mut bw = jobsrv::BusyWorker::new();
         bw.set_ident(worker.ident.clone());
         bw.set_job_id(worker.job_id.unwrap()); // unwrap Ok
-        bw.set_quarantined(worker.quarantined);
 
         self.datastore.upsert_busy_worker(&bw)
     }
@@ -306,6 +289,24 @@ impl WorkerMgr {
         bw.set_job_id(worker.job_id.unwrap()); // unwrap Ok
 
         self.datastore.delete_busy_worker(&bw)
+    }
+
+    fn requeue_jobs(&mut self) -> Result<()> {
+        let jobs = self.datastore.get_dispatched_jobs()?;
+
+        for mut job in jobs {
+            if self.workers
+                .iter()
+                .find(|t| t.1.job_id == Some(job.get_id()))
+                .is_none()
+            {
+                warn!("Requeing job: {}", job.get_id());
+                job.set_state(jobsrv::JobState::Pending);
+                self.datastore.update_job(&job)?;
+            };
+        }
+
+        Ok(())
     }
 
     fn process_cancelations(&mut self) -> Result<()> {
@@ -333,7 +334,7 @@ impl WorkerMgr {
                 }
             };
 
-            match self.cancel_job(&job, &worker_ident) {
+            match self.worker_cancel_job(&job, &worker_ident) {
                 Ok(()) => {
                     job.set_state(jobsrv::JobState::CancelProcessing);
                     self.datastore.update_job(&job)?;
@@ -353,7 +354,7 @@ impl WorkerMgr {
         Ok(())
     }
 
-    fn cancel_job(&mut self, job: &Job, worker_ident: &str) -> Result<()> {
+    fn worker_cancel_job(&mut self, job: &Job, worker_ident: &str) -> Result<()> {
         debug!("Canceling job on worker {:?}: {:?}", worker_ident, job);
 
         let mut wc = jobsrv::WorkerCommand::new();
@@ -381,19 +382,17 @@ impl WorkerMgr {
             };
 
             // Take one job from the pending list
-            let mut jobs = self.datastore.pending_jobs(1)?;
-            // 0 means there are no pending jobs, so we can exit
-            if jobs.len() == 0 {
+            let job_opt = self.datastore.next_pending_job(&worker_ident)?;
+            if job_opt.is_none() {
                 break;
             }
 
-            // This unwrap is fine, because we just checked our length
-            let mut job = Job::new(jobs.pop().unwrap());
+            let mut job = Job::new(job_opt.unwrap()); // unwrap Ok
 
             self.add_integrations_to_job(&mut job);
             self.add_project_integrations_to_job(&mut job);
 
-            match self.dispatch_job(&job, &worker_ident) {
+            match self.worker_start_job(&job, &worker_ident) {
                 Ok(()) => {
                     let mut worker = self.workers.remove(&worker_ident).unwrap(); // unwrap Ok
                     worker.busy(job.get_id(), self.job_timeout);
@@ -415,7 +414,7 @@ impl WorkerMgr {
         Ok(())
     }
 
-    fn dispatch_job(&mut self, job: &Job, worker_ident: &str) -> Result<()> {
+    fn worker_start_job(&mut self, job: &Job, worker_ident: &str) -> Result<()> {
         debug!("Dispatching job to worker {:?}: {:?}", worker_ident, job);
 
         let mut wc = jobsrv::WorkerCommand::new();
@@ -516,10 +515,24 @@ impl WorkerMgr {
 
         match self.datastore.get_job(&req)? {
             Some(mut job) => {
-                if job.get_state() == jobsrv::JobState::Dispatched {
-                    debug!("Requeing job {:?}", job_id);
-                    job.set_state(jobsrv::JobState::Pending);
-                    self.datastore.update_job(&job)?;
+                match job.get_state() {
+                    jobsrv::JobState::Processing |
+                    jobsrv::JobState::Dispatched => {
+                        debug!("Requeing job {:?}", job_id);
+                        job.set_state(jobsrv::JobState::Pending);
+                        self.datastore.update_job(&job)?;
+                    }
+                    jobsrv::JobState::CancelPending |
+                    jobsrv::JobState::CancelProcessing => {
+                        debug!("Marking orhpaned job as canceled: {:?}", job_id);
+                        job.set_state(jobsrv::JobState::CancelComplete);
+                        self.datastore.update_job(&job)?;
+                    }
+                    jobsrv::JobState::Pending |
+                    jobsrv::JobState::Complete |
+                    jobsrv::JobState::Failed |
+                    jobsrv::JobState::CancelComplete |
+                    jobsrv::JobState::Rejected => (),
                 }
             }
             None => {
@@ -533,25 +546,32 @@ impl WorkerMgr {
         Ok(())
     }
 
-    fn fail_job(&mut self, job_id: u64) -> Result<()> {
+    fn cancel_job(&mut self, job_id: u64, worker_ident: &str) -> Result<()> {
         let mut req = jobsrv::JobGet::new();
         req.set_id(job_id);
 
         match self.datastore.get_job(&req)? {
-            Some(mut job) => {
-                job.set_state(jobsrv::JobState::Failed);
-                let err = NetError::new(ErrCode::TIMEOUT, "js:wrk-fail:1");
-                job.set_error(err.take_err());
-                debug!(
-                    "Job {:?} timed out after {} minutes",
-                    job_id,
-                    self.job_timeout
-                );
-                self.datastore.update_job(&job)?;
+            Some(job) => {
+                let mut job = Job::new(job);
+                match self.worker_cancel_job(&job, &worker_ident) {
+                    Ok(()) => {
+                        job.set_state(jobsrv::JobState::CancelProcessing);
+                        self.datastore.update_job(&job)?;
+                    }
+                    Err(err) => {
+                        warn!(
+                            "Failed to cancel job on worker {}, err={:?}",
+                            worker_ident,
+                            err
+                        );
+                        job.set_state(jobsrv::JobState::CancelComplete);
+                        self.datastore.update_job(&job)?;
+                    }
+                }
             }
             None => {
                 warn!(
-                    "Unable to fail job {:?} (not found)",
+                    "Unable to cancel job {:?} (not found)",
                     job_id,
                 );
             }
@@ -622,19 +642,12 @@ impl WorkerMgr {
                 return Ok(()); // Something went wrong, don't process this HB
             }
             (jobsrv::WorkerState::Busy, jobsrv::WorkerState::Busy) => {
-                // Check to see if job has expired and quarantine this worker if so.
-                // It's probably hung in a build or in some other semi-bad state
-                // TODO (SA): Send cancel message to the worker to attempt to
-                // properly cancel the job and do a better recovery
                 let job_id = worker.job_id.unwrap(); // unwrap Ok
                 if worker.is_job_expired() {
-                    if !worker.is_quarantined() {
-                        self.fail_job(job_id)?;
-                    };
-                    worker.quarantine();
-                } else {
-                    worker.refresh();
-                }
+                    debug!("Canceling job due to timeout: {}", job_id);
+                    self.cancel_job(job_id, &worker_ident)?;
+                };
+                worker.refresh();
             }
             (jobsrv::WorkerState::Busy, jobsrv::WorkerState::Ready) => {
                 if !self.is_job_complete(worker.job_id.unwrap())? {

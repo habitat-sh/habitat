@@ -7,244 +7,246 @@ The following settings are defined at the beginning of your plan. They specify b
 ### pkg_name
 **Required**. Sets the name of the package. This will be used along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on. A `pkg_name` can contain upper and lowercase letters, numbers, dashes, and underscores.
 
-  ~~~
-  pkg_name=zlib
-  ~~~
+```bash
+pkg_name=zlib
+```
 
 ### pkg_origin
 **Required** unless overridden by the `HAB_ORIGIN` environment variable. The origin is used to denote a particular upstream of a package. A `pkg_origin` can contain upper and lowercase letters, numbers, dashes, and underscores.
 
 
-  ~~~
-  pkg_origin=Habitat
-  ~~~
+```bash
+pkg_origin=Habitat
+```
 
 ### pkg_version
 **Optional** (Required unless `pkg_version()` function is defined). Sets the version of the package.
 
-  ~~~
-  pkg_version=1.2.8
-  ~~~
+```bash
+pkg_version=1.2.8
+```
 
 ### pkg_maintainer
 **Optional**. The name and email address of the package maintainer.
 
-  ~~~
-  pkg_maintainer="Your Name <someone@example.com>"
-  ~~~
+```bash
+pkg_maintainer="Your Name <someone@example.com>"
+```
 
 ### pkg_license
 **Optional**. An array of [valid software licenses](https://spdx.org/licenses/) that relate to this package.
 
-  ~~~
-  pkg_license=('Apache-2.0')
-  ~~~
+```bash
+pkg_license=('Apache-2.0')
+```
 
 > Note: If your package has a custom license, use a string literal matching the title of the license. For example, you'll see `pkg_license=('Boost Software License')` for the `cmake` plan.
 
 ### pkg_source
 **Optional**. A URL that specifies where to download an external source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the `pkg_name` and `pkg_version` values; however, this convention is not required.
 
-  ~~~
-  pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
-  ~~~
+```bash
+pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
+```
 
 ### pkg_filename
 **Optional**. The resulting filename for the download, typically constructed from the `pkg_name` and `pkg_version` values.
 
-  ~~~
-  pkg_filename=${pkg_name}-${pkg_version}.tar.gz
-  ~~~
+```bash
+pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+```
 
 ### pkg_shasum
 **Required** if a valid URL is provided for `pkg_source` or unless **do_verify()** is overridden. The value for `pkg_shasum` is a sha-256 sum of the downloaded `pkg_source`. If you do not have the checksum, you can easily generate it by downloading the source and using the `sha256sum` or `gsha256sum` tools. Also, if you do not have **do_verify()** overridden, and you do not have the correct sha-256 sum, then the expected value will be shown in the build output of your package.
 
-  ~~~
-  pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
-  ~~~
+```bash
+pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
+```
 
 ### pkg_deps
 **Optional**. An array of package dependencies needed at runtime. You can refer to packages at three levels of specificity: origin/package, origin/package/version, or origin/package/version/release.
 
-  ~~~
-  pkg_deps=(core/glibc core/pcre core/openssl core/zlib)
-  ~~~
+```bash
+pkg_deps=(core/glibc core/pcre core/openssl core/zlib)
+```
 
 ### pkg\_build\_deps
 **Optional**. An array of the package dependencies needed only at build time.
 
-  ~~~
-  pkg_build_deps=(core/gcc core/linux-headers)
-  ~~~
+```bash
+pkg_build_deps=(core/gcc core/linux-headers)
+```
 
 ### pkg\_lib\_dirs
 **Optional**. An array of paths, relative to the final install of the software,
 where libraries can be found. Used to populate `LD_FLAGS` and
 `LD_RUN_PATH` for software that depends on your package.
 
-  ~~~
-  pkg_lib_dirs=(lib)
-  ~~~
+```bash
+pkg_lib_dirs=(lib)
+```
 
 ### pkg\_include\_dirs
 **Optional**. An array of paths, relative to the final install of the software,
 where headers can be found. Used to populate `CFLAGS` for software
 that depends on your package.
 
-  ~~~
-  pkg_include_dirs=(include)
-  ~~~
+```bash
+pkg_include_dirs=(include)
+```
 
 ### pkg\_bin\_dirs
 **Optional**. An array of paths, relative to the final install of the software,
 where binaries can be found. Used to populate `PATH` for software
 that depends on your package.
 
-  ~~~
-  pkg_bin_dirs=(bin)
-  ~~~
+```bash
+pkg_bin_dirs=(bin)
+```
 
 ### pkg\_pconfig\_dirs
 **Optional**. An array of paths, relative to the final install of the
 software, where pkg-config metadata (.pc files) can be found. Used to
 populate `PKG_CONFIG_PATH` for software that depends on your package.
 
-  ~~~
-  pkg_pconfig_dirs=(lib/pkgconfig)
-  ~~~
+```bash
+pkg_pconfig_dirs=(lib/pkgconfig)
+```
 
 ### pkg\_svc\_run
 **Optional**. The command for the Supervisor to execute when starting a service. You can omit this setting if your package is not intended to be run directly by a Supervisor.
 
-  ~~~
-  pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
-  ~~~
+```bash
+pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+```
 
 > Note: You should use a [run hook](#hooks) instead if you have complex start up behavior.
 
 ### pkg_exports
 **Optional**. An [associative array](http://www.linuxjournal.com/content/bash-associative-arrays) representing configuration data which should be gossiped to peers. The keys in this array are used with `pkg_exposes` and for any consuming services that set `pkg_binds` or `pkg_binds_optional`. The values represent the TOML path to a value.
 
-  ~~~
-  pkg_exports=(
-    [port]=server.port
-    [host]=server.host
-    [ssl-port]=ssl.port
-  )
-  ~~~
+```bash
+pkg_exports=(
+  [port]=server.port
+  [host]=server.host
+  [ssl-port]=ssl.port
+)
+```
 
 In this example, the corresponding default.toml file would have the following key/value pairs defined:
 
+```toml default.toml
     [server]
     port = 80
     host = "www.example.com"
 
     [ssl]
     port = 443
+```
 
 ### pkg_exposes
 **Optional**. An array of `pkg_exports` keys containing default values for the ports that this package exposes. These values are used as sensible defaults for other tools, such as when exporting a package to a container format.
 
-  ~~~
-  pkg_exposes=(port ssl-port)
-  ~~~
+```bash
+pkg_exposes=(port ssl-port)
+```
 
   > Note: In addition to specifying the keys you defined in `pkg_exports`, you **must** have a default.toml file indicating the port values to expose.
 
 ### pkg_binds
 **Optional**. An associative array representing services which you depend on and the configuration keys that you expect the service to export (by their `pkg_exports`). These binds *must* be set for the Supervisor to load the service. The loaded service will wait to run until its bind becomes available. If the bind does not contain the expected keys, the service will not start successfully.
 
-  ~~~
-  pkg_binds=(
-    [database]="port host"
-  )
-  ~~~
+```bash
+pkg_binds=(
+  [database]="port host"
+)
+```
 
 ### pkg\_binds\_optional
 **Optional**. Same as `pkg_binds` but these represent optional services to connect to.
 
-  ~~~
-  pkg_binds_optional=(
-    [storage]="port host"
-  )
-  ~~~
+```bash
+pkg_binds_optional=(
+  [storage]="port host"
+)
+```
 
 ### pkg_interpreters
 **Optional**. An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Habitat, see [Plan hooks](#hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).
 
-  ~~~
-  pkg_interpreters=(bin/bash)
-  ~~~
+```bash
+pkg_interpreters=(bin/bash)
+```
 
 ### pkg\_svc\_user
 **Optional**. The user to run the service as. The default is `hab`.
 
-  ~~~
-  pkg_svc_user=hab
-  ~~~
+```bash
+pkg_svc_user=hab
+```
 
 ### pkg\_svc\_group
 **Optional**. The group to run the service as. The default is `hab`.
 
-  ~~~
-  pkg_svc_group=$pkg_svc_user
-  ~~~
+```bash
+pkg_svc_group=$pkg_svc_user
+```
 
 ### pkg_description
 **Required** for [core](https://github.com/habitat-sh/core-plans) plans, optional otherwise. A short description of the package. It can be a simple string, or you can create a multi-line description using markdown to provide a rich description of your package. **This description will be displayed on the Web app when users search for or browse to your package.**
 
-  ~~~
-  pkg_description=$(cat << EOF
-    # My package description
-    This is the package for the foo library. It's pretty awesome.
-    EOF
-    )
-  ~~~
+```bash
+pkg_description=$(cat << EOF
+  # My package description
+  This is the package for the foo library. It's pretty awesome.
+  EOF
+  )
+```
 
 > Note: Any special characters other than `#` will have to be escaped; otherwise, they could be interpreted by the hab-plan-build script when the package is built.
 
 ### pkg\_upstream\_url
 **Optional**. An upstream project homepage or website URL.
 
-~~~
+```bash
 pkg_upstream_url=https://github.com/myrepo
-~~~
+```
 
 ## Composite-specific Settings
 ### pkg\_type
-**Required**. String that denotes a composite package. Must be set to `"composite"` otherwise Habitat will treat the composite package as a normal package. 
+**Required**. String that denotes a composite package. Must be set to `"composite"` otherwise Habitat will treat the composite package as a normal package.
 
-~~~
+```bash
 pkg_type="composite"
-~~~
+```
 
 ### pkg\_services
-**Required**. Array that contains all of the services in your composite application. 
+**Required**. Array that contains all of the services in your composite application.
 
 > **Note** You must list at least two services and if you list a package that is not a service (for example, it does not have a run hook), it will trigger a build error for the composite package.
 
-~~~
+```bash
 pkg_services=(
     cm/sample-node-app
     cm/composite-example-api-proxy
 )
-~~~
+```
 
 ### pkg\_bind\_map
-**Optional**. Array that contains any service bindings between composite services. Additional bindings can be added separated by spaces. The format is `[consumer_service]:"bind_key:origin/producerservice"`. 
+**Optional**. Array that contains any service bindings between composite services. Additional bindings can be added separated by spaces. The format is `[consumer_service]:"bind_key:origin/producerservice"`.
 
 **Declaring a single binding**
 
-~~~
+```bash
 pkg_bind_map=(
     [cm/composite-example-api-proxy]="http:cm/sample-node-app"
 )
-~~~
+```
 
 **Declaring multiple bindings**
 
-~~~
+```bash
 pkg_bind_map=(
     [cm/composite-example-api-proxy]="http:cm/sample-node-app otherbind:other/service-in-the-composite"
 )
-~~~
+```

@@ -80,10 +80,10 @@ impl DataStore {
         migrations::origin_public_keys::migrate(&mut migrator)?;
         migrations::origin_secret_keys::migrate(&mut migrator)?;
         migrations::origin_invitations::migrate(&mut migrator)?;
+        migrations::origin_integrations::migrate(&mut migrator)?;
         migrations::origin_projects::migrate(&mut migrator)?;
         migrations::origin_packages::migrate(&mut migrator)?;
         migrations::origin_channels::migrate(&mut migrator)?;
-        migrations::origin_integrations::migrate(&mut migrator)?;
 
         migrator.finish()?;
 
@@ -299,12 +299,11 @@ impl DataStore {
         let conn = self.pool.get(opic)?;
 
         let rows = conn.query(
-            "SELECT * FROM upsert_origin_project_integration_v1($1, $2, $3, $4, $5)",
+            "SELECT * FROM upsert_origin_project_integration_v2($1, $2, $3, $4)",
             &[
                 &opic.get_integration().get_origin(),
                 &opic.get_integration().get_name(),
                 &opic.get_integration().get_integration(),
-                &opic.get_integration().get_integration_name(),
                 &opic.get_integration().get_body(),
             ],
         ).map_err(SrvError::OriginProjectIntegrationCreate)?;
@@ -320,12 +319,11 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginProjectIntegration>> {
         let conn = self.pool.get(opig)?;
         let rows = &conn.query(
-            "SELECT * FROM get_origin_project_integrations_v1($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_project_integrations_v2($1, $2, $3)",
             &[
                 &opig.get_integration().get_origin(),
                 &opig.get_integration().get_name(),
                 &opig.get_integration().get_integration(),
-                &opig.get_integration().get_integration_name(),
             ],
         ).map_err(SrvError::OriginProjectIntegrationGet)?;
 
@@ -356,7 +354,7 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginProjectIntegrationResponse> {
         let conn = self.pool.get(opir)?;
         let rows = &conn.query(
-            "SELECT * FROM get_origin_project_integrations_for_project_v1($1, $2)",
+            "SELECT * FROM get_origin_project_integrations_for_project_v2($1, $2)",
             &[&opir.get_origin(), &opir.get_name()],
         ).map_err(SrvError::OriginProjectIntegrationRequest)?;
 

@@ -1,17 +1,18 @@
 section
  h1 Create Your Plan
 
- p At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the Supervisor starts and manages the child process in the package. 
+ p At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the Supervisor starts and manages the child process in the package.
 
- p As demonstrated in #{link_to 'Build a Sample App', '/tutorials/sample-app/'}, the quickest way to get started building your application with Habitat is by using scaffolding. Scaffolding helps you build and package applications which follow the common patterns and practices for that application type. The more your application follows convention, the more scaffolding helps you. 
- 
+ p As demonstrated in #{link_to 'Build a Sample App', '/tutorials/sample-app/'}, the quickest way to get started building your application with Habitat is by using scaffolding. Scaffolding helps you build and package applications which follow the common patterns and practices for that application type. The more your application follows convention, the more scaffolding helps you.
+
  - if "#{current_page.data.platform_short}" == "ruby"
    p For a Ruby-on-Rails application, the Ruby scaffolding parses your Gemfile and uses that information to build your application with the dependencies listed there. It will also detect what version of Rails you're running and set sensible default behaviors for your <code>init</code> and <code>run</code> hooks.
 
- p To use scaffolding, navigate to the root of your project repo and run the following: 
- 
- pre
-  code.console $ hab plan init -s #{current_page.data.platform_short}
+ p To use scaffolding, navigate to the root of your project repo and run the following:
+
+ = code(:shell) do
+   |
+    $ hab plan init -s #{current_page.data.platform_short}
 
  p Using <code>hab plan init</code> will result in a new directory located at <code>/path/to/repo/habitat</code> on your workstation. A <code>plan.sh</code> file will be created and the <code>pkg_name</code> variable in it will be set to the name of the parent directory. Also, any environment variables that you have previouly set (such as <code>HAB_ORIGIN</code>) will be used to populate the respective <code>pkg_*</code> variables. Because you specified the #{current_page.data.platform} scaffolding as an argument, your plan.sh will also include a reference to it.
 
@@ -19,19 +20,20 @@ section
 
  p The basic structure of a plan is shown below:
 
- pre
-  code.console $ tee /habitat
-       .
-       ├── config
-       ├── default.toml
-       ├── hooks
-       └── plan.sh
+ = code(:shell) do
+   |
+    $ tee /habitat
+    .
+    ├── config
+    ├── default.toml
+    ├── hooks
+    └── plan.sh
 
  blockquote
   p Note: The plan.sh file is the only required file to create a package. Configuration files, runtime hooks, and other source files are optional. For more information on creating plans, see the #{link_to 'Writing plans', '/docs/developing-packages/#write-plans'} section of the reference documentation.
 
  h2 Versioning
- 
+
  = partial "partials/global/versioning_concepts"
 
  - if "#{current_page.data.platform_short}" != "gradle"
@@ -44,7 +46,7 @@ section
  -if "#{current_page.data.platform_short}" == "node"
   h2 Package manager detection
 
-  p The #{current_page.data.platform} scaffolding can detect and use either #{link_to 'npm','https://www.npmjs.com/'} or #{link_to 'Yarn','https://yarnpkg.com/en/'} to resolve, download, and install #{current_page.data.platform} package dependencies. 
+  p The #{current_page.data.platform} scaffolding can detect and use either #{link_to 'npm','https://www.npmjs.com/'} or #{link_to 'Yarn','https://yarnpkg.com/en/'} to resolve, download, and install #{current_page.data.platform} package dependencies.
 
   p If a <code>yarn.lock</code> file is found in your application's root directory, then Yarn will be used to install dependencies. The <code>core/yarn</code> package will also be injected into your plan's <code>pkg_build_deps</code> array.
 
@@ -55,9 +57,8 @@ section
   h3 Specifying the package manager in your plan
 
   p You can override the default detection logic which determines the package manager by setting the <code>scaffolding_pkg_manager</code> variable in your plan to either <code>"npm"</code> or <code>"yarn"</code>. For example:
-  
-  pre
-   code
+
+  = code(:bash) do
     |
      pkg_name=my_app
      pkg_origin=acmecorp

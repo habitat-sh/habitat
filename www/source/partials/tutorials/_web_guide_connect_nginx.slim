@@ -7,25 +7,24 @@ section
 
  ol
   li Create a plan for a reverse-proxy Nginx package.
-  li Start up both the web app and reverse-proxy packages. 
+  li Start up both the web app and reverse-proxy packages.
 
  p This topic covers the following areas:
 
  ul
-  li #{link_to 'Create the reverse-proxy plan','#create-plan'} 
+  li #{link_to 'Create the reverse-proxy plan','#create-plan'}
   li #{link_to 'Build your package','#build-package'}
   li #{link_to 'Run your package with your web application','#run-application'}
 
  h2 <a name="create-plan">Create the reverse-proxy plan</a>
 
- p An Nginx package is part of the core set of foundational packages that are built and maintained by the Habitat maintainers. However, there are many tunables for Nginx and the default configuration file <code>nginx.conf</code> for <code>core/nginx</code> contains only a subset of them. 
- 
+ p An Nginx package is part of the core set of foundational packages that are built and maintained by the Habitat maintainers. However, there are many tunables for Nginx and the default configuration file <code>nginx.conf</code> for <code>core/nginx</code> contains only a subset of them.
+
  p This is not a problem because Habitat makes it easy to create "wrapper" packages that take runtime dependencies on packages such as <code>core/nginx</code> and allow you to define your own <code>nginx.conf</code> to suit your needs. This is the workflow we will use to create a reverse proxy with Nginx in Habitat.
 
- p In a local directory, run <code>hab plan init</code> to create a generic plan directory. 
+ p In a local directory, run <code>hab plan init</code> to create a generic plan directory.
 
- pre
-  code
+ = code(:shell) do
    |
     $ tree webapp-proxy
 
@@ -39,8 +38,7 @@ section
 
  p Unlike creating a scaffolding version of plan.sh, the default plan.sh contains every optional and required setting. Delete the generated content of the file and replace it with the content below. Feel free to change <code>pkg_origin</code> and <code>pkg_name</code> values to your actual values.
 
- pre
-  code
+ = code(:bash, title: 'habitat/plan.sh') do
    |
     pkg_origin=yourorigin
     pkg_name=webapp-proxy
@@ -60,16 +58,16 @@ section
       return 0
     }
 
- p This shows how you can wrap an existing package like <code>core/nginx</code> by taking a dependency on it. Note that <code>pkg_svc_user</code> is set to root because the Nginx master process needs to be able to bind to port 80, which typically requires elevated privileges. Any worker processes used during runtime will be run as a different user. 
- 
+ p This shows how you can wrap an existing package like <code>core/nginx</code> by taking a dependency on it. Note that <code>pkg_svc_user</code> is set to root because the Nginx master process needs to be able to bind to port 80, which typically requires elevated privileges. Any worker processes used during runtime will be run as a different user.
+
  p A few more items to note:
- 
+
  ul
   li The <code>core/nginx</code> package is declared as a dependency, no source code is built during the package creation proces. This means <code>do_build()</code> and <code>do_install()</code> must return 0 so that the default callback implementations are not used
   li We are setting up a reverse proxy, so we want to bind to the port key that our web application exports using the <code>pkg_binds</code> setting.
   li Because we are overriding the default configuration of <code>core/nginx</code>, we need to use our new configuration file when running Nginx, not the one that was included with the <code>core/nginx</code> package.
   li The <code>pkg_svc_run</code> setting is a shortcut for creating a <code>run</code> hook. This is primarily used when the logic for your <code>run</code> hook is simple. In the case of our reverse proxy package, it will start up Nginx and then run it with the <code>nginx.conf</code> that is described in the next section.
- 
+
  h3 Creating nginx.conf
 
  p Next you need to create your own <code>nginx.conf</code> and templatize it so that the correct settings such as port values and paths can be configured dynamically at runtime.
@@ -78,8 +76,7 @@ section
   li Start by creating a file named <code>nginx.conf</code> in the <code>config</code> directory of your plan.
   li Copy in the contents below into your file.
 
-  pre
-   code
+  = code(:handlebars) do
     |
      daemon off;
      pid {{ pkg.svc_var_path }}/pid;
@@ -124,14 +121,13 @@ section
   li <code>root</code>: The fully qualified path to the files of our web application.
   li <code>server_name</code>: The domain name of the server.
 
- p When you start the reverse proxy service, Habitat will combine the template above with metadata supplied by your package (the pkg.* expressions) and values you provide in your TOML file (the cfg.* keys) and produce a well-formed configuration file that Nginx can consume when it starts. 
- 
+ p When you start the reverse proxy service, Habitat will combine the template above with metadata supplied by your package (the pkg.* expressions) and values you provide in your TOML file (the cfg.* keys) and produce a well-formed configuration file that Nginx can consume when it starts.
+
  h3 Creating default.toml
- 
+
  p As mentioned in the previous section, you will need to add some default values to your default.toml file, which was created for you when you ran <code>hab plan init</code>:
 
- pre
-  code
+ = code(:toml, title: 'habitat/default.toml') do
    |
     worker_processes = "auto"
 
@@ -142,13 +138,12 @@ section
     listen_port = 80
     root = "/hab/svc/mywebapp/static"
     hostname = "localhost"
-   
+
  h3 Add an init hook
 
- p Create an <code>init</code> hook in your reverse proxy plan that makes a directory and changes ownership of the <code>/hab/svc/reverse-proxy/static</code> directory to the <code>hab</code> user. 
+ p Create an <code>init</code> hook in your reverse proxy plan that makes a directory and changes ownership of the <code>/hab/svc/reverse-proxy/static</code> directory to the <code>hab</code> user.
 
- pre
-  code
+ = code(:handlebars, title: 'hooks/init') do
    |
     #!/bin/sh
     mkdir -p {{pkg.svc_static_path}}/nginx
@@ -156,43 +151,43 @@ section
 
  p The plan.sh that you created in an earlier section sets <code>pkg_svc_user</code> to root, so when the Supervisor runs your <code>init</code> hook, it runs that hook as root as well. Since <code>core/nginx</code> is written to have Nginx spawn its worker processes as <code>hab</code> and not <code>root</code>, if you omitted that <code>chown</code>, started your reverse-proxy and browsed to it, you would have received a 403 Forbidden status response and found a Permission Denied error in your service logs.
 
- p Save any open files and then proceed to the next section. 
- 
+ p Save any open files and then proceed to the next section.
+
  h2 <a name="build-package">Build your package</a>
- 
+
  p Building your reverse proxy package is the same as any other package. Enter the Studio and run <code>build</code> from within the plan directory.
- 
- pre
-  code
+
+ = code(:shell) do
    |
     $ hab studio enter
-    # build
-    
+
+ = code(:studio) do
+   |
+    $ build
+
  p An optional step if you are using Docker containers is to then export to a Docker image after your build has completed.
- 
- pre
-  code
-   | 
-    # hab pkg export docker ./results/&lt;reverse-proxy-file>.hart
-    
+
+ = code(:studio) do
+   |
+    $ hab pkg export docker ./results/<reverse-proxy-file>.hart
+
  h2 <a name="run-application">Run your package with your web application</a>
 
- p The final step to connecting your Nginx package to your web application. The important step is to understand that like connecting to a database, you need to bind to a service group to help configure your proxy. In this case, you will bind your web application service group. 
- 
+ p The final step to connecting your Nginx package to your web application. The important step is to understand that like connecting to a database, you need to bind to a service group to help configure your proxy. In this case, you will bind your web application service group.
+
  - if "#{current_page.data.platform_short}" == "ruby"
    = partial '/partials/tutorials/web_guide_ruby_nginx_docker'
  - else
    = partial '/partials/tutorials/web_guide_common_nginx_docker'
- 
- p Open another terminal window and enter the following: 
 
- pre
-  code
-   | 
+ p Open another terminal window and enter the following:
+
+ = code(:shell) do
+   |
     $ docker run -it -p 80:80 --net=mywebapp_default origin/webapp-proxy --peer IP_ADDRESS --bind app:mywebapp.default
 
- p You can use <code>docker ps</code> and <code>docker inspect</code> to retrieve the IP address of either your web application or postgreSQL container. The <code>--bind</code> specifies that you are binding to any keys (which is a port in this case) that were exported by the <code>mywebapp.default</code> service group. 
+ p You can use <code>docker ps</code> and <code>docker inspect</code> to retrieve the IP address of either your web application or postgreSQL container. The <code>--bind</code> specifies that you are binding to any keys (which is a port in this case) that were exported by the <code>mywebapp.default</code> service group.
 
- p Once your containers are all up and connect to each other, browse to #{link_to 'http://localhost','http://localhost'} on your host workstation to see your web application data showing up through Nginx. 
+ p Once your containers are all up and connect to each other, browse to #{link_to 'http://localhost','http://localhost'} on your host workstation to see your web application data showing up through Nginx.
 
 = link_to 'Next: Next Steps', "/tutorials/build-your-own/#{current_page.data.platform_short}/next-steps/", class: 'button cta'

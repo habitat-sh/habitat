@@ -3,6 +3,9 @@ require 'slim'
 set :markdown_engine, :redcarpet
 set :markdown, fenced_code_blocks: true, tables: true, no_intra_emphasis: true, with_toc_data: true
 
+require 'lib/lexer_habitat_studio'
+activate :vegas
+
 ###
 # Page options, layouts, aliases and proxies
 ###

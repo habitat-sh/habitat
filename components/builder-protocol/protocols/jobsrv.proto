@@ -63,6 +63,7 @@ message Job {
   repeated originsrv.OriginIntegration integrations = 12;
   optional string channel = 13;
   repeated originsrv.OriginProjectIntegration project_integrations = 14;
+  optional string worker = 15;
 }
 
 message JobGet {

@@ -1050,14 +1050,25 @@ cleanup_studio() {
   unmount_filesystems
 }
 
+# **Internal**  Run a command which may fail without aborting whole script
+try() {
+  echo "TRYing '$@'"
+  if "$@"; then
+    status=$?
+  else
+    status=$?
+    echo "Warning: '$@' failed with status $status"
+  fi
+}
+
 # **Internal** Kills a Launcher process, if one exists.
 kill_launcher() {
   local pid_file
   pid_file="$HAB_STUDIO_ROOT/hab/sup/default/LOCK"
 
   if [ -f $pid_file ]; then
-    $bb kill $($bb cat $pid_file) \
-      && $bb rm -f $pid_file
+    try $bb kill $($bb cat $pid_file) \
+      && try $bb rm -f $pid_file
   fi
 }
 
@@ -1071,8 +1082,18 @@ chown_artifacts() {
       -a -d "$ARTIFACT_PATH" \
   ]; then
     local artifact_path_owner
-    artifact_path_owner="$($bb stat -c '%u:%g' $ARTIFACT_PATH)"
-    $bb chown -R "$artifact_path_owner" "$ARTIFACT_PATH"
+    artifact_path_owner="$(try $bb stat -c '%u:%g' $ARTIFACT_PATH)"
+    try $bb chown -R "$artifact_path_owner" "$ARTIFACT_PATH"
+  fi
+}
+
+# **Internal** Unmount mount point if mounted
+# Don't abort script on umount failure
+# ARGS: [umount_options] <mount_point>
+try_umount() {
+  eval _mount_point=\$$# # getting the last arg is surprisingly hard
+  if $bb mount | $bb grep -q "on $_mount_point type"; then
+    try $bb umount $*
   fi
 }
 
@@ -1091,43 +1112,27 @@ unmount_filesystems() {
   # currently mounted. You know, so you can run this all day long, like, for
   # fun and stuff.
 
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
-    $bb umount $v -l $HAB_STUDIO_ROOT/src
-  fi
+  try_umount $v -l $HAB_STUDIO_ROOT/src
 
   local studio_artifact_path
   studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
-  if $bb mount | $bb grep -q "on $studio_artifact_path type"; then
-    $bb umount $v -l $studio_artifact_path
+  try_umount $v -l $studio_artifact_path
+
+  try_umount $v $HAB_STUDIO_ROOT/run
+
+  if [ -z "${KRANGSCHNAK+x}" ]; then
+    try_umount $v $HAB_STUDIO_ROOT/sys
+  else
+    try_umount $v -l $HAB_STUDIO_ROOT/sys
   fi
 
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/run
-  fi
+  try_umount $v $HAB_STUDIO_ROOT/proc
 
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
-    if [ -z "${KRANGSCHNAK+x}" ]; then
-      $bb umount $v $HAB_STUDIO_ROOT/sys
-    else
-      $bb umount $v -l $HAB_STUDIO_ROOT/sys
-    fi
-  fi
+  try_umount $v $HAB_STUDIO_ROOT/dev/pts
 
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/proc
-  fi
+  try_umount $v -l $HAB_STUDIO_ROOT/dev
 
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/dev/pts
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
-    $bb umount $v -l $HAB_STUDIO_ROOT/dev
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
-    $bb umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
-  fi
+  try_umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
 }
 
 # **Internal** Sets the `$libexec_path` variable, which is the absolute path to

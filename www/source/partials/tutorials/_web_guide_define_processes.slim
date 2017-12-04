@@ -1,13 +1,12 @@
 section
  h1 Define Processes
 
- p The #{current_page.data.platform} scaffolding creates processes from commonly-bundled programs used in web applications. Each of these processes are wrapped up in a small script which sets up a suitable app environment and invokes a command. By convention, a web application using the #{current_page.data.platform} scaffolding will use the <code>web</code> process in the default implementation of the <code>run</code> hook. 
- 
- pre
-  code
+ p The #{current_page.data.platform} scaffolding creates processes from commonly-bundled programs used in web applications. Each of these processes are wrapped up in a small script which sets up a suitable app environment and invokes a command. By convention, a web application using the #{current_page.data.platform} scaffolding will use the <code>web</code> process in the default implementation of the <code>run</code> hook.
+
+ = code(:bash) do
    |
     pkg_svc_run="$pkg_prefix/bin/${pkg_name}-web"
- 
+
  p That process resolves to the following command:
 
  = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_web_process"
@@ -17,10 +16,9 @@ section
  - if "#{current_page.data.platform_short}" == "ruby"
    p In addition, the Ruby scaffolding will use the detected app type to determine some of the processes to be created. For example, if your Gemfile.lock has the rake gem and a Rakefile exists in your app's root directory, a <code>rake</code> process will be generated that runs the following task:
 
-   pre
-    code
+   = code(:shell) do
      |
-      bundle exec rake
+      $ bundle exec rake
 
  - else
    p Unlike some other scaffoldings, the #{current_page.data.platform} scaffolding does not create additional processes based on a specific #{current_page.data.platform} application type.
@@ -48,12 +46,12 @@ section
  h3 Specifying Processes in Your Plan
 
  p Much like #{link_to 'adding additional environment variables',"/tutorials/build-your-own/#{current_page.data.platform_short}/define-variables/"}  through an associative array, you can override default processes or even add new ones by creating the <code>scaffolding_process_bins</code> array in your plan.sh file.
- 
+
  p For example, let's take an app whose package name is set to "my_app" (by setting <code>pkg_name="my_app"</code> in your plan.sh):
 
  = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_specify_processes_plan"
 
- p The scaffolding will produce <code>my_app-web</code> and <code>my_app-release</code> processes in the <code>$pkg_prefix/bin</code> directory. This directory is included in the package's <code>$PATH</code> environment variable. 
+ p The scaffolding will produce <code>my_app-web</code> and <code>my_app-release</code> processes in the <code>$pkg_prefix/bin</code> directory. This directory is included in the package's <code>$PATH</code> environment variable.
 
  - if "#{current_page.data.platform_short}" == "ruby"
    p By default, the Ruby scaffolding will create the following processes for you as items in the <code>scaffolding_process_bins</code> array.
@@ -63,7 +61,7 @@ section
    ul
     li web: bundle exec rails server -p $PORT
     li console: bundle exec rails console
-    
+
    p If Rack is detected:
 
    ul

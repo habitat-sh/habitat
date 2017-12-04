@@ -1,8 +1,8 @@
 # <a name="pkg-binds" id="pkg-binds" data-magellan-target="pkg-binds">Runtime Binding</a>
 
-*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. 
+*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime.
 
-For producing services, you must set `pkg_exports` in your plan.sh to the keys you are exporting and for consuming services, you must set `pkg_binds` or `pkg_binds_optional` in your plan.sh to the keys you wish to consume using a bind name for those values. 
+For producing services, you must set `pkg_exports` in your plan.sh to the keys you are exporting and for consuming services, you must set `pkg_binds` or `pkg_binds_optional` in your plan.sh to the keys you wish to consume using a bind name for those values.
 
 For example, you might have a web application `app-server` that depends on a port value of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database` to the `default` service group running PostgreSQL. This will allow you to dynamically use the port value in any configuration or application lifecycle hooks in your web application.
 
@@ -10,10 +10,12 @@ For example, you might have a web application `app-server` that depends on a por
 
 The producer defines their contract by "exporting" configuration publicly to consumers. This is done by setting keys in the `pkg_exports` associative array defined in your package's `plan.sh`. For example, a database server named `amnesia` might define the exports:
 
-    pkg_exports=(
-      [port]=network.port
-      [ssl-port]=network.ssl.port
-    )
+```bash
+pkg_exports=(
+  [port]=network.port
+  [ssl-port]=network.ssl.port
+)
+```
 
 This will export the value of `network.port` and `transport.ssl.port` defined in it's `default.toml` publicly as `port` and `ssl-port` respectively. All `pkg_exports` must define a default value in `default.toml` but their values may change at runtime by an operator configuring the service group. If this happens, the consumer will be notified that their producer's configuration has changed. We'll see how to leverage this on the consumer in the sections below.
 
@@ -21,9 +23,11 @@ This will export the value of `network.port` and `transport.ssl.port` defined in
 
 Consumers specify required and optional "binds". These are represented by key/value pairs in an associative array called `pkg_binds` and `pkg_binds_optional` where the values are the exported keys defined by the producer. For example, an application server named `session-server` that depends on a database might define the following binds:
 
-    pkg_binds=(
-      [database]="port ssl-port"
-    )
+```bash
+pkg_binds=(
+  [database]="port ssl-port"
+)
+```
 
 This says that `session-server` needs to bind to a service aliased as `database` and that service must export a configuration key for both `port` and `ssl-port`. This would make this application service compatible with the producer we defined above for a database called `amnesia` since it does export a value for both of these keys.
 
@@ -39,18 +43,20 @@ An optional bind (`pkg_binds_optional`) allows you to have more flexibility for 
 
 Once you've defined both ends of the contract you can leverage the bind in any of your package's hooks or configuration files. Given the two example services above, a section of a configuration file for `session-server` might look like this:
 
-~~~
+```handlebars
 {{~#eachAlive bind.database.members as |member|}}
   database = "{{member.sys.ip}}:{{member.cfg.port}}"
   database-secure = "{{member.sys.ip}}:{{member.cfg.ssl-port}}"
 {{~/eachAlive}}
-~~~
+````
 
 ## Starting A Consumer
 
 If your application server defined `database` as a required bind, you would need to provide the Supervisor with the name of a service group running a package which fulfills the contract using the `--bind` parameter. For example, running the following:
 
-    $ hab start my-origin/app-server --bind database:amnesia.default
+```shell
+$ hab start my-origin/app-server --bind database:amnesia.default
+```
 
 would create a bind aliasing `database` to the `amnesia` service in the `default` service group.
 

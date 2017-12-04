@@ -41,7 +41,7 @@ Right in Visual Studio I'll add a `habitat` folder to my project and then right 
 
 Now I'll add the codes for building this project:
 
-```powershell
+```ps1 C:\dev\hab-sln\habitat\plan.ps1
 $pkg_name="hab-sln"
 $pkg_origin="mwrock"
 $pkg_version="0.1.0"
@@ -74,12 +74,12 @@ function Invoke-Install {
 }
 ```
 
-This bit of PowerShell script essentially leverages `nuget` and `msbuild` to grab dependencies, compile our code and publish it to our Habitat `pkgs` directory which will be archived to a Habitat `hart` package. It should also be noted that in order for Habitat to build this plan, one does NOT need to have Visual Studio installed. Rather you just need a recent framework version of .NET installed which ships by default on Windows Server 2012R2 and forward. 
+This bit of PowerShell script essentially leverages `nuget` and `msbuild` to grab dependencies, compile our code and publish it to our Habitat `pkgs` directory which will be archived to a Habitat `hart` package. It should also be noted that in order for Habitat to build this plan, one does NOT need to have Visual Studio installed. Rather you just need a recent framework version of .NET installed which ships by default on Windows Server 2012R2 and forward.
 
-Lets build and package our `hart` for this application:
+First, enter a Windows Habitat Studio:
 
-```
-C:\dev\hab-sln> hab studio enter -w
+```powershell C:\dev\hab-sln
+$ hab studio enter -w
    hab-studio: Creating Studio at /hab/studios/dev--hab-sln
 » Importing origin key from standard input
 ★ Imported secret origin key core-20170318210306.
@@ -88,7 +88,11 @@ C:\dev\hab-sln> hab studio enter -w
 ** Use 'hab svc start' and 'hab svc stop' to start and stop services.
 ** Use the 'Get-SupervisorLog' command to stream the Supervisor log.
 ** Use the 'Stop-Supervisor' to terminate the Supervisor.
+```
 
+Within the studio, lets build and package our `hart` for this application:
+
+```studio
 [HAB-STUDIO] Habitat:\src> build .\hab-sln\
    : Loading C:\hab\studios\dev--hab-sln\src\hab-sln\\habitat\plan.ps1
    hab-sln: Plan loaded
@@ -120,7 +124,7 @@ There are two approaches we can take in our hook. One is a bit dated and clunky,
 
 This is the old-fashioned `appcmd.exe` of yore. For our purposes in our little sample app, it can get the job done:
 
-```powershell
+```handlebars
 ."$env:SystemRoot\System32\inetsrv\appcmd.exe" list apppool "{{cfg.app_pool}}" | Out-Null
 if($LASTEXITCODE -ne 0) {
     Write-Host "Creating App Pool {{pkg.app_pool}}" -ForegroundColor Yellow
@@ -152,7 +156,7 @@ This uses values in our configuration to create the app pools, site and applicat
 
 If you are familiar with [DSC](https://docs.microsoft.com/en-us/powershell/dsc/overview) (particularly the resources in `xWebAdministration`), then using Habitat to configure IIS should come naturally. We will create a `config` folder in our `habitat` directory and a `website.ps1` inside of that. Here you might have the following configuration:
 
-```powershell
+```ps1 C:\dev\hab-sln\habitat\config\website.ps1
 Configuration NewWebsite
 {
     Import-DscResource -Module xWebAdministration
@@ -164,7 +168,7 @@ Configuration NewWebsite
             Ensure = "Present"
             State  = "Started"
         }
-        
+
         xWebsite {{cfg.site_name}}
         {
             Ensure          = "Present"
@@ -201,7 +205,7 @@ Our `run` hook will apply this configuration whenever we start our ASP.NET appli
 
 In full framewoerk apps, IIS is often in charge of the process lifecycle of our app, unlike Node or .NET Core where we would simply invoke `node.exe` or `dotnet.exe` to run our app in a lightweight web server. So instead of handing off our run hook to call into a runtime, we just need to make sure IIS is configured and the site and app pool are both in the "running" state. We already covered IIS configuration above. However if the `run` hook terminates, the Supervisor assumes our service has terminated. As a result, we will have PowerShell loop and check that our application endpoint is responsive:
 
-```powershell
+```ps1 C:\dev\hab-sln\habitat\hooks\run
 try {
     Write-Host "{{pkg.name}} is running"
     $running = $true
@@ -225,9 +229,15 @@ finally {
 
 As you can see, we simply call `Invoke-Webrequest` to send a `HEAD` request to our app. If the response is not a `200`, then we assume things have gone horribly wrong and exit the loop. Furthermore, if the Supervisor stops our service (`hab svc stop mwrock/hab-sln`), execution will move to the `finally` block, where we tell IIS to shut down our application.
 
-So let's run our application. If you are not already in a Windows Studio, enter `hab studio enter -w` from the root of our solution. Assuming that the plan has been built as shown above, We can stream the Supervisor log and start our service:
+So let's run our application. If you are not already in a Windows Studio, enter `hab studio enter -w` from the root of our solution.
 
+```powershell C:\dev\habitat-aspnet-full
+$ hab studio enter -w
 ```
+
+Assuming that the plan has been built as shown above, We can stream the Supervisor log and start our service:
+
+```studio
 [HAB-STUDIO] Habitat:\src> Get-SupervisorLog
 [HAB-STUDIO] Habitat:\src> hab svc start mwrock/hab-sln
 hab-sup(MN): Supervisor starting mwrock/hab-sln. See the Supervisor output for more details.
@@ -235,7 +245,7 @@ hab-sup(MN): Supervisor starting mwrock/hab-sln. See the Supervisor output for m
 
 Our Supervisor log should look something like this:
 
-```
+```studio
 hab-sup(MR): Supervisor Member-ID 883fe61fe11b4e64b20245adc9830bed
 hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
 hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
@@ -261,7 +271,7 @@ and browsing to `http://localhost:8099/hab_app` should bring up our ASP.NET web 
 
 Now let's go crazy and change the web site port:
 
-```
+```studio
 [HAB-STUDIO] Habitat:\src> 'port = 8098' | hab config apply hab-sln.default 1
 » Applying configuration for hab-sln.default incarnation 1
 Ω Creating service configuration
@@ -272,7 +282,7 @@ Now let's go crazy and change the web site port:
 
 and our Supervisor log reads:
 
-```
+```studio
 hab-sln.default(SR): Hooks recompiled
 default(CF): Updated website.ps1 9d47f71105cd9971a516c3be4567dec3779f156cfaa72910304f3a79aca056f4
 hab-sln.default(SR): Configuration recompiled
@@ -294,7 +304,7 @@ hab-sln.default(O): hab-sln is running
 
 Our port change forces an application restart and now we can reach our application on `http://localhost:8098/hab_app`.
 
-```powershell
+```powershell C:\dev\habitat-aspnet-full
 C:\dev\habitat-aspnet-full [master]> Invoke-WebRequest http://localhost:8098/hab_app -Method Head
 
 
@@ -302,7 +312,7 @@ StatusCode        : 200
 StatusDescription : OK
 ```
 
-Of course changing a port is just one small example of a multitude of possible configuration change scenarios where we can inject a configuration change into our Habitat ring and every service can respond. 
+Of course changing a port is just one small example of a multitude of possible configuration change scenarios where we can inject a configuration change into our Habitat ring and every service can respond.
 
 ## What's Next?
 

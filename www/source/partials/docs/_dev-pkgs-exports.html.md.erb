@@ -17,7 +17,7 @@ You can create a Docker container image for any package by performing the follow
 
 3. [Build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
 
-    ```
+    ```shell
     $ hab pkg export docker ./results/<hart-filename>.hart
     ```
 
@@ -33,13 +33,13 @@ For an example of using Docker Compose to run multiple Habitat containers togeth
 
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a tarball, for example:
 
-    ```
+    ```shell
     $ hab pkg install yourorigin/yourpackage
     ```
 
 3. Run the tar exporter on the package.
 
-    ```
+    ```shell
     $ hab pkg export tar yourorigin/yourpackage
     ```
 
@@ -52,19 +52,19 @@ You can create an Application Container Image (ACI) for any package by performin
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an ACI, for example:
 
-    ```
+    ```shell
     $ hab pkg install yourorigin/yourpackage
     ```
 
 3. Run the ACI exporter on the package.
 
-    ```
+    ```shell
     $ hab pkg export aci yourorigin/yourpackage
     ```
 
 4. Note that this will create unsigned ACI images. If you wish to sign your ACI with default options, pass `SIGN=true`:
 
-    ```
+    ```shell
     $ SIGN=true hab pkg export aci yourorigin/yourpackage
     ```
 
@@ -76,19 +76,19 @@ You can create an Application Container Image (ACI) for any package by performin
 
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Marathon application, for example:
 
-    ```
+    ```shell
     $ hab pkg install yourorigin/yourpackage
     ```
 
 3. Run the Mesos exporter on the package.
 
-    ```
+    ```shell
     $ hab pkg export mesos yourorigin/yourpackage
     ```
 
 4. This will create a Mesos container-format tarball in the results directory, and also print the JSON needed to load the application into Marathon. Note that the tarball needs to be uploaded to a download location and the "uris" in the JSON need to be updated manually. This is an example of the output:
 
-    ```
+    ```json
     { "id": "yourorigin/yourpackage", "cmd": "/bin/id -u hab &>/dev/null || /sbin/useradd hab; /bin/chown -R hab:hab *;
     mount -t proc proc proc/; mount -t sysfs sys sys/;mount -o bind /dev dev/; /usr/sbin/chroot . ./init.sh start
     yourorigin/yourpackage", "cpus": 0.5, "disk": 0, "mem": 256, "instances": 1, "uris":
@@ -101,7 +101,7 @@ You can create an Application Container Image (ACI) for any package by performin
 
 ## Exporting to Cloud Foundry
 
-Packages can be exported to run in a [Cloud Foundry plaform](https://www.cloudfoundry.org/certified-platforms/) through the use of a Docker image that contains additional layers meant to handle mapping from the Cloud Foundry environment to a Habitat default.toml file. 
+Packages can be exported to run in a [Cloud Foundry plaform](https://www.cloudfoundry.org/certified-platforms/) through the use of a Docker image that contains additional layers meant to handle mapping from the Cloud Foundry environment to a Habitat default.toml file.
 
 ### Setting up Docker support in Cloud Foundry
 
@@ -112,7 +112,7 @@ To do so, make sure you have done the following:
 1. Log in as an Admin user.
 2. Enable Docker support on your Cloud Foundry deployment by enabling the `diego_docker` feature flag.
 
-   ```
+   ```shell
    $ cf enable-feature-flag diego_docker
    ```
 
@@ -126,7 +126,7 @@ The mapping file is a TOML file that can add Bash-interpolated variables and scr
 
 Here's an example of a mapping TOML file named `cf-mapping.toml`:
 
-```
+```toml cf-mapping.toml
 secret_key_base = "$SECRET_KEY_BASE"
 rails_env = "$RAILS_ENV"
 port = ${PORT}
@@ -153,13 +153,13 @@ The helper methods are designed to extract information from the standard Cloud F
 
 3. Install or [build](/docs/developing-packages/#plan-builds) the package that you want to export.
 
-    ```
+    ```shell
     $ hab pkg install yourorigin/yourpackage
     ```
 
 4. Run the Cloud Foundry exporter on the package.
 
-    ```
+    ```shell
     $ hab pkg export cf yourorigin/yourpackage /path/to/mapping.toml
     ```
 
@@ -167,15 +167,15 @@ The helper methods are designed to extract information from the standard Cloud F
 
 5. (Optional) If you are creating a web app that binds to another Cloud Foundry service, such as ElephantSQL, you must have this service enabled in your deployment before running your app.
 
-6. [Upload your Docker image to a supported registry](https://docs.cloudfoundry.org/devguide/deploy-apps/push-docker.html). Your Docker repository should be match the `origin/package` identifier of your package. 
+6. [Upload your Docker image to a supported registry](https://docs.cloudfoundry.org/devguide/deploy-apps/push-docker.html). Your Docker repository should be match the `origin/package` identifier of your package.
 
-    ```
+    ```shell
     $ docker push origin/package:cf-version-release
     ```
 
-7. After your Cloud Foundry Docker image is built, you can deploy it to a Cloud Foundry platform. 
+7. After your Cloud Foundry Docker image is built, you can deploy it to a Cloud Foundry platform.
 
-    ```
+    ```shell
     $cf push cf push APP-NAME --docker-image docker_org/repository
     ```
 
