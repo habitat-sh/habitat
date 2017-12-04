@@ -1,7 +1,6 @@
 p You can use the <code>engines.node</code> data structure in your app's <code>package.json</code> to specify a version of Node.js. For example:
 
-pre
- code
+= code(:json) do
   |
    {
      "name": "my_app",
@@ -20,10 +19,9 @@ h4 Specifying a Node Version in an .nvmrc File
 
 p You can use an <code>.nvmrc file</code> in your app's root directory to specify a version of Node.js. For example:
 
-pre
- code
+= code(:shell) do
   |
-   > cat .nvmrc
+   $ cat .nvmrc
    6.10.3
 
 p The value of the contents of this file will be used to determine the version of the Habitat <code>core/node</code> package. For example, the <code>.nvmrc file</code> above would result in <code>core/node/6.10.3</code> being injected into your plan's <code>pkg_deps</code> array.
@@ -36,8 +34,7 @@ h4 Specifying a Node.js Version in Your Plan
 
 p You can set the <code>scaffolding_node_pkg</code> variable in your plan to specify a version of Node.js. For example:
 
-pre
- code
+= code(:bash) do
   |
    pkg_name=my_app
    pkg_origin=acmecorp

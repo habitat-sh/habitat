@@ -1,7 +1,6 @@
 p By default, the #{current_page.data.platform} scaffolding creates the following items in the <code>scaffolding_env</code> array for you:
 
-pre
- code
+= code(:handlebars) do
   |
    scaffolding_env[NODE_ENV]="{{cfg.node_env}}"
    scaffolding_env[PORT]="{{cfg.app.port}}"

@@ -1,7 +1,7 @@
 # <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Sharing packages</a>
 
 
-While you can build and run Habitat packages without sharing them on [Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated. 
+While you can build and run Habitat packages without sharing them on [Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 
 Setting up Habitat Builder is easily done on the website: these steps take you through connecting your local Studio development experience with Builder.
 
@@ -51,7 +51,7 @@ Once Builder possesses at least the public key of the origin, you may upload one
 
 By default, newly uploaded packages are placed in the unstable channel, however, the default package that is downloaded is the latest _stable_ version of a package, unless overridden in commands such as `hab start`, `hab svc load`, and `hab install`. If you want to promote your package to the stable channel, run the `hab pkg promote` command as follows:
 
-```
+```shell
 $ hab pkg promote -z <OAuth_token> origin/package/version/release stable
 ```
 
@@ -59,7 +59,7 @@ $ hab pkg promote -z <OAuth_token> origin/package/version/release stable
 
 You can instruct the Supervisor to download and run packages from Builder by using the `hab start` command, for example:
 
-```
+```shell
 $ hab start core/postgresql
 ```
 
@@ -67,7 +67,7 @@ If the Supervisor does not have the `core/postgresql` package in its local cache
 
 You may also supply a `--channel` argument to instruct the Supervisor to use a different channel for the purposes of continuous deployment:
 
-```
+```shell
 $ hab start core/postgresql --channel unstable
 ```
 
@@ -77,13 +77,13 @@ An exported tarball package contains the Habitat client/binary as well as depend
 
 After deploying the tarball to your target server, extract the contents to the _root directory_:
 
-```
+```shell
 $ tar zxf core-nginx-1.11.10-20170616000025.tar.gz --directory /
 ```
 
 You can instruct the Supervisor to run packages from an exported tarball:
 
-```
+```shell
 $ /hab/bin/hab svc start core/nginx
 ```
 

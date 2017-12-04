@@ -2,7 +2,9 @@
 
 Packages need to be signed with a secret origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
 
-    hab origin key generate <originname>
+```shell
+$ hab origin key generate <originname>
+```
 
 The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
@@ -31,8 +33,8 @@ The directory where your plan is located is known as the plan context.
 1. Change to the parent directory of the plan context.
 2. Create and enter a new Habitat Studio. If you have defined an origin and origin key during `hab setup` or by explicitly setting the `HAB_ORIGIN` and `HAB\_ORIGIN\_KEYS` environment variables, then type the following:
 
-    ```
-    hab studio enter
+    ```shell
+    $ hab studio enter
     ```
 
     The directory you were in is now mounted as `/src` inside the Studio. By default, a Supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
@@ -41,8 +43,8 @@ The directory where your plan is located is known as the plan context.
 
 3. Enter the following command to create the package.
 
-    ```
-    build /src/planname
+    ```studio
+    $ build /src/planname
     ```
 
 4. If the package builds successfully, it is placed into a `results` directory at the same level as your plan.
@@ -54,7 +56,9 @@ A non-interactive build is one in which Habitat creates a Studio for you, builds
 1. Change to the parent directory of the plan context.
 2. Build the package in an unattended fashion, passing the name of the origin key to the command.
 
-        hab pkg build yourpackage -k yourname
+    ```shell
+    $ hab pkg build yourpackage -k yourname
+    ```
 
 3. The resulting package is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parseable metadata about the build.
 

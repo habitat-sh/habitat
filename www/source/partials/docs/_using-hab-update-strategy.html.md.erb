@@ -10,7 +10,9 @@ Habitat supports three update strategies: `none`, `rolling`, and `at-once`.
 
 To start a Supervisor with the auto-update strategy, pass the `--strategy` argument to a Supervisor start command, and optionally specify the depot URL:
 
-    $ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh
+```shell
+$ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh
+```
 
 ### None Strategy
 
@@ -32,7 +34,7 @@ This strategy does no peer coordination with other Supervisors in the service gr
 
 ## Configuring an Update Strategy with a Builder Channel
 
-A channel is a tag for a package that your Supervisors can subscribe to. Every package has a stable and an unstable channel. New packages are by default placed on the unstable channel. You can then automatically or manually promote packages to a different channel, whether it's stable, or a channel you have created for your origin on the CLI. 
+A channel is a tag for a package that your Supervisors can subscribe to. Every package has a stable and an unstable channel. New packages are by default placed on the unstable channel. You can then automatically or manually promote packages to a different channel, whether it's stable, or a channel you have created for your origin on the CLI.
 
 * You deliver new versions of `myapp` as Habitat packages via Builder or the Studio.
 * When you are ready to roll out a new version of the application, you promote that package to the channel corresponding to the intended environment. You can have multiple service groups in the same environment pointing to different channels, or the same channel.
@@ -42,8 +44,8 @@ Configuring the Supervisors' update strategy URL to point to a channel ensures t
 
 To start a Supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
 
-    $ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh --channel unstable
+```shell
+$ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh --channel unstable
+```
 
 The placeholder `yourchannel` represents the channel you have created in the depot.
-
-

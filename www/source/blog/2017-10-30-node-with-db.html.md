@@ -22,20 +22,20 @@ One of my favorite resources on Node is ["Express in Action" by Evan Hahn](https
 
 Go ahead and clone the source code for "Learn About Me" with this command:
 
-```console
+```shell
 $ git clone git@github.com:EvanHahn/Express.js-in-Action-code.git
 $ cd Express.js-in-Action-code/Chapter_08/learn-about-me
 ```
 
 Now install the application's dependencies
 
-```console
+```shell ~/Express.js-in-Action-code/Chapter_08/learn-about-me
 $ npm install
 ```
 
 If you'd like, go ahead and run the application locally:
 
-```console
+```shell
 $ npm start
 ```
 
@@ -43,7 +43,7 @@ And you should be able to access the app at http://localhost:3000.
 
 ## Habitizing your application - Part I
 
-```console
+```shell
 $ hab plan init -s node
 ```
 
@@ -51,9 +51,7 @@ There are two parts to this application - the application itself and the databas
 
 Let's set up the default configuration for the application's connection to the database in habitat/default.toml - this file defines environmental variables that will be used by the application.
 
-**habitat/default.toml**
-
-```
+```toml habitat/default.toml
 # Use this file to templatize your application's native configuration files.
 # See the docs at https://www.habitat.sh/docs/create-packages-configure/.
 # You can safely delete this file if you don't need it.
@@ -67,9 +65,7 @@ Save and close that file.
 
 Now let's open up the plan file that was created when we ran "hab init", it should look like this:
 
-**habitat/plan.sh**
-
-```
+```bash habitat/plan.sh
 pkg_name=learn-about-me
 pkg_origin=your_origin
 pkg_version="0.1.0"
@@ -78,9 +74,12 @@ pkg_scaffolding="core/scaffolding-node"
 
 When we eventually start this application in a container, it will need to bind to the other container running MongoDB.  We need a port to bind them.  Add this content to your plan.sh.
 
-**habitat/plan.sh**
+```bash habitat/plan.sh mark:6-8
+pkg_name=learn-about-me
+pkg_origin=your_origin
+pkg_version="0.1.0"
+pkg_scaffolding="core/scaffolding-node"
 
-```
 pkg_binds=(
   [database]="port"
 )
@@ -88,9 +87,7 @@ pkg_binds=(
 
 Now, let's define the value for that port in a configuration file - this will tell Habitat where to connect to the database when binding the two containers (unlike habitat/default.toml - which is used to define environmental variables within the application itself).
 
-**default-config.json**
-
-```
+```json default-config.json
 {
   "mongo": {
     "host" : "localhost",
@@ -103,9 +100,7 @@ Now, let's define the value for that port in a configuration file - this will te
 
 We need to make a few edits to the application code itself in order to make this work with Habitat. Open up your app.js file, the beginning of it should look like this:
 
-**app.js**
-
-```
+```js app.js
 var bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
 var express = require("express");
@@ -128,32 +123,30 @@ The initial source code of this application hard codes the url of the database w
 
 First, delete this line:
 
-```
+```js
 mongoose.connect("mongodb://localhost:27017/test");
 ```
 
 Now, add some content right after this line:
 
-```
+```js
 var app = express();
 ```
 
 Like so:
 
-**app.js**
-
-```
+```js app.js
 var nconf = require('nconf');
 const nconf_file = process.env.APP_CONFIG || './default-config.json';
 nconf.file({ file: nconf_file });
 
-console.log("Loading Configuration");
+shell.log("Loading Configuration");
 
-console.log(nconf.get('mongo'));
+shell.log(nconf.get('mongo'));
 var dbConnectionString = 'mongodb://' + nconf.get('mongo')['host'] + ':' + nconf.get('mongo')['port'] + "/learn-about-me'";
-console.log(dbConnectionString);
+shell.log(dbConnectionString);
 
-console.log("Connecting to Database");
+shell.log("Connecting to Database");
 
 var mongoose = require('mongoose');
 mongoose.connect(dbConnectionString, { useMongoClient: true });
@@ -161,14 +154,14 @@ mongoose.connect(dbConnectionString, { useMongoClient: true });
 
 Wow, that's a lot.  Let's break this down:
 
-```
+```js
 var nconf = require('nconf');
 ```
 
 First, we use an npm module called [nconf](https://www.npmjs.com/package/nconf).  Nconf is a tool to define configuration variables, then use them within the node application.
 
 
-```
+```js
 const nconf_file = process.env.APP_CONFIG || './default-config.json';
 nconf.file({ file: nconf_file });
 ```
@@ -177,24 +170,22 @@ Then we read a configuration file and load it to nconf. This brings us to the qu
 
 Let's create a template for this config file at habitat/config/database.json
 
-**habitat/config/database.json**
-
-```
+```handlebars habitat/config/database.json
 {
-		"mongo": {
-			{{~#eachAlive bind.database.members as |member|}}
-			{{#if @first}}
-			"host" : "{{member.sys.ip}}",
-			"port"   : "{{member.cfg.port}}"
-			{{/if}}
-			{{~/eachAlive}}
-			}
+    "mongo": {
+      {{~#eachAlive bind.database.members as |member|}}
+      {{#if @first}}
+      "host" : "{{member.sys.ip}}",
+      "port"   : "{{member.cfg.port}}"
+      {{/if}}
+      {{~/eachAlive}}
+      }
 }
 ```
 
 Now that we have this defined, we can use this config:
 
-```
+```js
 var dbConnectionString = 'mongodb://' + nconf.get('mongo')['host'] + ':' + nconf.get('mongo')['port'] + "/test'";
 ```
 
@@ -202,7 +193,7 @@ Here, we create a db connection string - pulling the ('mongo')['host'] and ('mon
 
 We also - if it is not already created - create a database called "learn-about-me" and connect to it.
 
-```
+```js
 var mongoose = require('mongoose');
 mongoose.connect(dbConnectionString, { useMongoClient: true });
 ```
@@ -217,9 +208,7 @@ $ npm install nconf --save
 
 One more thing before we can build - we need to load the nconf config file from plan.sh - add this content:
 
-**plan.sh**
-
-```
+```bash plan.sh
 pkg_name=learn-about-me
 pkg_origin=your_origin
 pkg_version="0.1.0"
@@ -237,58 +226,56 @@ scaffolding_env[APP_CONFIG]="{{pkg.svc_config_path}}/database.json"
 
 Now, enter the Habitat studio with this command:
 
-```console
+```shell
 $ hab studio enter
 ```
 
 And, once you're in the studio, build the application:
 
-```console
-(studio) $ build
+```studio
+[1][default:/src:0]# build
 ```
 
 When the build is complete, export your new package as a Docker container image
 
-```console
-(studio) $ hab pkg export docker ./results/<your_new_package>.hart
+```studio
+[2][default:/src:0]# hab pkg export docker ./results/<your_new_package>.hart
 ```
 
 And now run this command to pull down theecore/mongodb package from the public Habitat Builder and export it as a Docker image on your workstation:
 
-```console
-(studio) $ hab pkg export docker core/mongodb
+```studio
+[3][default:/src:0]# hab pkg export docker core/mongodb
 ```
 
 Once that is complete, exit out of the studio
 
-```console
-(studio) $ exit
+```studio
+[4][default:/src:0]# exit
 ```
 
 ## Habitizing your application - Part III
 
 Now let's set up a Docker compose file using the two container images we just created - one will run the application itself, and one will run the MongoDB database.
 
-**docker-compose.yml**
-
-```
+```yaml docker-compose.yml
 version: '3'
 services:
-		mongodb:
-				image: core/mongodb
-				environment:
-				  # The default bind_ip for mongodb is to 127.0.0.1. Overriding
-				  # it here will allow our application to connect to through the
-				  # ip that is discovered through the sys.ip.
-				  HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
-		learn-about-me-app:
-				image: your_origin/learn-about-me
-				ports:
-				  - 8000:8000
-				# Find the container above named here by the peer
-				# Set the binding 'database' to the mongdb.default service
-				# group. Which the above mongodb is a member.
-				command: --peer mongodb --bind=database:mongodb.default
+    mongodb:
+        image: core/mongodb
+        environment:
+          # The default bind_ip for mongodb is to 127.0.0.1. Overriding
+          # it here will allow our application to connect to through the
+          # ip that is discovered through the sys.ip.
+          HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
+    learn-about-me-app:
+        image: your_origin/learn-about-me
+        ports:
+          - 8000:8000
+        # Find the container above named here by the peer
+        # Set the binding 'database' to the mongdb.default service
+        # group. Which the above mongodb is a member.
+        command: --peer mongodb --bind=database:mongodb.default
 ```
 
 Note that we define the ports for the "learn-about-me-app" as 8000:8000 - port 8000 is what we will be able to access this application over.
@@ -299,7 +286,7 @@ Here's a visual of how these two containers will work:
 
 Now, start up these containers with this command:
 
-```console
+```shell
 $ docker-compose up
 ```
 

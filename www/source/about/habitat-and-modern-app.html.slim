@@ -98,8 +98,9 @@ p Here is an example of a plan to create a Habitat package for
   #{link_to 'ElasticSearch', 'https://aws.amazon.com/elasticsearch-service/'}
   :
 
-pre
-  | pkg_name=elasticsearch
+= code(:bash, title: 'elasticsearch/plan.sh', url: 'https://github.com/habitat-sh/core-plans/blob/master/elasticsearch/plan.sh') do
+   |
+    pkg_name=elasticsearch
     pkg_origin=chefops
     pkg_version=2.3.2
     pkg_maintainer="Ben Rockwood <benr@chef.io>"

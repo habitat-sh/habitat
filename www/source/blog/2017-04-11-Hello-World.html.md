@@ -15,7 +15,7 @@ That is to say. Not much is changing. This page is a first iteration on getting 
 
 Since the blog is going to exist in our repo with everything else it also provides you (yes, you, the person reading this sentence) with a super simple way to publish your own Habitat content to the Habitat site! You can quite easily open a pull-request that includes a markdown file like this one with a format of `{date}-{title}.html.md`. Or, for a more specific example we can look at the filename of the post you're currently reading `2017-04-11-Hello-World.html.md`. The only extra bit of information you'll need in your file is some metadata at the top of the page that should look something like this:
 
-~~~sh
+```yaml
 ---
 title: Hello World!
 date: 2017-04-11
@@ -24,7 +24,7 @@ tags: community
 category: Community
 classes: body-article
 ---
-~~~
+```
 Obviously with _your_ name and the date you wrote your article. Once you've opened that PR we can vet the content and on approval it should get published out to the habitat.sh site! All in all we're perpetually trying to find ways to communicate with the community more effectively and create more content to help you with doing things in Habitat. Hopefully this change will push us further down the path of useful community interaction and contribution.
 
 Thanks for taking the time read and as always thanks for using Habitat!

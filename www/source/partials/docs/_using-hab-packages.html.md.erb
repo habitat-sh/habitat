@@ -19,14 +19,14 @@ If your host machine is running Linux, do the following to run your packages:
 
 * Add the `hab` user and group.
 
-    ```
+    ```shell
     $ sudo adduser --group hab
     $ sudo useradd -g hab hab
     ```
 
 * Run the `hab` CLI as root.
 
-    ```
+    ```shell
     $ sudo hab start yourorigin/yourname
     ```
 
@@ -47,7 +47,9 @@ To start the Supervisor, you can write an init script or a systemd unit file. Fo
 
 Next use `hab svc load` to load one or more services into the Supervisor for permanent supervision. Using the example from above:
 
-    $ sudo hab svc load yourorigin/yourname
+```shell
+$ sudo hab svc load yourorigin/yourname
+```
 
 ## Running a package on a virtual machine (VM)
 
@@ -60,26 +62,26 @@ After you have built the hart package, do the following:
 
      1. Install Habitat
 
-        ```
+        ```shell
         $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
         ```
 
      2. Install the package (which should be on the virtual machine)
 
-        ```
+        ```shell
         $ sudo hab install your_package.hart
         ```
 
      3. Create the Habitat group
 
-        ```
+        ```shell
         $ sudo groupadd hab
         $ sudo useradd -g hab hab
         ```
 
      4. Start the package
 
-        ```
+        ```shell
         $ sudo hab start your_origin/your_package
         ```
 
@@ -88,7 +90,9 @@ After you have built the hart package, do the following:
 
 Starting the Supervisor is as simple as running:
 
-    $ hab sup run
+```shell
+$ hab sup run
+```
 
 This command also lets you override the default gossip and http gateway binding ports, just like when using `hab start`.
 
@@ -115,29 +119,39 @@ It is important to start the Supervisor via the `hab` program as upgrades to the
 
 To add a service to a Supervisor, you use the `hab svc load` subcommand. It has many of the same service-related flags and options as `hab start`, so there's nothing extra to learn here (for more details, read through the [Run packages sections](/docs/using-habitat)). For example, to load `yourorigin/yourname` in a Leader topology, a Rolling update strategy and a Group of "acme", run the following:
 
-    $ hab svc load yourorigin/yourname --topology leader --strategy rolling --group acme
+```shell
+$ hab svc load yourorigin/yourname --topology leader --strategy rolling --group acme
+```
 
 Running the `hab svc load` subcommand multiple times with different package identifiers will result in multiple services running on the same Supervisor. Let's add `core/redis` to the Supervisor for some fun:
 
-    $ hab svc load core/redis
+```shell
+$ hab svc load core/redis
+```
 
 ## Unloading a Service from Supervision
 
 To unload and remove a service from supervision, you use the `hab svc unload` subcommand. If the service is was running, then it will be stopped first, then removed last. This means that the next time the Supervisor is started (or restarted), it will not run this unloaded service. For example, to remove the `yourorigin/yourname` service:
 
-    $ hab svc unload yourorigin/yourname
+```shell
+$ hab svc unload yourorigin/yourname
+```
 
 ## Stopping a Loaded Running Service
 
 Sometimes you need to stop a running service for a period of time, for example during a maintenance outage. Rather than completely removing a service from supervision, you can use the `hab svc stop` subcommand which will shut down the running service and leave it in this state until you start it again with the `hab svc start` subcommand, explained next. This means that all service-related options such as service topology, update strategy, etc. are preserved until the service is started again. For example, to stop the running `core/redis` service:
 
-    $ hab svc stop core/redis
+```shell
+$ hab svc stop core/redis
+```
 
 ## Starting a Loaded Stopped Service
 
 To resume running a service which has been loaded but stopped (via the `hab svc stop` subcommand explained above), you use the `hab svc start` subcommand. Let's resume our `core/redis` service with:
 
-    $ hab svc start core/redis
+```shell
+$ hab svc start core/redis
+```
 
 ## Querying the Supervisor for service status
 
@@ -145,7 +159,7 @@ You can query all services currently loaded or running under the local Superviso
 
 To retrieve status for an individual service, you can pass the service identifier:
 
-```
+```shell
 $ hab sup status core/mysql
 ```
 
@@ -173,7 +187,7 @@ The HTTP API provides information on the following endpoints:
 ## Usage
 Connect to the Supervisor of the running service using the following syntax. This example uses `curl` to do the GET request.
 
-```
+```shell
 $ curl http://172.17.0.2:9631/services
 ```
 

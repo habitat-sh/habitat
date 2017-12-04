@@ -12,6 +12,7 @@ gem 'tzinfo-data', platforms: [:mswin, :mingw]
 
 # For better code snippets in markdown
 gem 'redcarpet'
+gem 'middleman-vegas'
 
 # Middleman Gems
 gem 'middleman', '~> 4.1'
@@ -20,9 +21,9 @@ gem 'middleman-livereload'
 gem 'middleman-s3_sync'
 gem 'middleman-sprockets', '~> 4.0.0.rc.1'
 gem 'middleman-blog', '~> 4.0'
-gem 'middleman-syntax'
 gem 'middleman-minify-html'
 gem 'mime-types'
+
 
 gem 'rubocop', require: false
 gem 'scss_lint', require: false

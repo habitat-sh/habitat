@@ -95,18 +95,20 @@ That’s why the [Habitat docs section on
 ECS](/docs/best-practices#ecs-and-habitat)
 simply tells you to use docker `links` (a deprecated feature) like so:
 
-    version: '2'
-    services:
-      mongo:
-        image: aws_account_id.dkr.ecr.ap-southeast-2.amazonaws.com/billmeyer/mongodb:latest
-        hostname: "mongodb"
-      national-parks:
-        image: aws_account_id.dkr.ecr.ap-southeast-2.amazonaws.com/mattray/national-parks:latest
-        ports:
-          - "8080:8080"
-        links:
-          - mongo
-        command: --peer mongodb --bind database:mongodb.default
+```yaml
+version: '2'
+services:
+  mongo:
+    image: aws_account_id.dkr.ecr.ap-southeast-2.amazonaws.com/billmeyer/mongodb:latest
+    hostname: "mongodb"
+  national-parks:
+    image: aws_account_id.dkr.ecr.ap-southeast-2.amazonaws.com/mattray/national-parks:latest
+    ports:
+      - "8080:8080"
+    links:
+      - mongo
+    command: --peer mongodb --bind database:mongodb.default
+```
 
 What this does is leverage Docker (and ECS’s) *Bridge* mode networking, which is
 the default networking mode and required in order for linking to work. In this

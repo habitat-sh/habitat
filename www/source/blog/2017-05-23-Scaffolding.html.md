@@ -26,54 +26,54 @@ Secondly, a Scaffolding tries to make the best possible build experience for you
 
 Scaffolding unlocks a powerful new behavior at build time: the ability to **detect and react** to the needs of an application codebase. Let's look at an example to see this in action. The output lines below are from building a Ruby on Rails web application called "habirails". The Plan which builds this app's package is very simple and contains one new build variable: `pkg_scaffolding`.
 
-~~~sh
+```bash
 pkg_name=habirails
 pkg_origin=fnichol
 pkg_version=0.1.0
 pkg_scaffolding=core/scaffolding-ruby
-~~~
+```
 
 When we build this Plan, we'll see some of the following in the build output:
 
-~~~
+```
    habirails: Detected Rails 5 app type
-~~~
+```
 
 The Ruby Scaffolding understands some specific Ruby web frameworks such as Ruby on Rails and Rack. In this case it has detected a Rails 5.x application and can use that knowledge later on.
 
-~~~
+```
    habirails: No Ruby version detected in Plan or Gemfile.lock, using default 'core/ruby'
-~~~
+```
 
 There are canonical locations where Ruby developers select a specific version of Ruby, one of them uses the `ruby` keyword in a `Gemfile`. The Ruby Scaffolding loads the project's `Gemfile` and `Gemfile.lock` (using Ruby itself and calls the Bundler codebase as a library) so that it can correctly parse this information. In this case no version was specified in the `Gemfile` or in the `plan.sh`, so a default Habitat package of `core/ruby` was chosen.
 
-~~~
+```
    habirails: Detected 'nokogiri' gem in Gemfile.lock, adding libxml2 & libxslt packages
-~~~
+```
 
 Some RubyGems have native extensions or require other software to be present so this Scaffolding inspects the `Gemfile.lock` for some common gems that are used by the community, including `execjs` which requires Node.js, `sqlite3` which requires SQLite shared libraries, and `nokogiri` as shown above. In `nokogiri`'s case, we build this against system libraries in Habitat packages so this gem typically takes a second or two to install.
 
-~~~
+```
    habirails: Detected 'pg' gem in Gemfile.lock, adding postgresql package
-~~~
+```
 
 Similar to above, this detection will add the appropriate PostgreSQL Habitat packages, but will create an [optional bind](/docs/developing-packages#pkg-binds) for the package which lets your app discover its database in a Habitat ring. If you start the app service without a `--bind` option, the package will fall back to requiring database host and port configuration settings meaning that you can point your app at an existing database that lives outside a Habitat ring.
 
-~~~
+```
    habirails: Installing dependencies using Bundler version 1.14.6
-~~~
+```
 
 The Ruby Scaffolding knows how to use Bundler to install and vendor RubyGem dependencies for use in a production environment.      The exact version of Bundler which is used is also vendored into the app's package so there is one less runtime Habitat package dependency to install and only one version of Ruby is pulled in for production.
 
-~~~
+```
    habirails: Detected and running Rake 'assets:precompile'
-~~~
+```
 
 In this case, the `rake` RubyGem was detected in the `Gemfile.lock`, a `Rakefile` was present in the project's root directory, and an `assets:precompile` Rake task was found. This is default behavior for Ruby on Rails applications but also commonly used in other Rack-based applications and even static site generators. If the correct project markers are found, the Scaffolding code takes over.
 
-~~~
+```
    habirails: No user-defined init hook found, generating init hook
-~~~
+```
 
 Based on the app detection above, the Ruby Scaffolding can generate a suitable [init hook](/docs/reference#reference-hooks) which checks to see that the Rails' [secret key base](http://guides.rubyonrails.org/security.html#session-storage) is set and will even test your database connection--all before the Supervisor even attempts to boot the app itself.
 

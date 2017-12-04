@@ -24,37 +24,37 @@ When you set up your virtual machines, make sure that these ports are open.
 
 When your virtual machines are up, ssh into each of them and run this command to install Habitat.
 
-```console
-  $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+```shell
+$ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 ```
 
 Then create a hab group and user on each virtual machine.
 
-```console
-  $ sudo groupadd hab
-  $ sudo useradd -g hab hab
+```shell
+$ sudo groupadd hab
+$ sudo useradd -g hab hab
 ```
 
 ## Installing and Running MySql
 
 SSH into one of your virtual machines and run this command to download, install, and start MySql.
 
-```console
-  $ sudo hab start core/mysql --topology leader --group production
+```shell
+$ sudo hab start core/mysql --topology leader --group production
 ```
 
 You will see a message indicating that an election is in progress, but a quorum has not yet been reached.  There need to be three supervisors in the ring for an election to take place, let's bring up the other two!
 
 Now SSH into the other two virtual machines and run this command (substituting in the IP address for your first virtual machine).
 
-```console
-  $ sudo hab start core/mysql --topology leader --group production --peer first_vm_ip_address
+```shell
+$ sudo hab start core/mysql --topology leader --group production --peer first_vm_ip_address
 ```
 
 If the election is successful, you will now see output like this:
 
-```console
-  mysql.production(SR): Executing hooks; 557399da9e9a4ac9b78b1ea33432c24a is the leader
+```shell
+mysql.production(SR): Executing hooks; 557399da9e9a4ac9b78b1ea33432c24a is the leader
 ```
 
 This means that the Supervisor with the ID of 557399da9e9a4ac9b78b1ea33432c24a is the leader, and the other two are followers.  The leader will receive write requests, and the follower will receive read requests.  But...how do we determine which virtual machine is running the Supervisor with that cryptic ID?

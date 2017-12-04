@@ -15,11 +15,14 @@ In this post we will take a look at running Redis and backing it up via Shield.
 
 To play around with the starkandwayne/redis release you can bring it up in the Habitat Studio:
 
-```console
+```shell
 $ hab studio enter
+```
+
+```studio
 [1][default:/src:0]# hab svc load starkandwayne/redis
 (...)
-[2][default:/src:127]# hab pkg binlink starkandwayne/redis
+[2][default:/src:0]# hab pkg binlink starkandwayne/redis
 » Symlinking redis-check-rdb from starkandwayne/redis into /bin
 ★ Binary redis-check-rdb from starkandwayne/redis/3.2.8/20170522110804 symlinked to /bin/redis-check-rdb
 » Symlinking redis-server from starkandwayne/redis into /bin
@@ -33,7 +36,7 @@ OK
 
 Typing `sl` will give you the log output of the background Supervisor that got started when you entered the Studio:
 
-```console
+```studio
 [4][default:/src:0]# sl
 --> Tailing the Habitat Supervisor's output (use 'Ctrl+c' to stop)
 redis.default(O):  |    `-._`-._        _.-'_.-'    |
@@ -52,11 +55,14 @@ Since Shield is a bit more complex system with a few moving parts I will run it 
 
 First lets bring up the shield-daemon connected to a database. The daemon is the main coordinator of shield. It triggers backups as needed and persists the state of all created archives and backup jobs.  
 
-```console
+```shell
 $ mkdir redis-hab-demo && cd redis-hab-demo
-$ cat <<EOF > docker-compose.yml
-version: '3'
+```
 
+Create a Docker Compose file to coordinate these services:
+
+```yaml ~/redis-hab-demo/docker-compose.yml
+version: '3'
 services:
   shield:
     ports:
@@ -68,16 +74,19 @@ services:
   database:
     image: starkandwayne/postgresql
     command: "start starkandwayne/postgresql --group shield"
-EOF
+```
 
-docker-compose up
+Start all the services defined by running:
+
+```shell ~/redis-hab-demo
+$ docker-compose up
 ```
 
 You can use the `shield` cli to interact with the daemon. Download it from the [github-release](https://github.com/starkandwayne/shield/releases).
 
 From another terminal:
 
-```console
+```shell Second Terminal
 $ shield create-backend hab https://localhost
 Successfully created backend 'hab', pointing to 'https://localhost'
 
@@ -87,7 +96,7 @@ $ export SHIELD_API_TOKEN=autoprovision
 
 To actually backup a system you need to create a few entities in shield such as a policy, schedule and store. Lets create a schedule that takes a backup every day at 4am via the cli:
 
-```
+```shell
 $ shield create-schedule -k
 Schedule Name: daily
 Summary:
@@ -114,13 +123,14 @@ Because creating all entities manually is error prone we can also automate it by
 The shield-agent is another component of Shield which is typically co-located with the data store you want to backup. You can configure it to automatically provision the elements that shield needs to run a backup.
 
 Stop the docker-compose system via:
-```
-docker-compose stop && docker-compose rm -f
+
+```shell
+$ docker-compose stop && docker-compose rm -f
 ```
 
 Use an EDITOR to add the agent to the docker-compose file. Add the `agent` service under the already existing `services:` key:
 
-```YAML
+```yaml ~/redis-hab-demo/docker-compose.yml
 services:
   agent: # to autoprovision the dependant entities
     image: starkandwayne/shield-agent
@@ -142,13 +152,13 @@ services:
 
 Bring it up and lets see if it worked:
 
-```
+```shell ~/redis-hab-demo
 $ docker-compose up
 ```
 
-Once everything is runnin you can see the configured entities in another terminal:
+Once everything is running you can see the configured entities in another terminal:
 
-```
+```shell Second Terminal
 $ shield policies -k
 Name       Summary  Expires in
 ====       =======  ==========
@@ -168,12 +178,12 @@ Now that we have a schedule, policy and store in place we can bring up Redis and
 
 Again stop the running system:
 
-```
-docker-compose stop && docker-compose rm -f
+```shell
+$ docker-compose stop && docker-compose rm -f
 ```
 And add Redis to the `docker-compose.yml`. Again the `redis` service belongs under the _already existing_ `services:` key. The `volumes` key new:
 
-```
+```yaml ~/redis-hab-demo/docker-compose.yml
 services:
   redis:
   image: starkandwayne/redis:edge
@@ -197,12 +207,12 @@ backups-volume: {}
 
 Bring it up and have a look:
 
-```
+```shell
 $ docker-compose up
 ```
 It can take a while for the whole system to come up but eventually you should see:
 
-```
+```shell Second Terminal
 $ shield jobs -k
 Name           P?  Summary  Retention Policy  Schedule  Remote IP        Target
 ====           ==  =======  ================  ========  =========        ======
@@ -213,7 +223,7 @@ redis-default  N            shortterm         daily     172.27.0.5:5444  {
 So the Redis service we just added was able to configure its own backup job just by binding to a running Shield daemon. Cool!
 Lets write a value, take a backup and see if it works:
 
-```
+```shell Second Terminal
 $ redis-cli -a password SET hello world
 OK
 $ shield run redis-default -k
@@ -226,7 +236,7 @@ fb2b2b0b-925b-4e69-8083-ab649760048e  redis-default (fs)  192.168.16.5:5444  def
 ```
 So we set a value and manually took a backup. Lets destroy and recreate the Redis service. Thanks to the auto-bootstrapping feature the value should be restored without any further input:
 
-```
+```shell ~/redis-hab-demo
 $ docker-compose stop redis && docker-compose rm -f redis
 $ docker-compose up -d redis
 $ until redis-cli -a password GET hello; do echo 'Waiting for redis to bootstrap'; sleep 1; done

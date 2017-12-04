@@ -7,8 +7,9 @@ section
 
   p Habitat produces an immutable package artifact where you define which configuration settings should be exposed. You can make configuration changes through environment variables and through a configuration update process that sends updated values to any member within a given service group.
 
-  pre
-    code.console $ hab config apply --peer 172.17.0.2 myrubyapp.default 1 update_config.toml
+  = code(:shell) do
+    |
+     $ hab config apply --peer 172.17.0.2 myrubyapp.default 1 update_config.toml
 
   p The Ruby-on-Rails window will show how its output changes in response to the configuration update.
 

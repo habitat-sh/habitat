@@ -26,8 +26,10 @@ classes: demo_step
             span.asterisk="*"
             ' .
           p With Docker running, execute the following command on your machine:
-          p.code $ docker pull your-docker-org/your-docker-repo
-          p.code $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
+          = code(:shell) do
+            | $ docker pull your-docker-org/your-docker-repo
+          = code(:shell) do
+            | $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
           p
             ' After the container is running, you can open
             a.link-external href="http://localhost:8000" target="_blank" http://localhost:8000

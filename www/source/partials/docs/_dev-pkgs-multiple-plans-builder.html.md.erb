@@ -2,21 +2,22 @@
 
 If you have a large GitHub repository with multiple components inside, you will most likely also have individual plans for those components. When using Builder to build your packages, the default behavior is for Builder to build all packages whenever any file is updated in that repository, regardless of what component it is. This is because Builder does not know which file is associated with which package.
 
-To provide more fine-grained control over when component packages are built, you can programatically customize how and when Builder will build your plans by specifying build behavior in a `.bldr.toml` file at the root of the repository that you connect to Builder. 
+To provide more fine-grained control over when component packages are built, you can programatically customize how and when Builder will build your plans by specifying build behavior in a `.bldr.toml` file at the root of the repository that you connect to Builder.
 
 Using this file, Builder only builds packages when source files or directories are updated in paths specified in `.bldr.toml`. This allows you to configure the building, publishing, and post-processing phases of a plan build in Builder.
 
 To enable this functionality, do the following:
 
-1. Create a `.bldr.toml` in the root of your repository. 
+1. Create a `.bldr.toml` in the root of your repository.
 
-2. Open it and add an entry for each component package that you want to build. 
+2. Open it and add an entry for each component package that you want to build.
 
-    The `.bldr.toml` file is in TOML format, so create a TOML table specifying the `$pkg_name` value for that plan and then add a `path` field specifying Unix-style path globs to files or directories within your project. File or directory changes made in these path locations determine which packages will be rebuilt. 
+    The `.bldr.toml` file is in TOML format, so create a TOML table specifying the `$pkg_name` value for that plan and then add a `path` field specifying Unix-style path globs to files or directories within your project. File or directory changes made in these path locations determine which packages will be rebuilt.
 
     For example, in the Habitat repository itself, this TOML states that the `hab-launcher`, `hab-studio`, and `hab-sup` packages will be rebuilt if there are any changes in any of the specified `components` sub-directories:
 
-    ```
+    ```toml
+    # .bldr.toml
     [hab-launcher]
     paths = [
       "components/launcher/*",
@@ -41,5 +42,8 @@ To enable this functionality, do the following:
 
 You can also specify a list of additional channels that packages should automatically publish to. By default, software is only published to the `unstable` channel.
 
-    [hab-launcher]
-    channels = [stable"]
+```toml
+# .bldr.toml
+[hab-launcher]
+channels = [stable"]
+```

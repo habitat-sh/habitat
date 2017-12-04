@@ -14,13 +14,13 @@ Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAK
 
 You can examine the first four lines of a `.hart` file to extract the signature from it, because it is an `xz`-compressed tarball with a metadata header. The `hab pkg header` command will do this for you.
 
-```
+```shell
 $ hab pkg header somefile.hart
 ```
 
 outputs:
 
-```
+```shell
 » Reading package header for somefile.hart
 
 Package        : somefile.hart
@@ -32,6 +32,6 @@ Raw Signature  : a8yDoiA0Mv0CcW6xVyfkSOIZ0LW0beef4RPtvKL56MxemgG6dMVlKG1Ibplp7DU
 
 The `.hart` file format is designed in this way to allow you to extract both the signature and the payload separately for inspection. To extract only the `xz`-compressed content, bypassing the signature, you could type this:
 
-```
+```shell
 $ tail -n +6 somefile.hart | xzcat | tar x
 ```

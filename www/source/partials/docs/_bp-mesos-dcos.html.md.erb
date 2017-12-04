@@ -21,19 +21,19 @@ You can create native Mesos containers from Habitat packages by following these 
 
 2. Install or [build](/docs/developing-packages#plan-builds) the Habitat package from which you want to create a Marathon application, for example:
 
-    ```
+    ```shell
     $ hab pkg install yourorigin/yourpackage
     ```
 
 3. Run the Mesos exporter on the package.
 
-    ```
+    ```shell
     $ hab pkg export mesos yourorigin/yourpackage
     ```
 
 4. This will create a Mesos container-format tarball in the results directory, and also print the JSON needed to load the application into Marathon. Note that the tarball needs to be uploaded to a download location and the `"uris"` in the JSON need to be updated manually. This is an example of the output:
 
-    ```
+    ```json
     {
     "id": "yourorigin/yourpackage",
     "cmd": "/bin/id -u hab &>/dev/null || /sbin/useradd hab; /bin/chown -R hab:hab *; mount -t proc proc proc/; mount -t sysfs sys sys/;mount -o bind /dev dev/; /usr/sbin/chroot . ./init.sh start yourorigin/yourpackage",

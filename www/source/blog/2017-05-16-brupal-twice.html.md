@@ -106,7 +106,9 @@ that allows me to say, "this service relies on this other service in
 order to run properly". At runtime, I simply tell my service which
 other service to bind to:
 
-`hab start baggerspion/drupal --bind database:mysql.default`
+```shell
+$ hab start baggerspion/drupal --bind database:mysql.default
+```
 
 I will spare the full details on how binds work. There is [plenty of
 documentation

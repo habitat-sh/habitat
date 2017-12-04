@@ -9,7 +9,7 @@ classes: body-article
 
 ![](media/2017-10-27-modernize-java/azureopendev.jpg)
 
-This week I had the honor of speaking at Microsoft Azure's [Opendev](https://azure.microsoft.com/en-us/opendev/), which hosted a variety of speakers from various cool open source projects and I represented Habitat. I raced through a tour of building a distributed Java web application in Habitat. I showed the application running in a local Habitat Supervisor and also had it perform a rolling update accross three nodes in Azure. Finally I demonstrated the same application running in a container on an Azure deployed Docker host. You can listen to the presentation which starts at about 1:22:20 into the recorded video.
+This week I had the honor of speaking at Microsoft Azure's [Opendev](https://azure.microsoft.com/en-us/opendev/), which hosted a variety of speakers from various cool open source projects and I represented Habitat. I raced through a tour of building a distributed Java web application in Habitat. I showed the application running in a local Habitat Supervisor and also had it perform a rolling update across three nodes in Azure. Finally I demonstrated the same application running in a container on an Azure deployed Docker host. You can listen to the presentation which starts at about 1:22:20 into the recorded video.
 
 In this post I'd like to cover the same tour in blog format which might allow this information to sink in more effectively for those who better digest written material (like myself) and for the benefit of the google indexing servers. This is very much a beginner level post and I hope that those who have little to no Habitat knowledge will walk away with an understanding of what Habitat is and how it can help step up their development workflow in this age of distributed computing.
 
@@ -18,7 +18,7 @@ In this post I'd like to cover the same tour in blog format which might allow th
 As an intro level topic, we are going to start at the very beginning and ask what Habitat is. I have been working on the Habitat code base for a year now and have been working for the company who created Habitat - [Chef](https://www.chef.io/) -  since its beginning and even I still find this a difficult question to answer. I think it can be tough to do the question justice because:
 
 1. There is no other project quite like Habitat. I can't say "Oh Habitat? Its a blang bloom system. Ya know just like jitter bug - that other blang bloom system."
-2. It covers alot of ground and thus I cant simply say "it's a build system" or a "service discovery component" even though it can be both of those things and more.
+2. It covers a lot of ground and thus I cant simply say "it's a build system" or a "service discovery component" even though it can be both of those things and more.
 3. Certain features like its Docker image exporter can distract people and makes them quickly draw inaccurate conclusions that Habitat is a container runtime.
 
 So here it goes: Habitat provides an environment (a "Habitat") that builds, packages and runs your applications. This environment isolates both the internal (library) and external (service) dependencies of your core application so that packages that run in one environment are guaranteed to run in any other environment. Further, It does not matter what platform the environment runs on. On linux, any modern 64 bit kernel can play. These packages, running inside of Habitat can easily discover and share information about one another making it natural for distributed systems to "bind" together and form your complete application.
@@ -44,7 +44,7 @@ Habitat's surface area governs the application lifecycle all the way back to bui
 
 Any application built by Habitat starts with a "plan." This is the script that tells Habitat *about* our application and also tells it how to build it. Depending on whether the application is targeting Windows or Linux, the plan will be named `plan.ps1` (Powershell) or `plan.sh` (Bash). Here is our [plan.sh](https://github.com/mwrock/national-parks/blob/master/habitat/plan.sh) (we will be targeting Linux) for our Java application:
 
-```
+```bash plan.sh
 pkg_name=national-parks
 pkg_description="A sample JavaEE Web app deployed in the Tomcat8 package"
 pkg_origin=mwrock
@@ -96,7 +96,7 @@ Bindings, expressed by `pkg_binds` and `pkg_exports` facilitate interaction betw
 
 `pkg_exports` declares what configuration we want to expose as public properties to external services. Here we want to expose a property called `port` and we will map our internal `tomcat_port` property to that external `port` alias. The `tomcat_port` configuration property here comes from a file that exists alongside our plan, [`default.toml`](https://github.com/mwrock/national-parks/blob/master/habitat/default.toml).
 
-```toml
+```toml default.toml
 tomcat_port = 8080
 mongodb_service_host = "localhost"
 mongodb_service_port = 27017
@@ -106,7 +106,7 @@ This `toml` file defines default configuration values that can be referenced in 
 
 In our distributed Java application, the `haproxy` service is going to need this. In fact, if were were to look at the [`haproxy` plan](https://github.com/habitat-sh/core-plans/blob/master/haproxy/plan.sh), we would find:
 
-```
+```bash plan.sh url:https://github.com/habitat-sh/core-plans/blob/master/haproxy/plan.sh
 pkg_binds=(
   [backend]="port"
 )
@@ -126,9 +126,9 @@ Now I know I just said that Habitat lacks any knowledge about specific languages
 
 Enough talk about the plan, let's act! Lets build our application.
 
-First we will enter a Habitat build [Studio](https://www.habitat.sh/docs/glossary/#glossary-studio). If you are on a Mac or Windows machine, this will drop you into a shell running in a Docker container. If you are running Linux, then it will put you into a chroot where you get a "container-like" isolation level. 
+First we will enter a Habitat build [Studio](https://www.habitat.sh/docs/glossary/#glossary-studio). If you are on a Mac or Windows machine, this will drop you into a shell running in a Docker container. If you are running Linux, then it will put you into a chroot where you get a "container-like" isolation level.
 
-```console
+```powershell
 C:\dev\national-parks [master]> hab studio enter
    hab-studio: Creating Studio at /hab/studios/src (default)
    hab-studio: No secret keys imported! Did you mean to set HAB_ORIGIN?
@@ -158,7 +158,7 @@ The docker environment contains an extremely minimal Linux distribution, the Hab
 
 Now we'll kick off a build:
 
-```console
+```studio
 [1][default:/src:0]# build habitat/
    : Loading /src/habitat/plan.sh
    national-parks: Plan loaded
@@ -180,7 +180,7 @@ Running `build habitat` invokes the Habitat build endpoint and gives it the name
 
 Once the above `build` command completes, it will drop a `.hart` file inside the `/src/results` folder (also available outside of the studio) and also install that package in the Studio's local Habitat environment.
 
-```console
+```studio
    national-parks: Source Path: /src/habitat
    national-parks: Installed Path: /hab/pkgs/mwrock/national-parks/6.3.0/20171027185153
    national-parks: Artifact: /src/results/mwrock-national-parks-6.3.0-20171027185153-x86_64-linux.hart
@@ -198,7 +198,7 @@ Once the above `build` command completes, it will drop a `.hart` file inside the
 
 So with our application freshly built, let's see if we can actually run it. As I mentioned above, the Studio includes a running Supervisor. Let's see what it's doing now:
 
-```console
+```studio
 [3][default:/src:0]# hab sup status
 mwrock/np-mongodb/3.2.9/20171013092907 (standalone), state:up, time:PT238.002019600S, pid:539, group:np-mongodb.default, style:transient
 [4][default:/src:0]#
@@ -206,21 +206,21 @@ mwrock/np-mongodb/3.2.9/20171013092907 (standalone), state:up, time:PT238.002019
 
 I previously started my MongoDB service and `hab sup status` tells me that it is `up`. So now let's start the national-parks application we just built:
 
-```console
+```studio
 [4][default:/src:0]# hab start mwrock/national-parks --bind database:np-mongodb.default
 hab-sup(MN): Supervisor starting mwrock/national-parks. See the Supervisor output for more details.
 ```
 
 See that `--bind` argument I passed to `hab start`? When the Supervisor attempts to start our application, it knows a bunch about it already from the metadata we supplied in our `plan.sh`. For instance it knows that we require a `database` binding that MUST provide a `port` configuration property. If I were to simply start my application without that `--bind` then I would get:
 
-```console
+```studio
 hab-sup(MR): Starting mwrock/national-parks
 hab-sup(MR): Unable to start mwrock/national-parks, hab-sup(SS)[src/manager/service/spec.rs:210:23]: Missing required bind(s), database
 ```
 
 By using the `--bind` arg I am telling the supervisor which service it can expect to fulfill the provider side of the required binding contract. If for some reason the Supervisor did not find my mongodb service, then it would wait to start my service until it found one. This is one way we can enforce the order in which services are started in a Habitat ecosystem. BUT it DID find one and my service starts. By running `sup-log` in the Studio it will follow the tail of the Supervisor log which gives me more detailed information on what is happening. Here is just a sampling:
 
-```console
+```studio
 national-parks.default(O): 27-Oct-2017 19:16:44.107 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /hab/pkgs/core/tomcat8/8.5.9/20170514144202/tc/webapps/host-manager has finished in 27 ms
 national-parks.default(O): 27-Oct-2017 19:16:44.107 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory /hab/pkgs/core/tomcat8/8.5.9/20170514144202/tc/webapps/docs
 national-parks.default(O): 27-Oct-2017 19:16:44.134 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /hab/pkgs/core/tomcat8/8.5.9/20170514144202/tc/webapps/docs has finished in 27 ms
@@ -247,8 +247,8 @@ I have three nodes running my Java Tomcat service: `hab1`, `hab2`, and `hab3`. I
 
 I have the Supervisors on hab1 to hab3 configured with an [update strategy](https://www.habitat.sh/docs/using-habitat/#using-updates) set to `rolling`. In fact I "loaded" the Supervisors with this command:
 
-```console
-sudo hab sup load --channel unstable mwrock/national-parks --bind database:np-mongodb.default --strategy rolling --topology leader
+```shell
+$ sudo hab sup load --channel unstable mwrock/national-parks --bind database:np-mongodb.default --strategy rolling --topology leader
 ```
 
 This told the Supervisor to `load` the application and not just `start` it. That means that the Supervisor will consider my service to be `persistent` and in the event that the Supervisor goes down, it will automatically start my service when it comes back online. The [`topology`](https://www.habitat.sh/docs/using-habitat/#topologies) tells the Supervisor to run my service in a `leader`/follower role. This essentially makes my service "cluster aware." It is a great topology for services that expect to run in a leader or "single-writer/multi-reader" modes. It is also required to support the `rolling` update `strategy`. That strategy will elect an "update leader" among the three Supervisors running the national-parks application - and there must be at least three members (or peers). That update leader will be watching the Habitat Depot for upated packages in the `unstable` `channel`. The `unstable` channel is the default channel where packages are placed when first uploaded. Naturally, there is also a `stable` channel which is the default channel where a Supervisor looks for updates. The idea is that you probably do not want production servers updating themselves with a package fresh off the build server. However for the sake of our demo, we'll happily update ourselves with an unstable package.
@@ -257,7 +257,7 @@ As the term `rolling` suggests, our Supervisors will update one by one. When the
 
 So uploading our built package to the Depot is trivial:
 
-```console
+```studio
 [11][default:/src:0]# hab pkg upload results/mwrock-national-parks-6.3.0-20171027185153-x86_64-linux.hart
 ✓ Signed artifact with mwrock-20170810012708.pub
 » Uploading public origin key mwrock-20170810012708.pub
@@ -283,7 +283,7 @@ So uploading our built package to the Depot is trivial:
 
 Running `hab pkg upload` with the path to the build's `.hart` artifact will send that off to the Depot. I could even pass `--channel stable` if I wanted the package to land directly in the `stable` channel. However a more typical flow would be to upload to `unstable` and then do some validation testing and upon success, I could `promote` the package with:
 
-```console
+```studio
 [12][default:/src:0]# hab pkg promote mwrock/national-parks/6.3.0/20171027185153 stable
 » Promoting mwrock/national-parks/6.3.0/20171027185153 to channel 'stable'
 ✓ Promoted mwrock/national-parks/6.3.0/20171027185153
@@ -295,7 +295,7 @@ Now that version `6.3.0` is in the depot, my Azure VMs should start serving that
 
 Because Habitat has already created an isolated and portable environment for my application, embedding the application in a Docker image can be done in a single command.
 
-```console
+```studio
 [15][default:/src:0]# hab pkg export docker mwrock/national-parks
 » Building a runnable Docker image with: mwrock/national-parks
 ...
@@ -337,7 +337,7 @@ Successfully tagged mwrock/national-parks:latest
 
 !BAM!
 
-```console
+```powershell
 C:\dev\HabService [master]> docker image ls
 REPOSITORY                                  TAG                     IMAGE ID            CREATED             SIZE
 mwrock/national-parks                       6.3.0                   e86ccef6be11        2 minutes ago       395MB
@@ -345,8 +345,8 @@ mwrock/national-parks                       6.3.0                   e86ccef6be11
 
 So now I can launch my application in container format with a `docker run`:
 
-```console
-docker run -it -p 8080:8080 mwrock/national-parks --peer 172.17.0.2 --bind database:np-mongodb.default
+```shell
+$ docker run -it -p 8080:8080 mwrock/national-parks --peer 172.17.0.2 --bind database:np-mongodb.default
 ```
 
 All the arguments after the image name will be forwarded on to the Supervisor running in the container. We have already seen the `--bind` argument but what about the `--peer` argument?

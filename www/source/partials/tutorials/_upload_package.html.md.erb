@@ -1,14 +1,14 @@
 # Upload and Promote the Sample App
 
-For others to use and consume your packages, they need to be available on Builder. If you built your package with Builder, it is already available for others to use. 
+For others to use and consume your packages, they need to be available on Builder. If you built your package with Builder, it is already available for others to use.
 
-If you built your package locally, you need to upload it to Builder for others to use. 
+If you built your package locally, you need to upload it to Builder for others to use.
 
 ## Set Up hab to Authenticate with Builder
 
 Whether you upload a package to Builder or promote a package for CI/CD scenarios in Builder, you are required to supply an OAuth token as part of those operations. Because Builder uses GitHub to authenticate, follow the steps to generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/). Save that token value and/or set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to it. You will need it later.
 
-Once you have created this token, you can either skip down to [promoting your package to the stable channel](#promote) if you built your package with Builder, or proceed to the next section to learn how to upload your public key and package to Builder. 
+Once you have created this token, you can either skip down to [promoting your package to the stable channel](#promote) if you built your package with Builder, or proceed to the next section to learn how to upload your public key and package to Builder.
 
 ## Upload to Builder
 Uploading to Builder requires that you have a public key available for package verification as well as the package itself. Before you can upload the package, you must upload the key first.
@@ -22,17 +22,19 @@ To upload your public key, do the following:
 <% if !is_windows %>
 In a terminal window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~/.hab/cache/keys/originname-release.pub`).
 
-```
+```shell
 $ hab origin key upload -z <OAuth_token> <originname>
 ```
+
 <% end %>
 
 <% if is_windows %>
 In a PowerShell window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~\.hab\cache\keys\originname-release.pub`).
 
-```
+```powershell
 PS > hab origin key upload -z <OAuth_token> <originname>
 ```
+
 <% end %>
 
 
@@ -43,12 +45,12 @@ Once Builder possesses at least the public key of the origin, you may upload one
 <% if !is_windows %>
 1. Again, in your terminal window, change directory to the root of the `~/sample-rails-app` directory.
 
-    ```
+    ```shell
     $ cd ~/sample-rails-app
     ```
 2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
 
-    ```
+    ```shell
     $ hab pkg upload -z <OAuth_token> results/<originname>-sample-rails-app-0.1.0-release-x86_64-linux.hart
     ```
 <% end %>
@@ -56,19 +58,19 @@ Once Builder possesses at least the public key of the origin, you may upload one
 <% if is_windows %>
 1. Again, in your PowerShell window, change directory to the root of the `~\sample-rails-app` directory.
 
-    ```
+    ```powershell
     PS > cd ~\sample-rails-app
     ```
 2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
 
-    ```
+    ```powershell
     PS > hab pkg upload -z <OAuth_token> .\results\<originname>-sample-rails-app-0.1.0-release-x86_64-linux.hart
     ```
 <% end %>
 
     If successful, you should see the following output:
 
-    ```console
+    ```shell
     ↑ Uploading results/dwrede-sample-rails-app-0.1.0-20170721004359-x86_64-linux.hart
     5.69 MB / 5.69 MB | [====================================================] 100.00 % 8.86 MB/s
     ✓ Uploaded dwrede/sample-rails-app/0.1.0/20170721004359
@@ -85,20 +87,21 @@ Channels are useful in CI/CD scenarios where you want to gate a package before m
 By default, packages are promoted to the `unstable` channel when created by Builder or uploaded to Builder. If you want to promote your package to the `stable` channel, run the `hab pkg promote` command as follows:
 
 <% if !is_windows %>
-```
+
+```shell
 $ hab pkg promote -z <OAuth_token> <originname>/sample-rails-app/0.1.0/release stable
 ```
 <% end %>
 
 <% if is_windows %>
-```
+```powershell
 PS > hab pkg promote -z <OAuth_token> <originname>/sample-rails-app/0.1.0/release stable
 ```
 <% end %>
 
 Output should look like the following:
 
-```console
+```shell
 » Promoting dwrede/sample-rails-app/0.1.0/20170721004359 to channel 'stable'
 ✓ Promoted dwrede/sample-rails-app/0.1.0/20170721004359
 ```

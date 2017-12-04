@@ -1,7 +1,8 @@
- p Also, this guide assumes that you have a Ruby web application already created with a Gemfile in your project directory. 
+ p Also, this guide assumes that you have a Ruby web application already created with a Gemfile in your project directory.
 
- blockquote 
- p <b>Important</b> If you have the gem <code>tzinfo-data</code> referenced in your Gemfile, it is important that you remove any platform-specific attributes from the gem declaration. Your reference should simply look like the following: 
+ blockquote
+ p <b>Important</b> If you have the gem <code>tzinfo-data</code> referenced in your Gemfile, it is important that you remove any platform-specific attributes from the gem declaration. Your reference should simply look like the following:
 
- pre 
-  code gem 'tzinfo-data'
+ = code(:ruby) do
+   |
+    gem 'tzinfo-data'

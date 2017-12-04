@@ -1,7 +1,6 @@
 p You can use the <code>ruby</code> keyword in your app's Gemfile to specify a version of Ruby. For example:
 
-pre
- code
+= code(:ruby) do
   |
    source "https://rubygems.org"
 
@@ -11,8 +10,7 @@ p The value of this keyword will be used to determine the version of the Habitat
 
 p You can also set the <code>scaffolding_ruby_pkg</code> variable in your plan.sh to specify a version of Ruby. For example:
 
-pre
- code
+= code(:bash) do
   |
    scaffolding_ruby_pkg=core/ruby/2.4.1
 
