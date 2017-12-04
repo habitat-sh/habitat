@@ -1,11 +1,11 @@
 #!/bin/bash
-set -euo pipefail
 
 export PGPASSWORD
 PGPASSWORD=$(cat /hab/svc/builder-datastore/config/pwfile)
 
 mkdir -p /hab/svc/builder-api
-cat <<EOT > /hab/svc/builder-api/user.toml
+cat <<EOT > /hab/svc/builder-api/config.toml
+
 [github]
 url = "$GITHUB_API_URL"
 web_url = "$GITHUB_WEB_URL"
@@ -22,10 +22,15 @@ friends_only     = false
 source_code_url  = "https://github.com/habitat-sh/habitat"
 tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "http://$APP_HOSTNAME/#/sign-in"
+
+[depot]
+path = "/hab/svc/builder-api/data"
+key_dir = "/hab/svc/builder-api/files"
+
 EOT
 
 mkdir -p /hab/svc/builder-api-proxy
-cat <<EOT > /hab/svc/builder-api-proxy/user.toml
+cat <<EOT > /hab/svc/builder-api-proxy/config.toml
 app_url = "http://localhost:9636"
 
 [github]
@@ -37,7 +42,8 @@ app_id = $GITHUB_APP_ID
 EOT
 
 mkdir -p /hab/svc/builder-jobsrv
-cat <<EOT > /hab/svc/builder-jobsrv/user.toml
+cat <<EOT > /hab/svc/builder-jobsrv/config.toml
+key_dir = "/hab/svc/builder-jobsrv/files"
 
 [datastore]
 password = "$PGPASSWORD"
@@ -45,10 +51,11 @@ database = "builder_jobsrv"
 
 [archive]
 backend = "local"
+local_dir = "/hab/svc/builder-jobsrv/data"
 EOT
 
 mkdir -p /hab/svc/builder-originsrv
-cat <<EOT > /hab/svc/builder-originsrv/user.toml
+cat <<EOT > /hab/svc/builder-originsrv/config.toml
 [app]
 shards = [
   0,
@@ -187,7 +194,7 @@ database = "builder_originsrv"
 EOT
 
 mkdir -p /hab/svc/builder-sessionsrv
-cat <<EOT > /hab/svc/builder-sessionsrv/user.toml
+cat <<EOT > /hab/svc/builder-sessionsrv/config.toml
 [app]
 shards = [
   0,
@@ -331,6 +338,23 @@ early_access_teams = [$GITHUB_ADMIN_TEAM]
 
 [github]
 url = "$GITHUB_API_URL"
+client_id = "$GITHUB_CLIENT_ID"
+client_secret = "$GITHUB_CLIENT_SECRET"
+app_id = 5629
+EOT
+
+mkdir -p /hab/svc/builder-worker
+cat <<EOT > /hab/svc/builder-worker/config.toml
+auth_token = "${HAB_AUTH_TOKEN}"
+auto_publish = true
+log_level = "debug"
+airlock_enabled = false
+data_path = "/hab/svc/builder-worker/data"
+bldr_url = "http://localhost:9636"
+
+[github]
+url = "$GITHUB_API_URL"
+web_url = "$GITHUB_WEB_URL"
 client_id = "$GITHUB_CLIENT_ID"
 client_secret = "$GITHUB_CLIENT_SECRET"
 app_id = $GITHUB_APP_ID
