@@ -93,23 +93,22 @@ fn get_job_does_not_exist() {
 }
 
 #[test]
-fn pending_jobs() {
+fn next_pending_job() {
     let mut job1 = test_job();
     let mut job2 = test_job();
-    let mut job3 = test_job();
-    let mut job4 = test_job();
     let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     let rjob1 = ds.create_job(&mut job1).expect("Failed to create job");
-    let _rjob2 = ds.create_job(&mut job2).expect("Failed to create job");
-    let _rjob3 = ds.create_job(&mut job3).expect("Failed to create job");
-    let _rjob4 = ds.create_job(&mut job4).expect("Failed to create job");
+    let rjob2 = ds.create_job(&mut job2).expect("Failed to create job");
 
-    // Get one job, it should be FIFO, and it should have its status set to Dispatched
-    let pending_jobs = ds.pending_jobs(1).expect("Failed to get pendings job");
-    assert_eq!(pending_jobs.len(), 1, "Failed to find a pending job");
+    // Get one job, it should be FIFO, and it should have its status set to Dispatched,
+    // and worker set to the passed in worker id
+    let pending_job = ds.next_pending_job("worker1").expect(
+        "Failed to get pending job",
+    );
+    assert!(pending_job.is_some(), "Failed to find a pending job");
     assert_eq!(
-        pending_jobs[0].get_id(),
+        pending_job.unwrap().get_id(),
         rjob1.get_id(),
         "First in is not first out"
     );
@@ -121,22 +120,33 @@ fn pending_jobs() {
         .expect("Failed to get job entry")
         .expect("Failed to find the job entry");
     assert_eq!(job1_dispatched.get_state(), jobsrv::JobState::Dispatched);
+    assert_eq!(job1_dispatched.get_worker(), "worker1");
 
-    // Get the remaining jobs; a larger number results in the total set
-    let remaining_jobs = ds.pending_jobs(5).expect(
-        "Failed to get remaining pending jobs",
+    // Get second job, it should be FIFO, and it should have its status set to Dispatched,
+    // and worker set to the passed in worker id
+    let pending_job_2 = ds.next_pending_job("worker2").expect(
+        "Failed to get pending job",
     );
+    assert!(pending_job_2.is_some(), "Failed to find a pending job");
     assert_eq!(
-        remaining_jobs.len(),
-        3,
-        "Failed to get all the remaining jobs"
+        pending_job_2.unwrap().get_id(),
+        rjob2.get_id(),
+        "First in is not first out"
     );
+
+    get_job.set_id(rjob2.get_id());
+
+    let job2_dispatched = ds.get_job(&get_job)
+        .expect("Failed to get job entry")
+        .expect("Failed to find the job entry");
+    assert_eq!(job2_dispatched.get_state(), jobsrv::JobState::Dispatched);
+    assert_eq!(job2_dispatched.get_worker(), "worker2");
 
     // No jobs returns an empty array
-    let no_jobs = ds.pending_jobs(100).expect(
+    let no_job = ds.next_pending_job("worker3").expect(
         "Failed to get empty pending jobs",
     );
-    assert_eq!(no_jobs.len(), 0);
+    assert!(no_job.is_none());
 }
 
 #[test]

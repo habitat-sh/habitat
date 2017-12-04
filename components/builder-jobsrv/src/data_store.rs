@@ -172,23 +172,26 @@ impl DataStore {
         Ok(response)
     }
 
-    /// Get a list of pending jobs, up to a maximum count of jobs.
+    /// Get the next pending job from the list of pending jobs
+    /// Atomically set the job state to Dispatching, and set the worker id
     ///
     /// # Errors
     ///
     /// * If a connection cannot be gotten from the pool
     /// * If the pending jobs cannot be selected from the database
     /// * If the row returned cannot be translated into a Job
-    pub fn pending_jobs(&self, count: i32) -> Result<Vec<jobsrv::Job>> {
-        let mut jobs = Vec::new();
+    pub fn next_pending_job(&self, worker: &str) -> Result<Option<jobsrv::Job>> {
         let conn = self.pool.get_shard(0)?;
-        let rows = &conn.query("SELECT * FROM pending_jobs_v1($1)", &[&count])
+        let rows = &conn.query("SELECT * FROM next_pending_job_v1($1)", &[&worker])
             .map_err(Error::JobPending)?;
-        for row in rows {
+
+        if rows.len() != 0 {
+            let row = rows.get(0);
             let job = row_to_job(&row)?;
-            jobs.push(job);
+            Ok(Some(job))
+        } else {
+            Ok(None)
         }
-        Ok(jobs)
     }
 
     /// Get a list of cancel-pending jobs
@@ -203,6 +206,25 @@ impl DataStore {
         let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM get_cancel_pending_jobs_v1()", &[])
             .map_err(Error::JobPending)?;
+        for row in rows {
+            let job = row_to_job(&row)?;
+            jobs.push(job);
+        }
+        Ok(jobs)
+    }
+
+    /// Get a list of Dispatched jobs
+    ///
+    /// # Errors
+    ///
+    /// * If a connection cannot be gotten from the pool
+    /// * If the cancel pending jobs cannot be selected from the database
+    /// * If the row returned cannot be translated into a Job
+    pub fn get_dispatched_jobs(&self) -> Result<Vec<jobsrv::Job>> {
+        let mut jobs = Vec::new();
+        let conn = self.pool.get_shard(0)?;
+        let rows = &conn.query("SELECT * FROM get_dispatched_jobs_v1()", &[])
+            .map_err(Error::JobGet)?;
         for row in rows {
             let job = row_to_job(&row)?;
             jobs.push(job);
@@ -910,6 +932,10 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
 
     if let Some(Ok(channel)) = row.get_opt::<&str, String>("channel") {
         job.set_channel(channel);
+    };
+
+    if let Some(Ok(worker)) = row.get_opt::<&str, String>("worker") {
+        job.set_worker(worker);
     };
 
     Ok(job)

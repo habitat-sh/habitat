@@ -398,5 +398,45 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                      $$"#,
     )?;
 
+    // Add a worker column to the jobs table
+    migrator.migrate(
+        "jobsrv",
+        r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS worker TEXT DEFAULT NULL"#,
+    )?;
+
+    // Get the next Pending job
+    migrator.migrate("jobsrv",
+         r#"CREATE OR REPLACE FUNCTION next_pending_job_v1 (p_worker text) RETURNS SETOF jobs AS
+                $$
+                DECLARE
+                    r jobs % rowtype;
+                BEGIN
+                    FOR r IN
+                        SELECT * FROM jobs
+                        WHERE job_state = 'Pending'
+                        ORDER BY created_at ASC
+                        FOR UPDATE SKIP LOCKED
+                        LIMIT 1
+                    LOOP
+                        UPDATE jobs SET job_state='Dispatched', scheduler_sync=false, worker=p_worker, updated_at=now()
+                        WHERE id=r.id
+                        RETURNING * INTO r;
+                        RETURN NEXT r;
+                    END LOOP;
+                  RETURN;
+                END
+                $$ LANGUAGE plpgsql VOLATILE"#)?;
+
+    // Get a list of all the Dispatched jobs
+    migrator.migrate(
+        "jobsrv",
+        r#"CREATE OR REPLACE FUNCTION get_dispatched_jobs_v1()
+                     RETURNS SETOF jobs
+                     LANGUAGE SQL STABLE AS $$
+                       SELECT *
+                       FROM jobs
+                       WHERE job_state = 'Dispatched'
+                     $$"#,
+    )?;
     Ok(())
 }
