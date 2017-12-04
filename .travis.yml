@@ -10,7 +10,7 @@ env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
     # Habitat Rust program components
-    - _RUST_HAB_BIN_COMPONENTS="components/airlock|components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/sup"
+    - _RUST_HAB_BIN_COMPONENTS="components/airlock|components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/pkg-export-kubernetes|components/sup"
     # Habitat Rust crate components
     - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/core|components/eventsrv-client|components/launcher-client|components/launcher-protocol"
     # Builder Rust program components
@@ -245,8 +245,8 @@ matrix:
     - os: linux
       env:
         # These components will build as Habitat packages in the provided order
-        - COMPONENTS="pkg-aci pkg-dockerize pkg-cfize pkg-export-docker pkg-mesosize pkg-tarize"
-        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/pkg-aci|components/pkg-cfize|components/pkg-dockerize|components/pkg-mesosize|components/pkg-tarize|components/pkg-export-docker|$_RUST_HAB_LIB_COMPONENTS"
+        - COMPONENTS="pkg-aci pkg-dockerize pkg-cfize pkg-export-docker pkg-export-kubernetes pkg-mesosize pkg-tarize"
+        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/pkg-aci|components/pkg-cfize|components/pkg-dockerize|components/pkg-mesosize|components/pkg-tarize|components/pkg-export-docker|components/pkg-export-kubernetes|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_AUTH_TOKEN
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
