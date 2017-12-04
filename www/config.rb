@@ -32,7 +32,9 @@ page 'tutorials/build-your-own/node/*', layout: :tutorials_sidebar, locals: { si
 page 'tutorials/build-your-own/gradle/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_gradle'}
 page '/blog/index.html', layout: :blog_index
 page '/demo/steps/*', layout: :demo_index
-page 'get-started/index.html', layout: :get_started
+page 'get-started/*', layout: :get_started
+page 'guides/index.html', layout: :get_started
+page 'guides/rails/*', layout: :sidebar, locals: { sidebar_layout: 'guide_rails' }
 
 activate :blog do |blog|
   blog.prefix = 'blog'

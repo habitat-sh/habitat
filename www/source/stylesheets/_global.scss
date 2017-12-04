@@ -288,6 +288,10 @@ code {
     background: url('/images/icons/icon-download.svg') 15px center no-repeat;
     padding-left: 1.75rem;
   }
+
+  + .button {
+    margin-left: rem-calc(16);
+  }
 }
 
 .button.cta{

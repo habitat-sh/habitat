@@ -104,6 +104,33 @@ $main-nav-breakpoint: 769px;
         .card {
           @include card;
           padding: rem-calc(24);
+
+          p:last-child {
+            margin-bottom: 0;
+          }
+        }
+
+        .feature-card {
+            background-color: $hab-blue-medium;
+
+            h4 a {
+              font-size: 1.2rem;
+              transition: color 200ms;
+
+              &:hover {
+                color: rgba(#FFF, 0.9);
+                border-bottom: 1px solid #FFF;
+                transition: color 200ms;
+              }
+            }
+
+            h4 a, p {
+              color: #FFF;
+            }
+
+            h6 {
+              color: rgba(#FFF, 0.5);
+            }
         }
 
         .small-12 {

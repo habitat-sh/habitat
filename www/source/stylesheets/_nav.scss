@@ -41,6 +41,7 @@ $main-nav-breakpoint: 769px;
   }
 
   &.has-sidebar {
+    margin-bottom: rem-calc(48);
     background: transparent;
   }
 

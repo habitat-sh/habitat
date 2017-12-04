@@ -18,28 +18,28 @@ div.get-started--container
       br
       | Start with a basic example, work up to Habitizing and running your own application/services in production.
     ul.tech-icons
-      li.tech-icons--item: a.tech-icon.tech-icons--node href="/get-started/guides/node/"
+      li.tech-icons--item: a.tech-icon.tech-icons--node href="/get-started/node/"
         img src="/images/solutions-logos/icon-node.svg" alt="node"
         span Node.js
-      li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/guides/ruby/"
+      li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/ruby/"
         img src="/images/solutions-logos/icon-ruby.svg" alt="ruby"
         span Ruby
-      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/guides/java/"
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/java/"
         img src="/images/solutions-logos/icon-java.svg" alt="java"
         span Java
-      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/guides/go/"
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/go/"
         img src="/images/solutions-logos/icon-go.svg" alt="go"
         span Go
-      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/guides/php/"
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/php/"
         img src="/images/solutions-logos/icon-php.svg" alt="php"
         span PHP
-      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/guides/python/"
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/python/"
         img src="/images/solutions-logos/icon-python.svg" alt="python"
         span Python
-      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/guides/scala/"
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/scala/"
         img src="/images/solutions-logos/icon-scala.svg" alt="scala"
         span Scala
-    = link_to 'All guides', '/get-started/guides/', class: 'button'
+    = link_to 'All guides', '/guides', class: 'button secondary'
   hr
   section.get-started--boxes
     h3 Learn the fundamentals, core concepts/components
@@ -77,7 +77,9 @@ div.get-started--container
           h6 End-to-end
           p
             | In this tutorial, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
-    = link_to 'View docs', '/docs/', class: 'button'
+    div.button-set
+      = link_to 'All tutorials', '/tutorials/', class: 'button'
+      = link_to 'View docs', '/docs/', class: 'button secondary'
   hr
   section.get-started--boxes
     h3 Advanced topics and use cases; Integrate Habitat into your existing workflow

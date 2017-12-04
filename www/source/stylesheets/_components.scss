@@ -27,6 +27,7 @@ $tech-icon-height: 40px;
   width: $tech-icon-height;
   border-radius: ($tech-icon-height / 2);
   background-color: $hab-gray-light;
+  text-align: center;
 
   &.coming-soon {
     &:after {
