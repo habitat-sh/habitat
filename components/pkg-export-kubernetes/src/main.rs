@@ -18,6 +18,7 @@ extern crate env_logger;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate handlebars;
+extern crate rand;
 #[macro_use]
 extern crate serde_json;
 #[macro_use]
@@ -35,6 +36,7 @@ use hcore::PROGRAM_NAME;
 use hcore::env as henv;
 use hcore::package::PackageIdent;
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
+use rand::Rng;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
@@ -85,10 +87,21 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
         Ok(pi) => pi,
         Err(e) => return Err(format!("{}", e)),
     };
+    // To allow multiple instances of Habitat application in Kubernetes,
+    // random suffix in metadata_name is needed.
+    let metadata_name = format!(
+        "{}-{}",
+        pkg_ident.name,
+        rand::thread_rng()
+            .gen_ascii_chars()
+            .take(5)
+            .collect::<String>()
+    );
     let image = m.value_of("IMAGE").unwrap_or(pkg_ident_str);
 
     let json = json!({
-        "metadata_name": pkg_ident.name,
+        "metadata_name": metadata_name,
+        "habitat_name": pkg_ident.name,
         "image": image,
         "count": count,
         "service_topology": topology,
@@ -109,15 +122,15 @@ fn start(_ui: &mut UI) -> result::Result<(), String> {
 
     match Handlebars::new().template_render(MANIFESTFILE, &json) {
         Ok(r) => {
-            let out = r.lines().filter(|l| {
-                *l != ""
-            }).collect::<Vec<_>>().join("\n") + "\n";
+            let out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
+                "\n",
+            ) + "\n";
 
             match write.write(out.as_bytes()) {
                 Ok(_) => Ok(()),
                 Err(e) => Err(format!("{}", e)),
             }
-        },
+        }
 
         Err(e) => Err(format!("{}", e)),
     }

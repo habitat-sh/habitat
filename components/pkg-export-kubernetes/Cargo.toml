@@ -17,6 +17,7 @@ habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
 handlebars = { version = "*", default-features = false }
 log = "*"
+rand = "*"
 serde = "1.0.2"
 serde_json = "1.0.0"
 
