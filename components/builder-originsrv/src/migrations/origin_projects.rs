@@ -446,6 +446,8 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#,
     )?;
+    // BEGIN cascade delete migration
+    // Issue: https://github.com/habitat-sh/habitat/issues/4090
     migrator.migrate(
         "originsrv",
         r#"ALTER TABLE IF EXISTS origin_project_integrations
@@ -471,6 +473,11 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
     migrator.migrate(
         "originsrv",
         "UPDATE origin_project_integrations SET updated_at = NOW() WHERE updated_at IS NULL;",
+    )?;
+    // Cleanup any orphaned origin_project_integrations
+    migrator.migrate(
+        "originsrv",
+        "DELETE FROM origin_project_integrations WHERE project_id IS NULL or integration_id IS NULL",
     )?;
     migrator.migrate(
         "originsrv",
@@ -542,6 +549,7 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         AND package_name = in_name
                     $$ LANGUAGE SQL STABLE"#,
     )?;
+    // END cascade delete migration
     migrator.migrate(
         "originsrv",
         r#"CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v3 (
