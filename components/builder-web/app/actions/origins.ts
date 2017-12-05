@@ -33,8 +33,6 @@ export const SET_CURRENT_ORIGIN_LOADING = 'SET_CURRENT_ORIGIN_LOADING';
 export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY = 'SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY';
 export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY = 'SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY';
 export const SET_INTEGRATION_CREDS_VALIDATION = 'SET_INTEGRATION_CREDS_VALIDATION';
-export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE = 'SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE';
-export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE = 'SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE';
 export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = 'SET_ORIGIN_USER_INVITE_ERROR_MESSAGE';
 export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE = 'SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE';
 export const TOGGLE_ORIGIN_PICKER = 'TOGGLE_ORIGIN_PICKER';
@@ -458,20 +456,6 @@ function setCurrentOriginCreatingFlag(payload) {
   };
 }
 
-function setOriginPrivateKeyUploadErrorMessage(payload: string) {
-  return {
-    type: SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE,
-    payload,
-  };
-}
-
-function setOriginPublicKeyUploadErrorMessage(payload: string) {
-  return {
-    type: SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE,
-    payload,
-  };
-}
-
 function setOriginUserInviteErrorMessage(payload: string) {
   return {
     type: SET_ORIGIN_USER_INVITE_ERROR_MESSAGE,
@@ -509,15 +493,18 @@ export function populatePackageCountForOrigin(payload) {
 export function uploadOriginPrivateKey(key: string, token: string) {
   return dispatch => {
     new BuilderApiClient(token).createOriginKey(key).then(() => {
-      dispatch(setOriginPrivateKeyUploadErrorMessage(undefined));
-      dispatch(fetchOrigin(parseKey(key).origin));  // we need this to make the keys appear after upload
+      dispatch(fetchOrigin(parseKey(key).origin));
       dispatch(addNotification({
-        title: 'Origin Private Key Uploaded',
-        body: `'${parseKey(key).name}' has been uploaded`,
+        title: 'Private key uploaded',
+        body: `${parseKey(key).name} has been uploaded.`,
         type: SUCCESS,
       }));
     }).catch(error => {
-      dispatch(setOriginPrivateKeyUploadErrorMessage(error.message));
+      dispatch(addNotification({
+        title: 'Failed to save private key',
+        body: error.message,
+        type: DANGER,
+      }));
     });
   };
 }
@@ -525,15 +512,18 @@ export function uploadOriginPrivateKey(key: string, token: string) {
 export function uploadOriginPublicKey(key: string, token: string) {
   return dispatch => {
     new BuilderApiClient(token).createOriginKey(key).then(() => {
-      dispatch(setOriginPublicKeyUploadErrorMessage(undefined));
       dispatch(fetchOriginPublicKeys(parseKey(key).origin, token));
       dispatch(addNotification({
-        title: 'Origin Public Key Uploaded',
-        body: `'${parseKey(key).name}' has been uploaded`,
+        title: 'Public key uploaded',
+        body: `${parseKey(key).name} has been uploaded.`,
         type: SUCCESS,
       }));
     }).catch(error => {
-      dispatch(setOriginPublicKeyUploadErrorMessage(error.message));
+      dispatch(addNotification({
+        title: 'Failed to save public key',
+        body: error.message,
+        type: DANGER,
+      }));
     });
   };
 }
