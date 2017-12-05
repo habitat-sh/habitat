@@ -7,7 +7,7 @@ pkg_license=('Apache-2.0')
 pkg_build_deps=(
   core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
   core/openssl-musl core/libsodium-musl
-  core/coreutils core/rust core/gcc
+  core/coreutils core/rust core/gcc core/make
 )
 pkg_bin_dirs=(bin)
 
