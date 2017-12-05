@@ -189,6 +189,42 @@ body {
   }
 }
 
+.view-gh {
+  font-size: rem-calc(14);
+  text-align: center;
+
+  img {
+    margin-bottom: -1px;
+    margin-right: rem-calc(8);
+    height: rem-calc(12);
+    vertical-align: baseline;
+  }
+
+  a {
+    color: rgba($hab-white, 0.5);
+
+    &:hover {
+      color: $hab-white;
+    }
+  }
+
+  @include large-nav {
+    text-align: right;
+  }
+}
+
+ul.small-links {
+  margin: 0 0 rem-calc(16);
+  padding: 0;
+  list-style: none;
+  font-size: rem-calc(12);
+
+  li {
+    display: inline-block;
+    margin-right: rem-calc(16);
+  }
+}
+
 // 2. Code Overrides
 // ---------
 pre {
@@ -357,6 +393,10 @@ ol.lower-roman {
 
 // 5. Links
 // ---------
+
+a, a:hover {
+  transition: all 200ms;
+}
 
 .back-link {
   display: block;

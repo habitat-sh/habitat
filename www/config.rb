@@ -94,6 +94,10 @@ helpers do
     ENV['BUILDER_WEB_URL'] || 'https://bldr.habitat.sh'
   end
 
+  def github_www_source_url
+    ENV['GITHUB_WWW_SOURCE_URL'] || 'https://github.com/habitat-sh/habitat/tree/master/www/source'
+  end
+
   def render_markdown(text)
     Kramdown::Document.new(text).to_html
   end
