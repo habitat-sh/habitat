@@ -478,7 +478,7 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
             DROP COLUMN IF EXISTS name,
             DROP COLUMN IF EXISTS integration,
             DROP COLUMN IF EXISTS integration_name,
-            ALTER COLUMN IF EXISTS updated_at SET DEFAULT NOW(),
+            ALTER COLUMN updated_at SET DEFAULT NOW(),
             ALTER COLUMN body SET NOT NULL,
             ALTER COLUMN created_at SET NOT NULL,
             ALTER COLUMN updated_at SET NOT NULL,
