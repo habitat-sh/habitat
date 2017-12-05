@@ -26,6 +26,8 @@
               <div class="column name release">
                 <span class="release-name">{{ packageString(pkg) }}</span>
                 <hab-channels [channels]="pkg.channels"></hab-channels>
+                <hab-package-promote [origin]="pkg.origin" [name]="pkg.name" [version]="pkg.version" [release]="pkg.release" channel="stable"
+                  *ngIf="promotable(pkg)"></hab-package-promote>
               </div>
               <div class="column build-date">
                 {{ releaseToDate(pkg.release) }}
@@ -47,4 +49,3 @@
     </div>
   </ul>
 </div>
-

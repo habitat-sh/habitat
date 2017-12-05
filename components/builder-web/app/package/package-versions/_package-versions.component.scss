@@ -1,9 +1,17 @@
 .package-versions-component {
-  
+
   .nav-list {
-  
+
     .name {
       flex: 6;
+
+      .release-name {
+        display: block;
+      }
+
+      .package-promote-component {
+        margin-left: $default-margin / 4;
+      }
     }
 
     .build-date {

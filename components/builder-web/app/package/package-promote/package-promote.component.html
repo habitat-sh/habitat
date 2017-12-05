@@ -1,0 +1,10 @@
+<span class="package-promote-component" (click)="prompt($event)">
+  <span *ngIf="!promoting">
+    <hab-icon symbol="star-circle"></hab-icon>
+    Promote to stable
+  </span>
+  <span class="promoting" *ngIf="promoting">
+    <hab-icon symbol="loading" class="spinning"></hab-icon>
+    Promoting...
+  </span>
+</span>
