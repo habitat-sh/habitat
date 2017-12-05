@@ -470,10 +470,15 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
     )?;
     migrator.migrate(
         "originsrv",
+        "UPDATE origin_project_integrations SET updated_at = NOW() WHERE updated_at IS NULL;",
+    )?;
+    migrator.migrate(
+        "originsrv",
         r#"ALTER TABLE origin_project_integrations
             DROP COLUMN IF EXISTS name,
             DROP COLUMN IF EXISTS integration,
             DROP COLUMN IF EXISTS integration_name,
+            ALTER COLUMN IF EXISTS updated_at SET DEFAULT NOW(),
             ALTER COLUMN body SET NOT NULL,
             ALTER COLUMN created_at SET NOT NULL,
             ALTER COLUMN updated_at SET NOT NULL,
