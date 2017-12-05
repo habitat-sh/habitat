@@ -6,6 +6,8 @@ branches:
     - /^test_development-.*$/
     - /^\d+\.\d+\.\d+$/
 
+os: linux
+
 env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
@@ -24,8 +26,7 @@ matrix:
 #
 # Job for testing Habitat Rust program components
 #
-    - os: linux
-      language: rust
+    - language: rust
       env:
         - COMPONENTS=bin
         - AFFECTED_DIRS="$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
@@ -66,8 +67,7 @@ matrix:
 #
 # Job for testing Habitat  and Builder Rust crate components
 #
-    - os: linux
-      language: rust
+    - language: rust
       env:
         - COMPONENTS=lib
         - AFFECTED_DIRS="$_RUST_HAB_LIB_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
@@ -105,8 +105,7 @@ matrix:
 #
 # Job for testing Builder Rust program components
 #
-    - os: linux
-      language: rust
+    - language: rust
       env:
         - COMPONENTS=srv
         - AFFECTED_DIRS="$_RUST_BLDR_BIN_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
@@ -144,8 +143,7 @@ matrix:
 #
 # Job for testing Builder Web components
 #
-    - os: linux
-      language: node_js
+    - language: node_js
       node_js: 8.7.0
       sudo: false
       env:
@@ -174,8 +172,7 @@ matrix:
 #
 # Job for building and deploying the web site
 #
-    - os: linux
-      language: ruby
+    - language: ruby
       rvm: 2.3.1
       sudo: false
       cache:
@@ -201,8 +198,7 @@ matrix:
 #
 # Job for building and publishing Habitat Linux release packages
 #
-    - os: linux
-      env:
+    - env:
         # These components will build as Habitat packages in the provided order
         - COMPONENTS="hab-butterfly hab plan-build backline bintray-publish studio sup"
         - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/backline|components/bintray-publish|components/plan-build|components/studio|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
@@ -242,8 +238,7 @@ matrix:
 #
 # Job for building and publishing Habitat exporter release packages
 #
-    - os: linux
-      env:
+    - env:
         # These components will build as Habitat packages in the provided order
         - COMPONENTS="pkg-aci pkg-cfize pkg-export-docker pkg-export-kubernetes pkg-mesosize pkg-tarize"
         - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/pkg-aci|components/pkg-cfize|components/pkg-mesosize|components/pkg-tarize|components/pkg-export-docker|components/pkg-export-kubernetes|$_RUST_HAB_LIB_COMPONENTS"
@@ -278,8 +273,7 @@ matrix:
 #
 # Job for building and publishing Habitat Mac release packages
 #
-    - os: linux
-      env:
+    - env:
         - COMPONENTS="hab"
         - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_ORIGIN_KEY
