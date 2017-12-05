@@ -90,8 +90,6 @@ export default Record({
         errorMessage: undefined,
         exists: false,
         loading: true,
-        privateKeyErrorMessage: undefined,
-        publicKeyErrorMessage: undefined,
         publicKeyListErrorMessage: undefined,
         userInviteErrorMessage: undefined,
         integrationsSaveErrorMessage: undefined
