@@ -13,14 +13,6 @@ CHANNEL=unstable
 
 export HAB_ORIGIN=core
 
-# fail fast if we aren't on the desired branch or if this is a pull request
-if [ -n "$TRAVIS_BRANCH" || -n "$TRAVIS_PULL_REQUEST" ]; then
-  if  [[ "${TRAVIS_BRANCH}" != "$HAB_VERSION" && ("${TRAVIS_PULL_REQUEST}" != "false" || "${TRAVIS_BRANCH}" != "master") ]]; then
-      echo "We only publish on successful builds of master."
-      exit 0
-  fi
-fi
-
 if [ "$HAB_VERSION" == "$TRAVIS_TAG" ]; then
   BINTRAY_REPO=stable
   CHANNEL=rc-$HAB_VERSION
