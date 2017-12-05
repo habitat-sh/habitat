@@ -101,7 +101,7 @@ impl<'a> DockerBuilder<'a> {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::BuildFailed(exit_status));
+            return Err(Error::BuildFailed(exit_status))?;
         }
 
         let id = match self.tags.first() {
@@ -125,7 +125,7 @@ impl<'a> DockerBuilder<'a> {
 
         match stdout.lines().next() {
             Some(id) => Ok(id.to_string()),
-            None => Err(Error::DockerImageIdNotFound(image_tag.to_string())),
+            None => Err(Error::DockerImageIdNotFound(image_tag.to_string()))?,
         }
     }
 }
@@ -270,9 +270,9 @@ impl<'a> DockerImage {
         let mut cmd = docker_cmd();
         cmd.arg("login")
             .arg("--username")
-            .arg(credentials.username)
+            .arg(&credentials.username)
             .arg("--password")
-            .arg(credentials.password);
+            .arg(&credentials.password);
 
         if let Some(arg) = registry_url {
             cmd.arg(arg);
@@ -281,12 +281,12 @@ impl<'a> DockerImage {
         debug!(
             "Running: {}",
             format!("{:?}", &cmd)
-                .replace(credentials.username, "<username-redacted>")
-                .replace(credentials.password, "<password-redacted>")
+                .replace(&credentials.username, "<username-redacted>")
+                .replace(&credentials.password, "<password-redacted>")
         );
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::LoginFailed(exit_status));
+            return Err(Error::LoginFailed(exit_status))?;
         }
 
         Ok(())
@@ -306,7 +306,7 @@ impl<'a> DockerImage {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::LogoutFailed(exit_status));
+            return Err(Error::LogoutFailed(exit_status))?;
         }
 
         Ok(())
@@ -326,7 +326,7 @@ impl<'a> DockerImage {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::PushImageFailed(exit_status));
+            return Err(Error::PushImageFailed(exit_status))?;
         }
         ui.status(
             Status::Uploaded,
@@ -350,7 +350,7 @@ impl<'a> DockerImage {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
         if !exit_status.success() {
-            return Err(Error::RemoveImageFailed(exit_status));
+            return Err(Error::RemoveImageFailed(exit_status))?;
         }
 
         Ok(())
@@ -409,7 +409,7 @@ impl DockerBuildRoot {
         let result = cmd.output().expect("Docker command failed to spawn");
         let os = String::from_utf8_lossy(&result.stdout);
         if !os.contains("windows") {
-            return Err(Error::DockerNotInWindowsMode(os.to_string()));
+            return Err(Error::DockerNotInWindowsMode(os.to_string()))?;
         }
 
         self.build_docker_image(ui, naming)
@@ -474,9 +474,14 @@ impl DockerBuildRoot {
         ui.status(Status::Creating, "image Dockerfile")?;
         let ctx = self.0.ctx();
         let json = json!({
-            "rootfs": ctx.rootfs().file_name().expect("file_name exists").to_string_lossy().as_ref(),
+            "rootfs": ctx.rootfs().file_name().expect("file_name exists")
+                .to_string_lossy()
+                .as_ref(),
             "path": ctx.env_path(),
-            "hab_path": util::pkg_path_for(&PackageIdent::from_str("core/hab")?, ctx.rootfs())?.join("bin/hab").to_string_lossy().replace("\\", "/"),
+            "hab_path": util::pkg_path_for(
+                &PackageIdent::from_str("core/hab")?,
+                ctx.rootfs()
+                        )?.join("bin/hab").to_string_lossy().replace("\\", "/"),
             "volumes": ctx.svc_volumes().join(" "),
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
