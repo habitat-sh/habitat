@@ -1,40 +1,39 @@
 <div class="docker-export-settings-component">
   <h3>
     <hab-icon symbol="docker"></hab-icon>
-    Publish to Docker Hub
+    Publish to Container Registries
   </h3>
   <p>
-    Export the resulting .hart file as a Docker container and publish it to your Docker Hub account. Integration settings are
-    managed under the origin Settings tab.
+    Export the resulting .hart file as a Docker container and publish it to your registry account(s). Registry account settings
+    are managed in the
+    <a [routerLink]="['/origins', origin, 'integrations']">Integrations tab for this origin</a>.
   </p>
   <section class="toggle">
     <mat-slide-toggle [(ngModel)]="enabled" [disabled]="!configured">
       {{ enabled ? "On" : "Off" }}
     </mat-slide-toggle>
     <span class="unconfigured" *ngIf="!configured">
-      You can configure this integration in the origin Integrations tab.
+      You can configure this integration in the
+      <a [routerLink]="['/origins', origin, 'integrations']">origin Integrations tab</a>.
     </span>
   </section>
   <ng-container *ngIf="enabled && configured">
     <section class="integrations">
-      <mat-radio-group [(ngModel)]="name">
-        <ng-container *ngFor="let type of integrations | habKeysPipe">
-          <mat-radio-button *ngFor="let integration of integrations[type]" [value]="integration">
-            <hab-icon [symbol]="type"></hab-icon>
-            <span>{{ integration }}</span>
-          </mat-radio-button>
-        </ng-container>
+      <mat-radio-group [(ngModel)]="name" (change)="onChange(name)">
+        <ul class="action-list">
+          <ng-container *ngFor="let type of integrations | habKeysPipe">
+            <li class="item" *ngFor="let integration of integrations[type]">
+              <mat-radio-button class="column" [value]="integration" [checked]="settingsFor(integration)">
+                <hab-icon [symbol]="type"></hab-icon>
+                <span>{{ decode(integration) }}</span>
+              </mat-radio-button>
+              <span class="actions column">
+                <hab-icon *ngIf="settingsFor(integration)" symbol="settings" title="Edit publish settings" (click)="configure(integration)"></hab-icon>
+              </span>
+            </li>
+          </ng-container>
+        </ul>
       </mat-radio-group>
-    </section>
-    <section class="fields">
-      <label for="repo_name" >Docker Organization and Repository</label>
-      <input type="text" name="repo_name" [(ngModel)]="repoName" placeholder="{{ repoPlaceholder }}">
-      <label for="custom_tag">Custom Tag (Optional)</label>
-      <input type="text" name="custom_tag" [(ngModel)]="customTag" [placeholder]="'yourtag or \{\{ channel \}\}'">
-      <label>Additional Tags</label>
-      <mat-checkbox [(ngModel)]="latestTag">:latest</mat-checkbox>
-      <mat-checkbox [(ngModel)]="versionTag">:pkg_version</mat-checkbox>
-      <mat-checkbox [(ngModel)]="releaseTag">:pkg_version-pkg_release</mat-checkbox>
     </section>
   </ng-container>
 </div>

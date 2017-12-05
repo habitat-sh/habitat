@@ -32,9 +32,6 @@ export default function projects(state = initialState['projects'], action) {
         setIn(['ui', 'current', 'exists'], false).
         setIn(['ui', 'current', 'loading'], true);
 
-    case actionTypes.CLEAR_CURRENT_PROJECT_INTEGRATION:
-      return state.setIn(['current', 'settings'], undefined);
-
     case actionTypes.SET_CURRENT_PROJECT:
       if (action.error) {
         return state.setIn(['current'], Project()).
@@ -51,7 +48,7 @@ export default function projects(state = initialState['projects'], action) {
       }
 
     case actionTypes.SET_CURRENT_PROJECT_INTEGRATION:
-      return state.setIn(['current', 'settings'], action.payload);
+      return state.setIn(['current', 'settings', action.payload.name], action.payload.settings);
 
     case actionTypes.SET_PROJECTS:
       if (action.error) {

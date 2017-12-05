@@ -534,5 +534,40 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         AND package_name = in_name
                     $$ LANGUAGE SQL STABLE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v3 (
+                                        in_origin text,
+                                        in_name text,
+                                        in_integration text,
+                                        in_body text
+                                ) RETURNS SETOF origin_project_integrations AS $$
+                                    BEGIN
+
+                                        -- We currently support running only one publish step per build job. This
+                                        -- temporary fix ensures we store (and can retrieve) only one project integration.
+                                        DELETE FROM origin_project_integrations
+                                        WHERE origin = in_origin
+                                        AND project_id = (SELECT id FROM origin_projects WHERE package_name = in_name AND origin_name = in_origin);
+
+                                        RETURN QUERY INSERT INTO origin_project_integrations(
+                                            origin,
+                                            body,
+                                            updated_at,
+                                            project_id,
+                                            integration_id)
+                                            VALUES (
+                                                in_origin,
+                                                in_body,
+                                                NOW(),
+                                                (SELECT id FROM origin_projects WHERE package_name = in_name AND origin_name = in_origin),
+                                                (SELECT id FROM origin_integrations WHERE origin = in_origin AND name = in_integration)
+                                            )
+                                            ON CONFLICT(project_id, integration_id)
+                                            DO UPDATE SET body=in_body RETURNING *;
+                                        RETURN;
+                                    END
+                                $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
     Ok(())
 }

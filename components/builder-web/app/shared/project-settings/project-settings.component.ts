@@ -101,7 +101,7 @@ export class ProjectSettingsComponent implements OnChanges {
   }
 
   get dockerEnabled() {
-    return this.dockerSettings && this.dockerSettings.docker_hub_repo_name !== '';
+    return this.dockerSettings && this.dockerSettings.size > 0;
   }
 
   get dockerSettings() {
@@ -277,7 +277,6 @@ export class ProjectSettingsComponent implements OnChanges {
 
   private saveIntegration(origin, name) {
     const settings = this.docker.settings;
-
     if (settings.enabled) {
       this.store.dispatch(
         setProjectIntegrationSettings(

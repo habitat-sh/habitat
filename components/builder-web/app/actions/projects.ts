@@ -91,12 +91,10 @@ export function setProjectVisibility(origin: string, name: string, setting: stri
 export function fetchProject(origin: string, name: string, token: string, alert: boolean) {
   return dispatch => {
     dispatch(clearCurrentProject());
-    dispatch(clearCurrentProjectIntegration());
 
     new BuilderApiClient(token).getProject(origin, name)
       .then(response => {
         dispatch(setCurrentProject(response, null));
-        dispatch(fetchProjectIntegration(origin, name, 'docker', token));
       })
       .catch((error) => {
         dispatch(setCurrentProject(null, error));
@@ -108,7 +106,6 @@ export function fetchProjects(origin: string, token: string) {
   return dispatch => {
     dispatch(clearProjects());
     dispatch(clearCurrentProject());
-    dispatch(clearCurrentProjectIntegration());
 
     new BuilderApiClient(token).getProjects(origin).then(response => {
       if (Array.isArray(response) && response.length > 0) {
@@ -120,11 +117,12 @@ export function fetchProjects(origin: string, token: string) {
 
 export function fetchProjectIntegration(origin: string, name: string, integration: string, token: string) {
   return dispatch => {
-    dispatch(clearCurrentProjectIntegration());
-
     new BuilderApiClient(token).getProjectIntegration(origin, name, integration)
       .then(response => {
-        dispatch(setCurrentProjectIntegration(response));
+        dispatch(setCurrentProjectIntegration({
+          name: integration,
+          settings: response
+        }));
       })
       .catch(error => { });
   };
@@ -170,12 +168,6 @@ export function updateProject(projectId: string, project: Object, token: string,
 function clearCurrentProject() {
   return {
     type: CLEAR_CURRENT_PROJECT
-  };
-}
-
-function clearCurrentProjectIntegration() {
-  return {
-    type: CLEAR_CURRENT_PROJECT_INTEGRATION
   };
 }
 
