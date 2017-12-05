@@ -449,21 +449,22 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
     migrator.migrate(
         "originsrv",
         r#"ALTER TABLE IF EXISTS origin_project_integrations
-            ADD COLUMN IF NOT EXISTS project_id bigint REFERENCES origin_projects(id) ON DELETE CASCADE NOT NULL,
-            ADD COLUMN IF NOT EXISTS integration_id bigint REFERENCES origin_integrations(id) ON DELETE CASCADE NOT NULL"#,
+            ADD COLUMN IF NOT EXISTS project_id bigint REFERENCES origin_projects(id) ON DELETE CASCADE,
+            ADD COLUMN IF NOT EXISTS integration_id bigint REFERENCES origin_integrations(id) ON DELETE CASCADE"#,
     )?;
     migrator.migrate(
         "originsrv",
         r#"DO $$
         BEGIN
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='origin_project_integrations' AND column_name='name') THEN
-                INSERT INTO origin_project_integrations (project_id, integration_id)
-                    SELECT op.id as project_id, oi.id as integrations_id
+                UPDATE origin_project_integrations as u1 SET project_id = u2.project_id, integration_id = u2.integration_id FROM
+                    (SELECT opi.id as opiid, op.id as project_id, oi.id as integration_id
                     FROM origin_project_integrations opi
                     JOIN origin_projects op ON opi.name = op.package_name
                     JOIN origin_integrations as oi on opi.integration = oi.name
                     WHERE opi.project_id IS NULL
-                    AND opi.integration_id IS NULL;
+                    AND opi.integration_id IS NULL) as u2
+                    WHERE u2.opiid = u1.id;
             END IF;
         END $$"#,
     )?;
@@ -477,6 +478,8 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
             ALTER COLUMN created_at SET NOT NULL,
             ALTER COLUMN updated_at SET NOT NULL,
             ALTER COLUMN origin SET NOT NULL,
+            ALTER COLUMN project_id SET NOT NULL,
+            ALTER COLUMN integration_id SET NOT NULL,
             ADD UNIQUE (project_id, integration_id);"#,
     )?;
     migrator.migrate(
