@@ -39,7 +39,6 @@ div.get-started--container
       li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/scala/"
         img src="/images/solutions-logos/icon-scala.svg" alt="scala"
         span Scala
-    = link_to 'All guides', '/guides', class: 'button secondary'
   hr
   section.get-started--boxes
     h3 Learn the fundamentals, core concepts/components
@@ -81,6 +80,25 @@ div.get-started--container
       = link_to 'All tutorials', '/tutorials/', class: 'button'
       = link_to 'View docs', '/docs/', class: 'button secondary'
   hr
+  section.get-started--icon-list
+    h3 Deploying your Habitat apps...
+    p.description
+      | Lean how to deploy your Habitat applications using the latest...
+    ul.tech-icons
+      li.tech-icons--item: a.tech-icon.tech-icons--node href="/get-started/kubernetes/"
+        img src="/images/solutions-logos/icon-node.svg" alt="kubernetes"
+        span Kubernetes
+      li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/cloud-foundry/"
+        img src="/images/solutions-logos/icon-ruby.svg" alt="cloud foundry"
+        span Cloud Foundry
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/terraform/"
+        img src="/images/solutions-logos/icon-java.svg" alt="terraform"
+        span Terraform
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/chef/"
+        img src="/images/solutions-logos/icon-go.svg" alt="chef"
+        span Chef
+    = link_to 'All guides', '/guides', class: 'button secondary'
+  hr
   section.get-started--boxes
     h3 Advanced topics and use cases; Integrate Habitat into your existing workflow
     p.description
@@ -89,14 +107,14 @@ div.get-started--container
       div.columns.small-12.large-6.np-left
         .get-started--boxes--item.card
           h4
-            = link_to 'Deploying Habiat apps to Kubernets', '/demo/package-manager'
+            = link_to 'Deploying Habiat apps to Kubernetes', '/demo/package-manager'
           h6 Build Service
           p
             | In this 10-minute demo, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
       div.columns.small-12.large-6.np-right
         .get-started--boxes--item.card
           h4
-            = link_to 'Deploying Habiat apps to CloudFoundry', '/demo/build-service'
+            = link_to 'Deploying Habiat apps to Cloud Foundry', '/demo/build-service'
           h6 Build Service
           p
             | In this 10-minute demo, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.

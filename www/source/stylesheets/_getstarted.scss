@@ -108,6 +108,10 @@ $main-nav-breakpoint: 769px;
           p:last-child {
             margin-bottom: 0;
           }
+
+          iframe {
+            max-width: 100%;
+          }
         }
 
         .feature-card {
