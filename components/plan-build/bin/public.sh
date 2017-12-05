@@ -188,6 +188,10 @@ pkg_path_for() {
 # [1] glibc(build)>
 # ```
 attach() {
+  if [[ "${STUDIO_TYPE}" == "" ]]; then
+    warn "Non interactive studio, skipping 'attach'"
+    return 0
+  fi
   printf "\n### Attaching to debugging session\n"
   local cmd=""
   local fname="${FUNCNAME[1]}"
