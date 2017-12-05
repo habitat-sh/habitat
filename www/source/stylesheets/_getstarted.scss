@@ -30,16 +30,16 @@ $main-nav-breakpoint: 769px;
     background-color: #FFF;
     border-radius: $global-radius;
 
-    h2,
-    h3 {
+    .h2,
+    .h3 {
       font-family: $body-font-family;
     }
 
-    h2 {
+    .h2 {
       font-weight: bold;
     }
 
-    h3 {
+    .h3 {
       margin-bottom: 1rem;
     }
 
@@ -68,13 +68,13 @@ $main-nav-breakpoint: 769px;
           border-radius: 0;
           background-color: transparent;
 
-          span {
+          > span {
             display: block;
             text-align: center;
             font-weight: bold;
           }
         }
-        img {
+        > img {
           height: 60px;
           width: 60px;
         }
@@ -82,21 +82,21 @@ $main-nav-breakpoint: 769px;
 
       &.get-started--boxes {
 
-        h4 {
+        .h4 {
           margin-bottom: rem-calc(12);
         }
 
-        h6 {
+        .h6 {
           color: $hab-gray;
           text-transform: uppercase;
         }
 
-        ul {
+        .link-list {
           margin: 0 0 rem-calc(32);
           padding: 0;
         }
 
-        li {
+        .link-list--item {
           margin-bottom: rem-calc(8);
           list-style: none;
         }
@@ -105,19 +105,20 @@ $main-nav-breakpoint: 769px;
           @include card;
           padding: rem-calc(24);
 
-          p:last-child {
+          > p:last-child {
             margin-bottom: 0;
           }
 
-          iframe {
+          > iframe {
             max-width: 100%;
           }
         }
 
         .feature-card {
             background-color: $hab-blue-medium;
+            border: none;
 
-            h4 a {
+            .h4 a {
               font-size: 1.2rem;
               transition: color 200ms;
 
@@ -128,11 +129,11 @@ $main-nav-breakpoint: 769px;
               }
             }
 
-            h4 a, p {
+            .h4 a, > p {
               color: #FFF;
             }
 
-            h6 {
+            .h6 {
               color: rgba(#FFF, 0.5);
             }
         }

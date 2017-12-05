@@ -9,12 +9,13 @@ description: Habitat tutorials provide hands-on, step-by-step instructions on ho
 = partial "partials/global/github_contribute"
 
 div.get-started--container
-  h2 Getting Started with Habitat and Ruby
-  p
-    small
+  h2.h2 Getting Started with Habitat and Ruby
+  ul.small-links
+    li.small-links--item
       = link_to 'Return to Get Started home', '/get-started/'
+
   section.get-started--boxes
-    h3 Package, build, and run your first application
+    h3.h3 Package, build, and run your first application
     p.description
       | With a single download, you will have everything you need to leverage the three core components of Habitat:
       br
@@ -22,27 +23,27 @@ div.get-started--container
     div.row
       div.columns.small-12.large-6.np-left
         .get-started--boxes--item.card
-          h4
+          h4.h4
             = link_to 'Package a basic Ruby Application', '/demo/package-manager'
-          h6 Tutorial
+          h6.h6 Tutorial
           p
             | In this short tutorial, you'll write a very basic plan for a Hello World! app that you'll also build and run.
       div.columns.small-12.large-6.np-right
         .get-started--boxes--item.card
-          h4
+          h4.h4
             = link_to 'Package a basic Ruby Applicaiton using Scaffolding', '/demo/package-manager'
-          h6 Tutorial
+          h6.h6 Tutorial
           p
             | In this short tutorial, you'll write a very basic plan for a Hello World! app that you'll also build and run.
 
   hr
   section.get-started--icon-list
-    h3 Additional guides for Habitizing your own applications
+    h3.h3 Additional guides for Habitizing your own applications
     p.description
       | Everything you'll need to start shipping your own applications with Habitat
     div.row
       .columns.small-12.large-6.np-left
-        h3. Frameworks
+        h4.h4 Frameworks
         ul.tech-icons
           li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/ruby/rails/"
             img src="/images/solutions-logos/icon-ruby.svg" alt="Rails"
@@ -51,7 +52,7 @@ div.get-started--container
             img src="/images/solutions-logos/icon-ruby.svg" alt="Sinatra"
             span Sinatra
       .columns.small-12.large-6.np-right
-        h3. Related Packages
+        h4.h4 Related Packages
         ul.tech-icons
           li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/postgresql/"
             img src="/images/solutions-logos/icon-ruby.svg" alt="PostgreSQL"
@@ -67,7 +68,7 @@ div.get-started--container
   hr
 
   section.get-started--boxes
-    h3 Beyond the basics
+    h3.h3 Beyond the basics
     p.description
       | Now that you've packaged an application with Habitat, you will likely have additional questions.
       br
@@ -75,40 +76,40 @@ div.get-started--container
     div.row
       div.columns.small-12.large-4.np-left
         .get-started--boxes--item
-          h4 Next Steps
-          h6 DOCS
-          ul
-            li
+          h4.h4 Next Steps
+          h6.h6 DOCS
+          ul.link-list
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
       div.columns.small-12.large-4
         .get-started--boxes--item
-          h4 Going to Production
-          h6 DOCS
-          ul
-            li
+          h4.h4 Going to Production
+          h6.h6 DOCS
+          ul.link-list
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
       div.columns.small-12.large-4.np-right
         .get-started--boxes--item
-          h4 Advanced Topics
-          h6 DOCS
+          h4.h4 Advanced Topics
+          h6.h6 DOCS
           ul
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'
-            li
+            li.link-list--item
               = link_to 'Link to how-to article with keywords', '/blog/'

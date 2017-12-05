@@ -94,10 +94,6 @@ body {
     font-size: rem-calc(36);
     text-align: center;
 
-    h2 {
-      margin-top: rem-calc(16);
-    }
-
     @include small-nav {
       font-size: rem-calc(20);
     }
@@ -193,14 +189,14 @@ body {
   font-size: rem-calc(14);
   text-align: center;
 
-  img {
+  > img {
     margin-bottom: -1px;
     margin-right: rem-calc(8);
     height: rem-calc(12);
     vertical-align: baseline;
   }
 
-  a {
+  > a {
     color: rgba($hab-white, 0.5);
 
     &:hover {
@@ -213,13 +209,13 @@ body {
   }
 }
 
-ul.small-links {
+.small-links {
   margin: 0 0 rem-calc(16);
   padding: 0;
   list-style: none;
   font-size: rem-calc(12);
 
-  li {
+  .small-links--item {
     display: inline-block;
     margin-right: rem-calc(16);
   }
