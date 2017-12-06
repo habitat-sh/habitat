@@ -32,20 +32,3 @@ It's important to note that because we must perform a leader election to determi
 
 This strategy does no peer coordination with other Supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between Supervisors is done, each Supervisor will poll Builder on their own.
 
-## Configuring an Update Strategy with a Builder Channel
-
-A channel is a tag for a package that your Supervisors can subscribe to. Every package has a stable and an unstable channel. New packages are by default placed on the unstable channel. You can then automatically or manually promote packages to a different channel, whether it's stable, or a channel you have created for your origin on the CLI.
-
-* You deliver new versions of `myapp` as Habitat packages via Builder or the Studio.
-* When you are ready to roll out a new version of the application, you promote that package to the channel corresponding to the intended environment. You can have multiple service groups in the same environment pointing to different channels, or the same channel.
-* The Supervisors in that service group see that the channel they are subscribed to have an update,  update their underlying Habitat package, coordinating with one another per their update strategy, and restart the service.
-
-Configuring the Supervisors' update strategy URL to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.
-
-To start a Supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
-
-```shell
-$ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh --channel unstable
-```
-
-The placeholder `yourchannel` represents the channel you have created in the depot.

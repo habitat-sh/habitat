@@ -29,6 +29,8 @@ sidebar_links:
       link: "/docs/using-habitat/#using-encryption"
     - title: Update Strategies
       link: "/docs/using-habitat/#using-updates"
+    - title: Continuous Deployment
+      link: "/docs/using-habitat/#continuous-deployment"
   - title: Developing Packages
     link: "/docs/developing-packages"
     sub_links:
