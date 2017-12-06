@@ -71,14 +71,14 @@ A step that exists to be overridden. Do what you need to do before we actually r
 
 Here's an example example of a vanilla Plan such as Sed:
 
- ```bash core-plans/sed/plan.sh
- pkg_name=sed
- # other Plan metadata...
+```bash core-plans/sed/plan.sh
+pkg_name=sed
+# other Plan metadata...
 
- do_check() {
-   make check
- }
- ```
+do_check() {
+  make check
+}
+```
 
 **do_install()**
 :  Installs the software. Delegates most of the implementation to the `do_default_install()` function. You should override this behavior if you need to perform custom installation steps, such as copying files from `HAB_CACHE_SRC_PATH` to specific directories in your package, or installing pre-built binaries into your package.
