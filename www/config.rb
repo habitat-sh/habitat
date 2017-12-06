@@ -215,3 +215,5 @@ redirect 'docs/concepts-studio/index.html', to: '/docs/glossary/#glossary-studio
 redirect 'docs/concepts-services/index.html', to: '/docs/glossary/#glossary-services'
 redirect 'docs/concepts-depot/index.html', to: '/docs/glossary/#glossary-builder'
 redirect 'docs/concepts-overview/index.html', to: '/docs/glossary/'
+redirect 'get-started/index.html', to: '/tutorials/'
+redirect 'kubernetes/index.html', to: '/get-started/kubernetes/'
