@@ -88,11 +88,23 @@ body {
 
 .main-content {
   .heading {
-    margin-bottom: rem-calc(56);
-    margin-top: rem-calc(72);
+    margin-bottom: rem-calc(32);
+    margin-top: rem-calc(40);
     color: $white;
     font-size: rem-calc(36);
     text-align: center;
+
+    .logo-pair {
+      .logo-pair--image {
+        height: rem-calc(96);
+        width: rem-calc(96);
+
+        &.habitat {
+          height: rem-calc(64);
+          width: rem-calc(64);
+        }
+      }
+    }
 
     @include small-nav {
       font-size: rem-calc(20);
