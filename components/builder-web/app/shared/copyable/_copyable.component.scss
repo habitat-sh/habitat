@@ -4,61 +4,77 @@
   $button-width: 40px;
   $button-height: 36px;
 
-  span {
-    display: block;
-    font-weight: 600;
-    padding: 6px 8px;
-    border: $default-border;
-    border-radius: $default-radius 0 0 $default-radius;
-    overflow-x: auto;
-    margin-right: $button-width;
-    white-space: nowrap;
-    height: $button-height;
+  &.input {
+
+    span {
+      display: block;
+      font-weight: 600;
+      padding: 6px 8px;
+      border: $default-border;
+      border-radius: $default-radius 0 0 $default-radius;
+      overflow-x: auto;
+      margin-right: $button-width;
+      white-space: nowrap;
+      height: $button-height;
+    }
+
+    button {
+      position: absolute;
+      padding: 6px 10px 10px 10px;
+      border-radius: 0 $default-radius $default-radius 0;
+      background-color: $very-light-gray;
+      background-image: unset;
+      color: $dark-gray;
+      width: $button-width;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      height: $button-height;
+      vertical-align: middle;
+      display: inline-block;
+      border: none;
+      outline: none;
+
+      &:hover, &:focus {
+        box-shadow: none;
+        background-color: $very-light-gray;
+      }
+
+      hab-icon {
+        @include icon-size(20);
+      }
+    }
   }
 
   button {
-    position: absolute;
-    padding: 6px 10px 10px 10px;
-    border-radius: 0 $default-radius $default-radius 0;
-    background-color: $very-light-gray;
-    background-image: unset;
-    color: $dark-gray;
-    cursor: pointer;
-    width: $button-width;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    height: $button-height;
-    vertical-align: middle;
-    display: inline-block;
     border: none;
+    background-color: transparent;
+    color: $medium-gray;
+    cursor: pointer;
     outline: none;
+    transition: color 200ms;
 
-    &:hover, &:focus {
-      box-shadow: none;
-      background-color: $very-light-gray;
-      color: shade($dark-gray, 20%);
+    &:hover {
+      color: $very-dark-gray;
     }
 
     &.copied {
       color: $hab-green;
     }
+  }
 
-    hab-icon {
-      @include icon-size(20);
-
-      svg {
-        animation: fade 300ms linear;
-      }
+  hab-icon {
+    svg {
+      animation: fade 200ms linear;
     }
+  }
 
-    @keyframes fade {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
+  @keyframes fade {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
     }
   }
 }

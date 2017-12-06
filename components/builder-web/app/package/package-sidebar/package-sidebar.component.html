@@ -28,11 +28,11 @@
   <ng-container *ngIf="isAService">
     <section>
       <h3>Run Command</h3>
-      <hab-copyable [command]="runCommand"></hab-copyable>
+      <hab-copyable style="input" [text]="runCommand"></hab-copyable>
     </section>
     <section>
       <h3>Export Command</h3>
-      <hab-copyable [command]="exportCommand"></hab-copyable>
+      <hab-copyable style="input" [text]="exportCommand"></hab-copyable>
     </section>
   </ng-container>
 </div>

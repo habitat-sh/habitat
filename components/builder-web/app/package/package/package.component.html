@@ -1,5 +1,7 @@
 <header>
-  <h1><hab-package-breadcrumbs [ident]="ident"></hab-package-breadcrumbs></h1>
+  <h1>
+    <hab-package-breadcrumbs [ident]="ident"></hab-package-breadcrumbs>
+  </h1>
   <h2>package</h2>
 </header>
 <nav class="tabs" mat-tab-nav-bar>
@@ -12,8 +14,7 @@
   <a mat-tab-link routerLink="builds" routerLinkActive #jobs="routerLinkActive" [active]="jobs.isActive">
     Build Jobs
   </a>
-  <a mat-tab-link *ngIf="isOriginMember" routerLink="settings" routerLinkActive #settings="routerLinkActive"
-    [active]="settings.isActive">
+  <a mat-tab-link *ngIf="isOriginMember" routerLink="settings" routerLinkActive #settings="routerLinkActive" [active]="settings.isActive">
     Settings
   </a>
 </nav>
