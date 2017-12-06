@@ -112,7 +112,7 @@ end
 configure :build do
 
   # Asset hash to defeat caching between builds
-  activate :asset_hash
+  activate :asset_hash, :ignore => [/habitat-social.jpg/]
 end
 
 activate :autoprefixer
