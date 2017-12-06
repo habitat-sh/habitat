@@ -14,33 +14,49 @@ Additionally, <a href="/docs/reference/#utility-functions">plan helper functions
 : There is an empty default implementation of this callback.
 
 **do_setup_environment()**
-: Use this to declare buildtime and runtime environment variable modifications you wish to make. Runtime environments of dependencies are layered together, in the order they are declared in your `pkg_deps` array, followed by modifications made in this callback. In turn, these computed values will be made available to packages that use the current package as a dependency, and so on.
+: Use this to declare buildtime and runtime environment variables that overwrite or are in addition to the default environment variables created by Habitat during the build process. Examples of common environment variables you might wish to add or modify are those such as `JAVA_HOME` or `GEM_PATH`. 
 
-The buildtime environment is assembled by processing the *runtime* environments of your `pkg_build_deps` dependencies (because they will be *running* in your build) in a similar manner. The final environment in which your package will be built consists of the system environment of your Studio, upon which is layered the assembled runtime environment of your package, on top of which is finally layered any builtime environment information. Only the runtime portion of this environment is made available to your package when it is running in a Supervisor (or when it is being used as a dependency of another Habitat package).
+> **Note** You do not have to override `do_setup_environment` if you do not wish to modify your environment variables. The build system will always set up your environment according to your dependencies. For example, it will ensure that dependency binaries are always present on your `PATH` variable, and so on.
 
-There are special functions to call within this callback to ensure that the environment variables are set up appropriately.
+Runtime environments of dependencies are layered together in the order they are declared in your `pkg_deps` array, followed by modifications made in this callback. In turn, these computed values will be made available to packages that use the current package as a dependency, and so on. 
 
-* set_runtime_env [-f] VARIABLE_NAME VALUE
-* set_buildtime_env [-f] VARIABLE_NAME VALUE
+The buildtime environment is assembled by processing the *runtime* environments of your `pkg_build_deps` dependencies (because they will be running in your build) in a similar manner. The final environment in which your package will be built consists of:
 
-These functions allow you to _set_ an environment variable's value. If one of your dependencies has already declared a value for this, it will result in a build failure, protecting you from inadvertently breaking anything. If you really do want to replace the value, however, you can supply the -f flag (for "force").
+* The system environment of your Studio as the base layer
+* The assembled runtime environment of your package on top of the base
+* Any builtime environment information on top of the assembled runtime environment 
 
-* push_runtime_env VARIABLE_NAME VALUE
-* push_buildtime_env VARIABLE_NAME VALUE
+Only the runtime portion of this combined buildtime environment is made available to your package when it is running in a Supervisor (or when it is being used as a dependency of another Habitat package).
 
-These functions allow you to push a new value onto a multi-valued environment variable (like `PATH`), as opposed to overwriting it with one of the `set_*` functions. These are referred to as "aggregate" variables in Habitat, as distinct from "primitive" variables.
+To add or modify your environment variables, there are special functions to call within this callback to ensure that the variables are set up appropriately.
 
-The build process knows about some common environment variables and how to properly process them; that is, whether they are "aggregate" or "primitive", and (if aggregate), what delimiter character is used. However, the build process doesn't know about everything. In the case that Habitat does not know how to properly process your variables, we have added a hinting system that lets you control how variables are treated.
+```bash
+set_runtime_env [-f] VARIABLE_NAME VALUE
+set_buildtime_env [-f] VARIABLE_NAME VALUE
+```
 
-By default, Habitat treats all variables as "primitive" variables. If you are working with a value that is actually an "aggregate" type, though, you can set a special environment variable. For example if you have a variable named `FOO` that is an aggregate type, you can add `export HAB_ENV_FOO_TYPE=aggregate` somewhere in the top level of your plan.
+These functions allow you to _set_ an environment variable's value. If one of your dependencies has already declared a value for this, it will result in a build failure, protecting you from inadvertently breaking anything. If you really do want to replace the value, you can supply the `-f` flag (for "force").
 
-Similarly, Habitat defaults to using the colon (`:`) as a separator for aggregate variables. If our hypothetical `FOO` variable uses a semicolon (`;`) as a separator instead, we can add `export HAB_ENV_FOO_SEPARATOR=;` at the top level of the plan.
+For pushing new values onto a multi-valued environment variable (like `PATH`), use the following functions:
 
-In all cases, when Habitat is assuming a default strategy, it will emit log messages to notify you of that fact, along with these instructions on how to change the behavior.
+```bash
+push_runtime_env VARIABLE_NAME VALUE
+push_buildtime_env VARIABLE_NAME VALUE
+```
 
-If you discover common environment variables that Habitat doesn't currently treat appropriately, feel free to request an addition to the codebase, or even to submit a pull request yourself.
+These functions allow you to push a new value onto a multi-valued environment variable without overwriting the existing values. These multi-valued variables are referred to as "aggregate" variables in Habitat. Single-value environment variables are known as "primitive" variables.
 
-You do _not_ have to override `do_setup_environment` if you do not wish to modify your environment variables. Whether you choose to override it or not, the build system will _always_ set up your environment according to your dependencies, ensuring that, e.g., dependency binaries are always present on your `PATH`, and so forth.
+By default, Habitat treats all variables as "primitive" variables. If you are working with a value that is actually an "aggregate" type, you must set the following special environment variable somewhere in the top level of your plan.
+
+```bash
+export HAB_ENV_FOO_TYPE=aggregate
+```
+ 
+Similarly, Habitat defaults to using the colon (`:`) as a separator for aggregate variables. If the hypothetical `FOO` variable uses a semicolon (`;`) as a separator instead, then you must add `export HAB_ENV_FOO_SEPARATOR=;` at the top level of the plan.
+
+In all cases, when Habitat is assuming a default strategy, it will emit log messages to notify you of that along with instructions on how to change the behavior.
+
+> **Note** If you discover common environment variables that Habitat doesn't currently treat appropriately, feel free to request an addition to the codebase, or even to submit a pull request yourself.
 
 **do_before()**
 : At this phase of the build, the origin key has been checked for, all package dependencies have been resolved and downloaded, and the `$PATH` and environment are set, but this is just before any source downloading would occur (if `$pkg_source` is set). This could be a suitable phase in which to compute a dynamic version of a pacakge given the state of a Git repository, fire an API call, start timing something, etc.
