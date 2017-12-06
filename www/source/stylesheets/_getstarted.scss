@@ -118,8 +118,11 @@ $main-nav-breakpoint: 769px;
             background-color: $hab-blue-medium;
             border: none;
 
-            .h4 a {
+            .h4 {
               font-size: 1.2rem;
+            }
+
+            .h4 > a, p > a {
               transition: color 200ms;
 
               &:hover {
@@ -129,8 +132,14 @@ $main-nav-breakpoint: 769px;
               }
             }
 
-            .h4 a, > p {
+            .h4 > a,
+            > p,
+            p > a {
               color: #FFF;
+            }
+
+            p > a {
+              font-weight: bold;
             }
 
             .h6 {
