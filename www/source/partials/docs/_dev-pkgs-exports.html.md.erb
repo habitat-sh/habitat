@@ -70,6 +70,29 @@ You can create an Application Container Image (ACI) for any package by performin
 
 5. The `.aci` can now be moved to any runtime capable of running ACIs (e.g. [rkt](https://coreos.com/rkt/) on CoreOS) for execution.
 
+## Exporting to Kubernetes 
+    
+The Kubernetes exporter is an additional command line subcommand to the standard Habitat CLI interface. It leverages the existing Docker image export functionality and, additionally, generates a Kubernetes manifest that can be deployed to a Kubernetes cluster running the Habitat operator.
+
+1. Create an interactive studio in any directory with the `hab studio enter` command.
+
+2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an application, for example:
+
+    ```shell
+    $ hab pkg install yourorigin/yourpackage
+    ```
+
+3. Run the Kubernetes exporter on the package.
+
+    ```shell
+    $ hab pkg export kubernetes yourorigin/yourpackage
+    ```
+    
+    You can run `hab pkg export k8s --help` to see the full list of available options and general help. `k8s` works as an alias for `kubernetes` within the command.
+
+4. More information and a demo video is available on the [announcement blog](https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/)
+    
+    
 ## Exporting to Apache Mesos and DC/OS
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
