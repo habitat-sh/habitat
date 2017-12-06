@@ -35,6 +35,9 @@ page 'tutorials/build-your-own/node/*', layout: :tutorials_sidebar, locals: { si
 page 'tutorials/build-your-own/gradle/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_gradle'}
 page '/blog/index.html', layout: :blog_index
 page '/demo/steps/*', layout: :demo_index
+page 'get-started/*', layout: :get_started
+page 'guides/index.html', layout: :get_started
+page 'guides/rails/*', layout: :sidebar, locals: { sidebar_layout: 'guide_rails' }
 
 activate :blog do |blog|
   blog.prefix = 'blog'
@@ -89,6 +92,10 @@ helpers do
 
   def builder_web_url
     ENV['BUILDER_WEB_URL'] || 'https://bldr.habitat.sh'
+  end
+
+  def github_www_source_url
+    ENV['GITHUB_WWW_SOURCE_URL'] || 'https://github.com/habitat-sh/habitat/tree/master/www/source'
   end
 
   def render_markdown(text)

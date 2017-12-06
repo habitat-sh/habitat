@@ -9,6 +9,7 @@ module SidebarHelpers
     docs
     download
     get_started
+    guide_rails
     legal
     sample_app
     sample_app_linux
