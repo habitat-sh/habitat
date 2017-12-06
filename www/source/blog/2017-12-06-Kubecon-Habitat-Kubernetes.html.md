@@ -25,7 +25,7 @@ WHen you are building your applications using Habitat, you can export them to th
 
 ## Habitat and Google Kubernetes Engine (GKE) 
 
-Follow simple step-by-step instructions for how to deploy an application to GKE using the Habitat Operator for Kubernetes in [Getting started with Habitat on Kubernetes]( link to be provided ). 
+Follow simple step-by-step instructions for how to deploy an application to GKE using the Habitat Operator for Kubernetes in [Getting started with Habitat on Kubernetes](https://kinvolk.io/blog/2017/12/get-started-with-habitat-on-kubernetes/). 
 
 ## Kubernetes the Hab way 
 
