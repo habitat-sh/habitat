@@ -66,7 +66,8 @@ describe('PackageVersionsComponent', () => {
         MockComponent({ selector: 'hab-icon', inputs: ['symbol', 'title'] }),
         MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] }),
         MockComponent({ selector: 'hab-channels', inputs: ['channels'] }),
-        MockComponent({ selector: 'hab-package-promote', inputs: ['origin', 'name', 'version', 'release', 'channel'] })
+        MockComponent({ selector: 'hab-package-promote', inputs: ['origin', 'name', 'version', 'release', 'channel'] }),
+        MockComponent({ selector: 'hab-copyable', inputs: ['text', 'style'] })
       ],
       providers: [
         { provide: AppStore, useValue: store },

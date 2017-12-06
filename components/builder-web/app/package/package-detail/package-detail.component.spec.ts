@@ -43,6 +43,7 @@ describe('PackageDetailComponent', () => {
         MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] }),
         MockComponent({ selector: 'hab-channels', inputs: ['channels'] }),
         MockComponent({ selector: 'hab-package-list', inputs: ['currentPackage', 'packages'] }),
+        MockComponent({ selector: 'hab-copyable', inputs: ['text', 'style'] })
       ]
     });
 
@@ -74,7 +75,6 @@ describe('PackageDetailComponent', () => {
         return element.query(By.css(`.package-detail-component ${selector}`)).nativeElement.textContent;
       }
 
-      expect(textOf('h3')).toContain('core/nginx');
       expect(textOf('.metadata')).toContain('1.11.10');
       expect(textOf('.metadata')).toContain('20170829004822');
       expect(textOf('.metadata')).toContain('some-checksum');

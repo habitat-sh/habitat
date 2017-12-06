@@ -21,14 +21,17 @@ import { MatTooltip } from '@angular/material';
 })
 export class CopyableComponent {
 
-  @Input() command: string = '';
+  @Input() text: string = '';
+  @Input() style: string = 'unstyled';
 
   public copied: boolean = false;
 
   @ViewChild(MatTooltip)
   tooltip: MatTooltip;
 
-  copy(text) {
+  copy(event) {
+    event.stopPropagation();
+
     let el = document.createElement('input');
 
     Object.assign(el.style, {
@@ -38,7 +41,7 @@ export class CopyableComponent {
     });
 
     document.body.appendChild(el);
-    el.value = this.command;
+    el.value = this.text;
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);

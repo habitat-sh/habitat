@@ -1,6 +1,6 @@
 <div class="package-detail-component">
   <h3 *ngIf="fullName">
-    {{ fullName }}
+    <hab-copyable [text]="fullName"></hab-copyable>
   </h3>
   <section class="metadata">
     <dl>

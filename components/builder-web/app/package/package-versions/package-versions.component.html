@@ -24,7 +24,9 @@
           <li class="item" *ngFor="let pkg of packagesFor(version)" (click)="navigateTo(pkg)">
             <a>
               <div class="column name release">
-                <span class="release-name">{{ packageString(pkg) }}</span>
+                <span class="release-name">
+                  <hab-copyable [text]="packageString(pkg)"></hab-copyable>
+                </span>
                 <hab-channels [channels]="pkg.channels"></hab-channels>
                 <hab-package-promote [origin]="pkg.origin" [name]="pkg.name" [version]="pkg.version" [release]="pkg.release" channel="stable"
                   *ngIf="promotable(pkg)"></hab-package-promote>

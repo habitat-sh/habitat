@@ -2,7 +2,7 @@
 
   h3 {
     font-family: $base-font-family;
-    font-size: 18px;
+    font-size: 16px;
     text-transform: none;
   }
 
@@ -12,7 +12,7 @@
       margin-left: 8px;
       @include icon-size(18);
     }
-    
+
     > div {
       display: flex;
 
@@ -59,11 +59,11 @@
   @include desktop-up {
     .deps {
       display: flex;
-  
+
       .direct-deps {
         flex: 6;
       }
-  
+
       .transitive-deps {
         flex: 6;
       }
