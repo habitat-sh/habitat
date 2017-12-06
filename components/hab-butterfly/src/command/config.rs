@@ -13,7 +13,6 @@
 // limitations under the License.
 
 pub mod apply {
-    use std::str;
     use std::path::Path;
     use std::io::{self, Read};
     use std::fs::File;
