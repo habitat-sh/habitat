@@ -1,0 +1,16 @@
+.package-promote-component {
+  font-size: $smaller-font-size;
+  font-weight: 500;
+  border-radius: 11px;
+  color: $hab-blue;
+  padding: 2px 8px 4px 8px;
+  cursor: pointer;
+
+  &:hover {
+    @include shadow;
+  }
+
+  .promoting {
+    color: map-get($status-colors, processing);
+  }
+}

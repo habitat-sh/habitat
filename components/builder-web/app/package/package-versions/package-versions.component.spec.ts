@@ -14,8 +14,7 @@
 
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { Component, DebugElement } from '@angular/core';
-import { By } from '@angular/platform-browser';
+import { DebugElement } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { MockComponent } from 'ng2-mock-component';
@@ -66,7 +65,8 @@ describe('PackageVersionsComponent', () => {
         PackageVersionsComponent,
         MockComponent({ selector: 'hab-icon', inputs: ['symbol', 'title'] }),
         MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] }),
-        MockComponent({ selector: 'hab-channels', inputs: ['channels'] })
+        MockComponent({ selector: 'hab-channels', inputs: ['channels'] }),
+        MockComponent({ selector: 'hab-package-promote', inputs: ['origin', 'name', 'version', 'release', 'channel'] })
       ],
       providers: [
         { provide: AppStore, useValue: store },

@@ -24,8 +24,9 @@ import { BuildStatusComponent } from './build-status/build-status.component';
 import { PackageBuildComponent } from './package-build/package-build.component';
 import { PackageComponent } from './package/package.component';
 import { PackageBuildsComponent } from './package-builds/package-builds.component';
-import { PackageLatestComponent } from './package-latest/package-latest.component';
 import { PackageDetailComponent } from './package-detail/package-detail.component';
+import { PackageLatestComponent } from './package-latest/package-latest.component';
+import { PackagePromoteComponent } from './package-promote/package-promote.component';
 import { PackageSettingsComponent } from './package-settings/package-settings.component';
 import { PackageReleaseComponent } from './package-release/package-release.component';
 import { PackageSidebarComponent } from './package-sidebar/package-sidebar.component';
@@ -57,6 +58,7 @@ import { PackageRoutingModule } from './package-routing.module';
     PackageBuildsComponent,
     PackageLatestComponent,
     PackageDetailComponent,
+    PackagePromoteComponent,
     PackageReleaseComponent,
     PackageSidebarComponent,
     PackageSettingsComponent,
