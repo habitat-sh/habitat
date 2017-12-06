@@ -710,6 +710,67 @@ impl Hook for SuitabilityHook {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct PostStopHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
+
+impl Hook for PostStopHook {
+    type ExitValue = bool;
+
+    fn file_name() -> &'static str {
+        "post-stop"
+    }
+
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        PostStopHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
+    }
+
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
+        match status.code() {
+            Some(0) => true,
+            Some(code) => {
+                outputln!(preamble service_group, "Post stop failed! '{}' exited with \
+                    status code {}", Self::file_name(), code);
+                false
+            }
+            None => {
+                outputln!(preamble service_group, "Post stop failed! '{}' exited without a \
+                    status code", Self::file_name());
+                false
+            }
+        }
+    }
+
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
+
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
+
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
+}
+
+
 /// Cryptographically hash the contents of the compiled hook
 /// file.
 ///
@@ -752,6 +813,7 @@ pub struct HookTable {
     pub run: Option<RunHook>,
     pub post_run: Option<PostRunHook>,
     pub smoke_test: Option<SmokeTestHook>,
+    pub post_stop: Option<PostStopHook>,
 }
 
 impl HookTable {
@@ -773,6 +835,7 @@ impl HookTable {
                 table.run = RunHook::load(service_group, &hooks_path, &templates);
                 table.post_run = PostRunHook::load(service_group, &hooks_path, &templates);
                 table.smoke_test = SmokeTestHook::load(service_group, &hooks_path, &templates);
+                table.post_stop = PostStopHook::load(service_group, &hooks_path, &templates);
             }
         }
         debug!(
@@ -816,6 +879,9 @@ impl HookTable {
             changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.smoke_test {
+            changed = self.compile_one(hook, service_group, ctx) || changed;
+        }
+        if let Some(ref hook) = self.post_stop {
             changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         outputln!(preamble service_group, "Hooks compiled");
@@ -994,7 +1060,8 @@ mod tests {
                       ReloadHook
                       RunHook
                       SmokeTestHook
-                      SuitabilityHook);
+                      SuitabilityHook
+                      PostStopHook);
 
     fn hook_fixtures_path() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
