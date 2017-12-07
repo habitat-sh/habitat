@@ -973,6 +973,12 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
+
+    if !check_origin_access(req, &origin_name).unwrap_or(false) {
+        debug!("Failed origin access check, origin: {}", &origin_name);
+        return Ok(Response::with(status::Forbidden));
+    }
+
     {
         let lock = req.get::<persistent::State<DepotUtil>>().unwrap();
         let depot = lock.read().unwrap();
