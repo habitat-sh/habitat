@@ -253,8 +253,9 @@ impl Service {
     }
 
     pub fn stop(&mut self, launcher: &LauncherCli) {
-        if let Err(err) = self.supervisor.stop(launcher) {
-            outputln!(preamble self.service_group, "Service stop failed: {}", err);
+        match self.supervisor.stop(launcher) {
+            Ok(_) => self.post_stop(),
+            Err(err) => outputln!(preamble self.service_group, "Service stop failed: {}", err),
         }
     }
 
@@ -515,6 +516,16 @@ impl Service {
 
     fn post_run(&mut self) {
         if let Some(ref hook) = self.hooks.post_run {
+            hook.run(
+                &self.service_group,
+                &self.pkg,
+                self.svc_encrypted_password.as_ref(),
+            );
+        }
+    }
+
+    fn post_stop(&mut self) {
+        if let Some(ref hook) = self.hooks.post_stop {
             hook.run(
                 &self.service_group,
                 &self.pkg,
