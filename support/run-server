@@ -23,5 +23,8 @@ if [ "$#" -eq "2" ]; then
   start+=" --config $2"
 fi
 
-eval $migrate
+if [ -z "$BLDR_NO_MIGRATIONS" ]; then
+  eval $migrate
+fi
+
 eval $start
