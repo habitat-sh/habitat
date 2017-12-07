@@ -461,9 +461,9 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='origin_project_integrations' AND column_name='name') THEN
                 UPDATE origin_project_integrations as u1 SET project_id = u2.project_id, integration_id = u2.integration_id FROM
                     (SELECT opi.id as opiid, op.id as project_id, oi.id as integration_id
-                    FROM origin_project_integrations opi
-                    JOIN origin_projects op ON opi.name = op.package_name
-                    JOIN origin_integrations as oi on opi.integration = oi.name
+                    FROM origin_project_integrations AS opi
+                    JOIN origin_projects AS op ON opi.name = op.package_name AND opi.origin = op.origin_name
+                    JOIN origin_integrations AS oi ON opi.integration = oi.name AND opi.origin = oi.origin
                     WHERE opi.project_id IS NULL
                     AND opi.integration_id IS NULL) as u2
                     WHERE u2.opiid = u1.id;
