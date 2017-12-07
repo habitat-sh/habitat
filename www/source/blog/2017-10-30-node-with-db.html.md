@@ -2,7 +2,7 @@
 title: NodeJS Scaffolding with Databases!
 date: 2017-10-30
 author: Nell Shamrell-Harrington
-tags: Scaffolding, Node
+tags: scaffolding, node
 category: community
 classes: body-article
 ---

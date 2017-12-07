@@ -2,7 +2,7 @@
 title: "Habitatize Yourself"
 date: 2017-10-20
 author: Franklin Webber
-tags: Ruby, tutorial
+tags: ruby, tutorial
 category: community
 classes: body-article
 ---

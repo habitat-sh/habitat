@@ -3,7 +3,7 @@ title: Introducing Runtime Environment Variables
 date: 2017-11-30
 author: Christopher Maier
 tags: blog, supervisor, packaging
-category: supervisor, packaging
+category: supervisor
 classes: body-article
 ---
 

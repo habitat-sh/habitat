@@ -3,7 +3,7 @@ title: Multi-Service Supervision
 date: 2017-04-12
 author: Ian Henry
 tags: supervisor, gossip
-category: Supervisor
+category: supervisor
 classes: body-article
 ---
 

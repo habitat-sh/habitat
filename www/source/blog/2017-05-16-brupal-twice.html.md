@@ -2,8 +2,8 @@
 title: Packaging PHP in Habitat. A Tale Of Two Drupals.
 date: 2017-05-16
 author: Paul Adams
-tags: [drupal, php]
-category: Packaging
+tags: drupal, php
+category: packaging
 classes: body-article
 ---
 (_This post was originally published at

@@ -3,7 +3,7 @@ title: Join us for the Community Summits
 date: 2017-08-23
 author: Nathen Harvey
 tags: community, events, summit
-category: Community
+category: community
 classes: body-article
 ---
 

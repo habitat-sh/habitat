@@ -2,8 +2,8 @@
 title: "Exporting Windows Packages to Docker"
 date: 2017-12-01
 author: Matt Wrock
-tags: Windows, Supervisor
-category: Windows
+tags: windows, supervisor
+category: windows
 classes: body-article
 ---
 

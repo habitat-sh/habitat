@@ -3,7 +3,7 @@ title: Introducing Composites
 date: 2017-10-18
 author: Christopher Maier
 tags: blog, supervisor, packaging
-category: supervisor, packaging
+category: supervisor
 classes: body-article
 ---
 

@@ -2,7 +2,7 @@
 title: Happy Birthday, Habitat!
 date: 2017-06-28
 author: Tasha Drew
-tags: community, supervisor, Habitat Builder, scaffolding
+tags: community, supervisor, builder, scaffolding
 category: community
 classes: body-article
 ---

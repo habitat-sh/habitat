@@ -3,7 +3,7 @@ title: Scaffolding
 date: 2017-05-23
 author: fnichol
 tags: scaffolding
-category: Build
+category: build
 classes: body-article
 published: true
 ---
