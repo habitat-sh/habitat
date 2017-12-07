@@ -6,9 +6,9 @@
     </section>
     <section class="body">
       <label for="repo_name">Organization and Repository</label>
-      <input type="text" name="repo_name" [(ngModel)]="docker_hub_repo_name" placeholder="{{ repoPlaceholder }}">
+      <input type="text" name="repo_name" [(ngModel)]="docker_hub_repo_name" placeholder="{{ repoPlaceholder }}" autocomplete="off">
       <label for="custom_tag">Custom Tag (Optional)</label>
-      <input type="text" name="custom_tag" [(ngModel)]="custom_tag" [placeholder]="'yourtag or \{\{ channel \}\}'">
+      <input type="text" name="custom_tag" [(ngModel)]="custom_tag" [placeholder]="'yourtag or \{\{ channel \}\}'" autocomplete="off">
       <label>Additional Tags</label>
       <mat-checkbox name="latest_tag" [(ngModel)]="latest_tag">:latest</mat-checkbox>
       <mat-checkbox name="version_tag" [(ngModel)]="version_tag">:pkg_version</mat-checkbox>

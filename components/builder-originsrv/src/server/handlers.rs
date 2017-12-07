@@ -597,6 +597,24 @@ pub fn project_integration_create(
     Ok(())
 }
 
+pub fn project_integration_delete(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginProjectIntegrationDelete>()?;
+
+    match state.datastore.delete_project_integration(&msg) {
+        Ok(()) => conn.route_reply(req, &NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:project-integration-delete:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn project_integration_get(
     req: &mut Message,
     conn: &mut RouteConn,

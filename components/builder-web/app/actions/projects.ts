@@ -146,6 +146,24 @@ export function deleteProject(id: string, token: string) {
   };
 }
 
+export function deleteProjectIntegration(origin: string, name: string, integration: string, token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).deleteProjectIntegration(origin, name, integration).then(response => {
+      dispatch(addNotification({
+        title: 'Integration settings deleted',
+        type: SUCCESS
+      }));
+    }).catch(error => {
+      dispatch(addNotification({
+        title: 'Failed to delete integration settings',
+        body: error.message,
+        type: DANGER
+      }));
+    });
+  };
+}
+
+
 export function updateProject(projectId: string, project: Object, token: string, onComplete: Function = () => { }) {
   return dispatch => {
     new BuilderApiClient(token).updateProject(projectId, project).then(response => {

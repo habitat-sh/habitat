@@ -359,6 +359,14 @@ impl Routable for OriginProjectIntegrationCreate {
     }
 }
 
+impl Routable for OriginProjectIntegrationDelete {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
 impl Routable for OriginProjectIntegrationGet {
     type H = String;
 

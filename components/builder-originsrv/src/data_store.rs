@@ -313,6 +313,23 @@ impl DataStore {
         Ok(())
     }
 
+    pub fn delete_project_integration(
+        &self,
+        opid: &originsrv::OriginProjectIntegrationDelete,
+    ) -> SrvResult<()> {
+        let conn = self.pool.get(opid)?;
+
+        let rows = conn.query(
+            "SELECT * FROM delete_origin_project_integration_v1($1, $2, $3)",
+            &[
+                &opid.get_origin(),
+                &opid.get_name(),
+                &opid.get_integration(),
+            ],
+        ).map_err(SrvError::OriginProjectIntegrationDelete)?;
+        Ok(())
+    }
+
     pub fn get_project_integration(
         &self,
         opig: &originsrv::OriginProjectIntegrationGet,
