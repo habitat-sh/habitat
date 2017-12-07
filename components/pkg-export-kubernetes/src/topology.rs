@@ -12,10 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[derive(Debug, Fail)]
-pub enum Error {
-    #[fail(display = "Invalid bind specification '{}'", _0)]
-    InvalidBindSpec(String),
-    #[fail(display = "Invalid topology '{}'. Possible values: standalone, leader", _0)]
-    InvalidTopology(String),
+use std::result;
+use std::str::FromStr;
+use std::fmt;
+
+use error::Error;
+
+#[derive(Debug)]
+pub enum Topology {
+    Standalone,
+    Leader,
+}
+
+impl FromStr for Topology {
+    type Err = Error;
+
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        match s {
+            "standalone" => Ok(Topology::Standalone),
+            "leader" => Ok(Topology::Leader),
+            _ => Err(Error::InvalidTopology(s.to_string())),
+        }
+    }
+}
+
+impl fmt::Display for Topology {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = format!("{:?}", self).to_lowercase();
+
+        write!(f, "{}", s)
+    }
 }

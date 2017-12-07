@@ -28,6 +28,7 @@ extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 
+mod topology;
 mod error;
 
 use clap::{App, Arg};
@@ -49,6 +50,7 @@ use rand::Rng;
 
 use export_docker::{Cli, Credentials, BuildSpec, Naming, PkgIdentArgOptions, Result};
 
+use topology::Topology;
 use error::Error;
 
 // Synced with the version of the Habitat operator.
@@ -106,7 +108,9 @@ fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
 
 fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     let count = matches.value_of("COUNT").unwrap_or("1");
-    let topology = matches.value_of("TOPOLOGY").unwrap_or("standalone");
+    let topology: Topology = FromStr::from_str(
+        matches.value_of("TOPOLOGY").unwrap_or("standalone"),
+    ).unwrap_or(Topology::Standalone);
     let group = matches.value_of("GROUP");
     let config_secret_name = matches.value_of("CONFIG_SECRET_NAME");
     let ring_secret_name = matches.value_of("RING_SECRET_NAME");
@@ -148,7 +152,7 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
         "habitat_name": pkg_ident.name,
         "image": image,
         "count": count,
-        "service_topology": topology,
+        "service_topology": topology.to_string(),
         "service_group": group,
         "config_secret_name": config_secret_name,
         "ring_secret_name": ring_secret_name,
