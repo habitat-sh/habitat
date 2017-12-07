@@ -28,6 +28,8 @@ extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 
+mod error;
+
 use clap::{App, Arg};
 use handlebars::Handlebars;
 use std::env;
@@ -47,18 +49,14 @@ use rand::Rng;
 
 use export_docker::{Cli, Credentials, BuildSpec, Naming, PkgIdentArgOptions, Result};
 
+use error::Error;
+
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
 
 // Kubernetes manifest template
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
 const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
-
-#[derive(Debug, Fail)]
-enum Error {
-    #[fail(display = "Invalid bind specification '{}'", _0)]
-    InvalidBindSpec(String),
-}
 
 fn main() {
     env_logger::init().unwrap();
