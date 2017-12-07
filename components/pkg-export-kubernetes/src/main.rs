@@ -146,11 +146,17 @@ fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     // To allow multiple instances of Habitat application in Kubernetes,
     // random suffix in metadata_name is needed.
     let metadata_name = format!(
-        "{}-{}",
+        "{}-{}{}",
         pkg_ident.name,
         rand::thread_rng()
             .gen_ascii_chars()
-            .take(5)
+            .filter(|c| c.is_lowercase() || c.is_numeric())
+            .take(4)
+            .collect::<String>(),
+        rand::thread_rng()
+            .gen_ascii_chars()
+            .filter(|c| c.is_lowercase() && !c.is_numeric())
+            .take(1)
             .collect::<String>()
     );
 
