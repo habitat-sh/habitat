@@ -134,6 +134,7 @@ export {
   CLEAR_CURRENT_PROJECT,
   CLEAR_CURRENT_PROJECT_INTEGRATION,
   deleteProject,
+  deleteProjectIntegration,
   fetchProject,
   fetchProjects,
   SET_CURRENT_PROJECT_INTEGRATION,

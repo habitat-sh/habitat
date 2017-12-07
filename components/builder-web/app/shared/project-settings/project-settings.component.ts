@@ -21,7 +21,7 @@ import { BuilderApiClient } from '../../client/builder-api';
 import { AppStore } from '../../app.store';
 import {
   addProject, updateProject, setProjectIntegrationSettings, deleteProject,
-  fetchGitHubInstallations, fetchProject, setProjectVisibility
+  fetchGitHubInstallations, fetchProject, setProjectVisibility, deleteProjectIntegration
 } from '../../actions/index';
 import config from '../../config';
 
@@ -283,6 +283,11 @@ export class ProjectSettingsComponent implements OnChanges {
           origin, name, settings.name, settings.settings, this.token
         )
       );
+    }
+    else {
+      this.store.getState().projects.current.settings.map((v, k) => {
+        this.store.dispatch(deleteProjectIntegration(this.origin, this.name, k, this.token));
+      });
     }
   }
 

@@ -144,6 +144,33 @@ securitySchemes:
                                         "docker": ["region1", "region2"],
                                         "google": ["region3"]
                                     }
+            /{integrationName}:
+                /default:
+                    put:
+                        description: Create or update an origin project integration
+                        securedBy: [oauth_2_0]
+                        responses:
+                            204:
+                                body:
+                                    application/json:
+                                        example: |
+                                            {
+                                                "docker_hub_repo_name": "myorg/myrepo",
+                                                "custom_tag": "some-tag",
+                                                "latest_tag": true,
+                                                "version_tag": false,
+                                                "version_release_tag": true
+                                            }
+                            500:
+                                description: Internal server error
+                    delete:
+                        description: Delete an origin project integration
+                        securedBy: [oauth_2_0]
+                        responses:
+                            204:
+                                description: Integration deleted
+                            500:
+                                description: Internal server error
         /invitations:
             /{invitationId}:
                 put:

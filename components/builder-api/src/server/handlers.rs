@@ -888,6 +888,10 @@ pub fn create_project_integration(req: &mut Request) -> IronResult<Response> {
         }
     };
 
+    if !check_origin_access(req, &params["origin"]).unwrap_or(false) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
     // We know body exists and is valid, non-empty JSON, so we can unwrap safely
     let json_body = req.get::<bodyparser::Raw>().unwrap().unwrap();
 
@@ -911,6 +915,30 @@ pub fn create_project_integration(req: &mut Request) -> IronResult<Response> {
                 error!("create_project_integration:1, err={:?}", err);
                 Ok(Response::with(status::InternalServerError))
             }
+        }
+    }
+}
+
+pub fn delete_project_integration(req: &mut Request) -> IronResult<Response> {
+    let params = match validate_params(req, &["origin", "name", "integration"]) {
+        Ok(p) => p,
+        Err(st) => return Ok(Response::with(st)),
+    };
+
+    if !check_origin_access(req, &params["origin"]).unwrap_or(false) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut request = OriginProjectIntegrationDelete::new();
+    request.set_origin(params["origin"].clone());
+    request.set_name(params["name"].clone());
+    request.set_integration(params["integration"].clone());
+
+    match route_message::<OriginProjectIntegrationDelete, NetOk>(req, &request) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => {
+            error!("delete_project_integration:1, err={:?}", err);
+            Ok(Response::with(status::InternalServerError))
         }
     }
 }

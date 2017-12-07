@@ -585,5 +585,20 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                                     END
                                 $$ LANGUAGE plpgsql VOLATILE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION delete_origin_project_integration_v1 (
+            p_origin text,
+            p_package text,
+            p_integration text
+        ) RETURNS void AS $$
+            BEGIN
+                DELETE FROM origin_project_integrations
+                WHERE origin = p_origin
+                AND project_id = (SELECT id FROM origin_projects WHERE origin_name = p_origin AND package_name = p_package)
+                AND integration_id = (SELECT id FROM origin_integrations WHERE origin = p_origin AND name = p_integration);
+            END
+        $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
     Ok(())
 }
