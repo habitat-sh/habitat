@@ -120,5 +120,34 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                  $$"#)?;
     migrator.migrate("accountsrv",
                  r#"ALTER TABLE IF EXISTS account_sessions DROP CONSTRAINT IF EXISTS account_sessions_account_id_fkey"#)?;
+
+    // Cleanup after table deprecation
+    migrator.migrate(
+        "accountsrv",
+        "DROP TABLE IF EXISTS account_sessions CASCADE",
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"DROP FUNCTION IF EXISTS insert_account_session_v2(
+            bigint, text, text, text, bigint, bool, bool, bool
+        ) CASCADE"#,
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        "DROP FUNCTION IF EXISTS get_account_session_v2 (account_token text) CASCADE",
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"DROP FUNCTION IF EXISTS get_account_session_v1 (
+            text,
+            text
+                 ) CASCADE"#,
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"DROP FUNCTION IF EXISTS insert_account_session_v1 (
+            bigint, text, text, bigint, bool, bool, bool
+        ) CASCADE"#,
+    )?;
     Ok(())
 }
