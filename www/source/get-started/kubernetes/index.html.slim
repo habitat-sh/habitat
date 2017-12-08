@@ -1,0 +1,107 @@
+---
+title: Habitat - Get Started with Habitat and Kubernetes
+description: Everything you neeed to know in order to build, configure, deploy, and manage your containerized applications with Habitat on Kubernetes.
+---
+
+.heading.small-10.small-centered
+  .logo-pair
+    img class="logo-pair--image habitat" src="/images/habitat-mark.svg" alt="Habitat"
+    img class="logo-pair--image" src="/images/solutions-logos/icon-kubernetes.svg" alt="Kubernetes"
+  h1
+    | Habitat and Kubernetes
+= partial "partials/global/github_contribute"
+
+div.get-started--container
+  h2.h2 Getting Started with Habitat and Kubernetes
+  / TODO: add this link back once the get-started page is built out
+  / ul.small-links
+    li.small-links--item
+      = link_to 'Return to Get Started home', '/get-started/'
+
+  section.get-started--boxes
+    h3.h3 Introducing the Habitat Operator
+    p.description
+      | Kubernetes Operators are application-specific controllers that extend the Kubernetes API.&nbsp;
+      | Use the Habitat Operator to run and manage applications - built with Habitat - on&nbsp;
+      = link_to 'Kubernetes', 'https://kubernetes.io'
+      | .
+    div.row
+      div.columns.small-12.np-left.np-right
+        .get-started--boxes--item.card.feature-card
+          h4.h4
+            = link_to 'Learn about the Habitat Operator for Kubernetes', 'https://github.com/kinvolk/habitat-operator'
+          h6.h6 GITHUB
+          p
+            | The Habitat Operator is a Kubernetes controller designed to solve running and auto-managing Habitat Services on Kubernetes. It does this by making use of Custom Resource Definitions.&nbsp;
+            | Explore the&nbsp;
+            = link_to 'Habitat Operator project on GitHub', 'https://github.com/kinvolk/habitat-operator'
+            | &nbsp;or read the&nbsp;
+            = link_to 'announcement by Kinvolk', 'https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/'
+            | .
+
+  hr
+  section.get-started--boxes
+    h3.h3 Run and manage your Habitat applications on Kubernetes
+    p.description
+      | Habitat provides application development teams with a consistent way to build, deploy, and run their applications on any platform.&nbsp;
+      | At runtime, the Habitat Supervisor provides you with a host of capabilities that are exposed to Kubernetes users via the Habitat Operator.
+    div.row
+      div.columns.small-12.large-4.np-left
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Introducing Habitat’s Kubernetes Exporter', 'https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/'
+          h6.h6 Blog
+          p
+            | The Habitat team at Chef has teamed up with <a href="https://kinvolk.io/">Kinvolk</a> to make the deployment of Habitat-packaged applications on Kubernetes even easier.
+      div.columns.small-12.large-4
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Getting started with Habitat on Kubernetes', 'https://kinvolk.io/blog/2017/12/get-started-with-habitat-on-kubernetes/'
+          h6.h6 Blog
+          p
+            | In this guide, the team at Kinvolk explains how to use the Habitat Operator to run and manage a Habitat-packaged application in a Kubernetes cluster on Google Kubernetes Engine (GKE).
+      div.columns.small-12.large-4.np-right
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Automated Build to Kubernetes with Habitat Builder', 'https://kinvolk.io/blog/2017/12/automated-build-to-kubernetes-with-habitat-builder/'
+          h6.h6 Blog
+          p
+            | Learn about Kinvolk's experimental pipeline which uses <a href="https://bldr.habitat.sh/#/sign-in">Habitat Builder</a> to automatically build your codebase, test the resulting artifact, and deploy it to a Kubernetes cluster.
+
+  hr
+
+  section.get-started--boxes
+    h3.h3 News & announcements
+    p.description
+      | The Habitat and Kubernetes story is continually developing. Following are additional articles that highlight&nbsp;
+      | recent progress and announcements. If you're new to Habitat, check out the reference links&nbsp;
+      | to learn how you can more easily and consistently manage your applications.
+    div.row
+      div.columns.small-12.large-8.np-left
+        .get-started--boxes--item
+          h4.h4 Recent articles
+          h6.h6 Blog
+          ul.link-list
+            li.link-list--item
+              = link_to 'Kubecon, Habitat, and Kubernetes!', 'https://www.habitat.sh/blog/2017/12/Kubecon-Habitat-Kubernetes/'
+            li.link-list--item
+              = link_to 'Chef blog: Application Automation with Habitat and Kubernetes', 'https://blog.chef.io/2017/12/06/application-automation-with-habitat-and-kubernetes/'
+            li.link-list--item
+              = link_to 'Kubernetes the Hab way: How to use Habitat to set up Kubernetes clusters', 'https://kinvolk.io/blog/2017/12/kubernetes-the-hab-way/'
+            li.link-list--item
+              = link_to 'Learn about the Habitat Operator for Kubernetes: running Habitat services with Kubernetes', 'https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/'
+      div.columns.small-12.large-4
+        .get-started--boxes--item
+          h4.h4 Related links
+          h6.h6 Reference
+          ul.link-list
+            li.link-list--item
+              = link_to 'Habitat on GitHub', 'https://github.com/habitat-sh/'
+            li.link-list--item
+              = link_to 'Habitat Operator for Kubernetes on GitHub', 'https://github.com/kinvolk/habitat-operator'
+            li.link-list--item
+              = link_to 'Habitat Demo', '/demo/'
+            li.link-list--item
+              = link_to 'Habitat Tutorials', '/tutorials/'
+            li.link-list--item
+              = link_to 'Habitat Docs', '/docs/'
