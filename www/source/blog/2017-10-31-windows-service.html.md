@@ -2,7 +2,7 @@
 title: "Running Habitat as a Windows Service"
 date: 2017-10-31
 author: Matt Wrock
-tags: Windows, Supervisor
+tags: windows, supervisor
 category: windows
 classes: body-article
 ---

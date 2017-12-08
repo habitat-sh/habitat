@@ -2,8 +2,8 @@
 title: Habitat.sh Governance and Issue Tracking
 date: 2017-06-16
 author: Ian Henry
-tags: Governance,Community
-category: Community
+tags: governance, community
+category: community
 classes: body-article
 ---
 Hopefully our previous [blog](/blog/2017/06/Triage-and-Contributions/) and [discourse](https://forums.habitat.sh/t/habitat-community-triage/287) posts have given you some general understanding around the way we govern the Habitat project. But, as a group of people hoping to share what we're building with a larger audience we know we can always be doing more to "pull back the curtain". We can be doing more to [expose our work](https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6) and keep our community informed and educated on the ways we've chosen to operate.

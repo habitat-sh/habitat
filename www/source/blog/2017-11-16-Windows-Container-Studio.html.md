@@ -2,7 +2,7 @@
 title: "Windows Container Studio"
 date: 2017-11-16
 author: Matt Wrock
-tags: Windows, Studio
+tags: windows, studio
 category: windows
 classes: body-article
 ---

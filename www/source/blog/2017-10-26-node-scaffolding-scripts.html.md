@@ -2,7 +2,7 @@
 title: "Node Scaffolding now supports pre and post build scripts!"
 date: 2017-10-26
 author: Nell Shamrell-Harrington
-tags: Node, scaffolding
+tags: node, scaffolding
 category: community
 classes: body-article
 ---

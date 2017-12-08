@@ -2,8 +2,8 @@
 title: A journey with Habitat on Amazon ECS, part 2
 date: 2017-09-12
 author: Irving Popovetsky
-tags: containers, Docker, AWS, ECS, RDS, Elasticsearch, EFS
-category: Supervisor
+tags: containers, docker, aws, ecs, rds, elasticsearch, efs
+category: supervisor
 classes: body-article
 ---
 

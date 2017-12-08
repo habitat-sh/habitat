@@ -2,7 +2,7 @@
 title: Packaging a Website with Nginx and Habitat
 date: 2017-08-15
 tags: packaging, nginx, websites
-category: Web Applications
+category: web applications
 author: Chris Nunciato
 classes: body-article
 ---

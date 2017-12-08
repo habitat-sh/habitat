@@ -2,7 +2,7 @@
 title: "Modernize your Java development workflow with Habitat"
 date: 2017-10-27
 author: Matt Wrock
-tags: Java, tutorial, tomcat, mongodb, docker, packaging
+tags: java, tutorial, tomcat, mongodb, docker, packaging
 category: community
 classes: body-article
 ---

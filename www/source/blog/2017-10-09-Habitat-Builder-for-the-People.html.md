@@ -2,8 +2,8 @@
 title: Habitat Builder for the People!
 date: 2017-10-09
 author: reset
-tags: Habitat Builder, launch
-category: Habitat Builder
+tags: builder, launch
+category: builder
 classes: body-article
 published: true
 ---

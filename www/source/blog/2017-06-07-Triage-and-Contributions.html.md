@@ -2,8 +2,8 @@
 title: Triage and Contribution Process
 date: 2017-06-07
 author: Ian Henry
-tags: Governance,Community
-category: Community
+tags: governance, community
+category: community
 classes: body-article
 ---
 A super common question that comes up in lots of FOSS communities is "How do I contribute?". While most projects have a file like a [CONTRIBUTING.md](https://github.com/habitat-sh/habitat/blob/master/CONTRIBUTING.md) or instructions in a README on how to join in on the open source fun, this question still gets asked quite frequently. This is an interesting problem to have for a group of people that are actively attempting to grow their community and base of contributors. The question project maintainers really need to ask themselves is quite simply: Why is this question coming up in the first place? Which, I think points to an inherent problem that doesn't get discussed frequently/directly. It's not a problem specific to the Habitat project but rather a side effect of collaborating on a thing with geo-spatially distributed actors. What I mean by that is: Collaborating over the internet is _hard_ and we should be perpetually attempting to find ways to make that experience less painful.

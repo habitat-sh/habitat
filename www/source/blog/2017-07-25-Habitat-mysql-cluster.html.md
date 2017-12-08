@@ -3,7 +3,7 @@ title: Making a Leader/Follower MySql Cluster with Habitat!
 date: 2017-07-25
 author: Nell Shamrell-Harrington
 tags: supervisor, packaging
-category: Supervisor
+category: supervisor
 classes: body-article
 ---
 

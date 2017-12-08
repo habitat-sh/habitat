@@ -3,7 +3,7 @@ title: Habitat, Rails, and Postgres in 3 Different Ways
 date: 2017-08-18
 author: Nell Shamrell-Harrington
 tags: rails, postgresql, databases, rds, containers, docker
-category: Supervisor
+category: supervisor
 classes: body-article
 ---
 
