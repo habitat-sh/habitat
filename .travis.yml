@@ -23,6 +23,9 @@ env:
 matrix:
   include:
 
+# Testing Jobs
+########################################################################
+
 #
 # Job for testing Habitat Rust program components
 #
@@ -140,6 +143,9 @@ matrix:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
 
+# Web Jobs
+########################################################################
+
 #
 # Job for testing Builder Web components
 #
@@ -195,13 +201,19 @@ matrix:
       before_install: ./support/ci/fast_pass.sh || exit 0
       script: ./support/ci/deploy_website.sh
 
+
+# Packaging / Release Jobs
+########################################################################
+
 #
 # Job for building and publishing Habitat Linux release packages
 #
     - env:
-        # These components will build as Habitat packages in the provided order
-        - COMPONENTS="hab-butterfly hab plan-build backline bintray-publish studio sup"
-        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/backline|components/bintray-publish|components/plan-build|components/studio|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
+        # These Habitat packages will build in the provided order; do
+        # *not* change this order unless you are very sure of what you
+        # are doing! (The dependencies among this group of packages are
+        # sometimes implicit.)
+        - PACKAGES="hab-butterfly hab hab-plan-build hab-backline hab-bintray-publish hab-studio hab-sup"
         # HAB_AUTH_TOKEN
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
@@ -220,6 +232,7 @@ matrix:
             - ca-certificates
             - curl
             - wget
+            - jq
       cache:
         apt: true
         cargo: true
@@ -228,8 +241,8 @@ matrix:
           - /hab/studios/home--travis--build--habitat-sh
           - /root/.cargo
       before_install:
-        - ./support/ci/fast_pass.sh || exit 0
         - ./support/ci/only_master_or_release.sh || exit 0
+        - sudo ./support/ci/install_rq.sh
         - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       script:
@@ -239,9 +252,8 @@ matrix:
 # Job for building and publishing Habitat exporter release packages
 #
     - env:
-        # These components will build as Habitat packages in the provided order
-        - COMPONENTS="pkg-aci pkg-cfize pkg-export-docker pkg-export-kubernetes pkg-mesosize pkg-tarize"
-        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/pkg-aci|components/pkg-cfize|components/pkg-mesosize|components/pkg-tarize|components/pkg-export-docker|components/pkg-export-kubernetes|$_RUST_HAB_LIB_COMPONENTS"
+        # These Habitat packages will build in the provided order
+        - PACKAGES ="hab-pkg-aci hab-pkg-cfize hab-pkg-export-docker hab-pkg-export-kubernetes hab-pkg-mesosize hab-pkg-tarize"
         # HAB_AUTH_TOKEN
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
@@ -255,6 +267,7 @@ matrix:
             - ca-certificates
             - curl
             - wget
+            - jq
       cache:
         apt: true
         cargo: true
@@ -263,8 +276,8 @@ matrix:
           - /hab/studios/home--travis--build--habitat-sh
           - /root/.cargo
       before_install:
-        - ./support/ci/fast_pass.sh || exit 0
         - ./support/ci/only_master_or_release.sh || exit 0
+        - sudo ./support/ci/install_rq.sh
         - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       script:
@@ -274,7 +287,6 @@ matrix:
 # Job for building and publishing Habitat Mac release packages
 #
     - env:
-        - COMPONENTS="hab"
         - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
