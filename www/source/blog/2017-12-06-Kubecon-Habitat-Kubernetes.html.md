@@ -35,7 +35,7 @@ You can use Habitat to set up your Kubernetes clusters! Check out [this blog](ht
 
 Habitat Builder was [announced in early access in October](https://www.habitat.sh/blog/2017/10/Habitat-Builder-for-the-People/) and allows you to programmatically and automatically build all of your applications and services as you update your application code on Github, and as your applicatin's depenencies have upstream changes. Using Habitat's [channel promotion](https://www.habitat.sh/docs/using-habitat/#continuous-deployment), you can automatically deploy updates to development environments and then promote to production environments when ready. 
 
-Today, learn how to leverage Habitat Builder for [Automated Kubernetes Deploys]( link to be added here ). 
+Today, learn how to leverage Habitat Builder for [Automated Kubernetes Deploys](https://kinvolk.io/blog/2017/12/automated-build-to-kubernetes-with-habitat-builder/). 
 
 ## More information
 
