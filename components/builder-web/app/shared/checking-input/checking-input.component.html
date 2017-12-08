@@ -1,21 +1,13 @@
 <div class="checking-input-component">
   <div class="wrapper">
-    <hab-icon [symbol]="symbolForState(control)"
-      [class.spinning]="control.pending"
-      [class.invalid]="control.dirty && !control.pending && !control.valid"
+    <hab-icon [symbol]="symbolForState(control)" [class.spinning]="control.pending" [class.invalid]="control.dirty && !control.pending && !control.valid"
       [class.valid]="!control.pending && control.valid">
     </hab-icon>
-    <input
-      type="text"
-      [class.loading]="control.pending"
-      autocomplete="off"
-      autofocus="{{autofocus}}"
-      id="{{id}}"
-      [formControl]="form.controls[name]"
+    <input type="text" [class.loading]="control.pending" autocomplete="off" autofocus="{{autofocus}}" id="{{id}}" [formControl]="form.controls[name]"
       placeholder="{{placeholder}}">
   </div>
   <div class="validation-message" *ngIf="control.dirty && !control.pending ">
-    <span *ngIf="!control.valid" class="hab-checking-input--input-msg invalid">
+    <span *ngIf="!control.valid" class="invalid">
       <span *ngIf="control.errors.invalidFormat">
         {{displayName}} {{unmatchedMessage}}
       </span>
@@ -29,7 +21,7 @@
         Cannot be longer than {{maxLength}} characters
       </span>
     </span>
-    <span *ngIf="control.valid" class="hab-checking-input--input-msg valid">
+    <span *ngIf="control.valid" class="valid">
       {{displayName}} {{availableMessage}}
     </span>
   </div>
