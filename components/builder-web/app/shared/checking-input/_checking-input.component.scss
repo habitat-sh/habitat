@@ -5,7 +5,7 @@
     position: relative;
 
     input {
-      margin-bottom: $small-margin;
+      margin-bottom: $default-margin;
     }
 
     hab-icon {
@@ -15,20 +15,7 @@
     }
   }
 
-  .validation-message {
-    font-size: $small-font-size;
-    line-height: $small-line-height;
-  }
-
   .spinning {
     color: $waiting;
-  }
-
-  .invalid {
-    color: $error;
-  }
-
-  .valid {
-    color: $success;
   }
 }

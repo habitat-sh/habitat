@@ -113,6 +113,9 @@ export class DockerExportSettingsComponent implements OnChanges, OnDestroy {
         if (result) {
           this.applySettings(integration, result);
         }
+        else if (!this.settingsFor(integration)) {
+          this.name = null;
+        }
       });
   }
 

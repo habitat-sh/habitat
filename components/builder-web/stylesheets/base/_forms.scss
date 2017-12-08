@@ -115,3 +115,18 @@ select {
 mat-checkbox {
   display: block;
 }
+
+.validation-message {
+  margin-top: -$small-margin;
+  margin-bottom: $default-margin;
+  font-size: $small-font-size;
+  line-height: $small-line-height;
+}
+
+.invalid {
+  color: $error;
+}
+
+.valid {
+  color: $success;
+}

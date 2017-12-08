@@ -6,7 +6,12 @@
     </section>
     <section class="body">
       <label for="repo_name">Organization and Repository</label>
-      <input type="text" name="repo_name" [(ngModel)]="docker_hub_repo_name" placeholder="{{ repoPlaceholder }}" autocomplete="off">
+
+      <input type="text" name="repo_name" #repo_name="ngModel" [(ngModel)]="docker_hub_repo_name" placeholder="{{ repoPlaceholder }}"
+        autocomplete="off" required>
+      <div class="validation-message" *ngIf="repo_name.dirty && repo_name.invalid && repo_name.errors.required">
+        <span class="invalid">Organization and repository name are required.</span>
+      </div>
       <label for="custom_tag">Custom Tag (Optional)</label>
       <input type="text" name="custom_tag" [(ngModel)]="custom_tag" [placeholder]="'yourtag or \{\{ channel \}\}'" autocomplete="off">
       <label>Additional Tags</label>
