@@ -10,8 +10,8 @@ A Habitat package build proceeds in phases: download, verification, unpacking (w
 
 When building binary packages, you override the behavior of phases that do not apply to you. At the very minimum, you must override the `do_build` and `do_install` phases, for example:
 
-~~~
-
+```bash plan.sh
+(...)
 do_build() {
   # relocate library dependencies here, if needed -- see next topic
   return 0
@@ -22,7 +22,7 @@ do_install() {
   cp $PLAN_CONTEXT/bin/hello_world $pkg_prefix/bin/hello_world
   chmod +x $pkg_prefix/bin/hello_world
 }
-~~~
+```
 
 ## Relocate Hard-Coded Library Dependencies If Possible
 
@@ -33,15 +33,19 @@ Most binaries compiled in a full Linux environment have a hard dependency on `/l
 1. Declare a build-time dependency on `core/patchelf` as part of your `pkg_build_deps` line.
 2. Invoke `patchelf` on any binaries with this problem during the `do_install()` phase. For example:
 
-       patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
-                ${pkg_prefix}/bin/somebinary
+```bash
+patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
+         ${pkg_prefix}/bin/somebinary
+```
 
 3. The binary may have other hardcoded dependencies on its own libraries that you may need to relocate using other flags to `patchelf` like `--rpath`. For example, Oracle Java provides additional libraries in `lib/amd64/jli` that you will need to relocate to the Habitat location:
 
-       export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
-       patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
-                --set-rpath ${LD_RUN_PATH} \
-                ${pkg_prefix}/bin/java
+```bash
+export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
+patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
+        --set-rpath ${LD_RUN_PATH} \
+        ${pkg_prefix}/bin/java
+```
 
 4. For more information, please see the [patchelf](https://nixos.org/patchelf.html) documentation.
 
@@ -59,12 +63,16 @@ Binary packages often come with other utility scripts that have their interprete
 
 Use the `fix_interpreter` function within your plan to correct these interpreter lines during any phase, but most likely your `do_build` phase. For example:
 
-       fix_interpreter ${target} core/coreutils bin/env
+```bash
+fix_interpreter ${target} core/coreutils bin/env
+```
 
 The arguments to `fix_interpreter` are the file (represented here by `${target}`) you are trying to fix, the origin/name pair of the Habitat package that provides that interpreter, and the interpreter pattern to search and replace in the target.
 
 If you have many files you need to fix, or the binary package automatically generates scripts with hardcoded shebang lines, you may need to simply symlink Habitat's version into where the binary package expects it to go:
 
-       ln -sv $(pkg_path_for coreutils)/bin/env /usr/bin/env
+```bash
+ln -sv $(pkg_path_for coreutils)/bin/env /usr/bin/env
+```
 
 This is a last resort as it breaks the dependency isolation guarantees of Habitat.

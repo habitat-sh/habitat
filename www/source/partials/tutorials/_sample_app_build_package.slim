@@ -10,8 +10,8 @@ section.sample-app
   - if "#{current_page.data.platform_short}" == "windows"
     p The Studio is a clean, isolated environment used to build and test Habitat packages. For Windows platforms, there are two versions of the Studio. One uses a Linux-based Docker container to create a #{link_to 'chrooted', 'https://en.wikipedia.org/wiki/Chroot'} shell environment and the other is a native Windows environment. Because this tutorial involves using some functionality that is currently only available for Linux-based packages, we will use the Linux-based Studio that resides in a Docker container.
   - else
-    p The Studio is a minimal, clean, #{link_to 'chrooted', 'https://en.wikipedia.org/wiki/Chroot'} shell environment for you to build and test your Habitat packages. The Studio itself is a Habitat package, and all of the dependent packages for the Studio will be downloaded, unpacked, and installed. The Studio will also import any secret origin keys created by <code>hab setup</code>. 
-  
+    p The Studio is a minimal, clean, #{link_to 'chrooted', 'https://en.wikipedia.org/wiki/Chroot'} shell environment for you to build and test your Habitat packages. The Studio itself is a Habitat package, and all of the dependent packages for the Studio will be downloaded, unpacked, and installed. The Studio will also import any secret origin keys created by <code>hab setup</code>.
+
   - if "#{current_page.data.platform_short}" != "linux"
     p When running #{current_page.data.platform} on your host machine, the Studio runs inside a Docker container as root.
 
@@ -25,32 +25,32 @@ section.sample-app
       p To build the sample Rails application, start by changing directories to the root directory for your project.
 
       - if "#{current_page.data.platform_short}" == "windows"
-        pre
-          code.powershell PS > cd ~\sample-rails-app\
+        = code(:powershell) do
+          | PS > cd ~\sample-rails-app
       - else
-        pre
-          code.console $ cd ~/sample-rails-app/
+        = code(:shell) do
+          | $ cd ~/sample-rails-app
     - if "#{current_page.data.platform_short}" == "linux"
       li
        p Enter into the Studio environment.
-    - elsif "#{current_page.data.platform_short}" == "mac" 
+    - elsif "#{current_page.data.platform_short}" == "mac"
       li
         p Make sure Docker Community Edition for #{current_page.data.platform} is running and then enter into the Studio environment.
-    - else 
+    - else
       li
         p Make sure Docker Community Edition for #{current_page.data.platform} is running and that the <code>C:\</code> partition is shared. Then enter the Studio environment.
 
     - if "#{current_page.data.platform_short}" == "windows"
-      pre
-        code.powershell PS > hab studio enter
+      = code(:powershell)
+        | $ hab studio enter
     - else
-      pre
-        code.console $ hab studio enter
+      = code(:shell)
+        | $ hab studio enter
 
     p The package download and installation process should only take a few moments. If successful, you should see another bash prompt like this:
 
-    pre
-      code.console [1][default:/src:0]#
+    = code(:studio) do
+      | [1][default:/src:0]#
 
     - if "#{current_page.data.platform_short}" == "windows"
       p Because the Studio is chrooted, the <code>src</code> directory maps to the <code>C:\Users\user\sample-rails-app</code> directory you were in before you entered the Studio.
@@ -60,8 +60,8 @@ section.sample-app
     li
       p Run the <code>build</code> command to build your package.
 
-      pre
-        code.console [2][default:/src:0]# build
+      = code(:studio) do
+        | [2][default:/src:0]# build
 
       p The last set of output messages from running <code>build</code> should look something like this:
 
@@ -71,8 +71,8 @@ section.sample-app
 
       p The package created is also stored in a relative <code>results</code> directory (for example, <code>/src/results/myorigin-sample-rails-app-0.1.0-20170624214244-x86_64-linux.hart</code>) that persists when you exit the Studio. You will mostly refer to the .hart file when uploading your package to Builder.
 
-      blockquote 
-       p If you get build errors involving Nokogiri, follow their #{link_to 'troubleshooting steps', 'http://www.nokogiri.org/tutorials/installing_nokogiri.html#mac_os_x'} before re-running <code>build</code> again. 
+      blockquote
+       p If you get build errors involving Nokogiri, follow their #{link_to 'troubleshooting steps', 'http://www.nokogiri.org/tutorials/installing_nokogiri.html#mac_os_x'} before re-running <code>build</code> again.
 
   h3 Export the Package as a Docker Container
 
@@ -80,12 +80,12 @@ section.sample-app
 
   p Run <code>hab pkg export docker</code> and reference the .hart file you created in the previous section.
 
-  pre
-    code.console [2][default:/src:0]# hab pkg export docker ./results/&lt;hart-filename>.hart
+  = code(:studio) do
+    | [3][default:/src:0]# hab pkg export docker ./results/<hart-filename>.hart
 
   p Once you have finished exporting your package, exit out of the Studio.
 
-  pre
-    code.console [5][default:/src:0]# exit
+  = code(:studio) do
+    | [4][default:/src:0]# exit
 
 = link_to 'Next: Run the Sample App', "/tutorials/sample-app/#{current_page.data.platform_short}/run-app/", class: 'button cta'

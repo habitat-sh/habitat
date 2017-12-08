@@ -14,7 +14,6 @@
 
 use base64::DecodeError;
 use std::process::ExitStatus;
-use std::fmt;
 use std::io;
 use std::result;
 use std::string::FromUtf8Error;
@@ -24,99 +23,48 @@ use common;
 use hab;
 use handlebars;
 use hcore;
+use failure;
 
-pub type Result<T> = result::Result<T, Error>;
+pub type Result<T> = result::Result<T, failure::Error>;
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum Error {
+    #[fail(display = "{}", _0)]
     Base64DecodeError(DecodeError),
+    #[fail(display = "Docker build failed with exit code: {}", _0)]
     BuildFailed(ExitStatus),
+    #[fail(display = "Could not determine Docker image ID for image: {}", _0)]
     DockerImageIdNotFound(String),
+    #[fail(display = "Switch to Windows containers to export Docker images on Windows. \
+                     Current Docker Server OS is set to: {}",
+           _0)]
+    DockerNotInWindowsMode(String),
+    #[fail(display = "{}", _0)]
     InvalidToken(FromUtf8Error),
+    #[fail(display = "{}", _0)]
     Hab(hab::error::Error),
+    #[fail(display = "{}", _0)]
     HabitatCommon(common::Error),
+    #[fail(display = "{}", _0)]
     HabitatCore(hcore::Error),
+    #[fail(display = "Docker login failed with exit code: {}", _0)]
     LoginFailed(ExitStatus),
+    #[fail(display = "Docker logout failed with exit code: {}", _0)]
     LogoutFailed(ExitStatus),
+    #[fail(display = "No ECR Tokens returned")]
     NoECRTokensReturned,
+    #[fail(display = "{}", _0)]
     TokenFetchFailed(GetAuthorizationTokenError),
+    #[fail(display = "A primary service package could not be determined from: {:?}. \
+                     At least one package with a run hook must be provided.",
+           _0)]
     PrimaryServicePackageNotFound(Vec<String>),
+    #[fail(display = "Docker image push failed with exit code: {}", _0)]
     PushImageFailed(ExitStatus),
+    #[fail(display = "Removing Docker local images failed with exit code: {}", _0)]
     RemoveImageFailed(ExitStatus),
+    #[fail(display = "{}", _0)]
     TemplateRenderError(handlebars::TemplateRenderError),
+    #[fail(display = "{}", _0)]
     IO(io::Error),
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match *self {
-            Error::Base64DecodeError(ref err) => format!("{}", err),
-            Error::BuildFailed(status) => format!("Docker build failed with exit code: {}", status),
-            Error::DockerImageIdNotFound(ref image_tag) => {
-                format!(
-                    "Could not determine Docker image ID for image: {}",
-                    image_tag
-                )
-            }
-            Error::Hab(ref err) => format!("{}", err),
-            Error::HabitatCommon(ref err) => format!("{}", err),
-            Error::HabitatCore(ref err) => format!("{}", err),
-            Error::LoginFailed(status) => format!("Docker login failed with exit code: {}", status),
-            Error::TokenFetchFailed(ref err) => format!("{}", err),
-            Error::NoECRTokensReturned => format!("No ECR Tokens returned"),
-            Error::InvalidToken(ref err) => format!("{}", err),
-            Error::LogoutFailed(status) => {
-                format!("Docker logout failed with exit code: {}", status)
-            }
-            Error::PrimaryServicePackageNotFound(ref idents) => {
-                format!(
-                    "A primary service package could not be determined from: {}. \
-                    At least one package with a run hook must be provided.",
-                    idents.join(", ")
-                )
-            }
-            Error::PushImageFailed(status) => {
-                format!("Docker image push failed with exit code: {}", status)
-            }
-            Error::RemoveImageFailed(status) => {
-                format!(
-                    "Removing Docker local images failed with exit code: {}",
-                    status
-                )
-            }
-            Error::TemplateRenderError(ref err) => format!("{}", err),
-            Error::IO(ref err) => format!("{}", err),
-        };
-        write!(f, "{}", msg)
-    }
-}
-
-impl From<common::Error> for Error {
-    fn from(err: common::Error) -> Self {
-        Error::HabitatCommon(err)
-    }
-}
-
-impl From<hab::error::Error> for Error {
-    fn from(err: hab::error::Error) -> Self {
-        Error::Hab(err)
-    }
-}
-
-impl From<handlebars::TemplateRenderError> for Error {
-    fn from(err: handlebars::TemplateRenderError) -> Self {
-        Error::TemplateRenderError(err)
-    }
-}
-
-impl From<hcore::Error> for Error {
-    fn from(err: hcore::Error) -> Self {
-        Error::HabitatCore(err)
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IO(err)
-    }
 }

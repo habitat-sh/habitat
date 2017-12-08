@@ -57,12 +57,6 @@ pub fn validate_integrations(workspace: &Workspace) -> Result<()> {
 
         let prj_integration = prj_integrations.first().unwrap();
 
-        if prj_integration.get_integration_name() != "default" {
-            return Err(Error::InvalidIntegrations(format!(
-                "integration name '{}' not supported",
-                prj_integration.get_integration_name()
-            )));
-        }
         // TODO fn: use a struct and serde to do heavy lifting
         let opts: JsonValue = match serde_json::from_str(prj_integration.get_body()) {
             Ok(json) => json,

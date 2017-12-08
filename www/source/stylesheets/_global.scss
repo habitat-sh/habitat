@@ -3,7 +3,7 @@
 //
 //  Table of Contents:
 //
-//  1. Page Elements
+//  1. Global Page Elements
 //  2. Code Overrides
 //  3. Buttons
 //  4. Typography
@@ -13,8 +13,10 @@
 //  8. Anchor Links
 //  9. Global Message
 //  10. 404
-//  11. Social links
+//  11. Social Links
 //  12. Cards
+//  13. Helper Classes
+//  14. Misc HTML Elements
 
 $main-nav-breakpoint: 769px;
 
@@ -30,7 +32,7 @@ $main-nav-breakpoint: 769px;
   }
 }
 
-// 1. Global
+// 1. Global Page Elements
 // ---------
 body {
   background: $body-background;
@@ -81,6 +83,20 @@ body {
     margin-bottom: 0;
     margin-left: rem-calc(-30);
     padding: rem-calc(10) rem-calc(30);
+  }
+}
+
+.main-content {
+  .heading {
+    margin-bottom: rem-calc(56);
+    margin-top: rem-calc(72);
+    color: $white;
+    font-size: rem-calc(36);
+    text-align: center;
+
+    @include small-nav {
+      font-size: rem-calc(20);
+    }
   }
 }
 
@@ -166,6 +182,42 @@ body {
   }
   a.github {
     background-position: left 2px !important;
+  }
+}
+
+.view-gh {
+  font-size: rem-calc(14);
+  text-align: center;
+
+  > img {
+    margin-bottom: -1px;
+    margin-right: rem-calc(8);
+    height: rem-calc(12);
+    vertical-align: baseline;
+  }
+
+  > a {
+    color: rgba($hab-white, 0.5);
+
+    &:hover {
+      color: $hab-white;
+    }
+  }
+
+  @include large-nav {
+    text-align: right;
+  }
+}
+
+.small-links {
+  margin: 0 0 rem-calc(16);
+  padding: 0;
+  list-style: none;
+  font-size: rem-calc(12);
+
+  .small-links--item {
+    display: inline-block;
+    margin-right: rem-calc(16);
   }
 }
 
@@ -268,6 +320,10 @@ code {
     background: url('/images/icons/icon-download.svg') 15px center no-repeat;
     padding-left: 1.75rem;
   }
+
+  + .button {
+    margin-left: rem-calc(16);
+  }
 }
 
 .button.cta{
@@ -333,6 +389,10 @@ ol.lower-roman {
 
 // 5. Links
 // ---------
+
+a, a:hover {
+  transition: all 200ms;
+}
 
 .back-link {
   display: block;
@@ -475,7 +535,7 @@ img {
   }
 }
 
-// 11. Cards
+// 12. Cards
 // -------------------
 
 %card-box {
@@ -543,4 +603,24 @@ img {
       border-bottom: 1px solid $hab-gray-light;
     }
   }
+}
+
+// 13. Helper Classes
+// -------------------
+
+.np-left {
+  padding-left: 0;
+}
+
+.np-right {
+  padding-right: 0;
+}
+
+// 14. Misc HTML Elements
+// -------------------
+
+hr {
+  border: 0;
+  height: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }

@@ -10,7 +10,7 @@ env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
     # Habitat Rust program components
-    - _RUST_HAB_BIN_COMPONENTS="components/airlock|components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/sup"
+    - _RUST_HAB_BIN_COMPONENTS="components/airlock|components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/pkg-export-kubernetes|components/sup"
     # Habitat Rust crate components
     - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/core|components/eventsrv-client|components/launcher-client|components/launcher-protocol"
     # Builder Rust program components
@@ -204,17 +204,53 @@ matrix:
     - os: linux
       env:
         # These components will build as Habitat packages in the provided order
-        - COMPONENTS="hab-butterfly hab plan-build backline bintray-publish studio pkg-aci pkg-dockerize pkg-cfize pkg-export-docker pkg-mesosize pkg-tarize sup"
-        - AFFECTED_DIRS="\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/backline|components/bintray-publish|components/pkg-aci|components/pkg-cfize|components/pkg-dockerize|components/pkg-mesosize|components/pkg-tarize|components/plan-build|components/studio|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
+        - COMPONENTS="hab-butterfly hab plan-build backline bintray-publish studio sup"
+        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/backline|components/bintray-publish|components/plan-build|components/studio|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_AUTH_TOKEN
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
-        - BINTRAY_USER=mwrock
+        - BINTRAY_USER=chef-releng-ops
         # BINTRAY_KEY
-        - secure: "KjnlECRQiJ5wNVKHTVYBDmpT0RuZfCXPPvJmqL42Pgec8NZuII/uVJlp+YMFiTqkE1nCfbOHIn9/7XfHwMhigUofQkkojFyVaNhYsJ09PCo80cK60cVD38S8zcu8dOL0JN1iNhivr3FvCo9Q2w04o8eR0rYgHzXw/n7E1j8Hvedph9odKCUZKjTHneL6ENON4Wl5trtEdJLN+WxWst7s3Kjl5BKNcmGIrvstjBhSsuhpIGikW2OECKCAWKbYsDB87jUsr9kVuoppBfu5jkMHZIwxgEkHZWcpZwMJqciX/w13igkNYIxJChl0qTygI8xDEqk04wNpciCItoX8pvzEF1MC+F7gmNE+Ga9N/Dw0c2MGSIlrGlCvcHkwxaJuXj0wD8ZsJZD3I7M3uA7r+FmPh7n43GX4MHQxSDWNJhLupvS/4rT5j3fdw1AKoD6LAjAaT2R5OzDVY2qhONeT/B4a3tlMhfTRDxd+PjUY/jUE1kOLdctl+6rKCTHmNxUO6MWnMN1ZWfbZSitfAkrkinmJ0APzhphvYB1r59PDQoLqNOSZS8iEtq7S9xVx+YWzx7KaTZhorHmaXu0iYm6VnoGeupJnEZcpJC98deRGhiSBaiZflmVkyh5w9z/2hLMkM7zVDxBMN8GqZjizJtGTK96ZgNJYI7DryAoYIcGa6ZIEeds="
+        - secure: "ZQCvv7A2R+tjUYl8ywDnI6sadMNrIcIG9EGZtRcTdKNqDoCOOGu7a+hfAvKuVdptpN6x9UeANYGyuqE2FqPLxiAzufAF2+rZNB431lHAfA0IFkI0/+L1v8pcWR9VFFYGDOde2rfnOHyGRQk9clSli4+TDIadrNkVzEzKg8VAeAOEX2Eh5VPwb2CtgLKoptKU/cnoKbzvwN9EQQ8fA2DI7Dp/KNxYxs3MciESTfl/RkU+kXZ9tJXPZz9W3BgHN0Ybt7Tws0jyXlocHdmt8BaOqHgs0ZiFYoQQ4P8flYzO5stnVETOruZZwV5hx9c9kXd5nRc9JpG5g0vtPkK08812Y56iIKs1UE3wnakhRAWzbix4uZ6tC0DxUXpW44+6jXEAHZcLZa1UOJxE2brgiFTIYuHu+slaL1OalF0PRY6xchJhH+RmXifqRwPdhkUpzEfGSb+ziJ6x+TauDGUZAxXcoBYG3MuKAFtjcNrbxcXFzFRs+muP7DvfdntbkQLx2axCLND6UJVdj/6EXXUe7M5BDv4SJRaRWc2EhIizd0GVaKRUAWzirEttWvp9igajJBXB/wZJvMWawqtDPl1OXXceggZLnW9QCSnyjwwuQeHAZ4DRdK5V7Of8un87C/YSujpn338s5tdfbQjztWZEohh0Dw3ht+6wrO95EqCyMj1UOuM="
         # BINTRAY_PASSPHRASE
         - secure: "jOhfYhQShwodrNuXwkh1PMiVBPgokP8Q+orBTampINoTJ/P4W6vNiXbc1VaAHhqxqvTebIiB2CkNICLSt/Fys9eO0d7DQREhhkvQIjhX9rFs3AYYop5HZ+m+uZYGfqSY1G298XaCA0IAGfl2EWp5VFM/+NENCFtdlUSDaVHekmWKgGbfzhmL7Ho+jRas4naIehDSUBJZfQ837DJ8Xeew2Ec3wPnbsU+NeE/Fv042QmOGsmEoKlUf9Ak/6jAc6sOQl+84UKB7xrIpA5BOHq3DA2td+vgFEByBfthvDsF6VexISARFk36M5OC4EtjjZ3hkJA47AlE1jdPlo1PbNOwoPhWLsfHbCqffg3VAmiY5horPZoyGuyFQsXq6DHhyiiYUAqSMuRYwEzpp3dl3g1lK1Y7akgqSqxrNcjgwmExwt9ncfTTC2jjN+nzLD3zAruuNpqHOnrK6xLG4JfvpC53o+LvmTjuUPEe2q7LgixjWid+Zk8AezfndtKVk0T+0JJk+XAmq/MQIHTKQOy1hJGFUkBEi8xM0hFw6+h/PXqhsuv0J2dwDuLhhXtvYExyTLJEo0qIUAPnnAFmBI/rR4KjSpv4I1A6cw8i1prrGOMQ+BK5xqXArixR6HUooq4KmWGoBf2E8tgJOJRYXBPrTFpL9/e5fy4+jNgUDcpFwlTKhXUM="
+      sudo: required
+      services:
+        - docker
+      addons:
+        apt:
+          packages:
+            - ca-certificates
+            - curl
+            - wget
+      cache:
+        apt: true
+        cargo: true
+        directories:
+          - /root/travis_bootstrap
+          - /hab/studios/home--travis--build--habitat-sh
+          - /root/.cargo
+      before_install:
+        - ./support/ci/fast_pass.sh || exit 0
+        - ./support/ci/only_master_or_release.sh || exit 0
+        - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
+        - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
+      script:
+        - sudo ./support/ci/deploy.sh
+
+#
+# Job for building and publishing Habitat exporter release packages
+#
+    - os: linux
+      env:
+        # These components will build as Habitat packages in the provided order
+        - COMPONENTS="pkg-aci pkg-dockerize pkg-cfize pkg-export-docker pkg-export-kubernetes pkg-mesosize pkg-tarize"
+        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/pkg-aci|components/pkg-cfize|components/pkg-dockerize|components/pkg-mesosize|components/pkg-tarize|components/pkg-export-docker|components/pkg-export-kubernetes|$_RUST_HAB_LIB_COMPONENTS"
+        # HAB_AUTH_TOKEN
+        - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
+        # HAB_ORIGIN_KEY
+        - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
       sudo: required
       services:
         - docker
@@ -245,7 +281,7 @@ matrix:
     - os: linux
       env:
         - COMPONENTS="hab"
-        - AFFECTED_DIRS="\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
+        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
         - BINTRAY_USER=chef-releng-ops

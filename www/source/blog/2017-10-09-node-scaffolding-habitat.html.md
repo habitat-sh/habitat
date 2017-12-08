@@ -27,7 +27,7 @@ Let's create an ultra-simple NodeJS application using [Express](https://expressj
 
 (This application is based on [this tutorial](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website)).
 
-```console
+```shell
 $ express --git misfit_toys
 $ cd misfit_toys
 $ npm install
@@ -36,9 +36,7 @@ $ vim routes/index.js
 
 Your routes/index.js file should look like this:
 
-**routes/index.js**
-
-```
+```js ~/misfit_toys/routes/index.js
 var express = require('express');
 var router = express.Router();
 
@@ -52,19 +50,19 @@ module.exports = router;
 
 Change this line:
 
-```
+```js ~/misfit_toys/routes/index.js
 res.render('index', { title: 'Express' });
 ```
 
 To this:
 
-```
+```js ~/misfit_toys/routes/index.js
 res.render('index', { title: 'Island of Misfit Toys' });
 ```
 
 Now, your routes/index.js file should match the following:
 
-```
+```js ~/misfit_toys/routes/index.js
 var express = require('express');
 var router = express.Router();
 
@@ -78,7 +76,7 @@ module.exports = router;
 
 If you'd like, start the app locally
 
-```console
+```shell ~/misfit_toys
 $ npm start
 ```
 
@@ -90,15 +88,13 @@ Now let's package up this application with Habitat.
 
 In the same directory as your application (the misfit_toys directory), run this command:
 
-```console
+```shell ~/misfit_toys
 $ hab plan init -s node
 ```
 
 This creates a habitat directory along with several starter files.  Open up habitat/plan.sh:
 
-**habitat/plan.sh**
-
-```
+```bash ~/misfit_toys/habitat/plan.sh
 pkg_name=misfit_toys
 pkg_origin=your_origin
 pkg_version="0.1.0"
@@ -109,31 +105,31 @@ Make sure that pkg_origin is set to your Habitat origin.  There are not other ch
 
 Now, enter the Habitat studio to build the application.
 
-```console
+```shell
 $ hab studio enter
 ```
 
 Once you are in the studio, build the application with the "build" command
 
-```console
-(studio) $ build
+```studio
+$ build
 ```
 
 This will build your package! You can find it in the results directory (both in and out of the studio). We could take this package and run it on a Virtual Machine or Bare Metal Server...but let's try something new. This particular application does not have any persistant data, which makes it ideal to run in a container. With just one command, we can export this package to a ready-to-run Docker image.
 
-```console
-(studio) $ hab pkg export docker ./results/<your habitat package>.hart
+```studio
+$ hab pkg export docker ./results/<your habitat package>.hart
 ```
 
 Now exit out of the studio:
 
-```console
-(studio) $ exit
+```studio
+$ exit
 ```
 
 And run the Docker image you just created:
 
-```console
+```shell ~/misfit_toys
 $ docker run -it -p 8000:8000 your_origin/misfit_toys
 ```
 
@@ -181,13 +177,13 @@ Let's run our first build. From the "Build Jobs" tab click the big green "Build 
 
 Once the build is complete, you can either download and install the package itself with
 
-```console
+```shell ~/misfit_toys
 $ hab install your_origin/package_name
 ```
 
 Or, if you set up an integration with Docker Hub, you can now run your package as a docker container image with just two commands:
 
-```console
+```shell ~/misfit_toys
 $ docker pull your_docker_org/your_docker_repo
 $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
 ```
@@ -202,7 +198,7 @@ If you'd like to use a different version of Node, you can! There are three ways 
 
 * Specify it in your application's package.json, i.e.
 
-```
+```js ~/misfit_toys/package.json
 "engines": {
   "node": ">=5.6.0",
 },

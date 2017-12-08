@@ -1,0 +1,173 @@
+---
+title: Habitat - Get Started with Habitat and Ruby on Rails
+description: Habitat tutorials provide hands-on, step-by-step instructions on how easy it is to build, configure, deploy, and manage your applications in Habitat.
+---
+
+.heading.small-10.small-centered
+  h1
+    | Habitat and Ruby on Rails
+= partial "partials/global/github_contribute"
+
+div.get-started--container
+  h2.h2 Getting Started with Habitat and Ruby on Rails
+  ul.small-links
+    li.small-links--item
+      = link_to 'Return to Get Started home', '/get-started/'
+  section.get-started--boxes
+    h3.h3 Package, build, and run your first application
+    p.description
+      | With a single download, you will have everything you need to leverage the three core components of Habitat:
+      br
+      | a package manager, build and deployment capabilities, and a runtime lifecycle manager.
+    div.row
+      div.columns.small-12.large-6.np-left
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Package a basic Ruby on Rails Application', '/demo/package-manager'
+          h6.h6 Tutorial
+          p
+            | In this short tutorial, you'll write a very basic plan for a Hello World! app that you'll also build and run.
+      div.columns.small-12.large-6.np-right
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Package a basic Ruby on Rails Applicaiton using Scaffolding', '/demo/package-manager'
+          h6.h6 Tutorial
+          p
+            | In this short tutorial, you'll write a very basic plan for a Hello World! app that you'll also build and run.
+  hr
+  section.get-started--boxes
+    h3.h3 A complete guide to shipping your own application
+    p.description
+      | These are things that may not fit neatly into a bucket above, but that we know people want to hear about.
+    div.row
+      div.columns.small-12.np-left.np-right
+        .get-started--boxes--item.card.feature-card
+          h4.h4
+            = link_to 'Build your own Ruby on Rails application', '/guides/rails'
+          h6.h6 Guide
+          p
+            | A complete guide to... bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+  hr
+  section.get-started--icon-list
+    h3.h3 Start Habitizing applications with language-specific, hands-on guides
+    p.description
+      | Learn how to package, build, deploy, run and manage a web app.
+    div.row
+      .columns.small-12.np-left
+        h4.h4 Related Packages
+        ul.tech-icons
+          li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/guides/postgresql/"
+            img src="/images/solutions-logos/icon-ruby.svg" alt="PostgreSQL"
+            span Postgres
+          li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/guides/mongodb/"
+            img src="/images/solutions-logos/icon-ruby.svg" alt="MongoDB"
+            span MongoDB
+          li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/guides/redis/"
+            img src="/images/solutions-logos/icon-ruby.svg" alt="Redis"
+            span Redis
+          li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/guides/unicorn/"
+            img src="/images/solutions-logos/icon-ruby.svg" alt="Unicorn"
+            span Unicorn
+
+        = link_to 'All guides', '/get-started/guides/', class: 'button secondary'
+  hr
+  section.get-started--boxes
+    h3.h3 Advanced tutorials
+    p.description
+      | These are things that may not fit neatly into a bucket above, but that we know people want to hear about.
+    div.row
+      div.columns.small-12.large-6.np-left
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Build a complete Ruby on Rails sample application', '/tutorials/sample-app'
+          h6.h6 Tutorial
+          p
+            | In this end-to-end tutorial, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+  hr
+  section.get-started--boxes
+    h3.h3 Advanced tutorials
+    p.description
+      | These are things that may not fit neatly into a bucket above, but that we know people want to hear about.
+    div.row
+      div.columns.small-12.large-6.np-left
+        .get-started--boxes--item.card
+          h4.h4 Habitat operator - demo of binding Habitat Services and initial configuration
+          h6.h6 Video
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/IlenE7ClZHI?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+      div.columns.small-12.large-6.np-right
+        .get-started--boxes--item.card
+          h4.h4 Habitat operator - demo of binding Habitat Services and initial configuration
+          h6.h6 Video
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/IlenE7ClZHI?rel=0" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+  hr
+  section.get-started--boxes
+    h3.h3 Sample Embedded code
+    p.description
+      | An example of how we can embed code such as a plan file
+    markdown:
+      ```bash plan.sh
+      pkg_name=sqlite
+      pkg_version=3130000
+      pkg_origin=core
+      pkg_license=('Public Domain')
+      pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+      pkg_description="A software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine."
+      pkg_upstream_url=https://www.sqlite.org/
+      pkg_source=https://www.sqlite.org/2016/${pkg_name}-autoconf-${pkg_version}.tar.gz
+      pkg_filename=${pkg_name}-autoconf-${pkg_version}.tar.gz
+      pkg_dirname=${pkg_name}-autoconf-${pkg_version}
+      pkg_shasum=e2797026b3310c9d08bd472f6d430058c6dd139ff9d4e30289884ccd9744086b
+      pkg_deps=(core/glibc core/readline)
+      pkg_build_deps=(core/gcc core/make core/coreutils)
+      pkg_lib_dirs=(lib)
+      pkg_include_dirs=(include)
+      pkg_bin_dirs=(bin)
+      ```
+
+  hr
+  section.get-started--boxes
+    h3.h3 Related Topics
+    p.description
+      | Now that you've packaged an application with Habitat, you will likely have additional questions.
+      br
+      | Below are some common next steps as you continue building, deploying, and managing your own applications.
+    div.row
+      div.columns.small-12.large-4.np-left
+        .get-started--boxes--item
+          h4.h4 Next Steps
+          h6.h6 DOCS
+          ul.link-list
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+      div.columns.small-12.large-4
+        .get-started--boxes--item
+          h4.h4 Going to Production
+          h6.h6 DOCS
+          ul.link-list
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+      div.columns.small-12.large-4.np-right
+        .get-started--boxes--item
+          h4.h4 Advanced Deployments
+          h6.h6 DOCS
+          ul.link-list
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'

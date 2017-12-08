@@ -91,12 +91,10 @@ export function setProjectVisibility(origin: string, name: string, setting: stri
 export function fetchProject(origin: string, name: string, token: string, alert: boolean) {
   return dispatch => {
     dispatch(clearCurrentProject());
-    dispatch(clearCurrentProjectIntegration());
 
     new BuilderApiClient(token).getProject(origin, name)
       .then(response => {
         dispatch(setCurrentProject(response, null));
-        dispatch(fetchProjectIntegration(origin, name, 'docker', token));
       })
       .catch((error) => {
         dispatch(setCurrentProject(null, error));
@@ -108,7 +106,6 @@ export function fetchProjects(origin: string, token: string) {
   return dispatch => {
     dispatch(clearProjects());
     dispatch(clearCurrentProject());
-    dispatch(clearCurrentProjectIntegration());
 
     new BuilderApiClient(token).getProjects(origin).then(response => {
       if (Array.isArray(response) && response.length > 0) {
@@ -120,11 +117,12 @@ export function fetchProjects(origin: string, token: string) {
 
 export function fetchProjectIntegration(origin: string, name: string, integration: string, token: string) {
   return dispatch => {
-    dispatch(clearCurrentProjectIntegration());
-
     new BuilderApiClient(token).getProjectIntegration(origin, name, integration)
       .then(response => {
-        dispatch(setCurrentProjectIntegration(response));
+        dispatch(setCurrentProjectIntegration({
+          name: integration,
+          settings: response
+        }));
       })
       .catch(error => { });
   };
@@ -148,6 +146,24 @@ export function deleteProject(id: string, token: string) {
   };
 }
 
+export function deleteProjectIntegration(origin: string, name: string, integration: string, token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).deleteProjectIntegration(origin, name, integration).then(response => {
+      dispatch(addNotification({
+        title: 'Integration settings deleted',
+        type: SUCCESS
+      }));
+    }).catch(error => {
+      dispatch(addNotification({
+        title: 'Failed to delete integration settings',
+        body: error.message,
+        type: DANGER
+      }));
+    });
+  };
+}
+
+
 export function updateProject(projectId: string, project: Object, token: string, onComplete: Function = () => { }) {
   return dispatch => {
     new BuilderApiClient(token).updateProject(projectId, project).then(response => {
@@ -170,12 +186,6 @@ export function updateProject(projectId: string, project: Object, token: string,
 function clearCurrentProject() {
   return {
     type: CLEAR_CURRENT_PROJECT
-  };
-}
-
-function clearCurrentProjectIntegration() {
-  return {
-    type: CLEAR_CURRENT_PROJECT_INTEGRATION
   };
 }
 

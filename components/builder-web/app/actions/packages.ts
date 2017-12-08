@@ -14,6 +14,7 @@
 
 import { groupBy } from 'lodash';
 import * as depotApi from '../client/depot-api';
+import { addNotification, SUCCESS, DANGER } from './notifications';
 
 export const CLEAR_PACKAGES = 'CLEAR_PACKAGES';
 export const CLEAR_LATEST_IN_CHANNEL = 'CLEAR_LATEST_IN_CHANNEL';
@@ -197,6 +198,28 @@ export function populateExploreStats(data) {
   return {
     type: POPULATE_EXPLORE_STATS,
     payload: data,
+  };
+}
+
+export function promotePackage(origin: string, name: string, version: string, release: string, channel: string, token: string) {
+  return dispatch => {
+    depotApi.promotePackage(origin, name, version, release, channel, token)
+      .then(response => {
+        dispatch(addNotification({
+          title: 'Package promoted',
+          body: `${origin}/${name}/${version}/${release} has been promoted to the ${channel} channel.`,
+          type: SUCCESS
+        }));
+        dispatch(fetchPackageVersions(origin, name));
+      })
+      .catch(error => {
+        dispatch(addNotification({
+          title: 'Failed to promote package',
+          body: `There was an error promoting ${origin}/${name}/${version}/${release}
+            to the ${channel} channel. The message was ${error.message}.`,
+          type: DANGER
+        }));
+      });
   };
 }
 

@@ -27,13 +27,15 @@ export class PackageDetailComponent {
   }
 
   get fullName() {
-    let ident = this.package['ident'];
-    let name = '';
+    const ident = this.package['ident'];
+    let props = [];
 
-    if (ident.origin && ident.name) {
-      name = `${ident.origin}/${ident.name}`;
-    }
+    ['origin', 'name', 'version', 'release'].forEach(prop => {
+      if (ident[prop]) {
+        props.push(ident[prop]);
+      }
+    });
 
-    return name;
+    return props.join('/');
   }
 }

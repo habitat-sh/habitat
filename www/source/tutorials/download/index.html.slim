@@ -49,8 +49,8 @@ section.download
 
         p Once you have downloaded the <code>hab</code> CLI, unzip it onto your machine. We suggest unzipping to <code>C:\habitat</code> and then adding that folder to your <code>PATH</code> variable. Here’s how to do that with Powershell:
 
-        pre
-          code $env:PATH += ";C:\habitat"
+        = code(:powershell) do
+          | PS > $env:PATH += ";C:\habitat"
 
       .buttons.small-12.large-4.columns
         = link_to 'Download Habitat for Windows', 'https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows', class: 'button outline'

@@ -71,6 +71,8 @@ done
 echo "--> Removing origin secret keys from Studio"
 env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
 
-echo "Publishing hab to $BINTRAY_REPO"
-${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
-${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $RELEASE
+if [ -n "$BINTRAY_USER" ]; then
+  echo "Publishing hab to $BINTRAY_REPO"
+  ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
+  ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $RELEASE
+fi

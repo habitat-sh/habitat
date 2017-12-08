@@ -446,5 +446,159 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#,
     )?;
+    // BEGIN cascade delete migration
+    // Issue: https://github.com/habitat-sh/habitat/issues/4090
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE IF EXISTS origin_project_integrations
+            ADD COLUMN IF NOT EXISTS project_id bigint REFERENCES origin_projects(id) ON DELETE CASCADE,
+            ADD COLUMN IF NOT EXISTS integration_id bigint REFERENCES origin_integrations(id) ON DELETE CASCADE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='origin_project_integrations' AND column_name='name') THEN
+                UPDATE origin_project_integrations as u1 SET project_id = u2.project_id, integration_id = u2.integration_id FROM
+                    (SELECT opi.id as opiid, op.id as project_id, oi.id as integration_id
+                    FROM origin_project_integrations AS opi
+                    JOIN origin_projects AS op ON opi.name = op.package_name AND opi.origin = op.origin_name
+                    JOIN origin_integrations AS oi ON opi.integration = oi.name AND opi.origin = oi.origin
+                    WHERE opi.project_id IS NULL
+                    AND opi.integration_id IS NULL) as u2
+                    WHERE u2.opiid = u1.id;
+            END IF;
+        END $$"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        "UPDATE origin_project_integrations SET updated_at = NOW() WHERE updated_at IS NULL;",
+    )?;
+    // Cleanup any orphaned origin_project_integrations
+    migrator.migrate(
+        "originsrv",
+        "DELETE FROM origin_project_integrations WHERE project_id IS NULL or integration_id IS NULL",
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE origin_project_integrations
+            DROP COLUMN IF EXISTS name,
+            DROP COLUMN IF EXISTS integration,
+            DROP COLUMN IF EXISTS integration_name,
+            ALTER COLUMN updated_at SET DEFAULT NOW(),
+            ALTER COLUMN body SET NOT NULL,
+            ALTER COLUMN created_at SET NOT NULL,
+            ALTER COLUMN updated_at SET NOT NULL,
+            ALTER COLUMN origin SET NOT NULL,
+            ALTER COLUMN project_id SET NOT NULL,
+            ALTER COLUMN integration_id SET NOT NULL,
+            ADD UNIQUE (project_id, integration_id);"#,
+    )?;
+    migrator.migrate(
+    "originsrv",
+    r#"CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v2 (
+                                    in_origin text,
+                                    in_name text,
+                                    in_integration text,
+                                    in_body text
+                            ) RETURNS SETOF origin_project_integrations AS $$
+                                BEGIN
+                                    RETURN QUERY INSERT INTO origin_project_integrations(
+                                        origin,
+                                        body,
+                                        updated_at,
+                                        project_id,
+                                        integration_id)
+                                        VALUES (
+                                            in_origin,
+                                            in_body,
+                                            NOW(),
+                                            (SELECT id FROM origin_projects WHERE package_name = in_name AND origin_name = in_origin),
+                                            (SELECT id FROM origin_integrations WHERE origin = in_origin AND name = in_integration)
+                                        )
+                                        ON CONFLICT(project_id, integration_id)
+                                        DO UPDATE SET body=in_body RETURNING *;
+                                    RETURN;
+                                END
+                            $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_integrations_v2 (
+                                     in_origin text,
+                                     in_name text,
+                                     in_integration text
+                              ) RETURNS SETOF origin_project_integrations AS $$
+                                     SELECT opi.* FROM origin_project_integrations opi
+                                     JOIN origin_integrations oi ON oi.id = opi.integration_id
+                                     JOIN origin_projects op ON op.id = opi.project_id
+                                     WHERE opi.origin = in_origin
+                                     AND op.package_name = in_name
+                                     AND oi.name = in_integration
+                                 $$ LANGUAGE SQL STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_integrations_for_project_v2 (
+                        in_origin text,
+                        in_name text
+                 ) RETURNS SETOF origin_project_integrations AS $$
+                        SELECT opi.* FROM origin_project_integrations opi
+                        JOIN origin_projects op ON op.id = opi.project_id
+                        WHERE origin = in_origin
+                        AND package_name = in_name
+                    $$ LANGUAGE SQL STABLE"#,
+    )?;
+    // END cascade delete migration
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v3 (
+                                        in_origin text,
+                                        in_name text,
+                                        in_integration text,
+                                        in_body text
+                                ) RETURNS SETOF origin_project_integrations AS $$
+                                    BEGIN
+
+                                        -- We currently support running only one publish step per build job. This
+                                        -- temporary fix ensures we store (and can retrieve) only one project integration.
+                                        DELETE FROM origin_project_integrations
+                                        WHERE origin = in_origin
+                                        AND project_id = (SELECT id FROM origin_projects WHERE package_name = in_name AND origin_name = in_origin);
+
+                                        RETURN QUERY INSERT INTO origin_project_integrations(
+                                            origin,
+                                            body,
+                                            updated_at,
+                                            project_id,
+                                            integration_id)
+                                            VALUES (
+                                                in_origin,
+                                                in_body,
+                                                NOW(),
+                                                (SELECT id FROM origin_projects WHERE package_name = in_name AND origin_name = in_origin),
+                                                (SELECT id FROM origin_integrations WHERE origin = in_origin AND name = in_integration)
+                                            )
+                                            ON CONFLICT(project_id, integration_id)
+                                            DO UPDATE SET body=in_body RETURNING *;
+                                        RETURN;
+                                    END
+                                $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION delete_origin_project_integration_v1 (
+            p_origin text,
+            p_package text,
+            p_integration text
+        ) RETURNS void AS $$
+            BEGIN
+                DELETE FROM origin_project_integrations
+                WHERE origin = p_origin
+                AND project_id = (SELECT id FROM origin_projects WHERE origin_name = p_origin AND package_name = p_package)
+                AND integration_id = (SELECT id FROM origin_integrations WHERE origin = p_origin AND name = p_integration);
+            END
+        $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
     Ok(())
 }

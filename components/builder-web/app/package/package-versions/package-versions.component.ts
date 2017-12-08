@@ -87,6 +87,14 @@ export class PackageVersionsComponent implements OnDestroy {
     this.store.dispatch(filterPackagesBy(params, null, false));
   }
 
+  promotable(pkg) {
+    return this.memberOfOrigin && pkg.channels.indexOf('stable') === -1;
+  }
+
+  get memberOfOrigin() {
+    return !!this.store.getState().origins.mine.find(origin => origin['name'] === this.origin);
+  }
+
   packageString(pkg) {
     return packageString(pkg);
   }

@@ -118,7 +118,10 @@ impl HttpGateway for ApiSrv {
                 "/projects/:origin/:name/integrations/:integration/default" => {
                 XHandler::new(create_project_integration).before(basic.clone())
             },
-
+            project_integration_delete: delete
+                "/projects/:origin/:name/integrations/:integration/default" => {
+                XHandler::new(delete_project_integration).before(basic.clone())
+            },
             ext_search_code: get "/ext/installations/:install_id/search/code" => {
                 XHandler::new(github::search_code).before(basic.clone())
             },

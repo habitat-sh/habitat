@@ -6,16 +6,16 @@
 p The easiest way to build your package is to use Builder. Instead of building your package locally with each iteration of your project source or updates to your plan, you can rebuild your package using Builder. Everytime you commit new code to your application's GitHub repository, Builder will automatically rebuild your package, and if enabled, push an image of that build to Docker Hub.
 
 - if "#{current_page.data.type}" == "tutorial"
-  p If you have already done the #{link_to 'demo','/demo'}, this section will use the same basic flow to setup Builder to build packages of the sample Rails application from your GitHub repo. 
+  p If you have already done the #{link_to 'demo','/demo'}, this section will use the same basic flow to setup Builder to build packages of the sample Rails application from your GitHub repo.
 
 - else
-  p If you have already done the #{link_to 'demo','/demo'}, this section will use the same basic flow to setup Builder to build your application from your GitHub repo. 
+  p If you have already done the #{link_to 'demo','/demo'}, this section will use the same basic flow to setup Builder to build your application from your GitHub repo.
 
 h3 Upload your code
 
 - if "#{current_page.data.type}" == "tutorial"
   p When setting up Builder with your repo, Builder will look for a <code>plan.sh</code> file, so you must commit your current local changes to your forked repository before proceeding further. These changes should include the <code>habitat</code> directory that contains the plan.sh file.
-- else 
+- else
   p When setting up Builder with your repo, Builder will look for a <code>plan.sh</code> file, so commit and push any changes to master that include this file.
 
 ol
@@ -37,13 +37,13 @@ p Enter your username and password and click <b>Save Account</b>.
 h3 Connect a plan to Builder
 
 ol
- li In the <b>Packages</b> view for your origin, click <b>Connect a Plan</b>. 
- li If you have not already installed the Habitat Builder GitHub app as part of the demo workflow, a link is provided in the UI. 
+ li In the <b>Packages</b> view for your origin, click <b>Connect a Plan</b>.
+ li If you have not already installed the Habitat Builder GitHub app as part of the demo workflow, a link is provided in the UI.
  - if "#{current_page.data.type}" == "tutorial"
    p You must install the app on your forked version of the <code>sample-rails-app</code> repo; however it is recommended that you install it on all repositories so that you can use it outside of the tutorial with your own applications.
- - else 
+ - else
    p You must install the app on your project repo; however it is recommended that you install it on all repositories so that you can use it with all of your applications on GitHub.
-  
+
  li Fill in the text box with your GitHub organization name/repository name and click <code>Next</code>.
  li Select whether you want to make your packages public or private for your origin.
  - if "#{current_page.data.type}" == "tutorial"
@@ -56,7 +56,7 @@ ol
 
 h3 Run a build
 
-p From the <b>Build Jobs</b> tab, click <b>Build Latest Version</b>. 
+p From the <b>Build Jobs</b> tab, click <b>Build Latest Version</b>.
 
 .screenshot
     img src="/images/screenshots/build-job-view.png"
@@ -67,15 +67,13 @@ p From the <b>Build Jobs</b> tab, click <b>Build Latest Version</b>.
 - else
   p Once the build is complete, you can either download and install the package itself on any supported platform with the following:
 
-  pre
-   code.console
+  = code(:shell) do
     |
      $ hab install origin/package
 
   p Or, if you configured Builder to automatically push your container to Docker Hub, you can run your package as a Docker container by pulling it from your repository and running it like any other Docker container.
 
-  pre
-   code.console
+  = code(:shell) do
     |
      $ docker pull your_docker_org/your_docker_repo
      $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo

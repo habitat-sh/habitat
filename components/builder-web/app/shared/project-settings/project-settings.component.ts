@@ -21,7 +21,7 @@ import { BuilderApiClient } from '../../client/builder-api';
 import { AppStore } from '../../app.store';
 import {
   addProject, updateProject, setProjectIntegrationSettings, deleteProject,
-  fetchGitHubInstallations, fetchProject, setProjectVisibility
+  fetchGitHubInstallations, fetchProject, setProjectVisibility, deleteProjectIntegration
 } from '../../actions/index';
 import config from '../../config';
 
@@ -101,7 +101,7 @@ export class ProjectSettingsComponent implements OnChanges {
   }
 
   get dockerEnabled() {
-    return this.dockerSettings && this.dockerSettings.docker_hub_repo_name !== '';
+    return this.dockerSettings && this.dockerSettings.size > 0;
   }
 
   get dockerSettings() {
@@ -277,13 +277,17 @@ export class ProjectSettingsComponent implements OnChanges {
 
   private saveIntegration(origin, name) {
     const settings = this.docker.settings;
-
     if (settings.enabled) {
       this.store.dispatch(
         setProjectIntegrationSettings(
           origin, name, settings.name, settings.settings, this.token
         )
       );
+    }
+    else {
+      this.store.getState().projects.current.settings.map((v, k) => {
+        this.store.dispatch(deleteProjectIntegration(this.origin, this.name, k, this.token));
+      });
     }
   }
 

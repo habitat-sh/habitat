@@ -6,14 +6,12 @@ PGPASSWORD=$(cat /hab/svc/builder-datastore/config/pwfile)
 
 mkdir -p /hab/svc/builder-api
 cat <<EOT > /hab/svc/builder-api/user.toml
-key_dir = "/hab/svc/builder-api/files"
-
 [github]
 url = "$GITHUB_API_URL"
 web_url = "$GITHUB_WEB_URL"
 client_id = "$GITHUB_CLIENT_ID"
 client_secret = "$GITHUB_CLIENT_SECRET"
-app_id = 5629
+app_id = $GITHUB_APP_ID
 
 [web]
 app_url          = "http://$APP_HOSTNAME"
@@ -24,9 +22,6 @@ friends_only     = false
 source_code_url  = "https://github.com/habitat-sh/habitat"
 tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "http://$APP_HOSTNAME/#/sign-in"
-
-[depot]
-path = "/hab/svc/builder-api/data"
 EOT
 
 mkdir -p /hab/svc/builder-api-proxy
@@ -38,12 +33,11 @@ url = "$GITHUB_API_URL"
 web_url = "$GITHUB_WEB_URL"
 client_id = "$GITHUB_CLIENT_ID"
 client_secret = "$GITHUB_CLIENT_SECRET"
-app_id = 5629
+app_id = $GITHUB_APP_ID
 EOT
 
 mkdir -p /hab/svc/builder-jobsrv
 cat <<EOT > /hab/svc/builder-jobsrv/user.toml
-key_dir = "/hab/svc/builder-jobsrv/files"
 
 [datastore]
 password = "$PGPASSWORD"
@@ -51,7 +45,6 @@ database = "builder_jobsrv"
 
 [archive]
 backend = "local"
-local_dir = "/hab/svc/builder-jobsrv/data"
 EOT
 
 mkdir -p /hab/svc/builder-originsrv
@@ -340,22 +333,5 @@ early_access_teams = [$GITHUB_ADMIN_TEAM]
 url = "$GITHUB_API_URL"
 client_id = "$GITHUB_CLIENT_ID"
 client_secret = "$GITHUB_CLIENT_SECRET"
-app_id = 5629
-EOT
-
-mkdir -p /hab/svc/builder-worker
-cat <<EOT > /hab/svc/builder-worker/user.toml
-auth_token = "${HAB_AUTH_TOKEN}"
-auto_publish = true
-log_level = "debug"
-airlock_enabled = false
-data_path = "/hab/svc/builder-worker/data"
-bldr_url = "http://localhost:9636"
-
-[github]
-url = "$GITHUB_API_URL"
-web_url = "$GITHUB_WEB_URL"
-client_id = "$GITHUB_CLIENT_ID"
-client_secret = "$GITHUB_CLIENT_SECRET"
-app_id = 5629
+app_id = $GITHUB_APP_ID
 EOT

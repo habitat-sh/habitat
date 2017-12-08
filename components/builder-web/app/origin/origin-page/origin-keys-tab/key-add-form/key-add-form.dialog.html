@@ -1,10 +1,10 @@
 <div class="dialog">
-  <section class="heading">
-    <hab-icon [symbol]="icon"></hab-icon> 
-    <h1>Upload {{type}} key</h1>
-  </section>
-  <section class="body">
-    <form class="hab-key-add-form" [formGroup]="form" #formValues="ngForm" (ngSubmit)="submit(formValues.value.key)">
+  <form class="hab-key-add-form" [formGroup]="form" #formValues="ngForm" (ngSubmit)="submit(formValues.value.key)">
+    <section class="heading">
+      <hab-icon [symbol]="icon"></hab-icon>
+      <h1>Upload {{type}} key</h1>
+    </section>
+    <section class="body">
       <div>
         <textarea matInput name="key" [formControl]="form.controls['key']" placeholder="Begins with '{{keyFileHeaderPrefix}}'" rows="6">
         </textarea>
@@ -26,16 +26,13 @@
             Key origin must match '{{originName}}'.
           </span>
         </div>
-        <div class="error" *ngIf="errorMessage">
-          Failed to save key: {{errorMessage}}.
-        </div>
       </div>
-    </form>
-  </section>
-  <section class="controls">
-    <button mat-raised-button color="primary" tabindex="1" type="submit" [disabled]="!form.valid">
-      Upload Key
-    </button>
-    <a (click)="close()">Cancel</a>
-  </section>
+    </section>
+    <section class="controls">
+      <button mat-raised-button color="primary" tabindex="1" type="submit" [disabled]="!form.valid">
+        Upload Key
+      </button>
+      <a (click)="close()">Cancel</a>
+    </section>
+  </form>
 </div>

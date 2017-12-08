@@ -196,13 +196,35 @@ export function getPackageVersions(origin: string, pkg: string) {
   });
 }
 
+export function promotePackage(origin: string, name: string, version: string, release: string, channel: string, token: string) {
+  const url = `${urlPrefix}/depot/channels/${origin}/${channel}/pkgs/${name}/${version}/${release}/promote`;
+
+  return new Promise((resolve, reject) => {
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      method: 'PUT',
+    })
+      .then(response => handleUnauthorized(response, reject))
+      .then(response => {
+        if (response.ok) {
+          resolve(true);
+        } else {
+          reject(new Error(response.statusText));
+        }
+      })
+      .catch(error => handleError(error, reject));
+  });
+}
+
 export function submitJob(origin: string, pkg: string, token: string) {
   const url = `${urlPrefix}/depot/pkgs/schedule/${origin}/${pkg}`;
 
   return new Promise((resolve, reject) => {
     fetch(url, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       method: 'POST',
     })

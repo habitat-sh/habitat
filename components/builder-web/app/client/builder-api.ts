@@ -583,6 +583,25 @@ export class BuilderApiClient {
     });
   }
 
+  public deleteProjectIntegration(origin: string, name: string, integration: string) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/projects/${origin}/${name}/integrations/${integration}/default`, {
+        headers: this.headers,
+        method: 'DELETE'
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve();
+          }
+          else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
   public setProjectVisibility(origin: string, name: string, setting: string) {
     return new Promise((resolve, reject) => {
       fetch(`${this.urlPrefix}/projects/${origin}/${name}/${setting}`, {

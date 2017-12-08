@@ -169,6 +169,14 @@ paths = [
   "components/hab/*",
 ]
 
+[hab-pkg-export-kubernetes]
+plan_path = "components/pkg-export-kubernetes"
+paths = [
+  "components/core/*",
+  "components/common/*",
+  "components/pkg-export-docker/*"
+]
+
 [hab-pkg-mesosize]
 plan_path = "components/pkg-mesosize"
 

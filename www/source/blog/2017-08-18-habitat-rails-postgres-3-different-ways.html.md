@@ -23,7 +23,7 @@ One of the best parts of managing software with Habitat is its flexibility.  We 
 
 Let's create an ultra simple Rails application.
 
-```console
+```shell
 $ rails new widget_world --database=postgresql
 $ cd widget_world
 $ vim Gemfile
@@ -31,23 +31,19 @@ $ vim Gemfile
 
 Navigate to this line
 
-**Gemfile**
-
-```
+```ruby ~/widget_world/Gemfile
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 ```
 
 And remove the platforms so it looks like this
 
-**Gemfile**
-
-```
+```ruby ~/widget_world/Gemfile
 gem 'tzinfo-data'
 ```
 
 Now run the following commands to install your gems, create a scaffold for Widgets, create and migrate the database, and then to run the application locally.
 
-```console
+```shell ~/widget_world
 $ bundle install
 $ rails generate scaffold Widget name:string
 $ rails db:create
@@ -65,19 +61,17 @@ Now let's package up this application with Habitat!
 
 We're going to use the Ruby scaffolding included with Habitat! To get this started, go ahead and run:
 
-```console
+```shell ~/widget_world
 $ hab plan init -s ruby
 ```
 
 This will generate a Habitat directory, including a new plan.sh file.  Let's take a look at this file.
 
-```console
+```shell ~/widget_world
 $ vim habitat/plan.sh
 ```
 
-**habitat/plan.sh**
-
-```
+```bash ~/widget_world/habitat/plan.sh
 pkg_name=widget_world
 pkg_origin=your_origin
 pkg_scaffolding="core/scaffolding-ruby"
@@ -85,9 +79,7 @@ pkg_scaffolding="core/scaffolding-ruby"
 
 Now add this content
 
-**habitat/plan.sh**
-
-```
+```bash ~/widget_world/habitat/plan.sh
 pkg_name=widget_world
 pkg_origin=your_origin
 pkg_scaffolding="core/scaffolding-ruby"
@@ -97,7 +89,7 @@ pkg_binds_optional=( [database]="port" )
 
 Save and close the file. Now, we need to generate a secret key for the rails application.  Luckily for us, Rails makes this super easy.  Run:
 
-```console
+```shell
 $ rails secret
 ```
 
@@ -105,15 +97,13 @@ Copy the value generated
 
 Now, we need to provide that value to our package. Open up the habitat/default.toml file:
 
-```console
+```shell
 $ vim habitat/default.toml
 ```
 
 And add in this content:
 
-**habitat/default.toml**
-
-```
+```toml ~/widget_world/habitat/default.toml
 secret_key_base = "secret_key_you_just_generated"
 
 rails_env = 'production'
@@ -125,44 +115,48 @@ password = "admin"
 
 Note: The "admin" username and "admin" password are the defaults for the core/postgresql package.  We will cover how to change them later in this post.
 
-Now, let's enter the Habitat Studio and build our package.
+Now, let's enter the Habitat Studio.
 
-```console
+```shell
 $ hab studio enter
-(studio) $ build
 ```
+
+Then run the `build` command
+
+```studio
+[1][default:/src:0]# build
+```
+
 
 ## Running the application and database in Docker containers
 
 Since we're running our rails application in a docker container, let's export our package as a docker image.
 
-```console
-(studio) $ hab pkg export docker originname/widget_world
+```studio
+[2][default:/src:0]# hab pkg export docker ./results/<your-hart-package>.hart
 ```
 
 And we are going to be running the postgresql database in another container using the [core/postgresql](https://bldr.habitat.sh/#/pkgs/core/postgresql) package.  Let's export that package as a docker image as well (Habitat will automatically download it for us from public Builder).
 
-```console
-(studio) $ hab pkg export docker core/postgresql
+```studio
+[3][default:/src:0]# hab pkg export docker core/postgresql
 ```
 
 Now let's exit out of the Studio:
 
-```console
-(studio) $ exit
+```studio
+[4][default:/src:0]# exit
 ```
 
 To bring up both containers locally, let's use Docker compose.  Go ahead and create a Docker compose file.
 
-```console
+```shell ~/widget_world
 $ vim docker-compose.yml
 ```
 
 And add in this content:
 
-**docker-compose.yml**
-
-```
+```yaml ~/widget_world/docker-compose.yml
 version: '3'
 services:
   db:
@@ -180,13 +174,13 @@ services:
 
 Save and close that file, now let's bring up those containers!
 
-```console
+```shell ~/widget_world
 $ docker-compose up
 ```
 
 Whoops!  You will see this error:
 
-```console
+```shell
 railsapp_1  | widget_world.default hook[init]:(HK): There are 3 remaining config settings which must be set correctly:
 railsapp_1  | widget_world.default hook[init]:(HK):
 railsapp_1  | widget_world.default hook[init]:(HK):  * db.user      - The database username (Current: admin)
@@ -199,8 +193,8 @@ railsapp_1  | widget_world.default(HK): Initialization failed! 'init' exited wit
 
 To fix this, we need to set up the database.  Currently, the ruby scaffolding does not automatically set up the database for you, this still needs to be done manually.
 
-```console
-  $ docker-compose exec railsapp widget_world-rake db:setup
+```shell ~/widget_world
+$ docker-compose exec railsapp hab pkg exec your-origin/widget_world widget_world-rake db:setup
 ```
 
 And now we have a running Rails app and database running in Docker containers!  Head on over to https://localhost:8000/widgets to check it out!
@@ -228,50 +222,53 @@ Once the RDS instance is up, we need to make a few changes to the habitat/defaul
 
 Open it up:
 
-```console
+```shell
 $ vim habitat/default.toml
 ```
 
 And modify it so that the db.user matches the username you set for your RDS instance and the db.password matches the password you set for your RDS instance.  Than add in on more attribute - db.hostname.  Set that to the endpoint for your RDS instance (you can get this from the AWS GUI or cli).  Do not include the port number in the endpoint. (i.e. it should be "https://my_endpoint" not "https://my_endpoint:5432")
 
-**habitat/default.toml**
-
-```
+```toml ~/widget_world/habitat/default.toml
 secret_key_base = "secret_key_you_generated_earlier"
 
-rails_env = 'production'
+rails_env = "production"
 
 [db]
 user = "rds_instance_username"
 password = "rds_instance_password"
-host: "rds_endpoint_without_port"
+host = "rds_endpoint_without_port"
 ```
 
-Now, head back into the Studio, build your package, export that newly built package as a Docker image, then exit the Studio.
+Now, head back into the Studio.
 
-```console
+```shell ~/widget_world
 $ hab studio enter
-(studio) $ build
-(studio) $ hab pkg export docker your_origin/widget_world
-(studio) $ exit
+```
+
+Build your package, export that newly built package as a Docker image, then exit the Studio.
+
+```studio
+[1][default:/src:0]# build
+[2][default:/src:0]# hab pkg export docker ./results/<your-hart-package>.hart
+[3][default:/src:0]# exit
 ```
 
 Now, let's run the rails application container.  We are NOT using docker-compose this time.
 
-```console
+```shell ~/widget_world
 $ docker run -it -p 8000:8000 your_origin/widget_world
 ```
 
 Now, we once again need to setup the database in that container.  Find out the id of your docker container, one of the ways to do this is to run this command:
 
-```console
+```shell ~/widget_world
 $ docker ps
 ```
 
 Now, execute the database setup on that container with:
 
-```console
-$ docker exec -it container_id widget_world-rake db:setup
+```shell ~/widget_world
+$ docker exec -it container_id hab pkg exec your-origin/widget_world widget_world-rake db:setup
 ```
 
 Once this runs, head back to your browser, navigate to localhost:8000/widgets and check out your app - even though the app is in a container, it's database is an RDS instance.
@@ -290,7 +287,7 @@ For this example, I use three AWS EC2 virtual machines for my cluster.
 
 Before spinning up those VMs, however let's create a security group.  These examples use the AWS CLI, but feel free to use the web GUI if you prefer.
 
-```console
+```shell ~/widget_world
 $ aws ec2 create-security-group --group-name habitat-postgres-cluster --description "security group for a postgres cluster created and managed with Habitat"
 ```
 
@@ -307,7 +304,7 @@ Additionally, since our app will be connecting to this database, we need this po
 
 * 5432 (tcp)
 
-```console
+```shell ~/widget_world
 $ aws ec2 authorize-security-group-ingress --group-name habitat-postgres-cluster --protocol tcp --port 22 --cidr 0.0.0.0/0
 $ aws ec2 authorize-security-group-ingress --group-name habitat-postgres-cluster --protocol tcp --port 9631 --cidr 0.0.0.0/0
 $ aws ec2 authorize-security-group-ingress --group-name habitat-postgres-cluster --protocol tcp --port 9638 --cidr 0.0.0.0/0
@@ -319,7 +316,7 @@ $ aws ec2 authorize-security-group-ingress --group-name habitat-postgres-cluster
 
 Now, let's create three virtual machines.  In the following examples, I am creating them in the AWS N. Virgina reason using an Ubuntu AMI.  If you create your virtual machines in a different region, you will need to substitute in the appropriate AMI.
 
-```console
+```shell ~/widget_world
 $ aws ec2 run-instances --image-id ami-cd0f5cb6 --security-group-ids your_security_group_id --count 3 --instance-type t2.medium --key-name your-key-name --query 'Instances[*].{ID:InstanceId,PublicIp:PublicIpAddress,PrivateIp:PrivateIpAddress'
 ```
 
@@ -327,7 +324,7 @@ The above command will return the instance ids, public ips, and private ips of e
 
 Now, ssh into each of the three instances using the public IP.  On each instance, run these commands to install Habitat and set it up.
 
-```console
+```shell "Run this on each instance"
 $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 $ sudo groupadd hab
 $ sudo useradd -g hab hab
@@ -337,13 +334,13 @@ $ sudo useradd -g hab hab
 
 Now, in one of these three instance, run this command to both install core/postgres and start a Supervisor ring
 
-```console
+```shell "Run this on one of the three instances"
 $ sudo hab start core/postgresql --topology leader --group production
 ```
 
 Then, in each of the other two instances, run this command
 
-```console
+```shell "Run this on the remaining two instances"
 $ sudo hab start core/postgresql --topology leader --group production --peer first_instance_public_ip_address
 ```
 
@@ -361,45 +358,47 @@ And then copy the public IP of that instance.  Now let's get this information in
 
 Open up your habitat/default.toml file and replace the value for the "host" key with that public ip address (it does need to be the public ip of the leader in order to work).
 
-**habitat/default.toml**
-
-```
+```toml ~/widget_world/habitat/default.toml
 secret_key_base = "secret_key_you_generated_earlier"
 
-rails_env = 'production'
+rails_env = "production"
 
 [db]
 user = "admin"
 password = "admin"
-host: "leader_public_ip_address"
-`
+host = "leader_public_ip_address"
 ```
 
-Now, enter back into Studio, build your package again, then export that new package into a docker image.
+Now, enter back into Studio.
 
-```console
+```shell ~/widget-world
 $ hab studio enter
-(studio) $ build
-(studio) $ hab pkg export docker your_origin/widget_world
-(studio) $ exit
+```
+
+Build your package again and then export that new package into a docker image.
+
+```studio
+[1][default:/src:0]# build
+[2][default:/src:0]# hab pkg export docker ./results/<your-hart-package>.hart
+[3][default:/src:0]# exit
 ```
 
 Now, let's run that container again.
 
-```console
+```shell ~/widget-world
 $ docker run -it -p 8000:8000 your_origin/widget_world
 ```
 
 Now, we once again need to setup the database in that container.  Find out the id of your docker container, one of the ways to do this is to run this command:
 
-```console
+```shell ~/widget-world
 $ docker ps
 ```
 
 Now, execute the database setup on that container with:
 
-```console
-$ docker exec -it container_id widget_world-rake db:setup
+```shell ~/widget-world
+$ docker exec -it container_id hab pkg exec your-origin/widget_world widget_world-rake db:setup
 ```
 
 (This runs the setup and migrations on your postgresql cluster)

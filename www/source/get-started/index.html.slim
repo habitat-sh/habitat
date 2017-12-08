@@ -1,0 +1,168 @@
+---
+title: Habitat - Get Started with Habitat
+description: Habitat tutorials provide hands-on, step-by-step instructions on how easy it is to build, configure, deploy, and manage your applications in Habitat.
+---
+
+.heading.small-10.small-centered
+  h1
+    | Learn How to easily build, deploy, and manage
+    br
+    | all of your applications the same way, with Habitat.
+= partial "partials/global/github_contribute"
+
+div.get-started--container
+  h2.h2 Get Started with Habitat
+  section.get-started--icon-list
+    h3.h3 Start Habitizing applications with language-specific, hands-on guides
+    p.description
+      | Learn how to package, build, deploy, run and manage a web app.
+      br
+      | Start with a basic example, work up to Habitizing and running your own application/services in production.
+    ul.tech-icons
+      li.tech-icons--item: a.tech-icon.tech-icons--node href="/get-started/node/"
+        img src="/images/solutions-logos/icon-node.svg" alt="node"
+        span Node.js
+      li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/ruby/"
+        img src="/images/solutions-logos/icon-ruby.svg" alt="ruby"
+        span Ruby
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/java/"
+        img src="/images/solutions-logos/icon-java.svg" alt="java"
+        span Java
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/go/"
+        img src="/images/solutions-logos/icon-go.svg" alt="go"
+        span Go
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/php/"
+        img src="/images/solutions-logos/icon-php.svg" alt="php"
+        span PHP
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/python/"
+        img src="/images/solutions-logos/icon-python.svg" alt="python"
+        span Python
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/scala/"
+        img src="/images/solutions-logos/icon-scala.svg" alt="scala"
+        span Scala
+  hr
+  section.get-started--boxes
+    h3.h3 Learn the fundamentals, core concepts/components
+    p.description
+      | With a single download, you will have everything you need to leverage the three core components of Habitat:
+      br
+      | a package manager, build and deployment capabilities, and a runtime lifecycle manager.
+    div.row
+      div.columns.small-12.large-4.np-left
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Build an app from a plan file', '/demo/package-manager'
+          h6.h6 Package Manager
+          p
+            | In this 10-minute demo, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+      div.columns.small-12.large-4
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Export a build artifact to Docker', '/demo/build-service'
+          h6.h6 Build Service
+          p
+            | In this 10-minute demo, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+      div.columns.small-12.large-4.np-right
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Apply config to a running application', '/demo/runtime-supervisor'
+          h6.h6 Runtime Supervisor
+          p
+            | In this 10-minute demo, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+    div.row
+      div.columns.small-12.np-left.np-right
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Build, run, and dynamically configure a sample Ruby on Rails application', '/demo/runtime-supervisor'
+          h6.h6 End-to-end
+          p
+            | In this tutorial, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+    div.button-set
+      = link_to 'All tutorials', '/tutorials/', class: 'button'
+      = link_to 'View docs', '/docs/', class: 'button secondary'
+  hr
+  section.get-started--icon-list
+    h3.h3 Deploying your Habitat apps...
+    p.description
+      | Lean how to deploy your Habitat applications using the latest...
+    ul.tech-icons
+      li.tech-icons--item: a.tech-icon.tech-icons--node href="/get-started/kubernetes/"
+        img src="/images/solutions-logos/icon-node.svg" alt="kubernetes"
+        span Kubernetes
+      li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/get-started/cloud-foundry/"
+        img src="/images/solutions-logos/icon-ruby.svg" alt="cloud foundry"
+        span Cloud Foundry
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/terraform/"
+        img src="/images/solutions-logos/icon-java.svg" alt="terraform"
+        span Terraform
+      li.tech-icons--item: a.tech-icon.tech-icons--java href="/get-started/chef/"
+        img src="/images/solutions-logos/icon-go.svg" alt="chef"
+        span Chef
+    = link_to 'All guides', '/guides', class: 'button secondary'
+  hr
+  section.get-started--boxes
+    h3.h3 Advanced topics and use cases; Integrate Habitat into your existing workflow
+    p.description
+      | These are things that may not fit neatly into a bucket above, but that we know people want to hear about.
+    div.row
+      div.columns.small-12.large-6.np-left
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Deploying Habiat apps to Kubernetes', '/demo/package-manager'
+          h6.h6 Build Service
+          p
+            | In this 10-minute demo, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+      div.columns.small-12.large-6.np-right
+        .get-started--boxes--item.card
+          h4.h4
+            = link_to 'Deploying Habiat apps to Cloud Foundry', '/demo/build-service'
+          h6.h6 Build Service
+          p
+            | In this 10-minute demo, bacon ipsum dolor amet mollit pig in, incididunt lorem cupim est quis fugiat chuck ut spare ribs.
+  hr
+  section.get-started--boxes
+    h3.h3 Learn the fundamentals, core concepts/components
+    p.description
+      | With a single download, you will have everything you need to leverage the three core components of Habitat:
+      br
+      | a package manager, build and deployment capabilities, and a runtime lifecycle manager.
+    div.row
+      div.columns.small-12.large-4.np-left
+        .get-started--boxes--item
+          h4.h4 Integrate Habitat inito your workflow
+          h6.h6 BLOG
+          ul.link-list
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+      div.columns.small-12.large-4
+        .get-started--boxes--item
+          h4.h4 Find more tutorials on Learn Chef Rally
+          h6.h6 LEARN CHEF RALLY
+          ul.link-list
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+      div.columns.small-12.large-4.np-right
+        .get-started--boxes--item
+          h4.h4 See how other teams are using Habitat
+          h6.h6 BLOG
+          ul.link-list
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'
+            li.link-list--item
+              = link_to 'Link to how-to article with keywords', '/blog/'

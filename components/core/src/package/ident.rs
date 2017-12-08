@@ -90,16 +90,23 @@ impl PackageIdent {
     }
 
     pub fn archive_name(&self) -> Option<String> {
+        self.archive_name_impl(&PackageTarget::default())
+    }
+
+    pub fn archive_name_with_target(&self, ref target: &PackageTarget) -> Option<String> {
+        self.archive_name_impl(target)
+    }
+
+    fn archive_name_impl(&self, ref target: &PackageTarget) -> Option<String> {
         if self.fully_qualified() {
-            let default_target = PackageTarget::default();
             Some(format!(
                 "{}-{}-{}-{}-{}-{}.hart",
                 self.origin,
                 self.name,
                 self.version.as_ref().unwrap(),
                 self.release.as_ref().unwrap(),
-                default_target.architecture,
-                default_target.platform
+                target.architecture,
+                target.platform
             ))
         } else {
             None

@@ -3,6 +3,9 @@ require 'slim'
 set :markdown_engine, :redcarpet
 set :markdown, fenced_code_blocks: true, tables: true, no_intra_emphasis: true, with_toc_data: true
 
+require 'lib/lexer_habitat_studio'
+activate :vegas
+
 ###
 # Page options, layouts, aliases and proxies
 ###
@@ -32,6 +35,9 @@ page 'tutorials/build-your-own/node/*', layout: :tutorials_sidebar, locals: { si
 page 'tutorials/build-your-own/gradle/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_gradle'}
 page '/blog/index.html', layout: :blog_index
 page '/demo/steps/*', layout: :demo_index
+page 'get-started/*', layout: :get_started
+page 'guides/index.html', layout: :get_started
+page 'guides/rails/*', layout: :sidebar, locals: { sidebar_layout: 'guide_rails' }
 
 activate :blog do |blog|
   blog.prefix = 'blog'
@@ -88,6 +94,10 @@ helpers do
     ENV['BUILDER_WEB_URL'] || 'https://bldr.habitat.sh'
   end
 
+  def github_www_source_url
+    ENV['GITHUB_WWW_SOURCE_URL'] || 'https://github.com/habitat-sh/habitat/tree/master/www/source'
+  end
+
   def render_markdown(text)
     Kramdown::Document.new(text).to_html
   end
@@ -102,7 +112,7 @@ end
 configure :build do
 
   # Asset hash to defeat caching between builds
-  activate :asset_hash
+  activate :asset_hash, :ignore => [/habitat-social.jpg/]
 end
 
 activate :autoprefixer

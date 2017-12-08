@@ -1,10 +1,10 @@
-You can find exported keys by searching for the package at [https://bldr.habitat.sh/#/explore](https://bldr.habitat.sh/#/explore) and viewing the manifest for a given release of a package. 
+You can find exported keys by searching for the package at [https://bldr.habitat.sh/#/explore](https://bldr.habitat.sh/#/explore) and viewing the manifest for a given release of a package.
 
 ![Screen shot of exports in Manifest file](/images/screenshots/exports_callout.png)
 
 If the producer service is running, you can also retrieve this information by connecting to the HTTP API endpoint for the service and filtering the results. The following retrieves the exported keys and their associated configuration values from a running Elasticsearch service.
 
-```
+```shell
 $ curl http://127.0.0.1:9631/services/elasticsearch/default | jq .pkg.exports
 
 {

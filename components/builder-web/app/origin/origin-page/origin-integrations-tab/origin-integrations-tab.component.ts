@@ -80,6 +80,10 @@ export class OriginIntegrationsTabComponent implements OnInit {
       });
   }
 
+  decode(s) {
+    return decodeURIComponent(s);
+  }
+
   deleteIntegration(name, type) {
     this.confirmDialog
       .open(IntegrationDeleteConfirmDialog, { width: '480px' })

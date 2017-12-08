@@ -44,7 +44,7 @@ use error::{Error, Result};
 use hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use hcore::crypto::artifact::get_artifact_header;
 use hcore::crypto::keys::parse_name_with_rev;
-use hcore::package::{PackageArchive, PackageIdent};
+use hcore::package::{PackageArchive, PackageIdent, PackageTarget};
 use {PRODUCT, VERSION};
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
@@ -105,8 +105,10 @@ where
     ui.begin(
         format!("Uploading {}", archive_path.as_ref().display()),
     )?;
+
     let tdeps = archive.tdeps()?;
     let ident = archive.ident()?;
+    let target = archive.target()?;
     match depot_client.show_package(&ident, None, Some(token)) {
         Ok(_) => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
@@ -130,6 +132,7 @@ where
                                     &depot_client,
                                     token,
                                     &dep,
+                                    Some(&target),
                                     additional_release_channel,
                                     &candidate_path,
                                 )
@@ -256,10 +259,14 @@ fn attempt_upload_dep(
     depot_client: &Client,
     token: &str,
     ident: &PackageIdent,
+    target: Option<&PackageTarget>,
     additional_release_channel: Option<&str>,
     archives_dir: &PathBuf,
 ) -> Result<()> {
-    let candidate_path = archives_dir.join(ident.archive_name().unwrap());
+    let candidate_path = match target {
+        Some(t) => archives_dir.join(ident.archive_name_with_target(t).unwrap()),
+        None => archives_dir.join(ident.archive_name().unwrap()),
+    };
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
         upload_into_depot(

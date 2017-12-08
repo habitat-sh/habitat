@@ -119,14 +119,6 @@ export default function origins(state = initialState['origins'], action) {
     case actionTypes.SET_INTEGRATION_CREDS_VALIDATION:
       return state.setIn(['currentIntegrations', 'ui', 'creds'], action.payload);
 
-    case actionTypes.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE:
-      return state.setIn(['ui', 'current', 'privateKeyErrorMessage'],
-        action.payload);
-
-    case actionTypes.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE:
-      return state.setIn(['ui', 'current', 'publicKeyErrorMessage'],
-        action.payload);
-
     case actionTypes.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE:
       return state.setIn(['ui', 'current', 'integrationsSaveErrorMessage'],
         action.payload);

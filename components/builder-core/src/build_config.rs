@@ -68,6 +68,12 @@ impl Default for BuildCfg {
     fn default() -> Self {
         let mut cfg = HashMap::default();
         cfg.insert("default".into(), ProjectCfg::default());
+
+        // Handle the case where the plan.sh is at the root
+        let mut root_proj_cfg = ProjectCfg::default();
+        root_proj_cfg.plan_path = PathBuf::from("");
+        cfg.insert("root_default".into(), root_proj_cfg);
+
         BuildCfg(cfg)
     }
 }
@@ -162,6 +168,10 @@ impl ProjectCfg {
         vec!["master".to_string()]
     }
 
+    fn default_path() -> Pattern {
+        Pattern::from_str("*").unwrap()
+    }
+
     fn default_plan_path() -> PathBuf {
         PathBuf::from("habitat")
     }
@@ -196,7 +206,7 @@ impl Default for ProjectCfg {
         ProjectCfg {
             branches: ProjectCfg::default_branches(),
             channels: vec![],
-            paths: vec![],
+            paths: vec![ProjectCfg::default_path()],
             plan_path: ProjectCfg::default_plan_path(),
         }
     }
@@ -263,5 +273,14 @@ mod test {
         assert!(default.triggered_by("master", &["habitat/hooks/init"]));
         assert_eq!(default.triggered_by("dev", &["habitat/plan.sh"]), false);
         assert_eq!(default.triggered_by("master", &["components"]), false);
+    }
+
+    #[test]
+    fn triggered_by_default() {
+        let cfg = BuildCfg::default();
+
+        assert_eq!(cfg.triggered_by("dev", &["habitat/plan.sh"]).len(), 0);
+        assert_eq!(cfg.triggered_by("master", &["habitat/plan.sh"]).len(), 2);
+        assert_eq!(cfg.triggered_by("master", &["plan.sh"]).len(), 2);
     }
 }

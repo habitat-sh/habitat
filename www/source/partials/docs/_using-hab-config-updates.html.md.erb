@@ -8,14 +8,18 @@ One of the key features of Habitat is the ability to define an immutable package
 When starting a single service, you can provide alternate configuration values to those specified in `default.toml` through the use of an environment variable
 with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
 
-    HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab start <origin>/<packagename>
+```shell
+$ HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab start <origin>/<packagename>
+```
 
 > Note: The preferred syntax used for applying configuration through environment variables is JSON but must be valid JSON input. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
 
 For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a .toml
 file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
-    HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab start <origin>/<packagename>
+```shell
+$ HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab start <origin>/<packagename>
+```
 
 The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied to one service at a time, and you have to manually interrupt (Ctrl+C) a running service before changing its configuration settings again.
 
@@ -33,11 +37,15 @@ Here are some examples of how to apply configuration changes through both the sh
 
 **Stdin**
 
-       echo 'buffersize = 16384' | hab config apply --peer 172.17.0.3 myapp.prod 1
+```shell
+$ echo 'buffersize = 16384' | hab config apply --peer 172.17.0.3 myapp.prod 1
+```
 
 **TOML file**
 
-      hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
+```shell
+$ hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
+```
 
   > Note: The filename of the configuration file is not important.
 

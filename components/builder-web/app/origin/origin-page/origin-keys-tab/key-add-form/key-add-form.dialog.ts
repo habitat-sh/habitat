@@ -93,14 +93,6 @@ export class KeyAddFormDialog implements OnInit {
     return config['docs_url'];
   }
 
-  get errorMessage() {
-    if (this.type === 'public') {
-      this.ui.publicKeyErrorMessage;
-    } else {
-      return this.ui.privateKeyErrorMessage;
-    }
-  }
-
   get keyFileHeaderPrefix() {
     if (this.type === 'public') {
       return 'SIG-PUB-1';

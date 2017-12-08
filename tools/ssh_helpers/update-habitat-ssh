@@ -26,6 +26,7 @@ do
     name=${l#*;}
     echo "Host ${name}" >> ~/.ssh/config
     echo "  HostName ${dns}" >> ~/.ssh/config
+    echo "  StrictHostKeyChecking no" >> ~/.ssh/config
     echo "  User ubuntu" >> ~/.ssh/config
     echo "  IdentitiesOnly yes" >> ~/.ssh/config
     echo "  IdentityFile ~/.ssh/habitat-srv-admin" >> ~/.ssh/config

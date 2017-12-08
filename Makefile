@@ -43,7 +43,7 @@ else
 	docs_host := 127.0.0.1
 endif
 
-BIN = hab hab-butterfly pkg-export-docker sup airlock
+BIN = hab hab-butterfly pkg-export-docker pkg-export-kubernetes sup airlock
 LIB = butterfly builder-db builder-core builder-protocol common core builder-depot-client http-client net
 SRV = builder-api builder-admin builder-depot builder-router builder-jobsrv builder-sessionsrv builder-originsrv builder-worker
 ALL = $(BIN) $(LIB) $(SRV)

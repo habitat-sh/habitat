@@ -22,27 +22,31 @@ section.sample-app
     li
       p To build the sample Rails application, start by changing directories to the root directory for your project.
 
-      pre
-        code.console $ cd ~/sample-rails-app
+      = code(:shell) do
+        |
+         $ cd ~/sample-rails-app
 
     li
       p Enter into the Studio environment.
 
-      pre
-        code.console $ hab studio enter
+      = code(:shell) do
+        |
+         $ hab studio enter
 
       p The package download and installation process should only take a few moments. If successful, you should see another bash prompt like this:
 
-      pre
-        code.console [1][default:/src:0]#</code>
+      = code(:studio) do
+        |
+         [1][default:/src:0]#
 
       p Because the Studio is chrooted, the <code>src</code> directory maps to the <code>~/sample-rails-app</code> directory you were in before you entered the Studio.
 
     li
       p Run the <code>build</code> command to build your package.
 
-      pre
-        code.console [2][default:/src:0]# build
+      = code(:shell) do
+        |
+         [2][default:/src:0]# build
 
       p The last set of output messages from running <code>build</code> should look something like this:
 
@@ -58,21 +62,24 @@ section.sample-app
 
   p Run <code>hab pkg export docker</code> and reference the .hart file you created in the previous section.
 
-  pre
-    code.console [2][default:/src:0]# hab pkg export docker ./results/&lt;hart-filename>.hart
+  = code(:shell) do
+    |
+     [3][default:/src:0]# hab pkg export docker ./results/<hart-filename>.hart
 
   p Because we need to connect to a PostgreSQL database managed by Habitat, export the PostgreSQL database package to a Docker container as well.
 
-  pre
-    code.console [1][default:/src:0]# hab pkg export docker core/postgresql
+  = code(:shell) do
+    |
+     [4][default:/src:0]# hab pkg export docker core/postgresql
 
   blockquote
    p <b>Note</b> If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Habitat CLI will check Builder for the latest stable version of the package and export that.
 
   p Once you have finished exporting both packages, exit out of the Studio.
 
-  pre
-    code.console [5][default:/src:0]# exit
+  = code(:shell) do
+    |
+     [5][default:/src:0]# exit
 
   = partial '/partials/tutorials/using_builder'
 

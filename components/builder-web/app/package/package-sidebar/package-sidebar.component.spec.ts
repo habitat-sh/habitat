@@ -47,7 +47,7 @@ describe('PackageSidebarComponent', () => {
       ],
       declarations: [
         PackageSidebarComponent,
-        MockComponent({ selector: 'hab-copyable', inputs: ['command'] }),
+        MockComponent({ selector: 'hab-copyable', inputs: ['style', 'text'] }),
         MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] })
       ],
       providers: [

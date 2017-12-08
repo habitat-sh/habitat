@@ -39,7 +39,7 @@ The `health_check` script must return a valid exit code from the list below.
 
 A `health_check` hook can use the following as a template:
 
-~~~ bash
+```bash hooks/health_check
 #!/bin/sh
 
 # define default return code as 0
@@ -57,7 +57,7 @@ case $? in
 esac
 
 exit $rc
-~~~
+```
 
 ###init
 File location: `<plan>/hooks/init`
@@ -99,7 +99,7 @@ It is important to also consider what side effects the command to execute will h
 
 A run hook can use the following as a template:
 
-~~~ bash
+```bash hooks/run
 #!/bin/sh
 
 # redirect stderr
@@ -111,7 +111,7 @@ export MY_OTHER_ENVIRONMENT_VARIABLE=2
 
 # Run the command
 exec my_command --option {{cfg.option}} --option2 {{cfg.option2}}
-~~~
+```
 
 ###post-run
 File location: `<plan>/hooks/post-run`
@@ -133,7 +133,7 @@ The `smoke_test` script must return a valid exit code from the list below.
 
 A `smoke_check` hook can use the following as a template:
 
-~~~ bash
+```bash hooks/smoke_check
 #!/bin/sh
 
 # define default return code as 0
@@ -151,4 +151,4 @@ case $? in
 esac
 
 exit $rc
-~~~
+```

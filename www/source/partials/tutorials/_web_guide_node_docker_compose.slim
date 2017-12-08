@@ -1,20 +1,19 @@
-pre
-  code.yaml
-   | 
-     version: '3'
-     services:
-       mongodb:
-         image: core/mongodb
-         environment:
-           # The default bind_ip for mongodb is to 127.0.0.1. Overriding
-           # it here will allow our application to connect to through the
-           # ip that is discovered through the sys.ip.
-           HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
-       nodeapp:
-         image: origin/package
-         ports:
-           - 8000:8000
-         # Find the container above named here by the peer
-         # Set the binding 'database' to the mongdb.default service
-         # group. Which the above mongodb is a member.
-         command: --peer mongodb --bind database:mongodb.default
+= code(:yaml) do
+  |
+   version: '3'
+   services:
+     mongodb:
+       image: core/mongodb
+       environment:
+         # The default bind_ip for mongodb is to 127.0.0.1. Overriding
+         # it here will allow our application to connect to through the
+         # ip that is discovered through the sys.ip.
+         HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
+     nodeapp:
+       image: origin/package
+       ports:
+         - 8000:8000
+       # Find the container above named here by the peer
+       # Set the binding 'database' to the mongdb.default service
+       # group. Which the above mongodb is a member.
+       command: --peer mongodb --bind database:mongodb.default

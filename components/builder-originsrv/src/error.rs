@@ -83,6 +83,7 @@ pub enum SrvError {
     OriginProjectListGet(postgres::error::Error),
     OriginProjectUpdate(postgres::error::Error),
     OriginProjectIntegrationCreate(postgres::error::Error),
+    OriginProjectIntegrationDelete(postgres::error::Error),
     OriginProjectIntegrationGet(postgres::error::Error),
     OriginProjectIntegrationRequest(postgres::error::Error),
     OriginSecretKeyCreate(postgres::error::Error),
@@ -267,6 +268,9 @@ impl fmt::Display for SrvError {
             SrvError::OriginProjectIntegrationCreate(ref e) => {
                 format!("Error creating project integration in database, {}", e)
             }
+            SrvError::OriginProjectIntegrationDelete(ref e) => {
+                format!("Error deleting project integration in database, {}", e)
+            }
             SrvError::OriginProjectIntegrationGet(ref e) => {
                 format!("Error getting project integration from database, {}", e)
             }
@@ -381,6 +385,7 @@ impl error::Error for SrvError {
             SrvError::OriginProjectListGet(ref err) => err.description(),
             SrvError::OriginProjectUpdate(ref err) => err.description(),
             SrvError::OriginProjectIntegrationCreate(ref err) => err.description(),
+            SrvError::OriginProjectIntegrationDelete(ref err) => err.description(),
             SrvError::OriginProjectIntegrationGet(ref err) => err.description(),
             SrvError::OriginProjectIntegrationRequest(ref err) => err.description(),
             SrvError::OriginSecretKeyCreate(ref err) => err.description(),

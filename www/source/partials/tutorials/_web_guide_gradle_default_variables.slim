@@ -1,7 +1,6 @@
 p By default, the #{current_page.data.platform} scaffolding creates the following items in the <code>scaffolding_env</code> array for you:
 
-pre
- code
+= code(:bash) do
   |
    scaffolding_env[EXTRA_OPTS]=${scaffolding_extra_opts}
    scaffolding_env[JAVA_OPTS]=${scaffolding_java_opts}
@@ -10,8 +9,7 @@ pre
 
 p The <code>scaffolding_java_opts</code> and <code>scaffolding_extra_opts</code> variables are arrays that can be used to pass additional JVM options to #{link_to 'processes',"/tutorials/build-your-own/#{current_page.data.platform_short}/define-processes"} at runtime. Values must be delimited by whitespace. For example, the following would be added in your plan.sh file:
 
-pre
- code
+= code(:bash) do
   |
    scaffolding_java_opts=( -Xms1g -Xmx8g -verbose:gc )
    scaffolding_extra_opts=( -XX:+PrintGCTimeStamps )

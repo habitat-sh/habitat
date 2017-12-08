@@ -23,17 +23,19 @@ This packages a VERY minimal ASP.NET Core MVC application using Habitat that run
 
 The best way to build packages on Windows is to enter the Windows Studio. Currently running `hab studio enter` on Windows will enter a Linux based Studio in a Docker container. You can override this behavior by including the `-w` flag. `hab studio enter -w` will drop you into a Habitat Studio built for Windows:
 
-    C:\dev\habitat-aspnet-sample [win_studio +0 ~1 -0]> hab studio enter -w
-      hab-studio: Creating Studio at /hab/studios/dev--habitat-aspnet-sample
-    » Importing origin key from standard input
-    ★ Imported secret origin key core-20170417214814.
-      hab-studio: Entering Studio at /hab/studios/dev--habitat-aspnet-sample
-    ** The Habitat Supervisor has been started in the background.
-    ** Use 'hab svc start' and 'hab svc stop' to start and stop services.
-    ** Use the 'Get-SupervisorLog' command to stream the Supervisor log.
-    ** Use the 'Stop-Supervisor' to terminate the Supervisor.
+```powershell
+C:\dev\habitat-aspnet-sample [win_studio +0 ~1 -0]> hab studio enter -w
+  hab-studio: Creating Studio at /hab/studios/dev--habitat-aspnet-sample
+» Importing origin key from standard input
+★ Imported secret origin key core-20170417214814.
+  hab-studio: Entering Studio at /hab/studios/dev--habitat-aspnet-sample
+** The Habitat Supervisor has been started in the background.
+** Use 'hab svc start' and 'hab svc stop' to start and stop services.
+** Use the 'Get-SupervisorLog' command to stream the Supervisor log.
+** Use the 'Stop-Supervisor' to terminate the Supervisor.
 
-    [HAB-STUDIO] Habitat:\src>
+[HAB-STUDIO] Habitat:\src>
+```
 
 So how does this environment differ from a Linux based Studio or a normal Windows shell?
 
@@ -49,9 +51,11 @@ Just as we do in a Linux shell, we copy your keys from your primary local hab ke
 
 Habitat attempts to set your path to the most minimal path feasible to reduce the possibility of outside applications bleeding into your Studio build environment. Just like a Linux Studio, you want all of your build and runtime dependencies to exist as Habitat packages.
 
-    [HAB-STUDIO] Habitat:\src> $env:path
-    C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\hab;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\7zip;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\powershell
-    [HAB-STUDIO] Habitat:\src>
+```studio
+[HAB-STUDIO] Habitat:\src> $env:path
+C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\hab;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\7zip;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\powershell
+[HAB-STUDIO] Habitat:\src>
+```
 
 As you can see the only thing in your path besides Habitat packaged artifacts is the core Windows system paths. We add those because otherwise Windows might not act like Windows.
 
@@ -87,41 +91,46 @@ All Habitat plan variables like `pkg_version`, `pkg_origin` and others have the 
 
 All of the Habitat build functions like `do_build` and `do_install` are renamed to replace `do_` with `invoke-`. Therefore your Powershell plan's build function might look like this:
 
-    function Invoke-Build {
-      cp $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -recurse -force -Exclude ".vagrant"
-      & "$(Get-HabPackagePath dotnet-core-sdk)\bin\dotnet.exe" restore
-      & "$(Get-HabPackagePath dotnet-core-sdk)\bin\dotnet.exe" build
-      if($LASTEXITCODE -ne 0) {
-          Write-Error "dotnet build failed!"
-      }
-    }
-
+```ps1
+function Invoke-Build {
+  cp $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -recurse -force -Exclude ".vagrant"
+  & "$(Get-HabPackagePath dotnet-core-sdk)\bin\dotnet.exe" restore
+  & "$(Get-HabPackagePath dotnet-core-sdk)\bin\dotnet.exe" build
+  if($LASTEXITCODE -ne 0) {
+      Write-Error "dotnet build failed!"
+  }
+}
+```
 In addition to the name change, you will clearly recognize that the function body is Powershell. We hope that those comfortable with Powershell will be comfortable in a Habitat `plan.ps1`.
 
 ### Bash arrays and associative arrays use Powershell arrays and hashtables
 
 So...
 
-    pkg_deps=(
-      core/dotnet-core
-    )
+```bash
+pkg_deps=(
+  core/dotnet-core
+)
 
-    pkg_build_deps=(
-      core/dotnet-core-sdk
-      core/patchelf
-    )
-    pkg_exports=(
-        [port]=port
-    )
+pkg_build_deps=(
+  core/dotnet-core-sdk
+  core/patchelf
+)
+pkg_exports=(
+    [port]=port
+)
+```
 
 becomes
 
-    $pkg_deps=@("core/dotnet-core")
-    $pkg_build_deps=@("core/dotnet-core-sdk")
+```ps1
+$pkg_deps=@("core/dotnet-core")
+$pkg_build_deps=@("core/dotnet-core-sdk")
 
-    $pkg_exports=@{
-        "port"="port"
-    }
+$pkg_exports=@{
+    "port"="port"
+}
+```
 
 ## Running packages in the Windows Supervisor
 
@@ -137,8 +146,10 @@ While ELF binaries can have their headers manipulated at build time to link to d
 
 The Habitat supervisors can talk to other Supervisor peers on the same gossip ring over ports 9631 (TCP) and 9638 (TCP/UDP). In order for supervisors on a ring to listen to each other, these ports must be opened on the Windows Firewall where the Supervisor is running. You can open them by running:
 
-    New-NetFirewallRule -DisplayName "Habitat TCP" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9631,9638
-    New-NetFirewallRule -DisplayName "Habitat UDP" -Direction Inbound -Action Allow -Protocol UDP -LocalPort 9638
+```powershell
+$ New-NetFirewallRule -DisplayName "Habitat TCP" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9631,9638
+$ New-NetFirewallRule -DisplayName "Habitat UDP" -Direction Inbound -Action Allow -Protocol UDP -LocalPort 9638
+```
 
 ### Running services under different accounts - `pkg_svc_user`
 

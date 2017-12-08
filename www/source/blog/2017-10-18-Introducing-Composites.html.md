@@ -34,16 +34,14 @@ You can access the code for all these packages in the [habitat-composite-example
 
 ### Our NodeJS Application
 
-For our application, we'll use the NodeJS sample application introduced by Habitat core maintainer Nell Shamrell-Harrington in her blog post on [Node Scaffolding](blog/2017-10-09-node-scaffolding-habitat/).
+For our application, we'll use the NodeJS sample application introduced by Habitat core maintainer Nell Shamrell-Harrington in her blog post on [Node Scaffolding](blog/2017/10/node-scaffolding-habitat/).
 
 This is a simple application, but for our purposes it will work perfectly, with one minor tweak.
 The original application does not export the port the NodeJS server is listening on. Without this information, our proxy server won't know how to find our application server (and no, we are not going to hard code it!).
 
 The [NodeJS scaffolding](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-node/doc/reference.md) that the application uses will take an optional `app.port` configuration value to set the listening port. We will just add that to the application's `default.toml` file, and add a `pkg_export` entry into our `plan.sh`. When it's all said and done, the files will look like this:
 
-```toml
-# default.toml
-
+```toml title:~/habitat-composite-example/sample-node-app/habitat/default.toml mark:5 linenos:true
 # Message of the Day
 message = "Hello, World!"
 
@@ -51,8 +49,7 @@ message = "Hello, World!"
 port = 8000     # <-- New!
 ```
 
-```sh
-# plan.sh
+```bash title:~/habitat-composite-example/sample-node-app/habitat/plan.sh mark:6
 pkg_name=sample-node-app
 pkg_origin=cm
 pkg_scaffolding="core/scaffolding-node"
@@ -74,7 +71,7 @@ For our proxy, we'll adapt the example Chris demonstrated in his post. His Nginx
 
 Here's what our `composite-example-api-proxy` service's `plan.sh` looks like:
 
-```sh
+```bash ~/habitat-composite-example/composite-example-api-proxy/plan.sh
 pkg_name=composite-example-api-proxy
 pkg_origin=cm
 pkg_version="0.1.0"
@@ -105,7 +102,7 @@ Finally, we have overridden the `do_build` and `do_install` callback functions s
 
 Next, let's look at this Nginx proxy's configuration file.
 
-```
+```handlebars title:~/habitat-composite-example/composite-example-api-proxy/config/nginx.conf
 daemon off;
 pid {{ pkg.svc_var_path }}/pid;
 worker_processes {{ cfg.worker_processes }};
@@ -151,7 +148,7 @@ Finally, note that we have set a number of `*_temp_path` variables. The current 
 
 Finally, let's take a look at the `run` hook of our `composite-example-api-proxy`.
 
-```sh
+```bash ~/habitat-composite-example/composite-example-api-proxy/hooks/run
 #!/bin/sh
 
 # Start the Nginx server, passing it our bundled configuration file.
@@ -164,7 +161,7 @@ This is exactly the same as the one that Chris used in his blog post. We simply 
 
 At last, we're ready to wrap all this up into a composite package. As mentioned earlier, composites are just another type of Habitat package, and are made from a `plan.sh` file. This file has a few additional features that we've not seen before, though. Let's take a look at what it would take to wire our NodeJS application up to our Nginx proxy.
 
-```sh
+```bash ~/habitat-composite-example/composite-example/plan.sh
 pkg_origin="cm"
 pkg_name="composite-example"
 pkg_type="composite"
@@ -194,7 +191,7 @@ A particularly fun part of composites is the fact that the build process is inte
 
 In many ways, using a composite package is not really different from using a standalone package. Let's see what happens when we try to load a composite package in a Habitat Supervisor.
 
-```sh
+```shell
 $ hab svc load cm/composite-example --channel unstable
 » Installing cm/composite-example from channel 'unstable'
 → Using cm/composite-example/0.1.0/20171005220452
@@ -208,7 +205,7 @@ As we can see, it loads each individual service from the composite for us.
 
 If we look at our supervisor's output, we can also see these services starting up. The fact that the proxy can start up at all is a sign that the binds have been properly satisfied, and we didn't have to specify anything on the command line when we loaded the composite!
 
-```sh
+```shell
 hab-sup(MR): Supervisor Member-ID d6df5da3056146c281d5ccfa27c47efa
 hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
 hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
@@ -237,7 +234,7 @@ To test, we can also visit the website on `localhost`:
 
 And we can see in the logs that the proxy and the backend are both participating in servicing the requests:
 
-```
+```shell
 composite-example-api-proxy.default(O): 127.0.0.1 - - [06/Oct/2017:14:28:17 +0000] "GET / HTTP/1.1" 304 0 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0"
 sample-node-app.default(O): GET / 304 480.246 ms - -
 composite-example-api-proxy.default(O): 127.0.0.1 - - [06/Oct/2017:14:28:17 +0000] "GET /stylesheets/style.css HTTP/1.1" 304 0 "http://localhost/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0"
