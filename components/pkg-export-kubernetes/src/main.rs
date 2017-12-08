@@ -30,35 +30,23 @@ extern crate failure_derive;
 
 mod topology;
 mod error;
+mod manifest;
 
 use clap::{App, Arg};
-use handlebars::Handlebars;
 use std::env;
 use std::result;
-use std::str::FromStr;
-use std::io::prelude::*;
-use std::io;
-use std::fs::File;
-use std::path::Path;
 
 use hcore::channel;
 use hcore::PROGRAM_NAME;
 use hcore::url as hurl;
-use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
-use rand::Rng;
 
 use export_docker::{Cli, Credentials, BuildSpec, Naming, PkgIdentArgOptions, Result};
 
-use topology::Topology;
-use error::Error;
+use manifest::Manifest;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
-
-// Kubernetes manifest template
-const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
-const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
 
 fn main() {
     env_logger::init().unwrap();
@@ -76,7 +64,8 @@ fn start(ui: &mut UI) -> Result<()> {
     if !m.is_present("NO_DOCKER_IMAGE") {
         gen_docker_img(ui, &m)?;
     }
-    gen_k8s_manifest(ui, &m)
+    let mut manifest = Manifest::new_from_cli_matches(ui, &m)?;
+    manifest.generate()
 }
 
 fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
@@ -102,91 +91,6 @@ fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     if matches.is_present("RM_IMAGE") {
         docker_image.rm(ui)?;
     }
-
-    Ok(())
-}
-
-fn gen_k8s_manifest(_ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
-    let count = matches.value_of("COUNT").unwrap_or("1");
-    let topology: Topology = FromStr::from_str(
-        matches.value_of("TOPOLOGY").unwrap_or("standalone"),
-    ).unwrap_or(Topology::Standalone);
-    let group = matches.value_of("GROUP");
-    let config_secret_name = matches.value_of("CONFIG_SECRET_NAME");
-    let ring_secret_name = matches.value_of("RING_SECRET_NAME");
-    // clap ensures that we do have the mandatory args so unwrap() is fine here
-    let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
-    let pkg_ident = if Path::new(pkg_ident_str).is_file() {
-        // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
-        // identifier to ensure that update strategies will work if desired
-        PackageArchive::new(pkg_ident_str).ident()?
-    } else {
-        PackageIdent::from_str(pkg_ident_str)?
-    };
-
-    // To allow multiple instances of Habitat application in Kubernetes,
-    // random suffix in metadata_name is needed.
-    let metadata_name = format!(
-        "{}-{}{}",
-        pkg_ident.name,
-        rand::thread_rng()
-            .gen_ascii_chars()
-            .filter(|c| c.is_lowercase() || c.is_numeric())
-            .take(4)
-            .collect::<String>(),
-        rand::thread_rng()
-            .gen_ascii_chars()
-            .filter(|c| c.is_lowercase() && !c.is_numeric())
-            .take(1)
-            .collect::<String>()
-    );
-
-    let image = match matches.value_of("IMAGE_NAME") {
-        Some(i) => i.to_string(),
-        None => pkg_ident.origin + "/" + &pkg_ident.name,
-    };
-    let bind = matches.value_of("BIND");
-
-    let json = json!({
-        "metadata_name": metadata_name,
-        "habitat_name": pkg_ident.name,
-        "image": image,
-        "count": count,
-        "service_topology": topology.to_string(),
-        "service_group": group,
-        "config_secret_name": config_secret_name,
-        "ring_secret_name": ring_secret_name,
-        "bind": bind,
-    });
-
-    let mut write: Box<Write> = match matches.value_of("OUTPUT") {
-        Some(o) if o != "-" => Box::new(File::create(o)?),
-        _ => Box::new(io::stdout()),
-    };
-
-    let r = Handlebars::new().template_render(MANIFESTFILE, &json)?;
-    let mut out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-        "\n",
-    ) + "\n";
-
-    if let Some(binds) = matches.values_of("BIND") {
-        for bind in binds {
-            let split: Vec<&str> = bind.split(":").collect();
-            if split.len() < 3 {
-                return Err(Error::InvalidBindSpec(bind.to_string()).into());
-            }
-
-            let json = json!({
-                "name": split[0],
-                "service": split[1],
-                "group": split[2],
-            });
-
-            out += &Handlebars::new().template_render(BINDFILE, &json)?;
-        }
-    }
-
-    write.write(out.as_bytes())?;
 
     Ok(())
 }
