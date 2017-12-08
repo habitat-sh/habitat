@@ -59,7 +59,7 @@ $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/ha
 
 ## Contribute
 
-We are always looking for more opportunities for community involvement. Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started! 
+We are always looking for more opportunities for community involvement. Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started!
 
 ## Documentation
 
@@ -73,7 +73,7 @@ The Habitat plans that are built and maintained by Habitat's Core Team are in [t
 
 ### Habitat Supervisor, Builder, and other core components
 
-The code for the Habitat Supervisor, Builder, and other core components are in the [components directory](https://github.com/habitat-sh/habitat/tree/master/components). 
+The code for the Habitat Supervisor, Builder, and other core components are in the [components directory](https://github.com/habitat-sh/habitat/tree/master/components).
 
 ### Web Application
 
@@ -85,15 +85,19 @@ Habitat's website and documentation source is located in the `www` directory of 
 
 ## Roadmap
 
-The Habitat project's roadmap is public and is on our [community page](https://www.habitat.sh/community/). 
+The Habitat project's roadmap is public and is on our [community page](https://www.habitat.sh/community/).
 
 The Habitat core team's project tracker is also public and on [Github.](https://github.com/habitat-sh/habitat/projects/1)
 
-## Community and support 
+## Community and support
 
 * [Habitat Slack](http://slack.habitat.sh)
 * [Forums]()
 * Community triage is every Tuesday at 10am Pacific. The link to participate is shared in the [Habitat Slack channel](http://slack.habitat.sh), and videos are posted on the [Habitat YouTube channel](https://youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
+
+## Builder Dev Env
+
+See [BUILDER_DEV.md](BUILDER_DEV.md) for information on setting up a Builder Dev Environment
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.
