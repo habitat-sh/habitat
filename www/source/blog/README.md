@@ -15,6 +15,8 @@ classes: body-article
 ---
 ~~~
 
+**Please note** all tags should be in lowercase. 
+
 If you want to reference media in your blog, [add a folder with the same name as your blog here](https://github.com/habitat-sh/habitat/tree/master/www/source/blog/media). 
 
 Be sure to make a pull request to add yourself to the [authors list with your biography](https://github.com/habitat-sh/habitat/blob/0ff9083f999014bca06edddb781bacd95e0c5410/www/data/author_bios.yml), too! 
