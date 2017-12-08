@@ -26,6 +26,7 @@ use handlebars::Handlebars;
 
 use build::BuildRoot;
 use error::{Error, Result};
+use serde_json;
 use super::{Credentials, Naming};
 use util;
 
@@ -113,6 +114,7 @@ impl<'a> DockerBuilder<'a> {
             id,
             name: self.name,
             tags: self.tags,
+            workdir: self.workdir.to_owned(),
         })
     }
 
@@ -138,6 +140,8 @@ pub struct DockerImage {
     name: String,
     /// The list of tags for this image.
     tags: Vec<String>,
+    /// The base workdir which hosts the root file system.
+    workdir: PathBuf,
 }
 
 impl<'a> DockerImage {
@@ -167,8 +171,8 @@ impl<'a> DockerImage {
             "Pushing Docker image '{}' with all tags to remote registry",
             self.name()
         ))?;
-        self.logout(ui, registry_url)?;
-        self.login(ui, credentials, registry_url)?;
+        self.create_docker_config_file(credentials, registry_url)
+            .unwrap();
         if self.tags.is_empty() {
             self.push_image(ui, None)?;
         } else {
@@ -176,7 +180,6 @@ impl<'a> DockerImage {
                 self.push_image(ui, Some(tag))?;
             }
         }
-        self.logout(ui, registry_url)?;
         ui.end(format!(
             "Docker image '{}' published with tags: {}",
             self.name(),
@@ -257,58 +260,26 @@ impl<'a> DockerImage {
         Ok(())
     }
 
-    fn login(
+    pub fn create_docker_config_file(
         &self,
-        ui: &mut UI,
         credentials: &Credentials,
         registry_url: Option<&str>,
     ) -> Result<()> {
-        ui.status(
-            Status::Custom('☛', "Logging into".to_string()),
-            "remote registry",
-        )?;
-        let mut cmd = docker_cmd();
-        cmd.arg("login")
-            .arg("--username")
-            .arg(&credentials.username)
-            .arg("--password")
-            .arg(&credentials.password);
-
-        if let Some(arg) = registry_url {
-            cmd.arg(arg);
-        }
-
-        debug!(
-            "Running: {}",
-            format!("{:?}", &cmd)
-                .replace(&credentials.username, "<username-redacted>")
-                .replace(&credentials.password, "<password-redacted>")
-        );
-        let exit_status = cmd.spawn()?.wait()?;
-        if !exit_status.success() {
-            return Err(Error::LoginFailed(exit_status))?;
-        }
-
-        Ok(())
-    }
-
-    fn logout(&self, ui: &mut UI, registry_url: Option<&str>) -> Result<()> {
-        ui.status(
-            Status::Custom('☒', "Logging out".to_string()),
-            "of remote registry",
-        )?;
-        let mut cmd = docker_cmd();
-        cmd.arg("logout");
-
-        if let Some(arg) = registry_url {
-            cmd.arg(arg);
-        }
-        debug!("Running: {:?}", &cmd);
-        let exit_status = cmd.spawn()?.wait()?;
-        if !exit_status.success() {
-            return Err(Error::LogoutFailed(exit_status))?;
-        }
-
+        let config = self.workdir.join("config.json");
+        fs::create_dir_all(&self.workdir)?;
+        let registry = match registry_url {
+            Some(url) => url,
+            None => "https://index.docker.io/v1/",
+        };
+        debug!("Using registry: {:?}", registry);
+        let json = json!({
+            "auths": {
+                registry: {
+                    "auth": credentials.token
+                }
+            }
+        });
+        util::write_file(&config, &serde_json::to_string(&json).unwrap())?;
         Ok(())
     }
 
@@ -322,6 +293,8 @@ impl<'a> DockerImage {
             format!("image '{}' to remote registry", &image_tag),
         )?;
         let mut cmd = docker_cmd();
+        cmd.arg("--config");
+        cmd.arg(self.workdir.to_str().unwrap());
         cmd.arg("push").arg(&image_tag);
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;

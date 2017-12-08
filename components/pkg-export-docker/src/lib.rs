@@ -52,7 +52,7 @@ use rusoto_core::Region;
 use rusoto_core::request::*;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use cli::Cli;
+pub use cli::{Cli, RegistryType};
 pub use build::BuildSpec;
 pub use docker::{DockerImage, DockerBuildRoot};
 pub use error::{Error, Result};
@@ -86,13 +86,14 @@ pub struct Naming<'a> {
     /// before pushing.
     pub registry_url: Option<&'a str>,
     /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
-    pub registry_type: &'a str,
+    pub registry_type: RegistryType,
 }
 
 impl<'a> Naming<'a> {
     /// Creates a `Naming` from cli arguments.
     pub fn new_from_cli_matches(m: &'a clap::ArgMatches) -> Self {
-        let registry_type = m.value_of("REGISTRY_TYPE").unwrap_or("docker");
+        let registry_type = value_t!(m.value_of("REGISTRY_TYPE"), RegistryType)
+            .unwrap_or(RegistryType::Docker);
         let registry_url = m.value_of("REGISTRY_URL");
 
         Naming {
@@ -112,14 +113,13 @@ impl<'a> Naming<'a> {
 /// This is a value struct which references username and password values.
 #[derive(Debug)]
 pub struct Credentials {
-    pub username: String,
-    pub password: String,
+    pub token: String,
 }
 
 impl Credentials {
-    pub fn new(registry_type: &str, username: &str, password: &str) -> Result<Self> {
+    pub fn new(registry_type: RegistryType, username: &str, password: &str) -> Result<Self> {
         match registry_type {
-            "amazon" => {
+            RegistryType::Amazon => {
                 // The username and password should be valid IAM credentials
                 let provider =
                     StaticProvider::new_minimal(username.to_string(), password.to_string());
@@ -139,23 +139,15 @@ impl Credentials {
                             })
                     })?;
 
-                let creds: Vec<String> = base64::decode(&token)
-                    .map_err(|e| Error::Base64DecodeError(e))
-                    .and_then(|decoded_token| {
-                        String::from_utf8(decoded_token)
-                            .map_err(|e| Error::InvalidToken(e))
-                            .and_then(|dts| Ok(dts.split(':').map(String::from).collect()))
-                    })?;
-
-                Ok(Credentials {
-                    username: creds[0].to_string(),
-                    password: creds[1].to_string(),
-                })
+                Ok(Credentials { token: token })
             }
-            _ => {
+            RegistryType::Docker => {
                 Ok(Credentials {
-                    username: username.to_string(),
-                    password: password.to_string(),
+                    token: base64::encode(&format!(
+                        "{}:{}",
+                        username.to_string(),
+                        password.to_string()
+                    )),
                 })
             }
         }
