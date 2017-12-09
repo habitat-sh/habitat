@@ -6,7 +6,7 @@ Continuous deployment is a well-known software development practice of building 
 
 By default, every new package is placed in the `unstable` channel by Builder.  Packages in the `unstable` channel cannot be started or installed unless you specify the `--channel` flag in the `hab` CLI, or set the `HAB_BLDR_CHANNEL` environment variable to a non-stable channel. This is because the default channel used by the `hab` CLI when starting, installing, or loading packages is the `stable` channel. The `stable` channel indicates a level of stability and functionality suitable for use in multi-service applications or as a dependency for your service.
 
-To promote your package to a channel, you must first upload it to Builder and then use the `hab pkg promote` subcommand to promote the package to the intended channel. To combine operations, the `hab` CLI allows you to do both in one command by using the `--channel` option when uploading your package. The following shows how to upload and promote a package to a custom channel named `test`.
+To promote your package to a channel, you must either use Builder to build your package or upload it to Builder yourself, and then use the `hab pkg promote` subcommand to promote the package to the intended channel. To combine operations, the `hab` CLI allows you to do both in one command by using the `--channel` option when uploading your package. The following shows how to upload and promote a package to a custom channel named `test`.
 
 ```bash
 $ hab pkg upload -z <OAuth_token> results/<hart file> --channel test
@@ -24,13 +24,13 @@ $ hab pkg promote -z <OAuth_token> <origin>/<package>/<version>/<release> stable
 
 ## Combining an Update Strategy with Channels
 
-By using both channels and either the `at-once` or `rolling` update strategies, you can automatically update packages in a given channel as shown below:
+By using both channels and either the `at-once` or `rolling` [update strategies](#using-updates), you can automatically update packages in a given channel as shown below:
 
 ![Promoting packages through channels](/images/infographics/habitat-promote-packages-through-channels.png)
 
-Using the infographic a guide, a typical continuous deployment scenario would be as follows:
+Using the infographic as a guide, a typical continuous deployment scenario would be as follows:
 
-1. You build a new version of your package either through Builder or a local Studio environment.
+1. You build a new version of your package either through Builder or through a local Studio environment and then upload it to Builder.
 2. When you are ready to roll out a new version of the package, you promote that package to the channel corresponding to the intended environment (e.g. `dev`). You can have multiple service groups in the same environment pointing to different channels, or the same channel.
 3. An existing set of running Supervisors in that service group see that the channel they are subscribed to has an update, so they update their underlying Habitat package, coordinating with one another per their update strategy, and restart their service.
 4. When you are ready, you then promote that version of your package to a new channel (e.g. `acceptance`). The running Supervisors in that group see the update and perform the same service update as in step 3. You repeat steps 3 and 4 until your package makes its way through your continuous deployment pipeline.
@@ -51,6 +51,10 @@ If you need to unassociate a channel from a specific package release, you can do
 $ hab pkg demote -z <OAuth_token> <origin>/<package>/<version>/<release> test
 ```
 
-The Builder UI for that package release and `hab pkg channels` will both reflect the removal of that channel.
+The Builder UI for that package release and `hab pkg channels` will both reflect the removal of that channel. 
 
-> **Note** If you demote a package from the `stable` channel, then any other packages that depend on the stable version of that package will either fail to load or build depending on how that demoted packaged was used.
+If you are running a package in a specific channel and demote
+
+> **Note** If you demote a package from the `stable` channel, then any other packages that depend on the stable version of that package will either fail to load or build depending on how that demoted packaged was used. 
+
+> Also, downgrading to another release for a specific channel is not available at this time. This means if you run the latest release of a package from a specific channel, and demote the channel for that release, the package will not downgrade to the next most recent release from that channel. 
