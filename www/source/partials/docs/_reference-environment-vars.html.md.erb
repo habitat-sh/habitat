@@ -27,6 +27,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_NON_ROOT` | Supervisor | no default | Enable the Supervisor to install packages as non-root user. *Warning* it is highly recommended not to use this setting except under very specific circumstances due to associated security risks. |
 | `http_proxy` | build system, Supervisor | no default | A URL for a local HTTP proxy server optionally supporting basic authentication |
 | `https_proxy` | build system, Supervisor | no default | A URL for a local HTTPS proxy server optionally supporting basic authentication |
+| `NO_INSTALL_DEPS` | build system | no default | Set this variable to prevent dependencies install during build |
 | `no_proxy` | build system, Supervisor | no default | A comma-separated list of domain exclusions for the `http_proxy` and `https_proxy` environment variables |
 | `SSL_CERT_FILE` | system | no default | a variable to help you navigate firewalls |
 
