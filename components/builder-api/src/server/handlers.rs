@@ -384,6 +384,11 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<JobGet, Job>(req, &request) {
         Ok(job) => {
+
+            if !check_origin_access(req, job.get_package_ident().get_origin()).unwrap_or(false) {
+                return Ok(Response::with(status::Forbidden));
+            }
+
             if job.get_package_ident().fully_qualified() {
                 let channels = helpers::channels_for_package_ident(req, job.get_package_ident());
                 let platforms = helpers::platforms_for_package_ident(req, job.get_package_ident());

@@ -11,7 +11,7 @@
   <a mat-tab-link routerLink="./" [routerLinkActiveOptions]="{exact: true}" routerLinkActive #versions="routerLinkActive" [active]="versions.isActive">
     Versions
   </a>
-  <a mat-tab-link routerLink="builds" routerLinkActive #jobs="routerLinkActive" [active]="jobs.isActive">
+  <a mat-tab-link *ngIf="isOriginMember" routerLink="builds" routerLinkActive #jobs="routerLinkActive" [active]="jobs.isActive">
     Build Jobs
   </a>
   <a mat-tab-link *ngIf="isOriginMember" routerLink="settings" routerLinkActive #settings="routerLinkActive" [active]="settings.isActive">
