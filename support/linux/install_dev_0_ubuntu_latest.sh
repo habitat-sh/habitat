@@ -11,6 +11,7 @@ sudo -E apt-get install -y --no-install-recommends \
   direnv \
   file \
   gdb \
+  git \
   httpie \
   iproute2 \
   libarchive-dev \
