@@ -71,6 +71,10 @@ export class SearchComponent implements OnInit, OnDestroy {
     return this.store.getState().packages.visible;
   }
 
+  get perPage() {
+    return this.store.getState().packages.perPage;
+  }
+
   get searchQuery() {
     return this.store.getState().packages.searchQuery;
   }

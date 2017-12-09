@@ -36,9 +36,9 @@
       </ul>
       <div *ngIf="packages.size < totalCount">
         Showing {{packages.size}} of {{totalCount}} packages.
-        <a href="#" (click)="fetchMorePackages()">
-          Load {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }} more
-        </a>.
+        <a (click)="fetchMorePackages()">
+          Load {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }} more.
+        </a>
       </div>
     </section>
   </div>

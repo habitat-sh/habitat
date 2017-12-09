@@ -15,6 +15,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppStore } from '../../../app.store';
+import { getUniquePackages } from '../../../actions/index';
 
 @Component({
   selector: 'hab-origin-packages-tab',
@@ -37,6 +38,10 @@ export class OriginPackagesTabComponent {
     return this.store.getState().packages.ui.visible;
   }
 
+  get perPage() {
+    return this.store.getState().packages.perPage;
+  }
+
   get projectsUi() {
     return this.store.getState().projects.ui.visible;
   }
@@ -53,8 +58,22 @@ export class OriginPackagesTabComponent {
     return this.store.getState().packages.visible;
   }
 
+  get token() {
+    return this.store.getState().session.token;
+  }
+
+  get totalCount() {
+    return this.store.getState().packages.totalCount;
+  }
+
   get noPackages() {
     return (!this.packagesUi.exists || this.packages.size === 0) && !this.packagesUi.loading;
+  }
+
+  fetchMorePackages() {
+    this.store.dispatch(
+      getUniquePackages(this.origin, this.store.getState().packages.nextRange, this.token)
+    );
   }
 
   saved(project) {
