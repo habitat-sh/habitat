@@ -142,6 +142,14 @@ fn start(ui: &mut UI) -> Result<()> {
                     }
                 }
                 ("encrypt", Some(m)) => sub_bldr_encrypt(ui, m)?,
+                ("channel", Some(m)) => {
+                    match m.subcommand() {
+                        ("create", Some(m)) => sub_bldr_channel_create(ui, m)?,
+                        ("destroy", Some(m)) => sub_bldr_channel_destroy(ui, m)?,
+                        ("list", Some(m)) => sub_bldr_channel_list(ui, m)?,
+                        _ => unreachable!(),
+                    }
+                }
                 _ => unreachable!(),
             }
         }
@@ -413,6 +421,28 @@ fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
 
     command::bldr::encrypt::start(ui, &url, &content, &default_cache_key_path(Some(&*FS_ROOT)))
+}
+
+fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let origin = origin_param_or_env(&m)?;
+    let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let token = auth_token_param_or_env(&m)?;
+    command::bldr::channel::create::start(ui, &url, &token, &origin, &channel)
+}
+
+fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let origin = origin_param_or_env(&m)?;
+    let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let token = auth_token_param_or_env(&m)?;
+    command::bldr::channel::destroy::start(ui, &url, &token, &origin, &channel)
+}
+
+fn sub_bldr_channel_list(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let origin = origin_param_or_env(&m)?;
+    command::bldr::channel::list::start(ui, &url, &origin)
 }
 
 fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
