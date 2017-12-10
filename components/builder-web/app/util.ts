@@ -22,7 +22,7 @@ import { FeatureFlags } from './privilege';
 export function createGitHubLoginUrl(state) {
   const params = {
     client_id: config['github_client_id'],
-    redirect_uri: `${window.location.protocol}//${window.location.host}/`,
+    redirect_uri: `${config['github_redirect_uri'] || (window.location.protocol + '//' + window.location.host + '/')}`,
     state
   };
   const urlPrefix = `${config['github_web_url']}/login/oauth/authorize`;

@@ -9,6 +9,7 @@ habitatConfig({
     github_web_url: "{{cfg.github.web_url}}",
     github_app_url: "{{cfg.github.app_url}}",
     github_app_id: "{{cfg.github.app_id}}",
+    github_redirect_uri: "{{cfg.github.redirect_uri}}",
     source_code_url: "{{cfg.source_code_url}}",
     tutorials_url: "{{cfg.tutorials_url}}",
     version: "{{pkg.ident}}",

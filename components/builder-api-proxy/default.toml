@@ -16,11 +16,12 @@ youtube_url          = "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1
 demo_app_url         = "https://www.habitat.sh/demo"
 
 [github]
-url       = "https://api.github.com"
-web_url   = "https://github.com"
-app_url   = "https://github.com/apps/habitat-builder"
-client_id = ""
-app_id    = 5565
+url          = "https://api.github.com"
+web_url      = "https://github.com"
+app_url      = "https://github.com/apps/habitat-builder"
+client_id    = ""
+app_id       = 5565
+redirect_uri = ""
 
 [nginx]
 worker_rlimit_nofile = 8192
