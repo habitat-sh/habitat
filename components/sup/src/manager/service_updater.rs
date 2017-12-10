@@ -30,7 +30,9 @@ use util;
 
 static LOGKEY: &'static str = "SU";
 const FREQUENCY_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_MS";
-const DEFAULT_FREQUENCY: i64 = 60_000;
+const FREQUENCY_BYPASS_CHECK_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
+const MIN_ALLOWED_FREQUENCY: i64 = 60_000;
+const DEFAULT_FREQUENCY: i64 = MIN_ALLOWED_FREQUENCY;
 
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
@@ -311,7 +313,34 @@ impl Periodic for Worker {
         match env::var(FREQUENCY_ENVVAR) {
             Ok(val) => {
                 match val.parse::<i64>() {
-                    Ok(num) => num,
+                    Ok(num) => {
+                        if (env::var(FREQUENCY_BYPASS_CHECK_ENVVAR).is_ok() && num > 0) ||
+                            num >= MIN_ALLOWED_FREQUENCY
+                        {
+                            num
+                        } else if num <= 0 {
+                            outputln!(
+                                "{} has been set, but {} value ({}) is negative ({}) \
+                                Falling back to minimal {} MS frequency.",
+                                FREQUENCY_BYPASS_CHECK_ENVVAR,
+                                FREQUENCY_ENVVAR,
+                                num,
+                                MIN_ALLOWED_FREQUENCY,
+                                MIN_ALLOWED_FREQUENCY
+                            );
+                            MIN_ALLOWED_FREQUENCY
+                        } else {
+                            outputln!(
+                                "{} value ({}) is below the minimal authorized value ({}) \
+                                Falling back to minimal {} MS frequency.",
+                                FREQUENCY_ENVVAR,
+                                num,
+                                MIN_ALLOWED_FREQUENCY,
+                                MIN_ALLOWED_FREQUENCY
+                            );
+                            MIN_ALLOWED_FREQUENCY
+                        }
+                    }
                     Err(_) => {
                         outputln!(
                             "Unable to parse '{}' from {} as a valid integer. Falling back \
