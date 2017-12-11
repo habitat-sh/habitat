@@ -31,17 +31,16 @@ extern crate failure_derive;
 mod topology;
 mod error;
 mod manifest;
+mod cli;
 
-use clap::{App, Arg};
 use std::env;
-use std::result;
 
 use hcore::channel;
 use hcore::PROGRAM_NAME;
 use hcore::url as hurl;
 use common::ui::UI;
 
-use export_docker::{Cli, Credentials, BuildSpec, Naming, PkgIdentArgOptions, Result};
+use export_docker::{Credentials, BuildSpec, Naming, Result};
 
 use manifest::Manifest;
 
@@ -95,103 +94,11 @@ fn gen_docker_img(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn cli<'a, 'b>() -> App<'a, 'b> {
+fn cli<'a, 'b>() -> clap::App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates a Docker image and Kubernetes manifest for a Habitat package. Habitat \
                  operator must be deployed within the Kubernetes cluster before the generated \
                  manifest can be applied to this cluster.";
 
-    let app = Cli::new(name, about)
-        .add_base_packages_args()
-        .add_builder_args()
-        .add_tagging_args()
-        .add_publishing_args()
-        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: false })
-        .app;
-
-    app.arg(
-        Arg::with_name("OUTPUT")
-            .value_name("OUTPUT")
-            .long("output")
-            .short("o")
-            .help(
-                "Name of manifest file to create. Pass '-' for stdout (default: -)",
-            ),
-    ).arg(
-            Arg::with_name("COUNT")
-                .value_name("COUNT")
-                .long("count")
-                .validator(valid_natural_number)
-                .help("Count is the number of desired instances"),
-        )
-        .arg(
-            Arg::with_name("TOPOLOGY")
-                .value_name("TOPOLOGY")
-                .long("topology")
-                .short("t")
-                .possible_values(&["standalone", "leader"])
-                .help(
-                    "A topology describes the intended relationship between peers \
-                    within a Habitat service group. Specify either standalone or leader \
-                    topology (default: standalone)",
-                ),
-        )
-        .arg(
-            Arg::with_name("GROUP")
-                .value_name("GROUP")
-                .long("service-group")
-                .short("g")
-                .help(
-                    "group is a logical grouping of services with the same package and \
-                    topology type connected together in a ring (default: default)",
-                ),
-        )
-        .arg(
-            Arg::with_name("CONFIG_SECRET_NAME")
-                .value_name("CONFIG_SECRET_NAME")
-                .long("config-secret-name")
-                .short("n")
-                .help(
-                    "name of the Kubernetes Secret containing the config file - \
-                    user.toml - that the user has previously created. Habitat will \
-                    use it for initial configuration of the service",
-                ),
-        )
-        .arg(
-            Arg::with_name("RING_SECRET_NAME")
-                .value_name("RING_SECRET_NAME")
-                .long("ring-secret-name")
-                .short("r")
-                .help(
-                    "name of the Kubernetes Secret that contains the ring key, which \
-                    encrypts the communication between Habitat supervisors",
-                ),
-        )
-        .arg(
-            Arg::with_name("BIND")
-                .value_name("BIND")
-                .long("bind")
-                .short("b")
-                .multiple(true)
-                .number_of_values(1)
-                .help(
-                    "Bind to another service to form a producer/consumer relationship, \
-                    specified as name:service:group",
-                ),
-        )
-        .arg(
-            Arg::with_name("NO_DOCKER_IMAGE")
-                .long("no-docker-image")
-                .short("d")
-                .help(
-                    "Disable creation of the Docker image and only create a Kubernetes manifest",
-                ),
-        )
-}
-
-fn valid_natural_number(val: String) -> result::Result<(), String> {
-    match val.parse::<u32>() {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("{} is not a natural number", val)),
-    }
+    cli::Cli::new(name, about).add_all_args().app
 }
