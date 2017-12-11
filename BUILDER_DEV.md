@@ -16,11 +16,15 @@ This Dev Environment involves spinning up a virtual machine (most of the core co
 
 * Ubuntu 17.10 Desktop Virtual Machine
 * Access to the "core" origin in [Production Builder](https://bldr.habitat.sh). Ask a core maintainer (or in the [Habitat Slack](http://slack.habitat.sh/)) if you do not have access.
-* Access to the Habitat 1Password account
+* Access to the Habitat 1Password account (NOTE - we are working on a solution to make this not required, but it is necessary for the time being)
 * All of the following steps should be run within your Virtual Machine
 * A [Github Personal Access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) with all repo and all user permissions.
 * The [Habitat Builder App](https://github.com/apps/habitat-builder) installed on your Github account.
 * Open your Sudoers file at /etc/sudoers and remove the "secure_path" section (this is required for the make scripts to run correctly)
+
+```
+$ sudo visudo -f /etc/sudoers
+```
 
 ### Builder Setup
 * Update your system
@@ -33,13 +37,18 @@ $ sudo apt-get update
 $ sudo apt-get install git
 ```
 
+* Install curl
+```
+$ sudo apt-get install curl
+```
+
 * Clone the [Habitat repo](https://github.com/habitat-sh/habitat)
 ```
 $ git clone https://github.com/habitat-sh/habitat.git
 ```
 
 * Install the [Habitat CLI](https://www.habitat.sh/docs/get-habitat/)
-* Copy habitat-builder-dev.2017-10-02.private-key.pem from 1Password into path/to/habitat/repo/.secrets/builder-github-app.pem
+* Copy habitat-builder-dev.2017-10-02.private-key.pem from 1Password into path/to/habitat/repo/.secrets/builder-github-app.pem (NOTE - this is required as of 12/11/17 - we are working on a solution to make access to the Habitat 1Password vault not required for dev environment setup).
 * Set up some environmental variables (I put these in my .bashrc)
 
 ```
@@ -51,7 +60,7 @@ export HAB_ORIGIN="core"
 * symlink /src to path/to/your/habitat/repo
 
 ```
-$ sudo ln -s ~/habitat /src
+$ sudo ln -s path/to/your/habitat/repo /src
 ```
 
 * Cd into your Habitat repo
@@ -85,14 +94,14 @@ $ sudo vim /hab/svc/builder-worker
 
 * Add your Github Auth Key:
 
-**/hab/svc/builder-worker**
+**/hab/svc/builder-worker/config.toml**
 ```
 auth_token = ""
 ```
 
 Should become:
 
-**/hab/svc/builder-worker**
+**/hab/svc/builder-worker/config.toml**
 ```
 auth_token = "<your github token>"
 ```
