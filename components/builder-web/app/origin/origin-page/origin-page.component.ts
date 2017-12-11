@@ -102,13 +102,4 @@ export class OriginPageComponent implements OnInit, OnDestroy {
   getPackages() {
     this.store.dispatch(getUniquePackages(this.origin.name, 0, this.token));
   }
-
-  fetchMorePackages() {
-    this.store.dispatch(getUniquePackages(
-      this.origin.name,
-      this.store.getState().packages.nextRange,
-      this.token
-    ));
-    return false;
-  }
 }

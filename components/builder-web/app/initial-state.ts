@@ -216,6 +216,7 @@ export default Record({
     visible: List(),
     versions: undefined,
     nextRange: 0,
+    perPage: 50,
     searchQuery: '',
     totalCount: 0,
     ui: Record({
