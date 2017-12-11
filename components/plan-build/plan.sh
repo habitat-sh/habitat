@@ -27,18 +27,18 @@ pkg_deps=(
 program=$pkg_name
 
 do_build() {
-  cp -v $PLAN_CONTEXT/bin/${program}.sh $program
+  cp -v $PLAN_CONTEXT/bin/${program}.sh "$CACHE_PATH/$program"
 
   # Use the bash from our dependency list as the shebang. Also, embed the
   # release version of the program.
   sed \
     -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
     -e "s,^HAB_PLAN_BUILD=.*$,HAB_PLAN_BUILD=$pkg_version/$pkg_release," \
-    -i $program
+    -i "$CACHE_PATH/$program"
 }
 
 do_install() {
-  install -D $program $pkg_prefix/bin/$program
+  install -D "$CACHE_PATH/$program" $pkg_prefix/bin/$program
   install -D $PLAN_CONTEXT/bin/shared.sh $pkg_prefix/bin/
   install -D $PLAN_CONTEXT/bin/public.sh $pkg_prefix/bin/
   install -D $PLAN_CONTEXT/bin/composite_build_functions.sh $pkg_prefix/bin/

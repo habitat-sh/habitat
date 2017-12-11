@@ -1,5 +1,9 @@
+
+function Get-RepoRoot {
+    (Resolve-Path "$PSScriptRoot\..\..\").Path
+}
 function Test-ReleaseBuild {
-    $env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content c:/projects/habitat/VERSION)" -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))
+    $env:APPVEYOR_REPO_TAG_NAME -eq (Get-Content "$(Get-RepoRoot)/VERSION") -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))
 }
 
 function Test-ComponentChanged ($path) {
@@ -38,7 +42,7 @@ function Test-SourceChanged {
     ).count -ge 1
 }
 
-pushd "c:/projects/habitat"
+pushd (Get-RepoRoot)
 Write-Host "Configuring build environment"
 ./build.ps1 -Configure -SkipBuild
 
@@ -66,7 +70,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
         }
         elseif ($BuildAction -like 'test') {
             foreach ($component in ($env:hab_components -split ';')) {
-                pushd "c:/projects/habitat/components/$component"
+                pushd "$(Get-RepoRoot)/components/$component"
                 Write-Host "Testing $component"
                 Write-Host ""
                 cargo test --verbose
@@ -81,11 +85,12 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
             mkdir $bootstrapDir -Force
             # download a hab binary to build hab from source in a studio
             Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile hab.zip
-            Expand-Archive -Path hab.zip -DestinationPath $bootstrapDir
+            Expand-Archive -Path hab.zip -DestinationPath $bootstrapDir -Force
+            Remove-Item hab.zip -Force
             $habExe = (Get-Item "$bootstrapDir/*/hab.exe").FullName
 
             # This will override plan's CARGO_TARGET_DIR so we do not have to build each clean
-            $env:HAB_CARGO_TARGET_DIR = "c:\projects\habitat\target"
+            $env:HAB_CARGO_TARGET_DIR = "$(Get-RepoRoot)\target"
 
             $env:HAB_ORIGIN="core"
             if($env:ORIGIN_KEY) {
@@ -101,10 +106,10 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
             foreach ($component in ($env:hab_components -split ';')) {
                 Write-Host "Building plan for $component"
                 Write-Host ""
-                & $habExe studio build components/$component -w
+                & $habExe pkg build components/$component -w
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-                $hart = Get-Item "C:\hab\studios\projects--habitat\src\components\$component\results\*.hart"
+                $hart = (Get-Item "$(Get-RepoRoot)\components\$component\results\*.hart")[-1]
                 Write-Host "Copying $hart to artifacts directory..."
                 Copy-Item $hart.FullName results
                 & $habExe pkg install $hart.FullName
@@ -121,7 +126,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                     Write-Host ""
                     $zip = "hab-$env:APPVEYOR_BUILD_VERSION-x86_64-windows.zip"
                     $zipDir = $zip.Replace(".zip", "")
-                    $stagingZipDir = "c:/projects/habitat/windows/x86_64"
+                    $stagingZipDir = "$(Get-RepoRoot)/windows/x86_64"
                     mkdir $zipDir -Force
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
 
@@ -132,7 +137,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                         Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
                         $nuspec_version = $env:APPVEYOR_BUILD_VERSION.substring(0, $env:APPVEYOR_BUILD_VERSION.IndexOf('-'))
                         $checksum = (Get-FileHash "$stagingZipDir/$zip" -Algorithm SHA256).Hash
-                        $choco_install = "c:/projects/habitat/components/hab/win/chocolateyinstall.ps1"
+                        $choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
 
                         (Get-Content $choco_install) |
                             % {$_.Replace('$version$', $env:APPVEYOR_BUILD_VERSION) } | 
@@ -142,9 +147,11 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                             % {$_.Replace('$checksum$', $checksum) } |
                             Set-Content $choco_install
 
-                        choco pack "c:/projects/habitat/components/hab/win/habitat.nuspec" --version $nuspec_version --output-directory "results/prod"
+                        choco pack "$(Get-RepoRoot)/components/hab/win/habitat.nuspec" --version $nuspec_version --output-directory "results/prod"
                     }
                     Compress-Archive -Path ./windows -DestinationPath "results/$zip"
+                    Remove-Item $zipDir -Recurse -Force
+                    Remove-Item $stagingZipDir -Recurse -Force
                 }
                 if ($component -eq "studio") {
                     # Now that we have built the studio we can use current hab and studio bits
@@ -152,7 +159,9 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                 }
             }
             if(!(Test-PullRequest)) {
+                $env:HAB_BLDR_CHANNEL = $channel
                 & $habExe pkg exec core/hab-bintray-publish publish-studio
+                $env:HAB_BLDR_CHANNEL = $null
             }
         }
         else {
