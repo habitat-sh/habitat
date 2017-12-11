@@ -27,13 +27,13 @@ extern crate log;
 
 use std::env;
 
-use clap::{App, Arg};
+use clap::App;
 use hcore::channel;
 use common::ui::UI;
 use hcore::PROGRAM_NAME;
 use hcore::url as hurl;
 
-use export_docker::{Cli, BuildSpec, Credentials, Result, Naming};
+use export_docker::{Cli, BuildSpec, Credentials, PkgIdentArgOptions, Result, Naming};
 
 fn main() {
     env_logger::init().unwrap();
@@ -77,22 +77,12 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates (an optionally pushes) a Docker image from a set of Habitat packages";
 
-    let app = Cli::new(name, about)
+    Cli::new(name, about)
         .add_base_packages_args()
         .add_builder_args()
         .add_image_customization_args()
         .add_tagging_args()
         .add_publishing_args()
-        .app;
-
-    app.arg(
-        Arg::with_name("PKG_IDENT_OR_ARTIFACT")
-            .value_name("PKG_IDENT_OR_ARTIFACT")
-            .required(true)
-            .multiple(true)
-            .help(
-                "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a \
-                Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)",
-            ),
-    )
+        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
+        .app
 }

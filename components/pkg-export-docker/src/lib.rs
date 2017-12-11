@@ -52,7 +52,7 @@ use rusoto_core::Region;
 use rusoto_core::request::*;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use cli::{Cli, RegistryType};
+pub use cli::{Cli, PkgIdentArgOptions, RegistryType};
 pub use build::BuildSpec;
 pub use docker::{DockerImage, DockerBuildRoot};
 pub use error::{Error, Result};
