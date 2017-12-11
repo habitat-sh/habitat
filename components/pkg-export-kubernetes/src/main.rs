@@ -45,7 +45,7 @@ use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
 use rand::Rng;
 
-use export_docker::{Cli, Credentials, BuildSpec, Naming, Result};
+use export_docker::{Cli, Credentials, BuildSpec, Naming, PkgIdentArgOptions, Result};
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
@@ -200,6 +200,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         .add_builder_args()
         .add_tagging_args()
         .add_publishing_args()
+        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: false })
         .app;
 
     app.arg(
@@ -279,12 +280,6 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 .help(
                     "Disable creation of the Docker image and only create a Kubernetes manifest",
                 ),
-        )
-        .arg(
-            Arg::with_name("PKG_IDENT_OR_ARTIFACT")
-                .value_name("PKG_IDENT_OR_ARTIFACT")
-                .required(true)
-                .help("Habitat package identifier (ex: acme/redis)"),
         )
 }
 
