@@ -152,13 +152,13 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .short("i")
                     .value_name("USER_ID")
                     .validator(valid_user_id)
-                    .help("Specify the numeric ID of the service user and group (default: 42)")
+                    .help(
+                        "Specify the numeric ID of the service user and group (default: 42)",
+                    ),
             )
-            .arg(
-                Arg::with_name("NON_ROOT")
-                    .long("non-root")
-                    .help("Run the container as a non-root user (default: false)")
-            );
+            .arg(Arg::with_name("NON_ROOT").long("non-root").help(
+                "Run the container as a non-root user (default: false)",
+            ));
         Cli { app: app }
     }
 
@@ -247,8 +247,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                  .value_name("REGISTRY_TYPE")
                  .help("Remote registry type, Ex: Amazon, Docker (default: docker)"))
             .arg(Arg::with_name("REGISTRY_URL")
-                 // This is not strictly a requirement but will keep someone from making a mistake when
-                 // inputing an ECR URL
+                 // This is not strictly a requirement but will keep someone from making a mistake
+                 // when inputing an ECR URL
                  .requires("REGISTRY_TYPE")
                  .long("registry-url")
                  .short("G")
