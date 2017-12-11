@@ -37,7 +37,7 @@ authors:
     name: "Tasha Drew"
     email: "tasha@habitat.sh"
     twitter: "@tashadrew"
-    bio: "Product @ [habitat.sh](https://www.habitat.sh/), previously of Rentlytics & Engine Yard."
+    bio: "Product @ <a href=\"https://www.habitat.sh/\">habitat.sh</a>, previously of Rentlytics & Engine Yard."
   mattwrock:
     name: "Matt Wrock"
     email: "mwrock@habitat.sh"
@@ -57,7 +57,7 @@ authors:
     name: "Nathen Harvey"
     email: "nharvey@chef.io"
     twitter: "@nathenharvey"
-    bio: "Nathen Harvey, VP of Community Development at Chef, helps the community whip up an awesome ecosystem built around the Chef platform. Nathen also spends much of his time helping people learn about the practices, processes, and technologies that support DevOps, continuous delivery, and high velocity organizations. Nathen is a co-host of the Food Fight Show, a podcast about Chef and DevOps.  He is also an occasional farmer who loves eggs and actively supports #hugops."
+    bio: "Nathen Harvey, VP of Community Development at Chef, helps the community create and adopt tools and processes for Continuous Automation and building communities. He is focused on the community and ecosystem around Chef, Habitat, and InSpec. Nathen is a co-host of the <a href=\"http://foodfightshow.org\">Food Fight Show</a>, a podcast about Chef and DevOps. He is also an occasional <a href=\"http://ei.chef.io\">farmer</a> who loves <a href=\"http://eggs.chef.io\">eggs</a> and <a href=\"http://hugops.chef.io\">#hugops</a>."
   irvingpopovetsky:
     name: "Irving Popovetsky"
     email: "irving@chef.io"
