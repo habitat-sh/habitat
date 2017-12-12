@@ -23,8 +23,7 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-MERGE_BASE="$(git merge-base origin/master HEAD)"
-CHANGED_FILES=$(git diff --name-only ${MERGE_BASE})
+CHANGED_FILES="$(support/ci/what_changed.sh)"
 
 # Consult `.bldr.toml` to figure out which files we care about for the
 # given package.
@@ -71,7 +70,7 @@ search_expression=$(cat .bldr.toml | \
        join("|")')
 
 echo
-echo "The following files have changes since ${MERGE_BASE:0:8}:"
+echo "The following files have changes since the last merge commit:"
 echo
 echo "$CHANGED_FILES" | sed 's,^,    ,g'
 echo
