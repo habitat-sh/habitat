@@ -144,6 +144,11 @@ a.icon-back {
     height: 2px;
     background-image: linear-gradient(to right, rgba(86,111,132, 0), rgba(86,111,132, 0.75), rgba(86,111,132, 0));
   }
+
+  a {
+    color: $hab-white;
+    text-decoration: underline;
+  }
 }
 
 .article-detail--footer {
