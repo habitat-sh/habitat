@@ -1,7 +1,8 @@
 [package]
 name = "habitat_pkg_export_kubernetes"
 version = "0.0.0"
-authors = ["Krzesimir Nowak <krzesimir@kinvolk.io>"]
+authors = ["Krzesimir Nowak <krzesimir@kinvolk.io>",
+           "Zeeshan Ali <zeeshan@kinvolk.io>"]
 build = "../build-habitat.rs"
 workspace = "../../"
 
