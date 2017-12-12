@@ -25,15 +25,11 @@ extern crate chrono;
 #[macro_use]
 extern crate log;
 
-use std::env;
-
 use clap::App;
-use hcore::channel;
 use common::ui::UI;
 use hcore::PROGRAM_NAME;
-use hcore::url as hurl;
 
-use export_docker::{Cli, BuildSpec, Credentials, PkgIdentArgOptions, Result, Naming};
+use export_docker::{Cli, PkgIdentArgOptions, Result};
 
 fn main() {
     env_logger::init().unwrap();
@@ -48,29 +44,8 @@ fn start(ui: &mut UI) -> Result<()> {
     let cli = cli();
     let m = cli.get_matches();
     debug!("clap cli args: {:?}", m);
-    let default_channel = channel::default();
-    let default_url = hurl::default_bldr_url();
-    let spec = BuildSpec::new_from_cli_matches(&m, &default_channel, &default_url);
-    let naming = Naming::new_from_cli_matches(&m);
 
-    let docker_image = export_docker::export(ui, spec, &naming)?;
-    docker_image.create_report(
-        ui,
-        env::current_dir()?.join("results"),
-    )?;
-    if m.is_present("PUSH_IMAGE") {
-        let credentials = Credentials::new(
-            naming.registry_type,
-            m.value_of("REGISTRY_USERNAME").unwrap(),
-            m.value_of("REGISTRY_PASSWORD").unwrap(),
-        )?;
-        docker_image.push(ui, &credentials, naming.registry_url)?;
-    }
-    if m.is_present("RM_IMAGE") {
-        docker_image.rm(ui)?;
-    }
-
-    Ok(())
+    export_docker::export_for_cli_matches(ui, &m)
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
