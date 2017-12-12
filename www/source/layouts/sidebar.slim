@@ -3,21 +3,22 @@
     .row
       .main-sidebar.columns.small-12.medium-3 data-sticky-container=""
         .sticky data-sticky="" data-margin-top="1" data-top-anchor="main-nav:bottom" data-btm-anchor="main-footer:top"
-          - if sidebar_layout == 'docs'
-            form.main-sidebar--search action="/docs/search/" method="get"
-              input.st-default-search-input type="text" placeholder="Search Documentation" name="q"
-          - sidebar_data(sidebar_layout).each do |item|
-              ul.vertical.menu.accordion-menu data-accordion-menu="" data-submenu-toggle="" data-multi-open="false"
-                - item.links.each do |item_link|
-                  li.main-sidebar--list--item class=link_classes(current_resource.url, item_link)
-                    = link_to item_link.title, item_link.link
-                    - if sub_links?(item_link)
-                      ul.menu.vertical.nested class=link_classes(current_resource.url, item_link)
-                        - item_link.sub_links.each do |sub_link|
-                          li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
-                            = link_to sub_link.title, sub_link.link
-          - if sidebar_layout == 'docs'
-            = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download outline'
+          .sidebar-content
+            - if sidebar_layout == 'docs'
+              form.main-sidebar--search action="/docs/search/" method="get"
+                input.st-default-search-input type="text" placeholder="Search Documentation" name="q"
+            - sidebar_data(sidebar_layout).each do |item|
+                ul.vertical.menu.accordion-menu data-accordion-menu="" data-submenu-toggle="" data-multi-open="false"
+                  - item.links.each do |item_link|
+                    li.main-sidebar--list--item class=link_classes(current_resource.url, item_link)
+                      = link_to item_link.title, item_link.link
+                      - if sub_links?(item_link)
+                        ul.menu.vertical.nested class=link_classes(current_resource.url, item_link)
+                          - item_link.sub_links.each do |sub_link|
+                            li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
+                              = link_to sub_link.title, sub_link.link
+            - if sidebar_layout == 'docs'
+              = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download outline'
 
       .main-content__has-sidebar.columns.small-12.medium-9 data-swiftype-index="true"
           == yield
