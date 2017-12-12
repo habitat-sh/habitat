@@ -46,20 +46,20 @@ pub const VERSION: &'static str = "0.1.0";
 fn main() {
     env_logger::init().unwrap();
     let mut ui = UI::default_with_env();
-    if let Err(e) = start(&mut ui) {
+    let m = cli().get_matches();
+    debug!("clap cli args: {:?}", m);
+
+    if let Err(e) = start(&mut ui, &m) {
         let _ = ui.fatal(e);
         std::process::exit(1)
     }
 }
 
-fn start(ui: &mut UI) -> Result<()> {
-    let m = cli().get_matches();
-    debug!("clap cli args: {:?}", m);
-
-    if !m.is_present("NO_DOCKER_IMAGE") {
-        export_docker::export_for_cli_matches(ui, &m)?;
+fn start(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
+    if !matches.is_present("NO_DOCKER_IMAGE") {
+        export_docker::export_for_cli_matches(ui, &matches)?;
     }
-    let mut manifest = Manifest::new_from_cli_matches(ui, &m)?;
+    let mut manifest = Manifest::new_from_cli_matches(ui, &matches)?;
     manifest.generate()
 }
 
