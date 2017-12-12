@@ -49,13 +49,13 @@ fn main() {
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
 
-    if let Err(e) = start(&mut ui, &m) {
+    if let Err(e) = export_for_cli_matches(&mut ui, &m) {
         let _ = ui.fatal(e);
         std::process::exit(1)
     }
 }
 
-fn start(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
+fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     if !matches.is_present("NO_DOCKER_IMAGE") {
         export_docker::export_for_cli_matches(ui, &matches)?;
     }
