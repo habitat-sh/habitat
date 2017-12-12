@@ -105,6 +105,28 @@ impl UI {
         Self::new(Shell::default_with(coloring, isatty))
     }
 
+    /// Creates a new default `UI` with a coloring strategy and tty hinting.
+    pub fn default_with_env() -> Self {
+        let isatty = if env::var(NONINTERACTIVE_ENVVAR)
+            .map(|val| val == "true")
+            .unwrap_or(false)
+        {
+            Some(false)
+        } else {
+            None
+        };
+        let coloring = if env::var(NOCOLORING_ENVVAR)
+            .map(|val| val == "true")
+            .unwrap_or(false)
+        {
+            Coloring::Never
+        } else {
+            Coloring::Auto
+        };
+
+        UI::default_with(coloring, isatty)
+    }
+
     /// Creates a new `UI` from generic `Read` and `Write` streams.
     ///
     /// The standard input stream needs to implement `Read` and both the standard output and

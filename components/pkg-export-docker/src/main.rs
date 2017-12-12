@@ -29,8 +29,7 @@ use std::env;
 
 use clap::{App, Arg};
 use hcore::channel;
-use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
-use hcore::env as henv;
+use common::ui::UI;
 use hcore::PROGRAM_NAME;
 use hcore::url as hurl;
 
@@ -38,7 +37,7 @@ use export_docker::{Cli, BuildSpec, Credentials, Result, Naming};
 
 fn main() {
     env_logger::init().unwrap();
-    let mut ui = ui();
+    let mut ui = UI::default_with_env();
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
         std::process::exit(1)
@@ -96,24 +95,4 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)",
             ),
     )
-}
-
-fn ui() -> UI {
-    let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    let coloring = if henv::var(NOCOLORING_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Coloring::Never
-    } else {
-        Coloring::Auto
-    };
-    UI::default_with(coloring, isatty)
 }

@@ -41,9 +41,8 @@ use std::path::Path;
 use hcore::channel;
 use hcore::PROGRAM_NAME;
 use hcore::url as hurl;
-use hcore::env as henv;
 use hcore::package::{PackageArchive, PackageIdent};
-use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
+use common::ui::UI;
 use rand::Rng;
 
 use export_docker::{Cli, Credentials, BuildSpec, Naming, Result};
@@ -63,31 +62,11 @@ enum Error {
 
 fn main() {
     env_logger::init().unwrap();
-    let mut ui = get_ui();
+    let mut ui = UI::default_with_env();
     if let Err(e) = start(&mut ui) {
         let _ = ui.fatal(e);
         std::process::exit(1)
     }
-}
-
-fn get_ui() -> UI {
-    let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    let coloring = if henv::var(NOCOLORING_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Coloring::Never
-    } else {
-        Coloring::Auto
-    };
-    UI::default_with(coloring, isatty)
 }
 
 fn start(ui: &mut UI) -> Result<()> {
