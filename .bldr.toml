@@ -177,6 +177,12 @@ paths = [
   "components/pkg-export-docker/*"
 ]
 
+# NOTE: cfize has a dependency on hab-pkg-dockerize, but we are
+# *explicitly not building* `hab-pkg-dockerize` any more. Read more at
+# components/pkg-dockerize/README.md
+[hab-pkg-cfize]
+plan_path = "components/pkg-cfize"
+
 [hab-pkg-mesosize]
 plan_path = "components/pkg-mesosize"
 
