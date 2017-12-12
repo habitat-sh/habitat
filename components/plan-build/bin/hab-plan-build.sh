@@ -1082,7 +1082,7 @@ _validate_deps() {
     warn "release in the full dependency chain:"
     warn
     echo "$dupes" | while read dupe; do
-      warn "  * $dupe ( $(echo "$tdeps" | grep "$dupe" | tr '\n' ' '))"
+      warn "  * $dupe ( $(echo "$tdeps" | grep "^${dupe}/" | tr '\n' ' '))"
     done
     warn
     warn 'The current situation usually arises when a Plan has a direct '
