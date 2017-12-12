@@ -28,6 +28,8 @@ serde = "*"
 serde_derive = "*"
 time = "*"
 toml = { version = "*", default-features = false }
+diesel = "*"
+diesel_migrations = "*"
 
 [dependencies.clap]
 version = "*"

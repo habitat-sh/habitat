@@ -20,11 +20,9 @@
 //! The tables are denormalized. Rather than follow the typical 3-4nf style, we
 //! accept duplication of data in order to ensure speedy retrieval.
 //!
-//!   * Joins are strictly forbidden. Prefer arrays comprised of natural keys, or of
-//!     hstore/jsonb.
 //!   * Database activity is driven by stored procedure; no raw queries in normal
 //!     course of events.
-//!   * The application itself is responsible for the schema; mirgrations are inline,
+//!   * The application itself is responsible for the schema; mirgrations are in diesel,
 //!     and any service that needs it can upgrade the database.
 //!   * Roll forward schema changes only. You can add columns, you can migrate data,
 //!     but you can't remove columns.
@@ -79,15 +77,18 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate diesel;
 extern crate fnv;
 #[macro_use]
 extern crate log;
 extern crate num_cpus;
 extern crate postgres;
+extern crate postgres_shared;
 extern crate threadpool;
 extern crate rand;
 extern crate time;
 extern crate r2d2;
+extern crate r2d2_diesel;
 extern crate r2d2_postgres;
 extern crate serde;
 #[macro_use]
@@ -96,6 +97,7 @@ extern crate fallible_iterator;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hcore;
 extern crate habitat_net as hab_net;
+extern crate url;
 
 pub mod config;
 pub mod error;
@@ -103,3 +105,4 @@ pub mod migration;
 pub mod pool;
 pub mod async;
 pub mod test;
+pub mod diesel_pool;

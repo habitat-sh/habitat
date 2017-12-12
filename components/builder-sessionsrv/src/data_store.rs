@@ -14,46 +14,64 @@
 
 //! The PostgreSQL backend for the Account Server.
 
+embed_migrations!("src/migrations");
+
+use std::io;
 use std::sync::Arc;
 
+use diesel::Connection;
+use diesel::result::Error;
 use db::config::{DataStoreCfg, ShardId};
+use db::migration::shard_setup;
 use db::pool::Pool;
-use db::migration::Migrator;
+use db::diesel_pool::DieselPool;
 use protocol::sessionsrv;
 use postgres;
 use protobuf;
 
 use error::{SrvError, SrvResult};
-use migrations;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DataStore {
     pub pool: Pool,
+    pub diesel_pool: DieselPool,
+    pub shards: Vec<ShardId>,
 }
 
 impl DataStore {
     pub fn new(cfg: &DataStoreCfg, shards: Vec<ShardId>) -> SrvResult<DataStore> {
-        let pool = Pool::new(&cfg, shards)?;
-        Ok(DataStore { pool: pool })
+        let pool = Pool::new(&cfg, shards.clone())?;
+        let diesel_pool = DieselPool::new(&cfg)?;
+        Ok(DataStore {
+            pool,
+            diesel_pool,
+            shards,
+        })
     }
 
-    pub fn from_pool(pool: Pool, _: Arc<String>) -> SrvResult<DataStore> {
-        Ok(DataStore { pool: pool })
+    // For testing only
+    pub fn from_pool(
+        pool: Pool,
+        diesel_pool: DieselPool,
+        shards: Vec<ShardId>,
+        _: Arc<String>,
+    ) -> SrvResult<DataStore> {
+        Ok(DataStore {
+            pool,
+            diesel_pool,
+            shards,
+        })
     }
 
     pub fn setup(&self) -> SrvResult<()> {
-        let conn = self.pool.get_raw()?;
-        let xact = conn.transaction().map_err(SrvError::DbTransactionStart)?;
-        let mut migrator = Migrator::new(xact, self.pool.shards.clone());
-
-        migrator.setup()?;
-
-        migrations::accounts::migrate(&mut migrator)?;
-        migrations::sessions::migrate(&mut migrator)?;
-        migrations::invitations::migrate(&mut migrator)?;
-
-        migrator.finish()?;
-
+        let conn = self.diesel_pool.get_raw()?;
+        for shard_id in self.shards.iter() {
+            let _ = conn.transaction::<_, Error, _>(|| {
+                shard_setup(&*conn, *shard_id).unwrap();
+                embedded_migrations::run_with_output(&*conn, &mut io::stdout()).unwrap();
+                Ok(())
+            });
+        }
         Ok(())
     }
 

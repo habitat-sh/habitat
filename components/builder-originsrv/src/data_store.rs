@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+embed_migrations!("src/migrations");
+
+use std::io;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -20,9 +23,12 @@ use std::sync::Arc;
 use bldr_core::helpers::transition_visibility;
 use db::async::{AsyncServer, EventOutcome};
 use db::config::{DataStoreCfg, ShardId};
+use db::diesel_pool::DieselPool;
 use db::error::{Error as DbError, Result as DbResult};
-use db::migration::Migrator;
+use db::migration::shard_setup;
 use db::pool::Pool;
+use diesel::Connection;
+use diesel::result::Error as Dre;
 use hab_net::conn::{RouteClient, RouteConn};
 use hab_net::{ErrCode, NetError};
 use hab_core::package::PackageIdent;
@@ -34,11 +40,12 @@ use postgres;
 use protobuf;
 
 use error::{SrvError, SrvResult};
-use migrations;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DataStore {
     pub pool: Pool,
+    pub diesel_pool: DieselPool,
+    pub shards: Vec<ShardId>,
     pub async: AsyncServer,
 }
 
@@ -54,39 +61,41 @@ impl DataStore {
         shards: Vec<ShardId>,
         router_pipe: Arc<String>,
     ) -> SrvResult<DataStore> {
-        let pool = Pool::new(&cfg, shards)?;
+        let pool = Pool::new(&cfg, shards.clone())?;
+        let diesel_pool = DieselPool::new(&cfg)?;
         let ap = pool.clone();
         Ok(DataStore {
             pool: pool,
+            diesel_pool,
+            shards,
             async: AsyncServer::new(ap, router_pipe),
         })
     }
 
-    pub fn from_pool(pool: Pool, router_pipe: Arc<String>) -> SrvResult<DataStore> {
+    // For testing only
+    pub fn from_pool(
+        pool: Pool,
+        diesel_pool: DieselPool,
+        shards: Vec<ShardId>,
+        router_pipe: Arc<String>,
+    ) -> SrvResult<DataStore> {
         Ok(DataStore {
             async: AsyncServer::new(pool.clone(), router_pipe),
-            pool: pool,
+            pool,
+            diesel_pool,
+            shards,
         })
     }
 
     pub fn setup(&self) -> SrvResult<()> {
-        let conn = self.pool.get_raw()?;
-        let xact = conn.transaction().map_err(SrvError::DbTransactionStart)?;
-        let mut migrator = Migrator::new(xact, self.pool.shards.clone());
-
-        migrator.setup()?;
-
-        migrations::origins::migrate(&mut migrator)?;
-        migrations::origin_public_keys::migrate(&mut migrator)?;
-        migrations::origin_secret_keys::migrate(&mut migrator)?;
-        migrations::origin_invitations::migrate(&mut migrator)?;
-        migrations::origin_integrations::migrate(&mut migrator)?;
-        migrations::origin_projects::migrate(&mut migrator)?;
-        migrations::origin_packages::migrate(&mut migrator)?;
-        migrations::origin_channels::migrate(&mut migrator)?;
-
-        migrator.finish()?;
-
+        let conn = self.diesel_pool.get_raw()?;
+        for shard_id in self.shards.iter() {
+            let _ = conn.transaction::<_, Dre, _>(|| {
+                shard_setup(&*conn, *shard_id).unwrap();
+                embedded_migrations::run_with_output(&*conn, &mut io::stdout()).unwrap();
+                Ok(())
+            });
+        }
         Ok(())
     }
 
@@ -319,7 +328,7 @@ impl DataStore {
     ) -> SrvResult<()> {
         let conn = self.pool.get(opid)?;
 
-        let rows = conn.query(
+        conn.query(
             "SELECT * FROM delete_origin_project_integration_v1($1, $2, $3)",
             &[
                 &opid.get_origin(),

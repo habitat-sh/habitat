@@ -16,6 +16,9 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate base64;
+extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
 extern crate github_api_client;
 extern crate habitat_builder_db as db;
 extern crate habitat_builder_protocol as protocol;
@@ -39,7 +42,6 @@ extern crate zmq;
 pub mod config;
 pub mod data_store;
 pub mod error;
-pub mod migrations;
 pub mod server;
 
 pub use self::config::Config;

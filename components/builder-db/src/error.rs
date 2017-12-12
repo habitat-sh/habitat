@@ -36,7 +36,7 @@ pub enum Error {
     MigrationTable(postgres::error::Error),
     MigrationTracking(postgres::error::Error),
     MigrationLock(postgres::error::Error),
-    PostgresConnect(postgres::error::Error),
+    PostgresConnect(postgres::Error),
     SchemaCreate(postgres::error::Error),
     SchemaDrop(postgres::error::Error),
     SchemaSwitch(postgres::error::Error),

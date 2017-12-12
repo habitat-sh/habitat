@@ -96,29 +96,33 @@ macro_rules! datastore_test {
             use std::sync::atomic::Ordering;
             use $crate::config::DataStoreCfg;
             use $crate::pool::Pool;
+            use $crate::diesel_pool::DieselPool;
             use $crate::test::{postgres, SHARD_COUNT, INIT_TEMPLATE, TEST_COUNT};
-
             postgres::start();
 
             // JW: We don't run any tests which need to communicate between RouteSrv->DataStore
             // implementor so we don't need to provide an actual pipe for a RouteClient to
             // connect to
+
+            let mut config = DataStoreCfg::default();
             let router_pipe = Arc::new("inproc://database-test.ipc".to_string());
+            let shards: Vec<u32> = (0..SHARD_COUNT).collect();
 
             INIT_TEMPLATE.call_once(|| {
-                let mut config = DataStoreCfg::default();
                 config.database = "template1".to_string();
                 config.pool_size = 1;
-                let pool = Pool::new(&config, vec![0]).expect("Failed to create pool");
+                let pool = Pool::new(&config, shards.clone()).expect("Failed to create pool");
                 let conn = pool.get_raw().expect("Failed to get connection");
                 conn.execute("DROP DATABASE IF EXISTS builder_db_test_template", &[])
                     .expect("Failed to drop existing template database");
                 conn.execute("CREATE DATABASE builder_db_test_template", &[])
                     .expect("Failed to create template database");
                 config.database = "builder_db_test_template".to_string();
-                let template_pool = Pool::new(&config, (0..SHARD_COUNT).collect())
+                // TED This must happen after the database is created
+                let diesel_pool = DieselPool::new(&config).expect("Failed to create pool");
+                let template_pool = Pool::new(&config, shards.clone())
                     .expect("Failed to create pool");
-                let ds = $datastore::from_pool(template_pool, router_pipe.clone())
+                let ds = $datastore::from_pool(template_pool, diesel_pool.clone(), shards.clone(), router_pipe.clone())
                     .expect("Failed to create data store from pool");
                 ds.setup().expect("Failed to migrate data");
             });
@@ -137,9 +141,10 @@ macro_rules! datastore_test {
 
             config.database = db_name;
             config.pool_size = 5;
-            let pool = Pool::new(&config, (0..SHARD_COUNT).collect())
+            let diesel_pool = DieselPool::new(&config).expect("Failed to create pool");
+            let pool = Pool::new(&config, shards.clone())
                 .expect("Failed to create pool");
-            $datastore::from_pool(pool, router_pipe).expect("Failed to create data store from pool")
+            $datastore::from_pool(pool, diesel_pool, shards, router_pipe).expect("Failed to create data store from pool")
         }
     }
 }

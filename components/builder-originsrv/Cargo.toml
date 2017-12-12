@@ -23,6 +23,8 @@ serde_derive = "*"
 toml = { version = "*", default-features = false }
 postgres = "*"
 r2d2 = "*"
+diesel = "*"
+diesel_migrations = "*"
 
 [dependencies.clap]
 version = "*"
