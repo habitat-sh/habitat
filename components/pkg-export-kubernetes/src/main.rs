@@ -17,31 +17,12 @@ extern crate env_logger;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate habitat_pkg_export_docker as export_docker;
-extern crate handlebars;
-extern crate rand;
-#[macro_use]
-extern crate serde_json;
+extern crate habitat_pkg_export_kubernetes as export_k8s;
 #[macro_use]
 extern crate log;
 
-extern crate failure;
-#[macro_use]
-extern crate failure_derive;
-
-mod topology;
-mod error;
-mod manifest;
-mod cli;
-
 use hcore::PROGRAM_NAME;
 use common::ui::UI;
-
-use export_docker::Result;
-
-use manifest::Manifest;
-
-// Synced with the version of the Habitat operator.
-pub const VERSION: &'static str = "0.1.0";
 
 fn main() {
     env_logger::init().unwrap();
@@ -49,18 +30,10 @@ fn main() {
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
 
-    if let Err(e) = export_for_cli_matches(&mut ui, &m) {
+    if let Err(e) = export_k8s::export_for_cli_matches(&mut ui, &m) {
         let _ = ui.fatal(e);
         std::process::exit(1)
     }
-}
-
-fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
-    if !matches.is_present("NO_DOCKER_IMAGE") {
-        export_docker::export_for_cli_matches(ui, &matches)?;
-    }
-    let mut manifest = Manifest::new_from_cli_matches(ui, &matches)?;
-    manifest.generate()
 }
 
 fn cli<'a, 'b>() -> clap::App<'a, 'b> {
@@ -69,5 +42,5 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                  operator must be deployed within the Kubernetes cluster before the generated \
                  manifest can be applied to this cluster.";
 
-    cli::Cli::new(name, about).add_all_args().app
+    export_k8s::cli::Cli::new(name, about).add_all_args().app
 }

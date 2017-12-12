@@ -6,6 +6,9 @@ authors = ["Krzesimir Nowak <krzesimir@kinvolk.io>",
 build = "../build-habitat.rs"
 workspace = "../../"
 
+[lib]
+name = "habitat_pkg_export_kubernetes"
+
 [[bin]]
 name = "hab-pkg-export-kubernetes"
 path = "src/main.rs"
