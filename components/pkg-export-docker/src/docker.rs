@@ -390,7 +390,7 @@ impl DockerBuildRoot {
 
     fn add_users_and_groups(&self, ui: &mut UI) -> Result<()> {
         let ctx = self.0.ctx();
-        let (users, groups) = ctx.svc_users_and_groups();
+        let (users, groups) = ctx.svc_users_and_groups()?;
         {
             let file = "etc/passwd";
             let mut f = OpenOptions::new().append(true).open(
@@ -451,13 +451,13 @@ impl DockerBuildRoot {
                 .to_string_lossy()
                 .as_ref(),
             "path": ctx.env_path(),
-            "hab_path": util::pkg_path_for(
-                &PackageIdent::from_str("core/hab")?,
-                ctx.rootfs()
-                        )?.join("bin/hab").to_string_lossy().replace("\\", "/"),
-            "volumes": ctx.svc_volumes().join(" "),
+            "hab_path": util::pkg_path_for(&PackageIdent::from_str("core/hab")?, ctx.rootfs())?.join("bin/hab").to_string_lossy().replace("\\", "/"),
+            "volumes": ctx.svc_volumes(),
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
+            "primary_user_id": ctx.primary_user_id(),
+            // Yup, the group is the same as the user for now.
+            "primary_group_id": ctx.primary_user_id(),
         });
         util::write_file(
             self.0.workdir().join("Dockerfile"),

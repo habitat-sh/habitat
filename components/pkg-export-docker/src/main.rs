@@ -81,6 +81,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
     let app = Cli::new(name, about)
         .add_base_packages_args()
         .add_builder_args()
+        .add_image_customization_args()
         .add_tagging_args()
         .add_publishing_args()
         .app;

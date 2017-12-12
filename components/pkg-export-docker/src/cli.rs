@@ -144,6 +144,24 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app: app }
     }
 
+    pub fn add_image_customization_args(self) -> Self {
+        let app = self.app
+            .arg(
+                Arg::with_name("USER_ID")
+                    .long("user-id")
+                    .short("i")
+                    .value_name("USER_ID")
+                    .validator(valid_user_id)
+                    .help("Specify the numeric ID of the service user and group (default: 42)")
+            )
+            .arg(
+                Arg::with_name("NON_ROOT")
+                    .long("non-root")
+                    .help("Run the container as a non-root user (default: false)")
+            );
+        Cli { app: app }
+    }
+
     pub fn add_tagging_args(self) -> Self {
         let app = self.app
             .arg(
@@ -262,5 +280,16 @@ fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_user_id(val: String) -> result::Result<(), String> {
+    match val.parse::<u32>() {
+        Ok(_) => {
+            // TODO (CM): need to filter out problematic
+            // values (e.g., 0, existing user/group IDs)
+            Ok(())
+        }
+        Err(_) => Err(format!("User ID: '{}' is not valid", &val)),
     }
 }

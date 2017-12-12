@@ -39,6 +39,7 @@ use util;
 const DEFAULT_HAB_IDENT: &'static str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
+const DEFAULT_USER_ID: u32 = 42;
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
@@ -64,6 +65,10 @@ pub struct BuildSpec<'a> {
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
     pub idents_or_archives: Vec<&'a str>,
+    /// Numeric user ID of the user / group
+    pub user_id: u32,
+    /// Run the container as a non-root user?
+    pub non_root: bool,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -84,6 +89,14 @@ impl<'a> BuildSpec<'a> {
             base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
             base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL").unwrap_or(&default_channel),
             idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap().collect(),
+            user_id: match m.value_of("USER_ID") {
+                Some(i) => {
+                    // unwrap OK because validation function ensures it
+                    i.parse::<u32>().unwrap()
+                }
+                None => DEFAULT_USER_ID,
+            },
+            non_root: m.is_present("NON_ROOT"),
         }
     }
 
@@ -369,6 +382,11 @@ pub struct BuildRootContext {
     channel: String,
     /// The path to the root of the file system.
     rootfs: PathBuf,
+    /// The user ID of the primary service user
+    user_id: u32,
+    /// Whether or not the container should be tailored to run Habitat
+    /// as a non-root user
+    non_root: bool,
 }
 
 impl BuildRootContext {
@@ -416,6 +434,8 @@ impl BuildRootContext {
             env_path: bin_path.to_string_lossy().into_owned(),
             channel: spec.channel.into(),
             rootfs: rootfs,
+            user_id: spec.user_id,
+            non_root: spec.non_root,
         };
         context.validate()?;
 
@@ -440,13 +460,17 @@ impl BuildRootContext {
         )
     }
 
+    fn primary_svc(&self) -> Result<PackageInstall> {
+        PackageInstall::load(self.primary_svc_ident(), Some(&self.rootfs)).map_err(From::from)
+    }
+
     /// Returns the fully qualified Package Identifier for the first service package.
     ///
     /// # Errors
     ///
     /// * If the primary service package could not be loaded from disk
     pub fn installed_primary_svc_ident(&self) -> Result<PackageIdent> {
-        let pkg_install = PackageInstall::load(self.primary_svc_ident(), Some(&self.rootfs))?;
+        let pkg_install = self.primary_svc()?;
         Ok(pkg_install.ident().clone())
     }
 
@@ -482,21 +506,33 @@ impl BuildRootContext {
 
     /// Returns a tuple of users to be added to the image's passwd database and groups to be added
     /// to the image's group database.
-    pub fn svc_users_and_groups(&self) -> (Vec<String>, Vec<String>) {
+    pub fn svc_users_and_groups(&self) -> Result<(Vec<String>, Vec<String>)> {
         let mut users = Vec::new();
         let mut groups = Vec::new();
-        let id = 42;
+        let id = self.user_id;
 
-        users.push(format!(
-            "hab:x:{uid}:{gid}:hab User:/:/bin/false\n",
-            uid = id,
-            gid = id
-        ));
-        groups.push(format!("hab:x:{gid}:hab\n", gid = id));
-
+        let pkg = self.primary_svc()?;
+        let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap();
+        let group_name = pkg.svc_group()
+            .unwrap_or(Some(String::from("hab")))
+            .unwrap();
+        if user_name != "root" {
+            users.push(format!(
+                "{name}:x:{uid}:{gid}:{name} User:/:/bin/false\n",
+                name = user_name,
+                uid = id,
+                gid = id
+            ));
+            groups.push(format!(
+                "{name}:x:{gid}:{user_name}\n",
+                name = group_name,
+                gid = id,
+                user_name = user_name
+            ));
+        }
         // TODO fn: add remaining missing users and groups from service packages
 
-        (users, groups)
+        Ok((users, groups))
     }
 
     /// Returns the `bin` path which is used for all program symlinking.
@@ -517,6 +553,10 @@ impl BuildRootContext {
     /// Returns the root file system which is used to export an image.
     pub fn rootfs(&self) -> &Path {
         self.rootfs.as_ref()
+    }
+
+    pub fn primary_user_id(&self) -> u32 {
+        if self.non_root { self.user_id } else { 0 }
     }
 
     fn validate(&self) -> Result<()> {
@@ -598,6 +638,8 @@ mod test {
             base_pkgs_url: "base_pkgs_url",
             base_pkgs_channel: "base_pkgs_channel",
             idents_or_archives: Vec::new(),
+            user_id: 42,
+            non_root: false,
         }
     }
 
@@ -617,6 +659,10 @@ mod test {
         let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
         util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
         util::write_file(prefix.join("TARGET"), &PackageTarget::default().to_string()).unwrap();
+
+        util::write_file(prefix.join("SVC_USER"), "my_user").unwrap();
+        util::write_file(prefix.join("SVC_GROUP"), "my_group").unwrap();
+
         if let Some(bins) = bins {
             util::write_file(
                 prefix.join("PATH"),
@@ -867,11 +913,11 @@ mod test {
                 HashSet::from_iter(ctx.svc_volumes().iter().cloned())
             );
 
-            let (users, groups) = ctx.svc_users_and_groups();
+            let (users, groups) = ctx.svc_users_and_groups().unwrap();
             assert_eq!(1, users.len());
-            assert!(users[0].starts_with("hab:"));
+            assert!(users[0].starts_with("my_user:"));
             assert_eq!(1, groups.len());
-            assert!(groups[0].starts_with("hab:"));
+            assert!(groups[0].starts_with("my_group:"));
             // TODO fn: check ctx.svc_exposes()
         }
     }
