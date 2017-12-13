@@ -210,8 +210,12 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
     if matches.is_present("PUSH_IMAGE") {
         let credentials = Credentials::new(
             naming.registry_type,
-            matches.value_of("REGISTRY_USERNAME").unwrap(),
-            matches.value_of("REGISTRY_PASSWORD").unwrap(),
+            matches.value_of("REGISTRY_USERNAME").expect(
+                "Username not specified",
+            ),
+            matches.value_of("REGISTRY_PASSWORD").expect(
+                "Password not specified",
+            ),
         )?;
         docker_image.push(ui, &credentials, naming.registry_url)?;
     }
