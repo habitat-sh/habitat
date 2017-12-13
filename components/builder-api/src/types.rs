@@ -43,3 +43,8 @@ pub struct UserUpdateReq {
 pub struct GroupPromoteReq {
     pub idents: Vec<String>,
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct GroupDemoteReq {
+    pub idents: Vec<String>,
+}

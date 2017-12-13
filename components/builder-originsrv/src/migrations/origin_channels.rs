@@ -341,5 +341,16 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         ORDER BY name ASC;
                     $$ LANGUAGE SQL STABLE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION demote_origin_package_group_v1 (
+                    opp_channel_id bigint,
+                    opp_package_ids bigint[]
+                 ) RETURNS void
+                   LANGUAGE SQL
+                   VOLATILE AS $$
+                     DELETE FROM origin_channel_packages WHERE channel_id=opp_channel_id AND package_id = ANY(opp_package_ids);
+                 $$"#,
+    )?;
     Ok(())
 }

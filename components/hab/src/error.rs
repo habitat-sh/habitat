@@ -52,9 +52,9 @@ pub enum Error {
     HabitatCore(hcore::Error),
     HandlebarsRenderError(handlebars::TemplateRenderError),
     IO(io::Error),
-    JobGroupPromote(api_client::Error),
+    JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
-    JobGroupPromoteUnprocessable,
+    JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
     PackageArchiveMalformed(String),
     ParseIntError(num::ParseIntError),
     PathPrefixError(path::StripPrefixError),
@@ -134,10 +134,19 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HandlebarsRenderError(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
-            Error::JobGroupPromoteUnprocessable => {
-                format!("Failed to promote job group, the build job is still in progress")
+            Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
+                "Failed to promote job group, the build job is still in progress".to_string()
             }
-            Error::JobGroupPromote(ref e) => format!("Failed to promote job group: {:?}", e),
+            Error::JobGroupPromoteOrDemoteUnprocessable(false) => {
+                "Failed to demote job group, the build job is still in progress".to_string()
+            }
+            Error::JobGroupPromoteOrDemote(ref e, promote) => {
+                format!(
+                    "Failed to {} job group: {:?}",
+                    if promote { "promote" } else { "demote" },
+                    e
+                )
+            }
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
             Error::PackageArchiveMalformed(ref e) => {
                 format!(
@@ -190,10 +199,13 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::HandlebarsRenderError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
-            Error::JobGroupPromoteUnprocessable => {
+            Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
                 "Failed to promote job group, the build job is still in progress"
             }
-            Error::JobGroupPromote(ref err) => err.description(),
+            Error::JobGroupPromoteOrDemoteUnprocessable(false) => {
+                "Failed to demote job group, the build job is still in progress"
+            }
+            Error::JobGroupPromoteOrDemote(ref err, _) => err.description(),
             Error::JobGroupCancel(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => {
                 "Package archive was unreadable or had unexpected contents"

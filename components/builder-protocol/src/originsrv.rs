@@ -959,6 +959,14 @@ impl Routable for OriginPackageGroupPromote {
     }
 }
 
+impl Routable for OriginPackageGroupDemote {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
 impl Routable for OriginPackageUpdate {
     type H = String;
 

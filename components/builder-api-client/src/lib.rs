@@ -149,24 +149,30 @@ impl Client {
         Ok(rd.rdeps.to_vec())
     }
 
-    /// Promote a job group to a channel
+    /// Promote/Demote a job group to/from a channel
     ///
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn job_group_promote<T: AsRef<str> + serde::Serialize>(
+    pub fn job_group_promote_or_demote<T: AsRef<str> + serde::Serialize>(
         &self,
         group_id: u64,
         idents: &[T],
         channel: &str,
         token: &str,
+        promote: bool,
     ) -> Result<()> {
         let json_idents = json!(idents);
         let body = json!({
             "idents": json_idents
         });
         let sbody = serde_json::to_string(&body).unwrap();
-        let url = format!("jobs/group/{}/promote/{}", group_id, channel);
+        let url = format!(
+            "jobs/group/{}/{}/{}",
+            group_id,
+            if promote { "promote" } else { "demote" },
+            channel
+        );
         let res = self.add_authz(self.0.post(&url), token)
             .body(&sbody)
             .header(Accept::json())
@@ -175,7 +181,11 @@ impl Client {
             .map_err(Error::HyperError)?;
 
         if res.status != StatusCode::NoContent {
-            debug!("Failed to promote group, status: {:?}", res.status);
+            debug!(
+                "Failed to {} group, status: {:?}",
+                if promote { "promote" } else { "demote" },
+                res.status
+            );
             return Err(err_from_response(res));
         }
 

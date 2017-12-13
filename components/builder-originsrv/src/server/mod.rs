@@ -93,6 +93,8 @@ lazy_static! {
         map.register(OriginPackageDemote::descriptor_static(None), handlers::origin_package_demote);
         map.register(OriginPackageGroupPromote::descriptor_static(None),
             handlers::origin_package_group_promote);
+        map.register(OriginPackageGroupDemote::descriptor_static(None),
+            handlers::origin_package_group_demote);
         map.register(OriginPackagePromote::descriptor_static(None),
             handlers::origin_package_promote);
         map.register(OriginPackageUniqueListRequest::descriptor_static(None),
