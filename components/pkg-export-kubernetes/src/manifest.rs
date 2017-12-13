@@ -33,6 +33,7 @@ use error::Error;
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
 const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
 
+#[derive(Debug, Clone)]
 pub struct Manifest {
     metadata_name: String,
     habitat_name: String,
