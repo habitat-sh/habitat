@@ -61,7 +61,9 @@ impl Manifest {
         );
         let ring_secret_name = matches.value_of("RING_SECRET_NAME").map(|s| s.to_string());
         // clap ensures that we do have the mandatory args so unwrap() is fine here
-        let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+        let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT").expect(
+            "No package specified",
+        );
         let pkg_ident = if Path::new(pkg_ident_str).is_file() {
             // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
             // identifier to ensure that update strategies will work if desired
