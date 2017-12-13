@@ -14,8 +14,6 @@
 
 use std::str::FromStr;
 use std::io::prelude::*;
-use std::io;
-use std::fs::File;
 use std::path::Path;
 
 use clap::ArgMatches;
@@ -46,8 +44,6 @@ pub struct Manifest {
     ring_secret_name: Option<String>,
     // TODO: Represent binds with a struct
     binds: Vec<String>,
-
-    write: Box<Write>,
 }
 
 impl Manifest {
@@ -100,11 +96,6 @@ impl Manifest {
             None => Vec::new(),
         };
 
-        let write: Box<Write> = match matches.value_of("OUTPUT") {
-            Some(o) if o != "-" => Box::new(File::create(o)?),
-            _ => Box::new(io::stdout()),
-        };
-
         Ok(Manifest {
             metadata_name: metadata_name,
             habitat_name: pkg_ident.name,
@@ -115,11 +106,10 @@ impl Manifest {
             config_secret_name: config_secret_name,
             ring_secret_name: ring_secret_name,
             binds: binds,
-            write: write,
         })
     }
 
-    pub fn generate(&mut self) -> Result<()> {
+    pub fn generate(&mut self, write: &mut Write) -> Result<()> {
         let json = json!({
             "metadata_name": self.metadata_name,
             "habitat_name": self.habitat_name,
@@ -156,7 +146,7 @@ impl Manifest {
             )?;
         }
 
-        self.write.write(out.as_bytes())?;
+        write.write(out.as_bytes())?;
 
         Ok(())
     }
