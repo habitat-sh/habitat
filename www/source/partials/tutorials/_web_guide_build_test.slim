@@ -138,7 +138,7 @@ section
 
  p For information on what endpoint information you can query, see #{link_to 'Monitoring services','https://www.habitat.sh/docs/run-packages-monitoring/'}.
 
-- if "#{current_page.data.platform_short}" == "ruby"
+- if ["ruby", "node"].include? "#{current_page.data.platform_short}"
   = link_to 'Next: Connect to Database', "/tutorials/build-your-own/#{current_page.data.platform_short}/connect-database/", class: 'button cta'
 
 - else
