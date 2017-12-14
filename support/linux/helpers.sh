@@ -1,16 +1,14 @@
 #!/bin/bash
 
+load_package() {
+  hab pkg upload --url http://localhost:9636/v1 --auth "${HAB_AUTH_TOKEN}" "$@" --channel stable
+}
+
 load_packages() {
   if [[ -d /src/pkgs ]]; then
     for pkg in /src/pkgs/core*.hart ; do
-      hab pkg upload --url http://localhost:9636/v1 --auth "${HAB_AUTH_TOKEN}" "${pkg}" --channel stable
+      load_package "${pkg}"
     done
-  fi
-}
-
-load_package() {
-  if [[ -d /src/pkgs ]]; then
-    hab pkg upload --url http://localhost:9636/v1 --auth "${HAB_AUTH_TOKEN}" "$@" --channel stable
   fi
 }
 
