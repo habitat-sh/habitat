@@ -40,6 +40,7 @@ const DEFAULT_HAB_IDENT: &'static str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
 const DEFAULT_USER_ID: u32 = 42;
+const DEFAULT_GROUP_ID: u32 = DEFAULT_USER_ID;
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
@@ -65,8 +66,10 @@ pub struct BuildSpec<'a> {
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
     pub idents_or_archives: Vec<&'a str>,
-    /// Numeric user ID of the user / group
+    /// Numeric user ID of the user
     pub user_id: u32,
+    /// Numeric user ID of the group
+    pub group_id: u32,
     /// Run the container as a non-root user?
     pub non_root: bool,
 }
@@ -97,6 +100,13 @@ impl<'a> BuildSpec<'a> {
                     i.parse::<u32>().unwrap()
                 }
                 None => DEFAULT_USER_ID,
+            },
+            group_id: match m.value_of("GROUP_ID") {
+                Some(i) => {
+                    // unwrap OK because validation function ensures it
+                    i.parse::<u32>().unwrap()
+                }
+                None => DEFAULT_GROUP_ID,
             },
             non_root: m.is_present("NON_ROOT"),
         }
@@ -386,6 +396,8 @@ pub struct BuildRootContext {
     rootfs: PathBuf,
     /// The user ID of the primary service user
     user_id: u32,
+    /// The group ID of the primary service group
+    group_id: u32,
     /// Whether or not the container should be tailored to run Habitat
     /// as a non-root user
     non_root: bool,
@@ -437,6 +449,7 @@ impl BuildRootContext {
             channel: spec.channel.into(),
             rootfs: rootfs,
             user_id: spec.user_id,
+            group_id: spec.group_id,
             non_root: spec.non_root,
         };
         context.validate()?;
@@ -511,7 +524,8 @@ impl BuildRootContext {
     pub fn svc_users_and_groups(&self) -> Result<(Vec<String>, Vec<String>)> {
         let mut users = Vec::new();
         let mut groups = Vec::new();
-        let id = self.user_id;
+        let uid = self.user_id;
+        let gid = self.group_id;
 
         let pkg = self.primary_svc()?;
         let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap();
@@ -522,13 +536,13 @@ impl BuildRootContext {
             users.push(format!(
                 "{name}:x:{uid}:{gid}:{name} User:/:/bin/false\n",
                 name = user_name,
-                uid = id,
-                gid = id
+                uid = uid,
+                gid = gid
             ));
             groups.push(format!(
                 "{name}:x:{gid}:{user_name}\n",
                 name = group_name,
-                gid = id,
+                gid = gid,
                 user_name = user_name
             ));
         }
@@ -559,6 +573,10 @@ impl BuildRootContext {
 
     pub fn primary_user_id(&self) -> u32 {
         if self.non_root { self.user_id } else { 0 }
+    }
+
+    pub fn primary_group_id(&self) -> u32 {
+        if self.non_root { self.group_id } else { 0 }
     }
 
     fn validate(&self) -> Result<()> {
@@ -641,6 +659,7 @@ mod test {
             base_pkgs_channel: "base_pkgs_channel",
             idents_or_archives: Vec::new(),
             user_id: 42,
+            group_id: 2112,
             non_root: false,
         }
     }

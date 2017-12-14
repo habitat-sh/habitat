@@ -153,11 +153,17 @@ impl<'a, 'b> Cli<'a, 'b> {
             .arg(
                 Arg::with_name("USER_ID")
                     .long("user-id")
-                    .short("s")
                     .value_name("USER_ID")
                     .validator(valid_user_id)
+                    .help("Specify the numeric ID of the service user (default: 42)"),
+            )
+            .arg(
+                Arg::with_name("GROUP_ID")
+                    .long("group-id")
+                    .value_name("GROUP_ID")
+                    .validator(valid_group_id)
                     .help(
-                        "Specify the numeric ID of the service user and group (default: 42)",
+                        "Specify the numeric ID of the service group (default: same as user-id)",
                     ),
             )
             .arg(Arg::with_name("NON_ROOT").long("non-root").help(
@@ -315,5 +321,16 @@ fn valid_user_id(val: String) -> result::Result<(), String> {
             Ok(())
         }
         Err(_) => Err(format!("User ID: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_group_id(val: String) -> result::Result<(), String> {
+    match val.parse::<u32>() {
+        Ok(_) => {
+            // TODO (CM): need to filter out problematic
+            // values (e.g., 0, existing user/group IDs)
+            Ok(())
+        }
+        Err(_) => Err(format!("Group ID: '{}' is not valid", &val)),
     }
 }
