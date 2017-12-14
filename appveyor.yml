@@ -81,7 +81,7 @@ deploy:
   explode: true
   repo: stable
   package: hab-x86_64-windows
-  publish: true
+  publish: false
   artifact: HabProdCLI
   on:
     appveyor_repo_tag: true

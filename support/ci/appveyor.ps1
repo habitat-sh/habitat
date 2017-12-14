@@ -45,12 +45,13 @@ function Test-SourceChanged {
 pushd (Get-RepoRoot)
 Write-Host "Configuring build environment"
 ./build.ps1 -Configure -SkipBuild
+$version = $(Get-Content VERSION)
 
 write-host "TAG: $env:APPVEYOR_REPO_TAG_NAME"
-Write-Host "VERSION: $(Get-Content VERSION)"
-if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceChanged) -or (test-path env:HAB_FORCE_TEST)) {
+Write-Host "VERSION: $version"
+if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (test-path env:HAB_FORCE_TEST)) {
     if(Test-ReleaseBuild) {
-        $channel = "stable"
+        $channel = "rc-$version"
     }
     else {
         $channel = "unstable"

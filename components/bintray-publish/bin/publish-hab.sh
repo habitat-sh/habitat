@@ -59,6 +59,7 @@ COMMON FLAGS:
     -h  Prints this message
     -o  Specify the Bintray organization to publish to (default: habitat)
     -r  Specify the Bintray repo to publish to (default: stable)
+    -s  Skip publishing the artifact (upload only)
     -V  Prints version information
 
 ARGS:
@@ -288,6 +289,10 @@ _publish_slim_release() {
     --passphrase=$BINTRAY_PASSPHRASE \
     "$bintray_endpoint"
 
+  if [ -n "${SKIP_PUBLISH:-}" ]; then
+    return 0
+  fi
+
   info "Publishing version $bintray_endpoint"
   $_jfrog_cmd bt version-publish \
     --user=$BINTRAY_USER \
@@ -337,13 +342,16 @@ start_dir="$(pwd)"
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts "o:r:Vh" opt; do
+while getopts "o:r:Vhs" opt; do
   case $opt in
     o)
       BINTRAY_ORG=$OPTARG
       ;;
     r)
       BINTRAY_REPO=$OPTARG
+      ;;
+    s)
+      SKIP_PUBLISH=true
       ;;
     V)
       echo "$program $version"
@@ -378,6 +386,7 @@ if [[ -z "${BINTRAY_PASSPHRASE:-}" ]]; then
   print_help
   exit_with "Required environment variable: BINTRAY_PASSPHRASE" 2
 fi
+: ${SKIP_PUBLISH:=}
 
 target_hart="$1"
 

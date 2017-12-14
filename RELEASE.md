@@ -51,6 +51,27 @@ The changelog generator will only process the last 1000 issues to prevent the ge
     $ git push origin --tags
     ```
 
+Once the release tag is pushed, Travis and Appveyor builds will be triggered that will upload all release binaries to a channel named `rc-[VERSION]` and the hab cli will be uploaded BUT not published to the `stable` bintray repository. These builds can take nearly an hour to fully complete. Keep an eye on them so we can validate the binaries when they finish.
+
+## Validate the Release
+
+For each platform, download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, run `hab studio enter` and make sure:
+
+1. It pulls down the correct studio image
+1. That studio's `hab` is at the correct version
+1. A `sup-log` shows a running supervisor and the supervisor is the correct version
+
+## Publish the release
+
+```
+$ export HAB_AUTH_TOKEN=<your-token>
+$ export BINTRAY_USER=<your-bintray-user>
+$ export BINTRAY_KEY=<your-bintray-api-key>
+$ make publish-release
+```
+
+This should promote all RC packages to stable and publish the hab cli for each platform (linux, mac and windows).
+
 ## Update Builder Bootstrap Bundle
 
 Once the travis linux deployment has completed, we generate a release bundle of all Habitat and Builder components which are uploaded to an S3 bucket which we read from when we bootstrap new nodes. This bundle is useful if you are bootstrapping in an environment which doesn't have access to Builder or there simply isn't a Builder instance in existence (ah, those were the days).

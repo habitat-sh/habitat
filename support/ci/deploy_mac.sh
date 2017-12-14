@@ -99,5 +99,9 @@ cd ${bootstrap_dir}
 
 echo "Publishing hab to $BINTRAY_REPO"
 release=$(find $mac_dir/results -name core-hab-0*.hart | sort -n | tail -n 1)
-$program -r $BINTRAY_REPO $release
+if [ "$BINTRAY_REPO" == "stable" ]; then
+  $program -s -r $BINTRAY_REPO $release
+else
+  $program -r $BINTRAY_REPO $release
+fi
 rm $release
