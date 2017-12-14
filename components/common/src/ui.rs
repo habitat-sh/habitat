@@ -108,7 +108,8 @@ impl UI {
     /// Creates a new default `UI` with a coloring strategy and tty hinting.
     pub fn default_with_env() -> Self {
         let isatty = if env::var(NONINTERACTIVE_ENVVAR)
-            .map(|val| val == "true")
+            // Keep string boolean for backwards-compatibility
+            .map(|val| val == "1" || val == "true")
             .unwrap_or(false)
         {
             Some(false)
@@ -116,7 +117,7 @@ impl UI {
             None
         };
         let coloring = if env::var(NOCOLORING_ENVVAR)
-            .map(|val| val == "true")
+            .map(|val| val == "1" || val == "true")
             .unwrap_or(false)
         {
             Coloring::Never
