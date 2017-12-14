@@ -25,20 +25,15 @@ extern crate chrono;
 #[macro_use]
 extern crate log;
 
-use std::env;
-
-use clap::{App, Arg};
-use hcore::channel;
-use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
-use hcore::env as henv;
+use clap::App;
+use common::ui::UI;
 use hcore::PROGRAM_NAME;
-use hcore::url as hurl;
 
-use export_docker::{Cli, BuildSpec, Credentials, Result, Naming};
+use export_docker::{Cli, PkgIdentArgOptions, Result};
 
 fn main() {
     env_logger::init().unwrap();
-    let mut ui = ui();
+    let mut ui = UI::default_with_env();
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
         std::process::exit(1)
@@ -49,71 +44,20 @@ fn start(ui: &mut UI) -> Result<()> {
     let cli = cli();
     let m = cli.get_matches();
     debug!("clap cli args: {:?}", m);
-    let default_channel = channel::default();
-    let default_url = hurl::default_bldr_url();
-    let spec = BuildSpec::new_from_cli_matches(&m, &default_channel, &default_url);
-    let naming = Naming::new_from_cli_matches(&m);
 
-    let docker_image = export_docker::export(ui, spec, &naming)?;
-    docker_image.create_report(
-        ui,
-        env::current_dir()?.join("results"),
-    )?;
-    if m.is_present("PUSH_IMAGE") {
-        let credentials = Credentials::new(
-            naming.registry_type,
-            m.value_of("REGISTRY_USERNAME").unwrap(),
-            m.value_of("REGISTRY_PASSWORD").unwrap(),
-        )?;
-        docker_image.push(ui, &credentials, naming.registry_url)?;
-    }
-    if m.is_present("RM_IMAGE") {
-        docker_image.rm(ui)?;
-    }
-
-    Ok(())
+    export_docker::export_for_cli_matches(ui, &m)
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates (an optionally pushes) a Docker image from a set of Habitat packages";
 
-    let app = Cli::new(name, about)
+    Cli::new(name, about)
         .add_base_packages_args()
         .add_builder_args()
         .add_image_customization_args()
         .add_tagging_args()
         .add_publishing_args()
-        .app;
-
-    app.arg(
-        Arg::with_name("PKG_IDENT_OR_ARTIFACT")
-            .value_name("PKG_IDENT_OR_ARTIFACT")
-            .required(true)
-            .multiple(true)
-            .help(
-                "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a \
-                Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)",
-            ),
-    )
-}
-
-fn ui() -> UI {
-    let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    let coloring = if henv::var(NOCOLORING_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Coloring::Never
-    } else {
-        Coloring::Auto
-    };
-    UI::default_with(coloring, isatty)
+        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
+        .app
 }

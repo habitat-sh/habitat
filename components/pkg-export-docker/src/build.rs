@@ -88,7 +88,9 @@ impl<'a> BuildSpec<'a> {
             channel: m.value_of("CHANNEL").unwrap_or(&default_channel),
             base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
             base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL").unwrap_or(&default_channel),
-            idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap().collect(),
+            idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
+                .expect("No package specified")
+                .collect(),
             user_id: match m.value_of("USER_ID") {
                 Some(i) => {
                     // unwrap OK because validation function ensures it

@@ -43,6 +43,10 @@ where
     pub app: App<'a, 'b>,
 }
 
+pub struct PkgIdentArgOptions {
+    pub multiple: bool,
+}
+
 impl<'a, 'b> Cli<'a, 'b> {
     pub fn new(name: &str, about: &'a str) -> Self {
         Cli {
@@ -149,16 +153,16 @@ impl<'a, 'b> Cli<'a, 'b> {
             .arg(
                 Arg::with_name("USER_ID")
                     .long("user-id")
-                    .short("i")
+                    .short("s")
                     .value_name("USER_ID")
                     .validator(valid_user_id)
-                    .help("Specify the numeric ID of the service user and group (default: 42)")
+                    .help(
+                        "Specify the numeric ID of the service user and group (default: 42)",
+                    ),
             )
-            .arg(
-                Arg::with_name("NON_ROOT")
-                    .long("non-root")
-                    .help("Run the container as a non-root user (default: false)")
-            );
+            .arg(Arg::with_name("NON_ROOT").long("non-root").help(
+                "Run the container as a non-root user (default: false)",
+            ));
         Cli { app: app }
     }
 
@@ -247,8 +251,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                  .value_name("REGISTRY_TYPE")
                  .help("Remote registry type, Ex: Amazon, Docker (default: docker)"))
             .arg(Arg::with_name("REGISTRY_URL")
-                 // This is not strictly a requirement but will keep someone from making a mistake when
-                 // inputing an ECR URL
+                 // This is not strictly a requirement but will keep someone from making a mistake
+                 // when inputing an ECR URL
                  .requires("REGISTRY_TYPE")
                  .long("registry-url")
                  .short("G")
@@ -258,6 +262,26 @@ impl<'a, 'b> Cli<'a, 'b> {
             .arg(Arg::with_name("RM_IMAGE")
                  .long("rm-image")
                  .help("Remove local image from engine after build and/or push (default: no)"));
+
+        Cli { app: app }
+    }
+
+    pub fn add_pkg_ident_arg(self, options: PkgIdentArgOptions) -> Self {
+        let help = if options.multiple {
+            "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a \
+            Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
+        } else {
+            "A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat Artifact \
+            (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
+        };
+
+        let app = self.app.arg(
+            Arg::with_name("PKG_IDENT_OR_ARTIFACT")
+                .value_name("PKG_IDENT_OR_ARTIFACT")
+                .required(true)
+                .multiple(options.multiple)
+                .help(help),
+        );
 
         Cli { app: app }
     }

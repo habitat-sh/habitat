@@ -35,7 +35,7 @@ use std::thread;
 
 use clap::ArgMatches;
 
-use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
+use common::ui::UI;
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SymKey};
 use hcore::service::ServiceGroup;
@@ -66,7 +66,7 @@ lazy_static! {
 
 fn main() {
     env_logger::init().unwrap();
-    let mut ui = ui();
+    let mut ui = UI::default_with_env();
     thread::spawn(|| analytics::instrument_subcommand());
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
@@ -230,26 +230,6 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         user_pair.as_ref(),
         service_pair.as_ref(),
     )
-}
-
-fn ui() -> UI {
-    let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    let coloring = if henv::var(NOCOLORING_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Coloring::Never
-    } else {
-        Coloring::Auto
-    };
-    UI::default_with(coloring, isatty)
 }
 
 /// Parse the raw program arguments and split off any arguments that will skip clap's parsing.

@@ -39,7 +39,7 @@ use std::thread;
 use clap::{ArgMatches, Shell};
 
 use common::command::package::install::InstallSource;
-use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
+use common::ui::UI;
 use hcore::channel;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
 use hcore::crypto::keys::PairType;
@@ -73,7 +73,7 @@ lazy_static! {
 
 fn main() {
     env_logger::init().unwrap();
-    let mut ui = ui();
+    let mut ui = UI::default_with_env();
     thread::spawn(|| analytics::instrument_subcommand());
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
@@ -644,26 +644,6 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
 
     command::user::key::generate::start(ui, user, &default_cache_key_path(Some(&*FS_ROOT)))
-}
-
-fn ui() -> UI {
-    let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    let coloring = if henv::var(NOCOLORING_ENVVAR)
-        .map(|val| val == "true")
-        .unwrap_or(false)
-    {
-        Coloring::Never
-    } else {
-        Coloring::Auto
-    };
-    UI::default_with(coloring, isatty)
 }
 
 fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {

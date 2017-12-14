@@ -46,13 +46,17 @@ mod fs;
 pub mod rootfs;
 mod util;
 
+use std::env;
+
 use common::ui::UI;
 use aws_creds::StaticProvider;
+use hcore::channel;
+use hcore::url as hurl;
 use rusoto_core::Region;
 use rusoto_core::request::*;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use cli::{Cli, RegistryType};
+pub use cli::{Cli, PkgIdentArgOptions, RegistryType};
 pub use build::BuildSpec;
 pub use docker::{DockerImage, DockerBuildRoot};
 pub use error::{Error, Result};
@@ -178,4 +182,46 @@ pub fn export(ui: &mut UI, build_spec: BuildSpec, naming: &Naming) -> Result<Doc
     ))?;
 
     Ok(image)
+}
+
+/// Creates a build specification and naming policy from Cli arguments, and then exports a Docker
+/// image to a Docker engine from them.
+///
+/// # Errors
+///
+/// * The actual import fails.
+/// * Current directory does not exist.
+/// * There are insufficient permissions to access the current directory.
+/// * Pushing the image to remote registry fails.
+/// * Parsing of credentials fails.
+/// * The image (tags) cannot be removed.
+pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
+    let default_channel = channel::default();
+    let default_url = hurl::default_bldr_url();
+    let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
+    let naming = Naming::new_from_cli_matches(&matches);
+
+    let docker_image = export(ui, spec, &naming)?;
+    docker_image.create_report(
+        ui,
+        env::current_dir()?.join("results"),
+    )?;
+
+    if matches.is_present("PUSH_IMAGE") {
+        let credentials = Credentials::new(
+            naming.registry_type,
+            matches.value_of("REGISTRY_USERNAME").expect(
+                "Username not specified",
+            ),
+            matches.value_of("REGISTRY_PASSWORD").expect(
+                "Password not specified",
+            ),
+        )?;
+        docker_image.push(ui, &credentials, naming.registry_url)?;
+    }
+    if matches.is_present("RM_IMAGE") {
+        docker_image.rm(ui)?;
+    }
+
+    Ok(())
 }
