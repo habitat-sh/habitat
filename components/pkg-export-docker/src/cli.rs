@@ -149,7 +149,7 @@ impl<'a, 'b> Cli<'a, 'b> {
             .arg(
                 Arg::with_name("USER_ID")
                     .long("user-id")
-                    .short("i")
+                    .short("s")
                     .value_name("USER_ID")
                     .validator(valid_user_id)
                     .help(
