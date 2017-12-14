@@ -14,24 +14,30 @@ pushd /src
 cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
 sh support/linux/install_dev_9_linux.sh
-echo 'eval "$(direnv hook bash)"' >> /root/.bashrc
-echo "source /src/support/linux/helpers.sh" >> /root/.bashrc
+# shellcheck disable=SC2016
+echo 'eval "$(direnv hook bash)"' | sudo tee --append /root/.bashrc > /dev/null
+echo "source /src/support/linux/helpers.sh" | sudo tee --append /root/.bashrc > /dev/null
 . ~/.profile
 . ~/.bashrc
 . ./.envrc
 
-hab pkg install core/postgresql core/shadow -c stable
-hab pkg install core/builder-datastore -c unstable
-hab pkg install core/docker
-hab pkg install core/hab-pkg-export-docker
+sudo hab pkg install core/postgresql core/shadow -c stable
+sudo hab pkg install core/hab-sup core/hab-launcher
+sudo hab pkg install core/builder-datastore
+sudo hab pkg install core/docker
+sudo hab pkg install core/hab-pkg-export-docker
 
-hab pkg exec core/shadow groupadd --force krangschnak
-hab pkg exec core/shadow useradd --groups=tty --create-home -g krangschnak krangschnak || echo "User 'krangschnak' already exists"
+sudo hab pkg exec core/shadow groupadd --force krangschnak
+if ! id -u krangschnak > /dev/null 2>&1; then
+	sudo hab pkg exec core/shadow useradd --groups=tty --create-home -g krangschnak krangschnak
+fi
 
-mkdir -p /hab/svc/builder-jobsrv/data
-mkdir -p /hab/svc/builder-datastore
-cp -f support/builder/datastore.toml /hab/svc/builder-datastore/user.toml
+sudo mkdir -p /hab/svc/builder-jobsrv/data
+sudo mkdir -p /hab/svc/builder-datastore
+sudo cp -f support/builder/datastore.toml /hab/svc/builder-datastore/user.toml
 support/builder/init-datastore.sh
-support/builder/dev-config.sh
+sudo -E support/builder/dev-config.sh
 support/linux/setup_keys.sh
+# Make sure setup_keys is the last thing so that if it has errors the user
+# can just rerun it without needing to redo the rest of this script
 popd

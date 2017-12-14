@@ -1,23 +1,27 @@
 #!/bin/bash
 set -euo pipefail
 
-hab start core/builder-datastore &
+sudo hab start core/builder-datastore &
 
 running=0;
 
-mkdir -p /hab/svc/builder-datastore/config/conf.d
-chown hab:hab -R /hab/svc/builder-datastore/config/*
+sudo mkdir -p /hab/svc/builder-datastore/config/conf.d
+sudo chown hab:hab -R /hab/svc/builder-datastore/config/
 
 echo "Waiting for builder-datastore to start"
+pwfile=/hab/svc/builder-datastore/config/pwfile
 while [ $running -eq 0 ]; do
-  export PGPASSWORD=$(cat /hab/svc/builder-datastore/config/pwfile)
-  if hab pkg exec core/postgresql psql -w -lqt --host 127.0.0.1 -U hab; then
-    running=1
+  if sudo [ -f $pwfile ]; then
+    PGPASSWORD=$(sudo cat $pwfile)
+    export PGPASSWORD
+    if hab pkg exec core/postgresql psql -w -lqt --host 127.0.0.1 -U hab; then
+      running=1
+    fi
   fi
   sleep 2
 done
 
-if [ -z ${NO_DB_SETUP+x} ]; then
+if [ -z "${NO_DB_SETUP+x}" ]; then
   for dbname in builder_sessionsrv builder_jobsrv builder_originsrv; do
     if sudo -E TERM=vt100 hab pkg exec core/postgresql psql -lqt --host 127.0.0.1 -U hab | cut -d \| -f 1 | grep -qw $dbname; then
       echo "Database $dbname exists"
@@ -28,7 +32,7 @@ if [ -z ${NO_DB_SETUP+x} ]; then
   done
 fi
 
-hab stop core/builder-datastore
+sudo hab stop core/builder-datastore
 
 # JW: This hack needs to stay until stop actually waits until the service has stopped
 while [ -f /hab/sup/default/specs/builder-datastore.spec ]; do
@@ -36,5 +40,5 @@ while [ -f /hab/sup/default/specs/builder-datastore.spec ]; do
   sleep 2
 done
 
-hab term
+sudo hab term
 exit 0
