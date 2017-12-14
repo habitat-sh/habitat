@@ -14,15 +14,10 @@
 
 use base64::DecodeError;
 use std::process::ExitStatus;
-use std::io;
 use std::result;
 use std::string::FromUtf8Error;
 use rusoto_ecr::GetAuthorizationTokenError;
 
-use common;
-use hab;
-use handlebars;
-use hcore;
 use failure;
 
 pub type Result<T> = result::Result<T, failure::Error>;
@@ -41,12 +36,6 @@ pub enum Error {
     DockerNotInWindowsMode(String),
     #[fail(display = "{}", _0)]
     InvalidToken(FromUtf8Error),
-    #[fail(display = "{}", _0)]
-    Hab(hab::error::Error),
-    #[fail(display = "{}", _0)]
-    HabitatCommon(common::Error),
-    #[fail(display = "{}", _0)]
-    HabitatCore(hcore::Error),
     #[fail(display = "Docker login failed with exit code: {}", _0)]
     LoginFailed(ExitStatus),
     #[fail(display = "Docker logout failed with exit code: {}", _0)]
@@ -63,8 +52,4 @@ pub enum Error {
     PushImageFailed(ExitStatus),
     #[fail(display = "Removing Docker local images failed with exit code: {}", _0)]
     RemoveImageFailed(ExitStatus),
-    #[fail(display = "{}", _0)]
-    TemplateRenderError(handlebars::TemplateRenderError),
-    #[fail(display = "{}", _0)]
-    IO(io::Error),
 }
