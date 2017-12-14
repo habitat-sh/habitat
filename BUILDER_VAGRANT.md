@@ -11,6 +11,10 @@ direnv (see `/src/.envrc`).
 
 ### GitHub App
 
+Setting up and configuring the GitHub App is tedious, but usually must be done
+only once per environment. Make sure to safely store all credentials somewhere
+for future use.
+
 1. Create a GitHub Organization
 1. [Setup a GitHub application](https://github.com/settings/apps/new) for your GitHub organization.
 1. Set the value of `Homepage URL` to `http://${APP_HOSTNAME}`
