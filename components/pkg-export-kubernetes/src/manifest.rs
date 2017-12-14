@@ -35,16 +35,16 @@ const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
 
 #[derive(Debug, Clone)]
 pub struct Manifest {
-    metadata_name: String,
-    habitat_name: String,
-    image: String,
-    count: u64,
-    service_topology: Topology,
-    service_group: Option<String>,
-    config_secret_name: Option<String>,
-    ring_secret_name: Option<String>,
+    pub metadata_name: String,
+    pub habitat_name: String,
+    pub image: String,
+    pub count: u64,
+    pub service_topology: Topology,
+    pub service_group: Option<String>,
+    pub config_secret_name: Option<String>,
+    pub ring_secret_name: Option<String>,
     // TODO: Represent binds with a struct
-    binds: Vec<String>,
+    pub binds: Vec<String>,
 }
 
 impl Manifest {
