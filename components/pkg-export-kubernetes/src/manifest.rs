@@ -72,19 +72,15 @@ impl Manifest {
 
         // To allow multiple instances of Habitat application in Kubernetes,
         // random suffix in metadata_name is needed.
-        let metadata_name = format!(
-            "{}-{}{}",
+        let metadata_name =
+            format!(
+            "{}-{}",
             pkg_ident.name,
             rand::thread_rng()
                 .gen_ascii_chars()
                 .filter(|c| c.is_lowercase() || c.is_numeric())
-                .take(4)
+                .take(5)
                 .collect::<String>(),
-            rand::thread_rng()
-                .gen_ascii_chars()
-                .filter(|c| c.is_lowercase() && !c.is_numeric())
-                .take(1)
-                .collect::<String>()
         );
 
         let image = match matches.value_of("IMAGE_NAME") {
