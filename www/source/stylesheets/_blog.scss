@@ -5,6 +5,10 @@
   .main-content__has-sidebar {
     background: transparent;
     padding: 0 !important;
+
+    @include breakpoint(small only) {
+      margin-top: 15px;
+    }
   }
 }
 

@@ -1,9 +1,6 @@
   = wrap_layout :layout do
     .row
-      .main-sidebar.columns.small-12.medium-3
-        = partial("/partials/blog/blog_sidebar")
-
-      .main-content__has-sidebar.columns.small-12.medium-9 data-swiftype-index="true"
+      .main-content__has-sidebar.columns.small-12.medium-push-3.medium-9 data-swiftype-index="true"
         article.article-detail
           header
             = stylesheet_link_tag :ocean
@@ -68,3 +65,5 @@
                           | #{article.date.strftime('%b %e, %Y')}
           .article-detail--back
             a.icon-back href="/blog" All articles
+      .main-sidebar.columns.small-12.medium-3.medium-pull-9
+        = partial("/partials/blog/blog_sidebar")

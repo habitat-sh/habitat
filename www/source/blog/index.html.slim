@@ -3,10 +3,7 @@ pageable: true
 per_page: 10
 ---
 .row
-  .main-sidebar
-    = partial("/partials/blog/blog_sidebar")
-
-  .main-content__has-sidebar
+  .main-content__has-sidebar.columns.small-12.medium-push-3.medium-9
     - page_articles.each_with_index do |article, i|
       .blog-index--post-summary
         .blog-index--post-summary--header.heading class=(['orange','blue','green'].sample)
@@ -37,3 +34,5 @@ per_page: 10
       - if next_page
         p.pagination-link
           = link_to 'Next page >>', next_page
+  .main-sidebar.columns.small-12.medium-3.medium-pull-9
+    = partial("/partials/blog/blog_sidebar")
