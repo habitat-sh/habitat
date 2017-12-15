@@ -219,10 +219,12 @@ __populate_environment_from_deps() {
             # well as empty entries sometimes. The current resolution
             # algorithm should filter these out immediately.
             warn "No RUNTIME_ENVIRONMENT metadata file found for ${dep_ident}; falling back to PATH metadata"
-
-            local old_path=$(_read_metadata_file_for "${path_to_dep}" "PATH")
+            local old_path=$(__assemble_legacy_path "${path_to_dep}")
             if [ -n "${old_path}" ]; then
+                warn "Final generated PATH for ${path_to_dep}: ${old_path}"
                 __push_env "${env_name}" "PATH" "${old_path}" ":" "${dep_ident}"
+            else
+                warn "No PATH metadata found for ${path_to_dep}"
             fi
         fi
     done
@@ -236,6 +238,46 @@ __populate_environment_from_deps() {
     if [ -n "${path}" ]; then
         __push_env "${env_name}" "PATH" "${path}" ":" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
     fi
+}
+
+# For dependencies that do not have a RUNTIME_ENVIRONMENT file, we'll
+# at least assemble a PATH variable that can be used. To be complete
+# and utterly paranoid, we'll iterate through the TDEPS of the
+# dependency and assemble a PATH by layering all the PATHs of each of
+# those dependencies.
+#
+# Don't need to do this for packages that already have a
+# RUNTIME_ENVIRONMENT file, because this operation will have already
+# been done when those packages were built. This is to help preserve
+# backward compatibility.
+__assemble_legacy_path() {
+    local path_to_dep="${1}"
+    local path=""
+
+    local tdeps
+    tdeps=$(_read_metadata_file_for ${path_to_dep} "TDEPS")
+    if [[ -n "${tdeps}" ]]; then
+        for tdep in ${tdeps}; do
+            local path_to_tdep="${HAB_PKG_PATH}/${tdep}"
+            # If a PATH exists for this transitive dependency, collect
+            # it, prepending to the beginning of our accumulating path
+            local tdep_path
+            tdep_path=$(_read_metadata_file_for "${path_to_tdep}" "PATH")
+            if [[ -n "${tdep_path}" ]]; then
+                path=$(push_to_path "${tdep_path}" "${path}")
+            fi
+        done
+    fi
+    # If the current dependency has PATH data itself, prepend it to
+    # what we've been accumulating so far
+    local current_dep_path
+    current_dep_path=$(_read_metadata_file_for "${path_to_dep}" "PATH")
+    if [[ -n "${current_dep_path}" ]]; then
+        path=$(push_to_path "${current_dep_path}" "${path}")
+    fi
+
+    # Finally, return the path
+    echo "$path"
 }
 
 set_buildtime_env() {
