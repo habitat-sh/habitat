@@ -38,6 +38,7 @@ page '/demo/steps/*', layout: :demo_index
 page 'get-started/*', layout: :get_started
 page 'guides/index.html', layout: :get_started
 page 'guides/rails/*', layout: :sidebar, locals: { sidebar_layout: 'guide_rails' }
+page 'guides/tomcat/*', layout: :sidebar, locals: { sidebar_layout: 'guide_tomcat' }
 
 activate :blog do |blog|
   blog.prefix = 'blog'
