@@ -17,8 +17,6 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use clap::ArgMatches;
-use failure::SyncFailure;
-use handlebars::Handlebars;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
 use rand;
@@ -27,11 +25,7 @@ use rand::Rng;
 use export_docker::Result;
 
 use topology::Topology;
-use error::Error;
-
-// Kubernetes manifest template
-const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
-const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
+use manifestjson::ManifestJson;
 
 #[derive(Debug, Clone)]
 pub struct Manifest {
@@ -107,44 +101,14 @@ impl Manifest {
     }
 
     pub fn generate(&mut self, write: &mut Write) -> Result<()> {
-        let json = json!({
-            "metadata_name": self.metadata_name,
-            "habitat_name": self.habitat_name,
-            "image": self.image,
-            "count": self.count,
-            "service_topology": self.service_topology.to_string(),
-            "service_group": self.service_group,
-            "config_secret_name": self.config_secret_name,
-            "ring_secret_name": self.ring_secret_name,
-            "bind": self.binds,
-        });
-
-        let r = Handlebars::new()
-            .template_render(MANIFESTFILE, &json)
-            .map_err(SyncFailure::new)?;
-        let mut out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-            "\n",
-        ) + "\n";
-
-        for bind in &self.binds {
-            let split: Vec<&str> = bind.split(":").collect();
-            if split.len() < 3 {
-                return Err(Error::InvalidBindSpec(bind.to_string()).into());
-            }
-
-            let json = json!({
-                "name": split[0],
-                "service": split[1],
-                "group": split[2],
-            });
-
-            out += &Handlebars::new().template_render(BINDFILE, &json).map_err(
-                SyncFailure::new,
-            )?;
-        }
+        let out = self.to_json()?.into_string()?;
 
         write.write(out.as_bytes())?;
 
         Ok(())
+    }
+
+    pub fn to_json(&self) -> Result<ManifestJson> {
+        ManifestJson::new(&self)
     }
 }

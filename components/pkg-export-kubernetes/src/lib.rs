@@ -34,6 +34,7 @@ use common::ui::UI;
 pub mod topology;
 pub mod error;
 pub mod manifest;
+pub mod manifestjson;
 pub mod cli;
 
 use export_docker::Result;
@@ -41,6 +42,7 @@ use export_docker::Result;
 pub use cli::Cli;
 pub use error::Error;
 pub use manifest::Manifest;
+pub use manifestjson::ManifestJson;
 pub use topology::Topology;
 
 // Synced with the version of the Habitat operator.
