@@ -1,11 +1,15 @@
-#############################################################################
+##############################################################################
 #
 # Script to auto-create habitat core plan projects in a specified depot
 #
-# Usage: ruby project_create.rb <core-plans-dir> <projects-url> [<auth-token>]
+# Usage: ruby project_create.rb <core-plans-dir> <bldr-api-url> \
+#                               <installation-id> [<auth-token>]
 #
-# The projects-url should be in this form:
-# http://app.acceptance.habitat.sh/v1/projects
+# The bldr-api-url should be in this form:
+# http://bldr.acceptance.habitat.sh
+#
+# For a development environment, the URL will be:
+# http://localhost:9636
 #
 # If <auth-token> is not specified, the script will default to looking for
 # the HAB_AUTH_TOKEN environment variable.
@@ -17,16 +21,20 @@ require 'net/http'
 require 'uri'
 require 'json'
 
-if ARGV.length < 2
-  puts "Usage: project_create <core-plans-dir> <projects-url> [<auth-token>]"
+if ARGV.length < 3
+  puts "Usage: project_create <core-plans-dir> <projects-url> <installation-id> [<auth-token>]"
   exit
 end
 
-source_dir = ARGV[0]
-url = ARGV[1]
+# The core-plans repo id
+repo_id = 46349776
 
-if ARGV.length > 2
-  auth_token = ARGV[2]
+source_dir = ARGV[0]
+url = ARGV[1] + '/v1/projects'
+installation_id = ARGV[2]
+
+if ARGV.length > 3
+  auth_token = ARGV[3]
 else
   auth_token = ENV['HAB_AUTH_TOKEN']
 end
