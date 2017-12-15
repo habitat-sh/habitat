@@ -2,26 +2,29 @@
 
 set -e
 
+# now do the linux unstable build
+HAB_VERSION=$(cat VERSION)
+BOOTSTRAP_DIR=/root/travis_bootstrap
+TEST_BIN_DIR=/root/hab_bins
+TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
+HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
+BINTRAY_REPO=unstable
+CHANNEL=unstable
+
+export HAB_ORIGIN=core
+
 # fail fast if we aren't on the desired branch or if this is a pull request
 if [ -n "$TRAVIS_BRANCH" || -n "$TRAVIS_PULL_REQUEST" ]; then
-  if  [[ "${TRAVIS_BRANCH}" != "$(cat VERSION)" && ("${TRAVIS_PULL_REQUEST}" != "false" || "${TRAVIS_BRANCH}" != "master") ]]; then
+  if  [[ "${TRAVIS_BRANCH}" != "$HAB_VERSION" && ("${TRAVIS_PULL_REQUEST}" != "false" || "${TRAVIS_BRANCH}" != "master") ]]; then
       echo "We only publish on successful builds of master."
       exit 0
   fi
 fi
 
-# now do the linux unstable build
-BOOTSTRAP_DIR=/root/travis_bootstrap
-TEST_BIN_DIR=/root/hab_bins
-TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
-HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
-export HAB_ORIGIN=core
-
-BINTRAY_REPO=unstable
-CHANNEL=unstable
-if [ "$(cat VERSION)" == "$TRAVIS_TAG" ]; then
+if [ "$HAB_VERSION" == "$TRAVIS_TAG" ]; then
   BINTRAY_REPO=stable
-  CHANNEL=stable
+  CHANNEL=rc-$HAB_VERSION
+  export HAB_BLDR_CHANNEL=$CHANNEL
 fi
 
 mkdir -p ${BOOTSTRAP_DIR}
@@ -81,5 +84,9 @@ env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.k
 if [ -n "$BINTRAY_USER" ]; then
   echo "Publishing hab to $BINTRAY_REPO"
   env  HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
-  env  HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $RELEASE
+  if [ "$HAB_VERSION" == "$TRAVIS_TAG" ]; then
+    env  HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -s -r $BINTRAY_REPO $RELEASE
+  else
+    env  HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $RELEASE
+  fi
 fi
