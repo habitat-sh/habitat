@@ -133,21 +133,30 @@ The web UI should be running at http://localhost:3000/#/pkgs. (If you need to br
 ## Create the project(s) you want to build
 In order to build a package, there needs to be a project created in the database.
 If the DB has been newly created, there will initially not be any projects available.
+There are two ways that a project can be created - either via the web UI, or via the command line - both options are documented below:
 
-Create a project for the package you want to build:
+### Option A: Create a project using the web UI
 
+1. Go the web UI that you used in the last step
+2. Go to the origins page, and select your origin
+3. Click on the 'Connect a plan file' button
+4. Click on 'Install Github App' button to install the Builder Dev app on your github account
+5. Go back to the Packages page (from Step 3), and follow the instructions to link the plan you want to build
+
+### Option B: Create a project using the command line
 1. Create a project file (eg, `project.json`) on your local filesystem (see example below for core/nginx):
 
     ```
     {
         "origin": "core",
         "plan_path": "nginx/plan.sh",
-        "github": {
-            "organization": "habitat-sh",
-            "repo": "core-plans"
-        }
+        "installation_id": 56940,
+        "repo_id": 46349776
     }
     ```
+
+Note: the `installation_id` above is for the Habitat Builder Dev app, and the
+`repo_id` is for the 'core-plans' repo.
 
 1. Issue the following command:
 
