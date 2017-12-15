@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, HostListener, Input, OnChanges, OnDestroy, ElementRef } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, OnDestroy, ElementRef, SimpleChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import * as AnsiUp from 'ansi_up';
 import * as moment from 'moment';
@@ -38,11 +38,11 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
     private elementRef: ElementRef) {
   }
 
-  ngOnChanges(change) {
-    let id = change.build.currentValue.id;
+  ngOnChanges(changes: SimpleChanges) {
+    const build = changes['build'];
 
-    if (id) {
-      this.fetch(id);
+    if (build && build.currentValue && build.currentValue.id) {
+      this.fetch(build.currentValue.id);
     }
   }
 
@@ -92,12 +92,20 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
     return props;
   }
 
+  get buildState() {
+    return this.info ? this.info.state : '';
+  }
+
   get statusIcon() {
-    return iconForBuildState(this.info.state);
+    if (this.buildState) {
+      return iconForBuildState(this.buildState);
+    }
   }
 
   get statusClass() {
-    return this.info.state ? this.info.state.toLowerCase() : '';
+    if (this.buildState) {
+      return this.buildState.toLowerCase();
+    }
   }
 
   toggleFollow() {
@@ -113,28 +121,32 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
   }
 
   get elapsed() {
-    let started = this.build.build_started_at;
-    let finished = this.build.build_finished_at;
-    let e;
+    if (this.build) {
+      let started = this.build.build_started_at;
+      let finished = this.build.build_finished_at;
+      let e;
 
-    if (started && finished) {
-      let s = +moment.utc(started);
-      let f = +moment.utc(finished);
-      e = moment.utc(f - s).format('m [min], s [sec]');
+      if (started && finished) {
+        let s = +moment.utc(started);
+        let f = +moment.utc(finished);
+        e = moment.utc(f - s).format('m [min], s [sec]');
+      }
+
+      return e;
     }
-
-    return e;
   }
 
   get completed() {
-    let finished = this.build.build_finished_at;
-    let f;
+    if (this.build) {
+      let finished = this.build.build_finished_at;
+      let f;
 
-    if (finished) {
-      f = moment.utc(finished).format('dddd, MMMM D, YYYY [at] h:mm:ss A');
+      if (finished) {
+        f = moment.utc(finished).format('dddd, MMMM D, YYYY [at] h:mm:ss A');
+      }
+
+      return f;
     }
-
-    return f;
   }
 
   get info() {
