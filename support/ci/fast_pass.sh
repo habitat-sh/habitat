@@ -21,12 +21,10 @@ else
   # If $AFFECTED_DIRS (a "|" separated list of directories) is set, see if we have
   # any changes. To make this determination, we can always use the most recent merge
   # commit on the target branch, since Travis will have created one for us.
-
-  LATEST_MERGE_COMMIT="$(git log --merges --max-count=1 --pretty=format:%H)"
-  CHANGED_FILES="$(git log -m --max-count=1 --name-only --pretty=format: $LATEST_MERGE_COMMIT)"
+  CHANGED_FILES="$(support/ci/what_changed.sh)"
 
   echo
-  echo "Checking for changed files:"
+  echo "Checking for changed files since last merge commit:"
   echo
   echo "$CHANGED_FILES" | sed 's,^,    ,g'
   echo

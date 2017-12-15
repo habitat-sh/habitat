@@ -13,8 +13,4 @@ echo "--> Running $0"
 source $(dirname $0)/rust_env.sh
 
 set -e
-if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
-  make unit-${COMPONENTS:-all}
-else
-  make unit-${COMPONENTS:-all}
-fi
+make unit-${COMPONENTS:-all}

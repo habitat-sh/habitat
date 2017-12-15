@@ -8,23 +8,33 @@ BOOTSTRAP_DIR=/root/travis_bootstrap
 TEST_BIN_DIR=/root/hab_bins
 TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
 HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
-BINTRAY_REPO=unstable
-CHANNEL=unstable
 
 export HAB_ORIGIN=core
 
-# fail fast if we aren't on the desired branch or if this is a pull request
-if [ -n "$TRAVIS_BRANCH" || -n "$TRAVIS_PULL_REQUEST" ]; then
-  if  [[ "${TRAVIS_BRANCH}" != "$HAB_VERSION" && ("${TRAVIS_PULL_REQUEST}" != "false" || "${TRAVIS_BRANCH}" != "master") ]]; then
-      echo "We only publish on successful builds of master."
-      exit 0
-  fi
+if [ "${HAB_VERSION}" == "${TRAVIS_TAG}" ]; then
+    IS_RELEASE_BUILD=1
 fi
 
-if [ "$HAB_VERSION" == "$TRAVIS_TAG" ]; then
-  BINTRAY_REPO=stable
-  CHANNEL=rc-$HAB_VERSION
-  export HAB_BLDR_CHANNEL=$CHANNEL
+if [ -n "${IS_RELEASE_BUILD}" ]; then
+    # We'll upload to the stable repo, but not *publish* until we've
+    # validated it
+    BINTRAY_REPO=stable
+
+    # Similarly, we'll promote Habitat packages to a release-specific
+    # channel; once we've validated them outside of Travis, we'll
+    # promote to stable
+    CHANNEL="rc-${HAB_VERSION}"
+
+    # By exporting this, package builds will preferentially pull in
+    # dependencies from this release. For dependencies that aren't
+    # part of the release, Habitat will fall back to the stable
+    # channel by design.
+    export HAB_BLDR_CHANNEL="${CHANNEL}"
+else
+    # Not a release build, just a normal build from the master
+    # branch. It's all unstable, all the time.
+    BINTRAY_REPO=unstable
+    CHANNEL=unstable
 fi
 
 mkdir -p ${BOOTSTRAP_DIR}
@@ -51,42 +61,98 @@ fi
 
 rm ./core.sig.key
 
-COMPONENTS=($COMPONENTS)
-for component in "${COMPONENTS[@]}"
+PACKAGES=($PACKAGES)
+for package in "${PACKAGES[@]}"
 do
-  echo "--> Clearing any pre-exisiting $HAB_ORIGIN secret keys from the Studio"
-  env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
+  # Always build the package if it's a release; otherwise, only build a
+  # package if there are relevant code changes.
+  if [ -n "${IS_RELEASE_BUILD}" ] || ./support/ci/should_we_build.sh "${package}" ; then
 
-  echo "--> Building $component"
-  ${TRAVIS_HAB} studio run HAB_CARGO_TARGET_DIR=/src/target build components/${component}
+     echo "Building ${package}..."
 
-  source ./results/last_build.env
-  HART="./results/$pkg_artifact"
-  ${TRAVIS_HAB} pkg install $HART
+     echo "--> Clearing any pre-exisiting $HAB_ORIGIN secret keys from the Studio"
+     env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
 
-  # once we have built the stuio, switch over to bits built here
-  if [[ "${component}" == "studio" ]]; then
-    TRAVIS_HAB=$(find /hab/pkgs/core/hab -type f -name hab | tail -1)
-  elif [[ "${component}" == "hab" ]]; then
-    RELEASE="${HART}_keep"
-    cp $HART $RELEASE
+     # The names of the Habitat packages we create are often different
+     # from the directories in which they reside; specifically, we
+     # often add the prefix "hab-" to the name of the package, but
+     # leave this off of the directory for ease of navigation. Here,
+     # we normalize this.
+     if [ -d "components/${package}" ]; then
+         directory_name=${package}
+     else
+         truncated_name=${package##hab-}
+         if [ -d "components/${truncated_name}" ] ; then
+             directory_name=${truncated_name}
+         else
+             echo "Cannot find code directory for package '${package}' after looking in the following locations:"
+             echo
+             echo "    components/${package}"
+             echo "    components/${truncated_name}"
+             echo
+             exit 1
+         fi
+     fi
+
+     ${TRAVIS_HAB} studio run HAB_CARGO_TARGET_DIR=/src/target build components/${directory_name}
+
+     source ./results/last_build.env
+     HART="./results/$pkg_artifact"
+     ${TRAVIS_HAB} pkg install $HART
+
+     # Once we have built the studio, switch over to bits built here
+     if [[ "${package}" == "hab-studio" ]]; then
+         # Marker variable that indicates we have a studio artifact to upload.
+         PUBLISH_HAB_STUDIO=true
+         # We switch the Hab binary we use here, rather than when we
+         # build the hab package, because the version of hab
+         # determines the version of the studio we use. Thus, we have
+         # to wait to make the switch until there is a studio artifact
+         # for us to use.
+         TRAVIS_HAB=$(find /hab/pkgs/core/hab -type f -name hab | tail -1)
+     elif [[ "${package}" == "hab" ]]; then
+         HAB_RELEASE_ARTIFACT="${HART}_keep"
+         cp $HART $HAB_RELEASE_ARTIFACT
+     fi
+
+     if [ -n "$HAB_AUTH_TOKEN" ]; then
+         ${TRAVIS_HAB} pkg upload $HART --channel $CHANNEL
+     fi
+
+     rm $HART
+  else
+     echo "Skipping build of ${package}; no relevant code changes"
   fi
-
-  if [ -n "$HAB_AUTH_TOKEN" ]; then
-    ${TRAVIS_HAB} pkg upload $HART --channel $CHANNEL
-  fi
-
-  rm $HART
 done
+
 echo "--> Removing origin secret keys from Studio"
 env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
 
 if [ -n "$BINTRAY_USER" ]; then
-  echo "Publishing hab to $BINTRAY_REPO"
-  env  HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
-  if [ "$HAB_VERSION" == "$TRAVIS_TAG" ]; then
-    env  HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -s -r $BINTRAY_REPO $RELEASE
-  else
-    env  HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $RELEASE
+  if [ ! -d "/hab/pkgs/core/hab-bintray-publish" ] ; then
+      # If we didn't build core/hab-bintray-publish and subsequently
+      # install it on this run (which is possible on master branch
+      # builds), let's ensure that we can still publish things to
+      # Bintray, shall we?
+      echo "Installing core/hab-bintray-publish from Builder..."
+      ${TRAVIS_HAB} pkg install core/hab-bintray-publish
+  fi
+
+  # On 'master' branch builds, we might not build hab-studio. Only
+  # publish if we do.
+  if [ -n "${PUBLISH_HAB_STUDIO}" ]; then
+      echo "Publishing hab-studio to Bintray"
+      env HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
+  fi
+
+  # On 'master' branch builds, we might not build a hab artifact to
+  # publish. It'll always be there on release builds, though.
+  if [ -n "${HAB_RELEASE_ARTIFACT}" ]; then
+      echo "Publishing hab to $BINTRAY_REPO"
+      if [ -n "${IS_RELEASE_BUILD}" ]; then
+          env HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -s -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
+      else
+          env HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
+      fi
   fi
 fi
