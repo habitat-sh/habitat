@@ -153,25 +153,6 @@ $ sudo npm start
 * Log in
 * Click on "Create New Origin"
 * Fill out form (call the origin "core"), click "Save & Continue"
-* Click on "Keys"
-* Download the public and private key
-* Copy the public key contents
-* From a terminal, run
-
-```
-$ hab origin key import
-```
-
-* Paste the public key contents
-* Hit Ctrl + D twice to close the stream
-* Run this again:
-
-```
-$ hab origin key import
-```
-
-* Paste the private key contents
-* Hit Ctrl + D twice to close the stream
 
 ### Install Dependencies in your local Builder Env
 
