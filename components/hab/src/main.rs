@@ -272,7 +272,12 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
     io::stdin().read_to_string(&mut content)?;
     init();
 
-    command::origin::key::import::start(ui, &content, &default_cache_key_path(Some(&*FS_ROOT)))
+    // Trim the content to lose line feeds added by Powershell pipeline
+    command::origin::key::import::start(
+        ui,
+        content.trim(),
+        &default_cache_key_path(Some(&*FS_ROOT)),
+    )
 }
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -623,7 +628,8 @@ fn sub_ring_key_import(ui: &mut UI) -> Result<()> {
     io::stdin().read_to_string(&mut content)?;
     init();
 
-    command::ring::key::import::start(ui, &content, &default_cache_key_path(Some(&*FS_ROOT)))
+    // Trim the content to lose line feeds added by Powershell pipeline
+    command::ring::key::import::start(ui, content.trim(), &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {

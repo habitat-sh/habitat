@@ -252,7 +252,9 @@ function New-Studio {
   if($env:HAB_ORIGIN_KEYS) {
     $keys = @()
     $env:HAB_ORIGIN_KEYS.Split(" ") | % {
-      $keys += & hab origin key export $_ --type=secret | Out-String
+      $k = & hab origin key export $_ --type=secret | Out-String
+      # hab key import does not like carriage returns
+      $keys += $k.Replace("`r", "")
     }
 
     $env:FS_ROOT=$HAB_STUDIO_ROOT
