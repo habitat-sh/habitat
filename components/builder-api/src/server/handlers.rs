@@ -405,7 +405,7 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
     match route_message::<JobGet, Job>(req, &request) {
         Ok(job) => {
 
-            if !check_origin_access(req, job.get_package_ident().get_origin()).unwrap_or(false) {
+            if !check_origin_access(req, job.get_project().get_origin_name()).unwrap_or(false) {
                 return Ok(Response::with(status::Forbidden));
             }
 
