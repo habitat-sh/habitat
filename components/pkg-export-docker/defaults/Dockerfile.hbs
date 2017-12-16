@@ -12,7 +12,7 @@ ADD {{rootfs}} /
 # (Also, sorry for `-R` instead of `--recursive`; Busybox doesn't
 # recognize the latter :'(
 {{#if primary_user_id }}
-RUN chown -R {{primary_user_id}}:{{primary_user_id}} /hab
+RUN chown -R {{primary_user_id}}:{{primary_group_id}} /hab
 
 # This environment variable disables certain checks around installing
 # packages (important for upgrade scenarios!). It is a short-term fix;
