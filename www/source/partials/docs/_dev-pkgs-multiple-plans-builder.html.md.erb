@@ -41,16 +41,6 @@ To enable this functionality, do the following:
     ]
     ```
 
-## Additional channel promotion
-
-You can also specify a list of additional channels that packages should automatically publish to. By default, software is only published to the `unstable` channel.
-
-```toml
-# .bldr.toml
-[hab-launcher]
-channels = [stable"]
-```
-
 ## Special case where `.bldr.toml` does not exist
 
 In the default case, where the `.bldr.toml` does not exist, there is one other condition that can impact builds. If the `plan.sh` file is not at the root (e.g., it is located in a `habitat` folder), then Builder infers that the plan files are all underneath the `habitat` folder, and will not kick off a build if files are committed that are outside of that folder.
