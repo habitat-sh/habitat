@@ -95,6 +95,11 @@ function Invoke-Configure {
     Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.imp.lib $ChocolateyHabitatLibDir\zmq.lib -Force
     Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.dll $ChocolateyHabitatBinDir\libzmq.dll -Force
 
+    choco install libsodium_vc120 --version 1.0.12 --confirm -s https://www.nuget.org/api/v2/
+    
+    Copy-Item $env:ChocolateyInstall\lib\libsodium_vc120\build\native\bin\libsodium-x64-v120-mt-1_0_12_0.imp.lib $ChocolateyHabitatLibDir\sodium.lib -Force
+    Copy-Item $env:ChocolateyInstall\lib\libsodium_vc120\build\native\bin\libsodium-x64-v120-mt-1_0_12_0.dll $ChocolateyHabitatBinDir\libsodium.dll -Force
+    
     if (-not (Test-AppVeyor)) {
         # We need the Visual C 2013 Runtime for the Win32 ABI Rust
         choco install 'vcredist2013' --confirm --allowemptychecksum
