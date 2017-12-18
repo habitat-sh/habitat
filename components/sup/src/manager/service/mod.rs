@@ -31,7 +31,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use ansi_term::Colour::{Yellow, Red, Green};
 use butterfly::rumor::service::Service as ServiceRumor;
 use hcore::crypto::hash;
 use hcore::fs::FS_ROOT_PATH;
@@ -312,25 +311,22 @@ impl Service {
                     ElectionStatus::None => {
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
-                                      "Waiting to execute hooks; {}",
-                                      Yellow.bold().paint("election hasn't started"));
+                                      "Waiting to execute hooks; election hasn't started");
                             self.last_election_status = census_group.election_status;
                         }
                     }
                     ElectionStatus::ElectionInProgress => {
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
-                                      "Waiting to execute hooks; {}",
-                                      Yellow.bold().paint("election in progress."));
+                                      "Waiting to execute hooks; election in progress.");
                             self.last_election_status = census_group.election_status;
                         }
                     }
                     ElectionStatus::ElectionNoQuorum => {
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
-                                      "Waiting to execute hooks; {}, {}.",
-                                      Yellow.bold().paint("election in progress"),
-                                      Red.bold().paint("and we have no quorum"));
+                                      "Waiting to execute hooks; election in progress, and we have no quorum.");
+
                             self.last_election_status = census_group.election_status
                         }
                     }
@@ -341,7 +337,7 @@ impl Service {
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Executing hooks; {} is the leader",
-                                      Green.bold().paint(leader_id.to_string()));
+                                      leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
                         self.execute_hooks(launcher)
@@ -383,8 +379,8 @@ impl Service {
                     outputln!(preamble self.service_group,
                               "The specified service group '{}' for binding '{}' is present in the \
                                census, but currently has no live members.",
-                              Green.bold().paint(format!("{}", bind.service_group)),
-                              Green.bold().paint(format!("{}", bind.name)));
+                              bind.service_group,
+                              bind.name);
                 }
 
             } else {
@@ -392,8 +388,8 @@ impl Service {
                 outputln!(preamble self.service_group,
                           "The specified service group '{}' for binding '{}' is not (yet?) present \
                           in the census data.",
-                          Green.bold().paint(format!("{}", bind.service_group)),
-                          Green.bold().paint(format!("{}", bind.name)));
+                          bind.service_group,
+                          bind.name);
             }
         }
         ret
@@ -470,7 +466,7 @@ impl Service {
             Err(err) => {
                 outputln!(preamble self.service_group,
                           "Failed to generate exported cfg for service rumor: {}",
-                          Red.bold().paint(format!("{}", err)));
+                           err);
                 None
             }
         };
@@ -787,33 +783,33 @@ impl Service {
             Ok(new_file) => new_file,
             Err(e) => {
                 outputln!(preamble self.service_group,
-                          "Failed to create cache file {}",
-                          Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+                          "Failed to create cache file {}, {}",
+                          file.as_ref().display(), e);
                 return false;
             }
         };
         if let Err(e) = new_file.write_all(contents) {
             outputln!(preamble self.service_group,
-                      "Failed to write to cache file {}",
-                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+                      "Failed to write to cache file {}, {}",
+                      file.as_ref().display(), e);
             return false;
         }
         if let Err(e) = std::fs::rename(&new_filename, &file) {
             outputln!(preamble self.service_group,
-                      "Failed to move cache file {}",
-                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+                      "Failed to move cache file {}, {}",
+                      file.as_ref().display(), e);
             return false;
         }
         if let Err(e) = set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group) {
             outputln!(preamble self.service_group,
-                      "Failed to set ownership of cache file {}",
-                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+                      "Failed to set ownership of cache file {}, {}",
+                      file.as_ref().display(), e);
             return false;
         }
         if let Err(e) = set_permissions(&file, 0o640) {
             outputln!(preamble self.service_group,
-                      "Failed to set permissions on cache file {}",
-                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+                      "Failed to set permissions on cache file {}, {}",
+                      file.as_ref().display(), e);
             return false;
         }
         true

@@ -37,7 +37,6 @@ use std::process;
 use std::result;
 use std::str::FromStr;
 
-use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
 use common::command::package::install::InstallSource;
 use common::ui::UI;
@@ -999,23 +998,11 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     if let Some(name_str) = m.value_of("NAME") {
         cfg.name = Some(String::from(name_str));
         outputln!("");
-        outputln!(
-            "{} Running more than one Habitat Supervisor is not recommended for most",
-            Red.bold().paint("CAUTION:".to_string())
-        );
-        outputln!(
-            "{} users in most use cases. Using one Supervisor per host for multiple",
-            Red.bold().paint("CAUTION:".to_string())
-        );
-        outputln!(
-            "{} services in one ring will yield much better performance.",
-            Red.bold().paint("CAUTION:".to_string())
-        );
+        outputln!("CAUTION: Running more than one Habitat Supervisor is not recommended for most");
+        outputln!("CAUTION: users in most use cases. Using one Supervisor per host for multiple");
+        outputln!("CAUTION: services in one ring will yield much better performance.");
         outputln!("");
-        outputln!(
-            "{} If you know what you're doing, carry on!",
-            Red.bold().paint("CAUTION:".to_string())
-        );
+        outputln!("CAUTION: If you know what you're doing, carry on!");
         outputln!("");
     }
     cfg.organization = m.value_of("ORGANIZATION").map(|org| org.to_string());
@@ -1259,13 +1246,7 @@ fn set_config_from_input(spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         spec.config_from = Some(PathBuf::from(config_from));
         outputln!("");
-        outputln!(
-            "{} Setting '{}' should only be used in development, not production!",
-            Red.bold().paint("WARNING:".to_string()),
-            Yellow.bold().paint(
-                format!("--config-from {}", config_from),
-            )
-        );
+        outputln!("WARNING: Setting '--config-from' should only be used in development, not production!");
         outputln!("");
     }
     Ok(())

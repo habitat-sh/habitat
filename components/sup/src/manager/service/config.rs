@@ -22,7 +22,6 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 
-use ansi_term::Colour::Purple;
 use fs;
 use hcore::crypto;
 use serde::{Serialize, Serializer};
@@ -372,7 +371,7 @@ impl CfgRenderer {
                     cfg_dest.display()
                 );
                 outputln!(preamble ctx.svc.group, "Updated {} {}",
-                          Purple.bold().paint(template.as_str()),
+                          template.as_str(),
                           compiled_hash);
                 let mut config_file = File::create(&cfg_dest)?;
                 config_file.write_all(&compiled.into_bytes())?;
@@ -391,7 +390,7 @@ impl CfgRenderer {
                         cfg_dest.display()
                     );
                     outputln!(preamble ctx.svc.group,"Updated {} {}",
-                              Purple.bold().paint(template.as_str()),
+                              template.as_str(),
                               compiled_hash);
                     let mut config_file = File::create(&cfg_dest)?;
                     config_file.write_all(&compiled.into_bytes())?;
