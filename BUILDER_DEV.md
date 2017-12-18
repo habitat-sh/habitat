@@ -24,7 +24,7 @@ This Dev Environment involves spinning up a virtual machine (most of the core co
 * All of the following steps should be run within your Virtual Machine
 * A [Github Personal Access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) with all repo and all user permissions.
 * The [Habitat Builder App](https://github.com/apps/habitat-builder) installed on your Github account.
-* Open your Sudoers file at /etc/sudoers and remove the "secure_path" section (this is required for the make scripts to run correctly)
+* On your VM - Open your Sudoers file at /etc/sudoers and remove the "secure_path" section (this is required for the make scripts to run correctly)
 
 ```
 $ sudo sed -i.bak '/secure_path/s/^/#/' /etc/sudoers
@@ -96,6 +96,14 @@ $ source $HOME/.cargo/env
 $ make build-srv
 ```
 
+* Note: If you receive an error along the lines of "error: failed to load source for a dependency on `urlencoded`", you will need to change the owner of the ~/.cargo/ directory from root to your VM username.
+
+i.e. - if your username is jbauman:
+
+```
+$ sudo chown -R jbauman:jbauman /home/jbauman/.cargo/
+```
+
 * Open up the builder-worker file
 
 ```
@@ -142,7 +150,7 @@ $ sudo -E make bldr-run-no-build
 * On your VM, go to the production instance of Builder (the one at habitat.sh)
 * Click on "My origins"
 * Click on "core"
-* Download public and private keys for the "core" origin (make sure the timestamp on the public key matches the one on the private key!) - we currently need the keys for the core production origin in order to upload some dependencies to our local Builder env)
+* Download the public key for the "core" origin
 * From a terminal, run
 
 ```
@@ -150,14 +158,6 @@ $ hab origin key import
 ```
 
 * Paste the production core origin public key contents
-* Hit Ctrl + D twice
-* Run this again:
-
-```
-$ hab origin key import
-```
-
-* Paste the production core origin private key contents
 * Hit Ctrl + D twice
 * Run
 ```
