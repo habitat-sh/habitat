@@ -18,7 +18,6 @@ use std::io::{self, BufRead, BufReader, Read, Write};
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
 use std::thread;
 
-use ansi_term::Colour;
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
 use core::os::process::Pid;
@@ -127,8 +126,7 @@ where
     let mut buffer = String::new();
     while reader.read_line(&mut buffer).unwrap() > 0 {
         let mut line = output_format!(preamble &id, logkey "E");
-        let c = format!("{}", Colour::Red.bold().paint(buffer.clone()));
-        line.push_str(c.as_str());
+        line.push_str(&buffer);
         write!(&mut io::stderr(), "{}", line).expect("unable to write to stderr");
         buffer.clear();
     }
