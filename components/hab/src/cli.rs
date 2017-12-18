@@ -89,7 +89,9 @@ pub fn get() -> App<'static, 'static> {
                     (@arg PKG_IDENT: +required +takes_value
                         "The origin and name of the package to schedule a job for (eg: core/redis)")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                     (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \
                         dependencies")
@@ -101,7 +103,9 @@ pub fn get() -> App<'static, 'static> {
                         "The job group id that was returned from \"hab bldr job start\" \
                         (ex: 771100000000000000)")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand promote =>
@@ -118,7 +122,9 @@ pub fn get() -> App<'static, 'static> {
                     (@arg VERBOSE: -v --verbose
                         "Show full list of promotable packages")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand demote =>
@@ -135,7 +141,9 @@ pub fn get() -> App<'static, 'static> {
                     (@arg VERBOSE: -v --verbose
                         "Show full list of demotable packages")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand status =>
@@ -150,7 +158,9 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Get the status of a job group")
                     (aliases: &["stat", "statu"])
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                 )
             )
             (@subcommand encrypt =>
@@ -158,7 +168,9 @@ pub fn get() -> App<'static, 'static> {
                     an encrypted representation")
                 (aliases: &["e", "en", "enc", "encr", "encry"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
             )
         )
         (@subcommand origin =>
@@ -175,7 +187,9 @@ pub fn get() -> App<'static, 'static> {
                     (@arg ORIGIN: +required "The origin name")
                     (@arg REVISION: "The key revision")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg WITH_SECRET: -s --secret
                         "Download secret key instead of public key")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder (required for downloading secret keys)")
@@ -211,7 +225,9 @@ pub fn get() -> App<'static, 'static> {
                     (@arg SECRET_FILE: --secfile +takes_value {file_exists} conflicts_with[ORIGIN]
                         "Path to a local secret origin key file on disk")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
             )
@@ -299,7 +315,9 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Search for a package in Builder")
                 (@arg SEARCH_TERM: +required +takes_value "Search term")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand sign =>
@@ -317,7 +335,9 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Uploads a local Habitat Artifact to Builder")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg CHANNEL: --channel -c +takes_value
                     "Additional release channel to upload package to. \
@@ -331,7 +351,9 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Promote a package to a specified channel")
                 (aliases: &["pr", "pro", "promo", "promot"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg CHANNEL: +required +takes_value
@@ -342,7 +364,9 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Demote a package from a specified channel")
                 (aliases: &["de", "dem", "demo", "demot"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg CHANNEL: +required +takes_value
@@ -353,7 +377,9 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Find out what channels a package belongs to")
                 (aliases: &["ch", "cha", "chan", "chann", "channe", "channel"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
@@ -638,7 +664,9 @@ fn sub_pkg_install() -> App<'static, 'static> {
     clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from Builder or locally from a Habitat Artifact")
         (@arg BLDR_URL: --url -u +takes_value {valid_url}
-            "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+            "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
         (@arg CHANNEL: --channel -c +takes_value
             "Install from the specified release channel (default: stable)")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
