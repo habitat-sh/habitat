@@ -156,7 +156,7 @@ EOT
 
 * Run
 ```
-$ sudo hab install core/hab-backline
+$ sudo hab install core/hab-backline --url https://bldr.habitat.sh
 $ cd /hab/cache/artifacts
 $ hab pkg upload -c stable core-hab-backline...hart
 ```
@@ -253,6 +253,12 @@ HTTP/1.1 201 Created
 "origin": "core",
 "state": "Pending"
 }
+```
+
+Additionally, you could also run
+
+```
+$ hab bldr job start core/nginx
 ```
 
 ## Unsupported Dev Environments
