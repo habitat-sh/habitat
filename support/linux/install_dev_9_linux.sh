@@ -21,6 +21,6 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-sudo -E sh /tmp/install.sh
-sudo -E hab install core/busybox-static core/hab-studio
-sudo -E rm -rf /tmp/install.sh
+sudo sh /tmp/install.sh
+sudo hab install core/busybox-static core/hab-studio
+sudo rm -rf /tmp/install.sh
