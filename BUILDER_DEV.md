@@ -47,17 +47,11 @@ $ sudo sed -i.bak '/deb cdrom/s/^/#/g' /etc/apt/sources.list
 $ sudo apt-get install git
 ```
 
-* Install curl
-```
-$ sudo apt-get install curl
-```
-
 * Clone the [Habitat repo](https://github.com/habitat-sh/habitat)
 ```
 $ git clone https://github.com/habitat-sh/habitat.git
 ```
 
-* Install the [Habitat CLI](https://www.habitat.sh/docs/get-habitat/)
 * Copy habitat-builder-dev.2017-10-02.private-key.pem from 1Password into path/to/habitat/repo/.secrets/builder-github-app.pem (NOTE - this is required as of 12/11/17 - we are working on a solution to make access to the Habitat 1Password vault not required for dev environment setup).
 * Set up some environmental variables (I put these in my .bashrc)
 
