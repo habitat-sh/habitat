@@ -471,12 +471,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
 }
 
 fn sub_bash(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     command::shell::bash()
 }
@@ -489,12 +485,9 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_load(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
+
     let cfg = mgrcfg_from_matches(m)?;
     let install_source = install_source_from_input(m)?;
 
@@ -680,12 +673,8 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_unload(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
@@ -722,23 +711,15 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
 }
 
 fn sub_sh(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     command::shell::sh()
 }
 
 fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     let cfg = mgrcfg_from_matches(m)?;
 
@@ -828,12 +809,9 @@ fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
 }
 
 fn sub_status(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
+
     let cfg = mgrcfg_from_matches(m)?;
     if !Manager::is_running(&cfg)? {
         println!("The Supervisor is not running.");
@@ -887,12 +865,9 @@ fn print_statuses(statuses: Vec<ServiceStatus>) -> Result<()> {
 }
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
+
     let cfg = mgrcfg_from_matches(m)?;
 
     // PKG_IDENT is required, so unwrap() is safe
@@ -1602,4 +1577,16 @@ fn update_composite_service_specs(
         }
     }
     Ok(())
+}
+
+fn toggle_verbosity(m: &ArgMatches) {
+    if m.is_present("VERBOSE") {
+        hcore::output::set_verbose(true);
+    }
+}
+
+fn toggle_color(m: &ArgMatches) {
+    if m.is_present("NO_COLOR") {
+        hcore::output::set_no_color(true);
+    }
 }
