@@ -14,6 +14,7 @@
 
 extern crate env_logger;
 extern crate habitat_launcher as launcher;
+extern crate habitat_core as core;
 
 use std::env;
 use std::process;
@@ -22,7 +23,21 @@ use launcher::server;
 
 fn main() {
     env_logger::init().unwrap();
-    let args = env::args().skip(1).collect();
+
+    let args: Vec<String> = env::args().skip(1).collect();
+
+    // Since we have access to all the arguments passed to the
+    // Supervisor here, we can simply see if the user requested
+    // `--no-color` and set our global variable accordingly.
+    //
+    // This does, of course, rely on the option name used here staying
+    // in sync with the name used in the Supervisor.
+    //
+    // There is currently no short option to check; just the long
+    // name.
+    if args.contains(&String::from("--no-color")) {
+        core::output::set_no_color(true);
+    }
 
     if let Err(err) = server::run(args) {
         println!("{}", err);
