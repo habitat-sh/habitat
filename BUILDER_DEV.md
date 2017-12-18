@@ -168,8 +168,7 @@ $ hab pkg upload -c stable core-hab-backline...hart
 
 * NOTE - if you receive this error: "No auth token specified" - make sure you have set HAB_AUTH_TOKEN="<your github token>"  in your environment.z:
 * NOTE - if you receive this error: "No such file or directory (os error 2)" It means that the public key from bldr.habitat.sh (that corresponds to the private key the hart file was signed with) wasn't installed.
-
-* You will need to follow this same process for any dependencies of anything you want to build locally - the sample app I will use below depends on [core/scaffolding-node](https://bldr.habitat.sh/#/pkgs/core/scaffolding-node/latest), [core/git](https://bldr.habitat.sh/#/pkgs/core/git/latest), [core/node](https://bldr.habitat.sh/#/pkgs/core/node/latest), [core/busybox-static](https://bldr.habitat.sh/#/pkgs/core/busybox-static/latest) - so I will follow the same procedure to download them from production builder, then upload them to my local builder.
+* You will need to follow this same process for any dependencies of anything you want to build locally
 
 ## Create the project(s) you want to build
 In order to build a package, there needs to be a project created in the database.
@@ -278,7 +277,7 @@ Maintainers have historically been able to use alternative development environme
     ```
 	  [[bin]]
 	  name = "hab-depot"
-    ````
+    ```
 
 ## Windows build notes
 
