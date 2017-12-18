@@ -18,7 +18,7 @@ This Dev Environment involves spinning up a virtual machine (most of the core co
 
 ### Pre-Reqs
 
-* Ubuntu 17.10 Desktop Virtual Machine
+* Ubuntu 17.10 Desktop or Ubuntu 17.10 Server Virtual Machine
 * Access to the "core" origin in [Production Builder](https://bldr.habitat.sh). Ask a core maintainer (or in the [Habitat Slack](http://slack.habitat.sh/)) if you do not have access.
 * Access to the Habitat 1Password account (NOTE - we are working on a solution to make this not required, but it is necessary for the time being)
 * All of the following steps should be run within your Virtual Machine
