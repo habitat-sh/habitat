@@ -1,5 +1,9 @@
 # Builder Services Development Environment
 
+## NOTE
+
+This is currently only meant for the Habitat internal team. There is work in progress to support builder dev environments that do not require Habitat internal team secrets - stay tuned!
+
 ## Overview
 
 This document captures the steps to start and run a Builder environment for development. The builder environment includes the builder services, as well as the depot web site.
