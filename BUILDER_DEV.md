@@ -82,21 +82,19 @@ $ cd path/to/your/habitat/repo
 * Run the provision script
 
 ```
-$ sudo ./support/linux/provision.sh
+$ ./support/linux/provision.sh
+```
+
+* Source cargo
+
+```
+$ source $HOME/.cargo/env
 ```
 
 * Run the build-srv makefile (NOTE - if you receive an error about cargo not being found, make sure you have removed the "secure_path" section of /etc/sudoers)
 
 ```
 $ make build-srv
-```
-
-* Note: If you receive an error along the lines of "error: failed to load source for a dependency on `urlencoded`", you will need to change the owner of the ~/.cargo/ directory from root to your VM username.
-
-i.e. - if your username is jbauman:
-
-```
-$ sudo chown -R jbauman:jbauman /home/jbauman/.cargo/
 ```
 
 * Open up the builder-worker file
