@@ -24,12 +24,6 @@ if [ -n "${IS_RELEASE_BUILD}" ]; then
     # channel; once we've validated them outside of Travis, we'll
     # promote to stable
     CHANNEL="rc-${HAB_VERSION}"
-
-    # By exporting this, package builds will preferentially pull in
-    # dependencies from this release. For dependencies that aren't
-    # part of the release, Habitat will fall back to the stable
-    # channel by design.
-    export HAB_BLDR_CHANNEL="${CHANNEL}"
 else
     # Not a release build, just a normal build from the master
     # branch. It's all unstable, all the time.

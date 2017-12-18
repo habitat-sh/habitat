@@ -105,3 +105,4 @@ else
   $program -r $BINTRAY_REPO $release
 fi
 rm $release
+rm -rf $bootstrap_dir
