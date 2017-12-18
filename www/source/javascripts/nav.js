@@ -19,10 +19,10 @@ const stickyVisibleBreakpoint = 300;
     var username = dropdown.find(".username");
     var signOutLink = dropdown.find(".sign-out");
 
-    if (token()) {
+    if (signedIn()) {
       $.get("https://api.github.com/user?access_token=" + token())
         .then(function(p) {
-          signIn(p);
+          showAvatar(p);
         }, function(err) {
           console.error(err);
           signOut();
@@ -57,10 +57,10 @@ const stickyVisibleBreakpoint = 300;
     }
 
     function signedIn() {
-      return !!token();
+      return !!token() && !!cookies.get("bldrSessionToken");
     }
 
-    function signIn(profile) {
+    function showAvatar(profile) {
       avatar.find("img").attr("src", profile.avatar_url);
       username.text(profile.login);
       signedInElements.css("display", "inline-block");
@@ -69,16 +69,23 @@ const stickyVisibleBreakpoint = 300;
     function signOut() {
       cookies.remove("gitHubAuthState", { domain: cookieDomain() });
       cookies.remove("gitHubAuthToken", { domain: cookieDomain() });
-      cookies.remove("featureFlags", { domain: cookieDomain() });
+      cookies.remove("bldrSessionToken", { domain: cookieDomain() });
       signedOutElements.css("display", "inline-block");
       signedInElements.hide();
     }
 
     function cookieDomain() {
-      var delim = ".";
-      var tld = location.hostname.split(delim);
-      tld.shift();
-      return tld.join(delim);
+      let delim = '.';
+      let hostname = location.hostname;
+      let tld = hostname.split(delim).pop();
+
+      if (isNaN(Number(tld))) {
+        let domain = hostname.split(delim);
+        domain.shift();
+        return domain.join(delim) || hostname;
+      } else {
+        return hostname;
+      }
     }
   });
 })($, Cookies);
