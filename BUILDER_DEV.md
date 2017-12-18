@@ -97,26 +97,6 @@ $ source $HOME/.cargo/env
 $ make build-srv
 ```
 
-* Open up the builder-worker file
-
-```
-$ sudo vim /hab/svc/builder-worker
-```
-
-* Add your Github Auth Key:
-
-**/hab/svc/builder-worker/config.toml**
-```
-auth_token = ""
-```
-
-Should become:
-
-**/hab/svc/builder-worker/config.toml**
-```
-auth_token = "<your github token>"
-```
-
 * Run this command (it may take awhile) to start all the Builder services
 
 ```
