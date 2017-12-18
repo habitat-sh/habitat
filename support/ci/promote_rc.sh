@@ -82,7 +82,7 @@ curl -u $BINTRAY_USER:$BINTRAY_KEY -X POST https://api.bintray.com/content/habit
 
 # We do not store darwin packages on builder so we will get
 # the latest version on bintray
-DARWIN_RELEASE=$(curl https://api.bintray.com/packages/habitat/stable/hab-x86_64-windows | jq -r '.versions[0]')
+DARWIN_RELEASE=$(curl -u $BINTRAY_USER:$BINTRAY_KEY https://api.bintray.com/packages/habitat/stable/hab-x86_64-darwin | jq -r '.versions[0]')
 IFS='-' read -r -a version_release <<< $DARWIN_RELEASE
 if [ "${version_release[0]}" != "$HAB_VERSION" ]; then
   echo "Could not find a darwin release for $HAB_VERSION on bintray"
