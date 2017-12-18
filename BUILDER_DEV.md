@@ -10,7 +10,7 @@ Eventually, we will want to harness the power of the Habitat studio to automate 
 
 ## Officially Supported Dev Environment
 
-This Dev Environment involves spinning up a virtual machine (most of the core contributors use VMWare, but Virtual Box should work as well) running Ubuntu 17.10 desktop.
+This Dev Environment involves spinning up a virtual machine (most of the core contributors use VMWare, but Virtual Box should work as well) running Ubuntu 17.10 desktop OR Ubuntu 17.10 Server.
 
 ### Pre-Reqs
 
@@ -23,13 +23,19 @@ This Dev Environment involves spinning up a virtual machine (most of the core co
 * Open your Sudoers file at /etc/sudoers and remove the "secure_path" section (this is required for the make scripts to run correctly)
 
 ```
-$ sudo visudo -f /etc/sudoers
+$ sudo sed -i.bak '/secure_path/s/^/#/' /etc/sudoers
 ```
 
 ### Builder Setup
 * Update your system
 ```
 $ sudo apt-get update
+```
+
+* NOTE - if you are running Ubuntu 17.10 Server, the above command may fail with "E: The repository 'cdrom://Ubuntu-Server 17.10 _Artful Aardvark_ - Release amd64 (20171017.1) artful Release' does not have a Release file."  To fix this, run:
+
+```
+$ sudo sed -i.bak '/deb cdrom/s/^/#/g' /etc/apt/sources.list
 ```
 
 * Install git
@@ -83,7 +89,7 @@ $ source $HOME/.cargo/env
 * Run the build-srv makefile (NOTE - if you receive an error about cargo not being found, make sure you have removed the "secure_path" section of /etc/sudoers)
 
 ```
-$ sudo make build-srv
+$ make build-srv
 ```
 
 * Open up the builder-worker file
@@ -109,54 +115,27 @@ auth_token = "<your github token>"
 * Run this command (it may take awhile) to start all the Builder services
 
 ```
-$ sudo -E make bldr-run
+$ sudo -E make bldr-run-no-build
 ```
+
+* Wait for all services to start - they are started when you see worker heartbeat debug entries in the log. If services do not start because some were already running from a previous attempt, run $ make bldr-kill
 
 ### UI Setup
 
-* Open a separate shell on your VM
-* Install npm
-
-```
-$ sudo apt-get install npm
-```
-
-* Cd into the builder-web component
-
-```
-$ cd path/to/your/habitat/repo/components/builder-web
-```
-
-* Install all dependencies
-
-```
-$ npm install
-```
-
-* Create the habitat.conf.js file
-
-```
-$ cp habitat.conf.sample.js habitat.conf.js
-```
-
-* Start the UI
-
-```
-$ sudo npm start
-```
-
+* Follow the instructions in the [Web UI README](https://github.com/habitat-sh/habitat/blob/master/components/builder-web/README.md) to get the Web UI running locally.
 * Open up a browser and navigate to http://localhost:3000/#/pkgs - you should see the Habitat UI running locally.
 
 ### Creating an Origin
 
 * Navigate to http://localhost:3000/#/pkgs
 * Log in
+* You may need to accept the Habitat Builder Dev Githhub app in your Github account.
 * Click on "Create New Origin"
 * Fill out form (call the origin "core"), click "Save & Continue"
 
 ### Install Dependencies in your local Builder Env
 
-* on your VM, go to the production instance of Builder (the one at habitat.sh)
+* On your VM, go to the production instance of Builder (the one at habitat.sh)
 * Click on "My origins"
 * Click on "core"
 * Download public and private keys for the "core" origin (make sure the timestamp on the public key matches the one on the private key!) - we currently need the keys for the core production origin in order to upload some dependencies to our local Builder env)
@@ -178,10 +157,14 @@ $ hab origin key import
 * Hit Ctrl + D twice
 * Run
 ```
-$ hab install core/hab-backline
+$ sudo hab install core/hab-backline
 $ cd /hab/cache/artifacts
 $ hab pkg upload -c stable core-hab-backline...hart
 ```
+
+* NOTE - if you receive this error: "No auth token specified" - make sure you have set HAB_AUTH_TOKEN="<your github token>"  in your environment.z:
+* NOTE - if you receive this error: "No such file or directory (os error 2)" It means that the public key from bldr.habitat.sh (that corresponds to the private key the hart file was signed with) wasn't installed.
+
 * You will need to follow this same process for any dependencies of anything you want to build locally - the sample app I will use below depends on [core/scaffolding-node](https://bldr.habitat.sh/#/pkgs/core/scaffolding-node/latest), [core/git](https://bldr.habitat.sh/#/pkgs/core/git/latest), [core/node](https://bldr.habitat.sh/#/pkgs/core/node/latest), [core/busybox-static](https://bldr.habitat.sh/#/pkgs/core/busybox-static/latest) - so I will follow the same procedure to download them from production builder, then upload them to my local builder.
 
 ## Create the project(s) you want to build
