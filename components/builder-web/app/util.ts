@@ -90,8 +90,9 @@ export function parseKey(key) {
   const lines = key.trim().split('\n');
   const type = lines[0];
   const name = lines[1] || '';
-  const origin = name.split('-')[0]; // TODO: make work for non-origin keys
-  const revision = name.split('-')[1];
+  const delim = name.lastIndexOf('-');
+  const origin = name.slice(0, delim);
+  const revision = name.slice(delim + 1);
   const blankLine = lines[2];
   const body = lines[3];
 
