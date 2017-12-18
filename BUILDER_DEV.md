@@ -151,14 +151,18 @@ $ sudo -E make bldr-run-no-build
 * Click on "My origins"
 * Click on "core"
 * Download the public key for the "core" origin
-* From a terminal, run
+* Next, install the public key for the core origin on the Production builder (the one at habitat.sh). You need this in order to upload some packages to your local builder.
 
 ```
-$ hab origin key import
-```
+$ hab origin key import <<EOT
+SIG-PUB-1
+core-20160810182414
 
-* Paste the production core origin public key contents
-* Hit Ctrl + D twice
+vQqVVhUTW9ABKzoi9W+LP14GL2MrYRmL8FGETjwNANQ=
+EOT
+```
+(This core public key is current as of 12/18/2017)
+
 * Run
 ```
 $ sudo hab install core/hab-backline
