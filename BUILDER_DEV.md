@@ -24,7 +24,7 @@ This Dev Environment involves spinning up a virtual machine (most of the core co
 * All of the following steps should be run within your Virtual Machine
 * A [Github Personal Access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) with all repo and all user permissions.
 * The [Habitat Builder App](https://github.com/apps/habitat-builder) installed on your Github account.
-* On your VM - Open your Sudoers file at /etc/sudoers and remove the "secure_path" section (this is required for the make scripts to run correctly)
+* On your VM - remove the "secure_path" section from your sudoers file (this is required for the make scripts to run correctly)
 
 ```
 $ sudo sed -i.bak '/secure_path/s/^/#/' /etc/sudoers
@@ -83,11 +83,6 @@ $ cd path/to/your/habitat/repo
 
 ```
 $ sudo ./support/linux/provision.sh
-```
-
-* After the script completes, source cargo/rust
-```
-$ source $HOME/.cargo/env
 ```
 
 * Run the build-srv makefile (NOTE - if you receive an error about cargo not being found, make sure you have removed the "secure_path" section of /etc/sudoers)
