@@ -24,7 +24,9 @@ This Dev Environment involves spinning up a virtual machine (most of the core co
 * All of the following steps should be run within your Virtual Machine
 * A [Github Personal Access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) with all repo and all user permissions.
 * The [Habitat Builder App](https://github.com/apps/habitat-builder) installed on your Github account.
-* On your VM - remove the "secure_path" section from your sudoers file (this is required for the make scripts to run correctly)
+* Remove the "secure_path" section from your sudoers file (this is required for the make scripts to run correctly)
+* Some of the sample commands below use the 'httpie' tool. Install it if not present on your system (https://github.com/jkbrzt/httpie).
+
 
 ```
 $ sudo sed -i.bak '/secure_path/s/^/#/' /etc/sudoers
@@ -106,12 +108,34 @@ $ sudo -E make bldr-run-no-build
 
 ### Creating an Origin
 
+### Option A: Create an origin using the web UI
+
 * Navigate to http://localhost:3000/#/pkgs
 * Log in
 * You may need to accept the Habitat Builder Dev Githhub app in your Github account.
 * Click on "Create New Origin"
 * Fill out form (call the origin "core"), click "Save & Continue"
 
+### Option B: Create an origin using the command line
+
+1. Create an origin in the DB by issuing the following command:
+
+```
+$ http POST http://localhost:9636/v1/depot/origins Content-Type:application/json Authorization:Bearer:${HAB_AUTH_TOKEN} name=${HAB_ORIGIN}
+```
+
+The response should be something like:
+
+```
+HTTP/1.1 201 Created
+
+{
+"id": 151409091187589122,
+"name": "core",
+"owner_id": "133508078967455744",
+"private_key_name": ""
+}
+```
 ### Install Dependencies in your local Builder Env
 
 * On your VM, go to the production instance of Builder (the one at habitat.sh)
