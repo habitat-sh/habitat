@@ -185,7 +185,7 @@ pub fn get() -> App<'static, 'static> {
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
                     (@arg ORIGIN: +required +takes_value)
                     (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
-                    "Export either the `public' or `secret' key")
+                    "Export either the 'public' or 'secret' key")
                 )
                 (@subcommand generate =>
                     (about: "Generates a Habitat origin key")
@@ -223,7 +223,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand binds =>
                 (about: "Displays the binds for a service")
                 (@arg PKG_IDENT: +required +takes_value
-                    "A package identifier (ex: core/redis, core/busybox-statis/1.42.2")
+                    "A package identifier (ex: core/redis, core/busybox-statis/1.42.2)")
             )
             (@subcommand binlink =>
                 (about: "Creates a binlink for a package binary in a common 'PATH' location")

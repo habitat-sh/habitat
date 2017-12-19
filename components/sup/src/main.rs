@@ -210,7 +210,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if launching more than one [default: default]")
             (@arg ORGANIZATION: --org +takes_value
-                "The organization that the Supervisor and it's subsequent services are part of \
+                "The organization that the Supervisor and its subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
@@ -246,7 +246,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The name for the state directory if launching more than one Supervisor \
                 [default: default]")
             (@arg ORGANIZATION: --org +takes_value
-                "The organization that the Supervisor and it's subsequent services are part of \
+                "The organization that the Supervisor and its subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
@@ -299,7 +299,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 [default: default]")
         )
         (@subcommand term =>
-            (about: "Gracefully terminate the Habitat Supervisor and all of it's running services")
+            (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if more than one is running [default: default]")
         )
