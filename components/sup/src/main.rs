@@ -30,6 +30,7 @@ extern crate tabwriter;
 
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
+use std::env;
 use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::{Path, PathBuf};
@@ -37,10 +38,9 @@ use std::process;
 use std::result;
 use std::str::FromStr;
 
-use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
 use common::command::package::install::InstallSource;
-use common::ui::UI;
+use common::ui::{UI, Coloring, NONINTERACTIVE_ENVVAR};
 use hcore::channel;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
@@ -472,12 +472,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
 }
 
 fn sub_bash(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     command::shell::bash()
 }
@@ -490,12 +486,9 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_load(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
+
     let cfg = mgrcfg_from_matches(m)?;
     let install_source = install_source_from_input(m)?;
 
@@ -511,7 +504,7 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
             //
             // This will install the latest version from Builder
             let installed = util::pkg::install(
-                &mut UI::default(),
+                &mut ui(),
                 &bldr_url(m),
                 &install_source,
                 &channel(m),
@@ -681,12 +674,8 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_unload(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
@@ -723,28 +712,20 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
 }
 
 fn sub_sh(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     command::shell::sh()
 }
 
 fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
 
     let cfg = mgrcfg_from_matches(m)?;
 
     if !fs::am_i_root() {
-        let mut ui = UI::default();
+        let mut ui = ui();
         ui.warn(
             "Running the Habitat Supervisor with root or superuser privileges is recommended",
         )?;
@@ -829,12 +810,9 @@ fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
 }
 
 fn sub_status(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
+
     let cfg = mgrcfg_from_matches(m)?;
     if !Manager::is_running(&cfg)? {
         println!("The Supervisor is not running.");
@@ -888,12 +866,9 @@ fn print_statuses(statuses: Vec<ServiceStatus>) -> Result<()> {
 }
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
-    }
+    toggle_verbosity(m);
+    toggle_color(m);
+
     let cfg = mgrcfg_from_matches(m)?;
 
     // PKG_IDENT is required, so unwrap() is safe
@@ -999,23 +974,11 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     if let Some(name_str) = m.value_of("NAME") {
         cfg.name = Some(String::from(name_str));
         outputln!("");
-        outputln!(
-            "{} Running more than one Habitat Supervisor is not recommended for most",
-            Red.bold().paint("CAUTION:".to_string())
-        );
-        outputln!(
-            "{} users in most use cases. Using one Supervisor per host for multiple",
-            Red.bold().paint("CAUTION:".to_string())
-        );
-        outputln!(
-            "{} services in one ring will yield much better performance.",
-            Red.bold().paint("CAUTION:".to_string())
-        );
+        outputln!("CAUTION: Running more than one Habitat Supervisor is not recommended for most");
+        outputln!("CAUTION: users in most use cases. Using one Supervisor per host for multiple");
+        outputln!("CAUTION: services in one ring will yield much better performance.");
         outputln!("");
-        outputln!(
-            "{} If you know what you're doing, carry on!",
-            Red.bold().paint("CAUTION:".to_string())
-        );
+        outputln!("CAUTION: If you know what you're doing, carry on!");
         outputln!("");
     }
     cfg.organization = m.value_of("ORGANIZATION").map(|org| org.to_string());
@@ -1259,13 +1222,7 @@ fn set_config_from_input(spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         spec.config_from = Some(PathBuf::from(config_from));
         outputln!("");
-        outputln!(
-            "{} Setting '{}' should only be used in development, not production!",
-            Red.bold().paint("WARNING:".to_string()),
-            Yellow.bold().paint(
-                format!("--config-from {}", config_from),
-            )
-        );
+        outputln!("WARNING: Setting '--config-from' should only be used in development, not production!");
         outputln!("");
     }
     Ok(())
@@ -1544,7 +1501,7 @@ fn install_package_if_not_present(
         Some(package) => Ok(package),
         None => {
             outputln!("Missing package for {}", install_source.as_ref());
-            util::pkg::install(&mut UI::default(), bldr_url, install_source, channel)
+            util::pkg::install(&mut ui(), bldr_url, install_source, channel)
         }
     }
 }
@@ -1621,4 +1578,42 @@ fn update_composite_service_specs(
         }
     }
     Ok(())
+}
+
+fn toggle_verbosity(m: &ArgMatches) {
+    if m.is_present("VERBOSE") {
+        hcore::output::set_verbose(true);
+    }
+}
+
+fn toggle_color(m: &ArgMatches) {
+    if m.is_present("NO_COLOR") {
+        hcore::output::set_no_color(true);
+    }
+}
+
+// Based on UI::default_with_env, but taking into account the setting
+// of the global color variable.
+//
+// TODO: Ideally we'd have a unified way of setting color, so this
+// function wouldn't be necessary. In the meantime, though, it'll keep
+// the scope of change contained.
+fn ui() -> UI {
+    let coloring = if hcore::output::is_color() {
+        Coloring::Auto
+    } else {
+        Coloring::Never
+    };
+
+    let isatty =  if env::var(NONINTERACTIVE_ENVVAR)
+    // Keep string boolean for backwards-compatibility
+        .map(|val| val == "1" || val == "true")
+        .unwrap_or(false)
+    {
+        Some(false)
+    } else {
+        None
+    };
+
+    UI::default_with(coloring, isatty)
 }

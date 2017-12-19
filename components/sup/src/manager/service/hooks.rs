@@ -24,7 +24,6 @@ use std::process::{Child, ExitStatus};
 use hcore::os::process::windows_child::{Child, ExitStatus};
 use std::result;
 
-use ansi_term::Colour;
 use hcore;
 use hcore::crypto;
 use hcore::service::ServiceGroup;
@@ -660,8 +659,7 @@ impl Hook for SuitabilityHook {
                             Ok(line) => {
                                 match line.trim().parse::<u64>() {
                                     Ok(suitability) => {
-                                        outputln!(preamble service_group, "Reporting suitability \
-                                    of: {}", Colour::Green.bold().paint(format!("{}",suitability)));
+                                        outputln!(preamble service_group, "Reporting suitability of: {}", suitability);
                                         return Some(suitability);
                                     }
                                     Err(err) => {

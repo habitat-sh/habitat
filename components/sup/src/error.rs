@@ -48,7 +48,6 @@ use std::str;
 use std::string;
 use std::sync::mpsc;
 
-use ansi_term::Colour::Red;
 use butterfly;
 use common;
 use depot_client;
@@ -341,7 +340,6 @@ impl fmt::Display for SupError {
             Error::TryRecvError(ref err) => format!("{}", err),
             Error::UnpackFailed => format!("Failed to unpack a package"),
         };
-        let cstring = Red.bold().paint(content).to_string();
         let progname = PROGRAM_NAME.as_str();
         let mut so = StructuredOutput::new(
             progname,
@@ -349,7 +347,7 @@ impl fmt::Display for SupError {
             self.line,
             self.file,
             self.column,
-            &cstring,
+            &content,
         );
         so.verbose = Some(true);
         write!(f, "{}", so)
