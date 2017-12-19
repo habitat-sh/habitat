@@ -24,13 +24,12 @@ This Dev Environment involves spinning up a virtual machine (most of the core co
 * All of the following steps should be run within your Virtual Machine
 * A [Github Personal Access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) with all repo and all user permissions.
 * The [Habitat Builder App](https://github.com/apps/habitat-builder) installed on your Github account.
-* Remove the "secure_path" section from your sudoers file (this is required for the make scripts to run correctly)
-* Some of the sample commands below use the 'httpie' tool. Install it if not present on your system (https://github.com/jkbrzt/httpie).
-
-
+* Remove the "secure_path" section from your sudoers file (this is required for the make scripts to run correctly). The following command will comment it out:
 ```
 $ sudo sed -i.bak '/secure_path/s/^/#/' /etc/sudoers
 ```
+* Some of the sample commands below use the 'httpie' tool. Install it if not present on your system (https://github.com/jkbrzt/httpie).
+
 
 ### Builder Setup
 * Update your system
@@ -72,7 +71,7 @@ $ sudo ln -s path/to/your/habitat/repo /src
 * Cd into your Habitat repo
 
 ```
-$ cd path/to/your/habitat/repo
+$ cd /src
 ```
 
 * Run the provision script
@@ -99,7 +98,7 @@ $ make build-srv
 $ sudo -E make bldr-run-no-build
 ```
 
-* Wait for all services to start - they are started when you see worker heartbeat debug entries in the log. If services do not start because some were already running from a previous attempt, run $ make bldr-kill
+* Wait for all services to start - they are started when you see worker heartbeat debug entries in the log. If services do not start because some were already running from a previous attempt, run `$ make bldr-kill`
 
 ### UI Setup
 
@@ -152,7 +151,7 @@ core-20160810182414
 vQqVVhUTW9ABKzoi9W+LP14GL2MrYRmL8FGETjwNANQ=
 EOT
 ```
-(This core public key is current as of 12/18/2017)
+(This core public key is current as of 12/18/2017 and will continue to work unless the private key is changed.)
 
 * Run
 ```
@@ -161,8 +160,9 @@ $ cd /hab/cache/artifacts
 $ hab pkg upload -c stable core-hab-backline...hart
 ```
 
-* NOTE - if you receive this error: "No auth token specified" - make sure you have set HAB_AUTH_TOKEN="<your github token>"  in your environment.z:
+* NOTE - if you receive this error: "No auth token specified" - make sure you have set HAB_AUTH_TOKEN="<your github token>"  in your environment
 * NOTE - if you receive this error: "No such file or directory (os error 2)" It means that the public key from bldr.habitat.sh (that corresponds to the private key the hart file was signed with) wasn't installed.
+* NOTE - if you receive this error: "403 Forbidden" when running `hab pkg upload`, it may mean the core origin hasn't been successfully created. 
 * You will need to follow this same process for any dependencies of anything you want to build locally
 
 ## Create the project(s) you want to build
@@ -261,6 +261,16 @@ Additionally, you could also run
 $ hab bldr job start core/nginx
 ```
 
+This command will have output similar to:
+```
+Ω Creating build job for core/nginx
+✓ Created build job. The id is 876066265100378112
+```
+
+You can view the build progress in the web UI or by viewing `/hab/svc/builder-worker/data/876066265100378112/log_pipe-876066265100378112.log`. Replace `876066265100378112` with the group ID output by the `start` command.
+
+Note: you will need to upload additional packages to the core origin for the `core/nginx` build to succeed. Follow the same procedure as for `core/hab-backline`. Currently `core/gcc` and `core/libedit` are required.
+
 ## Unsupported Dev Environments
 
 Maintainers have historically been able to use alternative development environment setups. If you would like to explore using other OS's or Docker or Vagrant - please check out these links. **Do remember that these are NOT officially supported by the Habitat maintainers - use at your own risk!**
@@ -294,7 +304,7 @@ Work is in progress on the Supervisor and other parts of the toolchain.
 
 Run this command:
 ```
-make bldr-run
+sudo -E make bldr-run
 ```
 
 # Building and running individual components
