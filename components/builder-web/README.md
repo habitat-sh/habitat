@@ -39,8 +39,6 @@ There are couple of things you can do to avoid this:
 
   * If you're running `bldr-run` in a container or VM, and you've mapped port 3000 from the guest onto your local machine, remove that mapping to allow the `web` process to continue running on port 3000 on the guest, and you to run on port 3000 locally without a conflict. This is a good option of you're a regular contributor to the UI. Some providers (e.g., VirtualBox) also allow you to change this mapping in the UI without requiring a restart.
 
-  * Prevent `bldr-run` from starting the `web` process by commenting the `web` line in `support/Procfile` and restarting the `bldr-run` task.
-
   * Set up a custom GitHub OAuth application to run the dev service somewhere other than `localhost:3000`. See below for instructions on how to do that.
 
 ### Installing Node
