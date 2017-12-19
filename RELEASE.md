@@ -114,6 +114,10 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 
 > Example: If the release version was `0.9.0` then the contents of `VERSION` might read `0.10.0-dev` if your next target is `0.10.0`.
 
+# Troubleshooting Mac deployments
+
+Travis runs the Mac deployment scripts via SSH to a headless Mac builder affectionately called `74.80.245.236`. You can SSH to this machine as `admin` using the `habitat-srv-admin` key available in 1password.
+
 # If your Release is going to cause downtime
 
 1. Put a scheduled maintanence window into PagerDuty so the on-call doesn't go off.
@@ -124,13 +128,7 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 
 # Release Notification
 
-1. Create a new post in [Habitat Announcements](https://forums.habitat.sh/c/habitat-announcements)
+1. Create a new post in [Habitat Announcements](https://discourse.chef.io/c/habitat)
 1. Link forum post to the github release
 1. Link github release to forum post
-1. Message Slack channels and include the link to the release post
-   1. cft-announce (Chef Slack)
-   1. eng-announce (Chef Slack)
-   1. product-marketing (Chef Slack)
-   1. general (Habitat Slack)
-   1. announcements (Habitat Slack)
 1. Tweet a link to the announcement @habitatsh
