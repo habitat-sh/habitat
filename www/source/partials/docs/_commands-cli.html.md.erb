@@ -18,7 +18,6 @@ The main program that allows you to sign and upload packages, start Habitat serv
     config    Commands relating to Habitat runtime config
     file      Commands relating to Habitat files
     help      Prints this message or the help of the given subcommand(s)
-    job       Commands relating to build job control
     origin    Commands relating to Habitat origin keys
     pkg       Commands relating to Habitat packages
     plan      Commands relating to plans and other app-specific configuration.
@@ -37,10 +36,11 @@ The main program that allows you to sign and upload packages, start Habitat serv
     start      Alias for: 'svc start'
     stop       Alias for: 'svc stop'
     term       Alias for: 'sup term'
+
 ***
 
 <h2 id="hab-bldr" class="anchor">hab bldr</h2>
-Commands relating to Habitat build service.
+Commands relating to Habitat Builder.
 
 **USAGE**
 
@@ -54,10 +54,12 @@ Commands relating to Habitat build service.
 
     encrypt  Reads a stdin stream containing plain text and outputs an encrypted representation
     help     Prints this message or the help of the given subcommand(s)
+    job      Commands relating to Habitat Builder jobs
 
 **Read More:**
 
 - [hab bldr encrypt](#hab-bldr-encrypt)
+- [hab bldr job](#hab-bldr-job)
 
 <h2 id="hab-bldr-encrypt" class="anchor">hab bldr encrypt</h2>
 Reads a stdin stream containing plain text and outputs an encrypted representation.
@@ -73,7 +75,152 @@ Reads a stdin stream containing plain text and outputs an encrypted representati
 
 **OPTIONS** 
 
-    -u, --url <BUILDER_URL>    Use a specific Builder URL (ex: https://bldr.habitat.sh)
+    -u, --url <BLDR_URL>    Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+
+<h2 id="hab-bldr-job" class="anchor">hab bldr job</h2>
+Commands relating to Habitat Builder jobs
+
+**USAGE**
+
+    hab bldr job [SUBCOMMAND]
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**SUBCOMMANDS**
+
+    cancel     Cancel a build job group and any in-progress builds
+    demote     Demote packages from a completed build job to a specified channel
+    help       Prints this message or the help of the given subcommand(s)
+    promote    Promote packages from a completed build job to a specified channel
+    start      Schedule a build job or group of jobs
+    status     Get the status of a job group
+
+**Read More:**
+
+- [hab bldr job cancel](#hab-bldr-job-cancel)
+- [hab bldr job demote](#hab-bldr-job-demote)
+- [hab bldr job promote](#hab-bldr-job-promote)
+- [hab bldr job start](#hab-bldr-job-start)
+- [hab bldr job status](#hab-bldr-job-promote)
+
+<h2 id="hab-bldr-job-cancel" class="anchor">hab bldr job cancel</h2>
+Cancel a build job group and any in-progress builds
+
+**USAGE**
+
+    hab bldr job cancel [OPTIONS] <GROUP_ID>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+
+**ARGS**
+
+    <GROUP_ID>    The job group id that was returned from "hab bldr start" (ex: 771100000000000000)
+
+<h2 id="hab-bldr-job-demote" class="anchor">hab bldr job demote</h2>
+Demote packages from a completed build job to a specified channel
+
+**USAGE**
+
+    hab bldr job demote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
+
+**FLAGS**
+
+    -i, --interactive    Allow editing the list of demotable packages
+    -v, --verbose        Show full list of demotable packages
+    -h, --help           Prints help information
+    -V, --version        Prints version information
+
+**OPTIONS**
+
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+    -o, --origin <ORIGIN>      Limit the demotable packages to the specified origin
+
+**ARGS**
+
+    <GROUP_ID>    The job id that was returned from "hab bldr start" (ex: 771100000000000000)
+    <CHANNEL>     The target channel name
+
+<h2 id="hab-bldr-job-promote" class="anchor">hab bldr job promote</h2>
+Promote packages from a completed build job to a specified channel
+
+**USAGE**
+
+    hab bldr job promote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
+
+**FLAGS**
+
+    -i, --interactive    Allow editing the list of promotable packages
+    -v, --verbose        Show full list of promotable packages
+    -h, --help           Prints help information
+    -V, --version        Prints version information
+
+**OPTIONS**
+
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+    -o, --origin <ORIGIN>      Limit the promotable packages to the specified origin
+
+**ARGS**
+
+    <GROUP_ID>    The job id that was returned from "hab bldr start" (ex: 771100000000000000)
+    <CHANNEL>     The target channel name
+
+<h2 id="hab-bldr-job-start" class="anchor">hab bldr job start</h2>
+Schedule a build job or group of jobs
+
+**USAGE**
+
+    hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT>
+
+**FLAGS**
+
+    -g, --group      Schedule jobs for this package and all of its reverse dependencies
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+
+**ARGS**
+
+    <PKG_IDENT>    The origin and name of the package to schedule a job for (eg: core/redis)
+
+<h2 id="hab-bldr-job-status" class="anchor">hab bldr job status</h2>
+Get the status of a job group
+
+**USAGE**
+
+    hab bldr job status [OPTIONS] <GROUP_ID|--origin <ORIGIN>>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -u, --url <BLDR_URL>     Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+    -o, --origin <ORIGIN>    You can see the status of every group in an origin by providing this value
+
+**ARGS**
+
+    <GROUP_ID>    The group id that was returned from "hab bldr job start" (ex: 771100000000000000)
+
+***
 
 <h2 id="hab-cli" class="anchor">hab cli</h2>
 Commands relating to Habitat runtime config.
@@ -111,7 +258,8 @@ Creates command-line completers for your shell.
 
 **OPTIONS** 
 
-    -s, --shell <SHELL>    The name of the shell you want to generate the command-completion. Supported Shells: bash, fish, zsh, powershell [values: bash, fish, zsh, powershell]
+    -s, --shell <SHELL>    The name of the shell you want to generate the command-completion. Supported
+                            Shells: bash, fish, zsh, powershell [values: bash, fish, zsh, powershell]
 
 <h2 id="hab-cli-setup" class="anchor">hab cli setup</h2>
 Sets up the CLI with reasonable defaults.
@@ -124,6 +272,8 @@ Sets up the CLI with reasonable defaults.
 
     -h, --help       Prints help information
     -V, --version    Prints version information
+
+***
 
 <h2 id="hab-config-apply" class="anchor">hab config apply</h2>
 Applies a configuration to a group of Habitat Supervisors.
@@ -140,7 +290,8 @@ Applies a configuration to a group of Habitat Supervisors.
 **OPTIONS** 
 
         --org <ORG>      Name of service organization to use for encryption
-    -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers (default: 127.0.0.1:9638)
+    -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers 
+                            (default: 127.0.0.1:9638)
     -r, --ring <RING>    Ring key name, which will encrypt communication messages
     -u, --user <USER>    Name of a user key to use for encryption
 
@@ -153,6 +304,8 @@ Applies a configuration to a group of Habitat Supervisors.
 **Read More**: 
 
 - <a href="/docs/using-habitat/#config-updates">Knowledge Article: Configuration updates</a>
+
+***
 
 <h2 id="hab-file-upload" class="anchor">hab file</h2>
 Upload a file to the Supervisor ring.
@@ -169,55 +322,18 @@ Upload a file to the Supervisor ring.
 **OPTIONS** 
 
         --org  <ORG>     Name of service organization
-    -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers (default: 127.0.0.1:9638)
+    -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers 
+                            (default: 127.0.0.1:9638)
     -r, --ring <RING>    Ring key name, which will encrypt communication messages
     -u, --user <USER>    Name of the user key
 
 **ARGS** 
 
     <SERVICE_GROUP>     Target service group (ex: redis.default)
-    <VERSION_NUMBER>    A version number (positive integer) for this
-                        configuration (ex: 42)
+    <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
     <FILE>              Path to local file on disk
 
-<h2 id="hab-job" class="anchor">hab job</h2>
-Commands relating to build job control.
-
-**USAGE** 
-
-    hab job [SUBCOMMAND]
-
-**FLAGS** 
-
-    -h, --help    Prints help information
-
-**SUBCOMMANDS** 
-
-    help       Prints this message or the help of the given subcommand(s)
-    promote    Promote every package in a job group to a specified channel
-    start      Schedule a job or group of jobs
-
-**Read More** 
-
-- [hab job promote](#hab-job-promote)
-- [hab job start](#hab-job-start)
-
-<h2 id="hab-job-promote" class="anchor">hab job promote</h2>
-Promote every package in a job group to a specified channel.
-
-**USAGE** 
-
-    hab job promote [OPTIONS] <GROUP_ID> <CHANNEL>
-
-**FLAGS** 
-
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-**OPTIONS** 
-
-    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
-    -u, --url <BUILDER_URL>      Use a specific Builder URL (ex: https://bldr.habitat.sh)
+***
 
 <h2 id="hab-origin-key" class="anchor">hab origin key</h2>
 Commands relating to Habitat origin key maintenance.
@@ -237,7 +353,8 @@ Commands relating to Habitat origin key maintenance.
     export      Outputs the latest origin key contents to stdout
     generate    Generates a Habitat origin key
     help        Prints this message or the help of the given subcommand(s)
-    import      Reads a stdin stream containing a public or secret origin key contents and writes the key to disk
+    import      Reads a stdin stream containing a public or secret origin key contents and writes 
+                    the key to disk
     upload      Upload origin keys to Habitat Builder
 
 **Read More:** 
@@ -254,25 +371,27 @@ Commands relating to Habitat origin key maintenance.
 <h2 id="hab-origin-key-download" class="anchor">hab origin key download</h2>
 Download origin key(s) to HAB_CACHE_KEY_PATH
 
-**USAGE** 
+**USAGE**
 
-    hab origin key download [OPTIONS] <ORIGIN> [REVISION]
+    hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
 
-**FLAGS** 
+**FLAGS**
 
+    -s, --secret     Download secret key instead of public key
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
-    -u, --url <BUILDER_URL>    Use a specific Builder URL (ex: https://bldr.habitat.sh)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder (required for downloading secret keys)
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
 
-**ARGS** 
+**ARGS**
 
     <ORIGIN>      The origin name
     <REVISION>    The key revision
 
-<h2 id="hab-origin-key-export" class="anchor">hab origin key download</h2>
+<h2 id="hab-origin-key-export" class="anchor">hab origin key export</h2>
 Outputs the latest origin key contents to stdout.
 
 **USAGE** 
@@ -286,13 +405,13 @@ Outputs the latest origin key contents to stdout.
 
 **OPTIONS** 
 
-    -t, --type <PAIR_TYPE>    Export either the `public' or `secret' key
+    -t, --type <PAIR_TYPE>    Export either the 'public' or 'secret' key
 
 **ARGS** 
 
     <ORIGIN>
 
-<h2 id="hab-origin-key-generate" class="anchor">hab origin key download</h2>
+<h2 id="hab-origin-key-generate" class="anchor">hab origin key generate</h2>
 Generates a Habitat origin key.
 
 **USAGE** 
@@ -308,7 +427,7 @@ Generates a Habitat origin key.
 
     <ORIGIN>    The origin name
 
-<h2 id="hab-origin-key-import" class="anchor">hab origin key download</h2>
+<h2 id="hab-origin-key-import" class="anchor">hab origin key import</h2>
 Reads a stdin stream containing a public or secret origin key contents and writes the key to disk.
 
 **USAGE** 
@@ -320,7 +439,7 @@ Reads a stdin stream containing a public or secret origin key contents and write
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-<h2 id="hab-origin-key-upload" class="anchor">hab origin key download</h2>
+<h2 id="hab-origin-key-upload" class="anchor">hab origin key upload</h2>
 Upload origin keys to Habitat Builder.
 
 **USAGE** 
@@ -336,13 +455,15 @@ Upload origin keys to Habitat Builder.
 **OPTIONS** 
 
     -z, --auth <AUTH_TOKEN>     Authentication token for Habitat Builder
-    -u, --url <BUILDER_URL>       Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
+    -u, --url <BLDR_URL>       Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
         --pubfile <PUBLIC_FILE> Path to a local public origin key file on disk
         --secfile <SECRET_FILE> Path to a local secret origin key file on disk
 
 **ARGS** 
 
     <ORIGIN>    The origin name
+
+***
 
 <h2 id="hab-pkg" class="anchor">hab pkg</h2>
 Commands relating to Habitat packages.
@@ -355,9 +476,10 @@ Commands relating to Habitat packages.
 
     -h, --help    Prints help information
 
-**SUBCOMMANDS** 
+**SUBCOMMANDS**
 
-    binlink     Creates a symlink for a package binary in a common 'PATH' location
+    binds       Displays the binds for a service
+    binlink     Creates a binlink for a package binary in a common 'PATH' location
     build       Builds a Plan using a Studio
     channels    Find out what channels a package belongs to
     config      Displays the default configuration options for a service
@@ -367,42 +489,61 @@ Commands relating to Habitat packages.
     export      Exports the package to the specified format
     hash        Generates a blake2b hashsum from a target at any given filepath
     help        Prints this message or the help of the given subcommand(s)
-    install     Installs a Habitat package from Habitat Builder or locally from a Habitat Artifact
+    install     Installs a Habitat package from Builder or locally from a Habitat Artifact
     path        Prints the path to a specific installed release of a package
     promote     Promote a package to a specified channel
     provides    Search installed Habitat packages for a given file
-    search      Search for a package on Habitat Builder
+    search      Search for a package in Builder
     sign        Signs an archive with an origin key, generating a Habitat Artifact
-    upload      Uploads a local Habitat Artifact to Habitat Builder
+    upload      Uploads a local Habitat Artifact to Builder
     verify      Verifies a Habitat Artifact with an origin key
+
 
 **Read More** 
 
 - <a href="/docs/developing-packages/">Knowledge Article: Developing Packages</a>
-- [hab pkg binlink](#hab-pkg-binlink) Creates a symlink for a package binary in a common 'PATH' location
-- [hab pkg build](#hab-pkg-build) Builds a Plan using a Studio
-- [hab pkg channels](#hab-pkg-channels) Find out what channels a package belongs to
-- [hab pkg config](#hab-pkg-config) Displays the default configuration options for a service
-- [hab pkg demote](#hab-pkg-demote) Demote a package from a specified channel
-- [hab pkg env](#hab-pkg-env) Prints the runtime environment of a specific installed package
-- [hab pkg exec](#hab-pkg-exec) Executes a command using the 'PATH' context of an installed package
-- [hab pkg export](#hab-pkg-export) Exports the package to the specified format
-- [hab pkg hash](#hab-pkg-hash) Generates a blake2b hashsum from a target at any given filepath
-- [hab pkg install](#hab-pkg-install) Installs a Habitat package from Habitat Builder or locally from a Habitat Artifact
-- [hab pkg path](#hab-pkg-path) Prints the path to a specific installed release of a package
-- [hab pkg promote](#hab-pkg-promote) Promote a package to a specified channel
-- [hab pkg provides](#hab-pkg-provides) Search installed Habitat packages for a given file
-- [hab pkg search](#hab-pkg-provides) Search for a package on Habitat Builder
-- [hab pkg sign](#hab-pkg-sign) Signs an archive with an origin key, generating a Habitat Artifact
-- [hab pkg upload](#hab-pkg-upload) Uploads a local Habitat Artifact to Habitat Builder
-- [hab pkg verify](#hab-pkg-verify) Verifies a Habitat Artifact with an origin key
+- [binds](#hab-pkg-binds) Displays the binds for a service
+- [binlink](#hab-pkg-binlink) Creates a binlink for a package binary in a common 'PATH' location
+- [build](#hab-pkg-build) Builds a Plan using a Studio
+- [channels](#hab-pkg-channels) Find out what channels a package belongs to
+- [config](#hab-pkg-config) Displays the default configuration options for a service
+- [demote](#hab-pkg-demote) Demote a package from a specified channel
+- [env](#hab-pkg-env) Prints the runtime environment of a specific installed package
+- [exec](#hab-pkg-exec) Executes a command using the 'PATH' context of an installed package
+- [export](#hab-pkg-export) Exports the package to the specified format
+- [hash](#hab-pkg-hash) Generates a blake2b hashsum from a target at any given filepath
+- [install](#hab-pkg-install) Installs a Habitat package from Builder or locally from a Habitat Artifact
+- [path](#hab-pkg-path) Prints the path to a specific installed release of a package
+- [promote](#hab-pkg-promote) Promote a package to a specified channel
+- [provides](#hab-pkg-provides) Search installed Habitat packages for a given file
+- [search](#hab-pkg-search) Search for a package in Builder
+- [sign](#hab-pkg-sign) Signs an archive with an origin key, generating a Habitat Artifact
+- [upload](#hab-pkg-upload) Uploads a local Habitat Artifact to Builder
+- [verify](#hab-pkg-verify) Verifies a Habitat Artifact with an origin key
+
+<h2 id="hab-pkg-binds" class="anchor">hab pkg binds</h2>
+Displays the binds for a service
+
+**USAGE**
+
+    hab pkg binds <PKG_IDENT>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-statis/1.42.2)
+
 
 <h2 id="hab-pkg-binlink" class="anchor">hab pkg binlink</h2>
 Creates a symlink for a package binary in a common 'PATH' location
 
 **USAGE** 
 
-    hab pkg binlink [OPTIONS] <PKG_IDENT> [BINARY]
+    hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 
 **FLAGS** 
 
@@ -416,8 +557,7 @@ Creates a symlink for a package binary in a common 'PATH' location
 
 **ARGS** 
 
-    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-
-                   static/1.42.2)
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     <BINARY>       The command to symlink (ex: bash)
 
 <h2 id="hab-pkg-build" class="anchor">hab pkg build</h2>
@@ -448,20 +588,21 @@ Builds a Plan using a Studio
 <h2 id="hab-pkg-channels" class="anchor">hab pkg channels</h2>
 Find out what channels a package belongs to
 
-**USAGE** 
+**USAGE**
 
     hab pkg channels [OPTIONS] <PKG_IDENT>
 
-**FLAGS** 
+**FLAGS**
 
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
-    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
 
-**ARGS** 
+**ARGS**
 
     <PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
 
@@ -496,7 +637,7 @@ Demote a package from a specified channel
 **OPTIONS** 
 
     -z, --auth <AUTH_TOKEN>    Authentication token for Habitat Builder
-    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
+    -u, --url <BLDR_URL>       Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
 
 **ARGS** 
 
@@ -540,25 +681,27 @@ Executes a command using the 'PATH' context of an installed package
 <h2 id="hab-pkg-export" class="anchor">hab pkg export</h2>
 Exports the package to the specified format
 
-**USAGE** 
+**USAGE**
 
     hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 
-**FLAGS** 
+**FLAGS**
 
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
-    -c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel (default: stable)
-    -u, --url <BUILDER_URL>    Retrieve the container's package from the specified Habitat Builder (default: https://bldr.habitat.sh/)
+    -u, --url <BLDR_URL>       Retrieve the container's package from the specified Builder 
+                                    (default: https://bldr.habitat.sh)
+    -c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel
+                                    (default: stable)
 
-**ARGS** 
+**ARGS**
 
-    <FORMAT>       The export format (ex: aci, cloudfoundry (cf), docker, kubernetes, mesos, or tar)
-    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or
-                   filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    <FORMAT>       The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath
+                    to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-hash" class="anchor">hab pkg hash</h2>
 Generates a blake2b hashsum from a target at any given filepath
@@ -577,28 +720,29 @@ Generates a blake2b hashsum from a target at any given filepath
     <SOURCE>    A filepath of the target
 
 <h2 id="hab-pkg-install" class="anchor">hab pkg install</h2>
-Installs a Habitat package from Habitat Builder or locally from a Habitat Artifact
+Installs a Habitat package from Builder or locally from a Habitat Artifact
 
-**USAGE** 
+**USAGE**
 
     hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 
-**FLAGS** 
+**FLAGS**
 
     -b, --binlink    Binlink all binaries from installed package(s)
     -f, --force      Overwrite existing binlinks
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
     -c, --channel <CHANNEL>    Install from the specified release channel (default: stable)
-    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (default: https://bldr.habitat.sh)
 
-**ARGS** 
+**ARGS**
 
-    <PKG_IDENT_OR_ARTIFACT>...   
-        One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    <PKG_IDENT_OR_ARTIFACT>... One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to
+                                a Habitat Artifact (ex: ~/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-path" class="anchor">hab pkg path</h2>
 Prints the path to a specific installed release of a package
@@ -619,21 +763,21 @@ Prints the path to a specific installed release of a package
 <h2 id="hab-pkg-promote" class="anchor">hab pkg promote</h2>
 Promote a package to a specified channel
 
-**USAGE** 
+**USAGE**
 
     hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL>
 
-**FLAGS** 
+**FLAGS**
 
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
-    -z, --auth <AUTH_TOKEN>    Authentication token for Habitat Builder
-    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
 
-**ARGS** 
+**ARGS**
 
     <PKG_IDENT>    A fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)
     <CHANNEL>      Promote to the specified release channel
@@ -648,8 +792,7 @@ Search installed Habitat packages for a given file
 **FLAGS** 
 
     -p               Show full path to file
-    -r               Show fully qualified package names (ex: core/busybox-
-                     static/1.24.2/20160708162350)
+    -r               Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)
     -h, --help       Prints help information
     -V, --version    Prints version information
 
@@ -658,22 +801,24 @@ Search installed Habitat packages for a given file
     <FILE>    File name to find
 
 <h2 id="hab-pkg-search" class="anchor">hab pkg search</h2>
-Search for a package on Habitat Builder
+Search for a package in Builder
 
-**USAGE** 
+**USAGE**
 
     hab pkg search [OPTIONS] <SEARCH_TERM>
 
-**FLAGS** 
+**FLAGS**
 
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
-    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
 
-**ARGS** 
+**ARGS**
+
     <SEARCH_TERM>    Search term
 
 <h2 id="hab-pkg-sign" class="anchor">hab pkg sign</h2>
@@ -695,30 +840,32 @@ Signs an archive with an origin key, generating a Habitat Artifact
 **ARGS** 
 
     <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-    <DEST>      The destination path to the signed Habitat Artifact (ex:/home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    <DEST>      The destination path to the signed Habitat Artifact 
+                    (ex:/home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-upload" class="anchor">hab pkg upload</h2>
-Uploads a local Habitat Artifact to Habitat Builder
+Uploads a local Habitat Artifact to Builder
 
-**USAGE** 
+**USAGE**
 
     hab pkg upload [OPTIONS] <HART_FILE>...
 
-**FLAGS** 
+**FLAGS**
 
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
-    -z, --auth <AUTH_TOKEN>    Authentication token for Habitat Builder
-    -c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to `unstable`, regardless of the value of this option. (default: none)
-    -u, --url <BUILDER_URL>    Use a specific Habitat Builder URL (ex: https://bldr.habitat.sh)
+    -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+    -u, --url <BLDR_URL>       Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+    -c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded
+                                to `unstable`, regardless of the value of this option. (default: none)
 
-**ARGS** 
+**ARGS**
 
-    <HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-
-                      3.0.7-21120102031201-x86_64-linux.hart)
+    <HART_FILE>...    One or more filepaths to a Habitat Artifact 
+                        (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-verify" class="anchor">hab pkg verify</h2>
 Verifies a Habitat Artifact with an origin key
@@ -736,17 +883,19 @@ Verifies a Habitat Artifact with an origin key
 
     <SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
+***
+
 <h2 id="hab-plan-init" class="anchor">hab plan init</h2>
 Generates common package specific configuration files. Executing without argument will create
 a `habitat` directory in your current folder for the plan. If `PKG_NAME` is specified it will
-create a folder with that name. Environment variables (those starting with 'pkg_') that are
+create a folder with that name. Environment variables (those starting with 'pkg_') that are 
 set will be used in the generated plan
 
-**USAGE** 
+**USAGE**
 
     hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 
-**FLAGS** 
+**FLAGS**
 
         --with-all          Generate omnibus plan with all available plan options
         --with-callbacks    Include callback functions in template
@@ -754,14 +903,16 @@ set will be used in the generated plan
     -h, --help              Prints help information
     -V, --version           Prints version information
 
-**OPTIONS** 
+**OPTIONS**
 
     -o, --origin <ORIGIN>              Origin for the new app
-    -s, --scaffolding <SCAFFOLDING>    Specify explicit scaffolding type for your app
+    -s, --scaffolding <SCAFFOLDING>    Specify explicit Scaffolding for your app (ex: node, ruby)
 
-**ARGS** 
+**ARGS**
 
     <PKG_NAME>    Name for the new app
+
+***
 
 <h2 id="hab-ring-key" class="anchor">hab ring key</h2>
 Commands relating to Habitat ring keys
@@ -834,6 +985,8 @@ Reads a stdin stream containing ring key contents and writes the key to disk
     -h, --help       Prints help information
     -V, --version    Prints version information
 
+***
+
 <h2 id="hab-studio" class="anchor">hab studio</h2>
 
 **USAGE** 
@@ -857,7 +1010,8 @@ Reads a stdin stream containing ring key contents and writes the key to disk
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: $PWD)
-    -t <STUDIO_TYPE>      Sets a Studio type when creating (default: default) Valid types: [default baseimage busybox stage1]
+    -t <STUDIO_TYPE>      Sets a Studio type when creating (default: default) Valid types: 
+                            [default baseimage busybox stage1]
 
 **SUBCOMMANDS** 
 
@@ -875,22 +1029,24 @@ Reads a stdin stream containing ring key contents and writes the key to disk
 
 **ENVIRONMENT VARIABLES** 
 
-    ARTIFACT_PATH       Sets the source artifact cache path (`-a' option overrides)
-    HAB_NOCOLORING      Disables text coloring mode despite TERM capabilities
-    HAB_NONINTERACTIVE  Disables interactive progress bars despite tty
-    HAB_ORIGIN          Propagates this variable into any studios
-    HAB_ORIGIN_KEYS     Installs secret keys (`-k' option overrides)
-    HAB_STUDIOS_HOME    Sets a home path for all Studios (default: /hab/studios)
-    HAB_STUDIO_ROOT     Sets a Studio root (`-r' option overrides)
-    NO_ARTIFACT_PATH    If set, do not mount the source artifact cache path (`-N' flag overrides)
-    NO_SRC_PATH         If set, do not mount the source path (`-n' flag overrides)
-    QUIET               Prints less output (`-q' flag overrides)
-    SRC_PATH            Sets the source path (`-s' option overrides)
-    STUDIO_TYPE         Sets a Studio type when creating (`-t' option overrides)
-    VERBOSE             Prints more verbose output (`-v' flag overrides)
-    http_proxy          Sets an http_proxy environment variable inside the Studio
-    https_proxy         Sets an https_proxy environment variable inside the Studio
-    no_proxy            Sets a no_proxy environment variable inside the Studio
+    ARTIFACT_PATH         Sets the source artifact cache path ('-a' option overrides)
+    HAB_NOCOLORING        Disables text coloring mode despite TERM capabilities
+    HAB_NONINTERACTIVE    Disables interactive progress bars despite tty
+    HAB_ORIGIN            Propagates this variable into any studios
+    HAB_ORIGIN_KEYS       Installs secret keys ('-k' option overrides)
+    HAB_STUDIOS_HOME      Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_NOSTUDIORC Disables sourcing a '.studiorc' in 'studio enter'
+    HAB_STUDIO_ROOT       Sets a Studio root ('-r' option overrides)
+    HAB_STUDIO_SUP        Sets args for a Supervisor in 'studio enter'
+    NO_ARTIFACT_PATH      If set, do not mount the source artifact cache path ('-N' flag overrides)
+    NO_SRC_PATH           If set, do not mount the source path ('-n' flag overrides)
+    QUIET                 Prints less output ('-q' flag overrides)
+    SRC_PATH              Sets the source path ('-s' option overrides)
+    STUDIO_TYPE           Sets a Studio type when creating ('-t' option overrides)
+    VERBOSE               Prints more verbose output ('-v' flag overrides)
+    http_proxy            Sets an http_proxy environment variable inside the Studio
+    https_proxy           Sets an https_proxy environment variable inside the Studio
+    no_proxy              Sets a no_proxy environment variable inside the Studio
 
 **EXAMPLES** 
 
@@ -981,6 +1137,8 @@ Run a command in a Studio
 
     hab-studio run wget --version
 
+***
+
 <h2 id="hab-sup" class="anchor">hab sup</h2>
 The Habitat Supervisor
 
@@ -995,19 +1153,23 @@ hab sup [FLAGS] <SUBCOMMAND>
     -h, --help        Prints help information
     -V, --version     Prints version information
 
-**SUBCOMMANDS** 
+**SUBCOMMANDS**
 
     bash      Start an interactive Bash-like shell
     config    Displays the default configuration options for a service
     help      Prints this message or the help of the given subcommand(s)
-    load      Load a service to be started and supervised by Habitat from a package or artifact. Services started in this manner will persist through Supervisor restarts.
+    load      Load a service to be started and supervised by Habitat from a package or artifact. Services started in
+              this manner will persist through Supervisor restarts.
     run       Run the Habitat Supervisor
     sh        Start an interactive Bourne-like shell
-    start     Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the Habitat Supervisor is not already running this will additionally start one for you.
+    start     Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the
+              Habitat Supervisor is not already running this will additionally start one for you.
     status    Query the status of Habitat services.
     stop      Stop a running Habitat service.
-    term      Gracefully terminate the Habitat Supervisor and all of it's running services
-    unload    Unload a persistent or transient service started by the Habitat supervisor. If the Supervisor is running when the service is unloaded the service will be stopped.
+    term      Gracefully terminate the Habitat Supervisor and all of its running services
+    unload    Unload a persistent or transient service started by the Habitat Supervisor. If the Supervisor is
+              running when the service is unloaded the service will be stopped.
+
 
 **Read More:** 
 
@@ -1057,54 +1219,48 @@ Displays the default configuration options for a service
     <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 
 <h2 id="hab-sup-load" class="anchor">hab sup load</h2>
-Load a service to be started and supervised by Habitat from a package or artifact. Services started in this manner will persist through Supervisor restarts.
+Load a service to be started and supervised by Habitat from a package or artifact. Services started in this manner will
+persist through Supervisor restarts.
 
-**USAGE** 
+**USAGE**
 
-    hab sup load [FLAGS] [OPTIONS] <PKG_IDENT>
+    hab-sup load [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
 
-**FLAGS** 
+**FLAGS**
 
-    -f, --force       Load or reload an already loaded service. If the service was previously
-                      loaded and running this operation will also restart the service
+    -f, --force       Load or reload an already loaded service. If the service was previously loaded and running this
+                      operation will also restart the service
         --no-color    Turn ANSI color off
     -v                Verbose output; shows line numbers
     -h, --help        Prints help information
 
-**OPTIONS** 
+**OPTIONS**
 
     -a, --application <APPLICATION>    Application name; [default: not set].
         --bind <BIND>...               One or more service groups to bind to a configuration
-        --channel <CHANNEL>
-            Receive package updates from the specified release channel [default: stable]
-
-    -u, --url <BUILDER_URL>
-            Receive package updates from a Habitat Builder at the specified URL [default:
-            https://bldr.habitat.sh]
+    -u, --url <BLDR_URL>               Receive package updates from Builder at the specified URL [default:
+                                       https://bldr.habitat.sh]
+        --channel <CHANNEL>            Receive package updates from the specified release channel [default: stable]
     -e, --environment <ENVIRONMENT>    Environment name; [default: not set].
-        --group <GROUP>
-            The service group; shared config and topology [default: default].
-
-        --override-name <NAME>
-            The name for the state directory if there is more than one Supervisor running
-            [default: default]
-    -s, --strategy <STRATEGY>
-            The update strategy; [default: none] [values: none, at-once, rolling]
-
+        --group <GROUP>                The service group; shared config and topology [default: default].
+        --override-name <NAME>         The name for the state directory if there is more than one Supervisor running
+                                       [default: default]
+    -s, --strategy <STRATEGY>          The update strategy; [default: none] [values: none, at-once, rolling]
     -t, --topology <TOPOLOGY>          Service topology; [default: none]
 
-**ARGS** 
+**ARGS**
 
-    <PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+    <PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
+                               /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-sup-run" class="anchor">hab sup run</h2>
 Run the Habitat Supervisor
 
-**USAGE** 
+**USAGE**
 
-    hab sup run [FLAGS] [OPTIONS]
+    hab-sup run [FLAGS] [OPTIONS]
 
-**FLAGS** 
+**FLAGS**
 
     -A, --auto-update       Enable automatic updates for the Supervisor itself
         --no-color          Turn ANSI color off
@@ -1112,31 +1268,22 @@ Run the Habitat Supervisor
     -v                      Verbose output; shows line numbers
     -h, --help              Prints help information
 
-**OPTIONS** 
+**OPTIONS**
 
-        --channel <CHANNEL>
-            Receive Supervisor updates from the specified release channel [default: stable]
-
-    -u, --url <BUILDER_URL>
-            Receive Supervisor updates from the Habitat Builder at the specified URL [default:
-            https://bldr.habitat.sh/]
-    -n, --events <EVENTS>
-            Name of the service group running a Habitat EventSrv to forward supervisor and
-            service event data to
-        --listen-gossip <LISTEN_GOSSIP>
-            The listen address for the gossip system [default: 0.0.0.0:9638]
-
-        --listen-http <LISTEN_HTTP>
-            The listen address for the HTTP gateway [default: 0.0.0.0:9631]
-
-        --override-name <NAME>
-            The name of the Supervisor if launching more than one [default: default]
-
-        --org <ORGANIZATION>
-            The organization that the supervisor and it's subsequent services are part of
-            [default: default]
-        --peer <PEER>...                   The listen address of an initial peer (IP[:PORT])
-    -r, --ring <RING>                      Ring key name
+    -u, --url <BLDR_URL>                       Receive Supervisor updates from Builder at the specified URL [default:
+                                               https://bldr.habitat.sh]
+        --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default:
+                                               stable]
+    -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward
+                                               Supervisor and service event data to
+        --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
+        --listen-http <LISTEN_HTTP>            The listen address for the HTTP gateway [default: 0.0.0.0:9631]
+        --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
+        --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are
+                                               part of [default: default]
+        --peer <PEER>...                       The listen address of an initial peer (IP[:PORT])
+        --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
+    -r, --ring <RING>                          Ring key name
 
 <h2 id="hab-sup-sh" class="anchor">hab sup sh</h2>
 Start an interactive Bourne-like shell
@@ -1152,13 +1299,14 @@ Start an interactive Bourne-like shell
     -h, --help        Prints help information
 
 <h2 id="hab-sup-start" class="anchor">hab sup start</h2>
-Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the Habitat Supervisor is not already running this will additionally start one for you.
+Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the Habitat
+Supervisor is not already running this will additionally start one for you.
 
-**USAGE** 
+**USAGE**
 
-    hab sup start [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
+    hab-sup start [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
 
-**FLAGS** 
+**FLAGS**
 
     -A, --auto-update       Enable automatic updates for the Supervisor itself
         --no-color          Turn ANSI color off
@@ -1166,52 +1314,34 @@ Start a loaded, but stopped, Habitat service or a transient service from a packa
     -v                      Verbose output; shows line numbers
     -h, --help              Prints help information
 
-**OPTIONS** 
+**OPTIONS**
 
-    -a, --application <APPLICATION>        Application name; [default: not set].
-        --bind <BIND>...
-            One or more service groups to bind to a configuration
+    -a, --application <APPLICATION>            Application name; [default: not set].
+        --bind <BIND>...                       One or more service groups to bind to a configuration
+    -u, --url <BLDR_URL>                       Receive package updates from Builder at the specified URL [default:
+                                               https://bldr.habitat.sh]
+        --channel <CHANNEL>                    Receive package updates from the specified release channel [default:
+                                               stable]
+        --config-from <CONFIG_DIR>             Use package config from this path, rather than the package itself
+    -e, --environment <ENVIRONMENT>            Environment name; [default: not set].
+    -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward
+                                               Supervisor and service event data to
+        --group <GROUP>                        The service group; shared config and topology [default: default]
+        --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
+        --listen-http <LISTEN_HTTP>            The listen address for the HTTP gateway [default: 0.0.0.0:9631]
+        --override-name <NAME>                 The name for the state directory if launching more than one Supervisor
+                                               [default: default]
+        --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are
+                                               part of [default: default]
+        --peer <PEER>...                       The listen address of an initial peer (IP[:PORT])
+        --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
+    -r, --ring <RING>                          Ring key name
+    -s, --strategy <STRATEGY>                  The update strategy; [default: none] [values: none, at-once, rolling]
+    -t, --topology <TOPOLOGY>                  Service topology; [default: none]
 
-        --channel <CHANNEL>
-            Receive package updates from the specified release channel [default: stable]
-
-        --config-from <CONFIG_DIR>
-            Use package config from this path, rather than the package itself
-
-    -u, --url <BUILDER_URL>
-            Receive package updates from the Habitat Builder at the specified URL [default:
-            https://bldr.habitat.sh/]
-    -e, --environment <ENVIRONMENT>        Environment name; [default: not set].
-    -n, --events <EVENTS>
-            Name of the service group running a Habitat EventSrv to forward supervisor and
-            service event data to
-        --group <GROUP>
-            The service group; shared config and topology [default: default]
-
-        --listen-gossip <LISTEN_GOSSIP>
-            The listen address for the gossip system [default: 0.0.0.0:9638]
-
-        --listen-http <LISTEN_HTTP>
-            The listen address for the HTTP gateway [default: 0.0.0.0:9631]
-
-        --override-name <NAME>
-            The name for the state directory if launching more than one Supervisor [default:
-            default]
-        --org <ORGANIZATION>
-            The organization that the supervisor and it's subsequent services are part of
-            [default: default]
-        --peer <PEER>...                   The listen address of an initial peer (IP[:PORT])
-    -r, --ring <RING>                      Ring key name
-    -s, --strategy <STRATEGY>
-            The update strategy; [default: none] [values: none, at-once, rolling]
-
-    -t, --topology <TOPOLOGY>              Service topology; [default: none]
-
-**ARGS** 
-
-    <PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath
-                               to a Habitat Artifact (ex: /home/core-redis-3.0.7-
-                               21120102031201-x86_64-linux.hart)
+ARGS:
+    <PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
+                               /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-sup-status" class="anchor">hab sup status</h2>
 Query the status of Habitat services.
@@ -1257,7 +1387,7 @@ Stop a running Habitat service.
     <PKG_IDENT>    A Habitat package identifier (ex: core/redis)
 
 <h2 id="hab-sup-term" class="anchor">hab sup term</h2>
-Gracefully terminate the Habitat Supervisor and all of it's running services
+Gracefully terminate the Habitat Supervisor and all of its running services
 
 **USAGE** 
 
@@ -1295,6 +1425,8 @@ Unload a persistent or transient service started by the Habitat supervisor. If t
 
     <PKG_IDENT>    A Habitat package identifier (ex: core/redis)                                  
 
+***
+
 <h2 id="hab-svc-key-generate" class="anchor">hab svc key generate</h2>
 Generates a Habitat service key
 
@@ -1316,6 +1448,8 @@ Generates a Habitat service key
 
 - <a href="/docs/using-habitat/#using-encryption">Knowledge Article: Supervisor Security</a>
 - <a href="/docs/glossary/#sts=Keys">Knowledge Article: Keys</a>
+
+***
 
 <h2 id="hab-user-key-generate" class="anchor">hab user key generate</h2>
 Generates a Habitat user key
