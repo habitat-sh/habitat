@@ -8,9 +8,34 @@
     </div>
   </header>
   <nav class="tabs" mat-tab-nav-bar>
-    <a mat-tab-link *ngFor="let link of navLinks" [routerLink]="link" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
-      {{link}}
-    </a>
+    <a mat-tab-link
+      routerLink="packages"
+      routerLinkActive
+      #packages="routerLinkActive"
+      [active]="packages.isActive">Packages</a>
+    <a mat-tab-link
+      routerLink="keys"
+      routerLinkActive
+      #keys="routerLinkActive"
+      [active]="keys.isActive">Keys</a>
+    <a mat-tab-link
+      routerLink="members"
+      routerLinkActive
+      #members="routerLinkActive"
+      [active]="members.isActive"
+      *ngIf="memberOfOrigin">Members</a>
+    <a mat-tab-link
+      routerLink="settings"
+      routerLinkActive
+      #settings="routerLinkActive"
+      [active]="settings.isActive"
+      *ngIf="memberOfOrigin">Settings</a>
+    <a mat-tab-link
+      routerLink="integrations"
+      routerLinkActive
+      #integrations="routerLinkActive"
+      [active]="integrations.isActive"
+      *ngIf="memberOfOrigin">Integrations</a>
   </nav>
   <router-outlet></router-outlet>
 </div>
