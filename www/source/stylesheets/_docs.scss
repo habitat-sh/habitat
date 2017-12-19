@@ -135,7 +135,7 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 
     &:hover {
       @include shadow-float-hover;
-      transform: translateY(-2px);
+      transform: translateY(-3px);
       transition: all .15s;
     }
   }

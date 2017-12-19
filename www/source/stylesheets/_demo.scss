@@ -87,15 +87,20 @@ $demo-large-breakpoint: rem-calc(1060);
     margin-bottom: rem-calc(90);
     position: relative;
     background-color: $hab-slate;
+    transition: all .1s;
+
+    &:hover {
+      @include shadow-float-hover;
+      transform: translateY(-3px);
+      transition: all .15s;
+    }
 
     @include large-demo {
-
       margin-left: rem-calc(20);
 
       &:first-child {
         margin-left: 0;
       }
-
     }
   }
 }
