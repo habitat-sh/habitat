@@ -60,9 +60,10 @@ do
     fi
 done
 
-for rel in ${pkg_releases[@]}
+for rel_target in ${!pkg_releases[@]}
 do
-    echo "Promoting $rel to $PROMOTE_CHANNEL"
+    rel=${pkg_releases[$rel_target]}
+    echo "Promoting $rel_target-$rel to $PROMOTE_CHANNEL"
     hab pkg promote $rel $PROMOTE_CHANNEL
 done
 
@@ -75,9 +76,9 @@ if [ -z ${WINDOWS_RELEASE+x} ]; then
   exit 1
 fi
 
-echo "Publishing $HAB_VERSION-$LINUX_RELEASE"
+echo "Publishing Linux CLI $HAB_VERSION-$LINUX_RELEASE to bintray"
 curl -u $BINTRAY_USER:$BINTRAY_KEY -X POST https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-linux/$HAB_VERSION-$LINUX_RELEASE/publish
-echo "Publishing $HAB_VERSION-$WINDOWS_RELEASE"
+echo "Publishing Windows CLI $HAB_VERSION-$WINDOWS_RELEASE to bintray"
 curl -u $BINTRAY_USER:$BINTRAY_KEY -X POST https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-windows/$HAB_VERSION-$WINDOWS_RELEASE/publish
 
 # We do not store darwin packages on builder so we will get
@@ -88,5 +89,5 @@ if [ "${version_release[0]}" != "$HAB_VERSION" ]; then
   echo "Could not find a darwin release for $HAB_VERSION on bintray"
   exit 1
 fi
-echo "Publishing $DARWIN_RELEASE"
+echo "Publishing Mac CLI $DARWIN_RELEASE to bintray"
 curl -u $BINTRAY_USER:$BINTRAY_KEY -X POST https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-darwin/$DARWIN_RELEASE/publish
