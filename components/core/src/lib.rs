@@ -34,6 +34,7 @@ extern crate regex;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
 extern crate serde_json;
 extern crate sodiumoxide;
 extern crate libsodium_sys;

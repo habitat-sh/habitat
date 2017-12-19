@@ -237,6 +237,17 @@ where
 }
 
 pub fn run(args: Vec<String>) -> Result<i32> {
+    // This feels pretty ugly, but not sure if it's worth putting clap in here just for this?
+    if args.iter().any(|x| x == "-v") {
+        core::output::set_verbose(true);
+    }
+    if args.iter().any(|x| x == "--no-color") {
+        core::output::set_no_color(true);
+    }
+    if args.iter().any(|x| x == "--json") {
+        core::output::set_json(true);
+    }
+
     let mut server = Server::new(args)?;
     signals::init();
     loop {
