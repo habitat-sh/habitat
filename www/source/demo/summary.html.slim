@@ -7,56 +7,52 @@ classes: demo_summary
   .row
     .columns.large-12.header
       img.habicat-congrats src="/images/demo/summary-congrats.svg"
-      h1.mb-2 Super powers activated!
-      h4.mb-2 Now that you've built and deployed your application with Habitat Builder, you can:
-  .row.mb-1
-    .columns.large-4.demo-summary--step-img: img src="/images/demo/summary-left.svg"
-    .columns.large-4.demo-summary--step-img: img src="/images/demo/summary-middle.svg"
-    .columns.large-4.demo-summary--step-img: img src="/images/demo/summary-right.svg"
-  .row
-    .columns.large-4
-      .demo-summary--item
-        p Consume automatically updated builds every time Habitat Builder detects a new GitHub commit or underlying package dependency change.
-    .columns.large-4
-      .demo-summary--item
-        p Export the same immutable Habitat package to a variety of formats (Docker, ACI, bare metal, Cloud Foundry, Kubernetes, and more) to power your different workloads and environments.
-    .columns.large-4
-      .demo-summary--item
-        p Use the Habitat Supervisor to keep your application healthy and happy over its lifetime via configuration updates, automated update strategies, health checks, and more.
-    .row.mb-2
-      .columns.large-4
-        .demo--callout-content
-          p: a.link-external href="/tutorials/get-started/demo/" target="_blank" Try the Habitat Runtime Demo
-          p.text-gray Get hands on with the Supervisor managing application services!
-      .columns.large-4
-        .demo--callout-content
-          p: a.link-external href="/tutorials/download/" target="_blank" Download and Install the CLI tool
-          p.text-gray Build and run artifacts from plan files using the Habitat Studio on your CLI.
-      .columns.large-4
-        .demo--callout-content
-          p: a.link-external href="/tutorials/build-your-own/" target="_blank" Build your Application from the Ground Up
-          p.text-gray Build, deploy, and manage a full-stack web application using Scaffolding!
+      h1.mb-2 Which Habitat capabilities<br>would you like to unlock next?
+      h3.mb-2 Learn how you can build, deploy, and manage your applications with Habitat.
+      p
+        a href="/demo" Return to demos
+
+  .row.mb-2.demo--callouts
+    .columns.large-4.demo--callout
+      .demo--callout-content.demo--callout-supervisor
+        h2.h2 Manage runtime services
+        h4.h4 Demo
+        p="In this demo, you'll get hands on with the Habitat Supervisor by managing application services during runtime."
+        .button-bar
+          a.button.cta href="/tutorials/get-started/demo/" target="_blank" Start the runtime demo
+    .columns.large-4.demo--callout
+      .demo--callout-content.demo--callout-assemble
+        h2.h2 Build a multi-service app
+        h4.h4 Tutorial
+        p="In this comprehensive tutorial, you'll build, deploy, and manage a complete web application using Scaffolding."
+        .button-bar
+          a.button.cta href="/tutorials/sample-app/" target="_blank" Start the web app tutorial
+    .columns.large-4.demo--callout
+      .demo--callout-content.demo--callout-habitize
+        h2.h2 Habitize your own app
+        h4.h4 Guide
+        p="Considering adding Habitat to your own application? These language-based guides are the best resource to get you there."
+        .button-bar
+          a.button.cta href="/tutorials/build-your-own/" target="_blank" View the guides
 
   .row
     .columns.large-12
       .demo-summary--item
-        h4 Got questions? We have answers.
+        h3 Got questions? We have answers.
         p
           ' Join the Habitat developer community on our
           a.link-external href="http://slack.habitat.sh/" target="_blank" Slack channel
-          ' . Beginner questions encouraged!
+          ' . Beginner questions are encouraged!
 
       .demo-summary--item
-        h4 Prefer to read up on things?
+        h3 Prefer to read up on things?
         p
           ' There's lots of great information in our
           a.link-external href="/docs/" target="_blank" docs
+          '  and on our
+          a.link-external href="/blog/" target="_blank" blog
           ' .
 
       .demo-summary--item
-        h4 Enjoying Habitat so far? We appreciate you helping us spread the word.
+        h3 Thanks for helping us spread the word about Habitat.
         a.social-icon.twitter href="https://twitter.com/habitatsh" target="_blank": img src="/images/icons/icon-twitter.svg"
-        / a.social-icon.facebook href=""
-  .row.collapse
-    .columns.large-12
-      a.previous-step-link href="/demo/steps/9" Previous Step

@@ -343,6 +343,7 @@ $main-nav-breakpoint: 769px;
 
     @include small-nav {
       margin: 0;
+      padding: rem-calc(10) rem-calc(10);
     }
 
     @include large-nav {

@@ -3,23 +3,33 @@ layout: layout
 classes: demo_index
 ---
 .demo--page
-  .row.mt-3
+  .row.demo-hero.mt-3
     .columns.large-8
       h1.mb-2
-        | Get automated builds and Docker containers <br>
-        | in minutes with Habitat
-      h4.mb-2="In this demo, you will learn how to do the following with our sample Node.js application:"
+        | Habitat Demos
+      h3.mb-2
+        | Learn how Habitat can help you build, deploy, and manage <br>
+        | your applications with these short, hands-on demos.
     .columns.large-4.demo--snorkelcat
   .row.demo--callouts.mb-3
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-build
-        p="Set up automated builds"
-    .columns.large-4.demo--callout
-      .demo--callout-content.demo--callout-publish
-        p="Auto-publish containers to Docker Hub"
+        h2.h2 Packaging System
+        h4.h4 Demo
+        p="Build and export a sample application with Habitat. In turn, you will unlock the power of the Build Sytem and Process Supervisor."
+        .button-bar
+          a.button.cta href="/demo/packaging-system/steps/1" Start the packaging demo
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-trigger
-        p="Trigger new builds and containers when you commit new code"
-  .row
-    .columns.large-12
-      a.button.cta href="/demo/steps/1" Let's Start
+        h2.h2 Build System
+        h4.h4 Demo
+        p="Quickly set up automated builds for a sample Node application, while also publishing it as a container image to Docker Hub."
+        .button-bar
+          a.button.cta href="/demo/build-system/steps/1" Start the Builder demo
+    .columns.large-4.demo--callout
+      .demo--callout-content.demo--callout-publish
+        h2.h2 Process Supervisor
+        h4.h4 Demo
+        p="See how applications built with Habitat can be run and managed throughout their lifecycle using the built-in Habitat Supevisor."
+        .button-bar
+          a.button.cta.disabled href="/demo/" Coming soon!

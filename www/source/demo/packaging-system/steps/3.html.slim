@@ -1,0 +1,42 @@
+---
+title: Habitat Packaging System Demo - Step 3
+layout: layout
+classes: demo_step
+---
+#demo-step.demo--page
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/1"
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/2"
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/3"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/4"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/5"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/6"
+      .row
+        .columns.large-12
+          h1.h4="Step 3: Finish setting up Habitat"
+        .columns.large-6
+          p
+            ' Now that you have the tools installed, you'll need to setup an origin and origin keys*.
+            '  Fortunately, Habitat provides a simple setup command that makes this very quick and easy.
+          p
+            ' Follow the prompts in the setup command, then continue to the next step.
+          = code(:shell) do
+            | $ hab setup
+
+          .footnote
+            p.mb-0
+              span.asterisk *
+              | You can learn more about &nbsp;
+              a.link-external href="https://www.habitat.sh/docs/glossary/#glossary-packages" target="_bank" origins
+              |  and &nbsp;
+              a.link-external href="https://www.habitat.sh/docs/glossary/#glossary-keys" target="_bank" keys
+              | in the docs, but for now just know that it represents the owner of the package.
+        .columns.large-6
+          p="put an image of CLI output here"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/packaging-system/steps/2" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/packaging-system/steps/4" Next Step

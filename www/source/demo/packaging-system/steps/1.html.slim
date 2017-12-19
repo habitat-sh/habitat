@@ -1,0 +1,38 @@
+---
+title: Habitat Packaging System Demo - Step 1
+layout: layout
+classes: demo_step
+---
+#demo-step.demo--page
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.packaging.active href="/demo/steps/1"
+        a.demo-step--indicator.packaging href="/demo/steps/2"
+        a.demo-step--indicator.packaging href="/demo/steps/3"
+        a.demo-step--indicator.packaging href="/demo/steps/4"
+        a.demo-step--indicator.packaging href="/demo/steps/5"
+        a.demo-step--indicator.packaging href="/demo/steps/6"
+      .row
+        .columns.large-12
+          h1.h4="Step 1: Clone the sample app on GitHub"
+        .columns.large-6
+          p
+            ' For this demo, you will be using a sample Node.js application. Open the sample repo at
+            a.link-external target="_bank" href="https://github.com/habitat-sh/sample-node-app" https://github.com/habitat-sh/sample-node-app
+            ' .
+          p
+            | Click the 'Clone or download' button (see image) and either copy the clone command or download the zip.
+          .footnote
+            p.mb-0
+              span.asterisk *
+              ' Don't have a GitHub account?
+              a.link-external href="https://github.com/join" target="_bank" Sign up, it's free
+              ' .
+        .columns.large-6
+          img src="/images/demo/screen-step-1.png"
+      .row.mt-2.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo" Overview
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/packaging-system/steps/2" Next Step
