@@ -23,10 +23,8 @@ classes: demo_step
             li Start services directly from the Studio* using the Habitat Supervisor, or
             li Export the .hart to a Docker image and use <em>docker run</em>.
           p
-            ' We've noted the power of Habitat's platform-agnostic approach to build artifacts, so let's see how
-            ' how that works by exporting the .hart to Docker.
-          p
-            ' With a single command, you can export a .hart file to a Docker image.
+            ' We've mentioned the benefits of Habitat's export capabilities, so let's see how
+            ' how that works now. With a single command, you will have exported the .hart file as a Docker image.
           = code(:shell) do
             | [1][default:/src:0]# hab pkg export docker ./results/<path to .hart>
           p
@@ -49,7 +47,12 @@ classes: demo_step
             ' Finally, go to
             a.link-external href="http://localhost:8000" target="_blank" http://localhost:8000
             '  in your browser to see the sample application UI (screenshot below):
-          img alt="Screenshot of sample node app running in web browser" src="/images/demo/screen-sample-app-v1.png"
+          img.mb-2 alt="Screenshot of sample node app running in web browser" src="/images/demo/screen-sample-app-v1.png"
+
+          h3="That's a wrap!"
+          p
+          ' By building your application with Habitat, you are now able to take advantage of all
+          ' that Habitat has to offer. Head to the Summary to learn more.
       .row.mt-1.step-bottom-nav
         .columns.large-6
           a.previous-step-link href="/demo/packaging-system/steps/5" Previous Step
