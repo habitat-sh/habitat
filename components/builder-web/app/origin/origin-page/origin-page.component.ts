@@ -57,10 +57,6 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     return Origin({ name: this.originName });
   }
 
-  get navLinks() {
-    return ['packages', 'keys', 'members', 'settings', 'integrations'];
-  }
-
   get features() {
     return this.store.getState().users.current.flags;
   }
@@ -81,7 +77,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     return this.store.getState().origins.mine;
   }
 
-  get iAmPartOfThisOrigin() {
+  get memberOfOrigin() {
     return !!this.myOrigins.find(org => {
       return org['name'] === this.origin.name;
     });

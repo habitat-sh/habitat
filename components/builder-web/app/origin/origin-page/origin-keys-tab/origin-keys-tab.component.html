@@ -1,37 +1,39 @@
 <div class="origin-keys-tab-component body">
   <div class="content">
-    <section class="generate" *ngIf="memberOfOrigin">
-      <button mat-raised-button color="primary" (click)="generateKeys()">
-        Generate a key pair
-      </button>
-    </section>
-    <section class="private" *ngIf="memberOfOrigin">
-      <ul class="action-list">
-        <li class="heading">
-          <h4>Private Key</h4>
-          <h4>Actions</h4>
-        </li>
-        <li class="none" *ngIf="!privateKey">
-          <span>No private key found. You can generate a key pair above.</span>
-        </li>
-        <li class="item" *ngIf="privateKey">
-          <span class="column name">
-            <hab-icon symbol="visibility-off"></hab-icon>
-            <span>{{ privateKey }}</span>
-          </span>
-          <span class="column actions">
-            <a (click)="downloadPrivateKey()">
-              <hab-icon symbol="file-download" title="Download this key"></hab-icon>
-            </a>
-          </span>
-        </li>
-      </ul>
-      <button mat-raised-button color="basic" (click)="openKeyAddForm('private')" *ngIf="memberOfOrigin">
-        <hab-icon symbol="file-upload"></hab-icon>
-        Upload a private key
-      </button>
-    </section>
-    <hr>
+    <ng-container *ngIf="memberOfOrigin">
+      <section class="generate">
+        <button mat-raised-button color="primary" (click)="generateKeys()">
+          Generate a key pair
+        </button>
+      </section>
+      <section class="private">
+        <ul class="action-list">
+          <li class="heading">
+            <h4>Private Key</h4>
+            <h4>Actions</h4>
+          </li>
+          <li class="none" *ngIf="!privateKey">
+            <span>No private key found. You can generate a key pair above.</span>
+          </li>
+          <li class="item" *ngIf="privateKey">
+            <span class="column name">
+              <hab-icon symbol="visibility-off"></hab-icon>
+              <span>{{ privateKey }}</span>
+            </span>
+            <span class="column actions">
+              <a (click)="downloadPrivateKey()">
+                <hab-icon symbol="file-download" title="Download this key"></hab-icon>
+              </a>
+            </span>
+          </li>
+        </ul>
+        <button mat-raised-button color="basic" (click)="openKeyAddForm('private')" *ngIf="memberOfOrigin">
+          <hab-icon symbol="file-upload"></hab-icon>
+          Upload a private key
+        </button>
+      </section>
+      <hr>
+    </ng-container>
     <section class="public">
       <ul class="action-list">
         <li class="heading">
@@ -76,4 +78,3 @@
     </p>
   </aside>
 </div>
-
