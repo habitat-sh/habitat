@@ -12,6 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod channel;
-pub mod job;
-pub mod encrypt;
+use depot_client::Client as DepotClient;
+use common::ui::{Status, UI};
+
+use {PRODUCT, VERSION};
+use error::{Error, Result};
+
+pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, channel: &str) -> Result<()> {
+    let depot_client = DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
+        Error::DepotClient,
+    )?;
+
+    ui.status(Status::Deleting, format!("channel {}.", channel))?;
+
+    depot_client
+        .delete_channel(origin, channel, token)
+        .map_err(Error::DepotClient)?;
+
+    ui.status(Status::Deleted, format!("channel {}.", channel))?;
+
+    Ok(())
+}

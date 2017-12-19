@@ -824,6 +824,24 @@ impl Client {
         Ok(())
     }
 
+    /// Delete a custom channel
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    pub fn delete_channel(&self, origin: &str, channel: &str, token: &str) -> Result<()> {
+        let path = format!("depot/channels/{}/{}", origin, channel);
+        debug!("Deleting channel, path: {:?}", path);
+
+        let res = self.add_authz(self.0.delete(&path), token).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        };
+
+        Ok(())
+    }
+
     /// Return a list of channels for a given origin
     ///
     /// # Failures

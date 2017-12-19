@@ -160,6 +160,37 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
             )
+            (@subcommand channel =>
+                (about: "Commands relating to Habitat Builder channels")
+                (aliases: &["c", "ch", "cha", "chan", "chann", "channe"])
+                (@setting ArgRequiredElseHelp)
+                (@subcommand create =>
+                    (about: "Creates a new channel")
+                    (aliases: &["c", "cr", "cre", "crea", "creat"])
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    (@arg CHANNEL: +required + takes_value "The channel name")
+                    (@arg ORIGIN: -o --origin +takes_value
+                        "Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or cli.toml")
+                )
+                (@subcommand destroy =>
+                    (about: "Destroys a channel")
+                    (aliases: &["d", "de", "des", "dest", "destr", "destro"])
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    (@arg CHANNEL: +required + takes_value "The channel name")
+                    (@arg ORIGIN: -o --origin +takes_value
+                        "Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml")
+                )
+                (@subcommand list =>
+                    (about: "Lists origin channels")
+                    (aliases: &["l", "li", "lis"])
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    (@arg ORIGIN: +takes_value
+                        "The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml")
+                )
+            )
         )
         (@subcommand origin =>
             (about: "Commands relating to Habitat origin keys")
