@@ -858,6 +858,23 @@ info() {
   return 0
 }
 
+# Prints a line only if the `$RUST_LOG` environment value is set to "debug".
+#
+# ```sh
+# RUST_LOG=debug
+# debug "Only if things are set"
+# # "DEBUG: Only if things are set"
+# unset RUST_LOG
+# debug "Not so much anymore"
+# ```
+#
+debug() {
+  if [ "${RUST_LOG:-}" = "debug" ]; then
+    echo "DEBUG: $1"
+  fi
+  return 0
+}
+
 # **Internal** Exit if current user is not root.
 ensure_root() {
   # Early return if we are root, yay!
@@ -1052,12 +1069,12 @@ cleanup_studio() {
 
 # **Internal**  Run a command which may fail without aborting whole script
 try() {
-  echo "TRYing '$@'"
+  debug "TRYing '$*'"
   if "$@"; then
     status=$?
   else
     status=$?
-    echo "Warning: '$@' failed with status $status"
+    debug "Warning: '$*' failed with status $status"
   fi
 }
 
