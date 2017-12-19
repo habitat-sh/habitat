@@ -22,8 +22,8 @@ habitatConfig({
     github_app_url: "https://github.com/apps/habitat-builder-dev",
     // The Habitat Builder GitHub app ID
     github_app_id: "5629",
-    // The GitHub redirect URI - must exactly match what's defined in the Github app
-    github_redirect_uri: "https://localhost:3000",
+    // The GitHub redirect URI. Must exactly match the value of the User Authorization Callback URL in the GitHub app.
+    github_redirect_uri: "http://localhost:3000/",
     // The URL for the Habitat source code
     source_code_url: "https://github.com/habitat-sh/habitat",
     // The URL for tutorials
