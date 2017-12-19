@@ -1,5 +1,11 @@
 # Building Habitat from source
 
+## Not officially supported
+
+**These setups are NOT officially supported by the Habitat maintainers - use at your own risk!**
+
+**The officially supported setup can be found in the [Builder Dev](BUILDER_DEV.md) file.**
+
 ## Mac OS X for Linux Development
 
 These install instructions assume you want to develop, build, and run the
@@ -240,77 +246,4 @@ git clone https://github.com/habitat-sh/habitat.git
 
 cd habitat
 ./build.ps1 components/hab -configure
-```
-
-
-## General build notes
-
-- Once make has finished, executables will exist in `/src/target/debug/foo`,
-  where `foo` is the name of an executable (`hab`, `hab-sup`, `hab-depot`,
-  etc).
-- Executable names are specified in each components `Cargo.toml` file in a TOML
-  table like this:
-
-	  [[bin]]
-	  name = "hab-depot"
-
-## Windows build notes
-
-The `-configure` switch will make sure you have all the necessary dependencies to build the `hab` CLI tool, including Rust, the Visual Studio Build Tools, and all the native dependencies.
-
-Not all crates have been fully ported to Windows.
-
-Currently the `hab` command will build (as well as the dependent crates).
-
-Work is in progress on the Supervisor and other parts of the toolchain.
-
-# Running all builder components
-
-Run this command:
-```
-make bldr-run
-```
-
-# Building and running individual components
-
-When you are working on an individual component in the /components directory, you may wish to build, install, then use that individual component.
-
-Let's say you want to do this with the Supervisor (which lives in the components/sup directory).
-
-## Building
-
-Change directories into the component you want to build
-
-```
-cd components/sup
-```
-
-Then run
-
-```
-cargo build
-```
-
-Once it is finished compiling, you can find the new build in root hab_repo/target/debug
-
-Head back to the root of the Habitat repo
-
-```
-cd ../..
-```
-
-And you will find your build in target/debug
-
-If you built the sup component, this is where you would find the new build
-
-```
-target/debug/hab-sup
-```
-
-## Running
-
-You can now run this newly built component with
-
-```
-./target/debug/hab-sup
 ```
