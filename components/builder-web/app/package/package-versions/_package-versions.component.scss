@@ -8,14 +8,19 @@
       .release-name {
         display: block;
       }
-
-      hab-channels {
-        margin-right: $default-margin / 4;
-      }
     }
 
     .build-date {
       flex: 3;
+    }
+
+    .channels {
+      margin-top: -$default-margin;
+      margin-bottom: $default-margin;
+
+      hab-channels {
+        margin-right: 2px;
+      }
     }
   }
 }
