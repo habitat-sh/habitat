@@ -21,6 +21,7 @@ import { PackageLatestComponent } from './package-latest/package-latest.componen
 import { PackageSettingsComponent } from './package-settings/package-settings.component';
 import { PackageReleaseComponent } from './package-release/package-release.component';
 import { PackageVersionsComponent } from './package-versions/package-versions.component';
+import { OriginMemberGuard } from '../shared/guards/origin-member.guard';
 import { SignedInGuard } from '../shared/guards/signed-in.guard';
 
 const routes: Routes = [
@@ -38,16 +39,18 @@ const routes: Routes = [
       },
       {
         path: 'builds',
-        component: PackageBuildsComponent
+        component: PackageBuildsComponent,
+        canActivate: [SignedInGuard, OriginMemberGuard]
       },
       {
         path: 'builds/:id',
-        component: PackageBuildComponent
+        component: PackageBuildComponent,
+        canActivate: [SignedInGuard, OriginMemberGuard]
       },
       {
         path: 'settings',
         component: PackageSettingsComponent,
-        canActivate: [SignedInGuard]
+        canActivate: [SignedInGuard, OriginMemberGuard]
       },
       {
         path: ':version',

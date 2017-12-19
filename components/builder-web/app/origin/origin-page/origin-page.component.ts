@@ -36,11 +36,11 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.store.dispatch(fetchOrigin(this.origin.name));
-    this.store.dispatch(fetchMyOrigins(this.token));
-    this.store.dispatch(fetchIntegrations(this.origin.name, this.token));
-    this.getPackages();
-    this.getProjects();
-    this.loadPackages = this.getPackages.bind(this);
+    this.fetchIntegrations();
+    this.fetchMyOrigins();
+    this.fetchPackages();
+    this.fetchProjects();
+    this.loadPackages = this.fetchPackages.bind(this);
   }
 
   ngOnDestroy() {
@@ -91,11 +91,25 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     return visibility === 'private' ? 'ON' : 'OFF';
   }
 
-  getProjects() {
-    this.store.dispatch(fetchProjects(this.origin.name, this.token));
+  private fetchIntegrations() {
+    if (this.token) {
+      this.store.dispatch(fetchIntegrations(this.origin.name, this.token));
+    }
   }
 
-  getPackages() {
+  private fetchMyOrigins() {
+    if (this.token) {
+      this.store.dispatch(fetchMyOrigins(this.token));
+    }
+  }
+
+  private fetchProjects() {
+    if (this.token) {
+      this.store.dispatch(fetchProjects(this.origin.name, this.token));
+    }
+  }
+
+  private fetchPackages() {
     this.store.dispatch(getUniquePackages(this.origin.name, 0, this.token));
   }
 }

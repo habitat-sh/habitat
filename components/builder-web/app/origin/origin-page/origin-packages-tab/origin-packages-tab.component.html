@@ -1,6 +1,6 @@
 <div class="body">
   <div class="content">
-    <section>
+    <section *ngIf="memberOfOrigin">
       <hab-project-settings
         [origin]="origin"
         [integrations]="integrations"
