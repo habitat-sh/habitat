@@ -27,9 +27,6 @@
                 <span class="release-name">
                   <hab-copyable [text]="packageString(pkg)"></hab-copyable>
                 </span>
-                <hab-channels [channels]="pkg.channels"></hab-channels>
-                <hab-package-promote [origin]="pkg.origin" [name]="pkg.name" [version]="pkg.version" [release]="pkg.release" channel="stable"
-                  *ngIf="promotable(pkg)"></hab-package-promote>
               </div>
               <div class="column build-date">
                 {{ releaseToDate(pkg.release) }}
@@ -45,6 +42,17 @@
               </div>
               <hab-icon symbol="chevron-right"></hab-icon>
             </a>
+            <div class="channels">
+              <hab-channels [channels]="pkg.channels"></hab-channels>
+              <hab-package-promote
+                [origin]="pkg.origin"
+                [name]="pkg.name"
+                [version]="pkg.version"
+                [release]="pkg.release"
+                channel="stable"
+                *ngIf="promotable(pkg)">
+              </hab-package-promote>
+            </div>
           </li>
         </ul>
       </div>
