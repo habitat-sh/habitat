@@ -1158,17 +1158,17 @@ hab sup [FLAGS] <SUBCOMMAND>
     bash      Start an interactive Bash-like shell
     config    Displays the default configuration options for a service
     help      Prints this message or the help of the given subcommand(s)
-    load      Load a service to be started and supervised by Habitat from a package or artifact. Services started in
-              this manner will persist through Supervisor restarts.
+    load      Load a service to be started and supervised by Habitat from a package or artifact. Services
+              started in this manner will persist through Supervisor restarts.
     run       Run the Habitat Supervisor
     sh        Start an interactive Bourne-like shell
-    start     Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the
-              Habitat Supervisor is not already running this will additionally start one for you.
+    start     Start a loaded, but stopped, Habitat service or a transient service from a package/artifact.
+              If the Habitat Supervisor is not already running this will additionally start one for you.
     status    Query the status of Habitat services.
     stop      Stop a running Habitat service.
     term      Gracefully terminate the Habitat Supervisor and all of its running services
-    unload    Unload a persistent or transient service started by the Habitat Supervisor. If the Supervisor is
-              running when the service is unloaded the service will be stopped.
+    unload    Unload a persistent or transient service started by the Habitat Supervisor. If the Supervisor
+              is running when the service is unloaded the service will be stopped.
 
 
 **Read More:** 
@@ -1228,8 +1228,8 @@ persist through Supervisor restarts.
 
 **FLAGS**
 
-    -f, --force       Load or reload an already loaded service. If the service was previously loaded and running this
-                      operation will also restart the service
+    -f, --force       Load or reload an already loaded service. If the service was previously loaded and
+                        running this operation will also restart the service
         --no-color    Turn ANSI color off
     -v                Verbose output; shows line numbers
     -h, --help        Prints help information
@@ -1238,20 +1238,21 @@ persist through Supervisor restarts.
 
     -a, --application <APPLICATION>    Application name; [default: not set].
         --bind <BIND>...               One or more service groups to bind to a configuration
-    -u, --url <BLDR_URL>               Receive package updates from Builder at the specified URL [default:
-                                       https://bldr.habitat.sh]
-        --channel <CHANNEL>            Receive package updates from the specified release channel [default: stable]
+    -u, --url <BLDR_URL>               Receive package updates from Builder at the specified URL
+                                            [default: https://bldr.habitat.sh]
+        --channel <CHANNEL>            Receive package updates from the specified release channel
+                                            [default: stable]
     -e, --environment <ENVIRONMENT>    Environment name; [default: not set].
         --group <GROUP>                The service group; shared config and topology [default: default].
-        --override-name <NAME>         The name for the state directory if there is more than one Supervisor running
-                                       [default: default]
+        --override-name <NAME>         The name for the state directory if there is more than one Supervisor
+                                            running [default: default]
     -s, --strategy <STRATEGY>          The update strategy; [default: none] [values: none, at-once, rolling]
     -t, --topology <TOPOLOGY>          Service topology; [default: none]
 
 **ARGS**
 
-    <PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
-                               /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    <PKG_IDENT_OR_ARTIFACT> A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact
+                                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-sup-run" class="anchor">hab sup run</h2>
 Run the Habitat Supervisor
@@ -1270,17 +1271,20 @@ Run the Habitat Supervisor
 
 **OPTIONS**
 
-    -u, --url <BLDR_URL>                       Receive Supervisor updates from Builder at the specified URL [default:
-                                               https://bldr.habitat.sh]
-        --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default:
-                                               stable]
-    -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward
-                                               Supervisor and service event data to
-        --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
-        --listen-http <LISTEN_HTTP>            The listen address for the HTTP gateway [default: 0.0.0.0:9631]
-        --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
-        --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are
-                                               part of [default: default]
+    -u, --url <BLDR_URL>                       Receive Supervisor updates from Builder at the specified URL
+                                                    [default: https://bldr.habitat.sh]
+        --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel
+                                                    [default: stable]
+    -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to
+                                                forward Supervisor and service event data to
+        --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system
+                                                    [default: 0.0.0.0:9638]
+        --listen-http <LISTEN_HTTP>            The listen address for the HTTP gateway
+                                                    [default: 0.0.0.0:9631]
+        --override-name <NAME>                 The name of the Supervisor if launching more than one
+                                                    [default: default]
+        --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent
+                                                services are part of [default: default]
         --peer <PEER>...                       The listen address of an initial peer (IP[:PORT])
         --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
     -r, --ring <RING>                          Ring key name
@@ -1316,28 +1320,29 @@ Supervisor is not already running this will additionally start one for you.
 
 **OPTIONS**
 
-    -a, --application <APPLICATION>            Application name; [default: not set].
-        --bind <BIND>...                       One or more service groups to bind to a configuration
-    -u, --url <BLDR_URL>                       Receive package updates from Builder at the specified URL [default:
-                                               https://bldr.habitat.sh]
-        --channel <CHANNEL>                    Receive package updates from the specified release channel [default:
-                                               stable]
-        --config-from <CONFIG_DIR>             Use package config from this path, rather than the package itself
-    -e, --environment <ENVIRONMENT>            Environment name; [default: not set].
-    -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward
-                                               Supervisor and service event data to
-        --group <GROUP>                        The service group; shared config and topology [default: default]
-        --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
-        --listen-http <LISTEN_HTTP>            The listen address for the HTTP gateway [default: 0.0.0.0:9631]
-        --override-name <NAME>                 The name for the state directory if launching more than one Supervisor
-                                               [default: default]
-        --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are
-                                               part of [default: default]
-        --peer <PEER>...                       The listen address of an initial peer (IP[:PORT])
-        --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
-    -r, --ring <RING>                          Ring key name
-    -s, --strategy <STRATEGY>                  The update strategy; [default: none] [values: none, at-once, rolling]
-    -t, --topology <TOPOLOGY>                  Service topology; [default: none]
+    -a, --application <APPLICATION>         Application name; [default: not set].
+        --bind <BIND>...                    One or more service groups to bind to a configuration
+    -u, --url <BLDR_URL>                    Receive package updates from Builder at the specified URL
+                                                [default: https://bldr.habitat.sh]
+        --channel <CHANNEL>                 Receive package updates from the specified release channel
+                                                [default: stable]
+        --config-from <CONFIG_DIR>          Use package config from this path rather than the package itself
+    -e, --environment <ENVIRONMENT>         Environment name; [default: not set].
+    -n, --events <EVENTS>                   Name of the service group running a Habitat EventSrv to forward
+                                                Supervisor and service event data to
+        --group <GROUP>                     The service group; shared config and topology [default: default]
+        --listen-gossip <LISTEN_GOSSIP>     The listen address for the gossip system [default: 0.0.0.0:9638]
+        --listen-http <LISTEN_HTTP>         The listen address for the HTTP gateway [default: 0.0.0.0:9631]
+        --override-name <NAME>              The name for the state directory if launching more than one
+                                                Supervisor [default: default]
+        --org <ORGANIZATION>                The organization that the Supervisor and its subsequent services
+                                                are part of [default: default]
+        --peer <PEER>...                    The listen address of an initial peer (IP[:PORT])
+        --peer-watch-file <PEER_WATCH_FILE> Watch this file for connecting to the ring
+    -r, --ring <RING>                       Ring key name
+    -s, --strategy <STRATEGY>               The update strategy; [default: none]
+                                                [values: none, at-once, rolling]
+    -t, --topology <TOPOLOGY>               Service topology; [default: none]
 
 ARGS:
     <PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
@@ -1380,7 +1385,8 @@ Stop a running Habitat service.
 
 **OPTIONS** 
 
-        --override-name <NAME>    The name for the state directory if there is more than one Supervisor running [default: default]
+        --override-name <NAME>    The name for the state directory if there is more than one
+                                    Supervisor running [default: default]
 
 **ARGS** 
 
