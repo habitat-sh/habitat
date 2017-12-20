@@ -7,6 +7,18 @@
     }
   }
 
+  .back {
+
+    hab-icon, span {
+      vertical-align: middle;
+    }
+
+    hab-icon {
+      @include icon-size(20);
+      margin-right: 0;
+    }
+  }
+
   .summary {
     border: $default-border;
     border-radius: $default-radius;
@@ -40,7 +52,7 @@
       flex: 6;
 
       .item {
-        
+
         @include tablet-up {
           display: flex;
         }
