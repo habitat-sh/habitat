@@ -279,7 +279,7 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
         let origin = opl.get_origin();
 
-        let rows = conn.query("SELECT * FROM get_origin_project_list_v1($1)", &[&origin])
+        let rows = conn.query("SELECT * FROM get_origin_project_list_v2($1)", &[&origin])
             .map_err(SrvError::OriginProjectListGet)?;
 
         let mut response = originsrv::OriginProjectList::new();
