@@ -62,7 +62,7 @@ pub use self::supervisor::ProcessState;
 
 static LOGKEY: &'static str = "SR";
 
-pub const SVC_DIR_PERMISSIONS: u32 = 0o700;
+pub const SVC_DIR_PERMISSIONS: u32 = 0o770;
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
 
 lazy_static! {
