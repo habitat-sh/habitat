@@ -15,71 +15,51 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { AppStore } from '../../app.store';
-import { Browser } from '../../browser';
 import { signOut } from '../../actions/index';
-import config from '../../config';
 
 @Injectable()
-export class SignedInGuard implements CanActivate {
+export class OriginMemberGuard implements CanActivate {
 
   constructor(private store: AppStore, private router: Router) { }
 
   canActivate(route: ActivatedRouteSnapshot, routerState: RouterStateSnapshot): Promise<boolean> {
     const state = this.store.getState();
     const signedIn = !!state.session.token;
-    const signingIn = state.users.current.isSigningIn;
-    const signInFailed = state.users.current.failedSignIn;
+    const loading = state.origins.ui.mine.loading;
+    const origin = route.parent.params.origin;
 
     return new Promise((resolve, reject) => {
 
-      if (signedIn) {
+      if (signedIn && !loading && this.memberOfOrigin(origin)) {
         resolve(true);
       }
-      else if (signInFailed) {
-        reject(() => this.redirectToSignIn());
-      }
-      else if (signingIn) {
-        this.handleSigningIn(resolve, reject);
+      else if (signedIn && loading) {
+        this.handleLoading(origin, resolve, reject);
       }
       else {
-        reject(() => {
-          if (routerState.url === '/origins') {
-            this.sendHome();
-          }
-          else {
-            this.redirectToSignIn(routerState.url);
-          }
-        });
+        reject(() => this.redirectToSignIn());
       }
     })
       .catch(next => next())
       .then(() => true);
   }
 
-  private handleSigningIn(resolve, reject) {
+  private handleLoading(origin, resolve, reject) {
     const unsub = this.store.subscribe(state => {
 
-      if (state.gitHub.authToken && state.session.token) {
-        const name = 'redirectPath';
-        const path = Browser.getCookie(name);
-        Browser.removeCookie(name);
-
-        if (path) {
-          this.router.navigate([path]);
-        }
-
+      if (!state.origins.ui.mine.loading && this.memberOfOrigin(origin)) {
         resolve(true);
         unsub();
       }
-      else if (state.users.current.failedSignIn) {
+      else if (!state.origins.ui.mine.loading) {
         reject(() => this.redirectToSignIn());
         unsub();
       }
     });
   }
 
-  private sendHome() {
-    Browser.redirect(config.www_url);
+  private memberOfOrigin(origin) {
+    return !!this.store.getState().origins.mine.find(o => o['name'] === origin);
   }
 
   private redirectToSignIn(url?: string) {

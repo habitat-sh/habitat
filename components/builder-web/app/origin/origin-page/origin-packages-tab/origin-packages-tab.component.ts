@@ -30,6 +30,10 @@ export class OriginPackagesTabComponent {
     return this.store.getState().origins.currentIntegrations.integrations;
   }
 
+  get memberOfOrigin() {
+    return !!this.store.getState().origins.mine.find(origin => origin['name'] === this.origin);
+  }
+
   get origin() {
     return this.store.getState().origins.current.name;
   }

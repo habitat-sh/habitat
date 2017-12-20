@@ -20,13 +20,13 @@ import { OriginMembersTabComponent } from './origin-members-tab/origin-members-t
 import { OriginPackagesTabComponent } from './origin-packages-tab/origin-packages-tab.component';
 import { OriginSettingsTabComponent } from './origin-settings-tab/origin-settings-tab.component';
 import { OriginIntegrationsTabComponent } from './origin-integrations-tab/origin-integrations-tab.component';
+import { OriginMemberGuard } from '../../shared/guards/origin-member.guard';
 import { SignedInGuard } from '../../shared/guards/signed-in.guard';
 
 const routes: Routes = [
   {
     path: 'origins/:origin',
     component: OriginPageComponent,
-    canActivate: [SignedInGuard],
     children: [
       {
         path: '',
@@ -43,15 +43,18 @@ const routes: Routes = [
       },
       {
         path: 'members',
-        component: OriginMembersTabComponent
+        component: OriginMembersTabComponent,
+        canActivate: [SignedInGuard, OriginMemberGuard],
       },
       {
         path: 'settings',
-        component: OriginSettingsTabComponent
+        component: OriginSettingsTabComponent,
+        canActivate: [SignedInGuard, OriginMemberGuard],
       },
       {
         path: 'integrations',
-        component: OriginIntegrationsTabComponent
+        component: OriginIntegrationsTabComponent,
+        canActivate: [SignedInGuard, OriginMemberGuard]
       },
       {
         path: '**',

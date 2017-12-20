@@ -42,8 +42,8 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.sub = this.route.parent.params.subscribe((params) => {
       this.origin = params['origin'];
-      this.store.dispatch(fetchMyOrigins(this.token));
-      this.store.dispatch(fetchOriginPublicKeys(this.origin, this.token));
+      this.fetchMyOrigins();
+      this.fetchPublicKeys();
     });
   }
 
@@ -131,5 +131,15 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
       a.click();
       setTimeout(() => { document.body.removeChild(a); }, 100);
     }
+  }
+
+  private fetchMyOrigins() {
+    if (this.token) {
+      this.store.dispatch(fetchMyOrigins(this.token));
+    }
+  }
+
+  private fetchPublicKeys() {
+    this.store.dispatch(fetchOriginPublicKeys(this.origin, this.token));
   }
 }
