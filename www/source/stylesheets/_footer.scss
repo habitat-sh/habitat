@@ -1,7 +1,6 @@
 #main-footer {
   position: relative;
   z-index: 5;
-  // padding: rem-calc(60) 0 0;
   background: url('/images/footer-background.svg');
   background: url('/images/footer-background.svg') left top no-repeat, linear-gradient($hab-green-light-2, $hab-blue-green) left 84px no-repeat;
   background-size: cover;
@@ -91,7 +90,6 @@
   }
 
   @include breakpoint(small only) {
-    // margin-bottom: rem-calc(60);
 
     &.habitat {
       max-width: rem-calc(270);
@@ -102,7 +100,7 @@
 .footer--sitemap {
   position: relative;
   z-index: 2;
-  
+
   @include breakpoint(small only) {
     padding-top: rem-calc(62);
   }
@@ -132,6 +130,7 @@
   font-size: rem-calc(12);
   color: lighten($hab-green-light, 25%);
   border-top: 1px solid rgba($white, .20);
+  text-align: center;
 
   li {
     display: inline-block;

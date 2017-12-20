@@ -1,11 +1,5 @@
 footer#main-footer class="#{layout_class}"
-  / - if layout_class != "has-sidebar" and layout_class != "try-hab" and layout_class != "blogs" and layout_class != "tutorials"
-  /   .row
-  /     .columns.medium-12
-  /       .footer--cta
-  /         h2.footer--cta-heading See how it works in less than 10 minutes.
-  /         a.footer--cta-button href="/tutorials/" Try Habitat Now
-  /         a.footer--cta-button.outline href="/tutorials/download/" Download Habitat
+
   .footer--decor
     .row
       .columns.large-6.small-4.footer--decor-item.footer--decor-clam
@@ -15,7 +9,7 @@ footer#main-footer class="#{layout_class}"
       .columns.large-2.footer--decor-item.hide-small.footer--decor-cube
         img src="/images/decor/hab-cube.svg"/
       .columns.large-2.small-4.footer--decor-item.footer--decor-snorkel
-        img src="/images/decor/snorkelling-habicat.svg"/    
+        img src="/images/decor/snorkelling-habicat.svg"/
 
   .footer--sitemap
     .row
@@ -36,7 +30,8 @@ footer#main-footer class="#{layout_class}"
                 a href="/about" Why Habitat
               li.footer--sitemap--link
                 a href="/tutorials/" Get Started
-
+              li.footer--sitemap--link
+                a href="https://github.com/habitat-sh/habitat/blob/master/CONTRIBUTING.md#report-a-security-vulnerability" Security
 
           .columns.medium-2.small-6
             ul.no-bullet
@@ -110,3 +105,9 @@ footer#main-footer class="#{layout_class}"
                 a href="/legal/trademark-policy" Trademark Policy
               li.footer--sitemap--link
                 a href="/legal/privacy-policy" Privacy Policy
+              li.footer--sitemap--link
+                a href="https://github.com/habitat-sh/habitat/blob/master/CONTRIBUTING.md#contributing-to-habitat" Contributing
+              li.footer--sitemap--link
+                a href="https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md" Code of Conduct
+              li.footer--sitemap--link
+                a href="https://www.chef.io/cookie-policy/" Cookie Policy
