@@ -32,7 +32,7 @@ matrix:
     - language: rust
       env:
         - COMPONENTS=bin
-        - AFFECTED_DIRS="$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
+        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
       rust: stable
       sudo: false
       services:
@@ -73,7 +73,7 @@ matrix:
     - language: rust
       env:
         - COMPONENTS=lib
-        - AFFECTED_DIRS="$_RUST_HAB_LIB_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
+        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_LIB_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
       rust: stable
       sudo: required
       addons:
@@ -111,7 +111,7 @@ matrix:
     - language: rust
       env:
         - COMPONENTS=srv
-        - AFFECTED_DIRS="$_RUST_BLDR_BIN_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
+        - AFFECTED_DIRS="Cargo\.lock|$_RUST_BLDR_BIN_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
       rust: stable
       sudo: required
       addons:
