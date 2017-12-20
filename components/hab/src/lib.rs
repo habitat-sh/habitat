@@ -26,6 +26,7 @@ extern crate handlebars;
 extern crate ansi_term;
 #[macro_use]
 extern crate clap;
+extern crate glob;
 extern crate hyper;
 #[macro_use]
 extern crate log;
