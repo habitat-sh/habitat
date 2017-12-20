@@ -600,5 +600,15 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
             END
         $$ LANGUAGE plpgsql VOLATILE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_list_v2 (
+                        in_origin text
+                 ) RETURNS SETOF origin_projects AS $$
+                        SELECT * FROM origin_projects
+                        WHERE origin_name = in_origin
+                        ORDER BY package_name;
+                    $$ LANGUAGE SQL STABLE"#,
+    )?;
     Ok(())
 }
