@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::IpAddr;
 use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
@@ -26,6 +25,7 @@ use hab_core::url::BLDR_URL_ENVVAR;
 use hab_core::AUTH_TOKEN_ENVVAR;
 
 use error::{Error, Result};
+use network::NetworkNamespace;
 use runner::log_pipe::LogPipe;
 use runner::{NONINTERACTIVE_ENVVAR, RUNNER_DEBUG_ENVVAR};
 use runner::workspace::Workspace;
@@ -53,7 +53,7 @@ pub struct Studio<'a> {
     bldr_url: &'a str,
     auth_token: &'a str,
     airlock_enabled: bool,
-    networking: Option<(&'a str, &'a IpAddr)>,
+    network_namespace: Option<NetworkNamespace>,
 }
 
 impl<'a> Studio<'a> {
@@ -63,14 +63,14 @@ impl<'a> Studio<'a> {
         bldr_url: &'a str,
         auth_token: &'a str,
         airlock_enabled: bool,
-        networking: Option<(&'a str, &'a IpAddr)>,
+        network_namespace: Option<NetworkNamespace>,
     ) -> Self {
         Studio {
             workspace,
             bldr_url,
             auth_token,
             airlock_enabled,
-            networking,
+            network_namespace,
         }
     }
 
@@ -83,12 +83,6 @@ impl<'a> Studio<'a> {
     /// * If the calling thread can't wait on the child process
     /// * If the `LogPipe` fails to pipe output
     pub fn build(&self, log_pipe: &mut LogPipe) -> Result<ExitStatus> {
-        if self.networking.is_some() {
-            self.create_network_namespace()?;
-        } else {
-            info!("Airlock networking is not configured, skipping network creation");
-        }
-
         let channel = if self.workspace.job.has_channel() {
             self.workspace.job.get_channel()
         } else {
@@ -147,12 +141,6 @@ impl<'a> Studio<'a> {
 
         debug!("completed studio build command, status={:?}", output.status);
 
-        if self.networking.is_some() {
-            self.destroy_network_namespace()?;
-        } else {
-            info!("Airlock networking is not configured, skipping network destruction");
-        }
-
         Ok(output.status)
     }
 
@@ -168,11 +156,11 @@ impl<'a> Studio<'a> {
             cmd.arg("--fs-root");
             cmd.arg(self.workspace.studio());
             cmd.arg("--no-rm");
-            if self.networking.is_some() {
+            if self.network_namespace.is_some() {
                 cmd.arg("--use-userns");
-                cmd.arg(self.workspace.ns_dir().join("userns"));
+                cmd.arg(self.network_namespace.as_ref().unwrap().userns());
                 cmd.arg("--use-netns");
-                cmd.arg(self.workspace.ns_dir().join("netns"));
+                cmd.arg(self.network_namespace.as_ref().unwrap().netns());
             }
             cmd.arg(&*STUDIO_PROGRAM);
 
@@ -186,69 +174,6 @@ impl<'a> Studio<'a> {
 
             info!("Airlock is not enabled, running uncontained Studio");
             Ok(cmd)
-        }
-    }
-
-    fn create_network_namespace(&self) -> Result<()> {
-        let mut cmd = Command::new("airlock");
-        cmd.arg("netns");
-        cmd.arg("create");
-        cmd.arg("--interface");
-        cmd.arg(self.networking.unwrap().0);
-        cmd.arg("--gateway");
-        cmd.arg(self.networking.unwrap().1.to_string());
-        cmd.arg("--ns-dir");
-        cmd.arg(self.workspace.ns_dir());
-        cmd.arg("--user");
-        cmd.arg(STUDIO_USER);
-        debug!("building airlock networking setup command, cmd={:?}", &cmd);
-
-        debug!("spawning airlock networking setup command");
-        let mut child = cmd.spawn().map_err(|e| {
-            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
-        })?;
-        let exit_status = child.wait().map_err(|e| {
-            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
-        })?;
-        debug!(
-            "completed airlock networking setup command, status={:?}",
-            exit_status
-        );
-
-        if exit_status.success() {
-            Ok(())
-        } else {
-            Err(Error::AirlockFailure(exit_status))
-        }
-    }
-
-    fn destroy_network_namespace(&self) -> Result<()> {
-        let mut cmd = Command::new("airlock");
-        cmd.arg("netns");
-        cmd.arg("destroy");
-        cmd.arg("--ns-dir");
-        cmd.arg(self.workspace.ns_dir());
-        debug!(
-            "building airlock networking destroy command, cmd={:?}",
-            &cmd
-        );
-
-        debug!("spawning airlock networking destroy command");
-        let mut child = cmd.spawn().map_err(|e| {
-            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
-        })?;
-        let exit_status = child.wait().map_err(|e| {
-            Error::AirlockNetworking(self.workspace.ns_dir().to_path_buf(), e)
-        })?;
-        debug!(
-            "completed airlock networking destroy command, status={:?}",
-            exit_status
-        );
-
-        if exit_status.success() {
-            Ok(())
-        } else {
-            Err(Error::AirlockFailure(exit_status))
         }
     }
 }

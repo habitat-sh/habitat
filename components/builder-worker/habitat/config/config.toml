@@ -4,12 +4,12 @@ key_dir = "{{pkg.svc_files_path}}"
 log_path = "{{pkg.svc_path}}/logs"
 bldr_channel = "{{cfg.bldr_channel}}"
 features_enabled = "{{cfg.features_enabled}}"
-airlock_enabled = {{cfg.airlock_enabled}}
 {{~#eachAlive bind.depot.members as |member|}}
 {{~#if @first}}
 bldr_url = "{{member.cfg.url}}"
 {{~/if}}
 {{~/eachAlive}}
+airlock_enabled = {{cfg.airlock_enabled}}
 {{~#if cfg.network_interface}}
 network_interface = "{{cfg.network_interface}}"
 {{~/if}}
