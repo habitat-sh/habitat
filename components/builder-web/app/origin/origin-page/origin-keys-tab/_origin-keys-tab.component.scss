@@ -1,5 +1,18 @@
 .origin-keys-tab-component {
-  
+
+  section.private {
+    margin-bottom: $default-margin * 2;
+  }
+
+  .upload {
+    text-align: right;
+  }
+
+  .tag {
+    @include tag;
+    margin-left: $default-margin / 2;
+  }
+
   button {
     color: #87B09A;
     border: 1px solid #87B09A;

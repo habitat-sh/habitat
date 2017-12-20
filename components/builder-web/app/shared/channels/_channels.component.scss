@@ -8,24 +8,17 @@
 
     li {
       display: inline-block;
-      font-size: $smaller-font-size;
-      font-weight: 600;
-      font-family: $base-font-family;
-      padding: 2px 10px;
-      border-radius: 11px;
-      color: $hab-blue;
-      background-color: $light-blue;
-      border: 1px solid $light-blue;
+      @include tag($color: $hab-blue, $background-color: $light-blue, $border-color: $light-blue);
 
       &.unstable {
         background-color: $white;
-        border: 1px solid $very-light-gray;
+        border-color: $very-light-gray;
         color: $hab-blue;
       }
 
       &.stable {
         background-color: $hab-blue;
-        border: 1px solid $hab-blue;
+        border-color: $hab-blue;
         color: $white;
       }
 
