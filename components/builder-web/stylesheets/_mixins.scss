@@ -41,3 +41,13 @@ $desktop-width: 1024px;
   top: 50%;
   transform: translateY(-50%);
 }
+
+@mixin tag($color: $white, $background-color: $dark-gray, $border-color: $dark-gray) {
+  padding: 2px 10px;
+  border: 1px solid $border-color;
+  border-radius: 11px;
+  font-size: $smaller-font-size;
+  font-weight: 600;
+  color: $color;
+  background-color: $background-color;
+}
