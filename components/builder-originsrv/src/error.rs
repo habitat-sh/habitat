@@ -33,7 +33,7 @@ pub enum SrvError {
     BuilderCore(bldr_core::Error),
     ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
-    DbPoolTimeout(r2d2::GetTimeout),
+    DbPoolTimeout(r2d2::Error),
     DbTransactionStart(postgres::error::Error),
     DbTransactionCommit(postgres::error::Error),
     DbListen(postgres::error::Error),
@@ -409,12 +409,6 @@ impl error::Error for SrvError {
             SrvError::UnknownOriginPackageVisibility(ref err) => err.description(),
             SrvError::VisibilityCascade(ref err) => err.description(),
         }
-    }
-}
-
-impl From<r2d2::GetTimeout> for SrvError {
-    fn from(err: r2d2::GetTimeout) -> Self {
-        SrvError::DbPoolTimeout(err)
     }
 }
 

@@ -14,8 +14,8 @@ clippy = {version = "*", optional = true}
 base64 = "*"
 ansi_term = "*"
 env_logger = "*"
-hyper = "*"
-handlebars = { version = "*", features = ["partial4"], default-features = false }
+hyper = "0.10"
+handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "*"

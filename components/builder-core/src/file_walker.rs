@@ -13,13 +13,13 @@
 // limitations under the License.
 
 use std::path::{Path, PathBuf};
-use walkdir::{WalkDir, Iter};
+use walkdir::{WalkDir, IntoIter};
 use hab_core::package::{FromArchive, PackageArchive};
 use protocol::originsrv::OriginPackage;
 use protocol::jobsrv;
 
 pub struct FileWalker {
-    walker: Iter,
+    walker: IntoIter,
 }
 
 impl FileWalker {

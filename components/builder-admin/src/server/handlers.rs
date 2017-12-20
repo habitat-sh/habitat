@@ -15,7 +15,7 @@
 //! A collection of handlers for the HTTP server's router
 
 use bodyparser;
-use hab_net::privilege;
+use hab_net::privilege::FeatureFlags;
 use http_gateway::http::controller::*;
 use iron::status;
 use protocol::sessionsrv::*;
@@ -32,7 +32,7 @@ struct FeatureFlagList(Vec<FeatureFlag>);
 impl Default for FeatureFlagList {
     fn default() -> Self {
         let mut list = vec![];
-        list.push(FeatureFlag::new("Admin", privilege::ADMIN.bits()));
+        list.push(FeatureFlag::new("Admin", FeatureFlags::ADMIN.bits()));
         FeatureFlagList(list)
     }
 }

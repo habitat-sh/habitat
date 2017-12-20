@@ -6,7 +6,7 @@ workspace = "../../"
 
 [dependencies]
 clippy = {version = "*", optional = true}
-hyper = "*"
+hyper = "0.10"
 hyper-openssl = ""
 log = "*"
 regex = "*"

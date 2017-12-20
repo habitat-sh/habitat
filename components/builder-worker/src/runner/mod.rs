@@ -30,7 +30,7 @@ use std::thread::{self, JoinHandle};
 pub use protocol::jobsrv::JobState;
 use bldr_core::job::Job;
 use bldr_core::logger::Logger;
-use chrono::UTC;
+use chrono::Utc;
 use depot_client;
 use hab_core::os::users;
 use hab_core::package::archive::PackageArchive;
@@ -224,7 +224,7 @@ impl Runner {
         self.check_cancel(tx)?;
 
         self.workspace.job.set_build_started_at(
-            UTC::now().to_rfc3339(),
+            Utc::now().to_rfc3339(),
         );
 
         // TODO: We don't actually update the state of the job to
@@ -236,13 +236,13 @@ impl Runner {
         let mut archive = match self.build() {
             Ok(archive) => {
                 self.workspace.job.set_build_finished_at(
-                    UTC::now().to_rfc3339(),
+                    Utc::now().to_rfc3339(),
                 );
                 archive
             }
             Err(err) => {
                 self.workspace.job.set_build_finished_at(
-                    UTC::now().to_rfc3339(),
+                    Utc::now().to_rfc3339(),
                 );
                 let msg = format!(
                     "Failed studio build for {}, err={:?}",

@@ -17,7 +17,7 @@
 mod handlers;
 
 use github_api_client::GitHubClient;
-use hab_net::privilege;
+use hab_net::privilege::FeatureFlags;
 use http_gateway;
 use http_gateway::app::prelude::*;
 use iron;
@@ -50,7 +50,7 @@ impl HttpGateway for AdminSrv {
     }
 
     fn router(config: Arc<Self::Config>) -> Router {
-        let admin = Authenticated::new(config.github.clone()).require(privilege::ADMIN);
+        let admin = Authenticated::new(config.github.clone()).require(FeatureFlags::ADMIN);
         router!(
             status: get "/status" => status,
             search: post "/search" => XHandler::new(search).before(admin.clone()),

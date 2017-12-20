@@ -16,7 +16,7 @@
 
 use std::sync::Arc;
 
-use chrono::{DateTime, UTC};
+use chrono::{DateTime, Utc};
 use db::config::DataStoreCfg;
 use db::migration::Migrator;
 use db::pool::Pool;
@@ -250,7 +250,7 @@ impl DataStore {
         // the database will also be updated to be NULL. This should
         // be OK, though, because they shouldn't be changing anyway.
         let build_started_at = if job.has_build_started_at() {
-            Some(job.get_build_started_at().parse::<DateTime<UTC>>().unwrap())
+            Some(job.get_build_started_at().parse::<DateTime<Utc>>().unwrap())
         } else {
             None
         };
@@ -258,7 +258,7 @@ impl DataStore {
         let build_finished_at = if job.has_build_finished_at() {
             Some(
                 job.get_build_finished_at()
-                    .parse::<DateTime<UTC>>()
+                    .parse::<DateTime<Utc>>()
                     .unwrap(),
             )
         } else {
@@ -655,7 +655,7 @@ impl DataStore {
         let group_state = js.parse::<jobsrv::JobGroupState>()?;
         group.set_state(group_state);
 
-        let created_at = row.get::<&str, DateTime<UTC>>("created_at");
+        let created_at = row.get::<&str, DateTime<Utc>>("created_at");
         group.set_created_at(created_at.to_rfc3339());
 
         let project_name: String = row.get("project_name");
@@ -857,15 +857,15 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     let job_state: jobsrv::JobState = js.parse().map_err(Error::UnknownJobState)?;
     job.set_state(job_state);
 
-    let created_at = row.get::<&str, DateTime<UTC>>("created_at");
+    let created_at = row.get::<&str, DateTime<Utc>>("created_at");
     job.set_created_at(created_at.to_rfc3339());
 
     // Note: these may be null (e.g., a job is scheduled, but hasn't
     // started; a job has started and is currently running)
-    if let Some(Ok(start)) = row.get_opt::<&str, DateTime<UTC>>("build_started_at") {
+    if let Some(Ok(start)) = row.get_opt::<&str, DateTime<Utc>>("build_started_at") {
         job.set_build_started_at(start.to_rfc3339());
     }
-    if let Some(Ok(stop)) = row.get_opt::<&str, DateTime<UTC>>("build_finished_at") {
+    if let Some(Ok(stop)) = row.get_opt::<&str, DateTime<Utc>>("build_finished_at") {
         job.set_build_finished_at(stop.to_rfc3339());
     }
 

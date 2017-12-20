@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use clap;
 use std::fs as stdfs;
 #[cfg(target_os = "linux")]
 use std::os::unix::fs::symlink;
@@ -21,19 +20,21 @@ use std::os::windows::fs::symlink_dir as symlink;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use clap;
 use common;
 use common::command::package::install::InstallSource;
 use common::ui::{UI, Status};
+use failure::SyncFailure;
 use hab;
 use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, cache_artifact_path, cache_key_path};
 use hcore::PROGRAM_NAME;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use tempdir::TempDir;
 
+use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
 use error::{Error, Result};
 use fs;
 use rootfs;
-use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
 use util;
 
 const DEFAULT_HAB_IDENT: &'static str = "core/hab";
@@ -229,9 +230,9 @@ impl<'a> BuildSpec<'a> {
     ) -> Result<()> {
         let dst = util::bin_path();
         for pkg in user_pkgs.iter() {
-            hab::command::pkg::binlink::binlink_all_in_pkg(ui, &pkg, &dst, rootfs.as_ref(), true)?;
+            hab::command::pkg::binlink::binlink_all_in_pkg(ui, &pkg, &dst, rootfs.as_ref(), true)
+                .map_err(SyncFailure::new)?;
         }
-
         Ok(())
     }
 
@@ -248,9 +249,9 @@ impl<'a> BuildSpec<'a> {
             &dst,
             rootfs.as_ref(),
             true,
-        )?;
-        hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs.as_ref(), true)?;
-
+        ).map_err(SyncFailure::new)?;
+        hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs.as_ref(), true)
+            .map_err(SyncFailure::new)?;
         Ok(())
     }
 

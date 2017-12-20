@@ -33,7 +33,8 @@ use http_gateway::http::controller::*;
 use http_gateway::http::helpers::{self, all_visibilities, check_origin_access, check_origin_owner,
                                   dont_cache_response, get_param, visibility_for_optional_session};
 use http_gateway::http::middleware::{SegmentCli, XRouteClient};
-use hab_net::{privilege, ErrCode, NetOk, NetResult};
+use hab_net::{ErrCode, NetOk, NetResult};
+use hab_net::privilege::{FeatureFlags};
 use hyper::header::{Charset, ContentDisposition, DispositionParam, DispositionType};
 use hyper::mime::{Attr, Mime, SubLevel, TopLevel, Value};
 use iron::headers::{ContentType, UserAgent};
@@ -2258,7 +2259,7 @@ where
 
 pub fn router(depot: DepotUtil) -> Result<Chain> {
     let basic = Authenticated::new(depot.config.github.clone());
-    let worker = Authenticated::new(depot.config.github.clone()).require(privilege::BUILD_WORKER);
+    let worker = Authenticated::new(depot.config.github.clone()).require(FeatureFlags::BUILD_WORKER);
     let router = routes(basic, worker);
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<EventLog>::both(EventLogger::new(

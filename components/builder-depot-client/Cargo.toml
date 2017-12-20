@@ -9,7 +9,7 @@ chrono = "*"
 clippy = {version = "*", optional = true}
 broadcast = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
-hyper = "*"
+hyper = "0.10"
 hyper-openssl = ""
 log = "*"
 pbr = "*"

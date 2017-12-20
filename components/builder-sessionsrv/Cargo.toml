@@ -18,7 +18,7 @@ bitflags = "*"
 env_logger = "*"
 github-api-client = { path = "../github-api-client" }
 habitat-builder-protocol = { path = "../builder-protocol" }
-hyper = "*"
+hyper = "0.10"
 lazy_static = "*"
 log = "*"
 postgres = "*"

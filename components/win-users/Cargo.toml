@@ -12,4 +12,4 @@ gcc = "0.3"
 [target.'cfg(windows)'.dependencies]
 kernel32-sys = "*"
 widestring = "*"
-winapi = "*"
+winapi = "0.2"

@@ -25,8 +25,8 @@ log = "*"
 rand = "*"
 serde = "1.0.2"
 serde_json = "1.0.0"
-failure = "0.1"
-failure_derive = "0.1"
+failure = { git = "https://github.com/withoutboats/failure.git" }
+failure_derive = { git = "https://github.com/withoutboats/failure_derive.git" }
 
 [features]
 default = []

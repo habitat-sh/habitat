@@ -7,8 +7,8 @@ workspace = "../../"
 [dependencies]
 base64 = "*"
 frank_jwt = { git = "https://github.com/habitat-sh/frank_jwt", branch = "habitat" }
-hyper = "*"
-hyper-openssl = "*"
+hyper = "0.10"
+hyper-openssl = "0.2"
 lazy_static = "*"
 log = "*"
 regex = "*"

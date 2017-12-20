@@ -45,10 +45,10 @@ ctrlc = "*"
 kernel32-sys = "*"
 userenv-sys = "*"
 widestring = "*"
-winapi = "*"
+winapi = "0.2"
 
 [dev-dependencies]
-hyper = "*"
+hyper = "0.10"
 tempdir = "*"
 
 [features]

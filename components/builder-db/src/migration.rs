@@ -64,18 +64,17 @@ impl<'a> Migrator<'a> {
             let sql_create_schema = format!("CREATE SCHEMA IF NOT EXISTS {}", schema_name);
             match schema_xact.execute(&sql_create_schema, &[]) {
                 Ok(_) => {}
-                Err(postgres::error::Error::Db(db_error)) => {
-                    match db_error.code {
-                        postgres::error::SqlState::UniqueViolation => {
+                Err(err) => {
+                    if let Some(db_error) = err.as_db() {
+                        if db_error.code == postgres::error::UNIQUE_VIOLATION {
                             debug!(
                                 "This is a concurrency bug with schema creation - you can \
-                                    ignore it"
+                                            ignore it"
                             )
                         }
-                        _ => return Err(Error::SchemaCreate(postgres::error::Error::Db(db_error))),
                     }
+                    return Err(Error::SchemaCreate(err));
                 }
-                Err(e) => return Err(Error::SchemaCreate(e)),
             }
             let set_search_path = format!("SET search_path TO {}", schema_name);
             schema_xact.execute(&set_search_path, &[]).map_err(

@@ -21,7 +21,7 @@ env_logger = "*"
 github-api-client = { path = "../github-api-client" }
 habitat-builder-protocol = { path = "../builder-protocol" }
 hex = "*"
-hyper = "*"
+hyper = "0.10"
 iron = "*"
 log = "*"
 mount = "*"

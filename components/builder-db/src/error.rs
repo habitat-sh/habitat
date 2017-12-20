@@ -27,7 +27,7 @@ pub enum Error {
     AsyncMalformedShardId(String),
     AsyncFunctionCheck(postgres::error::Error),
     AsyncFunctionUpdate(postgres::error::Error),
-    ConnectionTimeout(r2d2::GetTimeout),
+    ConnectionTimeout(r2d2::Error),
     FunctionCreate(postgres::error::Error),
     FunctionDrop(postgres::error::Error),
     FunctionRun(postgres::error::Error),
@@ -36,7 +36,7 @@ pub enum Error {
     MigrationTable(postgres::error::Error),
     MigrationTracking(postgres::error::Error),
     MigrationLock(postgres::error::Error),
-    PostgresConnect(postgres::error::ConnectError),
+    PostgresConnect(postgres::error::Error),
     SchemaCreate(postgres::error::Error),
     SchemaDrop(postgres::error::Error),
     SchemaSwitch(postgres::error::Error),
@@ -118,17 +118,5 @@ impl error::Error for Error {
             Error::TransactionCreate(_) => "Error creating a transaction",
             Error::TransactionCommit(_) => "Error committing a transaction",
         }
-    }
-}
-
-impl From<r2d2::GetTimeout> for Error {
-    fn from(err: r2d2::GetTimeout) -> Self {
-        Error::ConnectionTimeout(err)
-    }
-}
-
-impl From<postgres::error::ConnectError> for Error {
-    fn from(err: postgres::error::ConnectError) -> Self {
-        Error::PostgresConnect(err)
     }
 }

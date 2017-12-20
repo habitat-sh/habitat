@@ -20,7 +20,7 @@ github-api-client = { path = "../github-api-client" }
 habitat_core = { path = "../core" }
 habitat-builder-protocol = { path = "../builder-protocol" }
 habitat_net = { path = "../net" }
-hyper = "*"
+hyper = "0.10"
 iron = "*"
 log = "*"
 mount = "*"

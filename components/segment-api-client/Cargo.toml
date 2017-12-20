@@ -6,8 +6,8 @@ workspace = "../../"
 
 [dependencies]
 base64 = "*"
-hyper = "*"
-hyper-openssl = "*"
+hyper = "0.10"
+hyper-openssl = "0.2"
 log = "*"
 serde = "*"
 serde_derive = "*"
