@@ -1,4 +1,10 @@
 <div class="build-detail-component">
+  <section class="back">
+    <a [routerLink]="['../']">
+      <hab-icon symbol="chevron-left"></hab-icon>
+      <span>Back to build jobs</span>
+    </a>
+  </section>
   <div class="summary" *ngIf="buildState">
     <div class="status {{ statusClass }}">
       <div>
