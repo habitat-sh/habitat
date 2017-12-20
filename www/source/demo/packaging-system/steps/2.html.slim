@@ -26,7 +26,7 @@ classes: demo_step
             ' Instructions for
             a.link-external target="_bank" href="https://www.habitat.sh/docs/using-habitat/#install-habitat" installing Habitat and Docker
             '  can be found in the docs.
-          p You can quickly check that the Habitat CLI tool is installed by running
+          p You can verify that Habitat was successfully installed by checking the version.
           = code(:shell) do
             | $ hab --version
 
@@ -36,7 +36,8 @@ classes: demo_step
               | Habitat uses Docker to create a clean build room environment known as the Habitat Studio.
               |  You'll learn more about the Studio later in this demo.
         .columns.large-6
-          img src="/images/demo/pkg-step-2.svg"
+          .demo-step--pkg-img
+            img src="/images/demo/pkg-step-2.svg"
       .row.mt-1.step-bottom-nav
         .columns.large-6
           a.previous-step-link href="/demo/packaging-system/steps/1" Previous Step
