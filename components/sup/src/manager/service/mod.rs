@@ -63,6 +63,8 @@ pub use self::supervisor::ProcessState;
 static LOGKEY: &'static str = "SR";
 
 pub const SVC_DIR_PERMISSIONS: u32 = 0o700;
+pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
+
 lazy_static! {
     static ref HEALTH_CHECK_INTERVAL: Duration = {
         Duration::from_millis(30_000)
@@ -807,7 +809,7 @@ impl Service {
                       file.as_ref().display(), e);
             return false;
         }
-        if let Err(e) = set_permissions(&file, 0o640) {
+        if let Err(e) = set_permissions(&file, GOSSIP_FILE_PERMISSIONS) {
             outputln!(preamble self.service_group,
                       "Failed to set permissions on cache file {}, {}",
                       file.as_ref().display(), e);
