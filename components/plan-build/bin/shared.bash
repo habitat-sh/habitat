@@ -154,7 +154,7 @@ __process_path() {
         path+=("${pkg_prefix}/${bin}")
     done
 
-    echo "$(join_by ":" ${path[@]})"
+    echo "$(join_by ':' ${path[@]})"
 }
 
 # The PATH metadata file contains full paths to every directory listed

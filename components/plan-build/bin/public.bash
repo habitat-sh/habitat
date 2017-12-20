@@ -98,7 +98,7 @@ exit_with() {
         ;;
     esac
   fi
-  exit $2
+  exit ${2:-1}
 }
 
 # Trim leading and trailing whitespace.  [Thanks to these

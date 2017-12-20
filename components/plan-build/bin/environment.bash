@@ -108,11 +108,11 @@ __env_var_type() {
         echo "${hint_var}"
     elif [ -n "${__well_known_aggregate_env_vars[${var_name}]}" ]; then
         # Look in our built-in map to see if we know anything about it
-        echo "aggregate"
+        echo 'aggregate'
     else
         # We know nothing about it; treat it as a primitive
         warn "Treating \$${var_name} as a primitive type. If you would like to change this, add \`HAB_ENV_${var_name}_TYPE=aggregate\` to your plan."
-        echo "primitive"
+        echo 'primitive'
     fi
 }
 
@@ -131,7 +131,7 @@ __env_aggregate_separator() {
     else
         # Just assume it's the default
         warn "Using \`:\` as a separator for \$${var_name}. If you would like to change this, add \`HAB_ENV_${var_name}_SEPARATOR=<YOUR_SEPARATOR>\` to your plan."
-        echo ":"
+        echo ':'
     fi
 }
 
