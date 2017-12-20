@@ -16,7 +16,7 @@ env_logger = "*"
 # put these things behind a feature flag so we can statically compile the launcher.
 habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
+ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", rev = "1323563890f0b01f376e9c277dd7c26cd34ca01d" }
 libc = "*"
 log = "*"
 protobuf = "*"
