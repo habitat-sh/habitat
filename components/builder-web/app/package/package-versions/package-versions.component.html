@@ -15,7 +15,7 @@
         <span class="column">{{ version.release_count }}</span>
         <span class="column">{{ releaseToDate(version.latest) }}</span>
         <span class="column">
-          <hab-platform-icon [platform]="platform" *ngFor="let platform of platforms"></hab-platform-icon>
+          <hab-platform-icon [platform]="platform" *ngFor="let platform of platformsFor(version)"></hab-platform-icon>
         </span>
         <hab-icon class="toggle" [symbol]="toggleFor(version)"></hab-icon>
       </li>

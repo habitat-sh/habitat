@@ -69,15 +69,13 @@ export class PackageVersionsComponent implements OnDestroy {
     }
   }
 
-  get platforms() {
+  platformsFor(version) {
     let targets = [];
 
-    this.versions.forEach((v) => {
-      v.platforms.forEach((p) => {
-        if (targets.indexOf(p) === -1) {
-          targets.push(p);
-        }
-      });
+    version.platforms.forEach((p) => {
+      if (targets.indexOf(p) === -1) {
+        targets.push(p);
+      }
     });
 
     return targets.sort();
