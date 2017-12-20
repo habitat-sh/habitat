@@ -6,6 +6,7 @@ pkg_license=("Apache-2.0")
 pkg_deps=(core/nginx core/curl core/coreutils)
 pkg_build_deps=(core/node8 core/gcc core/git core/tar core/phantomjs core/python2 core/make)
 pkg_svc_user="root"
+pkg_svc_run="nginx -c ${pkg_svc_config_path}/nginx.conf"
 pkg_exports=(
   [port]=http.listen_port
   [url]=app_url
