@@ -484,7 +484,7 @@ mod test {
     use std::path::Path;
     use std::{thread, time};
 
-    use hex::ToHex;
+    use hex;
     use tempdir::TempDir;
 
     use super::box_key_pair::BoxKeyPair;
@@ -551,7 +551,7 @@ mod test {
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &keyfile).unwrap();
         println!("keyfile {:?}", keyfile);
         let result = super::read_key_bytes(keyfile.as_path()).unwrap();
-        assert_eq!(result.as_slice().to_hex(), VALID_KEY_AS_HEX);
+        assert_eq!(hex::encode(result.as_slice()), VALID_KEY_AS_HEX);
     }
 
     #[test]

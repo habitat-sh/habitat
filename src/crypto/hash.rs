@@ -18,7 +18,7 @@ use std::mem;
 use std::path::Path;
 use std::ptr;
 
-use hex::ToHex;
+use hex;
 use libsodium_sys;
 
 use error::Result;
@@ -48,7 +48,7 @@ pub fn hash_string(data: &str) -> String {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    out.to_hex()
+    hex::encode(out)
 }
 
 pub fn hash_bytes(data: &[u8]) -> String {
@@ -62,7 +62,7 @@ pub fn hash_bytes(data: &[u8]) -> String {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    out.to_hex()
+    hex::encode(out)
 }
 
 pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
@@ -88,7 +88,7 @@ pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
     unsafe {
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    Ok(out.to_hex())
+    Ok(hex::encode(out))
 }
 
 #[cfg(test)]
