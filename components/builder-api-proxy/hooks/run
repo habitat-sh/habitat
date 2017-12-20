@@ -3,8 +3,6 @@
 pkg_svc_run="nginx -c {{pkg.svc_config_path}}/nginx.conf"
 
 if [ "\$(whoami)" = "root" ]; then
-  chown -R hab:hab {{pkg.svc_var_path}}
-  chown -R hab:hab {{pkg.svc_config_path}}
   exec chpst \
     -U {{pkg.svc_user}}:{{pkg.svc_group}} \
     -u {{pkg.svc_user}}:{{pkg.svc_group}} \
