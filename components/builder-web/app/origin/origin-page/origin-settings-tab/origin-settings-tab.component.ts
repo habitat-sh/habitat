@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../../app.store';
 import { updateOrigin } from '../../../actions/index';
 
@@ -20,9 +23,27 @@ import { updateOrigin } from '../../../actions/index';
   template: require('./origin-settings-tab.component.html')
 })
 
-export class OriginSettingsTabComponent {
+export class OriginSettingsTabComponent implements OnInit, OnDestroy {
 
-  constructor(private store: AppStore) { }
+  private sub: Subscription;
+
+  constructor(
+    private store: AppStore,
+    private route: ActivatedRoute,
+    private title: Title
+  ) { }
+
+  ngOnInit() {
+    this.sub = this.route.parent.params.subscribe((params) => {
+      this.title.setTitle(`Origins › ${params.origin} › Settings | Habitat`);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
+  }
 
   get origin() {
     return this.store.getState().origins.current;

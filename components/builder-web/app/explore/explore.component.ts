@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { AppStore } from '../app.store';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { AppStore } from '../app.store';
 import { fetchExplore, setLayout } from '../actions/index';
 
 @Component({
@@ -24,8 +25,11 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
   constructor(
     private store: AppStore,
-    private router: Router
-  ) { }
+    private router: Router,
+    private title: Title
+  ) {
+    this.title.setTitle('Explore | Habitat');
+  }
 
   ngOnInit() {
     this.store.dispatch(fetchExplore());

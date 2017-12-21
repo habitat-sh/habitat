@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Component, OnDestroy } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { AppStore } from '../app.store';
 import { setLayout, signOut } from '../actions/index';
 import { createGitHubLoginUrl } from '../util';
@@ -23,8 +24,9 @@ import config from '../config';
 })
 export class SignInPageComponent implements OnDestroy {
 
-  constructor(private store: AppStore) {
+  constructor(private store: AppStore, private title: Title) {
     store.dispatch(signOut(false));
+    this.title.setTitle('Sign In | Habitat');
     this.store.dispatch(setLayout('centered'));
   }
 

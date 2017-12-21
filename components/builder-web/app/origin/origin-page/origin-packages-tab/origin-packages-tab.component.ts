@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../../app.store';
 import { getUniquePackages } from '../../../actions/index';
 
@@ -21,10 +23,29 @@ import { getUniquePackages } from '../../../actions/index';
   selector: 'hab-origin-packages-tab',
   template: require('./origin-packages-tab.component.html')
 })
-export class OriginPackagesTabComponent {
+export class OriginPackagesTabComponent implements OnInit, OnDestroy {
   selectingPlan: boolean = false;
 
-  constructor(private store: AppStore, private router: Router) { }
+  private sub: Subscription;
+
+  constructor(
+    private store: AppStore,
+    private router: Router,
+    private route: ActivatedRoute,
+    private title: Title
+  ) { }
+
+  ngOnInit() {
+    this.sub = this.route.parent.params.subscribe((params) => {
+      this.title.setTitle(`Origins › ${params.origin} › Packages | Habitat`);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
+  }
 
   get integrations() {
     return this.store.getState().origins.currentIntegrations.integrations;

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Component, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material';
 import { SimpleConfirmDialog } from '../../shared/dialog/simple-confirm/simple-confirm.dialog';
@@ -28,8 +29,11 @@ export class OriginsPageComponent implements OnInit {
   constructor(
     private store: AppStore,
     private router: Router,
-    private confirmDialog: MatDialog
-  ) { }
+    private confirmDialog: MatDialog,
+    private title: Title
+  ) {
+    this.title.setTitle('My Origins | Habitat');
+  }
 
   ngOnInit() {
     if (this.token) {
