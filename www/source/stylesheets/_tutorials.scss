@@ -7,7 +7,8 @@
 }
 
 .container__tutorials {
-  margin-bottom: 80px;
+  margin-bottom: rem-calc(80);
+  margin-top: rem-calc(80);
 
   .button.cta {
 
@@ -130,58 +131,6 @@
     margin-bottom: 30px;
     padding: rem-calc(30) rem-calc(20);
     position: relative;
-
-    @for $i from 1 through 2 {
-
-      &.home-page-card {
-
-        > div:nth-child(#{$i}) {
-          background-color: $white;
-          border-radius: $global-radius;
-          box-shadow: 0 -2px 20px 0 rgba(200,210,217,0.5);
-          height: 20px;
-          position: absolute;
-          top: -12px * $i;
-          right: 10px * $i;
-          left: 10px * $i;
-          z-index: -1 * $i;
-        }
-      }
-    }
-
-    &.home-page-card {
-      margin-bottom: 90px;
-      padding: 30px 40px;
-      position: relative;
-
-      ul {
-        list-style-type: none;
-        margin: 2px 0 12px 0;
-        padding: 0;
-
-        li {
-          display: inline-block;
-          border-radius: 12px;
-          border: 1px solid #87B09A;
-          color: #87B09A;
-          font-size: rem-calc(14);
-          padding: 2px 6px;
-          margin: 0 8px;
-        }
-      }
-
-      img {
-        position: absolute;
-        bottom: -1px;
-        right: 34px;
-
-        &.app {
-          right: 24px;
-          bottom: -12px;
-          height: 65px;
-        }
-      }
-    }
 
     &.full {
       padding: rem-calc(30) 0 0 0;
@@ -364,64 +313,6 @@
     }
   }
 
-  .subnav {
-    background-color: #223442;
-    border-radius: $global-radius;
-    margin-bottom: 34px;
-
-    ul {
-      @include grid-row();
-
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-
-      li {
-        display: none;
-        text-align: center;
-
-        @include breakpoint(medium) {
-          @include grid-column(2);
-          width: 20%;
-          display: block;
-        }
-
-        font-weight: rem-calc(16);
-        line-height: rem-calc(60);
-        margin: 0;
-        padding: 0;
-        vertical-align: middle;
-
-        &.active {
-          display: block;
-          font-weight: 600;
-
-          a {
-            padding-left: 1.8rem;
-
-            &:before {
-              content: '';
-              position: absolute;
-              background: url(/images/sprout.svg) no-repeat;
-              background-size: contain;
-              width: 19px;
-              height: 16px;
-              left: 0;
-              top: 50%;
-              transform: translateY(-50%);
-            }
-          }
-        }
-
-        a {
-          color: $white;
-          display: inline-block;
-          position: relative;
-        }
-      }
-    }
-  }
-
   .video {
     border-radius: $global-radius;
     height: 0;
@@ -466,22 +357,6 @@
 
     .description {
       clear: both;
-    }
-  }
-
-  .home-page-card-container {
-    margin-bottom: 182px;
-    position: relative;
-
-    .card-thread {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      border-left: 2px dashed #9ECB95;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: -1;
     }
   }
 }

@@ -33,13 +33,11 @@ $demo-large-breakpoint: rem-calc(1060);
   padding: 0px 0px rem-calc(150);
 
   .demo-hero {
-    margin-bottom: rem-calc(96);
+    margin-bottom: rem-calc(80);
+    text-align: center;
   }
 
   // Demo typography
-  h1 {
-    font-size: rem-calc(24);
-  }
 
   p {
     line-height: rem-calc(24);
@@ -76,6 +74,28 @@ $demo-large-breakpoint: rem-calc(1060);
   }
 }
 
+.demo--section-title {
+  .h2.no-span {
+      display: table;
+      margin-bottom: rem-calc(128);
+      white-space: nowrap;
+      font-size: rem-calc(18);
+      color: rgba($hab-white,0.35);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      &:before, &:after {
+        border-top: 1px solid rgba($hab-slate,.40);
+        content: '';
+        display: table-cell;
+        position: relative;
+        top: rem-calc(12);
+        width: 45%;
+      }
+      &:before { right: 1.5%; }
+      &:after { left: 1.5%; }
+  }
+}
+
 .demo--callouts {
 
   @include large-demo {
@@ -84,9 +104,9 @@ $demo-large-breakpoint: rem-calc(1060);
 
   .demo--callout {
     display: flex;
-    margin-bottom: rem-calc(90);
+    margin-bottom: rem-calc(80);
     position: relative;
-    background-color: $hab-slate;
+    background-color: rgba($hab-slate, 0.85);
     transition: all .1s;
 
     &:hover {
@@ -102,6 +122,10 @@ $demo-large-breakpoint: rem-calc(1060);
         margin-left: 0;
       }
     }
+
+    &.secondary {
+      background-color: rgba($hab-slate, 0.35);
+    }
   }
 }
 
@@ -109,16 +133,16 @@ $demo-large-breakpoint: rem-calc(1060);
   border-radius: $global-radius;
   position: relative;
   width: 100%;
-  padding: rem-calc(48) rem-calc(16) rem-calc(104);
+  padding: rem-calc(40) rem-calc(16) rem-calc(112);
 
-  .h2 {
-    margin-bottom: rem-calc(10);
+  .h3 {
+    margin-bottom: rem-calc(32);
   }
 
   .h4 {
-    padding-bottom: rem-calc(10);
-    color: $hab-gray-dark;
-    border-bottom: 1px solid $hab-gray-dark;
+    margin-bottom: rem-calc(8);
+    color: rgba($hab-white,0.35);
+    text-transform: uppercase;
   }
 
   &:after {
@@ -144,6 +168,7 @@ $demo-large-breakpoint: rem-calc(1060);
   &.demo--callout-trigger:after {
     height: rem-calc(75);
     width: rem-calc(154);
+    right: 0;
     background: url('/images/demo/index-callout-trigger.svg') center center no-repeat;
     background-size: contain;
   }
@@ -178,6 +203,24 @@ $demo-large-breakpoint: rem-calc(1060);
       margin-bottom: 0;
     }
   }
+}
+
+.demo--get-habitat {
+  margin-bottom: rem-calc(104);
+  margin-top: rem-calc(16);
+  text-align: center;
+  color: rgba($hab-white,0.35);
+
+  a {
+    color: rgba($hab-white, 0.75);
+    border-bottom: 1px solid rgba($hab-white, 0.75);
+  }
+}
+
+.demo--get-habitat--image {
+  margin-right: rem-calc(16);
+  height: rem-calc(32);
+  vertical-align: text-bottom;
 }
 
 // demo steps
