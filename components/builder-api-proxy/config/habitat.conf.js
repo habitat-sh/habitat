@@ -22,4 +22,5 @@ habitatConfig({
     slack_url: "{{cfg.slack_url}}",
     youtube_url: "{{cfg.youtube_url}}",
     demo_app_url: "{{cfg.demo_app_url}}"
+    learn_url: "{{cfg.learn_url}}"
 });

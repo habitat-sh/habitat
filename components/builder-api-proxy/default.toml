@@ -14,6 +14,7 @@ feature_requests_url = "https://portal.prodpad.com/24539"
 slack_url            = "http://slack.habitat.sh/"
 youtube_url          = "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk"
 demo_app_url         = "https://www.habitat.sh/demo"
+learn_url            = "https://www.habitat.sh/learn"
 
 [github]
 url          = "https://api.github.com"
