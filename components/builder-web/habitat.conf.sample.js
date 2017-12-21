@@ -44,6 +44,8 @@ habitatConfig({
     status_url: "https://status.habitat.sh/",
     // The URL for the demo app
     demo_app_url: "https://www.habitat.sh/demo",
+    // The URL for the Learn Habitat
+    learn_url: "https://www.habitat.sh/learn",    
     // The version of the software we're running. In production, this should
     // be automatically populated by Habitat
     version: "",
