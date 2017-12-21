@@ -19,6 +19,7 @@ use error::Result;
 
 pub mod docker;
 pub mod cf;
+pub mod helm;
 pub mod kubernetes;
 
 mod export_common;
