@@ -1594,7 +1594,7 @@ dependencies = [
 [[package]]
 name = "ipc-channel"
 version = "0.8.0"
-source = "git+https://github.com/habitat-sh/ipc-channel?branch=hbt-windows#2d085faf5bc053fb321e0d375b7328d023ea3436"
+source = "git+https://github.com/habitat-sh/ipc-channel?branch=hbt-windows#1323563890f0b01f376e9c277dd7c26cd34ca01d"
 dependencies = [
  "bincode 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
