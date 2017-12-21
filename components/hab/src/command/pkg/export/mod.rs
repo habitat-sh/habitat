@@ -21,6 +21,8 @@ pub mod docker;
 pub mod cf;
 pub mod kubernetes;
 
+mod export_common;
+
 #[allow(dead_code)]
 pub struct ExportFormat {
     pkg_ident: PackageIdent,
