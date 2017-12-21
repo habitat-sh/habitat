@@ -14,6 +14,7 @@
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { List } from 'immutable';
@@ -38,7 +39,8 @@ export class OriginMembersTabComponent implements OnInit, OnDestroy {
     formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private store: AppStore,
-    private confirmDialog: MatDialog
+    private confirmDialog: MatDialog,
+    private title: Title
   ) {
     this.form = formBuilder.group({});
   }
@@ -46,6 +48,7 @@ export class OriginMembersTabComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.sub = this.route.parent.params.subscribe(params => {
       this.origin = Origin({ name: params['origin'] });
+      this.title.setTitle(`Origins › ${this.origin.name} › Members | Habitat`);
       this.store.dispatch(fetchOriginMembers(this.origin.name, this.token));
       this.store.dispatch(fetchOriginInvitations(this.origin.name, this.token));
     });

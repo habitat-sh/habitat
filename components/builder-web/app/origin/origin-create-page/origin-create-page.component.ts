@@ -14,6 +14,7 @@
 
 import { AfterViewInit, Component } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { AppStore } from '../../app.store';
 import { BuilderApiClient } from '../../client/builder-api';
@@ -30,9 +31,15 @@ export class OriginCreatePageComponent implements AfterViewInit {
 
   private api: BuilderApiClient;
 
-  constructor(private formBuilder: FormBuilder, private store: AppStore, private router: Router) {
+  constructor(
+    private formBuilder: FormBuilder,
+    private store: AppStore,
+    private router: Router,
+    private title: Title
+  ) {
     this.api = new BuilderApiClient(this.token);
     this.form = formBuilder.group({});
+    this.title.setTitle('My Origins › Create a New Origin | Habitat');
 
     this.isOriginAvailable = origin => {
       return this.api.isOriginAvailable(origin);

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Component, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { AppStore } from '../../app.store';
 import { fetchProfile, saveProfile } from '../../actions/index';
 
@@ -20,7 +21,10 @@ import { fetchProfile, saveProfile } from '../../actions/index';
   template: require('./profile.component.html')
 })
 export class ProfileComponent implements OnInit {
-  constructor(private store: AppStore) {}
+
+  constructor(private store: AppStore, private title: Title) {
+    this.title.setTitle(`My Profile | Habitat`);
+  }
 
   ngOnInit() {
     this.store.dispatch(fetchProfile(this.token));

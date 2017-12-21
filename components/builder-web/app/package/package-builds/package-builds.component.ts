@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Component, OnDestroy } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../app.store';
@@ -29,11 +30,14 @@ export class PackageBuildsComponent implements OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private store: AppStore,
-    private router: Router) {
+    private router: Router,
+    private title: Title
+  ) {
 
     this.sub = this.route.parent.params.subscribe((params) => {
       this.origin = params['origin'];
       this.name = params['name'];
+      this.title.setTitle(`Packages › ${this.origin}/${this.name} › Build Jobs | Habitat`);
     });
   }
 

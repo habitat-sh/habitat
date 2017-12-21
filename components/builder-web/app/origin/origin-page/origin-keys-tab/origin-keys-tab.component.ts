@@ -14,6 +14,7 @@
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../../app.store';
@@ -36,19 +37,23 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
     private store: AppStore,
     private keyAddDialog: MatDialog,
     private keyGenerateDialog: MatDialog,
-    private originService: OriginService
-  ) { }
+    private originService: OriginService,
+    private title: Title
+  ) {}
 
   ngOnInit() {
     this.sub = this.route.parent.params.subscribe((params) => {
       this.origin = params['origin'];
+      this.title.setTitle(`Origins › ${this.origin} › Keys | Habitat`);
       this.fetchMyOrigins();
       this.fetchPublicKeys();
     });
   }
 
   ngOnDestroy() {
-    this.sub.unsubscribe();
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
   }
 
   get config() {

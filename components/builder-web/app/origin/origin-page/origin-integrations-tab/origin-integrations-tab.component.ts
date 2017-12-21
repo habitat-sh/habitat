@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material';
+import { Title } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../../app.store';
 import { deleteIntegration, setIntegration } from '../../../actions';
-import { MatDialog } from '@angular/material';
 import { IntegrationCredentialsFormDialog } from '../integration-credentials-form/integration-credentials-form.dialog';
 import { IntegrationDeleteConfirmDialog } from './dialog/integration-delete-confirm/integration-delete-confirm.dialog';
 import { fetchIntegrations } from '../../../actions/index';
@@ -23,16 +26,30 @@ import { fetchIntegrations } from '../../../actions/index';
 @Component({
   template: require('./origin-integrations-tab.component.html')
 })
-export class OriginIntegrationsTabComponent implements OnInit {
+export class OriginIntegrationsTabComponent implements OnInit, OnDestroy {
+
+  private sub: Subscription;
 
   constructor(
     private store: AppStore,
     private credsDialog: MatDialog,
-    private confirmDialog: MatDialog
+    private confirmDialog: MatDialog,
+    private route: ActivatedRoute,
+    private title: Title
   ) { }
 
   ngOnInit() {
     this.store.dispatch(fetchIntegrations(this.origin.name, this.token));
+
+    this.sub = this.route.parent.params.subscribe((params) => {
+      this.title.setTitle(`Origins › ${params.origin} › Integrations | Habitat`);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
   }
 
   get integrations() {

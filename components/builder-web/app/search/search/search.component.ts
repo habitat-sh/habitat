@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormControl } from '@angular/forms';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppStore } from '../../app.store';
 import { filterPackagesBy, setPackagesSearchQuery } from '../../actions/index';
 import { Subscription } from 'rxjs/Subscription';
+
+// ›
 
 @Component({
   template: require('./search.component.html')
@@ -29,7 +32,12 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   private sub: Subscription;
 
-  constructor(private store: AppStore, private route: ActivatedRoute, private router: Router) {
+  constructor(
+    private store: AppStore,
+    private route: ActivatedRoute,
+    private router: Router,
+    private title: Title
+  ) {
     this.searchBox = new FormControl(this.searchQuery);
   }
 
@@ -40,6 +48,10 @@ export class SearchComponent implements OnInit, OnDestroy {
 
       if (this.query) {
         this.store.dispatch(setPackagesSearchQuery(this.query));
+        this.title.setTitle(`Search › ${this.origin} › ${this.query} › Results | Habitat`);
+      }
+      else {
+        this.title.setTitle(`Packages › ${this.origin} | Habitat`);
       }
 
       this.fetchPackages();
