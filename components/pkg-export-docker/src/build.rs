@@ -536,20 +536,12 @@ impl BuildRootContext {
         let group_name = pkg.svc_group()
             .unwrap_or(Some(String::from("hab")))
             .unwrap();
+
         if user_name != "root" {
-            users.push(format!(
-                "{name}:x:{uid}:{gid}:{name} User:/:/bin/false\n",
-                name = user_name,
-                uid = uid,
-                gid = gid
-            ));
-            groups.push(format!(
-                "{name}:x:{gid}:{user_name}\n",
-                name = group_name,
-                gid = gid,
-                user_name = user_name
-            ));
+            users.push(etc_passwd_entry(&user_name, uid, gid));
+            groups.push(etc_group_entry(&group_name, gid, &user_name));
         }
+
         // TODO fn: add remaining missing users and groups from service packages
 
         Ok((users, groups))
@@ -594,6 +586,26 @@ impl BuildRootContext {
 
         Ok(())
     }
+}
+
+/// Generate a line to insert into /etc/passwd, representing a user
+fn etc_passwd_entry(user_name: &str, uid: u32, gid: u32) -> String {
+    format!(
+        "{name}:x:{uid}:{gid}:{name} User:/:/bin/false\n",
+        name = user_name,
+        uid = uid,
+        gid = gid
+    )
+}
+
+/// Generate a line to insert into /etc/group
+fn etc_group_entry(group_name: &str, gid: u32, user_name: &str) -> String {
+    format!(
+        "{name}:x:{gid}:{user_name}\n",
+        name = group_name,
+        gid = gid,
+        user_name = user_name
+    )
 }
 
 /// The package identifiers for installed base packages.
