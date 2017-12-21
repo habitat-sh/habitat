@@ -1,0 +1,45 @@
+---
+title: Habitat Packaging System Demo - Step 2
+layout: layout
+classes: demo_step
+---
+#demo-step.demo--page
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/1"
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/2"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/3"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/4"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/5"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/6"
+      .row
+        .columns.large-12
+          h3.h3="Step 2: Install the tools"
+        .columns.large-6
+          p
+            | In order to start packaging applications with Habitat, you'll need two bits of software on your workstation:
+          ol
+            li The Habitat CLI tool
+            li Docker*
+          p
+            ' Instructions for
+            a.link-external target="_bank" href="https://www.habitat.sh/docs/using-habitat/#install-habitat" installing Habitat and Docker
+            '  can be found in the docs.
+          p You can verify that Habitat was successfully installed by checking the version.
+          = code(:shell) do
+            | $ hab --version
+
+          .footnote
+            p.mb-0
+              span.asterisk *
+              | Habitat uses Docker to create a clean build room environment known as the Habitat Studio.
+              |  You'll learn more about the Studio later in this demo.
+        .columns.large-6
+          .demo-step--pkg-img
+            img src="/images/demo/pkg-step-2.svg"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/packaging-system/steps/1" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/packaging-system/steps/3" Next Step

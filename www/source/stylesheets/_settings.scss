@@ -167,8 +167,8 @@ $header-sizes: (
     'h6': 12,
   ),
   medium: (
-    'h1': 24,
-    'h2': 20,
+    'h1': 36,
+    'h2': 24,
     'h3': 18,
     'h4': 14,
     'h5': 12,
@@ -299,7 +299,7 @@ $button-sizes: (
   default: 1rem,
   large: 1.25rem,
 );
-$button-opacity-disabled: 0.25;
+$button-opacity-disabled: 0.45;
 
 // 12. Button Group
 // ----------------

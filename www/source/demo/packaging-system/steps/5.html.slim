@@ -1,0 +1,47 @@
+---
+title: Habitat Packaging System Demo - Step 5
+layout: layout
+classes: demo_step
+---
+#demo-step.demo--page
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/1"
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/2"
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/3"
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/4"
+        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/5"
+        a.demo-step--indicator.packaging href="/demo/packaging-system/steps/6"
+      .row
+        .columns.large-12
+          h3.h3="Step 5: Build the application"
+        .columns.large-6
+          p
+            ' Now it's time to buid the application as a Habitat artifact (<strong>.hart</strong>).
+          p
+            ' Building your application as a <strong>.hart</strong> package enables you to do things such as
+          ul
+            li export your application into a variety of cloud-native formats,
+            li get automated rebuilds when dependencies are updated,
+            li and manage running services via the Habitat Supervisor, to name a few.
+          p
+            ' First, let's step into a <strong>Habitat Studio</strong> from the root of the <em>sample-node-app</em>
+            '  repo, so that we have a clean room from which to build our artifacts.
+          = code(:shell) do
+            | $ hab studio enter
+          p
+            ' Next, build the application to produce a Habitat artifact (.hart).
+          = code(:shell) do
+            | [1][default:/src:0]# build
+
+        .columns.large-6
+          p
+            ' Once the build finishes, you will see the following message near the end of the output (see screenshot below):
+            ' <em>"I love it when a plan.sh comes together."</em>
+          img alt="CLI screenshot after running build" src="/images/demo/pkg-screen-step-5.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/packaging-system/steps/4" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/packaging-system/steps/6" Next Step

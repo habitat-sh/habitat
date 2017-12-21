@@ -1,0 +1,72 @@
+---
+layout: layout
+classes: demo_index
+---
+.demo--page
+  .row.demo-hero.mt-3
+    .columns.large-12
+      h1.mb-1
+        | Demos and Tutorials
+      h3.mb-2
+        | Learn how Habitat can help your team consistently build, deploy, and manage <br>
+        | all of your applications - both new and legacy - in a cloud-native way.
+
+  .row.demo--section-title
+    h2.h2.no-span Habitat 101
+
+  .row.demo--callouts
+    .columns.large-4.demo--callout
+      .demo--callout-content.demo--callout-build
+        h4.h4 Demo
+        h3.h3 Packaging System
+        p="Build and export a sample application with Habitat. In turn, you will unlock the power of the Build System and Process Supervisor."
+        .button-bar
+          a.button.cta href="/demo/packaging-system/steps/1" Start the packaging demo
+    .columns.large-4.demo--callout
+      .demo--callout-content.demo--callout-trigger
+        h4.h4 Demo
+        h3.h3 Build System
+        p="Quickly set up automated builds for a sample Node application, while also publishing it as a container image to Docker Hub."
+        .button-bar
+          a.button.cta href="/demo/build-system/steps/1" Start the Builder demo
+    .columns.large-4.demo--callout
+      .demo--callout-content.demo--callout-publish
+        h4.h4 Demo
+        h3.h3 Process Supervisor
+        p="See how applications built with Habitat can be run and managed throughout their lifecycle using the built-in Habitat Supervisor."
+        .button-bar
+          a.button.cta.disabled href="/demo/" Coming soon!
+
+  .row.demo--get-habitat
+    .columns.large-12
+      h3.h3.mb-0
+        img.demo--get-habitat--image src="/images/sign.svg" alt="Sign with Habitat logo."
+        | Just want the bits?&nbsp;
+        a href="/tutorials/download" Download and setup Habitat
+        |  in minutes.
+
+  .row.demo--section-title
+    h2.h2.no-span Habitat 201
+
+  .row.mb-2.demo--callouts
+    .columns.large-4.demo--callout.secondary
+      .demo--callout-content.demo--callout-supervisor
+        h4.h4 Demo
+        h3.h3 Manage runtime services
+        p.demo--callout-description="Get hands on with the Habitat Supervisor by managing application services during runtime."
+        .button-bar
+          a.button.cta href="/tutorials/get-started/demo/" Start the runtime demo
+    .columns.large-4.demo--callout.secondary
+      .demo--callout-content.demo--callout-assemble
+        h4.h4 Tutorial
+        h3.h3 Build a multi-service app
+        p="In this comprehensive tutorial, you'll build, deploy, and manage a complete web application using Scaffolding."
+        .button-bar
+          a.button.cta href="/tutorials/sample-app/" Start the web app tutorial
+    .columns.large-4.demo--callout.secondary
+      .demo--callout-content.demo--callout-habitize
+        h4.h4 Guide
+        h3.h3 Habitize your own app
+        p="Considering adding Habitat to your own application? These language-based guides are the best resource to get you there."
+        .button-bar
+          a.button.cta href="/tutorials/build-your-own/" View the guides

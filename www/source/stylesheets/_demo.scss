@@ -1,4 +1,26 @@
 // CSS for Demo
+// Demo Page media queries
+$demo-small-breakpoint: rem-calc(650);
+$demo-medium-breakpoint: rem-calc(880);
+$demo-large-breakpoint: rem-calc(1060);
+
+@mixin small-demo {
+  @media (max-width: $demo-small-breakpoint - rem-calc(1)) {
+    @content;
+  }
+}
+
+@mixin medium-demo {
+  @media (min-width: $demo-small-breakpoint) and (max-width: $demo-medium-breakpoint - rem-calc(1)) {
+    @content;
+  }
+}
+
+@mixin large-demo {
+  @media (min-width: $demo-medium-breakpoint) {
+    @content;
+  }
+}
 
 #demo-step {
   margin-bottom: rem-calc(50);
@@ -10,10 +32,12 @@
   position: relative;
   padding: 0px 0px rem-calc(150);
 
-  // Demo typography
-  h1 {
-    font-size: rem-calc(24);
+  .demo-hero {
+    margin-bottom: rem-calc(80);
+    text-align: center;
   }
+
+  // Demo typography
 
   p {
     line-height: rem-calc(24);
@@ -35,52 +59,168 @@
 .demo--snorkelcat {
   position: relative;
 
-  &:after {
-    content: '';
-    display: block;
-    position: absolute;
-    top: rem-calc(-100);
-    height: rem-calc(250);
-    width: 100%;
-    background: url('/images/demo/index-snorkelling-habicat.svg') center center no-repeat transparent;
-    background-size: contain;
+
+  @include large-demo {
+    &:after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: rem-calc(-80);
+      height: rem-calc(250);
+      width: 100%;
+      background: url('/images/demo/index-snorkelling-habicat.svg') center center no-repeat transparent;
+      background-size: contain;
+    }
+  }
+}
+
+.demo--section-title {
+  .h2.no-span {
+      display: table;
+      margin-bottom: rem-calc(128);
+      white-space: nowrap;
+      font-size: rem-calc(18);
+      color: rgba($hab-white,0.35);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      &:before, &:after {
+        border-top: 1px solid rgba($hab-slate,.40);
+        content: '';
+        display: table-cell;
+        position: relative;
+        top: rem-calc(12);
+        width: 45%;
+      }
+      &:before { right: 1.5%; }
+      &:after { left: 1.5%; }
+  }
+}
+
+.demo--callouts {
+
+  @include large-demo {
+    display: flex;
+  };
+
+  .demo--callout {
+    display: flex;
+    margin-bottom: rem-calc(80);
+    position: relative;
+    background-color: rgba($hab-slate, 0.85);
+    transition: all .1s;
+
+    &:hover {
+      @include shadow-float-hover;
+      transform: translateY(-3px);
+      transition: all .15s;
+    }
+
+    @include large-demo {
+      margin-left: rem-calc(20);
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+
+    &.secondary {
+      background-color: rgba($hab-slate, 0.35);
+    }
   }
 }
 
 .demo--callout-content {
-  background-color: $hab-slate;
   border-radius: $global-radius;
   position: relative;
-  min-height: 130px;
   width: 100%;
-  padding: 20px;
+  padding: rem-calc(40) rem-calc(16) rem-calc(112);
+
+  .h3 {
+    margin-bottom: rem-calc(32);
+  }
+
+  .h4 {
+    margin-bottom: rem-calc(8);
+    color: rgba($hab-white,0.35);
+    text-transform: uppercase;
+  }
 
   &:after {
     content: '';
     display: block;
     position: absolute;
-    bottom: -30px;
-    right: 20px;
+    top: -48px;
+    right: 10px;
   }
 
   &.demo--callout-build:after {
-    height: rem-calc(95);
-    width: rem-calc(163);
+    height: rem-calc(75);
+    width: rem-calc(129);
     background: url('/images/demo/index-callout-build.svg') center center no-repeat;
     background-size: contain;
   }
   &.demo--callout-publish:after {
-    height: rem-calc(91);
-    width: rem-calc(50);
+    height: rem-calc(75);
+    width: rem-calc(41);
     background: url('/images/demo/index-callout-publish.svg') center center no-repeat;
     background-size: contain;
   }
   &.demo--callout-trigger:after {
-    height: rem-calc(77);
-    width: rem-calc(155);
+    height: rem-calc(75);
+    width: rem-calc(154);
+    right: 0;
     background: url('/images/demo/index-callout-trigger.svg') center center no-repeat;
     background-size: contain;
   }
+  &.demo--callout-supervisor:after {
+    height: rem-calc(81);
+    width: rem-calc(80);
+    top: -57px;
+    background: url('/images/demo/summary-right.svg') center center no-repeat;
+    background-size: contain;
+  }
+  &.demo--callout-assemble:after {
+    height: rem-calc(52);
+    width: rem-calc(80);
+    top: -28px;
+    background: url('/images/demo/summary-left.svg') center center no-repeat;
+    background-size: contain;
+  }
+  &.demo--callout-habitize:after {
+    height: rem-calc(69);
+    width: rem-calc(79);
+    top: -45px;
+    background: url('/images/demo/summary-middle.svg') center center no-repeat;
+    background-size: contain;
+  }
+  .button-bar {
+    position: absolute;
+    bottom: rem-calc(32);
+    left: rem-calc(16);
+    padding-top: rem-calc(24);
+
+    .button {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.demo--get-habitat {
+  margin-bottom: rem-calc(104);
+  margin-top: rem-calc(16);
+  text-align: center;
+  color: rgba($hab-white,0.35);
+
+  a {
+    color: rgba($hab-white, 0.75);
+    border-bottom: 1px solid rgba($hab-white, 0.75);
+  }
+}
+
+.demo--get-habitat--image {
+  margin-right: rem-calc(16);
+  height: rem-calc(32);
+  vertical-align: text-bottom;
 }
 
 // demo steps
@@ -102,6 +242,7 @@
 }
 
 $demo-step-count: 10;
+$demo-step-count-packaging: 6;
 .demo-step--indicator {
   height: 5px;
   width: 100% / $demo-step-count;
@@ -117,6 +258,10 @@ $demo-step-count: 10;
 
   &.active, &:hover {
     background: linear-gradient(270deg, #F59B51 0%, #F58251 100%) #F58251;
+  }
+
+  &.packaging {
+    width: 100% / $demo-step-count-packaging;
   }
 }
 
@@ -190,13 +335,13 @@ a.previous-step-link {
   color: $hab-white;
   margin: rem-calc(100) 0px rem-calc(150);
 
-  a {
-    color: $hab-orange;
-    &.previous-step-link { color: $hab-white; }
-  }
-
   .header {
+    margin-bottom: rem-calc(48);
     position: relative;
+
+    a {
+      color: $hab-orange;
+    }
   }
   .home--section-demo-cta {
     margin-top: rem-calc(60);
@@ -205,8 +350,19 @@ a.previous-step-link {
 }
 
 .demo-summary--item {
-  h4 {
-    margin-bottom: rem-calc(0);
+  margin-top: rem-calc(40);
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  h3 {
+    margin-bottom: rem-calc(8);
+  }
+
+  a {
+    color: $hab-orange;
+    &.previous-step-link { color: $hab-white; }
   }
 
   .social-icon {

@@ -3,7 +3,7 @@ const $mainNav = $('#main-nav');
 const $navLinks = $('.main-nav--links');
 const $navToggle = $('.main-nav--toggle');
 const currentPagePath = location.pathname;
-const navPageLinks = ['about', 'docs', 'pricing', 'tutorials', 'community', 'blog'];
+const navPageLinks = ['learn', 'docs', 'community', 'pricing', 'blog'];
 const stickyBreakpoint = 280;
 const stickyVisibleBreakpoint = 300;
 

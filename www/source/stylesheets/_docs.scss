@@ -122,6 +122,11 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 .docs--quicklink {
   padding: 0;
 
+  .docs--quicklink--cards,
+  .docs--quicklink--card--wrapper {
+    display: flex;
+  }
+
   .docs--quicklink--card {
     @extend %card-box;
     @include shadow-float;
@@ -130,7 +135,7 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 
     &:hover {
       @include shadow-float-hover;
-      margin-top: -3px;
+      transform: translateY(-3px);
       transition: all .15s;
     }
   }
