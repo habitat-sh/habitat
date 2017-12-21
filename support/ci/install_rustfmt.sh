@@ -12,4 +12,4 @@ fi
 
 echo "--> Removing rustfmt version $(rustfmt --version) and installing $version"
 cargo uninstall rustfmt || true
-cargo install --vers $version rustfmt
+cargo install --vers $version --force rustfmt
