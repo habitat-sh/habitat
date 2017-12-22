@@ -78,6 +78,7 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
     }
 
     let env_vars = vec![
+        "DEBUG",
         "HAB_AUTH_TOKEN",
         "HAB_BLDR_URL",
         "HAB_BLDR_CHANNEL",
