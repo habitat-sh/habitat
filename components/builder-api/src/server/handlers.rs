@@ -432,18 +432,11 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn job_log(req: &mut Request) -> IronResult<Response> {
-    let start = match get_param(req, "start") {
-        Some(start) => {
-            match start.parse::<u64>() {
-                Ok(s) => s,
-                Err(e) => {
-                    debug!("Error parsing start. e = {:?}", e);
-                    return Ok(Response::with(status::BadRequest));
-                }
-            }
-        }
-        None => 0,
-    };
+    let start = req.get_ref::<Params>()
+        .unwrap()
+        .find(&["start"])
+        .and_then(FromValue::from_value)
+        .unwrap_or(0);
 
     let include_color = req.get_ref::<Params>()
         .unwrap()
