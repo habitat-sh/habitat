@@ -189,7 +189,7 @@ _render_composite_metadata() {
     # just have the functions be robust enough so that we can just
     # render EVERYTHING and have it just work.
 
-    # NOTE: These come from the shared.sh library
+    # NOTE: These come from the shared.bash library
     _render_metadata_IDENT
     _render_metadata_TARGET
     _render_metadata_TYPE

@@ -326,9 +326,9 @@
 
 # # Internals
 source_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source "${source_dir}/public.sh"
-source "${source_dir}/shared.sh"
-source "${source_dir}/environment.sh"
+source "${source_dir}/public.bash"
+source "${source_dir}/shared.bash"
+source "${source_dir}/environment.bash"
 
 # Fail when commands return a non-zero return code.
 set -e
@@ -2223,7 +2223,7 @@ _determine_hab_bin
 
 case "${pkg_type}" in
     "composite")
-        source "${source_dir}/composite_build_functions.sh"
+        source "${source_dir}/composite_build_functions.bash"
 
         mkdir -pv "$CACHE_PATH"
         mkdir -pv "$pkg_prefix"

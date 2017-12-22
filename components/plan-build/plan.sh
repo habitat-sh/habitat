@@ -24,6 +24,10 @@ pkg_deps=(
   core/xz
 )
 
+pkg_build_deps=(
+  core/bats
+)
+
 program=$pkg_name
 
 do_build() {
@@ -37,10 +41,14 @@ do_build() {
     -i "$CACHE_PATH/$program"
 }
 
+do_check() {
+  bats test
+}
+
 do_install() {
   install -D "$CACHE_PATH/$program" $pkg_prefix/bin/$program
-  install -D $PLAN_CONTEXT/bin/shared.sh $pkg_prefix/bin/
-  install -D $PLAN_CONTEXT/bin/public.sh $pkg_prefix/bin/
-  install -D $PLAN_CONTEXT/bin/composite_build_functions.sh $pkg_prefix/bin/
-  install -D $PLAN_CONTEXT/bin/environment.sh $pkg_prefix/bin/
+  install -D $PLAN_CONTEXT/bin/shared.bash $pkg_prefix/bin/
+  install -D $PLAN_CONTEXT/bin/public.bash $pkg_prefix/bin/
+  install -D $PLAN_CONTEXT/bin/composite_build_functions.bash $pkg_prefix/bin/
+  install -D $PLAN_CONTEXT/bin/environment.bash $pkg_prefix/bin/
 }

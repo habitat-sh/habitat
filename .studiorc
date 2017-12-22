@@ -326,8 +326,7 @@ job() {
 dev_docs() {
   cat <<DOCS
 Welcome to the development environment for Habitat & Builder.
-The following co
-mmands are available:
+The following commands are available:
 1. Building Habitat
   * build-habitat - build all Habitat components
   * build-hab - build the Habitat CLI
