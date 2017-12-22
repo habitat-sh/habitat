@@ -23,7 +23,7 @@ use std::path::{Path, PathBuf};
 use std::result;
 
 use fs;
-use hcore::crypto;
+use hcore::{crypto, util};
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use serde_json;
@@ -42,6 +42,7 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// is deeper than this value crosses into overly complex territory when describing configuration
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
+pub const CONFIG_PERMISSIONS: u32 = 0o740;
 
 /// Trait for getting paths to directories where various configuration
 /// files are expected to be.
@@ -375,6 +376,10 @@ impl CfgRenderer {
                           compiled_hash);
                 let mut config_file = File::create(&cfg_dest)?;
                 config_file.write_all(&compiled.into_bytes())?;
+
+                util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
+
                 changed = true
             } else {
                 if file_hash == compiled_hash {
@@ -394,6 +399,10 @@ impl CfgRenderer {
                               compiled_hash);
                     let mut config_file = File::create(&cfg_dest)?;
                     config_file.write_all(&compiled.into_bytes())?;
+
+                    util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                    util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
+
                     changed = true;
                 }
             }

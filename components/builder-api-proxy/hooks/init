@@ -1,5 +1,3 @@
 #!/bin/sh
 set -e
 mkdir -p {{pkg.svc_var_path}}/nginx
-chown -R hab:hab {{pkg.svc_var_path}}
-chown -R hab:hab {{pkg.svc_config_path}}

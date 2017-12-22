@@ -62,6 +62,9 @@ pub use self::supervisor::ProcessState;
 
 static LOGKEY: &'static str = "SR";
 
+pub const SVC_DIR_PERMISSIONS: u32 = 0o770;
+pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
+
 lazy_static! {
     static ref HEALTH_CHECK_INTERVAL: Duration = {
         Duration::from_millis(30_000)
@@ -201,28 +204,28 @@ impl Service {
             &self.pkg.svc_user,
             &self.pkg.svc_group,
         )?;
-        set_permissions(&self.pkg.svc_config_path, 0o700)?;
+        set_permissions(&self.pkg.svc_config_path, SVC_DIR_PERMISSIONS)?;
         Self::create_dir_all(&self.pkg.svc_data_path)?;
         set_owner(
             &self.pkg.svc_data_path,
             &self.pkg.svc_user,
             &self.pkg.svc_group,
         )?;
-        set_permissions(&self.pkg.svc_data_path, 0o700)?;
+        set_permissions(&self.pkg.svc_data_path, SVC_DIR_PERMISSIONS)?;
         Self::create_dir_all(&self.pkg.svc_files_path)?;
         set_owner(
             &self.pkg.svc_files_path,
             &self.pkg.svc_user,
             &self.pkg.svc_group,
         )?;
-        set_permissions(&self.pkg.svc_files_path, 0o700)?;
+        set_permissions(&self.pkg.svc_files_path, SVC_DIR_PERMISSIONS)?;
         Self::create_dir_all(&self.pkg.svc_var_path)?;
         set_owner(
             &self.pkg.svc_var_path,
             &self.pkg.svc_user,
             &self.pkg.svc_group,
         )?;
-        set_permissions(&self.pkg.svc_var_path, 0o700)?;
+        set_permissions(&self.pkg.svc_var_path, SVC_DIR_PERMISSIONS)?;
         Self::remove_symlink(&self.pkg.svc_static_path)?;
         Self::create_dir_all(&self.pkg.svc_static_path)?;
         set_owner(
@@ -230,7 +233,7 @@ impl Service {
             &self.pkg.svc_user,
             &self.pkg.svc_group,
         )?;
-        set_permissions(&self.pkg.svc_static_path, 0o700)?;
+        set_permissions(&self.pkg.svc_static_path, SVC_DIR_PERMISSIONS)?;
         Ok(())
     }
 
@@ -806,7 +809,7 @@ impl Service {
                       file.as_ref().display(), e);
             return false;
         }
-        if let Err(e) = set_permissions(&file, 0o640) {
+        if let Err(e) = set_permissions(&file, GOSSIP_FILE_PERMISSIONS) {
             outputln!(preamble self.service_group,
                       "Failed to set permissions on cache file {}, {}",
                       file.as_ref().display(), e);
