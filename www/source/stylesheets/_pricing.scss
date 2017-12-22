@@ -127,8 +127,6 @@
   .button {
     @include breakpoint(small only) { width: 100%; }
   }
-
-  .button.outline { color: $hab-orange; }
 }
 
 .pricing {

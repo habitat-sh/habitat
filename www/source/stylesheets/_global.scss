@@ -325,6 +325,10 @@ code {
 
   &.outline {
     @include button;
+
+    &.contrast {
+      color: $hab-navy;
+    }    
   }
 
   &.download {
