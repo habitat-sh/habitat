@@ -917,8 +917,10 @@ function Invoke-Verify {
 
 # Default implementation for the `Invoke-Verify` phase.
 function Invoke-DefaultVerify {
-    if( !(_verify_file $pkg_filename $pkg_shasum)) {
-        Write-Error "Verification Failed!"
+    if($pkg_filename -and $pkg_filename -ne "") {
+        if( !(_verify_file $pkg_filename $pkg_shasum)) {
+            Write-Error "Verification Failed!"
+        }
     }
 }
 
