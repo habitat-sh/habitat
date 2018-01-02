@@ -37,9 +37,8 @@ layout: blog_index
                   onerror="this.src='/images/icons/icon-calendar.png'" alt="calendar icon"]
                 | #{article.date.strftime('%b %e, %Y')}
     - if paginate
-      - if prev_page
-        p.pagination-link
-          = link_to '<< Previous page', prev_page
-      - if next_page
-        p.pagination-link
-          = link_to 'Next page >>', next_page
+      p.pagination-link
+        - if prev_page
+          = link_to 'Newer posts', prev_page, class: 'button cta'
+        - if next_page
+          = link_to 'Older posts', next_page, class: 'button cta'
