@@ -29,12 +29,10 @@ ifeq ($(IN_DOCKER),true)
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)
 	run := $(common_run) shell
-	bldr_run := $(common_run) -p 9636:9636 -p 8080:8080 shell
 	docs_run := $(common_run) -p 9633:9633 shell
 	forego := support/linux/bin/forego
 else
 	run :=
-	bldr_run :=
 	docs_run :=
 endif
 ifneq ($(DOCKER_HOST),)
@@ -137,34 +135,6 @@ help:
 shell: image ## launches a development shell
 	$(run)
 .PHONY: shell
-
-bldr-shell: build-srv ## launches a development shell with forwarded ports but doesn't run anything
-	$(bldr_run)
-.PHONY: bldr-shell
-
-bldr-run: build-srv ## launches a development shell running the API
-	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
-.PHONY: bldr-run
-
-bldr-run-no-build: ## launches a development shell without rebuilding the world
-	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
-.PHONY: bldr-run-no-build
-
-bldr-kill: ## kills every bldr process as well as hab processes
-	$(bldr_run) sh -c ' \
-	for name in api admin router jobsrv sessionsrv originsrv worker; do \
-		sudo killall -9 bldr-$$name; \
-	done; \
-	sudo killall -9 hab-launch; \
-	sudo killall -9 hab-sup; \
-	sudo killall -9 lite-server; \
-	sudo killall -9 postmaster; \
-	SRC_NM_DIR=/src/components/builder-web/node_modules; \
-	sudo mountpoint -q $$SRC_NM_DIR && sudo umount $$SRC_NM_DIR; \
-	HOME_NM_DIR=$$HOME/.builder_web_node_modules; \
-	sudo mountpoint -q $$HOME_NM_DIR && sudo umount $$HOME_NM_DIR; \
-	'
-.PHONY: bldr-kill
 
 serve-docs: docs ## serves the project documentation from an HTTP server
 	@echo "==> View the docs at:\n\n        http://`\

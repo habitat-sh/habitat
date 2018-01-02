@@ -43,7 +43,7 @@ RUN adduser -g tty -h /home/krangschnak -D krangschnak \
   core/builder-router \
   core/builder-sessionsrv
 
-RUN NO_DB_SETUP=1 /tmp/init-datastore.sh \
+RUN /tmp/init-datastore.sh \
   && APP_HOSTNAME=$APP_HOSTNAME \
   GITHUB_ADDR=$GITHUB_ADDR \
   GITHUB_API_URL=$GITHUB_API_URL \
