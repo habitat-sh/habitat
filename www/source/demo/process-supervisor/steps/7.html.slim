@@ -1,0 +1,53 @@
+---
+title: Habitat Build System Demo - Step 7
+layout: layout
+classes: demo_step
+---
+#demo-step.demo--page
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/build-system/steps/1"
+        a.demo-step--indicator.active href="/demo/build-system/steps/2"
+        a.demo-step--indicator.active href="/demo/build-system/steps/3"
+        a.demo-step--indicator.active href="/demo/build-system/steps/4"
+        a.demo-step--indicator.active href="/demo/build-system/steps/5"
+        a.demo-step--indicator.active href="/demo/build-system/steps/6"
+        a.demo-step--indicator.active href="/demo/build-system/steps/7"
+        a.demo-step--indicator href="/demo/build-system/steps/8"
+        a.demo-step--indicator href="/demo/build-system/steps/9"
+        a.demo-step--indicator href="/demo/build-system/steps/10"
+      .row
+        .columns.large-12
+          h3.h3="Step 7: Promote the Initial Build"
+        .columns.large-6
+          p
+            ' The Habitat Supervisor has many capabilities when it comes to managing the lifecycle of an application.
+          p
+            ' As we'll see in the remainder of this demo, the Supervisor can auto-update
+            ' a running application when a new version becomes available. To demonstrate
+            ' this, we'll need an initial stable build that we can run and subsequently update.
+          p
+            ' From the
+            strong Versions
+            '  tab, click the
+            strong Build latest version
+            '  button. You'll see a message when a new build job kicks off (see image).
+          p
+            ' Once the message appears,
+            ' click the
+            strong View build output
+            '  link to see streaming logs as your job completes. The build job should complete in a couple of minutes.
+          p
+            ' Once the job is finished, head back to the
+            strong Versions
+            '  tab, find your new build, and click the
+            strong Promote to stable
+            '  button.
+        .columns.large-6
+          img src="/images/demo/screen-promote-build.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/build-system/steps/6" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/build-system/steps/8" Next Step

@@ -1,0 +1,68 @@
+---
+title: Habitat Build System Demo - Step 10
+layout: layout
+classes: demo_step
+---
+#demo-step.demo--page
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/build-system/steps/1"
+        a.demo-step--indicator.active href="/demo/build-system/steps/2"
+        a.demo-step--indicator.active href="/demo/build-system/steps/3"
+        a.demo-step--indicator.active href="/demo/build-system/steps/4"
+        a.demo-step--indicator.active href="/demo/build-system/steps/5"
+        a.demo-step--indicator.active href="/demo/build-system/steps/6"
+        a.demo-step--indicator.active href="/demo/build-system/steps/7"
+        a.demo-step--indicator.active href="/demo/build-system/steps/8"
+        a.demo-step--indicator.active href="/demo/build-system/steps/9"
+        a.demo-step--indicator.active href="/demo/build-system/steps/10"
+      .row
+        .columns.large-12
+          h3.h3="Step 10: Start the application"
+        .columns.large-7
+          p
+            ' Now let's tell the Habitat Supervisor to start the application.
+          p
+            ' Running your application with Habitat enables you to do things such as
+          ul
+            li update rutime configuration,
+            li connect your services using built-in topologies,
+            li and roll out changes according to built-in update strategies, to name a few.
+          p
+            ' In this demo, we'll use the
+            strong at-once
+            '  update strategy to update our running application to the latest release. Enter
+            ' the Habitat Studio and start the application as follows.
+          = code(:shell) do
+            | $ hab studio enter
+          = code(:shell) do
+            | [1][default:/src:0]# hab start yourorigin/sample-node-app --strategy at-once
+          p
+            ' As you might expect, if we had more instances running then they would all update <em>at-once</em>
+            ' according to the update strategy we've provided.
+
+          p.footnote
+            ' If you would like to preview the running application locally in your web browser,
+            ' then you will need to open a port before you enter the Habitat Studio.
+            <br><br>
+            ' Recall that the Studio is built with Docker, so you can open a port by running
+            <br>
+            strong export HAB_DOCKER_OPTS="-p 8000:8000"
+            '  and previewing the application at
+            a.link-external target="_blank" href="http://localhost:8000" http://localhost:8000
+            ' .
+        .columns.large-5
+          p
+            ' Once the build finishes, you will see the following message near the end of the output (see screenshot below):
+            ' <em>"I love it when a plan.sh comes together."</em>
+          = code(:shell) do
+            | [1][default:/src:0]# sl
+          p
+            ' You'll see...
+          img alt="CLI screenshot after running build" src="/images/demo/pkg-screen-step-5.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/build-system/steps/9" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/learn" Return to Learn Habitat
