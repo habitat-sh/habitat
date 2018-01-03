@@ -15,7 +15,7 @@ body.home {
   p {
     font-size: rem-calc(18);
   }
-  
+
   .home--hero-carousel-slide-main p {
     font-size: rem-calc(14);
   }
@@ -262,12 +262,12 @@ $home--hero-carousel-nav-border-height: 10px;
   background: #16222A;
   border-radius: $global-radius 0px 0px 0px;
   padding: 50px 40px 20px;
-  
+
   .window-buttons {
     position: absolute;
     top: 25px;
     left: 25px;
-  
+
     > div {
       float: left;
       margin-right: 10px;
@@ -319,9 +319,10 @@ $home--hero-carousel-nav-border-height: 10px;
 .home--testimonial-carousel {
   margin-bottom: rem-calc(100);
 
-  h2 {
-    // margin-bottom: rem-calc(70);
-    font-size: rem-calc(36);
+  h3 {
+    color: $hab-gray;
+    text-align: center;
+    text-transform: uppercase;
   }
 }
 .home--testimonial-carousel-nav {
@@ -398,7 +399,7 @@ $home--hero-carousel-nav-border-height: 10px;
         height: 152px;
       }
     }
-  
+
     &.testimonial--blurb {
       @include breakpoint(small only) {
         height: 500px;
@@ -496,7 +497,7 @@ $home--hero-carousel-nav-border-height: 10px;
   background: linear-gradient(180deg, $hab-slate 0%, #32485B 81.26%, #3B556C 100%);
   position: relative;
   margin-top: rem-calc(200);
-  padding: rem-calc(50) 0px;
+  padding: rem-calc(96) 0px;
 
   &:before {
     content: '';
