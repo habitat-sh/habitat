@@ -274,7 +274,7 @@ data_path = "/tmp"
 app_private_key = "$key_dir/builder-github-app.pem"
 EOF
 
-  echo "worker: $base_dir/target/debug/bldr-worker start --config $dir/config_worker.toml" >> $dir/Procfile
+  echo "worker: $base_dir/target/debug/bldr-worker start --config $dir/config_worker.toml" >> "$dir/Procfile"
 fi
 
 # Start all the services up
@@ -283,6 +283,7 @@ if [ "$platform" = "mac" ]; then
   env HAB_FUNC_TEST=1 "$base_dir/support/mac/bin/forego" start -f "$dir/Procfile" -e "$dir/bldr.env" > "$dir/services.log" 2>&1 &
 else
   echo "Running these tests on linux (log: $dir/services.log)"
+  # shellcheck disable=SC2024
   sudo env HAB_FUNC_TEST=1 "$base_dir/support/linux/bin/forego" start -f "$dir/Procfile" -e "$dir/bldr.env" > "$dir/services.log" 2>&1 &
 fi
 
@@ -292,33 +293,23 @@ while pid_is_running $sudo_pid && [[ -z ${forego_pid:-} ]]; do
 done
 
 echo "**** Spinning up the services ****"
-total=0
-originsrv=0
-sessionsrv=0
-router=0
-api=0
-jobsrv=0
-#worker=0
+services=$(cut -d ':' -f 1 "$dir/Procfile")
 
-while pid_is_running $forego_pid && [ $total -ne 5 ]; do
-# while pid_is_running $forego_pid && [ $total -ne 6 ]; do
-  if [ ! -f "$dir/services.log" ]; then
-    continue
-  fi
-
-  for svc in originsrv sessionsrv router api jobsrv; do
-  # for svc in originsrv sessionsrv router api jobsrv worker; do
+all_ready_to_go() {
+  for svc in "$@"; do
     if grep -q "builder-$svc is ready to go" "$dir/services.log"; then
-      declare "$svc=1"
+      shift
     else
       echo "Waiting on $svc"
     fi
   done
 
-  total=$(($originsrv + $sessionsrv + $router + $api + $jobsrv))
-  # total=$(($originsrv + $sessionsrv + $router + $api + $jobsrv + $worker))
+  [[ "$#" -eq 0 ]]
+}
 
-  echo ""
+# shellcheck disable=SC2086
+while pid_is_running $forego_pid && ! all_ready_to_go $services; do
+  echo
   sleep 1
 done
 
