@@ -149,7 +149,7 @@ impl<'a> DockerExporter<'a> {
 
         debug!("spawning docker export command");
         let mut child = cmd.spawn().map_err(Error::Exporter)?;
-        log_pipe.pipe(&mut child)?;
+        log_pipe.pipe_process(&mut child)?;
         let exit_status = child.wait().map_err(Error::Exporter)?;
         debug!("completed docker export command, status={:?}", exit_status);
         Ok(exit_status)

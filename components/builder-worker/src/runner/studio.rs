@@ -110,9 +110,7 @@ impl<'a> Studio<'a> {
             }
         }
         cmd.stdout(Stdio::piped());
-        // TED TODO: This will not work on windows. A more robust threading solution will be required for log_pipe
-        // to support consuming stderr and stdout.
-        // This manifests when a child starts (studio) and has an error (often unseen) then suddenly stops all execution.
+        cmd.stderr(Stdio::piped());
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
@@ -136,11 +134,18 @@ impl<'a> Studio<'a> {
         let mut child = cmd.spawn().map_err(|e| {
             Error::StudioBuild(self.workspace.studio().to_path_buf(), e)
         })?;
-        log_pipe.pipe(&mut child)?;
-        let exit_status = child.wait().map_err(|e| {
+
+        log_pipe.pipe_process(&mut child)?;
+
+        let output = child.wait_with_output().map_err(|e| {
             Error::StudioBuild(self.workspace.studio().to_path_buf(), e)
         })?;
-        debug!("completed studio build command, status={:?}", exit_status);
+
+        if !output.status.success() {
+            log_pipe.pipe_buffer(&output.stderr)?;
+        }
+
+        debug!("completed studio build command, status={:?}", output.status);
 
         if self.networking.is_some() {
             self.destroy_network_namespace()?;
@@ -148,7 +153,7 @@ impl<'a> Studio<'a> {
             info!("Airlock networking is not configured, skipping network destruction");
         }
 
-        Ok(exit_status)
+        Ok(output.status)
     }
 
     fn studio_command(&self) -> Result<Command> {

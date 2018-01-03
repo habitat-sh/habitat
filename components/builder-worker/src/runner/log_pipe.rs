@@ -63,7 +63,7 @@ impl LogPipe {
     ///
     /// Contents of STDOUT are streamed before any from STDERR (if
     /// any).
-    pub fn pipe(&mut self, process: &mut process::Child) -> Result<()> {
+    pub fn pipe_process(&mut self, process: &mut process::Child) -> Result<()> {
         self.logger.log("About to log stdout");
         if let Some(ref mut stdout) = process.stdout {
             let reader = BufReader::new(stdout);
@@ -73,7 +73,7 @@ impl LogPipe {
         Ok(())
     }
 
-    pub fn pipe_stdout(&mut self, content: &[u8]) -> Result<()> {
+    pub fn pipe_buffer(&mut self, content: &[u8]) -> Result<()> {
         self.logger.log("About to log stdout");
         self.stream_lines(BufReader::new(content))?;
         self.logger.log("Finished logging stdout");
