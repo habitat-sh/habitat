@@ -8,6 +8,7 @@ sudo -E pacman -S --noconfirm \
   cmake \
   curl \
   gdb \
+  git \
   libarchive \
   libsodium \
   man \

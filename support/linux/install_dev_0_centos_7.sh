@@ -11,6 +11,7 @@ curl -sL https://rpm.nodesource.com/setup_6.x | sudo -E bash
 sudo -E yum groupinstall -y 'Development Tools'
 
 sudo -E yum install -y \
+  git \
   gpm-libs \
   libarchive-devel \
   nodejs \
