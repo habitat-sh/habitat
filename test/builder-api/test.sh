@@ -6,7 +6,7 @@ set -e
 
 # Check to see if a command exists
 exists() {
-  if command -v $1 >/dev/null 2>&1
+  if command -v "$1" >/dev/null 2>&1
   then
     return 0
   else
@@ -113,10 +113,10 @@ echo "Created $dir for this test run"
 mkdir -p "$dir" "$key_dir"
 chmod -R 777 "$dir" "$key_dir"
 
-env HAB_CACHE_KEY_PATH=$key_dir hab user key generate bldr
+env HAB_CACHE_KEY_PATH="$key_dir" hab user key generate bldr
 
 if [ -f "$tmp_dir/builder-github-app.pem" ]; then
-  cp "$tmp_dir/builder-github-app.pem" $key_dir
+  cp "$tmp_dir/builder-github-app.pem" "$key_dir"
 else
   cp "$base_dir/.secrets/builder-github-app.pem" "$key_dir"
 fi
@@ -124,7 +124,7 @@ fi
 # Install pg_tmp if it's not there already
 if ! exists pg_tmp; then
   echo "These tests require the use of pg_tmp. Installing version $pg_tmp_version now."
-  cd $dir
+  cd "$dir"
   curl -O "http://ephemeralpg.org/code/ephemeralpg-$pg_tmp_version.tar.gz"
   tar zxvf ephemeralpg-$pg_tmp_version.tar.gz
   cd eradman-ephemeralpg-038b5747af8d
@@ -145,7 +145,7 @@ if [ -n "$TRAVIS" ]; then
     sudo mkdir -p $pg_svc_dir
   fi
 
-cat << EOF > $dir/user.toml
+cat << EOF > "$dir/user.toml"
 max_locks_per_transaction = 128
 
 [superuser]
@@ -155,7 +155,7 @@ EOF
 
   if [ -d "$pg_svc_dir" ]; then
     echo "$pg_svc_dir exists. Moving user.toml into place."
-    sudo mv $dir/user.toml $pg_svc_dir
+    sudo mv "$dir/user.toml" $pg_svc_dir
   else
     echo "$pg_svc_dir still doesn't exist. WTF. Expect more failures."
   fi
@@ -170,7 +170,7 @@ port=$(sudo -u "$user" psql "$pg_url" -At  -c "SHOW port")
 pg_tmp_pid=$(pgrep -f "pg_tmp .* $port")
 
 # Write out some config files
-cat << EOF > $dir/config_api.toml
+cat << EOF > "$dir/config_api.toml"
 [depot]
 builds_enabled = true
 non_core_builds_enabled = true
@@ -183,7 +183,7 @@ app_private_key = "$key_dir/builder-github-app.pem"
 write_key = "hahano"
 EOF
 
-cat << EOF > $dir/config_jobsrv.toml
+cat << EOF > "$dir/config_jobsrv.toml"
 key_dir = "$key_dir"
 
 [archive]
@@ -201,7 +201,7 @@ connection_test = false
 pool_size = 8
 EOF
 
-cat << EOF > $dir/config_sessionsrv.toml
+cat << EOF > "$dir/config_sessionsrv.toml"
 [permissions]
 admin_team = 1995301
 build_worker_teams = [2555389]
@@ -229,7 +229,7 @@ shards = [
 ]
 EOF
 
-cat << EOF > $dir/config_originsrv.toml
+cat << EOF > "$dir/config_originsrv.toml"
 [datastore]
 host = "127.0.0.1"
 port = $port
@@ -247,7 +247,7 @@ shards = [
 ]
 EOF
 
-cat << EOF > $dir/Procfile
+cat << EOF > "$dir/Procfile"
 api: $base_dir/target/debug/bldr-api start --path $dir/depot --config $dir/config_api.toml
 router: $base_dir/target/debug/bldr-router start
 jobsrv: $base_dir/support/run-server jobsrv $dir/config_jobsrv.toml
@@ -255,7 +255,7 @@ sessionsrv: $base_dir/support/run-server sessionsrv $dir/config_sessionsrv.toml
 originsrv: $base_dir/support/run-server originsrv $dir/config_originsrv.toml
 EOF
 
-cat << EOF > $dir/bldr.env
+cat << EOF > "$dir/bldr.env"
 RUST_LOG=debug,postgres=error,habitat_builder_db=error,hyper=error,habitat_builder_router=info,zmq=error,habitat_net=info
 RUST_BACKTRACE=1
 HAB_DOCKER_STUDIO_IMAGE="habitat-docker-registry.bintray.io/studio"
@@ -264,7 +264,7 @@ EOF
 # Travis can't run the worker, due to the inability to add the krangschnak user. If we're
 # not running on Travis, add worker config in.
 if [ -z "$TRAVIS" ]; then
-cat << EOF > $dir/config_worker.toml
+cat << EOF > "$dir/config_worker.toml"
 auth_token = "bobo"
 bldr_url = "http://localhost:9636"
 auto_publish = true
