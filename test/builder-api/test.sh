@@ -14,6 +14,32 @@ exists() {
   fi
 }
 
+pid_is_running() {
+  ps -p "${1:-}" > /dev/null
+}
+
+on_exit() {
+  if pid_is_running "${forego_pid:-}"; then
+    echo "**** Stopping services ****"
+    sudo kill "$forego_pid"
+  fi
+
+  if pid_is_running "${pg_tmp_pid:-}"; then
+    if pg_dir=$(sudo -u "$user" psql "$pg_url" -At  -c "SHOW data_directory"); then
+      sudo -u "$user" pg_ctl -D "$pg_dir" stop
+    fi
+    sudo -u "$user" kill "$pg_tmp_pid"
+  fi
+
+  echo "log: $dir/services.log"
+  # sudo rm -fr "$dir"
+  rm -f neurosis*.hart
+
+  trap - EXIT
+  exit "${mocha_exit_code:-0}"
+}
+trap on_exit INT EXIT
+
 # base_dir is the root of the habitat project.
 base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 tmp_dir=/tmp
@@ -53,18 +79,23 @@ else
 fi
 
 # Install nvm if we don't have it already
-if ! nvm &> /dev/null; then
-  echo "Installing nvm"
-  curl -o- "https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh" | bash
-fi
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh"  ] && . "$NVM_DIR/nvm.sh"
+# nvm_version="0.33.8"
+# if [[ -z "${NVM_DIR:-}" ]]; then
+#   export NVM_DIR="$HOME/.nvm"
+# fi
+# if [[ -f "$HOME/.nvm/nvm.sh" ]]; then
+#   . "$NVM_DIR/nvm.sh"
+# fi
+# if [ "$(nvm --version)" != $nvm_version ]; then
+#   echo "Installing nvm"
+#   curl -o- "https://raw.githubusercontent.com/creationix/nvm/v$nvm_version/install.sh" | bash
+#   . "$NVM_DIR/nvm.sh"
+# fi
 
 # First make sure that we have services already compiled to test.
-cd $base_dir
+cd "$base_dir"
 
-make build-srv || exit $?
+make build-srv
 cd $tmp_dir
 
 if [[ $(uname -a) == *"Darwin"* ]]; then
@@ -79,15 +110,15 @@ key_dir="$dir/key-dir"
 
 echo "Created $dir for this test run"
 
-mkdir -p $dir $key_dir
-chmod -R 777 $dir $key_dir
+mkdir -p "$dir" "$key_dir"
+chmod -R 777 "$dir" "$key_dir"
 
 env HAB_CACHE_KEY_PATH=$key_dir hab user key generate bldr
 
 if [ -f "$tmp_dir/builder-github-app.pem" ]; then
   cp "$tmp_dir/builder-github-app.pem" $key_dir
 else
-  cp /root/key-dir/builder-github-app.pem $key_dir
+  cp "$base_dir/.secrets/builder-github-app.pem" "$key_dir"
 fi
 
 # Install pg_tmp if it's not there already
@@ -132,8 +163,11 @@ fi
 
 # This will produce a URI that looks like
 # postgresql://hab@127.0.0.1:39605/test
-pg_url=$(sudo su $user -c "pg_tmp -t -w 240 -o \"-c max_locks_per_transaction=128\"")
-port=$(echo "$pg_url" | awk -F ":" '{ print $3 }' | awk -F "/" '{ print $1 }')
+# Don't add '-d "$dir"' to the pg_tmp command or else it will delete
+# $dir when the process ends and we won't be able to examine logs
+pg_url=$(sudo -u $user pg_tmp -t -w 240 -o "-c max_locks_per_transaction=128")
+port=$(sudo -u "$user" psql "$pg_url" -At  -c "SHOW port")
+pg_tmp_pid=$(pgrep -f "pg_tmp .* $port")
 
 # Write out some config files
 cat << EOF > $dir/config_api.toml
@@ -185,6 +219,14 @@ connection_retry_ms = 300
 connection_timeout_sec = 3600
 connection_test = false
 pool_size = 8
+
+[app]
+shards = [
+  0,
+  1,
+  65,
+  72
+]
 EOF
 
 cat << EOF > $dir/config_originsrv.toml
@@ -197,6 +239,12 @@ connection_retry_ms = 300
 connection_timeout_sec = 3600
 connection_test = false
 pool_size = 8
+
+[app]
+shards = [
+  29,
+  93
+]
 EOF
 
 cat << EOF > $dir/Procfile
@@ -208,7 +256,7 @@ originsrv: $base_dir/support/run-server originsrv $dir/config_originsrv.toml
 EOF
 
 cat << EOF > $dir/bldr.env
-RUST_LOG=debug,postgres=error,habitat_builder_db=error,hyper=error,habitat_builder_router=error,zmq=error,habitat_net=error
+RUST_LOG=debug,postgres=error,habitat_builder_db=error,hyper=error,habitat_builder_router=info,zmq=error,habitat_net=info
 RUST_BACKTRACE=1
 HAB_DOCKER_STUDIO_IMAGE="habitat-docker-registry.bintray.io/studio"
 EOF
@@ -234,53 +282,63 @@ if [ "$platform" = "mac" ]; then
   echo "Running these tests on a mac"
   env HAB_FUNC_TEST=1 "$base_dir/support/mac/bin/forego" start -f "$dir/Procfile" -e "$dir/bldr.env" > "$dir/services.log" 2>&1 &
 else
-  echo "Running these tests on linux"
-  # env HAB_FUNC_TEST=1 "$base_dir/support/linux/bin/forego" start -f "$dir/Procfile" -e "$dir/bldr.env" > "$dir/services.log" 2>&1 &
-  env HAB_FUNC_TEST=1 "$base_dir/support/linux/bin/forego" start -f "$dir/Procfile" -e "$dir/bldr.env"
+  echo "Running these tests on linux (log: $dir/services.log)"
+  sudo env HAB_FUNC_TEST=1 "$base_dir/support/linux/bin/forego" start -f "$dir/Procfile" -e "$dir/bldr.env" > "$dir/services.log" 2>&1 &
 fi
 
-forego_pid=$!
+sudo_pid=$!
+while pid_is_running $sudo_pid && [[ -z ${forego_pid:-} ]]; do
+  forego_pid=$(pgrep -P "$sudo_pid")
+done
 
 echo "**** Spinning up the services ****"
-# total=0
-# originsrv=0
-# sessionsrv=0
-# router=0
-# api=0
-# jobsrv=0
-# worker=0
+total=0
+originsrv=0
+sessionsrv=0
+router=0
+api=0
+jobsrv=0
+#worker=0
 
-# while [ $total -ne 6 ]; do
-#   if [ ! -f "$dir/services.log" ]; then
-#     continue
-#   fi
+while pid_is_running $forego_pid && [ $total -ne 5 ]; do
+# while pid_is_running $forego_pid && [ $total -ne 6 ]; do
+  if [ ! -f "$dir/services.log" ]; then
+    continue
+  fi
 
-#   for svc in originsrv sessionsrv router api jobsrv worker; do
-#     if grep -q "builder-$svc is ready to go" "$dir/services.log"; then
-#       declare "$svc=1"
-#     else
-#       echo "Waiting on $svc"
-#     fi
-#   done
+  for svc in originsrv sessionsrv router api jobsrv; do
+  # for svc in originsrv sessionsrv router api jobsrv worker; do
+    if grep -q "builder-$svc is ready to go" "$dir/services.log"; then
+      declare "$svc=1"
+    else
+      echo "Waiting on $svc"
+    fi
+  done
 
-#   total=$((originsrv + sessionsrv + router + api + jobsrv + worker))
+  total=$(($originsrv + $sessionsrv + $router + $api + $jobsrv))
+  # total=$(($originsrv + $sessionsrv + $router + $api + $jobsrv + $worker))
 
-#   echo ""
-#   sleep 1
-# done
-# echo "**** All services ready ****"
+  echo ""
+  sleep 1
+done
+
+if pid_is_running "$forego_pid"; then
+  echo "**** All services ready ****"
+else
+  echo "forego died; check $dir/services.log"
+  exit 1
+fi
 
 # Run the tests
 cd "$base_dir/test/builder-api"
-nvm install
+# nvm install
 
 npm install
-npm run mocha
-mocha_exit_code=$?
-echo "**** Stopping services ****"
-kill $forego_pid
 
-cd $tmp_dir
-rm -fr $dir
-rm neurosis*.hart
-exit $mocha_exit_code
+sudo ls -ld /tmp
+
+if npm run mocha; then
+  echo "All tests passed"
+else
+  mocha_exit_code=$?
+fi
