@@ -243,6 +243,7 @@ $demo-large-breakpoint: rem-calc(1060);
 
 $demo-step-count: 10;
 $demo-step-count-packaging: 6;
+$demo-step-count-supervisor: 11;
 .demo-step--indicator {
   height: 5px;
   width: 100% / $demo-step-count;
@@ -263,14 +264,28 @@ $demo-step-count-packaging: 6;
   &.packaging {
     width: 100% / $demo-step-count-packaging;
   }
+
+  &.supervisor {
+    width: 100% / $demo-step-count-supervisor;
+  }
 }
 
 .demo-step--content {
   position: relative;
   color: $hab-blue-grey;
   background: $hab-white;
-  padding: rem-calc(58) rem-calc(40) rem-calc(40);
+  padding: rem-calc(48) rem-calc(40) rem-calc(40);
   border-radius: 0 0 $global-radius $global-radius;
+
+  h3 {
+    margin-bottom: rem-calc(8);
+  }
+
+  h4 {
+    margin-bottom: rem-calc(32);
+    color: $hab-gray;
+    text-transform: uppercase;
+  }
 
   a {
     color: $hab-orange;
@@ -280,11 +295,17 @@ $demo-step-count-packaging: 6;
     margin-top: rem-calc(40);
     background: $hab-gray-light;
     border-radius: $global-radius;
-    padding: rem-calc(20);
+    padding: rem-calc(16);
     position: relative;
 
     p {
       font-size: rem-calc(14);
+    }
+
+    &.banner-position {
+      margin-top: 0;
+      background: $hab-white;
+      border: 1px solid $hab-blue;
     }
 
     &.habicat-with-linux:after {
@@ -300,12 +321,28 @@ $demo-step-count-packaging: 6;
 
       @include breakpoint(large) { display: block; }
     }
+
+    &.habicat-snorkelling:after {
+      content: '';
+      display: none;
+      width: 127px;
+      height: 104px;
+      position: absolute;
+      bottom: -12px;
+      right: -18px;
+      background: url('/images/demo/index-snorkelling-habicat.svg') center center no-repeat;
+      background-size: contain;
+
+      @include breakpoint(large) { display: block; }
+    }
   }
 }
 
 .step-bottom-nav {
+  padding-top: rem-calc(16);
   height: 50px;
   line-height: 50px;
+  border-top: 1px solid $hab-gray-light;
 }
 
 a.previous-step-link {
