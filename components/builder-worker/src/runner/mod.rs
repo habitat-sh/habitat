@@ -356,7 +356,7 @@ impl Runner {
 
     fn build(&mut self) -> Result<PackageArchive> {
         let mut log_pipe = LogPipe::new(&self.workspace);
-        log_pipe.pipe_stdout(b"\n--- BEGIN: Studio build ---\n")?;
+        log_pipe.pipe_buffer(b"\n--- BEGIN: Studio build ---\n")?;
         let networking = match (
             self.config.network_interface.as_ref(),
             self.config.network_gateway.as_ref(),
@@ -373,7 +373,7 @@ impl Runner {
             self.config.airlock_enabled,
             networking,
         ).build(&mut log_pipe)?;
-        log_pipe.pipe_stdout(b"\n--- END: Studio build ---\n")?;
+        log_pipe.pipe_buffer(b"\n--- END: Studio build ---\n")?;
 
         if fs::rename(self.workspace.src().join("results"), self.workspace.out()).is_err() {
             return Err(Error::BuildFailure(status.code().unwrap_or(-2)));
@@ -389,13 +389,13 @@ impl Runner {
             // TODO fn: This check should be updated in PackageArchive is check for run hooks.
             if self.workspace.last_built()?.is_a_service() {
                 debug!("Found runnable package, running docker export");
-                log_pipe.pipe_stdout(b"\n--- BEGIN: Docker export ---\n")?;
+                log_pipe.pipe_buffer(b"\n--- BEGIN: Docker export ---\n")?;
                 status = DockerExporter::new(
                     util::docker_exporter_spec(&self.workspace),
                     &self.workspace,
                     &self.config.bldr_url,
                 ).export(&mut log_pipe)?;
-                log_pipe.pipe_stdout(b"\n--- END: Docker export ---\n")?;
+                log_pipe.pipe_buffer(b"\n--- END: Docker export ---\n")?;
             } else {
                 debug!("Package not runnable, skipping docker export");
             }
