@@ -46,6 +46,8 @@ $main-nav-breakpoint: 769px;
     section {
       margin-top: rem-calc(40);
 
+      &.first { margin-top: 0px; }
+
       .description {
         margin-bottom: rem-calc(32);
         max-width: rem-calc(760);
@@ -104,6 +106,7 @@ $main-nav-breakpoint: 769px;
         .card {
           @include card;
           padding: rem-calc(24);
+          position: relative;
 
           > p:last-child {
             margin-bottom: 0;
@@ -112,6 +115,22 @@ $main-nav-breakpoint: 769px;
           > iframe {
             max-width: 100%;
           }
+
+          &.card-number {
+            padding: rem-calc(24) rem-calc(24) rem-calc(24) 110px;
+
+            &:before {
+              position: absolute;
+              font-size: 60px;
+              opacity: .2;
+              text-align: center;
+              left: 20px;
+              top: 0px;
+              display: block;
+            }
+          }
+          &.card-01:before { content: '01'; }
+          &.card-02:before { content: '02'; }
         }
 
         .feature-card {
@@ -152,6 +171,29 @@ $main-nav-breakpoint: 769px;
             padding-left: 0;
             padding-right: 0;
           }
+        }
+      }
+    }
+  }
+
+  .get-started--toc {
+    float: right;
+    background-color: rgba($hab-gray, .25);
+    border: 1px solid $hab-gray;
+    border-radius: $global-radius;
+    padding: rem-calc(40);
+    margin: 0px 0px rem-calc(40) rem-calc(40);
+
+    > ul {
+      list-style: none;
+      padding: 0px;
+      margin: 0px;
+
+      > li {
+        padding-bottom: rem-calc(10);
+        > h4 {
+          margin: 0px;
+          padding: 0px;
         }
       }
     }
