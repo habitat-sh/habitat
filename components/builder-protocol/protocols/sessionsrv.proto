@@ -3,6 +3,7 @@ package sessionsrv;
 
 enum OAuthProvider {
   GitHub = 0;
+  None = 1;
 }
 
 message Account {
@@ -101,6 +102,11 @@ message AccountOriginRemove {
   optional uint64 origin_id = 2;
 }
 
+enum SessionType {
+  User = 0;
+  Builder = 1;
+}
+
 message Session {
   optional uint64 id = 1;
   optional string email = 2;
@@ -109,6 +115,7 @@ message Session {
   optional string token = 4;
   optional uint32 flags = 5;
   optional string oauth_token = 6;
+  optional SessionType session_type = 7;
 }
 
 message SessionCreate {
@@ -118,6 +125,7 @@ message SessionCreate {
   optional string name = 4;
   optional OAuthProvider provider = 5;
   optional string app_token = 6;
+  optional SessionType session_type = 7;
 }
 
 message SessionGet {

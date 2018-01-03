@@ -70,13 +70,6 @@ impl Server {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        if self.config.auth_token.is_empty() {
-            error!(
-                "ERROR: No 'auth_token' config value specified which prevents the \
-                   worker from download fetching signing keys."
-            );
-            return Err(Error::NoAuthTokenError);
-        }
         if self.config.network_interface.is_some() && self.config.network_gateway.is_none() {
             error!(
                 "ERROR: No 'network_gateway' config value specfied when 'network_interface' \

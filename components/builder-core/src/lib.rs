@@ -29,6 +29,7 @@ extern crate walkdir;
 extern crate chrono;
 extern crate base64;
 extern crate protobuf;
+extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

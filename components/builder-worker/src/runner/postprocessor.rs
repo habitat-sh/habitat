@@ -25,6 +25,7 @@ pub fn post_process(
     archive: &mut PackageArchive,
     workspace: &Workspace,
     config: &Config,
+    auth_token: &str,
     logger: &mut Logger,
 ) -> Result<()> {
     let channel_opt = if workspace.job.has_channel() {
@@ -42,5 +43,5 @@ pub fn post_process(
     };
 
     debug!("Starting post processing");
-    publisher.run(archive, &config.auth_token, logger)
+    publisher.run(archive, auth_token, logger)
 }

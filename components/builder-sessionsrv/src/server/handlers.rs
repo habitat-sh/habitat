@@ -124,31 +124,42 @@ pub fn session_create(
     let mut msg = req.parse::<proto::SessionCreate>()?;
     debug!("session-create, {:?}", msg);
     let mut flags = FeatureFlags::default();
-    if env::var_os("HAB_FUNC_TEST").is_some() {
+    if env::var_os("HAB_FUNC_TEST").is_some() ||
+        msg.get_session_type() == proto::SessionType::Builder
+    {
         flags = FeatureFlags::all();
-    } else {
+    } else if msg.get_provider() == proto::OAuthProvider::GitHub {
         assign_permissions(msg.get_name(), &mut flags, state)
     }
 
-    let mut account_req = proto::AccountFindOrCreate::default();
-    account_req.set_name(msg.take_name());
-    account_req.set_email(msg.take_email());
+    let account = if msg.get_session_type() == proto::SessionType::Builder {
+        let mut account = proto::Account::new();
+        account.set_id(0);
+        account.set_email(msg.take_email());
+        account.set_name(msg.take_name());
+        account
+    } else {
+        let mut account_req = proto::AccountFindOrCreate::default();
+        account_req.set_name(msg.take_name());
+        account_req.set_email(msg.take_email());
 
-    match conn.route::<proto::AccountFindOrCreate, proto::Account>(&account_req) {
-        Ok(account) => {
-            let session = Session::build(msg, account, flags)?;
-            {
-                debug!("issuing session, {:?}", session);
-                state.sessions.write().unwrap().insert(session.clone());
+        match conn.route::<proto::AccountFindOrCreate, proto::Account>(&account_req) {
+            Ok(account) => account,
+            Err(e) => {
+                let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:5");
+                error!("{}, {}", e, err);
+                conn.route_reply(req, &*err)?;
+                return Ok(());
             }
-            conn.route_reply(req, &*session)?;
         }
-        Err(e) => {
-            let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:5");
-            error!("{}, {}", e, err);
-            conn.route_reply(req, &*err)?;
-        }
+    };
+
+    let session = Session::build(msg, account, flags)?;
+    {
+        debug!("issuing session, {:?}", session);
+        state.sessions.write().unwrap().insert(session.clone());
     }
+    conn.route_reply(req, &*session)?;
     Ok(())
 }
 
