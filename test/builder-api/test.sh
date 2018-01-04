@@ -63,8 +63,9 @@ if ! exists curl; then
 fi
 
 if ! exists hab; then
-  echo "Installing hab"
-  curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+  echo -n "Installing hab..."
+  curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash > /dev/null
+  echo "success"
 fi
 
 if exists md5sum; then
@@ -78,7 +79,9 @@ fi
 
 # First make sure that we have services already compiled to test.
 cd "$base_dir"
-make build-srv
+echo -n "Making build-srv..."
+make build-srv > /dev/null
+echo "success"
 cd $tmp_dir
 
 if [[ $(uname -a) == *"Darwin"* ]]; then
