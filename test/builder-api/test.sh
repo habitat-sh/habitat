@@ -19,6 +19,7 @@ pid_is_running() {
 }
 
 on_exit() {
+  exit_code=$?
   if pid_is_running "${forego_pid:-}"; then
     echo "**** Stopping services ****"
     sudo kill "$forego_pid"
@@ -36,7 +37,7 @@ on_exit() {
   rm -f neurosis*.hart
 
   trap - EXIT
-  exit "${mocha_exit_code:-0}"
+  exit $exit_code
 }
 trap on_exit INT EXIT
 
@@ -313,8 +314,4 @@ cd "$base_dir/test/builder-api"
 # nvm install
 
 npm install
-if npm run mocha; then
-  echo "All tests passed"
-else
-  mocha_exit_code=$?
-fi
+npm run mocha
