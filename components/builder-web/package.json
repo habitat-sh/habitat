@@ -55,7 +55,7 @@
     "immutable": "^3.8.1",
     "js-cookie": "^2.1.4",
     "lodash": "^4.17.4",
-    "marked": "^0.3.6",
+    "marked": "^0.3.9",
     "moment": "^2.18.1",
     "parse-link-header": "^0.4.1",
     "redux": "^3.6.0",
