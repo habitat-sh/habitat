@@ -38,7 +38,7 @@ pub enum Error {
     CaughtPanic(String, String),
     ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
-    DbPoolTimeout(r2d2::GetTimeout),
+    DbPoolTimeout(r2d2::Error),
     DbTransaction(postgres::error::Error),
     DbTransactionStart(postgres::error::Error),
     DbTransactionCommit(postgres::error::Error),
@@ -235,12 +235,6 @@ impl error::Error for Error {
             Error::UnknownVCS => "Unknown VCS",
             Error::Zmq(ref err) => err.description(),
         }
-    }
-}
-
-impl From<r2d2::GetTimeout> for Error {
-    fn from(err: r2d2::GetTimeout) -> Error {
-        Error::DbPoolTimeout(err)
     }
 }
 

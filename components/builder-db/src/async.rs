@@ -182,8 +182,7 @@ impl AsyncServer {
         let _ = thread::Builder::new()
             .name("async-events".to_string())
             .spawn(move || {
-                let threadpool =
-                    ThreadPool::new_with_name("async-event-worker".to_string(), workers);
+                let threadpool = ThreadPool::with_name("async-event-worker".to_string(), workers);
                 loop {
                     if server.stop.load(Ordering::SeqCst) {
                         return;

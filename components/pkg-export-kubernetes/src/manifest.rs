@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use clap::ArgMatches;
-use handlebars::Handlebars;
 use std::str::FromStr;
 use std::io::prelude::*;
 use std::io;
 use std::fs::File;
 use std::path::Path;
 
+use clap::ArgMatches;
+use failure::SyncFailure;
+use handlebars::Handlebars;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
 use rand;
@@ -131,7 +132,9 @@ impl Manifest {
             "bind": self.binds,
         });
 
-        let r = Handlebars::new().template_render(MANIFESTFILE, &json)?;
+        let r = Handlebars::new()
+            .template_render(MANIFESTFILE, &json)
+            .map_err(SyncFailure::new)?;
         let mut out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
             "\n",
         ) + "\n";
@@ -148,7 +151,9 @@ impl Manifest {
                 "group": split[2],
             });
 
-            out += &Handlebars::new().template_render(BINDFILE, &json)?;
+            out += &Handlebars::new().template_render(BINDFILE, &json).map_err(
+                SyncFailure::new,
+            )?;
         }
 
         self.write.write(out.as_bytes())?;

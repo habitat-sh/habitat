@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use std::fmt;
 
 use base64;
-use hex::ToHex;
+use hex;
 use sodiumoxide::crypto::secretbox;
 use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use sodiumoxide::randombytes::randombytes;
@@ -388,7 +388,7 @@ impl SymKey {
             t.set_file_name(format!(
                 "{}.{}",
                 &secret_keyfile.file_name().unwrap().to_str().unwrap(),
-                &randombytes(6).as_slice().to_hex()
+                &hex::encode(randombytes(6).as_slice())
             ));
             TmpKeyfile { path: t }
         };

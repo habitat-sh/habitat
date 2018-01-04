@@ -29,7 +29,7 @@ habitat_core = { path = "../core" }
 habitat_depot_client = { path = "../builder-depot-client" }
 habitat-eventsrv-client = { path = "../eventsrv-client" }
 habitat-launcher-client = { path = "../launcher-client" }
-handlebars = { version = "*", features = ["partial4"], default-features = false }
+handlebars = { version = "*", default-features = false }
 iron = "*"
 lazy_static = "*"
 libc = "*"
@@ -54,10 +54,10 @@ url = "*"
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 crypt32-sys = "*"
-winapi = "*"
+winapi = "0.2"
 
 [dev-dependencies]
-hyper = "*"
+hyper = "0.10"
 
 [dev-dependencies.habitat_core]
 path = "../core"

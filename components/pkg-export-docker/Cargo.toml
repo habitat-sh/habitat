@@ -22,7 +22,7 @@ env_logger = "*"
 hab = { path = "../hab" }
 habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
-handlebars = { version = "*", features = ["partial4"], default-features = false }
+handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 log = "*"
 rusoto_core = "*"
@@ -32,8 +32,8 @@ serde = { version = "*", features = ["rc"] }
 serde_json = "*"
 tempdir = "*"
 url = "*"
-failure = "0.1"
-failure_derive = "0.1"
+failure = { git = "https://github.com/withoutboats/failure.git" }
+failure_derive = { git = "https://github.com/withoutboats/failure_derive.git" }
 
 [features]
 default = []

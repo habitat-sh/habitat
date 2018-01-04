@@ -19,7 +19,7 @@ use bldr_core::build_config::{BLDR_CFG, BuildCfg};
 use constant_time_eq::constant_time_eq;
 use github_api_client::GitHubClient;
 use hab_core::package::Plan;
-use hex::ToHex;
+use hex;
 use http_gateway::http::controller::*;
 use iron::status;
 use openssl::hash::MessageDigest;
@@ -83,8 +83,8 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
     let key = PKey::hmac(github.webhook_secret.as_bytes()).unwrap();
     let mut signer = Signer::new(MessageDigest::sha1(), &key).unwrap();
     signer.update(payload.as_bytes()).unwrap();
-    let hmac = signer.finish().unwrap();
-    let computed_signature = format!("sha1={}", &hmac.to_hex());
+    let hmac = signer.sign_to_vec().unwrap();
+    let computed_signature = format!("sha1={}", &hex::encode(hmac));
 
     if !constant_time_eq(gh_signature.as_bytes(), computed_signature.as_bytes()) {
         warn!(

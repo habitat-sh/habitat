@@ -40,7 +40,7 @@ pub enum SrvError {
     BadPort(String),
     ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
-    DbPoolTimeout(r2d2::GetTimeout),
+    DbPoolTimeout(r2d2::Error),
     DbTransactionCommit(postgres::error::Error),
     DbTransactionStart(postgres::error::Error),
     EntityNotFound,
@@ -160,12 +160,6 @@ impl From<hab_net::conn::ConnErr> for SrvError {
 impl From<protocol::ProtocolError> for SrvError {
     fn from(err: protocol::ProtocolError) -> Self {
         SrvError::Protocol(err)
-    }
-}
-
-impl From<r2d2::GetTimeout> for SrvError {
-    fn from(err: r2d2::GetTimeout) -> SrvError {
-        SrvError::DbPoolTimeout(err)
     }
 }
 

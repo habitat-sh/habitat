@@ -24,4 +24,4 @@ time = "*"
 
 [target.'cfg(windows)'.dependencies]
 kernel32-sys = "*"
-winapi = "*"
+winapi = "0.2"

@@ -8,7 +8,7 @@ workspace = "../../"
 clippy = {version = "*", optional = true}
 ansi_term = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
-hyper = "*"
+hyper = "0.10"
 libc = "*"
 log = "*"
 pbr = "*"
@@ -27,7 +27,7 @@ path = "../builder-depot-client"
 
 [target.'cfg(windows)'.dependencies]
 kernel32-sys = "*"
-winapi = "*"
+winapi = "0.2"
 
 [dev-dependencies]
 tempdir = "*"

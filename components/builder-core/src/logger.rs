@@ -40,7 +40,7 @@ impl Logger {
     }
 
     pub fn log(&mut self, msg: &str) {
-        let dt: DateTime<UTC> = UTC::now();
+        let dt: DateTime<Utc> = Utc::now();
         let fmt_msg = format!("{},{}\n", dt.format("%Y-%m-%d %H:%M:%S"), msg);
 
         self.file.write_all(fmt_msg.as_bytes()).expect(&format!(
@@ -50,13 +50,13 @@ impl Logger {
     }
 
     // Log format (fields are comma-separated)
-    //   Log entry datetime (UTC)
+    //   Log entry datetime (Utc)
     //   Entry type - G (group), J (job), P (project), W (worker), I (ident)
     //   Id (group or job id)
     //   State
     //   Project name (for job or project)
-    //   Start datetime (UTC) (only for jobs)
-    //   End datetime (UTC) (only for jobs)
+    //   Start datetime (Utc) (only for jobs)
+    //   End datetime (Utc) (only for jobs)
     //   Start offset (offset from group creation, in seconds, only for jobs)
     //   Duration (job duration, in seconds, only for jobs)
     //   Error (if applicable)
@@ -82,11 +82,11 @@ impl Logger {
 
     pub fn log_group_job(&mut self, group: &JobGroup, job: &Job) {
         let suffix = if job.has_build_started_at() && job.has_build_finished_at() {
-            let start = job.get_build_started_at().parse::<DateTime<UTC>>().unwrap();
+            let start = job.get_build_started_at().parse::<DateTime<Utc>>().unwrap();
             let stop = job.get_build_finished_at()
-                .parse::<DateTime<UTC>>()
+                .parse::<DateTime<Utc>>()
                 .unwrap();
-            let group_start = group.get_created_at().parse::<DateTime<UTC>>().unwrap();
+            let group_start = group.get_created_at().parse::<DateTime<Utc>>().unwrap();
 
             let offset = start
                 .signed_duration_since(group_start)
@@ -131,7 +131,7 @@ impl Logger {
     pub fn log_worker_job(&mut self, job: &Job) {
         let start = if job.has_build_started_at() {
             job.get_build_started_at()
-                .parse::<DateTime<UTC>>()
+                .parse::<DateTime<Utc>>()
                 .unwrap()
                 .format("%Y-%m-%d %H:%M:%S")
                 .to_string()
@@ -141,7 +141,7 @@ impl Logger {
 
         let stop = if job.has_build_finished_at() {
             job.get_build_finished_at()
-                .parse::<DateTime<UTC>>()
+                .parse::<DateTime<Utc>>()
                 .unwrap()
                 .format("%Y-%m-%d %H:%M:%S")
                 .to_string()

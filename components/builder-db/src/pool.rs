@@ -46,13 +46,13 @@ impl fmt::Debug for Pool {
 impl Pool {
     pub fn new(config: &DataStoreCfg, shards: Vec<ShardId>) -> Result<Pool> {
         loop {
-            let pool_config_builder =
-                r2d2::Config::builder()
-                    .pool_size(config.pool_size)
+            let manager = PostgresConnectionManager::new(config, TlsMode::None)
+                .map_err(Error::PostgresConnect)?;
+            let builder =
+                r2d2::Pool::builder()
+                    .max_size(config.pool_size)
                     .connection_timeout(Duration::from_secs(config.connection_timeout_sec));
-            let pool_config = pool_config_builder.build();
-            let manager = PostgresConnectionManager::new(config, TlsMode::None)?;
-            match r2d2::Pool::new(pool_config, manager) {
+            match builder.build(manager) {
                 Ok(pool) => {
                     return Ok(Pool {
                         inner: pool,

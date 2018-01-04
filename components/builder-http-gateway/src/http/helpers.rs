@@ -18,7 +18,7 @@ use std::str::FromStr;
 use core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use core::crypto::SigKeyPair;
 use hab_net::{ErrCode, NetError, NetOk, NetResult};
-use hab_net::privilege::{self, FeatureFlags};
+use hab_net::privilege::FeatureFlags;
 use http::controller::*;
 
 use iron::status::{self, Status};
@@ -519,7 +519,7 @@ fn is_worker(req: &mut Request) -> bool {
     match req.extensions.get::<Authenticated>() {
         Some(session) => {
             let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
-            flags.contains(privilege::BUILD_WORKER)
+            flags.contains(FeatureFlags::BUILD_WORKER)
         }
         None => false,
     }

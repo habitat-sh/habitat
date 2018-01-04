@@ -16,7 +16,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use base64;
-use hex::ToHex;
+use hex;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
 use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
@@ -231,7 +231,7 @@ impl SigKeyPair {
             t.set_file_name(format!(
                 "{}.{}",
                 &keyfile.file_name().unwrap().to_str().unwrap(),
-                &randombytes(6).as_slice().to_hex()
+                &hex::encode(randombytes(6).as_slice())
             ));
             TmpKeyfile { path: t }
         };

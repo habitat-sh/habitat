@@ -15,7 +15,7 @@
 use std::env;
 
 use hab_net::app::prelude::*;
-use hab_net::privilege::{self, FeatureFlags};
+use hab_net::privilege::FeatureFlags;
 
 use protocol::net;
 use protocol::sessionsrv as proto;
@@ -335,8 +335,8 @@ fn assign_permissions(name: &str, flags: &mut FeatureFlags, state: &ServerState)
             ) {
                 Ok(Some(membership)) => {
                     if membership.active() {
-                        debug!("Granting feature flag={:?}", privilege::ADMIN);
-                        flags.set(privilege::ADMIN, true);
+                        debug!("Granting feature flag={:?}", FeatureFlags::ADMIN);
+                        flags.set(FeatureFlags::ADMIN, true);
                     }
                 }
                 Ok(None) => (),
@@ -346,8 +346,8 @@ fn assign_permissions(name: &str, flags: &mut FeatureFlags, state: &ServerState)
                 match state.github.check_team_membership(&token, *team, name) {
                     Ok(Some(membership)) => {
                         if membership.active() {
-                            debug!("Granting feature flag={:?}", privilege::EARLY_ACCESS);
-                            flags.set(privilege::EARLY_ACCESS, true);
+                            debug!("Granting feature flag={:?}", FeatureFlags::EARLY_ACCESS);
+                            flags.set(FeatureFlags::EARLY_ACCESS, true);
                             break;
                         }
                     }
@@ -359,8 +359,8 @@ fn assign_permissions(name: &str, flags: &mut FeatureFlags, state: &ServerState)
                 match state.github.check_team_membership(&token, *team, name) {
                     Ok(Some(membership)) => {
                         if membership.active() {
-                            debug!("Granting feature flag={:?}", privilege::BUILD_WORKER);
-                            flags.set(privilege::BUILD_WORKER, true);
+                            debug!("Granting feature flag={:?}", FeatureFlags::BUILD_WORKER);
+                            flags.set(FeatureFlags::BUILD_WORKER, true);
                             break;
                         }
                     }

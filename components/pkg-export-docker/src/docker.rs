@@ -19,15 +19,16 @@ use std::process::Command;
 use std::str::FromStr;
 
 use common::ui::{UI, Status};
+use failure::SyncFailure;
 use hcore::os::filesystem;
 use hcore::fs as hfs;
 use hcore::package::PackageIdent;
 use handlebars::Handlebars;
 
+use super::{Credentials, Naming};
 use build::BuildRoot;
 use error::{Error, Result};
 use serde_json;
-use super::{Credentials, Naming};
 use util;
 
 /// The `Dockerfile` template.
@@ -255,7 +256,9 @@ impl<'a> DockerImage {
         });
         util::write_file(
             &report,
-            &Handlebars::new().template_render(BUILD_REPORT, &json)?,
+            &Handlebars::new()
+                .template_render(BUILD_REPORT, &json)
+                .map_err(SyncFailure::new)?,
         )?;
         Ok(())
     }
@@ -438,7 +441,12 @@ impl DockerBuildRoot {
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
         });
         let init = ctx.rootfs().join("init.sh");
-        util::write_file(&init, &Handlebars::new().template_render(INIT_SH, &json)?)?;
+        util::write_file(
+            &init,
+            &Handlebars::new().template_render(INIT_SH, &json).map_err(
+                SyncFailure::new,
+            )?,
+        )?;
         filesystem::chmod(init.to_string_lossy().as_ref(), 0o0755)?;
         Ok(())
     }
@@ -464,7 +472,9 @@ impl DockerBuildRoot {
         });
         util::write_file(
             self.0.workdir().join("Dockerfile"),
-            &Handlebars::new().template_render(DOCKERFILE, &json)?,
+            &Handlebars::new()
+                .template_render(DOCKERFILE, &json)
+                .map_err(SyncFailure::new)?,
         )?;
         Ok(())
     }
@@ -482,7 +492,11 @@ impl DockerBuildRoot {
             "channel": self.0.ctx().channel(),
         });
         let image_name = match naming.custom_image_name {
-            Some(ref custom) => Handlebars::new().template_render(custom, &json)?,
+            Some(ref custom) => {
+                Handlebars::new().template_render(custom, &json).map_err(
+                    SyncFailure::new,
+                )?
+            }
             None => format!("{}/{}", ident.origin, ident.name),
         }.to_lowercase();
 
@@ -504,7 +518,8 @@ impl DockerBuildRoot {
         if let Some(ref custom) = naming.custom_tag {
             image = image.tag(
                 Handlebars::new()
-                    .template_render(custom, &json)?
+                    .template_render(custom, &json)
+                    .map_err(SyncFailure::new)?
                     .to_lowercase(),
             );
         }
