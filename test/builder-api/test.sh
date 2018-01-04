@@ -19,7 +19,6 @@ pid_is_running() {
 }
 
 on_exit() {
-  exit_code=$?
   if pid_is_running "${forego_pid:-}"; then
     echo "**** Stopping services ****"
     sudo kill "$forego_pid"
@@ -37,15 +36,17 @@ on_exit() {
   rm -f neurosis*.hart
 
   trap - EXIT
-  exit $exit_code
+  exit "${mocha_exit_code:-0}"
 }
 trap on_exit INT EXIT
 
 # base_dir is the root of the habitat project.
 base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 tmp_dir=/tmp
+pg_tmp_version=2.3
 export BLDR_FULL_TEST_RUN=1
 unset npm_config_prefix
+pg_svc_dir="/hab/svc/postgresql"
 
 # If this script is being run by Travis, then we need to point cargo to the libs we installed ourselves.
 # Failure to do this means that the bldr-* components won't be able to find the shared libraries they need.
@@ -64,9 +65,8 @@ if ! exists curl; then
 fi
 
 if ! exists hab; then
-  echo -n "Installing hab..."
-  curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash > /dev/null
-  echo "success"
+  echo "Installing hab"
+  curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 fi
 
 if exists md5sum; then
@@ -78,11 +78,24 @@ else
   exit 1
 fi
 
+# Install nvm if we don't have it already
+# nvm_version="0.33.8"
+# if [[ -z "${NVM_DIR:-}" ]]; then
+#   export NVM_DIR="$HOME/.nvm"
+# fi
+# if [[ -f "$HOME/.nvm/nvm.sh" ]]; then
+#   . "$NVM_DIR/nvm.sh"
+# fi
+# if [ "$(nvm --version)" != $nvm_version ]; then
+#   echo "Installing nvm"
+#   curl -o- "https://raw.githubusercontent.com/creationix/nvm/v$nvm_version/install.sh" | bash
+#   . "$NVM_DIR/nvm.sh"
+# fi
+
 # First make sure that we have services already compiled to test.
 cd "$base_dir"
-echo -n "Making build-srv..."
-make build-srv > /dev/null
-echo "success"
+
+make build-srv
 cd $tmp_dir
 
 if [[ $(uname -a) == *"Darwin"* ]]; then
@@ -109,22 +122,22 @@ else
 fi
 
 # Install pg_tmp if it's not there already
-pg_tmp_version=2.3
 if ! exists pg_tmp; then
   echo "These tests require the use of pg_tmp. Installing version $pg_tmp_version now."
-  curl --fail --silent --remote-name "http://ephemeralpg.org/code/ephemeralpg-$pg_tmp_version.tar.gz"
-  tar zxf ephemeralpg-$pg_tmp_version.tar.gz
-  rm ephemeralpg-$pg_tmp_version.tar.gz
-  sudo make -C ./*ephemeralpg* install
+  cd "$dir"
+  curl -O "http://ephemeralpg.org/code/ephemeralpg-$pg_tmp_version.tar.gz"
+  tar zxvf ephemeralpg-$pg_tmp_version.tar.gz
+  cd eradman-ephemeralpg-038b5747af8d
+  sudo make install
   hash -r
 fi
 
+# Ensure normal pg commands are available for pg_tmp
 if ! exists pg_ctl; then
-  echo "Installing core/postgresql so normal pg commands are available for pg_tmp"
-  sudo hab pkg install --binlink core/postgresql > /dev/null
+  sudo hab pkg install core/postgresql
+  sudo hab pkg binlink core/postgresql
 fi
 
-pg_svc_dir="/hab/svc/postgresql"
 # If we're running this on travis, drop a user.toml that configures it differently
 if [ -n "$TRAVIS" ]; then
   if [ ! -d "$pg_svc_dir" ]; then
@@ -211,10 +224,8 @@ pool_size = 8
 shards = [
   0,
   1,
-  2,
   65,
-  72,
-  93
+  72
 ]
 EOF
 
@@ -309,11 +320,16 @@ else
   exit 1
 fi
 
-# Add option here to pause an run tests manually instead?
-
 # Run the tests
 cd "$base_dir/test/builder-api"
 # nvm install
 
 npm install
-npm run mocha
+
+sudo ls -ld /tmp
+
+if npm run mocha; then
+  echo "All tests passed"
+else
+  mocha_exit_code=$?
+fi
