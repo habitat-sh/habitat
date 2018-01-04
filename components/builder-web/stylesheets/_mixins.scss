@@ -2,7 +2,8 @@ $tablet-width: 768px;
 $desktop-width: 1024px;
 
 @mixin shadow {
-  box-shadow: 0 0 $small-margin 0 $medium-gray;
+  box-shadow: $default-shadow; // 0 0 $small-margin 0 $medium-gray;
+  border: $default-border;
 }
 
 @mixin shadow-panel {
@@ -50,4 +51,14 @@ $desktop-width: 1024px;
   font-weight: 600;
   color: $color;
   background-color: $background-color;
+}
+
+@mixin transition($props...) {
+  transition-property: $props;
+  transition-duration: $default-transition-duration;
+}
+
+@mixin cta {
+  background-color: $hab-orange;
+  color: $white;
 }

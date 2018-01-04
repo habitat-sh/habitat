@@ -5,6 +5,7 @@
 @import "theme_palette";
 
 $custom-typography: mat-typography-config(
+  $button: mat-typography-level($base-font-size, $base-line-height, normal),
   $font-family: "#{$base-font-family}"
 );
 
@@ -13,7 +14,7 @@ $tabs-typography: mat-typography-config(
 );
 
 $hab-theme-primary: mat-palette($md-mcgpalette0);
-$hab-theme-accent: mat-palette($md-mcgpalette1);
+$hab-theme-accent: mat-palette($md-mcgpalette0);
 $hab-theme-warn: mat-palette($md-mcgpalette5);
 
 $hab-theme: mat-light-theme(
@@ -32,6 +33,10 @@ html {
   background-color: $dark-blue; // Firefox needs this for Material dialogs.
 }
 
+.mat-tab-label-active {
+  background: transparent !important;
+}
+
 .mat-raised-button:not([class*=mat-elevation-z]) {
   box-shadow: none !important;
 }
@@ -42,4 +47,8 @@ html {
 
 .mat-dialog-container {
   margin: 0 auto; // Centers the dialog on smaller screens
+}
+
+.mat-tooltip {
+  line-height: 16px;
 }

@@ -28,6 +28,8 @@ export class AppComponent implements OnInit, OnDestroy {
   signOut: Function;
   toggleUserNavMenu: Function;
 
+  menuOpen: boolean = false;
+
   private sub: Subscription;
 
   constructor(private router: Router, private store: AppStore) {
@@ -38,6 +40,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
       // Clear the package search when the route changes
       store.dispatch(setPackagesSearchQuery(''));
+
+      // Close the menu
+      this.menuOpen = false;
 
       // Scroll to the top of the view
       window.scrollTo(0, 0);
@@ -107,6 +112,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   get layout() {
     return this.store.getState().ui.layout;
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
   }
 
   private handleSignIn() {

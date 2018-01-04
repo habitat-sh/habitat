@@ -21,7 +21,7 @@ Lets walk through containerizing a "Habitized" ASP.NET Core application that acc
 
 You will need Habitat version 0.50.0 at a minimum and be on a Windows host running [Docker Community Edition for Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows). Also, you must be "switched" to Windows containers.
 
-We'll just be pulling the ASP.NET and MySQL packages from the [Habitat Depot](https://bldr.habitat.sh/#/explore) and will not be building them here. The source for this application can be found in [this github repo](https://github.com/habitat-sh/habitat-aspnet-sample).
+We'll just be pulling the ASP.NET and MySQL packages from the [Habitat Depot](https://bldr.habitat.sh/#/pkgs/core) and will not be building them here. The source for this application can be found in [this github repo](https://github.com/habitat-sh/habitat-aspnet-sample).
 
 ## Export the MySQL Database to a Docker Image
 

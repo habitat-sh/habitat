@@ -21,8 +21,6 @@ export const CLEAR_LATEST_IN_CHANNEL = 'CLEAR_LATEST_IN_CHANNEL';
 export const CLEAR_LATEST_PACKAGE = 'CLEAR_LATEST_PACKAGE';
 export const POPULATE_DASHBOARD_RECENT = 'POPULATE_DASHBOARD_RECENT';
 export const CLEAR_PACKAGE_VERSIONS = 'CLEAR_PACKAGE_VERSIONS';
-export const POPULATE_EXPLORE = 'POPULATE_EXPLORE';
-export const POPULATE_EXPLORE_STATS = 'POPULATE_EXPLORE_STATS';
 export const SET_CURRENT_PACKAGE = 'SET_CURRENT_PACKAGE';
 export const SET_LATEST_IN_CHANNEL = 'SET_LATEST_IN_CHANNEL';
 export const SET_LATEST_PACKAGE = 'SET_LATEST_PACKAGE';
@@ -64,14 +62,6 @@ export function fetchDashboardRecent(origin: string) {
 function clearPackageVersions() {
   return {
     type: CLEAR_PACKAGE_VERSIONS
-  };
-}
-
-export function fetchExplore() {
-  return dispatch => {
-    depotApi.getStats('core')
-      .then(data => dispatch(populateExploreStats(data)))
-      .catch(error => console.error(error));
   };
 }
 
@@ -184,20 +174,6 @@ export function populateDashboardRecent(data) {
   return {
     type: POPULATE_DASHBOARD_RECENT,
     payload: mapped
-  };
-}
-
-export function populateExplore(data) {
-  return {
-    type: POPULATE_EXPLORE,
-    payload: data,
-  };
-}
-
-export function populateExploreStats(data) {
-  return {
-    type: POPULATE_EXPLORE_STATS,
-    payload: data,
   };
 }
 

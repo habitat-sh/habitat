@@ -15,13 +15,13 @@
 @import 'fonts';
 @import 'colors';
 
-$base-font-size: 14px;
+$base-font-size: 16px;
 $base-line-height: 22px;
 $base-unit: 'px';
 $base-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
-$h1-font-size: 1.71 * $base-font-size;
+$h1-font-size: 20px;
 $h2-font-size: 1.14 * $base-font-size;
-$h3-font-size: 0.83 * $base-font-size;
+$h3-font-size: 12px;
 $h4-font-size: 0.83 * $base-font-size;
 $h5-font-size: 1    * $base-font-size;
 $h6-font-size: 0.67 * $base-font-size;
@@ -39,9 +39,11 @@ $tabs-font-family: $heading-font-family;
 $default-spacing: 20px;
 $default-margin: 16px;
 $default-padding: 16px;
-$default-shadow: 0 0 12px 0 $light-blue;
+$default-shadow: 0 2px 4px 0 rgba(217,224,230,0.4);
 $default-radius: 2px;
-$default-border: 1px solid $very-light-gray;
+$default-border: 1px solid #DCE6EE; // 1px solid $very-light-gray;
+
+$default-transition-duration: 0.2s;
 
 $max-grid-width: 1180px;
 
@@ -66,6 +68,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   color: $hab-text;
+  height: 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -90,16 +93,17 @@ ul, ol {
 }
 
 h1 {
-  font-weight: normal;
+  font-weight: 600;
+}
+
+h2 {
+  font-family: $base-font-family;
+  line-height: $base-line-height;
 }
 
 h3, h4 {
   font-family: $heading-font-family;
   text-transform: uppercase;
-}
-
-h2 {
-  font-family: $base-font-family;
 }
 
 hr {
@@ -110,12 +114,12 @@ hr {
 
 a {
   cursor: pointer;
-  color: $hab-green;
+  color: $hab-links;
   text-decoration: none;
-  transition: color 0.2s;
+  @include transition(color);
 
   &:hover {
-    color: darken($hab-green, 10%);
+    color: darken($hab-links, 10%);
   }
 }
 

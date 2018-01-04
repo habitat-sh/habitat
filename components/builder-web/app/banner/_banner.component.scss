@@ -1,9 +1,20 @@
 .banner-component {
-  padding: $default-padding 0;
+  padding: $default-padding $default-padding * 2;
   position: relative;
   background-color: $hab-blue;
   color: $white;
   text-align: center;
+  max-height: 1000px;
+  @include transition(all);
+  overflow: auto;
+
+  @include tablet-up {
+    padding: $default-padding 0;
+  }
+
+  span {
+    display: block;
+  }
 
   a {
     color: $white;
@@ -14,7 +25,16 @@
     display: block;
     @include icon-size(16);
     @include vertically-centered;
-    right: $default-margin * 2;
+    right: $default-margin / 2;
     cursor: pointer;
+
+    @include tablet-up {
+      right: $default-margin * 2;
+    }
+  }
+
+  &.hidden {
+    height: 0;
+    padding: 0;
   }
 }

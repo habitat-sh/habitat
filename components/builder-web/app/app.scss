@@ -17,34 +17,91 @@
 @import 'base/grid';
 @import 'base/lists';
 
+html {
+  height: 100%;
+}
+
 body {
   background: linear-gradient(to top, $medium-blue, $dark-blue);
 }
 
 .app {
-  padding: $default-padding;
+  height: 100%;
+  position: relative;
 
   > nav {
     color: $white;
 
     a {
       font-size: 16px;
-      color: $white;
+      font-weight: 600;
+      color: $light-gray;
+      line-height: $default-margin * 2;
+
+      hab-icon {
+        margin-right: $default-margin / 2;
+      }
 
       &:hover {
-        color: $hab-green;
+        color: $white;
       }
     }
+  }
+
+  nav, main {
+    @include transition(all);
   }
 }
 
 nav {
+  $menu-width: 224px;
 
   &.menu {
-    display: none;
+    position: absolute;
+    min-width: $menu-width;
+    left: -$menu-width;
+    top: 0;
+    bottom: 0;
+    padding: $default-padding $default-padding * 2;
+    background: linear-gradient(to top, $medium-blue, $dark-blue);
 
     @include tablet-up {
-      display: block;
+      left: 0;
+
+      + main {
+        left: $menu-width;
+      }
+    }
+
+    .logo {
+
+      img {
+        height: 48px;
+      }
+    }
+
+    &.open {
+      left: 0;
+
+      + main {
+        left: $menu-width;
+        right: -$menu-width;
+        overflow-x: hidden;
+      }
+    }
+
+    + main header {
+      padding-left: $default-padding * 4;
+
+      @include tablet-up {
+        padding-left: $default-padding;
+      }
+    }
+
+    h3 {
+      font-size: $small-font-size;
+      color: $white;
+      opacity: 0.4;
     }
   }
 
@@ -54,7 +111,7 @@ nav {
     .mat-tab-links {
       display: flex;
     }
-    
+
     .mat-tab-link {
       color: $black;
       text-transform: uppercase;
@@ -67,18 +124,52 @@ nav {
       }
     }
   }
-
-  .footer {
-    grid-area: footer;
-  }
 }
 
 main {
-  border-radius: $default-radius;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background-color: $white;
+  overflow-y: scroll;
 
-  .full & {
+  .full &, .sign-in & {
     background: transparent;
+  }
+
+  @include tablet-up {
+    .sign-in & {
+      margin-top: 192px;
+    }
+  }
+
+  .menu-toggle {
+    @include icon-size(32);
+    cursor: pointer;
+    position: absolute;
+    background: url(/assets/images/habitat-mark.svg) no-repeat center left;
+    background-size: contain;
+    top: 22px;
+    left: $default-margin;
+    z-index: 9999;
+
+    @include tablet-up {
+      display: none;
+    }
+
+    .sign-in & {
+      display: none;
+    }
+  }
+
+  hab-user-nav {
+    display: block;
+    position: absolute;
+    margin: $default-margin $default-margin 0 0;
+    right: 0;
+    z-index: 999;
   }
 
   header {
@@ -87,13 +178,15 @@ main {
     border-radius: $default-radius $default-radius 0 0;
     background: linear-gradient(205deg, $light-blue 5%, $light-slate-gray 100%);
     font-family: $heading-font-family;
+    min-height: 74px;
 
     h1, h2 {
       margin: 0;
+      font-weight: normal;
     }
 
     h2 {
-      font-weight: normal;
+      font-size: $base-font-size;
     };
   }
 
@@ -131,10 +224,8 @@ main {
 
 @import 'dialog';
 @import 'banner/banner.component';
-@import 'explore/explore.component';
 @import 'footer/footer.component';
-@import 'header/header.component';
-@import 'header/user-nav/user-nav.component';
+@import 'user-nav/user-nav.component';
 @import 'notifications/notifications';
 @import 'origin/origin.module';
 @import 'package/package.module';

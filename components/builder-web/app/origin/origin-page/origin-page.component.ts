@@ -83,14 +83,6 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  iconFor(visibility) {
-    return visibility === 'private' ? 'lock' : 'public';
-  }
-
-  labelFor(visibility) {
-    return visibility === 'private' ? 'ON' : 'OFF';
-  }
-
   private fetchIntegrations() {
     if (this.token) {
       this.store.dispatch(fetchIntegrations(this.origin.name, this.token));

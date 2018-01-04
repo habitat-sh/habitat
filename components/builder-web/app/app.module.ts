@@ -23,14 +23,12 @@ import { AppStore } from './app.store';
 import { AppComponent } from './app.component';
 import { BannerComponent } from './banner/banner.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ExploreComponent } from './explore/explore.component';
 import { FooterComponent } from './footer/footer.component';
 import { GravatarComponent } from './gravatar/gravatar.component';
-import { HeaderComponent } from './header/header.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { SideNavComponent } from './side-nav/side-nav.component';
 import { SignInPageComponent } from './sign-in-page/sign-in-page.component';
-import { UserNavComponent } from './header/user-nav/user-nav.component';
+import { UserNavComponent } from './user-nav/user-nav.component';
 
 import { OriginModule } from './origin/origin.module';
 import { PackageModule } from './package/package.module';
@@ -59,10 +57,8 @@ import { SharedModule } from './shared/shared.module';
   declarations: [
     AppComponent,
     BannerComponent,
-    ExploreComponent,
     FooterComponent,
     GravatarComponent,
-    HeaderComponent,
     NotificationsComponent,
     SideNavComponent,
     SignInPageComponent,

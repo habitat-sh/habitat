@@ -16,6 +16,7 @@ import { DebugElement } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
+import { MockComponent } from 'ng2-mock-component';
 import { SideNavComponent } from './side-nav.component';
 
 describe('SideNavComponent', () => {
@@ -25,10 +26,11 @@ describe('SideNavComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        RouterTestingModule,
       ],
       declarations: [
-        SideNavComponent
+        SideNavComponent,
+        MockComponent({ selector: 'hab-icon', inputs: [ 'symbol' ] })
       ]
     });
 

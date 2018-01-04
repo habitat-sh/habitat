@@ -25,14 +25,14 @@
           flex: 1;
         }
       }
-  
+
       .action {
         border-radius: $default-radius;
         padding: $default-padding / 4 $default-padding / 2;
         cursor: pointer;
         margin-left: 8px;
-        transition: color .2s, background-color .2s;
-  
+        @include transition(color, background-color);
+
         &:hover {
           background-color: $hab-blue;
           color: white;
