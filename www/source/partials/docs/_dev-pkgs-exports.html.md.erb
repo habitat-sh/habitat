@@ -47,6 +47,29 @@ For an example of using Docker Compose to run multiple Habitat containers togeth
 
 4. Your package in a tar file exists locally on your computer in the format `origin-package-version-timestamp.tar.gz` and can be deployed and run on a target machine.
 
+5. If you wish to run this tar file on a remote machine (i.e. a virtual machine in a cloud environment), scp (or whatever transfer protocol you prefer) the file to whatever you wish to run it
+
+6. SSH into the virtual machine
+
+7. Run these commands to set up the required user and group
+
+    ```shell
+    $ sudo adduser --group hab
+    $ sudo useradd -g hab hab
+    ```
+
+8. Next, unpack the tar file
+
+    ```shell
+    $ sudo tar xf your-origin-package-version-timestamp.tar.gz
+    ```
+
+9. Now, start your package using the hab binary which is included in the tar archive
+
+    ```shell
+    $ sudo /hab/bin/hab start yourorigin/yourpackage
+    ```
+
 ## Exporting to an Application Container Image (ACI)
 
 You can create an Application Container Image (ACI) for any package by performing the following steps:
