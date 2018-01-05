@@ -1,4 +1,3 @@
-<hab-banner></hab-banner>
 <div class="notifications">
   <hab-notifications
     [notifications]="state.notifications.all"
@@ -6,28 +5,31 @@
   </hab-notifications>
 </div>
 <div class="app {{ layout }}">
-  <nav class="menu" [class.open]="menuOpen">
-    <hab-side-nav [isSignedIn]="isSignedIn"></hab-side-nav>
-  </nav>
-  <main>
-    <div class="menu-toggle" (click)="toggleMenu()"></div>
-    <hab-user-nav
-      [isOpen]="isUserNavOpen"
-      [isSignedIn]="isSignedIn"
-      [username]="username"
-      [avatarUrl]="avatarUrl"
-      [signOut]="signOut"
-      [toggleUserNavMenu]="toggleUserNavMenu">
-    </hab-user-nav>
-    <ng-container *ngIf="isSigningIn">
-      <header></header>
-      <div class="body">
-        <h5>
-          <hab-icon symbol="loading" class="spinning"></hab-icon>
-          Loading...
-        </h5>
-      </div>
-    </ng-container>
-    <router-outlet *ngIf="!isSigningIn"></router-outlet>
-  </main>
+  <hab-banner></hab-banner>
+  <div class="wrapper">
+    <nav class="menu" [class.open]="menuOpen">
+      <hab-side-nav [isSignedIn]="isSignedIn"></hab-side-nav>
+    </nav>
+    <main>
+      <div class="menu-toggle" (click)="toggleMenu()"></div>
+      <hab-user-nav
+        [isOpen]="isUserNavOpen"
+        [isSignedIn]="isSignedIn"
+        [username]="username"
+        [avatarUrl]="avatarUrl"
+        [signOut]="signOut"
+        [toggleUserNavMenu]="toggleUserNavMenu">
+      </hab-user-nav>
+      <ng-container *ngIf="isSigningIn">
+        <header></header>
+        <div class="body">
+          <h5>
+            <hab-icon symbol="loading" class="spinning"></hab-icon>
+            Loading...
+          </h5>
+        </div>
+      </ng-container>
+      <router-outlet *ngIf="!isSigningIn"></router-outlet>
+    </main>
+  </div>
 </div>

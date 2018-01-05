@@ -159,7 +159,29 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
 
   public scrollToTop() {
     this.followLog = false;
-    window.scrollTo(0, 0);
+    this.scrollTo(0);
+  }
+
+  public scrollToEnd() {
+    let appHeight = this.elementHeight(this.container);
+    let bannerHeight = this.elementHeight(this.element('hab-banner'));
+    this.scrollTo(appHeight + bannerHeight - window.innerHeight);
+  }
+
+  public scrollTo(x = 0) {
+    this.container.scrollTop = x;
+  }
+
+  public elementHeight(el) {
+    return el ? el.scrollHeight : 0;
+  }
+
+  private element(selector) {
+    return document.querySelector(selector);
+  }
+
+  private get container() {
+    return this.element('.app main');
   }
 
   private fetch(id) {
@@ -190,22 +212,5 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
         this.scrollToEnd();
       }
     });
-  }
-
-  private scrollToEnd() {
-    let appHeight = heightOf('.app');
-    let bannerHeight = heightOf('.banner-component');
-
-    window.scrollTo(0, appHeight + bannerHeight - window.innerHeight);
-
-    function heightOf(selector) {
-      let el = document.querySelector(selector);
-
-      if (el) {
-        return el.getBoundingClientRect().height;
-      }
-
-      return 0;
-    }
   }
 }

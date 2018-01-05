@@ -146,9 +146,9 @@ describe('BuildDetailComponent', () => {
         describe('jump-to-top button', () => {
 
           it('scrolls to top', () => {
-            spyOn(window, 'scrollTo');
+            spyOn(component, 'scrollTo');
             element.query(By.css('button.jump-to-top')).triggerEventHandler('click', {});
-            expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+            expect(component.scrollTo).toHaveBeenCalledWith(0);
           });
 
           describe('when log following is enabled', () => {
@@ -169,15 +169,10 @@ describe('BuildDetailComponent', () => {
           it('enables log following', () => {
             expect(component.followLog).toBe(false);
 
-            spyOn(window, 'scrollTo');
-            spyOn(document, 'querySelector').and.returnValues(
-              { getBoundingClientRect: () => { return { height: 54 }; } }, // bannerHeight
-              { getBoundingClientRect: () => { return { height: 1200 }; } },  // appHeight
-            );
-
+            spyOn(component, 'scrollToEnd');
             element.query(By.css('button.jump-to-end')).triggerEventHandler('click', {});
 
-            expect(window.scrollTo).toHaveBeenCalledWith(0, 954);
+            expect(component.scrollToEnd).toHaveBeenCalled();
             expect(component.followLog).toBe(true);
           });
         });
