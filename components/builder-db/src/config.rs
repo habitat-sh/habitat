@@ -13,11 +13,12 @@
 // limitations under the License.
 
 use std::error::Error;
+use std::fmt;
 use std::net::{Ipv4Addr, IpAddr};
 
 use num_cpus;
-use postgres::params::{ConnectParams, Host, IntoConnectParams};
-
+use postgres_shared::params::{ConnectParams, Host, IntoConnectParams};
+use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 pub use protocol::sharding::ShardId;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -51,6 +52,22 @@ impl Default for DataStoreCfg {
             connection_test: false,
             pool_size: (num_cpus::get() * 2) as u32,
         }
+    }
+}
+
+impl fmt::Display for DataStoreCfg {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut connect = format!("postgres://{}", self.user);
+        connect = match self.password {
+            Some(ref p) => {
+                // We can potentially get non-url friendly chars here so we need to encode them
+                let encoded_password = utf8_percent_encode(p, PATH_SEGMENT_ENCODE_SET).to_string();
+                format!("{}:{}", connect, encoded_password)
+            }
+            None => connect,
+        };
+        connect = format!("{}@{}:{}/{}", connect, self.host, self.port, self.database);
+        write!(f, "{}", connect)
     }
 }
 

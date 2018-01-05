@@ -1,0 +1,2 @@
+-- This is the initial migration from our old migration system to diesel so it has no proper revert
+-- To undo this migration you should run `DROP DATABASE builder_jobsrv` and try again.

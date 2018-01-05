@@ -48,11 +48,10 @@ impl Pool {
         loop {
             let manager = PostgresConnectionManager::new(config, TlsMode::None)
                 .map_err(Error::PostgresConnect)?;
-            let builder =
-                r2d2::Pool::builder()
-                    .max_size(config.pool_size)
-                    .connection_timeout(Duration::from_secs(config.connection_timeout_sec));
-            match builder.build(manager) {
+            match r2d2::Pool::builder()
+                .max_size(config.pool_size)
+                .connection_timeout(Duration::from_secs(config.connection_timeout_sec))
+                .build(manager) {
                 Ok(pool) => {
                     return Ok(Pool {
                         inner: pool,

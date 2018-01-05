@@ -34,7 +34,10 @@ sha2 = "*"
 time = "*"
 toml = { version = "*", default-features = false }
 url = "*"
+
 hyper = "0.10"
+diesel = "*"
+diesel_migrations = "*"
 
 [dependencies.clap]
 version = "*"

@@ -14,12 +14,18 @@
 
 //! The PostgreSQL backend for the Jobsrv.
 
+embed_migrations!("src/migrations");
+
+use std::io;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
-use db::config::DataStoreCfg;
-use db::migration::Migrator;
+use db::config::{DataStoreCfg, ShardId};
+use db::migration::shard_setup;
 use db::pool::Pool;
+use db::diesel_pool::DieselPool;
+use diesel::Connection;
+use diesel::result::Error as Dre;
 use postgres;
 use postgres::rows::Rows;
 use protobuf;
@@ -27,14 +33,14 @@ use protocol::net::{NetError, ErrCode};
 use protocol::{originsrv, jobsrv};
 use protocol::originsrv::Pageable;
 use protobuf::{ProtobufEnum, RepeatedField};
-use migrations;
 
 use error::{Result, Error};
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DataStore {
     pool: Pool,
+    diesel_pool: DieselPool,
 }
 
 impl DataStore {
@@ -44,12 +50,18 @@ impl DataStore {
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
     pub fn new(cfg: &DataStoreCfg) -> Result<DataStore> {
         let pool = Pool::new(cfg, vec![0])?;
-        Ok(DataStore { pool: pool })
+        let diesel_pool = DieselPool::new(&cfg)?;
+        Ok(DataStore { pool, diesel_pool })
     }
 
     /// Create a new DataStore from a pre-existing pool; useful for testing the database.
-    pub fn from_pool(pool: Pool, _: Arc<String>) -> Result<DataStore> {
-        Ok(DataStore { pool: pool })
+    pub fn from_pool(
+        pool: Pool,
+        diesel_pool: DieselPool,
+        _: Vec<u32>,
+        _: Arc<String>,
+    ) -> Result<DataStore> {
+        Ok(DataStore { pool, diesel_pool })
     }
 
     /// Setup the datastore.
@@ -57,17 +69,13 @@ impl DataStore {
     /// This includes all the schema and data migrations, along with stored procedures for data
     /// access.
     pub fn setup(&self) -> Result<()> {
-        let conn = self.pool.get_raw()?;
-        let xact = conn.transaction().map_err(Error::DbTransactionStart)?;
-        let mut migrator = Migrator::new(xact, self.pool.shards.clone());
-
-        migrator.setup()?;
-
-        migrations::jobs::migrate(&mut migrator)?;
-        migrations::scheduler::migrate(&mut migrator)?;
-
-        migrator.finish()?;
-
+        let conn = self.diesel_pool.get_raw()?;
+        let shard_id: ShardId = 0;
+        let _ = conn.transaction::<_, Dre, _>(|| {
+            shard_setup(&*conn, shard_id).unwrap();
+            embedded_migrations::run_with_output(&*conn, &mut io::stdout()).unwrap();
+            Ok(())
+        });
         Ok(())
     }
 

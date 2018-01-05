@@ -17,6 +17,8 @@
 
 #[macro_use]
 extern crate clap;
+extern crate diesel;
+extern crate diesel_migrations;
 extern crate env_logger;
 extern crate habitat_core as hab_core;
 extern crate habitat_builder_sessionsrv as sessionsrv;
