@@ -1,27 +1,30 @@
 <div class="sign-in-page-component">
-  <header>
-      <h1>Sign In</h1>
-    </header>
-    <div class="body">
-      <div class="content">
-        <section>
-          <a mat-raised-button color="accent" class="button cta" href="{{ gitHubLoginUrl }}">
-            <hab-icon symbol="github"></hab-icon>
-            <span>Sign In with GitHub</span>
-          </a>
-        </section>
-        <p>
-          New to Habitat? An account will be created for you when you sign in.
-        </p>
+  <a class="logo" href="{{ wwwUrl }}">
+    <img src="/assets/images/habitat-logo.svg" alt="Habitat">
+  </a>
+  <div class="body">
+    <div class="content">
+      <section class="upper">
+        <a mat-raised-button color="primary" class="button" href="{{ gitHubLoginUrl }}">
+          <hab-icon symbol="github"></hab-icon>
+          <span>Sign In with GitHub</span>
+        </a>
+      </section>
+      <section class="lower">
         <p>
           Don't have a GitHub account?
           <a href="{{ gitHubJoinUrl }}" target="_blank">Sign up, it's free</a>.
         </p>
-        <p class="footnote">
-          By clicking on "Sign in with GitHub", you are agreeing to the
-          <a href="{{ wwwUrl }}/legal/terms-and-conditions/" target="_blank">Terms of Service</a> and
-          <a href="{{ wwwUrl }}/legal/privacy-policy/" target="_blank">Privacy Policy</a>.
+        <p>
+          New to Habitat? Signing in will also create a new account.
         </p>
-      </div>
+      </section>
     </div>
+  </div>
+  <p class="footnote">
+    By clicking on "Sign in with GitHub", you are agreeing to the
+    <a href="{{ wwwUrl }}/legal/terms-and-conditions/" target="_blank">Terms of Service</a> and
+    <a href="{{ wwwUrl }}/legal/privacy-policy/" target="_blank">Privacy Policy</a>.
+  </p>
+  <img class="habicat" src="/assets/images/habicat.svg">
 </div>

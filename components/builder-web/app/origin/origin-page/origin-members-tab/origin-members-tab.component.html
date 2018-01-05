@@ -6,7 +6,7 @@
         <p>
           Add existing Habitat users by GitHub username.
         </p>
-        <input type="search" name="username" [formControl]="form.controls['username']" placeholder="GitHub username">
+        <input type="search" name="username" [formControl]="form.controls['username']" placeholder="GitHub username" autocomplete="off">
         <p class="error" *ngIf="errorMessage">
           {{ errorMessage }}
         </p>

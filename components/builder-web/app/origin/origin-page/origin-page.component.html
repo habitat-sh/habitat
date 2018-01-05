@@ -2,10 +2,6 @@
   <header>
     <h1>{{ origin.name }}</h1>
     <h2>origin</h2>
-    <div class="private-builds">
-      <hab-icon [symbol]="iconFor(origin.default_package_visibility)"></hab-icon>
-      <span>Private Builds {{ labelFor(origin.default_package_visibility) }}</span>
-    </div>
   </header>
   <nav class="tabs" mat-tab-nav-bar>
     <a mat-tab-link

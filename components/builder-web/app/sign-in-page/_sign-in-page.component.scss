@@ -1,11 +1,68 @@
 .sign-in-page-component {
-  
+
+  .logo {
+    display: block;
+    width: 160px;
+    margin: $default-margin * 2 auto;
+  }
+
   .body {
     text-align: center;
+    padding: 0;
+    background-color: $white;
+    border-radius: $default-radius;
+    font-size: 13px;
+    margin: $default-margin;
 
-    .cta {
-      background-color: $hab-orange;
-      color: $white;
+    section {
+      padding: $default-padding;
+      margin: 0;
+    }
+
+    .upper {
+      padding: $default-padding * 2 0;
+    }
+
+    .lower {
+      border-top: $default-border;
+      padding: $default-padding;
+      background-color: $off-white;
+
+      p {
+        padding: 0;
+        margin: 0;
+      }
+
+      a {
+        text-decoration: underline;
+      }
+    }
+
+    .content {
+      padding-right: 0;
+    }
+  }
+
+  .footnote {
+    color: $dim-slate-gray;
+    text-align: center;
+    margin: $default-margin $default-margin * 4;
+
+    a {
+      color: $dim-slate-gray;
+      text-decoration: underline;
+    }
+  }
+
+  .habicat {
+    position: fixed;
+    top: 60%;
+    left: 20%;
+    transform: rotate(-20deg);
+
+    @media (max-width: #{$tablet-width}) {
+      bottom: 5%;
+      left: 5%;
     }
   }
 }

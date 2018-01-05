@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ExploreComponent } from './explore/explore.component';
 import { SignInPageComponent } from './sign-in-page/sign-in-page.component';
 import { routes } from './routes';
 
@@ -21,13 +20,6 @@ describe('Routes', () => {
   function route(path) {
     return routes.find((r) => r.path === path);
   }
-
-  describe('/', () => {
-    it('routes to ExploreComponent', () => {
-      let r = route('explore');
-      expect(r.component).toBe(ExploreComponent);
-    });
-  });
 
   describe('/sign-in', () => {
     it('routes to SignInPageComponent', () => {

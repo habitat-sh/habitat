@@ -6,21 +6,19 @@
   </hab-notifications>
 </div>
 <div class="app {{ layout }}">
-  <nav class="menu">
+  <nav class="menu" [class.open]="menuOpen">
     <hab-side-nav [isSignedIn]="isSignedIn"></hab-side-nav>
   </nav>
-  <nav class="main">
-      <hab-header
-      [appName]="state.app.name"
-      [isUserNavOpen]="isUserNavOpen"
+  <main>
+    <div class="menu-toggle" (click)="toggleMenu()"></div>
+    <hab-user-nav
+      [isOpen]="isUserNavOpen"
       [isSignedIn]="isSignedIn"
       [username]="username"
       [avatarUrl]="avatarUrl"
       [signOut]="signOut"
       [toggleUserNavMenu]="toggleUserNavMenu">
-    </hab-header>
-  </nav>
-  <main>
+    </hab-user-nav>
     <ng-container *ngIf="isSigningIn">
       <header></header>
       <div class="body">
@@ -29,8 +27,7 @@
           Loading...
         </h5>
       </div>
-    </ng-container>  
+    </ng-container>
     <router-outlet *ngIf="!isSigningIn"></router-outlet>
   </main>
 </div>
-<hab-footer [currentYear]="state.app.currentYear"></hab-footer>

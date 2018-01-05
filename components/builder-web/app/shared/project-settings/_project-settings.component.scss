@@ -23,8 +23,7 @@
 
     .cta {
       .button {
-        background-color: $hab-orange;
-        color: $white;
+        @include cta;
       }
     }
 
@@ -43,8 +42,7 @@
         flex: 0 0 140px;
 
         .button {
-          background-color: $hab-orange;
-          color: $white;
+          @include cta;
         }
       }
     }
@@ -67,7 +65,7 @@
       }
 
       a {
-        color: $hab-blue;
+        color: $hab-links;
         text-decoration: underline;
       }
     }
@@ -79,11 +77,6 @@
 
       &.heading {
         border-bottom: 1px solid $very-light-gray;
-      }
-
-      &.item {
-        font-size: $small-font-size;
-        padding: $default-padding 0;
       }
 
       .plan-path {
@@ -100,14 +93,14 @@
           color: $hab-blue;
           margin-right: 22px;
           cursor: pointer;
-          transition: color .2s linear;
+          @include transition(color);
 
           &:hover {
             color: darken($hab-blue, 10%);
           }
 
           &:active {
-            color: $hab-blue;
+            color: $hab-links;
           }
         }
       }

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, ElementRef, HostListener, Input } from '@angular/core';
-import config from '../../config';
+import config from '../config';
 
 @Component({
   selector: 'hab-user-nav',
@@ -38,8 +38,7 @@ export class UserNavComponent {
   // expect would make it close.
   @HostListener('document:click', ['$event'])
   toggle(event) {
-    if ((this.isOpen && !event.target.closest('.main-nav--dropdown')) ||
-      (!this.isOpen && this.element.nativeElement.contains(event.target))) {
+    if ((this.isOpen && !event.target.closest('.dropdown')) || (!this.isOpen && this.element.nativeElement.contains(event.target))) {
       this.toggleUserNavMenu();
     }
   }

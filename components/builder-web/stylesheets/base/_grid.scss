@@ -15,65 +15,32 @@
 @include tablet-up {
 
   .app {
-    display: grid;
-    grid-template-areas: "nav    nav "
-                         "menu   main";
-    grid-template-columns: 4fr 20fr;
-    grid-template-rows: repeat(2, auto);
-    grid-gap: 16px;
-    max-width: $max-grid-width;
     margin: 0 auto;
+    width: 100%;
 
-    &.full, &.centered {
+    &.full, &.sign-in {
       display: block;
-
       max-width: none;
-      
-      nav.main {
-        max-width: $max-grid-width;
-        margin: 0 auto;
-        margin-bottom: $default-margin * 2;
-        padding: 0 $default-padding;
-      }
 
       nav.menu {
         display: none;
       }
+
+      main {
+        left: 0;
+      }
     }
 
-    &.centered {
+    &.sign-in {
       main {
-        max-width: 600px;
+        max-width: 420px;
         margin: 0 auto;
         margin-top: $default-margin * 4;
       }
     }
   }
 
-  nav {
-
-    &.main {
-      grid-area: nav;
-    }
-
-    &.menu {
-      grid-area: menu;
-    }
-  }
-
   main {
-
-    > ng-component {
-      grid-area: main;
-    }
-
-    header {
-      grid-area: header;
-    }
-
-    .tabs {
-      grid-area: tabs;
-    }
 
     .body {
       display: flex;

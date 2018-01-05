@@ -52,7 +52,7 @@
     color: $medium-gray;
     cursor: pointer;
     outline: none;
-    transition: color 200ms;
+    @include transition(color);
 
     &:hover {
       color: $very-dark-gray;

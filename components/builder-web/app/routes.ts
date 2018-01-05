@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Routes, RouterModule } from '@angular/router';
-import { ExploreComponent } from './explore/explore.component';
 import { SignInPageComponent } from './sign-in-page/sign-in-page.component';
 
 export const routes: Routes = [
@@ -21,10 +20,6 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     redirectTo: 'origins'
-  },
-  {
-    path: 'explore',
-    component: ExploreComponent
   },
   {
     path: 'sign-in',

@@ -1,33 +1,28 @@
 @font-face {
   font-family: "Titillium Web";
-  src: url("fonts/titilliumweb-regular-webfont.eot");
-  src: url("fonts/titilliumweb-regular-webfont.eot?#iefix") format("embedded-opentype"),
-       url("fonts/titilliumweb-regular-webfont.woff2") format("woff2"),
-       url("fonts/titilliumweb-regular-webfont.woff") format("woff"),
-       url("fonts/titilliumweb-regular-webfont.ttf") format("truetype");
+  src: url("fonts/titilliumweb-regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
   font-family: "Titillium Web";
-  src: url("fonts/titilliumweb-italic-webfont.eot");
-  src: url("fonts/titilliumweb-italic-webfont.eot?#iefix") format("embedded-opentype"),
-       url("fonts/titilliumweb-italic-webfont.woff2") format("woff2"),
-       url("fonts/titilliumweb-italic-webfont.woff") format("woff"),
-       url("fonts/titilliumweb-italic-webfont.ttf") format("truetype");
+  src: url("fonts/titilliumweb-italic.ttf") format("truetype");
   font-weight: 400;
   font-style: italic;
 }
 
 @font-face {
   font-family: "Titillium Web";
-  src: url("fonts/titilliumweb-bold-webfont.eot");
-  src: url("fonts/titilliumweb-bold-webfont.eot?#iefix") format("embedded-opentype"),
-       url("fonts/titilliumweb-bold-webfont.woff2") format("woff2"),
-       url("fonts/titilliumweb-bold-webfont.woff") format("woff"),
-       url("fonts/titilliumweb-bold-webfont.ttf") format("truetype");
+  src: url("fonts/titilliumweb-semibold.ttf") format("truetype");
   font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Titillium Web";
+  src: url("fonts/titilliumweb-bold.ttf") format("truetype");
+  font-weight: 700;
   font-style: normal;
 }
 

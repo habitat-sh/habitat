@@ -16,7 +16,7 @@ import * as marked from 'marked';
 import * as actionTypes from '../actions/index';
 import initialState from '../initial-state';
 import { Package } from '../records/Package';
-import { List, Record } from 'immutable';
+import { List } from 'immutable';
 
 export default function packages(state = initialState['packages'], action) {
   switch (action.type) {
@@ -46,14 +46,6 @@ export default function packages(state = initialState['packages'], action) {
 
     case actionTypes.CLEAR_PACKAGE_VERSIONS:
       return state.set('versions', undefined);
-
-    case actionTypes.POPULATE_EXPLORE:
-      return state.setIn(['explore', 'popular'], List(action.payload['popular'])).
-        setIn(['explore', 'your_app'], List(action.payload['your_app'])).
-        setIn(['explore', 'community'], List(action.payload['community']));
-
-    case actionTypes.POPULATE_EXPLORE_STATS:
-      return state.setIn(['explore', 'stats'], Record(action.payload)());
 
     case actionTypes.SET_CURRENT_PACKAGE:
       if (action.error) {

@@ -15,10 +15,12 @@
 .user-nav-component {
   display: block;
   border-radius: 50%;
-  border: 1px solid $hab-orange;
   padding: 2px;
-  position: relative;
   cursor: pointer;
+
+  .sign-in & {
+    display: none;
+  }
 
   img {
     display: block;
@@ -33,7 +35,7 @@
     color: $hab-text;
     position: absolute;
     right: 0;
-    top: 38px;
+    top: $default-margin * 2;
     z-index: 9999;
 
     > li {
@@ -57,10 +59,14 @@
 
       a {
         font-size: $base-font-size;
-        color: $hab-green;
+        color: $hab-links;
         margin-left: 0;
       }
     }
   }
-}
 
+  .cta {
+    background-color: $hab-orange;
+    color: $white;
+  }
+}
