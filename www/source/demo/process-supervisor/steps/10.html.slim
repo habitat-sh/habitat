@@ -1,0 +1,69 @@
+---
+title: Habitat Process Supervisor Demo - Step 10
+layout: layout
+classes: demo_step
+---
+#demo-step.demo--page
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/1"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/2"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/3"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/4"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/5"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/6"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/7"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/8"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/9"
+        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/10"
+        a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/11"
+      .row
+        .columns.large-12
+          h3.h3="Step 10: Start the application"
+          h4.h4="Process Supervisor Demo"
+        .columns.large-7
+          p
+            ' Running your application with the Habitat Supervisor enables you to do things such as
+          ul
+            li update runtime configuration,
+            li connect application services using built-in topologies,
+            li and roll out changes according to built-in update strategies, to name a few.
+          p
+            ' In this demo, we'll use the
+            strong at-once
+            '  update strategy to update our running application to the latest stable version. Enter
+            ' the Habitat Studio* and start the application as follows.
+          = code(:shell) do
+            | $ hab studio enter
+          = code(:shell) do
+            | [1][default:/src:0]# hab start yourorigin/sample-node-app --strategy at-once
+          p
+            ' The Supervisor will reach out to the depot (i.e.
+            a.link-external target="_blank" href="https://bldr.habitat.sh/#/pkgs/" Builder web UI
+            ' ), download, and run the latest stable version of this package.
+          .footnote
+            p.mb-0
+              span.asterisk="*"
+              ' If you would like to preview the running application locally in your web browser,
+              ' then you will need to expose a port before you enter the Habitat Studio. Since the
+              ' Studio is built with Docker, you can do this by running
+              strong export HAB_DOCKER_OPTS="-p 8000:8000"
+              '  <em>before</em> you enter the studio.
+              <br><br>
+              ' Once the application has been started, you can then preview it at
+              a.link-external target="_blank" href="http://localhost:8000" http://localhost:8000
+              ' .
+        .columns.large-5
+          p
+            ' Next, tail the Supervisor log for the running application using this short command:
+          = code(:shell) do
+            | [1][default:/src:0]# sl
+          p
+            ' Keep the log open as we'll be using it in the next step.
+          img alt="CLI screenshot after running build" src="/images/demo/sup-step-10.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/process-supervisor/steps/9" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/process-supervisor/steps/11" Next Step
