@@ -50,8 +50,12 @@ impl Publisher {
         let client = depot_client::Client::new(&self.url, PRODUCT, VERSION, None).unwrap();
         let ident = archive.ident().unwrap();
 
-        match retry(RETRIES, RETRY_WAIT, || client.x_put_package(archive, auth_token), |res| {
-            match *res {
+        match retry(
+            RETRIES,
+            RETRY_WAIT,
+            || client.x_put_package(archive, auth_token),
+            |res| {
+                match *res {
                 Ok(_) |  // Conflict means package got uploaded earlier
                 Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => true,
                 Err(_) => {
@@ -61,7 +65,8 @@ impl Publisher {
                     false
                 }
             }
-        }) {
+            },
+        ) {
             Ok(_) => (),
             Err(err) => {
                 let msg = format!("Failed to upload {} after {} retries", ident, RETRIES);

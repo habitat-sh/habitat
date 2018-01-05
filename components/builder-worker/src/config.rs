@@ -28,12 +28,12 @@ pub type JobSrvCfg = Vec<JobSrvAddr>;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// Token for authenticating with the public builder-api
-    pub auth_token: String,
     /// Enable automatic publishing for all builds by default
     pub auto_publish: bool,
     /// Filepath where persistent application data is stored
     pub data_path: PathBuf,
+    /// Filepath to where the builder encryption keys can be found
+    pub key_dir: PathBuf,
     /// Path to worker event logs
     pub log_path: PathBuf,
     /// Default channel name for Publish post-processor to use to determine which channel to
@@ -68,10 +68,10 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            auth_token: "".to_string(),
             auto_publish: true,
             data_path: PathBuf::from("/tmp"),
             log_path: PathBuf::from("/tmp"),
+            key_dir: PathBuf::from("/hab/svc/builder-worker/files"),
             bldr_channel: String::from("unstable"),
             bldr_url: url::default_bldr_url(),
             jobsrv: vec![JobSrvAddr::default()],
@@ -115,9 +115,9 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
-        auth_token = "mytoken"
         data_path = "/path/to/data"
         log_path = "/path/to/logs"
+        key_dir = "/path/to/key"
         features_enabled = "FOO,BAR"
         network_interface = "eth1"
         network_gateway = "192.168.10.1"
@@ -134,9 +134,9 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(&config.auth_token, "mytoken");
         assert_eq!(&format!("{}", config.data_path.display()), "/path/to/data");
         assert_eq!(&format!("{}", config.log_path.display()), "/path/to/logs");
+        assert_eq!(&format!("{}", config.key_dir.display()), "/path/to/key");
         assert_eq!(&format!("{}", config.jobsrv[0].host), "1:1:1:1:1:1:1:1");
         assert_eq!(config.jobsrv[0].port, 9000);
         assert_eq!(config.jobsrv[0].heartbeat, 9001);

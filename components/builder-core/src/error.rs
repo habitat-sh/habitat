@@ -18,15 +18,18 @@ use std::result;
 use std::string;
 
 use base64;
+use chrono;
 use hab_core;
 
 #[derive(Debug)]
 pub enum Error {
     Base64Error(base64::DecodeError),
+    ChronoError(chrono::format::ParseError),
     DecryptError(String),
     EncryptError(String),
     FromUtf8Error(string::FromUtf8Error),
     HabitatCore(hab_core::Error),
+    TokenExpired,
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -35,10 +38,12 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::Base64Error(ref e) => format!("{}", e),
+            Error::ChronoError(ref e) => format!("{}", e),
             Error::DecryptError(ref e) => format!("{}", e),
             Error::EncryptError(ref e) => format!("{}", e),
             Error::FromUtf8Error(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::TokenExpired => format!("Token is expired"),
         };
         write!(f, "{}", msg)
     }
@@ -48,10 +53,12 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Base64Error(ref e) => e.description(),
+            Error::ChronoError(ref e) => e.description(),
             Error::DecryptError(_) => "Error decrypting integration",
             Error::EncryptError(_) => "Error encrypting integration",
             Error::FromUtf8Error(ref e) => e.description(),
             Error::HabitatCore(ref err) => err.description(),
+            Error::TokenExpired => "Token is expired",
         }
     }
 }

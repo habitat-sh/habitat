@@ -65,7 +65,7 @@ impl HttpGateway for ApiSrv {
     }
 
     fn router(config: Arc<Self::Config>) -> Router {
-        let basic = Authenticated::new(config.github.clone());
+        let basic = Authenticated::new(config.github.clone(), config.depot.key_dir.clone());
 
         router!(
             status: get "/status" => status,

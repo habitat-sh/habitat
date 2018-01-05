@@ -23,6 +23,7 @@ use http_gateway::app::prelude::*;
 use iron;
 use persistent;
 use staticfile::Static;
+use std::path::PathBuf;
 
 use self::handlers::*;
 use config::Config;
@@ -50,7 +51,8 @@ impl HttpGateway for AdminSrv {
     }
 
     fn router(config: Arc<Self::Config>) -> Router {
-        let admin = Authenticated::new(config.github.clone()).require(FeatureFlags::ADMIN);
+        let admin = Authenticated::new(config.github.clone(), PathBuf::new())
+            .require(FeatureFlags::ADMIN);
         router!(
             status: get "/status" => status,
             search: post "/search" => XHandler::new(search).before(admin.clone()),

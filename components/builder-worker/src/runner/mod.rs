@@ -28,6 +28,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::{self, JoinHandle};
 
 pub use protocol::jobsrv::JobState;
+use bldr_core;
 use bldr_core::job::Job;
 use bldr_core::logger::Logger;
 use chrono::Utc;
@@ -79,6 +80,7 @@ pub struct Runner {
     depot_cli: depot_client::Client,
     workspace: Workspace,
     logger: Logger,
+    bldr_token: String,
     cancel: Arc<AtomicBool>,
 }
 
@@ -90,12 +92,14 @@ impl Runner {
         let log_path = config.log_path.clone();
         let mut logger = Logger::init(PathBuf::from(log_path), "builder-worker.log");
         logger.log_ident(net_ident);
+        let bldr_token = bldr_core::keys::generate_bldr_token(&config.key_dir).unwrap();
 
         Runner {
             workspace: Workspace::new(&config.data_path, job),
             config: config,
             depot_cli: depot_cli,
             logger: logger,
+            bldr_token: bldr_token,
             cancel: cancel,
         }
     }
@@ -275,6 +279,7 @@ impl Runner {
             &mut archive,
             &self.workspace,
             &self.config,
+            &self.bldr_token,
             &mut self.logger,
         ) {
             Ok(_) => (),
@@ -322,7 +327,7 @@ impl Runner {
             || {
                 self.depot_cli.fetch_origin_secret_key(
                     self.job().origin(),
-                    &self.config.auth_token,
+                    &self.bldr_token,
                     key_path(),
                 )
             },
@@ -369,7 +374,7 @@ impl Runner {
         let mut status = Studio::new(
             &self.workspace,
             &self.config.bldr_url,
-            &self.config.auth_token,
+            &self.bldr_token,
             self.config.airlock_enabled,
             networking,
         ).build(&mut log_pipe)?;

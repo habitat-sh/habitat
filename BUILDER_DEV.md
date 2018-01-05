@@ -162,7 +162,7 @@ $ hab pkg upload -c stable core-hab-backline...hart
 
 * NOTE - if you receive this error: "No auth token specified" - make sure you have set HAB_AUTH_TOKEN="<your github token>"  in your environment
 * NOTE - if you receive this error: "No such file or directory (os error 2)" It means that the public key from bldr.habitat.sh (that corresponds to the private key the hart file was signed with) wasn't installed.
-* NOTE - if you receive this error: "403 Forbidden" when running `hab pkg upload`, it may mean the core origin hasn't been successfully created. 
+* NOTE - if you receive this error: "403 Forbidden" when running `hab pkg upload`, it may mean the core origin hasn't been successfully created.
 * You will need to follow this same process for any dependencies of anything you want to build locally
 
 ## Create the project(s) you want to build
