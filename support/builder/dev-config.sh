@@ -345,7 +345,7 @@ EOT
 
 mkdir -p /hab/svc/builder-worker
 cat <<EOT > /hab/svc/builder-worker/config.toml
-auth_token = "${HAB_AUTH_TOKEN}"
+key_dir = "/hab/svc/builder-worker/files"
 auto_publish = true
 log_level = "debug"
 airlock_enabled = false
