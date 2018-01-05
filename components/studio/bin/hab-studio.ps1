@@ -314,7 +314,24 @@ function Enter-Studio {
 
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
-    Start-Process hab.exe -ArgumentList "sup run" -NoNewWindow -RedirectStandardOutput $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log
+    
+    $pr = New-Object System.Diagnostics.Process
+    $pr.StartInfo.UseShellExecute = $false
+    $pr.StartInfo.CreateNoWindow = $true
+    $pr.StartInfo.RedirectStandardOutput = $true
+    $pr.StartInfo.RedirectStandardError = $true
+    $pr.StartInfo.FileName = "hab.exe"
+    $pr.StartInfo.Arguments = "sup run"
+    Register-ObjectEvent -InputObject $pr -EventName OutputDataReceived -action {
+      $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+    } | Out-Null
+    Register-ObjectEvent -InputObject $pr -EventName ErrorDataReceived -action {
+      $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+    } | Out-Null
+    $pr.start() | Out-Null
+    $pr.BeginErrorReadLine()
+    $pr.BeginOutputReadLine()
+    
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
     Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
     Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
