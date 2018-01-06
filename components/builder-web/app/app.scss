@@ -27,29 +27,36 @@ body {
 
 .app {
   height: 100%;
+  display: flex;
+  flex-direction: column;
   position: relative;
 
-  > nav {
-    color: $white;
+  .wrapper {
+    height: 100%;
+    position: relative;
 
-    a {
-      font-size: 16px;
-      font-weight: 600;
-      color: $light-gray;
-      line-height: $default-margin * 2;
+    > nav {
+      color: $white;
 
-      hab-icon {
-        margin-right: $default-margin / 2;
-      }
+      a {
+        font-size: 16px;
+        font-weight: 600;
+        color: $light-gray;
+        line-height: $default-margin * 2;
 
-      &:hover {
-        color: $white;
+        hab-icon {
+          margin-right: $default-margin / 2;
+        }
+
+        &:hover {
+          color: $white;
+        }
       }
     }
-  }
 
-  nav, main {
-    @include transition(all);
+    nav, main {
+      @include transition(all);
+    }
   }
 }
 
@@ -232,4 +239,5 @@ main {
 @import 'search/search.module';
 @import 'search/results/results.component';
 @import 'shared/shared.module';
+@import 'side-nav/side-nav.component';
 @import 'sign-in-page/sign-in-page.component';
