@@ -18,6 +18,7 @@ use diesel::sql_query;
 use diesel::pg::PgConnection;
 
 pub fn shard_setup(conn: &PgConnection, shard_id: u32) -> Result<()> {
+    debug!("Migrating shard_{:?}", shard_id);
     sql_query(format!("CREATE SCHEMA IF NOT EXISTS shard_{}", shard_id))
         .execute(conn)
         .unwrap();
