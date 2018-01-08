@@ -66,10 +66,32 @@ finish_setup() {
     return 0
   fi
 
+  # In the overwhelming majority of instances, you will want to use
+  # stable components in your Studio.
+  #
+  # However, the Habitat team needs to build studios using unstable
+  # components in order to fully test things. This `CI_OVERRIDE_CHANNEL`
+  # is supplied as a back-door to enable that to happen. It should be
+  # set to the name of a channel to preferentially pull packages from.
+  #
+  # If you're not on the Habitat core team, you will likely never need
+  # this, or even have to know it exists.
+  #
+  # (This is also why we're not using HAB_BLDR_CHANNEL for this and
+  # replicating the fallback logic from hab-plan-build; it'd be too
+  # easy to create an unstable studio.)
   for pkg in $pkgs; do
-    _hab install $pkg
+    if [[ -n "${CI_OVERRIDE_CHANNEL:-}" ]]; then
+      info "Override channel set; retrieving ${pkg} from ${CI_OVERRIDE_CHANNEL}"
+      _hab install --channel="${CI_OVERRIDE_CHANNEL}" ${pkg} || {
+        info "Package not found in ${CI_OVERRIDE_CHANNEL}; falling back to stable"
+        _hab install ${pkg}
+      }
+    else
+      _hab install $pkg
+    fi
   done
-
+  
   local bash_path=$(_pkgpath_for core/bash)
   local coreutils_path=$(_pkgpath_for core/coreutils)
 
@@ -203,7 +225,7 @@ PROFILE_ENTER
 
 _hab() {
   # We remove a couple of env vars we do not want for this instance of the studio
-  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= $hab $*
+  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= HAB_BLDR_CHANNEL= $hab $*
 }
 
 _pkgpath_for() {

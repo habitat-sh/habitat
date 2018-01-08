@@ -23,12 +23,12 @@ if [ -n "${IS_RELEASE_BUILD}" ]; then
     # Similarly, we'll promote Habitat packages to a release-specific
     # channel; once we've validated them outside of Travis, we'll
     # promote to stable
-    CHANNEL="rc-${HAB_VERSION}"
+    export CI_OVERRIDE_CHANNEL="rc-${HAB_VERSION}"
 else
     # Not a release build, just a normal build from the master
     # branch. It's all unstable, all the time.
     BINTRAY_REPO=unstable
-    CHANNEL=unstable
+    export CI_OVERRIDE_CHANNEL=unstable
 fi
 
 mkdir -p ${BOOTSTRAP_DIR}
@@ -110,7 +110,7 @@ do
      fi
 
      if [ -n "$HAB_AUTH_TOKEN" ]; then
-         ${TRAVIS_HAB} pkg upload $HART --channel $CHANNEL
+         ${TRAVIS_HAB} pkg upload $HART --channel $CI_OVERRIDE_CHANNEL
      fi
 
      rm $HART
@@ -136,7 +136,7 @@ if [ -n "$BINTRAY_USER" ]; then
   # publish if we do.
   if [ -n "${PUBLISH_HAB_STUDIO}" ]; then
       echo "Publishing hab-studio to Bintray"
-      env HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
+      env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
   fi
 
   # On 'master' branch builds, we might not build a hab artifact to
@@ -144,9 +144,9 @@ if [ -n "$BINTRAY_USER" ]; then
   if [ -n "${HAB_RELEASE_ARTIFACT}" ]; then
       echo "Publishing hab to $BINTRAY_REPO"
       if [ -n "${IS_RELEASE_BUILD}" ]; then
-          env HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -s -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
+          env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -s -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
       else
-          env HAB_BLDR_CHANNEL=$CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
+          env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
       fi
   fi
 fi

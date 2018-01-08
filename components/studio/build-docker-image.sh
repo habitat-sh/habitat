@@ -93,7 +93,7 @@ FROM busybox:latest
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
 WORKDIR /src
-RUN env NO_MOUNT=true HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL hab studio new \
+RUN env NO_MOUNT=true HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL CI_OVERRIDE_CHANNEL="${CI_OVERRIDE_CHANNEL:-}" hab studio new \
   && rm -rf /hab/studios/src/hab/cache/artifacts
 ENTRYPOINT ["/bin/hab", "studio"]
 EOF
