@@ -463,7 +463,12 @@ $$ LANGUAGE SQL STABLE;
 
 ALTER TABLE IF EXISTS origin_integrations DROP CONSTRAINT IF EXISTS origin_integrations_origin_name_key;
 
-ALTER TABLE IF EXISTS origin_integrations ADD CONSTRAINT origin_integrations_origin_integration_name_key UNIQUE(origin, integration, name);
+DO $$
+  BEGIN
+    ALTER TABLE IF EXISTS origin_integrations ADD CONSTRAINT origin_integrations_origin_integration_name_key UNIQUE(origin, integration, name);
+    EXCEPTION WHEN others THEN
+      raise notice 'The constraint already exists';
+END $$;
 
 CREATE SEQUENCE IF NOT EXISTS origin_project_id_seq;
 
@@ -695,6 +700,10 @@ CREATE TABLE IF NOT EXISTS origin_project_integrations (
   UNIQUE (origin, name, integration, integration_name)
 );
 
+DROP FUNCTION IF EXISTS get_origin_project_integrations_v1(text, text, text, text);
+
+DROP FUNCTION IF EXISTS get_origin_project_integrations_for_project_v1(text, text);
+
 CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v1 (
   in_origin text,
   in_name text,
@@ -720,28 +729,6 @@ CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v1 (
       RETURN;
     END
 $$ LANGUAGE plpgsql VOLATILE;
-
-CREATE OR REPLACE FUNCTION get_origin_project_integrations_v1 (
-  in_origin text,
-  in_name text,
-  in_integration text,
-  in_integration_name text
-) RETURNS SETOF origin_project_integrations AS $$
-    SELECT * FROM origin_project_integrations
-    WHERE origin = in_origin AND
-          name = in_name AND
-          integration = in_integration AND
-          in_integration_name = in_integration_name
-$$ LANGUAGE SQL STABLE;
-
-CREATE OR REPLACE FUNCTION get_origin_project_integrations_for_project_v1 (
-  in_origin text,
-  in_name text
-) RETURNS SETOF origin_project_integrations AS $$
-    SELECT * FROM origin_project_integrations
-    WHERE origin = in_origin AND name = in_name
-    ORDER BY integration, integration_name
-$$ LANGUAGE SQL STABLE;
 
 CREATE OR REPLACE FUNCTION get_origin_project_list_v1 (
   in_origin text
