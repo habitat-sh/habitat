@@ -26,6 +26,7 @@ use export_docker::Result;
 
 use topology::Topology;
 use manifestjson::ManifestJson;
+use bind;
 
 #[derive(Debug, Clone)]
 pub struct Manifest {
@@ -37,8 +38,7 @@ pub struct Manifest {
     pub service_group: Option<String>,
     pub config_secret_name: Option<String>,
     pub ring_secret_name: Option<String>,
-    // TODO: Represent binds with a struct
-    pub binds: Vec<String>,
+    pub binds: Vec<bind::Bind>,
 }
 
 impl Manifest {
@@ -82,10 +82,7 @@ impl Manifest {
             None => pkg_ident.origin + "/" + &pkg_ident.name,
         };
 
-        let binds: Vec<String> = match matches.values_of("BIND") {
-            Some(binds) => binds.map(|s| s.to_string()).collect(),
-            None => Vec::new(),
-        };
+        let binds = bind::parse_bind_args(&matches)?;
 
         Ok(Manifest {
             metadata_name: metadata_name,
@@ -101,14 +98,10 @@ impl Manifest {
     }
 
     pub fn generate(&mut self, write: &mut Write) -> Result<()> {
-        let out = self.to_json()?.into_string()?;
+        let out = ManifestJson::new(&self).into_string()?;
 
         write.write(out.as_bytes())?;
 
         Ok(())
-    }
-
-    pub fn to_json(&self) -> Result<ManifestJson> {
-        ManifestJson::new(&self)
     }
 }

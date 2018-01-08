@@ -19,7 +19,6 @@ use serde_json::Value;
 use export_docker::Result;
 
 use manifest::Manifest;
-use error::Error;
 
 // Kubernetes manifest template
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
@@ -31,7 +30,7 @@ pub struct ManifestJson {
 }
 
 impl ManifestJson {
-    pub fn new(manifest: &Manifest) -> Result<Self> {
+    pub fn new(manifest: &Manifest) -> Self {
         let main = json!({
             "metadata_name": manifest.metadata_name,
             "habitat_name": manifest.habitat_name,
@@ -41,29 +40,24 @@ impl ManifestJson {
             "service_group": manifest.service_group,
             "config_secret_name": manifest.config_secret_name,
             "ring_secret_name": manifest.ring_secret_name,
-            "bind": manifest.binds,
+            "bind": !manifest.binds.is_empty()
         });
 
         let mut binds = Vec::new();
         for bind in &manifest.binds {
-            let split: Vec<&str> = bind.split(":").collect();
-            if split.len() < 3 {
-                return Err(Error::InvalidBindSpec(bind.to_string()).into());
-            }
-
             let json = json!({
-                "name": split[0],
-                "service": split[1],
-                "group": split[2],
+                "name": bind.name.clone(),
+                "service": bind.service.clone(),
+                "group": bind.group.clone(),
             });
 
             binds.push(json);
         }
 
-        Ok(ManifestJson {
+        ManifestJson {
             main: main,
             binds: binds,
-        })
+        }
     }
 
     // TODO: Implement TryInto trait instead when it's in stable std crate

@@ -35,11 +35,13 @@ pub mod topology;
 pub mod error;
 pub mod manifest;
 pub mod manifestjson;
+pub mod bind;
 pub mod cli;
 
 use export_docker::Result;
 
 pub use cli::Cli;
+pub use bind::Bind;
 pub use error::Error;
 pub use manifest::Manifest;
 pub use manifestjson::ManifestJson;
