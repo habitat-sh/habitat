@@ -43,6 +43,9 @@ const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
 const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 
+const DEFAULT_HAB_UID: u32 = 84;
+const DEFAULT_HAB_GID: u32 = 84;
+
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
 /// When a `BuildSpec` is created, a `BuildRoot` is returned which can be used to produce exported
@@ -538,13 +541,129 @@ impl BuildRootContext {
             .unwrap_or(Some(String::from("hab")))
             .unwrap();
 
-        if user_name != "root" {
-            users.push(EtcPasswdEntry::new(&user_name, uid, gid));
-            groups.push(EtcGroupEntry::group_with_users(
-                &group_name,
-                gid,
-                vec![&user_name],
-            ));
+        // TODO: In some cases, packages based on core/nginx and
+        // core/httpd (and possibly others) will not work, because
+        // they specify a SVC_USER of `root`, but implicitly rely on a
+        // `hab` user being present for running lower-privileged
+        // worker processes. Habitat currently doesn't have a way to
+        // formally represent this, so until it does, we should make
+        // sure that there is a `hab` user and group present, just in
+        // case.
+        //
+        // With recent changes to the Supervisor, this hab user must
+        // be in the hab group for these packages to function
+        // properly, but only in the case that the `hab` user is
+        // being used in this back-channel kind of way. In general,
+        // there is no requirement that a user be in any specific
+        // group. In particular, there is no requirement that
+        // SVC_GROUP be the primary group of SVC_USER, or that
+        // SVC_USER even need to be in SVC_GROUP at all.
+        //
+        // When we can represent this multi-user situation better, we
+        // should be able to clean up some of this code (because it's
+        // a bit gnarly!) and not have to add an implicit hab user or
+        // group.
+        //
+        // NOTE: If this logic ever needs to get ANY more complex, it'd
+        // probably be better to encapsulate user and group management
+        // behind some "useradd" and "groupadd" facade functions that
+        // manage some internal representation and render the
+        // /etc/passwd and /etc/group files at the end, rather than
+        // trying to directly manage those files' contents.
+
+        // Since we're potentially going to have to create an extra
+        // hab user and/or group, they're going to need
+        // identifiers. If SVC_USER or SVC_GROUP is hab, then we'll
+        // use the IDs given by the user. On the other hand, if we're
+        // adding either one of those on top of SVC_USER/SVC_GROUP,
+        // then we'll use a default, incremented by one on the off
+        // chance that matches what the user specified on the command
+        // line.
+        let hab_uid = if uid == DEFAULT_HAB_UID {
+            DEFAULT_HAB_UID + 1
+        } else {
+            DEFAULT_HAB_UID
+        };
+        let hab_gid = if gid == DEFAULT_HAB_GID {
+            DEFAULT_HAB_GID + 1
+        } else {
+            DEFAULT_HAB_GID
+        };
+
+        match (user_name.as_ref(), group_name.as_ref()) {
+            ("root", "root") => {
+                // SVC_GROUP is SVC_USER's primary group (trivially)
+
+                // Just create a hab user in a hab group for safety
+                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
+            ("root", "hab") => {
+                // SVC_GROUP is NOT SVC_USER's primary group
+
+                // Currently, this is the anticipated case for nginx
+                // and httpd packages... the lower-privileged hab user
+                // needs to be in the hab group for things to work.
+                users.push(EtcPasswdEntry::new("hab", hab_uid, gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", gid, vec!["hab"]));
+            }
+            ("root", _) => {
+                // SVC_GROUP is NOT SVC_USER's primary group
+                // (trivially)
+                //
+                // No user is in SVC_GROUP, actually
+                groups.push(EtcGroupEntry::empty_group(&group_name, gid));
+
+                // Just create a hab user in a hab group for safety
+                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
+            ("hab", "hab") => {
+                // If the user explicitly called for hab/hab, give it
+                // to them.
+                //
+                // Strictly speaking, SVC_USER does not need to be in
+                // SVC_GROUP, but if we're making a user, we need to
+                // put them in *some* group.
+                users.push(EtcPasswdEntry::new("hab", uid, gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", gid, vec!["hab"]));
+            }
+            ("hab", "root") => {
+                // SVC_GROUP is NOT SVC_USER's primary group
+
+                // To prevent having to edit the root group entry,
+                // we'll just add the hab user to the hab group to put
+                // them someplace.
+                users.push(EtcPasswdEntry::new("hab", uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
+            ("hab", _) => {
+                // SVC_GROUP IS SVC_USER's primary group, and there is
+                // NO hab group
+
+                // Again, sticking the hab user into the group because
+                // it needs to go somewhere
+                users.push(EtcPasswdEntry::new("hab", uid, gid));
+                groups.push(EtcGroupEntry::group_with_users(
+                    &group_name,
+                    gid,
+                    vec!["hab"],
+                ));
+            }
+            (_, _) => {
+                // SVC_GROUP IS SVC_USER's primary group, because it
+                // has to go somewhere
+                users.push(EtcPasswdEntry::new(&user_name, uid, gid));
+                groups.push(EtcGroupEntry::group_with_users(
+                    &group_name,
+                    gid,
+                    vec![&user_name],
+                ));
+
+                // Just create a hab user in a hab group for safety
+                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
         }
 
         // TODO fn: add remaining missing users and groups from service packages
@@ -1056,11 +1175,62 @@ mod test {
             );
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
-            assert_eq!(1, users.len());
+            assert_eq!(2, users.len());
             assert_eq!(users[0].name, "my_user");
-            assert_eq!(1, groups.len());
+            assert_eq!(users[1].name, "hab");
+            assert_eq!(2, groups.len());
             assert_eq!(groups[0].name, "my_group");
+            assert_eq!(groups[1].name, "hab");
             // TODO fn: check ctx.svc_exposes()
+        }
+
+        #[test]
+        fn hab_user_and_group_are_created_even_if_not_explicitly_called_for() {
+
+            let rootfs = TempDir::new("rootfs").unwrap();
+
+            let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
+                .set_svc(true)
+                .set_svc_user("root")
+                .set_svc_group("root")
+                .install();
+
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
+
+            let (users, groups) = ctx.svc_users_and_groups().unwrap();
+            assert_eq!(1, users.len());
+            assert_eq!(users[0].name, "hab");
+            assert_eq!(1, groups.len());
+            assert_eq!(groups[0].name, "hab");
+        }
+
+        #[test]
+        fn hab_user_and_group_are_created_along_with_non_root_users() {
+            let rootfs = TempDir::new("rootfs").unwrap();
+
+            let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
+                .set_svc(true)
+                .set_svc_user("somebody_else")
+                .set_svc_group("some_other_group")
+                .install();
+
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
+
+            let (users, groups) = ctx.svc_users_and_groups().unwrap();
+            assert_eq!(2, users.len());
+            assert_eq!(users[0].name, "somebody_else");
+            assert_eq!(users[1].name, "hab");
+            assert_eq!(2, groups.len());
+            assert_eq!(groups[0].name, "some_other_group");
+            assert_eq!(groups[1].name, "hab");
         }
     }
 }
