@@ -689,42 +689,92 @@ mod test {
         }
     }
 
-    fn fake_pkg_install<P: AsRef<Path>>(
-        ident: &str,
-        bins: Option<Vec<&str>>,
+    struct FakePkg {
+        ident: String,
+        bins: Vec<String>,
         is_svc: bool,
-        rootfs: P,
-    ) -> PackageIdent {
-        let mut ident = PackageIdent::from_str(ident).unwrap();
-        if let None = ident.version {
-            ident.version = Some("1.2.3".into());
-        }
-        if let None = ident.release {
-            ident.release = Some("21120102121200".into());
-        }
-        let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
-        util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
-        util::write_file(prefix.join("TARGET"), &PackageTarget::default().to_string()).unwrap();
-
-        util::write_file(prefix.join("SVC_USER"), "my_user").unwrap();
-        util::write_file(prefix.join("SVC_GROUP"), "my_group").unwrap();
-
-        if let Some(bins) = bins {
-            util::write_file(
-                prefix.join("PATH"),
-                hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                    .join("bin")
-                    .to_string_lossy()
-                    .as_ref(),
-            ).unwrap();
-            for bin in bins {
-                util::write_file(prefix.join("bin").join(bin), "").unwrap();
+        rootfs: PathBuf,
+        svc_user: String,
+        svc_group: String,
+    }
+    impl FakePkg {
+        pub fn new<I, P>(ident: I, rootfs: P) -> FakePkg
+        where
+            I: ToString,
+            P: AsRef<Path>,
+        {
+            FakePkg {
+                ident: ident.to_string(),
+                bins: Vec::new(),
+                is_svc: false,
+                rootfs: rootfs.as_ref().to_path_buf(),
+                svc_user: "my_user".to_string(),
+                svc_group: "my_group".to_string(),
             }
         }
-        if is_svc {
-            util::write_file(prefix.join("run"), "").unwrap();
+
+        pub fn add_bin<S>(&mut self, bin: S) -> &mut FakePkg
+        where
+            S: ToString,
+        {
+            self.bins.push(bin.to_string());
+            self
         }
-        ident
+
+        pub fn set_svc(&mut self, is_svc: bool) -> &mut FakePkg {
+            self.is_svc = is_svc;
+            self
+        }
+
+        pub fn set_svc_user<S>(&mut self, svc_user: S) -> &mut FakePkg
+        where
+            S: ToString,
+        {
+            self.svc_user = svc_user.to_string();
+            self
+        }
+
+        pub fn set_svc_group<S>(&mut self, svc_group: S) -> &mut FakePkg
+        where
+            S: ToString,
+        {
+            self.svc_group = svc_group.to_string();
+            self
+        }
+
+
+        pub fn install(&self) -> PackageIdent {
+            let mut ident = PackageIdent::from_str(&self.ident).unwrap();
+            if let None = ident.version {
+                ident.version = Some("1.2.3".into());
+            }
+            if let None = ident.release {
+                ident.release = Some("21120102121200".into());
+            }
+            let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
+            util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
+            util::write_file(prefix.join("TARGET"), &PackageTarget::default().to_string()).unwrap();
+
+            util::write_file(prefix.join("SVC_USER"), &self.svc_user).unwrap();
+            util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();
+
+            if !self.bins.is_empty() {
+                util::write_file(
+                    prefix.join("PATH"),
+                    hcore::fs::pkg_install_path(&ident, None::<&Path>)
+                        .join("bin")
+                        .to_string_lossy()
+                        .as_ref(),
+                ).unwrap();
+                for bin in self.bins.iter() {
+                    util::write_file(prefix.join("bin").join(bin), "").unwrap();
+                }
+            }
+            if self.is_svc {
+                util::write_file(prefix.join("run"), "").unwrap();
+            }
+            ident
+        }
     }
 
     mod build_spec {
@@ -886,28 +936,34 @@ mod test {
         }
 
         fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install("acme/hab", Some(vec!["hab"]), false, &rootfs)
+            FakePkg::new("acme/hab", rootfs.as_ref())
+                .add_bin("hab")
+                .install()
         }
 
         fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install("acme/hab-sup", Some(vec!["hab-sup"]), false, &rootfs)
+            FakePkg::new("acme/hab-sup", rootfs.as_ref())
+                .add_bin("hab-sup")
+                .install()
         }
 
         fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install(
-                "acme/hab-launcher",
-                Some(vec!["hab-launch"]),
-                false,
-                &rootfs,
-            )
+            FakePkg::new("acme/hab-launcher", rootfs.as_ref())
+                .add_bin("hab-launch")
+                .install()
+
         }
 
         fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install("acme/busybox", Some(vec!["busybox", "sh"]), false, &rootfs)
+            FakePkg::new("acme/busybox", rootfs.as_ref())
+                .add_bin("busybox")
+                .add_bin("sh")
+                .install()
         }
 
         fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            let ident = fake_pkg_install("acme/cacerts", None, false, &rootfs);
+            let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
+
             let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
             util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
             ident
@@ -955,11 +1011,16 @@ mod test {
         #[test]
         fn build_context_from_a_spec() {
             let rootfs = TempDir::new("rootfs").unwrap();
-            // A library-only package
-            let _ = fake_pkg_install("acme/libby", None, false, rootfs.path());
+            let _ = FakePkg::new("acme/libby", rootfs.path()).install();
+
             // A couple service packages
-            let runna_install_ident = fake_pkg_install("acme/runna", None, true, rootfs.path());
-            let _ = fake_pkg_install("acme/jogga", None, true, rootfs.path());
+            let runna_install_ident = FakePkg::new("acme/runna", rootfs.path())
+                .set_svc(true)
+                .install();
+            let _ = FakePkg::new("acme/jogga", rootfs.path())
+                .set_svc(true)
+                .install();
+
             let mut spec = build_spec();
             spec.idents_or_archives = vec!["acme/libby", "acme/runna", "acme/jogga"];
             let ctx = BuildRootContext::from_spec(&spec, rootfs.path()).unwrap();
