@@ -25,11 +25,9 @@ extern crate chrono;
 #[macro_use]
 extern crate log;
 
-use clap::App;
 use common::ui::UI;
-use hcore::PROGRAM_NAME;
 
-use export_docker::{Cli, PkgIdentArgOptions, Result};
+use export_docker::Result;
 
 fn main() {
     env_logger::init().unwrap();
@@ -41,23 +39,9 @@ fn main() {
 }
 
 fn start(ui: &mut UI) -> Result<()> {
-    let cli = cli();
+    let cli = export_docker::cli();
     let m = cli.get_matches();
     debug!("clap cli args: {:?}", m);
 
     export_docker::export_for_cli_matches(ui, &m)
-}
-
-fn cli<'a, 'b>() -> App<'a, 'b> {
-    let name: &str = &*PROGRAM_NAME;
-    let about = "Creates (an optionally pushes) a Docker image from a set of Habitat packages";
-
-    Cli::new(name, about)
-        .add_base_packages_args()
-        .add_builder_args()
-        .add_image_customization_args()
-        .add_tagging_args()
-        .add_publishing_args()
-        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
-        .app
 }
