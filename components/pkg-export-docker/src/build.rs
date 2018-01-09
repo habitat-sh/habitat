@@ -662,7 +662,16 @@ mod test {
     use hcore;
     use hcore::package::PackageTarget;
 
+    use clap::ArgMatches;
+
     use super::*;
+
+    /// Generate Clap ArgMatches for the exporter from a vector of arguments.
+    fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
+        let app = ::cli();
+        let matches = app.get_matches_from(&args);
+        matches
+    }
 
     fn build_spec<'a>() -> BuildSpec<'a> {
         BuildSpec {
@@ -725,18 +734,10 @@ mod test {
         use common::ui::{Coloring, UI};
         use hcore;
 
-        use clap::ArgMatches;
         use tempdir::TempDir;
 
         use super::super::*;
         use super::*;
-
-        /// Generate Clap ArgMatches for the exporter from a vector of arguments.
-        fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
-            let app = ::cli();
-            let matches = app.get_matches_from(&args);
-            matches
-        }
 
         #[test]
         fn without_arg_user_and_group_ids_are_the_default_and_identical() {
