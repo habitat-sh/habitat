@@ -38,6 +38,7 @@ extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 
+mod accounts;
 mod build;
 pub mod cli;
 mod docker;
