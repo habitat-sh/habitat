@@ -32,6 +32,7 @@ use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use tempdir::TempDir;
 
 use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
+use accounts::{EtcPasswdEntry, EtcGroupEntry};
 use error::{Error, Result};
 use fs;
 use rootfs;
@@ -525,7 +526,7 @@ impl BuildRootContext {
 
     /// Returns a tuple of users to be added to the image's passwd database and groups to be added
     /// to the image's group database.
-    pub fn svc_users_and_groups(&self) -> Result<(Vec<String>, Vec<String>)> {
+    pub fn svc_users_and_groups(&self) -> Result<(Vec<EtcPasswdEntry>, Vec<EtcGroupEntry>)> {
         let mut users = Vec::new();
         let mut groups = Vec::new();
         let uid = self.user_id;
@@ -538,8 +539,12 @@ impl BuildRootContext {
             .unwrap();
 
         if user_name != "root" {
-            users.push(etc_passwd_entry(&user_name, uid, gid));
-            groups.push(etc_group_entry(&group_name, gid, &user_name));
+            users.push(EtcPasswdEntry::new(&user_name, uid, gid));
+            groups.push(EtcGroupEntry::group_with_users(
+                &group_name,
+                gid,
+                vec![&user_name],
+            ));
         }
 
         // TODO fn: add remaining missing users and groups from service packages
@@ -586,26 +591,6 @@ impl BuildRootContext {
 
         Ok(())
     }
-}
-
-/// Generate a line to insert into /etc/passwd, representing a user
-fn etc_passwd_entry(user_name: &str, uid: u32, gid: u32) -> String {
-    format!(
-        "{name}:x:{uid}:{gid}:{name} User:/:/bin/false\n",
-        name = user_name,
-        uid = uid,
-        gid = gid
-    )
-}
-
-/// Generate a line to insert into /etc/group
-fn etc_group_entry(group_name: &str, gid: u32, user_name: &str) -> String {
-    format!(
-        "{name}:x:{gid}:{user_name}\n",
-        name = group_name,
-        gid = gid,
-        user_name = user_name
-    )
 }
 
 /// The package identifiers for installed base packages.
@@ -1072,9 +1057,9 @@ mod test {
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
             assert_eq!(1, users.len());
-            assert!(users[0].starts_with("my_user:"));
+            assert_eq!(users[0].name, "my_user");
             assert_eq!(1, groups.len());
-            assert!(groups[0].starts_with("my_group:"));
+            assert_eq!(groups[0].name, "my_group");
             // TODO fn: check ctx.svc_exposes()
         }
     }
