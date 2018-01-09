@@ -44,8 +44,7 @@ impl fmt::Display for EtcPasswdEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            // TODO (CM): need the newline?
-            "{name}:x:{uid}:{gid}:{name} User:/:/bin/false\n",
+            "{name}:x:{uid}:{gid}:{name} User:/:/bin/false",
             name = self.name,
             uid = self.uid,
             gid = self.gid
@@ -71,7 +70,6 @@ impl EtcGroupEntry {
             gid: gid,
             users: vec![],
         }
-
         //        Self::group_with_users(name, gid, Vec::new())
     }
     pub fn group_with_users<S, U>(name: S, gid: u32, users: Vec<U>) -> Self
@@ -84,7 +82,6 @@ impl EtcGroupEntry {
             gid: gid,
             users: users.iter().map(|u| u.to_string()).collect(),
         }
-
     }
 }
 
@@ -92,8 +89,7 @@ impl fmt::Display for EtcGroupEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            // TODO (CM): need the newline?
-            "{name}:x:{gid}:{users}\n",
+            "{name}:x:{gid}:{users}",
             name = self.name,
             gid = self.gid,
             users = self.users.join(",")
@@ -110,7 +106,7 @@ mod test {
         let entry = EtcPasswdEntry::new("my_user", 123, 456);
         let rendered = format!("{}", entry);
 
-        assert_eq!(rendered, "my_user:x:123:456:my_user User:/:/bin/false\n");
+        assert_eq!(rendered, "my_user:x:123:456:my_user User:/:/bin/false");
     }
 
     #[test]
@@ -118,7 +114,7 @@ mod test {
         let entry = EtcGroupEntry::group_with_users("my_group", 456, vec!["larry", "moe", "curly"]);
         let rendered = format!("{}", entry);
 
-        assert_eq!(rendered, "my_group:x:456:larry,moe,curly\n");
+        assert_eq!(rendered, "my_group:x:456:larry,moe,curly");
     }
 
     #[test]
@@ -126,6 +122,6 @@ mod test {
         let entry = EtcGroupEntry::empty_group("my_group", 567);
         let rendered = format!("{}", entry);
 
-        assert_eq!(rendered, "my_group:x:567:\n");
+        assert_eq!(rendered, "my_group:x:567:");
     }
 }

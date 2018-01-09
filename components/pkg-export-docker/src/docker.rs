@@ -404,7 +404,7 @@ impl DockerBuildRoot {
                     Status::Creating,
                     format!("user '{}' in /{}", user.name, &file),
                 )?;
-                f.write_all(format!("{}", user).as_bytes())?;
+                write!(f, "{}\n", user)?;
             }
         }
         {
@@ -417,7 +417,7 @@ impl DockerBuildRoot {
                     Status::Creating,
                     format!("group '{}' in /{}", group.name, &file),
                 )?;
-                f.write_all(format!("{}", group).as_bytes())?;
+                write!(f, "{}\n", group)?;
             }
         }
         Ok(())
