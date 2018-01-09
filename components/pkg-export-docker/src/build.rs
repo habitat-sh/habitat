@@ -40,8 +40,7 @@ use util;
 const DEFAULT_HAB_IDENT: &'static str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
-const DEFAULT_USER_ID: u32 = 42;
-const DEFAULT_GROUP_ID: u32 = DEFAULT_USER_ID;
+const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
@@ -82,6 +81,22 @@ impl<'a> BuildSpec<'a> {
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {
+
+        let user_id = match m.value_of("USER_ID") {
+            Some(i) => {
+                // unwrap OK because validation function ensures it
+                i.parse::<u32>().unwrap()
+            }
+            None => DEFAULT_USER_AND_GROUP_ID,
+        };
+        let group_id = match m.value_of("GROUP_ID") {
+            Some(i) => {
+                // unwrap OK because validation function ensures it
+                i.parse::<u32>().unwrap()
+            }
+            None => user_id,
+        };
+
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
             hab_launcher: m.value_of("HAB_LAUNCHER_PKG").unwrap_or(
@@ -95,20 +110,8 @@ impl<'a> BuildSpec<'a> {
             idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
                 .expect("No package specified")
                 .collect(),
-            user_id: match m.value_of("USER_ID") {
-                Some(i) => {
-                    // unwrap OK because validation function ensures it
-                    i.parse::<u32>().unwrap()
-                }
-                None => DEFAULT_USER_ID,
-            },
-            group_id: match m.value_of("GROUP_ID") {
-                Some(i) => {
-                    // unwrap OK because validation function ensures it
-                    i.parse::<u32>().unwrap()
-                }
-                None => DEFAULT_GROUP_ID,
-            },
+            user_id: user_id,
+            group_id: group_id,
             non_root: m.is_present("NON_ROOT"),
         }
     }
@@ -709,10 +712,68 @@ mod test {
 
         use common::ui::{Coloring, UI};
         use hcore;
+
+        use clap::ArgMatches;
         use tempdir::TempDir;
 
         use super::super::*;
         use super::*;
+
+        /// Generate Clap ArgMatches for the exporter from a vector of arguments.
+        fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
+            let app = ::cli();
+            let matches = app.get_matches_from(&args);
+            matches
+        }
+
+        #[test]
+        fn without_arg_user_and_group_ids_are_the_default_and_identical() {
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "testing/foo"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, DEFAULT_USER_AND_GROUP_ID);
+            assert_eq!(build_spec.group_id, DEFAULT_USER_AND_GROUP_ID);
+        }
+
+        #[test]
+        fn user_id_option_sets_user_and_group_ids_to_the_same_value() {
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "testing/foo", "--user-id=2112"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, 2112);
+            assert_eq!(build_spec.group_id, 2112);
+        }
+
+        #[test]
+        fn setting_only_group_id_leaves_user_id_as_default() {
+            let matches = arg_matches(vec![
+                &*hcore::PROGRAM_NAME,
+                "testing/foo",
+                "--group-id=9999",
+            ]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, DEFAULT_USER_AND_GROUP_ID);
+            assert_eq!(build_spec.group_id, 9999);
+        }
+
+        #[test]
+        fn user_and_group_id_can_be_set_independently() {
+            let matches = arg_matches(vec![
+                &*hcore::PROGRAM_NAME,
+                "testing/foo",
+                "--user-id=5000",
+                "--group-id=9000",
+            ]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, 5000);
+            assert_eq!(build_spec.group_id, 9000);
+        }
 
         #[test]
         fn artifact_cache_symlink() {
