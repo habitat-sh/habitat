@@ -65,12 +65,8 @@ impl EtcGroupEntry {
     where
         S: ToString,
     {
-        Self {
-            name: name.to_string(),
-            gid: gid,
-            users: vec![],
-        }
-        //        Self::group_with_users(name, gid, Vec::new())
+        let users: Vec<String> = vec![];
+        Self::group_with_users(name, gid, users)
     }
     pub fn group_with_users<S, U>(name: S, gid: u32, users: Vec<U>) -> Self
     where
