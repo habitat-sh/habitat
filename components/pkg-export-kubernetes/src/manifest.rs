@@ -30,20 +30,38 @@ use habitat_sup::manager::service::Topology;
 use manifestjson::ManifestJson;
 use bind;
 
+/// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]
 pub struct Manifest {
+    /// The service name in the Kubernetes cluster.
     pub metadata_name: String,
+    /// The Habitat service name.
     pub habitat_name: String,
+    /// The docker image.
     pub image: String,
+    /// The number of desired instances in the service group.
     pub count: u64,
+    /// The relationship of a service with peers in the same service group.
     pub service_topology: Topology,
+    /// The logical group of services in the service group.
     pub service_group: Option<String>,
+    /// The config file content (in base64 encoded format).
     pub config: Option<String>,
+    /// The name of the Kubernetes secret that contains the ring key, which encrypts the
+    /// communication between Habitat supervisors.
     pub ring_secret_name: Option<String>,
+
+    /// Any binds, as [`Bind`] instances.
+    ///
+    /// [`Bind`]: ../bind/struct.Bind.html
     pub binds: Vec<bind::Bind>,
 }
 
 impl Manifest {
+    ///
+    /// Create a Manifest instance from command-line arguments passed as [`clap::ArgMatches`].
+    ///
+    /// [`clap::ArgMatches`]: https://kbknapp.github.io/clap-rs/clap/struct.ArgMatches.html
     pub fn new_from_cli_matches(_ui: &mut UI, matches: &ArgMatches) -> Result<Self> {
         let count = matches.value_of("COUNT").unwrap_or("1").parse()?;
         let topology: Topology = matches
@@ -109,6 +127,7 @@ impl Manifest {
         })
     }
 
+    /// Generates the manifest as a string and writes it to `write`.
     pub fn generate(&mut self, write: &mut Write) -> Result<()> {
         let out = ManifestJson::new(&self).into_string()?;
 
@@ -127,7 +146,7 @@ mod tests {
         let mut m = Manifest {
             metadata_name: "nginx-f84iq".to_owned(),
             habitat_name: "nginx".to_owned(),
-            image: "core/nginx".to_owned(),
+            image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),
             service_group: Some("group1".to_owned()),
@@ -151,7 +170,7 @@ mod tests {
         let mut m = Manifest {
             metadata_name: "nginx-f84iq".to_owned(),
             habitat_name: "nginx".to_owned(),
-            image: "core/nginx".to_owned(),
+            image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),
             service_group: Some("group1".to_owned()),
