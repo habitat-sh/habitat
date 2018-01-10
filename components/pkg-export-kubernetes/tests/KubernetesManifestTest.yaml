@@ -1,0 +1,36 @@
+---
+## Secret for initial configuration.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: user-toml-secret
+type: Opaque
+data:
+  ## Each configuration item needs to be encoded in base64.
+  user.toml: cG9ydCA9IDQ0NDQ=
+---
+apiVersion: habitat.sh/v1
+kind: Habitat
+metadata:
+  ## Name of the Habitat service.
+  name: nginx-f84iq
+  labels:
+    habitat-name: nginx
+spec:
+  ## Name of the Habitat service package exported as a Docker image.
+  image: core/nginx:latest
+  ## Number of desired instances.
+  count: 3
+  ## An object containing parameters that affects how the Habitat service
+  ## is executed.
+  service:
+    ## Habitat topology of the service.
+    topology: standalone
+    ## Habitat service group name, a logical grouping of services
+    ## with the same package.
+    group: group1
+    ## Name of the configuration secret.
+    configSecretName: user-toml-secret
+    ## The name of the Kubernetes Secret that contains the ring key, which
+    ## encrypts the communication between Habitat supervisors.
+    ringSecretName: deltaechofoxtrot

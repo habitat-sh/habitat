@@ -117,3 +117,62 @@ impl Manifest {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_manifest_generation() {
+        let mut m = Manifest {
+            metadata_name: "nginx-f84iq".to_owned(),
+            habitat_name: "nginx".to_owned(),
+            image: "core/nginx".to_owned(),
+            count: 3,
+            service_topology: Default::default(),
+            service_group: Some("group1".to_owned()),
+            config: Some(base64::encode(&format!("{}", "port = 4444"))),
+            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
+            binds: vec![],
+        };
+
+        let expected = include_str!("../tests/KubernetesManifestTest.yaml");
+
+        let mut o = vec![];
+        m.generate(&mut o).unwrap();
+
+        let out = String::from_utf8(o).unwrap();
+
+        assert_eq!(out, expected);
+    }
+
+    #[test]
+    fn test_manifest_generation_binds() {
+        let mut m = Manifest {
+            metadata_name: "nginx-f84iq".to_owned(),
+            habitat_name: "nginx".to_owned(),
+            image: "core/nginx".to_owned(),
+            count: 3,
+            service_topology: Default::default(),
+            service_group: Some("group1".to_owned()),
+            config: None,
+            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
+            binds: vec![
+                bind::Bind {
+                    name: "name1".to_owned(),
+                    service: "service1".to_owned(),
+                    group: "group1".to_owned(),
+                },
+            ],
+        };
+
+        let expected = include_str!("../tests/KubernetesManifestTestBinds.yaml");
+
+        let mut o = vec![];
+        m.generate(&mut o).unwrap();
+
+        let out = String::from_utf8(o).unwrap();
+
+        assert_eq!(out, expected);
+    }
+}
