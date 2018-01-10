@@ -17,6 +17,7 @@ use std::str::FromStr;
 
 use error::Error;
 
+/// A Habitat service bind inside a Kubernetes cluster.
 #[derive(Debug, Clone)]
 pub struct Bind {
     pub name: String,
@@ -27,6 +28,32 @@ pub struct Bind {
 impl FromStr for Bind {
     type Err = Error;
 
+    /// Create a `Bind` from a string.
+    ///
+    /// # Errors
+    ///
+    /// * `bind_spec` is not in the form `"name:service:group"`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use habitat_pkg_export_kubernetes::{Bind, Error};
+    ///
+    /// let b = "n:s:g".parse::<Bind>().unwrap();
+    ///
+    /// assert_eq!(b.name, "n");
+    /// assert_eq!(b.service, "s");
+    /// assert_eq!(b.group, "g");
+    ///
+    /// for s in ["ns:g", "nsg", ":nsg:"].iter() {
+    ///     if let Err(e) = s.parse::<Bind>() {
+    ///         match e {
+    ///             Error::InvalidBindSpec(_) => (),
+    ///             _ => panic!("Unexpected error type"),
+    ///        }
+    ///     }
+    /// }
+    /// ```
     fn from_str(bind_spec: &str) -> Result<Self, Error> {
         let split: Vec<&str> = bind_spec.split(":").collect();
         if split.len() != 3 || split[0] == "" || split[1] == "" || split[2] == "" {
@@ -41,6 +68,9 @@ impl FromStr for Bind {
     }
 }
 
+/// Helper function to parse CLI arguments into [`Bind`] instances.
+///
+/// [`Bind`]: ../bind/struct.Bind.html
 pub fn parse_bind_args(matches: &ArgMatches) -> Result<Vec<Bind>, Error> {
     let mut binds = Vec::new();
 
