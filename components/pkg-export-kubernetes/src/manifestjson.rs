@@ -24,12 +24,24 @@ use manifest::Manifest;
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
 const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
 
+/// Represents the [`Manifest`] in JSON format. This is an intermediate type that can be converted
+/// to the final manifest YAML file content, ready for consumption by a Kubernetes cluster.
+///
+/// The reason for the existence of this intermediate type is to allow users of this crate to be
+/// able to modify the JSON before converting it to the final manifest string.
+///
+/// [`Manifest`]: ../manifest/struct.Manifest.html
 pub struct ManifestJson {
+    /// JSON object, holding values for the main body of the YAML content.
     pub main: Value,
+    /// JSON representations of [`Bind`] instances.
+    ///
+    /// [`Bind`]: ../bind/struct.Bind.html
     pub binds: Vec<Value>,
 }
 
 impl ManifestJson {
+    /// Create a `ManifestJson` from `manifest`.
     pub fn new(manifest: &Manifest) -> Self {
         let main = json!({
             "metadata_name": manifest.metadata_name,
@@ -60,6 +72,14 @@ impl ManifestJson {
         }
     }
 
+    /// Convert into a string. The returned string is the final manifest YAML file content, ready
+    /// for consumption by a Kubernetes cluster.
+    ///
+    /// # Errors
+    ///
+    /// * Rendering from the template fails. This can only happen if the template has a syntax
+    /// error or the command-line arguments are incorrectly formatted. In both cases, it's a
+    /// most likely a programmer error if it happens.
     // TODO: Implement TryInto trait instead when it's in stable std crate
     pub fn into_string(&self) -> Result<String> {
         let r = Handlebars::new()
