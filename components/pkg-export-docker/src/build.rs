@@ -34,7 +34,6 @@ use tempdir::TempDir;
 use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
 use accounts::{EtcPasswdEntry, EtcGroupEntry};
 use error::{Error, Result};
-use fs;
 use rootfs;
 use util;
 
@@ -507,22 +506,6 @@ impl BuildRootContext {
             exposes.extend_from_slice(&pkg_exposes_vec);
         }
         exposes
-    }
-
-    /// Returns the list of package volume mount paths over all service packages.
-    pub fn svc_volumes(&self) -> Vec<String> {
-        let mut vols = Vec::new();
-        for svc in self.svc_idents() {
-            vols.push(fs::svc_data_path(&svc.name).to_string_lossy().replace(
-                "\\",
-                "/",
-            ));
-            vols.push(fs::svc_config_path(&svc.name).to_string_lossy().replace(
-                "\\",
-                "/",
-            ));
-        }
-        vols
     }
 
     /// Returns a tuple of users to be added to the image's passwd database and groups to be added
@@ -1096,12 +1079,9 @@ mod test {
     }
 
     mod build_root_context {
-        use std::collections::HashSet;
-        use std::iter::FromIterator;
         use std::str::FromStr;
 
         use hcore::package::PackageIdent;
-        use hcore::fs::FS_ROOT_PATH;
 
         use super::super::*;
         use super::*;
@@ -1142,31 +1122,6 @@ mod test {
             assert_eq!("/bin", ctx.env_path());
             assert_eq!(spec.channel, ctx.channel());
             assert_eq!(rootfs.path(), ctx.rootfs());
-
-            // Order of paths should not matter, this is why we set-compare
-            let vol_paths = vec![
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/jogga/config")
-                    .to_string_lossy()
-                    .to_string(),
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/jogga/data")
-                    .to_string_lossy()
-                    .to_string(),
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/runna/config")
-                    .to_string_lossy()
-                    .to_string(),
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/runna/data")
-                    .to_string_lossy()
-                    .to_string(),
-            ];
-            let vol_paths: HashSet<String> = HashSet::from_iter(vol_paths.iter().cloned());
-            assert_eq!(
-                vol_paths,
-                HashSet::from_iter(ctx.svc_volumes().iter().cloned())
-            );
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
             assert_eq!(2, users.len());

@@ -23,10 +23,6 @@ ENV HAB_NON_ROOT=1
 
 USER {{primary_user_id}}:{{primary_group_id}}
 
-{{#each volumes}}
-RUN mkdir -p {{this}}
-VOLUME {{this}}
-{{/each}}
 EXPOSE 9631 {{exposes}}
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "{{primary_svc_ident}}"]

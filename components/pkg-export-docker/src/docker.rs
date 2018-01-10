@@ -450,7 +450,6 @@ impl DockerBuildRoot {
                 ctx.rootfs())?.join("bin/hab")
                 .to_string_lossy()
                 .replace("\\", "/"),
-            "volumes": ctx.svc_volumes(),
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
             "primary_user_id": ctx.primary_user_id(),

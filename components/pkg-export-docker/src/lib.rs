@@ -43,7 +43,6 @@ mod build;
 pub mod cli;
 mod docker;
 mod error;
-mod fs;
 pub mod rootfs;
 mod util;
 
