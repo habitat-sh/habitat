@@ -207,6 +207,7 @@ bundle: image
 
 changelog: image
 	@$(run) sh -c 'hab pkg install core/github_changelog_generator && \
+		hab pkg binlink core/git git --force && \
 		hab pkg binlink core/github_changelog_generator github_changelog_generator --force && \
 		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN)' --max-issues=1000
 
