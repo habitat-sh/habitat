@@ -53,6 +53,7 @@ export {
 
 export {
   acceptOriginInvitation,
+  CLEAR_INTEGRATION,
   CLEAR_INTEGRATIONS,
   CLEAR_MY_ORIGIN_INVITATIONS,
   CLEAR_MY_ORIGINS,
@@ -61,6 +62,7 @@ export {
   deleteIntegration,
   deleteOriginInvitation,
   deleteOriginMember,
+  fetchIntegration,
   fetchIntegrations,
   fetchMyOriginInvitations,
   fetchMyOrigins,
@@ -73,6 +75,7 @@ export {
   inviteUserToOrigin,
   POPULATE_MY_ORIGIN_INVITATIONS,
   POPULATE_MY_ORIGINS,
+  POPULATE_ORIGIN_INTEGRATION,
   POPULATE_ORIGIN_INTEGRATIONS,
   POPULATE_ORIGIN_INVITATIONS,
   POPULATE_ORIGIN_MEMBERS,

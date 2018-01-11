@@ -488,6 +488,10 @@ message OriginIntegrationDelete {
   optional OriginIntegration integration = 1;
 }
 
+message OriginIntegrationGet {
+  optional OriginIntegration integration = 1;
+}
+
 message OriginIntegrationGetNames {
   optional string origin = 1;
   optional string integration = 2;

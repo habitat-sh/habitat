@@ -2228,6 +2228,9 @@ where
         origin_integration_delete: delete "/origins/:origin/integrations/:integration/:name" => {
             XHandler::new(handlers::integrations::delete_origin_integration).before(basic.clone())
         },
+        origin_integration_get: get "/origins/:origin/integrations/:integration/:name" => {
+            XHandler::new(handlers::integrations::get_origin_integration).before(basic.clone())
+        },
         origin_integrations: get "/origins/:origin/integrations" => {
             XHandler::new(
                 handlers::integrations::fetch_origin_integrations).before(basic.clone()

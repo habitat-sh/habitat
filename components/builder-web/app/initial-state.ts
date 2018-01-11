@@ -72,6 +72,7 @@ export default Record({
     mine: List(),
     myInvitations: List(),
     currentIntegrations: Record({
+      selected: undefined,
       integrations: undefined,
       ui: Record({
         creds: Record({

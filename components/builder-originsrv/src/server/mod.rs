@@ -37,6 +37,8 @@ lazy_static! {
             handlers::origin_integration_create);
         map.register(OriginIntegrationDelete::descriptor_static(None),
             handlers::origin_integration_delete);
+            map.register(OriginIntegrationGet::descriptor_static(None),
+            handlers::origin_integration_get);
         map.register(OriginIntegrationRequest::descriptor_static(None),
             handlers::origin_integration_request);
         map.register(OriginInvitationAcceptRequest::descriptor_static(None),

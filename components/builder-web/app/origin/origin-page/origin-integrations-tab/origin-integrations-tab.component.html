@@ -37,13 +37,14 @@
           </span>
         </li>
         <ng-container *ngFor="let type of integrations | habKeysPipe">
-          <li class="item" *ngFor="let integration of integrations[type]">
+          <li class="item" *ngFor="let name of integrations[type]">
             <span class="column name">
               <hab-icon [symbol]="type"></hab-icon>
-              <span>{{ decode(integration) }}</span>
+              <span>{{ decode(name) }}</span>
             </span>
             <span class="column actions">
-              <hab-icon symbol="cancel" title="Delete this integration" (click)="deleteIntegration(integration, type)"></hab-icon>
+              <hab-icon symbol="settings" title="Edit this integration" (click)="editIntegration(type, name)"></hab-icon>
+              <hab-icon symbol="cancel" title="Delete this integration" (click)="deleteIntegration(type, name)"></hab-icon>
             </span>
           </li>
         </ng-container>

@@ -509,6 +509,23 @@ export class BuilderApiClient {
     });
   }
 
+  public getIntegration(origin: string, type: string, name: string) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/depot/origins/${origin}/integrations/${type}/${name}`, {
+        headers: this.headers
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve(response.json());
+          } else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
   public getIntegrations(originName: string) {
     return new Promise((resolve, reject) => {
       fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations`, {

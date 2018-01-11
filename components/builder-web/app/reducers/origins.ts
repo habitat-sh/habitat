@@ -28,8 +28,12 @@ export default function origins(state = initialState['origins'], action) {
     case actionTypes.CLEAR_MY_ORIGIN_INVITATIONS:
       return state.setIn(['myInvitations'], List());
 
+    case actionTypes.CLEAR_INTEGRATION:
+      return state.setIn(['currentIntegrations', 'selected'], undefined);
+
     case actionTypes.CLEAR_INTEGRATIONS:
-      return state.setIn(['currentIntegrations', 'integrations'], {});
+      return state.setIn(['currentIntegrations', 'selected'], undefined).
+        setIn(['currentIntegrations', 'integrations'], {});
 
     case actionTypes.POPULATE_MY_ORIGINS:
       if (action.error) {
@@ -66,6 +70,13 @@ export default function origins(state = initialState['origins'], action) {
     case actionTypes.POPULATE_ORIGIN_MEMBERS:
       return state.setIn(['currentMembers'],
         List(action.payload));
+
+    case actionTypes.POPULATE_ORIGIN_INTEGRATION:
+      if (action.payload) {
+        return state.setIn(['currentIntegrations', 'selected'], action.payload);
+      } else {
+        return state.setIn(['currentIntegrations', 'selected'], undefined);
+      }
 
     case actionTypes.POPULATE_ORIGIN_INTEGRATIONS:
       if (action.payload) {

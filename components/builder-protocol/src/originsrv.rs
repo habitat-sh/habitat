@@ -332,7 +332,23 @@ impl Routable for OriginIntegrationDelete {
     }
 }
 
+impl Routable for OriginIntegrationGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_integration().get_origin().to_string())
+    }
+}
+
 impl Routable for OriginIntegrationRequest {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
+impl Routable for OriginIntegration {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
@@ -347,6 +363,20 @@ impl Serialize for OriginIntegrationNames {
     {
         let mut strukt = serializer.serialize_struct("origin_integration_names", 1)?;
         strukt.serialize_field("names", &self.get_names())?;
+        strukt.end()
+    }
+}
+
+impl Serialize for OriginIntegration {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("origin_integration", 4)?;
+        strukt.serialize_field("origin", self.get_origin())?;
+        strukt.serialize_field("integration", self.get_integration())?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field("body", self.get_body())?;
         strukt.end()
     }
 }
