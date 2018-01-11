@@ -177,6 +177,16 @@ paths = [
   "components/pkg-export-docker/*"
 ]
 
+[hab-pkg-export-helm]
+plan_path = "components/pkg-export-helm"
+paths = [
+  "components/core/*",
+  "components/common/*",
+  "components/hab/*",
+  "components/pkg-export-docker/*"
+  "components/pkg-export-kubernetes/*"
+]
+
 # NOTE: cfize has a dependency on hab-pkg-dockerize, but we are
 # *explicitly not building* `hab-pkg-dockerize` any more. Read more at
 # components/pkg-dockerize/README.md
