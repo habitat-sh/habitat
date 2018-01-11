@@ -44,9 +44,11 @@ pub struct Manifest {
 impl Manifest {
     pub fn new_from_cli_matches(_ui: &mut UI, matches: &ArgMatches) -> Result<Self> {
         let count = matches.value_of("COUNT").unwrap_or("1").parse()?;
-        let topology: Topology = FromStr::from_str(
-            matches.value_of("TOPOLOGY").unwrap_or("standalone"),
-        ).unwrap_or(Topology::Standalone);
+        let topology: Topology = matches
+            .value_of("TOPOLOGY")
+            .unwrap_or("standalone")
+            .parse()
+            .unwrap_or(Default::default());
         let group = matches.value_of("GROUP").map(|s| s.to_string());
         let config_secret_name = matches.value_of("CONFIG_SECRET_NAME").map(
             |s| s.to_string(),
