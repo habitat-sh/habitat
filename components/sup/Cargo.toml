@@ -51,6 +51,9 @@ time = "*"
 toml = { version = "*", default-features = false }
 url = "*"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+caps = "*"
+
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 crypt32-sys = "*"
