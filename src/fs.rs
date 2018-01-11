@@ -56,7 +56,7 @@ lazy_static! {
     static ref EUID: u32 = users::get_effective_uid();
 
     static ref MY_CACHE_ANALYTICS_PATH: PathBuf = {
-        if *EUID == 0u32 {
+        if am_i_root() {
             PathBuf::from(CACHE_ANALYTICS_PATH)
         } else {
             match env::home_dir() {
@@ -67,7 +67,7 @@ lazy_static! {
     };
 
     static ref MY_CACHE_ARTIFACT_PATH: PathBuf = {
-        if *EUID == 0u32 {
+        if am_i_root() {
             PathBuf::from(CACHE_ARTIFACT_PATH)
         } else {
             match env::home_dir() {
@@ -78,7 +78,7 @@ lazy_static! {
     };
 
     static ref MY_CACHE_KEY_PATH: PathBuf = {
-        if *EUID == 0u32 {
+        if am_i_root() {
             PathBuf::from(CACHE_KEY_PATH)
         } else {
             match env::home_dir() {
@@ -89,7 +89,7 @@ lazy_static! {
     };
 
     static ref MY_CACHE_SRC_PATH: PathBuf = {
-        if *EUID == 0u32 {
+        if am_i_root() {
             PathBuf::from(CACHE_SRC_PATH)
         } else {
             match env::home_dir() {
@@ -100,7 +100,7 @@ lazy_static! {
     };
 
     static ref MY_CACHE_SSL_PATH: PathBuf = {
-        if *EUID == 0u32 {
+        if am_i_root() {
             PathBuf::from(CACHE_SSL_PATH)
         } else {
             match env::home_dir() {
@@ -377,7 +377,16 @@ fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
     None
 }
 
-/// Returns whether or not the current process is running with a root effective user id or not.
+/// Returns whether or not the current process is running with a root
+/// effective user id or not.
+///
+/// NOTE: This should only be used if *identity* as the root user is
+/// important. If you are instead using "root" as a proxy for "has the
+/// ability to do X", then test for that specific ability
+/// instead. Containerized workflows may require running as a non-root
+/// user, while still granting specific abilities.
+///
+/// See, for example, Linux capabilities.
 pub fn am_i_root() -> bool {
     *EUID == 0u32
 }
