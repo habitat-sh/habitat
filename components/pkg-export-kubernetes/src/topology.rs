@@ -18,7 +18,7 @@ use std::fmt;
 
 use error::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Topology {
     Standalone,
     Leader,

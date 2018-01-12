@@ -25,18 +25,26 @@ extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 
+use std::fs::File;
+use std::io;
+use std::io::prelude::*;
+
 use common::ui::UI;
 
 pub mod topology;
 pub mod error;
 pub mod manifest;
+pub mod manifestjson;
+pub mod bind;
 pub mod cli;
 
 use export_docker::Result;
 
 pub use cli::Cli;
+pub use bind::Bind;
 pub use error::Error;
 pub use manifest::Manifest;
+pub use manifestjson::ManifestJson;
 pub use topology::Topology;
 
 // Synced with the version of the Habitat operator.
@@ -47,5 +55,10 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
         export_docker::export_for_cli_matches(ui, &matches)?;
     }
     let mut manifest = Manifest::new_from_cli_matches(ui, &matches)?;
-    manifest.generate()
+
+    let mut write: Box<Write> = match matches.value_of("OUTPUT") {
+        Some(o) if o != "-" => Box::new(File::create(o)?),
+        _ => Box::new(io::stdout()),
+    };
+    manifest.generate(&mut write)
 }

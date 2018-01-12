@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ use common::ui::UI;
 
 use error::Result;
 
-const EXPORT_CMD: &'static str = "hab-pkg-export-docker";
-const EXPORT_CMD_ENVVAR: &'static str = "HAB_PKG_EXPORT_DOCKER_BINARY";
-const EXPORT_PKG_IDENT: &'static str = "core/hab-pkg-export-docker";
-const EXPORT_PKG_IDENT_ENVVAR: &'static str = "HAB_PKG_EXPORT_DOCKER_PKG_IDENT";
+const EXPORT_CMD: &'static str = "hab-pkg-export-helm";
+const EXPORT_CMD_ENVVAR: &'static str = "HAB_PKG_EXPORT_HELM_BINARY";
+const EXPORT_PKG_IDENT: &'static str = "core/hab-pkg-export-helm";
+const EXPORT_PKG_IDENT_ENVVAR: &'static str = "HAB_PKG_EXPORT_HELM_PKG_IDENT";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     ::command::pkg::export::export_common::start(

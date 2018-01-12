@@ -1464,6 +1464,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "habitat_pkg_export_helm"
+version = "0.0.0"
+dependencies = [
+ "clap 2.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure 0.1.1 (git+https://github.com/withoutboats/failure.git)",
+ "habitat_common 0.0.0",
+ "habitat_core 0.0.0",
+ "habitat_pkg_export_docker 0.0.0",
+ "habitat_pkg_export_kubernetes 0.0.0",
+ "handlebars 0.29.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "habitat_pkg_export_kubernetes"
 version = "0.0.0"
 dependencies = [

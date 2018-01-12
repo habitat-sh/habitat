@@ -14,13 +14,9 @@
 
 use std::str::FromStr;
 use std::io::prelude::*;
-use std::io;
-use std::fs::File;
 use std::path::Path;
 
 use clap::ArgMatches;
-use failure::SyncFailure;
-use handlebars::Handlebars;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
 use rand;
@@ -29,25 +25,20 @@ use rand::Rng;
 use export_docker::Result;
 
 use topology::Topology;
-use error::Error;
+use manifestjson::ManifestJson;
+use bind;
 
-// Kubernetes manifest template
-const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
-const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
-
+#[derive(Debug, Clone)]
 pub struct Manifest {
-    metadata_name: String,
-    habitat_name: String,
-    image: String,
-    count: u64,
-    service_topology: Topology,
-    service_group: Option<String>,
-    config_secret_name: Option<String>,
-    ring_secret_name: Option<String>,
-    // TODO: Represent binds with a struct
-    binds: Vec<String>,
-
-    write: Box<Write>,
+    pub metadata_name: String,
+    pub habitat_name: String,
+    pub image: String,
+    pub count: u64,
+    pub service_topology: Topology,
+    pub service_group: Option<String>,
+    pub config_secret_name: Option<String>,
+    pub ring_secret_name: Option<String>,
+    pub binds: Vec<bind::Bind>,
 }
 
 impl Manifest {
@@ -75,19 +66,15 @@ impl Manifest {
 
         // To allow multiple instances of Habitat application in Kubernetes,
         // random suffix in metadata_name is needed.
-        let metadata_name = format!(
-            "{}-{}{}",
+        let metadata_name =
+            format!(
+            "{}-{}",
             pkg_ident.name,
             rand::thread_rng()
                 .gen_ascii_chars()
                 .filter(|c| c.is_lowercase() || c.is_numeric())
-                .take(4)
+                .take(5)
                 .collect::<String>(),
-            rand::thread_rng()
-                .gen_ascii_chars()
-                .filter(|c| c.is_lowercase() && !c.is_numeric())
-                .take(1)
-                .collect::<String>()
         );
 
         let image = match matches.value_of("IMAGE_NAME") {
@@ -95,15 +82,7 @@ impl Manifest {
             None => pkg_ident.origin + "/" + &pkg_ident.name,
         };
 
-        let binds: Vec<String> = match matches.values_of("BIND") {
-            Some(binds) => binds.map(|s| s.to_string()).collect(),
-            None => Vec::new(),
-        };
-
-        let write: Box<Write> = match matches.value_of("OUTPUT") {
-            Some(o) if o != "-" => Box::new(File::create(o)?),
-            _ => Box::new(io::stdout()),
-        };
+        let binds = bind::parse_bind_args(&matches)?;
 
         Ok(Manifest {
             metadata_name: metadata_name,
@@ -115,48 +94,13 @@ impl Manifest {
             config_secret_name: config_secret_name,
             ring_secret_name: ring_secret_name,
             binds: binds,
-            write: write,
         })
     }
 
-    pub fn generate(&mut self) -> Result<()> {
-        let json = json!({
-            "metadata_name": self.metadata_name,
-            "habitat_name": self.habitat_name,
-            "image": self.image,
-            "count": self.count,
-            "service_topology": self.service_topology.to_string(),
-            "service_group": self.service_group,
-            "config_secret_name": self.config_secret_name,
-            "ring_secret_name": self.ring_secret_name,
-            "bind": self.binds,
-        });
+    pub fn generate(&mut self, write: &mut Write) -> Result<()> {
+        let out = ManifestJson::new(&self).into_string()?;
 
-        let r = Handlebars::new()
-            .template_render(MANIFESTFILE, &json)
-            .map_err(SyncFailure::new)?;
-        let mut out = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-            "\n",
-        ) + "\n";
-
-        for bind in &self.binds {
-            let split: Vec<&str> = bind.split(":").collect();
-            if split.len() < 3 {
-                return Err(Error::InvalidBindSpec(bind.to_string()).into());
-            }
-
-            let json = json!({
-                "name": split[0],
-                "service": split[1],
-                "group": split[2],
-            });
-
-            out += &Handlebars::new().template_render(BINDFILE, &json).map_err(
-                SyncFailure::new,
-            )?;
-        }
-
-        self.write.write(out.as_bytes())?;
+        write.write(out.as_bytes())?;
 
         Ok(())
     }
