@@ -14,7 +14,6 @@
 
 use btest;
 use habitat_butterfly::member::Health;
-use habitat_butterfly::client::Client;
 
 #[test]
 fn two_members_share_departures() {
@@ -35,8 +34,7 @@ fn departure_via_client() {
     net.mesh();
 
     net.wait_for_gossip_rounds(1);
-    let mut client =
-        Client::new(net[0].gossip_addr(), None).expect("Cannot create Butterfly Client");
+    let mut client = btest::get_client_for_address(net[0].gossip_addr());
     client
         .send_departure(String::from(net[1].member_id()))
         .expect("Cannot send the departure");

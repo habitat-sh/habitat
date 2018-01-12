@@ -18,52 +18,28 @@
 
 use habitat_core::crypto::SymKey;
 use habitat_core::service::ServiceGroup;
-use zmq;
 
-use ZMQ_CONTEXT;
 use message;
 use rumor::Rumor;
 use rumor::departure::Departure;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
-use error::{Result, Error};
+use error::Result;
+use network::GossipSender;
 
-/// Holds a ZMQ Push socket, and an optional ring encryption key.
-pub struct Client {
-    socket: zmq::Socket,
+/// Holds a gossip push socket, and an optional ring encryption key.
+pub struct Client<GS: GossipSender> {
+    socket: GS,
     ring_key: Option<SymKey>,
 }
 
-impl Client {
+impl<GS: GossipSender> Client<GS> {
     /// Connect this client to the address, and optionally encrypt the traffic.
-    pub fn new<A>(addr: A, ring_key: Option<SymKey>) -> Result<Client>
-    where
-        A: ToString,
-    {
-        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::PUSH).expect(
-            "Failure to create the ZMQ push socket",
-        );
-        socket.set_linger(-1).expect(
-            "Failure to set the ZMQ push socket to not linger",
-        );
-        socket.set_tcp_keepalive(0).expect(
-            "Failure to set the ZMQ push socket to not use keepalive",
-        );
-        socket.set_immediate(true).expect(
-            "Failure to set the ZMQ push socket to immediate",
-        );
-        socket.set_sndhwm(1000).expect(
-            "Failure to set the ZMQ push socket hwm",
-        );
-        socket.set_sndtimeo(500).expect(
-            "Failure to set the ZMQ send timeout",
-        );
-        let to_addr = format!("tcp://{}", addr.to_string());
-        socket.connect(&to_addr).map_err(Error::ZmqConnectError)?;
-        Ok(Client {
+    pub fn new(socket: GS, ring_key: Option<SymKey>) -> Self {
+        Self {
             socket: socket,
             ring_key: ring_key,
-        })
+        }
     }
 
     /// Create a departure notification and send it to the server.
@@ -108,6 +84,6 @@ impl Client {
     pub fn send<T: Rumor>(&mut self, rumor: T) -> Result<()> {
         let bytes = rumor.write_to_bytes()?;
         let wire_msg = message::generate_wire(bytes, self.ring_key.as_ref())?;
-        self.socket.send(&wire_msg, 0).map_err(Error::ZmqSendError)
+        self.socket.send(&wire_msg)
     }
 }

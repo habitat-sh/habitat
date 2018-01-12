@@ -19,11 +19,11 @@ pub mod upload {
     use std::thread;
     use std::time;
 
-    use butterfly::client::Client;
     use common::ui::{Status, UI};
     use hcore::crypto::{SymKey, BoxKeyPair};
     use hcore::service::ServiceGroup;
 
+    use command;
     use error::{Error, Result};
 
     pub fn start(
@@ -74,11 +74,7 @@ pub mod upload {
 
         for peer in peers.iter() {
             ui.status(Status::Applying, format!("to peer {}", peer))?;
-            let mut client = Client::new(peer, ring_key.map(|k| k.clone())).map_err(
-                |e| {
-                    Error::ButterflyError(format!("{}", e))
-                },
-            )?;
+            let mut client = command::get_client(peer, ring_key.map(|k| k.clone()))?;
             client
                 .send_service_file(
                     sg.clone(),

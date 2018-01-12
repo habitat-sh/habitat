@@ -15,3 +15,22 @@
 pub mod config;
 pub mod depart;
 pub mod file;
+
+use std::net::SocketAddr;
+
+use hcore::crypto::SymKey;
+use butterfly::client::Client;
+use butterfly::network::{GossipZmqSocket, Network, RealNetwork};
+
+use error::{Error, Result};
+
+fn get_client(peer: &str, ring_key: Option<SymKey>) -> Result<Client<GossipZmqSocket>> {
+    let addr: SocketAddr = peer.parse().map_err(
+        |e| Error::ButterflyError(format!("{}", e)),
+    )?;
+    let network = RealNetwork::new_for_client();
+    let socket = network.get_gossip_sender(addr).map_err(|e| {
+        Error::ButterflyError(format!("{}", e))
+    })?;
+    Ok(Client::new(socket, ring_key))
+}
