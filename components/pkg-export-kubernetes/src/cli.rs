@@ -161,3 +161,18 @@ fn valid_natural_number(val: String) -> result::Result<(), String> {
         Err(_) => Err(format!("{} is not a natural number", val)),
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_natural_number() {
+        valid_natural_number("99".to_owned()).unwrap();
+
+        for &s in ["x", "", "#####", "0x11", "ab"].iter() {
+            assert!(valid_natural_number(s.to_owned()).is_err());
+        }
+    }
+}
