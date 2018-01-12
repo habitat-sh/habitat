@@ -50,6 +50,9 @@ pub use manifestjson::ManifestJson;
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
 
+/// Convenient do-it-all function. You give it the CLI arguments from the user and it generates the
+/// Kubernetes manifest. If user passed an `--output` argument with a value that is not "`-`", the
+/// manifest is written to the provided file; otherwise, it is written to the standard output.
 pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     if !matches.is_present("NO_DOCKER_IMAGE") {
         export_docker::export_for_cli_matches(ui, &matches)?;
