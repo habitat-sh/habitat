@@ -131,14 +131,28 @@ pub struct Member {
 }
 
 impl Member {
-    /// Returns the socket address of this member.
+    /// Returns the swim socket address of this member.
     ///
     /// # Panics
     ///
     /// This function panics if the address is un-parseable. In practice, it shouldn't be
     /// un-parseable, since its set from the inbound socket directly.
     pub fn swim_socket_address(&self) -> SocketAddr {
-        let address_str = format!("{}:{}", self.get_address(), self.get_swim_port());
+        self.socket_address(self.get_swim_port())
+    }
+
+    /// Returns the gossip socket address of this member.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the address is un-parseable. In practice, it shouldn't be
+    /// un-parseable, since its set from the inbound socket directly.
+    pub fn gossip_socket_address(&self) -> SocketAddr {
+        self.socket_address(self.get_gossip_port())
+    }
+
+    fn socket_address(&self, port: i32) -> SocketAddr {
+        let address_str = format!("{}:{}", self.get_address(), port);
         match address_str.parse() {
             Ok(addr) => addr,
             Err(e) => {

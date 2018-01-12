@@ -20,6 +20,7 @@ extern crate time;
 extern crate habitat_butterfly;
 extern crate habitat_core;
 
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::thread;
 use std::ops::{Deref, DerefMut, Range};
@@ -40,6 +41,7 @@ use habitat_butterfly::message::swim::Election_Status;
 use habitat_core::service::ServiceGroup;
 use habitat_core::package::{Identifiable, PackageIdent};
 use habitat_core::crypto::keys::sym_key::SymKey;
+use habitat_butterfly::network::RealNetwork;
 use habitat_butterfly::trace::Trace;
 
 static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -52,32 +54,37 @@ impl Suitability for NSuitability {
     }
 }
 
-pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
+pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server<RealNetwork> {
     SERVER_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
     let swim_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
     let gossip_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
-    let listen_swim = format!("127.0.0.1:{}", swim_port);
-    let listen_gossip = format!("127.0.0.1:{}", gossip_port);
+    let listen_swim = localhost_addr(swim_port as u16);
+    let listen_gossip = localhost_addr(gossip_port as u16);
     let mut member = Member::default();
     member.set_swim_port(swim_port as i32);
     member.set_gossip_port(gossip_port as i32);
+    let network = RealNetwork::new_for_server(listen_swim, listen_gossip);
     let mut server = Server::new(
-        &listen_swim[..],
-        &listen_gossip[..],
+        network,
         member,
         Trace::default(),
         ring_key,
         Some(String::from(name)),
         None::<PathBuf>,
         Box::new(NSuitability(suitability)),
-    ).unwrap();
+    );
     server.start(Timing::default()).expect(
         "Cannot start server",
     );
     server
 }
 
-pub fn member_from_server(server: &Server) -> Member {
+fn localhost_addr(port: u16) -> SocketAddr {
+    let ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+    SocketAddr::new(ip, port)
+}
+
+pub fn member_from_server(server: &Server<RealNetwork>) -> Member {
     let mut new_member = Member::default();
     let server_member = server.member.read().expect("Member lock is poisoned");
     new_member.set_id(String::from(server_member.get_id()));
@@ -91,19 +98,19 @@ pub fn member_from_server(server: &Server) -> Member {
 
 #[derive(Debug)]
 pub struct SwimNet {
-    pub members: Vec<Server>,
+    pub members: Vec<Server<RealNetwork>>,
 }
 
 impl Deref for SwimNet {
-    type Target = Vec<Server>;
+    type Target = Vec<Server<RealNetwork>>;
 
-    fn deref(&self) -> &Vec<Server> {
+    fn deref(&self) -> &Vec<Server<RealNetwork>> {
         &self.members
     }
 }
 
 impl DerefMut for SwimNet {
-    fn deref_mut(&mut self) -> &mut Vec<Server> {
+    fn deref_mut(&mut self) -> &mut Vec<Server<RealNetwork>> {
         &mut self.members
     }
 }

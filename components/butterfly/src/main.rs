@@ -25,6 +25,7 @@ use std::time::Duration;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 
+use habitat_butterfly::network::RealNetwork;
 use habitat_butterfly::{server, member, trace};
 use habitat_butterfly::server::Suitability;
 use habitat_core::service::ServiceGroup;
@@ -56,16 +57,16 @@ fn main() {
     member.set_swim_port(bind_port as i32);
     member.set_gossip_port(gport as i32);
 
-    let mut server = server::Server::new(
-        bind_to_addr,
-        gossip_bind_addr,
+    let network = RealNetwork::new_for_server(bind_to_addr, gossip_bind_addr);
+    let mut server = server::Server::<RealNetwork>::new(
+        network,
         member,
         trace::Trace::default(),
         None,
         None,
         None::<PathBuf>,
         Box::new(ZeroSuitability),
-    ).unwrap();
+    );
     println!("Server ID: {}", server.member_id());
 
     let targets: Vec<String> = args.collect();

@@ -23,9 +23,7 @@ use std::time::Duration;
 
 use protobuf::Message;
 use time::SteadyTime;
-use zmq;
 
-use ZMQ_CONTEXT;
 use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, Member as ProtoMember,
                     Membership as ProtoMembership};
 use rumor::RumorKey;
@@ -33,20 +31,21 @@ use member::Member;
 use server::Server;
 use server::timing::Timing;
 use trace::TraceKind;
+use network::{Network, GossipSender};
 
 const FANOUT: usize = 5;
 
 /// The Push server
 #[derive(Debug)]
-pub struct Push {
-    pub server: Server,
+pub struct Push<N: Network> {
+    pub server: Server<N>,
     pub timing: Timing,
 }
 
-impl Push {
+impl<N: Network> Push<N> {
     /// Creates a new Push instance from a Server and Timing
-    pub fn new(server: Server, timing: Timing) -> Push {
-        Push {
+    pub fn new(server: Server<N>, timing: Timing) -> Self {
+        Self {
             server: server,
             timing: timing,
         }
@@ -136,14 +135,14 @@ impl Push {
 }
 
 /// A worker thread for pushing messages to a target
-struct PushWorker {
-    pub server: Server,
+struct PushWorker<N: Network> {
+    pub server: Server<N>,
 }
 
-impl PushWorker {
+impl<N: Network> PushWorker<N> {
     /// Create a new PushWorker.
-    pub fn new(server: Server) -> PushWorker {
-        PushWorker { server: server }
+    pub fn new(server: Server<N>) -> Self {
+        Self { server: server }
     }
 
     /// Send the list of rumors to a given member. This method creates an outbound socket and then
@@ -151,32 +150,15 @@ impl PushWorker {
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
     /// method can loose messages.
     fn send_rumors(&self, member: Member, rumors: Vec<RumorKey>) {
-        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::PUSH).expect(
-            "Failure to create the ZMQ push socket",
-        );
-        socket.set_linger(1000).expect(
-            "Failure to set the ZMQ push socket to not linger",
-        );
-        socket.set_tcp_keepalive(0).expect(
-            "Failure to set the ZMQ push socket to not use keepalive",
-        );
-        socket.set_immediate(true).expect(
-            "Failure to set the ZMQ push socket to immediate",
-        );
-        socket.set_sndhwm(1000).expect(
-            "Failure to set the ZMQ push socket hwm",
-        );
-        socket.set_sndtimeo(500).expect(
-            "Failure to set the ZMQ send timeout",
-        );
-        let to_addr = format!("{}:{}", member.get_address(), member.get_gossip_port());
-        match socket.connect(&format!("tcp://{}", to_addr)) {
-            Ok(()) => debug!("Connected push socket to {:?}", member),
+        let socket = match self.server.read_network().get_gossip_sender(
+            member.gossip_socket_address(),
+        ) {
+            Ok(s) => s,
             Err(e) => {
-                println!("Cannot connect push socket to {:?}: {:?}", member, e);
+                println!("Failed to get the push socket to {:?}: {:?}", member, e);
                 return;
             }
-        }
+        };
         'rumorlist: for ref rumor_key in rumors.iter() {
             let rumor_as_bytes = match rumor_key.kind {
                 ProtoRumor_Type::Member => {
@@ -326,13 +308,13 @@ impl PushWorker {
                     continue 'rumorlist;
                 }
             };
-            match socket.send(&payload, 0) {
+            match socket.send(&payload) {
                 Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
                 Err(e) => {
                     println!(
-                        "Could not send rumor to {:?} @ {:?}; ZMQ said: {:?}",
+                        "Could not send rumor to {:?} @ {:?}, {:?}",
                         member.get_id(),
-                        to_addr,
+                        member.gossip_socket_address(),
                         e
                     )
                 }

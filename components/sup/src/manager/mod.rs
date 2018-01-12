@@ -40,6 +40,7 @@ use std::mem;
 use std::ops::DerefMut;
 
 use butterfly;
+use butterfly::network::RealNetwork;
 use butterfly::member::Member;
 use butterfly::trace::Trace;
 use butterfly::server::timing::Timing;
@@ -143,7 +144,7 @@ pub struct ManagerConfig {
 }
 
 pub struct Manager {
-    butterfly: butterfly::Server,
+    butterfly: butterfly::Server<RealNetwork>,
     census_ring: CensusRing,
     events_group: Option<ServiceGroup>,
     fs_cfg: Arc<FsCfg>,
@@ -291,16 +292,16 @@ impl Manager {
             None => None,
         };
         let services = Arc::new(RwLock::new(Vec::new()));
+        let network = RealNetwork::new_for_server(sys.gossip_listen(), sys.gossip_listen());
         let server = butterfly::Server::new(
-            sys.gossip_listen(),
-            sys.gossip_listen(),
+            network,
             member,
             Trace::default(),
             ring_key,
             None,
             Some(&fs_cfg.data_path),
             Box::new(SuitabilityLookup(services.clone())),
-        )?;
+        );
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
