@@ -43,6 +43,7 @@ $main-nav-breakpoint: 769px;
     }
 
     .h2 {
+      margin-top: rem-calc(16);
       font-weight: bold;
     }
 
@@ -112,8 +113,14 @@ $main-nav-breakpoint: 769px;
 
         .card {
           @include card;
+          display: block;
           padding: rem-calc(24);
           position: relative;
+          border-radius: $global-radius;
+
+          p {
+            color: $hab-gray-dark;
+          }
 
           > p:last-child {
             margin-bottom: 0;
@@ -124,16 +131,21 @@ $main-nav-breakpoint: 769px;
           }
 
           &.card-number {
-            padding: rem-calc(24) rem-calc(24) rem-calc(24) 110px;
+            padding: rem-calc(24);
 
             &:before {
               position: absolute;
-              font-size: 60px;
-              opacity: .2;
+              font-size: rem-calc(64);
+              opacity: .05;
               text-align: center;
-              left: 20px;
-              top: 0px;
+              right: rem-calc(20);
+              top: 0;
               display: block;
+
+              @include small-nav {
+                font-size: rem-calc(32);
+                top: rem-calc(10);
+              }
             }
           }
           &.card-01:before { content: '01'; }
@@ -145,11 +157,7 @@ $main-nav-breakpoint: 769px;
             background-color: $hab-blue-medium;
             border: none;
 
-            .h4 {
-              font-size: 1.2rem;
-            }
-
-            .h4 > a, p > a {
+            > a {
               transition: color 200ms;
 
               &:hover {
@@ -159,10 +167,10 @@ $main-nav-breakpoint: 769px;
               }
             }
 
-            .h4 > a,
-            > p,
+            .h4,
+            p,
             p > a {
-              color: #FFF;
+              color: $hab-white;
             }
 
             p > a {
