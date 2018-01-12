@@ -20,6 +20,7 @@
 
 extern crate habitat_butterfly;
 use self::habitat_butterfly::client::Client as ButterflyClient;
+use self::habitat_butterfly::network::{GossipZmqSocket, Network, RealNetwork};
 
 extern crate habitat_core;
 use self::habitat_core::service::ServiceGroup;
@@ -30,7 +31,7 @@ use std::net::SocketAddr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct Client {
-    butterfly_client: ButterflyClient,
+    butterfly_client: ButterflyClient<GossipZmqSocket>,
     pub package_name: String,
     pub service_group: String,
 }
@@ -44,8 +45,11 @@ impl Client {
         let gossip_addr = format!("127.0.0.1:{}", port)
             .parse::<SocketAddr>()
             .expect("Could not parse Butterfly gossip address!");
-        let c = ButterflyClient::new(&gossip_addr, None)
-            .expect("Could not create Butterfly Client for test!");
+        let network = RealNetwork::new_for_client();
+        let sender = network
+            .create_gossip_sender(gossip_addr)
+            .expect("Could not create gossip sender");
+        let c = ButterflyClient::new(sender, None);
         Client {
             butterfly_client: c,
             package_name: package_name.to_string(),

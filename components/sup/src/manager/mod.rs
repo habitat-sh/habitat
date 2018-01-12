@@ -42,7 +42,7 @@ use std::time::Duration;
 
 use butterfly;
 use butterfly::member::Member;
-use butterfly::network::RealNetwork;
+use butterfly::network::{Network, RealNetwork};
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
 use butterfly::trace::Trace;
@@ -888,16 +888,7 @@ impl Manager {
             version,
             service_group,
         );
-        let mut client = match butterfly::client::Client::new(
-            mgr.cfg.gossip_listen.local_addr(),
-            mgr.cfg.ring_key.clone(),
-        ) {
-            Ok(client) => client,
-            Err(err) => {
-                outputln!("Failed to connect to own gossip server, {}", err);
-                return Err(net::err(ErrCode::Internal, err.to_string()));
-            }
-        };
+        let mut client = Self::create_butterfly_client(&mgr)?;
         match client.send_service_config(service_group, version, cfg, is_encrypted) {
             Ok(()) => {
                 req.reply_complete(net::ok());
@@ -926,16 +917,7 @@ impl Manager {
             filename,
             service_group,
         );
-        let mut client = match butterfly::client::Client::new(
-            mgr.cfg.gossip_listen.local_addr(),
-            mgr.cfg.ring_key.clone(),
-        ) {
-            Ok(client) => client,
-            Err(err) => {
-                outputln!("Failed to connect to own gossip server, {}", err);
-                return Err(net::err(ErrCode::Internal, err.to_string()));
-            }
-        };
+        let mut client = Self::create_butterfly_client(&mgr)?;
         match client.send_service_file(service_group, filename, version, content, is_encrypted) {
             Ok(()) => {
                 req.reply_complete(net::ok());
@@ -1281,16 +1263,7 @@ impl Manager {
         opts: protocol::ctl::SupDepart,
     ) -> NetResult<()> {
         let member_id = opts.member_id.ok_or(err_update_client())?;
-        let mut client = match butterfly::client::Client::new(
-            mgr.cfg.gossip_listen.local_addr(),
-            mgr.cfg.ring_key.clone(),
-        ) {
-            Ok(client) => client,
-            Err(err) => {
-                outputln!("Failed to connect to own gossip server, {}", err);
-                return Err(net::err(ErrCode::Internal, err.to_string()));
-            }
-        };
+        let mut client = Self::create_butterfly_client(&mgr)?;
         outputln!("Attempting to depart member: {}", member_id);
         match client.send_departure(member_id) {
             Ok(()) => {
@@ -1299,6 +1272,25 @@ impl Manager {
             }
             Err(e) => Err(net::err(ErrCode::Internal, e.to_string())),
         }
+    }
+
+    fn create_butterfly_client(
+        mgr: &ManagerState,
+    ) -> NetResult<butterfly::client::Client<<RealNetwork as Network>::GossipSender>> {
+        let network = RealNetwork::new_for_client();
+        let addr = mgr.cfg.gossip_listen.local_addr();
+        let socket = match network.create_gossip_sender(*addr) {
+            Ok(socket) => socket,
+            Err(err) => {
+                outputln!("Failed to connect to own gossip servier, {}", err);
+                return Err(net::err(ErrCode::Internal, err.to_string()));
+            }
+        };
+
+        Ok(butterfly::client::Client::new(
+            socket,
+            mgr.cfg.ring_key.clone(),
+        ))
     }
 
     fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
