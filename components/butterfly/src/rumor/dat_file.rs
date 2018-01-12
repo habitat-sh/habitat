@@ -23,6 +23,7 @@ use rand::{thread_rng, Rng};
 
 use error::{Error, Result};
 use member::{MemberList, Membership};
+use network::Network;
 use protocol::{newscast, Message};
 use rumor::{
     Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile,
@@ -60,7 +61,7 @@ impl DatFile {
         &self.path
     }
 
-    pub fn read_into(&mut self, server: &Server) -> Result<()> {
+    pub fn read_into<N: Network>(&mut self, server: &Server<N>) -> Result<()> {
         let mut version = [0; 1];
         let mut size_buf = [0; 8];
         // JW: Resizing this buffer is terrible for performance, but it's the easiest way to
@@ -232,7 +233,7 @@ impl DatFile {
         Ok(())
     }
 
-    pub fn write(&self, server: &Server) -> Result<usize> {
+    pub fn write<N: Network>(&self, server: &Server<N>) -> Result<usize> {
         let mut header = Header::default();
         let tmp_path = self.path.with_extension(
             thread_rng()

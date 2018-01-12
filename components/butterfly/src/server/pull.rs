@@ -20,46 +20,36 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
-use zmq;
-
+use network::{GossipReceiver, Network};
 use rumor::{RumorEnvelope, RumorKind};
 use server::Server;
 use trace::TraceKind;
-use ZMQ_CONTEXT;
 
 /// Takes a reference to the server itself
-pub struct Pull {
-    pub server: Server,
+pub struct Pull<N: Network> {
+    pub server: Server<N>,
 }
 
-impl Pull {
+impl<N: Network> Pull<N> {
     /// Create a new Pull
-    pub fn new(server: Server) -> Pull {
-        Pull { server: server }
+    pub fn new(server: Server<N>) -> Self {
+        Self { server: server }
     }
 
     /// Run this thread. Creates a socket, binds to the `gossip_addr`, then processes messages as
     /// they are received. Uses a ZMQ pull socket, so inbound messages are fair-queued.
     pub fn run(&mut self) {
-        let socket = (**ZMQ_CONTEXT)
-            .as_mut()
-            .socket(zmq::PULL)
-            .expect("Failure to create the ZMQ pull socket");
-        socket
-            .set_linger(0)
-            .expect("Failure to set the ZMQ Pull socket to not linger");
-        socket
-            .set_tcp_keepalive(0)
-            .expect("Failure to set the ZMQ Pull socket to not use keepalive");
-        socket
-            .bind(&format!("tcp://{}", self.server.gossip_addr()))
-            .expect("Failure to bind the ZMQ Pull socket to the port");
+        let receiver = self
+            .server
+            .read_network()
+            .create_gossip_receiver()
+            .expect("Failed to get gossip pull socket");
         'recv: loop {
             if self.server.pause.load(Ordering::Relaxed) {
                 thread::sleep(Duration::from_millis(100));
                 continue;
             }
-            let msg = match socket.recv_msg(0) {
+            let msg = match receiver.receive() {
                 Ok(msg) => msg,
                 Err(e) => {
                     error!("Error receiving message: {:?}", e);

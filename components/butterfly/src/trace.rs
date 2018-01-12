@@ -23,6 +23,7 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
+use network::Network;
 use server::Server;
 
 #[derive(Debug, Clone, Copy)]
@@ -161,7 +162,7 @@ impl Default for Trace {
 
 impl Trace {
     /// Initialize the trace object; only happens once.
-    pub fn init(&mut self, server: &Server) {
+    pub fn init<N: Network>(&mut self, server: &Server<N>) {
         if self.file.is_none() {
             let now = time::now_utc();
             let filename = format!("{}-{}.swimtrace", server.name(), now.rfc3339());

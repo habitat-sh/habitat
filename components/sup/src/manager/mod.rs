@@ -42,6 +42,7 @@ use std::time::Duration;
 
 use butterfly;
 use butterfly::member::Member;
+use butterfly::network::RealNetwork;
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
 use butterfly::trace::Trace;
@@ -189,8 +190,7 @@ pub struct ManagerState {
 
 pub struct Manager {
     pub state: Rc<ManagerState>,
-
-    butterfly: butterfly::Server,
+    butterfly: butterfly::Server<RealNetwork>,
     census_ring: CensusRing,
     events_group: Option<ServiceGroup>,
     fs_cfg: Arc<FsCfg>,
@@ -357,16 +357,16 @@ impl Manager {
         );
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::new(RwLock::new(Vec::new()));
+        let network = RealNetwork::new_for_server(sys.gossip_listen(), sys.gossip_listen());
         let server = butterfly::Server::new(
-            sys.gossip_listen(),
-            sys.gossip_listen(),
+            network,
             member,
             Trace::default(),
             cfg.ring_key,
             None,
             Some(&fs_cfg.data_path),
             Box::new(SuitabilityLookup(services.clone())),
-        )?;
+        );
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();

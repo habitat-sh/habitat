@@ -19,20 +19,21 @@
 use std::thread;
 use std::time::Duration;
 
+use network::Network;
 use rumor::{RumorKey, RumorType};
 use server::timing::Timing;
 use server::Server;
 
 const LOOP_DELAY_MS: u64 = 500;
 
-pub struct Expire {
-    pub server: Server,
+pub struct Expire<N: Network> {
+    pub server: Server<N>,
     pub timing: Timing,
 }
 
-impl Expire {
-    pub fn new(server: Server, timing: Timing) -> Expire {
-        Expire {
+impl<N: Network> Expire<N> {
+    pub fn new(server: Server<N>, timing: Timing) -> Self {
+        Self {
             server: server,
             timing: timing,
         }

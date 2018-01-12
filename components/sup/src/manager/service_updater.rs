@@ -17,6 +17,7 @@ use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
 use std::thread;
 
 use butterfly;
+use butterfly::network;
 use common::ui::UI;
 use env;
 use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
@@ -67,11 +68,11 @@ enum FollowerState {
 /// To use an update strategy, the supervisor must be configured to watch a depot for new versions.
 pub struct ServiceUpdater {
     states: UpdaterStateList,
-    butterfly: butterfly::Server,
+    butterfly: butterfly::Server<network::RealNetwork>,
 }
 
 impl ServiceUpdater {
-    pub fn new(butterfly: butterfly::Server) -> Self {
+    pub fn new(butterfly: butterfly::Server<network::RealNetwork>) -> Self {
         ServiceUpdater {
             states: UpdaterStateList::default(),
             butterfly: butterfly,

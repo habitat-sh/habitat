@@ -17,7 +17,6 @@
 use std::cmp;
 use std::collections::{hash_map, HashMap};
 use std::iter::IntoIterator;
-use std::net::SocketAddr;
 use std::ops::Deref;
 use std::result;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -31,6 +30,7 @@ use time::{Duration, SteadyTime};
 use uuid::Uuid;
 
 use error::{Error, Result};
+use network::{AddressAndPort, MyFromStr};
 pub use protocol::swim::Health;
 use protocol::{self, newscast, swim as proto, FromProto};
 use rumor::{RumorKey, RumorPayload, RumorType};
@@ -55,16 +55,32 @@ pub struct Member {
 }
 
 impl Member {
-    /// Returns the socket address of this member.
+    /// Returns the swim socket address of this member.
     ///
     /// # Panics
     ///
     /// This function panics if the address is un-parseable. In practice, it shouldn't be
     /// un-parseable, since its set from the inbound socket directly.
-    pub fn swim_socket_address(&self) -> SocketAddr {
-        let address_str = format!("{}:{}", self.address, self.swim_port);
-        match address_str.parse() {
-            Ok(addr) => addr,
+    pub fn swim_socket_address<T: AddressAndPort>(&self) -> T {
+        self.socket_address(self.swim_port)
+    }
+
+    /// Returns the gossip socket address of this member.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the address is un-parseable. In practice, it shouldn't be
+    /// un-parseable, since its set from the inbound socket directly.
+    pub fn gossip_socket_address<T: AddressAndPort>(&self) -> T {
+        self.socket_address(self.gossip_port)
+    }
+
+    fn socket_address<T>(&self, port: u16) -> T
+    where
+        T: AddressAndPort,
+    {
+        match T::Address::create_from_str(&self.address) {
+            Ok(addr) => T::new_from_address_and_port(addr, port),
             Err(e) => {
                 panic!("Cannot parse member {:?} address: {}", self, e);
             }
