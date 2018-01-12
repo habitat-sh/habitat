@@ -30,8 +30,6 @@ use error::{Result, Error};
 
 use zmq;
 
-use ServerContext;
-
 // TODO(krnowak): See a TODO about Debug for Network trait below.
 /// A trait for types used for sending SWIM messages.
 pub trait SwimSender: Send + Debug {
@@ -132,6 +130,20 @@ impl GossipReceiver for GossipZmqSocket {
         })
     }
 }
+
+/// This is a wrapper to provide interior mutability of an underlying
+/// `zmq::Context` and allows for sharing/sending of a `zmq::Context`
+/// between threads.
+struct ServerContext(UnsafeCell<zmq::Context>);
+
+impl ServerContext {
+    pub fn as_mut(&self) -> &mut zmq::Context {
+        unsafe { &mut *self.0.get() }
+    }
+}
+
+unsafe impl Send for ServerContext {}
+unsafe impl Sync for ServerContext {}
 
 /// An implementation of the `Network` trait that creates
 /// `SwimUdpSocket` instances for SWIM communication, and
