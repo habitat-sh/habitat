@@ -71,7 +71,7 @@ struct UserInfo {
     username: Option<String>,
     uid: Option<u32>,
     groupname: Option<String>,
-    gid: Option<u32>
+    gid: Option<u32>,
 }
 
 #[derive(Debug)]
@@ -127,18 +127,25 @@ impl Supervisor {
         if abilities::can_run_services_as_svc_user() {
             // We have the ability to run services as a user / group other
             // than ourselves, so they better exist
-            let uid = users::get_uid_by_name(&pkg.svc_user).ok_or(
-                sup_error!(Error::UserNotFound(pkg.svc_user.to_string())),
-            )?;
-            let gid = users::get_gid_by_name(&pkg.svc_group).ok_or(
-                sup_error!(Error::GroupNotFound(pkg.svc_group.to_string())),
-            )?;
+            let uid = users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(
+                Error::UserNotFound(
+                    pkg.svc_user
+                        .to_string(),
+                )
+            ))?;
+            let gid = users::get_gid_by_name(&pkg.svc_group).ok_or(sup_error!(
+                Error::GroupNotFound(
+                    pkg.svc_group
+                        .to_string(),
+                )
+            ))?;
 
-            Ok(UserInfo{
+            Ok(UserInfo {
                 username: Some(pkg.svc_user.clone()),
                 uid: Some(uid),
                 groupname: Some(pkg.svc_group.clone()),
-                gid: Some(gid)})
+                gid: Some(gid),
+            })
         } else {
             // We DO NOT have the ability to run as other users!  Also
             // note that we legitimately may not have a username or
@@ -148,17 +155,24 @@ impl Supervisor {
             let groupname = users::get_effective_groupname();
             let gid = users::get_effective_gid();
 
-            let name_for_logging = username
-                .as_ref()
-                .map(|name| name.clone())
-                .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
-            outputln!(preamble self.preamble, "Current user ({}) lacks sufficient capabilites to run services as a different user; running as self!", name_for_logging);
+            let name_for_logging = username.as_ref().map(|name| name.clone()).unwrap_or_else(
+                || {
+                    format!("anonymous [UID={}]", uid)
+                },
+            );
+            outputln!(
+                preamble self.preamble,
+                "Current user ({}) lacks sufficient capabilites to run services \
+                 as a different user; running as self!",
+                name_for_logging
+            );
 
-            Ok(UserInfo{
+            Ok(UserInfo {
                 username: username,
                 uid: Some(uid),
                 groupname: groupname,
-                gid: Some(gid)})
+                gid: Some(gid),
+            })
         }
     }
 
@@ -170,8 +184,10 @@ impl Supervisor {
         // Note that the Windows Supervisor does not yet have a
         // corresponding "non-root" behavior, as the Linux version
         // does; services run as the service user.
-        Ok(UserInfo{username: Some(pkg.svc_user.clone()),
-                    .. Default::default()})
+        Ok(UserInfo {
+            username: Some(pkg.svc_user.clone()),
+            ..Default::default()
+        })
     }
 
     pub fn start<T>(
@@ -184,10 +200,12 @@ impl Supervisor {
     where
         T: ToString,
     {
-        let UserInfo{username: service_user,
-                     uid: service_user_id,
-                     groupname: service_group,
-                     gid: service_group_id} = self.user_info(&pkg)?;
+        let UserInfo {
+            username: service_user,
+            uid: service_user_id,
+            groupname: service_group,
+            gid: service_group_id,
+        } = self.user_info(&pkg)?;
 
         outputln!(preamble self.preamble,
                   "Starting service as user={}, group={}",

@@ -394,13 +394,15 @@ impl Service {
             let (reload, reconfigure) = {
                 let ctx = self.render_context(census_ring);
 
-                // If any hooks have changed, execute the `reload` hook (if present) or restart the
-                // service.
+                // If any hooks have changed, execute the `reload`
+                // hook (if present) or restart the service.
                 let reload = self.compile_hooks(&ctx);
 
-                // If the configuration has changed, execute the `reload` and `reconfigure` hooks.
-                // Note that the configuration does not necessarily change every time the user config has (e.g.
-                // when only a comment has been added to the latter)
+                // If the configuration has changed, execute the
+                // `reload` and `reconfigure` hooks.  Note that the
+                // configuration does not necessarily change every
+                // time the user config has (e.g.  when only a comment
+                // has been added to the latter)
                 let reconfigure = self.compile_configuration(&ctx);
 
                 (reload, reconfigure)

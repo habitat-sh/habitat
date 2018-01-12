@@ -141,7 +141,14 @@ impl SwimNet {
 
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {
         let to = member_from_server(&self.members[to_entry]);
-        trace_it!(TEST: &self.members[from_entry], format!("Connected {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        trace_it!(
+            TEST: &self.members[from_entry],
+            format!(
+                "Connected {} {}",
+                self.members[to_entry].name(),
+                self.members[to_entry].member_id()
+            )
+        );
         self.members[from_entry].insert_member(to, Health::Alive);
     }
 
@@ -178,7 +185,14 @@ impl SwimNet {
         let to = self.members.get(to_entry).expect(
             "Asked for a network member who is out of bounds",
         );
-        trace_it!(TEST: &self.members[from_entry], format!("Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        trace_it!(
+            TEST: &self.members[from_entry],
+            format!(
+                "Blacklisted {} {}",
+                self.members[to_entry].name(),
+                self.members[to_entry].member_id()
+            )
+        );
         from.add_to_blacklist(String::from(
             to.member.read().expect("Member lock is poisoned").get_id(),
         ));
@@ -191,7 +205,14 @@ impl SwimNet {
         let to = self.members.get(to_entry).expect(
             "Asked for a network member who is out of bounds",
         );
-        trace_it!(TEST: &self.members[from_entry], format!("Un-Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        trace_it!(
+            TEST: &self.members[from_entry],
+            format!(
+                "Un-Blacklisted {} {}",
+                self.members[to_entry].name(),
+                self.members[to_entry].member_id()
+            )
+        );
         from.remove_from_blacklist(to.member_id());
     }
 
@@ -405,12 +426,28 @@ impl SwimNet {
         loop {
             if let Some(real_health) = self.health_of(from_entry, to_check) {
                 if real_health == health {
-                    trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                    trace_it!(
+                        TEST: &self.members[from_entry],
+                        format!(
+                            "Health {} {} as {}",
+                            self.members[to_check].name(),
+                            self.members[to_check].member_id(),
+                            health
+                        )
+                    );
                     return true;
                 }
             }
             if self.check_rounds(&rounds_in) {
-                trace_it!(TEST: &self.members[from_entry], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                trace_it!(
+                    TEST: &self.members[from_entry],
+                    format!(
+                        "Health failed {} {} as {}",
+                        self.members[to_check].name(),
+                        self.members[to_check].member_id(),
+                        health
+                    )
+                );
                 println!("MEMBERS: {:#?}", self.members);
                 println!(
                     "Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
@@ -447,7 +484,15 @@ impl SwimNet {
                     match some_health {
                         &Some(ref health) => {
                             println!("{}: {:?}", i, health);
-                            trace_it!(TEST: &self.members[i], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                            trace_it!(
+                                TEST: &self.members[i],
+                                format!(
+                                    "Health failed {} {} as {}",
+                                    self.members[to_check].name(),
+                                    self.members[to_check].member_id(),
+                                    health
+                                )
+                            );
                         }
                         &None => {}
                     }
@@ -520,10 +565,21 @@ impl SwimNet {
 #[macro_export]
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.network_health_of($to).into_iter().all(|x| x == $health), "Member {} does not always have health {}", $to, $health)
+        assert!(
+            $network.network_health_of($to).into_iter().all(|x| x == $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        )
     };
     ($network:expr, $from: expr, $to:expr, $health:expr) => {
-        assert!($network.health_of($from, $to) == $health, "Member {} does not see {} as {}", $from, $to, $health)
+        assert!(
+            $network.health_of($from, $to) == $health,
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        )
     }
 }
 
@@ -537,16 +593,39 @@ macro_rules! assert_wait_for_health_of {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_health_of(*l, *r, $health), "Member {} does not see {} as {}", l, r, $health);
-                assert!($network.wait_for_health_of(*r, *l, $health), "Member {} does not see {} as {}", r, l, $health);
+                assert!(
+                    $network.wait_for_health_of(*l, *r, $health),
+                    "Member {} does not see {} as {}",
+                    l,
+                    r,
+                    $health
+                );
+                assert!(
+                    $network.wait_for_health_of(*r, *l, $health),
+                    "Member {} does not see {} as {}",
+                    r,
+                    l,
+                    $health
+                );
             }
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_network_health_of($to, $health), "Member {} does not always have health {}", $to, $health);
+        assert!(
+            $network.wait_for_network_health_of($to, $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        );
     };
     ($network:expr, $from: expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_health_of($from, $to, $health), "Member {} does not see {} as {}", $from, $to, $health);
+        assert!(
+            $network.wait_for_health_of($from, $to, $health),
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        );
     };
 }
 
@@ -575,7 +654,12 @@ macro_rules! assert_wait_for_equal_election {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_equal_election(*l, *r, $key), "Member {} is not equal to {}", l, r);
+                assert!(
+                    $network.wait_for_equal_election(*l, *r, $key),
+                    "Member {} is not equal to {}",
+                    l,
+                    r
+                );
             }
         }
     };
