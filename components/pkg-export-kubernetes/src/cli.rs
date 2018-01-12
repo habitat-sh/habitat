@@ -18,6 +18,10 @@ use std::result;
 use export_docker as docker;
 
 /// A Kubernetes-specific clap:App wrapper
+///
+/// The API here is provided to make it possible to reuse the CLI code of the Kubernetes exporter.
+/// The CLI argument addition is divided between multiple methods to allow you to only pick the
+/// parts of the CLI that you need.
 #[derive(Clone)]
 pub struct Cli<'a, 'b>
 where
@@ -27,12 +31,19 @@ where
 }
 
 impl<'a, 'b> Cli<'a, 'b> {
+    /// Create a `Cli`
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the CLI application to show in `--help' output.
+    /// * `about` - The long description of the CLi to show in `--help' output.
     pub fn new(name: &str, about: &'a str) -> Self {
         let app = docker::Cli::new(name, about).app;
 
         Cli { app: app }
     }
 
+    /// Convenient method to add all known arguments to the CLI.
     pub fn add_all_args(self) -> Self {
         self.add_docker_args()
             .add_output_args()
@@ -76,6 +87,7 @@ impl<'a, 'b> Cli<'a, 'b> {
         }
     }
 
+    /// Add Habitat (operator) runtime arguments to the CLI.
     pub fn add_runtime_args(self) -> Self {
         Cli {
             app: self.app
