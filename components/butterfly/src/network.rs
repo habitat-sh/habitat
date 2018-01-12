@@ -33,8 +33,6 @@ use error::{Error, Result};
 
 use zmq;
 
-use ServerContext;
-
 // We can get rid of this trait when constraining an associated type
 // like "type Address: FromStr where <Self as FromStr>::Err: Debug;"
 // is actually implemented.
@@ -185,6 +183,20 @@ impl GossipReceiver for GossipZmqSocket {
             .map_err(|e| Error::GossipReceiveError(e.description().to_owned()))
     }
 }
+
+/// This is a wrapper to provide interior mutability of an underlying
+/// `zmq::Context` and allows for sharing/sending of a `zmq::Context`
+/// between threads.
+struct ServerContext(UnsafeCell<zmq::Context>);
+
+impl ServerContext {
+    pub fn as_mut(&self) -> &mut zmq::Context {
+        unsafe { &mut *self.0.get() }
+    }
+}
+
+unsafe impl Send for ServerContext {}
+unsafe impl Sync for ServerContext {}
 
 /// An implementation of the `Network` trait that creates
 /// `SwimUdpSocket` instances for SWIM communication, and

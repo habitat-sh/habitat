@@ -48,8 +48,6 @@ extern crate bytes;
 extern crate cast;
 extern crate habitat_core;
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate log;
 extern crate prost;
 #[macro_use]
@@ -77,30 +75,4 @@ pub mod rumor;
 pub mod server;
 pub mod swim;
 
-use std::cell::UnsafeCell;
-
 pub use server::Server;
-
-lazy_static! {
-    /// A threadsafe shared ZMQ context for consuming services.
-    ///
-    /// You probably want to use this context to create new ZMQ sockets unless you *do not* want to
-    /// connect them together using an in-proc queue.
-    pub static ref ZMQ_CONTEXT: Box<ServerContext> = {
-        let ctx = ServerContext(UnsafeCell::new(zmq::Context::new()));
-        Box::new(ctx)
-    };
-}
-
-/// This is a wrapper to provide interior mutability of an underlying `zmq::Context` and allows
-/// for sharing/sending of a `zmq::Context` between threads.
-pub struct ServerContext(UnsafeCell<zmq::Context>);
-
-impl ServerContext {
-    pub fn as_mut(&self) -> &mut zmq::Context {
-        unsafe { &mut *self.0.get() }
-    }
-}
-
-unsafe impl Send for ServerContext {}
-unsafe impl Sync for ServerContext {}

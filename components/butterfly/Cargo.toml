@@ -18,7 +18,6 @@ cast = "*"
 env_logger = "*"
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 log = "*"
-lazy_static = "*"
 prost = "*"
 prost-derive = "*"
 rand = "*"

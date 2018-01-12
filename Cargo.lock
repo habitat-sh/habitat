@@ -783,7 +783,6 @@ dependencies = [
  "habitat_butterfly_test 0.1.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "heck 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
