@@ -774,6 +774,7 @@ dependencies = [
 name = "habitat_pkg_export_kubernetes"
 version = "0.0.0"
 dependencies = [
+ "base64 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.29.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.1 (git+https://github.com/withoutboats/failure.git)",

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate base64;
 extern crate clap;
 extern crate habitat_common as common;
 extern crate habitat_core as hcore;
