@@ -860,6 +860,7 @@ impl fmt::Display for Service {
     }
 }
 
+/// The relationship of a service with peers in the same service group.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Topology {
     Standalone,
