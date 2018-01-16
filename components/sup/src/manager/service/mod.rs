@@ -334,7 +334,8 @@ impl Service {
                     ElectionStatus::ElectionNoQuorum => {
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
-                                      "Waiting to execute hooks; election in progress, and we have no quorum.");
+                                      "Waiting to execute hooks; election in progress, \
+                                      and we have no quorum.");
 
                             self.last_election_status = census_group.election_status
                         }
