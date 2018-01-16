@@ -107,34 +107,33 @@ impl<'a, 'b> Cli<'a, 'b> {
                             "group is a logical grouping of services with the same package and \
                          topology type connected together in a ring (default: default)",
                         ),
+                )
+                .arg(
+                    Arg::with_name("CONFIG")
+                        .value_name("CONFIG")
+                        .long("config")
+                        .short("n")
+                        .help(
+                            "The path to Habitat configuration file in user.toml format. Habitat \
+                            will use it for initial configuration of the service running in a \
+                            Kubernetes cluster",
+                        ),
                 ),
         }
     }
 
     pub fn add_secret_names_args(self) -> Self {
         Cli {
-            app: self.app
-                .arg(
-                    Arg::with_name("CONFIG_SECRET_NAME")
-                        .value_name("CONFIG_SECRET_NAME")
-                        .long("config-secret-name")
-                        .short("n")
-                        .help(
-                            "name of the Kubernetes Secret containing the config file - \
-                         user.toml - that the user has previously created. Habitat will \
-                         use it for initial configuration of the service",
-                        ),
-                )
-                .arg(
-                    Arg::with_name("RING_SECRET_NAME")
-                        .value_name("RING_SECRET_NAME")
-                        .long("ring-secret-name")
-                        .short("r")
-                        .help(
-                            "name of the Kubernetes Secret that contains the ring key, which \
+            app: self.app.arg(
+                Arg::with_name("RING_SECRET_NAME")
+                    .value_name("RING_SECRET_NAME")
+                    .long("ring-secret-name")
+                    .short("r")
+                    .help(
+                        "name of the Kubernetes Secret that contains the ring key, which \
                          encrypts the communication between Habitat supervisors",
-                        ),
-                ),
+                    ),
+            ),
         }
     }
 

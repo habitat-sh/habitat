@@ -38,7 +38,7 @@ impl ManifestJson {
             "count": manifest.count,
             "service_topology": manifest.service_topology.to_string(),
             "service_group": manifest.service_group,
-            "config_secret_name": manifest.config_secret_name,
+            "config": manifest.config,
             "ring_secret_name": manifest.ring_secret_name,
             "bind": !manifest.binds.is_empty()
         });

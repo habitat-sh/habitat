@@ -13,9 +13,11 @@
 // limitations under the License.
 
 use std::str::FromStr;
+use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
+use base64;
 use clap::ArgMatches;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
@@ -36,7 +38,7 @@ pub struct Manifest {
     pub count: u64,
     pub service_topology: Topology,
     pub service_group: Option<String>,
-    pub config_secret_name: Option<String>,
+    pub config: Option<String>,
     pub ring_secret_name: Option<String>,
     pub binds: Vec<bind::Bind>,
 }
@@ -50,9 +52,7 @@ impl Manifest {
             .parse()
             .unwrap_or(Default::default());
         let group = matches.value_of("GROUP").map(|s| s.to_string());
-        let config_secret_name = matches.value_of("CONFIG_SECRET_NAME").map(
-            |s| s.to_string(),
-        );
+        let config_file = matches.value_of("CONFIG");
         let ring_secret_name = matches.value_of("RING_SECRET_NAME").map(|s| s.to_string());
         // clap ensures that we do have the mandatory args so unwrap() is fine here
         let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT").expect(
@@ -86,6 +86,16 @@ impl Manifest {
 
         let binds = bind::parse_bind_args(&matches)?;
 
+        let config = match config_file {
+            None => None,
+            Some(name) => {
+                let mut contents = String::new();
+                File::open(name)?.read_to_string(&mut contents)?;
+
+                Some(base64::encode(&format!("{}", contents)))
+            }
+        };
+
         Ok(Manifest {
             metadata_name: metadata_name,
             habitat_name: pkg_ident.name,
@@ -93,7 +103,7 @@ impl Manifest {
             count: count,
             service_topology: topology,
             service_group: group,
-            config_secret_name: config_secret_name,
+            config: config,
             ring_secret_name: ring_secret_name,
             binds: binds,
         })

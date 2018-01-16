@@ -63,9 +63,9 @@ impl<'a> Chart<'a> {
             "count": "{{.Values.instanceCount}}",
             "service_topology": "{{.Values.serviceTopology}}",
             "service_group": manifest.service_group.clone().map(|_| "{{.Values.serviceGroup}}"),
-            "config_secret_name": manifest.config_secret_name
+            "config": manifest.config
                 .clone()
-                .map(|_| "{{.Values.configSecretName}}"),
+                .map(|_| "{{.Values.config}}"),
             "ring_secret_name": manifest.ring_secret_name
                 .clone()
                 .map(|_| "{{.Values.ringSecretName}}"),
@@ -81,8 +81,8 @@ impl<'a> Chart<'a> {
         if let Some(ref group) = manifest.service_group {
             values.add_entry("serviceGroup", group);
         }
-        if let Some(ref name) = manifest.config_secret_name {
-            values.add_entry("configSecretName", name);
+        if let Some(ref config) = manifest.config {
+            values.add_entry("config", config);
         }
         if let Some(ref name) = manifest.ring_secret_name {
             values.add_entry("ringSecretName", name);

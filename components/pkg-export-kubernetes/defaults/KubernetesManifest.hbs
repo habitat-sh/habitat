@@ -1,15 +1,16 @@
+{{#if config}}
 ---
 ## Secret for initial configuration.
-#apiVersion: v1
-#kind: Secret
-#metadata:
-#  name: user-toml-secret
-#type: Opaque
-#data:
-#  # Each configuration item needs to be encoded in base64.
-#  # Plain text content of the secret: "port = 4444"
-#  user.toml: cG9ydCA9IDQ0NDQ=
-#---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: user-toml-secret
+type: Opaque
+data:
+  ## Each configuration item needs to be encoded in base64.
+  user.toml: {{config}}
+{{/if}}
+---
 apiVersion: habitat.sh/v1
 kind: Habitat
 metadata:
@@ -32,10 +33,9 @@ spec:
     ## with the same package.
     group: {{service_group}}
 {{/if}}
-{{#if config_secret_name}}
-    ## Name of the configuration secret. Edit the Kubernetes Secret
-    ## at the top.
-    configSecretName: {{config_secret_name}}
+{{#if config}}
+    ## Name of the configuration secret.
+    configSecretName: user-toml-secret
 {{/if}}
 {{#if ring_secret_name}}
     ## The name of the Kubernetes Secret that contains the ring key, which
