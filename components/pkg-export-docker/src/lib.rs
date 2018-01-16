@@ -38,6 +38,7 @@ extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 
+mod accounts;
 mod build;
 pub mod cli;
 mod docker;
@@ -49,9 +50,11 @@ mod util;
 use std::env;
 
 use common::ui::UI;
-use aws_creds::StaticProvider;
-use hcore::channel;
+use hcore::{channel, PROGRAM_NAME};
 use hcore::url as hurl;
+
+use aws_creds::StaticProvider;
+use clap::App;
 use rusoto_core::Region;
 use rusoto_core::request::*;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
@@ -224,4 +227,19 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
     }
 
     Ok(())
+}
+
+/// Create the Clap CLI for the Docker exporter
+pub fn cli<'a, 'b>() -> App<'a, 'b> {
+    let name: &str = &*PROGRAM_NAME;
+    let about = "Creates (an optionally pushes) a Docker image from a set of Habitat packages";
+
+    Cli::new(name, about)
+        .add_base_packages_args()
+        .add_builder_args()
+        .add_image_customization_args()
+        .add_tagging_args()
+        .add_publishing_args()
+        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
+        .app
 }

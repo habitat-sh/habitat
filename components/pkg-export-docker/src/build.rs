@@ -32,6 +32,7 @@ use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use tempdir::TempDir;
 
 use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
+use accounts::{EtcPasswdEntry, EtcGroupEntry};
 use error::{Error, Result};
 use fs;
 use rootfs;
@@ -40,8 +41,10 @@ use util;
 const DEFAULT_HAB_IDENT: &'static str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
-const DEFAULT_USER_ID: u32 = 42;
-const DEFAULT_GROUP_ID: u32 = DEFAULT_USER_ID;
+const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
+
+const DEFAULT_HAB_UID: u32 = 84;
+const DEFAULT_HAB_GID: u32 = 84;
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
@@ -82,6 +85,22 @@ impl<'a> BuildSpec<'a> {
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {
+
+        let user_id = match m.value_of("USER_ID") {
+            Some(i) => {
+                // unwrap OK because validation function ensures it
+                i.parse::<u32>().unwrap()
+            }
+            None => DEFAULT_USER_AND_GROUP_ID,
+        };
+        let group_id = match m.value_of("GROUP_ID") {
+            Some(i) => {
+                // unwrap OK because validation function ensures it
+                i.parse::<u32>().unwrap()
+            }
+            None => user_id,
+        };
+
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
             hab_launcher: m.value_of("HAB_LAUNCHER_PKG").unwrap_or(
@@ -95,20 +114,8 @@ impl<'a> BuildSpec<'a> {
             idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
                 .expect("No package specified")
                 .collect(),
-            user_id: match m.value_of("USER_ID") {
-                Some(i) => {
-                    // unwrap OK because validation function ensures it
-                    i.parse::<u32>().unwrap()
-                }
-                None => DEFAULT_USER_ID,
-            },
-            group_id: match m.value_of("GROUP_ID") {
-                Some(i) => {
-                    // unwrap OK because validation function ensures it
-                    i.parse::<u32>().unwrap()
-                }
-                None => DEFAULT_GROUP_ID,
-            },
+            user_id: user_id,
+            group_id: group_id,
             non_root: m.is_present("NON_ROOT"),
         }
     }
@@ -522,7 +529,7 @@ impl BuildRootContext {
 
     /// Returns a tuple of users to be added to the image's passwd database and groups to be added
     /// to the image's group database.
-    pub fn svc_users_and_groups(&self) -> Result<(Vec<String>, Vec<String>)> {
+    pub fn svc_users_and_groups(&self) -> Result<(Vec<EtcPasswdEntry>, Vec<EtcGroupEntry>)> {
         let mut users = Vec::new();
         let mut groups = Vec::new();
         let uid = self.user_id;
@@ -533,20 +540,132 @@ impl BuildRootContext {
         let group_name = pkg.svc_group()
             .unwrap_or(Some(String::from("hab")))
             .unwrap();
-        if user_name != "root" {
-            users.push(format!(
-                "{name}:x:{uid}:{gid}:{name} User:/:/bin/false\n",
-                name = user_name,
-                uid = uid,
-                gid = gid
-            ));
-            groups.push(format!(
-                "{name}:x:{gid}:{user_name}\n",
-                name = group_name,
-                gid = gid,
-                user_name = user_name
-            ));
+
+        // TODO: In some cases, packages based on core/nginx and
+        // core/httpd (and possibly others) will not work, because
+        // they specify a SVC_USER of `root`, but implicitly rely on a
+        // `hab` user being present for running lower-privileged
+        // worker processes. Habitat currently doesn't have a way to
+        // formally represent this, so until it does, we should make
+        // sure that there is a `hab` user and group present, just in
+        // case.
+        //
+        // With recent changes to the Supervisor, this hab user must
+        // be in the hab group for these packages to function
+        // properly, but only in the case that the `hab` user is
+        // being used in this back-channel kind of way. In general,
+        // there is no requirement that a user be in any specific
+        // group. In particular, there is no requirement that
+        // SVC_GROUP be the primary group of SVC_USER, or that
+        // SVC_USER even need to be in SVC_GROUP at all.
+        //
+        // When we can represent this multi-user situation better, we
+        // should be able to clean up some of this code (because it's
+        // a bit gnarly!) and not have to add an implicit hab user or
+        // group.
+        //
+        // NOTE: If this logic ever needs to get ANY more complex, it'd
+        // probably be better to encapsulate user and group management
+        // behind some "useradd" and "groupadd" facade functions that
+        // manage some internal representation and render the
+        // /etc/passwd and /etc/group files at the end, rather than
+        // trying to directly manage those files' contents.
+
+        // Since we're potentially going to have to create an extra
+        // hab user and/or group, they're going to need
+        // identifiers. If SVC_USER or SVC_GROUP is hab, then we'll
+        // use the IDs given by the user. On the other hand, if we're
+        // adding either one of those on top of SVC_USER/SVC_GROUP,
+        // then we'll use a default, incremented by one on the off
+        // chance that matches what the user specified on the command
+        // line.
+        let hab_uid = if uid == DEFAULT_HAB_UID {
+            DEFAULT_HAB_UID + 1
+        } else {
+            DEFAULT_HAB_UID
+        };
+        let hab_gid = if gid == DEFAULT_HAB_GID {
+            DEFAULT_HAB_GID + 1
+        } else {
+            DEFAULT_HAB_GID
+        };
+
+        match (user_name.as_ref(), group_name.as_ref()) {
+            ("root", "root") => {
+                // SVC_GROUP is SVC_USER's primary group (trivially)
+
+                // Just create a hab user in a hab group for safety
+                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
+            ("root", "hab") => {
+                // SVC_GROUP is NOT SVC_USER's primary group
+
+                // Currently, this is the anticipated case for nginx
+                // and httpd packages... the lower-privileged hab user
+                // needs to be in the hab group for things to work.
+                users.push(EtcPasswdEntry::new("hab", hab_uid, gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", gid, vec!["hab"]));
+            }
+            ("root", _) => {
+                // SVC_GROUP is NOT SVC_USER's primary group
+                // (trivially)
+                //
+                // No user is in SVC_GROUP, actually
+                groups.push(EtcGroupEntry::empty_group(&group_name, gid));
+
+                // Just create a hab user in a hab group for safety
+                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
+            ("hab", "hab") => {
+                // If the user explicitly called for hab/hab, give it
+                // to them.
+                //
+                // Strictly speaking, SVC_USER does not need to be in
+                // SVC_GROUP, but if we're making a user, we need to
+                // put them in *some* group.
+                users.push(EtcPasswdEntry::new("hab", uid, gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", gid, vec!["hab"]));
+            }
+            ("hab", "root") => {
+                // SVC_GROUP is NOT SVC_USER's primary group
+
+                // To prevent having to edit the root group entry,
+                // we'll just add the hab user to the hab group to put
+                // them someplace.
+                users.push(EtcPasswdEntry::new("hab", uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
+            ("hab", _) => {
+                // SVC_GROUP IS SVC_USER's primary group, and there is
+                // NO hab group
+
+                // Again, sticking the hab user into the group because
+                // it needs to go somewhere
+                users.push(EtcPasswdEntry::new("hab", uid, gid));
+                groups.push(EtcGroupEntry::group_with_users(
+                    &group_name,
+                    gid,
+                    vec!["hab"],
+                ));
+            }
+            (_, _) => {
+                // SVC_GROUP IS SVC_USER's primary group, because it
+                // has to go somewhere
+                users.push(EtcPasswdEntry::new(&user_name, uid, gid));
+                groups.push(EtcGroupEntry::group_with_users(
+                    &group_name,
+                    gid,
+                    vec![&user_name],
+                ));
+
+                // Just create a hab user in a hab group for safety
+                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+            }
         }
+
         // TODO fn: add remaining missing users and groups from service packages
 
         Ok((users, groups))
@@ -647,7 +766,16 @@ mod test {
     use hcore;
     use hcore::package::PackageTarget;
 
+    use clap::ArgMatches;
+
     use super::*;
+
+    /// Generate Clap ArgMatches for the exporter from a vector of arguments.
+    fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
+        let app = ::cli();
+        let matches = app.get_matches_from(&args);
+        matches
+    }
 
     fn build_spec<'a>() -> BuildSpec<'a> {
         BuildSpec {
@@ -665,42 +793,92 @@ mod test {
         }
     }
 
-    fn fake_pkg_install<P: AsRef<Path>>(
-        ident: &str,
-        bins: Option<Vec<&str>>,
+    struct FakePkg {
+        ident: String,
+        bins: Vec<String>,
         is_svc: bool,
-        rootfs: P,
-    ) -> PackageIdent {
-        let mut ident = PackageIdent::from_str(ident).unwrap();
-        if let None = ident.version {
-            ident.version = Some("1.2.3".into());
-        }
-        if let None = ident.release {
-            ident.release = Some("21120102121200".into());
-        }
-        let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
-        util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
-        util::write_file(prefix.join("TARGET"), &PackageTarget::default().to_string()).unwrap();
-
-        util::write_file(prefix.join("SVC_USER"), "my_user").unwrap();
-        util::write_file(prefix.join("SVC_GROUP"), "my_group").unwrap();
-
-        if let Some(bins) = bins {
-            util::write_file(
-                prefix.join("PATH"),
-                hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                    .join("bin")
-                    .to_string_lossy()
-                    .as_ref(),
-            ).unwrap();
-            for bin in bins {
-                util::write_file(prefix.join("bin").join(bin), "").unwrap();
+        rootfs: PathBuf,
+        svc_user: String,
+        svc_group: String,
+    }
+    impl FakePkg {
+        pub fn new<I, P>(ident: I, rootfs: P) -> FakePkg
+        where
+            I: ToString,
+            P: AsRef<Path>,
+        {
+            FakePkg {
+                ident: ident.to_string(),
+                bins: Vec::new(),
+                is_svc: false,
+                rootfs: rootfs.as_ref().to_path_buf(),
+                svc_user: "my_user".to_string(),
+                svc_group: "my_group".to_string(),
             }
         }
-        if is_svc {
-            util::write_file(prefix.join("run"), "").unwrap();
+
+        pub fn add_bin<S>(&mut self, bin: S) -> &mut FakePkg
+        where
+            S: ToString,
+        {
+            self.bins.push(bin.to_string());
+            self
         }
-        ident
+
+        pub fn set_svc(&mut self, is_svc: bool) -> &mut FakePkg {
+            self.is_svc = is_svc;
+            self
+        }
+
+        pub fn set_svc_user<S>(&mut self, svc_user: S) -> &mut FakePkg
+        where
+            S: ToString,
+        {
+            self.svc_user = svc_user.to_string();
+            self
+        }
+
+        pub fn set_svc_group<S>(&mut self, svc_group: S) -> &mut FakePkg
+        where
+            S: ToString,
+        {
+            self.svc_group = svc_group.to_string();
+            self
+        }
+
+
+        pub fn install(&self) -> PackageIdent {
+            let mut ident = PackageIdent::from_str(&self.ident).unwrap();
+            if let None = ident.version {
+                ident.version = Some("1.2.3".into());
+            }
+            if let None = ident.release {
+                ident.release = Some("21120102121200".into());
+            }
+            let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
+            util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
+            util::write_file(prefix.join("TARGET"), &PackageTarget::default().to_string()).unwrap();
+
+            util::write_file(prefix.join("SVC_USER"), &self.svc_user).unwrap();
+            util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();
+
+            if !self.bins.is_empty() {
+                util::write_file(
+                    prefix.join("PATH"),
+                    hcore::fs::pkg_install_path(&ident, None::<&Path>)
+                        .join("bin")
+                        .to_string_lossy()
+                        .as_ref(),
+                ).unwrap();
+                for bin in self.bins.iter() {
+                    util::write_file(prefix.join("bin").join(bin), "").unwrap();
+                }
+            }
+            if self.is_svc {
+                util::write_file(prefix.join("run"), "").unwrap();
+            }
+            ident
+        }
     }
 
     mod build_spec {
@@ -709,10 +887,60 @@ mod test {
 
         use common::ui::{Coloring, UI};
         use hcore;
+
         use tempdir::TempDir;
 
         use super::super::*;
         use super::*;
+
+        #[test]
+        fn without_arg_user_and_group_ids_are_the_default_and_identical() {
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "testing/foo"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, DEFAULT_USER_AND_GROUP_ID);
+            assert_eq!(build_spec.group_id, DEFAULT_USER_AND_GROUP_ID);
+        }
+
+        #[test]
+        fn user_id_option_sets_user_and_group_ids_to_the_same_value() {
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "testing/foo", "--user-id=2112"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, 2112);
+            assert_eq!(build_spec.group_id, 2112);
+        }
+
+        #[test]
+        fn setting_only_group_id_leaves_user_id_as_default() {
+            let matches = arg_matches(vec![
+                &*hcore::PROGRAM_NAME,
+                "testing/foo",
+                "--group-id=9999",
+            ]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, DEFAULT_USER_AND_GROUP_ID);
+            assert_eq!(build_spec.group_id, 9999);
+        }
+
+        #[test]
+        fn user_and_group_id_can_be_set_independently() {
+            let matches = arg_matches(vec![
+                &*hcore::PROGRAM_NAME,
+                "testing/foo",
+                "--user-id=5000",
+                "--group-id=9000",
+            ]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            assert_eq!(build_spec.user_id, 5000);
+            assert_eq!(build_spec.group_id, 9000);
+        }
 
         #[test]
         fn artifact_cache_symlink() {
@@ -812,28 +1040,34 @@ mod test {
         }
 
         fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install("acme/hab", Some(vec!["hab"]), false, &rootfs)
+            FakePkg::new("acme/hab", rootfs.as_ref())
+                .add_bin("hab")
+                .install()
         }
 
         fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install("acme/hab-sup", Some(vec!["hab-sup"]), false, &rootfs)
+            FakePkg::new("acme/hab-sup", rootfs.as_ref())
+                .add_bin("hab-sup")
+                .install()
         }
 
         fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install(
-                "acme/hab-launcher",
-                Some(vec!["hab-launch"]),
-                false,
-                &rootfs,
-            )
+            FakePkg::new("acme/hab-launcher", rootfs.as_ref())
+                .add_bin("hab-launch")
+                .install()
+
         }
 
         fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            fake_pkg_install("acme/busybox", Some(vec!["busybox", "sh"]), false, &rootfs)
+            FakePkg::new("acme/busybox", rootfs.as_ref())
+                .add_bin("busybox")
+                .add_bin("sh")
+                .install()
         }
 
         fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
-            let ident = fake_pkg_install("acme/cacerts", None, false, &rootfs);
+            let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
+
             let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
             util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
             ident
@@ -881,11 +1115,16 @@ mod test {
         #[test]
         fn build_context_from_a_spec() {
             let rootfs = TempDir::new("rootfs").unwrap();
-            // A library-only package
-            let _ = fake_pkg_install("acme/libby", None, false, rootfs.path());
+            let _ = FakePkg::new("acme/libby", rootfs.path()).install();
+
             // A couple service packages
-            let runna_install_ident = fake_pkg_install("acme/runna", None, true, rootfs.path());
-            let _ = fake_pkg_install("acme/jogga", None, true, rootfs.path());
+            let runna_install_ident = FakePkg::new("acme/runna", rootfs.path())
+                .set_svc(true)
+                .install();
+            let _ = FakePkg::new("acme/jogga", rootfs.path())
+                .set_svc(true)
+                .install();
+
             let mut spec = build_spec();
             spec.idents_or_archives = vec!["acme/libby", "acme/runna", "acme/jogga"];
             let ctx = BuildRootContext::from_spec(&spec, rootfs.path()).unwrap();
@@ -936,11 +1175,62 @@ mod test {
             );
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
-            assert_eq!(1, users.len());
-            assert!(users[0].starts_with("my_user:"));
-            assert_eq!(1, groups.len());
-            assert!(groups[0].starts_with("my_group:"));
+            assert_eq!(2, users.len());
+            assert_eq!(users[0].name, "my_user");
+            assert_eq!(users[1].name, "hab");
+            assert_eq!(2, groups.len());
+            assert_eq!(groups[0].name, "my_group");
+            assert_eq!(groups[1].name, "hab");
             // TODO fn: check ctx.svc_exposes()
+        }
+
+        #[test]
+        fn hab_user_and_group_are_created_even_if_not_explicitly_called_for() {
+
+            let rootfs = TempDir::new("rootfs").unwrap();
+
+            let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
+                .set_svc(true)
+                .set_svc_user("root")
+                .set_svc_group("root")
+                .install();
+
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
+
+            let (users, groups) = ctx.svc_users_and_groups().unwrap();
+            assert_eq!(1, users.len());
+            assert_eq!(users[0].name, "hab");
+            assert_eq!(1, groups.len());
+            assert_eq!(groups[0].name, "hab");
+        }
+
+        #[test]
+        fn hab_user_and_group_are_created_along_with_non_root_users() {
+            let rootfs = TempDir::new("rootfs").unwrap();
+
+            let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
+                .set_svc(true)
+                .set_svc_user("somebody_else")
+                .set_svc_group("some_other_group")
+                .install();
+
+            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+
+            let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
+
+            let (users, groups) = ctx.svc_users_and_groups().unwrap();
+            assert_eq!(2, users.len());
+            assert_eq!(users[0].name, "somebody_else");
+            assert_eq!(users[1].name, "hab");
+            assert_eq!(2, groups.len());
+            assert_eq!(groups[0].name, "some_other_group");
+            assert_eq!(groups[1].name, "hab");
         }
     }
 }

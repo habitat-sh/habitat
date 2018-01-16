@@ -399,15 +399,12 @@ impl DockerBuildRoot {
             let mut f = OpenOptions::new().append(true).open(
                 ctx.rootfs().join(&file),
             )?;
-            for line in users {
-                let user = line.split(":").next().expect(
-                    "user line contains first entry",
-                );
+            for user in users {
                 ui.status(
                     Status::Creating,
-                    format!("user '{}' in /{}", user, &file),
+                    format!("user '{}' in /{}", user.name, &file),
                 )?;
-                f.write_all(line.as_bytes())?;
+                write!(f, "{}\n", user)?;
             }
         }
         {
@@ -415,15 +412,12 @@ impl DockerBuildRoot {
             let mut f = OpenOptions::new().append(true).open(
                 ctx.rootfs().join(&file),
             )?;
-            for line in groups {
-                let group = line.split(":").next().expect(
-                    "group line contains first entry",
-                );
+            for group in groups {
                 ui.status(
                     Status::Creating,
-                    format!("group '{}' in /{}", group, &file),
+                    format!("group '{}' in /{}", group.name, &file),
                 )?;
-                f.write_all(line.as_bytes())?;
+                write!(f, "{}\n", group)?;
             }
         }
         Ok(())
