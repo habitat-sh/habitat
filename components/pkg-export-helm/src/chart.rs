@@ -97,8 +97,8 @@ impl<'a> Chart<'a> {
             i = i + 1;
 
             values.add_entry(&name_var, &bind.name);
-            values.add_entry(&service_var, &bind.service);
-            values.add_entry(&group_var, &bind.group);
+            values.add_entry(&service_var, &bind.service_group.service());
+            values.add_entry(&group_var, &bind.service_group.group());
 
             let json = json!({
                 "name": format!("{{{{.Values.{}}}}}", name_var),

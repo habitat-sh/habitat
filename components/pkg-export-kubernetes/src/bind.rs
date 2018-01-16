@@ -13,70 +13,19 @@
 // limitations under the License.
 
 use clap::ArgMatches;
-use std::str::FromStr;
+use failure::SyncFailure;
 
-use error::Error;
+use habitat_sup::manager::service::ServiceBind;
 
-/// A Habitat service bind inside a Kubernetes cluster.
-#[derive(Debug, Clone)]
-pub struct Bind {
-    pub name: String,
-    pub service: String,
-    pub group: String,
-}
+use export_docker::Result;
 
-impl FromStr for Bind {
-    type Err = Error;
-
-    /// Create a `Bind` from a string.
-    ///
-    /// # Errors
-    ///
-    /// * `bind_spec` is not in the form `"name:service:group"`
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use habitat_pkg_export_kubernetes::{Bind, Error};
-    ///
-    /// let b = "n:s:g".parse::<Bind>().unwrap();
-    ///
-    /// assert_eq!(b.name, "n");
-    /// assert_eq!(b.service, "s");
-    /// assert_eq!(b.group, "g");
-    ///
-    /// for s in ["ns:g", "nsg", ":nsg:"].iter() {
-    ///     if let Err(e) = s.parse::<Bind>() {
-    ///         match e {
-    ///             Error::InvalidBindSpec(_) => (),
-    ///             _ => panic!("Unexpected error type"),
-    ///        }
-    ///     }
-    /// }
-    /// ```
-    fn from_str(bind_spec: &str) -> Result<Self, Error> {
-        let split: Vec<&str> = bind_spec.split(":").collect();
-        if split.len() != 3 || split[0] == "" || split[1] == "" || split[2] == "" {
-            return Err(Error::InvalidBindSpec(bind_spec.to_owned()));
-        }
-
-        Ok(Bind {
-            name: split[0].to_owned(),
-            service: split[1].to_owned(),
-            group: split[2].to_owned(),
-        })
-    }
-}
-
-/// Helper function to parse CLI arguments into [`Bind`] instances.
-///
-/// [`Bind`]: ../bind/struct.Bind.html
-pub fn parse_bind_args(matches: &ArgMatches) -> Result<Vec<Bind>, Error> {
+/// Helper function to parse CLI arguments into `ServiceBind` instances.
+pub fn parse_bind_args(matches: &ArgMatches) -> Result<Vec<ServiceBind>> {
     let mut binds = Vec::new();
 
     if let Some(bind_args) = matches.values_of("BIND") {
         for arg in bind_args {
-            let b = arg.parse::<Bind>()?;
+            let b = arg.parse::<ServiceBind>().map_err(SyncFailure::new)?;
 
             binds.push(b);
         }

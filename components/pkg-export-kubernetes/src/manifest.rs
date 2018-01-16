@@ -26,7 +26,7 @@ use rand::Rng;
 
 use export_docker::Result;
 
-use habitat_sup::manager::service::Topology;
+use habitat_sup::manager::service::{Topology, ServiceBind};
 use manifestjson::ManifestJson;
 use bind;
 
@@ -51,10 +51,8 @@ pub struct Manifest {
     /// communication between Habitat supervisors.
     pub ring_secret_name: Option<String>,
 
-    /// Any binds, as [`Bind`] instances.
-    ///
-    /// [`Bind`]: ../bind/struct.Bind.html
-    pub binds: Vec<bind::Bind>,
+    /// Any binds, as `ServiceBind` instances.
+    pub binds: Vec<ServiceBind>,
 }
 
 impl Manifest {
@@ -176,13 +174,7 @@ mod tests {
             service_group: Some("group1".to_owned()),
             config: None,
             ring_secret_name: Some("deltaechofoxtrot".to_owned()),
-            binds: vec![
-                bind::Bind {
-                    name: "name1".to_owned(),
-                    service: "service1".to_owned(),
-                    group: "group1".to_owned(),
-                },
-            ],
+            binds: vec!["name1:service1.group1".parse().unwrap()],
         };
 
         let expected = include_str!("../tests/KubernetesManifestTestBinds.yaml");

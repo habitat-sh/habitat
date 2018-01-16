@@ -59,8 +59,8 @@ impl ManifestJson {
         for bind in &manifest.binds {
             let json = json!({
                 "name": bind.name.clone(),
-                "service": bind.service.clone(),
-                "group": bind.group.clone(),
+                "service": bind.service_group.service().to_owned(),
+                "group": bind.service_group.group().to_owned(),
             });
 
             binds.push(json);
