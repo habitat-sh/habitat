@@ -73,3 +73,8 @@ authors:
     email: "franklin@chef.io"
     twitter: "@franklinwebber"
     bio: "College dropout, turned instructor who found software development because everything else in his life was going too well. Forged by the fires of tech support, quality assurance and software development, he now brings technology to the hungry, sullied masses with raw energy, immeasurable empathy and a strong injection of humor."
+  garrettamini:
+    name: "Garrett Amini"
+    email: "garrett@chef.io"
+    twitter: "@mgamini"
+    bio: "Garrett is a front-end developer, Node nerd, and Habitat core maintainer, coming to Chef from the game industry."
