@@ -24,7 +24,7 @@ use rand::Rng;
 
 use export_docker::Result;
 
-use topology::Topology;
+use habitat_sup::manager::service::Topology;
 use manifestjson::ManifestJson;
 use bind;
 

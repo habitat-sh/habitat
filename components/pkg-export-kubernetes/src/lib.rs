@@ -16,6 +16,7 @@ extern crate clap;
 extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
+extern crate habitat_sup;
 extern crate handlebars;
 extern crate rand;
 #[macro_use]
@@ -31,7 +32,6 @@ use std::io::prelude::*;
 
 use common::ui::UI;
 
-pub mod topology;
 pub mod error;
 pub mod manifest;
 pub mod manifestjson;
@@ -45,7 +45,6 @@ pub use bind::Bind;
 pub use error::Error;
 pub use manifest::Manifest;
 pub use manifestjson::ManifestJson;
-pub use topology::Topology;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";

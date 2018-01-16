@@ -76,7 +76,8 @@ paths = [
   "components/core/*",
   "components/common/*",
   "components/hab/*",
-  "components/pkg-export-docker/*"
+  "components/pkg-export-docker/*",
+  "components/sup/*",
 ]
 
 [hab-pkg-export-helm]
@@ -87,6 +88,7 @@ paths = [
   "components/hab/*",
   "components/pkg-export-docker/*",
   "components/pkg-export-kubernetes/*",
+  "components/sup/*",
 ]
 
 # NOTE: cfize has a dependency on hab-pkg-dockerize, but we are
