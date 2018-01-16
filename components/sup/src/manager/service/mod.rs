@@ -999,10 +999,11 @@ mod test {
 
     #[test]
     fn topology_from_str() {
-        let topology_str = "leader";
-        let topology = Topology::from_str(topology_str).unwrap();
-
-        assert_eq!(topology, Topology::Leader);
+        assert_eq!(Topology::from_str("leader").unwrap(), Topology::Leader);
+        assert_eq!(
+            Topology::from_str("standalone").unwrap(),
+            Topology::Standalone
+        );
     }
 
     #[test]
@@ -1023,9 +1024,8 @@ mod test {
 
     #[test]
     fn topology_to_string() {
-        let topology = Topology::Standalone;
-
-        assert_eq!("standalone", topology.to_string())
+        assert_eq!("standalone", Topology::Standalone.to_string());
+        assert_eq!("leader", Topology::Leader.to_string());
     }
 
     #[test]
