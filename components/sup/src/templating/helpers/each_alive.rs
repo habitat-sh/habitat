@@ -56,7 +56,7 @@ impl HelperDef for EachAliveHelper {
                         if let Some(block_param) = h.block_param() {
                             let mut map = BTreeMap::new();
                             map.insert(block_param.to_string(), to_json(&alive_members[i]));
-                            local_rc.push_block_context(&map);
+                            local_rc.push_block_context(&map)?;
                         }
 
                         template.render(r, &mut local_rc)?;
@@ -94,7 +94,7 @@ impl HelperDef for EachAliveHelper {
                             let mut map = BTreeMap::new();
                             map.insert(bp_key.to_string(), to_json(k));
                             map.insert(bp_val.to_string(), to_json(obj.get(k).unwrap()));
-                            local_rc.push_block_context(&map);
+                            local_rc.push_block_context(&map)?;
                         }
 
                         template.render(r, &mut local_rc)?;
