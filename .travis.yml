@@ -141,7 +141,6 @@ matrix:
         - ./support/ci/install_rustfmt.sh
         - ./support/ci/rust_env.sh
         - openssl aes-256-cbc -K $encrypted_f0fe831d6b31_key -iv $encrypted_f0fe831d6b31_iv -in ./support/ci/builder-github-app.pem.enc -out /tmp/builder-github-app.pem -d
-        - ./support/ci/rust_env.sh
       script:
         # - ./support/ci/lint.sh
         # - ./support/ci/rust_tests.sh

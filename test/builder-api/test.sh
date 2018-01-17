@@ -3,6 +3,7 @@
 # This script exists to run our integration tests.
 
 set -e
+set -x
 
 # Check to see if a command exists
 exists() {
@@ -94,6 +95,13 @@ fi
 
 # First make sure that we have services already compiled to test.
 cd "$base_dir"
+
+echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
+for X in $(echo "$PKG_CONFIG_PATH" | tr ':' ' '); do ls -l "$X"; done
+echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+for X in $(echo "$LD_LIBRARY_PATH" | tr ':' ' '); do ls -l "$X"; done
+echo "LIBRARY_PATH: $LIBRARY_PATH"
+for X in $(echo "$LIBRARY_PATH" | tr ':' ' '); do ls -l "$X"; done
 
 make build-srv
 cd $tmp_dir
