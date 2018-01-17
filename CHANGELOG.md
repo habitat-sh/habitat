@@ -1,5 +1,9 @@
 # Habitat CHANGELOG
 
+## [0.52.0](https://github.com/habitat-sh/habitat/tree/0.51.0) (01-17-2017)
+
+- TBD
+
 ## [0.51.0](https://github.com/habitat-sh/habitat/tree/0.51.0) (12-18-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.3...0.51.0)
 
