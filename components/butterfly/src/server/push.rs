@@ -150,7 +150,7 @@ impl<N: Network> PushWorker<N> {
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
     /// method can loose messages.
     fn send_rumors(&self, member: Member, rumors: Vec<RumorKey>) {
-        let socket = match self.server.read_network().get_gossip_sender(
+        let sender = match self.server.read_network().get_gossip_sender(
             member.gossip_socket_address(),
         ) {
             Ok(s) => s,
@@ -308,7 +308,7 @@ impl<N: Network> PushWorker<N> {
                     continue 'rumorlist;
                 }
             };
-            match socket.send(&payload) {
+            match sender.send(&payload) {
                 Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
                 Err(e) => {
                     println!(

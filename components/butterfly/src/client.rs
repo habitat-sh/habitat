@@ -29,15 +29,15 @@ use network::GossipSender;
 
 /// Holds a gossip push socket, and an optional ring encryption key.
 pub struct Client<GS: GossipSender> {
-    socket: GS,
+    sender: GS,
     ring_key: Option<SymKey>,
 }
 
 impl<GS: GossipSender> Client<GS> {
     /// Connect this client to the address, and optionally encrypt the traffic.
-    pub fn new(socket: GS, ring_key: Option<SymKey>) -> Self {
+    pub fn new(sender: GS, ring_key: Option<SymKey>) -> Self {
         Self {
-            socket: socket,
+            sender: sender,
             ring_key: ring_key,
         }
     }
@@ -84,6 +84,6 @@ impl<GS: GossipSender> Client<GS> {
     pub fn send<T: Rumor>(&mut self, rumor: T) -> Result<()> {
         let bytes = rumor.write_to_bytes()?;
         let wire_msg = message::generate_wire(bytes, self.ring_key.as_ref())?;
-        self.socket.send(&wire_msg)
+        self.sender.send(&wire_msg)
     }
 }

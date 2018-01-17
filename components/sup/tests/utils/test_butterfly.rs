@@ -47,10 +47,10 @@ impl Client {
             "Could not parse Butterfly gossip address!",
         );
         let network = RealNetwork::new_for_client();
-        let socket = network.get_gossip_sender(gossip_addr).expect(
+        let sender = network.get_gossip_sender(gossip_addr).expect(
             "Could not create gossip sender",
         );
-        let c = ButterflyClient::new(socket, None);
+        let c = ButterflyClient::new(sender, None);
         Client {
             butterfly_client: c,
             package_name: package_name.to_string(),

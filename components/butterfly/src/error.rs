@@ -45,7 +45,7 @@ pub enum Error {
     ServiceConfigNotUtf8(String, str::Utf8Error),
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
-    SocketCloneError,
+    SwimChannelCloneError,
     SwimChannelSetupError(String),
     SwimReceiveError(String),
     SwimReceiveIOError(io::Error),
@@ -117,7 +117,7 @@ impl fmt::Display for Error {
             Error::SocketSetWriteTimeout(ref err) => {
                 format!("Cannot set UDP socket write timeout: {}", err)
             }
-            Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
+            Error::SwimChannelCloneError => format!("Cannot clone the SWIM channel"),
             Error::SwimChannelSetupError(ref err) => {
                 format!("Error setting up SWIM channel: {}", err)
             }
@@ -164,7 +164,7 @@ impl error::Error for Error {
             Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",
             Error::SocketSetReadTimeout(_) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(_) => "Cannot set UDP socket write timeout",
-            Error::SocketCloneError => "Cannot clone the underlying UDP socket",
+            Error::SwimChannelCloneError => "Cannot clone the SWIM channel",
             Error::SwimChannelSetupError(_) => "Error setting up SWIM channel",
             Error::SwimReceiveError(_) => "Failed to receive data from SWIM channel",
             Error::SwimReceiveIOError(_) => "Failed to receive data from SWIM channel",

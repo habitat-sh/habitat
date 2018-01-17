@@ -49,10 +49,10 @@ static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 pub fn get_client_for_address(addr: SocketAddr) -> Client<GossipZmqSocket> {
     let network = RealNetwork::new_for_client();
-    let socket = network.get_gossip_sender(addr).expect(
+    let sender = network.get_gossip_sender(addr).expect(
         "Cannot create gossip socket",
     );
-    Client::new(socket, None)
+    Client::new(sender, None)
 }
 
 #[derive(Debug)]

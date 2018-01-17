@@ -41,7 +41,7 @@ impl<N: Network> Pull<N> {
     /// Run this thread. Creates a socket, binds to the `gossip_addr`, then processes messages as
     /// they are received. Uses a ZMQ pull socket, so inbound messages are fair-queued.
     pub fn run(&mut self) {
-        let socket = self.server.read_network().get_gossip_receiver().expect(
+        let receiver = self.server.read_network().get_gossip_receiver().expect(
             "Failed to get gossip pull socket",
         );
         'recv: loop {
@@ -49,7 +49,7 @@ impl<N: Network> Pull<N> {
                 thread::sleep(Duration::from_millis(100));
                 continue;
             }
-            let msg = match socket.receive() {
+            let msg = match receiver.receive() {
                 Ok(msg) => msg,
                 Err(e) => {
                     error!("Error receiving message: {:?}", e);
