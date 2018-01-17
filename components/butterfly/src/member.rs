@@ -135,8 +135,9 @@ impl Member {
     ///
     /// # Panics
     ///
-    /// This function panics if the address is un-parseable. In practice, it shouldn't be
-    /// un-parseable, since its set from the inbound socket directly.
+    /// This function panics if the address is unparsable. In
+    /// practice, it shouldn't be unparsable, since its set from the
+    /// inbound socket directly.
     pub fn swim_socket_address(&self) -> SocketAddr {
         self.socket_address(self.get_swim_port())
     }
@@ -145,8 +146,9 @@ impl Member {
     ///
     /// # Panics
     ///
-    /// This function panics if the address is un-parseable. In practice, it shouldn't be
-    /// un-parseable, since its set from the inbound socket directly.
+    /// This function panics if the address is unparsable. In
+    /// practice, it shouldn't be unparsable, since its set from the
+    /// inbound socket directly.
     pub fn gossip_socket_address(&self) -> SocketAddr {
         self.socket_address(self.get_gossip_port())
     }
