@@ -63,6 +63,7 @@ extern crate zmq;
 pub mod trace;
 pub mod client;
 pub mod error;
+pub mod network;
 pub mod member;
 pub mod message;
 pub mod rumor;
