@@ -148,24 +148,28 @@ impl Runner {
         Ok(())
     }
 
-    fn do_setup(&mut self, tx: &mpsc::Sender<Job>) -> Result<()> {
+    fn do_setup(&mut self, tx: &mpsc::Sender<Job>) -> Result<LogPipe> {
         self.check_cancel(tx)?;
 
-        if let Some(err) = self.setup().err() {
-            let msg = format!(
-                "Failed to setup workspace for {}, err={:?}",
-                self.workspace.job.get_project().get_name(),
-                err
-            );
-            warn!("{}", msg);
-            self.logger.log(&msg);
+        let lp = match self.setup() {
+            Ok(lp) => lp,
+            Err(err) => {
+                let msg = format!(
+                    "Failed to setup workspace for {}, err={:?}",
+                    self.workspace.job.get_project().get_name(),
+                    err
+                );
+                warn!("{}", msg);
+                self.logger.log(&msg);
 
-            self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
-            tx.send(self.job().clone()).map_err(Error::Mpsc)?;
-            return Err(err);
-        }
+                self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
+                tx.send(self.job().clone()).map_err(Error::Mpsc)?;
+                return Err(err);
+            }
 
-        Ok(())
+        };
+
+        Ok(lp)
     }
 
     fn do_install_key(&mut self, tx: &mpsc::Sender<Job>) -> Result<()> {
@@ -224,7 +228,11 @@ impl Runner {
         Ok(())
     }
 
-    fn do_build(&mut self, tx: &mpsc::Sender<Job>) -> Result<PackageArchive> {
+    fn do_build(
+        &mut self,
+        tx: &mpsc::Sender<Job>,
+        log_pipe: &mut LogPipe,
+    ) -> Result<PackageArchive> {
         self.check_cancel(tx)?;
 
         self.workspace.job.set_build_started_at(
@@ -237,7 +245,7 @@ impl Runner {
         // to "Complete" (or "Failed", etc.). As a result, we won't
         // get the `build_started_at` time set until the job is actually
         // finished.
-        let mut archive = match self.build() {
+        let mut archive = match self.build(log_pipe) {
             Ok(archive) => {
                 self.workspace.job.set_build_finished_at(
                     Utc::now().to_rfc3339(),
@@ -272,8 +280,10 @@ impl Runner {
         &mut self,
         tx: &mpsc::Sender<Job>,
         mut archive: PackageArchive,
+        log_pipe: &mut LogPipe,
     ) -> Result<()> {
         self.check_cancel(tx)?;
+        log_pipe.pipe_buffer(b"\n--- BEGIN: Postprocessing ---\n")?;
 
         match post_process(
             &mut archive,
@@ -284,11 +294,14 @@ impl Runner {
         ) {
             Ok(_) => (),
             Err(err) => {
+                log_pipe.pipe_buffer(b"\n--- FAILED: Postprocessing ---\n")?;
                 self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
                 tx.send(self.job().clone()).map_err(Error::Mpsc)?;
                 return Err(err);
             }
         }
+
+        log_pipe.pipe_buffer(b"\n--- END: Postprocessing ---\n")?;
 
         Ok(())
     }
@@ -306,12 +319,12 @@ impl Runner {
 
     pub fn run(mut self, tx: mpsc::Sender<Job>) -> Result<()> {
         self.do_validate(&tx)?;
-        self.do_setup(&tx)?;
+        let mut log_pipe = self.do_setup(&tx)?;
         self.do_install_key(&tx)?;
         self.do_clone(&tx)?;
 
-        let archive = self.do_build(&tx)?;
-        self.do_postprocess(&tx, archive)?;
+        let archive = self.do_build(&tx, &mut log_pipe)?;
+        self.do_postprocess(&tx, archive, &mut log_pipe)?;
 
         self.cleanup();
         self.complete();
@@ -359,9 +372,9 @@ impl Runner {
         }
     }
 
-    fn build(&mut self) -> Result<PackageArchive> {
-        let mut log_pipe = LogPipe::new(&self.workspace);
+    fn build(&mut self, log_pipe: &mut LogPipe) -> Result<PackageArchive> {
         log_pipe.pipe_buffer(b"\n--- BEGIN: Studio build ---\n")?;
+
         let networking = match (
             self.config.network_interface.as_ref(),
             self.config.network_gateway.as_ref(),
@@ -377,7 +390,7 @@ impl Runner {
             &self.bldr_token,
             self.config.airlock_enabled,
             networking,
-        ).build(&mut log_pipe)?;
+        ).build(log_pipe)?;
         log_pipe.pipe_buffer(b"\n--- END: Studio build ---\n")?;
 
         if fs::rename(self.workspace.src().join("results"), self.workspace.out()).is_err() {
@@ -395,11 +408,13 @@ impl Runner {
             if self.workspace.last_built()?.is_a_service() {
                 debug!("Found runnable package, running docker export");
                 log_pipe.pipe_buffer(b"\n--- BEGIN: Docker export ---\n")?;
+
                 status = DockerExporter::new(
                     util::docker_exporter_spec(&self.workspace),
                     &self.workspace,
                     &self.config.bldr_url,
-                ).export(&mut log_pipe)?;
+                ).export(log_pipe)?;
+
                 log_pipe.pipe_buffer(b"\n--- END: Docker export ---\n")?;
             } else {
                 debug!("Package not runnable, skipping docker export");
@@ -431,7 +446,7 @@ impl Runner {
         self.logger.log_worker_job(&self.workspace.job);
     }
 
-    fn setup(&mut self) -> Result<()> {
+    fn setup(&mut self) -> Result<LogPipe> {
         self.logger.log_worker_job(&self.workspace.job);
 
         // Ensure that data path group ownership is set to the build user and directory perms are
@@ -480,7 +495,7 @@ impl Runner {
             studio::studio_gid(),
         )?;
 
-        Ok(())
+        Ok(LogPipe::new(&self.workspace))
     }
 
     fn teardown(&mut self) {
