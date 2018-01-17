@@ -71,6 +71,7 @@ pub mod client;
 pub mod error;
 pub mod member;
 pub mod message;
+pub mod network;
 pub mod protocol;
 pub mod rumor;
 pub mod server;
