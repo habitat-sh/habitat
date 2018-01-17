@@ -319,7 +319,8 @@ done
 if pid_is_running "$forego_pid"; then
   echo "**** All services ready ****"
 else
-  echo "forego died; check $dir/services.log"
+  echo "forego died; output from $dir/services.log:"
+  cat "$dir/services.log"
   exit 1
 fi
 
