@@ -79,7 +79,7 @@ impl Manifest {
 
         let image = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
-            None => pkg_ident.origin + "/" + &pkg_ident.name,
+            None => pkg_ident.origin + "/" + &pkg_ident.name + ":latest",
         };
 
         let binds = bind::parse_bind_args(&matches)?;
