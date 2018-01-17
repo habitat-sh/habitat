@@ -49,12 +49,7 @@ export BLDR_FULL_TEST_RUN=1
 unset npm_config_prefix
 pg_svc_dir="/hab/svc/postgresql"
 
-# If this script is being run by Travis, then we need to point cargo to the libs we installed ourselves.
-# Failure to do this means that the bldr-* components won't be able to find the shared libraries they need.
-# We also need to specify that we want the "travis" user to run things instead of "hab"
 if [ -n "$TRAVIS" ]; then
-  rp=$(find "$HOME/pkgs" -name "lib" -type d | paste -sd ":" -)
-  export LD_RUN_PATH="$LD_RUN_PATH:$rp"
   user="travis"
 else
   user="hab"
