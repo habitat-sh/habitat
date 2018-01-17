@@ -2,8 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-17.04"
-#  config.vm.box = "ubuntu-17.04-custom"
+  config.vm.box = "bento/ubuntu-17.10"
   config.vm.provision "shell", path: "./support/linux/provision.sh", privileged: true
 
   config.vm.synced_folder ".", "/src"

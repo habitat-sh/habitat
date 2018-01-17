@@ -23,7 +23,7 @@ sudo -E apt-get install -y --no-install-recommends \
   musl-tools \
   net-tools \
   pkg-config \
-  postgresql-server-dev-9.6 \
+  libpq-dev \
   protobuf-compiler \
   software-properties-common \
   sudo \
