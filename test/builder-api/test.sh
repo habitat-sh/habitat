@@ -291,8 +291,10 @@ else
 fi
 
 sudo_pid=$!
-while pid_is_running $sudo_pid && [[ -z ${forego_pid:-} ]]; do
-  forego_pid=$(pgrep -P "$sudo_pid")
+# Wait for the child forego process to spawn so we can get its pid
+while pid_is_running $sudo_pid && ! forego_pid=$(pgrep -P "$sudo_pid"); do
+  echo -n '.'
+  sleep 1
 done
 
 echo "**** Spinning up the services ****"
