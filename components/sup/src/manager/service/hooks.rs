@@ -98,6 +98,8 @@ pub trait Hook: fmt::Debug + Sized {
     fn new(service_group: &ServiceGroup, render_pair: RenderPair) -> Self;
 
     /// Compile a hook into its destination service directory.
+    ///
+    /// Returns `true` if the hook has changed.
     fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
         let content = self.renderer().render(Self::file_name(), ctx)?;
         if write_hook(&content, self.path())? {

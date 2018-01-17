@@ -62,6 +62,9 @@ enum FollowerState {
     Updating(Receiver<PackageInstall>),
 }
 
+/// The ServiceUpdater is in charge of updating a Service when a more recent version of a package
+/// has been published to a depot or installed to the local package cache.
+/// To use an update strategy, the supervisor must be configured to watch a depot for new versions.
 pub struct ServiceUpdater {
     states: UpdaterStateList,
     butterfly: butterfly::Server,

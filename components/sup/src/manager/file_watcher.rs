@@ -27,7 +27,7 @@ use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
 use manager::debug::{IndentedStructFormatter, IndentedToString};
 
-const WATCHER_DELAY_MS: u64 = 2_000;
+pub const WATCHER_DELAY_MS: u64 = 2_000;
 static LOGKEY: &'static str = "FW";
 
 /// A set of callbacks for the watched file events.
@@ -1223,16 +1223,54 @@ where
     return FileWatcher::<C, RecommendedWatcher>::create(path, callbacks);
 }
 
+pub fn default_file_watcher_with_no_initial_event<P, C>(
+    path: P,
+    callbacks: C,
+) -> Result<FileWatcher<C, RecommendedWatcher>>
+where
+    P: Into<PathBuf>,
+    C: Callbacks,
+{
+    return FileWatcher::<C, RecommendedWatcher>::create_with_no_initial_event(path, callbacks);
+}
+
 impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     /// Creates a new `FileWatcher`.
     ///
     /// This will create an instance of `W` and start watching the
-    /// paths.
+    /// paths. When looping the file watcher, it will emit an initial
+    /// "file appeared" event if the watched file existed when the
+    /// file watcher was created.
     ///
     /// Will return `Error::NotifyCreateError` if creating the watcher
     /// fails. In case of watching errors, it returns
     /// `Error::NotifyError`.
     pub fn create<P>(path: P, callbacks: C) -> Result<Self>
+    where
+        P: Into<PathBuf>,
+    {
+        Self::create_instance(path, callbacks, true)
+    }
+
+    /// Creates a new `FileWatcher`.
+    ///
+    /// This will create an instance of `W` and start watching the
+    /// paths. When looping the file watcher, it will not emit any
+    /// initial "file appeared" event even if the watched file existed
+    /// when the file watcher was created.
+    ///
+    /// Will return `Error::NotifyCreateError` if creating the watcher
+    /// fails. In case of watching errors, it returns
+    /// `Error::NotifyError`.
+    pub fn create_with_no_initial_event<P>(path: P, callbacks: C) -> Result<Self>
+    where
+        P: Into<PathBuf>,
+    {
+        Self::create_instance(path, callbacks, false)
+    }
+
+    // Creates an instance of the FileWatcher.
+    fn create_instance<P>(path: P, callbacks: C, send_initial_event: bool) -> Result<Self>
     where
         P: Into<PathBuf>,
     {
@@ -1253,7 +1291,11 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                 .watch(&directory, RecursiveMode::NonRecursive)
                 .map_err(|err| sup_error!(Error::NotifyError(err)))?;
         }
-        let initial_real_file = paths.real_file.clone();
+        let initial_real_file = if send_initial_event {
+            paths.real_file.clone()
+        } else {
+            None
+        };
 
         Ok(Self {
             callbacks: callbacks,
