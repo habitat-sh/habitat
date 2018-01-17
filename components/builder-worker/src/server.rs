@@ -17,6 +17,7 @@ use std::iter::FromIterator;
 use std::sync::Arc;
 
 use hab_core::users;
+use hab_core::util::perm;
 use hab_net;
 use hab_net::socket::DEFAULT_CONTEXT;
 use protocol::{message, jobsrv};
@@ -27,6 +28,7 @@ use error::{Error, Result};
 use feat;
 use heartbeat::{HeartbeatCli, HeartbeatMgr};
 use log_forwarder::LogForwarder;
+use network::NetworkNamespace;
 use runner::{studio, RunnerCli, RunnerMgr};
 
 enum State {
@@ -70,21 +72,8 @@ impl Server {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        if self.config.network_interface.is_some() && self.config.network_gateway.is_none() {
-            error!(
-                "ERROR: No 'network_gateway' config value specfied when 'network_interface' \
-                   was provided. Both must be present to work correctly."
-            );
-            return Err(Error::NoNetworkGatewayError);
-        }
-        if self.config.network_gateway.is_some() && self.config.network_interface.is_none() {
-            error!(
-                "ERROR: No 'network_interface' config value specfied when 'network_gateway' \
-                   was provided. Both must be present to work correctly."
-            );
-            return Err(Error::NoNetworkInterfaceError);
-        }
         init_users()?;
+        self.setup_networking()?;
         self.enable_features_from_config();
 
         HeartbeatMgr::start(&self.config, (&*self.net_ident).clone())?;
@@ -185,6 +174,76 @@ impl Server {
     fn set_ready(&mut self) -> Result<()> {
         self.hb_cli.set_ready()?;
         self.state = State::Ready;
+        Ok(())
+    }
+
+    fn setup_networking(&self) -> Result<()> {
+        // Skip if networking details are not specified
+        if self.config.network_interface.is_none() && self.config.network_gateway.is_none() {
+            info!("airlock networking is not configured, skipping network creation");
+            return Ok(());
+        }
+        if self.config.network_interface.is_some() && self.config.network_gateway.is_none() {
+            error!(
+                "ERROR: No 'network_gateway' config value specfied when 'network_interface' \
+                   was provided. Both must be present to work correctly."
+            );
+            return Err(Error::NoNetworkGatewayError);
+        }
+        if self.config.network_gateway.is_some() && self.config.network_interface.is_none() {
+            error!(
+                "ERROR: No 'network_interface' config value specfied when 'network_gateway' \
+                   was provided. Both must be present to work correctly."
+            );
+            return Err(Error::NoNetworkInterfaceError);
+        }
+
+        let net_ns = NetworkNamespace::new(self.config.ns_dir_path());
+        if net_ns.exists() {
+            if self.config.recreate_ns_dir {
+                // If a network namespace appears to be setup and the recreate config is true, then
+                // we should destroy this namespace so it can be created again below
+                net_ns.destroy()?;
+            } else {
+                info!(
+                    "reusing network namespace, dir={}",
+                    net_ns.ns_dir().display()
+                );
+                return Ok(());
+            }
+        }
+
+        let interface = self.config.network_interface.as_ref().expect(
+            "network_interface is set",
+        );
+        let gateway = self.config.network_gateway.as_ref().expect(
+            "network_gateway is set",
+        );
+        self.prepare_dirs()?;
+        net_ns.create(interface, gateway, studio::STUDIO_USER)
+    }
+
+    fn prepare_dirs(&self) -> Result<()> {
+        // Ensure that data path group ownership is set to the build user and directory perms are
+        // `0750`. This allows the namespace files to be accessed and read by the build user
+        perm::set_owner(
+            &self.config.data_path,
+            users::get_current_username()
+                .unwrap_or(String::from("root"))
+                .as_str(),
+            studio::STUDIO_GROUP,
+        )?;
+        perm::set_permissions(&self.config.data_path, 0o750)?;
+
+        // Set parent directory of ns_dir to be owned by the build user so that the appropriate
+        // directories, files, and bind-mounts can be created for the build user
+        let parent_path = self.config.ns_dir_path();
+        let parent_path = parent_path.parent().expect(
+            "parent directory for ns_dir should exist",
+        );
+        perm::set_owner(&parent_path, studio::STUDIO_USER, studio::STUDIO_GROUP)?;
+        perm::set_permissions(&parent_path, 0o750)?;
+
         Ok(())
     }
 

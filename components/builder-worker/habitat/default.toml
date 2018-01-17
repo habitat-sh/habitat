@@ -4,6 +4,7 @@ bldr_channel = "unstable"
 bldr_url = "https://bldr.habitat.sh"
 features_enabled = ""
 airlock_enabled = true
+recreate_ns_dir = false
 
 [github]
 url = "https://api.github.com"

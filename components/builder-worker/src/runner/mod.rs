@@ -50,6 +50,7 @@ use self::docker::DockerExporter;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
+use network::NetworkNamespace;
 use retry::retry;
 use vcs::VCS;
 
@@ -375,11 +376,11 @@ impl Runner {
     fn build(&mut self, log_pipe: &mut LogPipe) -> Result<PackageArchive> {
         log_pipe.pipe_buffer(b"\n--- BEGIN: Studio build ---\n")?;
 
-        let networking = match (
+        let network_namespace = match (
             self.config.network_interface.as_ref(),
             self.config.network_gateway.as_ref(),
         ) {
-            (Some(interface), Some(gateway)) => Some((interface.as_str(), gateway)),
+            (Some(_), Some(_)) => Some(NetworkNamespace::new(self.config.ns_dir_path())),
             (None, None) => None,
             (None, Some(_)) => return Err(Error::NoNetworkInterfaceError),
             (Some(_), None) => return Err(Error::NoNetworkGatewayError),
@@ -389,7 +390,7 @@ impl Runner {
             &self.config.bldr_url,
             &self.bldr_token,
             self.config.airlock_enabled,
-            networking,
+            network_namespace,
         ).build(log_pipe)?;
         log_pipe.pipe_buffer(b"\n--- END: Studio build ---\n")?;
 
