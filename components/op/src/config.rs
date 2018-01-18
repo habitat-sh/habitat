@@ -16,18 +16,15 @@
 pub struct Config {
     // file to hash
     pub file: Option<String>,
-    // origin to get the shard of
-    pub origin: Option<String>,
-    // account to get the shard of
-    pub account: Option<u64>,
+    // shard
+    pub shard: Option<String>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
             file: None,
-            origin: None,
-            account: None,
+            shard: None,
         }
     }
 }
