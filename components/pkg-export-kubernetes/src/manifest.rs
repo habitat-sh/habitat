@@ -21,8 +21,6 @@ use base64;
 use clap::ArgMatches;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
-use rand;
-use rand::Rng;
 
 use export_docker::Result;
 
@@ -33,10 +31,8 @@ use bind;
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]
 pub struct Manifest {
-    /// The service name in the Kubernetes cluster.
-    pub metadata_name: String,
     /// The Habitat service name.
-    pub habitat_name: String,
+    pub metadata_name: String,
     /// The docker image.
     pub image: String,
     /// The number of desired instances in the service group.
@@ -82,19 +78,6 @@ impl Manifest {
             PackageIdent::from_str(pkg_ident_str)?
         };
 
-        // To allow multiple instances of Habitat application in Kubernetes,
-        // random suffix in metadata_name is needed.
-        let metadata_name =
-            format!(
-            "{}-{}",
-            pkg_ident.name,
-            rand::thread_rng()
-                .gen_ascii_chars()
-                .filter(|c| c.is_lowercase() || c.is_numeric())
-                .take(5)
-                .collect::<String>(),
-        );
-
         let image = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
             None => pkg_ident.origin + "/" + &pkg_ident.name + ":latest",
@@ -113,8 +96,7 @@ impl Manifest {
         };
 
         Ok(Manifest {
-            metadata_name: metadata_name,
-            habitat_name: pkg_ident.name,
+            metadata_name: pkg_ident.name,
             image: image,
             count: count,
             service_topology: topology,
@@ -142,8 +124,7 @@ mod tests {
     #[test]
     fn test_manifest_generation() {
         let mut m = Manifest {
-            metadata_name: "nginx-f84iq".to_owned(),
-            habitat_name: "nginx".to_owned(),
+            metadata_name: "nginx".to_owned(),
             image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),
@@ -166,8 +147,7 @@ mod tests {
     #[test]
     fn test_manifest_generation_binds() {
         let mut m = Manifest {
-            metadata_name: "nginx-f84iq".to_owned(),
-            habitat_name: "nginx".to_owned(),
+            metadata_name: "nginx".to_owned(),
             image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),

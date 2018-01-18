@@ -3,9 +3,7 @@ apiVersion: habitat.sh/v1
 kind: Habitat
 metadata:
   ## Name of the Habitat service.
-  name: nginx-f84iq
-  labels:
-    habitat-name: nginx
+  name: nginx
 spec:
   ## Name of the Habitat service package exported as a Docker image.
   image: core/nginx:latest

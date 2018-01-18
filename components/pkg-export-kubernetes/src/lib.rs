@@ -19,7 +19,6 @@ extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
 extern crate habitat_sup;
 extern crate handlebars;
-extern crate rand;
 #[macro_use]
 extern crate serde_json;
 
