@@ -125,7 +125,7 @@ impl<'a> Chart<'a> {
         }
     }
 
-    pub fn generate(&mut self) -> Result<()> {
+    pub fn generate(mut self) -> Result<()> {
         self.ui.status(
             Status::Creating,
             format!("chart directory `{}`", self.name),
@@ -139,10 +139,11 @@ impl<'a> Chart<'a> {
             Status::Creating,
             format!("templates directory `{}`", template_path),
         )?;
-        fs::create_dir_all(&template_path)?;
-        self.generate_manifest_template(&template_path)?;
 
-        self.generate_values()
+        self.generate_values()?;
+
+        fs::create_dir_all(&template_path)?;
+        self.generate_manifest_template(&template_path)
     }
 
     pub fn generate_chartfile(&mut self) -> Result<()> {
@@ -159,14 +160,14 @@ impl<'a> Chart<'a> {
         Ok(())
     }
 
-    pub fn generate_manifest_template(&mut self, template_path: &str) -> Result<()> {
+    pub fn generate_manifest_template(self, template_path: &str) -> Result<()> {
         let manifest_path = format!("{}/{}.yaml", template_path, self.habitat_name);
         self.ui.status(
             Status::Creating,
             format!("manifest template `{}`", manifest_path),
         )?;
         let mut write = fs::File::create(manifest_path)?;
-        let out = self.manifest_template.into_string()?;
+        let out: String = self.manifest_template.into();
 
         write.write(out.as_bytes())?;
 

@@ -127,7 +127,7 @@ impl Manifest {
 
     /// Generates the manifest as a string and writes it to `write`.
     pub fn generate(&mut self, write: &mut Write) -> Result<()> {
-        let out = ManifestJson::new(&self).into_string()?;
+        let out: String = ManifestJson::new(&self).into();
 
         write.write(out.as_bytes())?;
 
