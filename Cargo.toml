@@ -12,13 +12,14 @@ log = "*"
 httparse = "*"
 hyper = "0.10"
 hyper-openssl = "0.2"
-openssl = "*"
+# JB: pinning this for now to avoid a ton of breaking changes
+openssl = "0.9.23"
 serde = "*"
 serde_json = "*"
 url = "*"
 
 [dependencies.habitat_core]
-path = "../core"
+git = "https://github.com/habitat-sh/core.git"
 
 [features]
 default = []
