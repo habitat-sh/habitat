@@ -13,7 +13,7 @@ workspace = "../../"
 clippy = {version = "*", optional = true}
 byteorder = "*"
 env_logger = "*"
-habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
+habitat-eventsrv-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
 lazy_static = "*"
 log = "*"
 protobuf = "*"
@@ -26,10 +26,6 @@ branch = "release/v0.8"
 
 [build-dependencies]
 pkg-config = "0.3"
-
-[[bin]]
-name = "eventsrv-client"
-path = "src/main.rs"
 
 [features]
 default = []

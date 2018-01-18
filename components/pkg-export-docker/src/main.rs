@@ -30,7 +30,7 @@ use common::ui::UI;
 use export_docker::Result;
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
     let mut ui = UI::default_with_env();
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();

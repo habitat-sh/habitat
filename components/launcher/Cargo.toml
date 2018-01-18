@@ -14,8 +14,8 @@ ansi_term = "*"
 env_logger = "*"
 # JW TODO: core has external deps that we don't want, libarchive/libsodium. We should either
 # put these things behind a feature flag so we can statically compile the launcher.
-habitat_core = { path = "../core" }
-habitat-launcher-protocol = { path = "../launcher-protocol" }
+habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat-launcher-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
 log = "*"

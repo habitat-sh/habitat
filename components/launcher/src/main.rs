@@ -22,7 +22,7 @@ use std::process;
 use launcher::server;
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
 
     let args: Vec<String> = env::args().skip(1).collect();
 

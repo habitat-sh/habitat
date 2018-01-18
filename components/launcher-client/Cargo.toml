@@ -5,8 +5,8 @@ authors = ["Jamie Winsor <reset@habitat.sh>"]
 
 [dependencies]
 bincode = "*"
-habitat_core = { path = "../core" }
-habitat-launcher-protocol = { path = "../launcher-protocol" }
+habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat-launcher-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
 protobuf = "*"

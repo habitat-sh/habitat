@@ -12,13 +12,9 @@ env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
     # Habitat Rust program components
-    - _RUST_HAB_BIN_COMPONENTS="components/airlock|components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/pkg-export-kubernetes|components/pkg-export-helm|components/sup"
+    - _RUST_HAB_BIN_COMPONENTS="components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/pkg-export-kubernetes|components/pkg-export-helm|components/sup|components/eventsrv
     # Habitat Rust crate components
-    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/core|components/eventsrv-client|components/launcher-client|components/launcher-protocol"
-    # Builder Rust program components
-    - _RUST_BLDR_BIN_COMPONENTS="components/builder-admin|components/builder-api|components/builder-jobsrv|components/builder-originsrv|components/builder-router|components/builder-sessionsrv|components/builder-worker|components/eventsrv"
-    # Builder Rust crate components
-    - _RUST_BLDR_LIB_COMPONENTS="components/builder-core|components/builder-db|components/builder-depot|components/builder-depot-client|components/builder-http-gateway|components/builder-protocol|components/core|components/eventsrv-protocol|components/github-api-client|components/net"
+    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/eventsrv-client|components/launcher-client|components/github-api-client|components/segment-api-client
 
 matrix:
   include:
@@ -73,45 +69,7 @@ matrix:
     - language: rust
       env:
         - COMPONENTS=lib
-        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_LIB_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
-      rust: stable
-      sudo: required
-      addons:
-        apt:
-          sources:
-            - kalakris-cmake
-          packages:
-            - build-essential
-            - ca-certificates
-            - cmake
-            - curl
-            - libbz2-dev
-            - liblzma-dev
-            - libprotobuf-dev
-            - libssl-dev
-            - pkg-config
-      cache:
-        apt: true
-        cargo: true
-        directories:
-          - "$HOME/pkgs"
-      before_install:
-        - ./support/ci/fast_pass.sh || exit 0
-        - ./support/ci/compile_libsodium.sh
-        - ./support/ci/compile_libarchive.sh
-        - ./support/ci/compile_zmq.sh
-        - ./support/ci/install_rustfmt.sh
-      script:
-        - ./support/ci/rust_tests.sh
-        - ./support/ci/lint.sh
-
-#
-# Job for testing Builder Rust program components
-#
-    - language: rust
-      env:
-        - COMPONENTS=srv
-        - AFFECTED_DIRS="Cargo\.lock|$_RUST_BLDR_BIN_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
+        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_LIB_COMPONENTS
       rust: stable
       sudo: required
       addons:
@@ -145,35 +103,6 @@ matrix:
 
 # Web Jobs
 ########################################################################
-
-#
-# Job for testing Builder Web components
-#
-    - language: node_js
-      node_js: 8.7.0
-      sudo: false
-      env:
-        - CXX=g++-4.8
-        - AFFECTED_DIRS="components/builder-web"
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.8
-            - wget
-      cache:
-        apt: true
-        directories:
-          - components/builder-web/node_modules
-          - components/builder-web/typings
-      before_install:
-        - ./support/ci/fast_pass.sh || exit 0
-        - npm config set spin=false
-      install:
-        - "(cd components/builder-web && npm install)"
-      script:
-        - "(cd components/builder-web && npm run travis)"
 
 #
 # Job for building and deploying the web site

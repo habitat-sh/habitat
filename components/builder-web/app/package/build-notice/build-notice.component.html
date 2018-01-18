@@ -1,5 +1,0 @@
-<div class="hab-build-notice" [ngClass]="['status', status]" *ngIf="build">
-  <hab-icon [symbol]="symbol" [class]="status" title="{{ status | titlecase }}"></hab-icon>
-  A new build is in progress.
-  <a [routerLink]="['./builds', build.id]">View the output</a>.
-</div>

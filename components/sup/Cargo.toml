@@ -25,7 +25,7 @@ features = "*"
 glob = "*"
 habitat_butterfly = { path = "../butterfly" }
 habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
+habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_depot_client = { path = "../builder-depot-client" }
 habitat-eventsrv-client = { path = "../eventsrv-client" }
 habitat-launcher-client = { path = "../launcher-client" }
@@ -60,7 +60,8 @@ winapi = "0.2"
 hyper = "0.10"
 
 [dev-dependencies.habitat_core]
-path = "../core"
+git = "https://github.com/habitat-sh/core.git"
+
 [dev-dependencies.habitat_butterfly]
 path = "../butterfly"
 

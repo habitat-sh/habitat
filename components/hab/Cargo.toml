@@ -33,7 +33,7 @@ version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.habitat_core]
-path = "../core"
+git = "https://github.com/habitat-sh/core.git"
 
 [dependencies.habitat_common]
 path = "../common"

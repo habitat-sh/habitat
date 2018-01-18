@@ -7,7 +7,7 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 ansi_term = "*"
-habitat-builder-protocol = { path = "../builder-protocol" }
+habitat-builder-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
 hyper = "0.10"
 libc = "*"
 log = "*"
@@ -20,7 +20,7 @@ toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }
 
 [dependencies.habitat_core]
-path = "../core"
+git = "https://github.com/habitat-sh/core.git"
 
 [dependencies.habitat_depot_client]
 path = "../builder-depot-client"

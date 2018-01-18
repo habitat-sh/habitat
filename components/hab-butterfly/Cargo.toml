@@ -15,7 +15,7 @@ clap = { version = "*", features = ["suggestions", "color", "unstable"] }
 clippy = { version = "*", optional = true }
 env_logger = "*"
 hab = { path = "../hab" }
-habitat_core = { path = "../core" }
+habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_common = { path = "../common" }
 habitat_butterfly = { path = "../butterfly" }
 lazy_static = "*"

@@ -1,10 +1,5 @@
 UNAME_S := $(shell uname -s)
 HAS_DOCKER := $(shell command -v docker 2> /dev/null)
-ifeq ($(UNAME_S),Darwin)
-	forego := support/mac/bin/forego
-else
-	forego := support/linux/bin/forego
-endif
 ifneq (${IN_DOCKER},)
 	IN_DOCKER := ${IN_DOCKER}
 else ifeq ($(UNAME_S),Darwin)
@@ -29,12 +24,9 @@ ifeq ($(IN_DOCKER),true)
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)
 	run := $(common_run) shell
-	bldr_run := $(common_run) -p 9636:9636 -p 8080:8080 shell
 	docs_run := $(common_run) -p 9633:9633 shell
-	forego := support/linux/bin/forego
 else
 	run :=
-	bldr_run :=
 	docs_run :=
 endif
 ifneq ($(DOCKER_HOST),)
@@ -43,15 +35,14 @@ else
 	docs_host := 127.0.0.1
 endif
 
-BIN = hab hab-butterfly pkg-export-docker pkg-export-kubernetes sup airlock
-LIB = butterfly builder-db builder-core builder-protocol common core builder-depot-client http-client net
-SRV = builder-api builder-admin builder-depot builder-router builder-jobsrv builder-sessionsrv builder-originsrv builder-worker
-ALL = $(BIN) $(LIB) $(SRV)
+BIN = hab hab-butterfly pkg-export-docker pkg-export-kubernetes sup
+LIB = butterfly common core http-client net
+ALL = $(BIN) $(LIB)
 VERSION := $(shell cat VERSION)
 
 .DEFAULT_GOAL := build-bin
 
-build: build-bin build-lib build-srv ## builds all the components
+build: build-bin build-lib
 build-all: build
 .PHONY: build build-all
 
@@ -61,10 +52,7 @@ build-bin: $(addprefix build-,$(BIN)) ## builds the binary components
 build-lib: $(addprefix build-,$(LIB)) ## builds the library components
 .PHONY: build-lib
 
-build-srv: $(addprefix build-,$(SRV)) ## builds the service components
-.PHONY: build-srv
-
-unit: unit-bin unit-lib unit-srv ## executes all the components' unit test suites
+unit: unit-bin unit-lib
 unit-all: unit
 .PHONY: unit unit-all
 
@@ -74,10 +62,7 @@ unit-bin: $(addprefix unit-,$(BIN)) ## executes the binary components' unit test
 unit-lib: $(addprefix unit-,$(LIB)) ## executes the library components' unit test suites
 .PHONY: unit-lib
 
-unit-srv: $(addprefix unit-,$(SRV)) ## executes the service components' unit test suites
-.PHONY: unit-srv
-
-lint: lint-bin lint-lib lint-srv ## executs all components' lints
+lint: lint-bin lint-lib
 lint-all: lint
 .PHONY: lint lint-all
 
@@ -87,10 +72,7 @@ lint-bin: $(addprefix lint-,$(BIN))
 lint-lib: $(addprefix lint-,$(LIB))
 .PHONY: lint-lib
 
-lint-srv: $(addprefix lint-,$(SRV))
-.PHONY: lint-srv
-
-functional: functional-bin functional-lib functional-srv ## executes all the components' functional test suites
+functional: functional-bin functional-lib
 functional-all: functional
 test: functional ## executes all components' test suites
 .PHONY: functional functional-all test
@@ -101,10 +83,7 @@ functional-bin: $(addprefix unit-,$(BIN)) ## executes the binary components' uni
 functional-lib: $(addprefix unit-,$(LIB)) ## executes the library components' unit functional suites
 .PHONY: functional-lib
 
-functional-srv: $(addprefix unit-,$(SRV)) ## executes the service components' unit functional suites
-.PHONY: functional-srv
-
-clean: clean-bin clean-lib clean-srv ## cleans all the components' clean test suites
+clean: clean-bin clean-lib
 clean-all: clean
 .PHONY: clean clean-all
 
@@ -114,10 +93,7 @@ clean-bin: $(addprefix clean-,$(BIN)) ## cleans the binary components' project t
 clean-lib: $(addprefix clean-,$(LIB)) ## cleans the library components' project trees
 .PHONY: clean-lib
 
-clean-srv: $(addprefix clean-,$(SRV)) ## cleans the service components' project trees
-.PHONY: clean-srv
-
-fmt: fmt-bin fmt-lib fmt-srv ## formats all the components' codebases
+fmt: fmt-bin fmt-lib
 fmt-all: fmt
 .PHONY: fmt fmt-all
 
@@ -127,9 +103,6 @@ fmt-bin: $(addprefix fmt-,$(BIN)) ## formats the binary components' codebases
 fmt-lib: $(addprefix fmt-,$(LIB)) ## formats the library components' codebases
 .PHONY: clean-lib
 
-fmt-srv: $(addprefix fmt-,$(SRV)) ## formats the service components' codebases
-.PHONY: clean-srv
-
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 .PHONY: help
@@ -137,34 +110,6 @@ help:
 shell: image ## launches a development shell
 	$(run)
 .PHONY: shell
-
-bldr-shell: build-srv ## launches a development shell with forwarded ports but doesn't run anything
-	$(bldr_run)
-.PHONY: bldr-shell
-
-bldr-run: build-srv ## launches a development shell running the API
-	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
-.PHONY: bldr-run
-
-bldr-run-no-build: ## launches a development shell without rebuilding the world
-	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
-.PHONY: bldr-run-no-build
-
-bldr-kill: ## kills every bldr process as well as hab processes
-	$(bldr_run) sh -c ' \
-	for name in api admin router jobsrv sessionsrv originsrv worker; do \
-		sudo killall -9 bldr-$$name; \
-	done; \
-	sudo killall -9 hab-launch; \
-	sudo killall -9 hab-sup; \
-	sudo killall -9 lite-server; \
-	sudo killall -9 postmaster; \
-	SRC_NM_DIR=/src/components/builder-web/node_modules; \
-	sudo mountpoint -q $$SRC_NM_DIR && sudo umount $$SRC_NM_DIR; \
-	HOME_NM_DIR=$$HOME/.builder_web_node_modules; \
-	sudo mountpoint -q $$HOME_NM_DIR && sudo umount $$HOME_NM_DIR; \
-	'
-.PHONY: bldr-kill
 
 serve-docs: docs ## serves the project documentation from an HTTP server
 	@echo "==> View the docs at:\n\n        http://`\

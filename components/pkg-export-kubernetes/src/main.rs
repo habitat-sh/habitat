@@ -25,7 +25,7 @@ use hcore::PROGRAM_NAME;
 use common::ui::UI;
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
     let mut ui = UI::default_with_env();
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
