@@ -208,7 +208,7 @@ pub fn origin_integration_create(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let msg = req.parse::<proto::OriginIntegrationCreate>()?;
-    match state.datastore.create_origin_integration(&msg) {
+    match state.datastore.upsert_origin_integration(&msg) {
         Ok(()) => conn.route_reply(req, &NetOk::new())?,
         Err(SrvError::OriginIntegrationCreate(ref db))
             if db.code().is_some() && *db.code().unwrap() == postgres::error::UNIQUE_VIOLATION => {
@@ -234,6 +234,27 @@ pub fn origin_integration_delete(
         Ok(()) => conn.route_reply(req, &NetOk::new())?,
         Err(e) => {
             let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-integration-delete:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_integration_get(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginIntegrationGet>()?;
+    match state.datastore.get_origin_integration(&msg) {
+        Ok(Some(ref integration)) => conn.route_reply(req, integration)?,
+        Ok(None) => {
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "vt:origin-integration-get:0");
+            conn.route_reply(req, &*err)?;
+        }
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-integration-get:1");
             error!("{}, {}", err, e);
             conn.route_reply(req, &*err)?;
         }

@@ -54,6 +54,7 @@ pub enum SrvError {
     OriginIntegrationCreate(postgres::error::Error),
     OriginIntegrationGetNames(postgres::error::Error),
     OriginIntegrationDelete(postgres::error::Error),
+    OriginIntegrationGet(postgres::error::Error),
     OriginIntegrationRequest(postgres::error::Error),
     OriginInvitationAccept(postgres::error::Error),
     OriginInvitationCreate(postgres::error::Error),
@@ -166,6 +167,9 @@ impl fmt::Display for SrvError {
             }
             SrvError::OriginIntegrationDelete(ref e) => {
                 format!("Error deleting integration from database, {}", e)
+            }
+            SrvError::OriginIntegrationGet(ref e) => {
+                format!("Error getting integration from database, {}", e)
             }
             SrvError::OriginIntegrationRequest(ref e) => {
                 format!("Error retrieving integration request from database, {}", e)
@@ -360,6 +364,7 @@ impl error::Error for SrvError {
             SrvError::OriginIntegrationCreate(ref err) => err.description(),
             SrvError::OriginIntegrationGetNames(ref err) => err.description(),
             SrvError::OriginIntegrationDelete(ref err) => err.description(),
+            SrvError::OriginIntegrationGet(ref err) => err.description(),
             SrvError::OriginIntegrationRequest(ref err) => err.description(),
             SrvError::OriginInvitationAccept(ref err) => err.description(),
             SrvError::OriginInvitationCreate(ref err) => err.description(),

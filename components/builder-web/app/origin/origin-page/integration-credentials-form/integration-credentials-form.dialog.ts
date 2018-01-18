@@ -18,13 +18,17 @@ import { AppStore } from '../../../app.store';
 import { clearIntegrationCredsValidation, validateIntegrationCredentials } from '../../../actions/index';
 
 export interface Credentials {
+  name: string;
   username: string;
   password: string;
+  registry_url: string;
 }
 
 export class Credentials implements Credentials {
+  name: string;
   username: string = '';
   password: string = '';
+  registry_url: string;
 }
 
 @Component({
@@ -38,7 +42,11 @@ export class IntegrationCredentialsFormDialog implements OnDestroy {
     public dialogRef: MatDialogRef<IntegrationCredentialsFormDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private store: AppStore
-  ) { }
+  ) {
+    this.model.name = data.name;
+    this.model.username = data.username;
+    this.model.registry_url = data.registry_url;
+  }
 
   ngOnDestroy() {
     this.store.dispatch(clearIntegrationCredsValidation());

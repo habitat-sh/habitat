@@ -1531,14 +1531,14 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn create_origin_integration(
+    pub fn upsert_origin_integration(
         &self,
         oic: &originsrv::OriginIntegrationCreate,
     ) -> SrvResult<()> {
         let conn = self.pool.get(oic)?;
 
         let rows = conn.query(
-            "SELECT * FROM insert_origin_integration_v1($1, $2, $3, $4)",
+            "SELECT * FROM upsert_origin_integration_v1($1, $2, $3, $4)",
             &[
                 &oic.get_integration().get_origin(),
                 &oic.get_integration().get_integration(),
@@ -1614,6 +1614,29 @@ impl DataStore {
             ],
         ).map_err(SrvError::OriginIntegrationDelete)?;
         Ok(())
+    }
+
+    pub fn get_origin_integration(
+        &self,
+        oig: &originsrv::OriginIntegrationGet,
+    ) -> SrvResult<Option<originsrv::OriginIntegration>> {
+        let conn = self.pool.get(oig)?;
+
+        let rows = conn.query(
+            "SELECT * FROM get_origin_integration_v1($1, $2, $3)",
+            &[
+                &oig.get_integration().get_origin(),
+                &oig.get_integration().get_integration(),
+                &oig.get_integration().get_name(),
+            ],
+        ).map_err(SrvError::OriginIntegrationGet)?;
+
+        if rows.len() != 0 {
+            let row = rows.get(0);
+            Ok(Some(self.row_to_origin_integration(&row)))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn delete_origin_member(&self, omr: &originsrv::OriginMemberRemove) -> SrvResult<()> {

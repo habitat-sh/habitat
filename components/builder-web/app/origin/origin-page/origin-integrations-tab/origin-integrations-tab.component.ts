@@ -18,7 +18,7 @@ import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../../app.store';
-import { deleteIntegration, setIntegration } from '../../../actions';
+import { deleteIntegration, fetchIntegration, setIntegration } from '../../../actions';
 import { IntegrationCredentialsFormDialog } from '../integration-credentials-form/integration-credentials-form.dialog';
 import { IntegrationDeleteConfirmDialog } from './dialog/integration-delete-confirm/integration-delete-confirm.dialog';
 import { fetchIntegrations } from '../../../actions/index';
@@ -36,12 +36,11 @@ export class OriginIntegrationsTabComponent implements OnInit, OnDestroy {
     private confirmDialog: MatDialog,
     private route: ActivatedRoute,
     private title: Title
-  ) { }
+  ) {}
 
   ngOnInit() {
-    this.store.dispatch(fetchIntegrations(this.origin.name, this.token));
-
     this.sub = this.route.parent.params.subscribe((params) => {
+      this.store.dispatch(fetchIntegrations(params.origin, this.token));
       this.title.setTitle(`Origins › ${params.origin} › Integrations | Habitat`);
     });
   }
@@ -101,7 +100,7 @@ export class OriginIntegrationsTabComponent implements OnInit, OnDestroy {
     return decodeURIComponent(s);
   }
 
-  deleteIntegration(name, type) {
+  deleteIntegration(type: string, name: string) {
     this.confirmDialog
       .open(IntegrationDeleteConfirmDialog, { width: '480px' })
       .afterClosed()
@@ -110,5 +109,34 @@ export class OriginIntegrationsTabComponent implements OnInit, OnDestroy {
           this.store.dispatch(deleteIntegration(this.origin.name, this.token, name, type));
         }
       });
+  }
+
+  editIntegration(type: string, name: string): void {
+    this.store.dispatch(fetchIntegration(this.origin.name, type, name, this.token));
+
+    const unsub = this.store.subscribe(state => {
+      if (state.origins.currentIntegrations.selected) {
+        unsub();
+
+        const selected = state.origins.currentIntegrations.selected;
+
+        this.credsDialog
+          .open(IntegrationCredentialsFormDialog, {
+            data: {
+              type: selected.integration,
+              name: this.decode(selected.name),
+              username: this.decode(selected.body.username),
+              registry_url: selected.body.registry_url
+            },
+            width: '480px'
+          })
+          .afterClosed()
+          .subscribe((result) => {
+            if (result) {
+              this.store.dispatch(setIntegration(this.origin.name, result, this.token, type, selected.name));
+            }
+          });
+      }
+    });
   }
 }

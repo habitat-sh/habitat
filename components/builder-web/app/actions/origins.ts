@@ -19,6 +19,7 @@ import { parseKey } from '../util';
 
 export const CLEAR_MY_ORIGINS = 'CLEAR_MY_ORIGINS';
 export const CLEAR_MY_ORIGIN_INVITATIONS = 'CLEAR_MY_ORIGIN_INVITATIONS';
+export const CLEAR_INTEGRATION = 'CLEAR_INTEGRATION';
 export const CLEAR_INTEGRATIONS = 'CLEAR_INTEGRATIONS';
 export const DELETE_INTEGRATION = 'DELETE_INTEGRATION';
 export const POPULATE_MY_ORIGINS = 'POPULATE_MY_ORIGINS';
@@ -26,6 +27,7 @@ export const POPULATE_MY_ORIGIN_INVITATIONS = 'POPULATE_MY_ORIGIN_INVITATIONS';
 export const POPULATE_ORIGIN_INVITATIONS = 'POPULATE_ORIGIN_INVITATIONS';
 export const POPULATE_ORIGIN_MEMBERS = 'POPULATE_ORIGIN_MEMBERS';
 export const POPULATE_ORIGIN_PUBLIC_KEYS = 'POPULATE_ORIGIN_PUBLIC_KEYS';
+export const POPULATE_ORIGIN_INTEGRATION = 'POPULATE_ORIGIN_INTEGRATION';
 export const POPULATE_ORIGIN_INTEGRATIONS = 'POPULATE_ORIGIN_INTEGRATIONS';
 export const SET_CURRENT_ORIGIN = 'SET_CURRENT_ORIGIN';
 export const SET_CURRENT_ORIGIN_CREATING_FLAG = 'SET_CURRENT_ORIGIN_CREATING_FLAG';
@@ -266,9 +268,22 @@ export function deleteIntegration(origin: string, token: string, name: string, t
   };
 }
 
-export function fetchIntegrations(origin: string, token: string) {
+export function fetchIntegration(origin: string, type: string, name: string, token: string) {
   return dispatch => {
     dispatch(clearIntegration());
+    new BuilderApiClient(token).getIntegration(origin, type, name)
+      .then(response => {
+        dispatch(populateIntegration(response));
+      })
+      .catch(error => {
+        dispatch(populateIntegration(undefined, error.message));
+      });
+  };
+}
+
+export function fetchIntegrations(origin: string, token: string) {
+  return dispatch => {
+    dispatch(clearIntegrations());
     new BuilderApiClient(token).getIntegrations(origin)
       .then(response => {
         dispatch(populateIntegrations(response));
@@ -382,6 +397,12 @@ function clearMyOriginInvitations() {
 
 function clearIntegration() {
   return {
+    type: CLEAR_INTEGRATION
+  };
+}
+
+function clearIntegrations() {
+  return {
     type: CLEAR_INTEGRATIONS
   };
 }
@@ -423,6 +444,14 @@ function populateOriginPublicKeys(payload, error = undefined) {
     type: POPULATE_ORIGIN_PUBLIC_KEYS,
     payload,
     error,
+  };
+}
+
+function populateIntegration(payload, error = undefined) {
+  return {
+    type: POPULATE_ORIGIN_INTEGRATION,
+    payload,
+    error
   };
 }
 
