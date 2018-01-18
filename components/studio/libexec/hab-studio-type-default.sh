@@ -81,7 +81,7 @@ finish_setup() {
   # replicating the fallback logic from hab-plan-build; it'd be too
   # easy to create an unstable studio.)
   for pkg in $pkgs; do
-    if [[ -n "${CI_OVERRIDE_CHANNEL:-}" ]]; then
+    if [ -n "${CI_OVERRIDE_CHANNEL:-}" ]; then
       info "Override channel set; retrieving ${pkg} from ${CI_OVERRIDE_CHANNEL}"
       _hab install --channel="${CI_OVERRIDE_CHANNEL}" ${pkg} || {
         info "Package not found in ${CI_OVERRIDE_CHANNEL}; falling back to stable"
