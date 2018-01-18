@@ -7,6 +7,7 @@ curl -sSf https://sh.rustup.rs \
 . $HOME/.cargo/env
 env -u CARGO_HOME rustup target add x86_64-unknown-linux-musl
 env -u CARGO_HOME cargo install --force protobuf
+env -u CARGO_HOME cargo install diesel_cli --no-default-features --features postgres
 rustc --version
 cargo --version
 

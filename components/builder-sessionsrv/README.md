@@ -2,9 +2,6 @@
 
 Generates, validates, and invalidates authenticated sessions for builder clients
 
-# Adding new migrations
+## Adding database changes
 
-```
-cargo install diesel-cli
-diesel migration generate --migration-dir ./src/migrations <migration_name>
-```
+[Migrations Docs](../../docs/Migrations.md)
