@@ -441,8 +441,6 @@ impl BuildRootContext {
                 idents.push(PkgIdentType::Svc(SvcIdent {
                     ident: ident,
                     exposes: pkg_install.exposes()?,
-                    user: pkg_install.svc_user()?,
-                    group: pkg_install.svc_group()?,
                 }));
             } else {
                 idents.push(PkgIdentType::Lib(ident));
@@ -734,10 +732,6 @@ struct SvcIdent {
     pub ident: PackageIdent,
     /// A list of all port exposes for the package.
     pub exposes: Vec<String>,
-    /// The service user which is required, if provided in the package
-    pub user: Option<String>,
-    /// The service group which is required, if provided in the package
-    pub group: Option<String>,
 }
 
 /// An enum of service and library Habitat packages.
