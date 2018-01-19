@@ -91,12 +91,8 @@ impl<'a> DockerBuilder<'a> {
         if self.tags.is_empty() {
             cmd.arg("--tag").arg(&self.name);
         } else {
-            if self.tags.is_empty() {
-                cmd.arg("--tag").arg(&self.name);
-            } else {
-                for tag in &self.tags {
-                    cmd.arg("--tag").arg(format!("{}:{}", &self.name, tag));
-                }
+            for tag in &self.tags {
+                cmd.arg("--tag").arg(format!("{}:{}", &self.name, tag));
             }
         }
         cmd.arg(".");
