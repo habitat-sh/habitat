@@ -1,5 +1,5 @@
 key_dir = "{{pkg.svc_files_path}}"
-log_path = "{{cfg.log_path}}"
+log_path = "{{pkg.svc_var_path}}"
 job_timeout = {{cfg.job_timeout}}
 
 [app]
