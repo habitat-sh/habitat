@@ -9,7 +9,7 @@ SESSION="hab_${HAB_ENV}"
 
 # (Re-)generate a tmuxinator session description. This ensures we're
 # always up-to-date
-~/bin/generate-habitat-env-tmuxinator.sh ${HAB_ENV} \
+./generate-habitat-env-tmuxinator.sh ${HAB_ENV} \
     > ~/.tmuxinator/${SESSION}.yml
 
 # TODO: What if the session is already running?
