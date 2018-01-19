@@ -330,6 +330,12 @@ function Enter-Studio {
     } | Out-Null
     $pr.start() | Out-Null
     $pr.BeginErrorReadLine()
+    
+    # As an industry, this should make us all feel bad
+    # without this stdin never seems to come back and the PS prompt
+    # fails to appear and things look like they are hung
+    Start-Sleep -Milliseconds 100
+
     $pr.BeginOutputReadLine()
     
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
