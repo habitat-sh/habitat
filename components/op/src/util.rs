@@ -26,10 +26,6 @@ use config::Config;
 use error::{Error, Result};
 
 pub fn hash(config: Config) -> Result<()> {
-    if config.file.is_none() {
-        return Err(Error::NoFile);
-    }
-
     let path = PathBuf::from(config.file.unwrap());
     match hash_file(&path) {
         Ok(checksum) => {
@@ -46,21 +42,17 @@ pub fn session(encoded_token: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn shard(config: Config) -> Result<()> {
-    if config.origin.is_none() && config.account.is_none() {
-        return Err(Error::NoParam);
+pub fn shard(config: Config) -> u64 {
+    let shard = config.shard.unwrap();
+    match shard.parse::<u64>() {
+        Ok(id) => {
+            id & SHARD_MASK
+        }
+        Err(_) => {
+            let mut hasher = FnvHasher::default();
+            hasher.write(shard.as_bytes());
+            let hval = hasher.finish();
+            hval % SHARD_COUNT as u64
+        }
     }
-
-    let result = if config.origin.is_some() {
-        let mut hasher = FnvHasher::default();
-        let origin = config.origin.unwrap();
-        hasher.write(origin.as_bytes());
-        let hval = hasher.finish();
-        hval % SHARD_COUNT as u64
-    } else {
-        let account = config.account.unwrap();
-        account & SHARD_MASK
-    };
-    println!("{}", result);
-    Ok(())
 }
