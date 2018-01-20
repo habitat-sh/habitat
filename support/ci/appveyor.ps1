@@ -127,7 +127,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                     Write-Host ""
                     $binPath = (Resolve-Path "/hab/pkgs/core/hab/*/*/bin").Path
                     $pathParts = $binPath.Split("\")
-                    $versionStamp = "$pathParts[-3]-$pathParts[-2]"
+                    $versionStamp = "$($pathParts[-3])-$($pathParts[-2])"
                     $zip = "hab-$versionStamp-x86_64-windows.zip"
                     $zipDir = $zip.Replace(".zip", "")
                     $stagingZipDir = "$(Get-RepoRoot)/windows/x86_64"
