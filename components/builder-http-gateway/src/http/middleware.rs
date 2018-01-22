@@ -14,6 +14,7 @@
 
 use base64;
 use bldr_core;
+use core::env;
 use github_api_client::{GitHubCfg, GitHubClient, HubError};
 use hab_net::{ErrCode, NetError};
 use hab_net::conn::RouteClient;
@@ -204,7 +205,11 @@ impl BeforeMiddleware for Authenticated {
                         // Check to see if this is a valid github token, and create (or
                         // update) a session. This is a temporary fix until we can roll out
                         // and migrate clients to our own personal access tokens.
-                        session_create_github(req, token)?
+                        if env::var_os("HAB_FUNC_TEST").is_some() {
+                            session_create_short_circuit(req, &token)?
+                        } else {
+                            session_create_github(req, token)?
+                        }
                     }
                 } else {
                     let err = NetError::new(ErrCode::BAD_TOKEN, "net:auth:3");
@@ -354,12 +359,20 @@ pub fn session_create_short_circuit(req: &mut Request, token: &str) -> IronResul
             request.set_provider(OAuthProvider::GitHub);
             request
         }
-        "logan" => {
+        "mystique" => {
             let mut request = SessionCreate::new();
             request.set_session_type(SessionType::User);
             request.set_extern_id(1);
-            request.set_email("logan@example.com".to_string());
-            request.set_name("logan".to_string());
+            request.set_email("mystique@example.com".to_string());
+            request.set_name("mystique".to_string());
+            request.set_provider(OAuthProvider::GitHub);
+            request
+        }
+        "hank" => {
+            let mut request = SessionCreate::new();
+            request.set_extern_id(2);
+            request.set_email("hank@example.com".to_string());
+            request.set_name("hank".to_string());
             request.set_provider(OAuthProvider::GitHub);
             request
         }

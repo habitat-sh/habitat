@@ -1,0 +1,15 @@
+{
+  "name": "project_create",
+  "version": "1.0.0",
+  "description": "creating projects lol",
+  "main": "app.js",
+    "dependencies": {
+      "github-app":"3.2.0"
+    },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

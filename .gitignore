@@ -1,6 +1,7 @@
 *.box.key
 *.rustfmt
 *.sig.key
+!neurosis-20171211220037.sig.key
 *.sym.key
 .DS_Store
 .envrc
@@ -19,3 +20,5 @@ test/builder-api/node_modules
 test/builder-api/services.log
 tmp/
 pkgs/
+tools/project_create/node_modules
+*.log

@@ -975,9 +975,20 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(req, &origin_name).unwrap_or(false) {
-        debug!("Failed origin access check, origin: {}", &origin_name);
-        return Ok(Response::with(status::Forbidden));
+    let package = match get_param(req, "pkg") {
+        Some(pkg) => pkg,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let target = match helpers::extract_query_value("target", req) {
+        Some(target) => target,
+        None => String::from("x86_64-linux"),
+    };
+
+    // We only support building for Linux x64 only currently
+    if target != "x86_64-linux" {
+        info!("Rejecting build with target: {}", target);
+        return Ok(Response::with(status::BadRequest));
     }
 
     {
@@ -989,23 +1000,15 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with(status::Forbidden));
         }
     }
-    let package = match get_param(req, "pkg") {
-        Some(pkg) => pkg,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-    let target = match helpers::extract_query_value("target", req) {
-        Some(target) => target,
-        None => String::from("x86_64-linux"),
-    };
+
+    if !check_origin_access(req, &origin_name).unwrap_or(false) {
+        debug!("Failed origin access check, origin: {}", &origin_name);
+        return Ok(Response::with(status::Forbidden));
+    }
+
     let deps_only = helpers::extract_query_value("deps_only", req).is_some();
     let origin_only = helpers::extract_query_value("origin_only", req).is_some();
     let package_only = helpers::extract_query_value("package_only", req).is_some();
-
-    // We only support building for Linux x64 only currently
-    if target != "x86_64-linux" {
-        info!("Rejecting build with target: {}", target);
-        return Ok(Response::with(status::BadRequest));
-    }
 
     let mut secret_key_request = OriginSecretKeyGet::new();
     let origin = match helpers::get_origin(req, &origin_name) {
@@ -1193,6 +1196,11 @@ fn package_channels(req: &mut Request) -> IronResult<Response> {
                 .collect();
             let body = serde_json::to_string(&list).unwrap();
             let mut response = Response::with((status::Ok, body));
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1283,6 +1291,11 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
                 .collect();
             let body = serde_json::to_string(&list).unwrap();
             let mut response = Response::with((status::Ok, body));
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1603,6 +1616,11 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
                 .collect();
             let body = serde_json::to_string(&list).unwrap();
             let mut response = Response::with((status::Ok, body));
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -2198,7 +2216,6 @@ where
             XHandler::new(origin_update).before(basic.clone())
         },
         origin: get "/origins/:origin" => origin_show,
-
         origin_keys: get "/origins/:origin/keys" => list_origin_keys,
         origin_key_latest: get "/origins/:origin/keys/latest" => download_latest_origin_key,
         origin_key: get "/origins/:origin/keys/:revision" => download_origin_key,

@@ -404,6 +404,7 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<JobGet, Job>(req, &request) {
         Ok(job) => {
+            debug!("job = {:?}", &job);
 
             if !check_origin_access(req, job.get_project().get_origin_name()).unwrap_or(false) {
                 return Ok(Response::with(status::Forbidden));
@@ -469,12 +470,29 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
     // package.
     match route_message::<JobGet, Job>(req, &job_get) {
         Ok(job) => {
-            let project = job.get_project();
-            if project.get_visibility() == OriginPackageVisibility::Private {
+            // It's not sufficient to check the project that's on the job itself, since that
+            // project is reconstructed from information available in the jobsrv database and does
+            // not contain things like visibility settings. We need to fetch the project from
+            // originsrv.
+            let mut project_get = OriginProjectGet::new();
+            project_get.set_name(job.get_project().get_name().to_string());
+
+            let project =
+                match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
+                    Ok(p) => p,
+                    Err(err) => return Ok(render_net_error(&err)),
+                };
+
+            if vec![
+                OriginPackageVisibility::Private,
+                OriginPackageVisibility::Hidden,
+            ].contains(&project.get_visibility())
+            {
                 if !check_origin_access(req, project.get_origin_name()).unwrap_or(false) {
                     return Ok(Response::with(status::Forbidden));
                 }
             }
+
             match route_message::<JobLogGet, JobLog>(req, &request) {
                 Ok(mut log) => {
                     if !include_color {
@@ -700,7 +718,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginProjectUpdate::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
 
-    let (token, repo_id) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
+    let (token, repo_id) = match req.get::<bodyparser::Struct<ProjectUpdateReq>>() {
         Ok(Some(body)) => {
             if body.plan_path.len() <= 0 {
                 return Ok(Response::with((
@@ -738,8 +756,9 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(bytes) => {
                     match Plan::from_bytes(bytes.as_slice()) {
                         Ok(plan) => {
+                            debug!("plan = {:?}", &plan);
                             if plan.name != name {
-                                return Ok(Response::with((status::UnprocessableEntity, "rg:pu:2")));
+                                return Ok(Response::with((status::UnprocessableEntity, "rg:pu:7")));
                             }
                             project.set_origin_name(String::from(origin));
                             project.set_package_name(String::from(name));

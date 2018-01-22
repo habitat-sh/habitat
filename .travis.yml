@@ -29,81 +29,81 @@ matrix:
 #
 # Job for testing Habitat Rust program components
 #
-    - language: rust
-      env:
-        - COMPONENTS=bin
-        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
-      rust: stable
-      sudo: false
-      services:
-        - docker
-      addons:
-        apt:
-          sources:
-            - kalakris-cmake
-          packages:
-            - build-essential
-            - busybox          # Currently only needed for unit tests in the supervisor, sadly.
-            - ca-certificates
-            - cmake
-            - curl
-            - libbz2-dev
-            - liblzma-dev
-            - libprotobuf-dev
-            - libssl-dev
-            - pkg-config
-      cache:
-        apt: true
-        cargo: true
-        directories:
-          - "$HOME/pkgs"
-      before_install:
-        - ./support/ci/fast_pass.sh || exit 0
-        - ./support/ci/compile_libsodium.sh
-        - ./support/ci/compile_libarchive.sh
-        - ./support/ci/compile_zmq.sh
-        - ./support/ci/install_rustfmt.sh
-      script:
-        - ./support/ci/rust_tests.sh
-        - ./support/ci/lint.sh
+    # - language: rust
+    #   env:
+    #     - COMPONENTS=bin
+    #     - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
+    #   rust: stable
+    #   sudo: false
+    #   services:
+    #     - docker
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - kalakris-cmake
+    #       packages:
+    #         - build-essential
+    #         - busybox          # Currently only needed for unit tests in the supervisor, sadly.
+    #         - ca-certificates
+    #         - cmake
+    #         - curl
+    #         - libbz2-dev
+    #         - liblzma-dev
+    #         - libprotobuf-dev
+    #         - libssl-dev
+    #         - pkg-config
+    #   cache:
+    #     apt: true
+    #     cargo: true
+    #     directories:
+    #       - "$HOME/pkgs"
+    #   before_install:
+    #     - ./support/ci/fast_pass.sh || exit 0
+    #     - ./support/ci/compile_libsodium.sh
+    #     - ./support/ci/compile_libarchive.sh
+    #     - ./support/ci/compile_zmq.sh
+    #     - ./support/ci/install_rustfmt.sh
+    #   script:
+    #     - ./support/ci/lint.sh
+    #     - ./support/ci/rust_tests.sh
 
 #
-# Job for testing Habitat  and Builder Rust crate components
+# Job for testing Habitat and Builder Rust crate components
 #
-    - language: rust
-      env:
-        - COMPONENTS=lib
-        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_LIB_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
-      rust: stable
-      sudo: required
-      addons:
-        apt:
-          sources:
-            - kalakris-cmake
-          packages:
-            - build-essential
-            - ca-certificates
-            - cmake
-            - curl
-            - libbz2-dev
-            - liblzma-dev
-            - libprotobuf-dev
-            - libssl-dev
-            - pkg-config
-      cache:
-        apt: true
-        cargo: true
-        directories:
-          - "$HOME/pkgs"
-      before_install:
-        - ./support/ci/fast_pass.sh || exit 0
-        - ./support/ci/compile_libsodium.sh
-        - ./support/ci/compile_libarchive.sh
-        - ./support/ci/compile_zmq.sh
-        - ./support/ci/install_rustfmt.sh
-      script:
-        - ./support/ci/rust_tests.sh
-        - ./support/ci/lint.sh
+    # - language: rust
+    #   env:
+    #     - COMPONENTS=lib
+    #     - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_LIB_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
+    #   rust: stable
+    #   sudo: required
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - kalakris-cmake
+    #       packages:
+    #         - build-essential
+    #         - ca-certificates
+    #         - cmake
+    #         - curl
+    #         - libbz2-dev
+    #         - liblzma-dev
+    #         - libprotobuf-dev
+    #         - libssl-dev
+    #         - pkg-config
+    #   cache:
+    #     apt: true
+    #     cargo: true
+    #     directories:
+    #       - "$HOME/pkgs"
+    #   before_install:
+    #     - ./support/ci/fast_pass.sh || exit 0
+    #     - ./support/ci/compile_libsodium.sh
+    #     - ./support/ci/compile_libarchive.sh
+    #     - ./support/ci/compile_zmq.sh
+    #     - ./support/ci/install_rustfmt.sh
+    #   script:
+    #     - ./support/ci/lint.sh
+    #     - ./support/ci/rust_tests.sh
 
 #
 # Job for testing Builder Rust program components
@@ -139,9 +139,12 @@ matrix:
         - ./support/ci/compile_libarchive.sh
         - ./support/ci/compile_zmq.sh
         - ./support/ci/install_rustfmt.sh
+        - source ./support/ci/rust_env.sh
+        - openssl aes-256-cbc -K $encrypted_f0fe831d6b31_key -iv $encrypted_f0fe831d6b31_iv -in ./support/ci/builder-github-app.pem.enc -out /tmp/builder-github-app.pem -d
       script:
-        - ./support/ci/rust_tests.sh
-        - ./support/ci/lint.sh
+        # - ./support/ci/lint.sh
+        # - ./support/ci/rust_tests.sh
+        - ./test/builder-api/test.sh
 
 # Web Jobs
 ########################################################################
@@ -149,57 +152,57 @@ matrix:
 #
 # Job for testing Builder Web components
 #
-    - language: node_js
-      node_js: 8.7.0
-      sudo: false
-      env:
-        - CXX=g++-4.8
-        - AFFECTED_DIRS="components/builder-web"
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.8
-            - wget
-      cache:
-        apt: true
-        directories:
-          - components/builder-web/node_modules
-          - components/builder-web/typings
-      before_install:
-        - ./support/ci/fast_pass.sh || exit 0
-        - npm config set spin=false
-      install:
-        - "(cd components/builder-web && npm install)"
-      script:
-        - "(cd components/builder-web && npm run travis)"
+    # - language: node_js
+    #   node_js: 8.7.0
+    #   sudo: false
+    #   env:
+    #     - CXX=g++-4.8
+    #     - AFFECTED_DIRS="components/builder-web"
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - g++-4.8
+    #         - wget
+    #   cache:
+    #     apt: true
+    #     directories:
+    #       - components/builder-web/node_modules
+    #       - components/builder-web/typings
+    #   before_install:
+    #     - ./support/ci/fast_pass.sh || exit 0
+    #     - npm config set spin=false
+    #   install:
+    #     - "(cd components/builder-web && npm install)"
+    #   script:
+    #     - "(cd components/builder-web && npm run travis)"
 
 #
 # Job for building and deploying the web site
 #
-    - language: ruby
-      rvm: 2.3.1
-      sudo: false
-      cache:
-        bundle: true
-        directories:
-          - www/build
-      env:
-        - AFFECTED_DIRS="www"
-        - AWS_BUCKET=habitat-www
-        - AWS_DEFAULT_REGION=us-west-2
-        - AWS_ACCESS_KEY_ID=AKIAJ2XVYOYEVJT77NJQ
-        # AWS_SECRET_ACCESS_KEY
-        - secure: "p9bQyftYcDPrmRpU3SUHj6xB/KH5jSiNqKoNMhXcQjasSV3nnPkGp18ZCKiRNO5WOMq8pX9mp6BENnHSj8WM9G8RxYK678fi+JIkTkrbtlcT8HAIRr4K3p0vD7y6G4xO3QuFbBY4FbD4WRdnrAQ1lgEQey5LHn5bGr95TDDVefN06ddDpE0wJE0/kBhC76ipZlmGuOwKmti1igvhmWHYWlYt7J4nFaTphpKi0NwrAtR2X5B+xnIhuy4I8dPBfYLA366acHMip/jvMf2v7JTSW5+WPIHDOTQy8cXvD4akokerGo+xMhClXoUNpBkdSW5arcyL8Zd4YWzsZHso4UXhMllU+fspPaZ6Lkz2Wor/oTWkqkMEAtX06Nxtb/47qjkoDAjHwoZrlrKqqVYE8/pYb6UAMJy/s92BD3dKKLitQ5ge62Sgc4wTl3p7aSDMbEDdzxBHfZPu+j2RmPkaTFeU4Zmuat1iSy5ca7Y+DvNk4Ryoh5Bt0oUs4MY4aviLY20g6VegfP/cbzdMhdUFjA36aVMOZ+4lK5sJoaYvyJFAAMJb2eLQQHcVkJ9v816K1R2EtuzggIBU6TRDZPsJfPMBd/LFBDaQzMX1BTO73Vd2Y8RK/DDDXDFMlW8xsC36UhvjKFEmixX3ZbC7I/CHuuok9eNnSB86xVMYU0iyXuC/wiY="
-        # NETLIFYKEY
-        - secure: "EyM8UThsqW8bFLzhUs/YeqDyGZh5dplgFkCs6Ps7hLx30BQArMy9PV8xVfvGfoWtLunw0TrBWd6vwmymF6Hf8Dv/p/qQgRD5m3OVSx50KJA7TTr42AhfKmfGfWaSQVYE8SayAiE+fPb4eHB85hekfpt2yawuRbUNyzCfmcic4sX+IIUBKHJih+6P+ovP9+aYXmo62VwEaLac0sOWB6n7wa57Y4vs/BIf4B3CjOUqAVpFxHdply+WcBCxuja3AQGyebofPpe7A+NdNoGgOSKiWgGL0ke7rW1/8r3icqQO0/MigOkvdZz8l/p19aeMcUR7NfDjTCKC8y4HbXIUltjHlatCiFPwjyqC9req/RTK7fYid7mOdQ6VEQD28oW0l4geEgwQltV6N/nsKmNX5JFvr7BhR3FKV3F7oA+bwUBBntxzPqkgSYOSwz4HnfZhTdJWtD0h1FYFU+rcHXw5JRTdoS0gA2wG22yXuROjOewPt0rIrrFHw8rj5T+457P55h33k4P+Ekx8W70TarSP0uweB646nGj62IHGXKrLS6VHwTeWxLwf9wdMx3c+JLrm4VPe0FHY642MlW2AERvDu9f48xGvwNUF9y+cIsGkghB1USYqs82tTW/oV9sAmRwoWPuBlT1mFf5RQe6HGXA/T7ThO/F7aKFWj8FZFG9BNNWDfq0="
-        # FASTLY_API_KEY
-        - secure: "a376gD8mJCV6hzzugodQf+qXgVeivn4ElB8yHEAygMu94//62KT37TDlsfzCvcf1yth8jnWaJpQ+zDMCgNvo7IBiTRDingGXu+uEOheDjPssYuhwLUiTjKMb2cEdU78oEGKEWMTK6IYPJ8U6D/Q+odRevbnlS1zdUvNyNTcW3+41G83ZxFGsJCU2we5cw0w7NigqZaEG0yD6S7WPxOb+qxcZJ5/UQ/OKEnb68iIvvCJV782BcWZzxSUAyilPuRmZkfGgSQ9TZUMiKdf0KEtJfisxEBZX1s46sxAz4OssyIDM/0tp/bBnKJStyGYJODo5O6/dy2EkFd7YWsRhRoCkf+HXMQiG4V//CpNwkmTVUpNVpjoELkkLqqxew/bIN897H6pb4D4n7cUm5OFl5N6V798u67DWfSXxSsuwIc+INFkAYWEAakLJj0xt0K5WULPG84PWSPuNkBY/tqj/2wOiuFsdXQqFhzATvQa4fBEOyNBMS3knd2ovmAxpRDabeH05chE2+PvzSmP+avBIaRPuqBM2XdMqxVWrKfVsXQ+/Tezo3KqMujv5Zo4HR1Jlo4Yqnm75gDDYu1U0J3PMSERxpr8IP7bYb3511Th5KH3/pRQLaVXOCOGWXPMHk8ofN7u2rRDvWAbG4to56M1ZuHhVrGhpOuMT2uYpIjm83qWyFa0="
-        # FASTLY_SERVICE_KEY
-        - secure: "nndTwXiUkVqtLaZ6ndFZHXKPoHvgCQmyJYpNHokgAA54cc8ART8F3ZZuka+fcM5a6dLUttB/rfvWm+Ytxi9XTpj0G2rAsR7+kBnWJf/FyfVi+r2YmYd7Bg9kGaDTigpYLgL+GUQxz3S2+QI/P1jzRDSRAz9LBVYIRnVyNVp8zYNcizD8HGopNfeFO3a2KIIEM4qvkQbwPVfHp9PmSLQfDPSStS6QBf1q2ebv94TzQz+xWozLQgY025KtY78YCXdj2930HJnbrrHiGfpvSAUSKjZcygLWXVSRKGkRTJJbenBXqK0uni4odpGmN+xL1afQlHfd+CBlXq6lyiZqoaRtIk2vkR8aGww5pouXBWA7UO4NMrqIk7nSzc1zpKgkNhiApr5O8xoy5dYSu6//tiRk63+jBSbZ7EoVPHqx2oBadykKJSlgeWzVGMSnEzad4fb2DDQKNVLObg0POZX/YdZKqbWv8DmiRkJkLKkE7iD5NYqpppl6OsCJDEBiKFbGokWi0YODOMkyTie9s9KQ3rZAIcnz4RjkYbj0F8S93BQ9Pefid3Yv20ix9OZQL1Cdf0HPBcE7fBWxfcWwbQVnoNrNIGsR3bbuqbuTuyiHT7E527QhOg12G4YZsrwoNZA6qGYZYg/4NNQTILFluTtG1YaZmWdN7vGXgiAYA4sDgGb9eiA="
-      before_install: ./support/ci/fast_pass.sh || exit 0
-      script: ./support/ci/deploy_website.sh
+    # - language: ruby
+    #   rvm: 2.3.1
+    #   sudo: false
+    #   cache:
+    #     bundle: true
+    #     directories:
+    #       - www/build
+    #   env:
+    #     - AFFECTED_DIRS="www"
+    #     - AWS_BUCKET=habitat-www
+    #     - AWS_DEFAULT_REGION=us-west-2
+    #     - AWS_ACCESS_KEY_ID=AKIAJ2XVYOYEVJT77NJQ
+    #     # AWS_SECRET_ACCESS_KEY
+    #     - secure: "p9bQyftYcDPrmRpU3SUHj6xB/KH5jSiNqKoNMhXcQjasSV3nnPkGp18ZCKiRNO5WOMq8pX9mp6BENnHSj8WM9G8RxYK678fi+JIkTkrbtlcT8HAIRr4K3p0vD7y6G4xO3QuFbBY4FbD4WRdnrAQ1lgEQey5LHn5bGr95TDDVefN06ddDpE0wJE0/kBhC76ipZlmGuOwKmti1igvhmWHYWlYt7J4nFaTphpKi0NwrAtR2X5B+xnIhuy4I8dPBfYLA366acHMip/jvMf2v7JTSW5+WPIHDOTQy8cXvD4akokerGo+xMhClXoUNpBkdSW5arcyL8Zd4YWzsZHso4UXhMllU+fspPaZ6Lkz2Wor/oTWkqkMEAtX06Nxtb/47qjkoDAjHwoZrlrKqqVYE8/pYb6UAMJy/s92BD3dKKLitQ5ge62Sgc4wTl3p7aSDMbEDdzxBHfZPu+j2RmPkaTFeU4Zmuat1iSy5ca7Y+DvNk4Ryoh5Bt0oUs4MY4aviLY20g6VegfP/cbzdMhdUFjA36aVMOZ+4lK5sJoaYvyJFAAMJb2eLQQHcVkJ9v816K1R2EtuzggIBU6TRDZPsJfPMBd/LFBDaQzMX1BTO73Vd2Y8RK/DDDXDFMlW8xsC36UhvjKFEmixX3ZbC7I/CHuuok9eNnSB86xVMYU0iyXuC/wiY="
+    #     # NETLIFYKEY
+    #     - secure: "EyM8UThsqW8bFLzhUs/YeqDyGZh5dplgFkCs6Ps7hLx30BQArMy9PV8xVfvGfoWtLunw0TrBWd6vwmymF6Hf8Dv/p/qQgRD5m3OVSx50KJA7TTr42AhfKmfGfWaSQVYE8SayAiE+fPb4eHB85hekfpt2yawuRbUNyzCfmcic4sX+IIUBKHJih+6P+ovP9+aYXmo62VwEaLac0sOWB6n7wa57Y4vs/BIf4B3CjOUqAVpFxHdply+WcBCxuja3AQGyebofPpe7A+NdNoGgOSKiWgGL0ke7rW1/8r3icqQO0/MigOkvdZz8l/p19aeMcUR7NfDjTCKC8y4HbXIUltjHlatCiFPwjyqC9req/RTK7fYid7mOdQ6VEQD28oW0l4geEgwQltV6N/nsKmNX5JFvr7BhR3FKV3F7oA+bwUBBntxzPqkgSYOSwz4HnfZhTdJWtD0h1FYFU+rcHXw5JRTdoS0gA2wG22yXuROjOewPt0rIrrFHw8rj5T+457P55h33k4P+Ekx8W70TarSP0uweB646nGj62IHGXKrLS6VHwTeWxLwf9wdMx3c+JLrm4VPe0FHY642MlW2AERvDu9f48xGvwNUF9y+cIsGkghB1USYqs82tTW/oV9sAmRwoWPuBlT1mFf5RQe6HGXA/T7ThO/F7aKFWj8FZFG9BNNWDfq0="
+    #     # FASTLY_API_KEY
+    #     - secure: "a376gD8mJCV6hzzugodQf+qXgVeivn4ElB8yHEAygMu94//62KT37TDlsfzCvcf1yth8jnWaJpQ+zDMCgNvo7IBiTRDingGXu+uEOheDjPssYuhwLUiTjKMb2cEdU78oEGKEWMTK6IYPJ8U6D/Q+odRevbnlS1zdUvNyNTcW3+41G83ZxFGsJCU2we5cw0w7NigqZaEG0yD6S7WPxOb+qxcZJ5/UQ/OKEnb68iIvvCJV782BcWZzxSUAyilPuRmZkfGgSQ9TZUMiKdf0KEtJfisxEBZX1s46sxAz4OssyIDM/0tp/bBnKJStyGYJODo5O6/dy2EkFd7YWsRhRoCkf+HXMQiG4V//CpNwkmTVUpNVpjoELkkLqqxew/bIN897H6pb4D4n7cUm5OFl5N6V798u67DWfSXxSsuwIc+INFkAYWEAakLJj0xt0K5WULPG84PWSPuNkBY/tqj/2wOiuFsdXQqFhzATvQa4fBEOyNBMS3knd2ovmAxpRDabeH05chE2+PvzSmP+avBIaRPuqBM2XdMqxVWrKfVsXQ+/Tezo3KqMujv5Zo4HR1Jlo4Yqnm75gDDYu1U0J3PMSERxpr8IP7bYb3511Th5KH3/pRQLaVXOCOGWXPMHk8ofN7u2rRDvWAbG4to56M1ZuHhVrGhpOuMT2uYpIjm83qWyFa0="
+    #     # FASTLY_SERVICE_KEY
+    #     - secure: "nndTwXiUkVqtLaZ6ndFZHXKPoHvgCQmyJYpNHokgAA54cc8ART8F3ZZuka+fcM5a6dLUttB/rfvWm+Ytxi9XTpj0G2rAsR7+kBnWJf/FyfVi+r2YmYd7Bg9kGaDTigpYLgL+GUQxz3S2+QI/P1jzRDSRAz9LBVYIRnVyNVp8zYNcizD8HGopNfeFO3a2KIIEM4qvkQbwPVfHp9PmSLQfDPSStS6QBf1q2ebv94TzQz+xWozLQgY025KtY78YCXdj2930HJnbrrHiGfpvSAUSKjZcygLWXVSRKGkRTJJbenBXqK0uni4odpGmN+xL1afQlHfd+CBlXq6lyiZqoaRtIk2vkR8aGww5pouXBWA7UO4NMrqIk7nSzc1zpKgkNhiApr5O8xoy5dYSu6//tiRk63+jBSbZ7EoVPHqx2oBadykKJSlgeWzVGMSnEzad4fb2DDQKNVLObg0POZX/YdZKqbWv8DmiRkJkLKkE7iD5NYqpppl6OsCJDEBiKFbGokWi0YODOMkyTie9s9KQ3rZAIcnz4RjkYbj0F8S93BQ9Pefid3Yv20ix9OZQL1Cdf0HPBcE7fBWxfcWwbQVnoNrNIGsR3bbuqbuTuyiHT7E527QhOg12G4YZsrwoNZA6qGYZYg/4NNQTILFluTtG1YaZmWdN7vGXgiAYA4sDgGb9eiA="
+    #   before_install: ./support/ci/fast_pass.sh || exit 0
+    #   script: ./support/ci/deploy_website.sh
 
 
 # Packaging / Release Jobs
@@ -208,109 +211,109 @@ matrix:
 #
 # Job for building and publishing Habitat Linux release packages
 #
-    - env:
-        # These Habitat packages will build in the provided order; do
-        # *not* change this order unless you are very sure of what you
-        # are doing! (The dependencies among this group of packages are
-        # sometimes implicit.)
-        - PACKAGES="hab-butterfly hab hab-plan-build hab-backline hab-bintray-publish hab-studio hab-sup"
-        # HAB_AUTH_TOKEN
-        - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
-        # HAB_ORIGIN_KEY
-        - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
-        - BINTRAY_USER=chef-releng-ops
-        # BINTRAY_KEY
-        - secure: "ZQCvv7A2R+tjUYl8ywDnI6sadMNrIcIG9EGZtRcTdKNqDoCOOGu7a+hfAvKuVdptpN6x9UeANYGyuqE2FqPLxiAzufAF2+rZNB431lHAfA0IFkI0/+L1v8pcWR9VFFYGDOde2rfnOHyGRQk9clSli4+TDIadrNkVzEzKg8VAeAOEX2Eh5VPwb2CtgLKoptKU/cnoKbzvwN9EQQ8fA2DI7Dp/KNxYxs3MciESTfl/RkU+kXZ9tJXPZz9W3BgHN0Ybt7Tws0jyXlocHdmt8BaOqHgs0ZiFYoQQ4P8flYzO5stnVETOruZZwV5hx9c9kXd5nRc9JpG5g0vtPkK08812Y56iIKs1UE3wnakhRAWzbix4uZ6tC0DxUXpW44+6jXEAHZcLZa1UOJxE2brgiFTIYuHu+slaL1OalF0PRY6xchJhH+RmXifqRwPdhkUpzEfGSb+ziJ6x+TauDGUZAxXcoBYG3MuKAFtjcNrbxcXFzFRs+muP7DvfdntbkQLx2axCLND6UJVdj/6EXXUe7M5BDv4SJRaRWc2EhIizd0GVaKRUAWzirEttWvp9igajJBXB/wZJvMWawqtDPl1OXXceggZLnW9QCSnyjwwuQeHAZ4DRdK5V7Of8un87C/YSujpn338s5tdfbQjztWZEohh0Dw3ht+6wrO95EqCyMj1UOuM="
-        # BINTRAY_PASSPHRASE
-        - secure: "jOhfYhQShwodrNuXwkh1PMiVBPgokP8Q+orBTampINoTJ/P4W6vNiXbc1VaAHhqxqvTebIiB2CkNICLSt/Fys9eO0d7DQREhhkvQIjhX9rFs3AYYop5HZ+m+uZYGfqSY1G298XaCA0IAGfl2EWp5VFM/+NENCFtdlUSDaVHekmWKgGbfzhmL7Ho+jRas4naIehDSUBJZfQ837DJ8Xeew2Ec3wPnbsU+NeE/Fv042QmOGsmEoKlUf9Ak/6jAc6sOQl+84UKB7xrIpA5BOHq3DA2td+vgFEByBfthvDsF6VexISARFk36M5OC4EtjjZ3hkJA47AlE1jdPlo1PbNOwoPhWLsfHbCqffg3VAmiY5horPZoyGuyFQsXq6DHhyiiYUAqSMuRYwEzpp3dl3g1lK1Y7akgqSqxrNcjgwmExwt9ncfTTC2jjN+nzLD3zAruuNpqHOnrK6xLG4JfvpC53o+LvmTjuUPEe2q7LgixjWid+Zk8AezfndtKVk0T+0JJk+XAmq/MQIHTKQOy1hJGFUkBEi8xM0hFw6+h/PXqhsuv0J2dwDuLhhXtvYExyTLJEo0qIUAPnnAFmBI/rR4KjSpv4I1A6cw8i1prrGOMQ+BK5xqXArixR6HUooq4KmWGoBf2E8tgJOJRYXBPrTFpL9/e5fy4+jNgUDcpFwlTKhXUM="
-      sudo: required
-      services:
-        - docker
-      addons:
-        apt:
-          packages:
-            - ca-certificates
-            - curl
-            - wget
-            - jq
-      cache:
-        apt: true
-        cargo: true
-        directories:
-          - /root/travis_bootstrap
-          - /hab/studios/home--travis--build--habitat-sh
-          - /root/.cargo
-      before_install:
-        - ./support/ci/only_master_or_release.sh || exit 0
-        - sudo ./support/ci/install_rq.sh
-        - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
-        - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
-      script:
-        - sudo ./support/ci/deploy.sh
+    # - env:
+    #     # These Habitat packages will build in the provided order; do
+    #     # *not* change this order unless you are very sure of what you
+    #     # are doing! (The dependencies among this group of packages are
+    #     # sometimes implicit.)
+    #     - PACKAGES="hab-butterfly hab hab-plan-build hab-backline hab-bintray-publish hab-studio hab-sup"
+    #     # HAB_AUTH_TOKEN
+    #     - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
+    #     # HAB_ORIGIN_KEY
+    #     - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
+    #     - BINTRAY_USER=chef-releng-ops
+    #     # BINTRAY_KEY
+    #     - secure: "ZQCvv7A2R+tjUYl8ywDnI6sadMNrIcIG9EGZtRcTdKNqDoCOOGu7a+hfAvKuVdptpN6x9UeANYGyuqE2FqPLxiAzufAF2+rZNB431lHAfA0IFkI0/+L1v8pcWR9VFFYGDOde2rfnOHyGRQk9clSli4+TDIadrNkVzEzKg8VAeAOEX2Eh5VPwb2CtgLKoptKU/cnoKbzvwN9EQQ8fA2DI7Dp/KNxYxs3MciESTfl/RkU+kXZ9tJXPZz9W3BgHN0Ybt7Tws0jyXlocHdmt8BaOqHgs0ZiFYoQQ4P8flYzO5stnVETOruZZwV5hx9c9kXd5nRc9JpG5g0vtPkK08812Y56iIKs1UE3wnakhRAWzbix4uZ6tC0DxUXpW44+6jXEAHZcLZa1UOJxE2brgiFTIYuHu+slaL1OalF0PRY6xchJhH+RmXifqRwPdhkUpzEfGSb+ziJ6x+TauDGUZAxXcoBYG3MuKAFtjcNrbxcXFzFRs+muP7DvfdntbkQLx2axCLND6UJVdj/6EXXUe7M5BDv4SJRaRWc2EhIizd0GVaKRUAWzirEttWvp9igajJBXB/wZJvMWawqtDPl1OXXceggZLnW9QCSnyjwwuQeHAZ4DRdK5V7Of8un87C/YSujpn338s5tdfbQjztWZEohh0Dw3ht+6wrO95EqCyMj1UOuM="
+    #     # BINTRAY_PASSPHRASE
+    #     - secure: "jOhfYhQShwodrNuXwkh1PMiVBPgokP8Q+orBTampINoTJ/P4W6vNiXbc1VaAHhqxqvTebIiB2CkNICLSt/Fys9eO0d7DQREhhkvQIjhX9rFs3AYYop5HZ+m+uZYGfqSY1G298XaCA0IAGfl2EWp5VFM/+NENCFtdlUSDaVHekmWKgGbfzhmL7Ho+jRas4naIehDSUBJZfQ837DJ8Xeew2Ec3wPnbsU+NeE/Fv042QmOGsmEoKlUf9Ak/6jAc6sOQl+84UKB7xrIpA5BOHq3DA2td+vgFEByBfthvDsF6VexISARFk36M5OC4EtjjZ3hkJA47AlE1jdPlo1PbNOwoPhWLsfHbCqffg3VAmiY5horPZoyGuyFQsXq6DHhyiiYUAqSMuRYwEzpp3dl3g1lK1Y7akgqSqxrNcjgwmExwt9ncfTTC2jjN+nzLD3zAruuNpqHOnrK6xLG4JfvpC53o+LvmTjuUPEe2q7LgixjWid+Zk8AezfndtKVk0T+0JJk+XAmq/MQIHTKQOy1hJGFUkBEi8xM0hFw6+h/PXqhsuv0J2dwDuLhhXtvYExyTLJEo0qIUAPnnAFmBI/rR4KjSpv4I1A6cw8i1prrGOMQ+BK5xqXArixR6HUooq4KmWGoBf2E8tgJOJRYXBPrTFpL9/e5fy4+jNgUDcpFwlTKhXUM="
+    #   sudo: required
+    #   services:
+    #     - docker
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - ca-certificates
+    #         - curl
+    #         - wget
+    #         - jq
+    #   cache:
+    #     apt: true
+    #     cargo: true
+    #     directories:
+    #       - /root/travis_bootstrap
+    #       - /hab/studios/home--travis--build--habitat-sh
+    #       - /root/.cargo
+    #   before_install:
+    #     - ./support/ci/only_master_or_release.sh || exit 0
+    #     - sudo ./support/ci/install_rq.sh
+    #     - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
+    #     - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
+    #   script:
+    #     - sudo ./support/ci/deploy.sh
 
 #
 # Job for building and publishing Habitat exporter release packages
 #
-    - env:
-        # These Habitat packages will build in the provided order
-        - PACKAGES="hab-pkg-aci hab-pkg-cfize hab-pkg-export-docker hab-pkg-export-kubernetes hab-pkg-export-helm hab-pkg-mesosize hab-pkg-tarize"
-        # HAB_AUTH_TOKEN
-        - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
-        # HAB_ORIGIN_KEY
-        - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
-      sudo: required
-      services:
-        - docker
-      addons:
-        apt:
-          packages:
-            - ca-certificates
-            - curl
-            - wget
-            - jq
-      cache:
-        apt: true
-        cargo: true
-        directories:
-          - /root/travis_bootstrap
-          - /hab/studios/home--travis--build--habitat-sh
-          - /root/.cargo
-      before_install:
-        - ./support/ci/only_master_or_release.sh || exit 0
-        - sudo ./support/ci/install_rq.sh
-        - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
-        - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
-      script:
-        - sudo ./support/ci/deploy.sh
+    # - env:
+    #     # These Habitat packages will build in the provided order
+    #     - PACKAGES="hab-pkg-aci hab-pkg-cfize hab-pkg-export-docker hab-pkg-export-kubernetes hab-pkg-mesosize hab-pkg-tarize"
+    #     # HAB_AUTH_TOKEN
+    #     - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
+    #     # HAB_ORIGIN_KEY
+    #     - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
+    #   sudo: required
+    #   services:
+    #     - docker
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - ca-certificates
+    #         - curl
+    #         - wget
+    #         - jq
+    #   cache:
+    #     apt: true
+    #     cargo: true
+    #     directories:
+    #       - /root/travis_bootstrap
+    #       - /hab/studios/home--travis--build--habitat-sh
+    #       - /root/.cargo
+    #   before_install:
+    #     - ./support/ci/only_master_or_release.sh || exit 0
+    #     - sudo ./support/ci/install_rq.sh
+    #     - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
+    #     - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
+    #   script:
+    #     - sudo ./support/ci/deploy.sh
 
 #
 # Job for building and publishing Habitat Mac release packages
 #
-    - env:
-        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
-        # HAB_ORIGIN_KEY
-        - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
-        - BINTRAY_USER=chef-releng-ops
-        # BINTRAY_KEY
-        - secure: "ZQCvv7A2R+tjUYl8ywDnI6sadMNrIcIG9EGZtRcTdKNqDoCOOGu7a+hfAvKuVdptpN6x9UeANYGyuqE2FqPLxiAzufAF2+rZNB431lHAfA0IFkI0/+L1v8pcWR9VFFYGDOde2rfnOHyGRQk9clSli4+TDIadrNkVzEzKg8VAeAOEX2Eh5VPwb2CtgLKoptKU/cnoKbzvwN9EQQ8fA2DI7Dp/KNxYxs3MciESTfl/RkU+kXZ9tJXPZz9W3BgHN0Ybt7Tws0jyXlocHdmt8BaOqHgs0ZiFYoQQ4P8flYzO5stnVETOruZZwV5hx9c9kXd5nRc9JpG5g0vtPkK08812Y56iIKs1UE3wnakhRAWzbix4uZ6tC0DxUXpW44+6jXEAHZcLZa1UOJxE2brgiFTIYuHu+slaL1OalF0PRY6xchJhH+RmXifqRwPdhkUpzEfGSb+ziJ6x+TauDGUZAxXcoBYG3MuKAFtjcNrbxcXFzFRs+muP7DvfdntbkQLx2axCLND6UJVdj/6EXXUe7M5BDv4SJRaRWc2EhIizd0GVaKRUAWzirEttWvp9igajJBXB/wZJvMWawqtDPl1OXXceggZLnW9QCSnyjwwuQeHAZ4DRdK5V7Of8un87C/YSujpn338s5tdfbQjztWZEohh0Dw3ht+6wrO95EqCyMj1UOuM="
-        # BINTRAY_PASSPHRASE
-        - secure: "jOhfYhQShwodrNuXwkh1PMiVBPgokP8Q+orBTampINoTJ/P4W6vNiXbc1VaAHhqxqvTebIiB2CkNICLSt/Fys9eO0d7DQREhhkvQIjhX9rFs3AYYop5HZ+m+uZYGfqSY1G298XaCA0IAGfl2EWp5VFM/+NENCFtdlUSDaVHekmWKgGbfzhmL7Ho+jRas4naIehDSUBJZfQ837DJ8Xeew2Ec3wPnbsU+NeE/Fv042QmOGsmEoKlUf9Ak/6jAc6sOQl+84UKB7xrIpA5BOHq3DA2td+vgFEByBfthvDsF6VexISARFk36M5OC4EtjjZ3hkJA47AlE1jdPlo1PbNOwoPhWLsfHbCqffg3VAmiY5horPZoyGuyFQsXq6DHhyiiYUAqSMuRYwEzpp3dl3g1lK1Y7akgqSqxrNcjgwmExwt9ncfTTC2jjN+nzLD3zAruuNpqHOnrK6xLG4JfvpC53o+LvmTjuUPEe2q7LgixjWid+Zk8AezfndtKVk0T+0JJk+XAmq/MQIHTKQOy1hJGFUkBEi8xM0hFw6+h/PXqhsuv0J2dwDuLhhXtvYExyTLJEo0qIUAPnnAFmBI/rR4KjSpv4I1A6cw8i1prrGOMQ+BK5xqXArixR6HUooq4KmWGoBf2E8tgJOJRYXBPrTFpL9/e5fy4+jNgUDcpFwlTKhXUM="
-      sudo: required
-      addons:
-        apt:
-          packages:
-            - ca-certificates
-      cache:
-        apt: true
-        directories:
-          - /root/travis_bootstrap
-      before_install:
-        - ./support/ci/fast_pass.sh || exit 0
-        - ./support/ci/only_master_or_release.sh || exit 0
-        - if [[ ! -x ./support/ci/deploy_mac_launcher.sh ]]; then chmod +x ./support/ci/deploy_mac_launcher.sh; fi
-        - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
-      script:
-        - sudo ./support/ci/deploy_mac_launcher.sh
+    # - env:
+    #     - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
+    #     # HAB_ORIGIN_KEY
+    #     - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
+    #     - BINTRAY_USER=chef-releng-ops
+    #     # BINTRAY_KEY
+    #     - secure: "ZQCvv7A2R+tjUYl8ywDnI6sadMNrIcIG9EGZtRcTdKNqDoCOOGu7a+hfAvKuVdptpN6x9UeANYGyuqE2FqPLxiAzufAF2+rZNB431lHAfA0IFkI0/+L1v8pcWR9VFFYGDOde2rfnOHyGRQk9clSli4+TDIadrNkVzEzKg8VAeAOEX2Eh5VPwb2CtgLKoptKU/cnoKbzvwN9EQQ8fA2DI7Dp/KNxYxs3MciESTfl/RkU+kXZ9tJXPZz9W3BgHN0Ybt7Tws0jyXlocHdmt8BaOqHgs0ZiFYoQQ4P8flYzO5stnVETOruZZwV5hx9c9kXd5nRc9JpG5g0vtPkK08812Y56iIKs1UE3wnakhRAWzbix4uZ6tC0DxUXpW44+6jXEAHZcLZa1UOJxE2brgiFTIYuHu+slaL1OalF0PRY6xchJhH+RmXifqRwPdhkUpzEfGSb+ziJ6x+TauDGUZAxXcoBYG3MuKAFtjcNrbxcXFzFRs+muP7DvfdntbkQLx2axCLND6UJVdj/6EXXUe7M5BDv4SJRaRWc2EhIizd0GVaKRUAWzirEttWvp9igajJBXB/wZJvMWawqtDPl1OXXceggZLnW9QCSnyjwwuQeHAZ4DRdK5V7Of8un87C/YSujpn338s5tdfbQjztWZEohh0Dw3ht+6wrO95EqCyMj1UOuM="
+    #     # BINTRAY_PASSPHRASE
+    #     - secure: "jOhfYhQShwodrNuXwkh1PMiVBPgokP8Q+orBTampINoTJ/P4W6vNiXbc1VaAHhqxqvTebIiB2CkNICLSt/Fys9eO0d7DQREhhkvQIjhX9rFs3AYYop5HZ+m+uZYGfqSY1G298XaCA0IAGfl2EWp5VFM/+NENCFtdlUSDaVHekmWKgGbfzhmL7Ho+jRas4naIehDSUBJZfQ837DJ8Xeew2Ec3wPnbsU+NeE/Fv042QmOGsmEoKlUf9Ak/6jAc6sOQl+84UKB7xrIpA5BOHq3DA2td+vgFEByBfthvDsF6VexISARFk36M5OC4EtjjZ3hkJA47AlE1jdPlo1PbNOwoPhWLsfHbCqffg3VAmiY5horPZoyGuyFQsXq6DHhyiiYUAqSMuRYwEzpp3dl3g1lK1Y7akgqSqxrNcjgwmExwt9ncfTTC2jjN+nzLD3zAruuNpqHOnrK6xLG4JfvpC53o+LvmTjuUPEe2q7LgixjWid+Zk8AezfndtKVk0T+0JJk+XAmq/MQIHTKQOy1hJGFUkBEi8xM0hFw6+h/PXqhsuv0J2dwDuLhhXtvYExyTLJEo0qIUAPnnAFmBI/rR4KjSpv4I1A6cw8i1prrGOMQ+BK5xqXArixR6HUooq4KmWGoBf2E8tgJOJRYXBPrTFpL9/e5fy4+jNgUDcpFwlTKhXUM="
+    #   sudo: required
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - ca-certificates
+    #   cache:
+    #     apt: true
+    #     directories:
+    #       - /root/travis_bootstrap
+    #   before_install:
+    #     - ./support/ci/fast_pass.sh || exit 0
+    #     - ./support/ci/only_master_or_release.sh || exit 0
+    #     - if [[ ! -x ./support/ci/deploy_mac_launcher.sh ]]; then chmod +x ./support/ci/deploy_mac_launcher.sh; fi
+    #     - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
+    #   script:
+    #     - sudo ./support/ci/deploy_mac_launcher.sh
 
 notifications:
   webhooks:

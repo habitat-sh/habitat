@@ -4,18 +4,16 @@
   "description": "Habitat API Tests",
   "main": "index.js",
   "scripts": {
-    "mocha": "mocha --require built/helpers --reporter spec built/api.js",
-    "test": "tsc --pretty && ./test.sh"
+    "mocha": "mocha --require src/helpers --reporter spec src/api.js",
+    "test": "./test.sh"
   },
   "author": "The Habitat Humans",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/chai": "^3.4.35",
-    "@types/mocha": "^2.2.40",
-    "@types/node": "^7.0.12",
     "chai": "^3.5.0",
+    "jwt-builder": "1.1.0",
     "mocha": "^3.2.0",
     "supertest": "^3.0.0",
-    "typescript": "^2.2.2"
+    "superagent-binary-parser": "^1.0.1"
   }
 }

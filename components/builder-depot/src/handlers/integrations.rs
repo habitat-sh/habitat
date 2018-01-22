@@ -18,6 +18,7 @@ use bldr_core;
 use bodyparser;
 use http_gateway::http::controller::*;
 use http_gateway::http::helpers::{self, check_origin_access};
+use hyper::mime::{Attr, Mime, SubLevel, TopLevel, Value};
 use iron::status::{self, Status};
 
 use protocol::originsrv::*;
@@ -92,6 +93,11 @@ pub fn fetch_origin_integrations(req: &mut Request) -> IronResult<Response> {
                     acc
                 });
             let mut response = render_json(status::Ok, &integrations_response);
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             helpers::dont_cache_response(&mut response);
             Ok(response)
         }
