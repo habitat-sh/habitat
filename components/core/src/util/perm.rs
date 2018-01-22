@@ -21,9 +21,10 @@ use error::{Error, Result};
 
 pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> Result<()> {
     debug!(
-        "Attempting to set owner of {:?} to {:?}",
+        "Attempting to set owner of {:?} to {:?}:{:?}",
         &path.as_ref(),
-        &owner.as_ref()
+        &owner.as_ref(),
+        &group.as_ref()
     );
 
     let uid = match users::get_uid_by_name(&owner.as_ref()) {
@@ -68,9 +69,10 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
         Ok(0) => Ok(()),
         _ => {
             Err(Error::PermissionFailed(format!(
-                "Can't change owner of {:?} to {:?}",
+                "Can't change owner of {:?} to {:?}:{:?}",
                 &path.as_ref(),
-                &owner.as_ref()
+                &owner.as_ref(),
+                &group.as_ref()
             )))
         }
     }
