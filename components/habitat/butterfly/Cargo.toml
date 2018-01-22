@@ -1,0 +1,47 @@
+[package]
+name = "habitat_butterfly"
+version = "0.1.0"
+authors = ["Adam Jacob <adam@chef.io>"]
+build = "build.rs"
+workspace = "../"
+
+[[bin]]
+name = "butterfly"
+path = "src/main.rs"
+doc = false
+
+[dev-dependencies.habitat_butterfly_test]
+path = "../butterfly-test"
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[dependencies]
+clippy = {version = "*", optional = true}
+byteorder = "*"
+env_logger = "*"
+log = "*"
+lazy_static = "*"
+protobuf = "*"
+rand = "*"
+serde = "*"
+serde_derive = "*"
+time = "*"
+threadpool = "*"
+toml = { version = "*", default-features = false }
+
+[dependencies.uuid]
+version = "*"
+features = ["v4"]
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"
+
+[dependencies.habitat_core]
+path = "../core"
+
+[features]
+default = []
+functional = []
+protocols = []

@@ -1,0 +1,47 @@
+[package]
+name = "habitat_builder_graph"
+version = "0.0.0"
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+description = "Habitat-Builder Graph Dev Tool"
+build = "../build-builder.rs"
+workspace = "../"
+
+[[bin]]
+name = "bldr-graph"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clippy = {version = "*", optional = true}
+habitat-builder-protocol = { path = "../builder-protocol" }
+log = "*"
+env_logger = "*"
+petgraph = "*"
+walkdir = "*"
+libarchive = "*"
+time = "*"
+clap = "2"
+protobuf = "*"
+postgres = "*"
+r2d2 = "*"
+serde = "*"
+serde_derive = "*"
+copperline = "*"
+
+[dependencies.habitat_core]
+path = "../../habitat/core"
+
+[dependencies.builder_core]
+path = "../builder-core"
+
+[dependencies.habitat_builder_db]
+path = "../builder-db"
+
+[dependencies.habitat_net]
+path = "../net"
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[features]
+default = []

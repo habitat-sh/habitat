@@ -7,7 +7,7 @@ set -eu
 src_root=$(dirname $0)/../../
 
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
-  sudo -E $src_root/components/hab/mac/mac-build.sh $src_root/components/hab/mac
+  sudo -E $src_root/components/habitat/hab/mac/mac-build.sh $src_root/components/habitat/hab/mac
   mkdir -p $src_root/out/hab-x86_64-darwin
   source $src_root/results/last_build.env
   cp /hab/pkgs/$pkg_ident/bin/hab $src_root/out/hab-x86_64-darwin/hab

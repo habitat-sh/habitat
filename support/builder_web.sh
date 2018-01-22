@@ -9,7 +9,7 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-cd components/builder-web
+cd components/builder/builder-web
 
 if [ ! -f habitat.conf.js ]; then
     cp habitat.conf.sample.js habitat.conf.js

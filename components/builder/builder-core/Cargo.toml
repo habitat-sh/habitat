@@ -1,0 +1,31 @@
+[package]
+name = "builder_core"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>", "Steven Murawski <smurawski@chef.io>"]
+workspace = "../"
+
+[dependencies]
+base64 = "*"
+chrono = { version = "*", features = ["serde"] }
+clippy = { version = "*", optional = true }
+glob = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
+iron = "*"
+libarchive = "*"
+log = "*"
+petgraph = "*"
+protobuf = "*"
+rand = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+statsd = "*"
+time = "*"
+toml = { version = "*", default-features = false }
+walkdir = "*"
+
+[dependencies.habitat_core]
+path = "../../habitat/core"
+
+[dependencies.habitat_net]
+path = "../net"

@@ -1,0 +1,23 @@
+[package]
+name = "hab-butterfly"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+build = "../build-habitat.rs"
+workspace = "../"
+
+[[bin]]
+name = "hab-butterfly"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap = { version = "*", features = ["suggestions", "color", "unstable"] }
+clippy = { version = "*", optional = true }
+env_logger = "*"
+hab = { path = "../hab" }
+habitat_core = { path = "../core" }
+habitat_common = { path = "../common" }
+habitat_butterfly = { path = "../butterfly" }
+lazy_static = "*"
+log = "*"
+toml = { version = "*", default-features = false }

@@ -1,0 +1,28 @@
+[package]
+name = "habitat_pkg_export_helm"
+version = "0.0.0"
+authors = ["Zeeshan Ali <zeeshan@kinvolk.io>"]
+build = "../build-habitat.rs"
+workspace = "../"
+
+[[bin]]
+name = "hab-pkg-export-helm"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap = { version = "*", features = ["suggestions", "color", "unstable"] }
+env_logger = "*"
+habitat_core = { path = "../core" }
+habitat_common = { path = "../common" }
+habitat_pkg_export_docker = { path = "../pkg-export-docker" }
+habitat_pkg_export_kubernetes = { path = "../pkg-export-kubernetes" }
+handlebars = { version = "*", default-features = false }
+log = "*"
+serde = "1.0.2"
+serde_json = "1.0.0"
+failure = { git = "https://github.com/withoutboats/failure.git" }
+
+[features]
+default = []
+functional = []

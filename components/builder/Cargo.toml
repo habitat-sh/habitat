@@ -1,0 +1,27 @@
+[profile.release]
+debug = true
+
+[workspace]
+members = [
+  "airlock",
+  "builder-admin",
+  "builder-api",
+  "builder-api-client",
+  "builder-core",
+  "builder-db",
+  "builder-depot",
+  "builder-depot-client",
+  "builder-graph",
+  "builder-http-gateway",
+  "builder-jobsrv",
+  "builder-originsrv",
+  "builder-protocol",
+  "builder-router",
+  "builder-sessionsrv",
+  "builder-worker",
+  "github-api-client",
+  "http-client",
+  "net",
+  "op",
+  "segment-api-client",
+]

@@ -1,0 +1,37 @@
+[package]
+name = "habitat_common"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+workspace = "../"
+
+[dependencies]
+clippy = {version = "*", optional = true}
+ansi_term = "*"
+habitat-builder-protocol = { path = "../../builder/builder-protocol" }
+hyper = "0.10"
+libc = "*"
+log = "*"
+pbr = "*"
+regex = "*"
+retry = "*"
+term = "*"
+time = "*"
+toml = { version = "*", default-features = false }
+uuid = { version = "*", features = ["v4"] }
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_depot_client]
+path = "../../builder/builder-depot-client"
+
+[target.'cfg(windows)'.dependencies]
+kernel32-sys = "*"
+winapi = "0.2"
+
+[dev-dependencies]
+tempdir = "*"
+
+[features]
+default = []
+functional = []

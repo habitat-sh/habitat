@@ -1,0 +1,56 @@
+[package]
+name = "habitat_depot"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+description = "Habitat-Builder package depot"
+workspace = "../"
+
+[dependencies]
+clippy = { version = "*", optional = true }
+base64 = "*"
+bodyparser = "*"
+env_logger = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
+builder-http-gateway = { path = "../builder-http-gateway" }
+github-api-client = { path = "../github-api-client" }
+segment-api-client = { path = "../segment-api-client" }
+hyper = "0.10"
+iron = "*"
+iron-test = "*"
+libc = "*"
+libarchive = "*"
+log = "*"
+mount = "*"
+persistent = "*"
+protobuf = "*"
+r2d2 = "*"
+regex = "*"
+router = "*"
+rust-crypto = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+tempfile = "*"
+time = "*"
+toml = { version = "*", default-features = false }
+unicase = "*"
+url = "*"
+walkdir = "*"
+uuid = { version = "*", features = ["v4"] }
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.builder_core]
+path = "../builder-core"
+
+[dependencies.habitat_core]
+path = "../../habitat/core"
+
+[dependencies.habitat_net]
+path = "../net"
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"

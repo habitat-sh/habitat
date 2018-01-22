@@ -1,0 +1,14 @@
+[package]
+name = "habitat-launcher-client"
+version = "0.0.0"
+authors = ["Jamie Winsor <reset@habitat.sh>"]
+workspace = "../"
+
+[dependencies]
+bincode = "*"
+habitat_core = { path = "../core" }
+habitat-launcher-protocol = { path = "../launcher-protocol" }
+ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
+libc = "*"
+protobuf = "*"
+serde = "*"

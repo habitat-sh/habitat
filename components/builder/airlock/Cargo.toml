@@ -1,0 +1,25 @@
+[package]
+name = "airlock"
+version = "0.0.0"
+authors = ["Fletcher Nichol <fnichol@habitat.sh>"]
+build = "../build-builder.rs"
+workspace = "../"
+
+[lib]
+name = "airlock"
+
+[[bin]]
+name = "airlock"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap = { version = "*", features = ["suggestions", "color", "unstable"] }
+env_logger = "*"
+errno = "*"
+libc = "*"
+log = "*"
+pnet_datalink = "*"
+rand = "*"
+unshare = "*"
+users = "*"

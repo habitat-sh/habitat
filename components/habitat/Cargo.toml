@@ -1,0 +1,23 @@
+[profile.release]
+debug = true
+
+[workspace]
+members = [
+  "butterfly",
+  "butterfly-test",
+  "common",
+  "core",
+  "eventsrv",
+  "eventsrv-client",
+  "eventsrv-protocol",
+  "hab",
+  "hab-butterfly",
+  "launcher",
+  "launcher-client",
+  "launcher-protocol",
+  "pkg-export-docker",
+  "pkg-export-helm",
+  "pkg-export-kubernetes",
+  "sup",
+  "win-users"
+]

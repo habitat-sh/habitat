@@ -9,6 +9,8 @@
 .vagrant/
 .vscode
 /target
+components/builder/target
+components/habitat/target
 dump.rdb
 log/
 results/
