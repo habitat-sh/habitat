@@ -52,10 +52,12 @@ pub const VERSION: &'static str = "0.1.0";
 /// Kubernetes manifest. If user passed an `--output` argument with a value that is not "`-`", the
 /// manifest is written to the provided file; otherwise, it is written to the standard output.
 pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
-    if !matches.is_present("NO_DOCKER_IMAGE") {
-        export_docker::export_for_cli_matches(ui, &matches)?;
-    }
-    let mut manifest = Manifest::new_from_cli_matches(ui, &matches)?;
+    let image = if !matches.is_present("NO_DOCKER_IMAGE") {
+        export_docker::export_for_cli_matches(ui, &matches)?
+    } else {
+        None
+    };
+    let mut manifest = Manifest::new_from_cli_matches(ui, &matches, image)?;
 
     let mut write: Box<Write> = match matches.value_of("OUTPUT") {
         Some(o) if o != "-" => Box::new(File::create(o)?),

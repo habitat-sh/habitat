@@ -22,7 +22,7 @@ use clap::ArgMatches;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
 
-use export_docker::Result;
+use export_docker::{Result, DockerImage};
 
 use habitat_sup::manager::service::{Topology, ServiceBind};
 use manifestjson::ManifestJson;
@@ -56,7 +56,11 @@ impl Manifest {
     /// Create a Manifest instance from command-line arguments passed as [`clap::ArgMatches`].
     ///
     /// [`clap::ArgMatches`]: https://kbknapp.github.io/clap-rs/clap/struct.ArgMatches.html
-    pub fn new_from_cli_matches(_ui: &mut UI, matches: &ArgMatches) -> Result<Self> {
+    pub fn new_from_cli_matches(
+        _ui: &mut UI,
+        matches: &ArgMatches,
+        image: Option<DockerImage>,
+    ) -> Result<Self> {
         let count = matches.value_of("COUNT").unwrap_or("1").parse()?;
         let topology: Topology = matches
             .value_of("TOPOLOGY")
@@ -89,9 +93,28 @@ impl Manifest {
         };
         let name = format!("{}-{}", pkg_ident.name, version_suffix);
 
-        let image = match matches.value_of("IMAGE_NAME") {
+        let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
-            None => pkg_ident.origin + "/" + &pkg_ident.name + ":latest",
+            None => {
+                let (image_name, tag) = match image {
+                    Some(i) => {
+                        (
+                            i.name().to_owned(),
+                            i.tags().get(0).cloned().unwrap_or_else(
+                                || "latest".to_owned(),
+                            ),
+                        )
+                    }
+                    None => {
+                        (
+                            format!("{}/{}", pkg_ident.origin, pkg_ident.name),
+                            "latest".to_owned(),
+                        )
+                    }
+                };
+
+                format!("{}:{}", image_name, tag)
+            }
         };
 
         let binds = bind::parse_bind_args(&matches)?;
@@ -108,7 +131,7 @@ impl Manifest {
 
         Ok(Manifest {
             metadata_name: name,
-            image: image,
+            image: image_name,
             count: count,
             service_topology: topology,
             service_group: group,

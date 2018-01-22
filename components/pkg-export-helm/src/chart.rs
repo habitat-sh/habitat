@@ -34,10 +34,13 @@ pub struct Chart<'a> {
 
 impl<'a> Chart<'a> {
     pub fn new_for_cli_matches(ui: &'a mut UI, matches: &clap::ArgMatches) -> Result<Self> {
-        if !matches.is_present("NO_DOCKER_IMAGE") {
-            export_docker::export_for_cli_matches(ui, &matches)?;
-        }
-        let manifest = Manifest::new_from_cli_matches(ui, &matches)?;
+        let image = if !matches.is_present("NO_DOCKER_IMAGE") {
+            export_docker::export_for_cli_matches(ui, &matches)?
+        } else {
+            None
+        };
+        let manifest = Manifest::new_from_cli_matches(ui, &matches, image)?;
+
         let name = matches
             .value_of("CHART")
             .unwrap_or(&manifest.metadata_name)
