@@ -12,13 +12,13 @@ env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
     # Habitat Rust program components
-    - _RUST_HAB_BIN_COMPONENTS="components/airlock|components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/pkg-export-kubernetes|components/pkg-export-helm|components/sup"
+    - _RUST_HAB_BIN_COMPONENTS="components/builder/airlock|components/habitat/hab|components/habitat/hab-butterfly|components/habitat/launcher|components/habitat/pkg-export-docker|components/habitat/pkg-export-kubernetes|components/habitat/pkg-export-helm|components/habitat/sup|components/habitat/eventsrv"
     # Habitat Rust crate components
-    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/core|components/eventsrv-client|components/launcher-client|components/launcher-protocol"
+    - _RUST_HAB_LIB_COMPONENTS="components/builder/builder-api-client|components/builder/builder-depot-client|components/habitat/butterfly|components/habitat/common|components/habitat/core|components/habitat/eventsrv-client|components/habitat/launcher-client|components/habitat/launcher-protocol|components/habitat/eventsrv-protocol"
     # Builder Rust program components
-    - _RUST_BLDR_BIN_COMPONENTS="components/builder-admin|components/builder-api|components/builder-jobsrv|components/builder-originsrv|components/builder-router|components/builder-sessionsrv|components/builder-worker|components/eventsrv"
+    - _RUST_BLDR_BIN_COMPONENTS="components/builder/builder-admin|components/builder/builder-api|components/builder/builder-jobsrv|components/builder/builder-originsrv|components/builder/builder-router|components/builder/builder-sessionsrv|components/builder/builder-worker|components/builder/builder-graph"
     # Builder Rust crate components
-    - _RUST_BLDR_LIB_COMPONENTS="components/builder-core|components/builder-db|components/builder-depot|components/builder-depot-client|components/builder-http-gateway|components/builder-protocol|components/core|components/eventsrv-protocol|components/github-api-client|components/net"
+    - _RUST_BLDR_LIB_COMPONENTS="components/builder/builder-core|components/builder/builder-db|components/builder/builder-depot|components/builder/builder-depot-client|components/builder/builder-http-gateway|components/builder/builder-protocol|components/habitat/core|components/builder/github-api-client|components/builder/net"
 
 matrix:
   include:
@@ -154,7 +154,7 @@ matrix:
       sudo: false
       env:
         - CXX=g++-4.8
-        - AFFECTED_DIRS="components/builder-web"
+        - AFFECTED_DIRS="components/builder/builder-web"
       addons:
         apt:
           sources:
@@ -165,15 +165,14 @@ matrix:
       cache:
         apt: true
         directories:
-          - components/builder-web/node_modules
-          - components/builder-web/typings
+          - components/builder/builder-web/node_modules
       before_install:
         - ./support/ci/fast_pass.sh || exit 0
         - npm config set spin=false
       install:
-        - "(cd components/builder-web && npm install)"
+        - "(cd components/builder/builder-web && npm install)"
       script:
-        - "(cd components/builder-web && npm run travis)"
+        - "(cd components/builder/builder-web && npm run travis)"
 
 #
 # Job for building and deploying the web site
@@ -287,7 +286,7 @@ matrix:
 # Job for building and publishing Habitat Mac release packages
 #
     - env:
-        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
+        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/habitat/hab|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
         - BINTRAY_USER=chef-releng-ops

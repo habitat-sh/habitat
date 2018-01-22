@@ -11,7 +11,7 @@ export GITHUB_WORKER_TEAM=2555389
 export GITHUB_WEBHOOK_SECRET=58d4afaf5e5617ab0f8c39e505605e78a054d003
 export GITHUB_APP_ID=5629
 pushd /src
-cp components/hab/install.sh /tmp/
+cp components/habitat/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
 sh support/linux/install_dev_9_linux.sh
 # shellcheck disable=SC2016

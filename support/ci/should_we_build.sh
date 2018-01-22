@@ -33,25 +33,25 @@ CHANGED_FILES="$(support/ci/what_changed.sh)"
 # Given input TOML like this:
 #
 #    [hab-sup]
-#    plan_path = "components/sup"
+#    plan_path = "components/habitat/sup"
 #    paths = [
-#      "components/sup/*",
-#      "components/eventsrv-client/*",
-#      "components/launcher-client/*",
-#      "components/butterfly/*",
-#      "components/core/*",
-#      "components/builder-depot-client/*",
+#      "components/habitat/sup/*",
+#      "components/habitat/eventsrv-client/*",
+#      "components/habitat/launcher-client/*",
+#      "components/habitat/butterfly/*",
+#      "components/habitat/core/*",
+#      "components/builder/builder-depot-client/*",
 #    ]
 #
 # we extract the plan path and turn it into a regex that matches that
-# root directory (i.e., given `components/sup`, create
-# `components/sup/*`), then merge that in with all the other paths we
+# root directory (i.e., given `components/habitat/sup`, create
+# `components/habitat/sup/*`), then merge that in with all the other paths we
 # care about. Then, we ensure they're all unique, and then create one
 # big regex by joining it all together with `|`
 #
 # Thus we are left with:
 #
-#    components/builder-depot-client/*|components/butterfly/*|components/core/*|components/eventsrv-client/*|components/launcher-client/*|components/sup/*
+#    components/builder/builder-depot-client/*|components/habitat/butterfly/*|components/habitat/core/*|components/habitat/eventsrv-client/*|components/habitat/launcher-client/*|components/habitat/sup/*
 #
 # (Note: I wanted to do this with just `rq`, but I couldn't find a way
 # to join the *modified* `plan_path` together with the contents of

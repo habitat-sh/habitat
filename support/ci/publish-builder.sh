@@ -15,7 +15,7 @@ if [ -z ${HAB_AUTH_TOKEN+x} ]; then
   exit 1
 fi
 
-for crate in `find components/builder-* | grep plan.sh | xargs dirname`; do
+for crate in `find components/builder/builder-* | grep plan.sh | xargs dirname`; do
   hab pkg build -k core -s $src_root -R $crate
   source $src_root/results/last_build.env
   hab pkg upload $src_root/results/$pkg_artifact -z $HAB_AUTH_TOKEN

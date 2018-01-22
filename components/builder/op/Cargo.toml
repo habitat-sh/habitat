@@ -1,0 +1,21 @@
+[package]
+name = "op"
+version = "0.1.0"
+authors = ["Josh Black <raskchanky@gmail.com>"]
+description = "Operational tools for Habitat developers"
+workspace = "../"
+
+[dependencies]
+clippy = {version = "*", optional = true}
+fnv = "*"
+log = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
+habitat_builder_sessionsrv = { path = "../builder-sessionsrv" }
+habitat_core = { path = "../../habitat/core" }
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
+
+[features]
+default = []

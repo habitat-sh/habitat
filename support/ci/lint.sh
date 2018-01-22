@@ -91,7 +91,7 @@ eval "$cmd" | while read file; do
         # skip files which were deleted
         break
       fi
-      if echo "$file" | grep -q "components/builder-protocol/src/message" >/dev/null; then
+      if echo "$file" | grep -q "components/builder/builder-protocol/src/message" >/dev/null; then
         info "Skipping generated Rust code file $file"
         break
       fi

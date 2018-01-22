@@ -55,6 +55,8 @@ mod habitat {
             .unwrap()
             .parent()
             .unwrap()
+            .parent()
+            .unwrap()
             .join("VERSION");
         let f = File::open(ver_file).expect("Failed to open version file");
         let mut reader = BufReader::new(f);

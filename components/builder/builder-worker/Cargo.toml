@@ -1,0 +1,52 @@
+[package]
+name = "habitat_builder_worker"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+description = "Habitat-Builder Worker"
+build = "build.rs"
+workspace = "../"
+
+[[bin]]
+name = "bldr-worker"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+bitflags = "*"
+clippy = {version = "*", optional = true}
+chrono = { version = "*", features = ["serde"] }
+env_logger = "*"
+features = "*"
+git2 = "*"
+github-api-client = { path = "../github-api-client" }
+habitat-builder-protocol = { path = "../builder-protocol" }
+hyper = "0.10"
+lazy_static = "*"
+log = "*"
+protobuf = "*"
+retry = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+toml = { version = "*", default-features = false }
+url = "*"
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"
+
+[dependencies.habitat_core]
+path = "../../habitat/core"
+
+[dependencies.builder_core]
+path = "../builder-core"
+
+[dependencies.habitat_net]
+path = "../net"
+
+[dependencies.habitat_depot_client]
+path = "../builder-depot-client"

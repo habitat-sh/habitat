@@ -1,0 +1,63 @@
+[package]
+name = "habitat_sup"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+build = "build.rs"
+workspace = "../"
+
+[lib]
+name = "habitat_sup"
+
+[[bin]]
+name = "hab-sup"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clippy = {version = "*", optional = true}
+ansi_term = "*"
+base64 = "*"
+bitflags = "*"
+byteorder = "*"
+clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
+env_logger = "*"
+features = "*"
+glob = "*"
+habitat_butterfly = { path = "../butterfly" }
+habitat_common = { path = "../common" }
+habitat_core = { path = "../core" }
+habitat_depot_client = { path = "../../builder/builder-depot-client" }
+habitat-eventsrv-client = { path = "../eventsrv-client" }
+habitat-launcher-client = { path = "../launcher-client" }
+handlebars = { version = "*", default-features = false }
+iron = "*"
+lazy_static = "*"
+libc = "*"
+log = "*"
+notify = "*"
+persistent = "*"
+prometheus = "*"
+protobuf = "*"
+rand = "*"
+regex = "*"
+router = "*"
+serde = { version = "*", features = ["rc"] }
+serde_derive = "*"
+serde_json = "*"
+serde_yaml = "*"
+tabwriter = "*"
+tempdir = "*"
+time = "*"
+toml = { version = "*", default-features = false }
+url = "*"
+
+[target.'cfg(windows)'.dependencies]
+ctrlc = "*"
+crypt32-sys = "*"
+winapi = "0.2"
+
+[dev-dependencies]
+hyper = "0.10"
+
+[features]
+apidocs =[]

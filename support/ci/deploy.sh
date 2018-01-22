@@ -72,17 +72,23 @@ do
      # often add the prefix "hab-" to the name of the package, but
      # leave this off of the directory for ease of navigation. Here,
      # we normalize this.
-     if [ -d "components/${package}" ]; then
-         directory_name=${package}
+     if [ -d "components/builder/${package}" ]; then
+         directory_name="builder/${package}"
+     elif [ -d "components/habitat/${package}" ]; then
+         directory_name="habitat/${package}"
      else
          truncated_name=${package##hab-}
-         if [ -d "components/${truncated_name}" ] ; then
-             directory_name=${truncated_name}
+         if [ -d "components/builder/${truncated_name}" ] ; then
+             directory_name="builder/${truncated_name}"
+         if [ -d "components/habitat/${truncated_name}" ] ; then
+             directory_name="habitat/${truncated_name}"
          else
              echo "Cannot find code directory for package '${package}' after looking in the following locations:"
              echo
-             echo "    components/${package}"
-             echo "    components/${truncated_name}"
+             echo "    components/builder/${package}"
+             echo "    components/habitat/${package}"
+             echo "    components/builder/${truncated_name}"
+             echo "    components/habitat/${truncated_name}"
              echo
              exit 1
          fi

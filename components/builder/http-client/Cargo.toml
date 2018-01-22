@@ -1,0 +1,26 @@
+[package]
+name = "habitat_http_client"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+build = "build.rs"
+workspace = "../"
+
+[dependencies]
+clippy = {version = "*", optional = true}
+base64 = "*"
+log = "*"
+httparse = "*"
+hyper = "0.10"
+hyper-openssl = "0.2"
+# JB: forced to pin this to 0.9.23 (for now) to prevent a ton of breaking changes
+openssl = "0.9.23"
+serde = "*"
+serde_json = "*"
+url = "*"
+
+[dependencies.habitat_core]
+path = "../../habitat/core"
+
+[features]
+default = []
+functional = []

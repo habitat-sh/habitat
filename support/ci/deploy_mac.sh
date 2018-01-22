@@ -29,7 +29,7 @@ function cleanup {
 trap cleanup EXIT
 
 bootstrap_dir="$HOME/mac_unstable/$TRAVIS_BUILD_NUMBER"
-mac_dir="${hab_src_dir}/components/hab/mac"
+mac_dir="${hab_src_dir}/components/habitat/hab/mac"
 mac_hab="${bootstrap_dir}/hab"
 gnu_tar=/usr/local/bin/tar
 hab_download_url="https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-%24latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin"
@@ -71,7 +71,7 @@ rm -f ./core.sig.key
 # since this is running on a headless mac, we can't use docker/studio,
 # so we need to resort to this hackery
 echo "Customizing bintray-publish"
-cp -v $hab_src_dir/components/bintray-publish/bin/publish-hab.sh $bootstrap_dir
+cp -v $hab_src_dir/components/shell/bintray-publish/bin/publish-hab.sh $bootstrap_dir
 program=$bootstrap_dir/publish-hab.sh
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 our_version=$($mac_hab --version | cut -d ' ' -f 2)

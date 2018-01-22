@@ -1,0 +1,28 @@
+[package]
+name = "habitat_depot_client"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+workspace = "../"
+
+[dependencies]
+chrono = "*"
+clippy = {version = "*", optional = true}
+broadcast = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
+hyper = "0.10"
+hyper-openssl = ""
+log = "*"
+pbr = "*"
+protobuf = "*"
+rand = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+tee = "*"
+url = "*"
+
+[dependencies.habitat_core]
+path = "../../habitat/core"
+
+[dependencies.habitat_http_client]
+path = "../http-client"
