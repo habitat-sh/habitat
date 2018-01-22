@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::collections::HashMap;
+use std::fs;
 use std::iter::FromIterator;
 use std::sync::Arc;
 
@@ -239,8 +240,13 @@ impl Server {
         // directories, files, and bind-mounts can be created for the build user
         let parent_path = self.config.ns_dir_path();
         let parent_path = parent_path.parent().expect(
-            "parent directory for ns_dir should exist",
+            "parent directory path segement for ns_dir should exist",
         );
+        if !parent_path.is_dir() {
+            fs::create_dir_all(parent_path).map_err(|e| {
+                Error::CreateDirectory(parent_path.to_path_buf(), e)
+            })?;
+        }
         perm::set_owner(&parent_path, studio::STUDIO_USER, studio::STUDIO_GROUP)?;
         perm::set_permissions(&parent_path, 0o750)?;
 
