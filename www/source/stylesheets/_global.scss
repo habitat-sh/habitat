@@ -204,8 +204,8 @@ body {
   > img {
     margin-bottom: -1px;
     margin-right: rem-calc(8);
-    height: rem-calc(12);
-    vertical-align: baseline;
+    height: rem-calc(24);
+    vertical-align: bottom;
   }
 
   > a {
@@ -328,7 +328,7 @@ code {
 
     &.contrast {
       color: $hab-navy;
-    }    
+    }
   }
 
   &.download {

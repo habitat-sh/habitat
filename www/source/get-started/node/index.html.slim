@@ -1,0 +1,89 @@
+---
+title: Habitat - Get Started with Habitat and Node
+description: Habitat tutorials provide hands-on, step-by-step instructions on how easy it is to build, configure, deploy, and manage your applications in Habitat.
+---
+
+.heading.small-10.small-centered
+  .logo-pair
+    img.logo-pair--image src="/images/solutions-logos/icon-habitat.svg"
+    img.logo-pair--image src="/images/solutions-logos/icon-node.svg"
+  h1.h1
+    | Habitat and Node
+
+= partial "partials/global/github_contribute"
+
+div.get-started--container
+  section.get-started--boxes.first
+    p
+      small
+        = link_to 'Return to Get Started home', '/get-started/'
+    h2.h2 Getting Started with Habitat and Node
+    p.description Habitat makes it easy to bundle up your Node application into an immutable artifact with a built-in Supervisor which you can easily connect to external services, manage, and deploy into any environment. Get started with the tutorials below!
+    div.row
+      div.columns.small-6.np-left
+        a.get-started--boxes--item.card href="https://github.com/habitat-sh/guide-node"
+          h4.h4 Before and After: Habitizing a Simple Node Application
+          h6.h6 Example
+          p
+            | This sample repo contains three "Hello World" Node applications demonstrating what files are added once it has been Habitized.
+      div.columns.small-12.large-6.np-right
+        a.get-started--boxes--item.card.feature-card href="/tutorials/build-your-own/node/"
+          h4.h4 Getting Started on Habitat with Node.js
+          h6.h6 Guide
+          p
+            | This guide shows you how to use the Node.js scaffolding to build and run your Node.js web application with Habitat.
+  hr
+  section.get-started--boxes
+    h2.h2 Habitat 101
+    p.description Use the following three demos to become familiar with just how Habitat helps build, manage, and deploy Node applications.
+    div.row
+      div.columns.small-12.large-4.np-left
+        a.get-started--boxes--item.card.card-number.card-01 href="/demo/packaging-system/steps/1"
+          h4.h4 Packaging System
+          h6.h6 Tutorial
+          p
+            | Build and export a sample application with Habitat. In turn, you will unlock the power of the Build System and Process Supervisor.
+      div.columns.small-12.large-4
+        a.get-started--boxes--item.card.card-number.card-02 href="/demo/build-system/steps/1"
+          h4.h4 Build System
+          h6.h6 Tutorial
+          p
+            | Quickly set up automated builds for a sample Node application, while also publishing it Docker Hub.
+      div.columns.small-12.large-4.np-right
+        a.get-started--boxes--item.card.card-number.card-03 href="/demo/process-supervisor/steps/1"
+          h4.h4 Process Supervisor
+          h6.h6 Tutorial
+          p
+            | See how applications built with Habitat can be run and managed throughout their lifecycle using the built-in Habitat Supervisor.
+  hr
+  section.get-started--boxes
+    h3 Related Topics
+    p.description
+      | Now that you've packaged an application with Habitat, you will likely have additional questions.
+      br
+      | Below are some common next steps as you continue building, deploying, and managing your own applications.
+    div.row
+      div.columns.small-12.large-6.np-left
+        .get-started--boxes--item
+          h4 Related topics
+          h6 BLOG
+          ul
+            li
+              = link_to 'Build and Deploy a NodeJS Applicaiton to Docker Hub', '/blog/2017/10/node-scaffolding-habitat'
+            li
+              = link_to 'Connect a Database to your NodeJS Application', '/blog/2017/10/node-with-db/'
+            li
+              = link_to 'Running NodeJS package.json Scripts with Habitat', '/blog/2017/10/node-scaffolding-scripts/'
+            li
+              = link_to 'Packaging an App from Scratch with Scaffolding', '/blog/2017/05/Scaffolding-App-From-Scratch/'
+      div.columns.small-12.large-6.np-left
+        .get-started--boxes--item
+          h4 Additional reading
+          h6 REFERENCE
+          ul
+            li
+              = link_to 'Learn Habitat - Demos & Tutorials', '/learn'
+            li
+              = link_to 'View Habitat Docs', '/docs'
+            li
+              = link_to 'Join the Habitat Community', '/community'

@@ -13,15 +13,22 @@ $main-nav-breakpoint: 769px;
 }
 
 .get-started {
-
   #content-outer {
     background: url(/images/polygons.svg) no-repeat bottom;
     background-size: inherit;
   }
+
 }
 
 .container__getstarted {
   margin-bottom: 80px;
+
+  .return-link {
+    color: $hab-orange;
+    position: absolute;
+    top: -40px;
+    left: 0px;
+  }
 
   .get-started--container {
     margin-bottom: 182px;
@@ -36,6 +43,7 @@ $main-nav-breakpoint: 769px;
     }
 
     .h2 {
+      margin-top: rem-calc(16);
       font-weight: bold;
     }
 
@@ -45,6 +53,8 @@ $main-nav-breakpoint: 769px;
 
     section {
       margin-top: rem-calc(40);
+
+      &.first { margin-top: 0px; }
 
       .description {
         margin-bottom: rem-calc(32);
@@ -103,7 +113,14 @@ $main-nav-breakpoint: 769px;
 
         .card {
           @include card;
+          display: block;
           padding: rem-calc(24);
+          position: relative;
+          border-radius: $global-radius;
+
+          p {
+            color: $hab-gray-dark;
+          }
 
           > p:last-child {
             margin-bottom: 0;
@@ -112,17 +129,35 @@ $main-nav-breakpoint: 769px;
           > iframe {
             max-width: 100%;
           }
+
+          &.card-number {
+            padding: rem-calc(24);
+
+            &:before {
+              position: absolute;
+              font-size: rem-calc(64);
+              opacity: .05;
+              text-align: center;
+              right: rem-calc(20);
+              top: 0;
+              display: block;
+
+              @include small-nav {
+                font-size: rem-calc(32);
+                top: rem-calc(10);
+              }
+            }
+          }
+          &.card-01:before { content: '01'; }
+          &.card-02:before { content: '02'; }
+          &.card-03:before { content: '03'; }
         }
 
         .feature-card {
             background-color: $hab-blue-medium;
             border: none;
 
-            .h4 {
-              font-size: 1.2rem;
-            }
-
-            .h4 > a, p > a {
+            > a {
               transition: color 200ms;
 
               &:hover {
@@ -132,10 +167,10 @@ $main-nav-breakpoint: 769px;
               }
             }
 
-            .h4 > a,
-            > p,
+            .h4,
+            p,
             p > a {
-              color: #FFF;
+              color: $hab-white;
             }
 
             p > a {
@@ -152,6 +187,29 @@ $main-nav-breakpoint: 769px;
             padding-left: 0;
             padding-right: 0;
           }
+        }
+      }
+    }
+  }
+
+  .get-started--toc {
+    float: right;
+    background-color: rgba($hab-gray, .25);
+    border: 1px solid $hab-gray;
+    border-radius: $global-radius;
+    padding: rem-calc(40);
+    margin: 0px 0px rem-calc(40) rem-calc(40);
+
+    > ul {
+      list-style: none;
+      padding: 0px;
+      margin: 0px;
+
+      > li {
+        padding-bottom: rem-calc(10);
+        > h4 {
+          margin: 0px;
+          padding: 0px;
         }
       }
     }
