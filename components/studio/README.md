@@ -5,7 +5,7 @@ This is the code that creates a habitat studio for linux, windows and docker.
 The key pieces here are:
 
 * The studio hosting script - `bin/habitat-studio`. The `.sh` sets up a linux studio (the same script is used in the docker studios) and the `.ps1` sets up a windows studio.
-* The studio environment "types" in `libexec`. These tweak the environment of a studio and target it for specific purposes. Most will only be interested in `hab-studio-type-defaulf.sh`.
+* The studio environment "types" in `libexec`. These tweak the environment of a studio and target it for specific purposes. Most will only be interested in `hab-studio-type-default.sh`.
 * The docker image builder `build-docker-image.sh`.
 * The habitat plans used to create the habitat studio package.
 
