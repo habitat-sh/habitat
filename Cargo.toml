@@ -37,7 +37,8 @@ url = "*"
 users = "*"
 
 [target.'cfg(windows)'.dependencies.habitat_win_users]
-path = "../win-users"
+git = "https://github.com/habitat-sh/habitat.git"
+branch = "jb/remove-builder"
 
 [target.'cfg(windows)'.dependencies]
 crypt32-sys = "*"
