@@ -1,82 +1,44 @@
 #!/bin/bash
 
+set -u
+
+source /src/support/bldr.env
+
 export APP_HOSTNAME
 export GITHUB_API_URL
 export GITHUB_WEB_URL
 export GITHUB_CLIENT_ID
 export GITHUB_CLIENT_SECRET
-export GITHUB_ADMIN_TEAM
-export GITHUB_WORKER_TEAM
-export GITHUB_WEBHOOK_SECRET
-export WORKER_AUTH_TOKEN
 export SSL_CERT_FILE
+export GITHUB_APP_ID
+export GITHUB_APP_NAME
 
-sup-run() {
-  mkdir -p /hab/sup/default
-  echo "--> Launching the Habitat Supervisor in the background..."
-  echo "    Running: hab sup run $*"
-  hab sup run $* > /hab/sup/default/sup.log 2>&1 &
-  echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
-  echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
-  echo "    * Use 'sup-term' to terminate the Supervisor"
-  if [[ -z "${HAB_STUDIO_SUP:-}" ]]; then
-    echo "    * To pass custom arguments to run the Supervisor, export"
-    echo "      'HAB_STUDIO_SUP' with the arguments before running"
-    echo "      'hab studio enter'."
-  fi
-  echo ""
-}
-
-sup-term() {
-  local pid_file="/hab/sup/default/LOCK "
-  if [ -f $pid_file ]; then
-    echo "--> Killing Habitat Supervisor running in the background..."
-    kill $(cat $pid_file) \
-      && (echo "    Supervisor killed." && rm -f $pid_file) \
-      || echo "--> Error killing Supervisor."
+no_install_deps() {
+  local file="/src/components/${1}/cleanup"
+  if [ ! -f $file ]; then
+    touch $file
   else
-    echo "--> No Launcher pid file found, Supervisor may not be running."
+    echo "1"
   fi
 }
-
-sup-log() {
-  mkdir -p /hab/sup/default
-  touch /hab/sup/default/sup.log
-  echo "--> Tailing the Habitat Supervisor's output (use 'Ctrl+c' to stop)"
-  tail -f /hab/sup/default/sup.log
-}
-
-alias sr='sup-run'
-alias st='sup-term'
-alias sl='sup-log'
 
 init-datastore() {
   mkdir -p /hab/svc/builder-datastore
   cp -f /src/support/builder/datastore.toml /hab/svc/builder-datastore/user.toml
-  /src/support/builder/init-datastore.sh
 }
 
 configure() {
-  sup-term
-  sleep 2
   /src/support/builder/config.sh
-  sleep 2
-  sup-run
 }
 
 install-packages() {
-  hab pkg install core/cacerts core/net-tools core/procps-ng core/postgresql core/shadow -b -c stable
   hab pkg install \
-  core/builder-admin \
-  core/builder-admin-proxy \
-  core/builder-api \
-  core/builder-api-proxy \
-  core/builder-datastore \
-  core/builder-jobsrv \
-  core/builder-originsrv \
-  core/builder-router \
-  core/builder-sessionsrv \
-  core/builder-worker -c unstable
+  core/cacerts \
+  core/net-tools \
+  core/procps-ng \
+  core/shadow \
+  core/curl \
+  -b -c stable
 }
 
 build-habitat() {
@@ -98,11 +60,11 @@ build-sup() {
 }
 
 build-builder() {
+  if [[ $(hab sup status) == "No services loaded." ]]; then
+    start-builder
+  fi
   build-admin
-  build-admin-proxy
   build-api
-  build-api-proxy
-  build-datastore
   build-jobsrv
   build-originsrv
   build-router
@@ -111,57 +73,95 @@ build-builder() {
 }
 
 build-admin() {
-  build "/src/components/builder-admin"
+  hab stop core/builder-admin
+  NO_INSTALL_DEPS=$(no_install_deps "builder-router") \
+  build "/src/components/builder-admin/habitat-dev"
+  hab start core/builder-admin
 }
 
 build-admin-proxy() {
+  NO_INSTALL_DEPS=$(no_install_deps "builder-admin-proxy") \
   build "/src/components/builder-admin-proxy"
 }
 
 build-api() {
-  build "/src/components/builder-api"
+  hab stop core/builder-api
+  NO_INSTALL_DEPS=$(no_install_deps "builder-api") \
+  build "/src/components/builder-api/habitat-dev"
+  hab start core/builder-api
 }
 
 build-api-proxy() {
+  NO_INSTALL_DEPS=$(no_install_deps "builder-api-proxy") \
   build "/src/components/builder-api-proxy"
 }
 
 build-datastore() {
+  NO_INSTALL_DEPS=$(no_install_deps "builder-datastore") \
   build "/src/components/builder-datastore"
 }
 
 build-jobsrv() {
-  build "/src/components/builder-jobsrv"
+  hab stop core/builder-jobsrv
+  NO_INSTALL_DEPS=$(no_install_deps "builder-jobsrv") \
+  build "/src/components/builder-jobsrv/habitat-dev"
+  hab start core/builder-jobsrv
 }
 
 build-originsrv() {
-  build "/src/components/builder-originsrv"
+  hab stop core/builder-originsrv
+  NO_INSTALL_DEPS=$(no_install_deps "builder-originsrv") \
+  build "/src/components/builder-originsrv/habitat-dev"
+  hab start core/builder-originsrv
 }
 
 build-router() {
-  build "/src/components/builder-router"
+  hab stop core/builder-router
+  NO_INSTALL_DEPS=$(no_install_deps "builder-router") \
+  build "/src/components/builder-router/habitat-dev"
+  hab start core/builder-router
 }
 
 build-sessionsrv() {
-  build "/src/components/builder-sessionsrv"
+  hab stop core/builder-sessionsrv
+  NO_INSTALL_DEPS=$(no_install_deps "builder-sessionsrv") \
+  build "/src/components/builder-sessionsrv/habitat-dev"
+  hab start core/builder-sessionsrv
 }
 
 build-worker() {
-  build "/src/components/builder-worker"
+  hab stop core/builder-worker
+  NO_INSTALL_DEPS=$(no_install_deps "builder-worker") \
+  build "/src/components/builder-worker/habitat-dev"
+  hab start core/builder-worker
+}
+
+ui-dev-mode() {
+  for svc in sessionsrv worker api originsrv; do
+  cat <<CONFIG | hab config apply builder-${svc}.default $(date +%s)
+[github]
+client_id = "Iv1.732260b62f84db15"
+client_secret = "fc7654ed8c65ccfe014cd339a55e3538f935027a"
+app_id = 5629
+CONFIG
+done
 }
 
 upload_github_keys() {
   if [[ -f "/src/.secrets/builder-github-app.pem" ]]; then
-    hab file upload builder-sessionsrv.default $(date +%s) "/src/.secrets/builder-github-app.pem"
-    hab file upload builder-worker.default $(date +%s) "/src/.secrets/builder-github-app.pem"
-    hab file upload builder-api.default $(date +%s) "/src/.secrets/builder-github-app.pem"
+    for svc in sessionsrv worker api originsrv; do
+      hab file upload "builder-${svc}.default" $(date +%s) "/src/.secrets/builder-github-app.pem"
+    done
   else
     echo "Please follow instruction #6 here: https://github.com/habitat-sh/habitat/blob/master/BUILDER_DEV.md#pre-reqs"
   fi
 }
 
 start-builder() {
+  init-datastore
   start-datastore
+  configure
+  start-cache
   start-router
   start-admin
   start-admin-proxy
@@ -174,10 +174,11 @@ start-builder() {
   sleep 2
   upload_github_keys
   generate_bldr_keys
+  echo "Builder Started: Navigate to http://localhost/#/pkgs/core to access the web UI."
 }
 
 start-admin() {
-  hab svc load core/builder-admin --bind router:builder-router.default
+  hab svc load core/builder-admin --bind router:builder-router.default -s at-once
 }
 
 start-admin-proxy() {
@@ -185,7 +186,7 @@ start-admin-proxy() {
 }
 
 start-api() {
-  hab svc load core/builder-api --bind router:builder-router.default
+  hab svc load core/builder-api --bind router:builder-router.default -s at-once
 }
 
 start-api-proxy() {
@@ -193,30 +194,35 @@ start-api-proxy() {
 }
 
 start-datastore() {
-  hab svc load core/builder-datastore
+  hab svc load core/builder-datastore --channel unstable
 }
 
 start-jobsrv() {
-  hab svc load core/builder-jobsrv --bind router:builder-router.default --bind datastore:builder-datastore.default
+  hab svc load core/builder-jobsrv --bind router:builder-router.default --bind datastore:builder-datastore.default -s at-once
 }
 
 start-originsrv() {
-  hab svc load core/builder-originsrv --bind router:builder-router.default --bind datastore:builder-datastore.default
+  hab svc load core/builder-originsrv --bind router:builder-router.default --bind datastore:builder-datastore.default -s at-once
 }
 
 start-router() {
-  hab svc load core/builder-router
+  hab svc load core/builder-router -s at-once
 }
 
 start-sessionsrv() {
-  hab svc load core/builder-sessionsrv --bind router:builder-router.default --bind datastore:builder-datastore.default
+  hab svc load core/builder-sessionsrv --bind router:builder-router.default --bind datastore:builder-datastore.default -s at-once
 }
 
 start-worker() {
-  hab svc load core/builder-worker --bind jobsrv:builder-jobsrv.default --bind depot:builder-api-proxy.default
+  hab svc load core/builder-worker --bind jobsrv:builder-jobsrv.default --bind depot:builder-api-proxy.default -s at-once
+}
+
+start-cache() {
+  hab svc load core/sccache
 }
 
 stop-builder() {
+  stop-cache
   stop-admin
   stop-admin-proxy
   stop-api
@@ -227,6 +233,10 @@ stop-builder() {
   stop-router
   stop-sessionsrv
   stop-worker
+}
+
+stop-cache() {
+  hab svc unload core/sccache
 }
 
 stop-admin() {
@@ -271,49 +281,54 @@ stop-worker() {
 
 generate_bldr_keys() {
   KEY_NAME=$(hab user key generate bldr | grep -Po "bldr-\d+")
-  for svc in builder-api builder-jobsrv builder-worker ; do
-    hab file upload "${svc}.default" $(date +%s) "/hab/cache/keys/${KEY_NAME}.pub"
-    hab file upload "${svc}.default" $(date +%s) "/hab/cache/keys/${KEY_NAME}.box.key"
+  for svc in api jobsrv worker; do
+    hab file upload "builder-${svc}.default" $(date +%s) "/hab/cache/keys/${KEY_NAME}.pub"
+    hab file upload "builder-${svc}.default" $(date +%s) "/hab/cache/keys/${KEY_NAME}.box.key"
   done
+}
+
+load_package() {
+  hab pkg upload --url http://localhost:9636/v1 --auth "${HAB_AUTH_TOKEN}" "$@" --channel stable
 }
 
 load_packages() {
   if [[ -d /src/pkgs ]]; then
     for pkg in /src/pkgs/core*.hart ; do
-      hab pkg upload --url http://localhost:9636/v1 --auth "${HAB_AUTH_TOKEN}" "${pkg}" --channel stable
+      load_package "${pkg}"
     done
   fi
 }
 
+load_bootstrap_packages() {
+  load_package /src/pkgs/core-hab-backline-0.39.0-dev-20171101044221-x86_64-linux.hart
+  load_package /src/pkgs/core-hab-launcher-6083-20171101045646-x86_64-linux.hart
+  load_package pkgs/core-hab-sup-0.34.0-dev-20170929202328-x86_64-linux.hart
+  load_package pkgs/core-docker-17.09.0-20171001205930-x86_64-linux.hart
+  load_package pkgs/core-elasticsearch-5.6.1-20171015201557-x86_64-linux.hart
+}
+
 origin() {
-  curl localhost:9636/v1/depot/origins \
-    -d '{"name":"core"}' \
-    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+  local origin=${1:-core}
+  if curl --fail localhost:9636/v1/depot/origins \
+    -d "{\"name\":\"${origin}\"}" \
+    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}";
+  then
+    hab origin key generate "${origin}"
+    hab origin key upload --url http://localhost:9636 -z ${HAB_AUTH_TOKEN} -s "${origin}"
+  else
+    echo "Failed to create origin ${origin}"
+  fi
 }
 
-keys() {
-  if [ -f ~/.hab/cache/keys/core-20160810182414.pub ]; then
-    cat ~/.hab/cache/keys/core-20160810182414.pub | hab origin key import
-  fi
-
-  if [ -f ~/.hab/cache/keys/core-20160810182414.sig.key ]; then
-    cat ~/.hab/cache/keys/core-20160810182414.sig.key | hab origin key import
-  fi
-
-  cat /hab/cache/keys/core-20160810182414.pub | \
-  curl http://localhost:9636/v1/depot/origins/core/keys/20160810182414 \
-    --data-binary @- \
-    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
-
-  cat /hab/cache/keys/core-20160810182414.sig.key | \
-  curl http://localhost:9636/v1/depot/origins/core/secret_keys/20160810182414 \
-    --data-binary @- \
-    -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+function psql_local() {
+  hab pkg exec core/postgresql env PGPASSWORD=$(cat /hab/svc/builder-datastore/config/pwfile) psql -U hab -h 127.0.0.1 "$@"
 }
+
+export -f psql_local
 
 project() {
   curl http://localhost:9636/v1/projects -q \
-    -d '{ "origin": "core", "plan_path": "nginx/plan.sh", "github": { "organization": "habitat-sh", "repo": "core-plans" } }'
+    -d '{ "origin": "core", "plan_path": "nginx/plan.sh", "github": { "organization": "habitat-sh", "repo": "core-plans" } }' \
     -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
 }
 
@@ -321,6 +336,15 @@ job() {
   curl POST http://localhost:9636/v1/jobs \
     -d '{"project_id":"core/nginx"}' \
     -H "Authorization:Bearer:${HAB_AUTH_TOKEN}"
+}
+
+# Cleanup any development touch files we laid down when checking to see if we could run NO_INSTALL_DEPS
+local_cleanup() {
+  for svc in admin admin-proxy api api-proxy datastore jobsrv originsrv router sessionsrv worker; do
+    if [ -f "/src/components/builder-${svc}/cleanup" ]; then
+      rm "/src/components/builder-${svc}/cleanup"
+    fi
+  done
 }
 
 dev_docs() {
@@ -335,13 +359,12 @@ The following commands are available:
 2. Building Habitat Web
   * Ensure you have a unzipped download of packages from http://nunciato-shared-files.s3.amazonaws.com/pkgs.zip in the habitat directory
   * In the studio (after builder has started)
-  * * origin - create the core origin
-  * * keys - generate keys for the core origin
+  * * origin $1 - create an origin and keys specified by the first argument. Default: core
   * * load_packages - load all the packages from core
   * Outside of the studio
   * * cd components/builder-web
   * * npm i - install the node packages
-  * * npm start - run the web dev env
+  * * npm load - run the web dev env
 3. Building Builder
   * build-builder - build all Builder components
   * build-admin - build the Admin Gateway
@@ -355,43 +378,46 @@ The following commands are available:
   * build-sessionsrv - build the SessionSrv
   * build-worker - build the Worker
 4. Running Builder
+  * install-packages - Install all dependent packages
   * start-builder - run all Builder services
-  * stop-builder - stop all Builder services
-  * start-{svc} - start a specfic Builder service. See the
+  * stop-builder - unload all Builder services
+  * start-{svc} - load a specfic Builder service. See the
     above list of build targets for available services
-  * stop-{svc} - stop a specific Builder service
+  * stop-{svc} - unload a specific Builder service
+  * ui-dev-mode - helper to switch the github app to localhost:3000
+5. Docs
+  * dev_docs
 DOCS
 }
 
 install-packages
-hab pkg exec core/shadow useradd hab || echo "User 'hab' already exists"
 
 # NOTE: these are dev secrets (not for the actual Builder services);
 # it's OK
-APP_HOSTNAME=localhost:3000
-GITHUB_API_URL=https://api.github.com
-GITHUB_WEB_URL=https://github.com
-GITHUB_CLIENT_ID=Iv1.732260b62f84db15
-GITHUB_CLIENT_SECRET=fc7654ed8c65ccfe014cd339a55e3538f935027a
-WORKER_AUTH_TOKEN=fc7654ed8c65ccfe014cd339a55e3538f935027a
-GITHUB_ADMIN_TEAM=1995301
-GITHUB_WORKER_TEAM=1995301
-GITHUB_WEBHOOK_SECRET=58d4afaf5e5617ab0f8c39e505605e78a054d003
-SSL_CERT_FILE=$(hab pkg path core/cacerts)/ssl/cert.pem
 
-hab pkg binlink core/curl curl
+ENV_CONFIG="/src/.secrets/habitat-env"
 
-# If this file exists our services are likely already loaded
-if [ ! -f /hab/svc/builder-api/user.toml ]; then
-init-datastore
-configure
-start-builder
+if [[ -f "${ENV_CONFIG}" ]]; then
+  source "${ENV_CONFIG}"
+else
+  APP_HOSTNAME=localhost
+  GITHUB_API_URL=https://api.github.com
+  GITHUB_WEB_URL=https://github.com
+  GITHUB_CLIENT_ID=Iv1.04b78696442708f6
+  GITHUB_CLIENT_SECRET=b4acf029896e9c7fb6613390124e8ae3c35889aa
+  GITHUB_APP_ID=8053
+  GITHUB_APP_NAME=habitat-builder-dev-studio
 fi
+
+
+SSL_CERT_FILE=$(hab pkg path core/cacerts)/ssl/cert.pem
 
 touch /etc/subuid
 touch /etc/subgid
 hab pkg exec core/shadow groupadd --force krangschnak
 hab pkg exec core/shadow useradd --groups=tty --create-home -g krangschnak krangschnak || echo "User 'krangschnak' already exists"
+
+trap local_cleanup EXIT
 
 # Print out the docs
 dev_docs

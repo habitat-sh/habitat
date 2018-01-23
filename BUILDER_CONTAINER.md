@@ -4,23 +4,7 @@
 
 ## Pre-Requisites
 
-### GitHub OAuth Application
-
-1. Create a GitHub Organization
-1. [Setup a GitHub application](https://github.com/settings/apps/new) for your GitHub organization.
-1. Set the value of `Homepage URL` to `http://${APP_HOSTNAME}`
-1. Set the value of `User authorization callback URL` to `http://${APP_HOSTNAME}/` (The trailing `/` is *important*)
-1. Set the value of `Webhook URL` to `http://${APP_HOSTNAME}/`
-1. Set everything to read only (this is only used for your org so it's safe)
-1. Save and download the pem key
-1. Copy the pem key to `${HABITAT_SRC_ROOT}/.secrets/builder-dev-app.pem`
-1. Record the the client-id, client-secret and app_id. These will be used for the `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and `GITHUP_APP_ID` build variables (seen below).
-
-### Setup GitHub Teams
-
-1. Create a GitHub team in your organization for administrators and retrieve the team-id. This will be used for the value of `GITHUB_ADMIN_TEAM`
-
-> note: The only way to retrieve the ID for a GitHub team is currently [by the API](https://github.com/rei/github-api-utils/blob/master/bash/get-team-id.sh)
+[See dev pre-requisites](./BUILDER_DEV.md#pre-requisites)
 
 ## Building
 

@@ -9,9 +9,10 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "~/.hab/cache/keys", "/hab/cache/keys"
   config.vm.synced_folder "~/.hab/etc", "/hab/etc"
 
-  config.vm.network "forwarded_port", guest: 80, host: 9636
-  config.vm.network "forwarded_port", guest: 9631, host: 9631
   config.vm.network "forwarded_port", guest: 9636, host: 9636
+  config.vm.network "forwarded_port", guest: 80, host: 80
+  config.vm.network "forwarded_port", guest: 9631, host: 9631
+  config.vm.network "forwarded_port", guest: 5432, host: 5432
 
   config.vm.provider "virtualbox" do |v|
     v.memory = 4096
@@ -19,8 +20,8 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provider "vmware_fusion" do |v|
-    v.vmx["memsize"] = "4096"
-    v.vmx["numvcpus"] = "4"
+    v.vmx["memsize"] = "10000"
+    v.vmx["numvcpus"] = "6"
   end
 
   config.vm.provider "hyperv" do |hv, override|

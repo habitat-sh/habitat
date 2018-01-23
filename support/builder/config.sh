@@ -1,11 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
+while [ ! -f /hab/svc/builder-datastore/config/pwfile ]
+do
+  sleep 2
+done
+
 export PGPASSWORD
 PGPASSWORD=$(cat /hab/svc/builder-datastore/config/pwfile)
 
 mkdir -p /hab/svc/builder-api
 cat <<EOT > /hab/svc/builder-api/user.toml
+log_level = "debug"
 [github]
 url = "$GITHUB_API_URL"
 web_url = "$GITHUB_WEB_URL"
@@ -26,6 +32,8 @@ EOT
 
 mkdir -p /hab/svc/builder-api-proxy
 cat <<EOT > /hab/svc/builder-api-proxy/user.toml
+log_level = "debug"
+
 app_url = "http://localhost:9636"
 
 [github]
@@ -34,6 +42,7 @@ web_url = "$GITHUB_WEB_URL"
 client_id = "$GITHUB_CLIENT_ID"
 client_secret = "$GITHUB_CLIENT_SECRET"
 app_id = $GITHUB_APP_ID
+app_url = "https://github.com/apps/${GITHUB_APP_NAME}"
 EOT
 
 mkdir -p /hab/svc/builder-jobsrv
@@ -49,6 +58,8 @@ EOT
 
 mkdir -p /hab/svc/builder-originsrv
 cat <<EOT > /hab/svc/builder-originsrv/user.toml
+log_level = "debug"
+
 [app]
 shards = [
   0,
@@ -188,6 +199,8 @@ EOT
 
 mkdir -p /hab/svc/builder-sessionsrv
 cat <<EOT > /hab/svc/builder-sessionsrv/user.toml
+log_level = "debug"
+
 [app]
 shards = [
   0,
@@ -324,13 +337,26 @@ shards = [
 password = "$PGPASSWORD"
 database = "builder_sessionsrv"
 
-[permissions]
-admin_team = $GITHUB_ADMIN_TEAM
-build_worker_teams = [$GITHUB_WORKER_TEAM]
-early_access_teams = [$GITHUB_ADMIN_TEAM]
-
 [github]
 url = "$GITHUB_API_URL"
+client_id = "$GITHUB_CLIENT_ID"
+client_secret = "$GITHUB_CLIENT_SECRET"
+app_id = $GITHUB_APP_ID
+EOT
+
+mkdir -p /hab/svc/builder-worker
+cat <<EOT > /hab/svc/builder-worker/user.toml
+log_level = "debug"
+
+key_dir = "/hab/svc/builder-worker/files"
+auto_publish = true
+log_level = "debug"
+airlock_enabled = false
+data_path = "/hab/svc/builder-worker/data"
+bldr_url = "http://localhost:9636"
+[github]
+url = "$GITHUB_API_URL"
+web_url = "$GITHUB_WEB_URL"
 client_id = "$GITHUB_CLIENT_ID"
 client_secret = "$GITHUB_CLIENT_SECRET"
 app_id = $GITHUB_APP_ID
