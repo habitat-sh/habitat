@@ -20,20 +20,21 @@ import { List } from 'immutable';
 
 export default function packages(state = initialState['packages'], action) {
   switch (action.type) {
+
+    case actionTypes.CLEAR_CURRENT_PACKAGE_CHANNELS:
+      return state.set('currentChannels', []);
+
     case actionTypes.CLEAR_PACKAGES:
-      return state.set('current', Package()).
-        set('nextRange', 0).
+      return state.set('nextRange', 0).
         set('visible', List()).
         set('totalCount', 0).
-        setIn(['ui', 'current', 'loading'], true).
-        setIn(['ui', 'current', 'exists'], false).
-        setIn(['ui', 'latest', 'loading'], true).
-        setIn(['ui', 'latest', 'exists'], false).
         setIn(['ui', 'visible', 'loading'], true).
         setIn(['ui', 'visible', 'exists'], false);
 
     case actionTypes.CLEAR_LATEST_PACKAGE:
-      return state.set('latest', Package());
+      return state.set('latest', Package()).
+        setIn(['ui', 'latest', 'loading'], true).
+        setIn(['ui', 'latest', 'exists'], false);
 
     case actionTypes.CLEAR_LATEST_IN_CHANNEL:
       return state.setIn(['latestInChannel', action.payload.channel], undefined).
@@ -50,8 +51,7 @@ export default function packages(state = initialState['packages'], action) {
     case actionTypes.SET_CURRENT_PACKAGE:
       if (action.error) {
         return state.set('current', Package()).
-          setIn(['ui', 'current', 'errorMessage'],
-          action.error.message).
+          setIn(['ui', 'current', 'errorMessage'], action.error.message).
           setIn(['ui', 'current', 'loading'], false).
           setIn(['ui', 'current', 'exists'], false);
       } else {
@@ -62,6 +62,9 @@ export default function packages(state = initialState['packages'], action) {
           setIn(['ui', 'current', 'exists'], true).
           setIn(['ui', 'current', 'loading'], false);
       }
+
+    case actionTypes.SET_CURRENT_PACKAGE_CHANNELS:
+      return state.set('currentChannels', action.payload);
 
     case actionTypes.SET_CURRENT_PACKAGE_VERSIONS:
       if (action.error) {

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Component, Input } from '@angular/core';
+import { AppStore } from '../../app.store';
 import { releaseToDate } from '../../util';
 
 @Component({
@@ -20,10 +21,12 @@ import { releaseToDate } from '../../util';
   template: require('./package-detail.component.html')
 })
 export class PackageDetailComponent {
-  @Input() package: object;
+  @Input() package: any;
 
-  releaseToDate(release) {
-    return releaseToDate(release);
+  constructor(private store: AppStore) {}
+
+  get channels() {
+    return this.store.getState().packages.currentChannels;
   }
 
   get fullName() {
@@ -37,5 +40,21 @@ export class PackageDetailComponent {
     });
 
     return props.join('/');
+  }
+
+  get memberOfOrigin() {
+    return !!this.store.getState().origins.mine.find(
+      origin => origin['name'] === this.package.ident.origin
+    );
+  }
+
+  promotable(pkg) {
+    return this.memberOfOrigin &&
+      this.channels.length > 0 &&
+      this.channels.indexOf('stable') === -1;
+  }
+
+  releaseToDate(release) {
+    return releaseToDate(release);
   }
 }

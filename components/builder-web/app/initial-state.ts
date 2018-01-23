@@ -103,6 +103,7 @@ export default Record({
   })(),
   packages: Record({
     current: Package(),
+    currentChannels: [],
     dashboard: Record({
       origin: undefined,
       recent: List()

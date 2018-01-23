@@ -9,8 +9,8 @@
       </hab-project-settings>
     </section>
     <section *ngIf="!selectingPlan">
-      <ul class="nav-list">
-        <li class="heading" *ngIf="projectsExist">
+      <ul class="nav-list" *ngIf="projectsExist">
+        <li class="heading">
           <h4>Connected Plans</h4>
         </li>
         <li class="item" *ngFor="let proj of projects">
