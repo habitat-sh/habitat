@@ -32,6 +32,16 @@ param (
 $program = $MyInvocation.MyCommand
 # The current version of this program
 $HAB_PLAN_BUILD = "@VERSION@"
+
+$script:env = @{
+    RunTime = @{}
+    BuildTime = @{}
+}
+$script:provenance = @{
+    RunTime = @{}
+    BuildTime = @{}
+}
+
 $script:originalPath = (Get-Location).Path
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
@@ -750,15 +760,11 @@ function _Set_DependencyArrays {
   }
  }
 
-function _Add-Paths($fromFile) {
-  $path_part = $null
-  foreach($dep_path in $pkg_all_tdeps_resolved) {
-    if (Test-Path "$dep_path/$fromFile") {
-      Push-Location $originalPath
-      try {
-        $paths = (Get-Content "$dep_path/$fromFile").Trim().Split(";")
-
-        foreach($path in  $paths) {
+ function _Resolve-Paths($paths) {
+    $path_part = $null
+    Push-Location $originalPath
+    try {
+        foreach($path in $paths.split(";")) {
             $data = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
             if (!$path_part) {
             $path_part = $data
@@ -767,13 +773,11 @@ function _Add-Paths($fromFile) {
             $path_part += ";$data"
             }
         }
-      }
-      finally { Pop-Location }
     }
+    finally { Pop-Location }
+    $path_part
   }
-  $path_part
-}
-
+  
 function _Write-Pre-Build-File {
     New-Item "$pkg_output_path" -ItemType Directory -Force | Out-Null
     $preBuild = "$pkg_output_path\pre_build.env"
@@ -786,40 +790,6 @@ pkg_version=$pkg_version
 pkg_release=$pkg_release
 pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 "@ | Out-File "$pkg_output_path\pre_build.env" -Encoding ascii
-}
-
-function _Set-Path {
-  $path_part = $null
-  foreach($path in $pkg_bin_dirs) {
-    if (!$path_part) {
-      $path_part="$pkg_prefix/$path"
-    }
-    else {
-      $path_part += ";$pkg_prefix/$path"
-    }
-  }
-  $depPaths = _Add-Paths("PATH")
-  if($path_part) {
-    $depPaths = $path_part + ";$depPaths"
-  }
-  $depLibs = _Add-Paths("LIB_DIRS")
-  $depIncludes = _Add-Paths("INCLUDE_DIRS")
-
-  # Insert all the package PATH fragments before the default PATH to ensure
-  # package binaries are used before any userland/operating system binaries
-  if ($depPaths) {
-    $env:PATH="$depPaths;$INITIAL_PATH"
-  }
-  if ($depLibs) {
-    $env:LIB=$depLibs
-  }
-  if ($depIncludes) {
-    $env:INCLUDE=$depIncludes
-  }
-
-  Write-BuildLine "Setting PATH=$env:PATH"
-  Write-BuildLine "Setting LIB=$env:LIB"
-  Write-BuildLine "Setting INCLUDE=$env:INCLUDE"
 }
 
 function _Get-SHA256Converter {
@@ -997,6 +967,418 @@ function Invoke-Build {
 
 # Default implementation for the `Invoke-Build` phase.
 function Invoke-DefaultBuild {
+}
+
+# (I'm sure there are many other common variables we could add here;
+# PRs welcome!)
+$__well_known_aggregate_env_vars=@{
+    # Shell
+    INCLUDE=";"
+    LIB=";"
+    PATH=";"
+    PATHEXT=";"
+    PSModulePath=";"
+
+    # Go
+    GOPATH=";"
+
+    # Java
+    CLASSPATH=";"
+
+    # NodeJS
+    NODE_PATH=";"
+
+    # Python
+    PYTHONPATH=";"
+
+    # Ruby
+    BUNDLE_PATH=";"
+    BUNDLE_WITHOUT=";"
+    GEM_PATH=";"
+    RUBYLIB=";"
+    RUBYPATH=";"
+}
+
+function Invoke-SetupEnvironment {
+}
+
+function Invoke-SetupEnvironmentWrapper {
+    Write-BuildLine "Setting up environment"
+    Write-BuildLine "Populating runtime environment from dependencies"
+    __populate_environment_from_deps "RunTime"
+    Write-BuildLine "Populating buildtime environment from dependencies"
+    __populate_environment_from_deps "BuildTime"
+
+    Invoke-SetupEnvironment
+
+    Write-BuildLine "Layering runtime environment on top of system environment"
+    # Export everything from our collected runtime environment into
+    # the real environment, except for PATH; for that, push the
+    # runtime path onto the front of the system path
+    foreach($k in $env["Runtime"].keys) {
+        if(@("PATH", "LIB", "INCLUDE") -contains $k) {
+            $currentVal = ""
+            if(Test-path env:\$k) {
+                $currentVal = Get-Content env:\$k
+            }
+            New-Item -Name $k -Value (push_to_path (_Resolve-Paths $env["Runtime"][$k]) $currentVal) -ItemType Variable -Path Env: -Force | Out-Null
+        } else {
+            New-Item -Name $k -Value $env["Runtime"][$k] -ItemType Variable -Path Env: -Force | Out-Null
+        }
+        Write-BuildLine "Value of $k is $(Get-Content env:\$k)"
+    }
+
+    Write-BuildLine "Layering buildtime environment on top of system environment"
+    # Layer buildtime environment values into the system environment,
+    # which has already had the runtime values merged in. This is a
+    # stripped-down version of the logic used to layer environments
+    # from dependencies in the first place.
+    foreach($k in $env["Buildtime"].keys) {
+        $val = $env["Buildtime"][$k]
+        if(@("PATH", "LIB", "INCLUDE") -contains $k) {
+            $val = _Resolve-Paths $val
+        }
+
+        if(Test-Path env:\$k) {
+            # There was a previous value; need to figure out
+            # how to proceed
+            if((Get-Content -Path env:\$k) -eq $val) {
+                # If the value is the same as what we've got,
+                # there's nothing to do
+                continue
+            }
+
+            switch(__env_var_type $k) {
+                "primitive" {
+                    New-Item -Name $k -Value $val -ItemType Variable -Path Env: -Force | Out-Null
+                }
+                "aggregate" {
+                    New-Item -Name $k -Value (push_to_path $val (Get-Content -Path env:\$k) (__env_aggregate_separator $k)) -ItemType Variable -Path Env: -Force | Out-Null
+                }
+            }
+            Write-BuildLine "Value of $k is $(Get-Content env:\$k)"
+        } else {
+            # There was no previous value; just set this one
+            New-Item -Name $k -Value $val -ItemType Variable -Path Env: -Force | Out-Null
+            Write-BuildLine "Value of $k is $(Get-Content env:\$k)"
+        }
+    }
+}
+
+# Given that a variable is an aggregate (i.e., PATH-style) variable,
+# return the separator character used to delimit items in the value.
+function __env_aggregate_separator($VarName) {
+    $hint_var = Get-Variable "HAB_ENV_$VarName_TYPE" -ErrorAction SilentlyContinue
+
+    if($hint_var) {
+        # Look for user-specified hints first
+        $hint_var.Value
+    } elseif($__well_known_aggregate_env_vars.ContainsKey($varname)) {
+        # Look in our built-in map to see if we know anything about it
+        $__well_known_aggregate_env_vars[$VarName]
+    } else {
+        # Just assume it's the default
+        ';'
+    }
+}
+
+# Read in the RUNTIME_ENVIRONMENT files from all direct dependencies
+# (in `pkg_deps` / `pkg_build_deps` order!) and layer them as appropriate.
+function __populate_environment_from_deps {
+    param(
+        [ValidateSet('BuildTime','RunTime')]
+        [System.String]$Environment
+    )
+
+    $dep_array=$pkg_deps
+    if($Environment -eq "BuildTime") {
+        $dep_array = $pkg_build_deps
+    }
+
+
+    foreach($dep in $dep_array) {
+        $path_to_dep = Get-HabPackagePath $dep.Split("/")[1]
+
+        $dep_ident = (Get-Content "$path_to_dep/IDENT").Trim()
+
+        if(Test-Path "$path_to_dep/RUNTIME_ENVIRONMENT") {
+            foreach($line in (Get-Content "$path_to_dep/RUNTIME_ENVIRONMENT")) {
+                $varval = $line.split("=")
+
+                if($env[$Environment].ContainsKey($varval[0])) {
+                    # There was a previous value; need to figure out
+                    # how to proceed
+
+                    # Where did the value come from originally?
+                    if($varval[1] -eq $env[$Environment][$varval[0]]) {
+                        # If the value is the same as what we've got,
+                        # there's nothing to do
+                        continue
+                    }
+
+                    switch(__env_var_type $varval[0]) {
+                        "primitive" {
+                            Write-Warning "Overwriting `$env:$($varval[0]) originally set from $($provenance[$Environment][$varval[0]])"
+                            __set_env $Environment $varval[0] $varval[1] $dep_ident
+                        }
+                        "aggregate" {
+                            Write-Warning "Prepending to `$env:$($varval[0]) originally set from $($provenance[$Environment][$varval[0]])"
+
+                            # if aggregate, push to front with separator
+                            __push_env $Environment $varval[0] $varval[1] (__env_aggregate_separator $varval[0]) $dep_ident
+                        }
+                    }
+                }
+                else {
+                    # There was no previous value; just add this one
+                    $env[$Environment][$varval[0]]=$varval[1]
+                    $provenance[$Environment][$varval[0]]="${dep_ident}"
+                }
+            }
+        }    
+        else {
+            # Versions of Habitat prior to the introduction of
+            # RUNTIME_ENVIRONMENT have a PATH file. Let's pull that in
+            # to assemble a PATH for our environment going forward.
+            #
+            # This will (in time) fix the issues in the old PATH data,
+            # which included build-time dependencies and system
+            # directories from the Studio. As older,
+            # lower-down-the-stack packages are rebuilt, they'll get
+            # the correct PATH, which will cascade outward.
+            #
+            # The old PATH also would include duplicate entries, as
+            # well as empty entries sometimes. The current resolution
+            # algorithm should filter these out immediately.
+            Write-Warning "No RUNTIME_ENVIRONMENT metadata file found for ${dep_ident}; falling back to PATH metadata"
+            $old_path = __assemble_legacy_paths $path_to_dep 'PATH'
+            if($old_path -and ($old_path.length -gt 0)) {
+                Write-Warning "Final generated PATH for ${path_to_dep}: $old_path"
+                __push_env $Environment "PATH" $old_path ";" $dep_ident
+            }
+            else {
+                Write-Warning "No PATH metadata found for $path_to_dep"
+            }
+
+            $old_lib = __assemble_legacy_paths $path_to_dep 'LIB_DIRS'
+            if($old_lib -and ($old_lib.length -gt 0)) {
+                Write-Warning "Final generated LIB for ${path_to_dep}: $old_lib"
+                __push_env $Environment "LIB" $old_lib ";" $dep_ident
+            }
+            else {
+                Write-Warning "No LIB metadata found for $path_to_dep"
+            }
+
+            $old_include = __assemble_legacy_paths $path_to_dep 'INCLUDE_DIRS'
+            if($old_include -and ($old_include.length -gt 0)) {
+                Write-Warning "Final generated INCLUDE for ${path_to_dep}: $old_include"
+                __push_env $Environment "INCLUDE" $old_include ";" $dep_ident
+            }
+            else {
+                Write-Warning "No INCLUDE metadata found for $path_to_dep"
+            }
+        }
+    }
+
+    # NB: This adds any local binaries to the build-time environment;
+    # strictly speaking, not necessary
+
+    # Push new PATH, LIB and INCLUDE entries in from this package. We currently
+    # disallow users from directly manipulating these vars themselves.
+    __process_paths $Environment
+}
+
+# Internal function implementing core "set" logic for environment variables.
+function __set_env($EnvName, $VarName, $VarValue, $ident){
+    $env[$Environment][$VarName]=$VarValue
+    $provenance[$Environment][$VarName]=$ident
+}
+
+# Internal function implementing core "push" logic for environment variables.
+function __push_env($EnvName, $VarName, $VarValue, $separator, $ident) {
+    # If there is no current value (that is, $current_value == ""), we
+    # can still push onto that with no loss of generality. Because
+    # push_to_path also dedupes the result, this allows us to take
+    # $value inputs that are themselves paths, which may have
+    # duplicate or blank entries (as is the case with some existing
+    # Habitat metadata files) and this will effectively "clean" them
+    # for us!
+    $current_value=$env[$Environment][$VarName]
+    $new_value=$(push_to_path $VarValue $current_value $Separator)
+    $env[$Environment][$VarName]=$new_value
+
+    $existing_provenance = $provenance[$Environment][$VarName]
+    $provenance[$Environment][$VarName]=$(push_to_path $ident $existing_provenance)
+}
+
+# Pushes $ITEM onto $PATH (using optional $SEPARATOR) and then
+# deduplicates entries.
+#
+# push_to_path "foo" "bar:foo:baz"
+#   -> "foo:bar:baz"
+#
+# push_to_path "foo" ""
+#   -> "foo"
+#
+# push_to_path "foo" "bar;baz" ";"
+#   -> "foo;bar;baz"
+#
+function push_to_path($item, $path, $separator = ";") {
+    if(!$path -or ($path -eq "")) {
+        $temp=$item
+    }
+    else {
+        $temp="$item$separator$path"
+    }
+    dedupe_path $temp $separator
+}
+
+function dedupe_path($path, $separator = ";"){
+    $pathArray = $path.Split($separator)
+    $pathArray = $pathArray | Select -Unique
+    [String]::Join($separator, $pathArray)
+}
+
+function __env_var_type($VarName) {
+    $hint_var = Get-Variable "HAB_ENV_${VarName}_TYPE" -ErrorAction SilentlyContinue
+
+    if($hint_var) {
+        # Look for user-specified hints first
+        $hint_var.Value
+    }
+    elseif($__well_known_aggregate_env_vars.ContainsKey($varname)) {
+        # Look in our built-in map to see if we know anything about it
+        'aggregate'
+    }
+    else {
+        # We know nothing about it; treat it as a primitive
+        Write-Warning "Treating `$$varName as a primitive type. If you would like to change this, add `"HAB_ENV_${VarName}_TYPE='aggregate'`" to your plan."
+        'primitive'
+    }
+}
+
+# Simply converts contents of pkg_bin_dirs, pkg_lib_dirs and pkg_include_dirs
+# into a PATH, LIB and INCLUDE variable
+function __process_paths($Environment) {
+    if($Environment -ne "Runtime") { return }
+
+    # Contents of `pkg_xxx_dirs` are relative to the plan root;
+    # prepend the full path to this release so everything resolves
+    # properly once the package is installed.
+    $prefixDrive = (Resolve-Path $originalPath).Drive.Root
+    $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
+    if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
+
+    if ($pkg_bin_dirs.Length -gt 0) {
+        $path = $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ';'
+        __push_env $Environment "PATH" $path ";" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
+    }
+
+    if ($pkg_lib_dirs.Length -gt 0) {
+        $lib = $($pkg_lib_dirs | % { "$strippedPrefix\$_" }) -join ';'
+        __push_env $Environment "LIB" $lib ";" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
+    }
+
+    if ($pkg_include_dirs.Length -gt 0) {
+        $include = $($pkg_include_dirs | % { "$strippedPrefix\$_" }) -join ';'
+        __push_env $Environment "INCLUDE" $include ";" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
+    }
+}
+
+# For dependencies that do not have a RUNTIME_ENVIRONMENT file, we'll
+# at least assemble a PATH, LIB, and INCLUDE variable that can be used. To be complete
+# and utterly paranoid, we'll iterate through the TDEPS of the
+# dependency and assemble a PATH by layering all the PATHs of each of
+# those dependencies.
+#
+# Don't need to do this for packages that already have a
+# RUNTIME_ENVIRONMENT file, because this operation will have already
+# been done when those packages were built. This is to help preserve
+# backward compatibility.
+function __assemble_legacy_paths($DepPath, $pathFile) {
+    $path=""
+
+    $tdeps = (_Get-TdepsFor $DepPath)
+    foreach($tdep in $tdeps) {
+        # If a PATH exists for this transitive dependency, collect
+        # it, prepending to the beginning of our accumulating path
+        $path_to_tdep=Join-Path $tdep $pathFile
+        if(Test-Path $path_to_tdep) {
+            $tdep_path = Get-Content $path_to_tdep | Out-String
+            if($tdep_path.length -gt 0) {
+                $path = push_to_path $tdep_path $path
+            }
+        }
+    }
+    # If the current dependency has PATH data itself, prepend it to
+    # what we've been accumulating so far
+    $path_to_dep=Join-Path $DepPath $pathFile
+    if(Test-Path $path_to_dep) {
+        $dep_path = (Get-Content $path_to_dep | Out-String).Trim()
+        if($dep_path.length -gt 0) {
+            $path = push_to_path $dep_path $path
+        }
+    }
+
+    # Finally, return the path
+    $path
+}
+
+function Set-BuildtimeEnv($VarName, $VarValue, [switch]$force) {
+    set_env "BuildTime" @PSBoundParameters
+}
+
+function Set-RuntimeEnv($VarName, $VarValue, [switch]$force) {
+    set_env "RunTime" @PSBoundParameters
+}
+
+function set_env($Environment, $VarName, $VarValue, [switch]$force) {
+    __fail_on_protected_env_var_manipulation $VarName
+
+    if($env[$Environment].ContainsKey($VarName)) {
+        if(!$force) {
+            _Exit-With "Already have a value for `$$VarName, set by $($provenance[$Environment][$VarName]): $($env[$Environment][$VarName]). If you really wish to overwrite this value, pass the '-force' option when setting it." 1
+        } else {
+            Write-Warning "Already have a value for `$$VarName, set by $($provenance[$Environment][$VarName]): $($env[$Environment][$VarName]). Overwriting value because the '-Force' flag was passed"
+        }
+    }
+
+    __set_env $Environment $VarName $VarValue "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
+}
+
+function __fail_on_protected_env_var_manipulation($VarName) {
+    $protected=@{
+        PATH="pkg_bin_dirs"
+        LIB="pkg_lib_dirs"
+        LD_RUN_PATH="pkg_lib_dirs"
+        LDFLAGS="pkg_lib_dirs"
+        INCLUDE="pkg_include_dirs"
+        CFLAGS="pkg_include_dirs"
+        CPPFLAGS="pkg_include_dirs"
+        CXXFLAGS="pkg_include_dirs"
+        PKG_CONFIG_PATH="pkg_pconfig_dirs"
+    }
+    foreach($p in $protected.Keys) {
+        if($VarName -eq $p) {
+            _Exit-With "Cannot directly manipulate environment variable $VarName! Add appropriate entries to the '$($protected[$VarName])' variable in plan.ps1 instead!"
+        }
+    }
+}
+
+function Push-BuildtimeEnv($VarName, $VarValue) {
+    Write-BuildLine "PUSH $VarName TO BUILD"
+    do_push_env "BuildTime" @PSBoundParameters
+}
+
+function Push-RuntimeEnv($VarName, $VarValue) {
+    Write-BuildLine "PUSH $VarName TO RUN"
+    do_push_env "RunTime" @PSBoundParameters
+}
+
+function do_push_env($Environment, $VarName, $VarValue) {
+    __fail_on_protected_env_var_manipulation $VarName
+
+    __push_env $Environment $VarName $VarValue (__env_aggregate_separator $VarName) "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
 }
 
 # Will run post-compile tests and checks, provided 2 conditions are true:
@@ -1204,25 +1586,6 @@ $(Get-Content "$PLAN_CONTEXT\plan.ps1" -Raw)
 function _Write-Metadata {
     Write-BuildLine "Building pacakge metadata"
 
-    $prefixDrive = (Resolve-Path $originalPath).Drive.Root
-    $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
-    if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
-
-    if ($pkg_bin_dirs.Length -gt 0) {
-        $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ';' |
-            Out-File "$pkg_prefix\PATH" -Encoding ascii
-    }
-
-    if ($pkg_lib_dirs.Length -gt 0) {
-        $($pkg_lib_dirs | % { "$strippedPrefix\$_" }) -join ';' |
-            Out-File "$pkg_prefix\LIB_DIRS" -Encoding ascii
-    }
-
-    if ($pkg_include_dirs.Length -gt 0) {
-        $($pkg_include_dirs | % { "$strippedPrefix\$_" }) -join ';' |
-            Out-File "$pkg_prefix\INCLUDE_DIRS" -Encoding ascii
-    }
-
     if ($pkg_expose.Length -gt 0) {
         "$($pkg_expose -join ' ')" |
             Out-File "$pkg_prefix\EXPOSES" -Encoding ascii
@@ -1243,6 +1606,30 @@ function _Write-Metadata {
     if ($pkg_binds_optional) {
         foreach ($bind in $pkg_binds_optional.GetEnumerator()) {
             "$($bind.Key)=$($bind.Value)" | Out-File "$pkg_prefix\BINDS_OPTIONAL" -Encoding ascii -Append
+        }
+    }
+
+    if ($env.Runtime.length -gt 0) {
+        foreach ($var in $env.Runtime.GetEnumerator()) {
+            "$($var.Key)=$($var.Value)" | Out-File "$pkg_prefix\RUNTIME_ENVIRONMENT" -Encoding ascii -Append
+        }
+    }
+
+    if ($provenance.Runtime.length -gt 0) {
+        foreach ($var in $provenance.Runtime.GetEnumerator()) {
+            "$($var.Key)=$($var.Value)" | Out-File "$pkg_prefix\RUNTIME_ENVIRONMENT_PROVENANCE" -Encoding ascii -Append
+        }
+    }
+
+    if ($env.Buildtime.length -gt 0) {
+        foreach ($var in $env.Buildtime.GetEnumerator()) {
+            "$($var.Key)=$($var.Value)" | Out-File "$pkg_prefix\BUILDTIME_ENVIRONMENT" -Encoding ascii -Append
+        }
+    }
+
+    if ($provenance.Buildtime.length -gt 0) {
+        foreach ($var in $provenance.Buildtime.GetEnumerator()) {
+            "$($var.Key)=$($var.Value)" | Out-File "$pkg_prefix\BUILDTIME_ENVIRONMENT_PROVENANCE" -Encoding ascii -Append
         }
     }
 
@@ -1502,11 +1889,10 @@ try {
 
     _Assert-Deps
 
-    # Set the complete `Path` environment.
-    _Set-Path
-
     # Write out a prebuild file so workers can have some metadata about failed builds
     _Write-Pre-Build-File
+
+    Invoke-SetupEnvironmentWrapper
 
     New-Item "$HAB_CACHE_SRC_PATH" -ItemType Directory -Force | Out-Null
 
