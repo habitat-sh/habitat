@@ -1117,13 +1117,15 @@ function Invoke-DefaultBuildService {
         Write-BuildLine "Using run hook $PLAN_CONTEXT/hooks/run"
     }
     else {
-        if ($pkg_svc_run -ne "" -and (Test-Path $pkg_svc_run)) {
+        if ($pkg_svc_run -ne "") {
           Write-BuildLine "Writing $pkg_prefix/run script to run $pkg_svc_run"
           Set-Content -Path "$pkg_prefix/run" -Value @"
 cd "$pkg_svc_path"
 
-& "$pkg_svc_run" 2>&1
-exit `$LASTEXITCODE
+`$cmd = @"
+$pkg_svc_run
+"`@
+Invoke-Expression -Command `$cmd 2>&1
 "@
         }
     }
