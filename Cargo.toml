@@ -19,7 +19,7 @@ lazy_static = "*"
 libarchive = "*"
 libc = "*"
 # JW: Temporarily use master branch of git until serde 1.0+ is available in crate release
-libsodium-sys = { git = "https://github.com/dnaq/sodiumoxide" }
+libsodium-sys = "0.0.16"
 log = "*"
 rand = "*"
 regex = "*"
@@ -27,7 +27,7 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 # JW: Temporarily use master branch of git until serde 1.0+ is available in crate release
-sodiumoxide = { git = "https://github.com/dnaq/sodiumoxide" }
+sodiumoxide = "0.0.16"
 time = "*"
 toml = { version = "*", default-features = false }
 typemap = "*"
