@@ -101,6 +101,7 @@ export {
 } from './origins';
 
 export {
+  CLEAR_CURRENT_PACKAGE_CHANNELS,
   CLEAR_LATEST_IN_CHANNEL,
   CLEAR_LATEST_PACKAGE,
   CLEAR_PACKAGE_VERSIONS,
@@ -109,10 +110,12 @@ export {
   fetchLatestInChannel,
   fetchLatestPackage,
   fetchPackage,
+  fetchPackageChannels,
   fetchPackageVersions,
   filterPackagesBy,
   getUniquePackages,
   POPULATE_DASHBOARD_RECENT,
+  SET_CURRENT_PACKAGE_CHANNELS,
   SET_CURRENT_PACKAGE_VERSIONS,
   SET_CURRENT_PACKAGE,
   SET_LATEST_IN_CHANNEL,

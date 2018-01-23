@@ -21,7 +21,7 @@ import { PackageLatestComponent } from '../package-latest/package-latest.compone
 import { PackageReleaseComponent } from '../package-release/package-release.component';
 import { PackageVersionsComponent } from '../package-versions/package-versions.component';
 import { AppStore } from '../../app.store';
-import { fetchBuilds, fetchIntegrations, fetchOrigin, fetchProject } from '../../actions/index';
+import { fetchBuilds, fetchIntegrations, fetchLatestInChannel, fetchOrigin, fetchProject } from '../../actions/index';
 
 @Component({
   template: require('./package.component.html')
@@ -122,8 +122,13 @@ export class PackageComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.fetchLatestStable();
     this.fetchProject();
     this.fetchBuilds();
+  }
+
+  private fetchLatestStable() {
+    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable'));
   }
 
   private fetchProject() {

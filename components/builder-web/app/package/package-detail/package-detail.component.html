@@ -26,7 +26,15 @@
       <div>
         <dt>&nbsp;</dt>
         <dd>
-          <hab-channels [channels]="package.channels"></hab-channels>
+          <hab-channels [channels]="channels"></hab-channels>
+          <hab-package-promote
+            [origin]="package.ident.origin"
+            [name]="package.ident.name"
+            [version]="package.ident.version"
+            [release]="package.ident.release"
+            channel="stable"
+            *ngIf="promotable(package)">
+          </hab-package-promote>
         </dd>
       </div>
     </dl>

@@ -16,11 +16,12 @@ import { groupBy } from 'lodash';
 import * as depotApi from '../client/depot-api';
 import { addNotification, SUCCESS, DANGER } from './notifications';
 
+export const CLEAR_CURRENT_PACKAGE_CHANNELS = 'CLEAR_CURRENT_PACKAGE_CHANNELS';
 export const CLEAR_PACKAGES = 'CLEAR_PACKAGES';
 export const CLEAR_LATEST_IN_CHANNEL = 'CLEAR_LATEST_IN_CHANNEL';
 export const CLEAR_LATEST_PACKAGE = 'CLEAR_LATEST_PACKAGE';
-export const POPULATE_DASHBOARD_RECENT = 'POPULATE_DASHBOARD_RECENT';
 export const CLEAR_PACKAGE_VERSIONS = 'CLEAR_PACKAGE_VERSIONS';
+export const POPULATE_DASHBOARD_RECENT = 'POPULATE_DASHBOARD_RECENT';
 export const SET_CURRENT_PACKAGE = 'SET_CURRENT_PACKAGE';
 export const SET_LATEST_IN_CHANNEL = 'SET_LATEST_IN_CHANNEL';
 export const SET_LATEST_PACKAGE = 'SET_LATEST_PACKAGE';
@@ -35,6 +36,12 @@ export const SET_VISIBLE_PACKAGE_CHANNELS = 'SET_VISIBLE_PACKAGE_CHANNELS';
 function clearPackages() {
   return {
     type: CLEAR_PACKAGES,
+  };
+}
+
+function clearCurrentPackageChannels() {
+  return {
+    type: CLEAR_CURRENT_PACKAGE_CHANNELS
   };
 }
 
@@ -67,12 +74,23 @@ function clearPackageVersions() {
 
 export function fetchPackage(pkg) {
   return dispatch => {
-    dispatch(clearPackages());
     depotApi.get(pkg.ident).then(response => {
       dispatch(setCurrentPackage(response['results']));
     }).catch(error => {
       dispatch(setCurrentPackage(undefined, error));
     });
+  };
+}
+
+export function fetchPackageChannels(origin: string, name: string, version: string, release: string) {
+  return dispatch => {
+    dispatch(clearCurrentPackageChannels());
+
+    depotApi.getPackageChannels(origin, name, version, release)
+      .then(response => {
+        dispatch(setCurrentPackageChannels(response));
+      })
+      .catch(error => console.error(error));
   };
 }
 
@@ -82,6 +100,9 @@ export function fetchLatestPackage(origin: string, name: string) {
 
     depotApi.getLatest(origin, name).then(response => {
       dispatch(setLatestPackage(response));
+
+      const ident = response['ident'];
+      dispatch(fetchPackageChannels(ident.origin, ident.name, ident.version, ident.release));
     }).catch(error => {
       dispatch(setLatestPackage(undefined, error));
     });
@@ -186,6 +207,8 @@ export function promotePackage(origin: string, name: string, version: string, re
           body: `${origin}/${name}/${version}/${release} has been promoted to the ${channel} channel.`,
           type: SUCCESS
         }));
+        dispatch(fetchLatestInChannel(origin, name, 'stable'));
+        dispatch(fetchPackageChannels(origin, name, version, release));
         dispatch(fetchPackageVersions(origin, name));
       })
       .catch(error => {
@@ -220,6 +243,13 @@ export function setLatestInChannel(channel, pkg, error = undefined) {
     type: SET_LATEST_IN_CHANNEL,
     payload: { channel, pkg },
     error: error,
+  };
+}
+
+export function setCurrentPackageChannels(channels) {
+  return {
+    type: SET_CURRENT_PACKAGE_CHANNELS,
+    payload: channels
   };
 }
 

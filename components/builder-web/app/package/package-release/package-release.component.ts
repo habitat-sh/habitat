@@ -18,6 +18,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AppStore } from '../../app.store';
 import { fetchPackage } from '../../actions/index';
+import { fetchPackageChannels } from '../../actions/packages';
 
 @Component({
   template: require('./package-release.component.html')
@@ -67,5 +68,8 @@ export class PackageReleaseComponent implements OnDestroy {
 
   private fetchRelease() {
     this.store.dispatch(fetchPackage({ ident: this.ident }));
+    this.store.dispatch(fetchPackageChannels(
+      this.ident.origin, this.ident.name, this.ident.version, this.ident.release
+    ));
   }
 }

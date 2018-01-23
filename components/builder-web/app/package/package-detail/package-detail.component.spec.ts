@@ -13,15 +13,27 @@
 // limitations under the License.
 
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { Component, DebugElement } from '@angular/core';
+import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { MockComponent } from 'ng2-mock-component';
 import { Package } from '../../records/Package';
-import * as actions from '../../actions/index';
+import { AppStore } from '../../app.store';
 import { PackageDetailComponent } from './package-detail.component';
+
+class MockAppStore {
+  getState() {
+    return {
+      origins: {
+        mine: []
+      },
+      packages: {
+        currentChannels: []
+      }
+    };
+  }
+  dispatch() {}
+}
 
 class MockRoute {
   params = Observable.of({
@@ -43,8 +55,11 @@ describe('PackageDetailComponent', () => {
         MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] }),
         MockComponent({ selector: 'hab-channels', inputs: ['channels'] }),
         MockComponent({ selector: 'hab-package-list', inputs: ['currentPackage', 'packages'] }),
+        MockComponent({ selector: 'hab-package-promote', inputs: [ 'origin', 'name', 'version', 'release', 'channel' ] }),
         MockComponent({ selector: 'hab-copyable', inputs: ['text', 'style'] })
-      ]
+      ],
+      providers: [
+        { provide: AppStore, useClass: MockAppStore }]
     });
 
     fixture = TestBed.createComponent(PackageDetailComponent);

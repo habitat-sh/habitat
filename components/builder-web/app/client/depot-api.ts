@@ -176,6 +176,26 @@ export function get(params, nextRange: number = 0) {
   });
 }
 
+export function getPackageChannels(origin: string, name: string, version: string, release: string) {
+  const url = `${urlPrefix}/depot/pkgs/${origin}/${name}/${version}/${release}/channels`;
+
+  return new Promise((resolve, reject) => {
+    fetch(url, opts())
+      .then(response => handleUnauthorized(response, reject))
+      .then(response => {
+        if (response.status >= 400) {
+          reject(new Error(response.statusText));
+        }
+        else {
+          response.json().then(results => {
+            resolve(results);
+          });
+        }
+      })
+      .catch(error => handleError(error, reject));
+  });
+}
+
 export function getPackageVersions(origin: string, pkg: string) {
   const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/versions`;
 
