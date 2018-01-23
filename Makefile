@@ -36,7 +36,7 @@ else
 endif
 
 BIN = hab hab-butterfly pkg-export-docker pkg-export-kubernetes sup
-LIB = butterfly common core http-client net
+LIB = butterfly common http-client
 ALL = $(BIN) $(LIB)
 VERSION := $(shell cat VERSION)
 
