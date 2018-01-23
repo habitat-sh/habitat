@@ -402,13 +402,22 @@ $main-nav-breakpoint: 769px;
   left: 0;
   background: linear-gradient(180deg, $hab-navy-light 0%, $hab-navy 100%);
   font-size: 12px;
-  height: 30px;
   line-height: 30px;
   color: $hab-white;
   box-shadow: 0 2px 6px 0 rgba(35,39,39,0.49);
+  padding: 0 10px 0 4px;
+
+  &:hover, &:visited {
+    color: $hab-white;
+  }
+
+  img {
+    width: 30px;
+    height: 30px;
+  }
 
   > span {
-    padding: 0px 5px;
+    vertical-align: middle
   }
 
   @media (min-width: 1150px) {
