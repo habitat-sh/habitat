@@ -1,3 +1,4 @@
+web: support/builder_web.sh
 postgres: hab svc start core/builder-datastore
 api: /src/target/debug/bldr-api start --config /hab/svc/builder-api/config.toml
 admin: /src/target/debug/bldr-admin start
