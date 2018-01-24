@@ -38,7 +38,7 @@ impl Suitability for ZeroSuitability {
 }
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
     let mut args = env::args();
     let _ = args.next();
 

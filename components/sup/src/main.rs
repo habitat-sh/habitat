@@ -88,7 +88,7 @@ fn main() {
 }
 
 fn boot() -> Option<LauncherCli> {
-    env_logger::init().unwrap();
+    env_logger::init();
     enable_features_from_env();
     if !crypto::init() {
         println!("Crypto initialization failed!");
@@ -503,12 +503,8 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
             // up!
             //
             // This will install the latest version from Builder
-            let installed = util::pkg::install(
-                &mut ui(),
-                &bldr_url(m),
-                &install_source,
-                &channel(m),
-            )?;
+            let installed =
+                util::pkg::install(&mut ui(), &bldr_url(m), &install_source, &channel(m))?;
 
             let original_ident = install_source.as_ref();
             let mut specs = generate_new_specs_from_package(original_ident, &installed, m)?;
@@ -573,7 +569,7 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
                             match util::pkg::installed(composite_spec.package_ident()) {
                                 Some(package) => package,
                                 // TODO (CM): this should be a proper error
-                                None => unreachable!(), 
+                                None => unreachable!(),
                             };
 
                         update_composite_service_specs(
@@ -831,9 +827,12 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
                     process::exit(2);
                 }
             };
-            print_statuses(specs.iter()
-                                .filter_map(|spec| Manager::service_status(&cfg, &spec.ident).ok())
-                                .collect::<Vec<ServiceStatus>>())?;
+            print_statuses(
+                specs
+                    .iter()
+                    .filter_map(|spec| Manager::service_status(&cfg, &spec.ident).ok())
+                    .collect::<Vec<ServiceStatus>>(),
+            )?;
         }
         None => {
             print_statuses(Manager::status(&cfg)?)?;
@@ -847,16 +846,29 @@ fn print_statuses(statuses: Vec<ServiceStatus>) -> Result<()> {
         println!("No services loaded.");
         return Ok(());
     }
-    let titles = vec!("package", "type", "state", "uptime (s)", "pid", "group", "style");
+    let titles = vec![
+        "package",
+        "type",
+        "state",
+        "uptime (s)",
+        "pid",
+        "group",
+        "style",
+    ];
     let mut tw = TabWriter::new(io::stdout());
     write!(tw, "{}\n", titles.join("\t"));
     for status in statuses {
-        write!(tw, "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+        write!(
+            tw,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
             status.pkg.ident,
             status.composite.unwrap_or("standalone".to_string()),
             status.process.state,
             status.process.elapsed.num_seconds(),
-            status.process.pid.map(|p| p.to_string()).unwrap_or("<none>".to_string()),
+            status.process.pid.map(|p| p.to_string()).unwrap_or(
+                "<none>"
+                    .to_string(),
+            ),
             status.service_group,
             status.start_style
         );
@@ -1222,7 +1234,9 @@ fn set_config_from_input(spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         spec.config_from = Some(PathBuf::from(config_from));
         outputln!("");
-        outputln!("WARNING: Setting '--config-from' should only be used in development, not production!");
+        outputln!(
+            "WARNING: Setting '--config-from' should only be used in development, not production!"
+        );
         outputln!("");
     }
     Ok(())
@@ -1437,14 +1451,18 @@ fn valid_topology(val: String) -> result::Result<(), String> {
 fn valid_listen_gossip(val: String) -> result::Result<(), String> {
     match GossipListenAddr::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!("Listen gossip address should include both IP and port, eg: '0.0.0.0:9700'"))
+        Err(_) => Err(format!(
+            "Listen gossip address should include both IP and port, eg: '0.0.0.0:9700'"
+        )),
     }
 }
 
 fn valid_listen_http(val: String) -> result::Result<(), String> {
     match ListenAddr::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!("Listen http address should include both IP and port, eg: '0.0.0.0:9700'"))
+        Err(_) => Err(format!(
+            "Listen http address should include both IP and port, eg: '0.0.0.0:9700'"
+        )),
     }
 }
 
@@ -1605,7 +1623,7 @@ fn ui() -> UI {
         Coloring::Never
     };
 
-    let isatty =  if env::var(NONINTERACTIVE_ENVVAR)
+    let isatty = if env::var(NONINTERACTIVE_ENVVAR)
     // Keep string boolean for backwards-compatibility
         .map(|val| val == "1" || val == "true")
         .unwrap_or(false)

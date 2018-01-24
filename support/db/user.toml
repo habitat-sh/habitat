@@ -1,5 +1,0 @@
-max_locks_per_transaction = 128
-
-[superuser]
-name = 'hab'
-password = 'hab'

@@ -71,13 +71,9 @@ Get started with the [Habitat tutorials](https://www.habitat.sh/tutorials/) or p
 
 The Habitat plans that are built and maintained by Habitat's Core Team are in [their own repo.](https://github.com/habitat-sh/core-plans)
 
-### Habitat Supervisor, Builder, and other core components
+### Habitat Supervisor and other core components
 
-The code for the Habitat Supervisor, Builder, and other core components are in the [components directory](https://github.com/habitat-sh/habitat/tree/master/components).
-
-### Web Application
-
-The code for the Habitat Builder web application is in the components/builder-web directory. See [its README](components/builder-web/README.md) for more information.
+The code for the Habitat Supervisor and other core components are in the [components directory](https://github.com/habitat-sh/habitat/tree/master/components).
 
 ### Docs
 
@@ -94,10 +90,6 @@ The Habitat core team's project tracker is also public and on [Github.](https://
 * [Habitat Slack](http://slack.habitat.sh)
 * [Forums]()
 * Community triage is every Tuesday at 10am Pacific. The link to participate is shared in the [Habitat Slack channel](http://slack.habitat.sh), and videos are posted on the [Habitat YouTube channel](https://youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
-
-## Builder Dev Env
-
-See [BUILDER_DEV.md](BUILDER_DEV.md) for information on setting up a Builder Dev Environment
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.

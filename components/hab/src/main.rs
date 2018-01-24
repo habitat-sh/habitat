@@ -72,7 +72,7 @@ lazy_static! {
 }
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
     let mut ui = UI::default_with_env();
     thread::spawn(|| analytics::instrument_subcommand());
     if let Err(e) = start(&mut ui) {

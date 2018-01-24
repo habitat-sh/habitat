@@ -15,8 +15,8 @@ clippy = {version = "*", optional = true}
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 env_logger = "*"
-habitat_core = { path = "../core" }
-habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
+habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat-eventsrv-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
 log = "*"
 protobuf = "*"
 serde = "*"

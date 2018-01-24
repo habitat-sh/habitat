@@ -8,7 +8,7 @@ workspace = "../../"
 chrono = "*"
 clippy = {version = "*", optional = true}
 broadcast = "*"
-habitat-builder-protocol = { path = "../builder-protocol" }
+habitat-builder-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
 hyper = "0.10"
 hyper-openssl = ""
 log = "*"
@@ -22,7 +22,7 @@ tee = "*"
 url = "*"
 
 [dependencies.habitat_core]
-path = "../core"
+git = "https://github.com/habitat-sh/core.git"
 
 [dependencies.habitat_http_client]
 path = "../http-client"

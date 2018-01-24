@@ -39,7 +39,7 @@ git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
 
 [dependencies.habitat_core]
-path = "../core"
+git = "https://github.com/habitat-sh/core.git"
 
 [features]
 default = []
