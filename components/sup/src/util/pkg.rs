@@ -16,7 +16,7 @@ use std::path::Path;
 
 use common;
 use common::command::package::install::{InstallMode, InstallSource};
-use common::ui::UI;
+use common::ui::UIWriter;
 use hcore::env as henv;
 use hcore::AUTH_TOKEN_ENVVAR;
 use hcore::fs::{self, FS_ROOT_PATH};
@@ -27,12 +27,15 @@ use error::{Result, SupError};
 
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.
-pub fn install(
-    ui: &mut UI,
+pub fn install<T>(
+    ui: &mut T,
     url: &str,
     install_source: &InstallSource,
     channel: &str,
-) -> Result<PackageInstall> {
+) -> Result<PackageInstall>
+where
+    T: UIWriter,
+{
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
     let auth_token = match henv::var(AUTH_TOKEN_ENVVAR) {
         Ok(v) => Some(v),
@@ -59,8 +62,32 @@ pub fn install(
     ).map_err(SupError::from)
 }
 
+/// Given an InstallSource, install a new package only if an existing
+/// one that can satisfy the package identifier is not already
+/// present.
+///
+/// Return the PackageInstall corresponding to the package that was
+/// installed, or was pre-existing.
+pub fn satisfy_or_install<T>(
+    ui: &mut T,
+    install_source: &InstallSource,
+    bldr_url: &str,
+    channel: &str,
+) -> Result<PackageInstall>
+where
+    T: UIWriter,
+{
+    match installed(install_source) {
+        Some(package) => Ok(package),
+        None => install(ui, bldr_url, install_source, channel),
+    }
+}
+
 /// Returns an installed package for the given ident, if one is present.
-pub fn installed(ident: &PackageIdent) -> Option<PackageInstall> {
+pub fn installed<T>(ident: T) -> Option<PackageInstall>
+where
+    T: AsRef<PackageIdent>,
+{
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
-    PackageInstall::load(ident, Some(fs_root_path)).ok()
+    PackageInstall::load(ident.as_ref(), Some(fs_root_path)).ok()
 }

@@ -14,7 +14,7 @@
 
 use api_client::Client as ApiClient;
 use depot_client::Client as DepotClient;
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIReader, UIWriter};
 use hcore::package::PackageIdent;
 
 use {PRODUCT, VERSION};

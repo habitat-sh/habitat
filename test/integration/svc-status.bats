@@ -34,7 +34,7 @@ teardown() {
 
     run ${hab} svc status core/redis
     assert_success
-    assert_output --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default, style:transient"
+    assert_output --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default"
 }
 
 @test "hab svc status: for a single service that is not loaded" {
@@ -68,8 +68,8 @@ teardown() {
     run ${hab} svc status
     assert_success
 
-    assert_line --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default, style:transient"
-    assert_line --regexp "core/nginx/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:nginx\.default, style:transient"
+    assert_line --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default"
+    assert_line --regexp "core/nginx/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:nginx\.default"
 }
 
 @test "hab svc status: shows which composite a service is in" {
@@ -101,11 +101,11 @@ teardown() {
     run ${hab} svc status
     assert_success
 
-    assert_line --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default, style:transient"
-    assert_line --regexp "core/nginx/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:nginx\.default, style:transient"
-    assert_line --regexp "core/builder-router/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-router\.comp, style:persistent"
-    assert_line --regexp "core/builder-api/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api\.comp, style:persistent"
-    assert_line --regexp "core/builder-api-proxy/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api-proxy\.comp, style:persistent"
+    assert_line --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default"
+    assert_line --regexp "core/nginx/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:nginx\.default"
+    assert_line --regexp "core/builder-router/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-router\.comp"
+    assert_line --regexp "core/builder-api/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api\.comp"
+    assert_line --regexp "core/builder-api-proxy/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api-proxy\.comp"
 }
 
 @test "hab svc status: asking for the status of a composite" {
@@ -132,9 +132,9 @@ teardown() {
     assert_success
 
     # We ONLY show the composite services!
-    refute_line --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default, style:transient"
+    refute_line --regexp "core/redis/.*/[0-9]{14} \(standalone\), state:up, time:.*, group:redis\.default"
 
-    assert_line --regexp "core/builder-router/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-router\.comp, style:persistent"
-    assert_line --regexp "core/builder-api/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api\.comp, style:persistent"
-    assert_line --regexp "core/builder-api-proxy/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api-proxy\.comp, style:persistent"
+    assert_line --regexp "core/builder-router/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-router\.comp"
+    assert_line --regexp "core/builder-api/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api\.comp"
+    assert_line --regexp "core/builder-api-proxy/.*/[0-9]{14} \(builder-tiny\), state:up, time:.*, group:builder-api-proxy\.comp"
 }

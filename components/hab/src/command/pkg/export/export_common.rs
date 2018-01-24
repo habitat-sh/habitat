@@ -94,17 +94,17 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use common::ui::UI;
+    use common::ui::{UI, UIWriter};
 
     use error::{Error, Result};
 
     pub fn start(
         ui: &mut UI,
-        args: Vec<OsString>,
+        _args: Vec<OsString>,
         export_cmd: &str,
-        export_cmd_envvar: &str,
-        export_pkg_ident: &str,
-        export_pkg_ident_envvar: &str,
+        _export_cmd_envvar: &str,
+        _export_pkg_ident: &str,
+        _export_pkg_ident_envvar: &str,
     ) -> Result<()> {
         let cmd = export_cmd.replace("hab", "").replace("-", " ");
         ui.warn(format!(

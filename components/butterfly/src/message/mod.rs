@@ -233,6 +233,14 @@ impl Serialize for swim::SysInfo {
             "http_gateway_port",
             &self.get_http_gateway_port(),
         )?;
+        strukt.serialize_field(
+            "ctl_gateway_ip",
+            self.get_ctl_gateway_ip(),
+        )?;
+        strukt.serialize_field(
+            "ctl_gateway_port",
+            &self.get_ctl_gateway_port(),
+        )?;
         strukt.end()
     }
 }

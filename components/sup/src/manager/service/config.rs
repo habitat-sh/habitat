@@ -48,7 +48,7 @@ pub const CONFIG_PERMISSIONS: u32 = 0o740;
 
 /// Describes the path to user configuration that is used by the
 /// service.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum UserConfigPath {
     Recommended(PathBuf),
     Deprecated(PathBuf),
@@ -110,16 +110,13 @@ pub struct Cfg {
     pub gossip: Option<toml::Value>,
     /// Environment level configuration loaded by the Supervisor's process environment
     pub environment: Option<toml::Value>,
-
-    /// Last known incarnation number of the census group's service config
-    gossip_incarnation: u64,
-
     /// Source of the user configuration
     pub user_config_path: UserConfigPath,
-
     /// The path to an optional dev-time configuration directory that
     /// is being used.
     override_config_dir: Option<PathBuf>,
+    /// Last known incarnation number of the census group's service config
+    gossip_incarnation: u64,
 }
 
 impl Cfg {

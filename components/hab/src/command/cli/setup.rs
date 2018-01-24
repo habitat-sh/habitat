@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::UI;
+use common::ui::{UI, UIReader, UIWriter};
 use hcore::crypto::SigKeyPair;
 use hcore::env;
 use hcore::package::ident;

@@ -52,7 +52,7 @@ use std::fmt;
 use std::result;
 use std::str::FromStr;
 
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use hcore::{channel, PROGRAM_NAME};
 use hcore::url as hurl;
 

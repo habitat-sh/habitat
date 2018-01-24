@@ -127,6 +127,14 @@
                         "http_gateway_port": {
                             "description": "Listening port for Supervisor's HTTP gateway.",
                             "type": "integer"
+                        },
+                        "ctl_gateway_ip": {
+                            "description": "Listening address for Supervisor's Control Gateway.",
+                            "type": "string"
+                        },
+                        "ctl_gateway_port": {
+                            "description": "Listening port for Supervisor's Control Gateway.",
+                            "type": "integer"
                         }
                     },
                     "required": [
@@ -135,7 +143,9 @@
                         "gossip_ip",
                         "gossip_port",
                         "http_gateway_ip",
-                        "http_gateway_port"
+                        "http_gateway_port",
+                        "ctl_gateway_ip",
+                        "ctl_gateway_port"
                     ],
                     "additionalProperties": false
                 },
@@ -242,6 +252,14 @@
                     "description": "Listening port for Supervisor's HTTP gateway.",
                     "type": "integer"
                 },
+                "ctl_gateway_ip": {
+                    "description": "Listening address for Supervisor's Control Gateway.",
+                    "type": "string"
+                },
+                "ctl_gateway_port": {
+                    "description": "Listening port for Supervisor's Control Gateway.",
+                    "type": "integer"
+                },
                 "permanent": {
                     "description": "Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability.",
                     "type": "boolean"
@@ -255,6 +273,8 @@
                          "gossip_port",
                          "http_gateway_ip",
                          "http_gateway_port",
+                         "ctl_gateway_ip",
+                         "ctl_gateway_port",
                          "permanent"],
             "additionalProperties": false
         },

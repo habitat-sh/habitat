@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use depot_client;
-use common::ui::{Status, UI};
-use tabwriter::TabWriter;
 use std::io::Write;
+
+use common::ui::{Status, UI, UIWriter};
+use depot_client;
+use tabwriter::TabWriter;
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};

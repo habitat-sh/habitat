@@ -39,7 +39,7 @@ use std::thread;
 use clap::{ArgMatches, Shell};
 
 use common::command::package::install::{InstallMode, InstallSource};
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use hcore::channel;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
 use hcore::crypto::keys::PairType;

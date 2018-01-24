@@ -19,7 +19,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 use export_docker::Result;
 use error::Error;
 

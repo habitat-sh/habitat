@@ -2,6 +2,6 @@
 export PATH="{{path}}"
 case "$1" in
   -h|--help|help|-V|--version) exec {{sup_bin}} "$@";;
-  -*) exec {{sup_bin}} start {{primary_svc_ident}} "$@";;
+  -*) exec {{sup_bin}} run {{primary_svc_ident}} "$@";;
   *) exec {{sup_bin}} "$@";;
 esac

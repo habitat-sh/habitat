@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,6 +96,205 @@ impl Status {
     }
 }
 
+/// Functions applied to an IO stream for receiving input for a UI.
+pub trait UIReader {
+    fn edit<T>(&mut self, contents: &[T]) -> Result<String>
+    where
+        T: fmt::Display;
+    /// Returns true if message reads should expect the source as a tty.
+    fn is_a_tty(&self) -> bool;
+    fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String>;
+    fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool>;
+}
+
+/// Functions applied to an IO stream for sending information to a UI.
+pub trait UIWriter {
+    type ProgressBar: DisplayProgress;
+
+    /// IO Stream for sending error messages to.
+    fn err(&mut self) -> &mut io::Write;
+    /// IO Stream for sending normal or informational messages to.
+    fn out(&mut self) -> &mut io::Write;
+    /// Messages sent to the IO streams will be formatted in color if true.
+    fn is_colored(&self) -> bool;
+    /// Messages sent to the IO streams will be formatted for a terminal if true.
+    fn is_a_terminal(&self) -> bool;
+    /// Returns a progress bar widget implementation for writing operation's progress to.
+    fn progress(&self) -> Option<Self::ProgressBar>;
+
+    /// Write a message formatted with `begin`.
+    fn begin<T>(&mut self, message: T) -> io::Result<()>
+    where
+        T: fmt::Display,
+    {
+        let symbol = '»';
+        if self.is_colored() {
+            self.out().write(
+                Colour::Yellow
+                    .bold()
+                    .paint(format!("{} {}\n", symbol, message))
+                    .as_bytes(),
+            )?;
+        } else {
+            self.out().write(
+                format!("{} {}\n", symbol, message).as_bytes(),
+            )?;
+        }
+        self.out().flush()
+    }
+
+    /// Write a message formatted with `end`.
+    fn end<T>(&mut self, message: T) -> io::Result<()>
+    where
+        T: fmt::Display,
+    {
+        let symbol = '★';
+        if self.is_colored() {
+            self.out().write(
+                Colour::Yellow
+                    .bold()
+                    .paint(format!("{} {}\n", symbol, message))
+                    .as_bytes(),
+            )?;
+        } else {
+            self.out().write(
+                format!("{} {}\n", symbol, message).as_bytes(),
+            )?;
+        }
+        self.out().flush()
+    }
+
+    /// Write a message formatted with `status`.
+    fn status<T>(&mut self, status: Status, message: T) -> io::Result<()>
+    where
+        T: fmt::Display,
+    {
+        let (symbol, status_str, color) = status.parts();
+        let formatted = if self.is_colored() {
+            format!(
+                "{} {}\n",
+                color.bold().paint(format!("{} {}", symbol, status_str)),
+                message
+            )
+        } else {
+            format!("{} {} {}\n", symbol, status_str, message)
+        };
+        self.out().write(formatted.as_bytes())?;
+        self.out().flush()
+    }
+
+    /// Write a message formatted with `info`.
+    fn info<T>(&mut self, text: T) -> io::Result<()>
+    where
+        T: fmt::Display,
+    {
+        self.out().write(format!("{}\n", text).as_bytes())?;
+        self.out().flush()
+    }
+
+    /// Write a message formatted with `warn`.
+    fn warn<T>(&mut self, message: T) -> io::Result<()>
+    where
+        T: fmt::Display,
+    {
+        if self.is_colored() {
+            self.err().write(
+                Colour::Yellow
+                    .bold()
+                    .paint(format!("∅ {}\n", message))
+                    .as_bytes(),
+            )?;
+        } else {
+            self.err().write(format!("∅ {}\n", message).as_bytes())?;
+        }
+        self.err().flush()
+    }
+
+    /// Write a message formatted with `fatal`.
+    fn fatal<T>(&mut self, message: T) -> io::Result<()>
+    where
+        T: fmt::Display,
+    {
+        let lines = message
+            .to_string()
+            .lines()
+            .map(|line| format!("✗✗✗ {}", line))
+            .collect::<Vec<_>>()
+            .join("\n");
+        if self.is_colored() {
+            self.err().write(
+                Colour::Red
+                    .bold()
+                    .paint(format!("✗✗✗\n{}\n✗✗✗\n", lines))
+                    .as_bytes(),
+            )?;
+        } else {
+            self.err().write(
+                format!("✗✗✗\n{}\n✗✗✗\n", lines)
+                    .as_bytes(),
+            )?;
+        }
+        self.err().flush()
+    }
+
+    /// Write a message formatted with `title`.
+    fn title<T>(&mut self, text: T) -> io::Result<()>
+    where
+        T: AsRef<str>,
+    {
+        if self.is_colored() {
+            write!(
+                self.out(),
+                "{}\n",
+                Colour::Green.bold().paint(text.as_ref())
+            )?;
+            write!(
+                self.out(),
+                "{}\n\n",
+                Colour::Green.bold().paint(format!(
+                    "{:=<width$}",
+                    "",
+                    width = text.as_ref().chars().count()
+                ))
+            )?;
+        } else {
+            write!(self.out(), "{}\n", text.as_ref())?;
+            write!(
+                self.out(),
+                "{}\n\n",
+                format!("{:=<width$}", "", width = text.as_ref().chars().count())
+            )?;
+        }
+        self.out().flush()
+    }
+
+    /// Write a message formatted with `heading`.
+    fn heading<T>(&mut self, text: T) -> io::Result<()>
+    where
+        T: AsRef<str>,
+    {
+        let formatted = if self.is_colored() {
+            format!("{}\n\n", Colour::Green.bold().paint(text.as_ref()))
+        } else {
+            format!("{}\n\n", text.as_ref())
+        };
+        self.out().write(formatted.as_bytes())?;
+        self.out().flush()
+    }
+
+    /// Write a message formatted with `para`.
+    fn para(&mut self, text: &str) -> io::Result<()> {
+        print_wrapped(self.out(), text, 75, 2)
+    }
+
+    /// Write a line break message`.
+    fn br(&mut self) -> io::Result<()> {
+        self.out().write(b"\n")?;
+        self.out().flush()
+    }
+}
+
+/// Console (shell) backed UI.
 pub struct UI {
     shell: Shell,
 }
@@ -175,155 +374,48 @@ impl UI {
             false,
         )
     }
+}
 
-    pub fn begin<T: ToString>(&mut self, message: T) -> Result<()> {
-        Self::write_heading(&mut self.shell.out, Colour::Yellow, '»', message)
+impl Default for UI {
+    fn default() -> Self {
+        UI::default_with(Coloring::Auto, None)
+    }
+}
+
+impl UIWriter for UI {
+    type ProgressBar = ConsoleProgressBar;
+
+    fn out(&mut self) -> &mut io::Write {
+        &mut self.shell.out
     }
 
-    pub fn end<T: ToString>(&mut self, message: T) -> Result<()> {
-        Self::write_heading(&mut self.shell.out, Colour::Blue, '★', message)
+    fn err(&mut self) -> &mut io::Write {
+        &mut self.shell.err
     }
 
-    pub fn is_a_tty(&self) -> bool {
-        self.shell.input.isatty && self.shell.out.isatty && self.shell.err.isatty
+    fn is_colored(&self) -> bool {
+        self.shell.out.is_colored() && self.shell.err.is_colored()
     }
 
-    pub fn status<T: fmt::Display>(&mut self, status: Status, message: T) -> Result<()> {
-        let ref mut stream = self.shell.out;
-        let (symbol, status_str, color) = status.parts();
-        match stream.is_colored() {
-            true => {
-                write!(
-                    stream,
-                    "{} {}\n",
-                    color.bold().paint(format!("{} {}", symbol, status_str)),
-                    message.to_string()
-                )?
-            }
-            false => {
-                write!(
-                    stream,
-                    "{} {} {}\n",
-                    symbol,
-                    status_str,
-                    message.to_string()
-                )?
-            }
-        }
-        stream.flush()?;
-        Ok(())
+    fn is_a_terminal(&self) -> bool {
+        self.shell.out.isatty && self.shell.err.isatty
     }
 
-    pub fn warn<T: fmt::Display>(&mut self, message: T) -> Result<()> {
-        let ref mut stream = self.shell.err;
-        match stream.is_colored() {
-            true => {
-                write!(
-                    stream,
-                    "{}\n",
-                    Colour::Yellow.bold().paint(
-                        format!("∅ {}", message.to_string()),
-                    )
-                )?;
-            }
-            false => {
-                write!(stream, "∅ {}\n", message.to_string())?;
-            }
-        }
-        stream.flush()?;
-        Ok(())
-    }
-
-    pub fn fatal<T: fmt::Display>(&mut self, message: T) -> Result<()> {
-        let ref mut stream = self.shell.err;
-        let formatted_message = message
-            .to_string()
-            .lines()
-            .map(|line| format!("✗✗✗ {}", line))
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        match stream.is_colored() {
-            true => {
-                write!(
-                    stream,
-                    "{}\n",
-                    Colour::Red.bold().paint(format!(
-                        "✗✗✗\n{}\n✗✗✗",
-                        formatted_message
-                    ))
-                )?;
-            }
-            false => {
-                write!(stream, "✗✗✗\n{}\n✗✗✗\n", formatted_message)?;
-            }
-        }
-        stream.flush()?;
-        Ok(())
-    }
-
-    pub fn progress(&mut self) -> Option<ProgressBar> {
-        if self.shell.out.is_a_terminal() {
-            Some(ProgressBar::default())
+    fn progress(&self) -> Option<Self::ProgressBar> {
+        if self.is_a_terminal() {
+            Some(Self::ProgressBar::default())
         } else {
             None
         }
     }
+}
 
-    pub fn title(&mut self, text: &str) -> Result<()> {
-        let ref mut stream = self.shell.out;
-        match stream.is_colored() {
-            true => {
-                write!(stream, "{}\n", Colour::Green.bold().paint(text))?;
-                write!(
-                    stream,
-                    "{}\n\n",
-                    Colour::Green.bold().paint(format!(
-                        "{:=<width$}",
-                        "",
-                        width = text.chars().count()
-                    ))
-                )?;
-            }
-            false => {
-                write!(stream, "{}\n", text)?;
-                write!(
-                    stream,
-                    "{}\n\n",
-                    format!("{:=<width$}", "", width = text.chars().count())
-                )?;
-            }
-        }
-        stream.flush()?;
-        Ok(())
+impl UIReader for UI {
+    fn is_a_tty(&self) -> bool {
+        self.shell.input.isatty && self.shell.out.isatty && self.shell.err.isatty
     }
 
-    pub fn heading(&mut self, text: &str) -> Result<()> {
-        let ref mut stream = self.shell.out;
-        match stream.is_colored() {
-            true => {
-                write!(stream, "{}\n\n", Colour::Green.bold().paint(text))?;
-            }
-            false => {
-                write!(stream, "{}\n\n", text)?;
-            }
-        }
-        stream.flush()?;
-        Ok(())
-    }
-
-    pub fn para(&mut self, text: &str) -> Result<()> {
-        Self::print_wrapped(&mut self.shell.out, text, 75, 2)
-    }
-
-    pub fn br(&mut self) -> Result<()> {
-        let ref mut stream = self.shell.out;
-        write!(stream, "\n")?;
-        stream.flush()?;
-        Ok(())
-    }
-
-    pub fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool> {
+    fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool> {
         let ref mut stream = self.shell.out;
         let choice = match default {
             Some(yes) => {
@@ -391,7 +483,7 @@ impl UI {
         }
     }
 
-    pub fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
+    fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
         let ref mut stream = self.shell.out;
         let choice = match default {
             Some(d) => {
@@ -440,7 +532,10 @@ impl UI {
         }
     }
 
-    pub fn edit<T: AsRef<str>>(&mut self, contents: &[T]) -> Result<String> {
+    fn edit<T>(&mut self, contents: &[T]) -> Result<String>
+    where
+        T: fmt::Display,
+    {
         let editor = env::var("EDITOR").map_err(|e| Error::EditorEnv(e))?;
 
         let mut tmp_file_path = env::temp_dir();
@@ -450,7 +545,7 @@ impl UI {
 
         if contents.len() > 0 {
             for line in contents {
-                write!(tmp_file, "{}", line.as_ref())?;
+                write!(tmp_file, "{}", line)?;
             }
             tmp_file.sync_all()?;
         }
@@ -471,63 +566,6 @@ impl UI {
 
         Ok(out)
     }
-
-    fn write_heading<T: ToString>(
-        stream: &mut OutputStream,
-        color: Colour,
-        symbol: char,
-        message: T,
-    ) -> Result<()> {
-        match stream.is_colored() {
-            true => {
-                write!(
-                    stream,
-                    "{}\n",
-                    color.bold().paint(
-                        format!("{} {}", symbol, message.to_string()),
-                    )
-                )?
-            }
-            false => write!(stream, "{} {}\n", symbol, message.to_string())?,
-        }
-        stream.flush()?;
-        Ok(())
-    }
-
-    fn print_wrapped(
-        stream: &mut OutputStream,
-        text: &str,
-        wrap_width: usize,
-        left_indent: usize,
-    ) -> Result<()> {
-        for line in text.split("\n\n") {
-            let mut buffer = String::new();
-            let mut width = 0;
-            for word in line.split_whitespace() {
-                let wl = word.chars().count();
-                if (width + wl + 1) > (wrap_width - left_indent) {
-                    write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
-                    buffer.clear();
-                    width = 0;
-                }
-                width = width + wl + 1;
-                buffer.push_str(word);
-                buffer.push(' ');
-            }
-            if !buffer.is_empty() {
-                write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
-            }
-            write!(stream, "\n")?;
-        }
-        stream.flush()?;
-        Ok(())
-    }
-}
-
-impl Default for UI {
-    fn default() -> Self {
-        UI::default_with(Coloring::Auto, None)
-    }
 }
 
 pub struct Shell {
@@ -547,26 +585,8 @@ impl Shell {
 
     pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
         let stdin = InputStream::from_stdin(isatty);
-        debug!(
-            "InputStream(stdin): {{ is_a_terminal(): {} }}",
-            stdin.is_a_terminal()
-        );
         let stdout = OutputStream::from_stdout(coloring, isatty);
-        debug!(
-            "OutputStream(stdout): {{ is_colored(): {}, supports_color(): {}, \
-                is_a_terminal(): {} }}",
-            stdout.is_colored(),
-            stdout.supports_color(),
-            stdout.is_a_terminal()
-        );
         let stderr = OutputStream::from_stderr(coloring, isatty);
-        debug!(
-            "OutputStream(stderr): {{ is_colored(): {}, supports_color(): {}, \
-                is_a_terminal(): {} }}",
-            stderr.is_colored(),
-            stderr.supports_color(),
-            stderr.is_a_terminal()
-        );
         Shell::new(stdin, stdout, stderr)
     }
 
@@ -678,10 +698,6 @@ impl OutputStream {
     pub fn is_colored(&self) -> bool {
         self.supports_color() &&
             (Coloring::Auto == self.coloring || Coloring::Always == self.coloring)
-    }
-
-    pub fn is_a_terminal(&self) -> bool {
-        self.isatty
     }
 }
 
@@ -803,15 +819,15 @@ mod tty {
 /// number of bytes representing the total download/upload/transfer size) and will be a generic
 /// writer (i.e. implementing the `Write` trait) as a means to increase progress towards
 /// completion.
-pub struct ProgressBar {
+pub struct ConsoleProgressBar {
     bar: pbr::ProgressBar<Stdout>,
     total: u64,
     current: u64,
 }
 
-impl Default for ProgressBar {
+impl Default for ConsoleProgressBar {
     fn default() -> Self {
-        ProgressBar {
+        ConsoleProgressBar {
             bar: pbr::ProgressBar::new(0),
             total: 0,
             current: 0,
@@ -819,7 +835,7 @@ impl Default for ProgressBar {
     }
 }
 
-impl DisplayProgress for ProgressBar {
+impl DisplayProgress for ConsoleProgressBar {
     fn size(&mut self, size: u64) {
         self.bar = pbr::ProgressBar::new(size);
         self.bar.set_units(pbr::Units::Bytes);
@@ -834,7 +850,7 @@ impl DisplayProgress for ProgressBar {
     }
 }
 
-impl Write for ProgressBar {
+impl Write for ConsoleProgressBar {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         match self.bar.write(buf) {
             Ok(n) => {
@@ -851,4 +867,36 @@ impl Write for ProgressBar {
     fn flush(&mut self) -> io::Result<()> {
         self.bar.flush()
     }
+}
+
+pub fn print_wrapped<T, U>(
+    mut stream: T,
+    text: U,
+    wrap_width: usize,
+    left_indent: usize,
+) -> io::Result<()>
+where
+    T: io::Write,
+    U: AsRef<str>,
+{
+    for line in text.as_ref().split("\n\n") {
+        let mut buffer = String::new();
+        let mut width = 0;
+        for word in line.split_whitespace() {
+            let wl = word.chars().count();
+            if (width + wl + 1) > (wrap_width - left_indent) {
+                write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
+                buffer.clear();
+                width = 0;
+            }
+            width = width + wl + 1;
+            buffer.push_str(word);
+            buffer.push(' ');
+        }
+        if !buffer.is_empty() {
+            write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
+        }
+        write!(stream, "\n")?;
+    }
+    stream.flush()
 }

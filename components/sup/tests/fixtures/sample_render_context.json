@@ -5,6 +5,8 @@
     "hostname": "yokai",
     "http_gateway_ip": "0.0.0.0",
     "http_gateway_port": 9631,
+    "ctl_gateway_ip": "127.0.0.1",
+    "ctl_gateway_port": 9632,
     "ip": "192.168.67.207",
     "member_id": "a4e47d4aece849cd948afbd9bda3a22a",
     "permanent": false,
@@ -235,6 +237,8 @@
         "hostname": "yokai",
         "http_gateway_ip": "0.0.0.0",
         "http_gateway_port": 9631,
+        "ctl_gateway_ip": "127.0.0.1",
+        "ctl_gateway_port": 9632,
         "ip": "192.168.67.207"
       },
       "update_election_is_finished": false,
@@ -278,6 +282,8 @@
         "hostname": "yokai",
         "http_gateway_ip": "0.0.0.0",
         "http_gateway_port": 9631,
+        "ctl_gateway_ip": "127.0.0.1",
+        "ctl_gateway_port": 9632,
         "ip": "192.168.67.207"
       },
       "update_election_is_finished": false,
@@ -320,6 +326,8 @@
           "hostname": "yokai",
           "http_gateway_ip": "0.0.0.0",
           "http_gateway_port": 9631,
+          "ctl_gateway_ip": "127.0.0.1",
+          "ctl_gateway_port": 9632,
           "ip": "192.168.67.207"
         },
         "update_election_is_finished": false,
@@ -370,6 +378,8 @@
           "hostname": "yokai",
           "http_gateway_ip": "0.0.0.0",
           "http_gateway_port": 9631,
+          "ctl_gateway_ip": "127.0.0.1",
+          "ctl_gateway_port": 9632,
           "ip": "192.168.67.207"
         },
         "update_election_is_finished": false,
@@ -411,6 +421,8 @@
             "hostname": "yokai",
             "http_gateway_ip": "0.0.0.0",
             "http_gateway_port": 9631,
+            "ctl_gateway_ip": "127.0.0.1",
+            "ctl_gateway_port": 9632,
             "ip": "192.168.67.207"
           },
           "update_election_is_finished": false,

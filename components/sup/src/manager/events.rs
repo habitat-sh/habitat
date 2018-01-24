@@ -165,7 +165,6 @@ fn build_service_update(member: &CensusMember, service: &Service) -> ServiceUpda
     );
     sep.set_bldr_url(service.bldr_url.clone());
     sep.set_channel(service.channel.clone());
-    sep.set_start_style(service.start_style.to_string());
     sep.set_topology(service.topology.to_string());
     sep.set_update_strategy(service.update_strategy.to_string());
 

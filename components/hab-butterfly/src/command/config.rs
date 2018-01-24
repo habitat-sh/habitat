@@ -20,7 +20,7 @@ pub mod apply {
     use std::time;
 
     use butterfly::client::Client;
-    use common::ui::{Status, UI};
+    use common::ui::{Status, UI, UIWriter};
     use hcore::crypto::{SymKey, BoxKeyPair};
     use hcore::service::ServiceGroup;
     use toml;

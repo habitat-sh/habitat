@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 
 use common;
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 use common::command::package::install::InstallMode;
 use hcore::{self, channel};
 use hcore::env as henv;

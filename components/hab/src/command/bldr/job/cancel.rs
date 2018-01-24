@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use api_client;
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIReader, UIWriter};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};

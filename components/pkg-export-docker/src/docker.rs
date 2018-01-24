@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
 
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 use failure::SyncFailure;
 use hcore::os::filesystem;
 use hcore::fs as hfs;

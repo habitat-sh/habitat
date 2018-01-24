@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::path::Path;
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use std::io::{self, Write};
 use hcore::package::PackageArchive;
 use error::Result;
@@ -26,7 +26,6 @@ where
 {
     serde_json::to_value(src).unwrap_or(Json::Null)
 }
-
 
 pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
     let ident = PackageArchive::new(src).ident()?;

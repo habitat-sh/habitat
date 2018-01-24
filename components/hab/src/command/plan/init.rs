@@ -22,7 +22,7 @@ use std::collections::HashMap;
 use handlebars::Handlebars;
 use hcore::package::PackageIdent;
 
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 use error::Result;
 
 const DEFAULT_PLAN_TEMPLATE: &'static str = include_str!(concat!(

@@ -22,7 +22,7 @@ extern crate habitat_pkg_export_kubernetes as export_k8s;
 extern crate log;
 
 use hcore::PROGRAM_NAME;
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 
 fn main() {
     env_logger::init();

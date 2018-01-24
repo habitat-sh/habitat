@@ -1,4 +1,4 @@
 FROM microsoft/windowsservercore
 ADD {{rootfs}} /
 EXPOSE 9631 {{exposes}}
-ENTRYPOINT ["{{hab_path}}", "sup", "start", "{{primary_svc_ident}}"]
+ENTRYPOINT ["{{hab_path}}", "sup", "run", "{{primary_svc_ident}}"]

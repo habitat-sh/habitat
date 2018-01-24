@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,15 +40,20 @@
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
 extern crate ansi_term;
+extern crate base64;
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;
+extern crate bytes;
 #[cfg(target_os = "linux")]
 extern crate caps;
+extern crate crypto;
 #[cfg(windows)]
 extern crate ctrlc;
 #[macro_use]
 extern crate features;
+#[macro_use]
+extern crate futures;
 extern crate glob;
 extern crate habitat_butterfly as butterfly;
 extern crate habitat_common as common;
@@ -80,6 +85,10 @@ extern crate serde_json;
 extern crate serde_yaml;
 extern crate tempdir;
 extern crate time;
+extern crate tokio;
+#[macro_use]
+extern crate tokio_core;
+extern crate tokio_io;
 extern crate toml;
 extern crate url;
 extern crate valico;
@@ -101,10 +110,12 @@ macro_rules! sup_error {
 pub mod command;
 pub mod config;
 pub mod census;
+pub mod ctl_gateway;
 pub mod error;
 pub mod fs;
 pub mod http_gateway;
 pub mod manager;
+pub mod protocols;
 pub mod templating;
 pub mod util;
 mod sys;

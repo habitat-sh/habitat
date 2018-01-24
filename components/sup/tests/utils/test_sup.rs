@@ -230,7 +230,7 @@ impl TestSup {
             fs_root.as_ref().to_string_lossy().as_ref(),
         ).env("HAB_SUP_BINARY", &sup_exe)
             .env(BLDR_URL_ENVVAR, "http://hab.sup.test")
-            .arg("start")
+            .arg("run")
             .arg("--listen-gossip")
             .arg(format!("{}:{}", listen_host, butterfly_port))
             .arg("--listen-http")

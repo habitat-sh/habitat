@@ -43,7 +43,7 @@ use std::str::FromStr;
 
 use clap::Arg;
 
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use export_docker::Result;
 use export_k8s::Cli;
 use hcore::PROGRAM_NAME;

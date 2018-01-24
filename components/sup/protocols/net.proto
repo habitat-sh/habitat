@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+// Error codes mapping to a high level failure reason for a `NetErr`.
+enum ErrCode {
+  Internal = 0;
+  Io = 1;
+  NotFound = 2;
+  Conflict = 3;
+  Unauthorized = 4;
+}
+
+// Returned when a transactional request is successful but no entities are returned. Useful
+// when making a request which requires no response but the caller wants to block for completion.
+message NetOk {}
+
+// Returned when a transactional request is a failure. Contains an `ErrCode` indicating a failure
+// domain or reason and a string message containing a user friendly failure reason.
+//
+// Failure reasons are ideally unique and should be user readable. Localization doesn't matter at
+// this time.
+message NetErr {
+  optional ErrCode code = 1;
+  optional string msg = 2;
+}
+

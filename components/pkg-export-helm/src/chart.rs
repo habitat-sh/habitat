@@ -17,7 +17,7 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 use export_docker;
 use export_docker::Result;
 use export_k8s::{Manifest, ManifestJson};

@@ -25,7 +25,7 @@ extern crate chrono;
 #[macro_use]
 extern crate log;
 
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 
 use export_docker::Result;
 

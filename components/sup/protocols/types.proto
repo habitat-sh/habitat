@@ -1,0 +1,76 @@
+syntax = "proto2";
+
+// Encapsulate all possible sources we can install packages from.
+enum InstallSource {
+  // Install from a remote hosting the package
+  Ident = 0;
+  // Install from a local archive file
+  Archive = 1;
+}
+
+enum ProcessState {
+  Down = 0;
+  Up = 1;
+}
+
+// The relationship of a service with peers in the same service group.
+enum Topology {
+  Standalone = 0;
+  Leader = 1;
+}
+
+enum UpdateStrategy {
+  None = 0;
+  AtOnce = 1;
+  Rolling = 2;
+}
+
+message ApplicationEnvironment {
+  required string application = 1;
+  optional string environment = 2 [default = "default"];
+}
+
+message PackageIdent {
+  optional string origin = 1;
+  optional string name = 2;
+  optional string version = 3;
+  optional string release = 4;
+}
+
+message ProcessStatus {
+  optional int64 elapsed = 1;
+  optional uint32 pid = 2;
+  optional ProcessState state = 3;
+}
+
+message ServiceBind {
+  required string name = 1;
+  required ServiceGroup service_group = 2;
+  optional string service_name = 3;
+}
+
+message ServiceCfg {
+  enum Format {
+    TOML = 0;
+  }
+  // The self describing string format used in each configuration field. This
+  // is present if we ever change from using TOML to represent service configurations
+  // to another self describing type.
+  optional Format format = 1 [default = TOML];
+  optional string default = 2;
+}
+
+message ServiceGroup {
+  required string service = 1;
+  optional string group = 2 [default = "default"];
+  optional ApplicationEnvironment application_environment = 3;
+  optional string organization = 4;
+}
+
+message ServiceStatus {
+  optional PackageIdent ident = 1;
+  optional ProcessStatus process = 2;
+  optional ServiceGroup service_group = 3;
+  optional string composite = 4;
+}
+

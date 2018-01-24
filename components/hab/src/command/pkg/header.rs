@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use hcore::crypto::artifact;
 use std::io::{self, Write};
 

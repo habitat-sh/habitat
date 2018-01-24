@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{BufReader, Read, Write};
@@ -23,6 +23,7 @@ use std::str::FromStr;
 
 use hcore::channel::STABLE_CHANNEL;
 use hcore::package::{PackageIdent, PackageInstall};
+use hcore::package::metadata::BindMapping;
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
@@ -31,11 +32,14 @@ use serde::{self, Deserialize};
 use toml;
 
 use super::{Topology, UpdateStrategy};
+use super::composite_spec::CompositeSpec;
 use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
 const SPEC_FILE_EXT: &'static str = "spec";
+
+pub type BindMap = HashMap<PackageIdent, Vec<BindMapping>>;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum DesiredState {
@@ -71,6 +75,20 @@ impl FromStr for DesiredState {
     }
 }
 
+pub enum Spec {
+    Service(ServiceSpec),
+    Composite(CompositeSpec, Vec<ServiceSpec>),
+}
+
+impl Spec {
+    pub fn ident(&self) -> &PackageIdent {
+        match self {
+            &Spec::Composite(ref s, _) => s.ident(),
+            &Spec::Service(ref s) => s.ident.as_ref(),
+        }
+    }
+}
+
 pub fn deserialize_application_environment<'de, D>(
     d: D,
 ) -> result::Result<Option<ApplicationEnvironment>, D::Error>
@@ -85,6 +103,22 @@ where
     } else {
         Ok(None)
     }
+}
+
+pub trait IntoServiceSpec {
+    fn into_spec(&self, spec: &mut ServiceSpec);
+
+    /// All specs in a composite currently share a lot of the same
+    /// information. Here, we create a "base spec" that we can clone and
+    /// further customize for each individual service as needed.
+    fn into_composite_spec(
+        &self,
+        composite_name: String,
+        services: Vec<PackageIdent>,
+        bind_map: BindMap,
+    ) -> Vec<ServiceSpec>;
+
+    fn update_composite(&self, bind_map: &mut BindMap, spec: &mut ServiceSpec);
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -106,9 +140,6 @@ pub struct ServiceSpec {
     #[serde(deserialize_with = "deserialize_using_from_str",
             serialize_with = "serialize_using_to_string")]
     pub desired_state: DesiredState,
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
-    pub start_style: StartStyle,
     pub svc_encrypted_password: Option<String>,
     // The name of the composite this service is a part of
     pub composite: Option<String>,
@@ -241,7 +272,6 @@ impl Default for ServiceSpec {
             binds: Vec::default(),
             config_from: None,
             desired_state: DesiredState::default(),
-            start_style: StartStyle::default(),
             svc_encrypted_password: None,
             composite: None,
         }
@@ -266,6 +296,13 @@ impl FromStr for ServiceSpec {
 pub struct ServiceBind {
     pub name: String,
     pub service_group: ServiceGroup,
+    pub service_name: Option<String>,
+}
+
+impl ServiceBind {
+    pub fn is_composite(&self) -> bool {
+        self.service_name.is_some()
+    }
 }
 
 impl FromStr for ServiceBind {
@@ -273,20 +310,33 @@ impl FromStr for ServiceBind {
 
     fn from_str(bind_str: &str) -> result::Result<Self, Self::Err> {
         let values: Vec<&str> = bind_str.split(':').collect();
-        if values.len() != 2 {
+        if !(values.len() == 3 || values.len() == 2) {
             return Err(sup_error!(Error::InvalidBinding(bind_str.to_string())));
         }
-
-        Ok(ServiceBind {
-            name: values[0].to_string(),
-            service_group: ServiceGroup::from_str(values[1])?,
-        })
+        let bind = if values.len() == 3 {
+            ServiceBind {
+                name: values[1].to_string(),
+                service_group: ServiceGroup::from_str(values[2])?,
+                service_name: Some(values[0].to_string()),
+            }
+        } else {
+            ServiceBind {
+                name: values[0].to_string(),
+                service_group: ServiceGroup::from_str(values[1])?,
+                service_name: None,
+            }
+        };
+        Ok(bind)
     }
 }
 
 impl fmt::Display for ServiceBind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}:{}", self.name, self.service_group)
+        if let Some(ref service_name) = self.service_name {
+            write!(f, "{}:{}:{}", service_name, self.name, self.service_group)
+        } else {
+            write!(f, "{}:{}", self.name, self.service_group)
+        }
     }
 }
 
@@ -305,40 +355,6 @@ impl serde::Serialize for ServiceBind {
         S: serde::Serializer,
     {
         serializer.serialize_str(&self.to_string())
-    }
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub enum StartStyle {
-    Persistent,
-    Transient,
-}
-
-impl Default for StartStyle {
-    fn default() -> StartStyle {
-        StartStyle::Transient
-    }
-}
-
-impl fmt::Display for StartStyle {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let value = match *self {
-            StartStyle::Persistent => "persistent",
-            StartStyle::Transient => "transient",
-        };
-        write!(f, "{}", value)
-    }
-}
-
-impl FromStr for StartStyle {
-    type Err = SupError;
-
-    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        match value.to_lowercase().as_ref() {
-            "persistent" => Ok(StartStyle::Persistent),
-            "transient" => Ok(StartStyle::Transient),
-            _ => Err(sup_error!(Error::BadStartStyle(value.to_string()))),
-        }
     }
 }
 
@@ -388,7 +404,6 @@ mod test {
             topology = "leader"
             update_strategy = "rolling"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
-            start_style = "persistent"
             config_from = "/only/for/development"
 
             extra_stuff = "should be ignored"
@@ -420,7 +435,6 @@ mod test {
             spec.config_from,
             Some(PathBuf::from("/only/for/development"))
         );
-        assert_eq!(spec.start_style, StartStyle::Persistent);
     }
 
     #[test]
@@ -494,7 +508,6 @@ mod test {
             ],
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
-            start_style: StartStyle::Persistent,
             svc_encrypted_password: None,
             composite: None,
         };
@@ -514,7 +527,6 @@ mod test {
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
-        assert!(toml.contains(r#"start_style = "persistent""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
     }
 
@@ -653,7 +665,6 @@ mod test {
             ],
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
-            start_style: StartStyle::Persistent,
             svc_encrypted_password: None,
             composite: None,
         };
@@ -674,7 +685,6 @@ mod test {
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
-        assert!(toml.contains(r#"start_style = "persistent""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
     }
 
@@ -780,6 +790,7 @@ mod test {
         let bind = ServiceBind {
             name: String::from("name"),
             service_group: ServiceGroup::from_str("service.group").unwrap(),
+            service_name: None,
         };
 
         assert_eq!("name:service.group", bind.to_string());
@@ -812,6 +823,7 @@ mod test {
             key: ServiceBind {
                 name: String::from("name"),
                 service_group: ServiceGroup::from_str("service.group").unwrap(),
+                service_name: None,
             },
         };
         let toml = toml::to_string(&data).unwrap();

@@ -20,7 +20,7 @@ use error::Result;
 
 use hcore::crypto::init;
 use hcore::package::PackageIdent;
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 
 const SCAFFOLDING_GO_IDENT: &'static str = "core/scaffolding-go";
 const SCAFFOLDING_GRADLE_IDENT: &'static str = "core/scaffolding-gradle";

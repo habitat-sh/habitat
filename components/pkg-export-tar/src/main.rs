@@ -7,7 +7,7 @@ extern crate habitat_pkg_export_tar as export_tar;
 extern crate log;
 
 use clap::App;
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use hcore::PROGRAM_NAME;
 use export_tar::{Cli, Result};
 

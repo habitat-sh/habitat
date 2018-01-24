@@ -62,6 +62,9 @@ use notify;
 use serde_json;
 use toml;
 
+use ctl_gateway;
+use ctl_gateway::client::SrvClientError;
+
 use PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
@@ -114,6 +117,10 @@ pub enum Error {
     BadStartStyle(String),
     BadEnvConfig(String),
     ButterflyError(butterfly::error::Error),
+    CtlClient(SrvClientError),
+    CtlSecretConflict(PathBuf),
+    CtlSecretIo(PathBuf, io::Error),
+    CtlSecretNotFound(PathBuf),
     DepotClient(depot_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
@@ -126,7 +133,6 @@ pub enum Error {
     TemplateRenderError(handlebars::RenderError),
     InvalidBinding(String),
     InvalidBinds(Vec<String>),
-    InvalidCompositeBinding(String),
     InvalidKeyParameter(String),
     InvalidPidFile,
     InvalidTopology(String),
@@ -152,7 +158,6 @@ pub enum Error {
     RecvError(mpsc::RecvError),
     RenderContextSerialization(serde_json::Error),
     ServiceDeserializationError(serde_json::Error),
-    ServiceLoaded(package::PackageIdent),
     ServiceNotLoaded(package::PackageIdent),
     ServiceSerializationError(serde_json::Error),
     ServiceSpecFileIO(PathBuf, io::Error),
@@ -219,6 +224,27 @@ impl fmt::Display for SupError {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
+            Error::CtlClient(ref err) => format!("{}", err),
+            Error::CtlSecretConflict(ref path) => {
+                format!(
+                    "Expected file but found directory when reading ctl secret, {}",
+                    path.display()
+                )
+            }
+            Error::CtlSecretIo(ref path, ref err) => {
+                format!(
+                    "IoError while reading or writing ctl secret, {}, {}",
+                    path.display(),
+                    err
+                )
+            }
+            Error::CtlSecretNotFound(ref path) => {
+                format!(
+                    "CtlGateway secret key (`{}`) not found at: {}",
+                    ctl_gateway::CTL_SECRET_FILENAME,
+                    path.display()
+                )
+            }
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
@@ -234,20 +260,14 @@ impl fmt::Display for SupError {
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
             Error::InvalidBinding(ref binding) => {
                 format!(
-                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
-                         <NAME> is a service name and <SERVICE_GROUP> is a valid service group",
+                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> or \
+                    <SERVICE_NAME>:<NAME>:<SERVICE_GROUP> where <NAME> is a service name,
+                    <SERVICE_GROUP> is a valid service group, and <SERVICE_NAME> is the name of
+                    a service within a composite if the given bind is for a composite service.",
                     binding
                 )
             }
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
-            Error::InvalidCompositeBinding(ref binding) => {
-                format!(
-                    "Invalid binding \"{}\", must be of the form <SERVICE_NAME>:<NAME>:<SERVICE_GROUP> where \
-                     <SERVICE_NAME> is the name of a service within the composite, <NAME> is a bind name for \
-                     that service, and <SERVICE_GROUP> is a valid service group",
-                    binding
-                )
-            }
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
@@ -308,9 +328,6 @@ impl fmt::Display for SupError {
                 format!("Can't deserialize service status: {}", e)
             }
             Error::ServiceNotLoaded(ref ident) => format!("Service {} not loaded", ident),
-            Error::ServiceLoaded(ref ident) => {
-                format!("Service already loaded, unload '{}' and try again", ident)
-            }
             Error::ServiceSerializationError(ref e) => {
                 format!("Can't serialize service to file: {}", e)
             }
@@ -372,6 +389,12 @@ impl error::Error for SupError {
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
             Error::ButterflyError(ref err) => err.description(),
+            Error::CtlClient(ref err) => err.description(),
+            Error::CtlSecretConflict(_) => {
+                "Expected file but found directory when reading ctl secret"
+            }
+            Error::CtlSecretIo(_, _) => "IoError while reading ctl secret",
+            Error::CtlSecretNotFound(_) => "Ctl secret key not found",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::TemplateFileError(ref err) => err.description(),
@@ -386,7 +409,6 @@ impl error::Error for SupError {
             Error::InvalidBinds(_) => {
                 "Service binds detected that are neither required nor optional package binds"
             }
-            Error::InvalidCompositeBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidTopology(_) => "Invalid topology",
@@ -421,7 +443,6 @@ impl error::Error for SupError {
             Error::RenderContextSerialization(_) => "Unable to serialize rendering context",
             Error::ServiceDeserializationError(_) => "Can't deserialize service status",
             Error::ServiceNotLoaded(_) => "Service status called when service not loaded",
-            Error::ServiceLoaded(_) => "Service load or start called when service already loaded",
             Error::ServiceSerializationError(_) => "Can't serialize service to file",
             Error::ServiceSpecFileIO(_, _) => "Unable to write or read to a service spec file",
             Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
@@ -552,5 +573,11 @@ impl From<toml::de::Error> for SupError {
 impl From<toml::ser::Error> for SupError {
     fn from(err: toml::ser::Error) -> Self {
         sup_error!(Error::TomlEncode(err))
+    }
+}
+
+impl From<SrvClientError> for SupError {
+    fn from(err: SrvClientError) -> Self {
+        sup_error!(Error::CtlClient(err))
     }
 }
