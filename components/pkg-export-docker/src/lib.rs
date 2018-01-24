@@ -238,7 +238,6 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
     Cli::new(name, about)
         .add_base_packages_args()
         .add_builder_args()
-        .add_image_customization_args()
         .add_tagging_args()
         .add_publishing_args()
         .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })

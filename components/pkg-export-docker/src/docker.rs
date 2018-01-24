@@ -452,8 +452,6 @@ impl DockerBuildRoot {
                 .replace("\\", "/"),
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
-            "primary_user_id": ctx.primary_user_id(),
-            "primary_group_id": ctx.primary_group_id(),
         });
         util::write_file(
             self.0.workdir().join("Dockerfile"),
