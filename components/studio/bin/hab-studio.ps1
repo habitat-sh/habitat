@@ -280,7 +280,7 @@ function Enter-Studio {
   New-Studio
   Write-HabInfo "Entering Studio at $HAB_STUDIO_ROOT"
   $env:STUDIO_SCRIPT_ROOT = $PSScriptRoot
-  & "$PSScriptRoot\powershell\powershell.exe" -NoProfile -ExecutionPolicy bypass -NoLogo -NoExit -Command {
+  & "$PSScriptRoot\powershell\pwsh.exe" -NoProfile -ExecutionPolicy bypass -NoLogo -NoExit -Command {
     function prompt {
       Write-Host "[HAB-STUDIO]" -NoNewLine -ForegroundColor Green
       " $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel +1)) "
@@ -298,7 +298,7 @@ function Enter-Studio {
       # from powershell so the ctrl+c issue is not a problem so we can do
       # a simple tail
       if ((Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -eq $null) {
-        Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\powershell.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
+        Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\pwsh.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
       }
       else {
         Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait

@@ -27,7 +27,7 @@ where
     let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
     let args = vec!["-NonInteractive", "-command", ps_cmd.as_str()];
     Ok(Child::spawn(
-        "powershell.exe",
+        "pwsh.exe",
         args,
         &pkg.env,
         &pkg.svc_user,

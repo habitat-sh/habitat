@@ -124,7 +124,7 @@ pub fn run(mut msg: protocol::Spawn) -> Result<Service> {
         Some(msg.take_svc_password())
     };
     match Child::spawn(
-        "powershell.exe",
+        "pwsh.exe",
         vec!["-NonInteractive", "-command", ps_cmd.as_str()],
         msg.get_env(),
         msg.get_svc_user(),

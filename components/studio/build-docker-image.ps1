@@ -40,7 +40,7 @@ FROM microsoft/windowsservercore
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
 WORKDIR /src
-ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/powershell.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
+ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
 "@ | Out-File "$tmpRoot/Dockerfile" -Encoding ascii
     
     info "Building Docker image ${imageName}:$version'"
