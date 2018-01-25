@@ -17,14 +17,12 @@
 mod windows;
 
 #[cfg(windows)]
-pub use self::windows::{get_uid_by_name, get_gid_by_name, get_effective_uid, get_home_for_user,
-                        get_home_for_current_user, get_current_username, get_current_groupname,
-                        get_primary_gid_for_user, root_level_account};
+pub use self::windows::{get_current_groupname, get_current_username, get_effective_uid,
+                        get_gid_by_name, get_home_for_user, get_uid_by_name, root_level_account};
 
 #[cfg(not(windows))]
 pub mod linux;
 
 #[cfg(not(windows))]
-pub use self::linux::{get_uid_by_name, get_gid_by_name, get_effective_uid, get_home_for_user,
-                      get_home_for_current_user, get_current_username, get_current_groupname,
-                      get_primary_gid_for_user, root_level_account};
+pub use self::linux::{get_current_groupname, get_current_username, get_effective_uid,
+                      get_gid_by_name, get_home_for_user, get_uid_by_name, root_level_account};

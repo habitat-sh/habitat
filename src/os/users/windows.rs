@@ -61,23 +61,6 @@ pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
     unimplemented!();
 }
 
-pub fn get_home_for_current_user() -> Option<PathBuf> {
-    let mut buff = PathBuf::new();
-    match env::var("HOMEDRIVE").ok() {
-        Some(drive) => buff.push(drive),
-        None => return None,
-    };
-    match env::var("HOMEPATH").ok() {
-        Some(path) => buff.push(path),
-        None => return None,
-    };
-    Some(buff)
-}
-
-pub fn get_primary_gid_for_user(username: &str) -> Option<String> {
-    None
-}
-
 pub fn root_level_account() -> String {
     env::var("COMPUTERNAME").unwrap().to_uppercase() + "$"
 }
