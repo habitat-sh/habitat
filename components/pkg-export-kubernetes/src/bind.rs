@@ -13,40 +13,19 @@
 // limitations under the License.
 
 use clap::ArgMatches;
-use std::str::FromStr;
+use failure::SyncFailure;
 
-use error::Error;
+use habitat_sup::manager::service::ServiceBind;
 
-#[derive(Debug, Clone)]
-pub struct Bind {
-    pub name: String,
-    pub service: String,
-    pub group: String,
-}
+use export_docker::Result;
 
-impl FromStr for Bind {
-    type Err = Error;
-
-    fn from_str(bind_spec: &str) -> Result<Self, Error> {
-        let split: Vec<&str> = bind_spec.split(":").collect();
-        if split.len() != 3 || split[0] == "" || split[1] == "" || split[2] == "" {
-            return Err(Error::InvalidBindSpec(bind_spec.to_owned()));
-        }
-
-        Ok(Bind {
-            name: split[0].to_owned(),
-            service: split[1].to_owned(),
-            group: split[2].to_owned(),
-        })
-    }
-}
-
-pub fn parse_bind_args(matches: &ArgMatches) -> Result<Vec<Bind>, Error> {
+/// Helper function to parse CLI arguments into `ServiceBind` instances.
+pub fn parse_bind_args(matches: &ArgMatches) -> Result<Vec<ServiceBind>> {
     let mut binds = Vec::new();
 
     if let Some(bind_args) = matches.values_of("BIND") {
         for arg in bind_args {
-            let b = arg.parse::<Bind>()?;
+            let b = arg.parse::<ServiceBind>().map_err(SyncFailure::new)?;
 
             binds.push(b);
         }

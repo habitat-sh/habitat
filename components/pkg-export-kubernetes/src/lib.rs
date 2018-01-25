@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate base64;
 extern crate clap;
 extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
+extern crate habitat_sup;
 extern crate handlebars;
 extern crate rand;
 #[macro_use]
@@ -31,7 +33,6 @@ use std::io::prelude::*;
 
 use common::ui::UI;
 
-pub mod topology;
 pub mod error;
 pub mod manifest;
 pub mod manifestjson;
@@ -41,15 +42,16 @@ pub mod cli;
 use export_docker::Result;
 
 pub use cli::Cli;
-pub use bind::Bind;
 pub use error::Error;
 pub use manifest::Manifest;
 pub use manifestjson::ManifestJson;
-pub use topology::Topology;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
 
+/// Convenient do-it-all function. You give it the CLI arguments from the user and it generates the
+/// Kubernetes manifest. If user passed an `--output` argument with a value that is not "`-`", the
+/// manifest is written to the provided file; otherwise, it is written to the standard output.
 pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
     if !matches.is_present("NO_DOCKER_IMAGE") {
         export_docker::export_for_cli_matches(ui, &matches)?;

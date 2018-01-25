@@ -18,6 +18,10 @@ use std::result;
 use export_docker as docker;
 
 /// A Kubernetes-specific clap:App wrapper
+///
+/// The API here is provided to make it possible to reuse the CLI code of the Kubernetes exporter.
+/// The CLI argument addition is divided between multiple methods to allow you to only pick the
+/// parts of the CLI that you need.
 #[derive(Clone)]
 pub struct Cli<'a, 'b>
 where
@@ -27,12 +31,19 @@ where
 }
 
 impl<'a, 'b> Cli<'a, 'b> {
+    /// Create a `Cli`
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the CLI application to show in `--help' output.
+    /// * `about` - The long description of the CLi to show in `--help' output.
     pub fn new(name: &str, about: &'a str) -> Self {
         let app = docker::Cli::new(name, about).app;
 
         Cli { app: app }
     }
 
+    /// Convenient method to add all known arguments to the CLI.
     pub fn add_all_args(self) -> Self {
         self.add_docker_args()
             .add_output_args()
@@ -76,6 +87,7 @@ impl<'a, 'b> Cli<'a, 'b> {
         }
     }
 
+    /// Add Habitat (operator) runtime arguments to the CLI.
     pub fn add_runtime_args(self) -> Self {
         Cli {
             app: self.app
@@ -107,34 +119,33 @@ impl<'a, 'b> Cli<'a, 'b> {
                             "group is a logical grouping of services with the same package and \
                          topology type connected together in a ring (default: default)",
                         ),
+                )
+                .arg(
+                    Arg::with_name("CONFIG")
+                        .value_name("CONFIG")
+                        .long("config")
+                        .short("n")
+                        .help(
+                            "The path to Habitat configuration file in user.toml format. Habitat \
+                            will use it for initial configuration of the service running in a \
+                            Kubernetes cluster",
+                        ),
                 ),
         }
     }
 
     pub fn add_secret_names_args(self) -> Self {
         Cli {
-            app: self.app
-                .arg(
-                    Arg::with_name("CONFIG_SECRET_NAME")
-                        .value_name("CONFIG_SECRET_NAME")
-                        .long("config-secret-name")
-                        .short("n")
-                        .help(
-                            "name of the Kubernetes Secret containing the config file - \
-                         user.toml - that the user has previously created. Habitat will \
-                         use it for initial configuration of the service",
-                        ),
-                )
-                .arg(
-                    Arg::with_name("RING_SECRET_NAME")
-                        .value_name("RING_SECRET_NAME")
-                        .long("ring-secret-name")
-                        .short("r")
-                        .help(
-                            "name of the Kubernetes Secret that contains the ring key, which \
+            app: self.app.arg(
+                Arg::with_name("RING_SECRET_NAME")
+                    .value_name("RING_SECRET_NAME")
+                    .long("ring-secret-name")
+                    .short("r")
+                    .help(
+                        "name of the Kubernetes Secret that contains the ring key, which \
                          encrypts the communication between Habitat supervisors",
-                        ),
-                ),
+                    ),
+            ),
         }
     }
 
@@ -160,5 +171,20 @@ fn valid_natural_number(val: String) -> result::Result<(), String> {
     match val.parse::<u32>() {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("{} is not a natural number", val)),
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_natural_number() {
+        valid_natural_number("99".to_owned()).unwrap();
+
+        for &s in ["x", "", "#####", "0x11", "ab"].iter() {
+            assert!(valid_natural_number(s.to_owned()).is_err());
+        }
     }
 }

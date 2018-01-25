@@ -856,7 +856,7 @@ fn print_statuses(statuses: Vec<ServiceStatus>) -> Result<()> {
         "style",
     ];
     let mut tw = TabWriter::new(io::stdout());
-    write!(tw, "{}\n", titles.join("\t"));
+    write!(tw, "{}\n", titles.join("\t"))?;
     for status in statuses {
         write!(
             tw,
@@ -871,7 +871,7 @@ fn print_statuses(statuses: Vec<ServiceStatus>) -> Result<()> {
             ),
             status.service_group,
             status.start_style
-        );
+        )?;
     }
     tw.flush()?;
     return Ok(());
