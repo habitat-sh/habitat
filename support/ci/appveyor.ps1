@@ -125,7 +125,10 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 if ($component -eq "hab") {
                     Write-Host "Packaging HAB cli zip file"
                     Write-Host ""
-                    $zip = "hab-$env:APPVEYOR_BUILD_VERSION-x86_64-windows.zip"
+                    $binPath = (Resolve-Path "/hab/pkgs/core/hab/*/*/bin").Path
+                    $pathParts = $binPath.Split("\")
+                    $versionStamp = "$($pathParts[-3])-$($pathParts[-2])"
+                    $zip = "hab-$versionStamp-x86_64-windows.zip"
                     $zipDir = $zip.Replace(".zip", "")
                     $stagingZipDir = "$(Get-RepoRoot)/windows/x86_64"
                     mkdir $zipDir -Force
@@ -136,12 +139,12 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                     if(Test-ReleaseBuild) {
                         mkdir "results/prod" -Force
                         Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
-                        $nuspec_version = $env:APPVEYOR_BUILD_VERSION.substring(0, $env:APPVEYOR_BUILD_VERSION.IndexOf('-'))
+                        $nuspec_version = $versionStamp.substring(0, $versionStamp.IndexOf('-'))
                         $checksum = (Get-FileHash "$stagingZipDir/$zip" -Algorithm SHA256).Hash
                         $choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
 
                         (Get-Content $choco_install) |
-                            % {$_.Replace('$version$', $env:APPVEYOR_BUILD_VERSION) } | 
+                            % {$_.Replace('$version$', $versionStamp) } | 
                             Set-Content $choco_install
 
                         (Get-Content $choco_install) |

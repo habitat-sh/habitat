@@ -61,6 +61,17 @@ For each platform, download the latest stable cli version from [Bintray](https:/
 1. That studio's `hab` is at the correct version
 1. A `sup-log` shows a running supervisor and the supervisor is the correct version
 
+When testing the linux studio, you will need to `export CI_OVERRIDE_CHANNEL` to the rc channel of the release. So if you are releasing 0.75.2, the channel would be `rc-0.75.2`.
+
+### Addressing issues with a release
+
+If you find issues when validating the release binaries that must be fixed before promoting the release, you will need to fix those issues and then have Travis and Appveyor rerun the deployment. After you merge the necessary PRs to fix the release issues:
+
+1. Delete the local release tag: `git tag -d <tag>`
+2. Delete the remote tag: `git push origin :<tag>`
+3. Tag the release again: `make tag-release`
+4. Push that tag: git push origin --tags
+
 ## Publish the release
 
 ```
@@ -71,6 +82,20 @@ $ make publish-release
 ```
 
 This should promote all RC packages to stable and publish the hab cli for each platform (linux, mac and windows).
+
+Note that if you end up re pushing a release to address issues with a release, you may receive the error:
+
+```
+There are multipe pages of releases. Consider deleting the channel and then rebuild.
+```
+
+Our bash promote script is not sophisticated enough to page through results. The best option here is to `destroy` the rc channel.
+
+```
+hab bldr channel destroy -o core rc-0.75.2
+```
+
+Then re push the release tag.
 
 ## Update Builder Bootstrap Bundle
 
