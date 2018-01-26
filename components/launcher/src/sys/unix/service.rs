@@ -118,12 +118,23 @@ impl Process {
 pub fn run(msg: protocol::Spawn) -> Result<Service> {
     debug!("launcher is spawning {}", msg.get_binary());
     let mut cmd = Command::new(msg.get_binary());
-    let uid = os::users::get_uid_by_name(msg.get_svc_user()).ok_or(
-        Error::UserNotFound(msg.get_svc_user().to_string()),
-    )?;
-    let gid = os::users::get_gid_by_name(msg.get_svc_group()).ok_or(
-        Error::GroupNotFound(msg.get_svc_group().to_string()),
-    )?;
+
+    // Favor explicitly set UID/GID over names when present
+    let uid = if msg.has_svc_user_id() {
+        msg.get_svc_user_id()
+    } else {
+        os::users::get_uid_by_name(msg.get_svc_user()).ok_or(
+            Error::UserNotFound(msg.get_svc_user().to_string()),
+        )?
+    };
+    let gid = if msg.has_svc_group_id() {
+        msg.get_svc_group_id()
+    } else {
+        os::users::get_gid_by_name(msg.get_svc_group()).ok_or(
+            Error::GroupNotFound(msg.get_svc_group().to_string()),
+        )?
+    };
+
     cmd.before_exec(owned_pgid);
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())

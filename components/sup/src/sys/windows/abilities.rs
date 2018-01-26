@@ -22,10 +22,6 @@
 // unchanged (i.e., it will still require "root"-like abilities to
 // run).
 
-pub fn can_set_process_user_and_group() -> bool {
-    true
-}
-
-pub fn can_change_ownership() -> bool {
+pub fn can_run_services_as_svc_user() -> bool {
     true
 }

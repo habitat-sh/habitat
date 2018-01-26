@@ -33,6 +33,7 @@ use toml;
 use super::Pkg;
 use census::CensusGroup;
 use error::{Error, Result};
+use sys::abilities;
 use templating::{TemplateRenderer, RenderContext};
 
 static LOGKEY: &'static str = "CF";
@@ -420,7 +421,9 @@ impl CfgRenderer {
                 let mut config_file = File::create(&cfg_dest)?;
                 config_file.write_all(&compiled.into_bytes())?;
 
-                util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                if abilities::can_run_services_as_svc_user() {
+                    util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                }
                 util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
 
                 changed = true
@@ -443,7 +446,9 @@ impl CfgRenderer {
                     let mut config_file = File::create(&cfg_dest)?;
                     config_file.write_all(&compiled.into_bytes())?;
 
-                    util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                    if abilities::can_run_services_as_svc_user() {
+                        util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                    }
                     util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
 
                     changed = true;

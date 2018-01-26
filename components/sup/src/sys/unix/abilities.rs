@@ -18,16 +18,14 @@
 
 use caps::{self, Capability, CapSet};
 
-/// Returns true if the current thread is able to set both user and
-/// group IDs of processes.
-pub fn can_set_process_user_and_group() -> bool {
-    has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID)
-}
-
-/// Returns true if the current thread is able to change ownership of
-/// files.
-pub fn can_change_ownership() -> bool {
-    has(Capability::CAP_CHOWN)
+/// This is currently the "master check" for whether the Supervisor
+/// can behave "as root".
+///
+/// All capabilities must be present. If we can run processes as other
+/// users, but can't change ownership, then the processes won't be
+/// able to access their files. Similar logic holds for the reverse.
+pub fn can_run_services_as_svc_user() -> bool {
+    has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID) && has(Capability::CAP_CHOWN)
 }
 
 /// Helper function; does the current thread have `cap` in its
