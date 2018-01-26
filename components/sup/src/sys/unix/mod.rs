@@ -14,3 +14,4 @@
 
 pub mod exec;
 pub mod users;
+pub mod abilities;
