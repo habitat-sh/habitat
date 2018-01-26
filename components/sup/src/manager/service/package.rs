@@ -79,6 +79,12 @@ impl Env {
 pub struct Pkg {
     #[serde(deserialize_with = "deserialize_using_from_str",
             serialize_with = "serialize_using_to_string")]
+    // NOTE: be very intentional when adding new public members to
+    // this struct; they will be exposed to users in templated files.
+    //
+    // TODO (CM): move templatable content into a distinct type to
+    // separate these concerns; Pkg is currently also used for
+    // non-templating purposes.
     pub ident: PackageIdent,
     pub origin: String,
     pub name: String,
