@@ -53,6 +53,7 @@ Lieutenant and may have many maintainers.
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 * [George Marshall](https://github.com/georgemarshall)
 * [Tasha Drew](https://github.com/tashimi)
+* [Jon Bauman](https://github.com/baumanj)
 
 ### Habitat Builder Web Application
 
