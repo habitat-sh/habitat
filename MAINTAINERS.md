@@ -74,20 +74,7 @@ The web application for the Habitat builder and depot.
 
 ### Habitat Builder
 
-#### Lieutenant
-
-* [Jamie Winsor](https://github.com/reset)
-
-#### Maintainers
-
-* [Adam Jacob](https://github.com/adamhjk)
-* [Fletcher Nichol](https://github.com/fnichol)
-* [Brian Scott](https://github.com/bscott)
-* [Steven Murawski](https://github.com/smurawski)
-* [Ian Henry](https://github.com/eeyun)
-* [Matt Wrock](https://github.com/mwrock)
-* [Salim Alam](https://github.com/chefsalim)
-* [Nell Shamrell-Harrington](https://github.com/nellshamrell)
+See https://github.com/habitat-sh/builder/blob/master/MAINTAINERS.md
 
 ### Documentation
 
