@@ -40,6 +40,7 @@ extern crate failure_derive;
 
 mod accounts;
 mod build;
+mod chmod;
 pub mod cli;
 mod docker;
 mod error;
