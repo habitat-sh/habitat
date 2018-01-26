@@ -17,6 +17,8 @@ message Spawn {
   optional string svc_group = 4;
   optional string svc_password = 5;
   map<string, string> env = 6;
+  optional uint32 svc_user_id = 7;
+  optional uint32 svc_group_id = 8;
 }
 
 message SpawnOk {
