@@ -117,6 +117,12 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
                addition, it is how you can perform continuous deployment with Habitat.",
     )?;
     ui.para(
+        "The GitHub personal access token needs the user:email and read:org OAuth scopes. \
+               Habitat uses the information provided through these scopes for \
+               authentication and to determine features based on team membership. You can \
+               set this up at https://github.com/settings/tokens",
+    )?;
+    ui.para(
         "If you would like to share your packages on the depot, please enter your GitHub \
                access token. Otherwise, just enter No.",
     )?;
