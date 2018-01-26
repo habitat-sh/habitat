@@ -97,3 +97,7 @@ tutorials and reference materials.
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 * [Robb Kidd](https://github.com/robbkidd)
 * [Tasha Drew](https://github.com/tashimi)
+
+### Core Plans
+
+See https://github.com/habitat-sh/core-plans/blob/master/MAINTAINERS.md
