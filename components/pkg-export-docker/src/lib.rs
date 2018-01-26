@@ -79,8 +79,6 @@ const CACERTS_IDENT: &'static str = "core/cacerts";
 pub struct Naming<'a> {
     /// An optional custom image name which would override a computed default value.
     pub custom_image_name: Option<&'a str>,
-    /// Whether or not to tag the image with a latest value.
-    pub latest_tag: bool,
     /// Whether or not to tag the image with a value containing a version from a Package
     /// Identifier.
     pub version_tag: bool,
@@ -105,7 +103,6 @@ impl<'a> Naming<'a> {
 
         Naming {
             custom_image_name: m.value_of("IMAGE_NAME"),
-            latest_tag: !m.is_present("NO_TAG_LATEST"),
             version_tag: !m.is_present("NO_TAG_VERSION"),
             version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
             custom_tag: m.value_of("TAG_CUSTOM"),
@@ -198,7 +195,10 @@ pub fn export(ui: &mut UI, build_spec: BuildSpec, naming: &Naming) -> Result<Doc
 /// * Pushing the image to remote registry fails.
 /// * Parsing of credentials fails.
 /// * The image (tags) cannot be removed.
-pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
+pub fn export_for_cli_matches(
+    ui: &mut UI,
+    matches: &clap::ArgMatches,
+) -> Result<Option<DockerImage>> {
     let default_channel = channel::default();
     let default_url = hurl::default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
@@ -224,9 +224,11 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
     }
     if matches.is_present("RM_IMAGE") {
         docker_image.rm(ui)?;
-    }
 
-    Ok(())
+        Ok(None)
+    } else {
+        Ok(Some(docker_image))
+    }
 }
 
 /// Create the Clap CLI for the Docker exporter

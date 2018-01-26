@@ -43,5 +43,5 @@ fn start(ui: &mut UI) -> Result<()> {
     let m = cli.get_matches();
     debug!("clap cli args: {:?}", m);
 
-    export_docker::export_for_cli_matches(ui, &m)
+    export_docker::export_for_cli_matches(ui, &m).map(|_| ())
 }

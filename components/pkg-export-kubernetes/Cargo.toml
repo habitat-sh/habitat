@@ -24,7 +24,6 @@ habitat_pkg_export_docker = { path = "../pkg-export-docker" }
 habitat_sup = { path = "../sup" }
 handlebars = { version = "*", default-features = false }
 log = "*"
-rand = "*"
 serde = "1.0.2"
 serde_json = "1.0.0"
 failure = { git = "https://github.com/withoutboats/failure.git" }

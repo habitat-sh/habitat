@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use failure::SyncFailure;
 use handlebars::Handlebars;
 use serde_json::Value;
-
-use export_docker::Result;
 
 use manifest::Manifest;
 
@@ -45,7 +42,6 @@ impl ManifestJson {
     pub fn new(manifest: &Manifest) -> Self {
         let main = json!({
             "metadata_name": manifest.metadata_name,
-            "habitat_name": manifest.habitat_name,
             "image": manifest.image,
             "count": manifest.count,
             "service_topology": manifest.service_topology.to_string(),
@@ -71,30 +67,29 @@ impl ManifestJson {
             binds: binds,
         }
     }
+}
 
+impl Into<String> for ManifestJson {
     /// Convert into a string. The returned string is the final manifest YAML file content, ready
     /// for consumption by a Kubernetes cluster.
-    ///
-    /// # Errors
-    ///
-    /// * Rendering from the template fails. This can only happen if the template has a syntax
-    /// error or the command-line arguments are incorrectly formatted. In both cases, it's a
-    /// most likely a programmer error if it happens.
-    // TODO: Implement TryInto trait instead when it's in stable std crate
-    pub fn into_string(&self) -> Result<String> {
+    fn into(self) -> String {
+        // The Result::expect() usage in this function is justied by the fact that errors can only
+        // come from the crate programmer (e.g they messed-up the manifest template or don't check
+        // the user input).
+
         let r = Handlebars::new()
             .template_render(MANIFESTFILE, &self.main)
-            .map_err(SyncFailure::new)?;
+            .expect("Rendering of manifest from template failed");
         let mut s = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
             "\n",
         ) + "\n";
 
         for bind in &self.binds {
-            s += &Handlebars::new().template_render(BINDFILE, &bind).map_err(
-                SyncFailure::new,
-            )?;
+            s += &Handlebars::new().template_render(BINDFILE, &bind).expect(
+                "Rendering of manifest from template failed",
+            );
         }
 
-        Ok(s)
+        s
     }
 }

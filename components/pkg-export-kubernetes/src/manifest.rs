@@ -21,10 +21,8 @@ use base64;
 use clap::ArgMatches;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
-use rand;
-use rand::Rng;
 
-use export_docker::Result;
+use export_docker::{Result, DockerImage};
 
 use habitat_sup::manager::service::{Topology, ServiceBind};
 use manifestjson::ManifestJson;
@@ -33,10 +31,8 @@ use bind;
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]
 pub struct Manifest {
-    /// The service name in the Kubernetes cluster.
-    pub metadata_name: String,
     /// The Habitat service name.
-    pub habitat_name: String,
+    pub metadata_name: String,
     /// The docker image.
     pub image: String,
     /// The number of desired instances in the service group.
@@ -60,7 +56,11 @@ impl Manifest {
     /// Create a Manifest instance from command-line arguments passed as [`clap::ArgMatches`].
     ///
     /// [`clap::ArgMatches`]: https://kbknapp.github.io/clap-rs/clap/struct.ArgMatches.html
-    pub fn new_from_cli_matches(_ui: &mut UI, matches: &ArgMatches) -> Result<Self> {
+    pub fn new_from_cli_matches(
+        _ui: &mut UI,
+        matches: &ArgMatches,
+        image: Option<DockerImage>,
+    ) -> Result<Self> {
         let count = matches.value_of("COUNT").unwrap_or("1").parse()?;
         let topology: Topology = matches
             .value_of("TOPOLOGY")
@@ -82,22 +82,39 @@ impl Manifest {
             PackageIdent::from_str(pkg_ident_str)?
         };
 
-        // To allow multiple instances of Habitat application in Kubernetes,
-        // random suffix in metadata_name is needed.
-        let metadata_name =
-            format!(
-            "{}-{}",
-            pkg_ident.name,
-            rand::thread_rng()
-                .gen_ascii_chars()
-                .filter(|c| c.is_lowercase() || c.is_numeric())
-                .take(5)
-                .collect::<String>(),
-        );
+        let version_suffix = match pkg_ident.version {
+            Some(v) => {
+                pkg_ident
+                    .release
+                    .map(|r| format!("{}-{}", v, r))
+                    .unwrap_or(v)
+            }
+            None => "latest".to_owned(),
+        };
+        let name = format!("{}-{}", pkg_ident.name, version_suffix);
 
-        let image = match matches.value_of("IMAGE_NAME") {
+        let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
-            None => pkg_ident.origin + "/" + &pkg_ident.name + ":latest",
+            None => {
+                let (image_name, tag) = match image {
+                    Some(i) => {
+                        (
+                            i.name().to_owned(),
+                            i.tags().get(0).cloned().unwrap_or_else(
+                                || "latest".to_owned(),
+                            ),
+                        )
+                    }
+                    None => {
+                        (
+                            format!("{}/{}", pkg_ident.origin, pkg_ident.name),
+                            "latest".to_owned(),
+                        )
+                    }
+                };
+
+                format!("{}:{}", image_name, tag)
+            }
         };
 
         let binds = bind::parse_bind_args(&matches)?;
@@ -113,9 +130,8 @@ impl Manifest {
         };
 
         Ok(Manifest {
-            metadata_name: metadata_name,
-            habitat_name: pkg_ident.name,
-            image: image,
+            metadata_name: name,
+            image: image_name,
             count: count,
             service_topology: topology,
             service_group: group,
@@ -127,7 +143,7 @@ impl Manifest {
 
     /// Generates the manifest as a string and writes it to `write`.
     pub fn generate(&mut self, write: &mut Write) -> Result<()> {
-        let out = ManifestJson::new(&self).into_string()?;
+        let out: String = ManifestJson::new(&self).into();
 
         write.write(out.as_bytes())?;
 
@@ -142,8 +158,7 @@ mod tests {
     #[test]
     fn test_manifest_generation() {
         let mut m = Manifest {
-            metadata_name: "nginx-f84iq".to_owned(),
-            habitat_name: "nginx".to_owned(),
+            metadata_name: "nginx-latest".to_owned(),
             image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),
@@ -166,8 +181,7 @@ mod tests {
     #[test]
     fn test_manifest_generation_binds() {
         let mut m = Manifest {
-            metadata_name: "nginx-f84iq".to_owned(),
-            habitat_name: "nginx".to_owned(),
+            metadata_name: "nginx-latest".to_owned(),
             image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),

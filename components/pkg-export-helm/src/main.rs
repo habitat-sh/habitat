@@ -54,7 +54,7 @@ fn main() {
 }
 
 fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
-    let mut chart = Chart::new_for_cli_matches(ui, matches)?;
+    let chart = Chart::new_for_cli_matches(ui, matches)?;
     chart.generate()?;
 
     Ok(())

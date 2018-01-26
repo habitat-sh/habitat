@@ -88,16 +88,8 @@ impl<'a> DockerBuilder<'a> {
             .arg("build")
             .arg("--force-rm")
             .arg("--no-cache");
-        if self.tags.is_empty() {
-            cmd.arg("--tag").arg(&self.name);
-        } else {
-            if self.tags.is_empty() {
-                cmd.arg("--tag").arg(&self.name);
-            } else {
-                for tag in &self.tags {
-                    cmd.arg("--tag").arg(format!("{}:{}", &self.name, tag));
-                }
-            }
+        for tag in &self.tags {
+            cmd.arg("--tag").arg(format!("{}:{}", &self.name, tag));
         }
         cmd.arg(".");
         debug!("Running: {:?}", &cmd);
@@ -506,9 +498,7 @@ impl DockerBuildRoot {
         if naming.version_tag {
             image = image.tag(version.clone());
         }
-        if naming.latest_tag {
-            image = image.tag("latest".to_string());
-        }
+        image = image.tag("latest".to_string());
         if let Some(ref custom) = naming.custom_tag {
             image = image.tag(
                 Handlebars::new()
