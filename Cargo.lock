@@ -542,7 +542,7 @@ version = "0.0.0"
 dependencies = [
  "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat-launcher-protocol 0.0.0 (git+https://github.com/habitat-sh/protocols.git)",
+ "habitat-launcher-protocol 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "ipc-channel 0.9.0 (git+https://github.com/habitat-sh/ipc-channel?branch=hbt-windows)",
  "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -558,7 +558,7 @@ name = "habitat-launcher-client"
 version = "0.0.0"
 dependencies = [
  "bincode 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat-launcher-protocol 0.0.0 (git+https://github.com/habitat-sh/protocols.git)",
+ "habitat-launcher-protocol 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "ipc-channel 0.9.0 (git+https://github.com/habitat-sh/ipc-channel?branch=hbt-windows)",
  "libc 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -569,7 +569,6 @@ dependencies = [
 [[package]]
 name = "habitat-launcher-protocol"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/protocols.git#72a3231d6ae4da6a5013f9d5570fd9a5e0bce06d"
 dependencies = [
  "pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2331,7 +2330,6 @@ dependencies = [
 "checksum glob 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)" = "8be18de09a56b60ed0edf84bc9df007e30040691af7acd1c41874faac5895bfb"
 "checksum habitat-builder-protocol 0.0.0 (git+https://github.com/habitat-sh/protocols.git)" = "<none>"
 "checksum habitat-eventsrv-protocol 0.0.0 (git+https://github.com/habitat-sh/protocols.git)" = "<none>"
-"checksum habitat-launcher-protocol 0.0.0 (git+https://github.com/habitat-sh/protocols.git)" = "<none>"
 "checksum habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)" = "<none>"
 "checksum habitat_win_users 0.0.0 (git+https://github.com/habitat-sh/core.git)" = "<none>"
 "checksum handlebars 0.29.1 (registry+https://github.com/rust-lang/crates.io-index)" = "fb04af2006ea09d985fef82b81e0eb25337e51b691c76403332378a53d521edc"
