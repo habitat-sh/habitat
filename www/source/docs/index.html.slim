@@ -10,10 +10,6 @@ section.docs--hero
 
 section.docs--intro
   .row
-    .columns.medium-5
-      img.mb-1 src="/images/graphics/docs-intro.png"
-      h3.mb-1 Get the latest version:
-      = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button cta'
     .columns.medium-7
       ul.docs--feature--list
         li
@@ -22,7 +18,11 @@ section.docs--intro
           | Habitat provides automation that can programmatically and declaratively build, deploy, and manage your application and services, both stateful and stateless.
         li
           | Habitat can be deployed and run on various infrastructure environments including bare metal, VM, containers, and PaaS.
-
+    .columns.medium-5
+      img.mb-1 src="/images/graphics/docs-intro.png"
+      h4.mb-1 Get the latest version
+      = link_to 'Download and Install the Habitat CLI', '/docs/install-habitat', class: 'button cta'
+      
 hr
 
 section.docs--quicklink

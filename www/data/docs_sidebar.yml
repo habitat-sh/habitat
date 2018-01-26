@@ -4,15 +4,24 @@ sidebar_links:
   links:
   - title: Docs Home
     link: "/docs"
+  - title: Installing Habitat
+    link: "/docs/install-habitat"
+    sub_links:
+    - title: Download the Habitat CLI
+      link: "/docs/install-habitat/#install-habitat"
+    - title: Configure Your Workstation
+      link: "/docs/using-habitat/#configure-workstation"
+    - title: Install FAQ
+      link: "/docs/using-habitat/#install-faq"
+    - title: Builder Account (optional)
+      link: "/docs/using-habitat/#builder-account"
+    - title: Builder Origin (optional)
+      link: "/docs/using-habitat/#builder-origin"
   - title: Using Habitat
     link: "/docs/using-habitat"
     sub_links:
     - title: Overview
       link: "/docs/using-habitat/#overview"
-    - title: Installing Habitat
-      link: "/docs/using-habitat/#install-habitat"
-    - title: Install FAQ
-      link: "/docs/using-habitat/#install-faq"
     - title: Using Habitat Packages
       link: "/docs/using-habitat/#using-packages"
     - title: Monitor Services
