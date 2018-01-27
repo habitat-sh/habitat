@@ -952,6 +952,9 @@ function Invoke-Unpack {
 
 # Default implementation for the `Invoke-Unpack` phase.
 function Invoke-DefaultUnpack {
+    if($pkg_filename -ne $null) {
+        Expand-Archive -Path "$HAB_CACHE_SRC_PATH/$pkg_filename" -DestinationPath "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+    }
 }
 
 function _Set-Environment {
