@@ -34,12 +34,10 @@ url = "*"
 [target.'cfg(not(windows))'.dependencies]
 users = "*"
 
-[target.'cfg(windows)'.dependencies.habitat_win_users]
-path = "../win-users"
-
 [target.'cfg(windows)'.dependencies]
 crypt32-sys = "*"
 ctrlc = "*"
+habitat_win_users = { path = "../win-users" }
 kernel32-sys = "*"
 userenv-sys = "*"
 widestring = "*"
