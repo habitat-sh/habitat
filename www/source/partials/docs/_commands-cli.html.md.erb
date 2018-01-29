@@ -585,6 +585,7 @@ Builds a Plan using a Studio
 
 **FLAGS** 
 
+    -w, --windows    Use a Windows Studio instead of a Docker Studio (only available on Windows)
     -D, --docker     Uses a Dockerized Studio for the build (default: Studio uses a chroot on linux)
     -R, --reuse      Reuses a previous Studio for the build (default: clean up before building)
     -h, --help       Prints help information
@@ -1275,6 +1276,7 @@ persist through Supervisor restarts.
         --group <GROUP>                The service group; shared config and topology [default: default].
         --override-name <NAME>         The name for the state directory if there is more than one Supervisor
                                             running [default: default]
+        --password <PASSWORD>          Password of the service user (only available on Windows)
     -s, --strategy <STRATEGY>          The update strategy; [default: none] [values: none, at-once, rolling]
     -t, --topology <TOPOLOGY>          Service topology; [default: none]
 
@@ -1366,6 +1368,7 @@ Supervisor is not already running this will additionally start one for you.
                                                 Supervisor [default: default]
         --org <ORGANIZATION>                The organization that the Supervisor and its subsequent services
                                                 are part of [default: default]
+        --password <PASSWORD>               Password of the service user (only available on Windows)
         --peer <PEER>...                    The listen address of an initial peer (IP[:PORT])
         --peer-watch-file <PEER_WATCH_FILE> Watch this file for connecting to the ring
     -r, --ring <RING>                       Ring key name

@@ -6,14 +6,14 @@ Habitat packages used to start services are run under the Habitat Supervisor. At
 
 ## Running single packages for testing
 
-Packages can be tested in the interactive studio environment or natively on a host machine running Linux.
+Packages can be tested in the interactive studio environment or natively on a host machine running Linux or Windows.
 
 When entering an interactive studio, a Supervisor is started for you in the background. To run packages inside of this Supervisor:
 
 1. [Build your package](/docs/developing-packages/#plan-builds) inside an interactive studio. Do not exit the studio after it is built.
 2. To start your service in the running Supervisor, type `hab sup start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
 
-Because the Supervisor is running in the background, you will not see the Supervisor output as you start your service. However you can use the `sup-log` (Supervisor log) command that will stream the tail of the Supervisor output.
+Because the Supervisor is running in the background, you will not see the Supervisor output as you start your service. However you can use the `sup-log` (or `Get-SupervisorLog` on Windows) command that will stream the tail of the Supervisor output.
 
 If your host machine is running Linux, do the following to run your packages:
 
@@ -30,6 +30,13 @@ If your host machine is running Linux, do the following to run your packages:
     $ sudo hab start yourorigin/yourname
     ```
 
+You may use the same `hab start` command on Windows but omit the `sudo` command. However, you should be inside of an elevated shell. Also, note that the `hab` user is not necessary on Windows. If it is absent, services will run under the identity of the current user. If a `hab` user is present, you will need to provide its password via the`--password` argument:
+
+```shell
+PS C:\\> $cred = Get-Credential hab
+PS C:\\> hab start yourorigin/yourname --password $cred.GetNetworkCredential().Password
+```
+
 ## Running packages in any environment
 
 The `hab` program can also be installed on servers. It will retrieve the necessary components (like the current release of the Supervisor) in order to run packages. Thus, you can start the Supervisor on any compatible system.
@@ -44,6 +51,8 @@ To start the Supervisor, you can write an init script or a systemd unit file. Fo
 
     [Install]
     WantedBy=default.target
+
+On Windows, you can run the Supervisor as a Windows Service. You can use the `windows-service` Habitat package to host the Supervisor inside the Windows Service Control Manager. See the `windows-service` [readme](https://github.com/habitat-sh/windows-service/blob/master/README.md) for more details regarding its installation and use.
 
 Next use `hab svc load` to load one or more services into the Supervisor for permanent supervision. Using the example from above:
 
@@ -85,6 +94,15 @@ After you have built the hart package, do the following:
         $ sudo hab start your_origin/your_package
         ```
 
+On Windows this looks very similar with the additional step of installing the Chocolatey package manager:
+
+```shell
+PS C:\\> Set-ExecutionPolicy Bypass -Scope Process -Force
+PS C:\\> iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+PS C:\\> choco install habitat
+PS C:\\> hab install your_package.hart
+PS C:\\> hab start your_origin/your_package
+```
 
 ## Starting only the Supervisor
 
@@ -114,6 +132,13 @@ WantedBy=default.target
 ```
 
 It is important to start the Supervisor via the `hab` program as upgrades to the `core/hab` Habitat package will also upgrade the version of the Supervisor on next start.
+
+On Windows, you can run the Supervisor as a Windows Service. You can use the `windows-service` Habitat package to host the Supervisor inside the Windows Service Control Manager:
+
+```shell
+PS C:\\> hab pkg install core/windows-service
+PS C:\\> hab pkg exec core/windows-service install
+```
 
 ## Loading a Service for Supervision
 
