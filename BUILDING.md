@@ -78,30 +78,69 @@ echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local
 direnv allow
 ```
 
-## Ubuntu: Latest (16.10/Yakkety)
+## Ubuntu: Latest (17.10/Artful)
 
-This installation method uses as many packages from Ubuntu as possible. This
-will closely reproduce the state of the Docker-based "devshell" as it also uses
-an Ubuntu base image.
+This installation method uses as many packages from Ubuntu as possible.
+If you don't have it, you'll first need to install `git`:
+```
+sudo -E apt-get install -y --no-install-recommends git
+```
 
-First clone the codebase and enter the directory:
+Then, clone the codebase and enter the directory:
 
 ```
 git clone https://github.com/habitat-sh/habitat.git
 cd habitat
 ```
 
-Then, run the system preparation scripts and try to compile the project:
+Then, run the system preparation scripts
 
 ```
 cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
 sh support/linux/install_dev_9_linux.sh
-. ~/.profile
+```
+
+Ubuntu-Server 17.10 has an issue that prevents update from working because it
+tries to read from a CD-ROM that's almost certainly not there. If you get an
+error like this:
+```
+E: The repository 'cdrom://Ubuntu-Server 17.10 _Artful Aardvark_ - Release amd64 (20171017.1) artful Release' does not have a Release file.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+```
+You can run this command to comment out the problematic line in the sources list:
+```
+sudo sed -i.bak '/deb cdrom/s/^/#/g' /etc/apt/sources.list
+```
+
+Then, make sure rust's `cargo` command is working. You'll need to add `$HOME/.cargo/bin` to your `$PATH`.
+On shells that use `.profile`, you can run
+```
+source ~/.profile
+```
+For other shells see the documentation for modifying the executable path. For `fish`, you can run
+```
+set -U fish_user_paths $fish_user_paths "$HOME/.cargo/bin"
+```
+Check that `cargo` is correctly installed by running
+```
+cargo --version
+```
+
+Compile the project:
+```
 make
 ```
 
-These docs were tested with Ubuntu 16.04 and 16.10 VMs.
+The binaries will be in `habitat/target/debug` and can be run directly, or you can use `cargo` commands in the various `components` subdirectories. For example:
+```
+cd components/sup
+cargo run -- --help
+cargo run -- status
+```
+
+These docs were tested with Ubuntu 17.10 VMs.
 
 ## Ubuntu: 14.04+ (Trusty+)
 
