@@ -1,4 +1,91 @@
-# Building Habitat from source
+# Setting up the environment
+
+## Officially supported environment: Ubuntu Latest (17.10/Artful)
+
+([Other environments](#Unsupported-environments) work, but are not officially supported)
+
+You can run this environment natively or in VM. [ISOs for both server and desktop versions are available here](http://releases.ubuntu.com/17.10/).
+This installation method uses as many packages from Ubuntu as possible.
+If you don't have it, you'll first need to install `git`:
+```
+sudo -E apt-get install -y --no-install-recommends git
+```
+
+Then, clone the codebase and enter the directory:
+
+```
+git clone https://github.com/habitat-sh/habitat.git
+cd habitat
+```
+
+Then, run the system preparation scripts
+
+```
+cp components/hab/install.sh /tmp/
+sh support/linux/install_dev_0_ubuntu_latest.sh
+sh support/linux/install_dev_9_linux.sh
+```
+
+Ubuntu-Server 17.10 has an issue that prevents update from working because it
+tries to read from a CD-ROM that's almost certainly not there. If you get an
+error like this:
+```
+E: The repository 'cdrom://Ubuntu-Server 17.10 _Artful Aardvark_ - Release amd64 (20171017.1) artful Release' does not have a Release file.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+```
+You can run this command to comment out the problematic line in the sources list:
+```
+sudo sed -i.bak '/deb cdrom/s/^/#/g' /etc/apt/sources.list
+```
+
+Then, make sure rust's `cargo` command is working. You'll need to add `$HOME/.cargo/bin` to your `$PATH`.
+On shells that use `.profile`, you can run
+```
+source ~/.profile
+```
+For other shells see the documentation for modifying the executable path. For `fish`, you can run
+```
+set -U fish_user_paths $fish_user_paths "$HOME/.cargo/bin"
+```
+Check that `cargo` is correctly installed by running
+```
+cargo --version
+```
+
+# Compiling habitat binaries
+
+In the root of the `habitat` repo:
+```
+make
+```
+
+The binaries will be in `habitat/target/debug` and can be run directly, or you can use `cargo` commands in the various `components` subdirectories. For example:
+```
+cd components/sup
+cargo run -- --help
+cargo run -- status
+```
+
+# Testing changes
+
+The `hab` command execs various other binaries such as `hab-sup`. By default, this will run the latest installed habitat package version of the binary. To use your development version, this behavior can be overridden with the following environment variables:
+* HAB_BUTTERFLY_BINARY
+* HAB_DOCKER_BINARY
+* HAB_LAUNCH_BINARY
+* HAB_STUDIO_BINARY
+* HAB_SUP_BINARY
+
+For example, to run your newly-compiled version of `hab-sup` set `HAB_SUP_BINARY` to `/path/to/habitat/target/debug/hab-sup`. This can be done either through exporting (syntax differs, check your shell documentation):
+```
+export HAB_SUP_BINARY=/path/to/habitat/target/debug/hab-sup
+```
+or setting the value upon execution of the `hab` binary:
+```
+env HAB_SUP_BINARY=/path/to/habitat/target/debug/hab-sup hab sup status
+```
+
+# Unsupported environments
 
 ## Mac OS X for Linux Development
 
@@ -77,70 +164,6 @@ of the git repository:
 echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"' > .envrc
 direnv allow
 ```
-
-## Ubuntu: Latest (17.10/Artful)
-
-This installation method uses as many packages from Ubuntu as possible.
-If you don't have it, you'll first need to install `git`:
-```
-sudo -E apt-get install -y --no-install-recommends git
-```
-
-Then, clone the codebase and enter the directory:
-
-```
-git clone https://github.com/habitat-sh/habitat.git
-cd habitat
-```
-
-Then, run the system preparation scripts
-
-```
-cp components/hab/install.sh /tmp/
-sh support/linux/install_dev_0_ubuntu_latest.sh
-sh support/linux/install_dev_9_linux.sh
-```
-
-Ubuntu-Server 17.10 has an issue that prevents update from working because it
-tries to read from a CD-ROM that's almost certainly not there. If you get an
-error like this:
-```
-E: The repository 'cdrom://Ubuntu-Server 17.10 _Artful Aardvark_ - Release amd64 (20171017.1) artful Release' does not have a Release file.
-N: Updating from such a repository can't be done securely, and is therefore disabled by default.
-N: See apt-secure(8) manpage for repository creation and user configuration details.
-```
-You can run this command to comment out the problematic line in the sources list:
-```
-sudo sed -i.bak '/deb cdrom/s/^/#/g' /etc/apt/sources.list
-```
-
-Then, make sure rust's `cargo` command is working. You'll need to add `$HOME/.cargo/bin` to your `$PATH`.
-On shells that use `.profile`, you can run
-```
-source ~/.profile
-```
-For other shells see the documentation for modifying the executable path. For `fish`, you can run
-```
-set -U fish_user_paths $fish_user_paths "$HOME/.cargo/bin"
-```
-Check that `cargo` is correctly installed by running
-```
-cargo --version
-```
-
-Compile the project:
-```
-make
-```
-
-The binaries will be in `habitat/target/debug` and can be run directly, or you can use `cargo` commands in the various `components` subdirectories. For example:
-```
-cd components/sup
-cargo run -- --help
-cargo run -- status
-```
-
-These docs were tested with Ubuntu 17.10 VMs.
 
 ## Ubuntu: 14.04+ (Trusty+)
 
