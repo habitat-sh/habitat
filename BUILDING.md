@@ -1,11 +1,5 @@
 # Building Habitat from source
 
-## Not officially supported
-
-**These setups are NOT officially supported by the Habitat maintainers - use at your own risk!**
-
-**The officially supported setup can be found in the [Builder Dev](BUILDER_DEV.md) file.**
-
 ## Mac OS X for Linux Development
 
 These install instructions assume you want to develop, build, and run the
