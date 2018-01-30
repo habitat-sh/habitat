@@ -96,6 +96,8 @@ sidebar_links:
   - title: Best Practice Guides
     link: "/docs/best-practices"
     sub_links:
+    - title: Running Habitat Linux Containers
+      link: "/docs/best-practices/#running-habitat-linux-containers"
     - title: Container Orchestration
       link: "/docs/best-practices/#container-orchestration"
     - title: Kubernetes
