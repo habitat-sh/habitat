@@ -1,7 +1,5 @@
-# <a name="install-faq" id="install-faq" data-magellan-target="install-faq">Install FAQ</a>
+## <a name="install-faq" id="install-faq" data-magellan-target="install-faq">Download and Install FAQ</a>
 This section tracks some frequently encountered questions around downloading and installing the `hab` binary.
-
-## Downloading
 
 **Q: Can I just download a GitHub release of habitat?**
 
@@ -17,9 +15,12 @@ A: We've got you covered! The script we provide for doing curlbash installations
 
 **Q: Oh! A curlbash I (love||hate) those.**
 
-A: Indeed they are divisive, we know, that's why we provide a few different ways for you to download. If you'd like to take a look at the script in advance of running it against your system you can find it in [the core habitat repo](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh). You can install habitat via `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash`. If you're staunchly in the anti-curlbash camp you can get the latest packages from our [download page](https://habitat.sh/downloads) or via releases on [our bintray page](https://bintray.com/habitat)
+A: Indeed they are divisive, we know, that's why we provide a few different ways for you to download. If you'd like to take a look at the script in advance of running it, you can find it in [the core habitat repo](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh).
 
-## Installation
+Install Habitat via curlbash using the following command:
+`curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash`
+
+If you're staunchly in the anti-curlbash camp you can get the latest packages from our [download page](https://habitat.sh/downloads) or via releases on [our bintray page](https://bintray.com/habitat)
 
 **Q: Er, how do I install habitat?**
 
@@ -27,4 +28,4 @@ A: You'll need to download the `hab` package. Extract the binary to somewhere on
 
 **Q: How do I install `hab` across my server fleet?**
 
-A: for the most part, we leave that up to you. You could just use the aforementioned curl-bash with your provisioner of choice. If you are installing on Windows, your provisioner can use [Chocolatey](https://chocolatey.org/packages/habitat) to install or upgrade Habitat. If your app was dockerized with habitat then you won't even need to ask this question, because you'll have everything you need inside your container. We are working on first class mesos dc/os, cloudfoundry and kubernetes integrations - which you can keep up to date on in [our best practices section](/docs/best-practices/) and [blog](/blog).
+A: for the most part, we leave that up to you. You could just use the aforementioned curl-bash with your provisioner of choice. If your app was dockerized with habitat then you won't even need to ask this question, because you'll have everything you need inside your container. We are working on first class mesos dc/os, cloudfoundry and kubernetes integrations - which you can keep up to date on in [our best practices section](/docs/best-practices/) and [blog](/blog).

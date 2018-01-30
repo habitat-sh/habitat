@@ -1,4 +1,4 @@
-# <a name="multiple-plans-builder" id="multiple-plans-builder" data-magellan-target="multiple-plans-builder">Using Builder with Multiple Plans</a>
+## <a name="multiple-plans-builder" id="multiple-plans-builder" data-magellan-target="multiple-plans-builder">Using Multiple Plans</a>
 
 If you have a large GitHub repository with multiple components inside, you will most likely also have individual plans for those components. When using Builder to build your packages, the default behavior is for Builder to build all packages whenever any file is updated in that repository, regardless of what component it is. This is because Builder does not know which file is associated with which package.
 
@@ -41,7 +41,7 @@ To enable this functionality, do the following:
     ]
     ```
 
-## Special case where `.bldr.toml` does not exist
+### Special case where **.bldr.toml** does not exist
 
 In the default case, where the `.bldr.toml` does not exist, there is one other condition that can impact builds. If the `plan.sh` file is not at the root (e.g., it is located in a `habitat` folder), then Builder infers that the plan files are all underneath the `habitat` folder, and will not kick off a build if files are committed that are outside of that folder.
 

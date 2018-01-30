@@ -1,0 +1,19 @@
+## <a name="configure-workstation" id="configure-workstation" data-magellan-target="configure-workstation">Configure Your Workstation</a>
+Once Habitat has been installed, the <code>hab</code> CLI makes it easy to get your workstation configured by guiding through the setup process. To set up your workstation, run <code>hab setup</code> and follow the instructions.
+
+<img alt="screenshot of hab setup output in CLI" src="/images/screenshots/hab-setup.png">
+
+Setup asks you to create a new origin and a set of origin keys. Optionally, you can also provide a [GitHub personal access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) to upload packages to the public depot and share them with the Habitat community.
+
+> The GitHub personal access token needs information provided from the <code>user:email</code> and <code>read:org</code> OAuth scopes. Habitat uses the information provided through these scopes for authentication and to determine features based on team membership.
+
+> For more information about using Habitat Builder, see the section on [Working with Builder](/docs/using-builder/).
+
+During setup, you may elect to provide anonymous usage data of the <code>hab</code> CLI tool. This information is used by the Habitat team to improve the CLI experience.
+For information on the types of data we gather and how we intend to use it, see [Analytics in Habitat](/docs/about-analytics).
+
+You can change your settings at any time by re-running the <code>hab setup</code> command.
+
+<img alt="screenshot of completed hab setup in CLI" src="/images/screenshots/hab-setup-complete.png">
+
+That's it. You're all set up and ready to use Habitat to build and run packages!
