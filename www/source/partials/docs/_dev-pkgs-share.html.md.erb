@@ -1,4 +1,4 @@
-# <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Sharing packages</a>
+## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
 
 While you can build and run Habitat packages without sharing them on [Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
@@ -15,21 +15,21 @@ You interact with Habitat Builder by:
 
 Habitat Builder supports both public and private origins, packages, and Github repositories.
 
-## Creating an account in Builder
+### Create a Builder account
 
-Visit <https://bldr.habitat.sh/> and sign up for an account. Authorize it to use GitHub for authorization.
+If you haven't created an account yet, see the [Create a Builder Account](/docs/using-builder/#builder-account) section above.
 
-## Creating an origin or joining an existing origin
+### Create or join an existing origin
 
 You can create your own origin in Builder or be invited to join an existing one. If you already built some Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
 
-## Setting up hab to authenticate to Builder
+### Set up hab to authenticate to Builder
 
 When you upload a package to Builder, you are required to supply an OAuth token as part of the `hab pkg upload` subcommand. Because Builder uses GitHub to authenticate, you must generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) for use with the `hab` command-line utility.
 
 Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to this value, so that any commands requiring authentication will use it.
 
-## Creating origin keys
+### Create origin keys
 
 After you have done the basic account creation steps, you need to create your origin keys. The private key will be used to sign your packages and the public key will be used by supervisors to verify the integrity of your packages (`.hart` files).
 
@@ -37,17 +37,17 @@ You can either create an origin key pair by running `hab setup` from your host m
 
 Your keys are located at `~/.hab/cache/keys` on your host machine and `/hab/cache/keys` inside the studio environment.
 
-## Uploading the keys for your origin
+### Upload the keys for your origin
 
 If you created a new origin and/or Builder does not have the public key that corresponds to the private key used to build your package, you must upload it. You also have the ability to upload your private key; however, if you do not upload at least the public key, Builder will reject the upload of your packages for that origin.
 
 You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must be authenticated using the access token described earlier before you can upload keys.
 
-## Uploading packages to Builder
+### Upload packages to Builder
 
 Once Builder possesses at least the public key of the origin, you may upload one or more packages to that origin by using the `hab pkg upload` command. Builder will check the cryptographic integrity of the package before allowing you to upload it. Uploading packages is also a privileged operation for which you must have the access token.
 
-## Promoting packages
+### Promote packages
 
 <%= partial "/partials/global/channel-overview" %>
 
@@ -57,9 +57,11 @@ By default, newly uploaded packages are placed in the `unstable` channel, howeve
 $ hab pkg promote -z <OAuth_token> origin/package/version/release stable
 ```
 
+> **Note** You can also promote packages to the `stable` channel using the *promote to stable* button in the web app.
+
 For more information on how to use channels, see [Continuous Deployment Using Channels](/docs/using-habitat/#continuous-deployment).
 
-## Running packages from Builder
+### Running packages from Builder
 
 You can instruct the Supervisor to download and run packages from Builder by using the `hab start` command, for example:
 
@@ -75,7 +77,7 @@ You may also supply a `--channel` argument to instruct the Supervisor to use a d
 $ hab start core/postgresql --channel unstable
 ```
 
-## Running packages from exported tarballs
+### Running packages from exported tarballs
 
 An exported tarball package contains the Habitat client/binary as well as dependencies specified by your artifact.
 
