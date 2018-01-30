@@ -2063,13 +2063,10 @@ do_default_end() {
 
 # Parse depot flag (-u)
 OPTIND=2
-while getopts "u:z:" opt; do
+while getopts "u:" opt; do
   case "${opt}" in
     u)
       HAB_BLDR_URL=$OPTARG
-      ;;
-    z)
-      HART_COMPRESSION_LEVEL=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
