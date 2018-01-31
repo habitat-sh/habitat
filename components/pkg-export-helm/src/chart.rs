@@ -23,12 +23,14 @@ use export_k8s::{Manifest, ManifestJson};
 
 use chartfile::ChartFile;
 use values::Values;
+use deps::Deps;
 
 pub struct Chart<'a> {
     name: String,
     chartfile: ChartFile,
     manifest_template: Option<ManifestJson>,
     values: Values,
+    deps: Deps,
     ui: &'a mut UI,
 }
 
@@ -48,14 +50,16 @@ impl<'a> Chart<'a> {
         let version = matches.value_of("VERSION");
         let description = matches.value_of("DESCRIPTION");
         let chartfile = ChartFile::new(&name, version, description);
+        let deps = Deps::new_for_cli_matches(&matches);
 
-        Ok(Self::new_for_manifest(manifest, name, chartfile, ui))
+        Ok(Self::new_for_manifest(manifest, name, chartfile, deps, ui))
     }
 
     fn new_for_manifest(
         manifest: Manifest,
         name: String,
         chartfile: ChartFile,
+        deps: Deps,
         ui: &'a mut UI,
     ) -> Self {
         let main = json!({
@@ -119,6 +123,7 @@ impl<'a> Chart<'a> {
             chartfile,
             manifest_template,
             values,
+            deps,
             ui,
         }
     }
@@ -131,10 +136,11 @@ impl<'a> Chart<'a> {
         fs::create_dir_all(&self.name)?;
 
         self.generate_chartfile()?;
-
         self.generate_values()?;
+        self.generate_manifest_template()?;
+        self.generate_deps()?;
 
-        self.generate_manifest_template()
+        self.download_deps()
     }
 
     fn generate_chartfile(&mut self) -> Result<()> {
@@ -175,6 +181,17 @@ impl<'a> Chart<'a> {
         self.values.generate(&mut write)?;
 
         Ok(())
+    }
+
+    fn generate_deps(&mut self) -> Result<()> {
+        let mut write = self.create_file("requirements.yaml")?;
+        self.deps.generate(&mut write)?;
+
+        Ok(())
+    }
+
+    fn download_deps(&mut self) -> Result<()> {
+        self.deps.download(&self.name, self.ui)
     }
 
     fn create_file(&mut self, name: &str) -> Result<fs::File> {
