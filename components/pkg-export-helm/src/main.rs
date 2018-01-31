@@ -29,6 +29,7 @@ extern crate failure;
 mod chart;
 mod chartfile;
 mod values;
+mod deps;
 
 use std::result;
 
@@ -63,8 +64,7 @@ fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()>
 fn cli<'a, 'b>() -> clap::App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates a Docker image and generates a Helm chart for the specified Habitat \
-                 package. Habitat operator must be deployed within the Kubernetes cluster before \
-                 the generated chart can be installed.";
+                 package.";
 
     Cli::new(name, about)
         .add_docker_args()
@@ -95,6 +95,17 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .long("desc")
                 .help("A single-sentence description"),
         )
+        .arg(
+            Arg::with_name("OPERATOR_VERSION")
+                .value_name("OPERATOR_VERSION")
+                .long("operator-version")
+                .validator(valid_version)
+                // Keep the default version here in sync with deps::DEFAULT_OPERATOR_VERSION
+                .help("Version of the Habitat operator to set as dependency (default: 0.4.0)"),
+        )
+        .arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
+            "Whether to download dependencies (default: no)",
+        ))
 }
 
 fn valid_version(val: String) -> result::Result<(), String> {
