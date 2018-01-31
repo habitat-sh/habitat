@@ -39,8 +39,6 @@ The directory where your plan is located is known as the plan context.
 
     The directory you were in is now mounted as `/src` inside the Studio. By default, a Supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
-    > The default Studio is for building Linux-based packages. For building Windows packages, you must use the Windows version of the Habitat Studio by running <code>hab studio -w enter </code> and if you are building on a Linux workstation and would prefer to use a Docker container instead of a chrooted environment, run <code>hab studio -D enter</code>.
-
 3. Enter the following command to create the package.
 
     ```studio
@@ -48,6 +46,14 @@ The directory where your plan is located is known as the plan context.
     ```
 
 4. If the package builds successfully, it is placed into a `results` directory at the same level as your plan.
+
+### Managing the type of Studio to enter (Docker/Linux/Windows)
+
+Depending on the platform of your host and your Docker configuration, the behavior of `hab studio enter` may vary. Here is the default behavior listed by host platform:
+
+* **Linux** - A local chrooted Linux Studio. You can force a Docker based studio by using the `-D`` flag.
+* **Mac** - A Docker container based Linux Studio
+* **Windows** - A Docker container based Studio where the platform depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter. You may also use the `-w` flag to enter a local, non-containerized Windows studio.
 
 ## Non-Interactive Build
 
@@ -59,6 +65,8 @@ A non-interactive build is one in which Habitat creates a Studio for you, builds
     ```shell
     $ hab pkg build yourpackage -k yourname
     ```
+
+    > Similar to the `hab studio enter` command above, the type of studio where the build runs is determined by your host platform and `hab pkg build` takes the same `-w` and `-D` flags to adjust the studio environment if desired.
 
 3. The resulting package is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parseable metadata about the build.
 

@@ -19,6 +19,15 @@ pkg_exports=(
 
 This will export the value of `network.port` and `transport.ssl.port` defined in it's `default.toml` publicly as `port` and `ssl-port` respectively. All `pkg_exports` must define a default value in `default.toml` but their values may change at runtime by an operator configuring the service group. If this happens, the consumer will be notified that their producer's configuration has changed. We'll see how to leverage this on the consumer in the sections below.
 
+Note that Powershell plans use hashtables where Bash plans use associative arrays. A `plan.ps1` would declare its exports as:
+
+```powershell
+$pkg_exports=@{
+  port="network.port"
+  ssl-port="network.ssl.port"
+}
+```
+
 ## Consumer Contract
 
 Consumers specify required and optional "binds". These are represented by key/value pairs in an associative array called `pkg_binds` and `pkg_binds_optional` where the values are the exported keys defined by the producer. For example, an application server named `session-server` that depends on a database might define the following binds:

@@ -25,6 +25,8 @@ pkg_include_dirs=(include)
 pkg_bin_dirs=(bin)
 ```
 
+> Note: On Windows we would create a plan.ps1 file instead. All the variable names are the same but we use Powershell syntax so, for example, `pkg_deps=(core/glibc core/readline)` becomes `$pkg_deps=@("core/glibc", "core/readline")`.
+
 It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, run dependencies on `core/glibc` and `core/readline`, build dependencies on `core/coreutils`, `core/make`, `core/gcc`, libraries files in `lib`, header files in `include`, and a binary file in `bin`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
 > Note: The `core` prefix is the origin of those dependencies. For more information, see [Create an Origin](/docs/using-builder/#builder-origin)
@@ -35,16 +37,16 @@ When you have finished creating your plan and call `build` in Habitat studio, th
 2.  If specified in `pkg_source`, a compressed file containing the source code is downloaded.
 3.  The checksum of that file, specified in `pkg_shasum`, is validated.
 4.  The source is extracted into a temporary cache.
-5.  Unless overridden, the callback methods will build and install the binary or library via `make` and `make install`, respectively.
+5.  Unless overridden, the callback methods will build and install the binary or library via `make` and `make install`, respectively for Linux based builds.
 6.  Your package contents (binaries, runtine dependencies, libraries, assets, etc.) are then compressed into a tarball.
 7.  The tarball is signed with your origin key and given a .hart file extension.
 
 After the build script completes, you can then upload your package to Habitat Builder, or install and start your package locally.
 
-> Note: The plan.sh file is the only required file to create a package. Configuration files, runtime hooks, and other source files are optional.
+> Note: The plan.sh or plan.ps1 file is the only required file to create a package. Configuration files, runtime hooks, and other source files are optional.
 
 ## Write a plan
-All plans must have a `plan.sh` at the root of the plan context. This file will be used by the `hab-plan-build` command to build your package. To create a plan, do the following:
+All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. They may even include both if a package is targeting both Windows and Linux platforms. This file will be used by the `hab-plan-build` command to build your package. To create a plan, do the following:
 
 1. If you haven't done so already, [download the `hab` CLI](/docs/install-habitat/) and install it per the instructions on the download page.
 
@@ -77,7 +79,7 @@ All plans must have a `plan.sh` at the root of the plan context. This file will 
 When writing a plan, it's important to understand that you are defining both how the package is built and the actions Habitat will take when the Supervisor starts and manages the child processes in the package. The following sections explain what you need to do for each phase.
 
 ### Buildtime workflow
-For buildtime installation and configuration, workflow steps need to be included in the plan.sh file to define how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
+For buildtime installation and configuration, workflow steps need to be included in the plan file to define how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
 
 The main steps in the buildtime workflow are the following:
 
@@ -110,7 +112,7 @@ Most importantly, you should update the `pkg_license` value to indicate the type
 
 Add in the `pkg_source` value that points to where your source files are located at. Any `wget` url will work; however, unless you're downloading a tarball from a public endpoint, you may need to modify how you download your source files and where in your plan.sh you perform the download operation.
 
-Habitat supports retrieving source files from [GitHub](https://github.com). When cloning from GitHub, it is recommended to use https URIs because they are proxy friendly, whereas `git@github` or `git://` are not. To download the source from a GitHub repository, implement `do_download()` in your plan.sh and add a reference the `core/git` package as a build dependency. Because Habitat does not contain a system-wide CA cert bundle, you must use the `core/cacerts` package and export the `GIT_SSL_CAINFO` environment variable to point the `core/cacerts` package. Here’s an example of how to do this in the `do_download()` callback.
+Habitat supports retrieving source files from [GitHub](https://github.com). When cloning from GitHub, it is recommended to use https URIs because they are proxy friendly, whereas `git@github` or `git://` are not. To download the source from a GitHub repository, implement `do_download()` in your plan.sh (or `Invoke-Download` in a plan.ps1) and add a reference the `core/git` package as a build dependency. Because Habitat does not contain a system-wide CA cert bundle, you must use the `core/cacerts` package and export the `GIT_SSL_CAINFO` environment variable to point the `core/cacerts` package on Linux. Here’s an example of how to do this in the `do_download()` callback.
 
 ```bash
 do_download() {
@@ -126,7 +128,19 @@ do_download() {
 }
 ```
 
-After you have either specified your source in `pkg_source`, or overridden the **do_download()** callback, create a sha256 checksum for your source archive and enter it as the `pkg_shasum` value. The build script will verify this after it has downloaded the archive.
+The plan.ps1 equivalent would be:
+
+```powershell
+Function Invoke-Download { 
+  git clone https://github.com/chef/chef
+  pushd chef
+  git checkout $pkg_version
+  popd
+  Compress-Archive -Path chef/* -DestinationPath $HAB_CACHE_SRC_PATH/$pkg_name-$pkg_version.zip -Force
+  $script:pkg_shasum = (Get-FileHash -path $HAB_CACHE_SRC_PATH/$pkg_name-$pkg_version.zip -Algorithm SHA256).Hash.ToLower()
+}
+```
+After you have either specified your source in `pkg_source`, or overridden the **do_download()** or **Invoke-Download** callback, create a sha256 checksum for your source archive and enter it as the `pkg_shasum` value. The build script will verify this after it has downloaded the archive.
 
 > Note: If your computed value does not match the value calculated by the `hab-plan-build` script, an error with the expected value will be returned when you execute your plan.
 
@@ -179,6 +193,25 @@ do_build() {
 ```
 
 In this example, the `core/httpd` plan references several other core packages through the use of the `pkg_path_for` function before `make` is called. You can use a similar pattern if you need reference a binary or library when building your source files.
+
+Or consider this override from a plan.ps1:
+
+```powershell
+function Invoke-Build {
+    Push-Location "$PLAN_CONTEXT"
+    try {
+        cargo build --release --verbose
+        if($LASTEXITCODE -ne 0) {
+            Write-Error "Cargo build failed!"
+        }
+    }
+    finally { Pop-Location }
+}
+```
+
+Here the plan is building an application written in Rust. So it overrides `Invoke-Build` and uses the `cargo` utility included in its buildtime dependency on `core/rust`.
+
+> Note: Powershell plan function names differ from their Bash counterparts in that they use the `Invoke` `verb` instead of the `do_` prefix.
 
 When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/), except for the runtime template data. Those can only be used in Application Lifecycle hooks once a Habitat service is running.
 

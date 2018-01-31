@@ -1,5 +1,7 @@
 # <a name="composite-pkgs" id="composite-pkgs" data-magellan-target="composite-pkgs">Creating Composite Packages</a>
 
+> Note: Composite packages are not yet implemented for Powershell plans.
+
 Composites are another type of Habitat package, but one that is all metadata.  They allow you to group together services that should be run together on the same Supervisor, enabling you to take better advantage of modern deployment patterns with your Habitat services.
 
 Because these services use the same Supervisor, this also means they are running on the same machine. They are related services, but they are distinct enough to remain separate; they run separate processes, have separate development lifecycles, and so on. Examples of this pattern include: database and archiver (such as [WAL-E](https://github.com/wal-e/wal-e) for Postgres), service and a service mesh proxy (such as [Envoy](https://github.com/envoyproxy/envoy)), and service and log aggregation agent.

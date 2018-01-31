@@ -1,10 +1,10 @@
 # <a name="planwriting-guide" id="planwriting-guide" data-magellan-target="planwriting-guide">Advanced Plan Writing Guide</a>
 
-The following is a best practice guide to how to write a production quality plan.sh. These best practices are reflected in the requirements for a user to contribute a plan to the Habitat [Core Plans](https://github.com/habitat-sh/core-plans/). 
+The following is a best practice guide to how to write a production quality plan. These best practices are reflected in the requirements for a user to contribute a plan to the Habitat [Core Plans](https://github.com/habitat-sh/core-plans/). 
 
 If you haven't already, a good first step is to read [the Developing Packages articles.](/docs/developing-packages/)
 
-A well written plan.sh consists of well-formed:
+A well written plan consists of well-formed:
 
 - [Package Metadata](#package-metadata)
 - [Package Name Conventions](#package-name-conventions)
@@ -31,14 +31,14 @@ by a forward slash (`/`) called a [PackageIdent](/docs/glossary/#glossary-packag
     `origin`/`name`/`version`/`release`
 
 The `origin`, `name`, and `version` values of this identifier are user defined by
-setting their corresponding variable in your `plan.sh` file while the value of
+setting their corresponding variable in your `plan.sh` or `plan.ps1` file while the value of
 `release` is generated at build-time.
 
-The value of `name` should exactly match the name of the project it represents and the `plan.sh` file should be located within a directory of the same name in this repository.
+The value of `name` should exactly match the name of the project it represents and the plan file should be located within a directory of the same name in this repository.
 
 > Example: The plan for the [bison project](https://www.gnu.org/software/bison/) project contains setting `pkg_name=bison` and resides in `$root/bison/plan.sh`.
 
-There is one exception to this rule: Additional plans may be defined for projects for their past major versions by appending the major version number to its name. The `plan.sh` file for this new package should be located within a directory of the same name.
+There is one exception to this rule: Additional plans may be defined for projects for their past major versions by appending the major version number to its name. The plan file for this new package should be located within a directory of the same name.
 
 > Example: the [bison project](https://www.gnu.org/software/bison/) maintains the 2.x line along with their current major version (at time of writing: 3.x). A second plan is created as `bison2` and placed within a directory of the same name in this repository.
 
@@ -67,16 +67,16 @@ You can read more about [callbacks](/docs/reference/#reference-callbacks) here. 
 
 #### Do's
 
-- `do_prepare()` is a good place to set environment variables and set the table to build the software. Think of it as a good place to do patches.
+- `do_prepare()` (`Invoke-Prepare` in a `plan.ps1`) is a good place to set environment variables and set the table to build the software. Think of it as a good place to do patches.
 
 #### Don't's
 
-- You should never call `exit` within a build phase. You should instead return an exit code such as `return 1` for failure, and `return 0` for success.  
-- If you clone a repo from git, you must override `do_verify()` to `return 0`.
+- You should never call `exit` within a build phase. In a `plan.sh`, you should instead return an exit code such as `return 1` for failure, and `return 0` for success. In a `plan.ps1` you should call `Write-Exception` or `throw` an exception upon failure.
+- If you clone a repo from git, you must override `do_verify()` to `return 0` in a `plan.sh` or if you are authoring a `plan.ps1` then override `Invoke-Verify` with an empty implementation.
 - Never use `pkg_source` unless you are downloading something as a third party.  
 - You should never shell out to `hab` from within a callback. If you think you want to, you should use a [utility function](/docs/reference/#utility-functions) instead.
 - You should not call any function or helper that begin with an underscore, for example `_dont_call_this_function()`. Those are internal only functions that are not supported for external use and will break your plan if you call them.
-- Don't run any code or run anything outside of a build phase or bash function.
+- Don't run any code or run anything outside of a build phase or a function.
 
 ### Hooks
 
@@ -86,7 +86,7 @@ The Supervisor dynamically invokes hooks at run-time, triggered by an applicatio
 - You should never shell out to `hab` from within a hook. If you think you want to, you should use a [runtime configuration setting](/docs/reference/#template-data) instead. If none of those will solve your problem, open an issue and tell the core team why.
 - Run hooks should:
   - Redirect `stderr` to `stdout` (e.g. with `exec 2>&1` at the start of the hook)
-  - Call the command to execute with `exec <command> <options>` rather than running the command directly. This ensures the command is executed in the same process and that the service will restart correctly on configuration changes.
+  - In a Linux targeted hook, call the command to execute with `exec <command> <options>` rather than running the command directly. This ensures the command is executed in the same process and that the service will restart correctly on configuration changes.
   - If you are running something with a pipe `exec` won't work.
 - Attempting to execute commands as a `root` user or trying to do `sudo hab install` are not good practice.
 - Don't edit any of the Supervisor rendered templates.
