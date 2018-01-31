@@ -33,6 +33,14 @@ const FULL_PLAN_TEMPLATE: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/full_template_plan.sh"
 ));
+const DEFAULT_PLAN_PS1_TEMPLATE: &'static str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/static/default_template_plan.ps1"
+));
+const FULL_PLAN_PS1_TEMPLATE: &'static str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/static/full_template_plan.ps1"
+));
 const DEFAULT_TOML_TEMPLATE: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/template_default.toml"
@@ -54,6 +62,7 @@ pub fn start(
     with_docs: bool,
     with_callbacks: bool,
     with_all: bool,
+    windows: bool,
     scaffolding_ident: Option<PackageIdent>,
     maybe_name: Option<String>,
 ) -> Result<()> {
@@ -109,12 +118,22 @@ pub fn start(
     }
 
     // We want to render the configured variables.
-    if with_all || scaffold.is_none() {
-        let rendered_plan = handlebars.template_render(FULL_PLAN_TEMPLATE, &data)?;
-        create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
+    if windows {
+        if with_all || scaffold.is_none() {
+            let rendered_plan = handlebars.template_render(FULL_PLAN_PS1_TEMPLATE, &data)?;
+            create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
+        } else {
+            let rendered_plan = handlebars.template_render(DEFAULT_PLAN_PS1_TEMPLATE, &data)?;
+            create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
+        }
     } else {
-        let rendered_plan = handlebars.template_render(DEFAULT_PLAN_TEMPLATE, &data)?;
-        create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
+        if with_all || scaffold.is_none() {
+            let rendered_plan = handlebars.template_render(FULL_PLAN_TEMPLATE, &data)?;
+            create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
+        } else {
+            let rendered_plan = handlebars.template_render(DEFAULT_PLAN_TEMPLATE, &data)?;
+            create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
+        }
     }
     ui.para(
         "`plan.sh` is the foundation of your new habitat. It contains \

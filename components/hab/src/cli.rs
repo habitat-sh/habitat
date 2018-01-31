@@ -449,6 +449,8 @@ pub fn get() -> App<'static, 'static> {
                     "Include callback functions in template")
                 (@arg WITH_ALL: --("with-all")
                     "Generate omnibus plan with all available plan options")
+                (@arg WINDOWS: --("windows")
+                    "Use a Windows Powershell plan template")
                 (@arg SCAFFOLDING: --scaffolding -s +takes_value
                     "Specify explicit Scaffolding for your app (ex: node, ruby)")
             )

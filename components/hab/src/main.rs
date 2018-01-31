@@ -494,7 +494,15 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let with_docs = m.is_present("WITH_DOCS");
     let with_callbacks = m.is_present("WITH_CALLBACKS");
     let with_all = m.is_present("WITH_ALL");
-    let scaffolding_ident = scaffolding::scaffold_check(ui, m.value_of("SCAFFOLDING"))?;
+    let windows = m.is_present("WINDOWS");
+    let scaffolding_ident = if windows {
+        match m.value_of("SCAFFOLDING") {
+            Some(scaffold) => Some(PackageIdent::from_str(scaffold)?),
+            None => None,
+        }
+    } else {
+        scaffolding::scaffold_check(ui, m.value_of("SCAFFOLDING"))?
+    };
 
     command::plan::init::start(
         ui,
@@ -502,6 +510,7 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         with_docs,
         with_callbacks,
         with_all,
+        windows,
         scaffolding_ident,
         name,
     )
