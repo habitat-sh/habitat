@@ -11,7 +11,7 @@ Read on for more detailed instructions.
 
 You can create a Docker container image for any package by performing the following steps:
 
-1. Ensure you have a Docker daemon running on your host system. The exporter shares the Docker socket (`unix:///var/run/docker.sock`) into the studio.
+1. Ensure you have a Docker daemon running on your host system. On Linux, the exporter shares the Docker socket (`unix:///var/run/docker.sock`) into the studio.
 
 2. Create an interactive studio with the `hab studio enter` command.
 
@@ -22,6 +22,8 @@ You can create a Docker container image for any package by performing the follow
     ```
 
   > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
+
+  > **Note** In a Windows container studio, the `export` command will not be able to access the host docker engine. To export a Windows package or hart file built inside of a Windows container studio, first exit the studio and then export the `.hart` file in your local `results` directory.
 
 5. You can now exit the studio. The new Docker container image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
