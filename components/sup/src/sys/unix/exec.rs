@@ -30,7 +30,7 @@ where
     T: ToString,
     S: AsRef<OsStr>,
 {
-    let mut cmd = Command::new(path);
+    let mut cmd = Command::new(path.as_ref());
     cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(
         Stdio::piped(),
     );
@@ -59,7 +59,11 @@ where
 
         cmd.uid(uid).gid(gid);
     } else {
-        debug!("Cannot SETUID/SETGID; running as supervisor user instead of SVC_USER");
+        debug!(
+            "Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as self!",
+            path.as_ref(),
+            &pkg.svc_user
+        );
     }
 
     Ok(cmd.spawn()?)
