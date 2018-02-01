@@ -16,6 +16,8 @@ use std::ffi::OsStr;
 use std::os::unix::process::CommandExt;
 use std::process::{Child, Command, Stdio};
 
+use sys::abilities;
+
 use hcore::os;
 
 use error::{Error, Result};
@@ -28,28 +30,41 @@ where
     T: ToString,
     S: AsRef<OsStr>,
 {
-    let mut cmd = Command::new(path);
-    let uid = os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(
-        Error::Permissions(format!(
-            "No uid for user '{}' could be found",
-            &pkg.svc_user
-        ))
-    ))?;
-    let gid = os::users::get_gid_by_name(&pkg.svc_group).ok_or(
-        sup_error!(
-            Error::Permissions(format!(
-                "No gid for group '{}' could be found",
-                &pkg.svc_group
-            ))
-        ),
-    )?;
-    cmd.stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .uid(uid)
-        .gid(gid);
+    let mut cmd = Command::new(path.as_ref());
+    cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(
+        Stdio::piped(),
+    );
     for (key, val) in pkg.env.iter() {
         cmd.env(key, val);
     }
+
+    if abilities::can_run_services_as_svc_user() {
+        // If we can SETUID/SETGID, then run the script as the service
+        // user; otherwise, we'll just run it as ourselves.
+
+        let uid = os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(
+            Error::Permissions(format!(
+                "No uid for user '{}' could be found",
+                &pkg.svc_user
+            ))
+        ))?;
+        let gid = os::users::get_gid_by_name(&pkg.svc_group).ok_or(
+            sup_error!(
+                Error::Permissions(format!(
+                    "No gid for group '{}' could be found",
+                    &pkg.svc_group
+                ))
+            ),
+        )?;
+
+        cmd.uid(uid).gid(gid);
+    } else {
+        debug!(
+            "Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as self!",
+            path.as_ref(),
+            &pkg.svc_user
+        );
+    }
+
     Ok(cmd.spawn()?)
 }

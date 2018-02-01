@@ -43,6 +43,8 @@ extern crate ansi_term;
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;
+#[cfg(target_os = "linux")]
+extern crate caps;
 #[cfg(windows)]
 extern crate ctrlc;
 #[macro_use]

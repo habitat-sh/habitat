@@ -35,7 +35,6 @@
 //! * Unpack it
 //!
 
-use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -44,7 +43,7 @@ use std::result::Result as StdResult;
 use depot_client::{self, Client};
 use depot_client::Error::APIError;
 use hcore;
-use hcore::fs::{am_i_root, cache_key_path};
+use hcore::fs::cache_key_path;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, Target, PackageInstall};
@@ -191,16 +190,6 @@ where
     P1: AsRef<Path>,
     P2: AsRef<Path>,
 {
-    if env::var_os("HAB_NON_ROOT").is_none() && !am_i_root() {
-        ui.warn(
-            "Installing a package requires root or administrator privileges. Please retry \
-                   this command as a super user or use a privilege-granting facility such as \
-                   sudo.",
-        )?;
-        ui.br()?;
-        return Err(Error::RootRequired);
-    }
-
     // TODO (CM): rename fs::cache_key_path so the naming is
     // consistent and flows better.
     let key_cache_path = cache_key_path(Some(fs_root_path.as_ref()));

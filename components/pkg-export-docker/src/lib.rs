@@ -40,10 +40,10 @@ extern crate failure_derive;
 
 mod accounts;
 mod build;
+mod chmod;
 pub mod cli;
 mod docker;
 mod error;
-mod fs;
 pub mod rootfs;
 mod util;
 
@@ -239,7 +239,6 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
     Cli::new(name, about)
         .add_base_packages_args()
         .add_builder_args()
-        .add_image_customization_args()
         .add_tagging_args()
         .add_publishing_args()
         .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })

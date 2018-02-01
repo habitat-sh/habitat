@@ -119,6 +119,7 @@ pub enum Error {
     ExecCommandNotFound(String),
     FileNotFound(String),
     FileWatcherFileIsRoot,
+    GroupNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
     TemplateFileError(handlebars::TemplateFileError),
@@ -167,6 +168,7 @@ pub enum Error {
     TomlParser(toml::de::Error),
     TryRecvError(mpsc::TryRecvError),
     UnpackFailed,
+    UserNotFound(String),
 }
 
 impl fmt::Display for SupError {
@@ -229,6 +231,7 @@ impl fmt::Display for SupError {
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FileWatcherFileIsRoot => format!("Watched file is root"),
+            Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
             Error::InvalidBinding(ref binding) => {
                 format!(
                     "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
@@ -339,6 +342,7 @@ impl fmt::Display for SupError {
             Error::TomlParser(ref err) => format!("Failed to parse TOML: {}", err),
             Error::TryRecvError(ref err) => format!("{}", err),
             Error::UnpackFailed => format!("Failed to unpack a package"),
+            Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
         };
         let progname = PROGRAM_NAME.as_str();
         let mut so = StructuredOutput::new(
@@ -369,6 +373,7 @@ impl error::Error for SupError {
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
             Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
+            Error::GroupNotFound(_) => "No matching GID for group found",
             Error::TemplateFileError(ref err) => err.description(),
             Error::TemplateRenderError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
@@ -431,6 +436,7 @@ impl error::Error for SupError {
             Error::TomlParser(_) => "Failed to parse TOML!",
             Error::TryRecvError(_) => "A channel failed to receive a response",
             Error::UnpackFailed => "Failed to unpack a package",
+            Error::UserNotFound(_) => "No matching UID for user found",
         }
     }
 }

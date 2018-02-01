@@ -33,8 +33,8 @@ use tempdir::TempDir;
 
 use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
 use accounts::{EtcPasswdEntry, EtcGroupEntry};
+use chmod;
 use error::{Error, Result};
-use fs;
 use rootfs;
 use util;
 
@@ -70,12 +70,6 @@ pub struct BuildSpec<'a> {
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
     pub idents_or_archives: Vec<&'a str>,
-    /// Numeric user ID of the user
-    pub user_id: u32,
-    /// Numeric user ID of the group
-    pub group_id: u32,
-    /// Run the container as a non-root user?
-    pub non_root: bool,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -85,22 +79,6 @@ impl<'a> BuildSpec<'a> {
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {
-
-        let user_id = match m.value_of("USER_ID") {
-            Some(i) => {
-                // unwrap OK because validation function ensures it
-                i.parse::<u32>().unwrap()
-            }
-            None => DEFAULT_USER_AND_GROUP_ID,
-        };
-        let group_id = match m.value_of("GROUP_ID") {
-            Some(i) => {
-                // unwrap OK because validation function ensures it
-                i.parse::<u32>().unwrap()
-            }
-            None => user_id,
-        };
-
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
             hab_launcher: m.value_of("HAB_LAUNCHER_PKG").unwrap_or(
@@ -114,9 +92,6 @@ impl<'a> BuildSpec<'a> {
             idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
                 .expect("No package specified")
                 .collect(),
-            user_id: user_id,
-            group_id: group_id,
-            non_root: m.is_present("NON_ROOT"),
         }
     }
 
@@ -154,6 +129,7 @@ impl<'a> BuildSpec<'a> {
         let base_pkgs = self.install_base_pkgs(ui, &rootfs)?;
         let user_pkgs = self.install_user_pkgs(ui, &rootfs)?;
         if cfg!(target_os = "linux") {
+            self.chmod_hab_directory(ui, &rootfs)?;
             self.link_binaries(ui, &rootfs, &base_pkgs)?;
             self.link_cacerts(ui, &rootfs, &base_pkgs)?;
             self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
@@ -283,6 +259,26 @@ impl<'a> BuildSpec<'a> {
         Ok(())
     }
 
+    /// Perform a recursive `chmod` on the `/hab` directory inside the
+    /// rootfs (assumes that directory has been created and populated
+    /// already).
+    ///
+    /// See the [`chmod`] module documentation for further details on
+    /// why we do this.
+    ///
+    /// [`chmod`]: chmod/index.html
+    fn chmod_hab_directory<P>(&self, ui: &mut UI, rootfs: P) -> Result<()>
+    where
+        P: AsRef<Path>,
+    {
+        let target = rootfs.as_ref().join("hab");
+        ui.status(
+            Status::Custom('✓', "Changing permissions on".into()),
+            format!("{:?}", target),
+        )?;
+        chmod::recursive_g_equal_u(target)
+    }
+
     fn remove_symlink_to_artifact_cache<P: AsRef<Path>>(
         &self,
         ui: &mut UI,
@@ -402,13 +398,6 @@ pub struct BuildRootContext {
     channel: String,
     /// The path to the root of the file system.
     rootfs: PathBuf,
-    /// The user ID of the primary service user
-    user_id: u32,
-    /// The group ID of the primary service group
-    group_id: u32,
-    /// Whether or not the container should be tailored to run Habitat
-    /// as a non-root user
-    non_root: bool,
 }
 
 impl BuildRootContext {
@@ -454,9 +443,6 @@ impl BuildRootContext {
             env_path: bin_path.to_string_lossy().into_owned(),
             channel: spec.channel.into(),
             rootfs: rootfs,
-            user_id: spec.user_id,
-            group_id: spec.group_id,
-            non_root: spec.non_root,
         };
         context.validate()?;
 
@@ -509,29 +495,13 @@ impl BuildRootContext {
         exposes
     }
 
-    /// Returns the list of package volume mount paths over all service packages.
-    pub fn svc_volumes(&self) -> Vec<String> {
-        let mut vols = Vec::new();
-        for svc in self.svc_idents() {
-            vols.push(fs::svc_data_path(&svc.name).to_string_lossy().replace(
-                "\\",
-                "/",
-            ));
-            vols.push(fs::svc_config_path(&svc.name).to_string_lossy().replace(
-                "\\",
-                "/",
-            ));
-        }
-        vols
-    }
-
     /// Returns a tuple of users to be added to the image's passwd database and groups to be added
     /// to the image's group database.
     pub fn svc_users_and_groups(&self) -> Result<(Vec<EtcPasswdEntry>, Vec<EtcGroupEntry>)> {
         let mut users = Vec::new();
         let mut groups = Vec::new();
-        let uid = self.user_id;
-        let gid = self.group_id;
+        let uid = DEFAULT_USER_AND_GROUP_ID;
+        let gid = DEFAULT_USER_AND_GROUP_ID;
 
         let pkg = self.primary_svc()?;
         let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap();
@@ -689,14 +659,6 @@ impl BuildRootContext {
         self.rootfs.as_ref()
     }
 
-    pub fn primary_user_id(&self) -> u32 {
-        if self.non_root { self.user_id } else { 0 }
-    }
-
-    pub fn primary_group_id(&self) -> u32 {
-        if self.non_root { self.group_id } else { 0 }
-    }
-
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
@@ -781,9 +743,6 @@ mod test {
             base_pkgs_url: "base_pkgs_url",
             base_pkgs_channel: "base_pkgs_channel",
             idents_or_archives: Vec::new(),
-            user_id: 42,
-            group_id: 2112,
-            non_root: false,
         }
     }
 
@@ -886,55 +845,6 @@ mod test {
 
         use super::super::*;
         use super::*;
-
-        #[test]
-        fn without_arg_user_and_group_ids_are_the_default_and_identical() {
-            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "testing/foo"]);
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
-
-            assert_eq!(build_spec.user_id, DEFAULT_USER_AND_GROUP_ID);
-            assert_eq!(build_spec.group_id, DEFAULT_USER_AND_GROUP_ID);
-        }
-
-        #[test]
-        fn user_id_option_sets_user_and_group_ids_to_the_same_value() {
-            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "testing/foo", "--user-id=2112"]);
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
-
-            assert_eq!(build_spec.user_id, 2112);
-            assert_eq!(build_spec.group_id, 2112);
-        }
-
-        #[test]
-        fn setting_only_group_id_leaves_user_id_as_default() {
-            let matches = arg_matches(vec![
-                &*hcore::PROGRAM_NAME,
-                "testing/foo",
-                "--group-id=9999",
-            ]);
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
-
-            assert_eq!(build_spec.user_id, DEFAULT_USER_AND_GROUP_ID);
-            assert_eq!(build_spec.group_id, 9999);
-        }
-
-        #[test]
-        fn user_and_group_id_can_be_set_independently() {
-            let matches = arg_matches(vec![
-                &*hcore::PROGRAM_NAME,
-                "testing/foo",
-                "--user-id=5000",
-                "--group-id=9000",
-            ]);
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
-
-            assert_eq!(build_spec.user_id, 5000);
-            assert_eq!(build_spec.group_id, 9000);
-        }
 
         #[test]
         fn artifact_cache_symlink() {
@@ -1096,12 +1006,9 @@ mod test {
     }
 
     mod build_root_context {
-        use std::collections::HashSet;
-        use std::iter::FromIterator;
         use std::str::FromStr;
 
         use hcore::package::PackageIdent;
-        use hcore::fs::FS_ROOT_PATH;
 
         use super::super::*;
         use super::*;
@@ -1142,31 +1049,6 @@ mod test {
             assert_eq!("/bin", ctx.env_path());
             assert_eq!(spec.channel, ctx.channel());
             assert_eq!(rootfs.path(), ctx.rootfs());
-
-            // Order of paths should not matter, this is why we set-compare
-            let vol_paths = vec![
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/jogga/config")
-                    .to_string_lossy()
-                    .to_string(),
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/jogga/data")
-                    .to_string_lossy()
-                    .to_string(),
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/runna/config")
-                    .to_string_lossy()
-                    .to_string(),
-                (&*FS_ROOT_PATH)
-                    .join("hab/svc/runna/data")
-                    .to_string_lossy()
-                    .to_string(),
-            ];
-            let vol_paths: HashSet<String> = HashSet::from_iter(vol_paths.iter().cloned());
-            assert_eq!(
-                vol_paths,
-                HashSet::from_iter(ctx.svc_volumes().iter().cloned())
-            );
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
             assert_eq!(2, users.len());

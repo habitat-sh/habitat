@@ -15,6 +15,7 @@
 pub mod hooks;
 mod composite_spec;
 mod config;
+mod dir;
 mod health;
 mod package;
 mod spec;
@@ -46,12 +47,13 @@ use super::Sys;
 use self::config::CfgRenderer;
 use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
 use self::supervisor::Supervisor;
+use self::dir::SvcDir;
 use error::{Error, Result, SupError};
 use fs;
 use manager;
 use census::{ServiceFile, CensusRing, ElectionStatus};
 use templating::RenderContext;
-use util;
+use sys::abilities;
 
 pub use self::config::{Cfg, UserConfigPath};
 pub use self::health::{HealthCheck, SmokeCheck};
@@ -62,7 +64,6 @@ pub use self::supervisor::ProcessState;
 
 static LOGKEY: &'static str = "SR";
 
-pub const SVC_DIR_PERMISSIONS: u32 = 0o770;
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
 
 lazy_static! {
@@ -191,52 +192,7 @@ impl Service {
     /// Create the service path for this package.
     pub fn create_svc_path(&self) -> Result<()> {
         debug!("{}, Creating svc paths", self.service_group);
-        util::users::assert_pkg_user_and_group(&self.pkg.svc_user, &self.pkg.svc_group)?;
-
-        Self::create_dir_all(&self.pkg.svc_path)?;
-
-        // Create Supervisor writable directories
-        Self::create_dir_all(fs::svc_hooks_path(&self.pkg.name))?;
-        Self::create_dir_all(fs::svc_logs_path(&self.pkg.name))?;
-
-        // Create service writable directories
-        Self::create_dir_all(&self.pkg.svc_config_path)?;
-        set_owner(
-            &self.pkg.svc_config_path,
-            &self.pkg.svc_user,
-            &self.pkg.svc_group,
-        )?;
-        set_permissions(&self.pkg.svc_config_path, SVC_DIR_PERMISSIONS)?;
-        Self::create_dir_all(&self.pkg.svc_data_path)?;
-        set_owner(
-            &self.pkg.svc_data_path,
-            &self.pkg.svc_user,
-            &self.pkg.svc_group,
-        )?;
-        set_permissions(&self.pkg.svc_data_path, SVC_DIR_PERMISSIONS)?;
-        Self::create_dir_all(&self.pkg.svc_files_path)?;
-        set_owner(
-            &self.pkg.svc_files_path,
-            &self.pkg.svc_user,
-            &self.pkg.svc_group,
-        )?;
-        set_permissions(&self.pkg.svc_files_path, SVC_DIR_PERMISSIONS)?;
-        Self::create_dir_all(&self.pkg.svc_var_path)?;
-        set_owner(
-            &self.pkg.svc_var_path,
-            &self.pkg.svc_user,
-            &self.pkg.svc_group,
-        )?;
-        set_permissions(&self.pkg.svc_var_path, SVC_DIR_PERMISSIONS)?;
-        Self::remove_symlink(&self.pkg.svc_static_path)?;
-        Self::create_dir_all(&self.pkg.svc_static_path)?;
-        set_owner(
-            &self.pkg.svc_static_path,
-            &self.pkg.svc_user,
-            &self.pkg.svc_group,
-        )?;
-        set_permissions(&self.pkg.svc_static_path, SVC_DIR_PERMISSIONS)?;
-        Ok(())
+        SvcDir::new(&self.pkg).create()
     }
 
     fn start(&mut self, launcher: &LauncherCli) {
@@ -573,19 +529,6 @@ impl Service {
         })
     }
 
-    /// this function wraps create_dir_all so we can give friendly error
-    /// messages to the user.
-    fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
-        debug!("Creating dir with subdirs: {:?}", &path.as_ref());
-        if let Err(e) = std::fs::create_dir_all(&path) {
-            Err(sup_error!(Error::Permissions(
-                format!("Can't create {:?}, {}", &path.as_ref(), e),
-            )))
-        } else {
-            Ok(())
-        }
-    }
-
     fn cache_health_check(&self, check_result: HealthCheck) {
         let state_file = self.manager_fs_cfg.health_check_cache(&self.service_group);
         let tmp_file = state_file.with_extension("tmp");
@@ -748,22 +691,6 @@ impl Service {
         updated
     }
 
-    /// attempt to remove a symlink in the /svc/run/foo/ directory if
-    /// the link exists.
-    fn remove_symlink<P: AsRef<Path>>(p: P) -> Result<()> {
-        let p = p.as_ref();
-        if !p.exists() {
-            return Ok(());
-        }
-        // note: we're NOT using p.metadata() here as that will follow the
-        // symlink, which returns smd.file_type().is_symlink() == false in all cases.
-        let smd = p.symlink_metadata()?;
-        if smd.file_type().is_symlink() {
-            std::fs::remove_file(p)?;
-        }
-        Ok(())
-    }
-
     /// Helper for constructing a new render context for the service.
     fn render_context<'a>(&'a self, census: &'a CensusRing) -> RenderContext<'a> {
         RenderContext::new(
@@ -839,12 +766,16 @@ impl Service {
                       file.as_ref().display(), e);
             return false;
         }
-        if let Err(e) = set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group) {
-            outputln!(preamble self.service_group,
-                      "Failed to set ownership of cache file {}, {}",
-                      file.as_ref().display(), e);
-            return false;
+
+        if abilities::can_run_services_as_svc_user() {
+            if let Err(e) = set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group) {
+                outputln!(preamble self.service_group,
+                          "Failed to set ownership of cache file {}, {}",
+                          file.as_ref().display(), e);
+                return false;
+            }
         }
+
         if let Err(e) = set_permissions(&file, GOSSIP_FILE_PERMISSIONS) {
             outputln!(preamble self.service_group,
                       "Failed to set permissions on cache file {}, {}",
