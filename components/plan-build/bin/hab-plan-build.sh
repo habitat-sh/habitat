@@ -170,7 +170,7 @@
 # ### pkg_svc_run
 # The command to start the service, if needed. Should not fork!
 # ```
-# pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+# pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
 # ```
 #
 # ### pkg_exports
@@ -277,7 +277,7 @@
 # pkg_shasum=6648dd7d6b958d83dd7101eab5792178212a66c884bec0ebcd8abc39df83bb78
 # pkg_bin_dirs=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
-# pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+# pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
 # pkg_exposes=(port)
 # pkg_exports=(
 #   [mode]=mode

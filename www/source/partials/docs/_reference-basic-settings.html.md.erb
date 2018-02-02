@@ -117,7 +117,7 @@ pkg_pconfig_dirs=(lib/pkgconfig)
 : Optional. The command for the Supervisor to execute when starting a service. You can omit this setting if your package is not intended to be run directly by a Supervisor.
 
 ```bash
-pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
 ```
 
 > Note: You should use a [run hook](#hooks) instead if you have complex start up behavior.

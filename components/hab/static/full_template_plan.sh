@@ -135,7 +135,7 @@ pkg_pconfig_dirs={{ pkg_pconfig_dirs }}
 {{#if pkg_svc_run ~}}
 pkg_svc_run="{{ pkg_svc_run }}"
 {{else ~}}
-# pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+# pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
 {{/if}}
 
 # Optional.
@@ -420,7 +420,7 @@ pkg_pconfig_dirs={{ pkg_pconfig_dirs }}
 {{#if pkg_svc_run ~}}
 pkg_svc_run="{{ pkg_svc_run }}"
 {{else ~}}
-# pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+# pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
 {{/if ~}}
 {{#if pkg_exports ~}}
 pkg_exports={{ pkg_exports }}
