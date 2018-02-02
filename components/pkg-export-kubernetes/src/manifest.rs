@@ -24,9 +24,9 @@ use common::ui::UI;
 
 use export_docker::{Result, DockerImage};
 
-use habitat_sup::manager::service::{Topology, ServiceBind};
 use manifestjson::ManifestJson;
-use bind;
+use service_bind::ServiceBind;
+use topology::Topology;
 
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]
@@ -117,7 +117,7 @@ impl Manifest {
             }
         };
 
-        let binds = bind::parse_bind_args(&matches)?;
+        let binds = ServiceBind::from_args(&matches)?;
 
         let config = match config_file {
             None => None,

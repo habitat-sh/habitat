@@ -781,7 +781,6 @@ dependencies = [
  "habitat_common 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "habitat_pkg_export_docker 0.0.0",
- "habitat_sup 0.0.0",
  "handlebars 0.29.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
