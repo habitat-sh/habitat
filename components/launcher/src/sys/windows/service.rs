@@ -115,7 +115,25 @@ impl Process {
     }
 }
 
-pub fn run(mut msg: protocol::Spawn) -> Result<Service> {
+pub fn run(msg: protocol::Spawn) -> Result<Service> {
+    // Supervisors prior to version 0.53.0 pulled in beta versions of
+    // powershell. The official 6.0.0 version of powershell changed
+    // the name of the powershell binary to pwsh.exe. Here we will
+    // first attempt the latest binary name and fall back to the
+    // former name.
+    match spawn_pwsh("pwsh.exe", msg.clone()) {
+        Ok(service) => Ok(service),
+        Err(err) => {
+            if err.raw_os_error() == Some(winapi::ERROR_FILE_NOT_FOUND as i32) {
+                spawn_pwsh("powershell.exe", msg).map_err(Error::Spawn)
+            } else {
+                Err(Error::Spawn(err))
+            }
+        }
+    }
+}
+
+fn spawn_pwsh(ps_binary_name: &str, mut msg: protocol::Spawn) -> io::Result<Service> {
     debug!("launcher is spawning {}", msg.get_binary());
     let ps_cmd = format!("iex $(gc {} | out-string)", msg.get_binary());
     let password = if msg.get_svc_password().is_empty() {
@@ -124,7 +142,7 @@ pub fn run(mut msg: protocol::Spawn) -> Result<Service> {
         Some(msg.take_svc_password())
     };
     match Child::spawn(
-        "pwsh.exe",
+        ps_binary_name,
         vec!["-NonInteractive", "-command", ps_cmd.as_str()],
         msg.get_env(),
         msg.get_svc_user(),
@@ -134,7 +152,7 @@ pub fn run(mut msg: protocol::Spawn) -> Result<Service> {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))
         }
-        Err(_) => Err(Error::Spawn(io::Error::last_os_error())),
+        Err(_) => Err(io::Error::last_os_error()),
     }
 }
 
