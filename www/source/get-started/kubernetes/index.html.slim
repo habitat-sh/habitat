@@ -26,18 +26,20 @@ div.get-started--container
       = link_to 'Kubernetes', 'https://kubernetes.io'
       | .
     div.row
-      div.columns.small-12.np-left.np-right
-        .get-started--boxes--item.card.feature-card
-          h4.h4
-            = link_to 'Learn about the Habitat Operator for Kubernetes', 'https://github.com/kinvolk/habitat-operator'
+      div.columns.small-12.large-6.np-left
+        a.get-started--boxes--item.card.feature-card href="https://github.com/kinvolk/habitat-operator"
+          h4.h4 Learn about the Habitat Operator for Kubernetes
           h6.h6 GITHUB
           p
             | The Habitat Operator is a Kubernetes controller designed to solve running and auto-managing Habitat Services on Kubernetes. It does this by making use of Custom Resource Definitions.&nbsp;
-            | Explore the&nbsp;
-            = link_to 'Habitat Operator project on GitHub', 'https://github.com/kinvolk/habitat-operator'
-            | &nbsp;or read the&nbsp;
-            = link_to 'announcement by Kinvolk', 'https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/'
-            | .
+            | Explore the Habitat Operator project on GitHub.
+      div.columns.small-12.large-6.np-right
+        a.get-started--boxes--item.card href="/docs/best-practices/#kubernetes"
+          h4.h4 Best Practices for Habitat with Kubernetes
+          h6.h6 DOCS
+          p
+            | Habitat and Kubernetes are complementary: Kubernetes focuses on providing a platform for deployment, scaling, and operations of application containers across clusters of hosts,&nbsp;
+            | while Habitat manages the build pipeline and lifecycle of those application containers.
 
   hr
   section.get-started--boxes
@@ -47,26 +49,23 @@ div.get-started--container
       | At runtime, the Habitat Supervisor provides you with a host of capabilities that are exposed to Kubernetes users via the Habitat Operator.
     div.row
       div.columns.small-12.large-4.np-left
-        .get-started--boxes--item.card
-          h4.h4
-            = link_to 'Introducing Habitat’s Kubernetes Exporter', 'https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/'
-          h6.h6 Blog
+        a.get-started--boxes--item.card href="https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/"
+          h4.h4 Introducing Habitat’s Kubernetes Exporter
+          h6.h6 Kinvolk.io Blog
           p
-            | The Habitat team at Chef has teamed up with <a href="https://kinvolk.io/">Kinvolk</a> to make the deployment of Habitat-packaged applications on Kubernetes even easier.
+            | The Habitat team at Chef has teamed up with Kinvolk to make the deployment of Habitat-packaged applications on Kubernetes even easier.
       div.columns.small-12.large-4
-        .get-started--boxes--item.card
-          h4.h4
-            = link_to 'Getting started with Habitat on Kubernetes', 'https://kinvolk.io/blog/2017/12/get-started-with-habitat-on-kubernetes/'
-          h6.h6 Blog
+        a.get-started--boxes--item.card href="https://kinvolk.io/blog/2017/12/get-started-with-habitat-on-kubernetes/"
+          h4.h4 Getting started with Habitat on Kubernetes
+          h6.h6 Kinvolk.io Blog
           p
             | In this guide, the team at Kinvolk explains how to use the Habitat Operator to run and manage a Habitat-packaged application in a Kubernetes cluster on Google Kubernetes Engine (GKE).
       div.columns.small-12.large-4.np-right
-        .get-started--boxes--item.card
-          h4.h4
-            = link_to 'Automated Build to Kubernetes with Habitat Builder', 'https://kinvolk.io/blog/2017/12/automated-build-to-kubernetes-with-habitat-builder/'
-          h6.h6 Blog
+        a.get-started--boxes--item.card href="https://kinvolk.io/blog/2017/12/automated-build-to-kubernetes-with-habitat-builder/"
+          h4.h4 Automated Build to Kubernetes with Habitat Builder
+          h6.h6 Kinvolk.io Blog
           p
-            | Learn about Kinvolk's experimental pipeline which uses <a href="https://bldr.habitat.sh/#/sign-in">Habitat Builder</a> to automatically build your codebase, test the resulting artifact, and deploy it to a Kubernetes cluster.
+            | Learn about Kinvolk's experimental pipeline which uses Habitat Builder to automatically build your codebase, test the resulting artifact, and deploy it to a Kubernetes cluster.
 
   hr
 
