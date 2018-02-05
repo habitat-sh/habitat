@@ -166,6 +166,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 $env:HAB_BLDR_CHANNEL = $channel
                 & $habExe pkg exec core/hab-bintray-publish publish-studio
                 $env:HAB_BLDR_CHANNEL = $null
+                if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
             }
         }
         else {
