@@ -12,10 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use hcore;
+
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "Invalid bind specification '{}'", _0)]
     InvalidBindSpec(String),
     #[fail(display = "Invalid topology '{}'. Possible values: standalone, leader", _0)]
     InvalidTopology(String),
+    #[fail(display = "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
+                         <NAME> is a service name and <SERVICE_GROUP> is a valid service group",
+           _0)]
+    InvalidBinding(String),
+    #[fail(display = "{}", _0)]
+    HabitatCore(hcore::Error),
+}
+
+impl From<hcore::Error> for Error {
+    fn from(err: hcore::Error) -> Error {
+        Error::HabitatCore(err)
+    }
 }

@@ -17,7 +17,6 @@ extern crate clap;
 extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
-extern crate habitat_sup;
 extern crate handlebars;
 #[macro_use]
 extern crate serde_json;
@@ -35,7 +34,8 @@ use common::ui::UI;
 pub mod error;
 pub mod manifest;
 pub mod manifestjson;
-pub mod bind;
+pub mod service_bind;
+pub mod topology;
 pub mod cli;
 
 use export_docker::Result;

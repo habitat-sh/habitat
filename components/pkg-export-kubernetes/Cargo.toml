@@ -21,7 +21,6 @@ env_logger = "*"
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_common = { path = "../common" }
 habitat_pkg_export_docker = { path = "../pkg-export-docker" }
-habitat_sup = { path = "../sup" }
 handlebars = { version = "*", default-features = false }
 log = "*"
 serde = "1.0.2"
