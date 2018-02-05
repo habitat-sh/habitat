@@ -21,6 +21,7 @@ pub mod docker;
 pub mod cf;
 pub mod helm;
 pub mod kubernetes;
+pub mod tar;
 
 mod export_common;
 
@@ -90,15 +91,6 @@ mod inner {
                         &format!("core/hab-pkg-mesosize/{}", version[0]),
                     )?,
                     cmd: "hab-pkg-mesosize".to_string(),
-                };
-                Ok(format)
-            }
-            "tar" => {
-                let format = ExportFormat {
-                    pkg_ident: PackageIdent::from_str(
-                        &format!("core/hab-pkg-tarize/{}", version[0]),
-                    )?,
-                    cmd: "hab-pkg-tarize".to_string(),
                 };
                 Ok(format)
             }

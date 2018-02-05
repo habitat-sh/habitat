@@ -1,23 +1,20 @@
 [package]
-name = "habitat_pkg_export_docker"
+name = "habitat_pkg_export_tar"
 version = "0.0.0"
-authors = ["Fletcher Nichol <fnichol@habitat.sh>"]
-build = "build.rs"
+authors = ["Nell Shamrell <nellshamrell@gmail.com>"]
 workspace = "../../"
 
 [lib]
-name = "habitat_pkg_export_docker"
+name = "habitat_pkg_export_tar"
 
-[[bin]]
-name = "hab-pkg-export-docker"
-path = "src/main.rs"
-doc = false
+[[bin]]                                                                
+name = "hab-pkg-export-tar"                                        
+path = "src/main.rs"                                  
+doc = false  
 
 [dependencies]
 base64 = "*"
 clap = { version = "*", features = ["suggestions", "color", "unstable"] }
-clippy = { version = "*", optional = true }
-chrono = "*"
 env_logger = "*"
 hab = { path = "../hab" }
 habitat_common = { path = "../common" }
@@ -25,16 +22,11 @@ habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 log = "*"
-rusoto_core = "*"
-rusoto_credential = "*"
-rusoto_ecr = "*"
-serde = { version = "*", features = ["rc"] }
-serde_json = "*"
-tempdir = "*"
+mktemp = "*"
+serde = { version = "1.0", features = ["rc"] }
+serde_json = "1.0"
 url = "*"
 failure = { git = "https://github.com/withoutboats/failure.git" }
 failure_derive = { git = "https://github.com/withoutboats/failure_derive.git" }
-
-[features]
-default = []
-functional = []
+tempdir = "*"
+tar = "*"

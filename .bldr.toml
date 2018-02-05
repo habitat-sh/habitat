@@ -91,6 +91,14 @@ paths = [
   "components/sup/*",
 ]
 
+[hab-pkg-export-tar]
+plan_path = "components/pkg-export-tar"
+paths = [
+  "components/common/*",
+  "components/hab/*",
+  "components/pkg-export-tar/*"
+]
+
 # NOTE: cfize has a dependency on hab-pkg-dockerize, but we are
 # *explicitly not building* `hab-pkg-dockerize` any more. Read more at
 # components/pkg-dockerize/README.md

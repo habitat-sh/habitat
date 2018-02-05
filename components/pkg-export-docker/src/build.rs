@@ -38,6 +38,11 @@ use error::{Error, Result};
 use rootfs;
 use util;
 
+// Much of this functionality is duplicated (or slightly modified)
+// in the tar exporter. This needs to be abstacted out in
+// the future for use with further exporters.
+// https://github.com/habitat-sh/habitat/issues/4522
+
 const DEFAULT_HAB_IDENT: &'static str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
