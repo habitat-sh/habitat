@@ -16,7 +16,8 @@ use std::path::{Path, PathBuf};
 
 use common;
 use common::ui::{Status, UI};
-use hcore;
+use hcore::{self, channel};
+use hcore::env as henv;
 use hcore::fs::{self, cache_artifact_path};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::url::default_bldr_url;
@@ -25,17 +26,39 @@ use {PRODUCT, VERSION};
 use error::{Error, Result};
 
 const MAX_RETRIES: u8 = 4;
+const INTERNAL_TOOLING_CHANNEL_ENVVAR: &'static str = "HAB_INTERNAL_BLDR_CHANNEL";
 
-/// Returns the absolute path to the given command from a package no older than the given package
-/// identifier.
+/// Returns the absolute path to the given command from a package no
+/// older than the given package identifier.
 ///
-/// If the package is not locally installed, the package will be installed before recomputing.
-/// There are a maximum number of times a re-installation will be attempted before returning an
-/// error.
+/// If the package is not locally installed, the package will be
+/// installed before recomputing.  There are a maximum number of times
+/// a re-installation will be attempted before returning an error.
+///
+/// # Notes on Package Installation
+///
+/// By default, Habitat will install packages from the `stable`
+/// channel. However, if you'd rather use unstable (particularly if
+/// you're developing Habitat), you'll need to set the
+/// `INTERNAL_TOOLING_CHANNEL_ENVVAR` appropriately.
+///
+/// Note that this environment variable *only* applies to packages
+/// installed through this function. As a result, this function should
+/// only be used to install Habitat packages (i.e. things Habitat
+/// itself needs to run), and not arbitrary user packages. This allows
+/// users to fine-tune where packages come from.
+///
+/// Also note that due to the "minimum package" logic, this overriding
+/// of the internal tooling channel logic is really only called for
+/// when first encountering a given package; thereafter, we can use
+/// whatever is on disk already. This provides another mechanism by
+/// which you can influence what packages are used: simply install a
+/// newer one.
 ///
 /// # Failures
 ///
-/// * If the package is installed but the command cannot be found in the package
+/// * If the package is installed but the command cannot be found in
+///   the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
 pub fn command_from_min_pkg<T>(
@@ -71,7 +94,7 @@ where
             common::command::package::install::start(
                 ui,
                 &default_bldr_url(),
-                None,
+                Some(&internal_tooling_channel()),
                 &ident.clone().into(),
                 PRODUCT,
                 VERSION,
@@ -82,5 +105,14 @@ where
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
         Err(e) => Err(Error::from(e)),
+    }
+}
+
+/// Determine the channel from which to install Habitat-specific
+/// packages.
+fn internal_tooling_channel() -> String {
+    match henv::var(INTERNAL_TOOLING_CHANNEL_ENVVAR) {
+        Ok(channel) => channel,
+        Err(_) => channel::STABLE_CHANNEL.to_string(),
     }
 }
