@@ -132,16 +132,9 @@ impl<'a> Chart<'a> {
 
         self.generate_chartfile()?;
 
-        let template_path = format!("{}/{}", self.name, "templates");
-        self.ui.status(
-            Status::Creating,
-            format!("directory `{}`", template_path),
-        )?;
-
         self.generate_values()?;
 
-        fs::create_dir_all(&template_path)?;
-        self.generate_manifest_template(&template_path)
+        self.generate_manifest_template()
     }
 
     pub fn generate_chartfile(&mut self) -> Result<()> {
@@ -155,7 +148,14 @@ impl<'a> Chart<'a> {
         Ok(())
     }
 
-    pub fn generate_manifest_template(self, template_path: &str) -> Result<()> {
+    pub fn generate_manifest_template(self) -> Result<()> {
+        let template_path = format!("{}/{}", self.name, "templates");
+        self.ui.status(
+            Status::Creating,
+            format!("directory `{}`", template_path),
+        )?;
+        fs::create_dir_all(&template_path)?;
+
         let manifest_path = format!("{}/{}.yaml", template_path, self.name);
         self.ui.status(
             Status::Creating,
