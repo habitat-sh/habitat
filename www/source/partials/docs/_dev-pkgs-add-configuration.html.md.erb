@@ -16,20 +16,20 @@ We can make this user tunable like this:
 recv_buffer {{cfg.recv_buffer}}
 ```
 
-Habitat can read values that it will use to render the templatize
-config files in three ways:
+Habitat can read values that it will use to render the templatize config files in three ways:
 
 1. `default.toml` - Each plan includes a `default.toml` file that specifies the default values to use in the absence of any user provided inputs. These files are written in [TOML](https://github.com/toml-lang/toml), a simple config format.
-2. Environment variable - At start up, tunable config values can be passed to Habitat using environment variables.
-3. At runtime - Users can alter config at runtime using `hab config
-apply`. The input for this command also uses the TOML format.
+2. At runtime - Users can alter config at runtime using `hab config apply`. The input for this command also uses the TOML format.
+3. Environment variable - At start up, tunable config values can be passed to Habitat using environment variables; this most over-riding way of setting these but require you to restart the supervisor to change them.
 
-Here's what we'd add to our project's `default.toml` file to provide a
-default value for the `recv_buffer` tunable:
+Here's what we'd add to our project's `default.toml` file to provide a default value for the `recv_buffer` tunable:
 
 ```toml
 recv_buffer = 128
 ```
+
+Where is this template written to?
+How do I sourse it?
 
 <%= partial '/partials/global/helpers' %>
 
