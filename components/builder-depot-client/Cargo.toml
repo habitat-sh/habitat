@@ -8,7 +8,7 @@ workspace = "../../"
 chrono = "*"
 clippy = {version = "*", optional = true}
 broadcast = "*"
-habitat-builder-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
+habitat-builder-protocol = { git = "https://github.com/habitat-sh/builder.git" }
 hyper = "0.10"
 hyper-openssl = ""
 log = "*"

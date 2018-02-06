@@ -29,7 +29,8 @@ habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_depot_client = { path = "../builder-depot-client" }
 habitat-eventsrv-client = { path = "../eventsrv-client" }
 habitat-launcher-client = { path = "../launcher-client" }
-handlebars = { version = "*", default-features = false }
+# We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
+handlebars = { version = "0.29.1", default-features = false }
 iron = "*"
 lazy_static = "*"
 libc = "*"
