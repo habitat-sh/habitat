@@ -137,7 +137,7 @@ impl<'a> Chart<'a> {
         self.generate_manifest_template()
     }
 
-    pub fn generate_chartfile(&mut self) -> Result<()> {
+    fn generate_chartfile(&mut self) -> Result<()> {
         let path = format!("{}/Chart.yaml", self.name);
         self.ui.status(Status::Creating, format!("file `{}`", path))?;
         let mut write = fs::File::create(path)?;
@@ -148,7 +148,7 @@ impl<'a> Chart<'a> {
         Ok(())
     }
 
-    pub fn generate_manifest_template(self) -> Result<()> {
+    fn generate_manifest_template(self) -> Result<()> {
         let template_path = format!("{}/{}", self.name, "templates");
         self.ui.status(
             Status::Creating,
@@ -169,7 +169,7 @@ impl<'a> Chart<'a> {
         Ok(())
     }
 
-    pub fn generate_values(&mut self) -> Result<()> {
+    fn generate_values(&mut self) -> Result<()> {
         let path = format!("{}/values.yaml", self.name);
         self.ui.status(Status::Creating, format!("file `{}`", path))?;
         let mut write = fs::File::create(path)?;
