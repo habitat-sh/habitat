@@ -28,8 +28,8 @@ Here's what we'd add to our project's `default.toml` file to provide a default v
 recv_buffer = 128
 ```
 
-Where is this template written to?
-How do I sourse it?
+All templates are written to a config directory, `/hab/svc/<pkg_name>/config`, for the running service. The templates are re-written whenever configuration values change.
+The path to this directory is available at build time in the plan as the variable `$pkg_svc_config_path` and available at runtime in templates and hooks as `{{pkg.svc_config_path}}`
 
 <%= partial '/partials/global/helpers' %>
 
