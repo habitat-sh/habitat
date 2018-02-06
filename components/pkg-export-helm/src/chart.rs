@@ -138,9 +138,7 @@ impl<'a> Chart<'a> {
     }
 
     fn generate_chartfile(&mut self) -> Result<()> {
-        let path = format!("{}/Chart.yaml", self.name);
-        self.ui.status(Status::Creating, format!("file `{}`", path))?;
-        let mut write = fs::File::create(path)?;
+        let mut write = self.create_file("Chart.yaml")?;
         let out = self.chartfile.into_string()?;
 
         write.write(out.as_bytes())?;
@@ -170,12 +168,16 @@ impl<'a> Chart<'a> {
     }
 
     fn generate_values(&mut self) -> Result<()> {
-        let path = format!("{}/values.yaml", self.name);
-        self.ui.status(Status::Creating, format!("file `{}`", path))?;
-        let mut write = fs::File::create(path)?;
-
+        let mut write = self.create_file("values.yaml")?;
         self.values.generate(&mut write)?;
 
         Ok(())
+    }
+
+    fn create_file(&mut self, name: &str) -> Result<fs::File> {
+        let path = format!("{}/{}", self.name, name);
+        self.ui.status(Status::Creating, format!("file `{}`", path))?;
+
+        fs::File::create(path).map_err(From::from)
     }
 }
