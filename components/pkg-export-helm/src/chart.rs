@@ -126,7 +126,7 @@ impl<'a> Chart<'a> {
     pub fn generate(mut self) -> Result<()> {
         self.ui.status(
             Status::Creating,
-            format!("chart directory `{}`", self.name),
+            format!("directory `{}`", self.name),
         )?;
         fs::create_dir_all(&self.name)?;
 
@@ -135,7 +135,7 @@ impl<'a> Chart<'a> {
         let template_path = format!("{}/{}", self.name, "templates");
         self.ui.status(
             Status::Creating,
-            format!("templates directory `{}`", template_path),
+            format!("directory `{}`", template_path),
         )?;
 
         self.generate_values()?;
@@ -146,10 +146,7 @@ impl<'a> Chart<'a> {
 
     pub fn generate_chartfile(&mut self) -> Result<()> {
         let path = format!("{}/Chart.yaml", self.name);
-        self.ui.status(
-            Status::Creating,
-            format!("chart file `{}`", path),
-        )?;
+        self.ui.status(Status::Creating, format!("file `{}`", path))?;
         let mut write = fs::File::create(path)?;
         let out = self.chartfile.into_string()?;
 
@@ -162,7 +159,7 @@ impl<'a> Chart<'a> {
         let manifest_path = format!("{}/{}.yaml", template_path, self.name);
         self.ui.status(
             Status::Creating,
-            format!("manifest template `{}`", manifest_path),
+            format!("file `{}`", manifest_path),
         )?;
         let mut write = fs::File::create(manifest_path)?;
         let out: String = self.manifest_template.into();
@@ -174,10 +171,7 @@ impl<'a> Chart<'a> {
 
     pub fn generate_values(&mut self) -> Result<()> {
         let path = format!("{}/values.yaml", self.name);
-        self.ui.status(
-            Status::Creating,
-            format!("values file `{}`", path),
-        )?;
+        self.ui.status(Status::Creating, format!("file `{}`", path))?;
         let mut write = fs::File::create(path)?;
 
         self.values.generate(&mut write)?;
