@@ -5,11 +5,11 @@ This is a list of all environment variables that can be used to modify the opera
 | Variable | Context | Default | Description |
 |----------|---------|---------|-------------|
 | `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys.
-| `HAB_BINLINK_DIR` | build system | `/hab/bin` | Allows you to change the target directory for the symlink created when you run `hab pkg binlink`. The default value is already included in the `$PATH` variable inside the studio. |
+| `HAB_BINLINK_DIR` | build system | `/hab/bin` | Allows you to change the target directory for the symlink created when you run `hab pkg binlink`. The default value is already included in the `$PATH` variable inside the Studio. |
 | `HAB_CACHE_KEY_PATH` | build system, Supervisor | `/hab/cache/keys` if running as root; `$HOME/.hab/cache/keys` if running as non-root | Cache directory for origin signing keys |
 | `HAB_BLDR_CHANNEL` | build system, Supervisor | `stable` | Set the Habitat Builder channel you are subscribing to, to a specific channel. Defaults to `stable`.
 | `HAB_BLDR_URL` | build system, Supervisor | `https://bldr.habitat.sh` | Sets an alternate default endpoint for communicating with Builder. Used by the Habitat build system and the Supervisor |
-| `HAB_DOCKER_OPTS` | build system | no default | When running a studio on a platform that uses Docker (MacOS), additional command line options to pass to the `docker` command. |
+| `HAB_DOCKER_OPTS` | build system | no default | When running a Studio on a platform that uses Docker (MacOS), additional command line options to pass to the `docker` command. |
 | `HAB_INTERNAL_BLDR_CHANNEL` | build system, Supervisor, exporters | `stable` | Channel from which Habitat-specific packages (e.g., `core/hab-sup`, `core/hab-launcher`, etc.) are downloaded on-demand when first called. Generally of use only for those developing Habitat. Only applies to Habitat-specific packages, and nothing else. |
 | `HAB_NOCOLORING` | build system | no default | If set to the lowercase string `"true"` this environment variable will unconditionally disable text coloring where possible |
 | `HAB_NONINTERACTIVE` | build system | no default | If set to the lowercase string `"true"` this environment variable will unconditionally disable interactive progress bars (i.e. "spinners") where possible |
@@ -18,9 +18,10 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_ORIGIN_KEYS` | build system | no default | Comma-separated list of origin keys to automatically share with the build system |
 | `HAB_RING` | Supervisor | no default | The ring used by the Supervisor when running with [wire encryption](/docs/using-habitat#using-encryption) |
 | `HAB_RING_KEY` | Supervisor | no default | The name of the ring key when running with [wire encryption](/docs/using-habitat#using-encryption) |
-| `HAB_STUDIOS_HOME` | build system | `/hab/studios` | Directory in which to create build studios |
+| `HAB_STUDIO_SECRET_<VARIABLE>` | build system | no default | Prefix to allow environment variables into the Studio. The prefix will be removed and your variable will be passed into the Studio at build time. |
+| `HAB_STUDIOS_HOME` | build system | `/hab/studios` | Directory in which to create build Studios |
 | `HAB_STUDIO_BACKLINE_PKG` | build system | `core/hab-backline/{{studio_version}}` | Overrides the default package identifier for the "backline" package which installs the Studio basline package set. |
-| `HAB_STUDIO_ROOT` | build system | no default | Root of the current studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
+| `HAB_STUDIO_ROOT` | build system | no default | Root of the current Studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
 | `HAB_STUDIO_NOSTUDIORC` | build system | no default | When set to a non-empty value, a `.studiorc` will not be sourced when entering an interactive Studio via `hab studio enter`. |
 | `HAB_STUDIO_SUP` | build system | no default | Used to customize the arguments passed to an automatically launched Supervisor, or to disable the automatic launching by setting it to `false`, `no`, or `0`. |
 | `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | Supervisor | 60000 | Frequency of milliseconds to check for updates when running with an [update strategy](/docs/using-habitat#using-updates) |
@@ -33,10 +34,10 @@ This is a list of all environment variables that can be used to modify the opera
 
 # Customizing Studio
 
-When you enter a studio, Habitat will attempt to locate `/src/.studiorc` and
+When you enter a Studio, Habitat will attempt to locate `/src/.studiorc` and
 source it.  Think `~/.bashrc`. This file can be used to export any
 environment variables like the ones you see above as well as any other shell
-customizations to help you develop your plans from within the studio.
+customizations to help you develop your plans from within the Studio.
 
 To use this feature, place a `.studiorc` in the current working directory
 where you will run `hab studio enter`.

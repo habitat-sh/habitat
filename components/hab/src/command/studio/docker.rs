@@ -34,6 +34,7 @@ const DOCKER_WINDOWS_IMAGE: &'static str = "habitat-docker-registry.bintray.io/w
 const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 const DOCKER_OPTS_ENVVAR: &'static str = "HAB_DOCKER_OPTS";
 const DOCKER_SOCKET: &'static str = "/var/run/docker.sock";
+const HAB_STUDIO_SECRET: &'static str = "HAB_STUDIO_SECRET_";
 
 pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> {
     let docker_cmd = find_docker_cmd()?;
@@ -77,21 +78,28 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
     }
 
-    let env_vars = vec![
-        "DEBUG",
-        "HAB_AUTH_TOKEN",
-        "HAB_BLDR_URL",
-        "HAB_BLDR_CHANNEL",
-        "HAB_ORIGIN",
-        "HAB_ORIGIN_KEYS",
-        "HAB_STUDIO_BACKLINE_PKG",
-        "HAB_STUDIO_NOSTUDIORC",
-        "HAB_STUDIO_SUP",
-        "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
-        "http_proxy",
-        "https_proxy",
-        "RUST_LOG",
+    let mut env_vars = vec![
+        String::from("DEBUG"),
+        String::from("HAB_AUTH_TOKEN"),
+        String::from("HAB_BLDR_URL"),
+        String::from("HAB_BLDR_CHANNEL"),
+        String::from("HAB_ORIGIN"),
+        String::from("HAB_ORIGIN_KEYS"),
+        String::from("HAB_STUDIO_BACKLINE_PKG"),
+        String::from("HAB_STUDIO_NOSTUDIORC"),
+        String::from("HAB_STUDIO_SUP"),
+        String::from("HAB_UPDATE_STRATEGY_FREQUENCY_MS"),
+        String::from("http_proxy"),
+        String::from("https_proxy"),
+        String::from("RUST_LOG"),
     ];
+
+    for (key, _) in env::vars() {
+        if key.starts_with(HAB_STUDIO_SECRET) {
+            env_vars.push(key);
+        }
+    }
+
     // We need to strip out the -D if it exists to avoid
     // it getting passed to the sup on entering the studio
     let to_cull = OsString::from("-D");
