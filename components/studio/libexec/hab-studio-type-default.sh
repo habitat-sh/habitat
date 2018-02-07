@@ -184,7 +184,7 @@ sup-log() {
 
 build-run() {
   build
-  if [ $? -eq 0 ];
+  if [ $? -eq 0 ]; then
     . /src/results/last_build.env
     hab svc stop "$pkg_origin/$pkg_name" || true
     hab svc unload "$pkg_origin/$pkg_name" || true
