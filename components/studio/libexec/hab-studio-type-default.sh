@@ -152,6 +152,7 @@ sup-run() {
   echo "    Running: hab sup run \$*"
   hab sup run \$* > /hab/sup/default/sup.log 2>&1 &
   echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
+  echo "    * Use 'build-run' to build and start the service"
   echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
   echo "    * Use 'sup-term' to terminate the Supervisor"
   if [[ -z "\${HAB_STUDIO_SUP:-}" ]]; then
@@ -181,9 +182,22 @@ sup-log() {
   tail -f /hab/sup/default/sup.log
 }
 
+build-run() {
+  build
+  if [ $? -eq 0 ];
+    . /src/results/last_build.env
+    hab svc stop "$pkg_origin/$pkg_name" || true
+    hab svc unload "$pkg_origin/$pkg_name" || true
+    hab svc start "results/$pkg_artifact"
+    echo "--> Use sup-log to see supervisor output"
+  fi
+}
+
+
 alias sr='sup-run'
 alias st='sup-term'
 alias sl='sup-log'
+alias br='build-run'
 
 if [[ -n "\${STUDIO_ENTER:-}" ]]; then
   unset STUDIO_ENTER
