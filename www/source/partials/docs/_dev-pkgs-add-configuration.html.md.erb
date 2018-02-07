@@ -16,7 +16,7 @@ We can make this user tunable like this:
 recv_buffer {{cfg.recv_buffer}}
 ```
 
-Habitat can read values that it will use to render the templatize config files in three ways:
+Habitat can read values that it will use to render the templatized config files in three ways:
 
 1. `default.toml` - Each plan includes a `default.toml` file that specifies the default values to use in the absence of any user provided inputs. These files are written in [TOML](https://github.com/toml-lang/toml), a simple config format.
 2. At runtime - Users can alter config at runtime using `hab config apply`. The input for this command also uses the TOML format.
