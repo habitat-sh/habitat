@@ -69,6 +69,12 @@ Here's an example using `each` to render multiple server entries:
     }
     {{/each ~}}
 
+You can also use `each` with `@key` and `this`. Here is an example that takes the `[env]` section of your default.toml and makes an env file you can source from your run hook:
+
+    {{#each cfg.env ~}}
+      export {{toUppercase @key}}={{this}}
+    {{/each ~}}
+
 You would specify the corresponding values in a TOML file using an
 [array of tables](https://github.com/toml-lang/toml#array-of-tables)
 like this:
