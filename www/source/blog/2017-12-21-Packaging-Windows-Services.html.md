@@ -19,7 +19,7 @@ This service simply logs the state of the service to a file. It logs startup and
 
 ## The Plan
 
-```
+```ps1 title:'windows-service-sample/habitat/plan.ps1' link: https://github.com/habitat-sh/windows-service-sample/blob/master/habitat/plan.ps1
 $pkg_name="windows-service-sample"
 $pkg_origin="mwrock"
 $pkg_version="0.1.0"
@@ -53,7 +53,12 @@ In short, this plan copies the source code to the Habitat cache, performs an `MS
 
 When a Habitat Supervisor first installs our application, it likely will not have an actual service installed in the machine's SCM. Our `init` hook will need to check if one is installed and install it if one is not present:
 
-```
+```ps1 title:'windows-service-sample/habitat/hooks/init' link: https://github.com/habitat-sh/windows-service-sample/blob/master/habitat/hooks/init
+Set-Location {{pkg.svc_path}}
+if(Test-Path bin) { Remove-Item bin -Recurse -Force }
+New-Item -Name bin -ItemType Junction -target "{{pkg.path}}/bin" | Out-Null
+
+# Add the Windows Service
 if((Get-Service HabSampleService -ErrorAction SilentlyContinue) -eq $null) {
     $binPath = (Resolve-Path "{{pkg.svc_path}}/bin/{{pkg.name}}.exe").Path
     &$env:systemroot\system32\sc.exe create HabSampleService binpath= $binPath
@@ -66,7 +71,7 @@ This simply uses the `sc.exe` utility to install the service. Note that we want 
 
 Our `run` hook will start the service and loop continuously until the service is stopped.
 
-```
+```ps1 title:'windows-service-sample/habitat/hooks/run' link: https://github.com/habitat-sh/windows-service-sample/blob/master/habitat/hooks/run
 Copy-Item "{{pkg.svc_config_path}}\windows-service-sample.exe.config" "{{pkg.svc_path}}\bin" -Force
 
 Start-Service HabSampleService
@@ -82,7 +87,7 @@ First we copy our templatized configuration file that ensures that status messag
 
 Now we will take advantage of a new Habitat feature: the `post-stop` hook. This hook runs after a Habitat service is stopped. Here we make sure that the actual Windows service stops when the Habitat service stops:
 
-```
+```ps1 title:'windows-service-sample/habitat/hooks/post-stop' link: https://github.com/habitat-sh/windows-service-sample/blob/master/habitat/hooks/post-stop
 if($(Get-Service HabSampleService).Status -ne "Stopped") {
     Write-Host "{{pkg.name}} stopping..."
     Stop-Service HabSampleService
@@ -96,7 +101,8 @@ We especially need this for upgrade scenarios when a Supervisor updates a runnin
 
 Now lets see if this all works. Lets clone the [repository](https://github.com/habitat-sh/windows-service-sample) and run `hab studio enter` from its root to start a Windows Habitat Studio. I'm on Windows 10 running [Docker Community Edition for Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows) so this command will spin up a Windows Server 2016 Core container:
 
-```console
+```console title:'C:\windows-service-sample'
+C:\windows-service-sample> hab studio enter
    hab-studio: Creating Studio at c:/
    hab-studio: Entering Studio at c:/
 ** The Habitat Supervisor has been started in the background.
@@ -111,7 +117,7 @@ This is especially nice for testing Windows services because I don't have to wor
 
 Now we will run `build .` to build our Windows service package. We can see `MSBUILD` starting:
 
-```
+```studio title:'Building the package'
 [HAB-STUDIO] Habitat:\src> build .
    : Loading C:\src\habitat\plan.ps1
    windows-service-sample: Plan loaded
@@ -136,14 +142,14 @@ Project "C:\hab\cache\src\windows-service-sample-0.1.0\windows-service-sample.cs
 
 Ok, lets start the service with the Studio's Supervisor:
 
-```console
+```studio title:"Starting the studio's supervisor"
 [HAB-STUDIO] Habitat:\src> hab start mwrock/windows-service-sample
 hab-sup(MN): Supervisor starting mwrock/windows-service-sample. See the Supervisor output for more details.
 ```
 
 We should see an actual Windows service running in the scm:
 
-```console
+```studio title:"Check for the service"
 [HAB-STUDIO] Habitat:\src> Get-Service HabSampleService
 
 Status   Name               DisplayName
@@ -153,7 +159,7 @@ Running  HabSampleService   HabSampleService
 
 We should also see the fabulous status messages in the service's data file:
 
-```console
+```studio title:"View the status message"
 [HAB-STUDIO] Habitat:\src> cat C:/hab/svc/windows-service-sample/data/status.txt
 HabSampleService is starting
 HabSampleService is started
@@ -163,7 +169,7 @@ HabSampleService is up
 
 Now we will stop the service:
 
-```console
+```studio title:"Stopping the service"
 [HAB-STUDIO] Habitat:\src> hab stop mwrock/windows-service-sample
 [HAB-STUDIO] Habitat:\src> Get-Service HabSampleService
 
