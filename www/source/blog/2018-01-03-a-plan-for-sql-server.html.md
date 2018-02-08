@@ -11,7 +11,7 @@ If you develop or support applications on Windows, chances are that you have cro
 
 I've been using MySQL for all of my .Net Habitat demos so far. It is open source, fairly light weight, and its binaries are easily portable and can be launched by simply running mysqld.exe. So it makes for a straightforward demo. But what if like the majority of .Net shops, you work with SQL Server and would like to understand how it might run inside of Habitat? Well this post is for you!
 
-## Challenges of Habetizing SQL Server
+## Challenges of Habitizing SQL Server
 
 SQL Server has a few characteristics that make it more difficult to package and run in Habitat than other commercial software.
 
@@ -29,7 +29,7 @@ Here is a plan one might use as a reference for their own SQL Server plan. The `
 
 Here is the plan:
 
-```
+```ps1 title:'habitat-sql-server/plan.ps1' link: https://github.com/mwrock/habitat-sql-server/blob/master/plan.ps1
 $pkg_name = "sqlserver"
 $pkg_origin = "mwrock"
 $pkg_version = "0.1.0"
@@ -62,7 +62,7 @@ Our `init` hook will do two things:
 
 ### Run the Installer
 
-```
+```ps1 title:'habitat-sql-server/hooks/init' linenos:true link: https://github.com/mwrock/habitat-sql-server/blob/master/hooks/init
 # If the sql instance data is not present, install a new instance
 if (!(Test-Path {{pkg.svc_data_path}}/mssql14.{{pkg.name}})) {
     setup.exe /configurationfile={{pkg.svc_config_path}}/config.ini /Q
@@ -71,7 +71,7 @@ if (!(Test-Path {{pkg.svc_data_path}}/mssql14.{{pkg.name}})) {
 
 If it does not find the data files in our Habitat `svc_data_path` then it will run `setup.exe` and use our templatized `config.ini` as the installer inputs:
 
-```
+```handlebars title:'habitat-sql-server/config/config.ini' link: https://github.com/mwrock/habitat-sql-server/blob/master/config/config.ini
 [OPTIONS]
 ACTION="Install"
 IACCEPTSQLSERVERLICENSETERMS=""
@@ -102,14 +102,14 @@ We only install the SQLEngine feature assuming we just need basic database servi
 
 By default SQL Server listens on port 1433 and then forwards requests to a dynamically allocated port for the targeted named instance. This assumes the `SQLBrowser` service is running, but we don't want to depend on that if we can avoid it since Habitat is not running it. Instead we can assign our instance a static port and then our applications can send requests to `<hostname>,<port>`. One typically assigns static ports using the SQL Configuration Manager GUI, but we can acomplish the same end by setting a registry key:
 
-```
+```ps1 title:'habitat-sql-server/hooks/init' linenos:true start:6 link: https://github.com/mwrock/habitat-sql-server/blob/master/hooks/init
 # Configure the instance for the configured port
 Set-ItemProperty -Path  "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL14.{{pkg.name}}\MSSQLServer\SuperSocketNetLib\Tcp\IPAll" -Name TcpPort -Value {{cfg.port}}
 ```
 
 Then we will use DSC (Desired State Configuration) to ensure our local firewall allows inbound traffic on that port. We define our DSC configuration in `config/firewall.ps1`:
 
-```
+```ps1 title: 'habitat-sql-server/config/firewall.ps1' link: https://github.com/mwrock/habitat-sql-server/blob/master/config/firewall.ps1
 Configuration NewFirewallRule
 {
     Import-DscResource -Module xNetworking
@@ -131,7 +131,7 @@ Configuration NewFirewallRule
 
 And our `init` hook invokes this:
 
-```
+```ps1 title:'habitat-sql-server/hooks/init' linenos:true start:10 link: https://github.com/mwrock/habitat-sql-server/blob/master/hooks/init
 Write-Host "Ensuring xNetworking DSC resources are installed..."
 Install-Module xNetworking -Force | Out-Null
 
@@ -159,7 +159,7 @@ That may seem like a round about way of applying a DSC configuration but given t
 
 Our `run` hook is going to start the `MSSQL` service installed for our SQL named instance and then spin until the service is stopped:
 
-```
+```ps1 title:'habitat-sql-server/hooks/run' link: https://github.com/mwrock/habitat-sql-server/blob/master/hooks/run
 Start-Service 'MSSQL${{pkg.name}}'
 Write-Host "{{pkg.name}} is running"
 
@@ -183,7 +183,7 @@ The service name will always be suffixed with our instance name which we have se
 
 After Sql Server is installed we have an all powerful `sa` (Systam Administrator) user and the local `Administrator` Windows user is designated an admin user in our config.ini. We don't want our application to access the database as the `sa` user. We'll add a `post-run` hook that will run after Habitat starts our `sqlserver` service and it will ensure an application user and password are configured:
 
-```
+```ps1 title:'habitat-sql-server/hooks/post-run' linenos:true start:10 link: https://github.com/mwrock/habitat-sql-server/blob/master/hooks/post-run
 # Create application Users
 
 Write-Host "Starting application user setup..."
@@ -203,7 +203,7 @@ Now that might seem like an overly powerful privilege for an application user an
 
 In most cases, the `finally` block of our `run` hook will stop our SQL Server instance service when we ask the Supervisor to stop the `sqlserver` service. The Supervisor issues a `ctrl+debug` signal to our service process and Powershell will ensure that the `finally` block is called on the running pipeline. However there are somne isolated scenarios, like running in a Windows container, where `ctrl+debug` signals are not propperly generated and the `finally` block will not be called. We can fortify ourselves against this with a `post-stop` hook. This is called when we stop a service to perform any necessary cleanup. So we will just check to see if the service is still running and stop it if it is:
 
-```
+```ps1 title:'habitat-sql-server/hooks/post-stop' linenos:true start:10 link: https://github.com/mwrock/habitat-sql-server/blob/master/hooks/post-stop
 if($(Get-Service 'MSSQL${{pkg.name}}').Status -ne "Stopped") {
     Write-Host "{{pkg.name}} stopping..."
     Stop-Service 'MSSQL${{pkg.name}}'
@@ -211,11 +211,11 @@ if($(Get-Service 'MSSQL${{pkg.name}}').Status -ne "Stopped") {
 }
 ```
 
-## Testing Connectivity to our "Habetized" SQL Server
+## Testing Connectivity to our "Habitized" SQL Server
 
 Lets see if we can connect to our database "from the outside" using our application user defined in our `default.toml`:
 
-```
+```toml title:'habitat-sql-server/default.toml' link: https://github.com/mwrock/habitat-sql-server/blob/master/default.toml
 sa_password="Pass@word1"
 port=8888
 app_user = "hab"
@@ -224,7 +224,7 @@ app_password="h@b1Tat"
 
 To test this I have started this `sqlserver` Habitat service in a vm running on `192.168.137.88`. Now I'll `cd` to a local .Net Core application that has the following `appsettings.json`:
 
-```
+```json title:appsettings.json
 {
   "server.urls": "http://*:5123",
   "ConnectionStrings": {
@@ -235,7 +235,7 @@ To test this I have started this `sqlserver` Habitat service in a vm running on 
 
 So I am going to run the Entity Framework migrations which I expect to create my application's database and schema:
 
-```
+```powershell
 C:\dev\habitat-aspnet-sample [master +2 ~4 -2 !]> dotnet ef database update
 
 Build succeeded.
@@ -248,7 +248,7 @@ Done.
 
 The succinct "Done" indicate that all of our database creating dreams have come true. Lets just check to be sure:
 
-```
+```shell
 1> select name from sys.databases
 2> go
  name
