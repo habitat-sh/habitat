@@ -380,7 +380,7 @@ FALLBACK_CHANNEL="stable"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
 # The compression level to use when compression harts (0..9)
-: ${HART_COMPRESSION_LEVEL:=6}
+: ${HAB_HART_COMPRESSION_LEVEL:=6}
 # The target architecture this plan will be built for
 pkg_arch=$(uname -m | tr '[:upper:]' '[:lower:]')
 # The target system (i.e. operating system variant) this plan will be built for
@@ -2008,7 +2008,7 @@ _generate_artifact() {
   mkdir -pv "$(dirname "$pkg_artifact")"
   rm -fv $tarf $xzf $pkg_artifact
   $_tar_cmd -cf $tarf $pkg_prefix
-  $_xz_cmd --compress -${HART_COMPRESSION_LEVEL} --threads=0 $tarf
+  $_xz_cmd --compress -${HAB_HART_COMPRESSION_LEVEL} --threads=0 $tarf
   $HAB_BIN pkg sign --origin $pkg_origin $xzf $pkg_artifact
   rm -f $tarf $xzf
 }
