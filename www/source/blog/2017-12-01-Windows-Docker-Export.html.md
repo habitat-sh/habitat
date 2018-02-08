@@ -27,21 +27,22 @@ We'll just be pulling the ASP.NET and MySQL packages from the [Habitat Depot](ht
 
 Again, make sure you run this on Windows, otherwise you will be building a Linux image.
 
-```console
-hab pkg export docker core/mysql
+```console title:'Exporting MySQL hart to Docker'
+> hab pkg export docker core/mysql
 ```
 
 Note that if you have never done a `docker pull` on `microsoft/windowsservercore` before, your first Windows container export may take a very long time since this is what we use as the base image and it's about a 5GB download.
 
 ## Export the ASP.NET Core Application
 
-```console
-hab pkg export docker core/habitat-aspnet-sample
+```console title:'Exporting the sample application'
+> hab pkg export docker core/habitat-aspnet-sample
 ```
 
 Now a `docker image ls` should include something like this:
 
-```console
+```console title:'Viewing all exported Docker images'
+> docker image ls
 REPOSITORY                                      TAG                     IMAGE ID
 CREATED             SIZE
 core/mysql                                      5.7.17                  aa93cd96fd21
@@ -60,13 +61,8 @@ core/habitat-aspnet-sample                      latest                  1a1816ec
 
 ## Start MySQL
 
-```console
-docker run -p 3306:3306 -it core/mysql
-```
-
-This should produce something like:
-
-```console
+```console title:'Starting the database container'
+> docker run -p 3306:3306 -it core/mysql
 hab-sup(MR): Supervisor Member-ID 69c41a05c5ba44109b7e0f9c00b93ad1
 hab-sup(MR): Starting core/mysql
 hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
@@ -102,7 +98,7 @@ We now have an empty MySQL database running. Before our application can succesfu
 1. `cd habitat-aspnet-sample`
 1. Edit the `ConnectionStrings` in `appsetting.json` which sits in the root of the repository to point to the running database with the correct username and password:
 
-```console
+```json title:'habitat-aspnet-sample/appsetting.json'
   "ConnectionStrings": {
     "DefaultConnection": "server=192.168.1.1;uid=hab;pwd=hab;port=3306;database=habitat_aspnet_sample;"
   },
@@ -114,10 +110,10 @@ Now you may be wondering why we did not just leave the `server` set to `localhos
 
 Finally, get the .Net Core SDK, restore the necessary .Net bits, and run the migration:
 
-```console
-hab pkg install core/dotnet-core-sdk
-hab pkg exec core/dotnet-core-sdk dotnet restore
-hab pkg exec core/dotnet-core-sdk dotnet ef database update
+```console title:'Installing, restoring, and migrating'
+> hab pkg install core/dotnet-core-sdk
+> hab pkg exec core/dotnet-core-sdk dotnet restore
+> hab pkg exec core/dotnet-core-sdk dotnet ef database update
 ```
 
 If all went well then your database container should have an empty but properly formatted schema that our application understands.
@@ -126,13 +122,8 @@ If all went well then your database container should have an empty but properly 
 
 Let's now start our ASP.NET Core application container that will interact with our database. Note that we will need to use `docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' <container id>` to get the IP address of the database container to use for our `--peer` argument that allows our application to find the MySQL supervisor.
 
-```console
-docker run -p 8090:8090 -it --rm core/habitat-aspnet-sample --bind database:mysql.default --peer 172.24.223.87
-```
-
-We should see something like:
-
-```console
+```console title:'Starting the webapp container'
+> docker run -p 8090:8090 -it --rm core/habitat-aspnet-sample --bind database:mysql.default --peer 172.24.223.87
 hab-sup(MR): Supervisor Member-ID 35fab1419f7946b9ac10d91c145ee140
 hab-sup(MR): Starting core/habitat-aspnet-sample
 hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
@@ -155,8 +146,8 @@ habitat-aspnet-sample.default(O): Application started. Press Ctrl+C to shut down
 
 Now let's see if we can get a HTML response from our containerized application:
 
-```console
-Invoke-WebRequest http://192.168.1.1:8090 -Method Head
+```console title:'Checking the application'
+> Invoke-WebRequest http://192.168.1.1:8090 -Method Head
 
 
 StatusCode        : 200
