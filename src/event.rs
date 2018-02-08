@@ -15,7 +15,7 @@
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::result;
-use std::time::{UNIX_EPOCH, SystemTime};
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::fmt;
 
 use serde::{Serialize, Serializer};
@@ -75,7 +75,7 @@ pub enum Event {
         version: String,
         account: String,
     },
-    OriginSecretKeyUpload {
+    OriginSigningKeyUpload {
         origin: String,
         version: String,
         account: String,
@@ -106,7 +106,7 @@ impl fmt::Display for Event {
                 "package-upload"
             }
             Event::OriginKeyUpload { origin: _, version: _, account: _ } => "origin-key-upload",
-            Event::OriginSecretKeyUpload { origin: _, version: _, account: _ } => {
+            Event::OriginSigningKeyUpload { origin: _, version: _, account: _ } => {
                 "origin-secret-key-upload"
             }
             Event::OriginInvitationSend { origin: _, user: _, id: _, account: _ } => {
@@ -224,7 +224,7 @@ impl Serialize for Event {
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::OriginSecretKeyUpload {
+            Event::OriginSigningKeyUpload {
                 origin: ref o,
                 version: ref v,
                 account: ref a,
