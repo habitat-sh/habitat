@@ -33,7 +33,7 @@ Additionally, the Supervisor and underlying Launcher were modified to allow proc
 
 At the end of all this, we have a Habitat Supervisor that can successfully be run in OpenShift! By generalizing how the Supervisor behaves (and how our Docker containers are generated), we can also run in a larger variety of deployment scenarios, which gives our users even more freedom in how they choose to run their Habitat applications.
 
-![Redis running under Habitat in OpenShift Online](media/2018-02-07-openshift-support/openshift-console.png)
+![Redis running under Habitat in OpenShift Online](media/2018-02-07-openshift-support/openshift_console.png)
 
 For further container deployment details, please refer to [our documentation](https://www.habitat.sh/docs/best-practices/#running-habitat-linux-containers).
 
