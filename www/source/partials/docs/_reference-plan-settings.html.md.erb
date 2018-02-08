@@ -80,36 +80,28 @@ pkg_build_deps=(core/gcc core/linux-headers)
 ```
 
 ### pkg\_lib\_dirs
-**Optional**. An array of paths, relative to the final install of the software,
-where libraries can be found. Used to populate `LD_FLAGS` and
-`LD_RUN_PATH` for software that depends on your package.
+**Optional**. An array of paths, relative to the final install of the software, where libraries can be found. Used to populate `LD_FLAGS` and `LD_RUN_PATH` for software that depends on your package.
 
 ```bash
 pkg_lib_dirs=(lib)
 ```
 
 ### pkg\_include\_dirs
-**Optional**. An array of paths, relative to the final install of the software,
-where headers can be found. Used to populate `CFLAGS` for software
-that depends on your package.
+**Optional**. An array of paths, relative to the final install of the software, where headers can be found. Used to populate `CFLAGS` for software that depends on your package.
 
 ```bash
 pkg_include_dirs=(include)
 ```
 
 ### pkg\_bin\_dirs
-**Optional**. An array of paths, relative to the final install of the software,
-where binaries can be found. Used to populate `PATH` for software
-that depends on your package.
+**Optional**. An array of paths, relative to the final install of the software, where binaries can be found. Used to populate `PATH` for software that depends on your package.
 
 ```bash
 pkg_bin_dirs=(bin)
 ```
 
 ### pkg\_pconfig\_dirs
-**Optional**. An array of paths, relative to the final install of the
-software, where pkg-config metadata (.pc files) can be found. Used to
-populate `PKG_CONFIG_PATH` for software that depends on your package.
+**Optional**. An array of paths, relative to the final install of the software, where pkg-config metadata (.pc files) can be found. Used to populate `PKG_CONFIG_PATH` for software that depends on your package.
 
 ```bash
 pkg_pconfig_dirs=(lib/pkgconfig)
