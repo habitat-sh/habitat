@@ -98,7 +98,7 @@ This creates a habitat directory along with several starter files.  Open up habi
 pkg_name=misfit_toys
 pkg_origin=your_origin
 pkg_version="0.1.0"
-pkg_Scaffolding="core/scaffolding-node"
+pkg_scaffolding="core/scaffolding-node"
 ```
 
 Make sure that pkg_origin is set to your Habitat origin.  There are not other changes we need to make to package this with Habitat. Save and close the file.
