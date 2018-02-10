@@ -22,6 +22,7 @@ pkg_deps=(
   core/unzip
   core/wget
   core/xz
+  saffronsnail/find-file
 )
 
 pkg_build_deps=(
