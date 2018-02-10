@@ -50,6 +50,8 @@ sidebar_links:
       link: "/docs/using-habitat/#overview"
     - title: Using Habitat Packages
       link: "/docs/using-habitat/#using-packages"
+    - title: Setting up a Ring 
+      link: "/docs/using-habitat/#setting-up-a-ring"
     - title: Monitor Services
       link: "/docs/using-habitat/#monitor-services"
     - title: Service Groups
