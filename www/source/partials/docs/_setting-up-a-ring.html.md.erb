@@ -1,0 +1,10 @@
+# <a name="setting-up-a-ring" id="setting-up-a-ring" data-magellan-target="setting-up-a-ring">Setting Up a Ring</a>
+
+## Bastion Ring / Permanent Peers 
+
+A “Bastion Ring” is a pattern for preventing rumor loss and a split brain in a network of Habitat Supervisors - it is highly recommended for any real environment use case. Create a minimum of 3 Supervisors and join them together. They should not run any services and they should be marked as permanent peers - their only job is to spread rumors to each other. Then, when you provision additional Supervisors pass the network address of each Supervisor running in the Bastion Ring to use as a list of “initial peers”. It’s recommended to create a Bastion Ring in any network zones which may become partitioned due to a hardware failure. For example, if you have a Habitat ring spanning multiple datacenters and clouds, each should have a bastion ring of a minimum of 3 Supervisors in addition to the Supervisors running your services.
+
+## Initial peer(s)
+
+The initial peer(s) is a requirement of any distributed system. In Habitat, a new Supervisor that is starting up looks for an initial peer(s) to join to begin sharing information about the health and status of peers and other services, to increase the health of the overall Ring.
+
