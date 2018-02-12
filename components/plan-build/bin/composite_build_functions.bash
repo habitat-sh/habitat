@@ -139,10 +139,21 @@ _validate_bind_mappings() {
 
     resolved="${resolved_services[$pkg]}"
 
-    while read -r line; do
-      IFS== read bind_name exports <<< "${line}"
-      all_binds_for_pkg[$bind_name]="${exports[@]}"
-    done < <(_read_metadata_file_for "${resolved}" BINDS)
+    if [[ -f "${resolved}/BINDS" ]]; then
+      while read -r line; do
+        IFS== read bind_name exports <<< "${line}"
+        all_binds_for_pkg[$bind_name]="${exports[@]}"
+      done < <(_read_metadata_file_for "${resolved}" BINDS)
+    fi
+    if [[ -f "${resolved}/BINDS_OPTIONAL" ]]; then
+      while read -r line; do
+        IFS== read bind_name exports <<< "${line}"
+        if [[ -n "${all_binds_for_pkg[$bind_name]}" ]]; then
+          exit_with "The bind ${bind_name} has already been declared in pkg_binds for package ${pkg}, it cannot also be declared in pkg_binds_optional"
+        fi
+        all_binds_for_pkg[$bind_name]="${exports[@]}"
+      done < <(_read_metadata_file_for "${resolved}" BINDS_OPTIONAL)
+    fi
 
     unset bind_mappings
     bind_mappings=("${pkg_bind_map[$pkg]}")
