@@ -502,9 +502,11 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
             // We don't have any record of this thing; let's set it
             // up!
             //
-            // This will install the latest version from Builder
+            // This will install the latest version from Builder if no
+            // package can be found locally that satisfies the given
+            // identifier.
             let installed =
-                util::pkg::install(&mut ui(), &bldr_url(m), &install_source, &channel(m))?;
+                install_package_if_not_present(&install_source, &bldr_url(m), &channel(m))?;
 
             let original_ident = install_source.as_ref();
             let mut specs = generate_new_specs_from_package(original_ident, &installed, m)?;
