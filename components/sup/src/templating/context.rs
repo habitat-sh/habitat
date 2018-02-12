@@ -18,7 +18,7 @@ use hcore::service::ServiceGroup;
 
 use census::{CensusGroup, CensusMember, CensusRing, ElectionStatus};
 use manager::Sys;
-use manager::service::{Cfg, Pkg, ServiceBind};
+use manager::service::{Cfg, Pkg, ServiceBind, SelectorServiceBind};
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Binds<'a>(HashMap<String, BindGroup<'a>>);
@@ -30,12 +30,50 @@ impl<'a> Binds<'a> {
     {
         let mut map = HashMap::default();
         for bind in bindings {
-            if let Some(group) = census.census_group_for(&bind.service_group) {
-                map.insert(bind.name.to_string(), BindGroup::new(group));
+            match bind {
+                &ServiceBind::Specified(ref specified_bind) => {
+                    if let Some(group) = census.census_group_for(&specified_bind.service_group) {
+                        map.insert(specified_bind.name.to_string(), BindGroup::new(group));
+                    }
+                },
+                &ServiceBind::Selector(ref selector_bind) => {
+                    // TODO
+                    // Not efficient, can make faster
+                    //
+                    // All labels in a group should be the same. They shouldn't be attached
+                    // to individual members
+                    //
+                    // Does this need to be deduped?
+                    for group in census.groups() {
+                        println!("Checking {} matches selector {}", group.service_group, selector_bind.name);
+                        if census_group_matches_selector(group, selector_bind) {
+                            println!("Matched {} matches selector {}", group.service_group, selector_bind.name);
+
+                            if map.contains_key(&selector_bind.name.to_string()) {
+                                if let Some(existing) = map.get_mut(&selector_bind.name.to_string()) {
+                                    let mut new_bind_group = BindGroup::new(group);
+                                    existing.members.append(&mut new_bind_group.members);
+                                }
+                            } else {
+                                map.insert(selector_bind.name.to_string(), BindGroup::new(group));
+                            }
+                        }
+                    }
+
+                }
             }
         }
         Binds(map)
     }
+}
+
+fn census_group_matches_selector(group: &CensusGroup, selector_bind: &SelectorServiceBind) -> bool {
+    for member in group.members() {
+        if member.cfg.contains_key(&selector_bind.selector) {
+            return true;
+        }
+    }
+    return false;
 }
 
 #[derive(Clone, Debug, Serialize)]

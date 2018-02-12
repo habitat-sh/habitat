@@ -59,7 +59,7 @@ pub use self::config::{Cfg, UserConfigPath};
 pub use self::health::{HealthCheck, SmokeCheck};
 pub use self::package::Pkg;
 pub use self::composite_spec::CompositeSpec;
-pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle};
+pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle, SelectorServiceBind, SpecifiedServiceBind};
 pub use self::supervisor::ProcessState;
 
 static LOGKEY: &'static str = "SR";
@@ -339,23 +339,29 @@ impl Service {
     fn all_binds_satisfied(&self, census_ring: &CensusRing) -> bool {
         let mut ret = true;
         for ref bind in self.binds.iter() {
-            if let Some(group) = census_ring.census_group_for(&bind.service_group) {
-                if group.members().iter().all(|m| !m.alive()) {
-                    ret = false;
-                    outputln!(preamble self.service_group,
+            if let &&ServiceBind::Specified(ref specified_bind) = bind {
+                if let Some(group) = census_ring.census_group_for(&specified_bind.service_group) {
+                    if group.members().iter().all(|m| !m.alive()) {
+                        ret = false;
+                        outputln!(preamble self.service_group,
                               "The specified service group '{}' for binding '{}' is present in the \
                                census, but currently has no live members.",
-                              bind.service_group,
-                              bind.name);
-                }
-
-            } else {
-                ret = false;
-                outputln!(preamble self.service_group,
+                              specified_bind.service_group,
+                              specified_bind.name);
+                    }
+                } else {
+                    ret = false;
+                    outputln!(preamble self.service_group,
                           "The specified service group '{}' for binding '{}' is not (yet?) present \
                           in the census data.",
-                          bind.service_group,
-                          bind.name);
+                          specified_bind.service_group,
+                          specified_bind.name);
+                }
+            } else if let &&ServiceBind::Selector(ref selector) = bind {
+                outputln!(preamble self.service_group,
+                        "Selector binds are always optional. Will bind {} if it becomes available to \
+                         services matching the selector",
+                        selector.name)
             }
         }
         ret
