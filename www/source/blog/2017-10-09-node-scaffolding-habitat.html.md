@@ -98,7 +98,7 @@ This creates a habitat directory along with several starter files.  Open up habi
 pkg_name=misfit_toys
 pkg_origin=your_origin
 pkg_version="0.1.0"
-pkg_Scaffolding="core/Scaffolding-node"
+pkg_scaffolding="core/scaffolding-node"
 ```
 
 Make sure that pkg_origin is set to your Habitat origin.  There are not other changes we need to make to package this with Habitat. Save and close the file.
@@ -194,7 +194,7 @@ Everytime you commit new code to your application's Github repository, Builder w
 
 By default, the Node Scaffolding uses the most recent release of the [core/node](https://bldr.habitat.sh/#/pkgs/core/node/latest) package available on Builder.
 
-If you'd like to use a different version of Node, you can! There are three ways to do this (the node Scaffolding will still use the appropriate version of the core/node package).
+If you'd like to use a different version of Node, you can! There are three ways to do this (the Node Scaffolding will still use the appropriate version of the core/node package).
 
 * Specify it in your application's package.json, i.e.
 
@@ -207,7 +207,7 @@ If you'd like to use a different version of Node, you can! There are three ways 
 You can use version numbers in these formats "5.0.0", "v5.0.0", "=5.0.0", ">=5.0.0", ">5.0.0", "<=5.0.0", "<5.0.0"
 
 * Write an .nvmrc in your application's root directory
-* Set the Scaffolding_node_pkg variable in your Plan with a valid Habitat package identifier (i.e. your_origin/node/5.0.0)
+* Set the scaffolding_node_pkg variable in your Plan with a valid Habitat package identifier (i.e. your_origin/node/5.0.0)
 
 What about if your application specifies different versions in different places? A Plan variable will take priority ov package.json and package.json will take priority over an .nvmrc file.
 
