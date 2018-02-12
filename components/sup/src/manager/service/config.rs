@@ -15,7 +15,6 @@
 /// Collect all the configuration data that is exposed to users, and render it.
 
 use std;
-use std::ascii::AsciiExt;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
