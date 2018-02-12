@@ -186,7 +186,7 @@ mod json_u64 {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct OriginSecretKey {
+pub struct OriginPrivateSigningKey {
     #[serde(with = "json_u64")]
     pub id: u64,
     #[serde(with = "json_u64")]
@@ -1126,7 +1126,7 @@ mod tests {
 
     #[test]
     fn json_round_trip_u64_fields() {
-        let pre = OriginSecretKey {
+        let pre = OriginPrivateSigningKey {
             id: 705705315793903646,
             origin_id: 705705305031319582,
             name: "core".to_string(),
@@ -1150,7 +1150,7 @@ mod tests {
         });
         assert_eq!(as_json, expected);
 
-        let post: OriginSecretKey = serde_json::from_value(as_json).unwrap();
+        let post: OriginPrivateSigningKey = serde_json::from_value(as_json).unwrap();
         assert_eq!(pre.id, post.id);
         assert_eq!(pre.origin_id, post.origin_id);
         assert_eq!(pre.owner_id, post.owner_id);
