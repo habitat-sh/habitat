@@ -18,6 +18,7 @@
 #[macro_use]
 extern crate habitat_butterfly;
 extern crate habitat_core;
+extern crate libc;
 extern crate time;
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -25,6 +26,7 @@ use std::ops::{Deref, DerefMut, Range};
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::sync::{Once, ONCE_INIT};
 use std::thread;
 use std::time::Duration;
 
@@ -54,6 +56,8 @@ pub fn get_client_for_address(addr: SocketAddr) -> Client<GossipZmqSocket> {
         .expect("Cannot create gossip socket");
     Client::new(sender, None)
 }
+
+static RLIMIT_ONCE: Once = ONCE_INIT;
 
 #[derive(Debug)]
 struct NSuitability(u64);
@@ -123,6 +127,47 @@ impl DerefMut for SwimNet {
     }
 }
 
+#[cfg(target_os = "linux")]
+mod rlimitset {
+    use libc;
+    pub fn run() {
+        let mut rlim = libc::rlimit {
+            rlim_cur: 0,
+            rlim_max: 0,
+        };
+        if !get_files_no_limit(&mut rlim) {
+            println!("Failed to get open file descriptors limit");
+            return;
+        }
+        if rlim.rlim_cur == rlim.rlim_max {
+            println!("Files limit is already at its max ({})", rlim.rlim_cur);
+            return;
+        }
+        println!(
+            "Setting current files limit ({}) to the max ({})",
+            rlim.rlim_cur, rlim.rlim_max
+        );
+        rlim.rlim_cur = rlim.rlim_max;
+        if !set_files_no_limit(&rlim) {
+            println!("Failed to set open file descriptors limit");
+            return;
+        }
+    }
+
+    fn get_files_no_limit(rlim: &mut libc::rlimit) -> bool {
+        unsafe { libc::getrlimit(libc::RLIMIT_NOFILE, rlim) == 0 }
+    }
+
+    fn set_files_no_limit(rlim: &libc::rlimit) -> bool {
+        unsafe { libc::setrlimit(libc::RLIMIT_NOFILE, rlim) == 0 }
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+mod rlimitset {
+    pub fn run() {}
+}
+
 impl SwimNet {
     pub fn new_with_suitability(suitabilities: Vec<u64>) -> SwimNet {
         let count = suitabilities.len();
@@ -130,7 +175,7 @@ impl SwimNet {
         for x in 0..count {
             members.push(start_server(&format!("{}", x), None, suitabilities[x]));
         }
-        SwimNet { members: members }
+        Self::new_with_members(members)
     }
 
     pub fn new(count: usize) -> SwimNet {
@@ -144,7 +189,12 @@ impl SwimNet {
             let rk = ring_key.clone();
             members.push(start_server(&format!("{}", x), rk, 0));
         }
-        SwimNet { members: members }
+        Self::new_with_members(members)
+    }
+
+    fn new_with_members(members: Vec<Server<RealNetwork>>) -> Self {
+        RLIMIT_ONCE.call_once(rlimitset::run);
+        Self { members }
     }
 
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {

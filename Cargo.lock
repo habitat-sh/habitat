@@ -806,6 +806,7 @@ dependencies = [
  "clippy 0.0.212 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_butterfly 0.1.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
+ "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
