@@ -20,13 +20,13 @@ use sodiumoxide::crypto::box_;
 use sodiumoxide::crypto::sealedbox;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecretKey;
-use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{Nonce, gen_nonce};
+use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{gen_nonce, Nonce};
 
 use error::{Error, Result};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
             read_key_bytes, write_keypair_files, KeyPair, KeyType};
-use super::super::{BOX_FORMAT_VERSION, ANONYMOUS_BOX_FORMAT_VERSION, PUBLIC_KEY_SUFFIX,
-                   PUBLIC_BOX_KEY_VERSION, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION};
+use super::super::{ANONYMOUS_BOX_FORMAT_VERSION, BOX_FORMAT_VERSION, PUBLIC_BOX_KEY_VERSION,
+                   PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION};
 
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
@@ -46,13 +46,15 @@ impl BoxKeyPair {
     }
 
     pub fn generate_pair_for_user(user: &str) -> Result<Self> {
-        let revision = mk_revision_string()?;
-        let keyname = Self::mk_key_name_for_user(user, &revision);
-        debug!("new user sig key name = {}", &keyname);
-        let (pk, sk) = box_::gen_keypair();
-        let (name, _) = parse_name_with_rev(&keyname)?;
-        Ok(Self::new(name, revision, Some(pk), Some(sk)))
+        debug!("new user box key");
+        Self::generate_pair_for_string(user)
     }
+
+    pub fn generate_pair_for_origin(origin: &str) -> Result<Self> {
+        debug!("new origin box key");
+        Self::generate_pair_for_string(origin)
+    }
+
 
     pub fn get_pairs_for<T, P>(name: T, cache_key_path: P) -> Result<Vec<Self>>
     where
@@ -166,14 +168,12 @@ impl BoxKeyPair {
 
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
-            Some(pk) => {
-                Ok(format!(
-                    "{}\n{}\n\n{}",
-                    PUBLIC_BOX_KEY_VERSION,
-                    self.name_with_rev(),
-                    &base64::encode(&pk[..])
-                ))
-            }
+            Some(pk) => Ok(format!(
+                "{}\n{}\n\n{}",
+                PUBLIC_BOX_KEY_VERSION,
+                self.name_with_rev(),
+                &base64::encode(&pk[..])
+            )),
             None => {
                 return Err(Error::CryptoError(format!(
                     "No public key present for {}",
@@ -185,14 +185,12 @@ impl BoxKeyPair {
 
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
-            Some(ref sk) => {
-                Ok(format!(
-                    "{}\n{}\n\n{}",
-                    SECRET_BOX_KEY_VERSION,
-                    self.name_with_rev(),
-                    &base64::encode(&sk[..])
-                ))
-            }
+            Some(ref sk) => Ok(format!(
+                "{}\n{}\n\n{}",
+                SECRET_BOX_KEY_VERSION,
+                self.name_with_rev(),
+                &base64::encode(&sk[..])
+            )),
             None => {
                 return Err(Error::CryptoError(format!(
                     "No secret key present for {}",
@@ -200,6 +198,15 @@ impl BoxKeyPair {
                 )))
             }
         }
+    }
+
+    fn generate_pair_for_string(string: &str) -> Result<Self> {
+        let revision = mk_revision_string()?;
+        let keyname = Self::mk_key_name_for_string(string, &revision);
+        debug!("new sig key name = {}", &keyname);
+        let (pk, sk) = box_::gen_keypair();
+        let (name, _) = parse_name_with_rev(&keyname)?;
+        Ok(Self::new(name, revision, Some(pk), Some(sk)))
     }
 
     fn encrypt_box(&self, data: &[u8], receiver: &Self) -> Result<Vec<u8>> {
@@ -398,8 +405,12 @@ impl BoxKeyPair {
         format!("{}@{}-{}", service_group, org, revision)
     }
 
-    fn mk_key_name_for_user(user: &str, revision: &str) -> String {
-        format!("{}-{}", user, revision)
+    fn mk_key_name_for_string(string: &str, revision: &str) -> String {
+        format!("{}-{}", string, revision)
+    }
+
+    fn mk_key_name_for_origin(origin: &str, revision: &str) -> String {
+        format!("{}-{}", origin, revision)
     }
 }
 
@@ -737,7 +748,6 @@ mod test {
                 &public,
                 receiver_cache.path().join(&public.file_name().unwrap()),
             ).unwrap();
-
         }
 
         let ciphertext = {
