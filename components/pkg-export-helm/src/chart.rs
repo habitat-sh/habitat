@@ -27,7 +27,7 @@ use values::Values;
 pub struct Chart<'a> {
     name: String,
     chartfile: ChartFile,
-    manifest_template: ManifestJson,
+    manifest_template: Option<ManifestJson>,
     values: Values,
     ui: &'a mut UI,
 }
@@ -109,10 +109,10 @@ impl<'a> Chart<'a> {
             binds.push(json);
         }
 
-        let manifest_template = ManifestJson {
+        let manifest_template = Some(ManifestJson {
             main: main,
             binds: binds,
-        };
+        });
 
         Chart {
             name,
@@ -146,7 +146,7 @@ impl<'a> Chart<'a> {
         Ok(())
     }
 
-    fn generate_manifest_template(self) -> Result<()> {
+    fn generate_manifest_template(&mut self) -> Result<()> {
         let template_path = format!("{}/{}", self.name, "templates");
         self.ui.status(
             Status::Creating,
@@ -160,7 +160,10 @@ impl<'a> Chart<'a> {
             format!("file `{}`", manifest_path),
         )?;
         let mut write = fs::File::create(manifest_path)?;
-        let out: String = self.manifest_template.into();
+        let out: String = self.manifest_template
+            .take()
+            .expect("generate_manifest_template() called more than once")
+            .into();
 
         write.write(out.as_bytes())?;
 
