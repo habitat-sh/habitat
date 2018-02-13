@@ -8,6 +8,7 @@ workspace = "../../"
 clippy = {version = "*", optional = true}
 env_logger = "*"
 time = "*"
+libc = "*"
 
 [dependencies.habitat_butterfly]
 path = "../butterfly"
