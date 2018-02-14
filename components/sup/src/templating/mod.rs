@@ -232,6 +232,18 @@ test: something"#
     }
 
     #[test]
+    fn bind_variable() {
+        let content = "{{bind.foo.members[0].sys.ip}}";
+        let mut renderer = TemplateRenderer::new();
+        let data = service_config_json_from_toml_file("complex_config.toml");
+
+        renderer.register_template_string("t", content).unwrap();
+
+        let rendered = renderer.render("t", &data).unwrap();
+        assert_eq!(rendered, "172.17.0.5");
+    }
+
+    #[test]
     fn pkg_path_for_helper() {
         let content = "{{pkgPathFor \"core/acl\"}}".to_string();
         let mut renderer = TemplateRenderer::new();

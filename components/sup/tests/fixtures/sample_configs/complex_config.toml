@@ -1,4 +1,8 @@
 [bind]
+[bind.foo]
+[[bind.foo.members]]
+[bind.foo.members.sys]
+ip = "172.17.0.5"
 
 [cfg]
 
