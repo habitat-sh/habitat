@@ -251,7 +251,7 @@ impl Network for RealNetwork {
     type GossipSender = GossipZmqSocket;
 
     fn get_swim_addr(&self) -> SocketAddr {
-        self.swim_addr.clone()
+        self.swim_addr
     }
 
     fn get_swim_sender(&self) -> Result<SwimUdpSocket> {
@@ -263,7 +263,7 @@ impl Network for RealNetwork {
     }
 
     fn get_gossip_addr(&self) -> SocketAddr {
-        self.gossip_addr.clone()
+        self.gossip_addr
     }
 
     fn get_gossip_sender(&self, addr: SocketAddr) -> Result<GossipZmqSocket> {
