@@ -138,8 +138,8 @@ impl<N: Network> Server<N> {
     where
         P: Into<PathBuf> + AsRef<ffi::OsStr>,
     {
-        member.set_swim_port(network.get_swim_port() as i32);
-        member.set_gossip_port(network.get_gossip_port() as i32);
+        member.set_swim_port(network.get_swim_addr().port() as i32);
+        member.set_gossip_port(network.get_gossip_addr().port() as i32);
         Self {
             name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
             member_id: Arc::new(String::from(member.get_id())),
@@ -354,7 +354,7 @@ impl<N: Network> Server<N> {
 
     /// Return the port number of the swim socket we are bound to.
     pub fn swim_port(&self) -> u16 {
-        self.read_network().get_swim_port()
+        self.read_network().get_swim_addr().port()
     }
 
     /// Return the gossip address we are bound to
@@ -364,7 +364,7 @@ impl<N: Network> Server<N> {
 
     /// Return the port number of the gossip socket we are bound to.
     pub fn gossip_port(&self) -> u16 {
-        self.read_network().get_gossip_port()
+        self.read_network().get_gossip_addr().port()
     }
 
     pub fn read_network(&self) -> RwLockReadGuard<N> {

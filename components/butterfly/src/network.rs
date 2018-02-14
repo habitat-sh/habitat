@@ -76,12 +76,10 @@ pub trait Network: Send + Sync + Debug + 'static {
     type GossipReceiver: GossipReceiver;
 
     fn get_swim_addr(&self) -> SocketAddr;
-    fn get_swim_port(&self) -> u16;
     fn get_swim_sender(&self) -> Result<Self::SwimSender>;
     fn get_swim_receiver(&self) -> Result<Self::SwimReceiver>;
 
     fn get_gossip_addr(&self) -> SocketAddr;
-    fn get_gossip_port(&self) -> u16;
     fn get_gossip_sender(&self, addr: SocketAddr) -> Result<Self::GossipSender>;
     fn get_gossip_receiver(&self) -> Result<Self::GossipReceiver>;
 }
@@ -256,10 +254,6 @@ impl Network for RealNetwork {
         self.swim_addr.clone()
     }
 
-    fn get_swim_port(&self) -> u16 {
-        self.swim_addr.port()
-    }
-
     fn get_swim_sender(&self) -> Result<SwimUdpSocket> {
         self.get_swim_socket()
     }
@@ -270,10 +264,6 @@ impl Network for RealNetwork {
 
     fn get_gossip_addr(&self) -> SocketAddr {
         self.gossip_addr.clone()
-    }
-
-    fn get_gossip_port(&self) -> u16 {
-        self.gossip_addr.port()
     }
 
     fn get_gossip_sender(&self, addr: SocketAddr) -> Result<GossipZmqSocket> {
