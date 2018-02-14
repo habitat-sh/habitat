@@ -179,6 +179,18 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .help("Do not tag image with :\"{{pkg_version}}\" (default: no)"),
             )
             .arg(
+                Arg::with_name("TAG_LATEST")
+                    .long("tag-latest")
+                    .conflicts_with("NO_TAG_LATEST")
+                    .help("Tag image with :\"latest\" (default: yes)"),
+            )
+            .arg(
+                Arg::with_name("NO_TAG_LATEST")
+                    .long("no-tag-latest")
+                    .conflicts_with("TAG_LATEST")
+                    .help("Do not tag image with :\"latest\" (default: no)"),
+            )
+            .arg(
                 Arg::with_name("TAG_CUSTOM")
                     .long("tag-custom")
                     .value_name("TAG_CUSTOM")
