@@ -1,6 +1,5 @@
 $pkg_name = "hab-launcher"
 $pkg_origin = "core"
-$pkg_version = "0"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_source = "https://s3-us-west-2.amazonaws.com/habitat-win-deps/hab-win-deps.zip"
@@ -28,8 +27,11 @@ function Invoke-Prepare {
     $env:OPENSSL_INCLUDE_DIR        = "$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
 }
 
+function pkg_version {
+    git rev-list master --count
+}
 function Invoke-Before {
-    $script:pkg_version = (git rev-list master --count)
+    Set-PkgVersion
     $script:pkg_dirname = "${pkg_name}-${pkg_version}"
     $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
     $script:pkg_artifact="$HAB_CACHE_ARTIFACT_PATH\${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"

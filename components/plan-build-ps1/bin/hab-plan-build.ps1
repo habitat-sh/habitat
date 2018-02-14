@@ -619,6 +619,18 @@ function _Assert-Deps {
   }
 }
 
+# **Internal** Verifies that any lazily-computed, required variables have been
+# set, otherwise it fails the build.
+function _Assert-Vars {
+    if("$pkg_version" -eq "__pkg__version__unset__") {
+      $e="Plan did not set 'pkg_version' and did not call 'Set-PkgVersion'"
+      $e="$e before the 'Invoke-Prepare' build phase."
+      _exit-with $e 2
+    }
+  
+    $script:_verify_vars=$true
+  }
+  
 # **Internal** Create initial package-related arrays.
 function _init-Dependencies {
   # Create `${pkg_build_deps_resolved[@]}` containing all resolved direct build
@@ -1384,6 +1396,98 @@ function do_push_env($Environment, $VarName, $VarValue) {
     __push_env $Environment $VarName $VarValue (__env_aggregate_separator $VarName) "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
 }
 
+# Updates the value of `$pkg_version` and recomputes any relevant variables.
+# This function must be called before the `Invoke-Pepare` build phase otherwise
+# it will fail the build process.
+#
+# This function depends on the Plan author implementing a `pkg_version`
+# function which prints a computed version string on standard output. Then,
+# this function must be explicitly called in an appropriate build phase--most
+# likely `Invoke-Before`. For example:
+#
+# ```sh
+# $pkg_origin="acme"
+# $pkg_name="myapp"
+#
+# function pkg_version {
+#   cat "$SRC_PATH/version.txt"
+# }
+#
+# function Invoke-Before {
+#   Invoke-DefaultBefore
+#   Set-PkgVersion
+# }
+# ```
+function Set-PkgVersion {
+    if($_verify_vars) {
+      $e="Plan called 'Set-PkgVersion' in phase 'Invoke-Prepare' or later"
+      $e="$e which is not supported. Package version must be determined before"
+      $e="$e 'Invoke-Prepare' phase."
+      _exit-with $e 21
+    }
+  
+    if(test-path function:\pkg_version) {
+      $script:pkg_version=pkg_version
+      Write-BuildLine "Version updated to '$pkg_version'"
+    } else {
+      write-debug "pkg_version function not found, retaining pkg_version=$pkg_version"
+    }
+  
+    # `$pkg_dirname` needs to be recomputed, unless it was explicitly set by the
+    # Plan author.
+    if($_pkg_dirname_initially_unset) {
+      $script:pkg_dirname="$pkg_name-$pkg_version"
+    }
+    $script:pkg_prefix="$HAB_PKG_PATH/$pkg_origin/$pkg_name/$pkg_version/$pkg_release"
+    $script:pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/$pkg_origin-$pkg_name-$pkg_version-$pkg_release-${pkg_target}.${_artifact_ext}"
+    # If the `$CACHE_PATH` and `$SRC_PATH` are the same, then we are building
+    # third party software using `$pkg_source` and
+    # downloading/verifying/unpacking it.
+    if("$CACHE_PATH" -eq "$SRC_PATH") {
+      $update_src_path=$true
+    }
+    $CACHE_PATH="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+    # Only update `$SRC_PATH` if we are building third party software using
+    # `$pkg_source`.
+    if($update_src_path) {
+      $script:SRC_PATH=$CACHE_PATH
+    }
+    # Replace the unset placeholders with the computed value
+    $env:PATH=$(__resolve_version_placeholder $env:PATH $pkg_version)
+    Write-BuildLine "Updating PATH=$env:PATH"
+  
+    # TODO (CM): Do not like this separation of concerns (or lack of
+    # separation, as the case may be).
+    #
+    # NOTE: we specifically handle PATH above (and make that live in the
+    # environment). We are implicitly assuming that any other instances
+    # of the version placeholder are not going to need to be propagated
+    # back into the active environment.
+    __resolve_all_version_placeholders $env["Runtime"] $pkg_version
+    __resolve_all_version_placeholders $env["Buildtime"] $pkg_version
+    __resolve_all_version_placeholders $provenance["Runtime"] $pkg_version
+    __resolve_all_version_placeholders $provenance["Buildtime"] $pkg_version
+}
+
+# Replace all instances of the "__pkg__version__unset__" placeholder
+# in the given string with the real version number.
+function __resolve_version_placeholder($original, $real_version){
+    $original.Replace("__pkg__version__unset__", $real_version)
+}
+
+# Replace all instances of the "__pkg__version__unset__" placeholder
+# in the values of the given hashtable with the real version number.
+function __resolve_all_version_placeholders($env_table, $real_version) {
+    $new_table = @{}
+    foreach($k in $env_table.keys) {
+        $new_table[$k] = (__resolve_version_placeholder $env_table[$k] $real_version)
+    }
+
+    foreach($k in $new_table.keys) {
+        $env_table[$k] = $new_table[$k]
+    }
+}
+
 # Will run post-compile tests and checks, provided 2 conditions are true:
 #
 # 1. An `Invoke-Check` function has been declared. By default, no such function
@@ -1789,7 +1893,7 @@ try {
     # Validate metadata
     Write-BuildLine "Validating plan metadata"
 
-    foreach ($var in @("pkg_origin", "pkg_name", "pkg_version")) {
+    foreach ($var in @("pkg_origin", "pkg_name")) {
         if (-Not (Test-Path variable:script:$var)) {
             _Exit-With "Failed to build. '$var' must be set." 1
         } elseif ((Get-Variable $var -Scope script).Value -eq "") {
@@ -1810,6 +1914,15 @@ try {
         $pkg_svc_run = "$pkg_svc_run".Replace("@__pkg_name__@", "$pkg_name")
     }
 
+    # Ensure that the version is set (or can be set!) properly
+    if("$pkg_version" -eq "" -and (test-path function:\pkg_version)) {
+        $pkg_version="__pkg__version__unset__"
+    } elseif("$pkg_version" -eq "") {
+        $e="Failed to build. 'pkg_version' must be set or 'pkg_version' function"
+        e="$e must be implemented and then invoking by calling 'Set-PkgVersion'."
+        _exit-with $e 1
+    }
+
     # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
     # set by the `plan.ps1`.
     if ("$pkg_filename" -eq "" -and "$pkg_source" -ne "") {
@@ -1820,6 +1933,7 @@ try {
     # already set by the `plan.ps1`.
     if ("$pkg_dirname" -eq "") {
         $script:pkg_dirname = "${pkg_name}-${pkg_version}"
+        $script:_pkg_dirname_initially_unset = $true
     }
 
     # Set `$pkg_prefix` if not already set by the `plan.ps1`.
@@ -1918,6 +2032,8 @@ try {
 
     # Set up the build environment
     _Set-Environment
+
+    _Assert-Vars
 
     # Prepare the source
     Invoke-PrepareWrapper
