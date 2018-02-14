@@ -29,7 +29,7 @@ fn get_client(peer: &str, ring_key: Option<SymKey>) -> Result<Client<GossipZmqSo
         |e| Error::ButterflyError(format!("{}", e)),
     )?;
     let network = RealNetwork::new_for_client();
-    let sender = network.get_gossip_sender(addr).map_err(|e| {
+    let sender = network.create_gossip_sender(addr).map_err(|e| {
         Error::ButterflyError(format!("{}", e))
     })?;
     Ok(Client::new(sender, ring_key))

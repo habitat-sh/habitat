@@ -76,12 +76,12 @@ pub trait Network: Send + Sync + Debug + 'static {
     type GossipReceiver: GossipReceiver;
 
     fn get_swim_addr(&self) -> SocketAddr;
-    fn get_swim_sender(&self) -> Result<Self::SwimSender>;
-    fn get_swim_receiver(&self) -> Result<Self::SwimReceiver>;
+    fn create_swim_sender(&self) -> Result<Self::SwimSender>;
+    fn create_swim_receiver(&self) -> Result<Self::SwimReceiver>;
 
     fn get_gossip_addr(&self) -> SocketAddr;
-    fn get_gossip_sender(&self, addr: SocketAddr) -> Result<Self::GossipSender>;
-    fn get_gossip_receiver(&self) -> Result<Self::GossipReceiver>;
+    fn create_gossip_sender(&self, addr: SocketAddr) -> Result<Self::GossipSender>;
+    fn create_gossip_receiver(&self) -> Result<Self::GossipReceiver>;
 }
 
 /// An implementation of the `SwimSender` and `SwimReceiver` traits
@@ -254,11 +254,11 @@ impl Network for RealNetwork {
         self.swim_addr
     }
 
-    fn get_swim_sender(&self) -> Result<SwimUdpSocket> {
+    fn create_swim_sender(&self) -> Result<SwimUdpSocket> {
         self.get_swim_socket()
     }
 
-    fn get_swim_receiver(&self) -> Result<SwimUdpSocket> {
+    fn create_swim_receiver(&self) -> Result<SwimUdpSocket> {
         self.get_swim_socket()
     }
 
@@ -266,7 +266,7 @@ impl Network for RealNetwork {
         self.gossip_addr
     }
 
-    fn get_gossip_sender(&self, addr: SocketAddr) -> Result<GossipZmqSocket> {
+    fn create_gossip_sender(&self, addr: SocketAddr) -> Result<GossipZmqSocket> {
         let socket = self.context_mut().socket(zmq::PUSH).map_err(|e| {
             Error::GossipChannelSetupError(format!("Failed to create the ZMQ push socket: {}", e))
         })?;
@@ -302,7 +302,7 @@ impl Network for RealNetwork {
         Ok(GossipZmqSocket { zmq: socket })
     }
 
-    fn get_gossip_receiver(&self) -> Result<GossipZmqSocket> {
+    fn create_gossip_receiver(&self) -> Result<GossipZmqSocket> {
         let socket = self.context_mut().socket(zmq::PULL).map_err(|e| {
             Error::GossipChannelSetupError(format!("Failed to create the ZMQ pull socket: {}", e))
         })?;

@@ -242,9 +242,9 @@ impl<N: Network> Server<N> {
         }
 
         let server_a = self.clone();
-        let swim_sender = self.read_network().get_swim_sender()?;
-        let swim_sender_a = self.read_network().get_swim_sender()?;
-        let swim_receiver = self.read_network().get_swim_receiver()?;
+        let swim_sender = self.read_network().create_swim_sender()?;
+        let swim_sender_a = self.read_network().create_swim_sender()?;
+        let swim_receiver = self.read_network().create_swim_receiver()?;
         self.swim_sender = Some(swim_sender);
 
         let _ = thread::Builder::new()
@@ -255,7 +255,7 @@ impl<N: Network> Server<N> {
             });
 
         let server_b = self.clone();
-        let swim_sender_b = self.read_network().get_swim_sender()?;
+        let swim_sender_b = self.read_network().create_swim_sender()?;
         let timing_b = timing.clone();
         let _ = thread::Builder::new()
             .name(format!("outbound-{}", self.name()))
