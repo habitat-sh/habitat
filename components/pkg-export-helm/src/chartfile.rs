@@ -17,7 +17,6 @@ use handlebars::Handlebars;
 
 use export_docker::Result;
 
-// Keep the default version in main::cli() in sync with this one
 pub const DEFAULT_VERSION: &'static str = "0.0.1";
 
 // Helm chart file template
