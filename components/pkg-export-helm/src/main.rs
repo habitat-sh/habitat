@@ -84,6 +84,7 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
         .arg(
             Arg::with_name("VERSION")
                 .value_name("VERSION")
+                .short("V")
                 .long("version")
                 .validator(valid_version)
                 // Keep the default version here in sync with chartfile::DEFAULT_VERSION
