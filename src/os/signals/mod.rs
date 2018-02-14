@@ -19,6 +19,7 @@ use os::process;
 #[allow(dead_code)]
 pub enum SignalEvent {
     Shutdown,
+    WaitForChild,
     Passthrough(process::Signal),
 }
 

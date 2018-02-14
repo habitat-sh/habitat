@@ -36,6 +36,7 @@ impl OsSignal for Signal {
             libc::SIGKILL => Some(Signal::KILL),
             libc::SIGSEGV => Some(Signal::SEGV),
             libc::SIGTERM => Some(Signal::TERM),
+            libc::SIGCHLD => Some(Signal::CHLD),
             _ => None,
         }
     }
@@ -54,6 +55,7 @@ impl OsSignal for Signal {
             Signal::ALRM => libc::SIGALRM,
             Signal::USR1 => libc::SIGUSR1,
             Signal::USR2 => libc::SIGUSR2,
+            Signal::CHLD => libc::SIGCHLD,
         }
     }
 }

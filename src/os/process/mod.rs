@@ -46,6 +46,7 @@ pub enum Signal {
     ALRM,
     USR1,
     USR2,
+    CHLD,
 }
 
 impl From<i32> for Signal {
@@ -63,6 +64,7 @@ impl From<i32> for Signal {
             12 => Signal::USR2,
             14 => Signal::ALRM,
             15 => Signal::TERM,
+            17 => Signal::CHLD,
             _ => Signal::KILL,
         }
     }
@@ -83,6 +85,7 @@ impl From<Signal> for i32 {
             Signal::USR2 => 12,
             Signal::ALRM => 14,
             Signal::TERM => 15,
+            Signal::CHLD => 17,
         }
     }
 }
