@@ -11,10 +11,10 @@ data:
   user.toml: {{config}}
 {{/if}}
 ---
-apiVersion: habitat.sh/v1
+apiVersion: habitat.sh/v1beta1
 kind: Habitat
 metadata:
-  ## Name of the Habitat service.
+  ## Name of the Kubernetes resource.
   name: {{metadata_name}}
 spec:
   ## Name of the Habitat service package exported as a Docker image.
@@ -24,6 +24,8 @@ spec:
   ## An object containing parameters that affects how the Habitat service
   ## is executed.
   service:
+    ## Name of the Habitat service.
+    name: {{service_name}}
     ## Habitat topology of the service.
     topology: {{service_topology}}
 {{#if service_group}}

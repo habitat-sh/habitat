@@ -42,6 +42,7 @@ impl ManifestJson {
     pub fn new(manifest: &Manifest) -> Self {
         let main = json!({
             "metadata_name": manifest.metadata_name,
+            "service_name": manifest.service_name,
             "image": manifest.image,
             "count": manifest.count,
             "service_topology": manifest.service_topology.to_string(),
