@@ -80,7 +80,7 @@ impl<'a> Chart<'a> {
 
         let mut values = Values::new();
         values.add_entry("metadataName", &manifest.metadata_name);
-        values.add_entry("serviceName", &manifest.service_name);
+        values.add_entry("serviceName", &manifest.pkg_ident.name);
         values.add_entry("imageName", &manifest.image);
         values.add_entry("instanceCount", &manifest.count.to_string());
         values.add_entry("serviceTopology", &manifest.service_topology.to_string());
