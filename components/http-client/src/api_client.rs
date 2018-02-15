@@ -204,11 +204,12 @@ impl ApiClient {
             return url;
         }
 
-        if url.path().ends_with("/") {
+        if url.path().ends_with("/") || path.starts_with("/") {
             url.set_path(&format!("{}{}", self.endpoint.path(), path));
         } else {
             url.set_path(&format!("{}/{}", self.endpoint.path(), path));
         }
+
         url
     }
 }

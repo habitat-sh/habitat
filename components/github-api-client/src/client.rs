@@ -16,12 +16,11 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::time::{UNIX_EPOCH, Duration, SystemTime};
 
+use hab_http::ApiClient;
 use hyper::{self, Url};
 use hyper::client::{IntoUrl, Response};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
-use hyper::net::HttpsConnector;
-use hyper_openssl::OpensslClient;
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use jwt;
 use regex::Regex;
@@ -32,7 +31,6 @@ use error::{HubError, HubResult};
 use types::*;
 
 const USER_AGENT: &'static str = "Habitat-Builder";
-const HTTP_TIMEOUT: u64 = 3_000;
 
 lazy_static! {
     // Until we can migrate to Hyper 0.11.x, which has typed support
@@ -297,6 +295,25 @@ impl GitHubClient {
         }
         Ok(items)
     }
+
+    // The main purpose of this is just to verify HTTP communication with GH.
+    // There's nothing special about this endpoint, only that it doesn't require
+    // auth and the response body seemed small. We don't even care what the
+    // response is. For our purposes, just receiving a response is enough.
+    pub fn meta(&self) -> HubResult<()> {
+        let url = Url::parse(&format!("{}/meta", self.url)).unwrap();
+        let mut rep = http_get(url, None::<String>)?;
+        let mut body = String::new();
+        rep.read_to_string(&mut body)?;
+        debug!("GitHub response body, {}", body);
+
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
+            return Err(HubError::ApiError(rep.status, err));
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -325,8 +342,19 @@ where
     T: IntoUrl,
     U: ToString,
 {
-    let client = hyper_client();
-    let req = client.get(url);
+    let u = url.into_url().map_err(HubError::HttpClientParse)?;
+    let endpoint = format!("{}://{}", u.scheme(), u.host_str().unwrap());
+    let mut path = u.path();
+
+    // ApiClient expects path to not have a leading slash, so if we detect one here (which is
+    // almost always the case), then strip it off before passing it on. Failure to do so results in
+    // URLs that look like https://api.github.com//meta, which obviously 404s.
+    if path.starts_with("/") && path.len() > 1 {
+        path = path.get(1..).unwrap();
+    }
+
+    let client = http_client(endpoint.as_str())?;
+    let req = client.get(path);
     let req = req.header(Accept(vec![
         qitem(
             Mime(TopLevel::Application, SubLevel::Json, vec![])
@@ -350,8 +378,16 @@ where
     T: IntoUrl,
     U: ToString,
 {
-    let client = hyper_client();
-    let req = client.post(url);
+    let u = url.into_url().map_err(HubError::HttpClientParse)?;
+    let endpoint = format!("{}://{}", u.scheme(), u.host_str().unwrap());
+    let mut path = u.path();
+
+    if path.starts_with("/") && path.len() > 1 {
+        path = path.get(1..).unwrap();
+    }
+
+    let client = http_client(endpoint.as_str())?;
+    let req = client.post(path);
     let req = req.header(Accept(vec![
         qitem(
             Mime(TopLevel::Application, SubLevel::Json, vec![])
@@ -370,11 +406,36 @@ where
     req.send().map_err(HubError::HttpClient)
 }
 
-fn hyper_client() -> hyper::Client {
-    let ssl = OpensslClient::new().unwrap();
-    let connector = HttpsConnector::new(ssl);
-    let mut client = hyper::Client::with_connector(connector);
-    client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
-    client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
-    client
+fn http_client<T>(url: T) -> HubResult<ApiClient>
+where
+    T: IntoUrl,
+{
+    ApiClient::new(url, "hab", "0.53.0", None).map_err(HubError::ApiClient)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+    use super::*;
+    use config;
+
+    #[test]
+    fn use_a_proxy_from_the_env() {
+        let proxy = env::var_os("HTTPS_PROXY");
+
+        if proxy.is_some() {
+            let p = proxy.unwrap();
+            let pp = p.to_string_lossy();
+
+            if !pp.is_empty() {
+                let cfg = config::GitHubCfg::default();
+                let client = GitHubClient::new(cfg);
+                assert_eq!(client.meta().unwrap(), ());
+            } else {
+                assert!(true);
+            }
+        } else {
+            assert!(true);
+        }
+    }
 }

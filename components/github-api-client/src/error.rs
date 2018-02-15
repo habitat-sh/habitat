@@ -20,6 +20,7 @@ use std::io;
 use base64;
 use hyper;
 use serde_json;
+use hab_http;
 
 use types;
 
@@ -27,6 +28,7 @@ pub type HubResult<T> = Result<T, HubError>;
 
 #[derive(Debug)]
 pub enum HubError {
+    ApiClient(hab_http::Error),
     ApiError(hyper::status::StatusCode, HashMap<String, String>),
     AppAuth(types::AppAuthErr),
     Auth(types::AuthErr),
@@ -41,6 +43,7 @@ pub enum HubError {
 impl fmt::Display for HubError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            HubError::ApiClient(ref e) => format!("{}", e),
             HubError::ApiError(ref code, ref response) => {
                 format!(
                     "Received a non-200 response, status={}, response={:?}",
@@ -64,6 +67,7 @@ impl fmt::Display for HubError {
 impl error::Error for HubError {
     fn description(&self) -> &str {
         match *self {
+            HubError::ApiClient(ref err) => err.description(),
             HubError::ApiError(_, _) => "Response returned a non-200 status code.",
             HubError::AppAuth(_) => "GitHub App authorization error.",
             HubError::Auth(_) => "GitHub authorization error.",

@@ -14,6 +14,7 @@
 
 extern crate base64;
 extern crate frank_jwt as jwt;
+extern crate habitat_http_client as hab_http;
 extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
