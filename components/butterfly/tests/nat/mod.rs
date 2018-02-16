@@ -1,3 +1,5 @@
+mod nat;
+
 use std::cmp::Ordering;
 use std::collections::hash_map::Entry;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
@@ -561,6 +563,7 @@ fn field_name_check(actual: &str, expected: &str, idx: &str) -> StdResult<(), St
     }
 }
 
+/*
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 struct TestPublicAddr {
     zone_id: ZoneID,
@@ -645,6 +648,7 @@ impl FromStr for TestPublicAddr {
 impl MyFromStr for TestPublicAddr {
     type MyErr = <Self as FromStr>::Err;
 }
+*/
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 struct TestLocalAddr {
@@ -824,6 +828,7 @@ impl MyFromStr for TestPersistentMappingAddr {
     type MyErr = <Self as FromStr>::Err;
 }
 
+/*
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 struct TestTemporaryMappingAddr {
     parent_zone_id: ZoneID,
@@ -945,45 +950,46 @@ impl FromStr for TestTemporaryMappingAddr {
 impl MyFromStr for TestTemporaryMappingAddr {
     type MyErr = <Self as FromStr>::Err;
 }
+*/
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 enum TestAddr {
-    Public(TestPublicAddr),
+    //Public(TestPublicAddr),
     Local(TestLocalAddr),
     PersistentMapping(TestPersistentMappingAddr),
-    TemporaryMapping(TestTemporaryMappingAddr),
+    //TemporaryMapping(TestTemporaryMappingAddr),
 }
 
 impl TestAddr {
     fn from_parts(parts: TestAddrParts) -> StdResult<Self, String> {
         match parts.address_type.as_str() {
-            "public" => TestPublicAddr::from_parts(parts).map(|a| TestAddr::Public(a)),
+            //"public" => TestPublicAddr::from_parts(parts).map(|a| TestAddr::Public(a)),
             "local" => TestLocalAddr::from_parts(parts).map(|a| TestAddr::Local(a)),
             "perm-map" => {
                 TestPersistentMappingAddr::from_parts(parts).map(|a| TestAddr::PersistentMapping(a))
             }
-            "temp-map" => {
+            /*"temp-map" => {
                 TestTemporaryMappingAddr::from_parts(parts).map(|a| TestAddr::TemporaryMapping(a))
-            }
+            }*/
             _ => Err(format!("unknown address type '{}'", parts.address_type)),
         }
     }
 
     fn get_zone_id(&self) -> ZoneID {
         match self {
-            &TestAddr::Public(ref pip) => pip.get_zone_id(),
+            //&TestAddr::Public(ref pip) => pip.get_zone_id(),
             &TestAddr::Local(ref lip) => lip.get_zone_id(),
             &TestAddr::PersistentMapping(ref pmip) => pmip.get_parent_zone_id(),
-            &TestAddr::TemporaryMapping(ref tmip) => tmip.get_parent_zone_id(),
+            //&TestAddr::TemporaryMapping(ref tmip) => tmip.get_parent_zone_id(),
         }
     }
 
     fn validate_port(&self, port: u16) -> StdResult<u16, String> {
         match self {
-            TestAddr::Public(_) => TestPublicAddr::validate_port(port),
+            //TestAddr::Public(_) => TestPublicAddr::validate_port(port),
             TestAddr::Local(_) => TestLocalAddr::validate_port(port),
             TestAddr::PersistentMapping(_) => TestPersistentMappingAddr::validate_port(port),
-            TestAddr::TemporaryMapping(_) => TestTemporaryMappingAddr::validate_port(port),
+            //TestAddr::TemporaryMapping(_) => TestTemporaryMappingAddr::validate_port(port),
         }
     }
 }
@@ -991,10 +997,10 @@ impl TestAddr {
 impl Display for TestAddr {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         let disp: &Display = match self {
-            TestAddr::Public(ref addr) => addr,
+            //TestAddr::Public(ref addr) => addr,
             TestAddr::Local(ref addr) => addr,
             TestAddr::PersistentMapping(ref addr) => addr,
-            TestAddr::TemporaryMapping(ref addr) => addr,
+            //TestAddr::TemporaryMapping(ref addr) => addr,
         };
 
         disp.fmt(f)
@@ -1156,12 +1162,14 @@ impl Addresses {
         }
     }
 
+    /*
     pub fn generate_public_address_for_server(&mut self, zone_id: ZoneID) -> TestAddrAndPort {
         let idx = self.get_server_idx(zone_id);
         let addr = TestAddr::Public(TestPublicAddr::new(zone_id, idx));
 
         TestAddrAndPort::new(addr, TestPublicAddr::get_valid_port())
     }
+    */
 
     pub fn generate_address_for_server(&mut self, zone_id: ZoneID) -> TestAddrAndPort {
         let idx = self.get_server_idx(zone_id);
@@ -1364,11 +1372,7 @@ struct TestNat {
 }
 
 impl TestNat {
-    pub fn new(
-        parent_id: ZoneID,
-        child_id: ZoneID,
-        addresses: Arc<Mutex<Addresses>>,
-    ) -> Self {
+    pub fn new(parent_id: ZoneID, child_id: ZoneID, addresses: Arc<Mutex<Addresses>>) -> Self {
         let mappings = Arc::new(RwLock::new(Mappings::new()));
         Self {
             parent_id,
@@ -1498,20 +1502,12 @@ impl TestNetworkSwitchBoard {
         }
     }
 
-    pub fn setup_nat(
-        &self,
-        parent_id: ZoneID,
-        child_id: ZoneID,
-    ) -> TestNat {
+    pub fn setup_nat(&self, parent_id: ZoneID, child_id: ZoneID) -> TestNat {
         {
             let mut zones = self.write_zones();
             zones.setup_zone_relationship(parent_id, child_id);
         }
-        let nat = TestNat::new(
-            parent_id,
-            child_id,
-            Arc::clone(&self.addresses),
-        );
+        let nat = TestNat::new(parent_id, child_id, Arc::clone(&self.addresses));
         let nats_key = NatsKey::new(child_id, parent_id);
         {
             let mut nats = self.write_nats();
@@ -1543,10 +1539,13 @@ impl TestNetworkSwitchBoard {
         self.start_server(addr, tagged_additional_addresses)
     }
 
+    /*
     pub fn start_public_server_in_zone(&self, zone_id: ZoneID) -> TestServer {
         self.start_public_server_in_zone_with_additional_addresses(zone_id, HashMap::new())
     }
+    */
 
+    /*
     pub fn start_public_server_in_zone_with_additional_addresses(
         &self,
         zone_id: ZoneID,
@@ -1558,6 +1557,7 @@ impl TestNetworkSwitchBoard {
         };
         self.start_server(addr, tagged_additional_addresses)
     }
+    */
 
     pub fn wait_for_health_of_all(&self, health: Health) -> bool {
         let servers = self.read_servers().clone();
@@ -2025,7 +2025,7 @@ impl TestNetworkSwitchBoard {
         let src = msg.source;
         let tgt = msg.target;
         let source_zone_id = match &msg.source.addr {
-            &TestAddr::Public(ref pip) => pip.get_zone_id(),
+            //&TestAddr::Public(ref pip) => pip.get_zone_id(),
             &TestAddr::Local(ref lip) => lip.get_zone_id(),
             _ => {
                 unreachable!(
@@ -2036,9 +2036,12 @@ impl TestNetworkSwitchBoard {
         };
 
         let can_route_across_zones = {
+            /*
             if let &TestAddr::Public(_) = &msg.target.addr {
                 true
-            } else {
+            } else
+            */
+            {
                 let target_zone_id = msg.target.addr.get_zone_id();
                 let zone_map = self.read_zones();
                 let nats = self.read_nats();
@@ -2094,9 +2097,11 @@ impl TestNetworkSwitchBoard {
                             routed = false;
                         }
                     }
+                    /*
                     TestAddr::TemporaryMapping(_) => {
                         unreachable!("not implemented yet");
                     }
+                    */
                     _ => break,
                 }
             }
