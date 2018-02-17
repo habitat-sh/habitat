@@ -2,33 +2,33 @@
   .container__has-sidebar
     .row
       .main-sidebar.columns.small-12.medium-3 data-sticky-container="" data-swiftype-index="false"
-        .sticky data-sticky="" data-margin-top="1" data-top-anchor="main-nav:bottom" data-btm-anchor="main-footer:top"
-          .sidebar-content
-            - if sidebar_layout == 'docs'
-              form.main-sidebar--search action="/docs/search/" method="get"
-                input.st-default-search-input type="text" placeholder="Search Documentation" name="q"
-            - sidebar_data(sidebar_layout).each do |item|
-                ul.vertical.menu.accordion-menu data-accordion-menu="" data-submenu-toggle="" data-multi-open="true"
-                  - item.links.each do |item_link|
-                    li.main-sidebar--list--item class=link_classes(current_resource.url, item_link)
-                      = link_to item_link.title, item_link.link
-                      - if sub_links?(item_link)
-                        ul.menu.vertical.nested class=link_classes(current_resource.url, item_link)
-                          - item_link.sub_links.each do |sub_link|
-                            li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
-                              = link_to sub_link.title, sub_link.link
-            - if sidebar_layout == 'docs'
-              = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download outline'
+        .sidebar-content
+          - if sidebar_layout == 'docs'
+            form.main-sidebar--search action="/docs/search/" method="get"
+              input.st-default-search-input type="text" placeholder="Search Documentation" name="q"
+          - sidebar_data(sidebar_layout).each do |item|
+              ul.vertical.menu.accordion-menu data-accordion-menu="" data-submenu-toggle="" data-multi-open="true"
+                - item.links.each do |item_link|
+                  li.main-sidebar--list--item class=link_classes(current_resource.url, item_link)
+                    = link_to item_link.title, item_link.link
+                    - if sub_links?(item_link)
+                      ul.menu.vertical.nested class=link_classes(current_resource.url, item_link)
+                        - item_link.sub_links.each do |sub_link|
+                          li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
+                            = link_to sub_link.title, sub_link.link
+          - if sidebar_layout == 'docs'
+            = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download outline'
 
       .main-content__has-sidebar.columns.small-12.medium-9 data-swiftype-index="true"
           == yield
 
-  / Swiftype JS Snippet
-  - if sidebar_layout == 'docs'
-    javascript:
-      (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
-      (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
-      e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
-      })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+    / Algolia search
 
-      _st('install','8zxCLti7_7RsxUtSukaJ','2.0.0');
+    script type="text/javascript" src="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.js"
+    javascript:
+      docsearch({
+       apiKey: '1fea8911b2652e889fb74698da75ef9c',
+       indexName: 'habitat_sh',
+       inputSelector: '.st-default-search-input',
+       debug: true // Set debug to true if you want to inspect the dropdown
+      });
