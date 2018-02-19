@@ -45,13 +45,9 @@ impl ChartFile {
             "description": self.description,
         });
 
-        let r = Handlebars::new()
+        Handlebars::new()
             .template_render(CHARTFILE, &json)
-            .map_err(SyncFailure::new)?;
-        let s = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-            "\n",
-        ) + "\n";
-
-        Ok(s)
+            .map_err(SyncFailure::new)
+            .map_err(From::from)
     }
 }
