@@ -1,4 +1,4 @@
-{{#if config}}
+{{#if config ~}}
 ---
 ## Secret for initial configuration.
 apiVersion: v1
@@ -9,7 +9,7 @@ type: Opaque
 data:
   ## Each configuration item needs to be encoded in base64.
   user.toml: {{config}}
-{{/if}}
+{{/if ~}}
 ---
 apiVersion: habitat.sh/v1
 kind: Habitat
@@ -26,20 +26,20 @@ spec:
   service:
     ## Habitat topology of the service.
     topology: {{service_topology}}
-{{#if service_group}}
+{{~ #if service_group}}
     ## Habitat service group name, a logical grouping of services
     ## with the same package.
     group: {{service_group}}
-{{/if}}
-{{#if config}}
+{{~ /if ~}}
+{{~ #if config}}
     ## Name of the configuration secret.
     configSecretName: user-toml-secret
-{{/if}}
-{{#if ring_secret_name}}
+{{~ /if ~}}
+{{~ #if ring_secret_name}}
     ## The name of the Kubernetes Secret that contains the ring key, which
     ## encrypts the communication between Habitat supervisors.
     ringSecretName: {{ring_secret_name}}
-{{/if}}
-{{#if bind}}
+{{~ /if ~}}
+{{~ #if bind}}
     bind:
-{{/if}}
+{{~ /if ~}}

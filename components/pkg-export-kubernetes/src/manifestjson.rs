@@ -77,12 +77,9 @@ impl Into<String> for ManifestJson {
         // come from the crate programmer (e.g they messed-up the manifest template or don't check
         // the user input).
 
-        let r = Handlebars::new()
+        let mut s = Handlebars::new()
             .template_render(MANIFESTFILE, &self.main)
             .expect("Rendering of manifest from template failed");
-        let mut s = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-            "\n",
-        ) + "\n";
 
         for bind in &self.binds {
             s += &Handlebars::new().template_render(BINDFILE, &bind).expect(
