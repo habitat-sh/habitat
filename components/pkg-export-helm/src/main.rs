@@ -25,6 +25,8 @@ extern crate log;
 extern crate serde_json;
 
 extern crate failure;
+#[macro_use]
+extern crate failure_derive;
 
 mod chart;
 mod chartfile;
