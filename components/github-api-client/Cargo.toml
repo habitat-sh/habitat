@@ -1,7 +1,7 @@
 [package]
 name = "github-api-client"
 version = "0.0.0"
-authors = ["Jamie Winsor <reset@habitat.sh>"]
+authors = ["Jamie Winsor <reset@habitat.sh>", "Josh Black <raskchanky@gmail.com>"]
 workspace = "../../"
 
 [dependencies]
@@ -16,3 +16,6 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 time = "*"
+
+[dependencies.habitat_http_client]
+path = "../http-client"
