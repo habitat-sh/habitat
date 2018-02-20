@@ -1,5 +1,79 @@
 # Habitat CHANGELOG
 
+## [0.54.0](https://github.com/habitat-sh/habitat/tree/0.54.0) (02-20-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.53.0...0.54.0)
+
+## Features & Enhancements
+
+- Better differentiate error sources in Builder Worker jobs [\#4571](https://github.com/habitat-sh/habitat/issues/4571)
+- Create periodic "canary" jobs in Builder to surface platform issues [\#4570](https://github.com/habitat-sh/habitat/issues/4570)
+- Ability to "test drive" releases before publish [\#4207](https://github.com/habitat-sh/habitat/issues/4207)
+- Improve Kubernetes documentation [\#4636](https://github.com/habitat-sh/habitat/pull/4636) ([asymmetric](https://github.com/asymmetric))
+- Update Linux instructions to reflect tar package [\#4590](https://github.com/habitat-sh/habitat/pull/4590) ([tashimi](https://github.com/tashimi))
+- `HAB\\_ORIGIN\\_KEYS` → `HAB\_ORIGIN\_KEYS` [\#4588](https://github.com/habitat-sh/habitat/pull/4588) ([baumanj](https://github.com/baumanj))
+- Added ability to pass habitat secrets into the studio [\#4573](https://github.com/habitat-sh/habitat/pull/4573) ([elliott-davis](https://github.com/elliott-davis))
+- Document the env file pattern to show off @key [\#4568](https://github.com/habitat-sh/habitat/pull/4568) ([onlyhavecans](https://github.com/onlyhavecans))
+- Remove duplicate title [\#4562](https://github.com/habitat-sh/habitat/pull/4562) ([onlyhavecans](https://github.com/onlyhavecans))
+- Release notes 0.53.0 [\#4556](https://github.com/habitat-sh/habitat/pull/4556) ([tashimi](https://github.com/tashimi))
+- Make header more consistent in reference docs [\#4538](https://github.com/habitat-sh/habitat/pull/4538) ([onlyhavecans](https://github.com/onlyhavecans))
+- consistently use softwrapping on paragraphs [\#4534](https://github.com/habitat-sh/habitat/pull/4534) ([onlyhavecans](https://github.com/onlyhavecans))
+
+## Bug fixes
+
+- Regression in template variable handling [\#4615](https://github.com/habitat-sh/habitat/issues/4615)
+- Supervisor update check when loading service blocks service release to live [\#4602](https://github.com/habitat-sh/habitat/issues/4602)
+- Latest `core/hab-launcher` is installed, not latest stable hab-launcher [\#4539](https://github.com/habitat-sh/habitat/issues/4539)
+- \[builder-worker\] Failure to clone remote repo should be an error [\#4164](https://github.com/habitat-sh/habitat/issues/4164)
+- hab sup load not respecting installed package [\#4065](https://github.com/habitat-sh/habitat/issues/4065)
+- `hab svc load` fails when acting on local-only package \(.hart file\) [\#4019](https://github.com/habitat-sh/habitat/issues/4019)
+- Fix array access regression in template rendering [\#4620](https://github.com/habitat-sh/habitat/pull/4620) ([christophermaier](https://github.com/christophermaier))
+- \[pkg-export-docker\] Restore latest tag options. [\#4617](https://github.com/habitat-sh/habitat/pull/4617) ([fnichol](https://github.com/fnichol))
+- `HAB\\\_ORIGIN\\\_KEYS` → `HAB\\_ORIGIN\\_KEYS` [\#4588](https://github.com/habitat-sh/habitat/pull/4588) ([baumanj](https://github.com/baumanj))
+- ensure appveyor version matches hab cli so bintray releases also havethat version [\#4566](https://github.com/habitat-sh/habitat/pull/4566) ([mwrock](https://github.com/mwrock))
+
+**Closed issues:**
+
+- website suggests I unzip a tarball [\#4557](https://github.com/habitat-sh/habitat/issues/4557)
+- bldr rebuilt all Ruby packages when merging ruby25 [\#4461](https://github.com/habitat-sh/habitat/issues/4461)
+- Docker exporter fails if `--registry-url docker.io` option is specified [\#4455](https://github.com/habitat-sh/habitat/issues/4455)
+- 0.51.0 compilation fails loading source for ipc-channel [\#4396](https://github.com/habitat-sh/habitat/issues/4396)
+- Hab 0.50.3 cannot import pyyaml on CLI [\#4210](https://github.com/habitat-sh/habitat/issues/4210)
+- builder 0.39 or newer fails with "a password was requested but not provided" [\#4096](https://github.com/habitat-sh/habitat/issues/4096)
+
+**Merged pull requests:**
+
+- Convert github-api-client to use http-client, which respects proxies [\#4631](https://github.com/habitat-sh/habitat/pull/4631) ([raskchanky](https://github.com/raskchanky))
+- pkg-export-helm: Depend on Habitat operator chart [\#4628](https://github.com/habitat-sh/habitat/pull/4628) ([zeenix](https://github.com/zeenix))
+- pkg-export-k8s: Adapt to Habitat Operator API changes [\#4627](https://github.com/habitat-sh/habitat/pull/4627) ([zeenix](https://github.com/zeenix))
+- Privacy Policy fixes [\#4623](https://github.com/habitat-sh/habitat/pull/4623) ([mgamini](https://github.com/mgamini))
+- WIP test algiola search [\#4613](https://github.com/habitat-sh/habitat/pull/4613) ([ryankeairns](https://github.com/ryankeairns))
+- Rename OriginSecretKey\* to OriginPrivateSigningKey\* [\#4608](https://github.com/habitat-sh/habitat/pull/4608) ([elliott-davis](https://github.com/elliott-davis))
+- `hab svc load` respects currently-installed software [\#4607](https://github.com/habitat-sh/habitat/pull/4607) ([christophermaier](https://github.com/christophermaier))
+- Composite plan bind resolution needs to consider no BINDS and also lo… [\#4605](https://github.com/habitat-sh/habitat/pull/4605) ([christophermaier](https://github.com/christophermaier))
+- Add setting up a ring to overview [\#4603](https://github.com/habitat-sh/habitat/pull/4603) ([tashimi](https://github.com/tashimi))
+- Add information about setting up a ring [\#4600](https://github.com/habitat-sh/habitat/pull/4600) ([tashimi](https://github.com/tashimi))
+- corrects mis-capitalized instances of scaffold in code snippets [\#4599](https://github.com/habitat-sh/habitat/pull/4599) ([nellshamrell](https://github.com/nellshamrell))
+- implement dynamic version setting in powershell plans [\#4589](https://github.com/habitat-sh/habitat/pull/4589) ([mwrock](https://github.com/mwrock))
+- Updates the blog post on windows docker export [\#4584](https://github.com/habitat-sh/habitat/pull/4584) ([burtlo](https://github.com/burtlo))
+- Updates the the packaging windows service blog post [\#4583](https://github.com/habitat-sh/habitat/pull/4583) ([burtlo](https://github.com/burtlo))
+- Updates the sql server blog post [\#4582](https://github.com/habitat-sh/habitat/pull/4582) ([burtlo](https://github.com/burtlo))
+- Fixes the file extension so it appears in list of blog entries [\#4581](https://github.com/habitat-sh/habitat/pull/4581) ([burtlo](https://github.com/burtlo))
+- Fix broken image link [\#4580](https://github.com/habitat-sh/habitat/pull/4580) ([christophermaier](https://github.com/christophermaier))
+- Specify the redirect filename [\#4579](https://github.com/habitat-sh/habitat/pull/4579) ([cnunciato](https://github.com/cnunciato))
+- Blog post announcing OpenShift support [\#4577](https://github.com/habitat-sh/habitat/pull/4577) ([christophermaier](https://github.com/christophermaier))
+- update habitat install link tutorial partial [\#4574](https://github.com/habitat-sh/habitat/pull/4574) ([brewn](https://github.com/brewn))
+- Remove tools/probe-workers.sh script [\#4572](https://github.com/habitat-sh/habitat/pull/4572) ([christophermaier](https://github.com/christophermaier))
+- Download on-demand packages from the `stable` channel. [\#4565](https://github.com/habitat-sh/habitat/pull/4565) ([christophermaier](https://github.com/christophermaier))
+- Refactor Cli to use standard Clap syntax [\#4564](https://github.com/habitat-sh/habitat/pull/4564) ([elliott-davis](https://github.com/elliott-davis))
+- Clarify template configuration documentation [\#4563](https://github.com/habitat-sh/habitat/pull/4563) ([onlyhavecans](https://github.com/onlyhavecans))
+- Redirect configure-workstation [\#4560](https://github.com/habitat-sh/habitat/pull/4560) ([cnunciato](https://github.com/cnunciato))
+- fix protocol crate [\#4558](https://github.com/habitat-sh/habitat/pull/4558) ([elliott-davis](https://github.com/elliott-davis))
+- Don't hard-code version in `habitat-pkg-export-helm` package [\#4555](https://github.com/habitat-sh/habitat/pull/4555) ([christophermaier](https://github.com/christophermaier))
+- Make promote\_rc.sh script executable [\#4554](https://github.com/habitat-sh/habitat/pull/4554) ([christophermaier](https://github.com/christophermaier))
+- Bump version for development [\#4553](https://github.com/habitat-sh/habitat/pull/4553) ([christophermaier](https://github.com/christophermaier))
+- Swiftype config tweaks [\#4530](https://github.com/habitat-sh/habitat/pull/4530) ([ryankeairns](https://github.com/ryankeairns))
+- Allow configurable compression level during build [\#4512](https://github.com/habitat-sh/habitat/pull/4512) ([jaym](https://github.com/jaym))
+
 ## [0.53.0](https://github.com/habitat-sh/habitat/tree/0.53.0) (02-05-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.52.0...0.53.0)
 
