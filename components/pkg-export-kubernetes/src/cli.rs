@@ -92,6 +92,15 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli {
             app: self.app
                 .arg(
+                    Arg::with_name("K8S_NAME")
+                        .value_name("K8S_NAME")
+                        .long("k8s-name")
+                        .help(
+                            "The Kubernetes resource name \
+                             (default: {{pkg_name}}-{{pkg_version}}-{{pkg_release}})",
+                        ),
+                )
+                .arg(
                     Arg::with_name("COUNT")
                         .value_name("COUNT")
                         .long("count")

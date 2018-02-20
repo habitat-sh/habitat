@@ -1,8 +1,8 @@
 ---
-apiVersion: habitat.sh/v1
+apiVersion: habitat.sh/v1beta1
 kind: Habitat
 metadata:
-  ## Name of the Habitat service.
+  ## Name of the Kubernetes resource.
   name: nginx-latest
 spec:
   ## Name of the Habitat service package exported as a Docker image.
@@ -12,6 +12,8 @@ spec:
   ## An object containing parameters that affects how the Habitat service
   ## is executed.
   service:
+    ## Name of the Habitat service.
+    name: nginx
     ## Habitat topology of the service.
     topology: standalone
     ## Habitat service group name, a logical grouping of services
