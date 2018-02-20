@@ -23,12 +23,14 @@ use export_k8s::{Manifest, ManifestJson};
 
 use chartfile::ChartFile;
 use values::Values;
+use deps::Deps;
 
 pub struct Chart<'a> {
     name: String,
     chartfile: ChartFile,
-    manifest_template: ManifestJson,
+    manifest_template: Option<ManifestJson>,
     values: Values,
+    deps: Deps,
     ui: &'a mut UI,
 }
 
@@ -48,14 +50,16 @@ impl<'a> Chart<'a> {
         let version = matches.value_of("VERSION");
         let description = matches.value_of("DESCRIPTION");
         let chartfile = ChartFile::new(&name, version, description);
+        let deps = Deps::new_for_cli_matches(&matches);
 
-        Ok(Self::new_for_manifest(manifest, name, chartfile, ui))
+        Ok(Self::new_for_manifest(manifest, name, chartfile, deps, ui))
     }
 
     fn new_for_manifest(
         manifest: Manifest,
         name: String,
         chartfile: ChartFile,
+        deps: Deps,
         ui: &'a mut UI,
     ) -> Self {
         let main = json!({
@@ -111,16 +115,17 @@ impl<'a> Chart<'a> {
             binds.push(json);
         }
 
-        let manifest_template = ManifestJson {
+        let manifest_template = Some(ManifestJson {
             main: main,
             binds: binds,
-        };
+        });
 
         Chart {
             name,
             chartfile,
             manifest_template,
             values,
+            deps,
             ui,
         }
     }
@@ -128,31 +133,20 @@ impl<'a> Chart<'a> {
     pub fn generate(mut self) -> Result<()> {
         self.ui.status(
             Status::Creating,
-            format!("chart directory `{}`", self.name),
+            format!("directory `{}`", self.name),
         )?;
         fs::create_dir_all(&self.name)?;
 
         self.generate_chartfile()?;
-
-        let template_path = format!("{}/{}", self.name, "templates");
-        self.ui.status(
-            Status::Creating,
-            format!("templates directory `{}`", template_path),
-        )?;
-
         self.generate_values()?;
+        self.generate_manifest_template()?;
+        self.generate_deps()?;
 
-        fs::create_dir_all(&template_path)?;
-        self.generate_manifest_template(&template_path)
+        self.download_deps()
     }
 
-    pub fn generate_chartfile(&mut self) -> Result<()> {
-        let path = format!("{}/Chart.yaml", self.name);
-        self.ui.status(
-            Status::Creating,
-            format!("chart file `{}`", path),
-        )?;
-        let mut write = fs::File::create(path)?;
+    fn generate_chartfile(&mut self) -> Result<()> {
+        let mut write = self.create_file("Chart.yaml")?;
         let out = self.chartfile.into_string()?;
 
         write.write(out.as_bytes())?;
@@ -160,30 +154,52 @@ impl<'a> Chart<'a> {
         Ok(())
     }
 
-    pub fn generate_manifest_template(self, template_path: &str) -> Result<()> {
+    fn generate_manifest_template(&mut self) -> Result<()> {
+        let template_path = format!("{}/{}", self.name, "templates");
+        self.ui.status(
+            Status::Creating,
+            format!("directory `{}`", template_path),
+        )?;
+        fs::create_dir_all(&template_path)?;
+
         let manifest_path = format!("{}/{}.yaml", template_path, self.name);
         self.ui.status(
             Status::Creating,
-            format!("manifest template `{}`", manifest_path),
+            format!("file `{}`", manifest_path),
         )?;
         let mut write = fs::File::create(manifest_path)?;
-        let out: String = self.manifest_template.into();
+        let out: String = self.manifest_template
+            .take()
+            .expect("generate_manifest_template() called more than once")
+            .into();
 
         write.write(out.as_bytes())?;
 
         Ok(())
     }
 
-    pub fn generate_values(&mut self) -> Result<()> {
-        let path = format!("{}/values.yaml", self.name);
-        self.ui.status(
-            Status::Creating,
-            format!("values file `{}`", path),
-        )?;
-        let mut write = fs::File::create(path)?;
-
+    fn generate_values(&mut self) -> Result<()> {
+        let mut write = self.create_file("values.yaml")?;
         self.values.generate(&mut write)?;
 
         Ok(())
+    }
+
+    fn generate_deps(&mut self) -> Result<()> {
+        let mut write = self.create_file("requirements.yaml")?;
+        self.deps.generate(&mut write)?;
+
+        Ok(())
+    }
+
+    fn download_deps(&mut self) -> Result<()> {
+        self.deps.download(&self.name, self.ui)
+    }
+
+    fn create_file(&mut self, name: &str) -> Result<fs::File> {
+        let path = format!("{}/{}", self.name, name);
+        self.ui.status(Status::Creating, format!("file `{}`", path))?;
+
+        fs::File::create(path).map_err(From::from)
     }
 }

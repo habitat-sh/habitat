@@ -25,10 +25,14 @@ extern crate log;
 extern crate serde_json;
 
 extern crate failure;
+#[macro_use]
+extern crate failure_derive;
 
 mod chart;
 mod chartfile;
 mod values;
+mod deps;
+mod error;
 
 use std::result;
 
@@ -63,8 +67,7 @@ fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()>
 fn cli<'a, 'b>() -> clap::App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates a Docker image and generates a Helm chart for the specified Habitat \
-                 package. Habitat operator must be deployed within the Kubernetes cluster before \
-                 the generated chart can be installed.";
+                 package.";
 
     Cli::new(name, about)
         .add_docker_args()
@@ -84,10 +87,11 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
         .arg(
             Arg::with_name("VERSION")
                 .value_name("VERSION")
+                .short("V")
                 .long("version")
                 .validator(valid_version)
-                // Keep the default version here in sync with chartfile::DEFAULT_VERSION
-                .help("Version of the chart to create (default: 0.0.1)"),
+                .help("Version of the chart to create")
+                .default_value(chartfile::DEFAULT_VERSION),
         )
         .arg(
             Arg::with_name("DESCRIPTION")
@@ -95,6 +99,18 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .long("desc")
                 .help("A single-sentence description"),
         )
+        .arg(
+            Arg::with_name("OPERATOR_VERSION")
+                .value_name("OPERATOR_VERSION")
+                .long("operator-version")
+                .validator(valid_version)
+                .help("Version of the Habitat operator to set as dependency")
+                .default_value(deps::DEFAULT_OPERATOR_VERSION),
+        )
+        .arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
+            "Whether to download dependencies. The Kubernetes Habitat Operator is the only \
+             dependancy currently. (default: no)",
+        ))
 }
 
 fn valid_version(val: String) -> result::Result<(), String> {

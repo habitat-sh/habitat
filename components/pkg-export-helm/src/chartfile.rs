@@ -17,7 +17,6 @@ use handlebars::Handlebars;
 
 use export_docker::Result;
 
-// Keep the default version in main::cli() in sync with this one
 pub const DEFAULT_VERSION: &'static str = "0.0.1";
 
 // Helm chart file template
@@ -46,13 +45,9 @@ impl ChartFile {
             "description": self.description,
         });
 
-        let r = Handlebars::new()
+        Handlebars::new()
             .template_render(CHARTFILE, &json)
-            .map_err(SyncFailure::new)?;
-        let s = r.lines().filter(|l| *l != "").collect::<Vec<_>>().join(
-            "\n",
-        ) + "\n";
-
-        Ok(s)
+            .map_err(SyncFailure::new)
+            .map_err(From::from)
     }
 }
