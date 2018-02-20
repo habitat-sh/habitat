@@ -909,6 +909,20 @@ exit_with() {
   exit $2
 }
 
+# **Internal** Removes any potential malicious secrets
+sanitize_secrets() {
+  for x in HAB_BINLINK_DIR HAB_ORIGIN HOME LC_ALL PATH PWD STUDIO_TYPE TERM TERMINFO; do
+    unset "HAB_STUDIO_SECRET_$x"
+  done
+}
+
+# **Internal** Builds up a secret environment based on the prefix `HAB_STUDIO_SECRET_`
+# to pass into the studio
+load_secrets() {
+  sanitize_secrets
+  echo $($bb env | $bb awk -F '=' '/^HAB_STUDIO_SECRET_/ {gsub(/HAB_STUDIO_SECRET_/, "", $0); print}')
+}
+
 # **Internal** Builds up the environment set to pass to an `env(1)` command for
 # use in a `chroot` environment which is printed on stdout.
 chroot_env() {
@@ -995,6 +1009,8 @@ chroot_env() {
     env="$env no_proxy=$(echo $no_proxy | $bb sed 's/, /,/g')"
   fi
 
+  env="$env $(load_secrets)"
+
   echo "$env"
   return 0
 }
@@ -1040,6 +1056,12 @@ report_env_vars() {
   fi
   if [ -n "${no_proxy:-}" ]; then
     info "Exported: no_proxy=$no_proxy"
+  fi
+
+  if [ "$(load_secrets)" ]; then
+    for secret in $(load_secrets); do
+      info "$(echo $secret | $bb awk -F= '{print "Exported:",$1"=[redacted]"}')"
+    done
   fi
 }
 
