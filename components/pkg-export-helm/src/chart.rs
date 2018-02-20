@@ -45,7 +45,7 @@ impl<'a> Chart<'a> {
 
         let name = matches
             .value_of("CHART")
-            .unwrap_or(&manifest.metadata_name)
+            .unwrap_or(&manifest.service_name)
             .to_string();
         let version = matches.value_of("VERSION");
         let description = matches.value_of("DESCRIPTION");
