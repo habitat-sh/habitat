@@ -26,7 +26,7 @@ And now, let's get started!
 
 **Important Note** 
 
-Minikube uses its own Docker Engine, not your machine's Docker Engine. Habitat Studio uses your machine's Docker Engine. So, in order for your Minikube do be able to find the Helm package that you are about to build and export, you need to point your machine's Docker Engine to use Minikube's instead (once you've started your Minikube cluster). 
+Minikube uses its own Docker Engine, not your machine's Docker Engine. Habitat Studio uses your machine's Docker Engine. So, in order for your Minikube to be able to find the Helm package that you are about to build and export, you need to point your machine's Docker Engine to use Minikube's instead (once you've started your Minikube cluster).
 
 So, for the purposes of this Helm demo to work locally, you now need to do: 
 
