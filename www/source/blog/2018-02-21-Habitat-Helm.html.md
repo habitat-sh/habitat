@@ -28,6 +28,7 @@ And now, let's get started!
 * Habitat Operator for Kubernetes: 
 
 ```
+go get -u github.com/kinvolk/habitat-operator/cmd/habitat-operator
 git clone https://github.com/kinvolk/habitat-operator.git
 cd habitat-operator
 make build
