@@ -1,6 +1,6 @@
 ---
 title: Habitat and Helm!
-date: 2018-02-20
+date: 2018-02-21
 author: Tasha Drew
 tags: helm, exporter, kubernetes
 category: update
