@@ -58,7 +58,7 @@ You now have a Helm chart for core-plans/nginx in your core-plans/nginx/nginx-<v
 
 ### Start a cluster and deploy your helm chart!
 
-Here we are going to set up your minikube, and then deploy our helm chart onto that cluster.
+Here we are going to set up Helm in your Kubernetes cluster, and then deploy our Helm chart onto that cluster.
 
 * `kubectl -n kube-system create sa tiller` Creates a service account for Tiller in the kube-system namespace
 * `kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller` Creates a ClusterRoleBinding for Tiller
