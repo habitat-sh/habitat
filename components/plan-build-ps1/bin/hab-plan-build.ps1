@@ -69,7 +69,7 @@ $env:HAB_CACHE_KEY_PATH = "$script:HAB_CACHE_KEY_PATH"
 # The root path containing all locally installed packages
 $script:HAB_PKG_PATH = "$resolvedRoot\pkgs"
 # The first argument to the script is a Plan context directory, containing a
-# `plan.sh` file
+# `plan.ps1` file
 $script:PLAN_CONTEXT = "$Context"
 # The default Habitat Depot from where to download dependencies. If the URL was
 # provided as an option use that, if not use any set `HAB_BLDR_URL`
@@ -1856,16 +1856,16 @@ $script:PLAN_CONTEXT = (Get-Item $Context).FullName
 
 # We'll make sure that both are not present, and if so abort.
 if ((Test-Path "$PLAN_CONTEXT\plan.ps1") -and (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1")) {
-    $places = "$PLAN_CONTEXT\plan.sh and $PLAN_CONTEXT\habitat/plan.sh"
+    $places = "$PLAN_CONTEXT\plan.ps1 and $PLAN_CONTEXT\habitat\plan.ps1"
     _Exit-With "A Plan file was found at $places. Only one is allowed at a time" 42
 }
-# We check if the provided path has a `plan.sh` in it in either location. If
+# We check if the provided path has a `plan.ps1` in it in either location. If
 # not, we'll quickly bail.
 if (-Not (Test-Path "$PLAN_CONTEXT\plan.ps1")) {
     if (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
         $PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
     } else {
-        $places = "$PLAN_CONTEXT\plan.sh or $PLAN_CONTEXT\habitat/plan.sh"
+        $places = "$PLAN_CONTEXT\plan.ps1 or $PLAN_CONTEXT\habitat\plan.ps1"
         _Exit-With "Plan file not found at $places" 42
     }
 }
