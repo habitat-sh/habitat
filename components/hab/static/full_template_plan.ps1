@@ -46,7 +46,7 @@ $pkg_license=@("Apache-2.0")
 {{#if pkg_source ~}}
 $pkg_source="{{ pkg_source }}"
 {{else ~}}
-$pkg_source="http://some_source_url/releases/$pkg_name-$pkg_version.zip"
+# $pkg_source="http://some_source_url/releases/$pkg_name-$pkg_version.zip"
 {{/if}}
 
 # Optional.
