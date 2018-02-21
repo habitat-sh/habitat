@@ -631,14 +631,14 @@ alias la="ls -al"
 
 # Set a prompt which tells us what kind of Studio we're in
 if [ "${HAB_NOCOLORING:-}" = "true" ]; then
-  PS1='[\#]['${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+  PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}[${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
 else
   case "${TERM:-}" in
   *term | xterm-* | rxvt | screen | screen-*)
-    PS1='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]['${STUDIO_TYPE:-unknown}':\[\e[0;35m\]\w\[\e[0;32m\]:\[\e[1;37m\]`echo -n $?`\[\e[0;32m\]]\$\[\e[0m\] '
+    PS1='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]${HAB_STUDIO_BINARY+[\[\e[1;31m\]HAB_STUDIO_BINARY\[\e[0m\]]}['${STUDIO_TYPE:-unknown}':\[\e[0;35m\]\w\[\e[0;32m\]:\[\e[1;37m\]`echo -n $?`\[\e[0;32m\]]\$\[\e[0m\] '
     ;;
   *)
-    PS1='[\#]['${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+    PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}[${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
     ;;
   esac
 fi
@@ -991,6 +991,11 @@ chroot_env() {
   if [ -n "${HAB_UPDATE_STRATEGY_FREQUENCY_MS:-}" ]; then
     env="$env HAB_UPDATE_STRATEGY_FREQUENCY_MS=$HAB_UPDATE_STRATEGY_FREQUENCY_MS"
   fi
+  # If a Habitat studio binary is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
+    env="$env HAB_STUDIO_BINARY=$HAB_STUDIO_BINARY"
+  fi
 
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
@@ -1186,12 +1191,17 @@ set_libexec_path() {
     bb=
   fi
 
-  p="$($bb dirname $0)"
-  p="$(cd $p; $bb pwd)/$($bb basename $0)"
-  p="$($bb readlink -f $p)"
-  p="$($bb dirname $p)"
+  if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
+    version=$($bb env -u HAB_STUDIO_BINARY hab studio version | $bb cut -d ' ' -f 2)
+    libexec_path="$($bb env -u HAB_STUDIO_BINARY hab pkg path core/hab-studio)/libexec"
+  else
+    p="$($bb dirname $0)"
+    p="$(cd $p; $bb pwd)/$($bb basename $0)"
+    p="$($bb readlink -f $p)"
+    p="$($bb dirname $p)"
 
-  libexec_path="$($bb dirname $p)/libexec"
+    libexec_path="$($bb dirname $p)/libexec"
+  fi
   return 0
 }
 
@@ -1222,7 +1232,7 @@ bb="$libexec_path/busybox"
 #
 hab="$libexec_path/hab"
 # The current version of Habitat Studio
-version='@version@'
+: "${version:=@version@}"
 # The author of this program
 author='@author@'
 # The short version of the program name which is used in logging output
