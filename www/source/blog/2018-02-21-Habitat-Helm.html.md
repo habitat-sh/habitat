@@ -22,21 +22,8 @@ And now, let's get started!
 * Habitat (`brew install habitat`) (check with `hab --version` to make sure you're on 0.54.0) Or, if you prefer the `curl | bash`, try `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash`
 * Minikube [https://kubernetes.io/docs/tasks/tools/install-minikube/](https://kubernetes.io/docs/tasks/tools/install-minikube/) 
 * Kubectl (`brew install kubectl`) Alternate installation instructions available [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-* Go (`brew install golang`) Alternate installation instructions available [here](https://golang.org/doc/install#install) 
 * Helm (`brew install kubernetes-helm`) Additional information is available on their github repo at [https://github.com/kubernetes/helm](https://github.com/kubernetes/helm), and learn how to get started at [https://docs.helm.sh/using_helm/#quickstart-guide](https://docs.helm.sh/using_helm/#quickstart-guide)
 * Tiller [https://docs.helm.sh/using_helm/#initialize-helm-and-install-tiller](https://docs.helm.sh/using_helm/#initialize-helm-and-install-tiller) (i.e. just type `helm init`) 
-* Habitat Operator for Kubernetes: 
-
-```
-go get -u github.com/kinvolk/habitat-operator/cmd/habitat-operator
-git clone https://github.com/kinvolk/habitat-operator.git
-cd habitat-operator
-make build
-make image
-```
-
-This will produce a `kinvolk/habitat-operator` image, which can then be deployed to your cluster.
-Read all about the Operator on Github at [https://github.com/kinvolk/habitat-operator/blob/master/README.md](https://github.com/kinvolk/habitat-operator/blob/master/README.md) 
 
 **Important Note** 
 
@@ -44,7 +31,6 @@ Minikube uses its own Docker Engine, not your machine's Docker Engine. Habitat S
 
 So, for the purposes of this Helm demo to work locally, you now need to do: 
 
-* Be in the same directory as your compiled habitat-operator (i.e. habitat-operator)
 * Start minikube with RBAC enabled: `minikube start --extra-config=apiserver.Authorization.Mode=RBAC` 
 * Tell your machine's Docker daemon to use minikube's instead: `eval $(minikube docker-env)`
 
@@ -62,14 +48,11 @@ Once you've cloned core-plans locally, go to `core-plans/nginx` and enter the Ha
 * Exit the Habitat Studio: `exit`
 
 You now have a Helm chart for core-plans/nginx in your core-plans/nginx/nginx-<version>-<datestamp>/ directory
-I suggest you pwd for the above ^^ so you can use it in another tab when you have started your cluster and want to know where your helm chart lives
 
 ### Start a cluster and deploy your helm chart!
 
-Here we are going to set up your minikube, and then deploy our helm chart onto that cluster. So, go back to your `habitat-operator` directory where you left your minikube cluster running and: 
+Here we are going to set up your minikube, and then deploy our helm chart onto that cluster.
 
-* `kubectl create -f examples/rbac` This gives the Habitat Operator the permissions it needs on your RBAC-enabled cluster
-* `kubectl apply -f examples/rbac/habitat-operator.yml` Deploys the Habitat Operator in your minikube cluster 
 * `kubectl -n kube-system create sa tiller` Creates a service account for Tiller in the kube-system namespace
 * `kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller` Creates a ClusterRoleBinding for Tiller
 * `helm init --service-account tiller` Installs Tiller, specifying new service account 
