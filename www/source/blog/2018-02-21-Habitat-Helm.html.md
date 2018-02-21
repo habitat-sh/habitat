@@ -33,7 +33,7 @@ So, for the purposes of this Helm demo to work locally, you now need to do:
 * Start minikube with RBAC enabled: `minikube start --extra-config=apiserver.Authorization.Mode=RBAC` 
 * Tell your machine's Docker daemon to use minikube's instead: `eval $(minikube docker-env)`
 
-If you would prefer to publish your Helm charts to your Dockerhub and have Helm find them there to use on your Kubernetes cluster, that is supported! Please run `hab pkg export helm --help` to see more available options.
+If you would prefer to publish your Helm charts to your Dockerhub and have Helm find them there to use on your Kubernetes cluster, that is supported! Please run `hab pkg export helm --help` to see more available options. (Please note - this command only works on Linux, so if you are not on a Linux machine, you will need to enter the Habitat Studio to run it successfully, using the comman `hab studio enter`). 
 
 ### Go to core-plans/nginx 
 
