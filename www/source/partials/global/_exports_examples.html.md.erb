@@ -4,6 +4,7 @@ You can find exported keys by searching for the package at [https://bldr.habitat
 
 If the producer service is running, you can also retrieve this information by connecting to the HTTP API endpoint for the service and filtering the results. The following retrieves the exported keys and their associated configuration values from a running Elasticsearch service.
 
+Bash:
 ```shell
 $ curl http://127.0.0.1:9631/services/elasticsearch/default | jq .pkg.exports
 
@@ -11,4 +12,13 @@ $ curl http://127.0.0.1:9631/services/elasticsearch/default | jq .pkg.exports
   "http-port": "network.port",
   "transport-port": "transport.port"
 }
+```
+
+Powershell:
+```shell
+PS C:\\> ((Invoke-WebRequest http://127.0.0.1:9631/services/mysql/default -UseBasicParsing).Content | ConvertFrom-Json).pkg.exports
+
+password     port username
+--------     ---- --------
+app_password port app_username
 ```
