@@ -97,7 +97,7 @@ nginx-1.11.10-20180221053714  0s
 
 ==> v1/Pod(related)
 NAME                                             READY  STATUS             RESTARTS  AGE
-honorary-wolf-habitat-operator-7f74859c6d-2jv9b  0/1    ContainerCreating  0         0s
+honorary-wolf-habitat-operator-7f74859c6d-2jv9b  1/1    Running            0         0s
 
 ==> v1/ServiceAccount
 NAME                            SECRETS  AGE
