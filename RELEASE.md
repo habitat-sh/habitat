@@ -3,6 +3,32 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Thursday.
 
+## Submit a Release Notes Blog Post PR
+
+If one has not already been opened, create a "Release Notes" blog post PR. Add a file to the Habitat repo: `www/source/blog/2018-02-20-0540Release.html.md`. Of course you will change the date and version to match the reality that is manifesting itself in your present moment. This post should begin with the following structure:
+
+```
+---
+title: Habitat <VERSION> Released
+date: <yyyy-mm-dd>
+author: Tasha Drew
+tags: release notes
+category: product
+classes: body-article
+---
+
+Habitat <VERSION> Release Notes
+
+We are happy to announce the release of Habitat <VERSION>. We have a number of new features as well as bug fixes, so please read on for all the details. If you just want the binaries, head on over to [Install Habitat](https://www.habitat.sh/docs/using-habitat/#install-habitat). Thanks again for using Habitat!
+
+Highlights: 
+* [BREAKING CHANGE] SOME BREAKING CHANGE
+```
+
+If you happen to be aware of features or bugs and feel there are user impacting words that need to be expressed, this is your opportunity to express them. Tasha will finalize and publish this PR after the release process is complete.
+
+**Important:** Filter all closed PRs labeled `C-breaking` and ensure any and all of these PRs is mentioned as a `[BREAKING CHANGE]` in the post highlights.
+
 ## Prepare Master Branch for Release
 
 1. Clone the Habitat repository if you do not already have it
