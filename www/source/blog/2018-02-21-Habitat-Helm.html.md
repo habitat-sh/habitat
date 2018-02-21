@@ -44,7 +44,14 @@ Once you've cloned core-plans locally, go to `core-plans/nginx` and enter the Ha
 
 * Enter the Habitat Studio within the nginx core plan with `hab studio enter`
 * Build the latest nginx package and stores it as a habitat artifact (“hart”) in the nginx plan’s `results` directory: `build`
-* Export the hab artifact to a Helm chart: `hab pkg export helm results/<yourfilename>.hart` This command will look very similar to `hab pkg export helm results/tdrew-nginx-1.11.10-20180221053714-x86_64-linux.hart`
+* Export the hab artifact to a Helm chart:
+
+`hab pkg export helm results/<yourfilename>.hart`
+
+This command will look very similar to
+
+`hab pkg export helm results/tdrew-nginx-1.11.10-20180221053714-x86_64-linux.hart`
+
 * Exit the Habitat Studio: `exit`
 
 You now have a Helm chart for core-plans/nginx in your core-plans/nginx/nginx-<version>-<datestamp>/ directory
