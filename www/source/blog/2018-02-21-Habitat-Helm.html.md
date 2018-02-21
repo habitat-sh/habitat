@@ -64,8 +64,9 @@ Here we are going to set up Helm in your Kubernetes cluster, and then deploy our
 * `helm init --service-account tiller` Installs Tiller, specifying new service account 
 * `helm version` Check and make sure you have the right version of helm running on your client & server side, (as of printing, v 2.8.1) 
 * `kubectl -n kube-system describe deploy/tiller-deploy` Check and see your service account has been correctly set up per instructions
-* `helm dependency build <what your pwd was from building your Helm + Habitat package>` Reads your new nginx-<version>-<timestamp>/requirements.yaml file and sees the dependency on the habitat-operator. Pulls down the chart that describes the Habitat Operator and embeds it in your application’s chart 
-* `helm install /Users/tdrew/core-plans/nginx/results/nginx-1.11.10-20180220023948/` (or whatever your pwd was -- if it's exactly this we need to talk.) Has Helm install your Habitat Helm package on your Minikube cluster
+* `helm repo add habitat-operator https://kinvolk.github.io/habitat-operator/helm/charts/stable/` Adds the Habitat Operator Helm repository to your Helm configuratio
+* `helm dependency update /Users/tdrew/core-plans/nginx/results/nginx-1.11.10-20180220023948/` (or whatever your pwd was -- if it's exactly this we need to talk.) Reads your new nginx-<version>-<timestamp>/requirements.yaml file and sees the dependency on the habitat-operator. Pulls down the chart that describes the Habitat Operator and embeds it in your application’s chart
+* `helm install /Users/tdrew/core-plans/nginx/results/nginx-1.11.10-20180220023948/` Has Helm install your Habitat Helm package on your Minikube cluster
 
 You will now see output similar to this: 
 
