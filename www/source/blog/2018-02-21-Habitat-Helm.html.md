@@ -23,7 +23,6 @@ And now, let's get started!
 * Minikube [https://kubernetes.io/docs/tasks/tools/install-minikube/](https://kubernetes.io/docs/tasks/tools/install-minikube/) 
 * Kubectl (`brew install kubectl`) Alternate installation instructions available [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 * Helm (`brew install kubernetes-helm`) Additional information is available on their github repo at [https://github.com/kubernetes/helm](https://github.com/kubernetes/helm), and learn how to get started at [https://docs.helm.sh/using_helm/#quickstart-guide](https://docs.helm.sh/using_helm/#quickstart-guide)
-* Tiller [https://docs.helm.sh/using_helm/#initialize-helm-and-install-tiller](https://docs.helm.sh/using_helm/#initialize-helm-and-install-tiller) (i.e. just type `helm init`) 
 
 **Important Note** 
 
