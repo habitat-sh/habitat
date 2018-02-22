@@ -354,7 +354,10 @@ where
     }
 
     let client = http_client(endpoint.as_str())?;
-    let req = client.get(path);
+    let req = client.get_with_custom_url(path, |url| if u.query().is_some() {
+        url.set_query(Some(u.query().unwrap()))
+    });
+
     let req = req.header(Accept(vec![
         qitem(
             Mime(TopLevel::Application, SubLevel::Json, vec![])
@@ -387,7 +390,10 @@ where
     }
 
     let client = http_client(endpoint.as_str())?;
-    let req = client.post(path);
+    let req = client.post_with_custom_url(path, |url| if u.query().is_some() {
+        url.set_query(Some(u.query().unwrap()))
+    });
+
     let req = req.header(Accept(vec![
         qitem(
             Mime(TopLevel::Application, SubLevel::Json, vec![])
