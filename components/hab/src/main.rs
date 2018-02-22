@@ -246,6 +246,7 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
     let revision = m.value_of("REVISION");
     let with_secret = m.is_present("WITH_SECRET");
+    let with_encryption = m.is_present("WITH_ENCRYPTION");
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(m);
 
@@ -255,6 +256,7 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         &origin,
         revision,
         with_secret,
+        with_encryption,
         token.as_ref().map(String::as_str),
         &default_cache_key_path(Some(&*FS_ROOT)),
     )

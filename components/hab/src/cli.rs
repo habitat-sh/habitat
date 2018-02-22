@@ -222,7 +222,9 @@ pub fn get() -> App<'static, 'static> {
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg WITH_SECRET: -s --secret
-                        "Download secret key instead of public key")
+                        "Download secret signing key instead of public signing key")
+                    (@arg WITH_ENCRYPTION: -e --encryption
+                        "Download public encryption key instead of public signing key")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder (required for downloading secret keys)")
                 )
                 (@subcommand export =>
