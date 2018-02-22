@@ -9,44 +9,78 @@ section
   li #{link_to 'Building your package','#build-your-package'}
   li #{link_to 'Testing your package locally','#test-locally'}
   li #{link_to 'Exporting and Running your Docker container','#export-container'}
-  li #{link_to 'Building with Builder','#build-builder'}
+  - if "#{current_page.data.platform_short}" != "aspnet-core"
+    li #{link_to 'Building with Builder','#build-builder'}
   li #{link_to 'Debugging your plan','#debug-plan'}
 
  h2 <a name="build-your-package">Building your package</a>
 
  p From the root of your local project, run the following:
 
- = code(:shell) do
-   | $ hab studio enter
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:shell) do
+     | PS C:\> hab studio enter
 
- p If you are building a Linux-based Habitat package on a Windows or Mac workstation, you will enter a Docker container because the Habitat Studio is a Linux-based Habitat package.
+   p Assuming you are on a Windows host, this will enter a Powershell based Studio inside of a Windows container as long as your Docker engine is set to Windows containers.
+
+   p You may also add the <code>-w</code> argument to enter a local powershell studio. This will start up much faster but lack some of the isolation benefits of a container.
+
+ - else
+   = code(:shell) do
+     | $ hab studio enter
+
+   p If you are on a Windows or Mac workstation, you will enter a Docker container.
+
+   p Note that on Windows, if your Docker engine is set to "Windows containers", you will enter a Powershell based Studio inside of a Windows container. You will need to switch to "Linux containers" if you are building a Linux based plan.
 
  p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project.
 
  p Run <code>build</code> to build your package.
 
- = code(:studio) do
-   | $ build
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:studio) do
+     | [HAB-STUDIO] Habitat:\src> build
+ - else
+   = code(:studio) do
+     | $ build
 
  blockquote
   p <b>Note</b> If you build your web application in a CI/CD workflow, you can use the non-interactive build option to build your package. To do this, change directory to the root of your project and run <code>hab pkg build</code>. A Studio will be created, your package will be built, and then Studio will exit without requiring user input.
 
+  - if "#{current_page.data.platform_short}" == "aspnet-core"
+    p <b>Note</b> The same <code>-w</code> argument applies to <code>hab pkg build</code> if you want to build in a local studio instead of a container.
+
  h2 <a name="test-locally">Testing your package locally</a>
 
- p If you are building your package on either a Windows or macOS workstation, set the <code>HAB_DOCKER_OPTS</code> environment variable before entering the Studio to set the Docker <code>exposes</code> value when the Studio environment initializes. This allows you to browse any local web site from your host browser while remaining inside the Studio. If you are running the Studio natively on a Linux workstation, you can omit this step.
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   p If you are building in a Windows container, set the <code>HAB_DOCKER_OPTS</code> environment variable before entering the Studio to set the Docker <code>exposes</code> value when the Studio environment initializes. This allows you to browse any local web site from your host browser while remaining inside the Studio. Note that Windows containers do not play nice with <code>localhost</code>. To address the container you would use your host's IP address instead.
+ 
+   = code(:shell) do
+     | PS C:\> $ENV:HAB_DOCKER_OPTS="-p 8090:80"   # Maps localhost:8090 to port 80 in the Studio
 
- = code(:shell) do
-   | $ export HAB_DOCKER_OPTS="-p 8080:80"   # Maps localhost:8080 to port 80 in the Studio
+ - else
+   p If you are building your package on either a Windows or macOS workstation, set the <code>HAB_DOCKER_OPTS</code> environment variable before entering the Studio to set the Docker <code>exposes</code> value when the Studio environment initializes. This allows you to browse any local web site from your host browser while remaining inside the Studio. If you are running the Studio natively on a Linux workstation, you can omit this step.
+
+   = code(:shell) do
+     | $ export HAB_DOCKER_OPTS="-p 8080:80"   # Maps localhost:8080 to port 80 in the Studio
 
  p Whenever you enter the Habitat Studio, a Supervisor begins running in the background. When you are ready to test your application, run <code>hab svc load origin/package</code>. If you need to run multiple services together, run the following. The loaded packages will start after they are loaded.
 
- = code(:studio) do
-   |
-    $ hab svc load origin/package
-    $ hab svc load origin/anotherpackage
-    ...
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:studio) do
+     |
+      [HAB-STUDIO] Habitat:\src> hab svc load origin/package
+      [HAB-STUDIO] Habitat:\src> hab svc load origin/anotherpackage
+ - else
+   = code(:studio) do
+     |
+      $ hab svc load origin/package
+      $ hab svc load origin/anotherpackage
 
- p You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   p You can see the streaming output by running <code>Get-SupervisorLog</code>. Type <code>Ctrl-C</code> to exit the streaming output.
+ - else
+   p You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
  = partial '/partials/global/iterative_development'
 
@@ -56,8 +90,16 @@ section
 
  p After you have built your package and are ready to test it outside of the Studio, export it to a Docker container.
 
- = code(:studio) do
-   | $ hab pkg export docker ./results/<hart-filename>.hart && exit
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:studio) do
+     | PS C:\> hab pkg export docker ./habitat/results/<hart-filename>.hart
+
+   blockquote
+    p <b>Note</b> If you were building inside a Windows container, make sure to exit the studio before exporting the hart file.
+
+ - else
+   = code(:studio) do
+     | $ hab pkg export docker ./results/<hart-filename>.hart && exit
 
  blockquote
   p <b>Note</b> The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
@@ -93,7 +135,8 @@ section
 
  p For more information on using the Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
 
- = partial '/partials/tutorials/using_builder'
+ - if "#{current_page.data.platform_short}" != "aspnet-core"
+   = partial '/partials/tutorials/using_builder'
 
  h2 <a name="debug-plan">Debugging your plan</a>
 
@@ -103,42 +146,56 @@ section
 
  p If you have to customize how your web application is built, such as overriding build phases through callbacks, it is helpful to know what environment variables are available to you, to make sure you have successfully copied/referenced files, or performed the business logic you intended to at that specific point in the build.
 
- p There are several #{link_to 'built-in functions','/docs/reference#utility-functions'} you can call in your plan.sh to help you with these issues, but the most important from a debugging perspective is <code>attach</code>. This function can be called from within any of the callbacks and will drop you into an interactive debugging session. For information on how to use the <code>attach</code> function and what you can do with it, see #{link_to 'Debugging Plans','/docs/developing-packages#debug-builds'}.
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   p There are several #{link_to 'built-in functions','/docs/reference#utility-functions'} you can call in your plan.ps1 to help you with these issues, but you will likely find Powershell's own <code>#{link_to 'Set-PSBreakpoint','https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-psbreakpoint?view=powershell-6'}</code> to be the most helpful. You can use its <code>-Command</code> argument and set it to any of the build phase callback functions. When that function is invoked, you will be dropped into an interactive prompt where you can examine variables and files to debug your build.
+ -else
+   p There are several #{link_to 'built-in functions','/docs/reference#utility-functions'} you can call in your plan.sh to help you with these issues, but the most important from a debugging perspective is <code>attach</code>. This function can be called from within any of the callbacks and will drop you into an interactive debugging session. For information on how to use the <code>attach</code> function and what you can do with it, see #{link_to 'Debugging Plans','/docs/developing-packages#debug-builds'}.
 
  h3 Debugging at runtime
 
  p Debugging at runtime involves using a few different techniques to understand how your running service is behaving, how it interacts with peers in different topologies, how it handles configuration updates, and so on.
 
- p For verifying that files were copied into the appropriate paths for your service and paths resolve correctly in runtime hooks, log into the VM or connect to the Docker container that is running the service and examine the files and directories at <code>/hab/svc/package/</code>. Because the Bourne shell is included in the Docker image for every package, you can access the file structure by running the following command.
+ p For verifying that files were copied into the appropriate paths for your service and paths resolve correctly in runtime hooks, log into the VM or connect to the Docker container that is running the service and examine the files and directories at <code>/hab/svc/package/</code>. Because the shell (Bourne or Powershell) is included in the Docker image for every package, you can access the file structure by running the following command.
 
- = code(:shell) do
-   | $ docker exec -it CONTAINERID sh
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:shell) do
+     | PS C:\> docker exec -it CONTAINERID powershell
+ - else
+   = code(:shell) do
+     | $ docker exec -it CONTAINERID sh
 
- p To observe HTTP endpoint data (such as census or butterfly information), start up your service, then connect to the HTTP endpoint using a tool such as curl. You can pipe the JSON output to packages such as <code>core/jq-static</code> to provide a filtered and readable view on the output.
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   p To observe HTTP endpoint data (such as census or butterfly information), start up your service, then connect to the HTTP endpoint using <code>Invoke-WebRequest</code>. You can pipe the JSON output to <code>ConvertFrom-Json</code> and then <code>ConvertTo-Json</code> to provide a filtered and readable view on the output.
 
- p First, install the <code>jq</code> and <code>curl</code> binaries through their respective packages.
+   = code(:shell) do
+     | $ (Invoke-WebRequest http://localhost:9631/census -UseBasicParsing).Content | ConvertFrom-Json |  ConvertTo-Json
 
- = code(:shell) do
-   | $ hab pkg install -b core/{curl,jq-static}
+ - else
+   p To observe HTTP endpoint data (such as census or butterfly information), start up your service, then connect to the HTTP endpoint using a tool such as curl. You can pipe the JSON output to packages such as <code>core/jq-static</code> to provide a filtered and readable view on the output.
 
- p Next run the following to retrieve all of the live members of the "production" group:
+   p First, install the <code>jq</code> and <code>curl</code> binaries through their respective packages.
 
- = code(:shell) do
-   | $ curl localhost:9631/census | jq '.census_groups."yourapp.production".population | map(select(.alive == true))'
+   = code(:shell) do
+     | $ hab pkg install -b core/{curl,jq-static}
 
- p Finally, if you use Docker Compose to start up up your Docker containers, you can use it to scale out Habitat services for debugging and testing leader-follower topology deployments, such as for a PostgreSQL cluster.
+   p Next run the following to retrieve all of the live members of the "production" group:
 
- = code(:shell) do
-   | $ docker-compose up --scale db=3
+   = code(:shell) do
+     | $ curl localhost:9631/census | jq '.census_groups."yourapp.production".population | map(select(.alive == true))'
 
- p Piping output from one of the HTTP endpoints in the "cluster" group will provide you with leader election data.
+   p Finally, if you use Docker Compose to start up up your Docker containers, you can use it to scale out Habitat services for debugging and testing leader-follower topology deployments, such as for a PostgreSQL cluster.
 
- = code(:shell) do
-   | $ curl http://172.18.0.4:9631/census | jq '.census_groups."postgresql.cluster".leader_id'
+   = code(:shell) do
+     | $ docker-compose up --scale db=3
+
+   p Piping output from one of the HTTP endpoints in the "cluster" group will provide you with leader election data.
+
+   = code(:shell) do
+     | $ curl http://172.18.0.4:9631/census | jq '.census_groups."postgresql.cluster".leader_id'
 
  p For information on what endpoint information you can query, see #{link_to 'Monitoring services','https://www.habitat.sh/docs/run-packages-monitoring/'}.
 
-- if ["ruby", "node"].include? "#{current_page.data.platform_short}"
+- if ["ruby", "node", "aspnet-core"].include? "#{current_page.data.platform_short}"
   = link_to 'Next: Connect to Database', "/tutorials/build-your-own/#{current_page.data.platform_short}/connect-database/", class: 'button cta'
 
 - else

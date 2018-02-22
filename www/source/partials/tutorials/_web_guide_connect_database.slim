@@ -12,7 +12,10 @@ section
   li #{link_to 'Setting service bindings','#setting-bindings'} 
   - if "#{current_page.data.platform_short}" == "node"
     li #{link_to 'Defining database connection logic','#connection-logic'}
-  li #{link_to 'Setting database connection values','#setting-values'}
+  - if "#{current_page.data.platform_short}" == "aspnet-core"
+    li #{link_to 'Defining database connection logic','#connection-logic'}
+  - if "#{current_page.data.platform_short}" != "aspnet-core"
+    li #{link_to 'Setting database connection values','#setting-values'}
   li #{link_to 'Connecting to a database running inside a Docker container','#connect-docker'}
   - if "#{current_page.data.platform_short}" == "ruby"
     li #{link_to 'Connecting to a PostgreSQL cluster running in VMs','#connect-vms'}
@@ -20,25 +23,42 @@ section
 
  h2 <a name="setting-bindings">Setting service bindings</a>
 
- p Service bindings allows runtime configuration values for one service group to be shared with another service group, forming a producer/consumer relationship. When you want to share out configuration data with another service group, you must add the <code>pkg_exports</code> setting to your plan.sh. The following shows how the #{current_page.data.platform} scaffolding exports a port key for consuming services, such as a reverse proxy or load balancer.
+ p Service bindings allows runtime configuration values for one service group to be shared with another service group, forming a producer/consumer relationship. When you want to share out configuration data with another service group, you must add the <code>pkg_exports</code> setting to your plan.
+ 
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   p The following shows how a plan.ps1 exports a port key for consuming services, such as a reverse proxy or load balancer.
 
- = code(:bash) do
-   |
-    pkg_exports=([port]=app.port)
+   = code(:bash) do
+     |
+      $pkg_exports=@{"port"="port"}
 
- p This will expose the following from the default.toml created by the scaffolding:
+   p This will expose the following from the default.toml:
+
+ -else
+   p The following shows how the #{current_page.data.platform} scaffolding exports a port key for consuming services, such as a reverse proxy or load balancer.
+
+   = code(:bash) do
+     |
+      pkg_exports=([port]=app.port)
+
+   p This will expose the following from the default.toml created by the scaffolding:
 
  = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_app_port"
 
- p  Conversely, if your web application wants to bind to a key, such as a port from a database, you need to either use the <code>pkg_binds</code> or <code>pkg_binds_optional</code> settings in your plan.sh. This requires that you know what keys are exported by the producer service group.
+ p  Conversely, if your web application wants to bind to a key, such as a port from a database, you need to either use the <code>pkg_binds</code> or <code>pkg_binds_optional</code> settings in your plan. This requires that you know what keys are exported by the producer service group.
 
  = partial "/partials/global/exports_examples"
 
- p Once you have identified the key or keys of the producer that you want to consume in your web application, add that information to your plan.sh file.
+ p Once you have identified the key or keys of the producer that you want to consume in your web application, add that information to your plan file.
 
- = code(:bash) do
-   |
-    pkg_binds=( [elasticsearch]="http-port transport-port" )
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:bash) do
+     |
+      $pkg_binds=@{ "database"="username password port" }
+ - else
+   = code(:bash) do
+     |
+      pkg_binds=( [elasticsearch]="http-port transport-port" )
 
  p For more examples and information on binding, see #{link_to 'Runtime Binding','/docs/developing-packages#pkg-binds'}.
 
@@ -95,9 +115,68 @@ section
       console.log("Connecting to Database");
       mongoose.connect(dbConnectionString, { useMongoClient: true});
 
- h2 <a name="setting-values">Setting database connection values</a>
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   h2 <a name="connection-logic">Defining database connection logic</a>
 
- = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_database"
+   p At the most basic level, connecting to a database like MySql from a #{current_page.data.platform} application requires setting the connection string parameters. One way to do this is to create a templated configuration file that can be referenced from within your #{current_page.data.platform} application. You can then load that configuration file into your main <code>startup.cs</code> file used to bootstrap your application. 
+
+   p This templated configuration data could reside in a JSON file under <code>habitat/config</code>. By placing the file in the <code>config</code> folder, it will get copied into the <code>/hab/svc/&lt;package>/config</code> directory at runtime and rendered with the appropriate values. And because of the Handlebars helper logic, the <code>server</code>, <code>uid</code>, <code>pwd</code>, and <code>port</code> values will be derived from the database service binding information gossipped around the Supervisor ring between the web application and database service groups. In this example, these configuration values will be set to the first member of the service group that the web application is bound to.
+
+   p <b>Example appsettings.json</b>
+
+   = code(:json) do
+     |
+      {
+        "server.urls": "http://*:{{cfg.port}}",
+        "ConnectionStrings": {
+          "DefaultConnection": "server={{bind.database.first.sys.ip}};uid={{bind.database.first.cfg.username}};pwd={{bind.database.first.cfg.password}};port={{bind.database.first.cfg.port}};database=habitat_aspnet_sample;"
+        },
+        "Logging": {
+          "IncludeScopes": false,
+          "LogLevel": {
+            "Default": "Warning"
+          }
+        },
+        "ApplicationConfigurations": {
+            "ImportantMessage": "{{cfg.important_message}}"
+        }
+      }
+
+   p After creating the configuration file, you need to be able to reference it from within your web application. In your plan.ps1 file, use a #{link_to 'environment variable',"/tutorials/build-your-own/#{current_page.data.platform_short}/define-variables"} that references the path to your templated configuration file, such as in the example below:
+
+   = code(:bash) do
+     |
+      function Invoke-SetupEnvironment {
+        Set-RuntimeEnv "HAB_CONFIG_PATH" $pkg_svc_config_path
+      }
+
+   p You can now implement the <code>Startup</code> and <code>ConfigureServices</code> methods in your <code>startup.cs</code> to load these configuration values into your application and use them to connect to your database. 
+
+   = code(:javascript) do
+     |
+        public Startup(IHostingEnvironment env)
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Environment.GetEnvironmentVariable("HAB_CONFIG_PATH") ?? env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .AddEnvironmentVariables();
+            Configuration = builder.Build();
+        }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.Configure<ApplicationConfigurations>(
+              Configuration.GetSection("ApplicationConfigurations"));
+
+            services.AddMvc();
+
+            services.AddDbContext<MessageContext>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+        }
+
+ - if "#{current_page.data.platform_short}" != "aspnet-core"
+   h2 <a name="setting-values">Setting database connection values</a>
+
+   = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_database"
 
  h2 <a name="connect-docker">Connecting to a database running inside a Docker container</a>
 
@@ -105,12 +184,15 @@ section
 
  - if "#{current_page.data.platform_short}" == "ruby"
    p Assuming you are connecting to a PostgreSQL database, export the <code>core/postgresql</code> package to a Docker container.
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   p If you are connecting to a MySql database, export the <code>core/mysql</code> package to a Docker container.
  - else
    p If you are connecting to a MongoDB database, export the <code>core/mongodb</code> package to a Docker container.
 
- = code(:shell) do
-   |
-    $ hab studio enter
+ - if "#{current_page.data.platform_short}" != "aspnet-core"
+   = code(:shell) do
+     |
+      $ hab studio enter
 
  - if "#{current_page.data.platform_short}" == "ruby"
    = code(:studio) do
@@ -120,6 +202,10 @@ section
    = code(:studio) do
      | 
       # hab pkg export docker core/mongodb && exit
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:studio) do
+     |
+      PS C:\> hab pkg export docker core/mysql
 
  p Once you've created Docker containers for both your web application and your database, you can either open two terminal windows and start them up via <code>docker run</code> commands, or use Docker Compose to start them up together. 
 
@@ -143,37 +229,66 @@ section
    = code(:shell) do
      |   
       $ docker run -it <origin>/<package> --peer <DB_IP_ADDRESS> --bind database:mongodb.default
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   = code(:shell) do
+     |
+      PS C:> docker run -it core/mysql
+
+   = code(:shell) do
+     |   
+      PS C:\> docker run -it <origin>/<package> --peer <DB_IP_ADDRESS> --bind database:mysql.default
 
  p The example above requires that you get the IPv4 address of the running database container, which you can retrieve by using the <code>docker inspect</code> command.
 
  = code(:shell) do
    |
-    $ docker inspect CONTAINERID | grep "IPAddress"
+    $ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINERID
 
- h3 Using Docker Compose
+ - if "#{current_page.data.platform_short}" == "aspnet-core"
+   h3 Creating initial database schema
 
- p The other option is to use a tool such as Docker Compose to bring up both services. The <code>docker-compose.yml</code> used in the #{link_to 'Run the Sample App', 'https://www.habitat.sh/tutorials/sample-app/mac/run-app/'} step of the Build a Sample App tutorial can be modified and used for your iterative development needs.
+   p Before you can invode your web applcation endpoint and expect a successful response, the initial database schema will need to be created. If you are following along with the <code>habitat-aspnet-sample</code> application, then you can build and run its <code>sample-migrator</code> plan.
 
- p Create a <code>docker-compose.yml</code> to bring up both your web application and database containers. The volume being shared assumes that you place the <code>docker-compose.yml</code> at the root of your local project repo.
+   = code(:studio) do
+     |
+      PS C:\> hab studio enter
+      PS C:\> build hab-migrator
+      PS C:\> Stop-Supervisor
+      PS C:\> hab sup start <origin>/sample-migrator --bind database:mysql.default --peer <DB_IP_ADDRESS>
 
- p Replace <code>origin/package</code> with the values for your web application.
+   p After building the migrator, this stops the Studio's background Supervisor so that the next command will start a new Supervisor instance that will peer with the running MySql container. The migrator will perform the migration and then sleep indefinitely. So after you see the message: <code>migrated db</code>, you can exit this "throw away" studio.
 
- = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_docker_compose"
+   p You should now be able to access the web application and receive a 200 OK response:
 
- p The next step is to bring up the containers.
+   = code(:studio) do
+     |
+      PS C:\> Invoke-WebRequest http://<WEB_IP_ADDRESS>:8090/ -UseBasicParsing -Method head
 
- = code(:shell) do
-   |
-    $ docker-compose up
+ - else
+   h3 Using Docker Compose
 
- - if "#{current_page.data.platform_short}" == "ruby"
-   p As the Habitat packages initialize, you should see an error in the output that specifies that your web application cannot connect to the database container. This is because the particular database specified by your web application (<code>yourapp_production</code>) has not been set up, so you will need to do this manually. The credentials you provided in your <code>habitat/default.toml</code> file will give you the permission to do this when running the following command:
+   p The other option is to use a tool such as Docker Compose to bring up both services. The <code>docker-compose.yml</code> used in the #{link_to 'Run the Sample App', 'https://www.habitat.sh/tutorials/sample-app/mac/run-app/'} step of the Build a Sample App tutorial can be modified and used for your iterative development needs.
+
+   p Create a <code>docker-compose.yml</code> to bring up both your web application and database containers. The volume being shared assumes that you place the <code>docker-compose.yml</code> at the root of your local project repo.
+
+   p Replace <code>origin/package</code> with the values for your web application.
+
+   = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_docker_compose"
+
+   p The next step is to bring up the containers.
 
    = code(:shell) do
      |
-      $ docker-compose exec yourapp yourapp-rake db:setup
+      $ docker-compose up
 
- p Your web app and database should now be up and running in Docker containers. You can validate this on your local workstation by browsing to #{link_to 'https://localhost:8000/endpoint','https://localhost:8000/endpoint'}. 
+   - if "#{current_page.data.platform_short}" == "ruby"
+     p As the Habitat packages initialize, you should see an error in the output that specifies that your web application cannot connect to the database container. This is because the particular database specified by your web application (<code>yourapp_production</code>) has not been set up, so you will need to do this manually. The credentials you provided in your <code>habitat/default.toml</code> file will give you the permission to do this when running the following command:
+
+     = code(:shell) do
+       |
+        $ docker-compose exec yourapp yourapp-rake db:setup
+
+   p Your web app and database should now be up and running in Docker containers. You can validate this on your local workstation by browsing to #{link_to 'https://localhost:8000/endpoint','https://localhost:8000/endpoint'}. 
 
  - if "#{current_page.data.platform_short}" == "ruby"
    h2 <a name="connect-vms">Connecting to a PostgreSQL cluster running in VMs</a>
@@ -291,4 +406,7 @@ section
 
    = partial "/partials/tutorials/web_guide_#{current_page.data.platform_short}_db_setup"
 
-= link_to 'Next: Connect to Nginx', "/tutorials/build-your-own/#{current_page.data.platform_short}/connect-nginx/", class: 'button cta'
+- if "#{current_page.data.platform_short}" == "aspnet-core"
+  = link_to 'Next: Next Steps', "/tutorials/build-your-own/#{current_page.data.platform_short}/next-steps/", class: 'button cta'
+- else
+  = link_to 'Next: Connect to Nginx', "/tutorials/build-your-own/#{current_page.data.platform_short}/connect-nginx/", class: 'button cta'
