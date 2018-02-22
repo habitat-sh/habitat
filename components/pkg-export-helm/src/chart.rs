@@ -162,7 +162,7 @@ impl<'a> Chart<'a> {
         )?;
         fs::create_dir_all(&template_path)?;
 
-        let manifest_path = format!("{}/{}.yaml", template_path, self.name);
+        let manifest_path = format!("{}/habitat.yaml", template_path);
         self.ui.status(
             Status::Creating,
             format!("file `{}`", manifest_path),
