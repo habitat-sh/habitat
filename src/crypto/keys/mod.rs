@@ -30,7 +30,9 @@ use error::{Error, Result};
 use util::perm;
 
 use super::{PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
-            SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX, SECRET_SYM_KEY_SUFFIX};
+            SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX, SECRET_SYM_KEY_SUFFIX,
+            PUBLIC_BOX_KEY_VERSION, SECRET_BOX_KEY_VERSION, PUBLIC_SIG_KEY_VERSION,
+            SECRET_SIG_KEY_VERSION, SECRET_SYM_KEY_VERSION};
 
 lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -389,6 +391,108 @@ where
         }
     };
     Ok((name, rev))
+}
+
+/// Parses a string slice of a public or secret signature key.
+///
+/// The return valid is a tuple consisting of:
+///   `(PairType, name_with_rev::String, key_body::String)`
+///
+/// # Examples
+///
+/// With a public key:
+///
+/// ```
+/// extern crate habitat_core;
+///
+/// use habitat_core::crypto::keys::parse_key_str;
+/// use habitat_core::crypto::keys::PairType;
+///
+/// fn main() {
+///     let content = "SIG-PUB-1
+/// unicorn-20160517220007
+///
+/// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
+///     let (pair_type, name_with_rev, key_body) = parse_key_str(content).unwrap();
+///     assert_eq!(pair_type, PairType::Public);
+///     assert_eq!(name_with_rev, "unicorn-20160517220007");
+///     assert_eq!(key_body, "J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=");
+/// }
+/// ```
+///
+/// With a secret key:
+///
+/// ```
+/// extern crate habitat_core;
+///
+/// use habitat_core::crypto::keys::parse_key_str;
+/// use habitat_core::crypto::keys::PairType;
+///
+/// fn main() {
+///     let content = "SIG-SEC-1
+/// unicorn-20160517220007
+///
+/// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
+///
+///     let (pair_type, name_with_rev, key_body) = parse_key_str(content).unwrap();
+/// }
+/// ```
+///
+/// # Errors
+///
+/// * If there is a key version mismatch
+/// * If the key version is missing
+/// * If the key name with revision is missing
+/// * If the key value (the Bas64 payload) is missing
+pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
+    let mut lines = content.lines();
+    let pair_type = match lines.next() {
+        Some(val) => {
+            match val {
+                PUBLIC_SIG_KEY_VERSION |
+                PUBLIC_BOX_KEY_VERSION => PairType::Public,
+                SECRET_SIG_KEY_VERSION |
+                SECRET_BOX_KEY_VERSION |
+                SECRET_SYM_KEY_VERSION => PairType::Secret,
+                _ => {
+                    return Err(Error::CryptoError(
+                        format!("Unsupported key version: {}", val),
+                    ))
+                }
+            }
+        }
+        None => {
+            let msg = format!("write_key_from_str:1 Malformed key string:\n({})", content);
+            return Err(Error::CryptoError(msg));
+        }
+    };
+    let name_with_rev = match lines.next() {
+        Some(val) => val,
+        None => {
+            let msg = format!("write_key_from_str:2 Malformed key string:\n({})", content);
+            return Err(Error::CryptoError(msg));
+        }
+    };
+    match lines.nth(1) {
+        Some(val) => {
+            base64::decode(val.trim()).map_err(|_| {
+                Error::CryptoError(format!(
+                    "write_key_from_str:3 Malformed key \
+                                            string:\n({})",
+                    content
+                ))
+            })?;
+            Ok((
+                pair_type,
+                name_with_rev.to_string(),
+                val.trim().to_string(),
+            ))
+        }
+        None => {
+            let msg = format!("write_key_from_str:3 Malformed key string:\n({})", content);
+            Err(Error::CryptoError(msg))
+        }
+    }
 }
 
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
