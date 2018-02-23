@@ -17,16 +17,18 @@ Read on for step by step instructions as to how to use them together.
 
 And now, let's get started! 
 
-### Install all the tools (optimized for homebrew users): 
+### Install all the tools (optimized for Homebrew users): 
 
 * Habitat (`brew install habitat`) (check with `hab --version` to make sure you're on 0.54.0) Or, if you prefer the `curl | bash`, try `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash`
 * Minikube [https://kubernetes.io/docs/tasks/tools/install-minikube/](https://kubernetes.io/docs/tasks/tools/install-minikube/) 
 * Kubectl (`brew install kubectl`) Alternate installation instructions available [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 * Helm (`brew install kubernetes-helm`) Additional information is available on their github repo at [https://github.com/kubernetes/helm](https://github.com/kubernetes/helm), and learn how to get started at [https://docs.helm.sh/using_helm/#quickstart-guide](https://docs.helm.sh/using_helm/#quickstart-guide)
 
+You'll need a Kubernetes cluster to try this out on. If you're doing this on your desktop, you can either install [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or try the [Docker CE Edge releases](https://docs.docker.com/edge/) that include Kubernetes built into Docker for the desktop.
+
 **Important Note** 
 
-Minikube uses its own Docker Engine, not your machine's Docker Engine. Habitat Studio uses your machine's Docker Engine. So, in order for your Minikube to be able to find the Helm package that you are about to build and export, you need to point your machine's Docker Engine to use Minikube's instead (once you've started your Minikube cluster).
+If you use Minikube, bear in mind that it uses its own Docker Engine, not your machine's Docker Engine. Habitat Studio uses your machine's Docker Engine. So, in order for your Minikube to be able to find the Helm package that you are about to build and export, you need to point your machine's Docker Engine to use Minikube's instead (once you've started your Minikube cluster).
 
 So, for the purposes of this Helm demo to work locally, you now need to do: 
 
@@ -35,25 +37,18 @@ So, for the purposes of this Helm demo to work locally, you now need to do:
 
 If you would prefer to publish your Helm charts to your Dockerhub and have Helm find them there to use on your Kubernetes cluster, that is supported! Please run `hab pkg export helm --help` to see more available options. (Please note - this command only works on Linux, so if you are not on a Linux machine, you will need to enter the Habitat Studio to run it successfully, using the comman `hab studio enter`). 
 
-### Go to core-plans/nginx 
+### Package Habitat's core/nginx as a Helm Chart
 
-Habitat's core team provides a curated set of plans to help you build applications and services. You can clone that to your local laptop using `https://github.com/habitat-sh/core-plans.git` and then try out exporting one of these plans to Helm. I highly recommend you kick the tires with a plan that is reasonably fast to compile, which is why I chose `nginx` as the example here.
+Habitat's core team provides a curated set of plans to help you build applications and services. I highly recommend you kick the tires with a precompiled package with an artifact that already exists on the Habitat Depot which is why I chose `nginx` as the example here.
 
-Once you've cloned core-plans locally, go to `core-plans/nginx` and enter the Habitat Studio. The Habitat Studio is a clean room designed for building software without picking up any external dependencies from your local machine.
+* Enter the Habitat Studio (clean room environment) with `hab studio enter`
+* Retrieve the `core/nginx` hab artifact and export it to a Helm chart:
 
-* Enter the Habitat Studio within the nginx core plan with `hab studio enter`
-* Build the latest nginx package and stores it as a habitat artifact (“hart”) in the nginx plan’s `results` directory: `build`
-* Export the hab artifact to a Helm chart:
-
-`hab pkg export helm results/<yourfilename>.hart`
-
-This command will look very similar to
-
-`hab pkg export helm results/tdrew-nginx-1.11.10-20180221053714-x86_64-linux.hart`
+`hab pkg export helm core/nginx`
 
 * Exit the Habitat Studio: `exit`
 
-You now have a Helm chart for core-plans/nginx in your core-plans/nginx/nginx-<version>-<datestamp>/ directory
+You now have a Helm chart for core-plans/nginx in a directory named `nginx-latest`.
 
 ### Start a cluster and deploy your helm chart!
 
@@ -64,15 +59,16 @@ Here we are going to set up Helm in your Kubernetes cluster, and then deploy our
 * `helm init --service-account tiller` Installs Tiller, specifying new service account 
 * `helm version` Check and make sure you have the right version of helm running on your client & server side, (as of printing, v 2.8.1) 
 * `kubectl -n kube-system describe deploy/tiller-deploy` Check and see your service account has been correctly set up per instructions
-* `helm repo add habitat-operator https://kinvolk.github.io/habitat-operator/helm/charts/stable/` Adds the Habitat Operator Helm repository to your Helm configuratio
-* `helm dependency update /Users/tdrew/core-plans/nginx/results/nginx-1.11.10-20180220023948/` (or whatever your pwd was -- if it's exactly this we need to talk.) Reads your new nginx-<version>-<timestamp>/requirements.yaml file and sees the dependency on the habitat-operator. Pulls down the chart that describes the Habitat Operator and embeds it in your application’s chart
-* `helm install /Users/tdrew/core-plans/nginx/results/nginx-1.11.10-20180220023948/` Has Helm install your Habitat Helm package on your Minikube cluster
+* `helm repo add habitat-operator https://kinvolk.github.io/habitat-operator/helm/charts/stable/` Adds the Habitat Operator Helm repository to your Helm configuration
+* `helm install habitat-operator/habitat-operator` Installs the Habitat Operator into your Kubernetes cluster using its Helm Chart.
+* `helm dependency update nginx-latest` Reads your new nginx-latest/requirements.yaml file and sees the dependency on the habitat-operator. Pulls down the chart that describes the Habitat Operator and embeds it in your application’s chart
+* `helm install nginx-latest` Has Helm install your Habitat Helm package on your Minikube cluster
 
 You will now see output similar to this: 
 
 ```
 
-tdrew@remtdrew01:habitat-operator[master]$ helm install /Users/tdrew/core-plans/nginx/nginx-1.11.10-20180221053714/
+tdrew@remtdrew01:habitat-operator[master]$ helm install nginx-latest
 NAME:   honorary-wolf
 LAST DEPLOYED: Tue Feb 20 22:01:57 2018
 NAMESPACE: default
