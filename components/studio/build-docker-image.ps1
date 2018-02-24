@@ -1,3 +1,5 @@
+param ([String[]]$InstallHarts = $null)
+
 $ErrorActionPreference = "Stop"
 
 function info($message) {
@@ -21,7 +23,14 @@ try {
     $env:HAB_BINLINK_DIR = $null
     
     info "Installing and extracting initial Habitat packages"
-    hab pkg install core/hab-studio
+    if(!$InstallHarts) {
+        $InstallHarts = @(
+            "core/hab-studio",
+            "core/hab-sup",
+            "core/windows-service"
+        )
+    }
+    $InstallHarts | % { hab pkg install $_ }
     $studioPath = hab pkg path core/hab-studio
     if ($LASTEXITCODE -ne 0) {
       Write-Error "core/hab-studio must be installed, aborting"
@@ -40,6 +49,7 @@ FROM microsoft/windowsservercore
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
 WORKDIR /src
+RUN /hab/pkgs/$ident/bin/hab/hab.exe pkg exec core/windows-service install
 ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
 "@ | Out-File "$tmpRoot/Dockerfile" -Encoding ascii
     
