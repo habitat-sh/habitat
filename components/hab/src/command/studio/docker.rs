@@ -107,7 +107,11 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         args.remove(index);
     }
 
-    check_mounts(&docker_cmd, volumes.iter())?;
+    // Windows containers do not use filesystem sharing for
+    // local mounts
+    if !is_serving_windows_containers(&docker_cmd) {
+        check_mounts(&docker_cmd, volumes.iter())?;
+    }
     run_container(docker_cmd, args, volumes.iter(), env_vars.iter())
 }
 
@@ -197,9 +201,7 @@ where
         cmd_args.push(vol.as_ref().into());
     }
 
-    if !is_serving_windows_containers(docker_cmd) {
-        cmd_args.push("--privileged".into());
-    }
+    cmd_args.push("--privileged".into());
     cmd_args.push(image_identifier(docker_cmd).into());
     cmd_args.push("-V".into());
     let version_output = Command::new(docker_cmd).args(&cmd_args).output().expect(
