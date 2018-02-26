@@ -45,6 +45,20 @@ if [ -n "${DEBUG:-}" ]; then
   export DEBUG
 fi
 
+# **Internal** Set the verbose flag (i.e. `-v`) for any coreutils-like commands
+# if verbose mode was requested. This definition has to occur before the usage
+# of $v without quotes in the file to not trip the linter. If quotes are added
+# around $v, it causes failures in non-verbose mode. For example:
+#   $bb mkdir -p "$v" "$HAB_STUDIO_ROOT"/dev
+# Results in: mkdir: can't create directory '': No such file or directory
+set_v_flag() {
+  if [ -n "${VERBOSE:-}" ]; then
+    v="-v"
+  else
+    v=
+  fi
+}
+
 # ## Help/Usage functions
 
 # **Internal** Prints help and usage information. Straight forward, no?
@@ -386,11 +400,11 @@ new_studio() {
 
   # Mount filesystems
 
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT"/dev
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT"/proc
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT"/sys
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT"/run
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT"/var/run
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT"/dev
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT"/proc
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT"/sys
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT"/run
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT"/var/run
 
   # Unless `$NO_MOUNT` is set, mount filesystems such as `/dev`, `/proc`, and
   # company. If the mount already exists, skip it to be all idempotent and
@@ -398,37 +412,37 @@ new_studio() {
   if [ -z "${NO_MOUNT}" ]; then
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
       if [ -z "${KRANGSCHNAK+x}" ]; then
-        $bb mount "$v" --bind /dev "$HAB_STUDIO_ROOT"/dev
+        $bb mount $v --bind /dev "$HAB_STUDIO_ROOT"/dev
       else
-        $bb mount "$v" --rbind /dev "$HAB_STUDIO_ROOT"/dev
+        $bb mount $v --rbind /dev "$HAB_STUDIO_ROOT"/dev
       fi
     fi
 
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
-      $bb mount "$v" -t devpts devpts "$HAB_STUDIO_ROOT"/dev/pts -o gid=5,mode=620
+      $bb mount $v -t devpts devpts "$HAB_STUDIO_ROOT"/dev/pts -o gid=5,mode=620
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
-      $bb mount "$v" -t proc proc "$HAB_STUDIO_ROOT"/proc
+      $bb mount $v -t proc proc "$HAB_STUDIO_ROOT"/proc
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
       if [ -z "${KRANGSCHNAK+x}" ]; then
-        $bb mount "$v" -t sysfs sysfs "$HAB_STUDIO_ROOT"/sys
+        $bb mount $v -t sysfs sysfs "$HAB_STUDIO_ROOT"/sys
       else
-        $bb mount "$v" --rbind /sys "$HAB_STUDIO_ROOT"/sys
+        $bb mount $v --rbind /sys "$HAB_STUDIO_ROOT"/sys
       fi
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
-      $bb mount "$v" -t tmpfs tmpfs "$HAB_STUDIO_ROOT"/run
+      $bb mount $v -t tmpfs tmpfs "$HAB_STUDIO_ROOT"/run
     fi
     if [ -e /var/run/docker.sock ]; then
       if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
         $bb touch "$HAB_STUDIO_ROOT"/var/run/docker.sock
-        $bb mount "$v" --bind /var/run/docker.sock "$HAB_STUDIO_ROOT"/var/run/docker.sock
+        $bb mount $v --bind /var/run/docker.sock "$HAB_STUDIO_ROOT"/var/run/docker.sock
       fi
     fi
 
     if [ -h "$HAB_STUDIO_ROOT/dev/shm" ]; then
-      $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/$($bb readlink "$HAB_STUDIO_ROOT"/dev/shm)"
+      $bb mkdir -p $v "$HAB_STUDIO_ROOT/$($bb readlink "$HAB_STUDIO_ROOT"/dev/shm)"
     fi
 
     # Mount the `$ARTIFACT_PATH` under `/hab/cache/artifacts` in the Studio,
@@ -436,9 +450,9 @@ new_studio() {
     if [ -z "${NO_ARTIFACT_PATH}" ]; then
       studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
       if ! $bb mount | $bb grep -q "on $studio_artifact_path type"; then
-        $bb mkdir -p "$v" "$ARTIFACT_PATH"
-        $bb mkdir -p "$v" "$studio_artifact_path"
-        $bb mount "$v" --bind "$ARTIFACT_PATH" "$studio_artifact_path"
+        $bb mkdir -p $v "$ARTIFACT_PATH"
+        $bb mkdir -p $v "$studio_artifact_path"
+        $bb mount $v --bind "$ARTIFACT_PATH" "$studio_artifact_path"
       fi
     fi
   fi
@@ -446,46 +460,52 @@ new_studio() {
   # Create root filesystem
 
   for top_level_dir in bin etc home lib mnt opt sbin var; do
-    $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/$top_level_dir"
+    $bb mkdir -p $v "$HAB_STUDIO_ROOT/$top_level_dir"
   done
 
-  $bb install -d "$v" -m 0750 "$HAB_STUDIO_ROOT/root"
-  $bb install -d "$v" -m 1777 "$HAB_STUDIO_ROOT/tmp" "$HAB_STUDIO_ROOT/var/tmp"
+  $bb install -d $v -m 0750 "$HAB_STUDIO_ROOT/root"
+  $bb install -d $v -m 1777 "$HAB_STUDIO_ROOT/tmp" "$HAB_STUDIO_ROOT/var/tmp"
 
   for usr_dir in bin include lib libexec sbin; do
-    $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/usr/$usr_dir"
+    $bb mkdir -p $v "$HAB_STUDIO_ROOT/usr/$usr_dir"
   done
 
   for usr_share_dir in doc info locale man misc terminfo zoneinfo; do
-    $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/usr/share/$usr_share_dir"
+    $bb mkdir -p $v "$HAB_STUDIO_ROOT/usr/share/$usr_share_dir"
   done
 
   for usr_share_man_dir_num in 1 2 3 4 5 6 7 8; do
-    $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/usr/share/man/man$usr_share_man_dir_num"
+    $bb mkdir -p $v "$HAB_STUDIO_ROOT/usr/share/man/man$usr_share_man_dir_num"
   done
   # If the system is 64-bit, a few symlinks will be required
   case $($bb uname -m) in
   x86_64)
-    $bb ln -sf "$v" lib "$HAB_STUDIO_ROOT/lib64"
-    $bb ln -sf "$v" lib "$HAB_STUDIO_ROOT/usr/lib64"
+    $bb ln -sf $v lib "$HAB_STUDIO_ROOT/lib64"
+    $bb ln -sf $v lib "$HAB_STUDIO_ROOT/usr/lib64"
     ;;
   esac
 
   for var_dir in log mail spool opt cache local; do
-    $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/var/$var_dir"
+    $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/$var_dir"
   done
 
-  $bb ln -sf "$v" /run/lock "$HAB_STUDIO_ROOT/var/lock"
+  $bb ln -sf $v /run/lock "$HAB_STUDIO_ROOT/var/lock"
 
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/var/lib/color"
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/var/lib/misc"
-  $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/var/lib/locate"
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/lib/color"
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/lib/misc"
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/lib/locate"
 
-  $bb ln -sf "$v" /proc/self/mounts "$HAB_STUDIO_ROOT/etc/mtab"
+  $bb ln -sf $v /proc/self/mounts "$HAB_STUDIO_ROOT/etc/mtab"
 
   # Load the appropriate type strategy to complete the setup
   # shellcheck disable=1090
-  . "$libexec_path/hab-studio-type-${STUDIO_TYPE}.sh"
+    libexec_path="$($bb basename "$HAB_STUDIO_BINARY")/../libexec"
+
+  if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
+    . "$($bb dirname "$HAB_STUDIO_BINARY")/../libexec/hab-studio-type-${STUDIO_TYPE}.sh"
+  else
+    . "$libexec_path/hab-studio-type-${STUDIO_TYPE}.sh"
+  fi
 
   # If `/etc/passwd` is not present, create a minimal version to satisfy
   # some software when being built
@@ -538,7 +558,7 @@ EOF
   # Copy minimal networking and DNS resolution configuration files into the
   # Studio filesystem so that commands such as `wget(1)` will work
   for f in /etc/hosts /etc/resolv.conf /etc/nsswitch.conf; do
-    $bb mkdir -p "$v" "$($bb dirname $f)"
+    $bb mkdir -p $v "$($bb dirname $f)"
     if [ $f = "/etc/nsswitch.conf" ] ; then
       $bb touch "$HAB_STUDIO_ROOT$f"
       $bb cat <<EOF > "$HAB_STUDIO_ROOT$f"
@@ -553,7 +573,7 @@ rpc:        files
 services:   files
 EOF
     else
-      $bb cp "$v" $f "$HAB_STUDIO_ROOT$f"
+      $bb cp $v $f "$HAB_STUDIO_ROOT$f"
     fi
   done
 
@@ -568,7 +588,7 @@ studio_env_command="${studio_env_command:?}"
 studio_enter_environment="${studio_enter_environment?}"
 studio_enter_command="${studio_enter_command:?}"
 studio_build_environment="${studio_build_environment?}"
-studio_build_command="${studio_build_command?}"
+studio_build_command='"${studio_build_command?}"'
 studio_run_environment="${studio_run_environment?}"
 EOF
 
@@ -648,12 +668,12 @@ cd /src
 PROFILE
     fi
 
-    $bb mkdir -p "$v" "$HAB_STUDIO_ROOT/src"
+    $bb mkdir -p $v "$HAB_STUDIO_ROOT/src"
     # Mount the `$SRC_PATH` under `/src` in the Studio, unless either `$NO_MOUNT`
     # or `$NO_SRC_PATH` are set
     if [ -z "${NO_MOUNT}" ] && [ -z "${NO_SRC_PATH}" ]; then
       if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
-        $bb mount "$v" --bind "$SRC_PATH" "$HAB_STUDIO_ROOT/src"
+        $bb mount $v --bind "$SRC_PATH" "$HAB_STUDIO_ROOT/src"
       fi
     fi
   fi
@@ -675,7 +695,7 @@ enter_studio() {
 
   trap cleanup_studio EXIT
 
-  # Become the `chroot` process (note: $env must NOT be quoted)
+  # Become the `chroot` process (note: $env and $studio_enter_command must NOT be quoted)
   # shellcheck disable=2086
   $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env $studio_enter_command "$@"
 }
@@ -702,9 +722,9 @@ build_studio() {
 
   trap cleanup_studio EXIT
 
-  # Run the build command in the `chroot` environment (note: $env must NOT be quoted)
+  # Run the build command in the `chroot` environment (note: $env and ${studio_run_command:?} must NOT be quoted)
   # shellcheck disable=2086
-  echo "$studio_build_command" "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env "${studio_run_command:?}"
+  eval echo $studio_build_command "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env ${studio_run_command:?}
 }
 
 # **Internal** Run an arbitrary command in a Studio.
@@ -722,9 +742,9 @@ run_studio() {
 
   trap cleanup_studio EXIT
 
-  # Run the command in the `chroot` environment (note: $env must NOT be quoted)
+  # Run the command in the `chroot` environment (note: $env and $studio_run_command must NOT be quoted)
   # shellcheck disable=2086
-  echo "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env "$studio_run_command"
+  echo "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env $studio_run_command
 }
 
 # **Internal** Destroy a Studio.
@@ -742,7 +762,7 @@ rm_studio() {
   cleanup_studio
 
   # Remove remaining filesystem
-  $bb rm -rf "$v" "$HAB_STUDIO_ROOT"
+  $bb rm -rf $v "$HAB_STUDIO_ROOT"
 }
 
 
@@ -1004,26 +1024,26 @@ unmount_filesystems() {
   # currently mounted. You know, so you can run this all day long, like, for
   # fun and stuff.
 
-  try_umount "$v" -l "$HAB_STUDIO_ROOT/src"
+  try_umount $v -l "$HAB_STUDIO_ROOT/src"
 
   studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
-  try_umount "$v" -l "$studio_artifact_path"
+  try_umount $v -l "$studio_artifact_path"
 
-  try_umount "$v" "$HAB_STUDIO_ROOT/run"
+  try_umount $v "$HAB_STUDIO_ROOT/run"
 
   if [ -z "${KRANGSCHNAK+x}" ]; then
-    try_umount "$v" "$HAB_STUDIO_ROOT/sys"
+    try_umount $v "$HAB_STUDIO_ROOT/sys"
   else
-    try_umount "$v" -l "$HAB_STUDIO_ROOT/sys"
+    try_umount $v -l "$HAB_STUDIO_ROOT/sys"
   fi
 
-  try_umount "$v" "$HAB_STUDIO_ROOT/proc"
+  try_umount $v "$HAB_STUDIO_ROOT/proc"
 
-  try_umount "$v" "$HAB_STUDIO_ROOT/dev/pts"
+  try_umount $v "$HAB_STUDIO_ROOT/dev/pts"
 
-  try_umount "$v" -l "$HAB_STUDIO_ROOT/dev"
+  try_umount $v -l "$HAB_STUDIO_ROOT/dev"
 
-  try_umount "$v" -l "$HAB_STUDIO_ROOT/var/run/docker.sock"
+  try_umount $v -l "$HAB_STUDIO_ROOT/var/run/docker.sock"
 }
 
 # **Internal** Sets the `$libexec_path` variable, which is the absolute path to
@@ -1211,17 +1231,10 @@ studio_config="$HAB_STUDIO_ROOT/.studio"
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
 : ${VERBOSE:=}
+set_v_flag
 # Whether or not less output has been requested. An unset or empty value means
 # it is set to false and any other value is considered set or true.
 : ${QUIET:=}
-
-# Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
-# mode was requested
-if [ -n "${VERBOSE}" ]; then
-  v="-v"
-else
-  v=
-fi
 
 export VERBOSE QUIET
 
