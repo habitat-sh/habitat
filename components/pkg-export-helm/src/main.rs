@@ -20,6 +20,8 @@ extern crate habitat_pkg_export_docker as export_docker;
 extern crate habitat_pkg_export_kubernetes as export_k8s;
 extern crate handlebars;
 #[macro_use]
+extern crate lazy_static;
+#[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde_json;
