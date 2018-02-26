@@ -47,7 +47,12 @@ impl<'a> Chart<'a> {
             .value_of("CHART")
             .unwrap_or(&manifest.pkg_ident.name)
             .to_string();
-        let version = matches.value_of("VERSION");
+        let pkg_version = manifest.pkg_ident.version.clone();
+        let version = matches.value_of("VERSION").or(
+            pkg_version.as_ref().map(|s| {
+                s.as_ref()
+            }),
+        );
         let description = matches.value_of("DESCRIPTION");
         let chartfile = ChartFile::new(&name, version, description);
         let deps = Deps::new_for_cli_matches(&matches);
