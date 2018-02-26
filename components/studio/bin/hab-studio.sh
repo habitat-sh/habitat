@@ -341,6 +341,14 @@ subcommand_run() {
   run_studio "$@"
 }
 
+
+# **Internal**  If a non-zero sized Studio configuration is not found, exit the program.
+exit_if_no_studio_config() {
+  if [ ! -s "$HAB_STUDIO_ROOT/.studio" ]; then
+    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
+  fi
+}
+
 # **Internal** Check if a pre-existing Studio configuration is found and use
 # that to determine the type and assign it to STUDIO_TYPE
 source_studio_type_config() {
@@ -653,11 +661,7 @@ PROFILE
 
 # **Internal** Interactively enter a Studio.
 enter_studio() {
-  # If a non-zero sized Studio configuration is not found, exit the program.
-  if [ ! -s "$HAB_STUDIO_ROOT/.studio" ]; then
-    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
-  fi
-
+  exit_if_no_studio_config
   source_studio_type_config
 
   env="$(chroot_env "$studio_path" "$studio_enter_environment")"
@@ -678,11 +682,7 @@ enter_studio() {
 
 # **Internal** Run a build command using a Studio.
 build_studio() {
-  # If a non-zero sized Studio configuration is not found, exit the program.
-  if [ ! -s "$HAB_STUDIO_ROOT/.studio" ]; then
-    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
-  fi
-
+  exit_if_no_studio_config
   source_studio_type_config
 
   # If a build command is not set, then this type does not support the `build`
@@ -709,11 +709,7 @@ build_studio() {
 
 # **Internal** Run an arbitrary command in a Studio.
 run_studio() {
-  # If a non-zero sized Studio configuration is not found, exit the program.
-  if [ ! -s "$HAB_STUDIO_ROOT/.studio" ]; then
-    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
-  fi
-
+  exit_if_no_studio_config
   source_studio_type_config
 
   env="$(chroot_env "$studio_path" "$studio_run_environment")"
