@@ -588,6 +588,7 @@ studio_env_command="${studio_env_command:?}"
 studio_enter_environment="${studio_enter_environment?}"
 studio_enter_command="${studio_enter_command:?}"
 studio_build_environment="${studio_build_environment?}"
+# Single quotes to delay evaluation until eval call in build_studio
 studio_build_command='"${studio_build_command?}"'
 studio_run_environment="${studio_run_environment?}"
 EOF
@@ -723,6 +724,7 @@ build_studio() {
   trap cleanup_studio EXIT
 
   # Run the build command in the `chroot` environment (note: $env and ${studio_run_command:?} must NOT be quoted)
+  # eval call needed since $studio_build_command may have embedded positional parameters
   # shellcheck disable=2086
   eval echo $studio_build_command "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env ${studio_run_command:?}
 }
