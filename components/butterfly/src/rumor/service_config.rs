@@ -109,7 +109,8 @@ impl ServiceConfig {
 
     pub fn config(&self) -> Result<toml::Value> {
         let config = if self.get_encrypted() {
-            let bytes = BoxKeyPair::decrypt(self.get_config(), &default_cache_key_path(None))?;
+            let bytes =
+                BoxKeyPair::decrypt_with_path(self.get_config(), &default_cache_key_path(None))?;
             let encoded = str::from_utf8(&bytes).map_err(|e| {
                 Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)
             })?;
