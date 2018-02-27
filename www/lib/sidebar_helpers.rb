@@ -11,6 +11,7 @@ module SidebarHelpers
     download
     get_started
     guide_rails
+    guide_tomcat
     legal
     sample_app
     sample_app_linux

@@ -1,0 +1,104 @@
+---
+title: Habitat Guide for Java with Tomcat
+description: The complete guide for getting your Django application running with Habitat.
+---
+h2.h2 Guide - Setting up a Java web application using Tomcat and Maven with Habitat
+ul.small-links
+  li.small-links--item
+    = link_to 'View all guides', '/guides/'
+  li.small-links--item
+    a href="#{github_www_source_url}#{current_page.url}" target="_blank" Contribute on GitHub
+
+section#intro.get-started--boxes
+  h3.h3 Introduction
+  p.description
+    | This is an example of how to package a Java web application, built with Maven, and served through a Tomcat web server. 
+hr
+section#plan.get-started--boxes
+  h3.h3 Create Your Plan
+  p.description
+    | When packaging up a Java web app that is served through a Tomcat web server, you need to set the appropriate dependencies for how your web application is built (in this case using Maven), and add runtime dependencies for both the Tomcat and JRE packages. 
+  p
+    | Other settings such as database binding can be added if you will be connecting to another Habitat service running a database. 
+
+  = code(:bash) do
+    |
+     pkg_name=java-web-app
+     pkg_origin=example
+     pkg_version="0.1.0"
+     pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+     pkg_license=('Apache-2.0')
+     pkg_build_deps=( core/maven )
+     pkg_deps=( core/tomcat8 core/jre8 )
+     pkg_svc_user=root
+
+     pkg_binds_optional=(
+       [database]="port"
+     )
+  p
+   | For more information on the variables you can set in your plan, see #{link_to 'Plan Settings','/docs/reference/#plan-settings'}.
+hr
+section#logic.get-started--boxes
+  h3.h3 Define Build Logic
+  p.description
+    | When building your Java web application, several build tools are available. In this example, we chose Maven to build our <code>.war</code> file. The appropriate place to do this build operation should be done in the <code>do_build</code> callback.
+  p
+    | After your package is built, it needs to be installed into the correct directory in your Habitat package. To do this, use the <code>do_install</code> callback and copy the <code>.war</code> file and place it in the root of the Habitat package that you are building.
+
+  = code(:bash) do
+    |
+     do_build() {
+         mvn package
+     }
+
+     do_install() {
+         cp target/$pkg_name.war $pkg_prefix
+     }
+  p
+   | For more information on build callbacks and the variables you can use within them, see #{link_to 'Build Phase Callbacks','/docs/reference/#reference-callbacks'} and #{link_to 'Plan Variables','/docs/reference/#plan-variables'}.
+hr
+section#hooks.get-started--boxes
+  h3.h3 Define Hooks
+  p.description
+    | Your Java web app will not run correctly unless some additional steps are taken at runtime. Application lifecycle hooks are available for you to define this logic during application initialization, while your application is running, when new configuration changes are applied, etc.
+  
+  p
+   | Before your application can start, you need to set up the runtime environment for your application. Initialization operations like this are typically done in an <code>init</code> hook. In this case, because we're using Tomcat, we will copy our Tomcat directory from our package into the <code>var</code> directory that our service will use during runtime.
+
+  p
+   | <b>Init</b>
+  = code(:bash) do
+    |
+     #!/bin/bash
+
+     exec 2>&1
+
+     echo "Preparing TOMCAT_HOME..."
+
+     # Create a Tomcat root for this app in the package's service directory
+     cp -a {{pkgPathFor "core/tomcat8"}}/tc {{pkg.svc_var_path}}/
+
+     echo "Done preparing TOMCAT_HOME"
+
+  p
+   | At runtime, you need to define what binary, script, or process the Supervisor should run. In this case, we want the Supervisor to start the Tomcat web server and serve out our web application. The <code>run</code> hook is used to define which processes are executed and how.
+   
+  p
+   | To do this you need to export the <code>TOMCAT_HOME</code> environment variable and then copy your web application <code>.war</code> file into the appropriate service directory location expected by the Supervisor. From there you can run your Tomcat server through the <code>exec</code> command.
+  p
+    | <b>Run</b>
+  = code(:bash) do
+    |
+     #!/bin/bash
+
+     exec 2>&1
+
+     echo "Starting Apache Tomcat"
+
+     export TOMCAT_HOME={{pkg.svc_var_path}}/tc
+
+     cp {{pkg.path}}/*.war $TOMCAT_HOME/webapps
+
+     exec ${TOMCAT_HOME}/bin/catalina.sh run
+  p
+   | For more information on lifecycle hooks and the variables and functions you can use in those hooks, see #{link_to 'Hooks','/docs/reference/#reference-hooks'}, #{link_to 'Runtime Settings','/docs/reference/#template-data'}, and #{link_to 'Handlebars Helpers','/docs/reference/#helpers'}.

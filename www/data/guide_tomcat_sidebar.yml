@@ -1,0 +1,12 @@
+---
+sidebar_links:
+- title: Get Started
+  links:
+  - title: Introduction
+    link: /guides/tomcat#intro
+  - title: Create Your Plan
+    link: /guides/tomcat#plan
+  - title: Define Build Logic
+    link: /guides/tomcat#logic
+  - title: Define Hooks
+    link: /guides/tomcat#hooks
