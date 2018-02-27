@@ -605,7 +605,7 @@ EOF
       else
         studio_profile_dir="$libexec_path"
       fi
-      $bb cp $v "$studio_profile_dir/hab-studio-profile.sh" "$pfile"
+      $bb cat "$studio_profile_dir/hab-studio-profile.sh" >> "$pfile"
 
     fi
 
