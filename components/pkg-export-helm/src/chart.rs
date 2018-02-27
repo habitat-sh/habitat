@@ -45,9 +45,14 @@ impl<'a> Chart<'a> {
 
         let name = matches
             .value_of("CHART")
-            .unwrap_or(&manifest.metadata_name)
+            .unwrap_or(&manifest.pkg_ident.name)
             .to_string();
-        let version = matches.value_of("VERSION");
+        let pkg_version = manifest.pkg_ident.version.clone();
+        let version = matches.value_of("VERSION").or(
+            pkg_version.as_ref().map(|s| {
+                s.as_ref()
+            }),
+        );
         let description = matches.value_of("DESCRIPTION");
         let chartfile = ChartFile::new(&name, version, description);
         let deps = Deps::new_for_cli_matches(&matches);
@@ -80,7 +85,7 @@ impl<'a> Chart<'a> {
 
         let mut values = Values::new();
         values.add_entry("metadataName", &manifest.metadata_name);
-        values.add_entry("serviceName", &manifest.service_name);
+        values.add_entry("serviceName", &manifest.pkg_ident.name);
         values.add_entry("imageName", &manifest.image);
         values.add_entry("instanceCount", &manifest.count.to_string());
         values.add_entry("serviceTopology", &manifest.service_topology.to_string());

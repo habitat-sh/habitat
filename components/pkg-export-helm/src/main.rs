@@ -20,6 +20,8 @@ extern crate habitat_pkg_export_docker as export_docker;
 extern crate habitat_pkg_export_kubernetes as export_k8s;
 extern crate handlebars;
 #[macro_use]
+extern crate lazy_static;
+#[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde_json;
@@ -64,6 +66,12 @@ fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()>
     Ok(())
 }
 
+lazy_static! {
+    pub static ref VERSION_HELP: String =
+        format!("Version of the chart to create (default: {{pkg_version}} if available, or {})",
+                chartfile::DEFAULT_VERSION);
+}
+
 fn cli<'a, 'b>() -> clap::App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates a Docker image and generates a Helm chart for the specified Habitat \
@@ -90,8 +98,7 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .short("V")
                 .long("version")
                 .validator(valid_version)
-                .help("Version of the chart to create")
-                .default_value(chartfile::DEFAULT_VERSION),
+                .help(&VERSION_HELP),
         )
         .arg(
             Arg::with_name("DESCRIPTION")

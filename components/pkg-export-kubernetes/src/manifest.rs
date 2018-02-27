@@ -31,10 +31,10 @@ use topology::Topology;
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]
 pub struct Manifest {
+    /// The identifier of the Habitat package
+    pub pkg_ident: PackageIdent,
     /// Name of the Kubernetes resource.
     pub metadata_name: String,
-    /// The Habitat service name.
-    pub service_name: String,
     /// The docker image.
     pub image: String,
     /// The number of desired instances in the service group.
@@ -84,20 +84,20 @@ impl Manifest {
             PackageIdent::from_str(pkg_ident_str)?
         };
 
-        let service_name = pkg_ident.name.clone();
         let version_suffix = match pkg_ident.version {
-            Some(v) => {
+            Some(ref v) => {
                 pkg_ident
                     .release
+                    .as_ref()
                     .map(|r| format!("{}-{}", v, r))
-                    .unwrap_or(v)
+                    .unwrap_or(v.to_string())
             }
             None => "latest".to_owned(),
         };
         let name = matches
             .value_of("K8S_NAME")
             .map(|s| s.to_string())
-            .unwrap_or_else(|| format!("{}-{}", service_name, version_suffix));
+            .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
 
         let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
@@ -136,8 +136,8 @@ impl Manifest {
         };
 
         Ok(Manifest {
+            pkg_ident: pkg_ident,
             metadata_name: name,
-            service_name: service_name,
             image: image_name,
             count: count,
             service_topology: topology,
@@ -165,8 +165,8 @@ mod tests {
     #[test]
     fn test_manifest_generation() {
         let mut m = Manifest {
+            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
             metadata_name: "nginx-latest".to_owned(),
-            service_name: "nginx".to_owned(),
             image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),
@@ -189,8 +189,8 @@ mod tests {
     #[test]
     fn test_manifest_generation_binds() {
         let mut m = Manifest {
+            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
             metadata_name: "nginx-latest".to_owned(),
-            service_name: "nginx".to_owned(),
             image: "core/nginx:latest".to_owned(),
             count: 3,
             service_topology: Default::default(),
