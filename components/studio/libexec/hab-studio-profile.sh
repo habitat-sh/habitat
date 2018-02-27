@@ -37,7 +37,8 @@ record() {
     fi
     for plan_dir in "$1" "$1/habitat"; do
       if [ -f "$plan_dir/plan.sh" ]; then
-        name="$(awk -F '=' '/^pkg_name/ {print $2}' "$plan_dir/plan.sh" 2>/dev/null | sed "s/['\"]//g")"
+        # shellcheck disable=1090,2154
+        name=$(. "$plan_dir/plan.sh" 2>/dev/null && echo "$pkg_name")
         break
       fi
     done
