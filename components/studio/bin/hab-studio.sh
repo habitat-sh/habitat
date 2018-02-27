@@ -588,8 +588,7 @@ studio_env_command="${studio_env_command:?}"
 studio_enter_environment="${studio_enter_environment?}"
 studio_enter_command="${studio_enter_command:?}"
 studio_build_environment="${studio_build_environment?}"
-# Single quotes to delay evaluation until eval call in build_studio
-studio_build_command='"${studio_build_command?}"'
+studio_build_command="${studio_build_command?}"
 studio_run_environment="${studio_run_environment?}"
 EOF
 
@@ -642,7 +641,7 @@ record() {
       if [[ -f $1/habitat/plan.sh ]]; then
         name="$(awk -F '=' '/^pkg_name/ {print $2}' $1/habitat/plan.sh 2>/dev/null | sed "s/['\"]//g")"
       else
-        name="unknown"
+        name="$1"
       fi
     fi
     shift
@@ -662,6 +661,13 @@ record() {
 
     $bb script -c "$bb env -i $env $cmd $*" -e $log
   ); return $?
+}
+
+record_build() {
+  build_command_name=$1
+  plan_context=$2
+  session=$plan_context
+  record "$session" "$build_command_name" "$plan_context"
 }
 
 cd /src
@@ -696,7 +702,8 @@ enter_studio() {
 
   trap cleanup_studio EXIT
 
-  # Become the `chroot` process (note: $env and $studio_enter_command must NOT be quoted)
+  # Become the `chroot` process
+  # Note: env and studio_enter_command must NOT be quoted
   # shellcheck disable=2086
   $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env $studio_enter_command "$@"
 }
@@ -723,10 +730,10 @@ build_studio() {
 
   trap cleanup_studio EXIT
 
-  # Run the build command in the `chroot` environment (note: $env and ${studio_run_command:?} must NOT be quoted)
-  # eval call needed since $studio_build_command may have embedded positional parameters
+  # Run the build command in the `chroot` environment
+  # Note: studio_run_command, env and studio_run_command must NOT be quoted
   # shellcheck disable=2086
-  eval echo $studio_build_command "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env ${studio_run_command:?}
+  echo $studio_build_command "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env ${studio_run_command:?}
 }
 
 # **Internal** Run an arbitrary command in a Studio.
@@ -744,7 +751,8 @@ run_studio() {
 
   trap cleanup_studio EXIT
 
-  # Run the command in the `chroot` environment (note: $env and $studio_run_command must NOT be quoted)
+  # Run the command in the `chroot` environment
+  # Note: env and studio_run_command must NOT be quoted
   # shellcheck disable=2086
   echo "$@" | $bb chroot "$HAB_STUDIO_ROOT" "$studio_env_command" -i $env $studio_run_command
 }
