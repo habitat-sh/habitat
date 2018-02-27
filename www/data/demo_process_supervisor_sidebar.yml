@@ -1,0 +1,26 @@
+---
+sidebar_links:
+- title: Process Supervisor
+  links:
+  - title: Fork the sample application
+    link: /demo/process-supervisor/steps/1
+  - title: Sign in to Habitat Builder
+    link: /demo/process-supervisor/steps/2
+  - title: Create an origin
+    link: /demo/process-supervisor/steps/3
+  - title: Edit the sample plan
+    link: /demo/process-supervisor/steps/4
+  - title: Install the GitHub application
+    link: /demo/process-supervisor/steps/5
+  - title: Connect your plan file
+    link: /demo/process-supervisor/steps/6
+  - title: Promote the initial build
+    link: /demo/process-supervisor/steps/7
+  - title: Install the tools
+    link: /demo/process-supervisor/steps/8
+  - title: Finish setting up Habitat
+    link: /demo/process-supervisor/steps/9
+  - title: Start the application
+    link: /demo/process-supervisor/steps/10
+  - title: Auto-update the application
+    link: /demo/process-supervisor/steps/11

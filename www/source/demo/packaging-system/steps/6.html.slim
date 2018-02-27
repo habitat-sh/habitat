@@ -1,61 +1,60 @@
 ---
 title: Habitat Packaging System Demo - Step 6
-layout: layout
 classes: demo_step
 ---
 #demo-step.demo--page
-  .row
-    .columns.large-12.demo-step--content
-      .demo-step--indicators
-        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/1"
-        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/2"
-        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/3"
-        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/4"
-        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/5"
-        a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/6"
-      .row
-        .columns.large-12
-          h3.h3="Step 6: Run the application"
-          h4.h4="Packaging System Demo"
-        .columns.large-7
-          p
-            ' Now that the build is complete, let's test it out by running the package. Two common ways of running a package include:
-          ul
-            li Start services directly from the Studio* using the Habitat Supervisor, or
-            li Export the .hart to a Docker image and use <em>docker run</em>.
-          p
-            ' We've mentioned the benefits of Habitat's export capabilities, so let's see how
-            ' how that works now. With a single command, you will have exported the .hart file as a Docker image.
-          = code(:shell) do
-            | [1][default:/src:0]# hab pkg export docker ./results/<path to .hart>
-          p
-            ' After the export finishes, exit the studio (or open a new terminal window in the same location) and run the Docker container.
-          = code(:shell) do
-            | [1][default:/src:0]# exit
+  .columns.large-12.demo-step--content
+    .demo-step--indicators
+      a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/1"
+      a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/2"
+      a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/3"
+      a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/4"
+      a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/5"
+      a.demo-step--indicator.packaging.active href="/demo/packaging-system/steps/6"
+    .row
+      .columns.large-12
+        h3.h3="Step 6: Run the application"
+        h4.h4="Packaging System Demo"
+      .columns.large-12
+        p
+          ' Now that the build is complete, let's test it out by running the package. Two common ways of running a package include:
+        ul
+          li Start services directly from the Studio* using the Habitat Supervisor, or
+          li Export the .hart to a Docker image and use <em>docker run</em>.
+        p
+          ' We've mentioned the benefits of Habitat's export capabilities, so let's see how
+          ' how that works now. With a single command, you will have exported the .hart file as a Docker image.
+        = code(:shell) do
+          | [1][default:/src:0]# hab pkg export docker ./results/<path to .hart>
+        p
+          ' After the export finishes, exit the studio (or open a new terminal window in the same location) and run the Docker container.
+        = code(:shell) do
+          | [1][default:/src:0]# exit
 
-          = code(:shell) do
-            | $ docker run -it -p 8000:8000 yourorigin/sample-node-app
+        = code(:shell) do
+          | $ docker run -it -p 8000:8000 yourorigin/sample-node-app
 
-          .footnote
-            p.mb-0
-              span.asterisk="*"
-              '  The Habitat Studio is built using Docker, so you would need to
-              a.link-external href="https://www.habitat.sh/tutorials/build-your-own/node/build-test/#test-locally" expose a port
-              '  (8000:8000, in this case) in order to preview the sample application locally.
+        .footnote
+          p.mb-0
+            span.asterisk="*"
+            '  The Habitat Studio is built using Docker, so you would need to
+            a.link-external href="https://www.habitat.sh/tutorials/build-your-own/node/build-test/#test-locally" expose a port
+            '  (8000:8000, in this case) in order to preview the sample application locally.
 
-        .columns.large-5
-          p
-            ' Finally, go to
-            a.link-external href="http://localhost:8000" target="_blank" http://localhost:8000
-            '  in your browser to see the sample application UI (screenshot below).
-          img.mb-2 alt="Screenshot of sample node app running in web browser" src="/images/demo/screen-sample-app-v1.png"
+        h3="Preview the application in your browser"
+        p
+          ' Finally, go to
+          a.link-external href="http://localhost:8000" target="_blank" http://localhost:8000
+          '  in your browser to see the sample application UI (screenshot below).
+        img.mb-2 alt="Screenshot of sample node app running in web browser" src="/images/demo/screen-sample-app-v1.png"
 
-          h3="That's a wrap!"
-          p
-          ' By building your application with Habitat, you are now able to take advantage of all
-          ' that Habitat has to offer. Return to the Learn Habitat page for additional demos and tutorials.
-      .row.mt-1.step-bottom-nav
-        .columns.large-6
-          a.previous-step-link href="/demo/packaging-system/steps/5" Previous Step
-        .columns.large-6.text-align-right
-          a.button.cta.mb-0 href="/learn" Return to Learn Habitat
+        h3="That's a wrap!"
+        p
+        ' By building your application with Habitat, you are now able to take advantage of all
+        ' the capabilities baked into your build artifact. For example, in the Build System demo you'll learn how to automate the build process and (optionally)
+        ' publish your artifacts to various container registries, all using Habitat Builder.
+    .row.mt-1.step-bottom-nav
+      .columns.large-6
+        a.previous-step-link href="/demo/packaging-system/steps/5" Previous Step
+      .columns.large-6.text-align-right
+        a.button.cta.mb-0 href="/learn" Return to Learn Habitat

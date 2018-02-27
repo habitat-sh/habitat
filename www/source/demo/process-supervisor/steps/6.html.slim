@@ -1,49 +1,47 @@
 ---
 title: Habitat Process Supervisor Demo - Step 6
-layout: layout
 classes: demo_step
 ---
 #demo-step.demo--page
-  .row
-    .columns.large-12.demo-step--content
-      .demo-step--indicators
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/1"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/2"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/3"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/4"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/5"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/6"
-        a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/7"
-        a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/8"
-        a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/9"
-        a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/10"
-        a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/11"
-      .row
-        .columns.large-12
-          h3.h3="Step 6: Connect to the Build Service"
-          h4.h4="Process Supervisor Demo"
-        .columns.large-6
-          p
-            ' Habitat Builder can rebuild your application as you commit new code or when underlying dependencies are updated.
-            ' Additionally, you can request new builds via the Builder web UI, which we'll do in this demo.
-          p
-            ' To enable the Build button in the UI, navigate to the
-            strong Packages
-            '  tab and click the
-            strong Connect a plan
-            '  button.
-          p Enter the GitHub org and repo where you forked the sample app.
-          p
-            ' Next, you will see a page with additional build settings.
-            ' For the sake of this demo, you can simply leave all the default values as they are.
-          p
-            ' Finally, click
-            strong Save Connection
-            ' .
-        .columns.large-6
-          img src="/images/demo/screen-connect-plan-no-export.png"
-      .row.mt-1.step-bottom-nav
-        .columns.large-6
-          a.previous-step-link href="/demo/process-supervisor/steps/5" Previous Step
-        .columns.large-6.text-align-right
-          a.button.cta.mb-0 href="/demo/process-supervisor/steps/7" Next Step
+  .columns.large-12.demo-step--content
+    .demo-step--indicators
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/1"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/2"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/3"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/4"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/5"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/6"
+      a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/7"
+      a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/8"
+      a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/9"
+      a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/10"
+      a.demo-step--indicator.supervisor href="/demo/process-supervisor/steps/11"
+    .row
+      .columns.large-12
+        h3.h3="Step 6: Connect your plan file to Habitat Builder"
+        h4.h4="Process Supervisor Demo"
+      .columns.large-6
+        p
+          ' Habitat Builder can rebuild your application as you commit new code or when underlying dependencies are updated.
+          ' Additionally, you can request new builds via the Builder web UI, which we'll do in this demo.
+        p
+          ' To enable the Build button in the UI, navigate to the
+          strong Packages
+          '  tab and click the
+          strong Connect a plan
+          '  button.
+        p Enter the GitHub org and repo where you forked the sample app.
+        p
+          ' Next, you will see a page with additional build settings.
+          ' For the sake of this demo, you can simply leave all the default values as they are.
+        p
+          ' Finally, click
+          strong Save Connection
+          ' .
+      .columns.large-6
+        img src="/images/demo/screen-connect-plan-no-export.png"
+    .row.mt-1.step-bottom-nav
+      .columns.large-6
+        a.previous-step-link href="/demo/process-supervisor/steps/5" Previous Step
+      .columns.large-6.text-align-right
+        a.button.cta.mb-0 href="/demo/process-supervisor/steps/7" Next Step

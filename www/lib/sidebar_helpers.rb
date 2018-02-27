@@ -7,6 +7,9 @@ module SidebarHelpers
     build_web_app_ruby
     build_web_app_gradle
     build_web_app_aspnet-core
+    demo_packaging_system
+    demo_build_system
+    demo_process_supervisor
     docs
     download
     get_started

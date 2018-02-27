@@ -13,27 +13,31 @@ classes: demo_index
 
   .row.demo--section-title
     h2.h2.no-span Habitat 101
+    p
+      | While the demos build upon concepts from left to right, they are not pre-requisites of one another.
+      br
+      | You can start with whichever topic piques your interest.
 
   .row.demo--callouts
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-build
         h4.h4 Demo
         h3.h3 Packaging System
-        p="Build and export a sample application with Habitat. In turn, you will unlock the power of the Build System and Process Supervisor."
+        p="Package a Node.js application as a Habitat artifact that can run on any platform, then export and run it locally in a Docker container."
         .button-bar
           a.button.cta href="/demo/packaging-system/steps/1" Start the packaging demo
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-trigger
         h4.h4 Demo
         h3.h3 Build System
-        p="Quickly set up automated builds for a sample Node application, while also publishing it as a container image to Docker Hub."
+        p="Use Habitat Builder to set up automated builds for a Node.js application, then publish the build artifacts as container images on Docker Hub."
         .button-bar
           a.button.cta href="/demo/build-system/steps/1" Start the Builder demo
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-publish
         h4.h4 Demo
         h3.h3 Process Supervisor
-        p="See how applications built with Habitat can be run and managed throughout their lifecycle using the built-in Habitat Supervisor."
+        p="See how the Supervsior can auto-update a running Node.js application to a new version by simply building and promoting a new package."
         .button-bar
           a.button.cta href="/demo/process-supervisor/steps/1" Start the Supervisor demo
 
@@ -52,21 +56,21 @@ classes: demo_index
     .columns.large-4.demo--callout.secondary
       .demo--callout-content.demo--callout-supervisor
         h4.h4 Demo
-        h3.h3 Manage runtime services
-        p.demo--callout-description="Get hands on with the Habitat Supervisor by managing application services during runtime."
+        h3.h3 Manage the application lifecycle
+        p.demo--callout-description="Experience the capabilities baked into every Habitat artifact such as dynamic configuration updates, health checks, and more."
         .button-bar
           a.button.cta href="/tutorials/get-started/demo/" Start the runtime demo
     .columns.large-4.demo--callout.secondary
       .demo--callout-content.demo--callout-assemble
         h4.h4 Tutorial
-        h3.h3 Build a multi-service app
+        h3.h3 Build a multi-service web app
         p="In this comprehensive tutorial, you'll build, deploy, and manage a complete web application using Scaffolding."
         .button-bar
           a.button.cta href="/tutorials/sample-app/" Start the web app tutorial
     .columns.large-4.demo--callout.secondary
       .demo--callout-content.demo--callout-habitize
         h4.h4 Guide
-        h3.h3 Habitize your own app
+        h3.h3 Habitize your own applications
         p="Considering adding Habitat to your own application? These language-based guides are the best resource to get you there."
         .button-bar
           a.button.cta href="/tutorials/build-your-own/" View the guides

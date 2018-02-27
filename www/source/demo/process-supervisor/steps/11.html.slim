@@ -1,55 +1,54 @@
 ---
 title: Habitat Process Supervisor Demo - Step 11
-layout: layout
 classes: demo_step
 ---
 #demo-step.demo--page
-  .row
-    .columns.large-12.demo-step--content
-      .demo-step--indicators
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/1"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/2"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/3"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/4"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/5"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/6"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/7"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/8"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/9"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/10"
-        a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/11"
-      .row
-        .columns.large-12
-          h3.h3="Step 11: Auto-update the application"
-          h4.h4="Process Supervisor Demo"
-        .columns.large-6
-          p
-            ' Updating an application can be an arduous task. With the Habitat Supervisor,
-            ' we simply promote a new build artifact and it automatically handles the update.
-          p
-            ' In the previous step, we used the Supervisor to start the application which, by default, watches for new
-            ' <strong>stable</strong> versions in the public depot.
-          p
-            ' As we did earlier, click the <strong>Build latest version</strong> button in the Builder web UI
-            ' to start a new build (see image below).
-          img alt="screenshot of requesting a new build in the Builder web UI" src="/images/demo/screen-start-build.png"
-        .columns.large-6
-          p
-            ' Before promoting this new build artifact, make sure you have the Supervisor log visible in your terminal session
-            ' from the previous step.
-          p
-            ' Once the build has finished, go to the Versions tab and click the <strong>Promote to stable</strong> button.
-            ' Within a minute, you will see the log update and the new version will be noted in the output (see image below).
-          img alt="screenshot of supervisor log updating to latest stable version" src="/images/demo/sup-step-11.png"
-          p
-            ' As you would expect, if there were more than one instance running, they would all update
-            ' according to the selected strategy.
-          h3="That's a wrap!"
-          p
-          ' By running your application with the Habitat, you are now able to take advantage of all
-          ' that the Habitat Supervisor has to offer. Return to the Learn Habitat page for additional demos and tutorials.
-      .row.mt-1.step-bottom-nav
-        .columns.large-6
-          a.previous-step-link href="/demo/process-supervisor/steps/9" Previous Step
-        .columns.large-6.text-align-right
-          a.button.cta.mb-0 href="/learn" Return to Learn Habitat
+  .columns.large-12.demo-step--content
+    .demo-step--indicators
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/1"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/2"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/3"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/4"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/5"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/6"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/7"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/8"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/9"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/10"
+      a.demo-step--indicator.supervisor.active href="/demo/process-supervisor/steps/11"
+    .row
+      .columns.large-12
+        h3.h3="Step 11: Auto-update the running application"
+        h4.h4="Process Supervisor Demo"
+      .columns.large-12
+        p
+          ' Updating an application can be an arduous task. With the Habitat Supervisor,
+          ' we simply promote a new build artifact and it automatically handles the update for us.
+        p
+          ' In the previous step, we used the Supervisor to start the application which, by default, watches for new
+          ' <strong>stable</strong> versions of a package in the public depot.
+          ' As we did earlier, click the <strong>Build latest version</strong> button in the Builder web UI
+          ' to start a new build (see image below).
+        img alt="screenshot of requesting a new build in the Builder web UI" src="/images/demo/screen-start-build.png"
+        p
+          ' Before promoting this new build artifact to <strong>stable</strong>, make sure you have the Supervisor log visible in your terminal session
+          ' from the previous step.
+        p
+          ' Once the build has finished, go to the Versions tab and click the <strong>Promote to stable</strong> button for this build.
+          ' Within a minute, you will see the log update and the new version will be noted in the output (see image below). With a simple
+          ' click of a button, you're now running the latest version of your application code!
+        img alt="screenshot of supervisor log updating to latest stable version" src="/images/demo/sup-step-11.png"
+        p
+          ' As you would expect, if there were more than one instance running, they would all update
+          ' according to the declared update strategy.
+        h3="That's a wrap!"
+        p
+        ' By running your application with the Habitat, you are now able to take advantage of all
+        ' that the Habitat Supervisor has to offer.
+        p
+        ' Return to the Learn Habitat page for additional demos and tutorials.
+    .row.mt-1.step-bottom-nav
+      .columns.large-6
+        a.previous-step-link href="/demo/process-supervisor/steps/9" Previous Step
+      .columns.large-6.text-align-right
+        a.button.cta.mb-0 href="/learn" Return to Learn Habitat
