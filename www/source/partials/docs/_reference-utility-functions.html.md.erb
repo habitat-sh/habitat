@@ -8,6 +8,8 @@ The following helper functions can be useful in your plan to help you build your
 
   To use attach, add `attach` to any callback or part of your plan.sh file and the debugging session with start up when hab-plan-build comes to that part in the file.
 
+> Note: Use the native Powershell cmdlet `Set-PSBreakpoint` for debugging plan.ps1 functions. You can set its `-Command` parameter to any build phase function.
+
 **download_file()**(`plan.sh` only)
 : Downloads a file from a source URL to a local file and uses an optional
 shasum to determine if an existing file can be used.

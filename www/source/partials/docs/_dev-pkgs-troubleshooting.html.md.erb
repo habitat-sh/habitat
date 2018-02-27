@@ -1,6 +1,6 @@
 # <a name="debug-builds" id="debug-builds" data-magellan-target="debug-builds">Troubleshooting Builds</a>
 
-While working on plans, you may wish to stop the build and inspect the environment at any point during a build phase (e.g. `do_download`, `do_build`). Habitat provides an `attach` function for use in your plan that functions like a debugging breakpoint and provides an easy <acronym title="Read, Evaluation, Print Loop">REPL</acronym> at that point.
+While working on plans, you may wish to stop the build and inspect the environment at any point during a build phase (e.g. download, build, unpack, etc.). In Bash based plans, Habitat provides an `attach` function for use in your plan.sh that functions like a debugging breakpoint and provides an easy <acronym title="Read, Evaluation, Print Loop">REPL</acronym> at that point.
 
 To use `attach`, insert it into your plan at the point where you would like to use it, e.g.
 
@@ -74,14 +74,26 @@ Aliases
 
   Type `quit` when you are done with the debugger, and the remainder of the build will continue. If you wish to abort the build entirely, type `quit-program`.
 
-### Outputting the run hook to STDOUT
+### Using `Set-PSBreakpoint` in Powershell plans
 
-  If you want to output your run hook to STDOUT you can add this underneath the
-  top line.
+While there is no `attach` function exposed in a `plan.ps1` file, one can use the native Powershell cmdlet `Set-PSBreakpoint` to access virtually the same functionality. Instead of adding `attach` to your `Invoke-Build` function, enter the following from inside your studio shell:
 
-```bash
-# hooks/run
-#!/bin/bash -xe
-
-exec 2>&1 # output to STDOUT
+```studio
+[HAB-STUDIO] Habitat:\\src> Set-PSBreakpoint -Command Invoke-Build
 ```
+
+Now upon running `build` you should enter an interactive prompt inside the context of the Invoke-Build function:
+
+```studio
+   habitat-aspnet-sample: Building
+Entering debug mode. Use h or ? for help.
+
+Hit Command breakpoint on 'Invoke-Build'
+
+At C:\src\habitat\plan.ps1:26 char:23
++ function Invoke-Build {
++                       ~
+[HAB-STUDIO] C:\hab\cache\src\habitat-aspnet-sample-0.2.0>>
+```
+
+You can now call Powershell commands to inspect variables (like `Get-ChildItem variable:\`) or files to debug your build.
