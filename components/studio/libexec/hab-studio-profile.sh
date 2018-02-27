@@ -35,14 +35,13 @@ record() {
       >&2 echo "Usage: record <SESSION> [CMD [ARG ..]]"
       return 1
     fi
-    name="$(awk -F '=' '/^pkg_name/ {print $2}' $1/plan.sh 2>/dev/null | sed "s/['\"]//g")"
-    if [[ -z "${name:-}" ]]; then
-      if [[ -f $1/habitat/plan.sh ]]; then
-        name="$(awk -F '=' '/^pkg_name/ {print $2}' $1/habitat/plan.sh 2>/dev/null | sed "s/['\"]//g")"
-      else
-        name="$1"
+    for plan_dir in "$1" "$1/habitat"; do
+      if [ -f "$plan_dir/plan.sh" ]; then
+        name="$(awk -F '=' '/^pkg_name/ {print $2}' "$plan_dir/plan.sh" 2>/dev/null | sed "s/['\"]//g")"
+        break
       fi
-    fi
+    done
+    : "${name:=unknown}"
     shift
     cmd="${1:-${SHELL:-sh} -l}"; shift
     bb=${BUSYBOX:-}
@@ -50,15 +49,15 @@ record() {
       | $bb sed -e "s,^,'," -e "s,$,'," -e 's,0;32m,0;31m,g' \
       | $bb tr '\n' ' ')"
     log="${LOGDIR:-/src/results/logs}/${name}.$($bb date -u +%Y-%m-%d-%H%M%S).log"
-    $bb mkdir -p $($bb dirname $log)
-    $bb touch $log
+    $bb mkdir -p "$($bb dirname "$log")"
+    $bb touch "$log"
     if [[ "$log" =~ ^/src/results/logs/.* ]]; then
       ownership=$($bb stat -c '%u:%g' /src)
       $bb chown -R "$ownership" "/src/results" || true
     fi
     unset BUSYBOX LOGDIR name ownership
 
-    $bb script -c "$bb env -i $env $cmd $*" -e $log
+    $bb script -c "$bb env -i $env $cmd $*" -e "$log"
   ); return $?
 }
 
@@ -69,4 +68,4 @@ record_build() {
   record "$session" "$build_command_name" "$plan_context"
 }
 
-cd /src
+cd /src || echo "ERROR: cd to /src failed"
