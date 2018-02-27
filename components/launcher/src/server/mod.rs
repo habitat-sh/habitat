@@ -21,11 +21,17 @@ use std::str::FromStr;
 use std::thread;
 use std::time::Duration;
 
+#[cfg(unix)]
+use std::process::ExitStatus;
+#[cfg(unix)]
+use std::os::unix::process::ExitStatusExt;
+
 use core;
 use core::package::{PackageIdent, PackageInstall};
 use core::os::process::{self, Pid, Signal};
 use core::os::signals::{self, SignalEvent};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
+use libc;
 use protobuf;
 use protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 
@@ -108,19 +114,8 @@ impl Server {
                 match self.supervisor.try_wait() {
                     Ok(None) => Ok(TickState::Continue),
                     Ok(Some(status)) => {
-                        debug!("Supervisor exited: {}", status);
-                        match status.code() {
-                            Some(ERR_NO_RETRY_EXCODE) => {
-                                self.services.kill_all();
-                                return Ok(TickState::Exit(ERR_NO_RETRY_EXCODE));
-                            }
-                            Some(OK_NO_RETRY_EXCODE) => {
-                                self.services.kill_all();
-                                return Ok(TickState::Exit(0));
-                            }
-                            _ => (),
-                        }
-                        Err(Error::SupShutdown)
+                        // Supervisor exited
+                        self.handle_supervisor_exit(status.code())
                     }
                     Err(err) => {
                         warn!("Unable to wait for Supervisor, {}", err);
@@ -131,8 +126,32 @@ impl Server {
         }
     }
 
-    fn reap_zombies(&mut self) {
-        self.services.reap_zombies()
+    /// Given that a Supervisor process has exited with a specific
+    /// exit code, figure out whether we need to restart it or not.
+    // TODO (CM): Consider pulling the status checks into this as
+    // well, accepting an ExitStatus instead of Option<i32>
+    fn handle_supervisor_exit(&mut self, code: Option<i32>) -> Result<TickState> {
+        match code {
+            Some(ERR_NO_RETRY_EXCODE) => {
+                self.services.kill_all();
+                Ok(TickState::Exit(ERR_NO_RETRY_EXCODE))
+            }
+            Some(OK_NO_RETRY_EXCODE) => {
+                self.services.kill_all();
+                Ok(TickState::Exit(0))
+            }
+            Some(_) => {
+                Err(Error::SupShutdown)
+            }
+            None => {
+                // TODO (CM): kill services?
+                Err(Error::SupShutdown)
+            }
+        }
+    }
+
+    fn reap_services(&mut self) {
+        self.services.reap_services()
     }
 
     fn shutdown(&mut self) {
@@ -153,16 +172,135 @@ impl Server {
     }
 
     fn tick(&mut self) -> Result<TickState> {
-        self.reap_zombies();
+        // TODO (CM): Yes, we have `reap_services` as well as
+        // `reap_zombie_orphans`... perhaps they need different
+        // names. However, this is a distinction that might be nice to
+        // collapse in the future.
+        //
+        // `reap_services` is a cross-platform method to reap (and keep
+        // track of) processes that are Habitat
+        // services. `reap_zombie_orphans` is basically a Unix-only
+        // method to take care of any orphan processes that get
+        // re-parented to the Launcher, when it is running as PID 1,
+        // when their parents end before they do.
+        //
+        // There is some natural overlap between the two on Unix
+        // platforms that would be nice to collapse, but it needs to
+        // be done in a way that the basic functionality of process
+        // tracking still works on Windows.
+        self.reap_services();
         match signals::check_for_signal() {
             Some(SignalEvent::Shutdown) => {
                 self.shutdown();
                 return Ok(TickState::Exit(0));
             }
-            Some(SignalEvent::Passthrough(signal)) => self.forward_signal(signal),
+            Some(SignalEvent::WaitForChild) => {
+                // We only return Some if we ended up reaping our
+                // Supervisor; otherwise, we don't need to do anything
+                // special.
+                if let Some(result) = self.reap_zombie_orphans() {
+                    return result;
+                }
+            }
+            Some(SignalEvent::Passthrough(signal)) => {
+                self.forward_signal(signal);
+            }
             None => (),
         }
         self.handle_message()
+    }
+
+    /// When the supervisor runs as the init process (e.g. in a
+    /// container), it will become the parent of any processes whose
+    /// parents terminate before they do (as is standard on Linux). We
+    /// need to call `waitpid` on these children to prevent a zombie
+    /// horde from ultimately bringing down the system.
+    ///
+    /// Note that we are not (yet?) doing anything with
+    /// `prctl(PR_SET_CHILD_SUBREAPER, ...)` to make the Launcher a
+    /// subreaper; this behavior currently handles the case when the
+    /// Launcher is running as PID 1.
+    ///
+    /// (See http://man7.org/linux/man-pages/man2/prctl.2.html for
+    /// further information.)
+    #[cfg(unix)]
+    fn reap_zombie_orphans(&mut self) -> Option<Result<TickState>> {
+        // Record the disposition of the Supervisor if it is a child
+        // process being reaped; our ultimate response is dependent on
+        // this.
+        let mut reaped_sup_status: Option<ExitStatus> = None;
+        let mut waitpid_status = 0 as libc::c_int;
+
+        // We reap as many child processes as need reaping.
+        loop {
+            // We're not calling waitpid with WUNTRACED or WCONTINUED,
+            // so we shouldn't be getting SIGCHLD from STOP or CONT
+            // signals sent to a Supervisor; only when the Supervisor
+            // process ends somehow.
+            let res = unsafe { libc::waitpid(-1, &mut waitpid_status, libc::WNOHANG) };
+            if res > 0 {
+                // Some child process ended; let's see if it was the Supervisor
+                if res == self.supervisor.id() as libc::pid_t {
+                    debug!("Reaped supervisor process, PID {}", res);
+                    // Note: from_raw is a Unix-only call
+                    reaped_sup_status = Some(ExitStatus::from_raw(waitpid_status));
+                } else {
+                    debug!("Reaped a non-supervisor child process, PID {}", res);
+                }
+            } else if res == 0 {
+                // There are no more children waiting
+                break;
+            } else {
+                warn!("Error waiting for child process: {}", res);
+                break;
+            }
+        }
+
+        // If we reaped our supervisor, then we return a TickState so
+        // we can figure out whether or restart or not.
+        //
+        // If we just reaped non-supervisor processes, though, we
+        // return `None` to indicate there's nothing special that
+        // needs to happen.
+        if let Some(status) = reaped_sup_status {
+            // A Supervisor process ended; it either ended normally
+            // with an exit code, or it was terminated by a signal
+            // that it couldn't otherwise handle.
+            //
+            // In the latter case, we treat it as though the
+            // Supervisor shut down, but we will not restart.
+            if let Some(exit_code) = status.code() {
+                debug!("Supervisor exit status: {}", exit_code);
+                Some(self.handle_supervisor_exit(Some(exit_code)))
+            } else if let Some(signal) = status.signal() {
+                // If you TERM or INT the Supervisor (currently), the
+                // Supervisor does not otherwise catch the signal. The
+                // previous Launcher implementation ultimately shut
+                // down in this scenario, but by accident, and through
+                // at least one restart/stop cycle of the
+                // Supervisor. This just makes the behavior explicit;
+                // it can be revisited later.
+                outputln!("Supervisor process killed by signal {}; shutting everything down now", signal);
+                Some(self.handle_supervisor_exit(Some(ERR_NO_RETRY_EXCODE)))
+            } else {
+                // We should never get here; a Linux process either
+                // exits with a status code, or it was killed with a
+                // signal.
+                warn!("UNEXPECTED RESULT: Supervisor process ended, but neither exit status nor terminating signal are available");
+                Some(self.handle_supervisor_exit(None))
+            }
+        } else {
+            // A supervisor didn't end; carry on your merry way
+            None
+        }
+    }
+
+    /// Windows doesn't have the same orphan-reaping behavior as Linux;
+    /// returning `None` means that there's nothing special that needs
+    /// to be done.
+    #[cfg(windows)]
+    fn reap_zombie_orphans(&mut self) -> Option<Result<TickState>> {
+        None
     }
 }
 
@@ -194,7 +332,7 @@ impl ServiceTable {
         }
     }
 
-    fn reap_zombies(&mut self) {
+    fn reap_services(&mut self) {
         let mut dead: Vec<Pid> = vec![];
         for service in self.0.values_mut() {
             match service.try_wait() {
