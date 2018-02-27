@@ -1,3 +1,4 @@
+#!/bin/sh
 studio_type="default"
 studio_path="$HAB_ROOT_PATH/bin"
 studio_enter_environment="STUDIO_ENTER=true"
@@ -111,7 +112,7 @@ finish_setup() {
   # `$PATH` is concerned.
   $bb cat <<EOF > $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/build
 #!$bash_path/bin/sh
-exec $HAB_ROOT_PATH/bin/hab pkg exec core/hab-plan-build hab-plan-build \$*
+exec $HAB_ROOT_PATH/bin/hab pkg exec core/hab-plan-build hab-plan-build "\$@"
 EOF
   $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/build
 
@@ -134,9 +135,9 @@ export TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
 
 emacs() {
   if command -v emacs > /dev/null; then
-    emacs \$*
+    emacs "\$@"
   else
-    mg \$*
+    mg "\$@"
   fi
 }
 
@@ -149,8 +150,8 @@ fi
 sup-run() {
   mkdir -p /hab/sup/default
   echo "--> Launching the Habitat Supervisor in the background..."
-  echo "    Running: hab sup run \$*"
-  hab sup run \$* > /hab/sup/default/sup.log 2>&1 &
+  echo "    Running: hab sup run \$@"
+  hab sup run "\$@" > /hab/sup/default/sup.log 2>&1 &
   echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
   echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
   echo "    * Use 'sup-term' to terminate the Supervisor"
@@ -225,7 +226,7 @@ PROFILE_ENTER
 
 _hab() {
   # We remove a couple of env vars we do not want for this instance of the studio
-  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= HAB_BLDR_CHANNEL= $hab $*
+  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= HAB_BLDR_CHANNEL= $hab "$@"
 }
 
 _pkgpath_for() {
