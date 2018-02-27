@@ -55,6 +55,8 @@ Depending on the platform of your host and your Docker configuration, the behavi
 * **Mac** - A Docker container based Linux Studio
 * **Windows** - A Docker container based Studio where the platform depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter. You may also use the `-w` flag to enter a local, non-containerized Windows studio.
 
+> Note: For more details related to Windows containers see [Running Habitat Windows Containers](/docs/best-practices/#running-habitat-windows-containers).
+
 ## Non-Interactive Build
 
 A non-interactive build is one in which Habitat creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
