@@ -117,7 +117,30 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 
 4. More information and a demo video is available on the [announcement blog](https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/)
     
+## Export to a Helm chart
+
+The Helm exporter is an additional command line subcommand to the standard Habitat CLI interface. It is very similar to the Kubernetes exporter but it takes you even further. It also leverages the existing Docker image export functionality but unlike the Kubernetes exporter, instead of generating a Kubernetes manifest, it creates a distributable Helm chart directory. This chart directory can not only be deployed in your local Kubernetes cluster, but also easily packaged and distributed.
+
+Additionally, the Kubernetes Habitat operator is automatically added to the Helm chart as a dependency and hence installed automatically as part of the Habitat Helm chart.
+
+1. Create an interactive studio in any directory with the `hab studio enter` command.
+
+2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an application, for example:
+
+    ```shell
+    $ hab pkg install yourorigin/yourpackage
+    ```
+
+3. Run the Helm exporter on the package.
+
+    ```shell
+    $ hab pkg export helm yourorigin/yourpackage
+    ```
     
+    You can run `hab pkg export helm --help` to see the full list of available options and general help.
+
+4. More information on how to setup Helm and use of the Helm exporter can be found on the [announcement blog](https://www.habitat.sh/blog/2018/02/Habitat-Helm/)
+
 ## Exporting to Apache Mesos and DC/OS
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.

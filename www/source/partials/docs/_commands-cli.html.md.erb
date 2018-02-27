@@ -721,9 +721,254 @@ Exports the package to the specified format
 
 **ARGS**
 
-    <FORMAT>       The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)
+    <FORMAT>       The export format (ex: aci, cf, docker, helm, kubernetes, mesos, or tar)
     <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath
                     to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
+**Read More**
+
+- [docker](#hab-pkg-export-docker) Creates a Docker image from a set of Habitat packages
+- [kubernetes](#hab-pkg-export-k8s) Creates a Docker image and Kubernetes manifest for a Habitat package
+- [helm](#hab-pkg-export-helm) Creates a Docker image and generates a Helm chart for the specified Habitat package
+
+<h2 id="hab-pkg-export-docker" class="anchor">hab pkg export docker</h2>
+Creates (an optionally pushes) a Docker image from a set of Habitat packages
+
+**USAGE**
+
+    hab pkg export docker [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
+
+**FLAGS**
+
+        --no-push-image             Do not push image to remote registry (default: yes)
+        --no-tag-latest             Do not tag image with :"latest" (default: no)
+        --no-tag-version            Do not tag image with :"{{pkg_version}}" (default: no)
+        --no-tag-version-release    Do not tag image with :"{{pkg_version}}-{{pkg_release}}" (default: no)
+        --push-image                Push image to remote registry (default: no)
+        --rm-image                  Remove local image from engine after build and/or push (default: no)
+        --tag-latest                Tag image with :"latest" (default: yes)
+        --tag-version               Tag image with :"{{pkg_version}}" (default: yes)
+        --tag-version-release       Tag image with :"{{pkg_version}}-{{pkg_release}}" (default: yes)
+    -h, --help                      Prints help information
+    -V, --version                   Prints version information
+
+**OPTIONS**
+
+        --base-pkgs-url <BASE_PKGS_BLDR_URL>
+            Install base packages from Builder at the specified URL (default: https://bldr.habitat.sh)
+
+        --base-pkgs-channel <BASE_PKGS_CHANNEL>
+            Install base packages from the specified release channel (default: stable)
+
+    -u, --url <BLDR_URL>
+            Install packages from Builder at the specified URL (default: https://bldr.habitat.sh)
+
+    -c, --channel <CHANNEL>                        Install packages from the specified release channel (default: stable)
+        --launcher-pkg <HAB_LAUNCHER_PKG>
+            Launcher package identifier (ex: core/hab-launcher) or filepath to a Habitat artifact (ex: /home/core-hab
+            -launcher-6083-20171101045646-x86_64-linux.hart) to install (default: core/hab-launcher)
+        --hab-pkg <HAB_PKG>
+            Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat artifact (ex: /home/acme-redis
+            -3.0.7-21120102031201-x86_64-linux.hart) to install (default: core/hab)
+        --sup-pkg <HAB_SUP_PKG>
+            Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat artifact (ex: /home/ore-hab-sup
+            -0.39.1-20171118011657-x86_64-linux.hart) to install (default: core/hab-sup)
+    -i, --image-name <IMAGE_NAME>
+            Image name (default: "{{pkg_origin}}/{{pkg_name}}" supports: {{pkg_origin}}, {{pkg_name}}, {{pkg_version}},
+            {{pkg_release}}, {{channel}})
+    -P, --password <REGISTRY_PASSWORD>
+            Remote registry password, required for pushing image to remote registry
+
+    -R, --registry-type <REGISTRY_TYPE>
+            Remote registry type, Ex: Amazon, Docker (default: docker) [values: Amazon, Docker]
+
+    -G, --registry-url <REGISTRY_URL>              Remote registry url
+    -U, --username <REGISTRY_USERNAME>
+            Remote registry username, required for pushing image to remote registry
+
+        --tag-custom <TAG_CUSTOM>
+            Tag image with additional custom tag (supports: {{pkg_origin}}, {{pkg_name}}, {{pkg_version}},
+            {{pkg_release}}, {{channel}})
+
+**ARGS**
+
+    <PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a
+                                  Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
+<h2 id="hab-pkg-export-k8s" class="anchor">hab pkg export kubernetes</h2>
+Creates a Docker image and Kubernetes manifest for a Habitat package. Habitat operator must be deployed within the
+Kubernetes cluster before the generated manifest can be applied to this cluster
+
+**USAGE**
+
+    hab pkg export kubernetes [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
+
+**FLAGS**
+
+    -d, --no-docker-image           Disable creation of the Docker image and only create a Kubernetes manifest
+        --no-push-image             Do not push image to remote registry (default: yes)
+        --no-tag-latest             Do not tag image with :"latest" (default: no)
+        --no-tag-version            Do not tag image with :"{{pkg_version}}" (default: no)
+        --no-tag-version-release    Do not tag image with :"{{pkg_version}}-{{pkg_release}}" (default: no)
+        --push-image                Push image to remote registry (default: no)
+        --rm-image                  Remove local image from engine after build and/or push (default: no)
+        --tag-latest                Tag image with :"latest" (default: yes)
+        --tag-version               Tag image with :"{{pkg_version}}" (default: yes)
+        --tag-version-release       Tag image with :"{{pkg_version}}-{{pkg_release}}" (default: yes)
+    -h, --help                      Prints help information
+    -V, --version                   Prints version information
+
+**OPTIONS**
+
+        --base-pkgs-url <BASE_PKGS_BLDR_URL>
+            Install base packages from Builder at the specified URL (default: https://bldr.habitat.sh)
+
+        --base-pkgs-channel <BASE_PKGS_CHANNEL>
+            Install base packages from the specified release channel (default: stable)
+
+    -b, --bind <BIND>...
+            Bind to another service to form a producer/consumer relationship, specified as name:service:group
+
+    -u, --url <BLDR_URL>
+            Install packages from Builder at the specified URL (default: https://bldr.habitat.sh)
+
+    -c, --channel <CHANNEL>                        Install packages from the specified release channel (default: stable)
+    -n, --config <CONFIG>
+            The path to Habitat configuration file in user.toml format. Habitat will use it for initial configuration of
+            the service running in a Kubernetes cluster
+        --count <COUNT>                            Count is the number of desired instances
+    -g, --service-group <GROUP>
+            group is a logical grouping of services with the same package and topology type connected together in a ring
+            (default: default)
+        --launcher-pkg <HAB_LAUNCHER_PKG>
+            Launcher package identifier (ex: core/hab-launcher) or filepath to a Habitat artifact (ex: /home/core-hab
+            -launcher-6083-20171101045646-x86_64-linux.hart) to install (default: core/hab-launcher)
+        --hab-pkg <HAB_PKG>
+            Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat artifact (ex: /home/acme-redis
+            -3.0.7-21120102031201-x86_64-linux.hart) to install (default: core/hab)
+        --sup-pkg <HAB_SUP_PKG>
+            Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat artifact (ex: /home/ore-hab-sup
+            -0.39.1-20171118011657-x86_64-linux.hart) to install (default: core/hab-sup)
+    -i, --image-name <IMAGE_NAME>
+            Image name (default: "{{pkg_origin}}/{{pkg_name}}" supports: {{pkg_origin}}, {{pkg_name}}, {{pkg_version}},
+            {{pkg_release}}, {{channel}})
+        --k8s-name <K8S_NAME>
+            The Kubernetes resource name (default: {{pkg_name}}-{{pkg_version}}-{{pkg_release}})
+
+    -o, --output <OUTPUT>                          Name of manifest file to create. Pass '-' for stdout (default: -)
+    -P, --password <REGISTRY_PASSWORD>
+            Remote registry password, required for pushing image to remote registry
+
+    -R, --registry-type <REGISTRY_TYPE>
+            Remote registry type, Ex: Amazon, Docker (default: docker) [values: Amazon, Docker]
+
+    -G, --registry-url <REGISTRY_URL>              Remote registry url
+    -U, --username <REGISTRY_USERNAME>
+            Remote registry username, required for pushing image to remote registry
+
+    -r, --ring-secret-name <RING_SECRET_NAME>
+            name of the Kubernetes Secret that contains the ring key, which encrypts the communication between Habitat
+            supervisors
+        --tag-custom <TAG_CUSTOM>
+            Tag image with additional custom tag (supports: {{pkg_origin}}, {{pkg_name}}, {{pkg_version}},
+            {{pkg_release}}, {{channel}})
+    -t, --topology <TOPOLOGY>
+            A topology describes the intended relationship between peers within a Habitat service group. Specify either
+            standalone or leader topology (default: standalone) [values: standalone, leader]
+
+**ARGS**
+
+    <PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat Artifact
+                               (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
+<h2 id="hab-pkg-export-helm" class="anchor">hab pkg export helm</h2>
+Creates a Docker image and generates a Helm chart for the specified Habitat package
+
+**USAGE**
+
+    hab pkg export helm [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
+
+**FLAGS**
+
+        --download-deps             Whether to download dependencies. The Kubernetes Habitat Operator is the only
+                                    dependancy currently. (default: no)
+    -d, --no-docker-image           Disable creation of the Docker image and only create a Kubernetes manifest
+        --no-push-image             Do not push image to remote registry (default: yes)
+        --no-tag-latest             Do not tag image with :"latest" (default: no)
+        --no-tag-version            Do not tag image with :"{{pkg_version}}" (default: no)
+        --no-tag-version-release    Do not tag image with :"{{pkg_version}}-{{pkg_release}}" (default: no)
+        --push-image                Push image to remote registry (default: no)
+        --rm-image                  Remove local image from engine after build and/or push (default: no)
+        --tag-latest                Tag image with :"latest" (default: yes)
+        --tag-version               Tag image with :"{{pkg_version}}" (default: yes)
+        --tag-version-release       Tag image with :"{{pkg_version}}-{{pkg_release}}" (default: yes)
+        --help                      Prints help information
+
+**OPTIONS**
+
+        --base-pkgs-url <BASE_PKGS_BLDR_URL>
+            Install base packages from Builder at the specified URL (default: https://bldr.habitat.sh)
+
+        --base-pkgs-channel <BASE_PKGS_CHANNEL>
+            Install base packages from the specified release channel (default: stable)
+
+    -b, --bind <BIND>...
+            Bind to another service to form a producer/consumer relationship, specified as name:service:group
+
+    -u, --url <BLDR_URL>
+            Install packages from Builder at the specified URL (default: https://bldr.habitat.sh)
+
+    -c, --channel <CHANNEL>                        Install packages from the specified release channel (default: stable)
+    -h, --chart <CHART>                            Name of the chart to create, if different from the package name
+    -n, --config <CONFIG>
+            The path to Habitat configuration file in user.toml format. Habitat will use it for initial configuration of
+            the service running in a Kubernetes cluster
+        --count <COUNT>                            Count is the number of desired instances
+        --desc <DESCRIPTION>                       A single-sentence description
+    -g, --service-group <GROUP>
+            group is a logical grouping of services with the same package and topology type connected together in a ring
+            (default: default)
+        --launcher-pkg <HAB_LAUNCHER_PKG>
+            Launcher package identifier (ex: core/hab-launcher) or filepath to a Habitat artifact (ex: /home/core-hab
+            -launcher-6083-20171101045646-x86_64-linux.hart) to install (default: core/hab-launcher)
+        --hab-pkg <HAB_PKG>
+            Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat artifact (ex: /home/acme-redis
+            -3.0.7-21120102031201-x86_64-linux.hart) to install (default: core/hab)
+        --sup-pkg <HAB_SUP_PKG>
+            Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat artifact (ex: /home/ore-hab-sup
+            -0.39.1-20171118011657-x86_64-linux.hart) to install (default: core/hab-sup)
+    -i, --image-name <IMAGE_NAME>
+            Image name (default: "{{pkg_origin}}/{{pkg_name}}" supports: {{pkg_origin}}, {{pkg_name}}, {{pkg_version}},
+            {{pkg_release}}, {{channel}})
+        --k8s-name <K8S_NAME>
+            The Kubernetes resource name (default: {{pkg_name}}-{{pkg_version}}-{{pkg_release}})
+
+        --operator-version <OPERATOR_VERSION>      Version of the Habitat operator to set as dependency [default: 0.5.1]
+    -P, --password <REGISTRY_PASSWORD>
+            Remote registry password, required for pushing image to remote registry
+
+    -R, --registry-type <REGISTRY_TYPE>
+            Remote registry type, Ex: Amazon, Docker (default: docker) [values: Amazon, Docker]
+
+    -G, --registry-url <REGISTRY_URL>              Remote registry url
+    -U, --username <REGISTRY_USERNAME>
+            Remote registry username, required for pushing image to remote registry
+
+    -r, --ring-secret-name <RING_SECRET_NAME>
+            name of the Kubernetes Secret that contains the ring key, which encrypts the communication between Habitat
+            supervisors
+        --tag-custom <TAG_CUSTOM>
+            Tag image with additional custom tag (supports: {{pkg_origin}}, {{pkg_name}}, {{pkg_version}},
+            {{pkg_release}}, {{channel}})
+    -t, --topology <TOPOLOGY>
+            A topology describes the intended relationship between peers within a Habitat service group. Specify either
+            standalone or leader topology (default: standalone) [values: standalone, leader]
+    -V, --version <VERSION>                        Version of the chart to create [default: 0.0.1]
+
+**ARGS**
+
+    <PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat Artifact
+                               (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-hash" class="anchor">hab pkg hash</h2>
 Generates a blake2b hashsum from a target at any given filepath
