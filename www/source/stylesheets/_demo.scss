@@ -22,9 +22,8 @@ $demo-large-breakpoint: rem-calc(1060);
   }
 }
 
-#demo-step {
-  margin-bottom: rem-calc(50);
-  z-index: 0;
+.demo_step #content-outer {
+  margin-bottom: rem-calc(184);
 }
 
 .demo--page {
@@ -35,6 +34,11 @@ $demo-large-breakpoint: rem-calc(1060);
   .demo-hero {
     margin-bottom: rem-calc(80);
     text-align: center;
+
+    h3 {
+      margin: 0 auto;
+      max-width: rem-calc(800);
+    }
   }
 
   // Demo typography
@@ -75,12 +79,13 @@ $demo-large-breakpoint: rem-calc(1060);
 }
 
 .demo--section-title {
+  margin-bottom: rem-calc(96);
+  color: rgba($hab-white,0.35);
+
   .h2.no-span {
       display: table;
-      margin-bottom: rem-calc(128);
       white-space: nowrap;
       font-size: rem-calc(18);
-      color: rgba($hab-white,0.35);
       text-transform: uppercase;
       letter-spacing: 1px;
       &:before, &:after {
@@ -93,6 +98,10 @@ $demo-large-breakpoint: rem-calc(1060);
       }
       &:before { right: 1.5%; }
       &:after { left: 1.5%; }
+  }
+
+  p {
+    text-align: center;
   }
 }
 
@@ -107,6 +116,7 @@ $demo-large-breakpoint: rem-calc(1060);
     margin-bottom: rem-calc(80);
     position: relative;
     background-color: rgba($hab-slate, 0.85);
+    border-radius: $global-radius;
     transition: all .1s;
 
     &:hover {
@@ -292,7 +302,7 @@ $demo-step-count-supervisor: 11;
   }
 
   .footnote {
-    margin-top: rem-calc(40);
+    margin: rem-calc(40) 0;
     background: $hab-gray-light;
     border-radius: $global-radius;
     padding: rem-calc(16);

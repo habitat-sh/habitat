@@ -59,22 +59,12 @@
     }
   }
 
-  .main-sidebar--list > .main-sidebar--list--item {
-    margin-bottom: 18px;
+  .main-sidebar--list {
+    margin-top: 2rem;
+  }
 
-    > a {
-      &:before {
-        content: '';
-        position: absolute;
-        background: url(/images/sprout.svg) no-repeat;
-        background-size: contain;
-        width: 19px;
-        height: 16px;
-        left: 0;
-        top: 55%;
-        transform: translateY(-45%);
-      }
-    }
+  .main-sidebar--list > .main-sidebar--list--item {
+    margin-bottom: 1rem;
   }
 
   .main-sidebar--list--item--dropdown {
@@ -99,6 +89,22 @@
 
       &:hover {
         text-shadow: 0 0 1px $white;
+      }
+    }
+
+    &.is-active {
+      > a {
+        &:before {
+          content: '';
+          position: absolute;
+          background: url(/images/sprout.svg) no-repeat;
+          background-size: contain;
+          width: 19px;
+          height: 16px;
+          left: 0;
+          top: 55%;
+          transform: translateY(-45%);
+        }
       }
     }
 

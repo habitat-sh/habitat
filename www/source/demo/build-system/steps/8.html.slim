@@ -1,47 +1,48 @@
 ---
 title: Habitat Build System Demo - Step 8
-layout: layout
 classes: demo_step
 ---
 #demo-step.demo--page
-  .row
-    .columns.large-12.demo-step--content
-      .demo-step--indicators
-        a.demo-step--indicator.active href="/demo/build-system/steps/1"
-        a.demo-step--indicator.active href="/demo/build-system/steps/2"
-        a.demo-step--indicator.active href="/demo/build-system/steps/3"
-        a.demo-step--indicator.active href="/demo/build-system/steps/4"
-        a.demo-step--indicator.active href="/demo/build-system/steps/5"
-        a.demo-step--indicator.active href="/demo/build-system/steps/6"
-        a.demo-step--indicator.active href="/demo/build-system/steps/7"
-        a.demo-step--indicator.active href="/demo/build-system/steps/8"
-        a.demo-step--indicator href="/demo/build-system/steps/9"
-        a.demo-step--indicator href="/demo/build-system/steps/10"
-      .row
-        .columns.large-12
-          h3.h3="Step 8: It's Build Time!"
-          h4.h4="Build System Demo"
-        .columns.large-6
-          p You have set up automated builds and Docker container publishing. Now, let's see Habitat Builder in action!
-          p
-            ' From the
-            strong Build Jobs
-            '  tab, click the
-            strong Build latest version
-            '  button. You'll see a message when a new build job kicks off (see image below).
-          p
-            ' Once the message appears,
-            ' click the
-            strong View build output
-            '  link to see streaming logs as your job completes.
-          p
-            ' When the build job is complete, head over to
-            a.link-external href="https://hub.docker.com/" target="_blank" Docker Hub
-            '  and find your new container images under Tags.
-        .columns.large-6
-          img alt="screenshot of requesting a new build in the Builder web UI" src="/images/demo/screen-start-build.png"
-      .row.mt-1.step-bottom-nav
-        .columns.large-6
-          a.previous-step-link href="/demo/build-system/steps/7" Previous Step
-        .columns.large-6.text-align-right
-          a.button.cta.mb-0 href="/demo/build-system/steps/9" Next Step
+  .columns.large-12.demo-step--content
+    .demo-step--indicators
+      a.demo-step--indicator.active href="/demo/build-system/steps/1"
+      a.demo-step--indicator.active href="/demo/build-system/steps/2"
+      a.demo-step--indicator.active href="/demo/build-system/steps/3"
+      a.demo-step--indicator.active href="/demo/build-system/steps/4"
+      a.demo-step--indicator.active href="/demo/build-system/steps/5"
+      a.demo-step--indicator.active href="/demo/build-system/steps/6"
+      a.demo-step--indicator.active href="/demo/build-system/steps/7"
+      a.demo-step--indicator.active href="/demo/build-system/steps/8"
+      a.demo-step--indicator href="/demo/build-system/steps/9"
+      a.demo-step--indicator href="/demo/build-system/steps/10"
+    .row
+      .columns.large-12
+        h3.h3="Step 8: Request a new build"
+        h4.h4="Build System Demo"
+      .columns.large-6
+        p Now that you have set up automated builds and Docker container publishing, let's see Habitat Builder in action!
+        p
+          ' If you were to merge a change to your forked GitHub repo, then you would see a new build kick off. To save a few steps,
+          ' we'll simply kick off a new build via the Habitat Builder web interface.
+        p
+          ' From the
+          strong Build Jobs
+          '  tab, click the
+          strong Build latest version
+          '  button. You'll see a message when a new build job kicks off (see image below).
+        p
+          ' Once the message appears,
+          ' click the
+          strong View build output
+          '  link to see streaming logs as your job completes.
+        p
+          ' When the build job is complete, head over to
+          a.link-external href="https://hub.docker.com/" target="_blank" Docker Hub
+          '  and find your new container images under Tags.
+      .columns.large-6
+        img alt="screenshot of requesting a new build in the Builder web UI" src="/images/demo/screen-start-build.png"
+    .row.mt-1.step-bottom-nav
+      .columns.large-6
+        a.previous-step-link href="/demo/build-system/steps/7" Previous Step
+      .columns.large-6.text-align-right
+        a.button.cta.mb-0 href="/demo/build-system/steps/9" Next Step

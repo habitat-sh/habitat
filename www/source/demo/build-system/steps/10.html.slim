@@ -1,64 +1,69 @@
 ---
 title: Habitat Build System Demo - Step 10
-layout: layout
 classes: demo_step
 ---
 #demo-step.demo--page
-  .row
-    .columns.large-12.demo-step--content
-      .demo-step--indicators
-        a.demo-step--indicator.active href="/demo/build-system/steps/1"
-        a.demo-step--indicator.active href="/demo/build-system/steps/2"
-        a.demo-step--indicator.active href="/demo/build-system/steps/3"
-        a.demo-step--indicator.active href="/demo/build-system/steps/4"
-        a.demo-step--indicator.active href="/demo/build-system/steps/5"
-        a.demo-step--indicator.active href="/demo/build-system/steps/6"
-        a.demo-step--indicator.active href="/demo/build-system/steps/7"
-        a.demo-step--indicator.active href="/demo/build-system/steps/8"
-        a.demo-step--indicator.active href="/demo/build-system/steps/9"
-        a.demo-step--indicator.active href="/demo/build-system/steps/10"
-      .row
-        .columns.large-12
-          h3.h3="Step 10: Update Your Package Version"
-          h4.h4="Build System Demo"
-        .columns.large-6
-          p Suppose we've been working on the sample app. Let's increment the version and trigger a new build.
-          p
-            ' Edit the
-            strong  plan.sh
-            '  file in your forked GitHub repo (as we did earlier) by clicking the
-            span.icon-pencil pencil icon
-            ' .
-          p
-            ' Change the value of
-            strong  pkg_version
-            '  from
-            em  1.0.1
-            '  to
-            em  1.0.2
-            ', then use the
-            strong  Commit changes
-            '  button to update the master branch.
-          p
-            ' Habitat Builder will detect the change and start a new build automatically. You can view the resulting output in the Habitat Builder web app.
-            ' Once the build job completes, re-run the docker commands to verify the updated container:
-          = code(:shell) do
-            | $ docker pull your-docker-org/your-docker-repo
-          = code(:shell) do
-            | $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
-        .columns.large-6
-          p
-            ' With the container runnning, visit
-            a.link-external href="http://localhost:8000/" target="_blank" http://localhost:8000/
-            ' and see the new version of the sample app.
-          img src="/images/demo/screen-sample-app-v2.png"
+  .columns.large-12.demo-step--content
+    .demo-step--indicators
+      a.demo-step--indicator.active href="/demo/build-system/steps/1"
+      a.demo-step--indicator.active href="/demo/build-system/steps/2"
+      a.demo-step--indicator.active href="/demo/build-system/steps/3"
+      a.demo-step--indicator.active href="/demo/build-system/steps/4"
+      a.demo-step--indicator.active href="/demo/build-system/steps/5"
+      a.demo-step--indicator.active href="/demo/build-system/steps/6"
+      a.demo-step--indicator.active href="/demo/build-system/steps/7"
+      a.demo-step--indicator.active href="/demo/build-system/steps/8"
+      a.demo-step--indicator.active href="/demo/build-system/steps/9"
+      a.demo-step--indicator.active href="/demo/build-system/steps/10"
+    .row
+      .columns.large-12
+        h3.h3="Step 10: Auto-update the running application"
+        h4.h4="Build System Demo"
+      .columns.large-12
+        p Suppose we've been working on the sample app. Let's increment the version and trigger a new build.
+        p
+          ' Edit the
+          strong  plan.sh
+          '  file in your forked GitHub repo (as we did earlier) by clicking the
+          span.icon-pencil pencil icon
+          ' .
+        p
+          ' Change the value of
+          strong  pkg_version
+          '  from
+          em  1.0.1
+          '  to
+          em  1.0.2
+          ', then use the
+          strong  Commit changes
+          '  button to update the master branch.
+        p
+          ' Habitat Builder will detect the change and start a new build automatically. You can view the resulting output in the Habitat Builder web app.
+          ' Once the build job completes, re-run the docker commands to verify the updated container:
+        = code(:shell) do
+          | $ docker pull your-docker-org/your-docker-repo
+        = code(:shell) do
+          | $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
+        h3="Preview the application in your browser"
+        p
+          ' With the container runnning, visit
+          a.link-external href="http://localhost:8000/" target="_blank" http://localhost:8000/
+          ' and see the new version of the sample app.
+        img src="/images/demo/screen-sample-app-v2.png"
 
-          h3.mt-1="That's a wrap!"
-          p
-          ' By deploying your application with Habitat, you are now able to take advantage of all
-          ' that Habitat has to offer. Return to the Learn Habitat page for additional demos and tutorials.
-      .row.mt-1.step-bottom-nav
-        .columns.large-6
-          a.previous-step-link href="/demo/build-system/steps/9" Previous Step
-        .columns.large-6.text-align-right
-          a.button.cta.mb-0 href="/learn" Return to Learn Habitat
+        h3.mt-1="That's a wrap!"
+        p
+        ' By deploying your application with Habitat, you are now able to take advantage of all
+        ' that Habitat has to offer. Here, you learned how to set up automated builds and publish your
+        ' application to a container registry.
+
+        p
+        ' In the Process Supervisor demo, you will get a taste for what comes built-in with your newly packaged application.
+
+        p
+        ' Return to the Learn Habitat page for additional demos and tutorials.
+    .row.mt-1.step-bottom-nav
+      .columns.large-6
+        a.previous-step-link href="/demo/build-system/steps/9" Previous Step
+      .columns.large-6.text-align-right
+        a.button.cta.mb-0 href="/learn" Return to Learn Habitat

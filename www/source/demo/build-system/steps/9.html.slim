@@ -1,50 +1,49 @@
 ---
 title: Habitat Build System Demo - Step 9
-layout: layout
 classes: demo_step
 ---
 #demo-step.demo--page
-  .row
-    .columns.large-12.demo-step--content
-      .demo-step--indicators
-        a.demo-step--indicator.active href="/demo/build-system/steps/1"
-        a.demo-step--indicator.active href="/demo/build-system/steps/2"
-        a.demo-step--indicator.active href="/demo/build-system/steps/3"
-        a.demo-step--indicator.active href="/demo/build-system/steps/4"
-        a.demo-step--indicator.active href="/demo/build-system/steps/5"
-        a.demo-step--indicator.active href="/demo/build-system/steps/6"
-        a.demo-step--indicator.active href="/demo/build-system/steps/7"
-        a.demo-step--indicator.active href="/demo/build-system/steps/8"
-        a.demo-step--indicator.active href="/demo/build-system/steps/9"
-        a.demo-step--indicator href="/demo/build-system/steps/10"
-      .row
-        .columns.large-12
-          h3.h3="Step 9: Run the Sample App with Docker"
-          h4.h4="Build System Demo"
-        .columns.large-6
-          p
-            ' Now that you have published your first Docker container with Habitat, we can run the sample Node.js application locally using Docker
+  .columns.large-12.demo-step--content
+    .demo-step--indicators
+      a.demo-step--indicator.active href="/demo/build-system/steps/1"
+      a.demo-step--indicator.active href="/demo/build-system/steps/2"
+      a.demo-step--indicator.active href="/demo/build-system/steps/3"
+      a.demo-step--indicator.active href="/demo/build-system/steps/4"
+      a.demo-step--indicator.active href="/demo/build-system/steps/5"
+      a.demo-step--indicator.active href="/demo/build-system/steps/6"
+      a.demo-step--indicator.active href="/demo/build-system/steps/7"
+      a.demo-step--indicator.active href="/demo/build-system/steps/8"
+      a.demo-step--indicator.active href="/demo/build-system/steps/9"
+      a.demo-step--indicator href="/demo/build-system/steps/10"
+    .row
+      .columns.large-12
+        h3.h3="Step 9: Run the Sample Application with Docker"
+        h4.h4="Build System Demo"
+      .columns.large-12
+        p
+          ' Now that you have published your first Docker container with Habitat, we can run the sample Node.js application locally using Docker
+          span.asterisk="*"
+          ' .
+        p With Docker running, execute the following command on your machine:
+        = code(:shell) do
+          | $ docker pull your-docker-org/your-docker-repo
+        = code(:shell) do
+          | $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
+
+        h3="Preview the application in your browser"
+        p
+          ' After the container is running, you can open
+          a.link-external href="http://localhost:8000" target="_blank" http://localhost:8000
+          ' in your browser to view the sample app (see image).
+        .footnote
+          p.mb-0
             span.asterisk="*"
-            ' .
-          p With Docker running, execute the following command on your machine:
-          = code(:shell) do
-            | $ docker pull your-docker-org/your-docker-repo
-          = code(:shell) do
-            | $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
-          p
-            ' After the container is running, you can open
-            a.link-external href="http://localhost:8000" target="_blank" http://localhost:8000
-            ' in your browser to view the sample app (see image).
-          .footnote
-            p.mb-0
-              span.asterisk="*"
-              ' This step is optional and requires you to have Docker running on your local machine. Head over to the Docker website to
-              a.link-external href="https://www.docker.com/community-edition" target="_blank" install Docker
-              '  .
-        .columns.large-6
-          img src="/images/demo/screen-sample-app-v1.png"
-      .row.mt-1.step-bottom-nav
-        .columns.large-6
-          a.previous-step-link href="/demo/build-system/steps/8" Previous Step
-        .columns.large-6.text-align-right
-          a.button.cta.mb-0 href="/demo/build-system/steps/10" Next Step
+            ' This step is optional and requires you to have Docker running on your local machine. If necessary, head over to the Docker website for insructions on
+            a.link-external href="https://www.docker.com/community-edition" target="_blank" installing Docker
+            '  .
+        img src="/images/demo/screen-sample-app-v1.png"
+    .row.mt-1.step-bottom-nav
+      .columns.large-6
+        a.previous-step-link href="/demo/build-system/steps/8" Previous Step
+      .columns.large-6.text-align-right
+        a.button.cta.mb-0 href="/demo/build-system/steps/10" Next Step

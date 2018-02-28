@@ -37,6 +37,14 @@
   font-weight: normal;
 }
 
+@mixin alt-button {
+  @include button;
+  background-color: $hab-blue-medium;
+  border: none;
+  color: $hab-white;
+  font-weight: normal;
+}
+
 @mixin linear-gradient($pos, $g1, $g2: null,
                        $g3: null, $g4: null,
                        $g5: null, $g6: null,

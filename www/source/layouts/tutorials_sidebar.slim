@@ -1,7 +1,7 @@
 = wrap_layout :layout do
   .container__has-sidebar.container__tutorials
     .row
-      .main-sidebar.columns.small-12.medium-3 data-sticky-container=""
+      .main-sidebar.columns.small-12.large-3 data-sticky-container=""
         .sticky data-sticky="" data-margin-top="1" data-top-anchor="subnav:bottom" data-btm-anchor="main-footer:top"
           - if sidebar_layout == 'docs'
             form.main-sidebar--search action="/docs/search/" method="get"
@@ -20,7 +20,7 @@
                             li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
                               = link_to sub_link.title, sub_link.link, class: (sub_link.icon || '')
 
-      .main-content__has-sidebar.columns.small-12.medium-9 data-swiftype-index="true"
+      .main-content__has-sidebar.columns.small-12.large-9 data-swiftype-index="true"
           == yield
 
   / Swiftype JS Snippet

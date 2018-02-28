@@ -340,6 +340,10 @@ code {
   + .button {
     margin-left: rem-calc(16);
   }
+
+  &.alt {
+    @include alt-button;
+  }
 }
 
 .button.cta{

@@ -35,7 +35,9 @@ page 'tutorials/build-your-own/node/*', layout: :tutorials_sidebar, locals: { si
 page 'tutorials/build-your-own/gradle/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_gradle'}
 page 'tutorials/build-your-own/aspnet-core/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_aspnet-core'}
 page '/blog/index.html', layout: :blog_index
-page '/demo/steps/*', layout: :demo_index
+page '/demo/packaging-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_packaging_system'}
+page '/demo/build-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_build_system'}
+page '/demo/process-supervisor/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_process_supervisor'}
 page 'get-started/*', layout: :get_started
 page 'guides/index.html', layout: :get_started
 page 'guides/rails/*', layout: :sidebar, locals: { sidebar_layout: 'guide_rails' }
