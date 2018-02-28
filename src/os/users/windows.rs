@@ -37,8 +37,9 @@ pub fn get_uid_by_name(owner: &str) -> Option<String> {
     get_sid_by_name(owner)
 }
 
+// this is a no-op on windows
 pub fn get_gid_by_name(group: &str) -> Option<String> {
-    get_sid_by_name(group)
+    Some(String::new())
 }
 
 pub fn get_current_username() -> Option<String> {
