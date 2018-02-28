@@ -60,7 +60,6 @@ Here we are going to set up Helm in your Kubernetes cluster, and then deploy our
 * `helm version` Check and make sure you have the right version of helm running on your client & server side, (as of printing, v 2.8.1) 
 * `kubectl -n kube-system describe deploy/tiller-deploy` Check and see your service account has been correctly set up per instructions
 * `helm repo add habitat-operator https://kinvolk.github.io/habitat-operator/helm/charts/stable/` Adds the Habitat Operator Helm repository to your Helm configuration
-* `helm install habitat-operator/habitat-operator` Installs the Habitat Operator into your Kubernetes cluster using its Helm Chart.
 * `helm dependency update nginx-latest` Reads your new nginx-latest/requirements.yaml file and sees the dependency on the habitat-operator. Pulls down the chart that describes the Habitat Operator and embeds it in your application’s chart
 * `helm install nginx-latest` Has Helm install your Habitat Helm package on your Minikube cluster
 
