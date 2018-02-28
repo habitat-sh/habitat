@@ -51,20 +51,21 @@ pub fn init() {
 pub fn check_for_signal() -> Option<SignalEvent> {
     if CAUGHT.load(Ordering::SeqCst) {
         let code = SIGNAL.load(Ordering::SeqCst) as SignalCode;
-        match Signal::from_signal_code(code) {
+        let event = match Signal::from_signal_code(code) {
             Some(Signal::INT) |
             Some(Signal::TERM) => Some(SignalEvent::Shutdown),
-            Some(signal) => {
-                // clear out the signal so we don't sent it repeatedly
-                CAUGHT.store(false, Ordering::SeqCst);
-                SIGNAL.store(0 as usize, Ordering::SeqCst);
-                Some(SignalEvent::Passthrough(signal))
-            }
+            Some(Signal::CHLD) => Some(SignalEvent::WaitForChild),
+            Some(signal) => Some(SignalEvent::Passthrough(signal)),
             None => {
                 println!("Received invalid signal: #{}", code);
                 None
             }
-        }
+        };
+        // Clear out a signal that has been caught so we don't end up
+        // processing it again.
+        CAUGHT.store(false, Ordering::SeqCst);
+        SIGNAL.store(0 as usize, Ordering::SeqCst);
+        event
     } else {
         None
     }
@@ -79,5 +80,6 @@ fn set_signal_handlers() {
         signal(Signal::TERM.os_signal(), handle_signal);
         signal(Signal::USR1.os_signal(), handle_signal);
         signal(Signal::USR2.os_signal(), handle_signal);
+        signal(Signal::CHLD.os_signal(), handle_signal);
     }
 }
