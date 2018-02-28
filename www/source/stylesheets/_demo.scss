@@ -34,6 +34,11 @@ $demo-large-breakpoint: rem-calc(1060);
   .demo-hero {
     margin-bottom: rem-calc(80);
     text-align: center;
+
+    h3 {
+      margin: 0 auto;
+      max-width: rem-calc(800);
+    }
   }
 
   // Demo typography
