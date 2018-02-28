@@ -301,12 +301,22 @@ function Enter-Studio {
         Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\pwsh.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
       }
       else {
-        Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait
+        # Container studios run habitat as a service which logs to a 
+        # configured file location
+        $svcPath = Join-Path $env:SystemDrive "hab\svc\windows-service"
+        [xml]$configXml = Get-Content (Join-Path $svcPath HabService.exe.config)
+        $logPath = Join-Path $svcPath $configXml.configuration.log4net.appender.file.value
+
+        Get-Content $logPath -Tail 100 -Wait
       }
     }
 
     function Stop-Supervisor {
-      if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
+      $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
+      if($habSvc -and ($habSvc.Status -eq "Running")) {
+        Stop-Service Habitat
+      }
+      elseif(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
         Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
         Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK"
       }
@@ -315,28 +325,31 @@ function Enter-Studio {
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
     
-    $pr = New-Object System.Diagnostics.Process
-    $pr.StartInfo.UseShellExecute = $false
-    $pr.StartInfo.CreateNoWindow = $true
-    $pr.StartInfo.RedirectStandardOutput = $true
-    $pr.StartInfo.RedirectStandardError = $true
-    $pr.StartInfo.FileName = "hab.exe"
-    $pr.StartInfo.Arguments = "sup run"
-    Register-ObjectEvent -InputObject $pr -EventName OutputDataReceived -action {
-      $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
-    } | Out-Null
-    Register-ObjectEvent -InputObject $pr -EventName ErrorDataReceived -action {
-      $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
-    } | Out-Null
-    $pr.start() | Out-Null
-    $pr.BeginErrorReadLine()
-    
-    # As an industry, this should make us all feel bad
-    # without this stdin never seems to come back and the PS prompt
-    # fails to appear and things look like they are hung
-    Start-Sleep -Milliseconds 100
-
-    $pr.BeginOutputReadLine()
+    $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
+    if(!$habSvc -or ($habSvc.Status -eq "Stopped")) {
+      $pr = New-Object System.Diagnostics.Process
+      $pr.StartInfo.UseShellExecute = $false
+      $pr.StartInfo.CreateNoWindow = $true
+      $pr.StartInfo.RedirectStandardOutput = $true
+      $pr.StartInfo.RedirectStandardError = $true
+      $pr.StartInfo.FileName = "hab.exe"
+      $pr.StartInfo.Arguments = "sup run"
+      Register-ObjectEvent -InputObject $pr -EventName OutputDataReceived -action {
+        $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+      } | Out-Null
+      Register-ObjectEvent -InputObject $pr -EventName ErrorDataReceived -action {
+        $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+      } | Out-Null
+      $pr.start() | Out-Null
+      $pr.BeginErrorReadLine()
+      
+      # As an industry, this should make us all feel bad
+      # without this stdin never seems to come back and the PS prompt
+      # fails to appear and things look like they are hung
+      Start-Sleep -Milliseconds 100
+  
+      $pr.BeginOutputReadLine()
+    }
     
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
     Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
@@ -348,7 +361,7 @@ function Enter-Studio {
   }
 
   if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
-    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
+    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") -Force
   }
 }
 
