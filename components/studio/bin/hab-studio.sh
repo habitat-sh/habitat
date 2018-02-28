@@ -734,7 +734,7 @@ info() {
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        echo "   \033[1;36m${program:-unknown}: \033[1;37m$1\033[0m"
+        printf -- "   \033[1;36m%s: \033[1;37m%s\033[0m" "${program:-unknown}" "$1"
         ;;
       *)
         echo "   ${program:-unknown}: $1"
@@ -782,7 +782,7 @@ exit_with() {
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        echo "\033[1;31mERROR: \033[1;37m$1\033[0m"
+        printf -- "\033[1;31mERROR: \033[1;37m%s\033[0m" "$1"
         ;;
       *)
         echo "ERROR: $1"
@@ -1049,7 +1049,9 @@ unset PATH
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 : "${HAB_ROOT_PATH:=/hab}"
-# The root path containing all locally installed packages
+# The root path containing all locally installed packages. This is used in some
+# of the hab-studio-type-*.sh scripts
+# shellcheck disable=2034
 HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
 # installation

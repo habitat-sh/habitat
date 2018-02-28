@@ -69,4 +69,4 @@ record_build() {
   record "$session" "$build_command_name" "$plan_context"
 }
 
-cd /src || echo "ERROR: cd to /src failed"
+cd /src || exit 1 # If you can't cd to /src, the studio is totally borked
