@@ -24,7 +24,7 @@ use fs;
 use hcore::util::perm;
 use manager::service::package::Pkg;
 use sys::abilities;
-use util;
+use sys::users::assert_pkg_user_and_group;
 
 /// Permissions that service-owned service directories should
 /// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
@@ -73,7 +73,7 @@ impl<'a> SvcDir<'a> {
             // because our `set_owner` calls will fail if they
             // don't. If we don't have the ability to to change
             // ownership, however, it doesn't really matter!
-            util::users::assert_pkg_user_and_group(&self.svc_user, &self.svc_group)?;
+            assert_pkg_user_and_group(&self.svc_user, &self.svc_group)?;
         }
 
         self.create_svc_root()?;
