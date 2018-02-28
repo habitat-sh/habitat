@@ -16,7 +16,6 @@ use hcore::os::users;
 use hcore::package::PackageInstall;
 
 use error::{Result, Error};
-use util::users::default_user_and_group;
 
 static LOGKEY: &'static str = "UR";
 
@@ -65,34 +64,6 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
         } else {
             let msg = format!("Package must run as {}:{} or root", user, &group);
             return Err(sup_error!(Error::Permissions(msg)));
-        }
-    }
-}
-
-/// check and see if a user/group is specified in package metadata.
-/// if not, we'll try and use hab/hab.
-/// If hab/hab doesn't exist, try to use (current username, current group).
-/// If that doesn't work, then give up.
-pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
-    if let Some((user, group)) = get_pkg_user_and_group(&pkg_install)? {
-        Ok((user, group))
-    } else {
-        let defaults = default_user_and_group()?;
-        Ok(defaults)
-    }
-}
-
-/// This function checks to see if a custom SVC_USER and SVC_GROUP has
-/// been specified as part of the package metadata.
-/// If pkg_svc_user and pkg_svc_group have NOT been defined, return None.
-fn get_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(String, String)>> {
-    let svc_user = pkg_install.svc_user()?;
-    let svc_group = pkg_install.svc_group()?;
-    match (svc_user, svc_group) {
-        (Some(user), Some(group)) => Ok(Some((user, group))),
-        _ => {
-            debug!("User/group not specified in package, running with default");
-            Ok(None)
         }
     }
 }

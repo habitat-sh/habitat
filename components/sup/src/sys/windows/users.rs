@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hcore::package::PackageInstall;
+use hcore::os::users;
 
-use error::Result;
-use util::users::default_user_and_group;
+use error::{Result, Error};
 
-/// Always return Ok (for now) on windows since we just run as the current user
-pub fn assert_pkg_user_and_group(_user: &str, _group: &str) -> Result<()> {
-    Ok(())
-}
+static LOGKEY: &'static str = "UR";
 
-/// For now we are ignoring any configured user and group
-/// because we do not start the Supervisor on windows under
-/// alternate credentials
-pub fn get_user_and_group(_pkg_install: &PackageInstall) -> Result<(String, String)> {
-    default_user_and_group()
+/// Windows does not have a concept of "group" in a Linux sense
+/// So we just validate the user
+pub fn assert_pkg_user_and_group(user: &str, _group: &str) -> Result<()> {
+    match users::get_uid_by_name(user) {
+        Some(_) => Ok(()),
+        None => Err(sup_error!(Error::Permissions(format!(
+            "Package requires user {} to exist, but it doesn't",
+            user
+        )))),
+    }
 }
