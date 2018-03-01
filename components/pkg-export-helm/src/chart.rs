@@ -15,6 +15,7 @@
 use clap;
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
 
 use common::ui::{UI, Status};
 use export_docker;
@@ -26,7 +27,7 @@ use values::Values;
 use deps::Deps;
 
 pub struct Chart<'a> {
-    name: String,
+    chartdir: PathBuf,
     chartfile: ChartFile,
     manifest_template: Option<ManifestJson>,
     values: Values,
@@ -57,12 +58,24 @@ impl<'a> Chart<'a> {
         let chartfile = ChartFile::new(&name, version, description);
         let deps = Deps::new_for_cli_matches(&matches);
 
-        Ok(Self::new_for_manifest(manifest, name, chartfile, deps, ui))
+        let mut chartdir = PathBuf::new();
+        if let Some(o) = matches.value_of_os("OUTPUTDIR") {
+            chartdir.push(o);
+        }
+        chartdir.push(&name);
+
+        Ok(Self::new_for_manifest(
+            manifest,
+            chartdir,
+            chartfile,
+            deps,
+            ui,
+        ))
     }
 
     fn new_for_manifest(
         manifest: Manifest,
-        name: String,
+        chartdir: PathBuf,
         chartfile: ChartFile,
         deps: Deps,
         ui: &'a mut UI,
@@ -126,7 +139,7 @@ impl<'a> Chart<'a> {
         });
 
         Chart {
-            name,
+            chartdir,
             chartfile,
             manifest_template,
             values,
@@ -138,9 +151,9 @@ impl<'a> Chart<'a> {
     pub fn generate(mut self) -> Result<()> {
         self.ui.status(
             Status::Creating,
-            format!("directory `{}`", self.name),
+            format!("directory `{}`", self.chartdir.display()),
         )?;
-        fs::create_dir_all(&self.name)?;
+        fs::create_dir_all(&self.chartdir)?;
 
         self.generate_chartfile()?;
         self.generate_values()?;
@@ -160,19 +173,20 @@ impl<'a> Chart<'a> {
     }
 
     fn generate_manifest_template(&mut self) -> Result<()> {
-        let template_path = format!("{}/{}", self.name, "templates");
+        let mut path = self.chartdir.clone();
+        path.push("templates");
         self.ui.status(
             Status::Creating,
-            format!("directory `{}`", template_path),
+            format!("directory `{}`", path.display()),
         )?;
-        fs::create_dir_all(&template_path)?;
+        fs::create_dir_all(&path)?;
 
-        let manifest_path = format!("{}/habitat.yaml", template_path);
+        path.push("habitat.yaml");
         self.ui.status(
             Status::Creating,
-            format!("file `{}`", manifest_path),
+            format!("file `{}`", path.display()),
         )?;
-        let mut write = fs::File::create(manifest_path)?;
+        let mut write = fs::File::create(path)?;
         let out: String = self.manifest_template
             .take()
             .expect("generate_manifest_template() called more than once")
@@ -198,12 +212,16 @@ impl<'a> Chart<'a> {
     }
 
     fn download_deps(&mut self) -> Result<()> {
-        self.deps.download(&self.name, self.ui)
+        self.deps.download(&self.chartdir, self.ui)
     }
 
     fn create_file(&mut self, name: &str) -> Result<fs::File> {
-        let path = format!("{}/{}", self.name, name);
-        self.ui.status(Status::Creating, format!("file `{}`", path))?;
+        let mut path = self.chartdir.clone();
+        path.push(name);
+        self.ui.status(
+            Status::Creating,
+            format!("file `{}`", path.display()),
+        )?;
 
         fs::File::create(path).map_err(From::from)
     }

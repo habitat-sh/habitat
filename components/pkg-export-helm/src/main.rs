@@ -114,6 +114,16 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .help("Version of the Habitat operator to set as dependency")
                 .default_value(deps::DEFAULT_OPERATOR_VERSION),
         )
+        .arg(
+            Arg::with_name("OUTPUTDIR")
+                .value_name("OUTPUTDIR")
+                .short("o")
+                .long("output-dir")
+                .help(
+                    "The directory to put the chart directory under (default: current working \
+                       directory)",
+                ),
+        )
         .arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
             "Whether to download dependencies. The Kubernetes Habitat Operator is the only \
              dependancy currently. (default: no)",
