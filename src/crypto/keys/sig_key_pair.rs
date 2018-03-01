@@ -220,7 +220,7 @@ impl SigKeyPair {
         content: &str,
         cache_key_path: &P,
     ) -> Result<(Self, PairType)> {
-        let (pair_type, name_with_rev, _) = Self::parse_key_str(content)?;
+        let (pair_type, name_with_rev, _) = super::parse_key_str(content)?;
         let suffix = match pair_type {
             PairType::Public => PUBLIC_KEY_SUFFIX,
             PairType::Secret => SECRET_SIG_KEY_SUFFIX,
@@ -277,114 +277,6 @@ impl SigKeyPair {
             Self::get_pair_for(&name_with_rev, cache_key_path)?,
             pair_type,
         ))
-    }
-
-    /// Parses a string slice of a public or secret signature key.
-    ///
-    /// The return valid is a tuple consisting of:
-    ///   `(PairType, name_with_rev::String, key_body::String)`
-    ///
-    /// # Examples
-    ///
-    /// With a public key:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    ///
-    /// use habitat_core::crypto::SigKeyPair;
-    /// use habitat_core::crypto::keys::PairType;
-    ///
-    /// fn main() {
-    ///     let content = "SIG-PUB-1
-    /// unicorn-20160517220007
-    ///
-    /// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
-    ///     let (pair_type, name_with_rev, key_body) = SigKeyPair::parse_key_str(content).unwrap();
-    ///     assert_eq!(pair_type, PairType::Public);
-    ///     assert_eq!(name_with_rev, "unicorn-20160517220007");
-    ///     assert_eq!(key_body, "J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=");
-    /// }
-    /// ```
-    ///
-    /// With a secret key:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    ///
-    /// use habitat_core::crypto::SigKeyPair;
-    /// use habitat_core::crypto::keys::PairType;
-    ///
-    /// fn main() {
-    ///     let content = "SIG-SEC-1
-    /// unicorn-20160517220007
-    ///
-    /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
-    ///
-    ///     let (pair_type, name_with_rev, key_body) = SigKeyPair::parse_key_str(content).unwrap();
-    /// }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// * If there is a key version mismatch
-    /// * If the key version is missing
-    /// * If the key name with revision is missing
-    /// * If the key value (the Bas64 payload) is missing
-    pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
-        let mut lines = content.lines();
-        let pair_type = match lines.next() {
-            Some(val) => {
-                match val {
-                    PUBLIC_SIG_KEY_VERSION => PairType::Public,
-                    SECRET_SIG_KEY_VERSION => PairType::Secret,
-                    _ => {
-                        return Err(Error::CryptoError(
-                            format!("Unsupported key version: {}", val),
-                        ))
-                    }
-                }
-            }
-            None => {
-                let msg = format!(
-                    "write_sig_key_from_str:1 Malformed sig key string:\n({})",
-                    content
-                );
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        let name_with_rev = match lines.next() {
-            Some(val) => val,
-            None => {
-                let msg = format!(
-                    "write_sig_key_from_str:2 Malformed sig key string:\n({})",
-                    content
-                );
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        match lines.nth(1) {
-            Some(val) => {
-                base64::decode(val.trim()).map_err(|_| {
-                    Error::CryptoError(format!(
-                        "write_sig_key_from_str:3 Malformed sig key \
-                                                string:\n({})",
-                        content
-                    ))
-                })?;
-                Ok((
-                    pair_type,
-                    name_with_rev.to_string(),
-                    val.trim().to_string(),
-                ))
-            }
-            None => {
-                let msg = format!(
-                    "write_sig_key_from_str:3 Malformed sig key string:\n({})",
-                    content
-                );
-                Err(Error::CryptoError(msg))
-            }
-        }
     }
 
     pub fn to_public_string(&self) -> Result<String> {
@@ -795,7 +687,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sig_key_from_str:1 Malformed sig key string")]
+    #[should_panic(expected = "write_key_from_str:1 Malformed key string")]
     fn write_file_from_str_missing_version() {
         let cache = TempDir::new("key_cache").unwrap();
 
@@ -803,7 +695,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sig_key_from_str:2 Malformed sig key string")]
+    #[should_panic(expected = "write_key_from_str:2 Malformed key string")]
     fn write_file_from_str_missing_name_secret() {
         let cache = TempDir::new("key_cache").unwrap();
 
@@ -811,7 +703,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sig_key_from_str:2 Malformed sig key string")]
+    #[should_panic(expected = "write_key_from_str:2 Malformed key string")]
     fn write_file_from_str_missing_name_public() {
         let cache = TempDir::new("key_cache").unwrap();
 
@@ -819,7 +711,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_missing_key_secret() {
         let cache = TempDir::new("key_cache").unwrap();
 
@@ -827,7 +719,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_missing_key_public() {
         let cache = TempDir::new("key_cache").unwrap();
 
@@ -835,7 +727,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_invalid_key_secret() {
         let cache = TempDir::new("key_cache").unwrap();
 
@@ -846,7 +738,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_invalid_key_public() {
         let cache = TempDir::new("key_cache").unwrap();
 

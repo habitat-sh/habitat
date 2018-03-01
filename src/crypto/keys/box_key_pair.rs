@@ -28,6 +28,14 @@ use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_w
 use super::super::{ANONYMOUS_BOX_FORMAT_VERSION, BOX_FORMAT_VERSION, PUBLIC_BOX_KEY_VERSION,
                    PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION};
 
+#[derive(Debug)]
+pub struct BoxSecret<'a> {
+    pub sender: &'a str,
+    pub ciphertext: Vec<u8>,
+    pub receiver: Option<&'a str>,
+    pub nonce: Option<Nonce>,
+}
+
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
 impl BoxKeyPair {
@@ -238,90 +246,136 @@ impl BoxKeyPair {
         Ok(out.into_bytes())
     }
 
-    /// Decrypt data from a user that was received at a service
-    /// Key names are embedded in the message payload which must
-    /// be present while decrypting.
-    pub fn decrypt<P>(payload: &[u8], cache_key_path: P) -> Result<Vec<u8>>
-    where
-        P: AsRef<Path>,
-    {
-        debug!("Decrypt key path = {}", cache_key_path.as_ref().display());
-        let mut lines = str::from_utf8(payload)?.lines();
-        let version = match lines.next() {
+    pub fn box_key_format_version(version: Option<&str>) -> Result<&str> {
+        match version {
             Some(val) => {
                 if val != BOX_FORMAT_VERSION && val != ANONYMOUS_BOX_FORMAT_VERSION {
                     return Err(Error::CryptoError(format!("Unsupported version: {}", val)));
                 };
-                val
+                Ok(val)
             }
             None => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read file version".to_string(),
-                ));
+                Err(Error::CryptoError(
+                    "Corrupt payload, can't read version".to_string(),
+                ))
             }
-        };
-        let sender = match lines.next() {
-            Some(val) => Self::get_pair_for(val, cache_key_path.as_ref())?,
-            None => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read sender key name".to_string(),
-                ));
-            }
-        };
-        let receiver = if version == ANONYMOUS_BOX_FORMAT_VERSION {
-            None
-        } else {
-            match lines.next() {
-                Some(val) => Some(Self::get_pair_for(val, cache_key_path.as_ref())?),
-                None => {
-                    return Err(Error::CryptoError(
-                        "Corrupt payload, can't read receiver key name".to_string(),
-                    ));
-                }
-            }
-        };
-        let nonce = if version == ANONYMOUS_BOX_FORMAT_VERSION {
-            None
-        } else {
-            match lines.next() {
-                Some(val) => {
-                    let decoded = base64::decode(val).map_err(|e| {
-                        Error::CryptoError(format!("Can't decode nonce: {}", e))
-                    })?;
-                    match Nonce::from_slice(&decoded) {
-                        Some(nonce) => Some(nonce),
-                        None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
-                    }
-                }
-                None => {
-                    return Err(Error::CryptoError(
-                        "Corrupt payload, can't read nonce".to_string(),
-                    ));
-                }
-            }
-        };
-        let ciphertext = match lines.next() {
-            Some(val) => {
-                base64::decode(val).map_err(|e| {
-                    Error::CryptoError(format!("Can't decode ciphertext: {}", e))
-                })?
-            }
-            None => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read ciphertext".to_string(),
-                ));
-            }
-        };
-        if version == ANONYMOUS_BOX_FORMAT_VERSION {
-            Self::decrypt_anonymous_box(&ciphertext, sender.public()?, sender.secret()?)
-        } else {
-            Self::decrypt_box(
-                &ciphertext,
-                &nonce.unwrap(),
-                sender.public()?,
-                receiver.unwrap().secret()?,
-            )
         }
+    }
+
+    pub fn box_key_sender(sender: Option<&str>) -> Result<&str> {
+        match sender {
+            Some(val) => Ok(val),
+            None => {
+                Err(Error::CryptoError(
+                    "Corrupt payload, can't read sender key name".to_string(),
+                ))
+            }
+        }
+    }
+
+    pub fn box_key_receiver(receiver: Option<&str>) -> Result<&str> {
+        match receiver {
+            Some(val) => Ok(val),
+            None => {
+                Err(Error::CryptoError(
+                    "Corrupt payload, can't read receiver key name".to_string(),
+                ))
+            }
+        }
+    }
+
+    pub fn box_key_nonce(nonce: Option<&str>) -> Result<Nonce> {
+        match nonce {
+            Some(val) => {
+                let decoded = base64::decode(val).map_err(|e| {
+                    Error::CryptoError(format!("Can't decode nonce: {}", e))
+                })?;
+                match Nonce::from_slice(&decoded) {
+                    Some(nonce) => Ok(nonce),
+                    None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
+                }
+            }
+            None => {
+                Err(Error::CryptoError(
+                    "Corrupt payload, can't read nonce".to_string(),
+                ))
+            }
+        }
+    }
+
+    pub fn box_key_ciphertext(ciphertext: Option<&str>) -> Result<Vec<u8>> {
+        match ciphertext {
+            Some(val) => {
+                Ok(base64::decode(val).map_err(|e| {
+                    Error::CryptoError(format!("Can't decode ciphertext: {}", e))
+                })?)
+            }
+            None => {
+                Err(Error::CryptoError(
+                    "Corrupt payload, can't read ciphertext".to_string(),
+                ))
+            }
+        }
+    }
+
+    pub fn is_anonymous_box(version: &str) -> bool {
+        version == ANONYMOUS_BOX_FORMAT_VERSION
+    }
+
+    pub fn decrypt(
+        &self,
+        ciphertext: &[u8],
+        receiver: Option<Self>,
+        nonce: Option<Nonce>,
+    ) -> Result<Vec<u8>> {
+        match receiver {
+            Some(recv) => {
+                Self::decrypt_box(ciphertext, &nonce.unwrap(), self.public()?, recv.secret()?)
+            }
+            None => Self::decrypt_anonymous_box(ciphertext, self.public()?, self.secret()?),
+        }
+    }
+
+    // Return the metadata and encrypted text from a secret payload.
+    // This is useful for services consuming an encrypted payload and need to decrypt it without having keys on disk
+    pub fn secret_metadata<'a>(payload: &'a [u8]) -> Result<BoxSecret> {
+        let mut lines = str::from_utf8(payload)?.lines();
+        let version = Self::box_key_format_version(lines.next())?;
+        let sender = Self::box_key_sender(lines.next())?;
+        let receiver = if Self::is_anonymous_box(version) {
+            None
+        } else {
+            Some(Self::box_key_receiver(lines.next())?)
+        };
+        let nonce = if Self::is_anonymous_box(version) {
+            None
+        } else {
+            Some(Self::box_key_nonce(lines.next())?)
+        };
+        let ciphertext = Self::box_key_ciphertext(lines.next())?;
+        Ok(BoxSecret {
+            sender,
+            receiver,
+            nonce,
+            ciphertext,
+        })
+    }
+
+    /// Decrypt data from a user that was received at a service
+    /// Key names are embedded in the message payload which must
+    /// be present while decrypting.
+    pub fn decrypt_with_path<P>(payload: &[u8], cache_key_path: P) -> Result<Vec<u8>>
+    where
+        P: AsRef<Path>,
+    {
+        debug!("Decrypt key path = {}", cache_key_path.as_ref().display());
+        let box_secret = Self::secret_metadata(payload)?;
+        let sender = Self::get_pair_for(box_secret.sender, cache_key_path.as_ref())?;
+        let receiver = match box_secret.receiver {
+            Some(recv) => Some(Self::get_pair_for(recv, cache_key_path.as_ref())?),
+            None => None,
+        };
+        sender.decrypt(&box_secret.ciphertext, receiver, box_secret.nonce)
     }
 
     pub fn to_pair_files<P: AsRef<Path> + ?Sized>(&self, path: &P) -> Result<()> {
@@ -363,6 +417,17 @@ impl BoxKeyPair {
         })
     }
 
+    pub fn public_key_from_bytes(bytes: &[u8]) -> Result<BoxPublicKey> {
+        match BoxPublicKey::from_slice(bytes) {
+            Some(sk) => Ok(sk),
+            None => {
+                return Err(Error::CryptoError(
+                    format!("Can't convert key string to BoxPublicKey"),
+                ))
+            }
+        }
+    }
+
     fn get_public_key<T, P>(key_with_rev: T, cache_key_path: P) -> Result<BoxPublicKey>
     where
         T: AsRef<str>,
@@ -371,15 +436,7 @@ impl BoxKeyPair {
         let public_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), PUBLIC_KEY_SUFFIX);
         let bytes = read_key_bytes(&public_keyfile)?;
-        match BoxPublicKey::from_slice(&bytes) {
-            Some(sk) => Ok(sk),
-            None => {
-                return Err(Error::CryptoError(format!(
-                    "Can't read box public key for {}",
-                    key_with_rev.as_ref()
-                )))
-            }
-        }
+        Self::public_key_from_bytes(&bytes)
     }
 
     fn get_secret_key<T, P>(key_with_rev: T, cache_key_path: P) -> Result<BoxSecretKey>
@@ -390,13 +447,16 @@ impl BoxKeyPair {
         let secret_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), SECRET_BOX_KEY_SUFFIX);
         let bytes = read_key_bytes(&secret_keyfile)?;
-        match BoxSecretKey::from_slice(&bytes) {
+        Self::secret_key_from_bytes(&bytes)
+    }
+
+    pub fn secret_key_from_bytes(bytes: &[u8]) -> Result<BoxSecretKey> {
+        match BoxSecretKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
-                    "Can't read box secret key for {}",
-                    key_with_rev.as_ref()
-                )))
+                return Err(Error::CryptoError(
+                    format!("Can't convert key string to BoxSecretKey"),
+                ))
             }
         }
     }
@@ -407,10 +467,6 @@ impl BoxKeyPair {
 
     fn mk_key_name_for_string(string: &str, revision: &str) -> String {
         format!("{}-{}", string, revision)
-    }
-
-    fn mk_key_name_for_origin(origin: &str, revision: &str) -> String {
-        format!("{}-{}", origin, revision)
     }
 }
 
@@ -656,7 +712,7 @@ mod test {
 
         let ciphertext = user.encrypt("I wish to buy more rockets".as_bytes(), Some(&service))
             .unwrap();
-        let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
+        let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "I wish to buy more rockets".as_bytes());
     }
 
@@ -671,7 +727,7 @@ mod test {
         let ciphertext = service
             .encrypt("Out of rockets".as_bytes(), Some(&user))
             .unwrap();
-        let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
+        let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "Out of rockets".as_bytes());
     }
 
@@ -682,7 +738,7 @@ mod test {
         sender.to_pair_files(cache.path()).unwrap();
 
         let ciphertext = sender.encrypt("Buy more rockets".as_bytes(), None).unwrap();
-        let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
+        let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "Buy more rockets".as_bytes());
     }
 
@@ -763,7 +819,7 @@ mod test {
         // Decrypt unpacks the ciphertext payload to read nonce , determines which secret key to
         // load for the receiver and which public key to load for the sender. We're using the
         // receiver's cache for the decrypt.
-        let message = BoxKeyPair::decrypt(&ciphertext, receiver_cache.path()).unwrap();
+        let message = BoxKeyPair::decrypt_with_path(&ciphertext, receiver_cache.path()).unwrap();
         assert_eq!(message, "Falling hurts".as_bytes());
     }
 
@@ -826,7 +882,7 @@ mod test {
         let ciphertext = sender
             .encrypt("problems ahead".as_bytes(), Some(&receiver))
             .unwrap();
-        BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
     }
 
     #[test]
@@ -846,43 +902,43 @@ mod test {
         let ciphertext = sender
             .encrypt("problems ahead".as_bytes(), Some(&receiver))
             .unwrap();
-        BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic]
     fn decrypt_empty_sender_key() {
         let cache = TempDir::new("key_cache").unwrap();
-        BoxKeyPair::decrypt("BOX-1\n\nuhoh".as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path("BOX-1\n\nuhoh".as_bytes(), cache.path()).unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic]
     fn decrypt_invalid_sender_key() {
         let cache = TempDir::new("key_cache").unwrap();
-        BoxKeyPair::decrypt("BOX-1\nnope-nope\nuhoh".as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path("BOX-1\nnope-nope\nuhoh".as_bytes(), cache.path()).unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic]
     fn decrypt_empty_receiver_key() {
         let cache = TempDir::new("key_cache").unwrap();
         let sender = BoxKeyPair::generate_pair_for_user("wecoyote").unwrap();
         sender.to_pair_files(cache.path()).unwrap();
 
         let payload = format!("BOX-1\n{}\n\nuhoh", sender.name_with_rev());
-        BoxKeyPair::decrypt(payload.as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(payload.as_bytes(), cache.path()).unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic]
     fn decrypt_invalid_receiver_key() {
         let cache = TempDir::new("key_cache").unwrap();
         let sender = BoxKeyPair::generate_pair_for_user("wecoyote").unwrap();
         sender.to_pair_files(cache.path()).unwrap();
 
         let payload = format!("BOX-1\n{}\nnope-nope\nuhoh", sender.name_with_rev());
-        BoxKeyPair::decrypt(payload.as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(payload.as_bytes(), cache.path()).unwrap();
     }
 
     #[test]
@@ -899,7 +955,7 @@ mod test {
             sender.name_with_rev(),
             receiver.name_with_rev()
         );
-        BoxKeyPair::decrypt(payload.as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(payload.as_bytes(), cache.path()).unwrap();
     }
 
     #[test]
@@ -916,7 +972,7 @@ mod test {
             sender.name_with_rev(),
             receiver.name_with_rev()
         );
-        BoxKeyPair::decrypt(payload.as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(payload.as_bytes(), cache.path()).unwrap();
     }
 
     #[test]
@@ -943,7 +999,7 @@ mod test {
         botched.push('\n');
         botched.push_str("not:base64");
 
-        BoxKeyPair::decrypt(botched.as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(botched.as_bytes(), cache.path()).unwrap();
     }
 
     #[test]
@@ -970,6 +1026,6 @@ mod test {
         botched.push('\n');
         botched.push_str("uhoh");
 
-        BoxKeyPair::decrypt(botched.as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(botched.as_bytes(), cache.path()).unwrap();
     }
 }
