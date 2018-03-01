@@ -15,10 +15,10 @@
 use std::thread;
 use std::time;
 
-use butterfly::client::Client;
 use common::ui::{Status, UI};
 use hcore::crypto::SymKey;
 
+use command;
 use error::{Error, Result};
 
 pub fn run(
@@ -36,9 +36,7 @@ pub fn run(
     )?;
     for peer in peers.into_iter() {
         ui.status(Status::Applying, format!("to peer {}", peer))?;
-        let mut client = Client::new(peer, ring_key.clone()).map_err(|e| {
-            Error::ButterflyError(e.to_string())
-        })?;
+        let mut client = command::get_client(&peer, ring_key.clone())?;
         client.send_departure(member_id).map_err(|e| {
             Error::ButterflyError(e.to_string())
         })?;

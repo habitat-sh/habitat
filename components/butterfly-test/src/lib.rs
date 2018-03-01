@@ -16,19 +16,23 @@
 
 extern crate env_logger;
 extern crate time;
+extern crate libc;
 #[macro_use]
 extern crate habitat_butterfly;
 extern crate habitat_core;
 
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::thread;
 use std::ops::{Deref, DerefMut, Range};
 use std::path::PathBuf;
+use std::sync::{Once, ONCE_INIT};
 use std::time::Duration;
 use std::str::FromStr;
 
 use time::SteadyTime;
 
+use habitat_butterfly::client::Client;
 use habitat_butterfly::server::{Server, Suitability};
 use habitat_butterfly::member::{Member, Health};
 use habitat_butterfly::server::timing::Timing;
@@ -40,9 +44,20 @@ use habitat_butterfly::message::swim::Election_Status;
 use habitat_core::service::ServiceGroup;
 use habitat_core::package::{Identifiable, PackageIdent};
 use habitat_core::crypto::keys::sym_key::SymKey;
+use habitat_butterfly::network::{Network, GossipZmqSocket, RealNetwork};
 use habitat_butterfly::trace::Trace;
 
 static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
+
+pub fn get_client_for_address(addr: SocketAddr) -> Client<GossipZmqSocket> {
+    let network = RealNetwork::new_for_client();
+    let sender = network.create_gossip_sender(addr).expect(
+        "Cannot create gossip socket",
+    );
+    Client::new(sender, None)
+}
+
+static RLIMIT_ONCE: Once = ONCE_INIT;
 
 #[derive(Debug)]
 struct NSuitability(u64);
@@ -52,32 +67,37 @@ impl Suitability for NSuitability {
     }
 }
 
-pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
+pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server<RealNetwork> {
     SERVER_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
     let swim_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
     let gossip_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
-    let listen_swim = format!("127.0.0.1:{}", swim_port);
-    let listen_gossip = format!("127.0.0.1:{}", gossip_port);
+    let listen_swim = localhost_addr(swim_port as u16);
+    let listen_gossip = localhost_addr(gossip_port as u16);
     let mut member = Member::default();
     member.set_swim_port(swim_port as i32);
     member.set_gossip_port(gossip_port as i32);
+    let network = RealNetwork::new_for_server(listen_swim, listen_gossip);
     let mut server = Server::new(
-        &listen_swim[..],
-        &listen_gossip[..],
+        network,
         member,
         Trace::default(),
         ring_key,
         Some(String::from(name)),
         None::<PathBuf>,
         Box::new(NSuitability(suitability)),
-    ).unwrap();
+    );
     server.start(Timing::default()).expect(
         "Cannot start server",
     );
     server
 }
 
-pub fn member_from_server(server: &Server) -> Member {
+fn localhost_addr(port: u16) -> SocketAddr {
+    let ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+    SocketAddr::new(ip, port)
+}
+
+pub fn member_from_server(server: &Server<RealNetwork>) -> Member {
     let mut new_member = Member::default();
     let server_member = server.member.read().expect("Member lock is poisoned");
     new_member.set_id(String::from(server_member.get_id()));
@@ -91,21 +111,63 @@ pub fn member_from_server(server: &Server) -> Member {
 
 #[derive(Debug)]
 pub struct SwimNet {
-    pub members: Vec<Server>,
+    pub members: Vec<Server<RealNetwork>>,
 }
 
 impl Deref for SwimNet {
-    type Target = Vec<Server>;
+    type Target = Vec<Server<RealNetwork>>;
 
-    fn deref(&self) -> &Vec<Server> {
+    fn deref(&self) -> &Vec<Server<RealNetwork>> {
         &self.members
     }
 }
 
 impl DerefMut for SwimNet {
-    fn deref_mut(&mut self) -> &mut Vec<Server> {
+    fn deref_mut(&mut self) -> &mut Vec<Server<RealNetwork>> {
         &mut self.members
     }
+}
+
+#[cfg(target_os = "linux")]
+mod rlimitset {
+    use libc;
+    pub fn run() {
+        let mut rlim = libc::rlimit {
+            rlim_cur: 0,
+            rlim_max: 0,
+        };
+        if !get_files_no_limit(&mut rlim) {
+            println!("Failed to get open file descriptors limit");
+            return;
+        }
+        if rlim.rlim_cur == rlim.rlim_max {
+            println!("Files limit is already at its max ({})", rlim.rlim_cur);
+            return;
+        }
+        println!(
+            "Setting current files limit ({}) to the max ({})",
+            rlim.rlim_cur,
+            rlim.rlim_max
+        );
+        rlim.rlim_cur = rlim.rlim_max;
+        if !set_files_no_limit(&rlim) {
+            println!("Failed to set open file descriptors limit");
+            return;
+        }
+    }
+
+    fn get_files_no_limit(rlim: &mut libc::rlimit) -> bool {
+        unsafe { libc::getrlimit(libc::RLIMIT_NOFILE, rlim) == 0 }
+    }
+
+    fn set_files_no_limit(rlim: &libc::rlimit) -> bool {
+        unsafe { libc::setrlimit(libc::RLIMIT_NOFILE, rlim) == 0 }
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+mod rlimitset {
+    pub fn run() {}
 }
 
 impl SwimNet {
@@ -115,7 +177,7 @@ impl SwimNet {
         for x in 0..count {
             members.push(start_server(&format!("{}", x), None, suitabilities[x]));
         }
-        SwimNet { members: members }
+        Self::new_with_members(members)
     }
 
     pub fn new(count: usize) -> SwimNet {
@@ -129,12 +191,24 @@ impl SwimNet {
             let rk = ring_key.clone();
             members.push(start_server(&format!("{}", x), rk, 0));
         }
-        SwimNet { members: members }
+        Self::new_with_members(members)
+    }
+
+    fn new_with_members(members: Vec<Server<RealNetwork>>) -> Self {
+        RLIMIT_ONCE.call_once(rlimitset::run);
+        Self { members }
     }
 
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {
         let to = member_from_server(&self.members[to_entry]);
-        trace_it!(TEST: &self.members[from_entry], format!("Connected {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        trace_it!(
+            TEST: &self.members[from_entry],
+            format!(
+                "Connected {} {}",
+                self.members[to_entry].name(),
+                self.members[to_entry].member_id()
+            )
+        );
         self.members[from_entry].insert_member(to, Health::Alive);
     }
 
@@ -171,7 +245,14 @@ impl SwimNet {
         let to = self.members.get(to_entry).expect(
             "Asked for a network member who is out of bounds",
         );
-        trace_it!(TEST: &self.members[from_entry], format!("Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        trace_it!(
+            TEST: &self.members[from_entry],
+            format!(
+                "Blacklisted {} {}",
+                self.members[to_entry].name(),
+                self.members[to_entry].member_id()
+            )
+        );
         from.add_to_blacklist(String::from(
             to.member.read().expect("Member lock is poisoned").get_id(),
         ));
@@ -184,7 +265,14 @@ impl SwimNet {
         let to = self.members.get(to_entry).expect(
             "Asked for a network member who is out of bounds",
         );
-        trace_it!(TEST: &self.members[from_entry], format!("Un-Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        trace_it!(
+            TEST: &self.members[from_entry],
+            format!(
+                "Un-Blacklisted {} {}",
+                self.members[to_entry].name(),
+                self.members[to_entry].member_id()
+            )
+        );
         from.remove_from_blacklist(to.member_id());
     }
 
@@ -398,12 +486,28 @@ impl SwimNet {
         loop {
             if let Some(real_health) = self.health_of(from_entry, to_check) {
                 if real_health == health {
-                    trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                    trace_it!(
+                        TEST: &self.members[from_entry],
+                        format!(
+                            "Health {} {} as {}",
+                            self.members[to_check].name(),
+                            self.members[to_check].member_id(),
+                            health
+                        )
+                    );
                     return true;
                 }
             }
             if self.check_rounds(&rounds_in) {
-                trace_it!(TEST: &self.members[from_entry], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                trace_it!(
+                    TEST: &self.members[from_entry],
+                    format!(
+                        "Health failed {} {} as {}",
+                        self.members[to_check].name(),
+                        self.members[to_check].member_id(),
+                        health
+                    )
+                );
                 println!("MEMBERS: {:#?}", self.members);
                 println!(
                     "Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
@@ -440,7 +544,15 @@ impl SwimNet {
                     match some_health {
                         &Some(ref health) => {
                             println!("{}: {:?}", i, health);
-                            trace_it!(TEST: &self.members[i], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                            trace_it!(
+                                TEST: &self.members[i],
+                                format!(
+                                    "Health failed {} {} as {}",
+                                    self.members[to_check].name(),
+                                    self.members[to_check].member_id(),
+                                    health
+                                )
+                            );
                         }
                         &None => {}
                     }
@@ -513,10 +625,21 @@ impl SwimNet {
 #[macro_export]
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.network_health_of($to).into_iter().all(|x| x == $health), "Member {} does not always have health {}", $to, $health)
+        assert!(
+            $network.network_health_of($to).into_iter().all(|x| x == $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        )
     };
     ($network:expr, $from: expr, $to:expr, $health:expr) => {
-        assert!($network.health_of($from, $to) == $health, "Member {} does not see {} as {}", $from, $to, $health)
+        assert!(
+            $network.health_of($from, $to) == $health,
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        )
     }
 }
 
@@ -530,16 +653,39 @@ macro_rules! assert_wait_for_health_of {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_health_of(*l, *r, $health), "Member {} does not see {} as {}", l, r, $health);
-                assert!($network.wait_for_health_of(*r, *l, $health), "Member {} does not see {} as {}", r, l, $health);
+                assert!(
+                    $network.wait_for_health_of(*l, *r, $health),
+                    "Member {} does not see {} as {}",
+                    l,
+                    r,
+                    $health
+                );
+                assert!(
+                    $network.wait_for_health_of(*r, *l, $health),
+                    "Member {} does not see {} as {}",
+                    r,
+                    l,
+                    $health
+                );
             }
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_network_health_of($to, $health), "Member {} does not always have health {}", $to, $health);
+        assert!(
+            $network.wait_for_network_health_of($to, $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        );
     };
     ($network:expr, $from: expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_health_of($from, $to, $health), "Member {} does not see {} as {}", $from, $to, $health);
+        assert!(
+            $network.wait_for_health_of($from, $to, $health),
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        );
     };
 }
 
@@ -568,7 +714,12 @@ macro_rules! assert_wait_for_equal_election {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_equal_election(*l, *r, $key), "Member {} is not equal to {}", l, r);
+                assert!(
+                    $network.wait_for_equal_election(*l, *r, $key),
+                    "Member {} is not equal to {}",
+                    l,
+                    r
+                );
             }
         }
     };

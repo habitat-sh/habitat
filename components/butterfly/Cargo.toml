@@ -21,7 +21,6 @@ clippy = {version = "*", optional = true}
 byteorder = "*"
 env_logger = "*"
 log = "*"
-lazy_static = "*"
 protobuf = "*"
 rand = "*"
 serde = "*"

@@ -661,7 +661,11 @@ impl Hook for SuitabilityHook {
                             Ok(line) => {
                                 match line.trim().parse::<u64>() {
                                     Ok(suitability) => {
-                                        outputln!(preamble service_group, "Reporting suitability of: {}", suitability);
+                                        outputln!(
+                                            preamble service_group,
+                                            "Reporting suitability of: {}",
+                                            suitability
+                                        );
                                         return Some(suitability);
                                     }
                                     Err(err) => {
