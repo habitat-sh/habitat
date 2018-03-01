@@ -154,12 +154,30 @@ impl Pkg {
 /// if not, we'll try and use hab/hab.
 /// If hab/hab doesn't exist, try to use (current username, current group).
 /// If that doesn't work, then give up.
+#[cfg(unix)]
 fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
     if let Some((user, group)) = get_pkg_user_and_group(&pkg_install)? {
         Ok((user, group))
     } else {
         let defaults = default_user_and_group()?;
         Ok(defaults)
+    }
+}
+
+/// check and see if a user/group is specified in package metadata.
+/// if not, we'll try and use hab/hab.
+/// If hab/hab doesn't exist, try to use (current username, current group).
+/// If that doesn't work, then give up.
+/// Windows will also check if hab exists if it was the given user name
+/// If it does not exist then fall back to the current username
+/// This is because historically windows plans defaulted to
+/// the hab pkg_svc_user even if not explicitly provided
+#[cfg(windows)]
+fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
+    match get_pkg_user_and_group(&pkg_install)? {
+        Some((ref user, ref _group)) if user == DEFAULT_USER => Ok(default_user_and_group()?),
+        Some((user, group)) => Ok((user, group)),
+        _ => Ok(default_user_and_group()?),
     }
 }
 
