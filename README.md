@@ -3,6 +3,7 @@
 [![Build Status](https://api.travis-ci.org/habitat-sh/habitat.svg?branch=master)](https://travis-ci.org/habitat-sh/habitat)
 [![Build status](https://ci.appveyor.com/api/projects/status/ejn8d6bkhiml16al/branch/master?svg=true)](https://ci.appveyor.com/project/chef/habitat/branch/master)
 [![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
+[![Discourse status](https://img.shields.io/discourse/https/meta.discourse.org/status.svg?style=for-the-badge)](https://forums.habitat.sh)
 
 Want to try Habitat? [Get started here](https://www.habitat.sh/tutorials/get-started/demo/).
 
