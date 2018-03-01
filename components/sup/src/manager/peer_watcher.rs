@@ -212,7 +212,7 @@ mod tests {
         member2.set_gossip_port(GOSSIP_DEFAULT_PORT as i32);
         let expected_members = vec![member1, member2];
         let mut members = watcher.get_members().unwrap();
-        for mut member in &mut members {
+        for member in &mut members {
             member.set_id(String::new());
         }
         assert_eq!(expected_members, members);
