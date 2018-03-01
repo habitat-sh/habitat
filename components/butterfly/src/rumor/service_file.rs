@@ -118,7 +118,8 @@ impl ServiceFile {
     /// the fact that we might be encrypted.
     pub fn body(&self) -> Result<Vec<u8>> {
         if self.get_encrypted() {
-            let bytes = BoxKeyPair::decrypt(self.get_body(), &default_cache_key_path(None))?;
+            let bytes =
+                BoxKeyPair::decrypt_with_path(self.get_body(), &default_cache_key_path(None))?;
             Ok(bytes)
         } else {
             Ok(self.get_body().to_vec())
