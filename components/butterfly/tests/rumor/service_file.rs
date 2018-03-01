@@ -41,7 +41,7 @@ fn service_file_via_client() {
 
     net.wait_for_gossip_rounds(1);
     let mut client =
-        Client::new(net[0].gossip_addr(), None).expect("Cannot create Butterfly Client");
+        Client::new(net[0].swim_gossip_addr(), None).expect("Cannot create Butterfly Client");
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
     client
         .send_service_file(

@@ -78,8 +78,7 @@ pub struct Server {
     pub election_store: RumorStore<Election>,
     pub update_store: RumorStore<ElectionUpdate>,
     pub departure_store: RumorStore<Departure>,
-    swim_addr: Arc<RwLock<SocketAddr>>,
-    gossip_addr: Arc<RwLock<SocketAddr>>,
+    swim_gossip_addr: Arc<RwLock<SocketAddr>>,
     suitability_lookup: Arc<Box<Suitability>>,
     data_path: Arc<Option<PathBuf>>,
     dat_file: Arc<RwLock<Option<DatFile>>>,
@@ -108,8 +107,7 @@ impl Clone for Server {
             election_store: self.election_store.clone(),
             update_store: self.update_store.clone(),
             departure_store: self.departure_store.clone(),
-            swim_addr: self.swim_addr.clone(),
-            gossip_addr: self.gossip_addr.clone(),
+            swim_gossip_addr: self.swim_gossip_addr.clone(),
             suitability_lookup: self.suitability_lookup.clone(),
             data_path: self.data_path.clone(),
             dat_file: self.dat_file.clone(),
@@ -127,9 +125,8 @@ impl Clone for Server {
 impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
     /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
-    pub fn new<T, U, P>(
-        swim_addr: T,
-        gossip_addr: U,
+    pub fn new<T, P>(
+        swim_gossip_addr: T,
         mut member: Member,
         trace: Trace,
         ring_key: Option<SymKey>,
@@ -139,16 +136,16 @@ impl Server {
     ) -> Result<Server>
     where
         T: ToSocketAddrs,
-        U: ToSocketAddrs,
         P: Into<PathBuf> + AsRef<ffi::OsStr>,
     {
-        let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
-        let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
+        let maybe_socket_addr = swim_gossip_addr.to_socket_addrs().map(
+            |mut iter| iter.next(),
+        );
 
-        match (maybe_swim_socket_addr, maybe_gossip_socket_addr) {
-            (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => {
-                member.set_swim_port(swim_socket_addr.port() as i32);
-                member.set_gossip_port(gossip_socket_addr.port() as i32);
+        match maybe_socket_addr {
+            Ok(Some(swim_gossip_socket_addr)) => {
+                member.set_swim_port(swim_gossip_socket_addr.port() as i32);
+                member.set_gossip_port(swim_gossip_socket_addr.port() as i32);
                 Ok(Server {
                     name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
                     member_id: Arc::new(String::from(member.get_id())),
@@ -162,8 +159,7 @@ impl Server {
                     election_store: RumorStore::default(),
                     update_store: RumorStore::default(),
                     departure_store: RumorStore::default(),
-                    swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
-                    gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
+                    swim_gossip_addr: Arc::new(RwLock::new(swim_gossip_socket_addr)),
                     suitability_lookup: Arc::new(suitability_lookup),
                     data_path: Arc::new(data_path.as_ref().map(|p| p.into())),
                     dat_file: Arc::new(RwLock::new(None)),
@@ -176,8 +172,8 @@ impl Server {
                     socket: None,
                 })
             }
-            (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
-            (Ok(None), _) | (_, Ok(None)) => {
+            Err(e) => Err(Error::CannotBind(e)),
+            Ok(None) => {
                 Err(Error::CannotBind(io::Error::new(
                     io::ErrorKind::AddrNotAvailable,
                     "No address discovered.",
@@ -260,7 +256,7 @@ impl Server {
             *dat_file = Some(file);
         }
 
-        let socket = match UdpSocket::bind(*self.swim_addr.read().expect(
+        let socket = match UdpSocket::bind(*self.swim_gossip_addr.read().expect(
             "Swim address lock is poisoned",
         )) {
             Ok(socket) => socket,
@@ -387,31 +383,17 @@ impl Server {
         self.pause.load(Ordering::Relaxed)
     }
 
-    /// Return the swim address we are bound to
-    fn swim_addr(&self) -> SocketAddr {
-        let sa = self.swim_addr.read().expect("Swim Address lock poisoned");
-        sa.clone()
-    }
-
-    /// Return the port number of the swim socket we are bound to.
-    pub fn swim_port(&self) -> u16 {
-        self.swim_addr
-            .read()
-            .expect("Swim Address lock poisoned")
-            .port()
-    }
-
     /// Return the gossip address we are bound to
-    pub fn gossip_addr(&self) -> SocketAddr {
-        let ga = self.gossip_addr.read().expect(
+    pub fn swim_gossip_addr(&self) -> SocketAddr {
+        let ga = self.swim_gossip_addr.read().expect(
             "Gossip Address lock poisoned",
         );
         ga.clone()
     }
 
     /// Return the port number of the gossip socket we are bound to.
-    pub fn gossip_port(&self) -> u16 {
-        self.gossip_addr
+    pub fn swim_gossip_port(&self) -> u16 {
+        self.swim_gossip_addr
             .read()
             .expect("Gossip Address lock poisoned")
             .port()
@@ -1066,13 +1048,7 @@ impl Serialize for Server {
 
 impl fmt::Display for Server {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}@{}/{}",
-            self.name(),
-            self.swim_port(),
-            self.gossip_port()
-        )
+        write!(f, "{}@{}", self.name(), self.swim_gossip_port())
     }
 }
 
@@ -1102,8 +1078,7 @@ mod tests {
         use std::path::PathBuf;
         use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 
-        static SWIM_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
-        static GOSSIP_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
+        static SWIM_GOSSIP_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
 
         #[derive(Debug)]
         struct ZeroSuitability;
@@ -1114,18 +1089,14 @@ mod tests {
         }
 
         fn start_server() -> Server {
-            SWIM_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
-            GOSSIP_PORT.compare_and_swap(0, 7777, Ordering::Relaxed);
-            let swim_port = SWIM_PORT.fetch_add(1, Ordering::Relaxed);
-            let swim_listen = format!("127.0.0.1:{}", swim_port);
-            let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
-            let gossip_listen = format!("127.0.0.1:{}", gossip_port);
+            SWIM_GOSSIP_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
+            let swim_gossip_port = SWIM_GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
+            let swim_gossip_listen = format!("127.0.0.1:{}", swim_gossip_port);
             let mut member = Member::default();
-            member.set_swim_port(swim_port as i32);
-            member.set_gossip_port(gossip_port as i32);
+            member.set_swim_port(swim_gossip_port as i32);
+            member.set_gossip_port(swim_gossip_port as i32);
             Server::new(
-                &swim_listen[..],
-                &gossip_listen[..],
+                &swim_gossip_listen[..],
                 member,
                 Trace::default(),
                 None,
@@ -1142,13 +1113,11 @@ mod tests {
 
         #[test]
         fn invalid_addresses_fails() {
-            let swim_listen = "";
-            let gossip_listen = "";
+            let swim_gossip_listen = "";
             let member = Member::default();
             assert!(
                 Server::new(
-                    &swim_listen[..],
-                    &gossip_listen[..],
+                    &swim_gossip_listen[..],
                     member,
                     Trace::default(),
                     None,

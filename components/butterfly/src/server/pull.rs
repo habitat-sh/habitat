@@ -52,7 +52,7 @@ impl Pull {
             "Failure to set the ZMQ Pull socket to not use keepalive",
         );
         socket
-            .bind(&format!("tcp://{}", self.server.gossip_addr()))
+            .bind(&format!("tcp://{}", self.server.swim_gossip_addr()))
             .expect("Failure to bind the ZMQ Pull socket to the port");
         'recv: loop {
             if self.server.pause.load(Ordering::Relaxed) {

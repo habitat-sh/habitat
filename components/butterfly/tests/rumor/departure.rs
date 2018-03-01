@@ -36,7 +36,7 @@ fn departure_via_client() {
 
     net.wait_for_gossip_rounds(1);
     let mut client =
-        Client::new(net[0].gossip_addr(), None).expect("Cannot create Butterfly Client");
+        Client::new(net[0].swim_gossip_addr(), None).expect("Cannot create Butterfly Client");
     client
         .send_departure(String::from(net[1].member_id()))
         .expect("Cannot send the departure");

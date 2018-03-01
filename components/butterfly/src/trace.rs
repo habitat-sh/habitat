@@ -308,7 +308,7 @@ macro_rules! trace_it {
                 trace.init($server);
                 let thread = thread::current();
                 let thread_name = thread.name().unwrap_or("undefined");
-                let listening = format!("{}", $server.swim_addr());
+                let listening = format!("{}", $server.swim_gossip_addr());
                 let to_addr = format!("{}", $to_addr);
                 let member_id = $server.member_id();
                 let server_name = $server.name();
@@ -334,7 +334,7 @@ macro_rules! trace_it {
                 trace.init($server);
                 let thread = thread::current();
                 let thread_name = thread.name().unwrap_or("undefined");
-                let listening = format!("{}", $server.swim_addr());
+                let listening = format!("{}", $server.swim_gossip_addr());
                 let to_addr = format!("{}", $to_addr);
                 let member_id = $server.member_id();
                 let server_name = $server.name();
@@ -368,7 +368,7 @@ macro_rules! trace_it {
                 trace.init($server);
                 let thread = thread::current();
                 let thread_name = thread.name().unwrap_or("undefined");
-                let listening = format!("{}", $server.gossip_addr());
+                let listening = format!("{}", $server.swim_gossip_addr());
                 let member_id = $server.member_id();
                 let server_name = $server.name();
                 let rp = match $payload.get_field_type() {
