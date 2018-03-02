@@ -127,9 +127,56 @@ body.body-article {
 
 .main-sidebar--list--item {
   display: block;
+  position: relative;
   line-height: rem-calc(24);
   margin-bottom: rem-calc(8);
   padding-left: 0;
+
+  .submenu-toggle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: rem-calc(32);
+    height: rem-calc(32);
+    font-weight: bold;
+    color: $hab-green;
+  }
+
+  .submenu-toggle-text {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    -webkit-clip-path: inset(50%);
+    clip-path: inset(50%);
+    border: 0;
+  }
+
+  .submenu-toggle::after {
+    display: block;
+    width: 0;
+    height: 0;
+    border: inset 6px;
+    content: '';
+    border-bottom-width: 0;
+    border-top-style: solid;
+    border-color: $hab-green transparent transparent;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+  }
+
+  .submenu-toggle[aria-expanded='true']::after {
+    -webkit-transform: scaleY(-1);
+    -ms-transform: scaleY(-1);
+    transform: scaleY(-1);
+    -webkit-transform-origin: 50% 50%;
+    -ms-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+  }
 
   &:last-child {
     margin-bottom: rem-calc(24);

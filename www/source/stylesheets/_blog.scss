@@ -26,21 +26,18 @@ a.icon-back {
 .tag-list {
   li.tag a {
     display: inline-block;
-    padding: 0 1rem .25rem;
-    color: $hab-orange;
-    border: 1px solid currentColor;
-    border-radius: $global-radius - 2;
+    padding-right: 0;
     line-height: 1.5rem;
-    transition: background-color .2s;
+    border-bottom: 1px solid transparent;
+    text-transform: capitalize;
 
     &:hover,
     &:focus,
     &:active,
     &.active {
-      background-color: $hab-orange;
-      color: $hab-white;
-      border-color: $hab-orange;
-      transition: background-color .2s;
+      color: $hab-orange;
+      border-color: currentColor;
+      transition: background-color .1s;
     }
   }
 
@@ -77,6 +74,10 @@ a.icon-back {
   background-color: $hab-white;
   border-radius: $global-radius;
 
+  h2 {
+    font-size: 1.25rem;
+  }
+
   p {
     margin-bottom: .75rem;
   }
@@ -92,11 +93,8 @@ a.icon-back {
   border-radius: $global-radius;
 
   section {
-    padding: rem-calc(40) rem-calc(30);
-  }
-
-  header section {
-    padding-bottom: 0;
+    padding: rem-calc(40) rem-calc(30) rem-calc(24);
+    border: 1px solid $hab-gray-light;
   }
 }
 

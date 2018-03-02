@@ -136,6 +136,28 @@ $demo-large-breakpoint: rem-calc(1060);
     &.secondary {
       background-color: rgba($hab-slate, 0.35);
     }
+
+    &.contrast {
+      background-color: $hab-white;
+
+      h3, p {
+        color: $hab-blue-grey;
+      }
+
+      &:hover {
+        transform: translateY(0);
+      }
+    }
+
+    .demo--callout-diagrams {
+      .columns {
+        padding: 0;
+      }
+
+      .demo--callout-content--clip {
+        padding-top: 1rem;
+      }
+    }
   }
 }
 
@@ -211,6 +233,42 @@ $demo-large-breakpoint: rem-calc(1060);
 
     .button {
       margin-bottom: 0;
+    }
+  }
+
+  &.demo--callout-diagrams {
+    padding-bottom: 0;
+    padding-top: rem-calc(64);
+
+    h4 {
+      color: $hab-gray;
+    }
+
+    .button-bar {
+      position: relative;
+      bottom: auto;
+      left: auto;
+    }
+
+    .button.cta:hover {
+      box-shadow: 0 3px 14px rgba($hab-gray, 0.3);
+    }
+
+    .demo--callout-content--clip {
+      overflow-y: hidden;
+    }
+
+    img {
+      margin-bottom: -20px;
+      transform: translateY(0);
+      transition: all .20s;
+    }
+
+    &:hover {
+      img {
+        transform: translateY(-16px);
+        transition: all .30s;
+      }
     }
   }
 }
