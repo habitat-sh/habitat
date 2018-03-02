@@ -332,9 +332,16 @@ code {
   }
 
   &.download {
-    border-color: $hab-green;
     background: url('/images/icons/icon-download.svg') 15px center no-repeat;
+    background-color: rgba($hab-gray-light, .10);
+    box-shadow: 0 4px 16px rgba($hab-navy, 0.20);
     padding-left: 1.75rem;
+
+    &:hover {
+      color: rgba($hab-white, .85);
+      background-color: rgba($hab-gray-light, .05);
+      box-shadow: 0 1px 4px rgba($hab-navy, 0.30);
+    }
   }
 
   + .button {
