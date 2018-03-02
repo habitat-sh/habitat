@@ -18,8 +18,6 @@ extern crate habitat_http_client as hab_http;
 extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate log;
 extern crate regex;
 extern crate serde;

@@ -9,7 +9,6 @@ base64 = "*"
 frank_jwt = { git = "https://github.com/habitat-sh/frank_jwt", branch = "habitat" }
 hyper = "0.10"
 hyper-openssl = "0.2"
-lazy_static = "*"
 log = "*"
 regex = "*"
 serde = "*"

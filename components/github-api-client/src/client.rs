@@ -18,12 +18,11 @@ use std::time::{UNIX_EPOCH, Duration, SystemTime};
 
 use hab_http::ApiClient;
 use hyper::{self, Url};
-use hyper::client::{IntoUrl, Response};
+use hyper::client::IntoUrl;
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use jwt;
-use regex::Regex;
 use serde_json;
 
 use config::GitHubCfg;
@@ -31,16 +30,6 @@ use error::{HubError, HubResult};
 use types::*;
 
 const USER_AGENT: &'static str = "Habitat-Builder";
-
-lazy_static! {
-    // Until we can migrate to Hyper 0.11.x, which has typed support
-    // for interacting with Link headers, we need to roll our own
-    // support using regular expressions.
-    //
-    // Given a header string, this regex extracts the 'rel="next"'
-    // URL, if there is one. Used with Github's pagination scheme.
-    static ref LINK_NEXT_RE: Regex = Regex::new("<(?P<url>[^>].*)>;.*rel=\"next\"").unwrap();
-}
 
 #[derive(Clone)]
 pub struct GitHubClient {
@@ -64,29 +53,6 @@ impl GitHubClient {
             app_private_key: config.app_private_key,
             webhook_secret: config.webhook_secret,
         }
-    }
-
-    /// Given an HTTP response from Github, extract the URL for the
-    /// "next" page of results, if it exists.
-    ///
-    /// See
-    /// https://developer.github.com/v3/guides/traversing-with-pagination/
-    /// for further details.
-    ///
-    /// NOTE: Once we upgrade to Hyper 0.11.x, this implementation can
-    /// get a whole lot less ugly because then we'll actually have
-    /// TYPED ACCESS to the Link header.
-    fn next_page_url(response: &Response) -> Option<Url> {
-        let headers = &response.headers;
-        if let Some(link) = headers.get_raw("link") {
-            for value in link.iter() {
-                let value = String::from_utf8_lossy(value);
-                if let Some(captures) = LINK_NEXT_RE.captures(&value) {
-                    return Some(Url::parse(&captures["url"]).unwrap());
-                }
-            }
-        }
-        return None;
     }
 
     pub fn app(&self) -> HubResult<App> {
@@ -222,39 +188,6 @@ impl GitHubClient {
         Ok(Some(value))
     }
 
-    pub fn repositories(&self, token: &str, install_id: u32) -> HubResult<Vec<Repository>> {
-        let mut url = Url::parse(&format!(
-            "{}/user/installations/{}/repositories",
-            self.url,
-            install_id
-        )).unwrap();
-        let mut repositories = Vec::new();
-        loop {
-            let mut rep = http_get(url.clone(), Some(token))?;
-            let mut body = String::new();
-            rep.read_to_string(&mut body)?;
-            debug!("GitHub response body, {}", body);
-            match rep.status {
-                StatusCode::NotFound => continue,
-                StatusCode::Ok => (),
-                status => {
-                    let err: HashMap<String, String> = serde_json::from_str(&body)?;
-                    return Err(HubError::ApiError(status, err));
-                }
-            }
-            let mut list = serde_json::from_str::<RepositoryList>(&body)?;
-            repositories.append(&mut list.repositories);
-
-            // Determine the next page to grab and do it again.
-            match Self::next_page_url(&rep) {
-                Some(next_url) => url = next_url,
-                None => break,
-            }
-        }
-
-        Ok(repositories)
-    }
-
     pub fn user(&self, token: &str) -> HubResult<User> {
         let url = Url::parse(&format!("{}/user", self.url)).unwrap();
         let mut rep = http_get(url, Some(token))?;
@@ -267,33 +200,6 @@ impl GitHubClient {
         }
         let user = serde_json::from_str(&body)?;
         Ok(user)
-    }
-
-    pub fn search_code(&self, token: &str, query: &str) -> HubResult<Vec<SearchItem>> {
-        let mut url = Url::parse(&format!("{}/search/code?{}", self.url, query))
-            .map_err(HubError::HttpClientParse)?;
-        let mut items = Vec::new();
-        loop {
-            let mut rep = http_get(url.clone(), Some(token))?;
-            let mut body = String::new();
-            rep.read_to_string(&mut body)?;
-            debug!("GitHub response body, {}", body);
-            match rep.status {
-                StatusCode::NotFound => continue,
-                StatusCode::Ok => (),
-                status => {
-                    let err: HashMap<String, String> = serde_json::from_str(&body)?;
-                    return Err(HubError::ApiError(status, err));
-                }
-            }
-            let mut search = serde_json::from_str::<Search>(&body)?;
-            items.append(&mut search.items);
-            match Self::next_page_url(&rep) {
-                Some(next_url) => url = next_url,
-                None => break,
-            }
-        }
-        Ok(items)
     }
 
     // The main purpose of this is just to verify HTTP communication with GH.
