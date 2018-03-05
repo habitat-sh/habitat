@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use clap;
 use failure::SyncFailure;
 use handlebars::Handlebars;
 
 use export_docker::Result;
+use hcore::package::PackageIdent;
 
 pub const DEFAULT_VERSION: &'static str = "0.0.1";
 
@@ -23,17 +25,29 @@ pub const DEFAULT_VERSION: &'static str = "0.0.1";
 const CHARTFILE: &'static str = include_str!("../defaults/HelmChartFile.hbs");
 
 pub struct ChartFile {
-    name: String,
-    version: String,
-    description: Option<String>,
+    pub name: String,
+    pub version: String,
+    pub description: Option<String>,
 }
 
 impl ChartFile {
-    pub fn new(name: &str, version: Option<&str>, description: Option<&str>) -> Self {
+    pub fn new_from_cli_matches(matches: &clap::ArgMatches, pkg_ident: &PackageIdent) -> Self {
+        let name = matches
+            .value_of("CHART")
+            .unwrap_or(&pkg_ident.name)
+            .to_string();
+        let pkg_version = pkg_ident.version.as_ref();
+        let version = matches
+            .value_of("VERSION")
+            .or(pkg_version.map(|s| s.as_ref()))
+            .unwrap_or(DEFAULT_VERSION)
+            .to_owned();
+        let description = matches.value_of("DESCRIPTION").map(|s| s.to_owned());
+
         ChartFile {
-            name: name.to_owned(),
-            version: version.unwrap_or(DEFAULT_VERSION).to_owned(),
-            description: description.map(|s| s.to_owned()),
+            name,
+            version,
+            description,
         }
     }
 
