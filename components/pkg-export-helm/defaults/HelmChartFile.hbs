@@ -7,6 +7,12 @@ description: {{description}}
 {{~ #if appVersion}}
 appVersion: {{appVersion}}
 {{~ /if ~}}
+{{~ #if keywords}}
+keywords:
+{{~ #each keywords}}
+  - {{this}}
+{{~ /each ~}}
+{{~ /if ~}}
 {{~ #if home}}
 home: {{home}}
 {{~ /if ~}}

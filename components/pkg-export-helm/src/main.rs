@@ -109,6 +109,14 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .help("A single-sentence description"),
         )
         .arg(
+            Arg::with_name("KEYWORD")
+                .value_name("KEYWORD")
+                .long("keyword")
+                .short("k")
+                .multiple(true)
+                .help("A keyword for this project"),
+        )
+        .arg(
             Arg::with_name("HOME")
                 .value_name("URL")
                 .long("home")

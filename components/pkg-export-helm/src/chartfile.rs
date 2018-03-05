@@ -32,6 +32,7 @@ pub struct ChartFile {
     pub home: Option<String>,
     pub icon: Option<String>,
     pub deprecated: bool,
+    pub keywords: Vec<String>,
 }
 
 impl ChartFile {
@@ -57,6 +58,10 @@ impl ChartFile {
         let home = matches.value_of("HOME").map(|s| s.to_owned());
         let icon = matches.value_of("ICON").map(|s| s.to_owned());
         let deprecated = matches.is_present("DEPRECATED");
+        let keywords = matches
+            .values_of("KEYWORD")
+            .map(|args| args.map(|k| k.to_owned()).collect())
+            .unwrap_or(vec![]);
 
         ChartFile {
             name,
@@ -66,6 +71,7 @@ impl ChartFile {
             home,
             icon,
             deprecated,
+            keywords,
         }
     }
 
@@ -79,6 +85,7 @@ impl ChartFile {
             "home": self.home,
             "icon": self.icon,
             "deprecated": self.deprecated,
+            "keywords": self.keywords,
         });
 
         Handlebars::new()
