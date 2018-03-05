@@ -28,6 +28,7 @@ pub struct ChartFile {
     pub name: String,
     pub version: String,
     pub description: Option<String>,
+    pub app_version: Option<String>,
 }
 
 impl ChartFile {
@@ -42,12 +43,20 @@ impl ChartFile {
             .or(pkg_version.map(|s| s.as_ref()))
             .unwrap_or(DEFAULT_VERSION)
             .to_owned();
+        let app_version = pkg_version.map(|v| {
+            pkg_ident
+                .release
+                .as_ref()
+                .map(|r| format!("{}-{}", v, r))
+                .unwrap_or(v.to_string())
+        });
         let description = matches.value_of("DESCRIPTION").map(|s| s.to_owned());
 
         ChartFile {
             name,
             version,
             description,
+            app_version,
         }
     }
 
@@ -57,6 +66,7 @@ impl ChartFile {
             "name": self.name,
             "version": self.version,
             "description": self.description,
+            "appVersion": self.app_version,
         });
 
         Handlebars::new()
