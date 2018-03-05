@@ -43,7 +43,7 @@ impl<'a> Chart<'a> {
             None
         };
         let manifest = Manifest::new_from_cli_matches(ui, &matches, image)?;
-        let chartfile = ChartFile::new_from_cli_matches(&matches, &manifest.pkg_ident);
+        let chartfile = ChartFile::new_from_cli_matches(&matches, &manifest.pkg_ident)?;
         let deps = Deps::new_for_cli_matches(&matches);
 
         let mut chartdir = PathBuf::new();

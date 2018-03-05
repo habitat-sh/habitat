@@ -20,4 +20,10 @@ pub enum Error {
                       please run `helm init -c`.",
            _0)]
     HelmNotSetup(String),
+    #[fail(display = "Invalid maintainer specification '{}', must be of the form \
+                      NAME[,EMAIL[,URL]]",
+           _0)]
+    InvalidMaintainer(String),
+    #[fail(display = "Invalid URL '{}': {}", _0, _1)]
+    InvalidUrl(String, String),
 }

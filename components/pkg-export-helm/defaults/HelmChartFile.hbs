@@ -25,6 +25,18 @@ sources:
   - {{this}}
 {{~ /each ~}}
 {{~ /if ~}}
+{{~ #if maintainers}}
+maintainers:
+{{~ #each maintainers}}
+  - name: {{this.name}}
+  {{~ #if this.email}}
+    email: {{this.email}}
+  {{~ /if ~}}
+  {{~ #if this.url}}
+    url: {{this.url}}
+  {{~ /if ~}}
+{{~ /each ~}}
+{{~ /if ~}}
 {{~ #if deprecated}}
 deprecated: yes
 {{~ /if ~}}

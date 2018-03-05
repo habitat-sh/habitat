@@ -36,8 +36,10 @@ mod chartfile;
 mod values;
 mod deps;
 mod error;
+mod maintainer;
 
 use std::result;
+use std::str::FromStr;
 
 use clap::Arg;
 
@@ -139,6 +141,17 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .validator(valid_url)
                 .help("A URL to the source code for the project"),
         )
+        .arg(
+            Arg::with_name("MAINTAINER")
+                .value_name("MAINTAINER_SPEC")
+                .long("maint")
+                .short("m")
+                .multiple(true)
+                .validator(valid_maintainer)
+                .help(
+                    "A maintainer of the project, in the form of NAME,[EMAIL[,URL]]",
+                ),
+        )
         .arg(Arg::with_name("DEPRECATED").long("depr").help(
             "Mark this chart as deprecated",
         ))
@@ -190,6 +203,14 @@ fn valid_url(val: String) -> result::Result<(), String> {
     }
 }
 
+fn valid_maintainer(val: String) -> result::Result<(), String> {
+    maintainer::Maintainer::from_str(&val).map(|_| ()).map_err(
+        |e| {
+            format!("{}", e)
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -209,5 +230,16 @@ mod tests {
         assert!(valid_version("1.2.Z".to_owned()).is_err());
         assert!(valid_version("1.1.1.1".to_owned()).is_err());
         assert!(valid_version("٣.7.৬".to_owned()).is_err());
+    }
+
+    #[test]
+    fn test_maintainer() {
+        valid_maintainer("name".to_owned()).unwrap();
+        // Currently Email address is not checked for validity. See FIXME in Maintainer::from_str().
+        valid_maintainer("name,email".to_owned()).unwrap();
+        valid_maintainer("name,email,http://blah".to_owned()).unwrap();
+
+        assert!(valid_maintainer("name,email,blah".to_owned()).is_err());
+        assert!(valid_maintainer("name,email,http://blah,x".to_owned()).is_err());
     }
 }
