@@ -122,6 +122,9 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .validator(valid_url)
                 .help("A URL of an SVG or PNG image to be used as an icon"),
         )
+        .arg(Arg::with_name("DEPRECATED").long("depr").help(
+            "Mark this chart as deprecated",
+        ))
         .arg(
             Arg::with_name("OPERATOR_VERSION")
                 .value_name("OPERATOR_VERSION")

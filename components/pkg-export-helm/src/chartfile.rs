@@ -31,6 +31,7 @@ pub struct ChartFile {
     pub app_version: Option<String>,
     pub home: Option<String>,
     pub icon: Option<String>,
+    pub deprecated: bool,
 }
 
 impl ChartFile {
@@ -55,6 +56,7 @@ impl ChartFile {
         let description = matches.value_of("DESCRIPTION").map(|s| s.to_owned());
         let home = matches.value_of("HOME").map(|s| s.to_owned());
         let icon = matches.value_of("ICON").map(|s| s.to_owned());
+        let deprecated = matches.is_present("DEPRECATED");
 
         ChartFile {
             name,
@@ -63,6 +65,7 @@ impl ChartFile {
             app_version,
             home,
             icon,
+            deprecated,
         }
     }
 
@@ -75,6 +78,7 @@ impl ChartFile {
             "appVersion": self.app_version,
             "home": self.home,
             "icon": self.icon,
+            "deprecated": self.deprecated,
         });
 
         Handlebars::new()
