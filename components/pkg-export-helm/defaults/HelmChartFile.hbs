@@ -19,6 +19,12 @@ home: {{home}}
 {{~ #if icon}}
 icon: {{icon}}
 {{~ /if ~}}
+{{~ #if sources}}
+sources:
+{{~ #each sources}}
+  - {{this}}
+{{~ /each ~}}
+{{~ /if ~}}
 {{~ #if deprecated}}
 deprecated: yes
 {{~ /if ~}}
