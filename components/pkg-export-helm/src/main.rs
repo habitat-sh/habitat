@@ -116,6 +116,13 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .help("The URL of the project's home page"),
         )
         .arg(
+            Arg::with_name("ICON")
+                .value_name("URL")
+                .long("icon")
+                .validator(valid_url)
+                .help("A URL of an SVG or PNG image to be used as an icon"),
+        )
+        .arg(
             Arg::with_name("OPERATOR_VERSION")
                 .value_name("OPERATOR_VERSION")
                 .long("operator-version")

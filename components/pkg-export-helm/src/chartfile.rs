@@ -30,6 +30,7 @@ pub struct ChartFile {
     pub description: Option<String>,
     pub app_version: Option<String>,
     pub home: Option<String>,
+    pub icon: Option<String>,
 }
 
 impl ChartFile {
@@ -53,6 +54,7 @@ impl ChartFile {
         });
         let description = matches.value_of("DESCRIPTION").map(|s| s.to_owned());
         let home = matches.value_of("HOME").map(|s| s.to_owned());
+        let icon = matches.value_of("ICON").map(|s| s.to_owned());
 
         ChartFile {
             name,
@@ -60,6 +62,7 @@ impl ChartFile {
             description,
             app_version,
             home,
+            icon,
         }
     }
 
@@ -71,6 +74,7 @@ impl ChartFile {
             "description": self.description,
             "appVersion": self.app_version,
             "home": self.home,
+            "icon": self.icon,
         });
 
         Handlebars::new()
