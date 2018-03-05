@@ -25,6 +25,7 @@ extern crate lazy_static;
 extern crate log;
 #[macro_use]
 extern crate serde_json;
+extern crate url;
 
 extern crate failure;
 #[macro_use]
@@ -44,6 +45,7 @@ use common::ui::UI;
 use export_docker::Result;
 use export_k8s::Cli;
 use hcore::PROGRAM_NAME;
+use url::Url;
 
 use chart::Chart;
 
@@ -107,6 +109,13 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .help("A single-sentence description"),
         )
         .arg(
+            Arg::with_name("HOME")
+                .value_name("URL")
+                .long("home")
+                .validator(valid_url)
+                .help("The URL of the project's home page"),
+        )
+        .arg(
             Arg::with_name("OPERATOR_VERSION")
                 .value_name("OPERATOR_VERSION")
                 .long("operator-version")
@@ -145,6 +154,13 @@ fn valid_version(val: String) -> result::Result<(), String> {
     }
 
     Ok(())
+}
+
+fn valid_url(val: String) -> result::Result<(), String> {
+    match Url::parse(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
 }
 
 #[cfg(test)]
