@@ -10,7 +10,6 @@ members = [
   "components/common",
   "components/eventsrv",
   "components/eventsrv-client",
-  "components/github-api-client",
   "components/hab",
   "components/hab-butterfly",
   "components/http-client",
