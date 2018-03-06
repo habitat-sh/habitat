@@ -14,6 +14,10 @@ authors:
     email: "fnichol@habitat.sh"
     twitter: "@fnichol"
     bio: "Fletcher Nichol is a senior engineer who works on Habitat. He spends far too much time writing open source software and far too little playing the drums. In previous jobs he has been a web application developer, a systems administrator, and even an infrastructure-as-code koolaid barista."
+  chefsalim:
+    name: "Salim Alam"
+    email: "salam@chef.io"
+    bio: "Salim Alam is a Principal Engineer and core maintainer on the Habitat team. He is versed in all things Builder. Prior to Chef, he worked extensively on large scaled systems at Microsoft and Expedia."
   adamleff:
     name: "Adam Leff"
     email: "aleff@chef.io"
