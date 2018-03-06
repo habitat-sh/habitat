@@ -14,7 +14,7 @@ env:
     # Habitat Rust program components
     - _RUST_HAB_BIN_COMPONENTS="components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/pkg-export-kubernetes|components/pkg-export-helm|components/sup|components/eventsrv|components/pkg-export-tar
     # Habitat Rust crate components
-    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/eventsrv-client|components/launcher-client|components/github-api-client|components/segment-api-client
+    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/eventsrv-client|components/launcher-client|components/segment-api-client
 
 matrix:
   include:
