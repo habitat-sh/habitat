@@ -18,11 +18,11 @@ use hcore::fs::FS_ROOT_PATH;
 lazy_static! {
     /// The root path containing all runtime service directories and files
     pub static ref SVC_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("hab/svc")
+        Path::new(&*FS_ROOT_PATH).join("hab").join("svc")
     };
 
     pub static ref USER_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("hab/user")
+        Path::new(&*FS_ROOT_PATH).join("hab").join("user")
     };
 }
 
