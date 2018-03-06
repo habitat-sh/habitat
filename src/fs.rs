@@ -36,7 +36,12 @@ pub const CACHE_SRC_PATH: &'static str = "hab/cache/src";
 /// The default path where SSL-related artifacts are placed
 pub const CACHE_SSL_PATH: &'static str = "hab/cache/ssl";
 /// The root path containing all locally installed packages
+/// Because this value is used in template rendering, we
+/// use native directory separator
+#[cfg(not(target_os = "windows"))]
 pub const PKG_PATH: &'static str = "hab/pkgs";
+#[cfg(target_os = "windows")]
+pub const PKG_PATH: &'static str = "hab\\pkgs";
 /// The environment variable pointing to the filesystem root. This exists for internal
 /// Habitat team usage and is not intended to be used by Habitat consumers.
 /// Using this variable could lead to broken Supervisor services and it should
