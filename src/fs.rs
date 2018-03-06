@@ -428,7 +428,7 @@ fn fs_root_path() -> PathBuf {
     if cfg!(target_os = "windows") {
         match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
             (Ok(path), _) => PathBuf::from(path),
-            (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "/")),
+            (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
             (Err(_), Err(_)) => {
                 unreachable!(
                     "Windows should always have a SYSTEMDRIVE \
