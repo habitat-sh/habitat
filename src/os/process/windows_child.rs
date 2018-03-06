@@ -16,7 +16,6 @@
 // We will need to create processes using different windows API calls in
 // order to be able to start habitat Supervisor services as different users.
 
-use std::ascii::AsciiExt;
 use std::cmp;
 use std::collections::HashMap;
 use std::env;
