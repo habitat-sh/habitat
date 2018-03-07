@@ -768,6 +768,25 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     }
 }
 
+// Temporary warning function
+fn warn_accesss_token(token: &str, ui: &mut UI) {
+    if !token.starts_with("_") {
+        ui.warn("WARNING:").unwrap();
+        ui.warn(
+            "Github tokens are being deprecated, please migrate to a Habitat Personal \
+                 Access Token instead.",
+        ).unwrap();
+        ui.warn(
+            "To generate a Habitat Personal Access token, please visit the Builder Profile \
+                page (https://bldr.habitat.sh/#/profile).",
+        ).unwrap();
+        ui.warn(
+            "For more information, please read the documentation at \
+                https://www.habitat.sh/docs/using-builder/",
+        ).unwrap();
+    }
+}
+
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the
 /// HAB_AUTH_TOKEN env var. If not, check the CLI config to see if there is a default auth
 /// token set. If that's empty too, then error.
@@ -778,11 +797,7 @@ fn auth_token_param_or_env(ui: &mut UI, m: &ArgMatches) -> Result<String> {
             match henv::var(AUTH_TOKEN_ENVVAR) {
                 Ok(v) => {
                     // Temporary warning until we deprecate Github tokens completely
-                    if !v.starts_with("_") {
-                        ui.warn(
-                            "WARNING: Github tokens are being deprecated, please migrate to a Habitat Personal Access Token instead."
-                        ).unwrap();
-                    }
+                    warn_accesss_token(&v, ui);
                     Ok(v)
                 }
                 Err(_) => {
@@ -804,11 +819,7 @@ fn maybe_auth_token(ui: &mut UI, m: &ArgMatches) -> Option<String> {
     match auth_token_param_or_env(ui, &m) {
         Ok(t) => {
             // Temporary warning until we deprecate Github tokens completely
-            if !t.starts_with("_") {
-                ui.warn(
-                    "WARNING: Github tokens are being deprecated, please migrate to a Habitat Personal Access Token instead."
-                ).unwrap();
-            }
+            warn_accesss_token(&t, ui);
             Some(t)
         }
         Err(_) => None,

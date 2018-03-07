@@ -112,26 +112,27 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     }
     ui.heading("Habitat Personal Access Token")?;
     ui.para(
-        "While you can build and run Habitat packages without sharing them on the public \
-               depot, doing so allows you to collaborate with the Habitat community. In \
-               addition, it is how you can perform continuous deployment with Habitat.",
+        "While you can perform tasks like building and running Habitat packages without needing \
+            to authenticate with Builder, some operations like uploading your packages to \
+            Builder, or checking status of your build jobs from the Habitat client will require \
+            you to use an access token.",
     )?;
     ui.para(
-        "The Habitat personal access token can be generated via the Habitat Builder web \
-               site Profile page (https://bldr.habitat.sh/#/profile). Once you have \
+        "The Habitat Personal Access Token can be generated via the Builder  \
+               Profile page (https://bldr.habitat.sh/#/profile). Once you have \
                generated your token, you can enter it here.",
     )?;
     ui.para(
-        "If you would like to share your packages on the depot, please enter your Habitat \
-               access token. Otherwise, just enter No.",
+        "If you would like to save your token for use by the Habitat client, please enter \
+               your access token. Otherwise, just enter No.",
     )?;
     ui.para(
-        "For more information on sharing packages on the depot, please read the \
-          documentation at https://www.habitat.sh/docs/share-packages-overview/",
+        "For more information on using Builder, please read the \
+          documentation at https://www.habitat.sh/docs/using-builder/",
     )?;
     if ask_default_auth_token(ui)? {
         ui.br()?;
-        ui.para("Enter your Habitat personal access token.")?;
+        ui.para("Enter your Habitat Personal Access Token.")?;
         let auth_token = prompt_auth_token(ui)?;
         write_cli_config_auth_token(&auth_token)?;
     } else {
