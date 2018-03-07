@@ -110,20 +110,19 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     } else {
         ui.para("Okay, maybe another time.")?;
     }
-    ui.heading("GitHub Access Token")?;
+    ui.heading("Habitat Personal Access Token")?;
     ui.para(
         "While you can build and run Habitat packages without sharing them on the public \
                depot, doing so allows you to collaborate with the Habitat community. In \
                addition, it is how you can perform continuous deployment with Habitat.",
     )?;
     ui.para(
-        "The GitHub personal access token needs the user:email and read:org OAuth scopes. \
-               Habitat uses the information provided through these scopes for \
-               authentication and to determine features based on team membership. You can \
-               set this up at https://github.com/settings/tokens",
+        "The Habitat personal access token can be generated via the Habitat Builder web \
+               site Profile page (https://bldr.habitat.sh/#/profile). Once you have \
+               generated your token, you can enter it here.",
     )?;
     ui.para(
-        "If you would like to share your packages on the depot, please enter your GitHub \
+        "If you would like to share your packages on the depot, please enter your Habitat \
                access token. Otherwise, just enter No.",
     )?;
     ui.para(
@@ -132,7 +131,7 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     )?;
     if ask_default_auth_token(ui)? {
         ui.br()?;
-        ui.para("Enter your GitHub access token.")?;
+        ui.para("Enter your Habitat personal access token.")?;
         let auth_token = prompt_auth_token(ui)?;
         write_cli_config_auth_token(&auth_token)?;
     } else {
@@ -226,7 +225,7 @@ fn prompt_origin(ui: &mut UI) -> Result<String> {
 
 fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {
     Ok(ui.prompt_yes_no(
-        "Set up a default GitHub access token?",
+        "Set up a default Habitat personal access token?",
         Some(true),
     )?)
 }
@@ -244,7 +243,7 @@ fn prompt_auth_token(ui: &mut UI) -> Result<String> {
         None => env::var(AUTH_TOKEN_ENVVAR).ok(),
     };
     Ok(ui.prompt_ask(
-        "GitHub access token",
+        "Habitat personal access token",
         default.as_ref().map(|x| &**x),
     )?)
 }
