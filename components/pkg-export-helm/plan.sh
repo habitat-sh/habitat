@@ -4,7 +4,7 @@ pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=(core/docker)
+pkg_deps=(core/docker core/helm)
 pkg_build_deps=(
   core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
   core/openssl-musl core/libsodium-musl
