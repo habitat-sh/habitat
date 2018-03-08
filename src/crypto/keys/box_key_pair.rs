@@ -24,7 +24,7 @@ use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{gen_nonce, Nonce};
 
 use error::{Error, Result};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
-            read_key_bytes, write_keypair_files, KeyPair, KeyType};
+            read_key_bytes, read_key_bytes_from_str, write_keypair_files, KeyPair, KeyType};
 use super::super::{ANONYMOUS_BOX_FORMAT_VERSION, BOX_FORMAT_VERSION, PUBLIC_BOX_KEY_VERSION,
                    PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION};
 
@@ -417,12 +417,16 @@ impl BoxKeyPair {
         })
     }
 
+    pub fn public_key_from_str(key: &str) -> Result<BoxPublicKey> {
+        Self::public_key_from_bytes(&read_key_bytes_from_str(key)?)
+    }
+
     pub fn public_key_from_bytes(bytes: &[u8]) -> Result<BoxPublicKey> {
         match BoxPublicKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
                 return Err(Error::CryptoError(
-                    format!("Can't convert key string to BoxPublicKey"),
+                    format!("Can't convert key bytes to BoxPublicKey"),
                 ))
             }
         }
@@ -450,12 +454,16 @@ impl BoxKeyPair {
         Self::secret_key_from_bytes(&bytes)
     }
 
+    pub fn secret_key_from_str(key: &str) -> Result<BoxSecretKey> {
+        Self::secret_key_from_bytes(&read_key_bytes_from_str(key)?)
+    }
+
     pub fn secret_key_from_bytes(bytes: &[u8]) -> Result<BoxSecretKey> {
         match BoxSecretKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
                 return Err(Error::CryptoError(
-                    format!("Can't convert key string to BoxSecretKey"),
+                    format!("Can't convert key bytes to BoxSecretKey"),
                 ))
             }
         }

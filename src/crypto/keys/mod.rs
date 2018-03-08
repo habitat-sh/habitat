@@ -501,22 +501,18 @@ fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
     if f.read_to_string(&mut s)? <= 0 {
         return Err(Error::CryptoError("Can't read key bytes".to_string()));
     }
-    match s.lines().nth(3) {
+    read_key_bytes_from_str(&s)
+}
+
+fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> {
+    match key.lines().nth(3) {
         Some(encoded) => {
             let v = base64::decode(encoded).map_err(|e| {
-                Error::CryptoError(format!(
-                    "Can't read raw key from {}: {}",
-                    keyfile.display(),
-                    e
-                ))
+                Error::CryptoError(format!("Can't read raw key {}", e))
             })?;
             Ok(v)
         }
-        None => {
-            Err(Error::CryptoError(
-                format!("Malformed key contents for: {}", keyfile.display()),
-            ))
-        }
+        None => Err(Error::CryptoError(format!("Malformed key contents"))),
     }
 }
 
@@ -669,7 +665,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Malformed key contents for")]
+    #[should_panic(expected = "Malformed key contents")]
     fn read_key_bytes_missing_newlines() {
         let cache = TempDir::new("key_cache").unwrap();
         let keyfile = cache.path().join("missing-newlines");
@@ -680,7 +676,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Can\\'t read raw key from")]
+    #[should_panic(expected = "Can\\'t read raw key")]
     fn read_key_bytes_malformed_base64() {
         let cache = TempDir::new("key_cache").unwrap();
         let keyfile = cache.path().join("missing-newlines");
