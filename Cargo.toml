@@ -20,6 +20,5 @@ members = [
   "components/pkg-export-helm",
   "components/pkg-export-kubernetes",
   "components/pkg-export-tar",
-  "components/segment-api-client",
   "components/sup"
 ]
