@@ -25,6 +25,7 @@ extern crate lazy_static;
 extern crate log;
 #[macro_use]
 extern crate serde_json;
+extern crate url;
 
 extern crate failure;
 #[macro_use]
@@ -35,8 +36,10 @@ mod chartfile;
 mod values;
 mod deps;
 mod error;
+mod maintainer;
 
 use std::result;
+use std::str::FromStr;
 
 use clap::Arg;
 
@@ -44,6 +47,7 @@ use common::ui::UI;
 use export_docker::Result;
 use export_k8s::Cli;
 use hcore::PROGRAM_NAME;
+use url::Url;
 
 use chart::Chart;
 
@@ -107,12 +111,67 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .help("A single-sentence description"),
         )
         .arg(
+            Arg::with_name("KEYWORD")
+                .value_name("KEYWORD")
+                .long("keyword")
+                .short("k")
+                .multiple(true)
+                .help("A keyword for this project"),
+        )
+        .arg(
+            Arg::with_name("HOME")
+                .value_name("URL")
+                .long("home")
+                .validator(valid_url)
+                .help("The URL of the project's home page"),
+        )
+        .arg(
+            Arg::with_name("ICON")
+                .value_name("URL")
+                .long("icon")
+                .validator(valid_url)
+                .help("A URL of an SVG or PNG image to be used as an icon"),
+        )
+        .arg(
+            Arg::with_name("SOURCE")
+                .value_name("URL")
+                .long("source")
+                .short("s")
+                .multiple(true)
+                .validator(valid_url)
+                .help("A URL to the source code for the project"),
+        )
+        .arg(
+            Arg::with_name("MAINTAINER")
+                .value_name("MAINTAINER_SPEC")
+                .long("maint")
+                .short("m")
+                .multiple(true)
+                .validator(valid_maintainer)
+                .help(
+                    "A maintainer of the project, in the form of NAME,[EMAIL[,URL]]",
+                ),
+        )
+        .arg(Arg::with_name("DEPRECATED").long("depr").help(
+            "Mark this chart as deprecated",
+        ))
+        .arg(
             Arg::with_name("OPERATOR_VERSION")
                 .value_name("OPERATOR_VERSION")
                 .long("operator-version")
                 .validator(valid_version)
                 .help("Version of the Habitat operator to set as dependency")
                 .default_value(deps::DEFAULT_OPERATOR_VERSION),
+        )
+        .arg(
+            Arg::with_name("OUTPUTDIR")
+                .value_name("OUTPUTDIR")
+                .short("o")
+                .long("output-dir")
+                .help(
+                    "The directory to put the chart directory under (default: current working \
+                       directory)",
+                ),
         )
         .arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
             "Whether to download dependencies. The Kubernetes Habitat Operator is the only \
@@ -137,6 +196,21 @@ fn valid_version(val: String) -> result::Result<(), String> {
     Ok(())
 }
 
+fn valid_url(val: String) -> result::Result<(), String> {
+    match Url::parse(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_maintainer(val: String) -> result::Result<(), String> {
+    maintainer::Maintainer::from_str(&val).map(|_| ()).map_err(
+        |e| {
+            format!("{}", e)
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -156,5 +230,16 @@ mod tests {
         assert!(valid_version("1.2.Z".to_owned()).is_err());
         assert!(valid_version("1.1.1.1".to_owned()).is_err());
         assert!(valid_version("٣.7.৬".to_owned()).is_err());
+    }
+
+    #[test]
+    fn test_maintainer() {
+        valid_maintainer("name".to_owned()).unwrap();
+        // Currently Email address is not checked for validity. See FIXME in Maintainer::from_str().
+        valid_maintainer("name,email".to_owned()).unwrap();
+        valid_maintainer("name,email,http://blah".to_owned()).unwrap();
+
+        assert!(valid_maintainer("name,email,blah".to_owned()).is_err());
+        assert!(valid_maintainer("name,email,http://blah,x".to_owned()).is_err());
     }
 }
