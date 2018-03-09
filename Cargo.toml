@@ -12,7 +12,6 @@ members = [
   "components/eventsrv-client",
   "components/hab",
   "components/hab-butterfly",
-  "components/http-client",
   "components/launcher",
   "components/launcher-client",
   "components/launcher-protocol",
