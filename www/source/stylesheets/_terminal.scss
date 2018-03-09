@@ -93,8 +93,7 @@ $code-font-family:  $pre-font-family;
   .highlight pre,
   pre:not(.code-highlight-pre),
   .code-highlight {
-    border: 1px solid $code-highlight-border;
-    background: $pre-bg;
+    border-radius: .4em;
     color: $base1;
   }
 
@@ -274,7 +273,7 @@ pre:not(.code-highlight-pre),
   border-top-right-radius: 5px;
   font-family: $font-family-monospace;
   border: 1px solid #cbcbcb;
-  + .code-highlight { border-top: 0; }
+  + .code-highlight { border-top: 0; border-radius: 0 0 .4em .4em}
 }
 
 .code-highlight-caption-link {

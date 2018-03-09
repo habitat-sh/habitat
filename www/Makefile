@@ -28,6 +28,14 @@ acceptance: build prep
     --data-binary "@website.zip" \
     --url "https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys"
 
+cli_docs:
+	hab studio run "hab pkg install core/hab-studio && \
+	hab pkg install core/hab-butterfly && \
+	hab pkg install core/hab-sup && \
+	hab pkg install core/hab-launcher && \
+	hab pkg install core/node --binlink && \
+	node scripts/generate-cli-docs > source/docs/habitat-cli.html.md"
+
 check-env:
 ifndef AWS_ACCESS_KEY_ID
 	$(error AWS_ACCESS_KEY_ID is undefined)
