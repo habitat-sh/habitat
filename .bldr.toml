@@ -6,7 +6,6 @@ paths = [
   "components/builder-depot-client/*",
   "components/common/*",
   "components/core/*",
-  "components/http-client/*",
 ]
 
 [hab-backline]

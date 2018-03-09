@@ -25,4 +25,4 @@ url = "*"
 git = "https://github.com/habitat-sh/core.git"
 
 [dependencies.habitat_http_client]
-path = "../http-client"
+git = "https://github.com/habitat-sh/core.git"

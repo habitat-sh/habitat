@@ -46,7 +46,7 @@ path = "../builder-depot-client"
 path = "../builder-api-client"
 
 [dependencies.habitat_http_client]
-path = "../http-client"
+git = "https://github.com/habitat-sh/core.git"
 
 [dependencies.uuid]
 version = "*"
