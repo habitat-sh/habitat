@@ -93,7 +93,7 @@ ${parsed.description}
 ${markdownForSubsection('Usage', parsed.usage.join('\n').replace(/^hab-/, 'hab ').replace(/hab butterfly/, 'hab').trim())}
 ${markdownForSubsection('Flags', parsed.flags.join('\n').trim())}
 ${markdownForSubsection('Args', parsed.args.join('\n').trim())}
-${markdownForSubsection('Aliases', parsed.aliases.join('\n'.trim()))}
+${markdownForSubsection('Aliases', parsed.aliases.join('\n').trim())}
 ${markdownForSubcommands(parsed.subcommands)}
 ---
 `;

@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.54.0/20180221022026 (linux) | 9 Mar 2018 |
+| hab 0.54.0/20180221022026 (linux) | 10 Mar 2018 |
 
 ## hab
 
@@ -32,7 +32,13 @@ hab [SUBCOMMAND]
 **ALIASES**
 
 ```
-apply      Alias for: 'config apply'install    Alias for: 'pkg install'run        Alias for: 'sup run'setup      Alias for: 'cli setup'start      Alias for: 'svc start'stop       Alias for: 'svc stop'term       Alias for: 'sup term'
+apply      Alias for: 'config apply'
+install    Alias for: 'pkg install'
+run        Alias for: 'sup run'
+setup      Alias for: 'cli setup'
+start      Alias for: 'svc start'
+stop       Alias for: 'svc stop'
+term       Alias for: 'sup term'
 ```
 
 **SUBCOMMANDS**
@@ -1923,7 +1929,11 @@ hab svc [SUBCOMMAND]
 **ALIASES**
 
 ```
-load       Alias for: 'sup load'unload     Alias for: 'sup unload'start      Alias for: 'sup start'stop       Alias for: 'sup stop'status     Alias for: 'sup status'
+load       Alias for: 'sup load'
+unload     Alias for: 'sup unload'
+start      Alias for: 'sup start'
+stop       Alias for: 'sup stop'
+status     Alias for: 'sup status'
 ```
 
 **SUBCOMMANDS**
