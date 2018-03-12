@@ -157,13 +157,12 @@ __process_path() {
     echo "$(join_by ':' ${path[@]})"
 }
 
-# The PATH metadata file contains full paths to every directory listed
-# in `pkg_bin_dirs`, as well as all dependencies.
+# The PATH metadata file contains ONLY the bins contained in your package
+# for `pkg_bin_dirs`
 #
-# NOTE: This is to support older Habitat supervisors (pre-0.50.0).
 _render_metadata_PATH() {
     debug "Rendering PATH metadata file"
-    echo "${__runtime_environment[PATH]}" > "${pkg_prefix}/PATH"
+    echo "$(__process_path)" > "${pkg_prefix}/PATH"
 }
 
 _render_metadata_PKG_CONFIG_PATH() {

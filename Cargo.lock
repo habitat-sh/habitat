@@ -470,7 +470,7 @@ dependencies = [
  "habitat_common 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "habitat_depot_client 0.0.0",
- "habitat_http_client 0.0.0",
+ "habitat_http_client 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "handlebars 0.29.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.10.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -613,7 +613,7 @@ version = "0.0.0"
 dependencies = [
  "clippy 0.0.187 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
- "habitat_http_client 0.0.0",
+ "habitat_http_client 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "hyper 0.10.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper-openssl 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -685,7 +685,7 @@ dependencies = [
 [[package]]
 name = "habitat_core"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#77f408516bf298b82c3a7a7029efb945392cd880"
+source = "git+https://github.com/habitat-sh/core.git#f2e35c323c8ffe8a0b8cbceb1007eb114c22ba58"
 dependencies = [
  "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -726,7 +726,7 @@ dependencies = [
  "clippy 0.0.187 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-builder-protocol 0.0.0 (git+https://github.com/habitat-sh/builder.git)",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
- "habitat_http_client 0.0.0",
+ "habitat_http_client 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "hyper 0.10.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper-openssl 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -743,9 +743,9 @@ dependencies = [
 [[package]]
 name = "habitat_http_client"
 version = "0.0.0"
+source = "git+https://github.com/habitat-sh/core.git#f2e35c323c8ffe8a0b8cbceb1007eb114c22ba58"
 dependencies = [
  "base64 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.187 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "httparse 1.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.10.13 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -894,7 +894,7 @@ dependencies = [
 [[package]]
 name = "habitat_win_users"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#77f408516bf298b82c3a7a7029efb945392cd880"
+source = "git+https://github.com/habitat-sh/core.git#f2e35c323c8ffe8a0b8cbceb1007eb114c22ba58"
 dependencies = [
  "gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)",
  "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2465,6 +2465,7 @@ dependencies = [
 "checksum habitat-builder-protocol 0.0.0 (git+https://github.com/habitat-sh/builder.git)" = "<none>"
 "checksum habitat-eventsrv-protocol 0.0.0 (git+https://github.com/habitat-sh/protocols.git)" = "<none>"
 "checksum habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)" = "<none>"
+"checksum habitat_http_client 0.0.0 (git+https://github.com/habitat-sh/core.git)" = "<none>"
 "checksum habitat_win_users 0.0.0 (git+https://github.com/habitat-sh/core.git)" = "<none>"
 "checksum handlebars 0.28.3 (registry+https://github.com/rust-lang/crates.io-index)" = "1bed53dfb11098ec893ed54aa8b9828ffb98d28acbe56a49419935e5a8688ca9"
 "checksum handlebars 0.29.1 (registry+https://github.com/rust-lang/crates.io-index)" = "fb04af2006ea09d985fef82b81e0eb25337e51b691c76403332378a53d521edc"
