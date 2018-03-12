@@ -76,6 +76,7 @@ mod inner {
     use hcore::env as henv;
     use hcore::fs::{am_i_root, find_command};
     use hcore::os::process;
+    use hcore::users::linux as group;
     use hcore::package::PackageIdent;
 
     use error::{Error, Result};
@@ -87,7 +88,7 @@ mod inner {
     const SUDO_CMD: &'static str = "sudo";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        rerun_with_sudo_if_needed(ui)?;
+        rerun_with_sudo_if_needed(ui, &args)?;
         if is_docker_studio(&args) {
             docker::start_docker_studio(ui, args)
         } else {
@@ -132,10 +133,21 @@ mod inner {
         return false;
     }
 
-    fn rerun_with_sudo_if_needed(ui: &mut UI) -> Result<()> {
-        // If I have root permissions, early return, we are done.
+    fn has_docker_group() -> bool {
+        let current_user = group::get_current_username().unwrap();
+        let docker_members = group::get_members_by_groupname("docker");
+        docker_members.map_or(false, |d| d.contains(&current_user))
+    }
+
+    fn rerun_with_sudo_if_needed(ui: &mut UI, args: &Vec<OsString>) -> Result<()> {
+        // If I have root permissions or if I am executing a docker studio
+        // and have the appropriate group - early return, we are done.
         if am_i_root() {
             return Ok(());
+        } else if is_docker_studio(&args) {
+            if has_docker_group() {
+                return Ok(());
+            }
         }
 
         // Otherwise we will try to re-run this program using `sudo`
