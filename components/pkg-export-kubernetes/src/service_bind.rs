@@ -15,6 +15,7 @@
 use std::str::FromStr;
 use std::result;
 use clap::ArgMatches;
+use serde_json;
 
 use export_docker::Result;
 use hcore::service::ServiceGroup;
@@ -40,6 +41,14 @@ impl ServiceBind {
         };
 
         Ok(binds)
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "name": self.name,
+            "service": self.service_group.service(),
+            "group": self.service_group.group(),
+        })
     }
 }
 

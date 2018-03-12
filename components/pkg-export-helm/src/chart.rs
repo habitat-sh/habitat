@@ -68,7 +68,8 @@ impl<'a> Chart<'a> {
         deps: Deps,
         ui: &'a mut UI,
     ) -> Self {
-        let main = json!({
+        let mut manifest_template = ManifestJson {
+            value: json!({
             "metadata_name": "{{.Values.metadataName}}",
             "service_name": "{{.Values.serviceName}}",
             "image": "{{.Values.imageName}}",
@@ -81,8 +82,8 @@ impl<'a> Chart<'a> {
             "ring_secret_name": manifest.ring_secret_name
                 .clone()
                 .map(|_| "{{.Values.ringSecretName}}"),
-            "bind": !manifest.binds.is_empty(),
-        });
+        }),
+        };
 
         let mut values = Values::new();
         values.add_entry("metadataName", &manifest.metadata_name);
@@ -120,19 +121,15 @@ impl<'a> Chart<'a> {
 
             binds.push(json);
         }
-
-        let manifest_template = Some(ManifestJson {
-            main: main,
-            binds: binds,
-        });
+        manifest_template.value["binds"] = json!(binds);
 
         Chart {
-            chartdir,
-            chartfile,
-            manifest_template,
-            values,
-            deps,
-            ui,
+            chartdir: chartdir,
+            chartfile: chartfile,
+            manifest_template: Some(manifest_template),
+            values: values,
+            deps: deps,
+            ui: ui,
         }
     }
 

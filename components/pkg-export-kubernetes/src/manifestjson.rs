@@ -19,7 +19,6 @@ use manifest::Manifest;
 
 // Kubernetes manifest template
 const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
-const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
 
 /// Represents the [`Manifest`] in JSON format. This is an intermediate type that can be converted
 /// to the final manifest YAML file content, ready for consumption by a Kubernetes cluster.
@@ -29,43 +28,30 @@ const BINDFILE: &'static str = include_str!("../defaults/KubernetesBind.hbs");
 ///
 /// [`Manifest`]: ../manifest/struct.Manifest.html
 pub struct ManifestJson {
-    /// JSON object, holding values for the main body of the YAML content.
-    pub main: Value,
-    /// JSON representations of [`Bind`] instances.
-    ///
-    /// [`Bind`]: ../bind/struct.Bind.html
-    pub binds: Vec<Value>,
+    /// JSON object, holding values for the YAML content.
+    pub value: Value,
 }
 
 impl ManifestJson {
     /// Create a `ManifestJson` from `manifest`.
     pub fn new(manifest: &Manifest) -> Self {
-        let main = json!({
-            "metadata_name": manifest.metadata_name,
-            "service_name": manifest.pkg_ident.name,
-            "image": manifest.image,
-            "count": manifest.count,
-            "service_topology": manifest.service_topology.to_string(),
-            "service_group": manifest.service_group,
-            "config": manifest.config,
-            "ring_secret_name": manifest.ring_secret_name,
-            "bind": !manifest.binds.is_empty()
-        });
-
         let mut binds = Vec::new();
         for bind in &manifest.binds {
-            let json = json!({
-                "name": bind.name.clone(),
-                "service": bind.service_group.service().to_owned(),
-                "group": bind.service_group.group().to_owned(),
-            });
-
-            binds.push(json);
+            binds.push(bind.to_json());
         }
 
         ManifestJson {
-            main: main,
-            binds: binds,
+            value: json!({
+                "metadata_name": manifest.metadata_name,
+                "service_name": manifest.pkg_ident.name,
+                "image": manifest.image,
+                "count": manifest.count,
+                "service_topology": manifest.service_topology.to_string(),
+                "service_group": manifest.service_group,
+                "config": manifest.config,
+                "ring_secret_name": manifest.ring_secret_name,
+                "binds": binds,
+            }),
         }
     }
 }
@@ -77,17 +63,8 @@ impl Into<String> for ManifestJson {
         // The Result::expect() usage in this function is justied by the fact that errors can only
         // come from the crate programmer (e.g they messed-up the manifest template or don't check
         // the user input).
-
-        let mut s = Handlebars::new()
-            .template_render(MANIFESTFILE, &self.main)
-            .expect("Rendering of manifest from template failed");
-
-        for bind in &self.binds {
-            s += &Handlebars::new().template_render(BINDFILE, &bind).expect(
-                "Rendering of manifest from template failed",
-            );
-        }
-
-        s
+        Handlebars::new()
+            .template_render(MANIFESTFILE, &self.value)
+            .expect("Rendering of manifest from template failed")
     }
 }
