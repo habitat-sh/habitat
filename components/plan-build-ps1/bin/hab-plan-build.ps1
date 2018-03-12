@@ -1609,12 +1609,12 @@ function Invoke-DefaultBuildService {
         if ($pkg_svc_run -ne "") {
           Write-BuildLine "Writing $pkg_prefix/run script to run $pkg_svc_run"
           Set-Content -Path "$pkg_prefix/run" -Value @"
-cd "$pkg_svc_path"
+cd (Join-Path "`$env:FS_ROOT" "$pkg_svc_path")
 
 `$cmd = @"
 $pkg_svc_run
 "`@
-Invoke-Expression -Command `$cmd 2>&1
+Invoke-Expression -Command `$cmd
 "@
         }
     }
