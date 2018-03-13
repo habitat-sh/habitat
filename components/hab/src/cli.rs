@@ -264,6 +264,46 @@ pub fn get() -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
             )
+            (@subcommand secret =>
+                (about: "Commands related to secret management")
+                (@setting ArgRequiredElseHelp)
+                (@subcommand upload => 
+                    (about: "Create and upload a secret for your origin.")
+                    (@arg KEY_NAME: +required +takes_value
+                        "The name of the variable key to be injected into the studio. Ex: KEY=\"some_value\"")
+                    (@arg SECRET: +required +takes_value
+                        "The contents of the variable to be injected into the studio.")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                    (@arg ORIGIN: -o --origin +takes_value
+                        "The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or cli.toml")
+                )
+                (@subcommand delete => 
+                    (about: "Delete a secret for your origin")
+                    (@arg KEY_NAME: +required +takes_value
+                        "The name of the variable key to be injected into the studio.")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                    (@arg ORIGIN: -o --origin +takes_value
+                        "The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or cli.toml")
+                )
+                (@subcommand list => 
+                    (about: "List all secrets for your origin")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                    (@arg ORIGIN: -o --origin +takes_value
+                        "The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml")
+                )
+            )
         )
         (@subcommand pkg =>
             (about: "Commands relating to Habitat packages")

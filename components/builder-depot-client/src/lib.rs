@@ -53,7 +53,7 @@ use hab_http::ApiClient;
 use hab_http::util::decoded_response;
 use hyper::client::{Body, IntoUrl, Response, RequestBuilder};
 use hyper::status::StatusCode;
-use hyper::header::{Authorization, Bearer};
+use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::Url;
 use protobuf::core::ProtobufEnum;
 use protocol::{originsrv, net};
@@ -95,6 +95,14 @@ pub struct Project {
     pub ident: String,
     pub state: String,
     pub job_id: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct OriginSecret {
+    pub id: String,
+    pub origin_id: String,
+    pub name: String,
+    pub value: String,
 }
 
 impl fmt::Display for Project {
@@ -156,6 +164,17 @@ impl Into<originsrv::OriginKeyIdent> for OriginKeyIdent {
         out.set_origin(self.origin);
         out.set_revision(self.revision);
         out.set_location(self.location);
+        out
+    }
+}
+
+impl Into<originsrv::OriginSecret> for OriginSecret {
+    fn into(self) -> originsrv::OriginSecret {
+        let mut out = originsrv::OriginSecret::new();
+        out.set_id(self.id.parse::<u64>().unwrap());
+        out.set_origin_id(self.origin_id.parse::<u64>().unwrap());
+        out.set_name(self.name);
+        out.set_value(self.value);
         out
     }
 }
@@ -391,11 +410,85 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         self.download(
-            &format!("depot/origins/{}/encryption_keys/latest", origin),
+            &format!("depot/origins/{}/encryption_key", origin),
             dst_path.as_ref(),
             Some(token),
             progress,
         )
+    }
+
+    /// Create secret for an origin
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    pub fn create_origin_secret(
+        &self,
+        origin: &str,
+        token: &str,
+        key: &str,
+        secret: &str,
+    ) -> Result<()> {
+        let path = format!("depot/origins/{}/secret", origin);
+        let body = json!({
+            "name": key,
+            "value": secret
+        });
+
+        let sbody = serde_json::to_string(&body)?;
+        let res = self.add_authz(self.0.post(&path), token)
+            .body(&sbody)
+            .header(Accept::json())
+            .header(ContentType::json())
+            .send()?;
+
+        if res.status != StatusCode::Created {
+            return Err(err_from_response(res));
+        }
+
+        Ok(())
+    }
+
+    /// Delete a secret for an origin
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    pub fn delete_origin_secret(&self, origin: &str, token: &str, key: &str) -> Result<()> {
+        let path = format!("depot/origins/{}/secret/{}", origin, key);
+
+        let res = self.add_authz(self.0.delete(&path), token).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+
+        Ok(())
+    }
+
+    /// List all secrets keys for an origin
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    pub fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>> {
+        let path = format!("depot/origins/{}/secret", origin);
+
+        let mut res = self.add_authz(self.0.get(&path), token).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+
+        let mut encoded = String::new();
+        res.read_to_string(&mut encoded)?;
+        debug!("Response body: {:?}", encoded);
+        let secret_keys: Vec<String> = serde_json::from_str::<Vec<OriginSecret>>(&encoded)?
+            .into_iter()
+            .map(|m| m.into())
+            .map(|s: originsrv::OriginSecret| s.get_name().to_string())
+            .collect();
+        Ok(secret_keys)
     }
 
     /// Download a public key from a remote Builder to the given filepath.

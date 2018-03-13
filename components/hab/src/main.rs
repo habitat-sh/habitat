@@ -126,6 +126,14 @@ fn start(ui: &mut UI) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
+                ("secret", Some(m)) => {
+                    match m.subcommand() {
+                        ("upload", Some(sc)) => sub_origin_secret_upload(ui, sc)?,
+                        ("delete", Some(sc)) => sub_origin_secret_delete(ui, sc)?,
+                        ("list", Some(sc)) => sub_origin_secret_list(ui, sc)?,
+                        _ => unreachable!(),
+                    }
+                }
                 _ => unreachable!(),
             }
         }
@@ -313,6 +321,38 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
         command::origin::key::upload::start(ui, &url, &token, &keyfile, secret_keyfile)
     }
+}
+
+fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let token = auth_token_param_or_env(ui, &m)?;
+    let origin = origin_param_or_env(&m)?;
+    let key = m.value_of("KEY_NAME").unwrap();
+    let secret = m.value_of("SECRET").unwrap();
+    command::origin::secret::upload::start(
+        ui,
+        &url,
+        &token,
+        &origin,
+        &key,
+        &secret,
+        &default_cache_key_path(Some(&*FS_ROOT)),
+    )
+}
+
+fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let token = auth_token_param_or_env(ui, &m)?;
+    let origin = origin_param_or_env(&m)?;
+    let key = m.value_of("KEY_NAME").unwrap();
+    command::origin::secret::delete::start(ui, &url, &token, &origin, &key)
+}
+
+fn sub_origin_secret_list(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let token = auth_token_param_or_env(ui, &m)?;
+    let origin = origin_param_or_env(&m)?;
+    command::origin::secret::list::start(ui, &url, &token, &origin)
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {

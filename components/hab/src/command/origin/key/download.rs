@@ -137,9 +137,10 @@ fn handle_encryption(
         return Ok(());
     }
 
-    ui.begin(
-        format!("Downloading public encryption origin key for {}", origin),
-    )?;
+    ui.begin(format!(
+        "Downloading public encryption origin key for {}",
+        origin
+    ))?;
     download_public_encryption_key(ui, &depot_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
     ui.end(format!(
         "Download of {} public encryption keys completed.",
@@ -148,7 +149,7 @@ fn handle_encryption(
     Ok(())
 }
 
-fn download_public_encryption_key(
+pub fn download_public_encryption_key(
     ui: &mut UI,
     depot_client: &Client,
     name: &str,
@@ -156,7 +157,10 @@ fn download_public_encryption_key(
     cache: &Path,
 ) -> Result<()> {
     let download_fn = || -> Result<()> {
-        ui.status(Status::Downloading, "latest public encryption key")?;
+        ui.status(
+            Status::Downloading,
+            "latest public encryption key",
+        )?;
         let key_path = depot_client.fetch_origin_public_encryption_key(
             name,
             token,
