@@ -15,7 +15,7 @@
 use std::path::PathBuf;
 
 use linux_users;
-use linux_users::os::unix::UserExt;
+use linux_users::os::unix::{GroupExt, UserExt};
 
 pub fn get_uid_by_name(owner: &str) -> Option<u32> {
     linux_users::get_user_by_name(owner).map(|u| u.uid())
@@ -23,6 +23,10 @@ pub fn get_uid_by_name(owner: &str) -> Option<u32> {
 
 pub fn get_gid_by_name(group: &str) -> Option<u32> {
     linux_users::get_group_by_name(&group.as_ref()).map(|g| g.gid())
+}
+
+pub fn get_members_by_groupname(group: &str) -> Option<Vec<String>> {
+    linux_users::get_group_by_name(&group.as_ref()).map(|g| g.members().to_vec())
 }
 
 pub fn get_current_username() -> Option<String> {
