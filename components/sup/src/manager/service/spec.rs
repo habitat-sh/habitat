@@ -193,7 +193,7 @@ impl ServiceSpec {
     /// * If any given service binds are in neither required nor optional package binds
     fn validate_binds(&self, package: &PackageInstall) -> Result<()> {
         let mut svc_binds: HashSet<String> =
-            HashSet::from_iter(self.binds.iter().cloned().map(|b| b.name));
+            HashSet::from_iter(self.binds.iter().cloned().map(|b| b.name()));
 
         let mut missing_req_binds = Vec::new();
         // Remove each service bind that matches a required package bind. If a required package
@@ -263,9 +263,35 @@ impl FromStr for ServiceSpec {
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct ServiceBind {
+pub struct SpecifiedServiceBind {
     pub name: String,
     pub service_group: ServiceGroup,
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct SelectorServiceBind {
+    pub name: String,
+
+    pub selector: String,
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum ServiceBind {
+    Specified(SpecifiedServiceBind),
+    Selector(SelectorServiceBind)
+}
+
+impl ServiceBind {
+    pub fn name(&self) -> String {
+        match self {
+            &ServiceBind::Specified(ref bind) => {
+                bind.name.clone()
+            },
+            &ServiceBind::Selector(ref bind) => {
+                bind.name.clone()
+            }
+        }
+    }
 }
 
 impl FromStr for ServiceBind {
@@ -277,16 +303,31 @@ impl FromStr for ServiceBind {
             return Err(sup_error!(Error::InvalidBinding(bind_str.to_string())));
         }
 
-        Ok(ServiceBind {
+        if values[1].starts_with("[") && values[1].ends_with("]") {
+            let s = values[1].get(1..(values[1].len()-1)).unwrap();
+            return Ok(ServiceBind::Selector( SelectorServiceBind{
+                name: values[0].to_string(),
+                selector: s.to_string(),
+            }))
+        }
+
+        Ok(ServiceBind::Specified( SpecifiedServiceBind {
             name: values[0].to_string(),
             service_group: ServiceGroup::from_str(values[1])?,
-        })
+        }))
     }
 }
 
 impl fmt::Display for ServiceBind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}:{}", self.name, self.service_group)
+        match self {
+            &ServiceBind::Specified(ref b) => {
+                write!(f, "{}:{}", b.name, b.service_group)
+            },
+            &ServiceBind::Selector(ref b) => {
+                write!(f, "{}:[{}]", b.name, b.selector)
+            }
+        }
     }
 }
 

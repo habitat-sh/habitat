@@ -64,8 +64,8 @@ use sup::command;
 use sup::http_gateway;
 use sup::http_gateway::ListenAddr;
 use sup::manager::{Manager, ManagerConfig, ServiceStatus};
-use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
-use sup::manager::service::{CompositeSpec, ServiceSpec, StartStyle};
+use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy, };
+use sup::manager::service::{CompositeSpec, ServiceSpec, StartStyle, SpecifiedServiceBind};
 use sup::util;
 
 /// Our output key
@@ -1400,11 +1400,11 @@ fn set_composite_binds(
                 &spec.group,
                 None, // <-- organization
             )?;
-            let bind = ServiceBind {
+            let bind = ServiceBind::Specified(SpecifiedServiceBind {
                 name: bind_mapping.bind_name.clone(),
                 service_group: group,
-            };
-            final_binds.insert(bind.name.clone(), bind);
+            });
+            final_binds.insert(bind.name(), bind);
         }
     }
 
@@ -1416,7 +1416,7 @@ fn set_composite_binds(
     if let Entry::Occupied(b) = cli_binds.entry(spec.ident.name.clone()) {
         let binds = b.remove();
         for bind in binds {
-            final_binds.insert(bind.name.clone(), bind);
+            final_binds.insert(bind.name(), bind);
         }
     }
 
