@@ -228,3 +228,4 @@ redirect 'demo/packaging-system/index.html', to: '/demo/packaging-system/steps/1
 redirect 'demo/build-system/index.html', to: '/demo/build-system/steps/1'
 redirect 'demo/process-supervisor/index.html', to: '/demo/process-supervisor/steps/1'
 redirect 'legal/index.html', to: '/legal/licensing'
+redirect 'cloudfoundry/index.html', to: '/get-started/cloudfoundry'
