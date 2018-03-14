@@ -24,8 +24,8 @@ use export_docker::Result;
 use error::Error;
 
 pub const DEFAULT_OPERATOR_VERSION: &'static str = "0.5.1";
-pub const OPERATOR_REPO_URL: &'static str = "https://kinvolk.github.io/habitat-operator\
-                                             /helm/charts/stable/";
+pub const OPERATOR_REPO_URL: &'static str = "https://habitat-sh.github.io/\
+                                             habitat-operator/helm/charts/stable/";
 
 // Helm requirements.yaml template
 const DEPSFILE: &'static str = include_str!("../defaults/HelmDeps.hbs");
