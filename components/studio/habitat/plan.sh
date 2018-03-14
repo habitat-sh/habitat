@@ -35,13 +35,20 @@ do_install() {
     install -v -D "$f" "$pkg_prefix"/libexec/"$f"
   done
 
+  # Busybox allows us to link each command busybox includes to the statically
+  # built busybox binary and it will behave as if the command was called. By
+  # installing copies of all busybox commands under `libexec` we will have
+  # access to them while we build up the studio in the studio scripts instead
+  # of prefixing commands with $bb.
   lbb="$pkg_prefix/libexec/busybox"
 
-  # Install a copy of a statically built busybox under `libexec/`
   install -v -D "$(pkg_path_for busybox-static)"/bin/busybox "$lbb"
+  for i in $("$pkg_prefix"/libexec/busybox --list); do
+    ln -sv busybox "$pkg_prefix"/libexec/"$i"
+  done
 
+  # shellcheck disable=2154
   hab_dir=$(tr '/' '-' < "$(pkg_path_for hab)"/IDENT)
   install -v -D "$(pkg_path_for hab)"/bin/hab \
-    "$pkg_prefix"/libexec/"$hab_dir"/bin/hab
-  ln -sv "$hab_dir"/bin/hab "$pkg_prefix"/libexec/hab
+    "$pkg_prefix"/libexec/hab
 }

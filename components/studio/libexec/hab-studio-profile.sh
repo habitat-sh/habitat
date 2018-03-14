@@ -49,20 +49,19 @@ record() {
     : "${name:=unknown}"
     shift
     cmd="${1:-${SHELL:-sh} -l}"; shift
-    bb=${BUSYBOX:-}
-    env="$($bb env \
-      | $bb sed -e "s,^,'," -e "s,$,'," -e 's,0;32m,0;31m,g' \
-      | $bb tr '\n' ' ')"
-    log="${LOGDIR:-/src/results/logs}/${name}.$($bb date -u +%Y-%m-%d-%H%M%S).log"
-    $bb mkdir -p "$($bb dirname "$log")"
-    $bb touch "$log"
+    env="$(env \
+      | sed -e "s,^,'," -e "s,$,'," -e 's,0;32m,0;31m,g' \
+      | tr '\n' ' ')"
+    log="${LOGDIR:-/src/results/logs}/${name}.$(date -u +%Y-%m-%d-%H%M%S).log"
+    mkdir -p "$(dirname "$log")"
+    touch "$log"
     if [[ "$log" =~ ^/src/results/logs/.* ]]; then
-      ownership=$($bb stat -c '%u:%g' /src)
-      $bb chown -R "$ownership" "/src/results" || true
+      ownership=$(stat -c '%u:%g' /src)
+      chown -R "$ownership" "/src/results" || true
     fi
-    unset BUSYBOX LOGDIR name ownership
+    unset LOGDIR name ownership
 
-    $bb script -c "$bb env -i $env $cmd $*" -e "$log"
+    script -c "env -i $env $cmd $*" -e "$log"
   ); return $?
 }
 

@@ -27,12 +27,13 @@ finish_setup() {
       echo "> Using local package for $embed"
       embed_path=$(_outside_pkgpath_for $embed)
       # shellcheck disable=2154
-      $bb mkdir -p "$HAB_STUDIO_ROOT"/"$embed_path"
-      $bb cp -ra "$embed_path"/* "$HAB_STUDIO_ROOT"/"$embed_path"
-      for tdep in $($bb cat "$embed_path"/TDEPS); do
+      mkdir -p "$HAB_STUDIO_ROOT"/"$embed_path"
+      cp -ra "$embed_path"/* "$HAB_STUDIO_ROOT"/"$embed_path"
+      # shellcheck disable=2013
+      for tdep in $(cat "$embed_path"/TDEPS); do
         echo "> Using local package for $tdep via $embed"
-        $bb mkdir -p "$HAB_STUDIO_ROOT""$HAB_PKG_PATH"/"$tdep"
-        $bb cp -ra "$HAB_PKG_PATH"/"$tdep"/* "$HAB_STUDIO_ROOT""$HAB_PKG_PATH"/"$tdep"
+        mkdir -p "$HAB_STUDIO_ROOT""$HAB_PKG_PATH"/"$tdep"
+        cp -ra "$HAB_PKG_PATH"/"$tdep"/* "$HAB_STUDIO_ROOT""$HAB_PKG_PATH"/"$tdep"
       done
     else
       _hab install $embed
@@ -56,20 +57,21 @@ finish_setup() {
     path_file="$HAB_STUDIO_ROOT/$(_pkgpath_for $path_pkg)/PATH"
     if [ -f "$path_file" ]; then
       if [ -z "$full_path" ]; then
-        full_path="$($bb cat "$path_file")"
+        full_path="$(cat "$path_file")"
       else
-        full_path="$full_path:$($bb cat "$path_file")"
+        full_path="$full_path:$(cat "$path_file")"
       fi
     fi
 
     local tdeps_file
     tdeps_file="$HAB_STUDIO_ROOT/$(_pkgpath_for $path_pkg)/TDEPS"
     if [ -f "$tdeps_file" ]; then
-      for tdep in $($bb cat "$tdeps_file"); do
+      # shellcheck disable=2013
+      for tdep in $(cat "$tdeps_file"); do
         local tdep_path_file
         tdep_path_file="$HAB_STUDIO_ROOT/$(_pkgpath_for "$tdep")/PATH"
         if [ -f "$tdep_path_file" ]; then
-          full_path="$full_path:$($bb cat "$tdep_path_file")"
+          full_path="$full_path:$(cat "$tdep_path_file")"
         fi
       done
     fi
@@ -80,7 +82,7 @@ finish_setup() {
   studio_enter_command="${busybox_path}/bin/sh --login"
 
   # shellcheck disable=2086,2154
-  $bb mkdir -p $v "$HAB_STUDIO_ROOT""$HAB_ROOT_PATH"/bin
+  mkdir -p $v "$HAB_STUDIO_ROOT""$HAB_ROOT_PATH"/bin
 
   # Put `hab` on the default `$PATH`
   _hab pkg binlink --dest "$HAB_ROOT_PATH"/bin core/hab hab
@@ -90,9 +92,9 @@ finish_setup() {
   _hab pkg binlink --dest=/bin core/busybox-static sh
 
   # Set the login shell for any relevant user to be `/bin/bash`
-  $bb sed -e "s,/bin/sh,$busybox_path/bin/bash,g" -i "$HAB_STUDIO_ROOT"/etc/passwd
+  sed -e "s,/bin/sh,$busybox_path/bin/bash,g" -i "$HAB_STUDIO_ROOT"/etc/passwd
 
-  $bb cat <<PROFILE > "$HAB_STUDIO_ROOT"/etc/profile
+  cat <<PROFILE > "$HAB_STUDIO_ROOT"/etc/profile
 # Add hab to the default \$PATH at the front so any wrapping scripts will
 # be found and called first
 export PATH=$full_path:\$PATH
@@ -106,12 +108,12 @@ alias fgrep='fgrep --color=auto'
 source <(hab cli completers --shell bash)
 PROFILE
 
-  $bb cat <<EOT > "$HAB_STUDIO_ROOT"/etc/resolv.conf
+  cat <<EOT > "$HAB_STUDIO_ROOT"/etc/resolv.conf
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 EOT
 
-  $bb cat <<EOT > "$HAB_STUDIO_ROOT"/etc/nsswitch.conf
+  cat <<EOT > "$HAB_STUDIO_ROOT"/etc/nsswitch.conf
 passwd:     files
 group:      files
 shadow:     files
@@ -126,8 +128,8 @@ EOT
   echo "${run_group}:x:42:${run_user}" >> "$HAB_STUDIO_ROOT"/etc/group
 
   local sup="$HAB_ROOT_PATH/bin/hab sup"
-  $bb touch "$HAB_STUDIO_ROOT"/.hab_pkg
-  $bb cat <<EOT > "$HAB_STUDIO_ROOT"/init.sh
+  touch "$HAB_STUDIO_ROOT"/.hab_pkg
+  cat <<EOT > "$HAB_STUDIO_ROOT"/init.sh
 #!$busybox_path/bin/sh
 export PATH=$full_path
 case \$1 in
@@ -136,20 +138,19 @@ case \$1 in
   *) exec $sup "\$@";;
 esac
 EOT
-  $bb chmod a+x "$HAB_STUDIO_ROOT"/init.sh
+  chmod a+x "$HAB_STUDIO_ROOT"/init.sh
 
   studio_env_command="$busybox_path/bin/env"
 }
 
 _hab() {
-  # shellcheck disable=2154
-  $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_CACHE_KEY_PATH= "$hab" "$@"
+  env FS_ROOT="$HAB_STUDIO_ROOT" HAB_CACHE_KEY_PATH= hab "$@"
 }
 
 _pkgpath_for() {
-  _hab pkg path "$1" | $bb sed -e "s,^$HAB_STUDIO_ROOT,,g"
+  _hab pkg path "$1" | sed -e "s,^$HAB_STUDIO_ROOT,,g"
 }
 
 _outside_pkgpath_for() {
-  $hab pkg path "$1"
+  hab pkg path "$1"
 }

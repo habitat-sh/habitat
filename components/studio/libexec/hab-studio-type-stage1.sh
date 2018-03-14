@@ -18,12 +18,11 @@ studio_run_command="/tools/bin/bash --login"
 
 finish_setup() {
   if [ -n "$HAB_ORIGIN_KEYS" ]; then
-    # shellcheck disable=2154
-    for key in $(echo "$HAB_ORIGIN_KEYS" | $bb tr ',' ' '); do
+    for key in $(echo "$HAB_ORIGIN_KEYS" | tr ',' ' '); do
       local key_text
       # Import the secret origin key, required for signing packages
       info "Importing '$key' secret origin key"
-      if key_text=$($hab origin key export --type secret "$key"); then
+      if key_text=$(hab origin key export --type secret "$key"); then
         printf -- "%s" "${key_text}" | _hab origin key import
       else
         echo "Error exporting $key key"
@@ -49,7 +48,7 @@ finish_setup() {
       fi
       # Attempt to import the public origin key, which can be used for local
       # package installations where the key may not yet be uploaded.
-      if key_text=$($hab origin key export --type public "$key" 2> /dev/null); then
+      if key_text=$(hab origin key export --type public "$key" 2> /dev/null); then
         info "Importing '$key' public origin key"
         printf -- "%s" "${key_text}" | _hab origin key import
       else
@@ -62,51 +61,50 @@ finish_setup() {
     return 0
   fi
 
-  tar_file="$TAR_DIR/$($bb basename $STAGE1_TOOLS_URL)"
+  tar_file="$TAR_DIR/$(basename $STAGE1_TOOLS_URL)"
 
   if [ ! -f "$tar_file" ]; then
-    trap '$bb rm -f $tar_file; exit $?' INT TERM EXIT
+    trap 'rm -f $tar_file; exit $?' INT TERM EXIT
     info "Downloading $STAGE1_TOOLS_URL"
-    $bb wget $STAGE1_TOOLS_URL -O "$tar_file"
+    wget $STAGE1_TOOLS_URL -O "$tar_file"
     trap - INT TERM EXIT
   fi
 
-  info "Extracting $($bb basename "$tar_file")"
-  $bb xzcat "$tar_file" | $bb tar xf - -C "$HAB_STUDIO_ROOT"
+  info "Extracting $(basename "$tar_file")"
+  xzcat "$tar_file" | tar xf - -C "$HAB_STUDIO_ROOT"
 
   # Create symlinks from the minimal toolchain installed under `/tools` into
   # the root of the chroot environment. This is done to satisfy tools such as
   # `make(1)` which expect `/bin/sh` to exist.
-
   # shellcheck disable=2086
   {
   # shellcheck disable=2154
-  $bb ln -sf $v /tools/bin/bash "$HAB_STUDIO_ROOT"/bin
-  $bb ln -sf $v /tools/bin/cat "$HAB_STUDIO_ROOT"/bin
-  $bb ln -sf $v /tools/bin/echo "$HAB_STUDIO_ROOT"/bin
-  $bb ln -sf $v /tools/bin/pwd "$HAB_STUDIO_ROOT"/bin
-  $bb ln -sf $v /tools/bin/stty "$HAB_STUDIO_ROOT"/bin
+  ln -sf $v /tools/bin/bash "$HAB_STUDIO_ROOT"/bin
+  ln -sf $v /tools/bin/cat "$HAB_STUDIO_ROOT"/bin
+  ln -sf $v /tools/bin/echo "$HAB_STUDIO_ROOT"/bin
+  ln -sf $v /tools/bin/pwd "$HAB_STUDIO_ROOT"/bin
+  ln -sf $v /tools/bin/stty "$HAB_STUDIO_ROOT"/bin
 
-  $bb ln -sf $v /tools/bin/perl "$HAB_STUDIO_ROOT"/usr/bin
-  $bb ln -sf $v /tools/lib/libgcc_s.so "$HAB_STUDIO_ROOT"/usr/lib
-  $bb ln -sf $v /tools/lib/libgcc_s.so.1 "$HAB_STUDIO_ROOT"/usr/lib
-  $bb ln -sf $v /tools/lib/libstdc++.so "$HAB_STUDIO_ROOT"/usr/lib
-  $bb ln -sf $v /tools/lib/libstdc++.so.6 "$HAB_STUDIO_ROOT"/usr/lib    
+  ln -sf $v /tools/bin/perl "$HAB_STUDIO_ROOT"/usr/bin
+  ln -sf $v /tools/lib/libgcc_s.so "$HAB_STUDIO_ROOT"/usr/lib
+  ln -sf $v /tools/lib/libgcc_s.so.1 "$HAB_STUDIO_ROOT"/usr/lib
+  ln -sf $v /tools/lib/libstdc++.so "$HAB_STUDIO_ROOT"/usr/lib
+  ln -sf $v /tools/lib/libstdc++.so.6 "$HAB_STUDIO_ROOT"/usr/lib    
   } # end shellcheck disable
   # TODO fn: Used for older versions of the stage1 tarball, so this check can
   # eventually be removed as newer tarballs will most likely always skip this
   # step.
   if [ -f "$HAB_STUDIO_ROOT/tools/lib/libstdc++.la" ]; then
-    $bb sed 's/tools/usr/' "$HAB_STUDIO_ROOT"/tools/lib/libstdc++.la \
+    sed 's/tools/usr/' "$HAB_STUDIO_ROOT"/tools/lib/libstdc++.la \
       > "$HAB_STUDIO_ROOT"/usr/lib/libstdc++.la
   fi
   # shellcheck disable=2086
-  $bb ln -sf $v bash "$HAB_STUDIO_ROOT"/bin/sh
+  ln -sf $v bash "$HAB_STUDIO_ROOT"/bin/sh
 
   # Set the login shell for any relevant user to be `/bin/bash`
-  $bb sed -e 's,/bin/sh,/bin/bash,g' -i "$HAB_STUDIO_ROOT"/etc/passwd
+  sed -e 's,/bin/sh,/bin/bash,g' -i "$HAB_STUDIO_ROOT"/etc/passwd
 
-  $bb cat >> "$HAB_STUDIO_ROOT"/etc/profile <<'PROFILE'
+  cat >> "$HAB_STUDIO_ROOT"/etc/profile <<'PROFILE'
 # Colorize grep/egrep/fgrep by default
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
@@ -116,5 +114,5 @@ PROFILE
 }
 
 _hab() {
-  $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_CACHE_KEY_PATH= "$hab" "$@"
+  env FS_ROOT="$HAB_STUDIO_ROOT" HAB_CACHE_KEY_PATH= hab "$@"
 }

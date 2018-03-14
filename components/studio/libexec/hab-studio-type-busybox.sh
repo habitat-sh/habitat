@@ -16,18 +16,18 @@ studio_run_command="/opt/busybox/busybox sh -l"
 finish_setup() {
   # Copy in the busybox binary under `/opt/busybox`
   # shellcheck disable=2154,2086
-  $bb mkdir -p $v "$HAB_STUDIO_ROOT"/opt/busybox
+  mkdir -p $v "$HAB_STUDIO_ROOT"/opt/busybox
   # shellcheck disable=2154,2086
-  $bb cp $v "$libexec_path"/busybox "$HAB_STUDIO_ROOT"/opt/busybox/
+  cp $v "$libexec_path"/busybox "$HAB_STUDIO_ROOT"/opt/busybox/
 
   if [ ! -f "$HAB_STUDIO_ROOT/opt/busybox/sh" ]; then
     # Symlink all tools to busybox under `/opt/busybox`
     for c in $("$HAB_STUDIO_ROOT"/opt/busybox/busybox --list); do
       # shellcheck disable=2086
-      $bb ln -sf $v busybox "$HAB_STUDIO_ROOT"/opt/busybox/$c
+      ln -sf $v busybox "$HAB_STUDIO_ROOT"/opt/busybox/$c
     done
   fi
 
   # Set the login shell for any relevant user to be busybox's `sh`
-  $bb sed -e 's,/bin/sh,/opt/busybox/sh,g' -i "$HAB_STUDIO_ROOT"/etc/passwd
+  sed -e 's,/bin/sh,/opt/busybox/sh,g' -i "$HAB_STUDIO_ROOT"/etc/passwd
 }
