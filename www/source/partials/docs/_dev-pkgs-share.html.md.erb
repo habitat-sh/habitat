@@ -85,7 +85,7 @@ $ hab start core/postgresql --channel unstable
 
 An exported tarball package contains the Habitat client/binary as well as dependencies specified by your artifact.
 
-After deploying the tarball to your target server, extract the contents to the `root` directory:
+After deploying the tarball to your target server, extract the contents to the root filesystem (`/`):
 
 ```shell
 $ tar zxf core-nginx-1.11.10-20170616000025.tar.gz --directory /
