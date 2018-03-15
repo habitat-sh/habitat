@@ -10,94 +10,246 @@ These configuration settings are referenced using the [Handlebars.js](https://gi
 These are service settings specified by Habitat and correspond to the network information of the running Habitat service. You can also query these values on a running Supervisor via the Supervisor HTTP API.
 
 **version**
-: Version of the Habitat Supervisor.
+: (string) Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448`
 
 **member_id**
-: Supervisor's member id.
+: (string) Supervisor's member id, e.g., `3d1e73ff19464a27aea3cdc5c2243f74`
 
 **ip**
-: The IP address of the running service.
+: (string) The IP address of the running service.
 
 **hostname**
-: The hostname of the running service. Defaults to `localhost`.
+: (string) The hostname of the running service. Defaults to `localhost`.
 
 **gossip_ip**
-: Listening address for Supervisor's gossip connection.
+: (string) Listening address for Supervisor's gossip connection.
 
 **gossip_port**
-: Listening port for Supervisor's gossip connection.
+: (number) Listening port for Supervisor's gossip connection.
 
 **http_gateway_ip**
-: Listening address for Supervisor's http gateway.
+: (string) Listening address for Supervisor's http gateway.
 
 **http_gateway_port**
-: Listening port for Supervisor's http gateway
+: (number) Listening port for Supervisor's http gateway
 
 **permanent**
-: This is set to `true` if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability.
+: (bool) This is set to `true` if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability.
 
 ## pkg
 These are package settings specified by Habitat and correspond to the the settings of the package when it was built and installed.
 
 **ident**
-: The fully-qualified identifier of a package that consists of origin/name/version/release.
+: (string) The fully-qualified identifier of the running package, e.g., `core/redis/3.2.4/20170514150022`
 
 **origin**
-: Denotes a particular upstream of a package. This value is pulled from the `pkg_origin` setting in a plan.
+: (string) Denotes a particular upstream of a package. This value is pulled from the `pkg_origin` setting in a plan.
 
 **name**
-: The name of the package. This value is pulled from the `pkg_name` setting in a plan.
+: (string) The name of the package. This value is pulled from the `pkg_name` setting in a plan.
 
 **version**
-: The version of a package. This value is pulled from the `pkg_version` setting in a plan.
+: (string) The version of a package. This value is pulled from the `pkg_version` setting in a plan.
 
 **release**
-: The UTC datetime stamp when the package was built. This value is specified in _YYYYMMDDhhmmss_ format.
+: (string) The UTC datetime stamp when the package was built. This value is specified in _YYYYMMDDhhmmss_ format.
 
 **deps**
-: An array of runtime dependencies for your package based on the pkg_deps setting in a plan.
+: (object array) An array of runtime dependencies for your package based on the pkg_deps setting in a plan. Each item is an object with `origin`, `name`, `version`, and `release` keys, like so:
+
+```
+{
+  "origin": "core",
+  "name": "git",
+  "version": "2.14.2",
+  "release": "20171016215544"
+}
+```
 
 **env**
-: You package's system path that is set with all of your dependent binaries.
+: (object) The runtime environment of your package, mirroring the contents of the `RUNTIME_ENVIRONMENT` metadata file. The `PATH` variable is set, containing all dependencies of your package, as well as any other runtime environment variables that have been set by the package. Individual variables can be accessed directly, like ``{{pkg.env.PATH}}`` (the keys are case sensitive).
 
 **exposes**
-: The port(s) to expose for an application or service. This value is pulled from the pkg_exposes setting in a plan.
+: (string array) The array of ports (as strings) to expose for an application or service. This value is pulled from the `pkg_exposes` setting in a plan.
 
 **exports**
-: A key value pair where the key is what external services consume. The value is stored in your `default.toml` to be provided when called.
+: (object) A map of export key to internal configuration value key (i.e., the contents of `pkg_exports` in your plan). The key is what external services consume. The value is a key in your `default.toml` file that corresponds to the data being exported.
 
 **path**
-: The location where the fully-qualified package is installed.
+: (string) The location where the package is installed locally, e.g., `/hab/pkgs/core/redis/3.2.4/20170514150022`. Note that this is _not_ a `PATH` environment variable; for that, please see the `env` key above.
 
-**svc_path**
-: The root location of the source files for the Habitat service.
+**svc\_path**
+: (string) The root location of the source files for the Habitat service, e.g., `/hab/svc/redis`.
 
 **svc\_config\_path**
-: The location of any [templated configuration files](/docs/developing-packages/#add-configuration) for the Habitat service.
+: (string) The location of any [templated configuration files](/docs/developing-packages/#add-configuration) for the Habitat service, e.g., `/hab/svc/redis/config`.
 
 **svc\_data\_path**
-: The location of any data files for the Habitat service.
+: (string) The location of any data files for the Habitat service, e.g., `/hab/svc/redis/data`.
 
 **svc\_files\_path**
-: The location of any gossiped configuration files for the Habitat service.
+: (string) The location of any gossiped configuration files for the Habitat service, e.g., `/hab/svc/redis/files`.
 
 **svc\_static\_path**
-: The location of any static content for the Habitat service.
+: (string) The location of any static content for the Habitat service, e.g., `/hab/svc/redis/static`.
 
 **svc\_var\_path**
-: The location of any variable state data for the Habitat service.
+: (string) The location of any variable state data for the Habitat service, e.g., `/hab/svc/redis/var`.
 
 **svc\_pid_file**
-: The location of the Habitat service pid file.
+: (string) The location of the Habitat service pid file, e.g., `/hab/svc/redis/PID`.
 
 **svc_run**
-: The location of the run data for the Habitat service.
+: (string) The location of the rendered run hook for the Habitat service, e.g., `/hab/svc/redis/run`.
 
 **svc_user**
-: The value of `pkg_svc_user` specified in a plan (if not specified, "hab").
+: (string) The value of `pkg_svc_user` specified in a plan (if not specified, "hab").
 
 **svc_group**
-: The value of `pkg_svc_group` specified in a plan (if not specified, "hab").
+: (string) The value of `pkg_svc_group` specified in a plan (if not specified, "hab").
 
 ## cfg
-These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package.
+These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package. For example, if you had a `default.toml` file like this:
+
+```
+[foo]
+bar = "baz"
+```
+you could access the `"bar"` value using the templating expression `{{cfg.foo.bar}}`.
+
+## svc
+
+**service**
+: (string) The name of the service. If the service is running from the package `core/redis`, the value will be `redis`.
+
+**group**
+: (string) The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`.
+
+**org**
+: (optional string) The `organization` portion of a service group specification. Unused at this time.
+
+**election_is_running**
+: (bool) whether a leader election is currently running for this service
+
+**election_is_no_quorum**
+: (bool) whether there is quorum for a leader election for this service
+
+**election_is_finished**
+: (bool) whether a leader election for this service has finished
+
+**update_election_is_running**
+: (bool) whether an update leader election is currently running for this service
+
+**update_election_is_no_quorum**
+: (bool) whether there is quorum for an update leader election for this service
+
+**update_election_is_finished**
+: (bool) whether an update leader election for this service has finished
+
+**me**
+: (service member) A object that provides information about the service running on the local Supervisor. See below for details.
+
+**first**
+: (service member) The first member of this service group
+
+**members**
+: (service member) All members of the service group, across the entire ring.
+
+**leader**
+: (service member) The current leader of the service group, if any (`null` otherwise)
+
+**update_leader**
+: (service member) The current update leader of the service group, if any (`null` otherwise)
+
+## bind
+
+The `bind` object maps the name of a bind to information about the ring members that are currently bound to it. The value is itself an object with `first` and `members` keys, which have the same meaning and construction as those keys on the `{{svc}}` object
+
+## Service Member object
+
+The `{{svc.me}}`, `{{svc.first}}`, `{{svc.members}}`, `{{svc.leader}}`, `{{svc.update_leader}}`, `{{bind.<BIND>.first}}` and `{{bind.<BIND>.members}}` template variables all return "service member" objects, which is described here.
+
+**member_id**
+: (string) the member's Supervisor id, e.g., `3d1e73ff19464a27aea3cdc5c2243f74`
+
+**alive**
+: (bool) whether this member is considered alive and connected to the ring, from a network perspective.
+
+**suspect**
+: (bool) whether this member is considered "suspect", or possibly unreachable, from a network perspective.
+
+**confirmed**
+: (bool) whether this member is confirmed dead / unreachable, from a network perspective.
+
+**departed**
+: (bool) whether this member has been departed from the ring (i.e., permanently gone, never to return).
+
+Only one of `alive`, `suspect`, `confirmed`, or `departed` should be `true` at a time, with all others being `false`.
+
+**election_is_running**
+: (bool) whether a leader election is currently running for this service
+
+**election_is_no_quorum**
+: (bool) whether there is quorum for a leader election for this service
+
+**election_is_finished**
+: (bool) whether a leader election for this service has finished
+
+**update_election_is_running**
+: (bool) whether an update leader election is currently running for this service
+
+**update_election_is_no_quorum**
+: (bool) whether there is quorum for an update leader election for this service
+
+**update_election_is_finished**
+: (bool) whether an update leader election for this service has finished
+
+These election flags convey the same information as the ones available from `{{svc}}`.
+
+**leader**
+: (bool) whether this member is the leader in the service group (only meaningful in a `leader` topology)
+
+**follower**
+: (bool) whether this member is a follower in the service group (only meaningful in a `leader` topology)
+
+**update_leader**
+: (bool) whether this member is the update leader in the service group (only meaningful in a `leader` topology)
+
+**update_follower**
+: (bool) whether this member is an update follower in the service group (only meaningful in a `leader` topology)
+
+**pkg**
+: (object) the release the member is running, with `origin`, `name`, `version`, and `release` keys, like so:
+
+```
+{
+  "origin": "core",
+  "name": "git",
+  "version": "2.14.2",
+  "release": "20171016215544"
+}
+```
+
+**sys**
+: (object) An abbreviated version of the top-level `{{sys}}` object, containing networking information for the member. It contains `hostname`, `ip`, `http_gateway_ip`, `http_gateway_port`, `gossip_ip`, and `gossip_port` keys, with the same meaning as those from `{{sys}}`.
+
+**cfg**
+: (object) The configuration the member is currently exporting. This is constrained by what is defined in `pkg_exports`, where the values are replaced with the current values (e.g., taking into account things like `user.toml`, gossiped configuration values, etc.)
+
+**persistent**
+: (bool) A misspelling of `permanent`; indicates whether a member is a permanent peer or not
+
+**service**
+: (string) The name of the service. If the service is running from the package `core/redis`, the value will be `redis`.
+
+**group**
+: (string) The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`.
+
+**org**
+: (optional string) The `organization` portion of a service group specification. Unused at this time.
+
+**application**
+: (optional string) The `application` portion of a service group specification. Unused at this time.
+
+**environment**
+: (optional string) The `environment` portion of a service group specification. Unused at this time.
