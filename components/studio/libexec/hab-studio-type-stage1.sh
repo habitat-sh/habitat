@@ -8,7 +8,7 @@ studio_build_command=
 studio_run_environment=
 studio_run_command=
 
-: ${STAGE1_TOOLS_URL:=https://s3-us-west-2.amazonaws.com/habitat-studio-stage1/habitat-studio-stage1-20160612022150.tar.xz}
+: ${STAGE1_TOOLS_URL:=http://s3-us-west-2.amazonaws.com/habitat-studio-stage1/habitat-studio-stage1-20180312233639.tar.xz}
 : ${TAR_DIR:=/tmp}
 
 finish_setup() {
@@ -82,7 +82,13 @@ finish_setup() {
   $bb ln -sf $v /tools/lib/libgcc_s.so.1 $HAB_STUDIO_ROOT/usr/lib
   $bb ln -sf $v /tools/lib/libstdc++.so $HAB_STUDIO_ROOT/usr/lib
   $bb ln -sf $v /tools/lib/libstdc++.so.6 $HAB_STUDIO_ROOT/usr/lib
-  $bb sed 's/tools/usr/' $HAB_STUDIO_ROOT/tools/lib/libstdc++.la > $HAB_STUDIO_ROOT/usr/lib/libstdc++.la
+  # TODO fn: Used for older versions of the stage1 tarball, so this check can
+  # eventually be removed as newer tarballs will most likely always skip this
+  # step.
+  if [ -f "$HAB_STUDIO_ROOT/tools/lib/libstdc++.la" ]; then
+    $bb sed 's/tools/usr/' $HAB_STUDIO_ROOT/tools/lib/libstdc++.la \
+      > $HAB_STUDIO_ROOT/usr/lib/libstdc++.la
+  fi
   $bb ln -sf $v bash $HAB_STUDIO_ROOT/bin/sh
 
   # Set the login shell for any relevant user to be `/bin/bash`
