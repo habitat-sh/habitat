@@ -85,6 +85,16 @@ The release tag builds will upload all release binaries to a channel named `rc-[
 
 For each platform, download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, run `hab studio enter` and make sure:
 
+Due to historical contingincies, evaluating the release is currently a bit tricky.
+
+You need to set `HAB_INTERNAL_BLDR_CHANNEL` and `CI_OVERRIDE_CHANNEL` to the name of the release channel (you _may_ also need to set `HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL` and `HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL`). If a new Launcher is in the release channel, you should be fine; however, since that should be rare, you may have some additional work.
+
+In a previous release, we were able to validate things on Linux by re-using a chroot studio and installing a Launcher out-of-band. You can probably create a new studio, enter it with `HAB_STUDIO_SUP=false`, manually install the latest stable Launcher (if a new one isn't part of the current release), exit the studio, then re-enter with `HAB_STUDIO_SUP` unset (but with all the override variables mentioned above set). This should reuse the Launcher you just installed, but pull in additional artifacts as needed from your release channel.
+
+See https://github.com/habitat-sh/habitat/issues/4656 for further context and ideas.
+
+Then you can actually exercise the software as follows:
+
 1. It pulls down the correct studio image
 1. That studio's `hab` is at the correct version
 1. A `sup-log` shows a running supervisor and the supervisor is the correct version
