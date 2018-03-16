@@ -74,7 +74,7 @@ impl Status {
             Status::Deleting => ('☒', "Deleting".into(), Colour::Green),
             Status::Demoted => ('✓', "Demoted".into(), Colour::Green),
             Status::Demoting => ('→', "Demoting".into(), Colour::Green),
-            Status::Determining => ('→', "Determining".into(), Colour::Green),
+            Status::Determining => ('☁', "Determining".into(), Colour::Green),
             Status::Downloading => ('↓', "Downloading".into(), Colour::Green),
             Status::Encrypting => ('☛', "Encrypting".into(), Colour::Green),
             Status::Encrypted => ('✓', "Encrypted".into(), Colour::Green),

@@ -341,7 +341,17 @@ impl<'a> InstallTask<'a> {
         // The "target_ident" will be the fully-qualified identifier
         // of the package we will ultimately install, once we
         // determine if we need to get a more recent version or not.
-        let target_ident = if !ident.fully_qualified() {
+        let target_ident = if ident.fully_qualified() {
+            FullyQualifiedPackageIdent::from(ident)?
+        } else {
+            ui.status(
+                Status::Determining,
+                format!(
+                    "latest version of {} in the '{}' channel",
+                    &ident,
+                    self.channel
+                ),
+            )?;
             match self.fetch_latest_pkg_ident_for(&ident, token) {
                 Ok(latest_ident) => latest_ident,
                 Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
@@ -353,8 +363,6 @@ impl<'a> InstallTask<'a> {
                     return Err(e);
                 }
             }
-        } else {
-            FullyQualifiedPackageIdent::from(ident)?
         };
 
         match self.installed_package(&target_ident) {
@@ -375,6 +383,9 @@ impl<'a> InstallTask<'a> {
         }
     }
 
+    // TODO fn: I'm skeptical as to whether we want these warnings all the time. Perhaps it's
+    // better to warn that nothing is found and redirect a user to run another standalone
+    // `hab pkg ...` subcommand to get more information.
     fn recommend_channels(
         &self,
         ui: &mut UI,
@@ -383,14 +394,14 @@ impl<'a> InstallTask<'a> {
     ) -> Result<()> {
         if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
             if !recommendations.is_empty() {
-                ui.warn(
-                    "The package does not have any versions in the specified channel.",
-                )?;
-                ui.warn(
-                    "Did you intend to install one of the folowing instead?",
-                )?;
+                ui.warn(format!(
+                    "No releases of {} exist in the '{}' channel",
+                    &ident,
+                    self.channel
+                ))?;
+                ui.warn("The following releases were found:")?;
                 for r in recommendations {
-                    ui.warn(format!("  {} in channel {}", r.1, r.0))?;
+                    ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
                 }
             }
         }
