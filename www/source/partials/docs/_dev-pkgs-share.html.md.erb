@@ -65,6 +65,8 @@ For more information on how to use channels, see [Continuous Deployment Using Ch
 
 ### Running packages from Builder
 
+> **Note:** When running private packages from Builder, it's necessary to add your [Habitat access token](/docs/using-builder/#builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
+
 You can instruct the Supervisor to download and run packages from Builder by using the `hab start` command, for example:
 
 ```shell
@@ -83,7 +85,7 @@ $ hab start core/postgresql --channel unstable
 
 An exported tarball package contains the Habitat client/binary as well as dependencies specified by your artifact.
 
-After deploying the tarball to your target server, extract the contents to the _root directory_:
+After deploying the tarball to your target server, extract the contents to the root filesystem (`/`):
 
 ```shell
 $ tar zxf core-nginx-1.11.10-20170616000025.tar.gz --directory /
