@@ -38,6 +38,12 @@ impl<'a> Binds<'a> {
     }
 }
 
+// NOTE: This is exposed to users in templates. Any public member is
+// accessible to users, so change this interface with care.
+//
+// User-facing documentation is available at
+// https://www.habitat.sh/docs/reference/#template-data; update that
+// as required.
 #[derive(Clone, Debug, Serialize)]
 pub struct BindGroup<'a> {
     pub first: Option<SvcMember<'a>>,
@@ -56,6 +62,14 @@ impl<'a> BindGroup<'a> {
 /// The context of a render call.
 ///
 /// It stores information on a Service and its configuration.
+///
+/// NOTE: This is the entrypoint for all data available to users in
+/// templates. Any public member _that is serialized_ is accessible to
+/// users, so change this interface with care.
+///
+/// User-facing documentation is available at
+/// https://www.habitat.sh/docs/reference/#template-data; update that
+/// as required.
 #[derive(Clone, Debug, Serialize)]
 pub struct RenderContext<'a> {
     pub sys: &'a Sys,
@@ -136,6 +150,13 @@ impl<'a> Svc<'a> {
     }
 }
 
+
+// NOTE: This is exposed to users in templates. Any public member is
+// accessible to users, so change this interface with care.
+//
+// User-facing documentation is available at
+// https://www.habitat.sh/docs/reference/#template-data; update that
+// as required.
 /// A friendly representation of a `CensusMember` to the templating system.
 #[derive(Clone, Debug, Serialize)]
 pub struct SvcMember<'a>(&'a CensusMember);
