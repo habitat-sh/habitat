@@ -114,7 +114,7 @@ impl Manifest {
                     None => {
                         (
                             format!("{}/{}", pkg_ident.origin, pkg_ident.name),
-                            "latest".to_owned(),
+                            version_suffix,
                         )
                     }
                 };
