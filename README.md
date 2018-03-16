@@ -6,7 +6,7 @@
 [![Discourse status](https://img.shields.io/discourse/https/meta.discourse.org/status.svg?style=for-the-badge)](https://forums.habitat.sh)
 [![Open Source Helpers](https://www.codetriage.com/habitat-sh/habitat/badges/users.svg)](https://www.codetriage.com/habitat-sh/habitat)
 
-Want to try Habitat? [Get started here](https://www.habitat.sh/tutorials/get-started/demo/).
+Want to try Habitat? [Get started here](https://www.habitat.sh/learn/).
 
 Habitat is an application automation framework that allows you to build applications that have automation built-in. This provides modern applications that:
 
@@ -37,7 +37,7 @@ Participation in the Habitat community is governed by the [code of conduct](http
 
 ## Install
 
-You can download Habitat from the [Habitat downloads page](https://www.habitat.sh/docs/get-habitat/).
+You can download Habitat from the [Habitat downloads page](https://www.habitat.sh/docs/install-habitat/).
 
 Once you have downloaded it, follow the instructions on the page for your specific operating system.
 
@@ -65,7 +65,7 @@ We are always looking for more opportunities for community involvement. Interest
 
 ## Documentation
 
-Get started with the [Habitat tutorials](https://www.habitat.sh/tutorials/) or plunge into the [complete documentation](https://www.habitat.sh/docs/).
+Get started with the [Habitat tutorials](https://www.habitat.sh/learn/) or plunge into the [complete documentation](https://www.habitat.sh/docs/).
 
 ## Code Organization
 
