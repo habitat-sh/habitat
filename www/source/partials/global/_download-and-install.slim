@@ -9,6 +9,10 @@ hr
       blockquote Requires 64-bit processor with kernel 2.6.32 or later
       p Once you have downloaded the package, extract the hab binary with tar to <code>/usr/local/bin</code> or add its location to your <code>PATH</code> (e.g. <code>tar -xvzf hab.tgz -C /usr/local/bin --strip-components 1</code>).
       = link_to 'Download Habitat for Linux', 'https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux', class: 'button cta'
+      p Alternatively, you can install Habitat via the command line by downloading and running the installation script:
+      = code(:shell) do
+          |
+           curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 hr
 .hab-cli-os.mac.mb-2
   .row
