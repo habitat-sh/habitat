@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::borrow::Cow;
 use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
 use std::result;
@@ -271,6 +272,18 @@ impl Ord for PackageIdent {
             Ok(Ordering::Equal) => self.release.cmp(&other.release),
             Err(_) => Ordering::Less,
         }
+    }
+}
+
+impl<'a> From<PackageIdent> for Cow<'a, PackageIdent> {
+    fn from(pi: PackageIdent) -> Cow<'a, PackageIdent> {
+        Cow::Owned(pi)
+    }
+}
+
+impl<'a> From<&'a PackageIdent> for Cow<'a, PackageIdent> {
+    fn from(pi: &'a PackageIdent) -> Cow<'a, PackageIdent> {
+        Cow::Borrowed(pi)
     }
 }
 
