@@ -19,7 +19,7 @@ use std::os::unix::fs::symlink;
 use std::os::windows::fs::symlink_dir as symlink;
 use clap;
 use common;
-use common::command::package::install::InstallSource;
+use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::{UI, Status};
 use tempdir::TempDir;
 use std::path::Path;
@@ -218,6 +218,8 @@ impl<'a> BuildSpec<'a> {
             &fs_root_path,
             &cache_artifact_path(Some(&fs_root_path)),
             None,
+            // TODO fn: pass through and enable offline install mode
+            &InstallMode::default(),
         )?;
         Ok(package_install.into())
     }

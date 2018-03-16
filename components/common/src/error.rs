@@ -23,6 +23,7 @@ use toml;
 
 use depot_client;
 use hcore;
+use hcore::package::PackageIdent;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -39,6 +40,9 @@ pub enum Error {
     HabitatCore(hcore::Error),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
+    OfflineArtifactNotFound(PackageIdent),
+    OfflineOriginKeyNotFound(String),
+    OfflinePackageNotFound(PackageIdent),
     RootRequired,
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
@@ -75,6 +79,22 @@ impl fmt::Display for Error {
             Error::FileNameError => format!("Failed to extract a filename"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
+            Error::OfflineArtifactNotFound(ref ident) => {
+                format!("Cached artifact not found in offline mode: {}", ident)
+            }
+            Error::OfflineOriginKeyNotFound(ref name_with_rev) => {
+                format!(
+                    "Cached origin key not found in offline mode: {}",
+                    name_with_rev
+                )
+            }
+            Error::OfflinePackageNotFound(ref ident) => {
+                format!(
+                    "No installed package or cached artifact could be found \
+                    locally in offline mode: {}",
+                    ident
+                )
+            }
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
@@ -106,6 +126,11 @@ impl error::Error for Error {
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::OfflineArtifactNotFound(_) => "Cached artifact not found in offline mode",
+            Error::OfflineOriginKeyNotFound(_) => "Cached origin key not found in offline mode",
+            Error::OfflinePackageNotFound(_) => {
+                "No installed package or cached artifact could be found locally in offline mode"
+            }
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation"
             }
