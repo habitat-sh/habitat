@@ -35,6 +35,7 @@
 //! * Unpack it
 //!
 
+use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -154,6 +155,28 @@ impl AsRef<PackageIdent> for InstallSource {
     }
 }
 
+/// Represents a release channel on a Builder Depot.
+// TODO fn: this type could be further developed and generalized outside this module
+struct Channel<'a>(&'a str);
+
+impl<'a> Channel<'a> {
+    fn new(name: &'a str) -> Self {
+        Channel(name)
+    }
+}
+
+impl<'a> Default for Channel<'a> {
+    fn default() -> Self {
+        Channel("stable")
+    }
+}
+
+impl<'a> fmt::Display for Channel<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 /// Install a Habitat package.
 ///
 /// If an `InstallSource::Ident` is given, we retrieve the package
@@ -195,8 +218,14 @@ where
     let key_cache_path = cache_key_path(Some(fs_root_path.as_ref()));
     debug!("install key_cache_path: {}", key_cache_path.display());
 
+    let channel = match channel {
+        Some(name) => Channel::new(name),
+        None => Channel::default(),
+    };
+
     let task = InstallTask::new(
         url,
+        channel,
         product,
         version,
         fs_root_path.as_ref(),
@@ -205,13 +234,14 @@ where
     )?;
 
     match *install_source {
-        InstallSource::Ident(ref ident) => task.from_ident(ui, ident.clone(), channel, token),
+        InstallSource::Ident(ref ident) => task.from_ident(ui, ident.clone(), token),
         InstallSource::Archive(ref local_archive) => task.from_archive(ui, local_archive),
     }
 }
 
 struct InstallTask<'a> {
     depot_client: Client,
+    channel: Channel<'a>,
     fs_root_path: &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
     artifact_cache_path: &'a Path,
@@ -221,6 +251,7 @@ struct InstallTask<'a> {
 impl<'a> InstallTask<'a> {
     fn new(
         url: &str,
+        channel: Channel<'a>,
         product: &str,
         version: &str,
         fs_root_path: &'a Path,
@@ -229,6 +260,7 @@ impl<'a> InstallTask<'a> {
     ) -> Result<Self> {
         Ok(InstallTask {
             depot_client: Client::new(url, product, version, Some(fs_root_path))?,
+            channel: channel,
             fs_root_path: fs_root_path,
             artifact_cache_path: artifact_cache_path,
             key_cache_path: key_cache_path,
@@ -252,40 +284,18 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut UI,
         ident: PackageIdent,
-        channel: Option<&str>,
         token: Option<&str>,
     ) -> Result<PackageInstall> {
-        if channel.is_some() {
-            ui.begin(format!(
-                "Installing {} from channel '{}'",
-                &ident,
-                channel.unwrap()
-            ))?;
-        } else {
-            ui.begin(format!("Installing {}", &ident))?;
-        }
+        ui.begin(format!("Installing {}", &ident))?;
 
         // The "target_ident" will be the fully-qualified identifier
         // of the package we will ultimately install, once we
         // determine if we need to get a more recent version or not.
         let target_ident = if !ident.fully_qualified() {
-            match self.fetch_latest_pkg_ident_for(&ident, channel, token) {
+            match self.fetch_latest_pkg_ident_for(&ident, token) {
                 Ok(latest_ident) => latest_ident,
                 Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
-                    if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
-                        if !recommendations.is_empty() {
-                            ui.warn(
-                                "The package does not have any versions in the specified channel.",
-                            )?;
-                            ui.warn(
-                                "Did you intend to install one of the folowing instead?",
-                            )?;
-                            for r in recommendations {
-                                ui.warn(format!("  {} in channel {}", r.1, r.0))?;
-                            }
-                        }
-                    }
-
+                    self.recommend_channels(ui, &ident, token)?;
                     return Err(Error::PackageNotFound);
                 }
                 Err(e) => {
@@ -294,30 +304,6 @@ impl<'a> InstallTask<'a> {
                 }
             }
         } else {
-            // This is just outputting some information in case the
-            // fully-qualified identifier we were given isn't actually
-            // in this channel. It shouldn't matter, though, because we've got
-            // a fully-qualified identifier.
-            if let Some(channel) = channel {
-                let ch = channel.to_string();
-                match self.depot_client.package_channels(&ident, token) {
-                    Ok(channels) => {
-                        if channels.iter().find(|ref c| ***c == ch).is_none() {
-                            ui.warn(format!(
-                                "Can not find {} in the {} channel but installing anyway since the package ident was fully qualified.", &ident, &ch
-                            ))?;
-                        }
-                    }
-                    Err(e) => {
-                        debug!("Failed to get channel list: {:?}", e);
-                        // TODO (CM): Do we really want to return an
-                        // error here? Because we couldn't output a
-                        // warning message?
-                        return Err(Error::ChannelNotFound);
-                    }
-                };
-            }
-
             ident
         };
 
@@ -337,6 +323,29 @@ impl<'a> InstallTask<'a> {
                 self.install_package(ui, &target_ident, token)
             }
         }
+    }
+
+    fn recommend_channels(
+        &self,
+        ui: &mut UI,
+        ident: &PackageIdent,
+        token: Option<&str>,
+    ) -> Result<()> {
+        if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
+            if !recommendations.is_empty() {
+                ui.warn(
+                    "The package does not have any versions in the specified channel.",
+                )?;
+                ui.warn(
+                    "Did you intend to install one of the folowing instead?",
+                )?;
+                for r in recommendations {
+                    ui.warn(format!("  {} in channel {}", r.1, r.0))?;
+                }
+            }
+        }
+
+        Ok(())
     }
 
     /// Get a list of suggested package identifiers from all
@@ -359,7 +368,11 @@ impl<'a> InstallTask<'a> {
         };
 
         for channel in channels {
-            match self.fetch_latest_pkg_ident_for(ident, Some(&channel), token) {
+            match self.fetch_latest_pkg_ident_in_channel_for(
+                ident,
+                &Channel::new(&channel),
+                token,
+            ) {
                 Ok(pkg) => res.push((channel, format!("{}", pkg))),
                 Err(_) => (),
             };
@@ -443,10 +456,7 @@ impl<'a> InstallTask<'a> {
                     // each service itself does that. Thus, we need to
                     // install them just like we would if we weren't
                     // in a composite.
-                    //
-                    // We don't really need a channel down here, as
-                    // all these identifiers are fully-qualified.
-                    self.from_ident(ui, service, None, token)?;
+                    self.from_ident(ui, service, token)?;
                 }
                 // All the services have been unpacked; let's do the
                 // same with the composite package itself.
@@ -523,12 +533,24 @@ impl<'a> InstallTask<'a> {
     fn fetch_latest_pkg_ident_for(
         &self,
         ident: &PackageIdent,
-        channel: Option<&str>,
         token: Option<&str>,
     ) -> Result<PackageIdent> {
         Ok(
             self.depot_client
-                .show_package(ident, channel, token)?
+                .show_package(ident, Some(self.channel.0), token)?
+                .into(),
+        )
+    }
+
+    fn fetch_latest_pkg_ident_in_channel_for(
+        &self,
+        ident: &PackageIdent,
+        channel: &Channel,
+        token: Option<&str>,
+    ) -> Result<PackageIdent> {
+        Ok(
+            self.depot_client
+                .show_package(ident, Some(channel.0), token)?
                 .into(),
         )
     }
