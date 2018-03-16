@@ -44,6 +44,7 @@ use std::result::Result as StdResult;
 
 use depot_client::{self, Client};
 use depot_client::Error::APIError;
+use glob;
 use hcore;
 use hcore::fs::cache_key_path;
 use hcore::crypto::{artifact, SigKeyPair};
@@ -156,6 +157,18 @@ impl AsRef<PackageIdent> for InstallSource {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum InstallMode {
+    Online,
+    Offline,
+}
+
+impl Default for InstallMode {
+    fn default() -> Self {
+        InstallMode::Online
+    }
+}
+
 /// Represents a release channel on a Builder Depot.
 // TODO fn: this type could be further developed and generalized outside this module
 struct Channel<'a>(&'a str);
@@ -181,6 +194,7 @@ impl<'a> fmt::Display for Channel<'a> {
 /// Represents a fully-qualified Package Identifier, meaning that the normally optional version and
 /// release package coordinates are guaranteed to be set. This fully-qualified-ness is checked on
 /// construction and as the underlying representation is immutable, this state does not change.
+#[derive(Debug)]
 struct FullyQualifiedPackageIdent<'a> {
     // The ident is a struct field rather than a "newtype" struct to ensure its value cannot be
     // directly accessed
@@ -258,6 +272,7 @@ pub fn start<P1, P2>(
     fs_root_path: P1,
     artifact_cache_path: P2,
     token: Option<&str>,
+    install_mode: &InstallMode,
 ) -> Result<PackageInstall>
 where
     P1: AsRef<Path>,
@@ -274,6 +289,7 @@ where
     };
 
     let task = InstallTask::new(
+        install_mode,
         url,
         channel,
         product,
@@ -290,6 +306,7 @@ where
 }
 
 struct InstallTask<'a> {
+    install_mode: &'a InstallMode,
     depot_client: Client,
     channel: Channel<'a>,
     fs_root_path: &'a Path,
@@ -300,6 +317,7 @@ struct InstallTask<'a> {
 
 impl<'a> InstallTask<'a> {
     fn new(
+        install_mode: &'a InstallMode,
         url: &str,
         channel: Channel<'a>,
         product: &str,
@@ -309,6 +327,7 @@ impl<'a> InstallTask<'a> {
         key_cache_path: &'a Path,
     ) -> Result<Self> {
         Ok(InstallTask {
+            install_mode: install_mode,
             depot_client: Client::new(url, product, version, Some(fs_root_path))?,
             channel: channel,
             fs_root_path: fs_root_path,
@@ -324,7 +343,7 @@ impl<'a> InstallTask<'a> {
     ///
     /// However, if the identifier is _not_ fully-qualified, the
     /// latest version from the given channel will be installed
-    /// instead.
+    /// instead, assuming a newer version is not found locally.
     ///
     /// In either case, the identifier returned will be the
     /// fully-qualified identifier of package that was infstalled
@@ -337,33 +356,7 @@ impl<'a> InstallTask<'a> {
         token: Option<&str>,
     ) -> Result<PackageInstall> {
         ui.begin(format!("Installing {}", &ident))?;
-
-        // The "target_ident" will be the fully-qualified identifier
-        // of the package we will ultimately install, once we
-        // determine if we need to get a more recent version or not.
-        let target_ident = if ident.fully_qualified() {
-            FullyQualifiedPackageIdent::from(ident)?
-        } else {
-            ui.status(
-                Status::Determining,
-                format!(
-                    "latest version of {} in the '{}' channel",
-                    &ident,
-                    self.channel
-                ),
-            )?;
-            match self.fetch_latest_pkg_ident_for(&ident, token) {
-                Ok(latest_ident) => latest_ident,
-                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
-                    self.recommend_channels(ui, &ident, token)?;
-                    return Err(Error::PackageNotFound);
-                }
-                Err(e) => {
-                    debug!("error fetching ident: {:?}", e);
-                    return Err(e);
-                }
-            }
-        };
+        let target_ident = self.determine_latest_from_ident(ui, ident, token)?;
 
         match self.installed_package(&target_ident) {
             Some(package_install) => {
@@ -383,82 +376,131 @@ impl<'a> InstallTask<'a> {
         }
     }
 
-    // TODO fn: I'm skeptical as to whether we want these warnings all the time. Perhaps it's
-    // better to warn that nothing is found and redirect a user to run another standalone
-    // `hab pkg ...` subcommand to get more information.
-    fn recommend_channels(
-        &self,
-        ui: &mut UI,
-        ident: &PackageIdent,
-        token: Option<&str>,
-    ) -> Result<()> {
-        if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
-            if !recommendations.is_empty() {
-                ui.warn(format!(
-                    "No releases of {} exist in the '{}' channel",
-                    &ident,
-                    self.channel
-                ))?;
-                ui.warn("The following releases were found:")?;
-                for r in recommendations {
-                    ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    /// Get a list of suggested package identifiers from all
-    /// channels. This is used to generate actionable user feedback
-    /// when the desired package was not found in the specified
-    /// channel.
-    fn get_channel_recommendations(
-        &self,
-        ident: &PackageIdent,
-        token: Option<&str>,
-    ) -> Result<Vec<(String, String)>> {
-        let mut res = Vec::new();
-
-        let channels = match self.depot_client.list_channels(ident.origin(), false) {
-            Ok(channels) => channels,
-            Err(e) => {
-                debug!("Failed to get channel list: {:?}", e);
-                return Err(Error::PackageNotFound);
-            }
-        };
-
-        for channel in channels {
-            match self.fetch_latest_pkg_ident_in_channel_for(
-                ident,
-                &Channel::new(&channel),
-                token,
-            ) {
-                Ok(pkg) => res.push((channel, format!("{}", pkg))),
-                Err(_) => (),
-            };
-        }
-
-        Ok(res)
-    }
-
     /// Given an archive on disk, ensure that it is properly installed
     /// and return the package's identifier.
     fn from_archive(&self, ui: &mut UI, local_archive: &LocalArchive) -> Result<PackageInstall> {
-        let ident = FullyQualifiedPackageIdent::from(&local_archive.ident)?;
-        match self.installed_package(&ident) {
+        ui.begin(
+            format!("Installing {}", local_archive.path.display()),
+        )?;
+        let target_ident = FullyQualifiedPackageIdent::from(&local_archive.ident)?;
+
+        match self.installed_package(&target_ident) {
             Some(package_install) => {
-                ui.status(Status::Using, &ident)?;
+                // The installed package was found on disk
+                ui.status(Status::Using, &target_ident)?;
                 ui.end(format!(
                     "Install of {} complete with {} new packages installed.",
-                    ident,
+                    &target_ident,
                     0
                 ))?;
                 Ok(package_install)
             }
             None => {
-                self.store_artifact_in_cache(&ident, &local_archive.path)?;
-                self.install_package(ui, &ident, None)
+                // No installed package was found
+                self.store_artifact_in_cache(
+                    &target_ident,
+                    &local_archive.path,
+                )?;
+                self.install_package(ui, &target_ident, None)
+            }
+        }
+    }
+
+    fn determine_latest_from_ident(
+        &self,
+        ui: &mut UI,
+        ident: PackageIdent,
+        token: Option<&str>,
+    ) -> Result<FullyQualifiedPackageIdent> {
+        if ident.fully_qualified() {
+            // If we have a fully qualified package identifier, then our work is done--there can
+            // only be *one* package that satisfies a fully qualified identifier.
+
+            FullyQualifiedPackageIdent::from(ident)
+        } else if self.is_offline() {
+            // If we can't contact a Builder API, then we'll find the latest installed package or
+            // cached artifact that satisfies the fuzzy package identifier.
+
+            ui.status(
+                Status::Determining,
+                format!(
+                    "latest version of {} locally installed or cached (offline)",
+                    &ident
+                ),
+            )?;
+            match self.latest_installed_or_cached(&ident) {
+                Ok(i) => Ok(i),
+                Err(Error::PackageNotFound) => {
+                    return Err(Error::OfflinePackageNotFound(ident.clone()));
+                }
+                Err(e) => return Err(e),
+            }
+        } else {
+            // Otherwise, we're online and we have a fuzzy package identifier. Now we can find the
+            // latest identifier from any installed packages and from a Builder API.
+
+            // Find latest *installed* package, if any are found. We're using the fact that a
+            // package is installed as a signal that it can satisfy a "latest" answer. Checking for
+            // any cached artifacts is too aggressive in this case: if you really want that cached
+            // version to win--install it first, then it will be counted.
+            let latest_local = self.latest_installed_ident(&ident);
+
+            ui.status(
+                Status::Determining,
+                format!(
+                    "latest version of {} in the '{}' channel",
+                    &ident,
+                    self.channel
+                ),
+            )?;
+            let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, token) {
+                Ok(latest_ident) => latest_ident,
+                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
+                    match latest_local {
+                        Ok(ref local) => {
+                            ui.status(
+                                Status::Missing,
+                                format!(
+                                    "remote version of {} in the '{}' channel, but a \
+                                    newer installed version was found locally ({})",
+                                    &ident,
+                                    self.channel,
+                                    local.as_ref()
+                                ),
+                            )?;
+                            FullyQualifiedPackageIdent::from(local.as_ref().clone())?
+                        }
+                        Err(_) => {
+                            self.recommend_channels(ui, &ident, token)?;
+                            return Err(Error::PackageNotFound);
+                        }
+                    }
+                }
+                Err(e) => {
+                    debug!("error fetching ident: {:?}", e);
+                    return Err(e);
+                }
+            };
+
+            // Return the latest identifier reported by the Builder API *unless* there is a newer
+            // version found installed locally.
+            match latest_local {
+                Ok(local) => {
+                    if local.as_ref() > latest_remote.as_ref() {
+                        ui.status(
+                            Status::Found,
+                            format!(
+                                "newer installed version ({}) than remote version ({})",
+                                &local,
+                                latest_remote.as_ref()
+                            ),
+                        )?;
+                        Ok(local)
+                    } else {
+                        Ok(latest_remote)
+                    }
+                }
+                Err(_) => Ok(latest_remote),
             }
         }
     }
@@ -551,6 +593,8 @@ impl<'a> InstallTask<'a> {
                 "Found {} in artifact cache, skipping remote download",
                 ident
             );
+        } else if self.is_offline() {
+            return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
         } else {
             if retry(
                 RETRIES,
@@ -584,6 +628,96 @@ impl<'a> InstallTask<'a> {
     /// identifier, if it exists.
     fn installed_package(&self, ident: &FullyQualifiedPackageIdent) -> Option<PackageInstall> {
         PackageInstall::load(ident.as_ref(), Some(self.fs_root_path)).ok()
+    }
+
+    /// Checks for the latest installed package or cached artifact that matches a given package
+    /// identifier and returns a fully qualified package identifier if a match exists.
+    fn latest_installed_or_cached(
+        &self,
+        ident: &PackageIdent,
+    ) -> Result<FullyQualifiedPackageIdent> {
+        let latest_installed = self.latest_installed_ident(&ident);
+        let latest_cached = self.latest_cached_ident(&ident);
+        debug!(
+                "latest installed: {:?}, latest_cached: {:?}",
+                &latest_installed,
+                &latest_cached,
+            );
+        let latest = match (latest_installed, latest_cached) {
+            (Ok(pkg_install), Err(_)) => pkg_install,
+            (Err(_), Ok(pkg_artifact)) => pkg_artifact,
+            (Ok(pkg_install), Ok(pkg_artifact)) => {
+                if pkg_install.as_ref() > pkg_artifact.as_ref() {
+                    pkg_install
+                } else {
+                    pkg_artifact
+                }
+            }
+            (Err(_), Err(_)) => return Err(Error::PackageNotFound),
+        };
+        debug!("offline mode: winner: {:?}", &latest);
+
+        Ok(latest)
+    }
+
+    fn latest_installed_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
+        match PackageInstall::load(ident, Some(self.fs_root_path)) {
+            Ok(pi) => FullyQualifiedPackageIdent::from(pi.ident().clone()),
+            Err(_) => Err(Error::PackageNotFound),
+        }
+    }
+
+    fn latest_cached_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
+        let filename_glob = {
+            let mut ident = ident.clone();
+            if ident.version.is_none() {
+                ident.version = Some(String::from("?*"));
+            }
+            if ident.release.is_none() {
+                // NOTE fn: setting the field value of `release` to a string that isn't a set sized
+                // string of numeric characters might lead to issues later. Feels mildly like
+                // danger territory, but works today!
+                ident.release = Some(String::from("?*"));
+            }
+            match ident.archive_name() {
+                Some(name) => name,
+                None => return Err(Error::PackageNotFound),
+            }
+        };
+        let glob_path = self.artifact_cache_path.join(filename_glob);
+        let glob_path = glob_path.to_string_lossy();
+        debug!("looking for cached artifacts, glob={}", glob_path.as_ref());
+
+        let mut latest: Vec<(PackageIdent, PackageArchive)> = Vec::with_capacity(1);
+        for file in glob::glob(glob_path.as_ref())
+            .expect("glob pattern should compile")
+            .filter_map(StdResult::ok)
+        {
+            let mut artifact = PackageArchive::new(&file);
+            let artifact_ident = artifact.ident().ok();
+            if let None = artifact_ident {
+                continue;
+            }
+            let artifact_ident = artifact_ident.unwrap();
+            if artifact_ident.origin == ident.origin && artifact_ident.name == ident.name {
+                if latest.is_empty() {
+                    latest.push((artifact_ident, artifact));
+                } else {
+                    if artifact_ident > latest[0].0 {
+                        let _ = latest.pop();
+                        latest.push((artifact_ident, artifact));
+                    }
+                }
+            }
+        }
+
+        if latest.is_empty() {
+            Err(Error::PackageNotFound)
+        } else {
+            Ok(FullyQualifiedPackageIdent::from(
+                latest.pop().unwrap().1.ident()?,
+            )?)
+        }
     }
 
     fn is_artifact_cached(&self, ident: &FullyQualifiedPackageIdent) -> bool {
@@ -645,22 +779,26 @@ impl<'a> InstallTask<'a> {
     }
 
     fn fetch_origin_key(&self, ui: &mut UI, name_with_rev: &str) -> Result<()> {
-        ui.status(
-            Status::Downloading,
-            format!("{} public origin key", &name_with_rev),
-        )?;
-        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        self.depot_client.fetch_origin_key(
-            &name,
-            &rev,
-            self.key_cache_path,
-            ui.progress(),
-        )?;
-        ui.status(
-            Status::Cached,
-            format!("{} public origin key", &name_with_rev),
-        )?;
-        Ok(())
+        if self.is_offline() {
+            return Err(Error::OfflineOriginKeyNotFound(name_with_rev.to_string()));
+        } else {
+            ui.status(
+                Status::Downloading,
+                format!("{} public origin key", &name_with_rev),
+            )?;
+            let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+            self.depot_client.fetch_origin_key(
+                &name,
+                &rev,
+                self.key_cache_path,
+                ui.progress(),
+            )?;
+            ui.status(
+                Status::Cached,
+                format!("{} public origin key", &name_with_rev),
+            )?;
+            Ok(())
+        }
     }
 
     /// Copies the artifact to the local artifact cache directory
@@ -709,5 +847,64 @@ impl<'a> InstallTask<'a> {
         artifact.verify(&self.key_cache_path)?;
         debug!("Verified {} signed by {}", ident, &nwr);
         Ok(())
+    }
+
+    fn is_offline(&self) -> bool {
+        self.install_mode == &InstallMode::Offline
+    }
+
+    // TODO fn: I'm skeptical as to whether we want these warnings all the time. Perhaps it's
+    // better to warn that nothing is found and redirect a user to run another standalone
+    // `hab pkg ...` subcommand to get more information.
+    fn recommend_channels(
+        &self,
+        ui: &mut UI,
+        ident: &PackageIdent,
+        token: Option<&str>,
+    ) -> Result<()> {
+        if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
+            if !recommendations.is_empty() {
+                ui.warn(format!(
+                    "No releases of {} exist in the '{}' channel",
+                    &ident,
+                    self.channel
+                ))?;
+                ui.warn("The following releases were found:")?;
+                for r in recommendations {
+                    ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Get a list of suggested package identifiers from all
+    /// channels. This is used to generate actionable user feedback
+    /// when the desired package was not found in the specified
+    /// channel.
+    fn get_channel_recommendations(
+        &self,
+        ident: &PackageIdent,
+        token: Option<&str>,
+    ) -> Result<Vec<(String, String)>> {
+        let mut res = Vec::new();
+
+        let channels = match self.depot_client.list_channels(ident.origin(), false) {
+            Ok(channels) => channels,
+            Err(e) => {
+                debug!("Failed to get channel list: {:?}", e);
+                return Err(Error::PackageNotFound);
+            }
+        };
+
+        for channel in channels.iter().map(|c| Channel::new(c)) {
+            match self.fetch_latest_pkg_ident_in_channel_for(ident, &channel, token) {
+                Ok(pkg) => res.push((channel.to_string(), format!("{}", pkg))),
+                Err(_) => (),
+            };
+        }
+
+        Ok(res)
     }
 }

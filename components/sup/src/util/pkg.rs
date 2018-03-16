@@ -15,7 +15,7 @@
 use std::path::Path;
 
 use common;
-use common::command::package::install::InstallSource;
+use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::UI;
 use hcore::env as henv;
 use hcore::AUTH_TOKEN_ENVVAR;
@@ -54,6 +54,8 @@ pub fn install(
         fs_root_path,
         &fs::cache_artifact_path(None::<String>),
         auth_token.as_ref().map(String::as_str),
+        // TODO fn: pass through and enable offline install mode
+        &InstallMode::default(),
     ).map_err(SupError::from)
 }
 

@@ -22,7 +22,7 @@ use std::str::FromStr;
 
 use clap;
 use common;
-use common::command::package::install::InstallSource;
+use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::{UI, Status};
 use failure::SyncFailure;
 use hab;
@@ -345,6 +345,8 @@ impl<'a> BuildSpec<'a> {
             &fs_root_path,
             &cache_artifact_path(Some(&fs_root_path)),
             None,
+            // TODO fn: pass through and enable offline install mode
+            &InstallMode::default(),
         )?;
         Ok(package_install.into())
     }
