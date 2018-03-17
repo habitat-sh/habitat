@@ -813,14 +813,29 @@ impl<'a> InstallTask<'a> {
         ident: &FullyQualifiedPackageIdent,
         artifact_path: &Path,
     ) -> Result<()> {
-        let cache_path = self.cached_artifact_path(ident);
+        // Canonicalize both paths to ensure that there aren't any symlinks when comparing them
+        // later.
+        let artifact_path = artifact_path.canonicalize()?;
+        let cache_path = self.cached_artifact_path(ident).canonicalize()?;
         fs::create_dir_all(self.artifact_cache_path)?;
 
         // Handle the pathological case where you're trying to install
         // an artifact file directly from the cache. Otherwise, you'd
         // end up with a 0-byte file in the cache and wouldn't be able
         // to subsequently verify it.
-        if artifact_path != cache_path {
+        if artifact_path == cache_path {
+            debug!(
+                "skipping artifact copy, it is being referenced directly from cache, \
+                artifact_path={}, cache_path={}",
+                artifact_path.display(),
+                cache_path.display()
+            );
+        } else {
+            debug!(
+                "copying artifact to cache, artifact_path={}, cached_path={}",
+                artifact_path.display(),
+                cache_path.display()
+            );
             fs::copy(artifact_path, cache_path)?;
         }
         Ok(())
