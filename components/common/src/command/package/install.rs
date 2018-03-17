@@ -301,7 +301,7 @@ where
 
     match *install_source {
         InstallSource::Ident(ref ident) => task.from_ident(ui, ident.clone(), token),
-        InstallSource::Archive(ref local_archive) => task.from_archive(ui, local_archive),
+        InstallSource::Archive(ref local_archive) => task.from_archive(ui, local_archive, token),
     }
 }
 
@@ -378,7 +378,12 @@ impl<'a> InstallTask<'a> {
 
     /// Given an archive on disk, ensure that it is properly installed
     /// and return the package's identifier.
-    fn from_archive(&self, ui: &mut UI, local_archive: &LocalArchive) -> Result<PackageInstall> {
+    fn from_archive(
+        &self,
+        ui: &mut UI,
+        local_archive: &LocalArchive,
+        token: Option<&str>,
+    ) -> Result<PackageInstall> {
         ui.begin(
             format!("Installing {}", local_archive.path.display()),
         )?;
@@ -401,7 +406,7 @@ impl<'a> InstallTask<'a> {
                     &target_ident,
                     &local_archive.path,
                 )?;
-                self.install_package(ui, &target_ident, None)
+                self.install_package(ui, &target_ident, token)
             }
         }
     }
