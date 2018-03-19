@@ -15,6 +15,7 @@
 /// Collect all the configuration data that is exposed to users, and render it.
 
 use std;
+use std::borrow::Cow;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
@@ -115,14 +116,22 @@ pub struct Cfg {
 
     /// Source of the user configuration
     pub user_config_path: UserConfigPath,
+
+    /// The path to an optional dev-time configuration directory that
+    /// is being used.
+    override_config_dir: Option<PathBuf>,
 }
 
 impl Cfg {
     pub fn new<P: PackageConfigPaths>(package: &P, config_from: Option<&PathBuf>) -> Result<Cfg> {
-        let pkg_root = config_from.and_then(|p| Some(p.clone())).unwrap_or(
-            package.default_config_dir(),
-        );
-        let default = Self::load_default(pkg_root)?;
+        let override_config_dir = config_from.and_then(|c| Some(c.clone()));
+        let default = {
+            let pkg_root = match override_config_dir {
+                Some(ref path) => Cow::Borrowed(path),
+                None => Cow::Owned(package.default_config_dir()),
+            };
+            Self::load_default(pkg_root.as_ref())?
+        };
         let user_config_path = Self::determine_user_config_path(package);
         let user = Self::load_user(user_config_path.get_path())?;
         let environment = Self::load_environment(package)?;
@@ -133,7 +142,38 @@ impl Cfg {
             environment: environment,
             gossip_incarnation: 0,
             user_config_path: user_config_path,
+            override_config_dir: override_config_dir,
         });
+    }
+
+    /// Updates the default layer of the configuration when a service
+    /// is updated (because the new release may have changed the
+    /// contents and / or structure of the configuration).
+    ///
+    /// Returns `Ok(true)` if the default layer was actually changed,
+    /// which can be used as a signal to rebuild templated contents in
+    /// hooks and configuration files.
+    ///
+    /// Note that if you're using `config_from`, then changes in the
+    /// incoming packages won't be reflected.
+    pub fn update_defaults_from_package<P>(&mut self, package: &P) -> Result<bool>
+    where
+        P: PackageConfigPaths,
+    {
+        let incoming_defaults = {
+            let pkg_root = match self.override_config_dir {
+                Some(ref path) => Cow::Borrowed(path),
+                None => Cow::Owned(package.default_config_dir()),
+            };
+            Self::load_default(pkg_root.as_ref())?
+        };
+
+        let mut changed = false;
+        if incoming_defaults != self.default {
+            self.default = incoming_defaults;
+            changed = true;
+        }
+        Ok(changed)
     }
 
     /// Updates the service configuration with data from a census group if the census group has
