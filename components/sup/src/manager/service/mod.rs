@@ -105,6 +105,11 @@ pub struct Service {
     supervisor: Supervisor,
     svc_encrypted_password: Option<String>,
     composite: Option<String>,
+
+    #[serde(skip_serializing)]
+    /// Whether a service's default configuration changed on a package
+    /// update. Used to control when templates are re-rendered.
+    defaults_updated: bool
 }
 
 impl Service {
@@ -158,6 +163,7 @@ impl Service {
             last_health_check: None,
             svc_encrypted_password: spec.svc_encrypted_password,
             composite: spec.composite,
+            defaults_updated: false
         })
     }
 
@@ -379,7 +385,7 @@ impl Service {
             "Service update failed; unable to find own service group",
         );
         let cfg_updated_from_rumors = self.cfg.update(census_group);
-        let cfg_changed = cfg_updated_from_rumors || self.user_config_updated;
+        let cfg_changed = self.defaults_updated || cfg_updated_from_rumors || self.user_config_updated;
 
         if self.user_config_updated {
             if let Err(e) = self.cfg.reload_user() {
@@ -389,6 +395,7 @@ impl Service {
             self.user_config_updated = false;
         }
 
+        self.defaults_updated = false;
 
         if cfg_changed || census_ring.changed() {
             let (reload, reconfigure) = {
@@ -444,6 +451,17 @@ impl Service {
             outputln!(preamble self.service_group,
                       "Error stopping process while updating package: {}", err);
         }
+
+        match self.cfg.update_defaults_from_package(&self.pkg) {
+            Ok(maybe_updated) => {
+                self.defaults_updated = maybe_updated;
+            }
+            Err(err) => {
+                outputln!(preamble self.service_group,
+                          "Unexpected error while checking for updated package defaults: {}", err);
+            }
+        }
+
         self.initialized = false;
     }
 
