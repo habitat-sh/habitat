@@ -4,7 +4,7 @@ pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(core/coreutils core/findutils core/gawk core/grep core/bash core/docker core/hab-studio)
+pkg_deps=(core/coreutils core/findutils core/gawk core/grep core/bash core/docker/17.09.0 core/hab-studio)
 pkg_build_deps=()
 pkg_bin_dirs=(bin)
 
