@@ -6,7 +6,7 @@ pkg_description="Habitat Cloud Foundry image exporter"
 pkg_upstream_url="https://github.com/habitat-sh/habitat"
 pkg_deps=(
   core/coreutils core/findutils core/grep core/sed core/gawk core/bash
-  core/hab-pkg-dockerize core/docker
+  core/hab-pkg-dockerize core/docker/17.09.0
 )
 pkg_bin_dirs=(bin)
 
