@@ -30,7 +30,8 @@ arg_enum!{
     #[derive(Debug)]
     pub enum RegistryType {
         Amazon,
-        Docker
+        Docker,
+        Azure
     }
 }
 
@@ -227,14 +228,15 @@ impl<'a, 'b> Cli<'a, 'b> {
                  .help("Remote registry password, required for pushing image to remote registry"))
             .arg(Arg::with_name("REGISTRY_TYPE")
                  .possible_values(&RegistryType::variants())
+                 .requires("REGISTRY_URL")
                  .case_insensitive(true)
                  .long("registry-type")
                  .short("R")
                  .value_name("REGISTRY_TYPE")
-                 .help("Remote registry type, Ex: Amazon, Docker (default: docker)"))
+                 .help("Remote registry type, Ex: Amazon, Docker, Azure (default: docker)"))
             .arg(Arg::with_name("REGISTRY_URL")
-                 // This is not strictly a requirement but will keep someone from making a mistake
-                 // when inputing an ECR URL
+                 // This is not strictly a requirement but will keep someone from
+                 // making a mistake when inputing an ECR URL
                  .requires("REGISTRY_TYPE")
                  .long("registry-url")
                  .short("G")
