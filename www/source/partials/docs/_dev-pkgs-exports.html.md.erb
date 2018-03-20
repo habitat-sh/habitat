@@ -3,7 +3,12 @@ Packages can be exported into multiple external, immutable runtime formats. This
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Habitat CLI Reference Guide](/docs/habitat-cli#hab-pkg-export) for more CLI information.
 
-> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Habitat CLI will check Builder for the latest stable version of the package and export that.
+> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Habitat CLI will check Builder for the latest stable version of the package and export that. 
+
+> If you wish to export a package that is not on Builder, create a Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory: 
+   ```shell
+   hab pkg export tar ./results/example-app.hart
+   ```  
 
 Read on for more detailed instructions.
 
