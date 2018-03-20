@@ -148,7 +148,7 @@ impl Credentials {
 
                 Ok(Credentials { token: token })
             }
-            RegistryType::Docker => {
+            RegistryType::Docker | RegistryType::Azure => {
                 Ok(Credentials {
                     token: base64::encode(&format!(
                         "{}:{}",
