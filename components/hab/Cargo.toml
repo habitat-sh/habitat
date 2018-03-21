@@ -10,10 +10,12 @@ name = "hab"
 doc = false
 
 [dependencies]
+bitflags = "*"
 clippy = {version = "*", optional = true}
 base64 = "*"
 ansi_term = "*"
 env_logger = "*"
+features = "*"
 hyper = "0.10"
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "0.29.1", default-features = false }
