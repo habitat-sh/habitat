@@ -82,3 +82,8 @@ authors:
     email: "garrett@chef.io"
     twitter: "@mgamini"
     bio: "Garrett is a front-end developer, Node nerd, and Habitat core maintainer, coming to Chef from the game industry."
+  elliottdavis:
+    name: "Elliott Davis"
+    email: "edavis@chef.io"
+    twitter: "@libsysguy"
+    bio: "Elliott is a senior engineer on the core Habitat team. He loves disrupting standups with dad jokes."
