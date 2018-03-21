@@ -13,6 +13,16 @@
 - Update hab setup to collect a Habitat generated token [\#4709](https://github.com/habitat-sh/habitat/issues/4709)
 - Feature Request: hab pkg upload should default to the most recently built artifact [\#4703](https://github.com/habitat-sh/habitat/issues/4703)
 - Windows Container Studio does not stream supervisor log [\#4665](https://github.com/habitat-sh/habitat/issues/4665)
+- \[data collection\] Decompose Builder Job Status data  [\#4632](https://github.com/habitat-sh/habitat/issues/4632)
+- Document all variables available in templates [\#4626](https://github.com/habitat-sh/habitat/issues/4626)
+- \[www\] Fix no-results message view [\#4591](https://github.com/habitat-sh/habitat/issues/4591)
+- Suggestion: Have search results link to sections of the page searched [\#4561](https://github.com/habitat-sh/habitat/issues/4561)
+- Supervisor/Launcher should reap zombie processes [\#4412](https://github.com/habitat-sh/habitat/issues/4412)
+- \[builder ui\] Update label 'Tutorial' to 'Learn' in bldr global nav [\#4384](https://github.com/habitat-sh/habitat/issues/4384)
+- Add clarification around copyable commands [\#4361](https://github.com/habitat-sh/habitat/issues/4361)
+- Add Kubernetes exporter to UI [\#4213](https://github.com/habitat-sh/habitat/issues/4213)
+- Re-do release changelog generation process [\#4181](https://github.com/habitat-sh/habitat/issues/4181)
+- Builder: better error messages when having github authentication errors [\#4153](https://github.com/habitat-sh/habitat/issues/4153)
 - Document how to evaluate a release candidate [\#4768](https://github.com/habitat-sh/habitat/pull/4768) ([christophermaier](https://github.com/christophermaier))
 - Document how to evaluate a release candidate [\#4768](https://github.com/habitat-sh/habitat/pull/4768) ([christophermaier](https://github.com/christophermaier))
 - add note to release doc about killing non release builds after tag push [\#4767](https://github.com/habitat-sh/habitat/pull/4767) ([mwrock](https://github.com/mwrock))
@@ -23,12 +33,17 @@
 - do not check mounts entering windows container studio [\#4668](https://github.com/habitat-sh/habitat/pull/4668) ([mwrock](https://github.com/mwrock))
 - pkg-export-k8s: Remove redundant newline filtering code [\#4648](https://github.com/habitat-sh/habitat/pull/4648) ([zeenix](https://github.com/zeenix))
 - Add release notes 0.54.0 [\#4644](https://github.com/habitat-sh/habitat/pull/4644) ([tashimi](https://github.com/tashimi))
+- Add asp.net core tutorial [\#4624](https://github.com/habitat-sh/habitat/pull/4624) ([mwrock](https://github.com/mwrock))
 
 ## Bug fixes
 
 - Document installing and running private packages from builder [\#4733](https://github.com/habitat-sh/habitat/issues/4733)
 - hab-studio on linux should not require root/sudo when using docker [\#4716](https://github.com/habitat-sh/habitat/issues/4716)
 - windows packages are not honoring `pkg\_svc\_user` [\#4685](https://github.com/habitat-sh/habitat/issues/4685)
+- \\[www\\] Fix no-results message view [\#4591](https://github.com/habitat-sh/habitat/issues/4591)
+- Adding new values to default.toml don't get rendered in package updates [\#4576](https://github.com/habitat-sh/habitat/issues/4576)
+- builds fail when BusyBox `mount` exits non-zero [\#4391](https://github.com/habitat-sh/habitat/issues/4391)
+- Builds from web UI and CLI behave differently [\#4317](https://github.com/habitat-sh/habitat/issues/4317)
 - Updated default.toml files are seen on package update [\#4777](https://github.com/habitat-sh/habitat/pull/4777) ([christophermaier](https://github.com/christophermaier))
 - Set PATH metadata file to only contain my bin dirs [\#4722](https://github.com/habitat-sh/habitat/pull/4722) ([elliott-davis](https://github.com/elliott-davis))
 - use join for x-plat friendly root paths [\#4713](https://github.com/habitat-sh/habitat/pull/4713) ([mwrock](https://github.com/mwrock))
@@ -40,9 +55,13 @@
 - Increase visibility / better explanation of Habitat access tokens in builder doc [\#4721](https://github.com/habitat-sh/habitat/issues/4721)
 - Docker build failed when trying to publish to Docker Hub Container Registry [\#4705](https://github.com/habitat-sh/habitat/issues/4705)
 - test issue - ignore [\#4704](https://github.com/habitat-sh/habitat/issues/4704)
+- Document use of Kubernetes exporter [\#4630](https://github.com/habitat-sh/habitat/issues/4630)
+- pkg\_bind\_map multiple consumer services in composite file [\#4601](https://github.com/habitat-sh/habitat/issues/4601)
 
 **Merged pull requests:**
 
+- Pin core/docker to 17.09.9 for cfize and dockerize [\#4786](https://github.com/habitat-sh/habitat/pull/4786) ([elliott-davis](https://github.com/elliott-davis))
+- Release 0.55.0 [\#4785](https://github.com/habitat-sh/habitat/pull/4785) ([elliott-davis](https://github.com/elliott-davis))
 - Adds azure as a push location to the docker exporter [\#4783](https://github.com/habitat-sh/habitat/pull/4783) ([eeyun](https://github.com/eeyun))
 - Adjusting my CODEOWNERS entries [\#4779](https://github.com/habitat-sh/habitat/pull/4779) ([raskchanky](https://github.com/raskchanky))
 - Adding myself to the codeowners file [\#4778](https://github.com/habitat-sh/habitat/pull/4778) ([elliott-davis](https://github.com/elliott-davis))
@@ -100,6 +119,8 @@
 - Fix spacing [\#4646](https://github.com/habitat-sh/habitat/pull/4646) ([tashimi](https://github.com/tashimi))
 - Bump development version to 0.55.0-dev [\#4643](https://github.com/habitat-sh/habitat/pull/4643) ([christophermaier](https://github.com/christophermaier))
 - Make HAB\_STUDIO\_BINARY env var override work to run alternate studio … [\#4641](https://github.com/habitat-sh/habitat/pull/4641) ([baumanj](https://github.com/baumanj))
+- Adds patching source blog post [\#4633](https://github.com/habitat-sh/habitat/pull/4633) ([burtlo](https://github.com/burtlo))
+
 ## [0.54.0](https://github.com/habitat-sh/habitat/tree/0.54.0) (02-20-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.53.0...0.54.0)
 
