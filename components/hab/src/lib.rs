@@ -63,6 +63,7 @@ pub use hcore::AUTH_TOKEN_ENVVAR;
 
 features! {
     pub mod feat {
-        const List = 0b00000001
+        const List = 0b00000001,
+        const OfflineInstall = 0b00000010
     }
 }
