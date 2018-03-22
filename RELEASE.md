@@ -181,6 +181,14 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 
 Travis runs the Mac deployment scripts via SSH to a headless Mac builder affectionately called `74.80.245.236`. You can SSH to this machine as `admin` using the `habitat-srv-admin` key available in 1password.
 
+If the mac build fails complaining it is out of space, the best course of action is to run:
+
+```
+rm -rf $HOME/code/*
+```
+
+This will clean up any orphaned working directories from previous failed and canceled builds.
+
 # If your Release is going to cause downtime
 
 1. Put a scheduled maintanence window into PagerDuty so the on-call doesn't go off.
