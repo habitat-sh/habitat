@@ -33,7 +33,7 @@ const PATH_KEY: &'static str = "PATH";
 static LOGKEY: &'static str = "PK";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Env(HashMap<String, String>);
+pub struct Env(pub HashMap<String, String>);
 
 impl Deref for Env {
     type Target = HashMap<String, String>;
@@ -79,16 +79,6 @@ impl Env {
     }
 }
 
-// NOTE: This is exposed to users in templates. Any public member is
-// accessible to users, so change this interface with care.
-//
-// User-facing documentation is available at
-// https://www.habitat.sh/docs/reference/#template-data; update that
-// as required.
-//
-// TODO (CM): move templatable content into a distinct type to
-// separate these concerns; Pkg is currently also used for
-// non-templating purposes, as well.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Pkg {
     #[serde(deserialize_with = "deserialize_using_from_str",

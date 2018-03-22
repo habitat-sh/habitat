@@ -14,7 +14,7 @@
 
 pub mod hooks;
 mod composite_spec;
-mod config;
+pub mod config;
 mod dir;
 mod health;
 mod package;
@@ -57,7 +57,7 @@ use sys::abilities;
 
 pub use self::config::{Cfg, UserConfigPath};
 pub use self::health::{HealthCheck, SmokeCheck};
-pub use self::package::Pkg;
+pub use self::package::{Env, Pkg};
 pub use self::composite_spec::CompositeSpec;
 pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle};
 pub use self::supervisor::ProcessState;

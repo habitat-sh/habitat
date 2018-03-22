@@ -454,7 +454,7 @@ impl CfgRenderer {
                     "Configuration {} does not exist; restarting",
                     cfg_dest.display()
                 );
-                outputln!(preamble ctx.svc.group, "Updated {} {}",
+                outputln!(preamble ctx.group_name(), "Updated {} {}",
                           template.as_str(),
                           compiled_hash);
                 let mut config_file = File::create(&cfg_dest)?;
@@ -479,7 +479,7 @@ impl CfgRenderer {
                         "Configuration {} has changed; restarting",
                         cfg_dest.display()
                     );
-                    outputln!(preamble ctx.svc.group,"Updated {} {}",
+                    outputln!(preamble ctx.group_name(),"Updated {} {}",
                               template.as_str(),
                               compiled_hash);
                     let mut config_file = File::create(&cfg_dest)?;
@@ -510,8 +510,7 @@ fn toml_merge_recurse(
 ) -> Result<()> {
     if depth > TOML_MAX_MERGE_DEPTH {
         return Err(sup_error!(Error::TomlMergeError(format!(
-            "Max recursive merge depth of {} \
-                                                             exceeded.",
+            "Max recursive merge depth of {} exceeded.",
             TOML_MAX_MERGE_DEPTH
         ))));
     }
@@ -521,11 +520,9 @@ fn toml_merge_recurse(
             let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
                 toml::Value::Table(ref mut t) => t,
                 _ => {
-                    return Err(sup_error!(Error::TomlMergeError(format!(
-                        "Value at key {} \
-                                                                         should be a Table",
-                        &key
-                    ))));
+                    return Err(sup_error!(Error::TomlMergeError(
+                        format!("Value at key {} should be a Table", &key),
+                    )));
                 }
             };
             toml_merge_recurse(

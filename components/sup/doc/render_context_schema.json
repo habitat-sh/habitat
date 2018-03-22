@@ -1,0 +1,507 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Schema for all the data Habitat makes available in rendered templates",
+    "type": "object",
+    "definitions": {
+        "package_identifier": {
+            "type": "object",
+            "description": "A Habitat package identifier, split apart into its constituent components",
+            "properties": {
+                "origin": {
+                    "description": "The origin of the Habitat package",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of the Habitat package",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The version of the Habitat package",
+                    "type": "string"
+                },
+                "release": {
+                    "description": "The release of the Habitat package",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "origin",
+                "name",
+                "version",
+                "release"
+            ],
+            "additionalProperties": false
+        },
+        "svc_member": {
+            "type": "object",
+            "description": "Represents a member of a service group",
+            "properties": {
+                "member_id": {
+                    "description": "the member's Supervisor id, e.g., 3d1e73ff19464a27aea3cdc5c2243f74",
+                    "type": "string"
+                },
+                "alive": {
+                    "description": "Whether this member is considered alive and connected to the ring, from a network perspective.",
+                    "type": "boolean"
+                },
+                "suspect": {
+                    "description": "Whether this member is considered \"suspect\", or possibly unreachable, from a network perspective.",
+                    "type": "boolean"
+                },
+                "confirmed": {
+                    "description": "Whether this member is confirmed dead / unreachable, from a network perspective.",
+                    "type": "boolean"
+                },
+                "departed": {
+                    "description": "Whether this member has been departed from the ring (i.e., permanently gone, never to return).",
+                    "type": "boolean"
+                },
+                "election_is_running": {
+                    "description": "Whether a leader election is currently running for this service",
+                    "type": "boolean"
+                },
+                "election_is_no_quorum": {
+                    "description": "Whether there is quorum for a leader election for this service",
+                    "type": "boolean"
+                },
+                "election_is_finished": {
+                    "description": "Whether a leader election for this service has finished",
+                    "type": "boolean"
+                },
+                "update_election_is_running": {
+                    "description": "Whether an update leader election is currently running for this service",
+                    "type": "boolean"
+                },
+                "update_election_is_no_quorum": {
+                    "description": "Whether there is quorum for an update leader election for this service",
+                    "type": "boolean"
+                },
+                "update_election_is_finished": {
+                    "description": "Whether an update leader election for this service has finished",
+                    "type": "boolean"
+                },
+                "leader": {
+                    "description": "Whether this member is the leader in the service group (only meaningful in a leader topology)",
+                    "type": "boolean"
+                },
+                "follower": {
+                    "description": "Whether this member is a follower in the service group (only meaningful in a leader topology)",
+                    "type": "boolean"
+                },
+                "update_leader": {
+                    "description": "Whether this member is the update leader in the service group (only meaningful in a leader topology)",
+                    "type": "boolean"
+                },
+                "update_follower": {
+                    "description": "Whether this member is an update follower in the service group (only meaningful in a leader topology)",
+                    "type": "boolean"
+                },
+                "pkg": {
+                    "description": "The identifier of the release the member is running",
+                    "$ref": "#/definitions/package_identifier"
+                },
+                "sys": {
+                    "description": "An abbreviated version of the top-level {{sys}} object, containing networking information for the member.",
+                    "type": "object",
+                    "properties": {
+                        "ip": {
+                            "description": "The IP address of the running service.",
+                            "type": "string"
+                        },
+                        "hostname": {
+                            "description": "The hostname of the running service. Defaults to `localhost`",
+                            "type": "string"
+                        },
+                        "gossip_ip": {
+                            "description": "Listening address for Supervisor's gossip connection.",
+                            "type": "string"
+                        },
+                        "gossip_port": {
+                            "description": "Listening port for Supervisor's gossip connection.",
+                            "type": "integer"
+                        },
+                        "http_gateway_ip": {
+                            "description": "Listening address for Supervisor's HTTP gateway.",
+                            "type": "string"
+                        },
+                        "http_gateway_port": {
+                            "description": "Listening port for Supervisor's HTTP gateway.",
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "ip",
+                        "hostname",
+                        "gossip_ip",
+                        "gossip_port",
+                        "http_gateway_ip",
+                        "http_gateway_port"
+                    ],
+                    "additionalProperties": false
+                },
+                "cfg": {
+                    "description": "The configuration the member is currently exporting. This is constrained by what is defined in `pkg_exports`, where the values are replaced with the current values (e.g., taking into account things like user.toml, gossiped configuration values, etc.)",
+                    "type": "object"
+                },
+                "persistent": {
+                    "description": "A misspelling of `permanent`; indicates whether a member is a permanent peer or not",
+                    "type": "boolean"
+                },
+                "service": {
+                    "description": "The name of the service. If the service is running from the package `core/redis`, the value will be `redis`.",
+                    "type": "string"
+                },
+                "group": {
+                    "description": "The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`.",
+                    "type": "string"
+                },
+                "org": {
+                    "description": "The organization portion of a service group specification. Unused at this time.",
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "null" }
+                    ]
+                },
+                "application": {
+                    "description": "The application portion of a service group specification. Unused at this time.",
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "null" }
+                    ]
+                },
+                "environment": {
+                    "description": "The environment portion of a service group specification. Unused at this time.",
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "null" }
+                    ]
+                }
+            },
+            "required": [
+                "member_id",
+                "alive",
+                "suspect",
+                "confirmed",
+                "departed",
+                "election_is_running",
+                "election_is_no_quorum",
+                "election_is_finished",
+                "update_election_is_running",
+                "update_election_is_no_quorum",
+                "update_election_is_finished",
+                "leader",
+                "follower",
+                "update_leader",
+                "update_follower",
+                "pkg",
+                "sys",
+                "cfg",
+                "persistent",
+                "service",
+                "group",
+                "org",
+                "application",
+                "environment"
+            ]
+        }
+    },
+    "properties": {
+        "sys": {
+            "description": "Describes the details of how this specific Supervisor was started",
+            "type": "object",
+            "properties": {
+                "version": {
+                    "description": "Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448`",
+                    "type": "string"
+                },
+                "member_id": {
+                    "description": "The member's Supervisor ID, e.g., `3d1e73ff19464a27aea3cdc5c2243f74`",
+                    "type": "string"
+                },
+                "ip": {
+                    "description": "The IP address of the running service.",
+                    "type": "string"
+                },
+                "hostname": {
+                    "description": "The hostname of the running service. Defaults to `localhost`",
+                    "type": "string"
+                },
+                "gossip_ip": {
+                    "description": "Listening address for Supervisor's gossip connection.",
+                    "type": "string"
+                },
+                "gossip_port": {
+                    "description": "Listening port for Supervisor's gossip connection.",
+                    "type": "integer"
+                },
+                "http_gateway_ip": {
+                    "description": "Listening address for Supervisor's HTTP gateway.",
+                    "type": "string"
+                },
+                "http_gateway_port": {
+                    "description": "Listening port for Supervisor's HTTP gateway.",
+                    "type": "integer"
+                },
+                "permanent": {
+                    "description": "Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability.",
+                    "type": "boolean"
+                }
+            },
+            "required": ["version",
+                         "member_id",
+                         "ip",
+                         "hostname",
+                         "gossip_ip",
+                         "gossip_port",
+                         "http_gateway_ip",
+                         "http_gateway_port",
+                         "permanent"],
+            "additionalProperties": false
+        },
+        "pkg": {
+            "description": "Details about the package currently running the service",
+            "type": "object",
+            "properties": {
+                "ident": {
+                    "description": "The fully-qualified identifier of the running package, e.g., `core/redis/3.2.4/20170514150022`",
+                    "type": "string"
+                },
+                "origin": {
+                    "description": "The origin of the Habitat package",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of the Habitat package",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The version of the Habitat package",
+                    "type": "string"
+                },
+                "release": {
+                    "description": "The release of the Habitat package",
+                    "type": "string"
+                },
+                "deps": {
+                    "description": "An array of runtime dependencies for your package based on the `pkg_deps` setting in a plan",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/package_identifier"
+                    }
+                },
+                "env": {
+                    "description": "The runtime environment of your package, mirroring the contents of the `RUNTIME_ENVIRONMENT` metadata file. The `PATH` variable is set, containing all dependencies of your package, as well as any other runtime environment variables that have been set by the package. Individual variables can be accessed directly, like `{{pkg.env.PATH}}` (the keys are case sensitive).",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "exposes": {
+                    "description": "The array of ports to expose for an application or service. This value is pulled from the pkg_exposes setting in a plan.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "exports": {
+                    "description": "A map of export key to internal configuration value key (i.e., the contents of `pkg_exports` in your plan). The key is what external services consume. The value is a key in your `default.toml` file that corresponds to the data being exported.",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "path" : {
+                    "description": "The location where the package is installed locally, e.g., `/hab/pkgs/core/redis/3.2.4/20170514150022`. Note that this is _not_ a `PATH` environment variable; for that, please see the `env` key above.",
+                    "type": "string"
+                },
+                "svc_path" : {
+                    "description": "The root location of the source files for the Habitat service, e.g., `/hab/svc/redis`.",
+                    "type": "string"
+                },
+                "svc_config_path" : {
+                    "description": "The location of any templated configuration files for the Habitat service, e.g., `/hab/svc/redis/config`.",
+                    "type": "string"
+                },
+                "svc_data_path" : {
+                    "description": "The location of any data files for the Habitat service, e.g., `/hab/svc/redis/data`.",
+                    "type": "string"
+                },
+                "svc_files_path" : {
+                    "description": "The location of any gossiped configuration files for the Habitat service, e.g., `/hab/svc/redis/files`.",
+                    "type": "string"
+                },
+                "svc_static_path" : {
+                    "description": "The location of any static content for the Habitat service, e.g., `/hab/svc/redis/static`.",
+                    "type": "string"
+                },
+                "svc_var_path" : {
+                    "description": "The location of any variable state data for the Habitat service, e.g., `/hab/svc/redis/var`.",
+                    "type": "string"
+                },
+                "svc_pid_file" : {
+                    "description": "The location of the Habitat service pid file, e.g., `/hab/svc/redis/PID`.",
+                    "type": "string"
+                },
+                "svc_run" : {
+                    "description": "The location of the rendered run hook for the Habitat service, e.g., `/hab/svc/redis/run`.",
+                    "type": "string"
+                },
+                "svc_user" : {
+                    "description": "The value of `pkg_svc_user` specified in a plan.",
+                    "type": "string"
+                },
+                "svc_group" : {
+                    "description": "The value of `pkg_svc_group` specified in a plan.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "ident",
+                "origin",
+                "name",
+                "version",
+                "release",
+                "deps",
+                "env",
+                "exposes",
+                "exports",
+                "path",
+                "svc_path",
+                "svc_config_path",
+                "svc_data_path",
+                "svc_files_path",
+                "svc_static_path",
+                "svc_var_path",
+                "svc_pid_file",
+                "svc_run",
+                "svc_user",
+                "svc_group"
+            ],
+            "additionalProperties": false
+        },
+        "cfg": {
+            "description": "These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package.",
+            "type": "object"
+        },
+        "svc": {
+            "description": "Information about the current service's service group",
+            "type": "object",
+            "properties": {
+                "service": {
+                    "description": "The name of the service. If the service is running from the package `core/redis`, the value will be `redis`.",
+                    "type": "string"
+                },
+                "group": {
+                    "description": "The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`.",
+                    "type": "string"
+                },
+                "org": {
+                    "description": "The organization portion of a service group specification. Unused at this time.",
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "null" }
+                    ]
+                },
+                "election_is_running": {
+                    "description": "Whether a leader election is currently running for this service",
+                    "type": "boolean"
+                },
+                "election_is_no_quorum": {
+                    "description": "Whether there is quorum for a leader election for this service",
+                    "type": "boolean"
+                },
+                "election_is_finished": {
+                    "description": "Whether a leader election for this service has finished",
+                    "type": "boolean"
+                },
+                "update_election_is_running": {
+                    "description": "Whether an update leader election is currently running for this service",
+                    "type": "boolean"
+                },
+                "update_election_is_no_quorum": {
+                    "description": "Whether there is quorum for an update leader election for this service",
+                    "type": "boolean"
+                },
+                "update_election_is_finished": {
+                    "description": "Whether an update leader election for this service has finished",
+                    "type": "boolean"
+                },
+                "me": {
+                    "description": "An object that provides information about the service running on the local Supervisor",
+                    "$ref": "#/definitions/svc_member"
+                },
+                "first": {
+                    "description": "The first member of this service group",
+                    "$ref": "#/definitions/svc_member"
+                },
+                "members": {
+                    "description": "All members of the service group, across the entire ring. Includes all liveness states!",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/svc_member"
+                    }
+                },
+                "leader": {
+                    "description": "The current leader of the service group, if any (`null` otherwise)",
+                    "oneOf": [
+                        { "$ref": "#/definitions/svc_member" },
+                        { "type": "null" }
+                    ]
+                },
+                "update_leader": {
+                    "description": "The current update_leader of the service group, if any (`null` otherwise)",
+                    "oneOf": [
+                        { "$ref": "#/definitions/svc_member" },
+                        { "type": "null" }
+                    ]
+                }
+            },
+            "required": [
+                "service",
+                "group",
+                "org",
+                "election_is_running",
+                "election_is_no_quorum",
+                "election_is_finished",
+                "update_election_is_running",
+                "update_election_is_no_quorum",
+                "update_election_is_finished",
+                "me",
+                "first",
+                "members",
+                "leader",
+                "update_leader"
+            ],
+            "additionalProperties": false
+        },
+        "bind": {
+            "description": "Exposes information about the service groups this service is bound to. Each key is the name of a bind, while each value is one of the objects described below",
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "first": {
+                        "description": "The first member of this service group. If the group is running in a leader topology, this will also be the leader.",
+                        "$ref": "#/definitions/svc_member"
+                    },
+                    "members": {
+                        "description": "All members of the service group, across the entire ring. Includes all liveness states!",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/svc_member"
+                        }
+                    }
+                },
+                "required": [
+                    "first",
+                    "members"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": [
+        "sys",
+        "pkg",
+        "cfg",
+        "svc",
+        "bind"
+    ],
+    "additionalProperties": false
+}
