@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.54.0/20180221022026 (linux) | 10 Mar 2018 |
+| hab 0.55.0/20180321220925 (linux) | 22 Mar 2018 |
 
 ## hab
 
@@ -590,6 +590,7 @@ hab origin [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab origin key](#hab-origin-key) | Commands relating to Habitat origin key maintenance |
+| [hab origin secret](#hab-origin-secret) | Commands related to secret management |
 ---
 
 ### hab origin key
@@ -635,9 +636,10 @@ hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
 **FLAGS**
 
 ```
--s, --secret     Download secret key instead of public key
--h, --help       Prints help information
--V, --version    Prints version information
+-e, --encryption    Download public encryption key instead of public signing key
+-s, --secret        Download secret signing key instead of public signing key
+-h, --help          Prints help information
+-V, --version       Prints version information
 ```
 
 **ARGS**
@@ -749,6 +751,111 @@ hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 
 ```
 <ORIGIN>    The origin name
+```
+
+
+
+---
+
+### hab origin secret
+
+Commands related to secret management
+
+**USAGE**
+
+```
+hab origin secret [SUBCOMMAND]
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+
+**SUBCOMMANDS**
+
+| Command | Description |
+| ------- | ----------- |
+| [hab origin secret delete](#hab-origin-secret-delete) | Delete a secret for your origin |
+| [hab origin secret list](#hab-origin-secret-list) | List all secrets for your origin |
+| [hab origin secret upload](#hab-origin-secret-upload) | Create and upload a secret for your origin. |
+---
+
+### hab origin secret delete
+
+Delete a secret for your origin
+
+**USAGE**
+
+```
+hab origin secret delete [OPTIONS] <KEY_NAME>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<KEY_NAME>    The name of the variable key to be injected into the studio.
+```
+
+
+
+---
+
+### hab origin secret list
+
+List all secrets for your origin
+
+**USAGE**
+
+```
+hab origin secret list [OPTIONS]
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+
+
+---
+
+### hab origin secret upload
+
+Create and upload a secret for your origin.
+
+**USAGE**
+
+```
+hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<KEY_NAME>    The name of the variable key to be injected into the studio. Ex: KEY="some_value"
+<SECRET>      The contents of the variable to be injected into the studio.
 ```
 
 
