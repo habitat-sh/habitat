@@ -29,7 +29,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-use common::ui::UI;
+use common::ui::{UI, Status};
 
 pub mod error;
 pub mod manifest;
@@ -55,13 +55,37 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
     let image = if !matches.is_present("NO_DOCKER_IMAGE") {
         export_docker::export_for_cli_matches(ui, &matches)?
     } else {
+        ui.status(
+            Status::Custom('☛', String::from("Skipping")),
+            "Docker image generation",
+        )?;
         None
     };
     let mut manifest = Manifest::new_from_cli_matches(ui, &matches, image)?;
 
     let mut write: Box<Write> = match matches.value_of("OUTPUT") {
-        Some(o) if o != "-" => Box::new(File::create(o)?),
-        _ => Box::new(io::stdout()),
+        Some(o) if o != "-" => {
+            ui.status(
+                Status::Creating,
+                format!("Kubernetes manifest file {}", o),
+            )?;
+            let file = Box::new(File::create(o)?);
+            ui.status(
+                Status::Created,
+                format!("Kubernetes manifest file {}", o),
+            )?;
+
+            file
+        }
+        _ => {
+            let stdout = Box::new(io::stdout());
+            ui.status(
+                Status::Custom('→', String::from("Writing")),
+                "Kubernetes manifest to stdout",
+            )?;
+
+            stdout
+        }
     };
     manifest.generate(&mut write)
 }
