@@ -21,7 +21,7 @@ Habitat <VERSION> Release Notes
 
 We are happy to announce the release of Habitat <VERSION>. We have a number of new features as well as bug fixes, so please read on for all the details. If you just want the binaries, head on over to [Install Habitat](https://www.habitat.sh/docs/using-habitat/#install-habitat). Thanks again for using Habitat!
 
-Highlights: 
+Highlights:
 * [BREAKING CHANGE] SOME BREAKING CHANGE
 ```
 
@@ -167,6 +167,19 @@ Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
 
 On the Github releases page, there should already be a tag for the release (pushed up previously).
 Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). Then hit Publish Release.
+
+## Update the Acceptance environment with the new hab-backline
+
+After the new hab is released and there is a new hab-backline in stable, the acceptance environment will also need to be updated. In order to do this, the simplest steps (from a Linux machine) are:
+
+```
+sudo hab pkg install core/hab-backline/<latest version>
+cd /hab/cache/artifacts
+hab pkg upload -u https://bldr.acceptance.habitat.sh -c stable -z <AUTH_TOKEN> core-hab-backline-<latest version>-x86_64-linux.hart
+
+```
+
+*Important*: Don't forget to include the `-c stable` in the upload step above!
 
 # Drink. It. In.
 
