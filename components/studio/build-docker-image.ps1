@@ -23,14 +23,24 @@ try {
     $env:HAB_BINLINK_DIR = $null
     
     info "Installing and extracting initial Habitat packages"
+    # Generally, we want to use packages that are aligned with the channel
+    # set when building the image which is usually unstable or an rc channel
+    # in our pipelines. Because the windows-service package is maintained
+    # in another repo and on a slower deployment cadence, we will always
+    # install from its stable channel
     if(!$InstallHarts) {
         $InstallHarts = @(
             "core/hab-studio",
             "core/hab-sup",
-            "core/windows-service"
+            "core/windows-service --channel stable"
         )
     }
-    $InstallHarts | % { hab pkg install $_ }
+    $InstallHarts | % {
+        hab pkg install $_
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "hab install failed for $_, aborting"
+        }
+    }
     $studioPath = hab pkg path core/hab-studio
     if ($LASTEXITCODE -ne 0) {
       Write-Error "core/hab-studio must be installed, aborting"
@@ -55,7 +65,10 @@ ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "byp
     
     info "Building Docker image ${imageName}:$version'"
     docker build --no-cache -t ${imageName}:$version .
-    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "docker build failed, aborting"
+    }
+
     info "Tagging latest image to ${imageName}:$version"
     docker tag ${imageName}:$version ${imageName}:latest
     
