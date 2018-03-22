@@ -12,9 +12,9 @@ env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
     # Habitat Rust program components
-    - _RUST_HAB_BIN_COMPONENTS="components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/pkg-export-kubernetes|components/pkg-export-helm|components/sup|components/eventsrv|components/pkg-export-tar
+    - _RUST_HAB_BIN_COMPONENTS="components/hab components/hab-butterfly components/launcher components/pkg-export-docker components/pkg-export-kubernetes components/pkg-export-helm components/sup components/eventsrv components/pkg-export-tar"
     # Habitat Rust crate components
-    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/eventsrv-client|components/launcher-client
+    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client components/builder-depot-client components/butterfly components/common components/eventsrv-client components/launcher-client"
 
 matrix:
   include:
@@ -28,7 +28,8 @@ matrix:
     - language: rust
       env:
         - COMPONENTS=bin
-        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
+        - AFFECTED_FILES="Cargo.lock"
+        - AFFECTED_DIRS="$_RUST_HAB_BIN_COMPONENTS $_RUST_HAB_LIB_COMPONENTS"
       rust: stable
       sudo: false
       services:
@@ -69,7 +70,8 @@ matrix:
     - language: rust
       env:
         - COMPONENTS=lib
-        - AFFECTED_DIRS="Cargo\.lock|$_RUST_HAB_LIB_COMPONENTS
+        - AFFECTED_FILES="Cargo.lock"
+        - AFFECTED_DIRS="$_RUST_HAB_LIB_COMPONENTS"
       rust: stable
       sudo: required
       addons:
@@ -115,6 +117,7 @@ matrix:
         directories:
           - www/build
       env:
+        - AFFECTED_FILES=""
         - AFFECTED_DIRS="www"
         - AWS_BUCKET=habitat-www
         - AWS_DEFAULT_REGION=us-west-2
@@ -216,7 +219,8 @@ matrix:
 # Job for building and publishing Habitat Mac release packages
 #
     - env:
-        - AFFECTED_DIRS="\.travis\.yml|\.bldr\.toml|support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
+        - AFFECTED_FILES=".travis.yml .bldr.toml support/ci/deploy.sh Cargo.toml Cargo.lock VERSION"
+        - AFFECTED_DIRS="components/hab $_RUST_HAB_LIB_COMPONENTS"
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
         - BINTRAY_USER=chef-releng-ops
