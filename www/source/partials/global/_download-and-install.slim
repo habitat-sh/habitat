@@ -6,7 +6,7 @@ hr
   .row
     .description.small-12.columns
       h3: a name="hab-for-linux" id="hab-for-linux" data-magellan-target="hab-for-linux" Habitat for Linux
-      blockquote Requires 64-bit processor with kernel 2.6.32 or later
+      <blockquote> Habitat for Linux requires a 64-bit processor with kernel 2.6.32 or later. On Linux, exporting your Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported. </blockquote>
       p Once you have downloaded the package, extract the hab binary with tar to <code>/usr/local/bin</code> or add its location to your <code>PATH</code> (e.g. <code>tar -xvzf hab.tgz -C /usr/local/bin --strip-components 1</code>).
       = link_to 'Download Habitat for Linux', 'https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux', class: 'button cta'
 
