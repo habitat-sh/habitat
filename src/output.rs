@@ -174,12 +174,10 @@ macro_rules! output {
             print!("{}", so);
         }
     };
-    (preamble $preamble: expr, $content: expr) => {
+    (preamble $preamble:expr, $content: expr) => {
         {
-            use std::ops::Deref;
             use $crate::output::StructuredOutput;
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble.deref(),
+            let so = StructuredOutput::new(&$preamble,
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -190,10 +188,9 @@ macro_rules! output {
     };
     ($content: expr, $($arg:tt)*) => {
         {
-            use std::ops::Deref;
             use $crate::output::StructuredOutput;
             use $crate::PROGRAM_NAME;
-            let content = format!($content.deref(), $($arg)*);
+            let content = format!($content, $($arg)*);
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
@@ -205,10 +202,9 @@ macro_rules! output {
     };
     (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
-            use std::ops::Deref;
             use $crate::output::StructuredOutput;
-            let content = format!($content.deref(), $($arg)*);
-            let so = StructuredOutput::new(preamble.deref(),
+            let content = format!($content, $($arg)*);
+            let so = StructuredOutput::new(&$preamble,
                                            LOGKEY,
                                            line!(),
                                            file!(),
