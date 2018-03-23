@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-version=1.0.12
+version=1.0.13
 nv=libsodium-$version
 source=https://download.libsodium.org/libsodium/releases/${nv}.tar.gz
 prefix=$HOME/pkgs/libsodium/$version

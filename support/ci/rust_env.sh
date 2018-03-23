@@ -1,5 +1,5 @@
 # This version corresponds to the build in `support/ci/compile_libsodium.sh`
-export LIBSODIUM_PREFIX="$HOME/pkgs/libsodium/1.0.12"
+export LIBSODIUM_PREFIX="$HOME/pkgs/libsodium/1.0.13"
 echo "--> Setting LIBSODIUM_PREFIX='$LIBSODIUM_PREFIX'"
 # This version corresponds to the build in `support/ci/compile_libarchive.sh`
 export LIBARCHIVE_PREFIX="$HOME/pkgs/libarchive/3.2.0"
