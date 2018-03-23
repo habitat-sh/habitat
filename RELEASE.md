@@ -190,6 +190,19 @@ hab pkg upload -u https://bldr.acceptance.habitat.sh -c stable -z <AUTH_TOKEN> c
 
 > Example: If the release version was `0.9.0` then the contents of `VERSION` might read `0.10.0-dev` if your next target is `0.10.0`.
 
+## Update the Acceptance environment with the new hab-backline
+
+Now there's yet another new version of hab-backline, in unstable. So off to the races again for acceptance. This time you'll install the hab backline from _unstable_ channel.  The other steps are the same:
+
+```
+sudo hab pkg install -c unstable core/hab-backline
+cd /hab/cache/artifacts
+hab pkg upload -u https://bldr.acceptance.habitat.sh -c stable -z <AUTH_TOKEN> core-hab-backline-<latest version>-x86_64-linux.hart
+
+```
+
+*Important*: Don't forget to include the `-c stable` in the upload step above!
+
 # Troubleshooting Mac deployments
 
 Travis runs the Mac deployment scripts via SSH to a headless Mac builder affectionately called `74.80.245.236`. You can SSH to this machine as `admin` using the `habitat-srv-admin` key available in 1password.
