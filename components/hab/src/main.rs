@@ -38,7 +38,7 @@ use std::thread;
 
 use clap::{ArgMatches, Shell};
 
-use common::command::package::install::InstallSource;
+use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::UI;
 use hcore::channel;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
@@ -50,8 +50,13 @@ use hcore::service::ServiceGroup;
 use hcore::url::default_bldr_url;
 use hcore::binlink::default_binlink_dir;
 
-use hab::{analytics, cli, command, config, scaffolding, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT,
-          VERSION};
+use hab::{AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
+use hab::analytics;
+use hab::cli;
+use hab::command;
+use hab::config;
+use hab::feat;
+use hab::scaffolding;
 use hab::error::{Error, Result};
 
 /// Makes the --org CLI param optional when this env var is set
@@ -74,6 +79,7 @@ lazy_static! {
 fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
+    enable_features_from_env(&mut ui);
     thread::spawn(|| analytics::instrument_subcommand());
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
@@ -563,6 +569,11 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let channel = channel_from_matches(m);
     let install_sources = install_sources_from_matches(m)?;
     let token = maybe_auth_token(ui, &m);
+    let install_mode = if feat::is_enabled(feat::OfflineInstall) && m.is_present("OFFLINE") {
+        InstallMode::Offline
+    } else {
+        InstallMode::default()
+    };
 
     init();
 
@@ -577,6 +588,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             &*FS_ROOT,
             &cache_artifact_path(Some(&*FS_ROOT)),
             token.as_ref().map(String::as_str),
+            &install_mode,
         )?;
 
         if m.is_present("BINLINK") {
@@ -931,4 +943,31 @@ fn install_sources_from_matches(matches: &ArgMatches) -> Result<Vec<InstallSourc
         .unwrap() // Required via clap
         .map(|t| t.parse().map_err(Error::from))
         .collect()
+}
+
+fn enable_features_from_env(ui: &mut UI) {
+    let features = vec![
+        (feat::List, "LIST"),
+        (feat::OfflineInstall, "OFFLINE_INSTALL"),
+    ];
+
+    for feature in &features {
+        match henv::var(format!("HAB_FEAT_{}", feature.1)) {
+            Ok(ref val) if ["true", "TRUE"].contains(&val.as_str()) => {
+                feat::enable(feature.0);
+                ui.warn(&format!("Enabling feature: {:?}", feature.0))
+                    .unwrap();
+            }
+            _ => {}
+        }
+    }
+
+    if feat::is_enabled(feat::List) {
+        ui.warn("Listing feature flags environment variables:")
+            .unwrap();
+        for feature in &features {
+            ui.warn(&format!("  * {:?}: HAB_FEAT_{}=true", feature.0, feature.1))
+                .unwrap();
+        }
+    }
 }

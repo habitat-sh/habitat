@@ -25,7 +25,11 @@ extern crate handlebars;
 
 extern crate ansi_term;
 #[macro_use]
+extern crate bitflags;
+#[macro_use]
 extern crate clap;
+#[macro_use]
+extern crate features;
 extern crate hyper;
 #[macro_use]
 extern crate log;
@@ -56,3 +60,10 @@ pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSIO
 pub const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 
 pub use hcore::AUTH_TOKEN_ENVVAR;
+
+features! {
+    pub mod feat {
+        const List = 0b00000001,
+        const OfflineInstall = 0b00000010
+    }
+}

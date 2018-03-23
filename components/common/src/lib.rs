@@ -18,6 +18,7 @@ extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hcore;
 extern crate habitat_depot_client as depot_client;
 extern crate ansi_term;
+extern crate glob;
 extern crate hyper;
 #[macro_use]
 extern crate log;

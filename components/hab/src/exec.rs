@@ -16,6 +16,7 @@ use std::path::{Path, PathBuf};
 
 use common;
 use common::ui::{Status, UI};
+use common::command::package::install::InstallMode;
 use hcore::{self, channel};
 use hcore::env as henv;
 use hcore::fs::{self, cache_artifact_path};
@@ -101,6 +102,8 @@ where
                 fs_root_path,
                 &cache_artifact_path(None::<String>),
                 None,
+                // TODO fn: pass through and enable offline install mode
+                &InstallMode::default(),
             )?;
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
