@@ -782,7 +782,7 @@ exit_with() {
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        printf -- "\033[1;31mERROR: \033[1;37m%s\033[0m" "$1"
+        printf -- "\033[1;31mERROR: \033[1;37m%s\033[0m\n" "$1"
         ;;
       *)
         echo "ERROR: $1"
