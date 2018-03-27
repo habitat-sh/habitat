@@ -734,7 +734,7 @@ info() {
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        printf -- "   \033[1;36m%s: \033[1;37m%s\033[0m" "${program:-unknown}" "$1"
+        printf -- "   \033[1;36m%s: \033[1;37m%s\033[0m\n" "${program:-unknown}" "$1"
         ;;
       *)
         echo "   ${program:-unknown}: $1"
