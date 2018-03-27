@@ -17,7 +17,7 @@ purge_cache: check-env
 	curl -H "Fastly-Key: ${FASTLY_API_KEY}" -X POST "https://api.fastly.com/service/${FASTLY_SERVICE_KEY}/purge_all"
 
 prep:
-	sed -i '/^Disallow:/ s/$$/ \//' build/robots.txt
+	sed -i'' '/^Disallow:/ s/$$/ \//' build/robots.txt
 	zip -r website.zip build
 
 deploy: build sync purge_cache

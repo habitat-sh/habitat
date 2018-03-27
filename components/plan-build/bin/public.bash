@@ -165,7 +165,7 @@ pkg_path_for() {
 #
 #     56:
 #     57:   # Modify the ldd rewrite script to remove lib64 and libx32
-#     58:   sed -i '/RTLDLIST/d' sysdeps/unix/sysv/linux/*/ldd-rewrite.sed
+#     58:   sed -i'' '/RTLDLIST/d' sysdeps/unix/sysv/linux/*/ldd-rewrite.sed
 #     59:
 #     60:   rm -rf ../${pkg_name}-build
 #     61:   mkdir ../${pkg_name}-build

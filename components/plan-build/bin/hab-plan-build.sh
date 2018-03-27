@@ -1592,7 +1592,7 @@ _build_environment() {
 _fix_libtool() {
   find "$SRC_PATH" -iname "ltmain.sh" | while read file; do
     build_line "Fixing libtool script $file"
-    sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
+    sed -i'' -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
 }
 
