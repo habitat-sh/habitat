@@ -155,7 +155,6 @@ fn start(ui: &mut UI) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
-                ("encrypt", Some(m)) => sub_bldr_encrypt(ui, m)?,
                 ("channel", Some(m)) => {
                     match m.subcommand() {
                         ("create", Some(m)) => sub_bldr_channel_create(ui, m)?,
@@ -459,16 +458,6 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
             Ok(())
         }
     }
-}
-
-fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
-
-    let mut content = String::new();
-    io::stdin().read_to_string(&mut content)?;
-    init();
-
-    command::bldr::encrypt::start(ui, &url, &content, &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
