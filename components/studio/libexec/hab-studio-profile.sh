@@ -62,7 +62,7 @@ record() {
   ); return $?
 }
 
-record_build() {
+_record_build() {
   build_command_name=$1
   plan_context=$2
   session=$plan_context
