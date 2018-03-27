@@ -44,16 +44,12 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
                 .as_bytes(),
         )?;
         io::stdout().write(
-            format!(
-                "Origin         : {}\n",
-                &ident.origin
-            ).as_bytes(),
+            format!("Origin         : {}\n", &ident.origin)
+                .as_bytes(),
         )?;
         io::stdout().write(
-            format!(
-                "Name           : {}\n",
-                &ident.name
-            ).as_bytes(),
+            format!("Name           : {}\n", &ident.name)
+                .as_bytes(),
         )?;
         io::stdout().write(
             format!(
