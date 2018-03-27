@@ -474,6 +474,15 @@ pub fn get() -> App<'static, 'static> {
                     "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
+            (@subcommand info =>
+                (about: "Returns the Habitat Artifact information")
+                (aliases: &["inf", "info"])
+                (@arg TO_JSON: -j --json
+                    "Output will be rendered in json")
+                (@arg SOURCE: +required {file_exists}
+                    "A path to a Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
         )
         (@subcommand plan =>
             (about: "Commands relating to plans and other app-specific configuration.")
