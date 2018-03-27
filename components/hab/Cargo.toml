@@ -26,6 +26,7 @@ pbr = "*"
 regex = "*"
 retry = "*"
 serde = "*"
+serde_json = "*"
 serde_derive = "*"
 toml = { version = "*", default-features = false }
 url = "*"
