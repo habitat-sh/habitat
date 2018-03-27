@@ -16,8 +16,8 @@ In partnership with our friends and Kubernetes afficianados at [Kinvolk.io](http
 
 First released in October, the Habitat Operator for Kubernetes has a bunch of updates and is the recommended way to integrate Habitat and Kubernetes into a unified whole. It leverages the Kubernetes API to unify communciation between your Kubernetes clusters and Habitat Builder as it builds and manages your applications, and enables you to use both `kubectl` and the `hab` cli and keep all of your components in sync.
 
-- [Habitat Operator for Kubernetes on Github](https://github.com/kinvolk/habitat-operator) 
-- [Announcement blog](https://github.com/kinvolk/habitat-operator) 
+- [Habitat Operator for Kubernetes on Github](https://github.com/habitat-sh/habitat-operator) 
+- [Announcement blog](https://github.com/habitat-sh/habitat-operator) 
 
 ## Habitat Kubernetes Exporter
 
@@ -39,7 +39,7 @@ Today, learn how to leverage Habitat Builder for [Automated Kubernetes Deploys](
 
 ## More information
 
-- [Habitat Operator for Kubernetes on Github](https://github.com/kinvolk/habitat-operator) 
+- [Habitat Operator for Kubernetes on Github](https://github.com/habitat-sh/habitat-operator) 
 - [Habitat on Github](https://github.com/habitat-sh/) 
 - We're at Kubecon! Swing by our booth to chat. 
 - [Talk to us on Slack](http://slack.habitat.sh) 
