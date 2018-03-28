@@ -4,7 +4,7 @@ studio_path="$HAB_ROOT_PATH/bin"
 studio_enter_environment="STUDIO_ENTER=true"
 studio_enter_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash --login +h"
 studio_build_environment=
-studio_build_command="record \${1:-} $HAB_ROOT_PATH/bin/build"
+studio_build_command="_record_build $HAB_ROOT_PATH/bin/build"
 studio_run_environment=
 studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash --login"
 
