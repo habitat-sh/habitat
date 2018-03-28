@@ -155,7 +155,6 @@ fn start(ui: &mut UI) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
-                ("encrypt", Some(m)) => sub_bldr_encrypt(ui, m)?,
                 ("channel", Some(m)) => {
                     match m.subcommand() {
                         ("create", Some(m)) => sub_bldr_channel_create(ui, m)?,
@@ -186,6 +185,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
                 ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
                 ("header", Some(m)) => sub_pkg_header(ui, m)?,
+                ("info", Some(m)) => sub_pkg_info(ui, m)?,
                 ("promote", Some(m)) => sub_pkg_promote(ui, m)?,
                 ("demote", Some(m)) => sub_pkg_demote(ui, m)?,
                 _ => unreachable!(),
@@ -461,16 +461,6 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
     }
 }
 
-fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
-
-    let mut content = String::new();
-    io::stdin().read_to_string(&mut content)?;
-    init();
-
-    command::bldr::encrypt::start(ui, &url, &content, &default_cache_key_path(Some(&*FS_ROOT)))
-}
-
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let origin = origin_param_or_env(&m)?;
@@ -676,6 +666,14 @@ fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
 
     command::pkg::header::start(ui, &src)
+}
+
+fn sub_pkg_info(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
+    let to_json = m.is_present("TO_JSON");
+    init();
+
+    command::pkg::info::start(ui, &src, to_json)
 }
 
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {

@@ -165,15 +165,6 @@ pub fn get() -> App<'static, 'static> {
                          https://bldr.habitat.sh)")
                 )
             )
-            (@subcommand encrypt =>
-                (about: "Reads a stdin stream containing plain text and outputs \
-                    an encrypted representation")
-                (aliases: &["e", "en", "enc", "encr", "encry"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-            )
             (@subcommand channel =>
                 (about: "Commands relating to Habitat Builder channels")
                 (aliases: &["c", "ch", "cha", "chan", "chann", "channe"])
@@ -269,7 +260,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand secret =>
                 (about: "Commands related to secret management")
                 (@setting ArgRequiredElseHelp)
-                (@subcommand upload => 
+                (@subcommand upload =>
                     (about: "Create and upload a secret for your origin.")
                     (@arg KEY_NAME: +required +takes_value
                         "The name of the variable key to be injected into the studio. Ex: KEY=\"some_value\"")
@@ -283,7 +274,7 @@ pub fn get() -> App<'static, 'static> {
                     (@arg ORIGIN: -o --origin +takes_value
                         "The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or cli.toml")
                 )
-                (@subcommand delete => 
+                (@subcommand delete =>
                     (about: "Delete a secret for your origin")
                     (@arg KEY_NAME: +required +takes_value
                         "The name of the variable key to be injected into the studio.")
@@ -295,7 +286,7 @@ pub fn get() -> App<'static, 'static> {
                     (@arg ORIGIN: -o --origin +takes_value
                         "The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or cli.toml")
                 )
-                (@subcommand list => 
+                (@subcommand list =>
                     (about: "List all secrets for your origin")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -470,6 +461,15 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Returns the Habitat Artifact header")
                 (aliases: &["hea", "head", "heade", "header"])
                 (@setting Hidden)
+                (@arg SOURCE: +required {file_exists}
+                    "A path to a Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
+            (@subcommand info =>
+                (about: "Returns the Habitat Artifact information")
+                (aliases: &["inf", "info"])
+                (@arg TO_JSON: -j --json
+                    "Output will be rendered in json")
                 (@arg SOURCE: +required {file_exists}
                     "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
