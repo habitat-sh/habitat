@@ -33,7 +33,7 @@ Habitat Builder provides one unified build pipeline to power your builds for sta
 * Adding a Cloud Foundry export type, in addition to the docker, aci, tar, and mesos types we already support. [Read more about exports](/docs/developing-packages/#pkg-exports)
 * Adding a “Publishing” phase to Habitat Builder, so you can publish your Habitat builds as docker containers to your Docker Hub every time Builder creates a new build for you.
 * We plan to add more formats and publishing locations over time! Tell us if there are some you are especially excited for.
-* Announcing the alpha release of the [Habitat Operator for Kubernetes](https://github.com/kinvolk/habitat-operator) developed by our amazing partners at [Kinvolk](https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/)!
+* Announcing the alpha release of the [Habitat Operator for Kubernetes](https://github.com/habitat-sh/habitat-operator) developed by our amazing partners at [Kinvolk](https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/)!
 
 We are constantly shipping new features and enhancements to Habitat Builder, Supervisor, and Studio, and we love interacting with our community. Ways to keep in touch:
 
