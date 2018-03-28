@@ -69,4 +69,4 @@ _record_build() {
   record "$session" "$build_command_name" "$plan_context"
 }
 
-cd /src || exit 1 # If you can't cd to /src, the studio is totally borked
+cd /src || { echo "Setup failed; exiting studio!"; exit 1; }
