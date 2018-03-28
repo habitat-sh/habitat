@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# TESTING CHANGES
+# Documentation on testing local changes to this lives here:
+# https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
+
 # Setting the user file-creation mask (umask) to 022 ensures that newly created
 # files and directories are only writable by their owner, but are readable and
 # executable by anyone (assuming default modes are used by the open(2) system

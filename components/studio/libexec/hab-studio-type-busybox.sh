@@ -1,3 +1,7 @@
+# TESTING CHANGES
+# Documentation on testing local changes to this lives here:
+# https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
+
 studio_type="busybox"
 studio_path="/opt/busybox"
 studio_env_command="/opt/busybox/busybox env"
