@@ -53,7 +53,7 @@ Habitat and **Kubernetes**
 * [Habitat Build System Demo (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
 * [Habitat Process Supervisor Demo (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
 
-*View all demos and tutorials in [learn page](https://www.habitat.sh/docs/reference/#infographics)*
+*View all demos and tutorials in [learn page](https://www.habitat.sh/learn/)*
 
 
 # Table of Contents
