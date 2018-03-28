@@ -39,11 +39,11 @@ Graphics that will help you and your team better understand the concepts and how
 
 ### How Habitat Works
 * [Architecture Overview](https://www.habitat.sh/images/infographics/habitat-architecture-overview-7e40c4b3.png)
-* [**Initial Package Build** Flow](https://www.habitat.sh/images/infographics/habitat-initial-package-build-flow-43ccb287.png)
-* [**Application Rebuild** Flow](https://www.habitat.sh/images/infographics/habitat-application-rebuild-flow-10c48cfb.png)
-* [**Dependency Update** Flow](https://www.habitat.sh/images/infographics/habitat-dependency-update-flow-f4895875.png
+* [Initial Package Build Flow](https://www.habitat.sh/images/infographics/habitat-initial-package-build-flow-43ccb287.png)
+* [Application Rebuild Flow](https://www.habitat.sh/images/infographics/habitat-application-rebuild-flow-10c48cfb.png)
+* [Dependency Update Flow](https://www.habitat.sh/images/infographics/habitat-dependency-update-flow-f4895875.png
 )
-* [Promote Packages Through **Channels**](https://www.habitat.sh/images/infographics/habitat-promote-packages-through-channels-06506fd0.png)
+* [Promote Packages Through Channels](https://www.habitat.sh/images/infographics/habitat-promote-packages-through-channels-06506fd0.png)
 
 ### Habitat and **Docker**
 * [Initial Docker Container Publishing Flow](https://www.habitat.sh/images/infographics/habitat-initial-docker-container-publishing-flow-1f2ba489.png)
@@ -54,7 +54,7 @@ Graphics that will help you and your team better understand the concepts and how
 * [Three Tiers of Service Deployment](https://www.habitat.sh/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment-8c85b4ca.png)
 * [Deploy Services to Kubernetes with Habitat](https://www.habitat.sh/images/infographics/deploy-services-to-kubernetes-with-habitat-flow-567c4ce9.png)
 
-*View all infographics in [docs](https://www.habitat.sh/docs/reference/#infographics)*
+*View all infographics in [Docs](https://www.habitat.sh/docs/reference/#infographics)*
 
 ## Hands-on Demos
 Choose any topic to begin learning how Habitat can help your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way:
@@ -62,7 +62,7 @@ Choose any topic to begin learning how Habitat can help your team build, deploy,
 * [Habitat Build System Demo (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
 * [Habitat Process Supervisor Demo (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
 
-*View all demos and tutorials in [learn page](https://www.habitat.sh/learn/)*
+*View all demos and tutorials in [Learn](https://www.habitat.sh/learn/)*
 
 
 
