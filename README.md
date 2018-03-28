@@ -6,33 +6,66 @@
 [![Discourse status](https://img.shields.io/discourse/https/meta.discourse.org/status.svg?style=for-the-badge)](https://forums.habitat.sh)
 [![Open Source Helpers](https://www.codetriage.com/habitat-sh/habitat/badges/users.svg)](https://www.codetriage.com/habitat-sh/habitat)
 
-Want to try Habitat? [Get started here](https://www.habitat.sh/learn/).
+<img src="https://github.com/habitat-sh/habitat/blob/master/www/source/images/habitat-logo.png" width="150">
 
-Habitat is an application automation framework that allows you to build applications that have automation built-in. This provides modern applications that:
+[Habitat](http://habitat.sh) is open source software that creates platform-independent build artifacts and provides built-in deployment and management capabilities.
 
-* Provide repeatable builds
-* Run from single, immutable assets
-* Allow for runtime configuration for multiple deployment scenarios
-* Are agnostic to operating environment (works the same on bare metal, virtualization, containers, PaaS)
-* Provide idempotent behavior (the same inputs to the same asset provide the same outcome)
-* Provide convergent behavior (each service makes progress towards the correct behavior in the face of failure)
-* Expose promises to those who rely on it
-* Provide a low barrier to entry
-* Are language agnostic
+The goal of Habitat is to allow you to automate your application behavior when you create your application, and then bundle your application with the automation it needs to behave with the correct run time behavior, update strategies, failure handling strategies, and scaling behavior, wherever you choose to deploy it.
 
-To learn more about Habitat, please visit the [Habitat website](https://www.habitat.sh).
+## Overview and Demo
+[![Build, Deploy and Manage with Habitat (5:33)](images/overview-youtube-image.jpg)](http://www.youtube.com/watch?v=VW1DwDezlqM)
 
-Participation in the Habitat community is governed by the [code of conduct](https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md).
+## Habitat Infographics
+### Where Habitat fits
+
+[![Habitat Flow Infographic](images/habitat-flow-infographic.png)](http://habitat.sh)
+
+[//]: # (Try the interactive infographics on the [website](http://habitat.sh)
+
+### Habitat Workflow
+* [Habitat **Initial Package Build** Flow](https://www.habitat.sh/images/infographics/habitat-initial-package-build-flow-43ccb287.png)
+* [Habitat **Application Rebuild** Flow](https://www.habitat.sh/images/infographics/habitat-application-rebuild-flow-10c48cfb.png)
+* [Habitat **Dependency Update** Flow](https://www.habitat.sh/images/infographics/habitat-dependency-update-flow-f4895875.png
+)
+
+### Habitat Concept
+* [Habitat Architecture Overview](https://www.habitat.sh/images/infographics/habitat-architecture-overview-7e40c4b3.png)
+* [Habitat **Builder** Architecture](https://www.habitat.sh/images/infographics/habitat-builder-architecture-059a4ddd.png
+)
+* [Habitat Promote Packages Through **Channels**](https://www.habitat.sh/images/infographics/habitat-promote-packages-through-channels-06506fd0.png)
+* [Habitat Runtime **Services Group** Binding](https://www.habitat.sh/images/infographics/habitat-runtime-service-group-binding-0e134bf3.png)
+
+### Habitat Integration
+
+Habitat and **Docker**
+* [Initial Docker Container Publishing Flow](https://www.habitat.sh/images/infographics/habitat-initial-docker-container-publishing-flow-1f2ba489.png)
+* [Automated Docker Container Publishing Flow](https://www.habitat.sh/images/infographics/habitat-automated-docker-container-publishing-flow-3cdf9f91.png
+)
+
+Habitat and **Kubernetes**
+* [Three Tiers of Service Deployment](https://www.habitat.sh/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment-8c85b4ca.png)
+* [Deploy Services to Kubernetes with Habitat](https://www.habitat.sh/images/infographics/deploy-services-to-kubernetes-with-habitat-flow-567c4ce9.png)
+
+*View all infographics in [docs](https://www.habitat.sh/docs/reference/#infographics)*
+
+## Hands-on Demos
+* [Habitat Packaging System Demo (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
+* [Habitat Build System Demo (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
+* [Habitat Process Supervisor Demo (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
+
+*View all demos and tutorials in [learn page](https://www.habitat.sh/learn/)*
+
 
 # Table of Contents
 * [Install](#install)
 * [Contribute](#contribute)
 * [Documentation](#documentation)
-* [Code Organization](#repo-organization)
+* [Code Organization](#code-organization)
 * [Roadmap](#roadmap)
 * [Community and support](#community-and-support)
 * [Building](#building)
 * [Further reference material](#further-reference-material)
+* [Code of Conduct](#code-of-conduct)
 * [License](#license)
 
 ## Install
@@ -107,6 +140,9 @@ See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat fr
 * [Wikibook: Bourne Shell Scripting](https://en.wikibooks.org/wiki/Bourne_Shell_Scripting)
 * [What is the difference between test, \[ and \[\[ ?](http://mywiki.wooledge.org/BashFAQ/031)
 * [POSIX Shell Command Language](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
+
+## Code of Conduct
+Participation in the Habitat community is governed by the [code of conduct](https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md).
 
 ## License
 
