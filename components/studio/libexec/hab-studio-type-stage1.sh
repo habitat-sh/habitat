@@ -1,3 +1,7 @@
+# TESTING CHANGES
+# Documentation on testing local changes to this lives here:
+# https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
+
 studio_type="stage1"
 studio_path="/bin:/tools/bin"
 studio_env_command="/tools/bin/env"

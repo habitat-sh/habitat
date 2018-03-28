@@ -1,4 +1,9 @@
 #!/bin/sh
+
+# TESTING CHANGES
+# Documentation on testing local changes to this lives here:
+# https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
+
 studio_type="default"
 studio_path="$HAB_ROOT_PATH/bin"
 studio_enter_environment="STUDIO_ENTER=true"

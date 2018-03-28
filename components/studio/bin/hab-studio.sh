@@ -33,6 +33,11 @@
 #
 #
 
+# TESTING CHANGES
+# Documentation on testing local changes to this file and its friends in
+# ../libexec lives here:
+# https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
+
 # # Internals
 
 # Fail if there are any unset variables and whenever a command returns a
