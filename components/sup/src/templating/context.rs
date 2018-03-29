@@ -233,7 +233,9 @@ impl<'a> Serialize for Package<'a> {
     where
         S: Serializer,
     {
-        let mut map = serializer.serialize_map(Some(20))?;
+        // Explicitly focusing on JSON serialization, which does not
+        // need a length hint (thus the `None`)
+        let mut map = serializer.serialize_map(None)?;
 
         // This is really the only thing that we need to have a custom
         // `Serialize` implementation for. Alternatively, we could
@@ -336,7 +338,9 @@ impl<'a> Serialize for Svc<'a> {
     where
         S: Serializer,
     {
-        let mut map = serializer.serialize_map(Some(14))?;
+        // Explicitly focusing on JSON serialization, which does not
+        // need a length hint (thus the `None`)
+        let mut map = serializer.serialize_map(None)?;
 
         map.serialize_entry(
             "service",
@@ -504,7 +508,9 @@ impl<'a> Serialize for SvcMember<'a> {
     where
         S: Serializer,
     {
-        let mut map = serializer.serialize_map(Some(24))?;
+        // Explicitly focusing on JSON serialization, which does not
+        // need a length hint (thus the `None`)
+        let mut map = serializer.serialize_map(None)?;
 
         map.serialize_entry("member_id", &self.member_id)?;
 
