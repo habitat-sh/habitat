@@ -811,62 +811,101 @@ load_secrets() {
   $bb env | $bb awk -F '=' '/^HAB_STUDIO_SECRET_/ {gsub(/HAB_STUDIO_SECRET_/, ""); print}'
 }
 
-
-# **Internal** For each arg that is the name of a set environment variable,
-# propagate it into the Studio's environment. Note that values must not have
-# any whitespace because of the way `chroot` and `env` interact. Such values
-# require special handling (see: HAB_STUDIO_SUP, no_proxy)
-extract_env_assignments() {
-  any_of_args=$(echo "$*" | $bb sed 's/ /|/g') # "FOO BAR BAZ" => FOO|BAR|BAZ
-  $bb env | $bb grep -E "^($any_of_args)="
-}
-
 # **Internal** Builds up the environment set to pass to an `env(1)` command for
 # use in a `chroot` environment which is printed on stdout.
 chroot_env() {
-  studio_path="$1"
-  extra_env="$2" # additional env vars from the Studio config, based on type
+  local studio_path="$1"
+  local extra_env="$2"
 
-  # Set the environment to be passed to `env(1)` to initialize the session
-  env="LC_ALL=POSIX
-       HOME=/root TERM=${TERM:-}
-       PATH=$studio_path
-       STUDIO_TYPE=$STUDIO_TYPE
-       $extra_env"
-
-  env="$env $(extract_env_assignments HAB_CONFIG_EXCLUDE \
-                                      HAB_AUTH_TOKEN \
-                                      HAB_BLDR_URL \
-                                      HAB_BLDR_CHANNEL \
-                                      HAB_NOCOLORING \
-                                      HAB_NONINTERACTIVE \
-                                      HAB_ORIGIN \
-                                      HAB_STUDIO_NOSTUDIORC \
-                                      HAB_UPDATE_STRATEGY_FREQUENCY_MS \
-                                      HAB_STUDIO_BINARY \
-                                      HTTP_PROXY \
-                                      HTTPS_PROXY)"
-
+  # Set the environment which will be passed to `env(1)` to initialize the
+  # session.
+  env="LC_ALL=POSIX HOME=/root TERM=${TERM:-} PATH=$studio_path"
+  # Add `STUDIO_TYPE` to the environment
+  env="$env STUDIO_TYPE=$STUDIO_TYPE"
+  # Add any additional environment variables from the Studio config, based on
+  # type
+  if [ -n "$extra_env" ]; then
+    env="$env $extra_env"
+  fi
+  # If a Habitat config filetype ignore string is set, then propagate it
+  # into the Studio's environment.
+  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
+    env="$env HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
+  fi
+  # If a Habitat Auth Token is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_AUTH_TOKEN:-}" ]; then
+    env="$env HAB_AUTH_TOKEN=$HAB_AUTH_TOKEN"
+  fi
+  # If a Habitat Builder URL is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_BLDR_URL:-}" ]; then
+    env="$env HAB_BLDR_URL=$HAB_BLDR_URL"
+  fi
+  # If a Habitat Depot Channel is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_BLDR_CHANNEL:-}" ]; then
+    env="$env HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL"
+  fi
+  # If a no coloring environment variable is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_NOCOLORING:-}" ]; then
+    env="$env HAB_NOCOLORING=$HAB_NOCOLORING"
+  fi
+  # If a noninteractive environment variable is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
+    env="$env HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
+  fi
+  # If a Habitat origin name is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_ORIGIN:-}" ]; then
+    env="$env HAB_ORIGIN=$HAB_ORIGIN"
+  fi
+  # If a skip .studiorc environment variable is set, then propagate it into the
+  # Studio's environment.
+  if [ -n "${HAB_STUDIO_NOSTUDIORC:-}" ]; then
+    env="$env HAB_STUDIO_NOSTUDIORC=$HAB_STUDIO_NOSTUDIORC"
+  fi
   # Used to customize the arguments to pass to an automatically launched
   # Supervisor, or to disable the automatic launching (by setting to 'false').
   if [ -n "${HAB_STUDIO_SUP:-}" ]; then
     # We want to pass a value that contains spaces, so we'll encode the spaces
     # for unpacking inside the Studio. Sorry world, but it's after 11pm.
-    env="$env HAB_STUDIO_SUP=$(echo "$HAB_STUDIO_SUP" | $bb sed 's/ /__sp__/g')"
+    env="$env HAB_STUDIO_SUP=$(echo $HAB_STUDIO_SUP | $bb sed 's/ /__sp__/g')"
+  fi
+  # If a Habitat update strategy frequency is set, then propagate it into the
+  # Studio's environment.
+  if [ -n "${HAB_UPDATE_STRATEGY_FREQUENCY_MS:-}" ]; then
+    env="$env HAB_UPDATE_STRATEGY_FREQUENCY_MS=$HAB_UPDATE_STRATEGY_FREQUENCY_MS"
+  fi
+  # If a Habitat studio binary is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
+    env="$env HAB_STUDIO_BINARY=$HAB_STUDIO_BINARY"
   fi
 
+  # If HTTP proxy variables are detected in the current environment, propagate
+  # them into the Studio's environment.
+  if [ -n "${http_proxy:-}" ]; then
+    env="$env http_proxy=$http_proxy"
+  fi
+  if [ -n "${https_proxy:-}" ]; then
+    env="$env https_proxy=$https_proxy"
+  fi
   if [ -n "${no_proxy:-}" ]; then
     # If you pass whitespace here, bash will loose its mind when we do expansion
     # in the exec later on. To spare you, and me, and everyone else, we go ahead
     # and take care of that little whitespace problem for you.
     #
     # Thanks, Docker, for passing unnecessary spaces. You're a peach.
-    env="$env no_proxy=$(echo "$no_proxy" | $bb sed 's/, /,/g')"
+    env="$env no_proxy=$(echo $no_proxy | $bb sed 's/, /,/g')"
   fi
 
   env="$env $(load_secrets)"
 
   echo "$env"
+  return 0
 }
 
 # **Internal** Prints out any important environment variables that will be used
