@@ -609,20 +609,23 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
-    use std::io::Read;
-    use json;
-    use serde_json;
-    use std::fs;
-    use valico::json_schema;
-    use std::path::PathBuf;
-    use tempdir::TempDir;
-    use manager::service::config::PackageConfigPaths;
-    use std::net::IpAddr;
-    use std::net::Ipv4Addr;
+
     use std::collections::BTreeMap;
+    use std::fs;
+    use std::io::{Read, Write};
+    use std::net::{IpAddr, Ipv4Addr};
+    use std::path::PathBuf;
+
+    use serde_json;
+    use json;
+    use tempdir::TempDir;
+    use valico::json_schema;
+
+    use butterfly::rumor::service::SysInfo;
     use hcore::package::PackageIdent;
+
     use manager::service::Cfg;
+    use manager::service::config::PackageConfigPaths;
 
     /// Asserts that `json_string` is valid according to our render
     /// context JSON schema.
@@ -811,7 +814,6 @@ two = 2
         let (_tmp_dir, test_pkg) = new_test_pkg();
         let cfg = Cfg::new(&test_pkg, None).expect("create config");
 
-        use butterfly::rumor::service::SysInfo;
         let sys_info = SysInfo::new();
 
         // TODO (CM): just create a toml table directly
