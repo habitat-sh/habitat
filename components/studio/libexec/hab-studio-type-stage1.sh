@@ -10,7 +10,7 @@ studio_enter_command="/tools/bin/bash --login +h"
 studio_build_environment=
 studio_build_command=
 studio_run_environment=
-studio_run_command=
+studio_run_command="/tools/bin/bash --login"
 
 : ${STAGE1_TOOLS_URL:=http://s3-us-west-2.amazonaws.com/habitat-studio-stage1/habitat-studio-stage1-20180312233639.tar.xz}
 : ${TAR_DIR:=/tmp}
