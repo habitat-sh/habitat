@@ -33,13 +33,22 @@ const PATH_KEY: &'static str = "PATH";
 static LOGKEY: &'static str = "PK";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Env(pub HashMap<String, String>);
+pub struct Env(HashMap<String, String>);
 
 impl Deref for Env {
     type Target = HashMap<String, String>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+// Convenience implementation for ease of setting up test instances;
+// real code should use `Env::new`
+#[cfg(test)]
+impl From<HashMap<String, String>> for Env {
+    fn from(inner_map: HashMap<String, String>) -> Self {
+        Env(inner_map)
     }
 }
 

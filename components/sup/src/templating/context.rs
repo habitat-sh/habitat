@@ -623,7 +623,6 @@ mod tests {
     use std::collections::BTreeMap;
     use hcore::package::PackageIdent;
     use manager::service::Cfg;
-    use manager::service::Env;
 
     /// Asserts that `json_string` is valid according to our render
     /// context JSON schema.
@@ -789,7 +788,7 @@ two = 2
             version: Cow::Owned(ident.version.clone().unwrap()),
             release: Cow::Owned(ident.release.clone().unwrap()),
             deps: Cow::Owned(deps),
-            env: Cow::Owned(Env(env_hash)),
+            env: Cow::Owned(env_hash.into()),
             exposes: Cow::Owned(vec!["1234".into(), "8000".into(), "2112".into()]),
             exports: Cow::Owned(export_hash),
             path: Cow::Owned("my_path".into()),
