@@ -141,13 +141,13 @@ impl<'a> RenderContext<'a> {
 struct SystemInfo<'a> {
     version: Cow<'a, String>,
     member_id: Cow<'a, String>,
-    ip: IpAddr,
+    ip: Cow<'a, IpAddr>,
     hostname: Cow<'a, String>,
-    gossip_ip: IpAddr,
-    gossip_port: u16,
-    http_gateway_ip: IpAddr,
-    http_gateway_port: u16,
-    permanent: bool,
+    gossip_ip: Cow<'a, IpAddr>,
+    gossip_port: Cow<'a, u16>,
+    http_gateway_ip: Cow<'a, IpAddr>,
+    http_gateway_port: Cow<'a, u16>,
+    permanent: Cow<'a, bool>,
 }
 
 impl<'a> SystemInfo<'a> {
@@ -155,13 +155,13 @@ impl<'a> SystemInfo<'a> {
         SystemInfo {
             version: Cow::Borrowed(&sys.version),
             member_id: Cow::Borrowed(&sys.member_id),
-            ip: sys.ip,
+            ip: Cow::Borrowed(&sys.ip),
             hostname: Cow::Borrowed(&sys.hostname),
-            gossip_ip: sys.gossip_ip,
-            gossip_port: sys.gossip_port,
-            http_gateway_ip: sys.http_gateway_ip,
-            http_gateway_port: sys.http_gateway_port,
-            permanent: sys.permanent,
+            gossip_ip: Cow::Borrowed(&sys.gossip_ip),
+            gossip_port: Cow::Borrowed(&sys.gossip_port),
+            http_gateway_ip: Cow::Borrowed(&sys.http_gateway_ip),
+            http_gateway_port: Cow::Borrowed(&sys.http_gateway_port),
+            permanent: Cow::Borrowed(&sys.permanent),
         }
     }
 }
@@ -295,7 +295,7 @@ struct Svc<'a> {
     me: Cow<'a, SvcMember<'a>>,
 
     // TODO (CM): this will need to be optional soon
-    first: SvcMember<'a>,
+    first: Cow<'a, SvcMember<'a>>,
 }
 
 impl<'a> Svc<'a> {
@@ -324,7 +324,9 @@ impl<'a> Svc<'a> {
             update_leader: Cow::Owned(census_group.update_leader().map(|m| {
                 SvcMember::from_census_member(m)
             })),
-            first: select_first(census_group).expect("First should always be present on svc"),
+            first: Cow::Owned(select_first(census_group).expect(
+                "First should always be present on svc",
+            )),
         }
     }
 }
@@ -441,22 +443,22 @@ struct SvcMember<'a> {
     service: Cow<'a, String>,
     group: Cow<'a, String>,
     org: Cow<'a, Option<String>>,
-    persistent: bool,
-    leader: bool,
-    follower: bool,
-    update_leader: bool,
-    update_follower: bool,
-    election_is_running: bool,
-    election_is_no_quorum: bool,
-    election_is_finished: bool,
-    update_election_is_running: bool,
-    update_election_is_no_quorum: bool,
-    update_election_is_finished: bool,
+    persistent: Cow<'a, bool>,
+    leader: Cow<'a, bool>,
+    follower: Cow<'a, bool>,
+    update_leader: Cow<'a, bool>,
+    update_follower: Cow<'a, bool>,
+    election_is_running: Cow<'a, bool>,
+    election_is_no_quorum: Cow<'a, bool>,
+    election_is_finished: Cow<'a, bool>,
+    update_election_is_running: Cow<'a, bool>,
+    update_election_is_no_quorum: Cow<'a, bool>,
+    update_election_is_finished: Cow<'a, bool>,
     sys: Cow<'a, SysInfo>,
-    alive: bool,
-    suspect: bool,
-    confirmed: bool,
-    departed: bool,
+    alive: Cow<'a, bool>,
+    suspect: Cow<'a, bool>,
+    confirmed: Cow<'a, bool>,
+    departed: Cow<'a, bool>,
     cfg: Cow<'a, toml::value::Table>,
 }
 
@@ -470,27 +472,27 @@ impl<'a> SvcMember<'a> {
             service: Cow::Borrowed(&c.service),
             group: Cow::Borrowed(&c.group),
             org: Cow::Borrowed(&c.org),
-            persistent: c.persistent,
-            leader: c.leader,
-            follower: c.follower,
-            update_leader: c.update_leader,
-            update_follower: c.update_follower,
-            election_is_running: c.election_is_running,
-            election_is_no_quorum: c.election_is_no_quorum,
-            election_is_finished: c.election_is_finished,
-            update_election_is_running: c.update_election_is_running,
-            update_election_is_no_quorum: c.update_election_is_no_quorum,
-            update_election_is_finished: c.update_election_is_finished,
+            persistent: Cow::Borrowed(&c.persistent),
+            leader: Cow::Borrowed(&c.leader),
+            follower: Cow::Borrowed(&c.follower),
+            update_leader: Cow::Borrowed(&c.update_leader),
+            update_follower: Cow::Borrowed(&c.update_follower),
+            election_is_running: Cow::Borrowed(&c.election_is_running),
+            election_is_no_quorum: Cow::Borrowed(&c.election_is_no_quorum),
+            election_is_finished: Cow::Borrowed(&c.election_is_finished),
+            update_election_is_running: Cow::Borrowed(&c.update_election_is_running),
+            update_election_is_no_quorum: Cow::Borrowed(&c.update_election_is_no_quorum),
+            update_election_is_finished: Cow::Borrowed(&c.update_election_is_finished),
 
             // TODO (CM): unify this with manager::Sys; they're not
             // the same types, but very close as far as templating is
             // concerned.
             sys: Cow::Borrowed(&c.sys),
 
-            alive: c.health == Health::Alive,
-            suspect: c.health == Health::Suspect,
-            confirmed: c.health == Health::Confirmed,
-            departed: c.health == Health::Departed,
+            alive: Cow::Owned(c.health == Health::Alive),
+            suspect: Cow::Owned(c.health == Health::Suspect),
+            confirmed: Cow::Owned(c.health == Health::Confirmed),
+            departed: Cow::Owned(c.health == Health::Departed),
 
             cfg: Cow::Borrowed(&c.cfg),
         }
@@ -745,13 +747,13 @@ two = 2
         let system_info = SystemInfo {
             version: Cow::Owned("I AM A HABITAT VERSION".into()),
             member_id: Cow::Owned("MEMBER_ID".into()),
-            ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            ip: Cow::Owned(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))),
             hostname: Cow::Owned("MY_HOSTNAME".into()),
-            gossip_ip: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            gossip_port: 1234,
-            http_gateway_ip: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            http_gateway_port: 5678,
-            permanent: false,
+            gossip_ip: Cow::Owned(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))),
+            gossip_port: Cow::Owned(1234),
+            http_gateway_ip: Cow::Owned(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))),
+            http_gateway_port: Cow::Owned(5678),
+            permanent: Cow::Owned(false),
         };
 
         let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
@@ -819,22 +821,22 @@ two = 2
             service: Cow::Owned("foo".into()),
             group: Cow::Owned("default".into()),
             org: Cow::Owned(None),
-            persistent: true,
-            leader: false,
-            follower: false,
-            update_leader: false,
-            update_follower: false,
-            election_is_running: false,
-            election_is_no_quorum: false,
-            election_is_finished: false,
-            update_election_is_running: false,
-            update_election_is_no_quorum: false,
-            update_election_is_finished: false,
+            persistent: Cow::Owned(true),
+            leader: Cow::Owned(false),
+            follower: Cow::Owned(false),
+            update_leader: Cow::Owned(false),
+            update_follower: Cow::Owned(false),
+            election_is_running: Cow::Owned(false),
+            election_is_no_quorum: Cow::Owned(false),
+            election_is_finished: Cow::Owned(false),
+            update_election_is_running: Cow::Owned(false),
+            update_election_is_no_quorum: Cow::Owned(false),
+            update_election_is_finished: Cow::Owned(false),
             sys: Cow::Owned(sys_info),
-            alive: true,
-            suspect: false,
-            confirmed: false,
-            departed: false,
+            alive: Cow::Owned(true),
+            suspect: Cow::Owned(false),
+            confirmed: Cow::Owned(false),
+            departed: Cow::Owned(false),
             cfg: Cow::Owned(svc_member_cfg as toml::value::Table),
         };
 
@@ -846,7 +848,7 @@ two = 2
             leader: Cow::Owned(None),
             update_leader: Cow::Owned(None),
             me: Cow::Owned(me.clone()),
-            first: me.clone(),
+            first: Cow::Owned(me.clone()),
         };
 
         let mut bind_map = HashMap::new();
