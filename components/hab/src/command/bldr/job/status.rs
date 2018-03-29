@@ -14,6 +14,8 @@
 
 use depot_client;
 use common::ui::{Status, UI};
+use tabwriter::TabWriter;
+use std::io::Write;
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
@@ -23,14 +25,16 @@ pub fn start(
     bldr_url: &str,
     group_id: Option<&str>,
     origin: Option<&str>,
+    limit: usize,
+    show_jobs: bool,
 ) -> Result<()> {
     let depot_client = depot_client::Client::new(bldr_url, PRODUCT, VERSION, None)
         .map_err(Error::DepotClient)?;
 
     if origin.is_some() {
-        do_origin_status(ui, &depot_client, origin.unwrap())?;
+        do_origin_status(ui, &depot_client, origin.unwrap(), limit)?;
     } else {
-        do_job_group_status(ui, &depot_client, group_id.unwrap())?;
+        do_job_group_status(ui, &depot_client, group_id.unwrap(), show_jobs)?;
     }
 
     Ok(())
@@ -40,6 +44,7 @@ fn do_job_group_status(
     ui: &mut UI,
     depot_client: &depot_client::Client,
     group_id: &str,
+    show_jobs: bool,
 ) -> Result<()> {
     let gid = match group_id.parse::<i64>() {
         Ok(g) => g,
@@ -51,28 +56,73 @@ fn do_job_group_status(
 
     ui.status(
         Status::Determining,
-        format!("status of Job Group {}", group_id),
+        format!("status of job group {}", group_id),
     )?;
 
-    match depot_client.get_schedule(gid) {
-        Ok(status) => {
-            println!("");
-            println!("{}", status.to_string());
+    match depot_client.get_schedule(gid, show_jobs) {
+        Ok(sr) => {
+            let mut tw = TabWriter::new(vec![]);
+            write!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\n").unwrap();
+            write!(&mut tw,
+                "{}\t{}\t{}\t{}\n",
+                sr.created_at,
+                sr.id,
+                sr.state,
+                sr.project_name,
+            ).unwrap();
+            tw.flush().unwrap();
+            let mut written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
+            println!("\n{}", written);
+
+            if show_jobs && !sr.projects.is_empty() {
+                tw = TabWriter::new(vec![]);
+                write!(&mut tw, "NAME\tSTATUS\tJOB ID\tIDENT\n").unwrap();
+                for p in sr.projects {
+                    write!(&mut tw,
+                    "{}\t{}\t{}\t{}\n",
+                    p.name,
+                    p.state,
+                    p.job_id,
+                    p.ident,
+                ).unwrap();
+                }
+                written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
+                println!("{}", written);
+            }
             Ok(())
         }
         Err(e) => Err(Error::ScheduleStatus(e)),
     }
 }
 
-fn do_origin_status(ui: &mut UI, depot_client: &depot_client::Client, origin: &str) -> Result<()> {
+fn do_origin_status(
+    ui: &mut UI,
+    depot_client: &depot_client::Client,
+    origin: &str,
+    limit: usize,
+) -> Result<()> {
     ui.status(
         Status::Determining,
-        format!("status of all job groups in {} origin", origin),
+        format!("status of job groups in {} origin", origin),
     )?;
 
-    match depot_client.get_origin_schedule(origin) {
-        Ok(status) => {
-            println!("{}", status);
+    match depot_client.get_origin_schedule(origin, limit) {
+        Ok(sr) => {
+            let mut tw = TabWriter::new(vec![]);
+            write!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\n").unwrap();
+            for s in sr.iter() {
+                write!(&mut tw,
+                    "{}\t{}\t{}\t{}\n",
+                    s.created_at,
+                    s.id,
+                    s.state,
+                    s.project_name,
+                ).unwrap();
+            }
+
+            tw.flush().unwrap();
+            let written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
+            println!("\n{}", written);
             Ok(())
         }
         Err(e) => Err(Error::ScheduleStatus(e)),

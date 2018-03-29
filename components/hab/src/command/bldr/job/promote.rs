@@ -76,9 +76,11 @@ fn get_group_status(bldr_url: &str, group_id: u64) -> Result<SchedulerResponse> 
     let depot_client = depot_client::Client::new(bldr_url, PRODUCT, VERSION, None)
         .map_err(Error::DepotClient)?;
 
-    let group_status = depot_client.get_schedule(group_id as i64).map_err(|e| {
-        Error::ScheduleStatus(e)
-    })?;
+    let group_status = depot_client.get_schedule(group_id as i64, true).map_err(
+        |e| {
+            Error::ScheduleStatus(e)
+        },
+    )?;
 
     Ok(group_status)
 }
