@@ -163,11 +163,13 @@ you could access the `"bar"` value using the templating expression `{{cfg.foo.ba
 
 ## bind
 
-The `bind` object maps the name of a bind to information about the ring members that are currently bound to it. The value is itself an object with `first` and `members` keys, which have the same meaning and construction as those keys on the `{{svc}}` object
+The `bind` object maps the name of a bind to information about the ring members that are currently bound to it. The value is itself an object with `first`, `leader`, and `members` keys, which have the same meaning and construction as those keys on the `{{svc}}` object.
+
+With Habitat 0.56.0, the use of the `first` key is deprecated. In leader topologies, this value would be the leader; otherwise it would be the first member of the `members` list. Users are encouraged to use the new `leader` key if they really are interested in the leader of the group, and use `{{bind.<BIND>.members[0]}}` for access to the first member of the group. The `first` key will remain available in templates for some time to allow users time to migrate, but it will eventually be removed.
 
 ## Service Member object
 
-The `{{svc.me}}`, `{{svc.first}}`, `{{svc.members}}`, `{{svc.leader}}`, `{{svc.update_leader}}`, `{{bind.<BIND>.first}}` and `{{bind.<BIND>.members}}` template variables all return "service member" objects, which is described here.
+The `{{svc.me}}`, `{{svc.first}}`, `{{svc.members}}`, `{{svc.leader}}`, `{{svc.update_leader}}`, `{{bind.<BIND>.first}}`, `{{bind.<BIND>.leader}}`, and `{{bind.<BIND>.members}}` template variables all return "service member" objects, which is described here.
 
 **member_id**
 : (string) the member's Supervisor id, e.g., `3d1e73ff19464a27aea3cdc5c2243f74`

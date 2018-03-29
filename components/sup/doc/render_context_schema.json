@@ -478,7 +478,16 @@
                 "properties": {
                     "first": {
                         "description": "The first member of this service group. If the group is running in a leader topology, this will also be the leader.",
+                        "$deprecated": "Since 0.56.0; if you want the leader, use `leader` explicitly. 'first' isn't deterministic, either, so you can just use `members[0]` instead",
                         "$ref": "#/definitions/svc_member"
+                    },
+                    "leader": {
+                        "description": "The current leader of this service group, if running in a leader topology",
+                        "$since": "0.56.0",
+                        "oneOf": [
+                            { "$ref": "#/definitions/svc_member" },
+                            { "type": "null" }
+                        ]
                     },
                     "members": {
                         "description": "All members of the service group, across the entire ring. Includes all liveness states!",
@@ -490,6 +499,7 @@
                 },
                 "required": [
                     "first",
+                    "leader",
                     "members"
                 ],
                 "additionalProperties": false

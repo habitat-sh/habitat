@@ -416,6 +416,7 @@ impl<'a> Binds<'a> {
 #[derive(Clone, Debug, Serialize)]
 struct BindGroup<'a> {
     first: Option<SvcMember<'a>>,
+    leader: Option<SvcMember<'a>>,
     members: Vec<SvcMember<'a>>,
 }
 
@@ -423,6 +424,7 @@ impl<'a> BindGroup<'a> {
     fn new(group: &'a CensusGroup) -> Self {
         BindGroup {
             first: select_first(group),
+            leader: group.leader().map(|m| SvcMember::from_census_member(m)),
             members: group
                 .members()
                 .iter()
@@ -626,6 +628,7 @@ mod tests {
 
     use manager::service::Cfg;
     use manager::service::config::PackageConfigPaths;
+    use templating::TemplateRenderer;
 
     /// Asserts that `json_string` is valid according to our render
     /// context JSON schema.
@@ -673,7 +676,8 @@ JSON:
             serde_json::from_str(&raw_schema).expect("Could not parse schema as JSON");
         let mut scope = json_schema::scope::Scope::new();
         // NOTE: using `false` instead of `true` allows us to use
-        // `$comment` keys
+        // `$comment` keyword, as well as our own `$deprecated` and
+        // `$since` keywords.
         let schema = scope.compile_and_return(parsed_schema, false).expect(
             "Could not compile the schema",
         );
@@ -867,6 +871,7 @@ two = 2
         let mut bind_map = HashMap::new();
         let bind_group = BindGroup {
             first: Some(me.clone()),
+            leader: None,
             members: vec![me.clone()],
         };
         bind_map.insert("foo".into(), bind_group);
@@ -879,6 +884,20 @@ two = 2
             svc: svc,
             bind: binds,
         }
+    }
+
+    /// Render the given template string using the given context,
+    /// returning the result. This can help to verify that
+    /// RenderContext data are accessible to users in the way we
+    /// expect.
+    fn render(template_content: &str, ctx: &RenderContext) -> String {
+        let mut renderer = TemplateRenderer::new();
+        renderer
+            .register_template_string("testing", template_content)
+            .expect("Could not register template content");
+        renderer.render("testing", ctx).expect(
+            "Could not render template",
+        )
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -928,4 +947,47 @@ two = 2
         assert_valid(&j);
     }
 
+    #[test]
+    fn no_leader_renders_correctly() {
+        let ctx = default_render_context();
+
+        // Just make sure our default context is set up how this test
+        // is expecting
+        assert!(ctx.bind.0.get("foo").unwrap().leader.is_none());
+
+        let output = render(
+            "{{#if bind.foo.leader}}THERE IS A LEADER{{else}}NO LEADER{{/if}}",
+            &ctx,
+        );
+
+        assert_eq!(output, "NO LEADER");
+    }
+
+    #[test]
+    fn leader_renders_correctly() {
+        let mut ctx = default_render_context();
+
+        // Let's create a new leader, with a custom member_id
+        let mut svc_member = default_svc_member();
+        svc_member.member_id = Cow::Owned("deadbeefdeadbeefdeadbeefdeadbeef".into());
+
+        // Set up our own bind with a leader
+        let mut bind_map = HashMap::new();
+        let bind_group = BindGroup {
+            first: Some(svc_member.clone()),
+            leader: Some(svc_member.clone()),
+            members: vec![svc_member.clone()],
+        };
+        bind_map.insert("foo".into(), bind_group);
+        let binds = Binds(bind_map);
+        ctx.bind = binds;
+
+        // This template should reveal the member_id of the leader
+        let output = render(
+            "{{#if bind.foo.leader}}{{bind.foo.leader.member_id}}{{else}}NO LEADER{{/if}}",
+            &ctx,
+        );
+
+        assert_eq!(output, "deadbeefdeadbeefdeadbeefdeadbeef");
+    }
 }
