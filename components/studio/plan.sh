@@ -10,6 +10,7 @@ pkg_bin_dirs=(bin)
 
 do_build() {
   cp -v $PLAN_CONTEXT/bin/hab-studio.sh hab-studio
+  cp -v $PLAN_CONTEXT/libexec/hab-studio-profile.sh .
   cp -v $PLAN_CONTEXT/libexec/hab-studio-type-*.sh .
 
   # Embed the release version and author information of the program.
@@ -21,6 +22,7 @@ do_build() {
 
 do_install() {
   install -v -D hab-studio $pkg_prefix/bin/hab-studio
+  install -v -D hab-studio-profile.sh $pkg_prefix/libexec/hab-studio-profile.sh
   for f in `ls hab-studio-type-*.sh`; do
     install -v -D $f $pkg_prefix/libexec/$f
   done
