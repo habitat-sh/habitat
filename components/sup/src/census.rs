@@ -34,7 +34,7 @@ use error::{Error, SupError};
 
 static LOGKEY: &'static str = "CE";
 
-type MemberId = String;
+pub type MemberId = String;
 
 #[derive(Debug, Serialize)]
 pub struct CensusRing {
@@ -374,6 +374,7 @@ impl CensusGroup {
             let member = self.population
                 .entry(member_id.to_string())
                 .or_insert_with(|| {
+                    // Note: this is where CensusMembers are created
                     let mut new_member = CensusMember::default();
                     new_member.alive = is_self;
                     new_member
@@ -503,6 +504,15 @@ pub struct CensusMember {
     pub update_election_is_no_quorum: bool,
     pub update_election_is_finished: bool,
     pub sys: SysInfo,
+
+    // TODO (CM): Skipping serialization to avoid rippling to other
+    // places unnecessarily right now.
+    #[serde(skip_serializing)]
+    pub health: Health,
+
+    // TODO (CM): I *think* all these four booleans can disappear
+    // now... not sure if their serialization affects anything yet,
+    // though.
     alive: bool,
     suspect: bool,
     confirmed: bool,
@@ -583,11 +593,12 @@ impl CensusMember {
             Health::Confirmed => self.confirmed = true,
             Health::Departed => self.departed = true,
         }
+        self.health = health
     }
 
     /// Is this member currently considered to be alive or not?
     pub fn alive(&self) -> bool {
-        self.alive
+        self.health == Health::Alive
     }
 }
 

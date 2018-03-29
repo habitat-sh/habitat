@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use hcore::os::users;
-use hcore::package::PackageInstall;
 
 use error::{Result, Error};
 

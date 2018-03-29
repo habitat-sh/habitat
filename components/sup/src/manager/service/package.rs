@@ -43,6 +43,15 @@ impl Deref for Env {
     }
 }
 
+// Convenience implementation for ease of setting up test instances;
+// real code should use `Env::new`
+#[cfg(test)]
+impl From<HashMap<String, String>> for Env {
+    fn from(inner_map: HashMap<String, String>) -> Self {
+        Env(inner_map)
+    }
+}
+
 impl Env {
     /// Modifies PATH env with the full run path for this package. This path is composed of any
     /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox(non-windows),
@@ -79,16 +88,6 @@ impl Env {
     }
 }
 
-// NOTE: This is exposed to users in templates. Any public member is
-// accessible to users, so change this interface with care.
-//
-// User-facing documentation is available at
-// https://www.habitat.sh/docs/reference/#template-data; update that
-// as required.
-//
-// TODO (CM): move templatable content into a distinct type to
-// separate these concerns; Pkg is currently also used for
-// non-templating purposes, as well.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Pkg {
     #[serde(deserialize_with = "deserialize_using_from_str",
