@@ -310,7 +310,7 @@ impl<'a> Svc<'a> {
                     .members()
                     .iter()
                     .map(|m| SvcMember::from_census_member(m))
-                    .collect::<Vec<SvcMember<'a>>>(),
+                    .collect(),
             ),
             me: Cow::Owned(
                 census_group
