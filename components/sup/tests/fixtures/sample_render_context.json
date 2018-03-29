@@ -388,6 +388,7 @@
         "update_follower": false,
         "update_leader": false
       },
+      "leader": null,
       "members": [
         {
           "alive": true,
