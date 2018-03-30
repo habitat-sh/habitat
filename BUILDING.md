@@ -85,6 +85,14 @@ or setting the value upon execution of the `hab` binary:
 env HAB_SUP_BINARY=/path/to/habitat/target/debug/hab-sup hab sup status
 ```
 
+## Always test the habitat package
+
+These binary overrides can be great for rapid iteration, but will hide errors like [4832](https://github.com/habitat-sh/habitat/issues/4832) and [4834](https://github.com/habitat-sh/habitat/issues/4834). To do a more authentic test:
+
+1. Build a new habitat package
+2. Upload to acceptance (or prod, but only in the unstable channel)
+3. Install new package and do normal testing
+
 ## HAB_STUDIO_BINARY
 
 This one is a bit special. Technically [hab-studio.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/bin/hab-studio.sh) is a shell script file and not binary. This also means that there is no need to build anything; set `HAB_STUDIO_BINARY` to the path to a version of `hab-studio.sh` within a `habitat` checkout and it will be used. This override will also affect which versions of the files in [studio/libexec](https://github.com/habitat-sh/habitat/tree/master/components/studio/libexec) are used. So if you want to test out changes to [hab-studio-profile.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/libexec/hab-studio-profile.sh) or [hab-studio-type-default.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/libexec/hab-studio-type-default.sh), make those changes in a checkout of the `habitat` repo located at `/path/to/habitat/repo` and set `HAB_STUDIO_BINARY` to `/path/to/habitat/repo/components/studio/bin/hab-studio.sh`. For example:
