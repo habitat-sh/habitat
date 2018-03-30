@@ -52,10 +52,10 @@ If you happen to be aware of features or bugs and feel there are user impacting 
     $ git checkout -b <branch>
     ```
 
-1. Remove the `-dev` suffix from the version number found in the `VERSION` file
+1. Remove the `-dev` suffix from the version number found in the `VERSION` file. *Note*: there must not be a space after the `-i`.
 
     ```
-    $ sed -i '' -e 's/-dev//' VERSION
+    $ sed -i'' -e 's/-dev//' VERSION
     ```
 
 1. Generate a new `CHANGELOG.md`
