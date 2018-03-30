@@ -39,7 +39,7 @@ impl HelperDef for PkgPathForHelper {
             .find(|ident| ident.satisfies(&param))
             .and_then(|i| {
                 Some(
-                    fs::pkg_install_path(&i, None::<String>)
+                    fs::pkg_install_path(&i, Some(&*fs::FS_ROOT_PATH))
                         .to_string_lossy()
                         .into_owned(),
                 )
