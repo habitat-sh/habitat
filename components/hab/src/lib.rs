@@ -47,6 +47,7 @@ extern crate walkdir;
 extern crate base64;
 #[cfg(test)]
 extern crate tempdir;
+extern crate tabwriter;
 
 pub mod analytics;
 pub mod cli;

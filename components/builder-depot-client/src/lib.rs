@@ -313,30 +313,30 @@ impl Client {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn get_origin_schedule(&self, origin: &str) -> Result<String> {
-        debug!(
-            "Retrieving schedule for all job groups in the {} origin",
-            origin
-        );
+    pub fn get_origin_schedule(
+        &self,
+        origin: &str,
+        limit: usize,
+    ) -> Result<Vec<SchedulerResponse>> {
+        debug!("Retrieving status for job groups in the {} origin", origin);
 
         let path = format!("depot/pkgs/schedule/{}/status", origin);
-        let res = self.0.get(&path).send()?;
+
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut().append_pair(
+                "limit",
+                &limit.to_string(),
+            );
+        };
+
+        let res = self.0.get_with_custom_url(&path, custom).send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
         }
 
         let sr: Vec<SchedulerResponse> = decoded_response(res)?;
-        let mut resp = Vec::new();
-
-        for s in sr.iter() {
-            resp.push(s.to_string());
-            resp.push("".to_string());
-            resp.push("-------------------------------------".to_string());
-            resp.push("".to_string());
-        }
-
-        Ok(resp.join("\n"))
+        Ok(sr)
     }
 
     /// Retrieves the status of a group job
@@ -344,11 +344,19 @@ impl Client {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn get_schedule(&self, group_id: i64) -> Result<SchedulerResponse> {
+    pub fn get_schedule(&self, group_id: i64, include_projects: bool) -> Result<SchedulerResponse> {
         debug!("Retrieving schedule for job group {}", group_id);
 
         let path = format!("depot/pkgs/schedule/{}", group_id);
-        let res = self.0.get(&path).send()?;
+
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut().append_pair(
+                "include_projects",
+                &include_projects.to_string(),
+            );
+        };
+
+        let res = self.0.get_with_custom_url(&path, custom).send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));

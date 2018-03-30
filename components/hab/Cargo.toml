@@ -28,6 +28,7 @@ retry = "*"
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
+tabwriter = "1"
 toml = { version = "*", default-features = false }
 url = "*"
 walkdir = "*"

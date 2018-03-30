@@ -523,7 +523,13 @@ fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let group_id = m.value_of("GROUP_ID");
     let origin = m.value_of("ORIGIN");
-    command::bldr::job::status::start(ui, &url, group_id, origin)
+    let limit = m.value_of("LIMIT")
+        .unwrap_or("10")
+        .parse::<usize>()
+        .unwrap();
+    let show_jobs = m.is_present("SHOW_JOBS");
+
+    command::bldr::job::status::start(ui, &url, group_id, origin, limit, show_jobs)
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {

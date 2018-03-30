@@ -149,16 +149,20 @@ pub fn get() -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand status =>
+                    (about: "Get the status of one or more job groups")
+                    (aliases: &["stat", "statu"])
                     (@group status =>
                         (@attributes +required)
-                        (@arg GROUP_ID: +required +takes_value
+                        (@arg GROUP_ID: +takes_value
                             "The group id that was returned from \"hab bldr job start\" \
                             (ex: 771100000000000000)")
                         (@arg ORIGIN: -o --origin +takes_value
-                            "You can see the status of every group in an origin by providing this value")
+                            "Show the status of recent job groups created in this origin (default: 10 most recent)")
                     )
-                    (about: "Get the status of a job group")
-                    (aliases: &["stat", "statu"])
+                    (@arg LIMIT: -l --limit +takes_value {valid_numeric::<usize>}
+                        "Limit how many job groups to retrieve, ordered by most recent (default: 10)")
+                    (@arg SHOW_JOBS: -s --showjobs
+                        "Show the status of all build jobs for a retrieved job group")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -801,5 +805,12 @@ fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
+    match val.parse::<T>() {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("'{}' is not a valid number", &val)),
     }
 }
