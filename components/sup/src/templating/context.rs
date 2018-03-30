@@ -57,7 +57,6 @@ use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use toml;
 
-use butterfly::member::Health;
 use butterfly::rumor::service::SysInfo;
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
@@ -493,10 +492,10 @@ impl<'a> SvcMember<'a> {
             // concerned.
             sys: Cow::Borrowed(&c.sys),
 
-            alive: Cow::Owned(c.health == Health::Alive),
-            suspect: Cow::Owned(c.health == Health::Suspect),
-            confirmed: Cow::Owned(c.health == Health::Confirmed),
-            departed: Cow::Owned(c.health == Health::Departed),
+            alive: Cow::Owned(c.alive()),
+            suspect: Cow::Owned(c.suspect()),
+            confirmed: Cow::Owned(c.confirmed()),
+            departed: Cow::Owned(c.departed()),
 
             cfg: Cow::Borrowed(&c.cfg),
         }
