@@ -257,6 +257,8 @@ subcommand_new() {
   # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
   shift "$((OPTIND - 1))"
 
+  trap cleanup_studio EXIT
+
   new_studio
 }
 
@@ -301,6 +303,8 @@ subcommand_enter() {
   # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
   shift "$((OPTIND - 1))"
 
+  trap cleanup_studio EXIT
+
   new_studio
   enter_studio "$@"
 }
@@ -326,6 +330,8 @@ subcommand_build() {
   done
   # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
   shift "$((OPTIND - 1))"
+
+  trap cleanup_studio EXIT
 
   if [ -z "${reuse:-}" ]; then
     _STUDIO_TYPE="$STUDIO_TYPE"
@@ -355,6 +361,8 @@ subcommand_run() {
   done
   # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
   shift "$((OPTIND - 1))"
+
+  trap cleanup_studio EXIT
 
   new_studio
   run_studio "$@"
@@ -639,8 +647,6 @@ enter_studio() {
     set -x
   fi
 
-  trap cleanup_studio EXIT
-
   # Become the `chroot` process
   # Note: env and studio_enter_command must NOT be quoted
   # shellcheck disable=2086
@@ -667,8 +673,6 @@ build_studio() {
     set -x
   fi
 
-  trap cleanup_studio EXIT
-
   # Run the build command in the `chroot` environment
   # Note: studio_run_command, env and studio_run_command must NOT be quoted
   # shellcheck disable=2086
@@ -687,8 +691,6 @@ run_studio() {
   if [ -n "$VERBOSE" ]; then
     set -x
   fi
-
-  trap cleanup_studio EXIT
 
   # Run the command in the `chroot` environment
   # Note: env and studio_run_command must NOT be quoted
