@@ -14,8 +14,11 @@ var homepageScripts = function() {
     });
   };
 
-  var mainCarousel = new Carousel($('.home--hero-carousel-slide'), $('.home--hero-carousel-nav-item'), 'is-active');
-  var testimonialCarousel = new Carousel($('.home--testimonial-carousel-slide'), $('.home--testimonial-carousel-nav-item'), 'is-active');
+  window.infographicCarousel = new Carousel(
+    '.home--infographic .carousel-slide',
+    ['.home--infographic .carousel-infographic > li', '.home--infographic .carousel-nav'],
+    {activeClass: 'is-active', navArrows: '.carousel-nav-arrow', autoRotate: false}
+  );
 
   // Sub-hero logo sliders
   var lastScrollPosition = 0;

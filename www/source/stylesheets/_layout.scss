@@ -1,22 +1,36 @@
 $sidebar-breakpoint: 720px;
+$main-nav-breakpoint: 960px;
+
 
 body.has-sidebar,
 body.try-hab,
 body.body-article {
   background: linear-gradient(0deg, $hab-navy-light, $hab-navy) fixed;
+}
 
-  #content-outer {
-    margin: 0 0 rem-calc(90);
+body.circles {
+  #content-outer{
+    background: {
+      image: url(/images/bg-circles-cropped.svg);
+      position: center -160px;
+      repeat: no-repeat;
+      size: contain;
+    }
+    @include breakpoint($main-nav-breakpoint) {
+      background-position: center top;
+    }
+    @include small-nav {
+      background: $hab-slate;
+    }
   }
 }
 
 #content-outer {
+  padding: 100px 10px 50px;
 
-  @include small-nav {
-    // Use this padding when the global message is not being displayed
-    padding-top: $header-height-mobile;
-    // Use this additional padding when the global message is being displayed
-    // padding-top: $header-height-mobile + 110;
+  @include breakpoint($main-nav-breakpoint) {
+    padding: 170px 0px 50px;
+    margin-bottom: 50px;
   }
 
   &.has-sticky-nav {

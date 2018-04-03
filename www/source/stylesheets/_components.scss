@@ -70,6 +70,8 @@ $tech-icon-height: 40px;
 .text-gray { color: #C3C6C8; }
 .text-gray-dark { color: $hab-gray-dark; }
 
+.overflow-hidden { overflow: hidden; }
+
 .underline { text-decoration: underline; }
 
 .sup-note {
@@ -109,3 +111,22 @@ $std-margin: 20;
 }
 
 .hide-small { @include breakpoint(small only) { display: none; }}
+
+.logo-icon {
+  text-indent: -9999px;
+  overflow: hidden;
+  display: block;
+  background: {
+    repeat: no-repeat;
+    position: center center;
+    color: transparent;
+    size: cover;
+  }
+
+  &.kubernetes { background-image: url('/images/solutions-logos/icon-kubernetes.svg'); }
+  &.mesos { background-image: url('/images/solutions-logos/icon-mesos.svg'); }
+  &.mesosphere { background-image: url('/images/solutions-logos/icon-mesosphere.svg'); }
+  &.docker { background-image: url('/images/solutions-logos/icon-docker.svg'); }
+  &.cloudfoundry { background-image: url('/images/solutions-logos/icon-cloudfoundry-contrast.svg'); }
+  &.coreos { background-image: url('/images/solutions-logos/icon-coreos.svg'); }
+}

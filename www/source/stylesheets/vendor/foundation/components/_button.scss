@@ -259,3 +259,27 @@ $button-opacity-disabled: 0.25 !default;
     }
   }
 }
+
+a.button.outline { border: 1px solid #C3C6C8 }
+
+a.button.outline.github {
+  padding-left: 55px;
+
+  background: {
+    image: url('../images/icons/icon-github-gray-trim.svg');
+    position: 30px center;
+    size: 16px;
+    repeat: no-repeat;
+  }
+}
+
+a.button.chef-demo {
+  padding-right: 120px;
+
+  background: {
+    image: url('../images/icons/logo-chef-monotone.svg');
+    position: calc(100% - 20px) center;
+    size: 85px;
+    repeat: no-repeat;
+  }
+}

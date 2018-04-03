@@ -1,4 +1,4 @@
-const navBreakpoint = 769;
+const navBreakpoint = 960;
 const $mainNav = $('#main-nav');
 const $navLinks = $('.main-nav--links');
 const $navToggle = $('.main-nav--toggle');
