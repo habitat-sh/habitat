@@ -50,7 +50,7 @@ $author
 Habitat Package CFize - Create a Cloud Foundry ready Docker image from a given package.
 
 USAGE:
-  $program [PKG] [MAPPING]
+  $program <PKG> <MAPPING>
 "
 }
 
@@ -75,7 +75,7 @@ exit_with() {
   exit $2
 }
 
-dockerize_tag() {
+dockerize_tags() {
   local docker_output_file="$1"
   grep tagged "$docker_output_file" | awk '{ print $3}'
 }
@@ -95,10 +95,10 @@ build_cf_image() {
   tmp_dir="$(mktemp -t -d "${program}-XXXX")"
 
   dockerize_out="${tmp_dir}/dockerize-out"
-  hab-pkg-dockerize ${hab_package} | tee ${dockerize_out}
+  hab-pkg-export-docker ${hab_package} | tee ${dockerize_out}
 
-  docker_tag=$(dockerize_tag "${dockerize_out}")
-  cf_docker_tag=$(echo ${docker_tag} | sed 's#\(.*:\)#\1cf-#')
+  docker_tag_array=($(dockerize_tags "${dockerize_out}"))
+  cf_docker_tag_array=(${docker_tag_array[@]/:/:cf-})
 
   DOCKER_CONTEXT=${tmp_dir}/docker
   mkdir -p ${DOCKER_CONTEXT}
@@ -119,7 +119,7 @@ EOT
 
   cat ${mapping} > ${DOCKER_CONTEXT}/config.toml
   cat <<EOT > $DOCKER_CONTEXT/Dockerfile
-FROM ${docker_tag}
+FROM ${docker_tag_array[0]}
 RUN hab pkg install core/jq-static
 ADD cf-init.sh /
 ADD helpers.sh /
@@ -128,7 +128,7 @@ ENTRYPOINT ["/cf-init.sh"]
 CMD ["start", "$1"]
 EOT
 
-  docker build --force-rm --no-cache -t ${cf_docker_tag} ${DOCKER_CONTEXT}
+  docker build --force-rm --no-cache ${cf_docker_tag_array[@]/#/-t } ${DOCKER_CONTEXT}
   rm -rf ${tmp_dir}
 }
 
