@@ -118,27 +118,26 @@ $docs-xlarge-breakpoint: rem-calc(1060);
   }
 }
 
-// Quicklinks
-.docs--quicklink {
-  padding: 0;
+//Getting Started
+.get-started--boxes {
 
-  .docs--quicklink--cards,
-  .docs--quicklink--card--wrapper {
+  .card {
+    @include card;
     display: flex;
-  }
+    padding: rem-calc(24)rem-calc(24)rem-calc(0)rem-calc(24);
+    position: relative;
+    border-radius: $global-radius;
 
-  .docs--quicklink--card {
-    @extend %card-box;
-    @include shadow-float;
-    min-height: 240px;
-    transition: all .1s;
-
-    &:hover {
-      @include shadow-float-hover;
-      transform: translateY(-3px);
-      transition: all .15s;
+    p {
+      color: $hab-gray-dark;
     }
-  }
+
+    > p:last-child {
+      margin-bottom: 0;
+    }
+
+    }
+
 }
 
 .docs--cta {

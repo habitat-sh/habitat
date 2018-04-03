@@ -25,98 +25,43 @@ section.docs--intro
 
 hr
 
-section.docs--quicklink
+section.docs--get-started
   .row
     .columns.medium-12
-      .docs--quicklink--content
-        h2 Quick Links
-  .row.docs--quicklink--cards
-    .docs--quicklink--card--wrapper.columns.medium-4
-      .docs--quicklink--card
-        .docs--quicklink--card-heading.heading.a
-          ul.no-bullet
-            li
-              a href="/docs/best-practices"
-                | Guide
-        .body-content
-          h4
-            a href="/tutorials/build-your-own/"
-              | Hab Your Web App Guide
-          p
-            | Let's learn how to use Habitat to build and
-            | manage web apps using built-in support for different frameworks and languages.
+      .docs--get-started--content
+        h2 Getting Started
 
-    .docs--quicklink--card--wrapper.columns.medium-4
-      .docs--quicklink--card
-        .docs--quicklink--card-heading.heading.a
-          ul.no-bullet
-            li
-              a href="https://habitat.sh/docs"
-                | Documentation
-        .body-content
-          h4
-            a href="/docs/reference#handlebars-helpers"
-              | Lifecycle Hook Helpers
-          p
-            | All of the QoL Handlebars helpers for use in your hooks
-            | in one convenient place.
+  section.get-started--boxes
+      div.row
+        div.columns.medium-12
+          a.get-started--boxes--item.card href="/docs/reference/#infographics"
+            div.columns.medium-6
+              h3.h3 Habitat in Pictures
+              p
+                | Take a high-level look at the entire Habitat landscape and workflow using this set of diagrams
+            div.columns.medium-6
+              img src="/images/infographics/habitat-diagrams-thumb.png" alt="Thumbnail of Habitat system diagrams."
 
-    .docs--quicklink--card--wrapper.columns.medium-4
-      .docs--quicklink--card
-        .docs--quicklink--card-heading.heading.a
-          ul.no-bullet
-            li
-              a href="https://habitat.sh/blog"
-                | Blog
-        .body-content
-          h4
-            a href="/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part1"
-              | Hab + ECS
-          p
-            | Want to learn how to use habitat with Amazon's cloud-based
-            | scheduler? Look no further , we've got you covered.
+      div.row
+        div.columns.medium-12
+          a.get-started--boxes--item.card href="/learn/"
+            div.columns.medium-6
+              h3.h3 Demos and Tutorials
+              p
+                | Habitat 101 and 201 to learn how Habitat can help your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way
+            div.columns.medium-6
+                img src="/images/screenshots/demo-tutorial-thumb.png" alt="Thumbnail of Demo and Tutorials."
 
-  .row.docs--quicklink--cards
-    .docs--quicklink--card--wrapper.columns.medium-4
-      .docs--quicklink--card
-        .docs--quicklink--card-heading.heading.a
-          ul.no-bullet
-            li
-              a href="/docs/best-practices"
-                | Guide
-        .body-content
-          h4
-            a href="/docs/developing-packages"
-              | Plan Guide
-          p
-            | Get started with how to write Habitat plans
-            | here.
-
-    .docs--quicklink--card--wrapper.columns.medium-4
-      .docs--quicklink--card
-        .docs--quicklink--card-heading.heading.a
-          ul.no-bullet
-            li
-              a href="https://habitat.sh/blog"
-                | Blog
-        .body-content
-          h4
-            a href="https://www.habitat.sh/blog/2017/07/Habitat-mysql-cluster/"
-              | Stateful Services with Habitat
-          p
-            | Habitat provides the same cloud native experience for
-            | both containerized and stateful services. Find out how.
-
-    .docs--quicklink--card-wrapper.columns.medium-4
-      .docs--quicklink--card
-        .docs--quicklink--card-heading.heading.a
-          ul.no-bullet
-            li
-              a href="/docs/best-practices"
-                | Guide
-        .body-content
-          h4
-            a href="https://www.habitat.sh/docs/best-practices/#planwriting-guide"
-              | Developer Guide
-          p
-            | Instructions for setting up your environment to develop Habitat. Building, testing, and contributing code.
+      div.row
+        div.columns.medium-6
+          a.get-started--boxes--item.card href="/get-started/kubernetes/"
+            div
+              h3.h3 Habitat and Kubernetes
+              p
+                | Use the Habitat Operator to run and manage applications - built with Habitat - on Kubernetes
+        div.columns.medium-6
+          a.get-started--boxes--item.card href="/get-started/cloudfoundry/"
+            div
+              h3.h3 Habitat and Cloud Foundry
+              p
+                | Export your packages with Habitat to run directly in Cloud Foundry without the need to use BOSH
