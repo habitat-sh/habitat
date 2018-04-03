@@ -10,18 +10,17 @@ section.docs--hero
 
 section.docs--intro
   .row
-    .columns.medium-7
-      ul.docs--feature--list
-        li
-          | Habitat centers application configuration, management, and behavior around the application itself, not the infrastructure that the app runs on.
-        li
-          | Habitat provides automation that can programmatically and declaratively build, deploy, and manage your application and services, both stateful and stateless.
-        li
-          | Habitat can be deployed and run on various infrastructure environments including bare metal, VM, containers, and PaaS.
-    .columns.medium-5
-      img.mb-1 src="/images/graphics/docs-intro.png"
-      h4.mb-1 Get the latest version
+    .columns.medium-12
+      p
+        | Habitat centers application configuration, management, and behavior around the application itself, not the infrastructure that the app runs on.
+      p
+        | Habitat provides automation that can programmatically and declaratively build, deploy, and manage your application and services, both stateful and stateless.
+      p
+        | Habitat can be deployed and run on various infrastructure environments including bare metal, VM, containers, and PaaS.
+  .row
+    .columns.medium-12
       = link_to 'Download and Install the Habitat CLI', '/docs/install-habitat', class: 'button cta'
+      = link_to 'View Project on GitHub', 'https://github.com/habitat-sh/habitat', class: 'button outline contrast'
 
 hr
 
@@ -48,7 +47,7 @@ section.docs--get-started
             div.columns.medium-6
               h3.h3 Demos and Tutorials
               p
-                | Habitat 101 and 201 to learn how Habitat can help your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way
+                | These short demos will first walk you through installing Habitat then learning how your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way
             div.columns.medium-6
                 img src="/images/screenshots/demo-tutorial-thumb.png" alt="Thumbnail of Demo and Tutorials."
 
@@ -59,9 +58,15 @@ section.docs--get-started
               h3.h3 Habitat and Kubernetes
               p
                 | Use the Habitat Operator to run and manage applications - built with Habitat - on Kubernetes
+              .logo-pair
+                img class="logo-pair--image habitat" src="/images/habitat-mark.svg" alt="Habitat"
+                img class="logo-pair--image" src="/images/solutions-logos/icon-kubernetes.svg" alt="Kubernetes"
         div.columns.medium-6
           a.get-started--boxes--item.card href="/get-started/cloudfoundry/"
             div
               h3.h3 Habitat and Cloud Foundry
               p
                 | Export your packages with Habitat to run directly in Cloud Foundry without the need to use BOSH
+              .logo-pair
+                img class="logo-pair--image habitat" src="/images/habitat-mark.svg" alt="Habitat"
+                img class="logo-pair--image" src="/images/solutions-logos/icon-cloudfoundry.svg" alt="Cloud Foundry"

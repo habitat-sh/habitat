@@ -137,7 +137,18 @@ $docs-xlarge-breakpoint: rem-calc(1060);
     }
 
     }
+}
 
+.logo-pair {
+  .logo-pair--image {
+    height: rem-calc(64);
+    width: rem-calc(64);
+
+    &.habitat {
+      height: rem-calc(48);
+      width: rem-calc(48);
+    }
+  }
 }
 
 .docs--cta {
