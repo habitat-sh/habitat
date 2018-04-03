@@ -206,12 +206,13 @@ $community-xlarge-breakpoint: rem-calc(1060);
       color: $hab-green;
     }
   }
+  // ProdPad Roadmap iframe overrides
+  iframe {
+    border: 1px solid $hab-gray-light;
+    border-radius: $global-radius !important;
+  }
 }
-// ProdPad Roadmap iframe overrides
-iframe {
-  border: 1px solid $hab-gray-light;
-  border-radius: $global-radius !important;
-}
+
 
 .community--tracker {
   margin-bottom: -100px !important;

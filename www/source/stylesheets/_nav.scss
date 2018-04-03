@@ -1,4 +1,4 @@
-$main-nav-breakpoint: 769px;
+$main-nav-breakpoint: 960px;
 
 @mixin large-nav {
   @media (min-width: $main-nav-breakpoint) {
@@ -13,13 +13,14 @@ $main-nav-breakpoint: 769px;
 }
 
 #main-nav {
-  position: relative;
+  position: fixed;
   z-index: 100;
-  background: transparent;
+  background: $hab-slate;
   min-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
   box-shadow: 0 0 50px 2px transparent;
+  z-index: 10;
 
   @include large-nav {
     min-height: $header-height;
@@ -56,9 +57,9 @@ $main-nav-breakpoint: 769px;
 
   // modifiers for nav on homepage on large screens
   .home &:not(.is-sticky) {
-    @include large-nav {
-        background: transparent;
-    }
+    // @include large-nav {
+    //     background: red;
+    // }
 
     .main-nav--logo {
       // @media (min-width: 1150px) {
@@ -221,7 +222,7 @@ $main-nav-breakpoint: 769px;
           position: absolute;
           right: 0;
           top: 52px;
-          z-index: 9999;
+          z-index: 10;
 
           ul {
             margin-left: 0;
@@ -274,7 +275,7 @@ $main-nav-breakpoint: 769px;
 }
 
 .main-nav--link {
-  a {
+  > a {
     position: relative;
     color: $white;
     transition: color 0.2s ease;

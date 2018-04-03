@@ -351,6 +351,10 @@ code {
   &.alt {
     @include alt-button;
   }
+
+  @include small-nav {
+    padding: $button-padding-small;
+  }
 }
 
 .button.cta{
@@ -419,6 +423,65 @@ ol.lower-roman {
 
 a, a:hover {
   transition: all 200ms;
+}
+
+a {
+  &.with-arrow {
+    font-size: rem-calc(13);
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    &:after {
+      content: '→';
+      margin-left: rem-calc(4);
+      display: inline-block;
+      transition: margin-left .2s;
+    }
+    &:hover {
+      &:after {
+        margin-left: rem-calc(8);
+      }
+    }
+  }
+  &.text-white:hover {
+    color: $hab-white;
+  }
+}
+
+a.button,
+.main-nav--link > a {
+  &.download { background-image: url('../images/icons/icon-cloud-download.svg'); }
+  &.github { background-image: url('../images/icons/icon-github.svg'); }
+}
+
+a.button {
+  &.with-icon {
+    padding-left: 60px;
+    background: {
+      position: 32px center;
+      repeat: no-repeat;
+      size: 16px;
+    }
+    @include small-nav {
+      padding-left: 40px;
+      background: {
+        position: 16px center;
+      }
+    }
+  }
+}
+
+.main-nav--link > a {
+  &.with-icon {
+    padding-left: 25px;
+    background: {
+      position: left center;
+      repeat: no-repeat;
+      color: transparent;
+      size: 16px;
+    }
+  }
 }
 
 .back-link {

@@ -6,10 +6,6 @@
   / or the hero title gets covered by the navigation on mobile devices
   / = partial "layouts/message"
 
-  a.main-nav--github href="https://github.com/habitat-sh"
-    img src="/images/solutions-logos/icon-github.svg" alt="Find Us On Github"
-    span="Find us on GitHub"
-
   .main-nav--container.row
     .columns.large-2.main-nav--logo
       a href="/" data-builder-url="#{builder_web_url}"
@@ -17,8 +13,6 @@
     .columns.large-10.nav.main-nav--links-wrap
       .main-nav--toggle
         = partial "images/icons/icon-nav-toggle.svg"
-      .main-nav--cta.signed-out
-        a.button href="#{builder_web_url}/#/sign-in" Sign In / Sign Up
       ul.main-nav--links
         li.main-nav--link
           a.learn href="/learn" Learn
@@ -27,17 +21,10 @@
         li.main-nav--link
           a.community href="/community" Community
         li.main-nav--link
-          a.pricing href="/pricing" Pricing
+          a.enterprise href="/enterprise" Enterprise
         li.main-nav--link
           a.blog href="/blog" Blog
         li.main-nav--link
-          a.search-pkgs href="#{builder_web_url}/#/pkgs" Search Packages
-        li.main-nav--link.signed-in
-          = link_to 'Builder', "#{builder_web_url}/#/pkgs"
-          .avatar
-            img
-          .dropdown
-            ul
-              li.username
-              li.sign-out
-                a href="#" Sign Out
+          a.download.with-icon href="/docs/install-habitat/" Download
+        li.main-nav--link
+          a.github.with-icon href="https://github.com/habitat-sh/habitat/" View on GitHub
