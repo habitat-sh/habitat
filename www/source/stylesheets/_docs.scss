@@ -86,57 +86,43 @@ $docs-xlarge-breakpoint: rem-calc(1060);
   }
 }
 
-.docs--hero--text {
-  max-width: rem-calc(600);
-  color: $hab-navy;
-  font-style: italic;
-
-  & + .docs--hero--text {
-    margin-top: rem-calc(-20px);
-  }
-}
-
 .docs--intro {
   padding: 0;
 
-  .docs--hero--text {
-    padding: .75rem 1rem;
-    border-radius: $global-radius;
-    background-color: rgba(0,0,0,0.05);
+  p {
+    margin-bottom: 2rem;
   }
 }
 
-.docs--feature--list {
-  margin: 0;
-  padding: 0;
+//Getting Started
+.get-started--boxes {
 
-  li {
-    margin-bottom: 1rem;
-    padding: 0 1rem;
-    list-style: none;
-    border-left: 1px solid $hab-gray;
-  }
-}
-
-// Quicklinks
-.docs--quicklink {
-  padding: 0;
-
-  .docs--quicklink--cards,
-  .docs--quicklink--card--wrapper {
+  .card {
+    @include card;
     display: flex;
+    flex-wrap: wrap;
+    padding: rem-calc(24) rem-calc(24) rem-calc(0) rem-calc(24);
+    position: relative;
+    border-radius: $global-radius;
+
+    p {
+      color: $hab-gray-dark;
+    }
+
+    > p:last-child {
+      margin-bottom: 0;
+    }
   }
+}
 
-  .docs--quicklink--card {
-    @extend %card-box;
-    @include shadow-float;
-    min-height: 240px;
-    transition: all .1s;
+.logo-pair {
+  .logo-pair--image {
+    height: rem-calc(64);
+    width: rem-calc(64);
 
-    &:hover {
-      @include shadow-float-hover;
-      transform: translateY(-3px);
-      transition: all .15s;
+    &.habitat {
+      height: rem-calc(48);
+      width: rem-calc(48);
     }
   }
 }
