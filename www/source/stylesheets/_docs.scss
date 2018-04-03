@@ -86,35 +86,11 @@ $docs-xlarge-breakpoint: rem-calc(1060);
   }
 }
 
-.docs--hero--text {
-  max-width: rem-calc(600);
-  color: $hab-navy;
-  font-style: italic;
-
-  & + .docs--hero--text {
-    margin-top: rem-calc(-20px);
-  }
-}
-
 .docs--intro {
   padding: 0;
 
-  .docs--hero--text {
-    padding: .75rem 1rem;
-    border-radius: $global-radius;
-    background-color: rgba(0,0,0,0.05);
-  }
-}
-
-.docs--feature--list {
-  margin: 0;
-  padding: 0;
-
-  li {
-    margin-bottom: 1rem;
-    padding: 0 1rem;
-    list-style: none;
-    border-left: 1px solid $hab-gray;
+  p {
+    margin-bottom: 2rem;
   }
 }
 
@@ -124,7 +100,8 @@ $docs-xlarge-breakpoint: rem-calc(1060);
   .card {
     @include card;
     display: flex;
-    padding: rem-calc(24)rem-calc(24)rem-calc(0)rem-calc(24);
+    flex-wrap: wrap;
+    padding: rem-calc(24) rem-calc(24) rem-calc(0) rem-calc(24);
     position: relative;
     border-radius: $global-radius;
 
@@ -135,8 +112,7 @@ $docs-xlarge-breakpoint: rem-calc(1060);
     > p:last-child {
       margin-bottom: 0;
     }
-
-    }
+  }
 }
 
 .logo-pair {
