@@ -90,6 +90,7 @@ protoc = "1.4"
 protoc-rust = "1.4"
 
 [features]
+default = ["protocols"]
 apidocs = []
 protocols = []
 

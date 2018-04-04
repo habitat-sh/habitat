@@ -19,6 +19,7 @@ init:
 clone_folder: c:\projects\habitat
 
 environment:
+  CI: true
   CARGO_HOME: "c:\\cargo"
   RUSTUP_HOME: "c:\\multirust"
   CARGO_TARGET_DIR: "c:\\projects\\habitat\\target"
