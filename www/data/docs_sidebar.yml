@@ -95,8 +95,6 @@ sidebar_links:
       link: "/docs/reference/#package-contents"
     - title: Supervisor Log Keys
       link: "/docs/reference/#sup-log-keys"
-    - title: Infographics
-      link: "/docs/reference/#infographics"
   - title: Diagrams
     link: "/docs/diagrams"
     sub_links:
