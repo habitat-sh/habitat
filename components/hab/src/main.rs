@@ -50,11 +50,11 @@ use hcore::service::ServiceGroup;
 use hcore::url::default_bldr_url;
 use hcore::binlink::default_binlink_dir;
 
-use hab::{AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
+use hab::{AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 use hab::analytics;
 use hab::cli;
 use hab::command;
-use hab::config;
+use hab::config::{self, Config};
 use hab::feat;
 use hab::scaffolding;
 use hab::error::{Error, Result};
@@ -751,6 +751,10 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let mut args = env::args();
+    let config = config::load()?;
+    // JW: Set the CtlGateway secret for the Supervisor process that we might start below. This
+    // will be removed when we refactor the hab binary to contain the Supervisor's commands itself.
+    set_ctl_secret_env_var(&config);
     match (
         args.nth(1).unwrap_or_default().as_str(),
         args.next().unwrap_or_default().as_str(),
@@ -785,12 +789,13 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("stu", _, _) | ("stud", _, _) | ("studi", _, _) | ("studio", _, _) => {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
-        ("sup", "run", _) |
-        ("sup", "start", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("sup", "run", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("sup", "start", _) |
         ("sup", _, _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("start", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
-        ("stop", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
-        ("svc", "start", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("start", _, _) | ("stop", _, _) => {
+            command::sup::start(ui, env::args_os().skip(1).collect())
+        }
+        ("svc", "start", _) |
         ("svc", "load", _) |
         ("svc", "unload", _) |
         ("svc", "status", _) |
@@ -863,6 +868,20 @@ fn auth_token_param_or_env(ui: &mut UI, m: &ArgMatches) -> Result<String> {
                         None => return Err(Error::ArgumentError("No auth token specified")),
                     }
                 }
+            }
+        }
+    }
+}
+
+/// Check if the HAB_CTL_SECRET env var. If not, check the CLI config to see if there is a ctl
+/// secret set and set that value to HAB_CTL_SECRET.
+fn set_ctl_secret_env_var(config: &Config) {
+    match henv::var(CTL_SECRET_ENVVAR) {
+        Ok(_) => (),
+        Err(_) => {
+            match config.ctl_secret {
+                Some(ref v) => env::set_var(CTL_SECRET_ENVVAR, v),
+                None => (),
             }
         }
     }

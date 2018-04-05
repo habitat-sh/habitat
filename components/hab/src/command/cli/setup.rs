@@ -20,7 +20,7 @@ use hcore::env;
 use hcore::package::ident;
 use hcore::Error::InvalidOrigin;
 
-use {AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR};
+use {AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
 use analytics;
 use command;
 use config;
@@ -134,7 +134,15 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
         ui.br()?;
         ui.para("Enter your Habitat Personal Access Token.")?;
         let auth_token = prompt_auth_token(ui)?;
-        write_cli_config_auth_token(&auth_token)?;
+        write_cli_config_auth_token(auth_token)?;
+    } else {
+        ui.para("Okay, maybe another time.")?;
+    }
+    if ask_default_ctl_secret(ui)? {
+        ui.br()?;
+        ui.para("Enter your Habitat Supervisor CtlGateway secret.")?;
+        let ctl_secret = prompt_ctl_secret(ui)?;
+        write_cli_config_ctl_secret(ctl_secret)?;
     } else {
         ui.para("Okay, maybe another time.")?;
     }
@@ -175,15 +183,30 @@ fn ask_create_origin(ui: &mut UI, origin: &str) -> Result<bool> {
     )?)
 }
 
-fn write_cli_config_origin(origin: &str) -> Result<()> {
+fn write_cli_config_origin<T>(origin: T) -> Result<()>
+where
+    T: ToString,
+{
     let mut config = config::load()?;
     config.origin = Some(origin.to_string());
     config::save(&config)
 }
 
-fn write_cli_config_auth_token(auth_token: &str) -> Result<()> {
+fn write_cli_config_auth_token<T>(auth_token: T) -> Result<()>
+where
+    T: ToString,
+{
     let mut config = config::load()?;
     config.auth_token = Some(auth_token.to_string());
+    config::save(&config)
+}
+
+fn write_cli_config_ctl_secret<T>(value: T) -> Result<()>
+where
+    T: ToString,
+{
+    let mut config = config::load()?;
+    config.ctl_secret = Some(value.to_string());
     config::save(&config)
 }
 
@@ -231,6 +254,13 @@ fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {
     )?)
 }
 
+fn ask_default_ctl_secret(ui: &mut UI) -> Result<bool> {
+    Ok(ui.prompt_yes_no(
+        "Set up a default Habitat Supervisor CtlGateway secret?",
+        Some(true),
+    )?)
+}
+
 fn prompt_auth_token(ui: &mut UI) -> Result<String> {
     let config = config::load()?;
     let default = match config.auth_token {
@@ -245,6 +275,24 @@ fn prompt_auth_token(ui: &mut UI) -> Result<String> {
     };
     Ok(ui.prompt_ask(
         "Habitat personal access token",
+        default.as_ref().map(|x| &**x),
+    )?)
+}
+
+fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
+    let config = config::load()?;
+    let default = match config.ctl_secret {
+        Some(o) => {
+            ui.para(
+                "You already have a default CtlGateway secret set up, but feel free to change it
+                if you wish.",
+            )?;
+            Some(o)
+        }
+        None => env::var(CTL_SECRET_ENVVAR).ok(),
+    };
+    Ok(ui.prompt_ask(
+        "Habitat Supervisor CtlGateway secret",
         default.as_ref().map(|x| &**x),
     )?)
 }

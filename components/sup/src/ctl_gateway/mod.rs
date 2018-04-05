@@ -34,6 +34,7 @@ use base64;
 use common::ui::UIWriter;
 use depot_client::DisplayProgress;
 use futures::prelude::*;
+use hcore;
 use hcore::util::perm;
 use rand::{self, Rng};
 
@@ -48,7 +49,8 @@ pub const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
 pub const REQ_TIMEOUT: u64 = 10_000;
 /// Length of characters in CtlGateway secret key.
 const CTL_SECRET_LEN: usize = 64;
-
+/// Environment variable optionally containing the CtlGateway secret key.
+const CTL_SECRET_ENVVAR: &'static str = "HAB_CTL_SECRET";
 static LOGKEY: &'static str = "AG";
 
 /// Used by modules outside of the CtlGateway for seamlessly replying to transactional messages.
@@ -122,20 +124,18 @@ impl UIWriter for CtlRequest {
     type ProgressBar = NetProgressBar;
 
     fn out(&mut self) -> &mut io::Write {
-        self as &mut io::Write
+        self
     }
 
     fn err(&mut self) -> &mut io::Write {
-        self as &mut io::Write
+        self
     }
 
     fn is_colored(&self) -> bool {
-        // Let's put this as a flag on the txn?
         true
     }
 
     fn is_a_terminal(&self) -> bool {
-        // Let'sput this as a flag on the txn?
         true
     }
 
@@ -215,6 +215,13 @@ pub fn read_secret_key<T>(sup_root: T, out: &mut String) -> Result<bool>
 where
     T: AsRef<Path>,
 {
+    // We attempt to read from environment variable before attempting to read from filesystem
+    // because a remote client won't have the sup root on it's disk. The env var is set by the
+    // `hab` binary and populated by it's config.
+    if let Some(value) = hcore::env::var(CTL_SECRET_ENVVAR).ok() {
+        *out = value;
+        return Ok(true);
+    }
     let secret_key_path = sup_root.as_ref().join(CTL_SECRET_FILENAME);
     if secret_key_path.exists() {
         if secret_key_path.is_dir() {
