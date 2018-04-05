@@ -52,7 +52,7 @@ sidebar_links:
       link: "/docs/using-habitat/#overview"
     - title: Using Habitat Packages
       link: "/docs/using-habitat/#using-packages"
-    - title: Setting up a Ring 
+    - title: Setting up a Ring
       link: "/docs/using-habitat/#setting-up-a-ring"
     - title: Monitor Services
       link: "/docs/using-habitat/#monitor-services"
@@ -95,8 +95,29 @@ sidebar_links:
       link: "/docs/reference/#package-contents"
     - title: Supervisor Log Keys
       link: "/docs/reference/#sup-log-keys"
-    - title: Infographics
-      link: "/docs/reference/#infographics"
+  - title: Diagrams
+    link: "/docs/diagrams"
+    sub_links:
+    - title: Architecture Overview
+      link: "/docs/diagrams/#architecture-overview"
+    - title: Initial Package Build Flow
+      link: "/docs/diagrams/#initial-package-build-flow"
+    - title: Dependency Update Flow
+      link: "/docs/diagrams/#dependency-update-flow"
+    - title: Application Rebuild Flow
+      link: "/docs/diagrams/#application-rebuild-flow"
+    - title: Initial Docker Container Publishing Flow
+      link: "/docs/diagrams/#initial-docker-container-publishing-flow"
+    - title: Automated Docker Container Publishing Flow
+      link: "/docs/diagrams/#automated-docker-container-publishing-flow"
+    - title: Promote Packages Through Channels
+      link: "/docs/diagrams/#promote-packages-through-channels"
+    - title: Runtime Services Group Binding
+      link: "/docs/diagrams/#runtime-services-group-binding"
+    - title: Builder Architecture
+      link: "/docs/diagrams/#builder-architecture"
+    - title: Habitat and Kubernetes
+      link: "/docs/diagrams/#habitat-and-kubernetes"
   - title: Best Practice Guides
     link: "/docs/best-practices"
     sub_links:

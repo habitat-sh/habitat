@@ -30,7 +30,7 @@ ChefConf in May 2017 saw several major launches from the Habitat team, including
   * **Scaffoldings**: are a high level way for a developer to declare their application type in their plan.sh and then have Habitat’s automation build out your application from there. They are currently available for Ruby and Node.js applications, with more in the works as communities request and collaborate with the core team on them. [Read all about Scaffolding](/blog/2017/05/Scaffolding/), and
 [get step by step instructions on using the Node.js Scaffolding.](/blog/2017/05/Scaffolding-App-From-Scratch/)
   * **Enterprise ready core plan push**: Habitat’s partners released a series of big data and enterprise grade core plans to extend and enhance the ecosystem for our users. [Get more details.](https://blog.chef.io/2017/05/23/enterprise-ready-Habitat-plans-now-available/)
-  * **Architecture infographics released**: a picture is worth 10,000 words, and our amazing designer [Liz’s](https://twitter.com/lizchen_uw) architectural diagrams of the systems we have built help quickly communicate how the different components interact with one another. [Check them out!](/docs/reference#infographics)
+  * **Architecture infographics released**: a picture is worth 10,000 words, and our amazing designer [Liz’s](https://twitter.com/lizchen_uw) architectural diagrams of the systems we have built help quickly communicate how the different components interact with one another. [Check them out!](/docs/diagrams)
 
 Tomorrow’s regularly scheduled Thursday release will continue the cadence of capability leaps, with both a new Go Scaffolding for our Go development enthusiasts, and the release of the launcher capability.
 

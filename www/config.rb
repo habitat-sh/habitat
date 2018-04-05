@@ -210,7 +210,7 @@ redirect 'docs/reference/utility-functions/index.html', to: '/docs/reference/#ut
 redirect 'docs/reference/environment-vars/index.html', to: '/docs/reference/#environment-variables'
 redirect 'docs/reference/package-contents/index.html', to: '/docs/reference/#package-contents'
 redirect 'docs/reference/log-keys/index.html', to: '/docs/reference/#sup-log-keys'
-redirect 'docs/reference/habitat-infographics/index.html', to: '/docs/reference/#infographics'
+redirect 'docs/reference/habitat-infographics/index.html', to: '/docs/diagrams'
 redirect 'docs/contribute-help-build/index.html', to: '/docs/contribute'
 redirect 'docs/concepts-scaffolding/index.html', to: '/docs/glossary/#glossary-scaffolding'
 redirect 'docs/concepts-supervisor/index.html', to: '/docs/glossary/#glossary-supervisor'
