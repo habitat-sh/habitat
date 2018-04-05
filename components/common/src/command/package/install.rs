@@ -816,8 +816,9 @@ impl<'a> InstallTask<'a> {
         // Canonicalize both paths to ensure that there aren't any symlinks when comparing them
         // later.
         let artifact_path = artifact_path.canonicalize()?;
-        let cache_path = self.cached_artifact_path(ident).canonicalize()?;
         fs::create_dir_all(self.artifact_cache_path)?;
+        let artifact_cache_path = self.artifact_cache_path.canonicalize()?;
+        let cache_path = artifact_cache_path.join(ident.archive_name());
 
         // Handle the pathological case where you're trying to install
         // an artifact file directly from the cache. Otherwise, you'd
