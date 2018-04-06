@@ -20,7 +20,7 @@ $main-nav-breakpoint: 960px;
   width: 100%;
   transition: top 0.4s ease;
   box-shadow: 0 0 50px 2px transparent;
-  z-index: 10;
+  z-index: 9000;
 
   @include large-nav {
     min-height: $header-height;

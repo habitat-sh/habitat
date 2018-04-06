@@ -45,10 +45,9 @@
       margin-bottom: 16px;
     }
 
-    p {
+    .hero--subtitle {
       margin-bottom: 36px;
-      font-size: 18px;
-      color: $text-gray;
+      max-width: rem-calc(600);
     }
   }
 

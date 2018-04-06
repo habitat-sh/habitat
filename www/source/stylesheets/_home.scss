@@ -8,11 +8,9 @@ body.home {
   color: $white;
 
   .home--hero--content {
-    p {
-      max-width: rem-calc(496);
-      font-size: rem-calc(18);
-      line-height: rem-calc(27);
-      color: $text-gray;
+
+    .hero--subtitle {
+      margin: 0 0 rem-calc(24);
     }
 
     a.button {
@@ -126,6 +124,7 @@ body.home {
   }
 
   .home--platform-logos {
+    margin-bottom: 0;
     margin-left: 0;
     list-style-type: none;
     width: 100%;

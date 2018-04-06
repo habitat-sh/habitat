@@ -79,6 +79,10 @@ $community-xlarge-breakpoint: rem-calc(1060);
       margin-bottom: rem-calc(20);
     }
   }
+
+  &.community--hero {
+    margin-top: 0;
+  }
 }
 
 // Hero
@@ -93,7 +97,13 @@ $community-xlarge-breakpoint: rem-calc(1060);
     margin-bottom: .75rem;
   }
 
+.tertiary-link {
+  display: block;
+  margin-top: rem-calc(16);
+}
+
   a.tertiary-cta {
+    margin: rem-calc(24) auto 0;
     color: $hab-white;
     opacity: .5;
 
@@ -110,6 +120,26 @@ $community-xlarge-breakpoint: rem-calc(1060);
   }
 }
 
+.community--hero--content,
+.community--roadmap {
+  .button {
+    display: block;
+  }
+
+  .button + .button {
+    margin-left: 0;
+  }
+
+  @include large-community {
+    .button {
+      display: inline-block;
+    }
+    .button + .button {
+      margin-left: rem-calc(16);
+    }
+  }
+}
+
 .community--hero--heading {
   color: $white;
   font-size: rem-calc(36);
@@ -119,14 +149,9 @@ $community-xlarge-breakpoint: rem-calc(1060);
   }
 }
 
-.community--hero--text {
-  margin: 0 auto rem-calc(40);
-  max-width: rem-calc(600);
-  color: $white;
-
-  & + .community--hero--text {
-    margin-top: rem-calc(-20px);
-  }
+.hero--subtitle {
+  margin: 0 auto rem-calc(24);
+  max-width: rem-calc(680);
 }
 
 // Events
@@ -193,7 +218,7 @@ $community-xlarge-breakpoint: rem-calc(1060);
   z-index: 5;
 
   .roadmap-headings {
-    margin-bottom: rem-calc(10);
+    margin: rem-calc(24) auto;
     text-align: center;
 
     h5 {
@@ -257,7 +282,7 @@ $community-xlarge-breakpoint: rem-calc(1060);
 }
 
 .community--cta {
-  padding: rem-calc(160) 0;
+  padding: rem-calc(96) 0;
   color: $hab-white;
 
   ul {
