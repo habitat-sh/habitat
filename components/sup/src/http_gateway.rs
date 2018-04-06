@@ -188,6 +188,7 @@ impl Server {
 
 #[derive(Default, Serialize)]
 struct HealthCheckBody {
+    status: String,
     stdout: String,
     stderr: String,
 }
@@ -249,15 +250,19 @@ fn health(req: &mut Request) -> IronResult<Response> {
             let mut body = HealthCheckBody::default();
             file.read_to_string(&mut buf).unwrap();
             let code = i8::from_str(buf.trim()).unwrap();
-            let status: status::Status = HealthCheck::from(code).into();
+            let health_check = HealthCheck::from(code);
+            let http_status: status::Status = HealthCheck::from(code).into();
+
+            body.status = health_check.to_string();
             if let Ok(mut file) = File::open(&stdout_path) {
                 let _ = file.read_to_string(&mut body.stdout);
             }
             if let Ok(mut file) = File::open(&stderr_path) {
                 let _ = file.read_to_string(&mut body.stderr);
             }
+
             Ok(Response::with((
-                status,
+                http_status,
                 Header(headers::ContentType::json()),
                 serde_json::to_string(&body).unwrap(),
             )))
