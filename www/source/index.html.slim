@@ -9,11 +9,11 @@ section.home--hero
     .columns.small-12.medium-6
       h1.home--hero--heading
         ' Build your application to run anywhere, then manage it throughout its lifecycle.
-      p
+      p.hero--subtitle
         | Habitat is open source software that creates platform-independent build artifacts and provides built-in deployment and management capabilities.
       div
         = link_to 'Get Started', '/learn', class: 'button cta'
-        = link_to 'View on Github', 'http://github.com/habitat-sh/habitat', class: 'button github with-icon'
+        = link_to 'View on GitHub', 'http://github.com/habitat-sh/habitat', class: 'button github with-icon'
     .columns.small-12.medium-6.video-cat-container
       .video-with-cat
         <iframe width="560" height="315" src="https://www.youtube.com/embed/VW1DwDezlqM" frameborder="0" allow="autoplay; encrypted-media" wmode="transparent" allowfullscreen></iframe>
@@ -24,25 +24,23 @@ section.home--hero
         img src="/images/icons/icon-cloud-done.svg"
         h3 Move your existing applications to a cloud friendly architecture.
         p Get up and running with Docker containers, AWS ECR, Kubernetes, virtual machines, and more. All from a single build artifact.
-        = link_to 'Learn more', '/docs/best-practices/', class: 'with-arrow'
     .columns.small-12.medium-4.get-started--boxes--item
       .card.no-hover
         img src="/images/icons/icon-touch-app.svg"
         h3 Build, deploy, and manage all your applications the same way.
         p Habitat packages include all the tooling you'll need to ship and run your applications. Adopt as much as you need, when you need it.
-        = link_to 'Learn more', '/learn', class: 'with-arrow'
     .columns.small-12.medium-4.get-started--boxes--item
       .card.no-hover
         img src="/images/icons/icon-view.svg"
         h3 Know exactly what software you're running in production.
-        p Complete dependency management at build time. Know exactly what version of every dependency you're running on each node via our API.
+        p Complete dependency management at build time. Know exactly which version of every dependency is running on each node via our API.
 
   .row.mt-4
     .home--block.columns.small-12.logo-callout
       .columns.small-12.medium-6
         h2.h2 Habitat makes it easier to run your applications on any platform.
         p.mb-0
-          = link_to 'See how it works', '/demo/packaging-system/steps/1/', class: 'with-arrow text-white underline'
+          = link_to 'See how it works', '/docs/diagrams', class: 'with-arrow text-white underline'
         p.mb-0
           = link_to 'Get enterprise support', '/enterprise/', class: 'with-arrow text-white underline'
       .columns.small-12.medium-5.medium-offset-1

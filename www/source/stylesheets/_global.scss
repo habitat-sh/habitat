@@ -329,19 +329,20 @@ code {
     &.contrast {
       color: $hab-navy;
     }
+
+    &:hover {
+      background-color: $hab-off-white;
+      box-shadow: none;
+    }
   }
 
   &.download {
-    background: url('/images/icons/icon-download.svg') 15px center no-repeat;
-    background-color: rgba($hab-gray-light, .10);
-    box-shadow: 0 4px 16px rgba($hab-navy, 0.20);
-    padding-left: 1.75rem;
+    @include secondary-button;
 
-    &:hover {
-      color: rgba($hab-white, .85);
-      background-color: rgba($hab-gray-light, .05);
-      box-shadow: 0 1px 4px rgba($hab-navy, 0.30);
-    }
+    background-image: url('/images/icons/icon-download.svg');
+    background-position: 15px center;
+    background-repeat: no-repeat;
+    padding-left: 1.75rem;
   }
 
   + .button {
@@ -357,7 +358,7 @@ code {
   }
 }
 
-.button.cta{
+.button.cta {
   @include primary-button;
 
   &.outline {
@@ -416,6 +417,14 @@ ol.lower-latin {
 
 ol.lower-roman {
   list-style-type: lower-roman;
+}
+
+.hero--subtitle {
+  margin: 0 auto;
+  max-width: rem-calc(500);
+  font-size: rem-calc(18);
+  line-height: rem-calc(27);
+  color: $text-gray;
 }
 
 // 5. Links

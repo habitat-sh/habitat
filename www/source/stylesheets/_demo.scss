@@ -39,6 +39,10 @@ $demo-large-breakpoint: rem-calc(1060);
       margin: 0 auto;
       max-width: rem-calc(800);
     }
+
+    .hero--subtitle {
+      max-width: rem-calc(640);
+    }
   }
 
   // Demo typography

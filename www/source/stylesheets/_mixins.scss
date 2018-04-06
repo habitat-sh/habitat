@@ -35,6 +35,18 @@
   font-weight: normal;
 }
 
+@mixin secondary-button {
+  background-color: rgba($hab-gray-light, .10);
+  box-shadow: 0 4px 16px rgba($hab-navy, 0.20);
+  border-radius: $global-radius;
+
+  &:hover {
+    color: rgba($hab-white, .85);
+    background-color: rgba($hab-gray-light, .05);
+    box-shadow: 0 1px 4px rgba($hab-navy, 0.30);
+  }
+}
+
 @mixin alt-button {
   @include button;
   background-color: $hab-blue-medium;
