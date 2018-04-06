@@ -220,7 +220,6 @@ impl<'a, 'b> Cli<'a, 'b> {
                  .requires("REGISTRY_USERNAME")
                  .help("Remote registry password, required for pushing image to remote registry"))
             .arg(Arg::with_name("REGISTRY_TYPE")
-                 .requires("REGISTRY_URL")
                  .possible_values(RegistryType::variants())
                  .long("registry-type")
                  .short("R")
@@ -229,7 +228,8 @@ impl<'a, 'b> Cli<'a, 'b> {
             .arg(Arg::with_name("REGISTRY_URL")
                  // This is not strictly a requirement but will keep someone from
                  // making a mistake when inputing an ECR URL
-                 .requires("REGISTRY_TYPE")
+                 .required_if("REGISTRY_TYPE", "amazon")
+                 .required_if("REGISTRY_TYPE", "azure")
                  .long("registry-url")
                  .short("G")
                  .value_name("REGISTRY_URL")
