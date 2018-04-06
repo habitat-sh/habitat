@@ -34,6 +34,8 @@ pub enum Error {
                      Current Docker Server OS is set to: {}",
            _0)]
     DockerNotInWindowsMode(String),
+    #[fail(display = "Invalid registry type: {}", _0)]
+    InvalidRegistryType(String),
     #[fail(display = "{}", _0)]
     InvalidToken(FromUtf8Error),
     #[fail(display = "Docker login failed with exit code: {}", _0)]
