@@ -30,7 +30,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `https_proxy` | build system, Supervisor | no default | A URL for a local HTTPS proxy server optionally supporting basic authentication |
 | `NO_INSTALL_DEPS` | build system | no default | Set this variable to prevent dependencies install during build |
 | `no_proxy` | build system, Supervisor | no default | A comma-separated list of domain exclusions for the `http_proxy` and `https_proxy` environment variables |
-| `SSL_CERT_FILE` | system | no default | a variable to help you navigate firewalls |
+| `SSL_CERT_FILE` | system | no default | Standard OpenSSL environment variable to override the system certificate file. This is particularly important for the secure HTTPS connection with a Builder instance. Can be used to help you navigate corporate firewalls. |
 
 # Customizing Studio
 
