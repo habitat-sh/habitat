@@ -2,253 +2,156 @@
 title: Habitat - Automation That Travels with the App
 description: Habitat - Automation that travels with the app. Habitat allows any app to be independent of any particular infrastructure environment, like containers or PaaS.
 inline_javascript: homepageScripts();
-classes: home
+classes: home circles
 ---
 section.home--hero
-  .home--hero--content
-    h1.home--hero--heading.row
-      ' Your fastest path from Code to Cloud Native.
-      = partial "partials/global/github_star"
-    p.home--hero--text.row
-      span.column.large-12="A simple, flexible way to build, deploy, and manage cloud native applications."
-      span.column.large-12="Get started in 10 minutes."
-    .home--button-wrap.hero.row
-      a href="#{builder_web_url}/#/sign-in/" class="button cta" Sign up
-      = link_to 'Get Started', '/demo/', class: "button outline"
+  .home--hero--content.row
+    .columns.small-12.medium-6
+      h1.home--hero--heading
+        ' Build your application to run anywhere, then manage it throughout its lifecycle.
+      p
+        | Habitat is open source software that creates platform-independent build artifacts and provides built-in deployment and management capabilities.
+      div
+        = link_to 'Get Started', '/learn', class: 'button cta'
+        = link_to 'View on Github', 'http://github.com/habitat-sh/habitat', class: 'button github with-icon'
+    .columns.small-12.medium-6.video-cat-container
+      .video-with-cat
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/VW1DwDezlqM" frameborder="0" allow="autoplay; encrypted-media" wmode="transparent" allowfullscreen></iframe>
 
-#homepage-event-template
-  a.home--hero--highlight href="{{ event_link }}" target="_blank"
-    .home--hero--highlight--left
-      span <b>{{ day_of_month }}</b>
-      | {{ month_name }}
-    .home--hero--highlight--right
-      p.home--hero--highlight--title
-        | {{ event_name }}
-      p.home--hero--highlight--subtitle
-        | {{ event_location }} | {{ event_date }}
-  img.home--hero--highlight--img[src="/images/homepage/architecture-diagram-mobile.svg"
-    onerror="this.src='/images/homepage/architecture-diagram-mobile.png'" alt=""]
+  .home--hero-cards.row.mt-4
+    .columns.small-12.medium-4.get-started--boxes--item
+      .card.no-hover
+        img src="/images/icons/icon-cloud-done.svg"
+        h3 Move your existing applications to a cloud friendly architecture.
+        p Get up and running with Docker containers, AWS ECR, Kubernetes, virtual machines, and more. All from a single build artifact.
+        = link_to 'Learn more', '/docs/best-practices/', class: 'with-arrow'
+    .columns.small-12.medium-4.get-started--boxes--item
+      .card.no-hover
+        img src="/images/icons/icon-touch-app.svg"
+        h3 Build, deploy, and manage all your applications the same way.
+        p Habitat packages include all the tooling you'll need to ship and run your applications. Adopt as much as you need, when you need it.
+        = link_to 'Learn more', '/learn', class: 'with-arrow'
+    .columns.small-12.medium-4.get-started--boxes--item
+      .card.no-hover
+        img src="/images/icons/icon-view.svg"
+        h3 Know exactly what software you're running in production.
+        p Complete dependency management at build time. Know exactly what version of every dependency you're running on each node via our API.
 
-section.home--hero-carousel
-  .row.relative.home--hero-carousel-row
-    .carousel-slide.home--hero-carousel-slide.home--hero-carousel-build
-      .columns.large-7.code.home--hero-carousel-slide-main
-        .window-buttons
-          .circle.small.gray
-          .circle.small.gray
-          .circle.small.gray
-        p.output="# Start in your code repository"
-        p.input="$ cd my-repository/my-node-js-project"
-        p.output="# Create your plan"
-        p.input="$ hab plan init -s node"
-        p.output="# Build your application"
-        p.input="$ hab pkg build"
-      .columns.large-5.home--hero-carousel-slide-sidebar
-        h4="Make any application or service cloud native."
-        p
-          | Build and package any application, using templates or Habitat
-            Scaffolding, for common languages such as NodeJS, Ruby, and Java.
-        ul.tech-icons
-          li.tech-icons--item: a.tech-icon.tech-icons--node href="/tutorials/build-your-own/node/"
-            img src="/images/solutions-logos/icon-node.svg" alt="node"
-          li.tech-icons--item: a.tech-icon.tech-icons--ruby href="/tutorials/build-your-own/ruby/"
-            img src="/images/solutions-logos/icon-ruby.svg" alt="ruby"
-          li.tech-icons--item: a.tech-icon.tech-icons--java href="/tutorials/build-your-own/gradle/"
-            img src="/images/solutions-logos/icon-java.svg" alt="java"
-          li.tech-icons--item
-            .tech-icon.coming-soon.tech-icons--go.has-tip.top data-tooltip="" data-disable-hover="false" title="Coming soon!"
-              img src="/images/solutions-logos/icon-go-disabled.svg" alt="go"
-          li.tech-icons--item
-            .tech-icon.coming-soon.tech-icons--php.has-tip.top data-tooltip="" data-disable-hover="false" title="Coming soon!"
-              img src="/images/solutions-logos/icon-php-disabled.svg" alt="php"
-          li.tech-icons--item
-            .tech-icon.coming-soon.tech-icons--python.has-tip.top data-tooltip="" data-disable-hover="false" title="Coming soon!"
-              img src="/images/solutions-logos/icon-python-disabled.svg" alt="python"
-          li.tech-icons--item
-            .tech-icon.coming-soon.tech-icons--scala.has-tip.top data-tooltip="" data-disable-hover="false" title="Coming soon!"
-              img src="/images/solutions-logos/icon-scala-disabled.svg" alt="scala"
-        a.button.outline href="/learn" Get Started
-    .carousel-slide.home--hero-carousel-slide.home--hero-carousel-deploy
-      .columns.large-7.browser.home--hero-carousel-slide-main
-        .window-buttons
-          .circle.small.gray
-          .circle.small.gray
-          .circle.small.gray
-        p.url
-          span="bldr.habitat.sh"
-        img.carousel-main-img.mt-1 src="/images/homepage/manage-carousel-screen.png"
-      .columns.large-5.home--hero-carousel-slide-sidebar
-        h4="Any runtime. Any format."
-        p
-          | Deploy your application consistently in multiple formats and
-            runtime environments: Docker, Kubernetes, Cloud Foundry,
-            Mesosphere, VMs, bare metal, and more.
-        ul.tech-icons
-          li.tech-icons--item: .tech-icon.tech-icons--docker: img src="/images/solutions-logos/icon-docker.svg" alt="docker"
-          li.tech-icons--item: .tech-icon.tech-icons--coreos: img src="/images/solutions-logos/icon-coreos.svg" alt="coreos"
-          li.tech-icons--item: .tech-icon.tech-icons--mesosphere: img src="/images/solutions-logos/icon-mesosphere.svg" alt="mesosphere"
-          li.tech-icons--item: .tech-icon.tech-icons--mesos: img src="/images/solutions-logos/icon-mesos.svg" alt="mesos"
-          li.tech-icons--item: .tech-icon.tech-icons--kubernetes: img src="/images/solutions-logos/icon-kubernetes.svg" alt="kubernetes"
-          li.tech-icons--item: .tech-icon.tech-icons--kubernetes: img src="/images/solutions-logos/icon-cloudfoundry.svg" alt="cloudfoundry"
-        a.button.outline href="/learn" Get Started
-    .carousel-slide.home--hero-carousel-slide.home--hero-carousel-manage
-      .columns.large-7.code.home--hero-carousel-slide-main
-        .window-buttons
-          .circle.small.gray
-          .circle.small.gray
-          .circle.small.gray
-        p.output="# Declare your topology"
-        p.input="$ hab start my-origin/my-nodejs --topology leader --group production"
-        p.output="# Declare your update strategy"
-        p.input="$ hab start my-origin/my-nodejs --group dev --strategy rolling"
-        p.output="# Connect your application Supervisors"
-        p.input="$ hab start my-origin/my-nodejs --group production --bind database:my-redis.production"
-        p.output="# Update your services dynamically"
-        p.input="$ echo \"port = 6380\" | hab config apply my-redis.prod $(date + '%s')"
-      .columns.large-5.home--hero-carousel-slide-sidebar
-        h4="Automated Application Supervision"
-        p
-          | Habitat manages everything your application needs: build and runtime
-            dependencies, configuration, dynamic topologies, and deployment strategies.
-            The Supervisor automates application lifecycle management: add smoke tests, health checks,
-            compliance tests, and more.
-        p
-          | The Supervisor also provides a RESTful API for querying the health
-            of your services.
-        a.button.outline href="/learn" Get Started
-  .row.home--hero-carousel-nav-row
-    ul.home--hero-carousel-nav
-      li.carousel-nav.home--hero-carousel-nav-item="Build"
-      li.carousel-nav.home--hero-carousel-nav-item="Deploy"
-      li.carousel-nav.home--hero-carousel-nav-item="Manage"
+  .row.mt-4
+    .home--block.columns.small-12.logo-callout
+      .columns.small-12.medium-6
+        h2.h2 Habitat makes it easier to run your applications on any platform.
+        p.mb-0
+          = link_to 'See how it works', '/demo/packaging-system/steps/1/', class: 'with-arrow text-white underline'
+        p.mb-0
+          = link_to 'Get enterprise support', '/enterprise/', class: 'with-arrow text-white underline'
+      .columns.small-12.medium-5.medium-offset-1
+        ul.home--platform-logos
+          li
+            span.logo-icon.kubernetes title="Kubernetes"
+          li
+            span.logo-icon.docker title="Docker"
+          li
+            span.logo-icon.mesos title="Mesos"
+        ul.home--platform-logos.mb-0
+          li
+            span.logo-icon.cloudfoundry title="Cloud Foundry"
+          li
+            span.logo-icon.coreos title="CoreOS"
+          li
+            span.logo-icon.mesosphere title="Mesosphere"
 
-section.home--section
-  .row.home--callouts
-    .columns.small-12.medium-6.medium-push-6
-      a.home--anchor name="build"
-      hgroup.home--callout-hgroup.mt-2
-        .home--callout-label="build"
-        h3.home--callout-header="Better Container Packaging"
-      p
-        | Habitat lets you explicitly declare the dependencies and configuration
-          your application needs to run. Scaffolding helps you quickly develop applications
-          built in languages such as Node.js, Ruby-on-Rails, and Java.
-      a.button.outline href="/demo/packaging-system/steps/1" Try the packaging demo
-    .columns.small-12.medium-6.medium-pull-6
-      img src="/images/homepage/callout-build.svg" alt="Build and upload"/
-  .row.home--callouts
-    .columns.large-6
-      a.home--anchor name="deploy"
-      hgroup.home--callout-hgroup.mt-2
-        .home--callout-label="deploy"
-        h3.home--callout-header="Target any format or runtime"
-      p
-        | When you check in code, Habitat automatically builds a package
-          containing your application, its libraries, and dependencies.
-      p
-        | Your package can be run in any cloud-native architecture. Deploy it consistently
-          in multiple formats and runtime environments: Docker, Kubernetes, Cloud Foundry,
-          Mesosphere, VMs, bare metal, and more.
-      a.button.outline href="/demo/build-system/steps/1" Try the Builder demo
-    .columns.large-6
-      img src="/images/homepage/callout-deploy.svg" alt=""/
-  .row.home--callouts
-    .columns.large-6.medium-6.medium-push-6
-      a.home--anchor name="manage"
-      hgroup.home--callout-hgroup.mt-2
-        .home--callout-label="manage"
-        h3.home--callout-header="Consistent Application Management"
-      p
-        | Habitat includes a Supervisor every time it builds your application.
-          The Supervisor manages clustering topology, automatic configuration,
-          and automatic updates for your application.
-      a.button.outline href="/demo/process-supervisor/steps/1" Try the Supervisor demo
-    .columns.large-6.medium-6.medium-pull-6
-      img src="/images/homepage/callout-manage.svg"/
-section.home--section.home--testimonial-carousel
-  .row
-    .columns.small-12: h3="Hear What Others are Saying"
-  .row.mb-2
-    columns.small-12
-      ul.home--testimonial-carousel-nav
-        li.columns.carousel-nav.home--testimonial-carousel-nav-item.rancher
-          img src="/images/solutions-logos/logo-smartb-white.svg" alt="smartB Energy Management"/
-        li.columns.carousel-nav.home--testimonial-carousel-nav-item.intel
-          img src="/images/solutions-logos/logo-intel.svg" alt="Intel"/
-        li.columns.carousel-nav.home--testimonial-carousel-nav-item.mesosphere
-          img src="/images/solutions-logos/logo-mesosphere.svg" alt="Mesosphere"/
-        li.columns.carousel-nav.home--testimonial-carousel-nav-item.etsy
-          img src="/images/solutions-logos/logo-etsy.svg" alt="Etsy"/
-        li.columns.carousel-nav.home--testimonial-carousel-nav-item.coreOS
-          img src="/images/solutions-logos/logo-coreos.svg" alt="CoreOS"/
-  .row
+  .row.home--infographic-title
     .columns.small-12
-      .row.carousel-slide.home--testimonial-carousel-slide
-        .columns.large-3.testimonial--image
-          img src="/images/solutions-logos/logo-smartb.svg" alt="smartB Energy Management Logo"
-        .columns.large-9.testimonial--blurb
-          p.testimonial--blurb--text
-            | &ldquo;Adopting Habitat means you have a reproducible, consistent method for build and deploy, and you can apply that model to every service or application that you're running. Once you've learned how one service is deployed or managed, you've got everything you need to figure out the next service after that.&rdquo;
-          p.testimonial--blurb--attr
-            | Blake Irvin - Engineer | smartB Energy Management GmbH
-      .row.carousel-slide.home--testimonial-carousel-slide
-        .columns.large-3.testimonial--image
-          img src="/images/solutions-logos/intel.png" alt="Intel Logo"
-        .columns.large-9.testimonial--blurb
-          p.testimonial--blurb--text
-            | &ldquo;By making it easy to build applications that run anywhere,
-              the value of hybrid cloud platforms, containers, and their management
-              can be fully realized. Habitat is an important step forward in
-              enabling enterprise IT to fully benefit from the portability and
-              efficiency of cloud computing.&rdquo;
-          p.testimonial--blurb--attr
-            | Jonathan Donaldson - VP of Software-Defined Infrastructure,
-              Data Center Group
-      .row.carousel-slide.home--testimonial-carousel-slide
-        .columns.large-3.testimonial--image
-          img src="/images/solutions-logos/mesosphere.png" alt="Mesosphere Logo"
-        .columns.large-9.testimonial--blurb
-          p.testimonial--blurb--text
-            | &ldquo;Open source is at the core of the modern application principles
-              powering today’s digital economy. Together, Habitat and DC/OS
-              enable organizations to apply these
-              principles&thinsp;&mdash;&thinsp;including autonomy, portability,
-              and scale&thinsp;&mdash;&thinsp;to new and legacy applications
-              alike&hellip;&rdquo;
-          p.testimonial--blurb--attr
-            | Tobi Knaup - Co-founder and CTO | Mesosphere
-      .row.carousel-slide.home--testimonial-carousel-slide
-        .columns.large-3.testimonial--image
-          img src="/images/solutions-logos/etsy.png" alt="Etsy Logo"
-        .columns.large-9.testimonial--blurb
-          p.testimonial--blurb--text
-            | &ldquo;We are primarily an on-premise, bare-metal infrastructure.
-              Habitat doesn't care if we're deploying our application containers
-              on bare metal or cloud or PaaS. It's non-specific to what you're
-              doing under the hood.&rdquo;
-          p.testimonial--blurb--attr
-            | Jon Cowie - Staff Operations Engineer | Etsy
+      h2.text-align-center Automate delivering applications and services across your estate.
+      p.text-align-center This reference diagram shows how Habitat can be used to build, deploy and manage applications.
 
-      .row.carousel-slide.home--testimonial-carousel-slide
-        .columns.large-3.testimonial--image
-          img src="/images/solutions-logos/coreos.png" alt="CoreOS Logo"
-        .columns.large-9.testimonial--blurb
-          p.testimonial--blurb--text
-            | &ldquo;Open source projects like Habitat embrace the ability to help DevOps
-              teams run their applications in containers everywhere. The community
-              can take advantage of Habitat’s application-centric automation on
-              CoreOS Linux and Tectonic across all their environments&hellip;&rdquo;
-          p.testimonial--blurb--attr
-            | Wei Dang - Head of Product | CoreOS
+  .home--block.row.home--infographic
+    .hidden.carousel-nav-arrow.arrow-left[data-type='prev']
+    .hidden.carousel-nav-arrow.arrow-right[data-type='next']
+    .columns.small-12
+      .row
+        ul.carousel-infographic
+          li.carousel-infographic-0
+            span.infographic-label: span Write Plan
+            span.infographic-cell Habitat Studio
+          li.carousel-infographic-1
+            span.infographic-label: span Build
+            span.infographic-cell Habitat Builder
+          li.carousel-infographic-2
+            span.infographic-label: span Deploy
+            span.infographic-cell.logos-deploy title="Docker, Kubernetes, CoreOS, Mesos"
+          li.carousel-infographic-3
+            span.infographic-label: span Run
+            span.infographic-cell.logos-run title="Cloud Foundry, Mesosphere, VMware"
+          li.carousel-infographic-4
+            span.infographic-label: span Manage
+            span.infographic-cell Habitat Supervisor
+      .row.home--carousel-content
+        .carousel-nav-arrow.arrow-left[data-type='prev']
+        .carousel-nav-arrow.arrow-right[data-type='next']
+        .columns.small-12.carousel-slide
+          .row.carousel-slide-title
+            .columns.small-12.h3.text-align-center Write a Habitat plan for your application
+          .row.carousel-bullets
+            .columns.small-12.medium-3.medium-offset-1
+              p Create your application in your language and code editor of choice.
+            .columns.small-12.medium-4
+              p Define your application using a Habitat plan to create an immutable artifact with tunable configuration values.
+            .columns.small-12.medium-3.end
+              p Use Habitat Studio to test your plan and application, and build and iterate quickly.
+          .row.carousel-cta
+            .columns.small-12.text-align-center
+              = link_to 'Get Started with Studio', '/demo/packaging-system/steps/1/', class: 'button cta'
+        .columns.small-12.carousel-slide
+          .row.carousel-slide-title
+            .columns.small-12.h3.text-align-center Build your application
+          .row.carousel-bullets
+            .columns.small-12.medium-5.medium-offset-1
+              p Use Habitat Builder and the On-Prem Habitat Builder depot to automate your application builds and have complete control over your build and runtime dependencies and transitive dependencies.
+            .columns.small-12.medium-5.end
+              p Optionally, export your package into a variety of formats with Builder: Docker Image, ACI, Tarball, CloudFoundry, and more.
+          .row.carousel-cta
+            .columns.small-12.text-align-center
+              = link_to 'Get Started with Builder', '/demo/build-system/steps/1/', class: 'button cta'
+        .columns.small-12.carousel-slide
+          .row.carousel-slide-title
+            .columns.small-12.h3.text-align-center Deploy your application
+          .row.carousel-bullets
+            .columns.small-12.medium-3.medium-offset-1
+              p Deploy your application updates to your running services by defining your service groups' update strategies and subscribing to Builder channels.
+            .columns.small-12.medium-4
+              p Get automatic rebuilds when a new version of your application's underlying dependencies is available.
+            .columns.small-12.medium-3.end
+              p Export your application to a variety of container formats and publish them automatically to Docker Hub, ECR, and Kubernetes.
+        .columns.small-12.carousel-slide
+          .row.carousel-slide-title
+            .columns.small-12.h3.text-align-center Run your application
+          .row.carousel-bullets
+            .columns.small-12.medium-3.medium-offset-1
+              p Habitat's runtime automation runs your application's lifecycle hooks so your services behave intelligently over the course of their lifetime.
+            .columns.small-12.medium-4
+              p Templatize your configuration settings and update them as needed during runtime.
+            .columns.small-12.medium-3.end
+              p Your application will know how to behave as a member of a distributed system, wherever you choose to export and run it.
+        .columns.small-12.carousel-slide
+          .row.carousel-slide-title
+            .columns.small-12.h3.text-align-center Manage your application
+          .row.carousel-bullets
+            .columns.small-12.medium-3.medium-offset-1
+              p Check the status of your services via a customizable health check API endpoint.
+            .columns.small-12.medium-4
+              p See exactly what software versions you are running in each environment. Have complete dependency and transitive dependency control and visibility.
+            .columns.small-12.medium-3.end
+              p Health and event data is gathered from your services and placed on a queue you can use to feed your monitoring systems.
+          .row.carousel-cta
+            .columns.small-12.text-align-center
+              = link_to 'Get Started with Supervisor', '/demo/process-supervisor/steps/1/', class: 'button cta'
+      ul.row.home--carousel-nav.carousel-nav-dots
+        li.columns.carousel-nav.write-plan 1
+        li.columns.carousel-nav.build 2
+        li.columns.carousel-nav.deploy 3
+        li.columns.carousel-nav.run 4
+        li.columns.carousel-nav.manage 5
 
-section.home--section.home--section-demo-cta
-  .row
-    .columns.large-6
-      hgroup.home--callout-hgroup
-        .home--callout-label="Demo"
-        h4.home--callout-header="Automated builds and Docker containers in 10 minutes"
-      p
-        | Habitat Builder lets you automatically trigger a new build and publish a
-          container to Docker Hub when you commit new code to GitHub.
-    .columns.large-6.center
-      a.button.cta.home--section-demo-cta-button  href="/demo/" Get Started
+= partial "/partials/enterprise.html.slim"

@@ -73,7 +73,7 @@ $hab-blue-green: #6F8E92;
 $hab-blue-medium: #007FAB;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
 $hab-green-terminal: #82FF69;
-$hab-slate: #243442;
+$hab-slate: #243541;
 $hab-slate-light: #627b8f;
 $hab-cta: $hab-green;
 
@@ -92,6 +92,7 @@ $dark-gray: #8a8a8a;
 $black: #0a0a0a;
 $white: #fefefe;
 $white-slightly-transparent: rgba(255, 255, 255, 0.97);
+$text-gray: #C3C6C8;
 
 // Habitat Gradient Colors
 %hab-gradient-green {
@@ -113,13 +114,13 @@ $body-background: $hab-white;
 $body-font-color: $hab-blue-grey;
 $body-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
 $body-antialiased: true;
-$header-height: 80px;
+$header-height: 100px;
 $header-height-mobile: 63px;
 $global-margin: 1rem;
 $global-padding: 1rem;
 $global-weight-normal: normal;
 $global-weight-bold: bold;
-$global-radius: 3px;
+$global-radius: 2px;
 $global-text-direction: ltr;
 $global-flexbox: false;
 $print-transparent-backgrounds: true;
@@ -145,7 +146,7 @@ $grid-row-width: $global-width;
 $grid-column-count: 12;
 $grid-column-gutter: (
   small: 20px,
-  medium: 30px,
+  medium: 24px,
 );
 $grid-column-align-edge: true;
 $block-grid-max: 8;
@@ -154,7 +155,7 @@ $block-grid-max: 8;
 // ------------------
 
 $header-font-family: 'Montserrat', 'Verdana', 'Geneva', sans-serif;
-$header-font-weight: $global-weight-normal;
+$header-font-weight: $global-weight-bold;
 $header-font-style: normal;
 $font-family-monospace: 'Source Code Pro', Consolas, 'Liberation Mono', Courier, monospace;
 $header-sizes: (
@@ -176,13 +177,13 @@ $header-sizes: (
   )
 );
 $header-color: inherit;
-$header-lineheight: 1.4;
-$header-margin-bottom: rem-calc(20);
+$header-lineheight: 1.33;
+$header-margin-bottom: rem-calc(16);
 $header-text-rendering: optimizeLegibility;
 $small-font-size: 80%;
 $header-small-font-color: $medium-gray;
 $paragraph-lineheight: 1.6;
-$paragraph-margin-bottom: rem-calc(20);
+$paragraph-margin-bottom: rem-calc(24);
 $paragraph-text-rendering: optimizeLegibility;
 $code-color: $hab-blue-grey;
 $code-font-family: $font-family-monospace;
@@ -285,10 +286,11 @@ $breadcrumbs-item-slash: true;
 // 11. Button
 // ----------
 
-$button-padding: rem-calc(10) rem-calc(20);
+$button-padding: rem-calc(12) rem-calc(32);
+$button-padding-small: rem-calc(12) rem-calc(16);
 $button-margin: 0 0 $global-margin 0;
 $button-fill: solid;
-$button-background: $hab-cta;
+$button-background: rgba(255,255,255,0.1);
 $button-background-hover: scale-color($button-background, $lightness: -15%);
 $button-color: $white;
 $button-color-alt: $black;

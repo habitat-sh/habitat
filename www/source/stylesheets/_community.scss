@@ -134,7 +134,7 @@ $community-xlarge-breakpoint: rem-calc(1060);
   margin-bottom: -240px !important;
   padding-bottom: 240px;
   position: relative;
-  z-index: 10;
+  z-index: 6;
   min-height: 600px;
   background: url(../images/graphics/bg-mountains-blue.png) no-repeat center bottom;
   background-size: 100% 430px;
@@ -206,12 +206,13 @@ $community-xlarge-breakpoint: rem-calc(1060);
       color: $hab-green;
     }
   }
+  // ProdPad Roadmap iframe overrides
+  iframe {
+    border: 1px solid $hab-gray-light;
+    border-radius: $global-radius !important;
+  }
 }
-// ProdPad Roadmap iframe overrides
-iframe {
-  border: 1px solid $hab-gray-light;
-  border-radius: $global-radius !important;
-}
+
 
 .community--tracker {
   margin-bottom: -100px !important;

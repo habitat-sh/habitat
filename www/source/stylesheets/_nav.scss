@@ -1,4 +1,4 @@
-$main-nav-breakpoint: 769px;
+$main-nav-breakpoint: 960px;
 
 @mixin large-nav {
   @media (min-width: $main-nav-breakpoint) {
@@ -13,20 +13,20 @@ $main-nav-breakpoint: 769px;
 }
 
 #main-nav {
-  position: relative;
+  position: fixed;
   z-index: 100;
-  background: transparent;
+  background: $hab-slate;
   min-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
   box-shadow: 0 0 50px 2px transparent;
+  z-index: 10;
 
   @include large-nav {
     min-height: $header-height;
 
     &.is-sticky {
       position: fixed;
-      top: -100%;
     }
   }
 
@@ -40,11 +40,6 @@ $main-nav-breakpoint: 769px;
     top: 0;
   }
 
-  &.has-sidebar {
-    margin-bottom: rem-calc(48);
-    background: transparent;
-  }
-
   @include small-nav {
     position: fixed;
     top: 0;
@@ -56,24 +51,8 @@ $main-nav-breakpoint: 769px;
 
   // modifiers for nav on homepage on large screens
   .home &:not(.is-sticky) {
-    @include large-nav {
-        background: transparent;
-    }
 
     .main-nav--logo {
-      // @media (min-width: 1150px) {
-      //   width: rem-calc(240);
-      //   height: rem-calc(108);
-      // }
-
-      // @media (max-width: 1550px) and (min-width: 1150px) {
-      //   position: absolute;
-      //   left: rem-calc(180);
-      // }
-
-      // @media (max-width: 1024px) {
-      //   width: rem-calc(100);
-      // }
       @include large-nav {
         h1 {
           background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
@@ -221,7 +200,7 @@ $main-nav-breakpoint: 769px;
           position: absolute;
           right: 0;
           top: 52px;
-          z-index: 9999;
+          z-index: 10;
 
           ul {
             margin-left: 0;
@@ -251,10 +230,6 @@ $main-nav-breakpoint: 769px;
     }
   }
 
-  // @include breakpoint(small only) {
-  //   left: map-get($grid-column-gutter, small)/2;
-  // }
-
   @include large-nav {
     display: block;
     float: right;
@@ -274,7 +249,7 @@ $main-nav-breakpoint: 769px;
 }
 
 .main-nav--link {
-  a {
+  > a {
     position: relative;
     color: $white;
     transition: color 0.2s ease;
