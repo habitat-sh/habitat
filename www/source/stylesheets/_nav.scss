@@ -55,7 +55,7 @@ $main-nav-breakpoint: 960px;
     .main-nav--logo {
       @include large-nav {
         h1 {
-          background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
+          background: url("../images/habitat-logo-by-chef-white.svg") no-repeat left 40%;
           background-size: contain;
         }
       }
@@ -115,7 +115,7 @@ $main-nav-breakpoint: 960px;
       overflow: hidden;
       text-indent: 400%;
       white-space: nowrap;
-      background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
+      background: url("../images/habitat-logo-by-chef-white.svg") no-repeat left 40%;
       background-size: rem-calc(89) auto;
       color: $white;
       height: $header-height-mobile;

@@ -107,23 +107,16 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 
     p {
       color: $hab-gray-dark;
-    }
-
-    > p:last-child {
       margin-bottom: 0;
     }
   }
 }
 
-.logo-pair {
-  .logo-pair--image {
+.logo {
+  .logo--image {
     height: rem-calc(64);
     width: rem-calc(64);
-
-    &.habitat {
-      height: rem-calc(48);
-      width: rem-calc(48);
-    }
+    margin-bottom: rem-calc(24);
   }
 }
 
