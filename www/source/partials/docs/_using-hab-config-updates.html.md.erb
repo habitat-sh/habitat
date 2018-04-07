@@ -5,8 +5,15 @@ One of the key features of Habitat is the ability to define an immutable package
 
 ## Apply configuration updates to an individual service
 
-When starting a single service, you can provide alternate configuration values to those specified in `default.toml` through the use of an environment variable
-with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
+When starting a single service, you can provide alternate configuration values to those specified in `default.toml`.
+
+### Using a user.toml file
+
+You can supply a `user.toml` containing any configuration data that you want to override default values. This file should be placed in the habitat `user` directory under the specific service directory that owns the configuration data. For example, to override the default configuration of the `myservice` service, this `user.toml` would be located at `/hab/user/myservice/user.toml`.
+
+### Using an environment variable
+
+Override default configuration data through the use of an environment variable with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
 
 ```shell
 $ HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab start <origin>/<packagename>
