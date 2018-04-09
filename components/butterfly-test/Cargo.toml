@@ -6,7 +6,6 @@ workspace = "../../"
 
 [dependencies]
 clippy = {version = "*", optional = true}
-env_logger = "*"
 time = "*"
 
 [dependencies.habitat_butterfly]

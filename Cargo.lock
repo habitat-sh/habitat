@@ -557,7 +557,6 @@ version = "0.0.0"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.187 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_logger 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-eventsrv-protocol 0.0.0 (git+https://github.com/habitat-sh/protocols.git)",
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -664,7 +663,6 @@ name = "habitat_butterfly_test"
 version = "0.1.0"
 dependencies = [
  "clippy 0.0.187 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_logger 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_butterfly 0.1.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "time 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)",

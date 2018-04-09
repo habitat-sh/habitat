@@ -12,7 +12,6 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 byteorder = "*"
-env_logger = "*"
 habitat-eventsrv-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
 lazy_static = "*"
 log = "*"

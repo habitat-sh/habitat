@@ -14,7 +14,6 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate env_logger;
 extern crate time;
 #[macro_use]
 extern crate habitat_butterfly;
