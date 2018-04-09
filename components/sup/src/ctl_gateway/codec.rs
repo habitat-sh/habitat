@@ -367,10 +367,10 @@ impl Decoder for SrvCodec {
     type Error = io::Error;
 
     fn decode(&mut self, bytes: &mut BytesMut) -> Result<Option<Self::Item>, io::Error> {
-        trace!("Decoding SrvMessage\n  -> Bytes: {:?}", bytes);
         if bytes.len() < HEADER_LEN {
             return Ok(None);
         }
+        trace!("Decoding SrvMessage\n  -> Bytes: {:?}", bytes);
         let mut buf = Cursor::new(bytes);
         let header = SrvHeader(buf.get_u32::<BigEndian>());
         trace!("  -> SrvHeader: {:?}", header);

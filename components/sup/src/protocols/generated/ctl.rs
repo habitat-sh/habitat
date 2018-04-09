@@ -802,6 +802,645 @@ impl ::protobuf::reflect::ProtobufValue for SvcGetDefaultCfg {
 }
 
 #[derive(PartialEq,Clone,Default)]
+pub struct SvcValidateCfg {
+    // message fields
+    service_group: ::protobuf::SingularPtrField<super::types::ServiceGroup>,
+    format: ::std::option::Option<super::types::ServiceCfg_Format>,
+    cfg: ::protobuf::SingularField<::std::vec::Vec<u8>>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for SvcValidateCfg {}
+
+impl SvcValidateCfg {
+    pub fn new() -> SvcValidateCfg {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static SvcValidateCfg {
+        static mut instance: ::protobuf::lazy::Lazy<SvcValidateCfg> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const SvcValidateCfg,
+        };
+        unsafe {
+            instance.get(SvcValidateCfg::new)
+        }
+    }
+
+    // optional .ServiceGroup service_group = 1;
+
+    pub fn clear_service_group(&mut self) {
+        self.service_group.clear();
+    }
+
+    pub fn has_service_group(&self) -> bool {
+        self.service_group.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_service_group(&mut self, v: super::types::ServiceGroup) {
+        self.service_group = ::protobuf::SingularPtrField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_service_group(&mut self) -> &mut super::types::ServiceGroup {
+        if self.service_group.is_none() {
+            self.service_group.set_default();
+        }
+        self.service_group.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_service_group(&mut self) -> super::types::ServiceGroup {
+        self.service_group.take().unwrap_or_else(|| super::types::ServiceGroup::new())
+    }
+
+    pub fn get_service_group(&self) -> &super::types::ServiceGroup {
+        self.service_group.as_ref().unwrap_or_else(|| super::types::ServiceGroup::default_instance())
+    }
+
+    fn get_service_group_for_reflect(&self) -> &::protobuf::SingularPtrField<super::types::ServiceGroup> {
+        &self.service_group
+    }
+
+    fn mut_service_group_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<super::types::ServiceGroup> {
+        &mut self.service_group
+    }
+
+    // optional .ServiceCfg.Format format = 2;
+
+    pub fn clear_format(&mut self) {
+        self.format = ::std::option::Option::None;
+    }
+
+    pub fn has_format(&self) -> bool {
+        self.format.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_format(&mut self, v: super::types::ServiceCfg_Format) {
+        self.format = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_format(&self) -> super::types::ServiceCfg_Format {
+        self.format.unwrap_or(super::types::ServiceCfg_Format::TOML)
+    }
+
+    fn get_format_for_reflect(&self) -> &::std::option::Option<super::types::ServiceCfg_Format> {
+        &self.format
+    }
+
+    fn mut_format_for_reflect(&mut self) -> &mut ::std::option::Option<super::types::ServiceCfg_Format> {
+        &mut self.format
+    }
+
+    // optional bytes cfg = 3;
+
+    pub fn clear_cfg(&mut self) {
+        self.cfg.clear();
+    }
+
+    pub fn has_cfg(&self) -> bool {
+        self.cfg.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_cfg(&mut self, v: ::std::vec::Vec<u8>) {
+        self.cfg = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_cfg(&mut self) -> &mut ::std::vec::Vec<u8> {
+        if self.cfg.is_none() {
+            self.cfg.set_default();
+        }
+        self.cfg.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_cfg(&mut self) -> ::std::vec::Vec<u8> {
+        self.cfg.take().unwrap_or_else(|| ::std::vec::Vec::new())
+    }
+
+    pub fn get_cfg(&self) -> &[u8] {
+        match self.cfg.as_ref() {
+            Some(v) => &v,
+            None => &[],
+        }
+    }
+
+    fn get_cfg_for_reflect(&self) -> &::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &self.cfg
+    }
+
+    fn mut_cfg_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &mut self.cfg
+    }
+}
+
+impl ::protobuf::Message for SvcValidateCfg {
+    fn is_initialized(&self) -> bool {
+        for v in &self.service_group {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.service_group)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_proto2_enum_with_unknown_fields_into(wire_type, is, &mut self.format, 2, &mut self.unknown_fields)?
+                },
+                3 => {
+                    ::protobuf::rt::read_singular_bytes_into(wire_type, is, &mut self.cfg)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.service_group.as_ref() {
+            let len = v.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        }
+        if let Some(v) = self.format {
+            my_size += ::protobuf::rt::enum_size(2, v);
+        }
+        if let Some(ref v) = self.cfg.as_ref() {
+            my_size += ::protobuf::rt::bytes_size(3, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.service_group.as_ref() {
+            os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        }
+        if let Some(v) = self.format {
+            os.write_enum(2, v.value())?;
+        }
+        if let Some(ref v) = self.cfg.as_ref() {
+            os.write_bytes(3, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for SvcValidateCfg {
+    fn new() -> SvcValidateCfg {
+        SvcValidateCfg::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<SvcValidateCfg>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::types::ServiceGroup>>(
+                    "service_group",
+                    SvcValidateCfg::get_service_group_for_reflect,
+                    SvcValidateCfg::mut_service_group_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<super::types::ServiceCfg_Format>>(
+                    "format",
+                    SvcValidateCfg::get_format_for_reflect,
+                    SvcValidateCfg::mut_format_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeBytes>(
+                    "cfg",
+                    SvcValidateCfg::get_cfg_for_reflect,
+                    SvcValidateCfg::mut_cfg_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<SvcValidateCfg>(
+                    "SvcValidateCfg",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for SvcValidateCfg {
+    fn clear(&mut self) {
+        self.clear_service_group();
+        self.clear_format();
+        self.clear_cfg();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for SvcValidateCfg {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for SvcValidateCfg {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct SvcSetCfg {
+    // message fields
+    service_group: ::protobuf::SingularPtrField<super::types::ServiceGroup>,
+    cfg: ::protobuf::SingularField<::std::vec::Vec<u8>>,
+    version: ::std::option::Option<u64>,
+    is_encrypted: ::std::option::Option<bool>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for SvcSetCfg {}
+
+impl SvcSetCfg {
+    pub fn new() -> SvcSetCfg {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static SvcSetCfg {
+        static mut instance: ::protobuf::lazy::Lazy<SvcSetCfg> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const SvcSetCfg,
+        };
+        unsafe {
+            instance.get(SvcSetCfg::new)
+        }
+    }
+
+    // optional .ServiceGroup service_group = 1;
+
+    pub fn clear_service_group(&mut self) {
+        self.service_group.clear();
+    }
+
+    pub fn has_service_group(&self) -> bool {
+        self.service_group.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_service_group(&mut self, v: super::types::ServiceGroup) {
+        self.service_group = ::protobuf::SingularPtrField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_service_group(&mut self) -> &mut super::types::ServiceGroup {
+        if self.service_group.is_none() {
+            self.service_group.set_default();
+        }
+        self.service_group.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_service_group(&mut self) -> super::types::ServiceGroup {
+        self.service_group.take().unwrap_or_else(|| super::types::ServiceGroup::new())
+    }
+
+    pub fn get_service_group(&self) -> &super::types::ServiceGroup {
+        self.service_group.as_ref().unwrap_or_else(|| super::types::ServiceGroup::default_instance())
+    }
+
+    fn get_service_group_for_reflect(&self) -> &::protobuf::SingularPtrField<super::types::ServiceGroup> {
+        &self.service_group
+    }
+
+    fn mut_service_group_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<super::types::ServiceGroup> {
+        &mut self.service_group
+    }
+
+    // optional bytes cfg = 2;
+
+    pub fn clear_cfg(&mut self) {
+        self.cfg.clear();
+    }
+
+    pub fn has_cfg(&self) -> bool {
+        self.cfg.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_cfg(&mut self, v: ::std::vec::Vec<u8>) {
+        self.cfg = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_cfg(&mut self) -> &mut ::std::vec::Vec<u8> {
+        if self.cfg.is_none() {
+            self.cfg.set_default();
+        }
+        self.cfg.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_cfg(&mut self) -> ::std::vec::Vec<u8> {
+        self.cfg.take().unwrap_or_else(|| ::std::vec::Vec::new())
+    }
+
+    pub fn get_cfg(&self) -> &[u8] {
+        match self.cfg.as_ref() {
+            Some(v) => &v,
+            None => &[],
+        }
+    }
+
+    fn get_cfg_for_reflect(&self) -> &::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &self.cfg
+    }
+
+    fn mut_cfg_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &mut self.cfg
+    }
+
+    // optional uint64 version = 3;
+
+    pub fn clear_version(&mut self) {
+        self.version = ::std::option::Option::None;
+    }
+
+    pub fn has_version(&self) -> bool {
+        self.version.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_version(&mut self, v: u64) {
+        self.version = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_version(&self) -> u64 {
+        self.version.unwrap_or(0)
+    }
+
+    fn get_version_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.version
+    }
+
+    fn mut_version_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.version
+    }
+
+    // optional bool is_encrypted = 4;
+
+    pub fn clear_is_encrypted(&mut self) {
+        self.is_encrypted = ::std::option::Option::None;
+    }
+
+    pub fn has_is_encrypted(&self) -> bool {
+        self.is_encrypted.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_is_encrypted(&mut self, v: bool) {
+        self.is_encrypted = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_is_encrypted(&self) -> bool {
+        self.is_encrypted.unwrap_or(false)
+    }
+
+    fn get_is_encrypted_for_reflect(&self) -> &::std::option::Option<bool> {
+        &self.is_encrypted
+    }
+
+    fn mut_is_encrypted_for_reflect(&mut self) -> &mut ::std::option::Option<bool> {
+        &mut self.is_encrypted
+    }
+}
+
+impl ::protobuf::Message for SvcSetCfg {
+    fn is_initialized(&self) -> bool {
+        for v in &self.service_group {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.service_group)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_singular_bytes_into(wire_type, is, &mut self.cfg)?;
+                },
+                3 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.version = ::std::option::Option::Some(tmp);
+                },
+                4 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_bool()?;
+                    self.is_encrypted = ::std::option::Option::Some(tmp);
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.service_group.as_ref() {
+            let len = v.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        }
+        if let Some(ref v) = self.cfg.as_ref() {
+            my_size += ::protobuf::rt::bytes_size(2, &v);
+        }
+        if let Some(v) = self.version {
+            my_size += ::protobuf::rt::value_size(3, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        if let Some(v) = self.is_encrypted {
+            my_size += 2;
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.service_group.as_ref() {
+            os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        }
+        if let Some(ref v) = self.cfg.as_ref() {
+            os.write_bytes(2, &v)?;
+        }
+        if let Some(v) = self.version {
+            os.write_uint64(3, v)?;
+        }
+        if let Some(v) = self.is_encrypted {
+            os.write_bool(4, v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for SvcSetCfg {
+    fn new() -> SvcSetCfg {
+        SvcSetCfg::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<SvcSetCfg>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::types::ServiceGroup>>(
+                    "service_group",
+                    SvcSetCfg::get_service_group_for_reflect,
+                    SvcSetCfg::mut_service_group_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeBytes>(
+                    "cfg",
+                    SvcSetCfg::get_cfg_for_reflect,
+                    SvcSetCfg::mut_cfg_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "version",
+                    SvcSetCfg::get_version_for_reflect,
+                    SvcSetCfg::mut_version_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
+                    "is_encrypted",
+                    SvcSetCfg::get_is_encrypted_for_reflect,
+                    SvcSetCfg::mut_is_encrypted_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<SvcSetCfg>(
+                    "SvcSetCfg",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for SvcSetCfg {
+    fn clear(&mut self) {
+        self.clear_service_group();
+        self.clear_cfg();
+        self.clear_version();
+        self.clear_is_encrypted();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for SvcSetCfg {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for SvcSetCfg {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct SvcLoad {
     // message fields
     ident: ::protobuf::SingularPtrField<super::types::PackageIdent>,
@@ -2385,7 +3024,7 @@ impl ConsoleLine {
         }
     }
 
-    // optional string line = 2;
+    // optional string line = 1;
 
     pub fn clear_line(&mut self) {
         self.line.clear();
@@ -2439,7 +3078,7 @@ impl ::protobuf::Message for ConsoleLine {
         while !is.eof()? {
             let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
-                2 => {
+                1 => {
                     ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.line)?;
                 },
                 _ => {
@@ -2455,7 +3094,7 @@ impl ::protobuf::Message for ConsoleLine {
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
         if let Some(ref v) = self.line.as_ref() {
-            my_size += ::protobuf::rt::string_size(2, &v);
+            my_size += ::protobuf::rt::string_size(1, &v);
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -2464,7 +3103,7 @@ impl ::protobuf::Message for ConsoleLine {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(ref v) = self.line.as_ref() {
-            os.write_string(2, &v)?;
+            os.write_string(1, &v)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -2550,7 +3189,14 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x04R\x08position\"*\n\tHandshake\x12\x1d\n\nsecret_key\x18\x01\x20\x01(\
     \tR\tsecretKey\"5\n\x0fServiceBindList\x12\"\n\x05binds\x18\x01\x20\x03(\
     \x0b2\x0c.ServiceBindR\x05binds\"7\n\x10SvcGetDefaultCfg\x12#\n\x05ident\
-    \x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\"\xf6\x03\n\x07SvcLoad\
+    \x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\"\x88\x01\n\x0eSvcValida\
+    teCfg\x122\n\rservice_group\x18\x01\x20\x01(\x0b2\r.ServiceGroupR\x0cser\
+    viceGroup\x120\n\x06format\x18\x02\x20\x01(\x0e2\x12.ServiceCfg.Format:\
+    \x04TOMLR\x06format\x12\x10\n\x03cfg\x18\x03\x20\x01(\x0cR\x03cfg\"\x95\
+    \x01\n\tSvcSetCfg\x122\n\rservice_group\x18\x01\x20\x01(\x0b2\r.ServiceG\
+    roupR\x0cserviceGroup\x12\x10\n\x03cfg\x18\x02\x20\x01(\x0cR\x03cfg\x12\
+    \x18\n\x07version\x18\x03\x20\x01(\x04R\x07version\x12(\n\x0cis_encrypte\
+    d\x18\x04\x20\x01(\x08:\x05falseR\x0bisEncrypted\"\xf6\x03\n\x07SvcLoad\
     \x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\x12P\n\
     \x17application_environment\x18\x02\x20\x01(\x0b2\x17.ApplicationEnviron\
     mentR\x16applicationEnvironment\x12\"\n\x05binds\x18\x03\x20\x03(\x0b2\
@@ -2567,7 +3213,7 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x01(\x0b2\r.PackageIdentR\x05ident\".\n\x07SvcStop\x12#\n\x05ident\x18\
     \x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\"0\n\tSvcStatus\x12#\n\x05id\
     ent\x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\"!\n\x0bConsoleLine\
-    \x12\x12\n\x04line\x18\x02\x20\x01(\tR\x04line\
+    \x12\x12\n\x04line\x18\x01\x20\x01(\tR\x04line\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

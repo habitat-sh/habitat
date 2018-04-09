@@ -25,12 +25,6 @@ pub fn get() -> App<'static, 'static> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
-        (@subcommand config =>
-            (about: "Commands relating to Habitat runtime config")
-            (aliases: &["co", "con", "conf", "confi"])
-            (@setting ArgRequiredElseHelp)
-            (subcommand: sub_config_apply().aliases(&["a", "ap", "app", "appl"]))
-        )
         (@subcommand depart =>
             (about: "Manage the departure status of a butterfly member")
             (aliases: &["d", "de", "dep", "depa", "depart"])
@@ -66,35 +60,12 @@ pub fn get() -> App<'static, 'static> {
     )
 }
 
-fn sub_config_apply() -> App<'static, 'static> {
-    clap_app!(@subcommand apply =>
-        (about: "Applies a configuration to a group of Habitat Supervisors")
-        (@arg PEER: -p --peer +takes_value
-            "A comma-delimited list of one or more Habitat Supervisor peers \
-            (default: 127.0.0.1:9638)")
-        (@arg RING: -r --ring +takes_value
-            "Ring key name, which will encrypt communication messages")
-        (@arg SERVICE_GROUP: +required {valid_service_group}
-            "Target service group (ex: redis.default)")
-        (@arg VERSION_NUMBER: +required
-            "A version number (positive integer) for this configuration (ex: 42)")
-        (@arg FILE: {file_exists_or_stdin}
-            "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
-        (@arg ORG: --org +takes_value "Name of service organization to use for encryption")
-        (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-    )
-}
-
 fn file_exists(val: String) -> result::Result<(), String> {
     if Path::new(&val).is_file() {
         Ok(())
     } else {
         Err(format!("File: '{}' cannot be found", &val))
     }
-}
-
-fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
-    if val == "-" { Ok(()) } else { file_exists(val) }
 }
 
 fn valid_service_group(val: String) -> result::Result<(), String> {

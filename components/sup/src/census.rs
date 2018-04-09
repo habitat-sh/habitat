@@ -280,7 +280,7 @@ pub struct ServiceFile {
 #[derive(Debug, Serialize)]
 pub struct ServiceConfig {
     pub incarnation: u64,
-    pub value: toml::Value,
+    pub value: toml::value::Table,
 }
 
 #[derive(Debug, Serialize)]

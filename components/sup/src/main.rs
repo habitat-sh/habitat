@@ -36,19 +36,20 @@ extern crate tabwriter;
 extern crate tokio_core;
 
 use std::env;
-use std::io::{self, Write};
+use std::fs::File;
+use std::io::{self, Read, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 use std::result;
-use std::str::FromStr;
+use std::str::{self, FromStr};
 
 use clap::{App, ArgMatches};
 use common::command::package::install::InstallSource;
-use common::ui::{NONINTERACTIVE_ENVVAR, UI, Coloring};
+use common::ui::{NONINTERACTIVE_ENVVAR, UI, Status, UIWriter, Coloring};
 use futures::prelude::*;
 use hcore::channel;
-use hcore::crypto::{self, default_cache_key_path, SymKey};
+use hcore::crypto::{self, default_cache_key_path, SymKey, BoxKeyPair};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 use hcore::env as henv;
@@ -57,7 +58,6 @@ use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use tabwriter::TabWriter;
-use tokio_core::reactor;
 use url::Url;
 
 use sup::VERSION;
@@ -72,7 +72,11 @@ use sup::http_gateway;
 use sup::manager::{Manager, ManagerConfig};
 use sup::manager::service::{ServiceBind, Topology, UpdateStrategy};
 use sup::protocols;
+use sup::protocols::net::ErrCode;
 use sup::util;
+
+/// Makes the --user CLI param optional when this env var is set
+const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -83,6 +87,18 @@ static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
         vec!["package", "type", "state", "uptime (s)", "pid", "group"]
+    };
+
+    /// The default filesystem root path to base all commands from. This is lazily generated on
+    /// first call and reflects on the presence and value of the environment variable keyed as
+    /// `FS_ROOT_ENVVAR`.
+    static ref FS_ROOT: PathBuf = {
+        use hcore::fs::FS_ROOT_ENVVAR;
+        if let Some(root) = henv::var(FS_ROOT_ENVVAR).ok() {
+            PathBuf::from(root)
+        } else {
+            PathBuf::from("/")
+        }
     };
 }
 
@@ -132,6 +148,7 @@ fn start() -> Result<()> {
     };
     match app_matches.subcommand() {
         ("bash", Some(m)) => sub_bash(m),
+        ("apply", Some(m)) => sub_apply(m),
         ("config", Some(m)) => sub_config(m),
         ("load", Some(m)) => sub_load(m),
         ("run", Some(m)) => {
@@ -161,6 +178,18 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand bash =>
             (about: "Start an interactive Bash-like shell")
             (aliases: &["b", "ba", "bas"])
+        )
+        (@subcommand apply =>
+            (about: "Applies a configuration to a group of Habitat Supervisors")
+            (@arg SERVICE_GROUP: +required {valid_service_group}
+                "Target service group (ex: redis.default)")
+            (@arg VERSION_NUMBER: +required
+                "A version number (positive integer) for this configuration (ex: 42)")
+            (@arg FILE: {file_exists_or_stdin}
+                "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+            (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand config =>
             (about: "Displays the default configuration options for a service")
@@ -304,6 +333,18 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (about: "Start an interactive Bash-like shell")
             (aliases: &["b", "ba", "bas"])
         )
+        (@subcommand apply =>
+            (about: "Sets a configuration to be shared by members of a Service Group")
+            (@arg SERVICE_GROUP: +required {valid_service_group}
+                "Target service group (ex: redis.default)")
+            (@arg VERSION_NUMBER: +required
+                "A version number (positive integer) for this configuration (ex: 42)")
+            (@arg FILE: {file_exists_or_stdin}
+                "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+            (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        )
         (@subcommand config =>
             (about: "Displays the default configuration options for a service")
             (aliases: &["c", "co", "con", "conf", "confi"])
@@ -437,6 +478,107 @@ fn sub_bash(m: &ArgMatches) -> Result<()> {
     command::shell::bash()
 }
 
+fn sub_apply(m: &ArgMatches) -> Result<()> {
+    toggle_verbosity(m);
+    toggle_color(m);
+    let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
+    let cfg = mgrcfg_from_matches(m)?;
+    let mut ui = ui();
+    let mut validate = protocols::ctl::SvcValidateCfg::new();
+    validate.set_service_group(service_group.clone().into());
+    let mut buf = Vec::with_capacity(protocols::butterfly::MAX_SVC_CFG_SIZE);
+    let cfg_len = match m.value_of("FILE") {
+        Some(f) => {
+            let mut file = File::open(f).unwrap();
+            file.read_to_end(&mut buf).unwrap()
+        }
+        None => io::stdin().read(&mut buf).unwrap(),
+    };
+    if cfg_len > protocols::butterfly::MAX_SVC_CFG_SIZE {
+        ui.fatal(format!(
+            "Configuration too large. Maximum size allowed is {} bytes.",
+            protocols::butterfly::MAX_SVC_CFG_SIZE
+        ))?;
+        process::exit(1);
+    }
+    validate.set_cfg(buf.clone());
+    let cache = default_cache_key_path(Some(&*FS_ROOT));
+    let mut set = protocols::ctl::SvcSetCfg::new();
+    match (service_group.org(), user_param_or_env(&m)) {
+        (Some(_org), Some(username)) => {
+            let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
+            let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
+            ui.status(
+                Status::Encrypting,
+                format!(
+                    "TOML as {} for {}",
+                    user_pair.name_with_rev(),
+                    service_pair.name_with_rev()
+                ),
+            )?;
+            set.set_cfg(user_pair.encrypt(&buf, Some(&service_pair))?);
+            set.set_is_encrypted(true);
+        }
+        _ => set.set_cfg(buf.to_vec()),
+    }
+    set.set_service_group(service_group.into());
+    set.set_version(value_t!(m, "VERSION_NUMBER", u64).unwrap());
+    ui.begin(format!(
+        "Setting new configuration version {} for {}",
+        set.get_version(),
+        set.get_service_group(),
+    ))?;
+    ui.status(
+        Status::Creating,
+        format!("service configuration"),
+    )?;
+    SrvClient::connect(&cfg.ctl_listen, ctl_secret_key(&cfg)?)
+        .and_then(|conn| {
+            conn.call(validate).for_each(
+                |reply| match reply.message_id() {
+                    "NetOk" => Ok(()),
+                    "NetErr" => {
+                        let m = reply.parse::<protocols::net::NetErr>().unwrap();
+                        match m.get_code() {
+                            ErrCode::InvalidPayload => {
+                                ui.warn(m)?;
+                                Ok(())
+                            }
+                            _ => Err(SrvClientError::from(m)),
+                        }
+                    }
+                    _ => {
+                        Err(SrvClientError::from(
+                            io::Error::from(io::ErrorKind::UnexpectedEof),
+                        ))
+                    }
+                },
+            )
+        })
+        .wait()?;
+    ui.status(
+        Status::Applying,
+        format!("via peer {}", cfg.ctl_listen),
+    )?;
+    // JW: We should not need to make two connections here. I need a way to return the
+    // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
+    // know if it's possible with this version of futures.
+    SrvClient::connect(&cfg.ctl_listen, ctl_secret_key(&cfg)?)
+        .and_then(|conn| {
+            conn.call(set).for_each(|reply| match reply.message_id() {
+                "NetOk" => Ok(()),
+                "NetErr" => {
+                    let m = reply.parse::<protocols::net::NetErr>().unwrap();
+                    Err(SrvClientError::from(m))
+                }
+                _ => panic!("nah"),
+            })
+        })
+        .wait()?;
+    ui.end("Applied configuration")?;
+    Ok(())
+}
+
 fn sub_config(m: &ArgMatches) -> Result<()> {
     toggle_verbosity(m);
     toggle_color(m);
@@ -445,25 +587,28 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
     let sup_addr = m.value_of("REMOTE_SUP")
         .map(|a| SocketAddr::from_str(a).unwrap())
         .unwrap_or(ctl_gateway::default_addr());
-    let mut core = reactor::Core::new().unwrap();
     let mut msg = protocols::ctl::SvcGetDefaultCfg::new();
     msg.set_ident(ident.into());
-    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
-    let req = conn.call(msg).for_each(|reply| {
-        match reply.message_id() {
-            "ServiceCfg" => {
-                let m = reply.parse::<protocols::types::ServiceCfg>().unwrap();
-                println!("{}", m.get_default());
-            }
-            "NetErr" => {
-                let m = reply.parse::<protocols::net::NetErr>().unwrap();
-                println!("{}", m);
-            }
-            _ => (),
-        }
-        Ok(())
-    });
-    core.run(req)?;
+    SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?)
+        .and_then(|conn| {
+            conn.call(msg).for_each(|reply| match reply.message_id() {
+                "ServiceCfg" => {
+                    let m = reply.parse::<protocols::types::ServiceCfg>().unwrap();
+                    println!("{}", m.get_default());
+                    Ok(())
+                }
+                "NetErr" => {
+                    let m = reply.parse::<protocols::net::NetErr>().unwrap();
+                    Err(SrvClientError::from(m))
+                }
+                _ => {
+                    Err(SrvClientError::from(
+                        io::Error::from(io::ErrorKind::UnexpectedEof),
+                    ))
+                }
+            })
+        })
+        .wait()?;
     Ok(())
 }
 
@@ -474,14 +619,13 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
     let sup_addr = m.value_of("REMOTE_SUP")
         .map(|a| SocketAddr::from_str(a).unwrap())
         .unwrap_or(ctl_gateway::default_addr());
-    let mut core = reactor::Core::new().unwrap();
     let mut msg = protocols::ctl::SvcLoad::new();
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.set_ident(ident.into());
-    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
-    let req = conn.call(msg).for_each(handle_ctl_reply);
-    core.run(req)?;
+    SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?)
+        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+        .wait()?;
     Ok(())
 }
 
@@ -493,12 +637,11 @@ fn sub_unload(m: &ArgMatches) -> Result<()> {
     let sup_addr = m.value_of("REMOTE_SUP")
         .map(|a| SocketAddr::from_str(a).unwrap())
         .unwrap_or(ctl_gateway::default_addr());
-    let mut core = reactor::Core::new().unwrap();
     let mut msg = protocols::ctl::SvcUnload::new();
     msg.set_ident(ident.into());
-    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
-    let req = conn.call(msg).for_each(handle_ctl_reply);
-    core.run(req)?;
+    SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?)
+        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+        .wait()?;
     Ok(())
 }
 
@@ -551,12 +694,11 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     let sup_addr = m.value_of("REMOTE_SUP")
         .map(|a| SocketAddr::from_str(a).unwrap())
         .unwrap_or(ctl_gateway::default_addr());
-    let mut core = reactor::Core::new().unwrap();
     let mut msg = protocols::ctl::SvcStart::new();
     msg.set_ident(ident.into());
-    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
-    let req = conn.call(msg).for_each(handle_ctl_reply);
-    core.run(req)?;
+    SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?)
+        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+        .wait()?;
     Ok(())
 }
 
@@ -567,32 +709,33 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
     let sup_addr = m.value_of("REMOTE_SUP")
         .map(|a| SocketAddr::from_str(a).unwrap())
         .unwrap_or(ctl_gateway::default_addr());
-    let mut core = reactor::Core::new().unwrap();
     let mut msg = protocols::ctl::SvcStatus::new();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
         let ident = PackageIdent::from_str(pkg)?;
         msg.set_ident(ident.into());
     }
-    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
-    let mut out = TabWriter::new(io::stdout());
-    let req = conn.call(msg)
-        .into_future()
-        .map_err(|(err, _)| err)
-        .and_then(move |(reply, rest)| {
-            match reply {
-                None => {
-                    return Err(SrvClientError::from(
-                        io::Error::from(io::ErrorKind::UnexpectedEof),
-                    ))
-                }
-                Some(m) => print_svc_status(&mut out, m, true)?,
-            }
-            Ok((out, rest))
+    SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?)
+        .and_then(|conn| {
+            let mut out = TabWriter::new(io::stdout());
+            conn.call(msg)
+                .into_future()
+                .map_err(|(err, _)| err)
+                .and_then(move |(reply, rest)| {
+                    match reply {
+                        None => {
+                            return Err(SrvClientError::from(
+                                io::Error::from(io::ErrorKind::UnexpectedEof),
+                            ))
+                        }
+                        Some(m) => print_svc_status(&mut out, m, true)?,
+                    }
+                    Ok((out, rest))
+                })
+                .and_then(|(mut out, rest)| {
+                    rest.for_each(move |reply| print_svc_status(&mut out, reply, false))
+                })
         })
-        .and_then(|(mut out, rest)| {
-            rest.for_each(move |reply| print_svc_status(&mut out, reply, false))
-        });
-    core.run(req)?;
+        .wait()?;
     Ok(())
 }
 
@@ -654,12 +797,11 @@ fn sub_stop(m: &ArgMatches) -> Result<()> {
     let sup_addr = m.value_of("REMOTE_SUP")
         .map(|a| SocketAddr::from_str(a).unwrap())
         .unwrap_or(ctl_gateway::default_addr());
-    let mut core = reactor::Core::new().unwrap();
     let mut msg = protocols::ctl::SvcStop::new();
     msg.set_ident(ident.into());
-    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
-    let req = conn.call(msg).for_each(handle_ctl_reply);
-    core.run(req)?;
+    SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?)
+        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+        .wait()?;
     Ok(())
 }
 
@@ -729,7 +871,7 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     if let Some(watch_peer_file) = m.value_of("PEER_WATCH_FILE") {
         cfg.watch_peer_file = Some(String::from(watch_peer_file));
     }
-    let ring = match m.value_of("RING") {
+    cfg.ring_key = match m.value_of("RING") {
         Some(val) => Some(SymKey::get_latest_pair_for(
             &val,
             &default_cache_key_path(None),
@@ -755,9 +897,6 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
             }
         }
     };
-    if let Some(ring) = ring {
-        cfg.ring = Some(ring.name_with_rev());
-    }
     if let Some(events) = m.value_of("EVENTS") {
         cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
     }
@@ -1026,4 +1165,31 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocols::ctl::SvcLoad)
         msg.set_update_strategy(update_strategy);
     }
     Ok(())
+}
+
+fn file_exists(val: String) -> result::Result<(), String> {
+    if Path::new(&val).is_file() {
+        Ok(())
+    } else {
+        Err(format!("File: '{}' cannot be found", &val))
+    }
+}
+
+fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
+    if val == "-" { Ok(()) } else { file_exists(val) }
+}
+
+/// Check to see if the user has passed in a USER param.
+/// If not, check the HAB_USER env var. If that's
+/// empty too, then return an error.
+fn user_param_or_env(m: &ArgMatches) -> Option<String> {
+    match m.value_of("USER") {
+        Some(u) => Some(u.to_string()),
+        None => {
+            match env::var(HABITAT_USER_ENVVAR) {
+                Ok(v) => Some(v),
+                Err(_) => None,
+            }
+        }
+    }
 }

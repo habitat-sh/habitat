@@ -85,12 +85,6 @@ fn start(ui: &mut UI) -> Result<()> {
             e.exit();
         });
     match app_matches.subcommand() {
-        ("config", Some(matches)) => {
-            match matches.subcommand() {
-                ("apply", Some(m)) => sub_config_apply(ui, m)?,
-                _ => unreachable!(),
-            }
-        }
         ("depart", Some(matches)) => {
             try!(sub_depart(ui, matches));
         }
@@ -123,53 +117,6 @@ fn sub_depart(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
     command::depart::run(ui, member_id, peers, ring_key)
-}
-
-fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
-    let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
-    for p in peers.iter_mut() {
-        if p.find(':').is_none() {
-            p.push(':');
-            p.push_str(&HABITAT_BUTTERFLY_PORT.to_string());
-        }
-    }
-    let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
-    let file_path = match m.value_of("FILE") {
-        Some("-") | None => None,
-        Some(p) => Some(Path::new(p)),
-    };
-
-    init();
-    let cache = default_cache_key_path(Some(&*FS_ROOT));
-    let ring_key = match m.value_of("RING") {
-        Some(name) => Some(SymKey::get_latest_pair_for(&name, &cache)?),
-        None => None,
-    };
-
-    let mut sg = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
-    if let Some(org) = org_param_or_env(&m) {
-        sg.set_org(org);
-    }
-    let service_pair = if sg.org().is_some() {
-        Some(BoxKeyPair::get_latest_pair_for(&sg, &cache)?)
-    } else {
-        None
-    };
-    let user_pair = match user_param_or_env(&m) {
-        Some(username) => Some(BoxKeyPair::get_latest_pair_for(username, &cache)?),
-        None => None,
-    };
-    command::config::apply::start(
-        ui,
-        &sg,
-        number,
-        file_path,
-        &peers,
-        ring_key.as_ref(),
-        user_pair.as_ref(),
-        service_pair.as_ref(),
-    )
 }
 
 fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {

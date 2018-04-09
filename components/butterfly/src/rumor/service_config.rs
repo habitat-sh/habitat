@@ -19,7 +19,7 @@
 use std::cmp::Ordering;
 use std::mem;
 use std::ops::{Deref, DerefMut};
-use std::str::{self, FromStr};
+use std::str;
 
 use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
 use habitat_core::service::ServiceGroup;
@@ -107,7 +107,7 @@ impl ServiceConfig {
         Ok(())
     }
 
-    pub fn config(&self) -> Result<toml::Value> {
+    pub fn config(&self) -> Result<toml::value::Table> {
         let config = if self.get_encrypted() {
             let bytes =
                 BoxKeyPair::decrypt_with_path(self.get_config(), &default_cache_key_path(None))?;
@@ -124,8 +124,8 @@ impl ServiceConfig {
         Ok(config)
     }
 
-    fn parse_config(&self, encoded: &str) -> Result<toml::Value> {
-        toml::Value::from_str(encoded).map_err(|e| {
+    fn parse_config(&self, encoded: &str) -> Result<toml::value::Table> {
+        toml::from_str(encoded).map_err(|e| {
             Error::ServiceConfigDecode(self.get_service_group().to_string(), e)
         })
     }
@@ -168,7 +168,6 @@ impl Rumor for ServiceConfig {
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
-    use std::str::FromStr;
 
     use habitat_core::service::ServiceGroup;
     use toml;
@@ -252,7 +251,7 @@ mod tests {
         let s1 = create_service_config("adam", "yep=1");
         assert_eq!(
             s1.config().unwrap(),
-            toml::Value::from_str("yep=1").unwrap()
+            toml::from_str::<toml::value::Table>("yep=1").unwrap()
         );
     }
 }

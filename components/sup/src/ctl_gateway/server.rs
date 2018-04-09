@@ -35,6 +35,7 @@ use crypto;
 use futures::future::{self, Either};
 use futures::prelude::*;
 use futures::sync::mpsc;
+use protobuf;
 use tokio::net::TcpListener;
 use tokio_core::reactor;
 use tokio_io::AsyncRead;
@@ -60,6 +61,7 @@ pub type MgrReceiver = mpsc::UnboundedReceiver<CtlCommand>;
 
 #[derive(Debug)]
 pub enum HandlerError {
+    Decode(protobuf::ProtobufError),
     Io(io::Error),
     NetErr(NetErr),
     SendError(mpsc::SendError<CtlCommand>),
@@ -68,6 +70,7 @@ pub enum HandlerError {
 impl error::Error for HandlerError {
     fn description(&self) -> &str {
         match *self {
+            HandlerError::Decode(ref err) => err.description(),
             HandlerError::Io(ref err) => err.description(),
             HandlerError::NetErr(ref err) => err.description(),
             HandlerError::SendError(ref err) => err.description(),
@@ -78,6 +81,7 @@ impl error::Error for HandlerError {
 impl fmt::Display for HandlerError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match *self {
+            HandlerError::Decode(ref err) => format!("{}", err),
             HandlerError::Io(ref err) => format!("{}", err),
             HandlerError::NetErr(ref err) => format!("{}", err),
             HandlerError::SendError(ref err) => format!("{}", err),
@@ -95,6 +99,12 @@ impl From<NetErr> for HandlerError {
 impl From<io::Error> for HandlerError {
     fn from(err: io::Error) -> Self {
         HandlerError::Io(err)
+    }
+}
+
+impl From<protobuf::ProtobufError> for HandlerError {
+    fn from(err: protobuf::ProtobufError) -> Self {
+        HandlerError::Decode(err)
     }
 }
 
@@ -276,7 +286,7 @@ impl Future for SrvHandler {
                                 match msg.message_id() {
                                     "SvcGetDefaultCfg" => {
                                         let m = msg.parse::<protocols::ctl::SvcGetDefaultCfg>()
-                                            .unwrap();
+                                            .map_err(HandlerError::from)?;
                                         CtlCommand::new(
                                             Some(self.tx.clone()),
                                             msg.transaction(),
@@ -285,8 +295,33 @@ impl Future for SrvHandler {
                                             },
                                         )
                                     }
+                                    "SvcSetCfg" => {
+                                        let m = msg.parse::<protocols::ctl::SvcSetCfg>().map_err(
+                                            HandlerError::from,
+                                        )?;
+                                        CtlCommand::new(
+                                            Some(self.tx.clone()),
+                                            msg.transaction(),
+                                            move |state, req| {
+                                                Manager::service_cfg_set(state, req, m.clone())
+                                            },
+                                        )
+                                    }
+                                    "SvcValidateCfg" => {
+                                        let m = msg.parse::<protocols::ctl::SvcValidateCfg>()
+                                            .map_err(HandlerError::from)?;
+                                        CtlCommand::new(
+                                            Some(self.tx.clone()),
+                                            msg.transaction(),
+                                            move |state, req| {
+                                                Manager::service_cfg_validate(state, req, m.clone())
+                                            },
+                                        )
+                                    }
                                     "SvcLoad" => {
-                                        let m = msg.parse::<protocols::ctl::SvcLoad>().unwrap();
+                                        let m = msg.parse::<protocols::ctl::SvcLoad>().map_err(
+                                            HandlerError::from,
+                                        )?;
                                         CtlCommand::new(
                                             Some(self.tx.clone()),
                                             msg.transaction(),
@@ -296,7 +331,9 @@ impl Future for SrvHandler {
                                         )
                                     }
                                     "SvcUnload" => {
-                                        let m = msg.parse::<protocols::ctl::SvcUnload>().unwrap();
+                                        let m = msg.parse::<protocols::ctl::SvcUnload>().map_err(
+                                            HandlerError::from,
+                                        )?;
                                         CtlCommand::new(
                                             Some(self.tx.clone()),
                                             msg.transaction(),
@@ -306,7 +343,9 @@ impl Future for SrvHandler {
                                         )
                                     }
                                     "SvcStart" => {
-                                        let m = msg.parse::<protocols::ctl::SvcStart>().unwrap();
+                                        let m = msg.parse::<protocols::ctl::SvcStart>().map_err(
+                                            HandlerError::from,
+                                        )?;
                                         CtlCommand::new(
                                             Some(self.tx.clone()),
                                             msg.transaction(),
@@ -316,7 +355,9 @@ impl Future for SrvHandler {
                                         )
                                     }
                                     "SvcStop" => {
-                                        let m = msg.parse::<protocols::ctl::SvcStop>().unwrap();
+                                        let m = msg.parse::<protocols::ctl::SvcStop>().map_err(
+                                            HandlerError::from,
+                                        )?;
                                         CtlCommand::new(
                                             Some(self.tx.clone()),
                                             msg.transaction(),
@@ -326,7 +367,9 @@ impl Future for SrvHandler {
                                         )
                                     }
                                     "SvcStatus" => {
-                                        let m = msg.parse::<protocols::ctl::SvcStatus>().unwrap();
+                                        let m = msg.parse::<protocols::ctl::SvcStatus>().map_err(
+                                            HandlerError::from,
+                                        )?;
                                         CtlCommand::new(
                                             Some(self.tx.clone()),
                                             msg.transaction(),
