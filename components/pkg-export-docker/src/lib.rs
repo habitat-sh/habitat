@@ -48,6 +48,9 @@ pub mod rootfs;
 mod util;
 
 use std::env;
+use std::fmt;
+use std::result;
+use std::str::FromStr;
 
 use common::ui::UI;
 use hcore::{channel, PROGRAM_NAME};
@@ -59,7 +62,7 @@ use rusoto_core::Region;
 use rusoto_core::request::*;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use cli::{Cli, PkgIdentArgOptions, RegistryType};
+pub use cli::{Cli, PkgIdentArgOptions};
 pub use build::BuildSpec;
 pub use docker::{DockerImage, DockerBuildRoot};
 pub use error::{Error, Result};
@@ -112,6 +115,43 @@ impl<'a> Naming<'a> {
             registry_url: registry_url,
             registry_type: registry_type,
         }
+    }
+}
+
+#[derive(Debug)]
+pub enum RegistryType {
+    Amazon,
+    Azure,
+    Docker,
+}
+
+impl RegistryType {
+    fn variants() -> &'static [&'static str] {
+        &["amazon", "azure", "docker"]
+    }
+}
+
+impl FromStr for RegistryType {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value {
+            "amazon" => Ok(RegistryType::Amazon),
+            "azure" => Ok(RegistryType::Azure),
+            "docker" => Ok(RegistryType::Docker),
+            _ => Err(Error::InvalidRegistryType(String::from(value))),
+        }
+    }
+}
+
+impl fmt::Display for RegistryType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let disp = match *self {
+            RegistryType::Amazon => "amazon",
+            RegistryType::Azure => "azure",
+            RegistryType::Docker => "docker",
+        };
+        write!(f, "{}", disp)
     }
 }
 
