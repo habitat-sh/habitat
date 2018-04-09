@@ -3,54 +3,49 @@ layout: layout
 classes: demo_index
 ---
 .demo--page
-  .row.demo-hero.mt-3
+  .row.demo-hero
     .columns.large-12
       h1.mb-1
-        | Demos and Tutorials
+        | Get Started with Habitat
       p.hero--subtitle.mb-2
         | Choose any topic to begin learning how Habitat can help your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way.
 
   .row.demo--section-title
-    h2.h2.no-span Habitat 101
+    h2.h2.no-span Habitat 101 - Intro Tutorials
 
   .row.demo--callouts
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-build
-        h4.h4 Demo
-        h3.h3 Packaging System
+        h4.h4 Packaging System
+        h3.h3 Package a sample application
         p="Package a Node.js application as a Habitat artifact that can run on any platform, then export and run it locally in a Docker container."
         .button-bar
           a.button.cta href="/demo/packaging-system/steps/1" Start the packaging demo
+          p.footnote Estimated time - 15 minutes
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-trigger
-        h4.h4 Demo
-        h3.h3 Build System
+        h4.h4 Build System
+        h3.h3 Set up automated deployments
         p="Use Habitat Builder to set up automated builds for a Node.js application, then publish the build artifacts as container images on Docker Hub."
         .button-bar
           a.button.cta href="/demo/build-system/steps/1" Start the Builder demo
+          p.footnote Estimated time - 20 minutes
     .columns.large-4.demo--callout
       .demo--callout-content.demo--callout-publish
-        h4.h4 Demo
-        h3.h3 Process Supervisor
+        h4.h4 Process Supervisor
+        h3.h3 Auto-update a running application
         p="See how the Supervsior can auto-update a running Node.js application to a new version by simply building and promoting a new package."
         .button-bar
           a.button.cta href="/demo/process-supervisor/steps/1" Start the Supervisor demo
-
-  .row.demo--get-habitat
-    .columns.large-12
-      h3.h3.mb-0
-        img.demo--get-habitat--image src="/images/sign.svg" alt="Sign with Habitat logo."
-        | Just want the bits?&nbsp;
-        a href="/docs/install-habitat/" Download and setup Habitat
-        |  in minutes.
+          p.footnote Estimated time - 15 minutes
 
   .row.demo--section-title
-    h2.h2.no-span Habitat 201
+    h2.h2.no-span Habitat 201 - Advanced Tutorials
 
   .row.mb-2.demo--callouts
     .columns.large-4.demo--callout.secondary
       .demo--callout-content.demo--callout-supervisor
-        h4.h4 Demo
+        h4.h4 Tutorial
         h3.h3 Manage the application lifecycle
         p.demo--callout-description="Experience the capabilities baked into every Habitat artifact such as dynamic configuration updates, health checks, and more."
         .button-bar
@@ -70,6 +65,14 @@ classes: demo_index
         .button-bar
           a.button.cta href="/tutorials/build-your-own/" View the guides
 
+  .row.demo--get-habitat
+    .columns.large-12
+      h3.h3.mb-0
+        img.demo--get-habitat--image src="/images/sign.svg" alt="Sign with Habitat logo."
+        | Just want the bits?&nbsp;
+        a href="/docs/install-habitat/" Download and setup Habitat
+        |  in minutes.
+
   .row.demo--section-title
     h2.h2.no-span Habitat Diagrams
 
@@ -77,7 +80,7 @@ classes: demo_index
     .columns.demo--callout.contrast
       .demo--callout-content.demo--callout-diagrams
         .columns.large-5.large-push-1
-          h4.h4 Docs
+          h4.h4 Diagrams
           h3.h3 Habitat in Pictures
           p="For the visual learners and those simply curious about the overall system, take a high-level look at the entire Habitat landscape using this set of infographics."
           .button-bar
