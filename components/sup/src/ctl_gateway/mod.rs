@@ -28,7 +28,7 @@ use std::fmt;
 use std::io::{self, Read, Write};
 use std::fs::{self, File};
 use std::net::{Ipv4Addr, SocketAddr};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use base64;
 use common::ui::UIWriter;
@@ -43,10 +43,10 @@ use protocols;
 
 /// Default listening port for the CtlGateway listener.
 pub const DEFAULT_PORT: u16 = 9632;
-/// Name of file containing the CtlGateway secret key.
-pub const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
 /// Time to wait in milliseconds for a client connection to timeout.
 pub const REQ_TIMEOUT: u64 = 10_000;
+/// Name of file containing the CtlGateway secret key.
+const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
 /// Length of characters in CtlGateway secret key.
 const CTL_SECRET_LEN: usize = 64;
 /// Environment variable optionally containing the CtlGateway secret key.
@@ -249,7 +249,7 @@ where
     if read_secret_key(&sup_root, &mut out)? {
         Ok(out)
     } else {
-        let secret_key_path = sup_root.as_ref().join(CTL_SECRET_FILENAME);
+        let secret_key_path = secret_key_path(sup_root);
         {
             let mut f = File::create(&secret_key_path)?;
             generate_secret_key(&mut out);
@@ -259,6 +259,14 @@ where
         perm::set_permissions(&secret_key_path, 0600)?;
         Ok(out)
     }
+}
+
+/// Returns the location of the CtlGateway Secret on disk for the given Supervisor root.
+pub fn secret_key_path<T>(sup_root: T) -> PathBuf
+where
+    T: AsRef<Path>,
+{
+    sup_root.as_ref().join(CTL_SECRET_FILENAME)
 }
 
 /// Generate a new secret key used for authenticating clients to the `CtlGateway`.

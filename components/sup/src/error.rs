@@ -62,7 +62,6 @@ use notify;
 use serde_json;
 use toml;
 
-use ctl_gateway;
 use ctl_gateway::client::SrvClientError;
 
 use PROGRAM_NAME;
@@ -240,8 +239,9 @@ impl fmt::Display for SupError {
             }
             Error::CtlSecretNotFound(ref path) => {
                 format!(
-                    "CtlGateway secret key (`{}`) not found at: {}",
-                    ctl_gateway::CTL_SECRET_FILENAME,
+                    "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
+                    `hab setup` or run the Supervisor for the first time before attempting to \
+                    command the Supervisor.",
                     path.display()
                 )
             }
