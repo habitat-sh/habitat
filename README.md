@@ -16,7 +16,7 @@ See a quick demo of how to build, deploy and manage an application with Habitat:
 [![Build, Deploy and Manage with Habitat (5:33)](images/overview-youtube-image.jpg)](http://www.youtube.com/watch?v=VW1DwDezlqM)
 
 # Table of Contents
-* [Infographics](#infographics)
+* [Diagrams](#diagrams)
 * [Hands-on Demos](#hands-on-demos)
 * [Install](#install)
 * [Contribute](#contribute)
@@ -29,7 +29,7 @@ See a quick demo of how to build, deploy and manage an application with Habitat:
 * [Code of Conduct](#code-of-conduct)
 * [License](#license)
 
-## Infographics
+## Diagrams
 Graphics that will help you and your team better understand the concepts and how they fit together into the larger Habitat ecosystem.
 ### Where Habitat Fits
 
@@ -54,7 +54,7 @@ Graphics that will help you and your team better understand the concepts and how
 * [Three Tiers of Service Deployment](https://www.habitat.sh/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment-8c85b4ca.png)
 * [Deploy Services to Kubernetes with Habitat](https://www.habitat.sh/images/infographics/deploy-services-to-kubernetes-with-habitat-flow-567c4ce9.png)
 
-*View all infographics in [Docs](https://www.habitat.sh/docs/reference/#infographics)*
+*View all diagrams in [Docs](https://www.habitat.sh/docs/diagrams/)*
 
 ## Hands-on Demos
 Choose any topic to begin learning how Habitat can help your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way:
