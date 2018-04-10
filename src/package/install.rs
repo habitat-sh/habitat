@@ -364,32 +364,27 @@ impl PackageInstall {
         &self.ident
     }
 
-    /// Returns the contents of a package's runtime PATH environment
-    /// variable (if set), split into individual entries.
-    ///
-    /// Preferentially looks in the `RUNTIME_ENVIRONMENT` metadata file
-    /// to find a `PATH` variable. If this metadata file is not
-    /// present, we're dealing with an older Habitat package, and will
-    /// instead look in the `PATH` metadata file.
+    /// Returns the path elements of the package's `PATH` metafile if it exists, or an empty `Vec`
+    /// if not found.
     ///
     /// If no value for `PATH` can be found, return an empty `Vec`.
     pub fn paths(&self) -> Result<Vec<PathBuf>> {
-        match self.existing_metafile(MetaFile::RuntimeEnvironment) {
-            Some(_) => {
-                // A RUNTIME_ENVIRONMENT file exists!
-                let env = self.runtime_environment()?;
-                match env.get("PATH") {
-                    Some(path) => {
-                        let v = env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
-                        Ok(v)
-                    }
-                    None => Ok(vec![]),
-                }
+        match self.read_metafile(MetaFile::Path) {
+            Ok(body) => {
+                // The `filter()` in this chain is to reject any path entries that do not start
+                // with the package's `installed_path` (aka pkg_prefix). This check is for any
+                // packages built after
+                // https://github.com/habitat-sh/habitat/commit/13344a679155e5210dd58ecb9d94654f5ae676d3
+                // was merged (in https://github.com/habitat-sh/habitat/pull/4067, released in
+                // Habitat 0.50.0, 2017-11-30) which produced `PATH` metafiles containing extra
+                // path entries.
+                let v = env::split_paths(&body)
+                    .filter(|p| p.starts_with(&self.installed_path))
+                    .collect();
+                Ok(v)
             }
-            None => {
-                // No RUNTIME_ENVIRONMENT file exists; fall back to PATH
-                self.legacy_path()
-            }
+            Err(Error::MetaFileNotFound(MetaFile::Path)) => Ok(vec![]),
+            Err(e) => Err(e),
         }
     }
 
@@ -427,18 +422,6 @@ impl PackageInstall {
         Ok(deps)
     }
 
-    // Extract the contents of the PATH metadata file, if present.
-    fn legacy_path(&self) -> Result<Vec<PathBuf>> {
-        match self.read_metafile(MetaFile::Path) {
-            Ok(body) => {
-                let v = env::split_paths(&body).collect();
-                Ok(v)
-            }
-            Err(Error::MetaFileNotFound(MetaFile::Path)) => Ok(vec![]),
-            Err(e) => Err(e),
-        }
-    }
-
     // Determine the complete path for this package, taking into
     // account all its dependencies. Normally we would take this from
     // `RUNTIME_ENVIRONMENT`, but for packages that were made before
@@ -448,7 +431,7 @@ impl PackageInstall {
         let mut seen = HashSet::new();
 
         // Take care of our own path entries first
-        for path in self.legacy_path()? {
+        for path in self.paths()? {
             if !seen.contains(&path) {
                 seen.insert(path.clone());
                 full_path.push(path);
@@ -484,7 +467,7 @@ impl PackageInstall {
             .rev();
 
         for dep in all_deps {
-            for p in dep.legacy_path()? {
+            for p in dep.paths()? {
                 if !seen.contains(&p) {
                     seen.insert(p.clone());
                     full_path.push(p);
@@ -731,6 +714,7 @@ mod test {
     use package::metadata::{BindMapping, MetaFile};
     use std::collections::HashMap;
     use std::fs::File;
+    use std::env;
     use std::io::Write;
     use std::path::PathBuf;
     use std::str::FromStr;
@@ -857,5 +841,91 @@ core/bar=pub:core/publish sub:core/subscribe
 
     }
 
+    #[test]
+    fn paths_metafile_single() {
+        let installed_path = TempDir::new("pathy").unwrap();
+        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
+        let pkg_prefix = installed_path.path();
 
+        write_metadata_file(
+            &pkg_install,
+            MetaFile::Path,
+            &format!("{}", pkg_prefix.join("bin").display()),
+        );
+
+        assert_eq!(vec![pkg_prefix.join("bin")], pkg_install.paths().unwrap());
+    }
+
+    #[test]
+    fn paths_metafile_multiple() {
+        let installed_path = TempDir::new("pathy").unwrap();
+        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
+        let pkg_prefix = installed_path.path();
+
+        write_metadata_file(
+            &pkg_install,
+            MetaFile::Path,
+            env::join_paths(
+                vec![
+                    pkg_prefix.join("bin"),
+                    pkg_prefix.join("sbin"),
+                    pkg_prefix.join(".gem/bin"),
+                ].iter(),
+            ).unwrap()
+                .to_string_lossy()
+                .as_ref(),
+        );
+
+        assert_eq!(
+            vec![
+                pkg_prefix.join("bin"),
+                pkg_prefix.join("sbin"),
+                pkg_prefix.join(".gem/bin"),
+            ],
+            pkg_install.paths().unwrap()
+        );
+    }
+
+    #[test]
+    fn paths_metafile_missing() {
+        let installed_path = TempDir::new("pathy").unwrap();
+        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
+
+        assert_eq!(Vec::<PathBuf>::new(), pkg_install.paths().unwrap());
+    }
+
+    #[test]
+    fn paths_metafile_empty() {
+        let installed_path = TempDir::new("pathy").unwrap();
+        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
+        let pkg_prefix = installed_path.path();
+
+        let _ = File::create(pkg_prefix.join(MetaFile::Path.to_string())).unwrap();
+
+        assert_eq!(Vec::<PathBuf>::new(), pkg_install.paths().unwrap());
+    }
+
+    #[test]
+    fn paths_metafile_drop_extra_entries() {
+        let installed_path = TempDir::new("pathy").unwrap();
+        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
+        let pkg_prefix = installed_path.path();
+        let other_pkg = TempDir::new("prophets-of-rage").unwrap();
+
+        write_metadata_file(
+            &pkg_install,
+            MetaFile::Path,
+            env::join_paths(
+                vec![
+                    pkg_prefix.join("bin"),
+                    other_pkg.path().join("bin"),
+                    other_pkg.path().join("sbin"),
+                ].iter(),
+            ).unwrap()
+                .to_string_lossy()
+                .as_ref(),
+        );
+
+        assert_eq!(vec![pkg_prefix.join("bin")], pkg_install.paths().unwrap());
+    }
 }
