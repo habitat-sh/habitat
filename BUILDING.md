@@ -93,6 +93,29 @@ These binary overrides can be great for rapid iteration, but will hide errors li
 2. Upload to acceptance (or prod, but only in the unstable channel)
 3. Install new package and do normal testing
 
+## Testing exporters
+
+Changes to the exporters can be tested once the exporter package has been built locally. For example, to test changes to the Cloud Foundry exporter (`core/hab-pkg-cfize`), first enter the studio and build a new package:
+```
+➤ hab studio enter
+…
+[1][default:/src:0]# build components/pkg-cfize 
+…
+   hab-pkg-cfize: Installed Path: /hab/pkgs/jbauman/hab-pkg-cfize/0.56.0-dev/20180410205025
+```
+Now your modifications are installed locally, under `<HAB_ORIGIN>/hab-pkg-cfize`. You can run your new exporter with
+```
+[6][default:/src:0]# hab pkg exec $HAB_ORIGIN/hab-pkg-cfize hab-pkg-cfize --help
+hab-pkg-export-cf 0.56.0-dev/20180410205025
+…
+```
+Note that the version is updated, confirming you're running the new code. The old version is still accessible by running
+```
+[10][default:/src:1]# hab pkg export cf --help
+hab-pkg-export-cf 0.55.0/20180321215151
+…
+```
+
 ## HAB_STUDIO_BINARY
 
 This one is a bit special. Technically [hab-studio.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/bin/hab-studio.sh) is a shell script file and not binary. This also means that there is no need to build anything; set `HAB_STUDIO_BINARY` to the path to a version of `hab-studio.sh` within a `habitat` checkout and it will be used. This override will also affect which versions of the files in [studio/libexec](https://github.com/habitat-sh/habitat/tree/master/components/studio/libexec) are used. So if you want to test out changes to [hab-studio-profile.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/libexec/hab-studio-profile.sh) or [hab-studio-type-default.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/libexec/hab-studio-type-default.sh), make those changes in a checkout of the `habitat` repo located at `/path/to/habitat/repo` and set `HAB_STUDIO_BINARY` to `/path/to/habitat/repo/components/studio/bin/hab-studio.sh`. For example:
