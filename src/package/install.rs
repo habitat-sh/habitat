@@ -422,59 +422,42 @@ impl PackageInstall {
         Ok(deps)
     }
 
-    // Determine the complete path for this package, taking into
-    // account all its dependencies. Normally we would take this from
-    // `RUNTIME_ENVIRONMENT`, but for packages that were made before
-    // that was introduced, this is how we compute it.
-    fn full_legacy_path(&self) -> Result<Vec<PathBuf>> {
-        let mut full_path = Vec::new(); // TODO (CM): determine capacity first
+    /// Returns an ordered `Vec` of path entries which can be used to create a runtime `PATH` value
+    /// when an older package is missing a `RUNTIME_ENVIRONMENT` metafile.
+    ///
+    /// The path is constructed by taking all `PATH` metafile entries from the current package,
+    /// followed by entries from the *direct* dependencies first (in declared order), and then from
+    /// any remaining transitive dependencies last (in lexically sorted order). All entries are
+    /// present once in the order of their first appearance.
+    ///
+    /// Preserved reference implementation:
+    /// https://github.com/habitat-sh/habitat/blob/333b75d6234db0531cf4a5bdcb859f7d4adc2478/components/core/src/package/install.rs#L321-L350
+    fn legacy_runtime_path(&self) -> Result<Vec<PathBuf>> {
+        let mut paths = Vec::new();
         let mut seen = HashSet::new();
 
-        // Take care of our own path entries first
-        for path in self.paths()? {
-            if !seen.contains(&path) {
-                seen.insert(path.clone());
-                full_path.push(path);
+        for p in self.paths()? {
+            if seen.contains(&p) {
+                continue;
             }
+            seen.insert(p.clone());
+            paths.push(p);
         }
-        // Given a list of transitive dependencies:
-        //
-        // [ A, B, C, D ]
-        //
-        // and a list of direct dependencies:
-        //
-        // [ B, D ]
-        //
-        // we construct a final dependency list of:
-        //
-        // [ A, B, C, D, B, D]
-        //
-        // We then reverse this to mirror the priority that a system
-        // path would use:
-        //
-        // [ D, B, D, C, B, A ]
-        //
-        // That is, since D comes after B in the dependency list, it's
-        // path should supersede that of B, and likewise for any
-        // transitive dependencies.
-        //
-        // By processing the list this way, we extend the final system
-        // path by placing an entry at the *end* of the path only if
-        // we have not encountered it before.
-        let all_deps = self.load_tdeps()?
-            .into_iter()
-            .chain(self.load_deps()?.into_iter())
-            .rev();
 
-        for dep in all_deps {
-            for p in dep.paths()? {
-                if !seen.contains(&p) {
-                    seen.insert(p.clone());
-                    full_path.push(p);
+        let ordered_pkgs = self.load_deps()?.into_iter().chain(
+            self.load_tdeps()?.into_iter(),
+        );
+        for pkg in ordered_pkgs {
+            for p in pkg.paths()? {
+                if seen.contains(&p) {
+                    continue;
                 }
+                seen.insert(p.clone());
+                paths.push(p);
             }
         }
-        Ok(full_path)
+
+        Ok(paths)
     }
 
     /// Return the embedded runtime environment specification for a
@@ -497,7 +480,7 @@ impl PackageInstall {
             Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => {
                 // If there was no RUNTIME_ENVIRONMENT, we can at
                 // least return a proper PATH
-                let path = env::join_paths(self.full_legacy_path()?.iter())?
+                let path = env::join_paths(self.legacy_runtime_path()?.iter())?
                     .into_string()
                     .map_err(|os_string| Error::InvalidPathString(os_string))?;
 
@@ -711,16 +694,18 @@ impl fmt::Display for PackageInstall {
 
 #[cfg(test)]
 mod test {
+    use package::ident::Identifiable;
     use package::metadata::{BindMapping, MetaFile};
     use std::collections::HashMap;
-    use std::fs::File;
     use std::env;
+    use std::fs::{self, File};
     use std::io::Write;
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
     use std::str::FromStr;
-    use super::PackageInstall;
+    use super::{PackageInstall, PackageTarget};
     use super::super::PackageIdent;
     use super::super::test_support::*;
+    use super::super::super::fs as corefs;
     use tempdir::TempDir;
     use toml;
 
@@ -927,5 +912,130 @@ core/bar=pub:core/publish sub:core/subscribe
         );
 
         assert_eq!(vec![pkg_prefix.join("bin")], pkg_install.paths().unwrap());
+    }
+
+    // This test ensures the correct ordering of runtime `PATH` entries for legacy packages which
+    // lack a `RUNTIME_ENVIRONMENT` metafile.
+    #[test]
+    fn legacy_runtime_path() {
+        fn write_file(path: &Path, content: &str) {
+            let mut f = File::create(path).unwrap();
+            f.write_all(content.as_bytes()).unwrap()
+        }
+
+        fn package_install(ident: &str, fs_root: &Path) -> PackageInstall {
+            let pkg_ident = PackageIdent::from_str(ident).unwrap();
+            if !pkg_ident.fully_qualified() {
+                panic!("package_install() helper needs a fully-qualified package identifier");
+            }
+            let pkg_install_path = corefs::pkg_install_path(&pkg_ident, Some(fs_root));
+
+            fs::create_dir_all(&pkg_install_path).unwrap();
+            write_file(
+                &pkg_install_path.join(MetaFile::Ident.to_string()),
+                &pkg_ident.to_string(),
+            );
+            write_file(
+                &pkg_install_path.join(MetaFile::Target.to_string()),
+                &PackageTarget::default().to_string(),
+            );
+
+            PackageInstall::load(&pkg_ident, Some(fs_root)).expect(
+                &format!(
+                    "PackageInstall should load for {}",
+                    &pkg_ident
+                ),
+            )
+        }
+
+        fn set_deps_for(pkg_install: &PackageInstall, deps: Vec<&PackageInstall>) {
+            let mut content = String::new();
+            for dep in deps.iter().map(|d| d.ident()) {
+                content.push_str(&format!("{}\n", dep));
+            }
+            write_file(
+                &pkg_install.installed_path.join(MetaFile::Deps.to_string()),
+                &content,
+            );
+        }
+
+        fn set_tdeps_for(pkg_install: &PackageInstall, tdeps: Vec<&PackageInstall>) {
+            let mut content = String::new();
+            for tdep in tdeps.iter().map(|d| d.ident()) {
+                content.push_str(&format!("{}\n", tdep));
+            }
+            write_file(
+                &pkg_install.installed_path.join(MetaFile::TDeps.to_string()),
+                &content,
+            );
+        }
+
+        fn set_path_for(pkg_install: &PackageInstall, paths: Vec<&str>) {
+            write_file(
+                &pkg_install.installed_path.join(MetaFile::Path.to_string()),
+                &paths
+                    .iter()
+                    .map(|p| {
+                        pkg_install
+                            .installed_path
+                            .join(p)
+                            .to_string_lossy()
+                            .into_owned()
+                    })
+                    .collect::<Vec<String>>()
+                    .join(":"),
+            );
+        }
+
+        fn paths_for(pkg_install: &PackageInstall) -> Vec<PathBuf> {
+            pkg_install.paths().unwrap()
+        }
+
+        let fs_root = TempDir::new("fs-root").unwrap();
+
+        let hotel = package_install("acme/hotel/1/20180409224001", fs_root.path());
+        set_path_for(&hotel, vec!["bin"]);
+
+        let golf = package_install("acme/golf/1/20180409224001", fs_root.path());
+        set_path_for(&golf, vec!["bin"]);
+
+        let foxtrot = package_install("acme/foxtrot/1/20180409224001", fs_root.path());
+        set_path_for(&foxtrot, vec!["bin"]);
+
+        let echo = package_install("acme/echo/1/20180409224001", fs_root.path());
+        set_deps_for(&echo, vec![&foxtrot]);
+        set_tdeps_for(&echo, vec![&foxtrot]);
+
+        let delta = package_install("acme/delta/1/20180409224001", fs_root.path());
+        set_deps_for(&delta, vec![&echo]);
+        set_tdeps_for(&delta, vec![&echo, &foxtrot]);
+
+        let charlie = package_install("acme/charlie/1/20180409224001", fs_root.path());
+        set_path_for(&charlie, vec!["sbin"]);
+        set_deps_for(&charlie, vec![&golf, &delta]);
+        set_tdeps_for(&charlie, vec![&delta, &echo, &foxtrot, &golf]);
+
+        let beta = package_install("acme/beta/1/20180409224001", fs_root.path());
+        set_path_for(&beta, vec!["bin"]);
+        set_deps_for(&beta, vec![&delta]);
+        set_tdeps_for(&beta, vec![&delta, &echo, &foxtrot]);
+
+        let alpha = package_install("acme/alpha/1/20180409224001", fs_root.path());
+        set_path_for(&alpha, vec!["sbin", ".gem/bin", "bin"]);
+        set_deps_for(&alpha, vec![&charlie, &hotel, &beta]);
+        set_tdeps_for(
+            &alpha,
+            vec![&beta, &charlie, &delta, &echo, &foxtrot, &golf, &hotel],
+        );
+
+        let mut expected = Vec::new();
+        expected.append(&mut paths_for(&alpha));
+        expected.append(&mut paths_for(&charlie));
+        expected.append(&mut paths_for(&hotel));
+        expected.append(&mut paths_for(&beta));
+        expected.append(&mut paths_for(&foxtrot));
+        expected.append(&mut paths_for(&golf));
+
+        assert_eq!(expected, alpha.legacy_runtime_path().unwrap());
     }
 }
