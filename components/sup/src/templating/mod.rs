@@ -19,6 +19,7 @@ use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::result;
 
+use hcore::fs::FS_ROOT_PATH;
 use handlebars::{Handlebars, RenderError};
 use serde::Serialize;
 use serde_json;
@@ -253,7 +254,9 @@ test: something"#
         let rendered = renderer.render("t", &data).unwrap();
         assert_eq!(
             PathBuf::from(rendered),
-            PathBuf::from("/hab/pkgs/core/acl/2.2.52/20161208223311")
+            PathBuf::from((&*FS_ROOT_PATH).join(
+                "/hab/pkgs/core/acl/2.2.52/20161208223311",
+            ))
         );
     }
 
