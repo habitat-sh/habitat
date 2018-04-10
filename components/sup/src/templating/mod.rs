@@ -19,7 +19,6 @@ use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::result;
 
-use hcore::fs::FS_ROOT_PATH;
 use handlebars::{Handlebars, RenderError};
 use serde::Serialize;
 use serde_json;
@@ -100,6 +99,7 @@ mod test {
     use toml;
 
     use super::*;
+    use hcore::fs::FS_ROOT_PATH;
     use util::convert;
 
     pub fn root() -> PathBuf {
