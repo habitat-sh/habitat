@@ -5,8 +5,8 @@ pkg_license=('Apache-2.0')
 pkg_description="Habitat Cloud Foundry image exporter"
 pkg_upstream_url="https://github.com/habitat-sh/habitat"
 pkg_deps=(
-  core/coreutils core/findutils core/grep core/sed core/gawk core/bash
-  core/hab-pkg-dockerize core/docker/17.09.0
+  core/coreutils core/findutils core/grep core/gawk
+  core/hab-pkg-export-docker core/docker
 )
 pkg_bin_dirs=(bin)
 
@@ -51,7 +51,7 @@ do_install() {
     install -v -D "$CACHE_PATH/$bin" "$pkg_prefix/bin/$bin"
     # Wrap the program with a script which sets the runtime `PATH` for the
     # program so that it can find all of the programs it calls out to, such as
-    # `docker`, `hab-pkg-dockerize`, etc.
+    # `docker`, `hab-pkg-export-docker`, etc.
     _wrap_binary "$pkg_prefix/bin/$bin"
   done
 }
