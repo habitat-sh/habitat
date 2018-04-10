@@ -181,6 +181,18 @@ hab pkg upload -u https://bldr.acceptance.habitat.sh -c stable -z <AUTH_TOKEN> c
 
 *Important*: Don't forget to include the `-c stable` in the upload step above!
 
+## Update the Docs
+
+Assuming you've got a locally installed version of the `hab` CLI you just released, you can update the CLI documentation in a separate PR. To do that:
+
+```
+cd www
+make cli_docs
+make template_reference
+```
+
+Verify the diff looks reasonable and matches the newly released version, then submit your PR.
+
 # Drink. It. In.
 
 ## Bump Version
