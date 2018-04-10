@@ -9,7 +9,7 @@ When starting a single service, you can provide alternate configuration values t
 
 ### Using a user.toml file
 
-You can supply a `user.toml` containing any configuration data that you want to override default values. This file should be placed in the habitat `user` directory under the specific service directory that owns the configuration data. For example, to override the default configuration of the `myservice` service, this `user.toml` would be located at `/hab/user/myservice/user.toml`.
+You can supply a `user.toml` containing any configuration data that you want to override default values. This file should be placed in the habitat `user` directory under the `config` subdirectory of the specific service directory that owns the configuration data. For example, to override the default configuration of the `myservice` service, this `user.toml` would be located at `/hab/user/myservice/config/user.toml`.
 
 ### Using an environment variable
 
