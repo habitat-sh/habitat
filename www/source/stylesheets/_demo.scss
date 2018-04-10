@@ -90,6 +90,7 @@ $demo-large-breakpoint: rem-calc(1060);
       display: table;
       white-space: nowrap;
       font-size: rem-calc(18);
+      font-weight: normal;
       text-transform: uppercase;
       letter-spacing: 1px;
       &:before, &:after {
@@ -178,7 +179,18 @@ $demo-large-breakpoint: rem-calc(1060);
   .h4 {
     margin-bottom: rem-calc(8);
     color: rgba($hab-white,0.35);
+    font-weight: normal;
     text-transform: uppercase;
+  }
+
+  p {
+    margin-bottom: rem-calc(48);
+  }
+
+  .footnote {
+    margin: .875rem 0 0;
+    font-size: .875rem;
+    color: rgba($hab-white, 0.35);
   }
 
   &:after {
