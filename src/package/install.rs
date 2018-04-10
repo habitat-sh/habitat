@@ -371,6 +371,9 @@ impl PackageInstall {
     pub fn paths(&self) -> Result<Vec<PathBuf>> {
         match self.read_metafile(MetaFile::Path) {
             Ok(body) => {
+                if body.is_empty() {
+                    return Ok(vec![]);
+                }
                 // The `filter()` in this chain is to reject any path entries that do not start
                 // with the package's `installed_path` (aka pkg_prefix). This check is for any
                 // packages built after
@@ -378,8 +381,9 @@ impl PackageInstall {
                 // was merged (in https://github.com/habitat-sh/habitat/pull/4067, released in
                 // Habitat 0.50.0, 2017-11-30) which produced `PATH` metafiles containing extra
                 // path entries.
+                let pkg_prefix = fs::pkg_install_path(self.ident(), None::<&Path>);
                 let v = env::split_paths(&body)
-                    .filter(|p| p.starts_with(&self.installed_path))
+                    .filter(|p| p.starts_with(&pkg_prefix))
                     .collect();
                 Ok(v)
             }
@@ -694,20 +698,86 @@ impl fmt::Display for PackageInstall {
 
 #[cfg(test)]
 mod test {
-    use package::ident::Identifiable;
-    use package::metadata::{BindMapping, MetaFile};
-    use std::collections::HashMap;
-    use std::env;
-    use std::fs::{self, File};
+    use std::fs::File;
     use std::io::Write;
-    use std::path::{Path, PathBuf};
-    use std::str::FromStr;
-    use super::{PackageInstall, PackageTarget};
-    use super::super::PackageIdent;
-    use super::super::test_support::*;
-    use super::super::super::fs as corefs;
+
     use tempdir::TempDir;
+    use time;
     use toml;
+
+    use super::*;
+    use package::test_support::fixture_path;
+
+    /// Creates a minimal installed package under an fs_root and return a corresponding loaded
+    /// `PackageInstall` suitable for testing against. The `IDENT` and `TARGET` metafiles are
+    /// created and for the target system the tests are running on. Further subdirectories, files,
+    /// and metafile can be created under this path.
+    fn testing_package_install(ident: &str, fs_root: &Path) -> PackageInstall {
+        fn write_file(path: &Path, content: &str) {
+            let mut f = File::create(path).unwrap();
+            f.write_all(content.as_bytes()).unwrap()
+        }
+
+        let mut pkg_ident = PackageIdent::from_str(ident).unwrap();
+        if !pkg_ident.fully_qualified() {
+            if let None = pkg_ident.version {
+                pkg_ident.version = Some(String::from("1.0.0"));
+            }
+            if let None = pkg_ident.release {
+                pkg_ident.release = Some(
+                    time::now_utc()
+                        .strftime("%Y%m%d%H%M%S")
+                        .unwrap()
+                        .to_string(),
+                );
+            }
+        }
+        let pkg_install_path = fs::pkg_install_path(&pkg_ident, Some(fs_root));
+
+        std::fs::create_dir_all(&pkg_install_path).unwrap();
+        write_file(
+            &pkg_install_path.join(MetaFile::Ident.to_string()),
+            &pkg_ident.to_string(),
+        );
+        write_file(
+            &pkg_install_path.join(MetaFile::Target.to_string()),
+            &PackageTarget::default().to_string(),
+        );
+
+        PackageInstall::load(&pkg_ident, Some(fs_root)).expect(
+            &format!(
+                "PackageInstall should load for {}",
+                &pkg_ident
+            ),
+        )
+    }
+
+    /// Write the given contents into the specified metadata file for
+    /// the package.
+    fn write_metafile(pkg_install: &PackageInstall, metafile: MetaFile, content: &str) {
+        let path = pkg_install.installed_path().join(metafile.to_string());
+        let mut f = File::create(path).expect("Could not create metafile");
+        f.write_all(content.as_bytes()).expect(
+            "Could not write metafile contents",
+        );
+    }
+
+    /// Creates a `PATH` metafile with path entries all prefixed with the package's `pkg_prefix`.
+    fn set_path_for(pkg_install: &PackageInstall, paths: Vec<&str>) {
+        write_metafile(
+            &pkg_install,
+            MetaFile::Path,
+            env::join_paths(paths.iter().map(|p| pkg_prefix_for(pkg_install).join(p)))
+                .unwrap()
+                .to_string_lossy()
+                .as_ref(),
+        );
+    }
+
+    /// Returns the prefix path for a `PackageInstall`, making sure to not include any `FS_ROOT`.
+    fn pkg_prefix_for(pkg_install: &PackageInstall) -> PathBuf {
+        fs::pkg_install_path(pkg_install.ident(), None::<&Path>)
+    }
 
     #[test]
     fn can_serialize_default_config() {
@@ -728,46 +798,17 @@ mod test {
         }
     }
 
-    /// Create a `PackageInstall` struct for the explicit purpose of
-    /// testing metadata file interpretation. This exists to point to
-    /// a directory of metadata files, and that's it.
-    ///
-    /// You should pass in the path to a temporary directory for
-    /// `installed_path`.
-    fn fake_package_install(ident: &str, installed_path: PathBuf) -> PackageInstall {
-        PackageInstall {
-            ident: ident.parse().unwrap(),
-            fs_root_path: PathBuf::from(""),
-            package_root_path: PathBuf::from(""),
-            installed_path: installed_path,
-        }
-    }
-
-    /// Write the given contents into the specified metadata file for
-    /// the package.
-    fn write_metadata_file(pkg_install: &PackageInstall, metafile: MetaFile, content: &str) {
-        let path = pkg_install.installed_path().join(metafile.to_string());
-        let mut f = File::create(path).expect("Could not create metafile");
-        f.write_all(content.as_bytes()).expect(
-            "Could not write metafile contents",
-        );
-    }
-
     #[test]
     fn reading_a_valid_bind_map_file_works() {
-        // Create a testing package
-        let installed_path = TempDir::new("valid_bind_map").expect(
-            "Could not create installed_path temporary directory",
-        );
-        let package_install =
-            fake_package_install("core/composite", installed_path.path().to_path_buf());
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let package_install = testing_package_install("core/composite", fs_root.path());
 
         // Create a BIND_MAP file for that package
         let bind_map_contents = r#"
 core/foo=db:core/database fe:core/front-end be:core/back-end
 core/bar=pub:core/publish sub:core/subscribe
         "#;
-        write_metadata_file(&package_install, MetaFile::BindMap, bind_map_contents);
+        write_metafile(&package_install, MetaFile::BindMap, bind_map_contents);
 
         // Grab the bind map from that package
         let bind_map = package_install.bind_map().unwrap();
@@ -795,15 +836,12 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn reading_a_bad_bind_map_file_results_in_an_error() {
-        // Create a testing package
-        let installed_path = TempDir::new("invalid_bind_map").expect(
-            "Could not create installed_path temporary directory",
-        );
-        let package_install = fake_package_install("core/dud", installed_path.path().to_path_buf());
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let package_install = testing_package_install("core/dud", fs_root.path());
 
         // Create a BIND_MAP directory for that package
         let bind_map_contents = "core/foo=db:this-is-not-an-identifier";
-        write_metadata_file(&package_install, MetaFile::BindMap, bind_map_contents);
+        write_metafile(&package_install, MetaFile::BindMap, bind_map_contents);
 
         // Grab the bind map from that package
         let bind_map = package_install.bind_map();
@@ -814,11 +852,8 @@ core/bar=pub:core/publish sub:core/subscribe
     /// standalone packages will never have them. This is OK.
     #[test]
     fn missing_bind_map_files_are_ok() {
-        let installed_path = TempDir::new("missing_bind_map").expect(
-            "Could not create installed_path temporary directory",
-        );
-        let package_install =
-            fake_package_install("core/no-binds", installed_path.path().to_path_buf());
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let package_install = testing_package_install("core/no-binds", fs_root.path());
 
         // Grab the bind map from that package
         let bind_map = package_install.bind_map().unwrap();
@@ -828,38 +863,23 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn paths_metafile_single() {
-        let installed_path = TempDir::new("pathy").unwrap();
-        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
-        let pkg_prefix = installed_path.path();
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        set_path_for(&pkg_install, vec!["bin"]);
 
-        write_metadata_file(
-            &pkg_install,
-            MetaFile::Path,
-            &format!("{}", pkg_prefix.join("bin").display()),
+        assert_eq!(
+            vec![pkg_prefix_for(&pkg_install).join("bin")],
+            pkg_install.paths().unwrap()
         );
-
-        assert_eq!(vec![pkg_prefix.join("bin")], pkg_install.paths().unwrap());
     }
 
     #[test]
     fn paths_metafile_multiple() {
-        let installed_path = TempDir::new("pathy").unwrap();
-        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
-        let pkg_prefix = installed_path.path();
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        set_path_for(&pkg_install, vec!["bin", "sbin", ".gem/bin"]);
 
-        write_metadata_file(
-            &pkg_install,
-            MetaFile::Path,
-            env::join_paths(
-                vec![
-                    pkg_prefix.join("bin"),
-                    pkg_prefix.join("sbin"),
-                    pkg_prefix.join(".gem/bin"),
-                ].iter(),
-            ).unwrap()
-                .to_string_lossy()
-                .as_ref(),
-        );
+        let pkg_prefix = pkg_prefix_for(&pkg_install);
 
         assert_eq!(
             vec![
@@ -873,90 +893,61 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn paths_metafile_missing() {
-        let installed_path = TempDir::new("pathy").unwrap();
-        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
         assert_eq!(Vec::<PathBuf>::new(), pkg_install.paths().unwrap());
     }
 
     #[test]
     fn paths_metafile_empty() {
-        let installed_path = TempDir::new("pathy").unwrap();
-        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
-        let pkg_prefix = installed_path.path();
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
-        let _ = File::create(pkg_prefix.join(MetaFile::Path.to_string())).unwrap();
+        // Create a zero-sizd `PATH` metafile
+        let _ = File::create(pkg_install.installed_path.join(MetaFile::Path.to_string())).unwrap();
 
         assert_eq!(Vec::<PathBuf>::new(), pkg_install.paths().unwrap());
     }
 
     #[test]
     fn paths_metafile_drop_extra_entries() {
-        let installed_path = TempDir::new("pathy").unwrap();
-        let pkg_install = fake_package_install("acme/pathy", installed_path.path().to_path_buf());
-        let pkg_prefix = installed_path.path();
-        let other_pkg = TempDir::new("prophets-of-rage").unwrap();
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        let other_pkg_install = testing_package_install("acme/prophets-of-rage", fs_root.path());
 
-        write_metadata_file(
+        // Create `PATH` metafile which has path entries from another package to replicate certain
+        // older packages
+        write_metafile(
             &pkg_install,
             MetaFile::Path,
             env::join_paths(
                 vec![
-                    pkg_prefix.join("bin"),
-                    other_pkg.path().join("bin"),
-                    other_pkg.path().join("sbin"),
+                    pkg_prefix_for(&pkg_install).join("bin"),
+                    pkg_prefix_for(&other_pkg_install).join("bin"),
+                    pkg_prefix_for(&other_pkg_install).join("sbin"),
                 ].iter(),
             ).unwrap()
                 .to_string_lossy()
                 .as_ref(),
         );
 
-        assert_eq!(vec![pkg_prefix.join("bin")], pkg_install.paths().unwrap());
+        assert_eq!(
+            vec![pkg_prefix_for(&pkg_install).join("bin")],
+            pkg_install.paths().unwrap()
+        );
     }
 
     // This test ensures the correct ordering of runtime `PATH` entries for legacy packages which
     // lack a `RUNTIME_ENVIRONMENT` metafile.
     #[test]
     fn legacy_runtime_path() {
-        fn write_file(path: &Path, content: &str) {
-            let mut f = File::create(path).unwrap();
-            f.write_all(content.as_bytes()).unwrap()
-        }
-
-        fn package_install(ident: &str, fs_root: &Path) -> PackageInstall {
-            let pkg_ident = PackageIdent::from_str(ident).unwrap();
-            if !pkg_ident.fully_qualified() {
-                panic!("package_install() helper needs a fully-qualified package identifier");
-            }
-            let pkg_install_path = corefs::pkg_install_path(&pkg_ident, Some(fs_root));
-
-            fs::create_dir_all(&pkg_install_path).unwrap();
-            write_file(
-                &pkg_install_path.join(MetaFile::Ident.to_string()),
-                &pkg_ident.to_string(),
-            );
-            write_file(
-                &pkg_install_path.join(MetaFile::Target.to_string()),
-                &PackageTarget::default().to_string(),
-            );
-
-            PackageInstall::load(&pkg_ident, Some(fs_root)).expect(
-                &format!(
-                    "PackageInstall should load for {}",
-                    &pkg_ident
-                ),
-            )
-        }
-
         fn set_deps_for(pkg_install: &PackageInstall, deps: Vec<&PackageInstall>) {
             let mut content = String::new();
             for dep in deps.iter().map(|d| d.ident()) {
                 content.push_str(&format!("{}\n", dep));
             }
-            write_file(
-                &pkg_install.installed_path.join(MetaFile::Deps.to_string()),
-                &content,
-            );
+            write_metafile(&pkg_install, MetaFile::Deps, &content);
         }
 
         fn set_tdeps_for(pkg_install: &PackageInstall, tdeps: Vec<&PackageInstall>) {
@@ -964,27 +955,7 @@ core/bar=pub:core/publish sub:core/subscribe
             for tdep in tdeps.iter().map(|d| d.ident()) {
                 content.push_str(&format!("{}\n", tdep));
             }
-            write_file(
-                &pkg_install.installed_path.join(MetaFile::TDeps.to_string()),
-                &content,
-            );
-        }
-
-        fn set_path_for(pkg_install: &PackageInstall, paths: Vec<&str>) {
-            write_file(
-                &pkg_install.installed_path.join(MetaFile::Path.to_string()),
-                &paths
-                    .iter()
-                    .map(|p| {
-                        pkg_install
-                            .installed_path
-                            .join(p)
-                            .to_string_lossy()
-                            .into_owned()
-                    })
-                    .collect::<Vec<String>>()
-                    .join(":"),
-            );
+            write_metafile(&pkg_install, MetaFile::TDeps, &content);
         }
 
         fn paths_for(pkg_install: &PackageInstall) -> Vec<PathBuf> {
@@ -993,34 +964,34 @@ core/bar=pub:core/publish sub:core/subscribe
 
         let fs_root = TempDir::new("fs-root").unwrap();
 
-        let hotel = package_install("acme/hotel/1/20180409224001", fs_root.path());
+        let hotel = testing_package_install("acme/hotel", fs_root.path());
         set_path_for(&hotel, vec!["bin"]);
 
-        let golf = package_install("acme/golf/1/20180409224001", fs_root.path());
+        let golf = testing_package_install("acme/golf", fs_root.path());
         set_path_for(&golf, vec!["bin"]);
 
-        let foxtrot = package_install("acme/foxtrot/1/20180409224001", fs_root.path());
+        let foxtrot = testing_package_install("acme/foxtrot", fs_root.path());
         set_path_for(&foxtrot, vec!["bin"]);
 
-        let echo = package_install("acme/echo/1/20180409224001", fs_root.path());
+        let echo = testing_package_install("acme/echo", fs_root.path());
         set_deps_for(&echo, vec![&foxtrot]);
         set_tdeps_for(&echo, vec![&foxtrot]);
 
-        let delta = package_install("acme/delta/1/20180409224001", fs_root.path());
+        let delta = testing_package_install("acme/delta", fs_root.path());
         set_deps_for(&delta, vec![&echo]);
         set_tdeps_for(&delta, vec![&echo, &foxtrot]);
 
-        let charlie = package_install("acme/charlie/1/20180409224001", fs_root.path());
+        let charlie = testing_package_install("acme/charlie", fs_root.path());
         set_path_for(&charlie, vec!["sbin"]);
         set_deps_for(&charlie, vec![&golf, &delta]);
         set_tdeps_for(&charlie, vec![&delta, &echo, &foxtrot, &golf]);
 
-        let beta = package_install("acme/beta/1/20180409224001", fs_root.path());
+        let beta = testing_package_install("acme/beta", fs_root.path());
         set_path_for(&beta, vec!["bin"]);
         set_deps_for(&beta, vec![&delta]);
         set_tdeps_for(&beta, vec![&delta, &echo, &foxtrot]);
 
-        let alpha = package_install("acme/alpha/1/20180409224001", fs_root.path());
+        let alpha = testing_package_install("acme/alpha", fs_root.path());
         set_path_for(&alpha, vec!["sbin", ".gem/bin", "bin"]);
         set_deps_for(&alpha, vec![&charlie, &hotel, &beta]);
         set_tdeps_for(
