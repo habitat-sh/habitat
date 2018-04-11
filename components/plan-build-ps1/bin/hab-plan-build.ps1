@@ -1695,6 +1695,15 @@ $(Get-Content "$PLAN_CONTEXT\plan.ps1" -Raw)
 function _Write-Metadata {
     Write-BuildLine "Building pacakge metadata"
 
+    $prefixDrive = (Resolve-Path $originalPath).Drive.Root
+    $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
+    if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
+
+    if ($pkg_bin_dirs.Length -gt 0) {
+        $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+            Out-File "$pkg_prefix\PATH" -Encoding ascii
+    }
+
     if ($pkg_expose.Length -gt 0) {
         "$($pkg_expose -join ' ')" |
             Out-File "$pkg_prefix\EXPOSES" -Encoding ascii
