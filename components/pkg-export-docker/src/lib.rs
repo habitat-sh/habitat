@@ -277,7 +277,7 @@ pub fn export_for_cli_matches(
 /// Create the Clap CLI for the Docker exporter
 pub fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
-    let about = "Creates (an optionally pushes) a Docker image from a set of Habitat packages";
+    let about = "Creates (and optionally pushes) a Docker image from a set of Habitat packages";
 
     Cli::new(name, about)
         .add_base_packages_args()
