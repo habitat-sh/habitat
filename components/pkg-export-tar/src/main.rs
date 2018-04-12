@@ -20,6 +20,7 @@ fn main() {
 }
 
 fn start(ui: &mut UI) -> Result<()> {
+    env_logger::init();
     let cli = cli();
     let m = cli.get_matches();
     debug!("clap cli args: {:?}", m);

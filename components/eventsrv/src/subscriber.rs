@@ -33,6 +33,7 @@ use protocol::{EventEnvelope, EventEnvelope_Type, ServiceUpdate as ServiceUpdate
 use zmq::{Context, SUB};
 
 fn main() {
+    env_logger::init();
     let ctx = Context::new();
     let socket = ctx.socket(SUB).unwrap();
 

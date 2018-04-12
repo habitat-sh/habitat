@@ -15,7 +15,6 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate env_logger;
 extern crate habitat_eventsrv_protocol as protocol;
 extern crate protobuf;
 extern crate time;
