@@ -338,6 +338,17 @@ impl CensusGroup {
         self.population.values().map(|cm| cm).collect()
     }
 
+    /// Same as `members`, but only returns members that are either
+    /// alive or suspect, i.e., nothing that is confirmed dead or
+    /// departed. These are the members that we'll reasonably be
+    /// interacting with at runtime.
+    pub fn active_members(&self) -> Vec<&CensusMember> {
+        self.population
+            .values()
+            .filter(|cm| cm.alive() || cm.suspect())
+            .collect()
+    }
+
     pub fn changed_service_files(&self) -> Vec<&ServiceFile> {
         self.changed_service_files
             .iter()
@@ -618,9 +629,10 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use hcore::package::ident::PackageIdent;
     use hcore::service::ServiceGroup;
-    use butterfly::member::MemberList;
+    use butterfly::member::{Health, MemberList};
     use butterfly::rumor::service::Service as ServiceRumor;
     use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
     use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
@@ -628,7 +640,6 @@ mod tests {
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
     use butterfly::rumor::service::SysInfo;
     use butterfly::rumor::RumorStore;
-    use census::CensusRing;
 
     #[test]
     fn update_from_rumors() {
@@ -702,4 +713,62 @@ mod tests {
         assert_eq!(members[0].member_id, "member-a");
         assert_eq!(members[1].member_id, "member-b");
     }
+
+    /// Create a bare-minimum CensusMember with the given Health
+    fn test_census_member(id: MemberId, health: Health) -> CensusMember {
+        CensusMember {
+            member_id: id,
+            pkg: None,
+            application: None,
+            environment: None,
+            service: "test_service".to_string(),
+            group: "default".to_string(),
+            org: None,
+            persistent: false,
+            leader: false,
+            follower: false,
+            update_leader: false,
+            update_follower: false,
+            election_is_running: false,
+            election_is_no_quorum: false,
+            election_is_finished: false,
+            update_election_is_running: false,
+            update_election_is_no_quorum: false,
+            update_election_is_finished: false,
+            sys: SysInfo::new(),
+            alive: health == Health::Alive,
+            suspect: health == Health::Suspect,
+            confirmed: health == Health::Confirmed,
+            departed: health == Health::Departed,
+            cfg: BTreeMap::new(),
+        }
+    }
+
+    #[test]
+    fn active_members_leaves_only_active_members() {
+        let population = vec![
+            test_census_member("live-one".to_string(), Health::Alive),
+            test_census_member("suspect-one".to_string(), Health::Suspect),
+            test_census_member("confirmed-one".to_string(), Health::Confirmed),
+            test_census_member("departed-one".to_string(), Health::Departed),
+        ];
+
+        let sg: ServiceGroup = "test-service.default".parse().expect(
+            "This should be a valid service group",
+        );
+
+        let mut census_group = CensusGroup::new(sg, &"live-one".to_string());
+        for member in population {
+            census_group.population.insert(
+                member.member_id.clone(),
+                member,
+            );
+        }
+
+        let active_members = census_group.active_members();
+        assert_eq!(active_members.len(), 2);
+        assert_eq!(active_members[0].member_id, "live-one");
+        assert_eq!(active_members[1].member_id, "suspect-one");
+    }
+
 }

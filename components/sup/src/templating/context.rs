@@ -310,7 +310,7 @@ impl<'a> Svc<'a> {
             update_election_status: Cow::Borrowed(&census_group.update_election_status),
             members: Cow::Owned(
                 census_group
-                    .members()
+                    .active_members()
                     .iter()
                     .map(|m| SvcMember::from_census_member(m))
                     .collect(),
@@ -427,7 +427,7 @@ impl<'a> BindGroup<'a> {
             first: select_first(group),
             leader: group.leader().map(|m| SvcMember::from_census_member(m)),
             members: group
-                .members()
+                .active_members()
                 .iter()
                 .map(|m| SvcMember::from_census_member(m))
                 .collect(),

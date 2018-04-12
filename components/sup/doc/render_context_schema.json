@@ -451,7 +451,7 @@
                     "$ref": "#/definitions/svc_member"
                 },
                 "members": {
-                    "description": "All members of the service group, across the entire ring. Includes all liveness states!",
+                    "description": "All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/svc_member"
@@ -510,7 +510,7 @@
                         ]
                     },
                     "members": {
-                        "description": "All members of the service group, across the entire ring. Includes all liveness states!",
+                        "description": "All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members",
                         "type": "array",
                         "items": {
                             "$ref": "#/definitions/svc_member"
