@@ -387,7 +387,34 @@ impl PackageInstall {
                     .collect();
                 Ok(v)
             }
-            Err(Error::MetaFileNotFound(MetaFile::Path)) => Ok(vec![]),
+            Err(Error::MetaFileNotFound(MetaFile::Path)) => {
+                if cfg!(windows) {
+                    // This check is for any packages built after
+                    // https://github.com/habitat-sh/habitat/commit/cc1f35e4bd9f7a8d881a602380730488e6ad055a
+                    // was merged (in https://github.com/habitat-sh/habitat/pull/4478, released in
+                    // Habitat 0.53.0, 2018-02-05) which stopped producing `PATH` metafiles. This
+                    // workaround attempts to fallback to the `RUNTIME_ENVIRONMENT` metafile and
+                    // use the value of the `PATH` key as a stand-in for the `PATH` metafile.
+                    let pkg_prefix = fs::pkg_install_path(self.ident(), None::<&Path>);
+                    match self.read_metafile(MetaFile::RuntimeEnvironment) {
+                        Ok(ref body) => {
+                            match Self::parse_runtime_environment_metafile(body)?.get("PATH") {
+                                Some(env_path) => {
+                                    let v = env::split_paths(env_path)
+                                        .filter(|p| p.starts_with(&pkg_prefix))
+                                        .collect();
+                                    Ok(v)
+                                }
+                                None => Ok(vec![]),
+                            }
+                        }
+                        Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => Ok(vec![]),
+                        Err(e) => Err(e),
+                    }
+                } else {
+                    Ok(vec![])
+                }
+            }
             Err(e) => Err(e),
         }
     }
@@ -932,6 +959,34 @@ core/bar=pub:core/publish sub:core/subscribe
             ).unwrap()
                 .to_string_lossy()
                 .as_ref(),
+        );
+
+        assert_eq!(
+            vec![pkg_prefix_for(&pkg_install).join("bin")],
+            pkg_install.paths().unwrap()
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn win_legacy_paths_metafile_missing_with_runtime_metafile() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        let other_pkg_install = testing_package_install("acme/prophets-of-rage", fs_root.path());
+
+        // Create `RUNTIME_ENVIROMENT` metafile which has path entries from another package to
+        // replicate certain older packages
+        let path_val = env::join_paths(
+            vec![
+                pkg_prefix_for(&pkg_install).join("bin"),
+                pkg_prefix_for(&other_pkg_install).join("bin"),
+                pkg_prefix_for(&other_pkg_install).join("sbin"),
+            ].iter(),
+        ).unwrap();
+        write_metafile(
+            &pkg_install,
+            MetaFile::RuntimeEnvironment,
+            &format!("PATH={}\n", path_val.to_string_lossy().as_ref()),
         );
 
         assert_eq!(
