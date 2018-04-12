@@ -314,9 +314,9 @@ fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
     options.toggle(SSL_OP_NO_SSLV2);
     options.toggle(SSL_OP_NO_SSLV3);
     options.toggle(SSL_OP_NO_COMPRESSION);
-    ssl::set_ca(conn.builder_mut(), fs_root_path)?;
-    conn.builder_mut().set_options(options);
-    conn.builder_mut().set_cipher_list(
+    ssl::set_ca(&mut conn, fs_root_path)?;
+    conn.set_options(options);
+    conn.set_cipher_list(
         "ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH",
     )?;
     Ok(conn.build())
