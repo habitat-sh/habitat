@@ -54,7 +54,7 @@ use hcore::package::metadata::PackageType;
 use hyper::status::StatusCode;
 
 use error::{Error, Result};
-use ui::{Status, UI};
+use ui::{Status, UIWriter};
 
 use retry::retry;
 
@@ -73,7 +73,7 @@ pub const RETRY_WAIT: u64 = 3000;
 /// In other words, you are probably more interested in the
 /// `InstallSource` enum; this struct is just an implementation
 /// detail.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct LocalArchive {
     // In an ideal world, we would just implement `InstallSource` in
     // terms of a `PackageArchive` directly, since that can provide
@@ -96,7 +96,7 @@ pub struct LocalArchive {
 }
 
 /// Encapsulate all possible sources we can install packages from.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum InstallSource {
     /// We can install from a package identifier
     Ident(PackageIdent),
@@ -145,6 +145,15 @@ impl From<PackageIdent> for InstallSource {
     /// existing `PackageIdent`.
     fn from(ident: PackageIdent) -> Self {
         InstallSource::Ident(ident)
+    }
+}
+
+impl Into<PackageIdent> for InstallSource {
+    fn into(self) -> PackageIdent {
+        match self {
+            InstallSource::Ident(ident) => ident,
+            InstallSource::Archive(local_archive) => local_archive.ident,
+        }
     }
 }
 
@@ -262,8 +271,8 @@ impl<'a> fmt::Display for FullyQualifiedPackageIdent<'a> {
 // TODO (CM): Consider passing in a configured depot client instead of
 // product / version... That might make it easier to share with the
 // `sup` crate
-pub fn start<P1, P2>(
-    ui: &mut UI,
+pub fn start<U, P1, P2>(
+    ui: &mut U,
     url: &str,
     channel: Option<&str>,
     install_source: &InstallSource,
@@ -275,6 +284,7 @@ pub fn start<P1, P2>(
     install_mode: &InstallMode,
 ) -> Result<PackageInstall>
 where
+    U: UIWriter,
     P1: AsRef<Path>,
     P2: AsRef<Path>,
 {
@@ -349,12 +359,15 @@ impl<'a> InstallTask<'a> {
     /// fully-qualified identifier of package that was infstalled
     /// (which, as we have seen, may not be the same as the identifier
     /// that was passed in).
-    fn from_ident(
+    fn from_ident<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         ident: PackageIdent,
         token: Option<&str>,
-    ) -> Result<PackageInstall> {
+    ) -> Result<PackageInstall>
+    where
+        T: UIWriter,
+    {
         ui.begin(format!("Installing {}", &ident))?;
         let target_ident = self.determine_latest_from_ident(ui, ident, token)?;
 
@@ -378,17 +391,19 @@ impl<'a> InstallTask<'a> {
 
     /// Given an archive on disk, ensure that it is properly installed
     /// and return the package's identifier.
-    fn from_archive(
+    fn from_archive<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         local_archive: &LocalArchive,
         token: Option<&str>,
-    ) -> Result<PackageInstall> {
+    ) -> Result<PackageInstall>
+    where
+        T: UIWriter,
+    {
         ui.begin(
             format!("Installing {}", local_archive.path.display()),
         )?;
         let target_ident = FullyQualifiedPackageIdent::from(&local_archive.ident)?;
-
         match self.installed_package(&target_ident) {
             Some(package_install) => {
                 // The installed package was found on disk
@@ -411,12 +426,15 @@ impl<'a> InstallTask<'a> {
         }
     }
 
-    fn determine_latest_from_ident(
+    fn determine_latest_from_ident<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         ident: PackageIdent,
         token: Option<&str>,
-    ) -> Result<FullyQualifiedPackageIdent> {
+    ) -> Result<FullyQualifiedPackageIdent>
+    where
+        T: UIWriter,
+    {
         if ident.fully_qualified() {
             // If we have a fully qualified package identifier, then our work is done--there can
             // only be *one* package that satisfies a fully qualified identifier.
@@ -518,12 +536,15 @@ impl<'a> InstallTask<'a> {
     /// If the package is already present in the cache, it is not
     /// re-downloaded. Any dependencies of the package that are not
     /// installed will be re-cached (as needed) and installed.
-    fn install_package(
+    fn install_package<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         ident: &FullyQualifiedPackageIdent,
         token: Option<&str>,
-    ) -> Result<PackageInstall> {
+    ) -> Result<PackageInstall>
+    where
+        T: UIWriter,
+    {
         // TODO (CM): rename artifact to archive
         let mut artifact = self.get_cached_artifact(ui, ident, token)?;
 
@@ -587,13 +608,16 @@ impl<'a> InstallTask<'a> {
 
     /// This ensures the identified package is in the local cache,
     /// verifies it, and returns a handle to the package's metadata.
-    fn get_cached_artifact(
+    fn get_cached_artifact<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         ident: &FullyQualifiedPackageIdent,
         token: Option<&str>,
-    ) -> Result<PackageArchive> {
-        if self.is_artifact_cached(ident) {
+    ) -> Result<PackageArchive>
+    where
+        T: UIWriter,
+    {
+        if self.is_artifact_cached(&ident) {
             debug!(
                 "Found {} in artifact cache, skipping remote download",
                 ident
@@ -623,7 +647,10 @@ impl<'a> InstallTask<'a> {
     }
 
     /// Adapter function wrapping `PackageArchive::unpack`
-    fn unpack_artifact(&self, ui: &mut UI, artifact: &mut PackageArchive) -> Result<()> {
+    fn unpack_artifact<T>(&self, ui: &mut T, artifact: &mut PackageArchive) -> Result<()>
+    where
+        T: UIWriter,
+    {
         artifact.unpack(Some(self.fs_root_path))?;
         ui.status(Status::Installed, artifact.ident()?)?;
         Ok(())
@@ -758,12 +785,15 @@ impl<'a> InstallTask<'a> {
 
     /// Retrieve the identified package from the depot, ensuring that
     /// the artifact is cached locally.
-    fn fetch_artifact(
+    fn fetch_artifact<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         ident: &FullyQualifiedPackageIdent,
         token: Option<&str>,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        T: UIWriter,
+    {
         ui.status(Status::Downloading, ident)?;
         match self.depot_client.fetch_package(
             ident.as_ref(),
@@ -783,7 +813,10 @@ impl<'a> InstallTask<'a> {
         }
     }
 
-    fn fetch_origin_key(&self, ui: &mut UI, name_with_rev: &str) -> Result<()> {
+    fn fetch_origin_key<T>(&self, ui: &mut T, name_with_rev: &str) -> Result<()>
+    where
+        T: UIWriter,
+    {
         if self.is_offline() {
             return Err(Error::OfflineOriginKeyNotFound(name_with_rev.to_string()));
         } else {
@@ -814,11 +847,20 @@ impl<'a> InstallTask<'a> {
         artifact_path: &Path,
     ) -> Result<()> {
         // Canonicalize both paths to ensure that there aren't any symlinks when comparing them
-        // later.
-        let artifact_path = artifact_path.canonicalize()?;
+        // later. These calls can fail under certain circumstances, so we warn, allow failure and
+        // try to continue.
+        let artifact_path = if let Some(canonicalized) = artifact_path.canonicalize().ok() {
+            canonicalized
+        } else {
+            artifact_path.to_path_buf()
+        };
         fs::create_dir_all(self.artifact_cache_path)?;
-        let artifact_cache_path = self.artifact_cache_path.canonicalize()?;
-        let cache_path = artifact_cache_path.join(ident.archive_name());
+        let cache_path =
+            if let Some(canonicalized) = self.artifact_cache_path.canonicalize().ok() {
+                canonicalized.join(ident.archive_name())
+            } else {
+                self.artifact_cache_path.join(ident.archive_name())
+            };
 
         // Handle the pathological case where you're trying to install
         // an artifact file directly from the cache. Otherwise, you'd
@@ -842,12 +884,15 @@ impl<'a> InstallTask<'a> {
         Ok(())
     }
 
-    fn verify_artifact(
+    fn verify_artifact<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         ident: &FullyQualifiedPackageIdent,
         artifact: &mut PackageArchive,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        T: UIWriter,
+    {
         let artifact_ident = artifact.ident()?;
         if ident.as_ref() != &artifact_ident {
             return Err(Error::ArtifactIdentMismatch((
@@ -877,12 +922,15 @@ impl<'a> InstallTask<'a> {
     // TODO fn: I'm skeptical as to whether we want these warnings all the time. Perhaps it's
     // better to warn that nothing is found and redirect a user to run another standalone
     // `hab pkg ...` subcommand to get more information.
-    fn recommend_channels(
+    fn recommend_channels<T>(
         &self,
-        ui: &mut UI,
+        ui: &mut T,
         ident: &PackageIdent,
         token: Option<&str>,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        T: UIWriter,
+    {
         if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
             if !recommendations.is_empty() {
                 ui.warn(format!(

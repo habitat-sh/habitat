@@ -6,4 +6,3 @@ topology = "standalone"
 update_strategy = "at-once"
 binds = []
 desired_state = "up"
-start_style = "persistent"

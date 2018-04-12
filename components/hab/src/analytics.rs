@@ -193,7 +193,7 @@ use std::path::Path;
 use std::time::{UNIX_EPOCH, SystemTime};
 
 use clap;
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 use hcore;
 use http_client::ApiClient;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};

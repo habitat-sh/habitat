@@ -20,7 +20,7 @@ use std::os::windows::fs::symlink_dir as symlink;
 use clap;
 use common;
 use common::command::package::install::{InstallMode, InstallSource};
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 use tempdir::TempDir;
 use std::path::Path;
 use hcore::package::PackageIdent;

@@ -16,20 +16,32 @@
 //! abilities based on querying the available Linux capabilities; the
 //! functioning of the Supervisor may change depending on the answer.
 
-use caps::{self, Capability, CapSet};
+pub use self::imp::*;
 
-/// This is currently the "master check" for whether the Supervisor
-/// can behave "as root".
-///
-/// All capabilities must be present. If we can run processes as other
-/// users, but can't change ownership, then the processes won't be
-/// able to access their files. Similar logic holds for the reverse.
-pub fn can_run_services_as_svc_user() -> bool {
-    has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID) && has(Capability::CAP_CHOWN)
+#[cfg(target_os = "linux")]
+mod imp {
+    use caps::{self, Capability, CapSet};
+
+    /// This is currently the "master check" for whether the Supervisor
+    /// can behave "as root".
+    ///
+    /// All capabilities must be present. If we can run processes as other
+    /// users, but can't change ownership, then the processes won't be
+    /// able to access their files. Similar logic holds for the reverse.
+    pub fn can_run_services_as_svc_user() -> bool {
+        has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID) && has(Capability::CAP_CHOWN)
+    }
+
+    /// Helper function; does the current thread have `cap` in its
+    /// effective capability set?
+    fn has(cap: Capability) -> bool {
+        caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false)
+    }
 }
 
-/// Helper function; does the current thread have `cap` in its
-/// effective capability set?
-fn has(cap: Capability) -> bool {
-    caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false)
+#[cfg(target_os = "macos")]
+mod imp {
+    pub fn can_run_services_as_svc_user() -> bool {
+        true
+    }
 }

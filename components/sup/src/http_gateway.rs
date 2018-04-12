@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::{self, Read};
@@ -30,7 +29,6 @@ use iron::prelude::*;
 use iron::{headers, status, typemap};
 use iron::modifiers::Header;
 use persistent;
-use prometheus::{self, CounterVec, HistogramVec, TextEncoder, Encoder};
 use router::Router;
 use serde_json::{self, Value as Json};
 
@@ -41,34 +39,6 @@ use manager::service::hooks::{self, HealthCheckHook};
 
 static LOGKEY: &'static str = "HG";
 const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
-
-// Simple macro to encapsulate the HTTP metrics for each endpoint
-macro_rules! with_metrics {
-    ($method:expr, $name:expr) => {{
-        let mut labels = HashMap::new();
-        labels.insert("handler", $name);
-
-        HTTP_COUNTER.with(&labels.clone()).inc();
-        let timer = HTTP_REQ_HISTOGRAM.with(&labels).start_timer();
-        let result = $method;
-        timer.observe_duration();
-        result
-    }}
-}
-
-lazy_static! {
-    static ref HTTP_COUNTER: CounterVec = register_counter_vec!(
-        opts!(
-            "http_requests_total",
-            "Total number of HTTP requests made."),
-        &["handler"]).unwrap();
-
-    static ref HTTP_REQ_HISTOGRAM: HistogramVec = register_histogram_vec!(
-        histogram_opts!(
-            "http_request_duration_seconds",
-            "HTTP request latencies in seconds."),
-        &["handler"]).unwrap();
-}
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ListenAddr(SocketAddr);
@@ -147,27 +117,16 @@ impl Server {
     pub fn new(manager_state: Arc<manager::FsCfg>, listen_addr: ListenAddr) -> Self {
         let router =
             router!(
-            doc: get "/" => with_metrics!(doc, "doc"),
-            butterfly: get "/butterfly" => with_metrics!(butterfly, "butterfly"),
-            census: get "/census" => with_metrics!(census, "census"),
-            metrics: get "/metrics" => with_metrics!(metrics, "metrics"),
-            services: get "/services" => with_metrics!(services, "services"),
-            service: get "/services/:svc/:group" => {
-                with_metrics!(service, "service")
-            },
-            service_org: get "/services/:svc/:group/:org" => {
-                with_metrics!(service, "service")
-            },
-            service_config: get "/services/:svc/:group/config" => {
-                with_metrics!(config, "config")
-            },
-            service_health: get "/services/:svc/:group/health" => with_metrics!(health, "health"),
-            service_config_org: get "/services/:svc/:group/:org/config" => {
-                with_metrics!(config, "config")
-            },
-            service_health_org: get "/services/:svc/:group/:org/health" => {
-                with_metrics!(health, "config")
-            }
+            doc: get "/" => doc,
+            butterfly: get "/butterfly" => butterfly,
+            census: get "/census" => census,
+            services: get "/services" => services,
+            service: get "/services/:svc/:group" => service,
+            service_org: get "/services/:svc/:group/:org" => service,
+            service_config: get "/services/:svc/:group/config" => config,
+            service_health: get "/services/:svc/:group/health" => health,
+            service_config_org: get "/services/:svc/:group/:org/config" => config,
+            service_health_org: get "/services/:svc/:group/:org/health" => health,
         );
         let mut chain = Chain::new(router);
         chain.link(persistent::Read::<ManagerFs>::both(manager_state));
@@ -303,17 +262,6 @@ fn services(req: &mut Request) -> IronResult<Response> {
 fn doc(_req: &mut Request) -> IronResult<Response> {
     Ok(Response::with(
         (status::Ok, Header(headers::ContentType::html()), APIDOCS),
-    ))
-}
-
-fn metrics(_req: &mut Request) -> IronResult<Response> {
-    let mut buffer = vec![];
-    let encoder = TextEncoder::new();
-    let metric_familys = prometheus::gather();
-    encoder.encode(&metric_familys, &mut buffer).unwrap();
-
-    Ok(Response::with(
-        (status::Ok, String::from_utf8(buffer).unwrap()),
     ))
 }
 

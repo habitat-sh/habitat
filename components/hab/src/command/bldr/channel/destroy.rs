@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use depot_client::Client as DepotClient;
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};

@@ -23,7 +23,7 @@ use std::str::FromStr;
 use clap;
 use common;
 use common::command::package::install::{InstallMode, InstallSource};
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 use failure::SyncFailure;
 use hab;
 use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, cache_artifact_path, cache_key_path};

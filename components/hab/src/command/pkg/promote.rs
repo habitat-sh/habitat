@@ -26,15 +26,13 @@
 //!    If the specified channel does not exist, it will be created.
 //!
 
-
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 use depot_client::{self, Client};
 use hcore::package::PackageIdent;
 use hyper::status::StatusCode;
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
-
 
 /// Promote a package to the specified channel.
 ///

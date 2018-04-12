@@ -25,49 +25,64 @@ mod peer_watcher;
 mod user_config_watcher;
 mod sys;
 
-use std::collections::HashMap;
+use std;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::result;
-use std::thread;
 use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use std::mem;
 use std::ops::DerefMut;
+use std::rc::Rc;
 
 use butterfly;
 use butterfly::member::Member;
 use butterfly::trace::Trace;
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
+use common::command::package::install::InstallSource;
+use common::ui::UIWriter;
+use futures::prelude::*;
+use futures::sync::mpsc;
+use hcore::channel;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::env;
 use hcore::fs::FS_ROOT_PATH;
-use hcore::service::ServiceGroup;
 use hcore::os::process::{self, Pid, Signal};
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use hcore::package::metadata::PackageType;
+use hcore::service::ServiceGroup;
+use hcore::url::default_bldr_url;
 use launcher_client::{LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, LauncherCli};
 use serde;
 use serde_json;
 use time::{self, Timespec, Duration as TimeDuration};
+use tokio_core::reactor;
+use toml;
 
-pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, UpdateStrategy, Topology};
+pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, UpdateStrategy,
+                        Topology};
 pub use self::sys::Sys;
 use self::self_updater::{SUP_PKG_IDENT, SelfUpdater};
-use self::service::{DesiredState, Pkg, ProcessState, StartStyle};
+use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use self::peer_watcher::PeerWatcher;
 use self::user_config_watcher::UserConfigWatcher;
 use VERSION;
-use error::{Error, Result, SupError};
 use config::GossipListenAddr;
+use ctl_gateway::{self, CtlRequest};
 use census::CensusRing;
+use error::{Error, Result, SupError};
 use http_gateway;
+use protocols;
+use protocols::net::{self, NetResult, ErrCode};
+use util;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
@@ -78,6 +93,14 @@ lazy_static! {
     /// The root path containing all runtime service directories and files
     pub static ref STATE_PATH_PREFIX: PathBuf = {
         Path::new(&*FS_ROOT_PATH).join("hab/sup")
+    };
+
+    static ref DEFAULT_BLDR_URL: String = {
+        default_bldr_url()
+    };
+
+    static ref DEFAULT_BLDR_CHANNEL: String = {
+        channel::default()
     };
 }
 
@@ -90,6 +113,7 @@ pub struct FsCfg {
     pub butterfly_data_path: PathBuf,
     pub census_data_path: PathBuf,
     pub services_data_path: PathBuf,
+    pub sup_root: PathBuf,
 
     data_path: PathBuf,
     specs_path: PathBuf,
@@ -99,21 +123,22 @@ pub struct FsCfg {
 }
 
 impl FsCfg {
-    fn new<T>(sup_svc_root: T) -> Self
+    fn new<T>(sup_root: T) -> Self
     where
         T: Into<PathBuf>,
     {
-        let sup_svc_root = sup_svc_root.into();
-        let data_path = sup_svc_root.join("data");
+        let sup_root = sup_root.into();
+        let data_path = sup_root.join("data");
         FsCfg {
             butterfly_data_path: data_path.join("butterfly.dat"),
             census_data_path: data_path.join("census.dat"),
             services_data_path: data_path.join("services.dat"),
-            specs_path: sup_svc_root.join("specs"),
-            composites_path: sup_svc_root.join("composites"),
+            specs_path: sup_root.join("specs"),
+            composites_path: sup_root.join("composites"),
             data_path: data_path,
-            member_id_file: sup_svc_root.join(MEMBER_ID_FILE),
-            proc_lock_file: sup_svc_root.join(PROC_LOCK_FILE),
+            member_id_file: sup_root.join(MEMBER_ID_FILE),
+            proc_lock_file: sup_root.join(PROC_LOCK_FILE),
+            sup_root: sup_root,
         }
     }
 
@@ -124,13 +149,15 @@ impl FsCfg {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct ManagerConfig {
     pub auto_update: bool,
+    pub custom_state_path: Option<PathBuf>,
     pub eventsrv_group: Option<ServiceGroup>,
     pub update_url: String,
     pub update_channel: String,
     pub gossip_listen: GossipListenAddr,
+    pub ctl_listen: SocketAddr,
     pub http_listen: http_gateway::ListenAddr,
     pub gossip_peers: Vec<SocketAddr>,
     pub gossip_permanent: bool,
@@ -138,17 +165,57 @@ pub struct ManagerConfig {
     pub name: Option<String>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
+}
 
-    custom_state_path: Option<PathBuf>,
+impl Default for ManagerConfig {
+    fn default() -> Self {
+        ManagerConfig {
+            auto_update: false,
+            custom_state_path: None,
+            eventsrv_group: None,
+            update_url: "".to_string(),
+            update_channel: "".to_string(),
+            gossip_listen: GossipListenAddr::default(),
+            ctl_listen: ctl_gateway::default_addr(),
+            http_listen: http_gateway::ListenAddr::default(),
+            gossip_peers: vec![],
+            gossip_permanent: false,
+            ring: None,
+            name: None,
+            organization: None,
+            watch_peer_file: None,
+        }
+    }
+}
+
+impl ManagerConfig {
+    pub fn sup_root(&self) -> PathBuf {
+        match self.custom_state_path {
+            Some(ref custom) => custom.clone(),
+            None => {
+                match self.name {
+                    Some(ref name) => STATE_PATH_PREFIX.join(name),
+                    None => STATE_PATH_PREFIX.join("default"),
+                }
+            }
+        }
+    }
+}
+
+pub struct ManagerState {
+    /// The configuration used to instantiate this Manager instance
+    pub cfg: ManagerConfig,
+    pub services: Arc<RwLock<Vec<Service>>>,
 }
 
 pub struct Manager {
+    pub state: Rc<ManagerState>,
+
     butterfly: butterfly::Server,
     census_ring: CensusRing,
     events_group: Option<ServiceGroup>,
     fs_cfg: Arc<FsCfg>,
     launcher: LauncherCli,
-    services: Arc<RwLock<Vec<Service>>>,
     updater: ServiceUpdater,
     peer_watcher: Option<PeerWatcher>,
     spec_watcher: SpecWatcher,
@@ -162,8 +229,7 @@ pub struct Manager {
 impl Manager {
     /// Determines if there is already a Habitat Supervisor running on the host system.
     pub fn is_running(cfg: &ManagerConfig) -> Result<bool> {
-        let state_path = Self::state_path_from(&cfg);
-        let fs_cfg = FsCfg::new(state_path);
+        let fs_cfg = FsCfg::new(cfg.sup_root());
 
         match read_process_lock(&fs_cfg.proc_lock_file) {
             Ok(pid) => Ok(process::is_alive(pid)),
@@ -184,7 +250,7 @@ impl Manager {
     /// The returned Manager will be pre-populated with any cached data from disk from a previous
     /// run if available.
     pub fn load(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
-        let state_path = Self::state_path_from(&cfg);
+        let state_path = cfg.sup_root();
         Self::create_state_path_dirs(&state_path)?;
         Self::clean_dirty_state(&state_path)?;
         let fs_cfg = FsCfg::new(state_path);
@@ -196,26 +262,75 @@ impl Manager {
         Self::new(cfg, fs_cfg, launcher)
     }
 
-    pub fn service_status(cfg: &ManagerConfig, ident: &PackageIdent) -> Result<ServiceStatus> {
-        for status in Self::status(cfg)? {
-            if status.pkg.ident.satisfies(ident) {
-                return Ok(status);
+    /// Given an installed package, generate a spec (or specs, in the case
+    /// of composite packages!) from it and the arguments passed in on the
+    /// command line.
+    pub fn generate_new_specs_from_package(
+        package: &PackageInstall,
+        opts: &protocols::ctl::SvcLoad,
+    ) -> Result<Vec<ServiceSpec>> {
+        let specs = match package.pkg_type()? {
+            PackageType::Standalone => {
+                let mut spec = ServiceSpec::default();
+                opts.into_spec(&mut spec);
+                vec![spec]
+            }
+            PackageType::Composite => {
+                opts.into_composite_spec(
+                    package.ident().name.clone(),
+                    package.pkg_services()?,
+                    package.bind_map()?,
+                )
+            }
+        };
+        Ok(specs)
+    }
+
+    pub fn service_status(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        opts: protocols::ctl::SvcStatus,
+    ) -> NetResult<()> {
+        let statuses = Self::status(&mgr.cfg)?;
+        if statuses.is_empty() {
+            req.reply_complete(net::ok());
+            return Ok(());
+        }
+        if opts.has_ident() {
+            for status in statuses {
+                if status.pkg.ident.satisfies(opts.get_ident()) {
+                    let mut msg: protocols::types::ServiceStatus = status.into();
+                    req.reply_complete(msg);
+                    break;
+                }
+            }
+            return Err(net::err(
+                ErrCode::NotFound,
+                format!("{} not loaded.", opts.get_ident()),
+            ));
+        } else {
+            let mut list = statuses.into_iter().peekable();
+            while let Some(status) = list.next() {
+                let mut msg: protocols::types::ServiceStatus = status.into();
+                if list.peek().is_some() {
+                    req.reply_partial(msg);
+                } else {
+                    req.reply_complete(msg);
+                }
             }
         }
-        Err(sup_error!(Error::ServiceNotLoaded(ident.clone())))
+        Ok(())
     }
 
     pub fn status(cfg: &ManagerConfig) -> Result<Vec<ServiceStatus>> {
-        let state_path = Self::state_path_from(cfg);
-        let fs_cfg = FsCfg::new(state_path);
+        let fs_cfg = FsCfg::new(cfg.sup_root());
 
         let dat = File::open(&fs_cfg.services_data_path)?;
         serde_json::from_reader(&dat).map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))
     }
 
     pub fn term(cfg: &ManagerConfig) -> Result<()> {
-        let state_path = Self::state_path_from(&cfg);
-        let fs_cfg = FsCfg::new(state_path);
+        let fs_cfg = FsCfg::new(cfg.sup_root());
         match read_process_lock(&fs_cfg.proc_lock_file) {
             Ok(pid) => {
                 process::signal(pid, Signal::TERM).map_err(|_| {
@@ -264,6 +379,7 @@ impl Manager {
 
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
+        let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
             if current.fully_qualified() {
                 Some(SelfUpdater::new(
@@ -278,7 +394,12 @@ impl Manager {
         } else {
             None
         };
-        let mut sys = Sys::new(cfg.gossip_permanent, cfg.gossip_listen, cfg.http_listen);
+        let mut sys = Sys::new(
+            cfg.gossip_permanent,
+            cfg.gossip_listen,
+            cfg.ctl_listen,
+            cfg.http_listen,
+        );
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let ring_key = match cfg.ring {
             Some(ref ring_with_revision) => {
@@ -316,13 +437,16 @@ impl Manager {
             None
         };
         Ok(Manager {
+            state: Rc::new(ManagerState {
+                cfg: cfg_static,
+                services: services,
+            }),
             self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
             census_ring: CensusRing::new(sys.member_id.clone()),
             butterfly: server,
             events_group: cfg.eventsrv_group,
             launcher: launcher,
-            services: services,
             peer_watcher: peer_watcher,
             spec_watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
             user_config_watcher: UserConfigWatcher::new(),
@@ -370,18 +494,59 @@ impl Manager {
     }
 
     pub fn spec_path_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> PathBuf {
-        Self::specs_path(&Self::state_path_from(cfg)).join(spec.file_name())
+        Self::specs_path(cfg.sup_root()).join(spec.file_name())
     }
 
     pub fn composite_path_for(cfg: &ManagerConfig, spec: &CompositeSpec) -> PathBuf {
-        Self::composites_path(&Self::state_path_from(cfg)).join(spec.file_name())
+        Self::composites_path(cfg.sup_root()).join(spec.file_name())
     }
 
     // TODO (CM): BAAAAARF
     pub fn composite_path_by_ident(cfg: &ManagerConfig, ident: &PackageIdent) -> PathBuf {
-        let mut p = Self::composites_path(&Self::state_path_from(cfg)).join(&ident.name);
+        let mut p = Self::composites_path(cfg.sup_root()).join(&ident.name);
         p.set_extension("spec");
         p
+    }
+
+    /// Given a `PackageIdent`, return current specs if they exist. If
+    /// the package is a standalone service, only that spec will be
+    /// returned, but if it is a composite, the composite spec as well as
+    /// the specs for all the services in the composite will be returned.
+    pub fn existing_specs_for_ident(
+        cfg: &ManagerConfig,
+        ident: &PackageIdent,
+    ) -> Result<Option<Spec>> {
+        let default_spec = ServiceSpec::default_for(ident.clone());
+        let spec_file = Self::spec_path_for(cfg, &default_spec);
+
+        // Try it as a service first
+        if let Ok(spec) = ServiceSpec::from_file(&spec_file) {
+            Ok(Some(Spec::Service(spec)))
+        } else {
+            // Try it as a composite next
+            let composite_spec_file = Self::composite_path_by_ident(&cfg, ident);
+            match CompositeSpec::from_file(composite_spec_file) {
+                Ok(composite_spec) => {
+                    let fs_root_path = Path::new(&*FS_ROOT_PATH);
+                    let package =
+                        PackageInstall::load(composite_spec.package_ident(), Some(fs_root_path))?;
+                    let mut specs = vec![];
+
+                    let services = package.pkg_services()?;
+                    for service in services {
+                        let spec = ServiceSpec::from_file(Manager::spec_path_for(
+                            cfg,
+                            &ServiceSpec::default_for(service),
+                        ))?;
+                        specs.push(spec);
+                    }
+
+                    Ok(Some(Spec::Composite(composite_spec, specs)))
+                }
+                // Looks like we have no specs for this thing at all
+                Err(_) => Ok(None),
+            }
+        }
     }
 
     pub fn save_spec_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> Result<()> {
@@ -469,18 +634,6 @@ impl Manager {
         state_path.as_ref().join("composites")
     }
 
-    fn state_path_from(cfg: &ManagerConfig) -> PathBuf {
-        match cfg.custom_state_path {
-            Some(ref custom) => custom.clone(),
-            None => {
-                match cfg.name {
-                    Some(ref name) => STATE_PATH_PREFIX.join(name),
-                    None => STATE_PATH_PREFIX.join("default"),
-                }
-            }
-        }
-    }
-
     fn add_service(&mut self, spec: ServiceSpec) {
         outputln!("Starting {}", &spec.ident);
         // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
@@ -497,9 +650,6 @@ impl Manager {
             Ok(service) => service,
             Err(err) => {
                 outputln!("Unable to start {}, {}", &spec.ident, err);
-                if spec.start_style == StartStyle::Transient {
-                    self.remove_spec(&spec);
-                }
                 return;
             }
         };
@@ -537,13 +687,25 @@ impl Manager {
         }
 
         self.updater.add(&service);
-        self.services
+        self.state
+            .services
             .write()
             .expect("Services lock is poisoned!")
             .push(service);
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    pub fn run(mut self, svc: Option<protocols::ctl::SvcLoad>) -> Result<()> {
+        let mut core = reactor::Core::new().expect("Couldn't start main reactor");
+        let handle = core.handle();
+        let (ctl_tx, ctl_rx) = mpsc::unbounded();
+        let ctl_handler = CtlAcceptor::new(self.state.clone(), ctl_rx).for_each(move |handler| {
+            handle.spawn(handler);
+            Ok(())
+        });
+        core.handle().spawn(ctl_handler);
+        if let Some(svc_load) = svc {
+            Self::service_load(&self.state, &mut CtlRequest::default(), svc_load).unwrap();
+        }
         self.start_initial_services_from_spec_watcher()?;
 
         outputln!(
@@ -554,6 +716,11 @@ impl Manager {
         debug!("gossip-listener started");
         self.persist_state();
         let http_listen_addr = self.sys.http_listen();
+        let ctl_listen_addr = self.sys.ctl_listen();
+        let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
+        outputln!("Starting ctl-gateway on {}", &ctl_listen_addr);
+        ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, ctl_tx);
+        debug!("ctl-gateway started");
         outputln!("Starting http-gateway on {}", &http_listen_addr);
         http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr)
             .start()?;
@@ -604,7 +771,8 @@ impl Manager {
                     events.try_connect(&self.census_ring)
                 });
 
-                for service in self.services
+                for service in self.state
+                    .services
                     .read()
                     .expect("Services lock is poisoned!")
                     .iter()
@@ -621,7 +789,8 @@ impl Manager {
                 }
             }
 
-            for service in self.services
+            for service in self.state
+                .services
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut()
@@ -630,11 +799,357 @@ impl Manager {
                     self.gossip_latest_service_rumor(&service);
                 }
             }
-            let time_to_wait = (next_check - time::get_time()).num_milliseconds();
-            if time_to_wait > 0 {
-                thread::sleep(Duration::from_millis(time_to_wait as u64));
+            let time_to_wait = ((next_check - time::get_time()).num_milliseconds()).max(100);
+            core.turn(Some(Duration::from_millis(time_to_wait as u64)));
+        }
+    }
+
+    pub fn service_cfg(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocols::ctl::SvcGetDefaultCfg,
+    ) -> NetResult<()> {
+        let ident: PackageIdent = opts.take_ident().into();
+        for service in mgr.services.read().unwrap().iter() {
+            if service.pkg.ident.satisfies(&ident) {
+                let mut msg = protocols::types::ServiceCfg::new();
+                if let Some(ref cfg) = service.cfg.default {
+                    msg.set_default(toml::to_string_pretty(cfg).unwrap());
+                    req.reply_complete(msg);
+                }
+                return Ok(());
             }
         }
+        Err(net::err(
+            ErrCode::NotFound,
+            format!("{} not loaded.", ident),
+        ))
+    }
+
+    pub fn service_load(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        opts: protocols::ctl::SvcLoad,
+    ) -> NetResult<()> {
+        let bldr_url = if opts.has_bldr_url() {
+            opts.get_bldr_url()
+        } else {
+            &DEFAULT_BLDR_URL
+        };
+        let bldr_channel = if opts.has_bldr_channel() {
+            opts.get_bldr_channel()
+        } else {
+            &DEFAULT_BLDR_CHANNEL
+        };
+        let source = InstallSource::Ident(opts.get_ident().clone().into());
+        match Self::existing_specs_for_ident(&mgr.cfg, source.as_ref())? {
+            None => {
+                // We don't have any record of this thing; let's set it up!
+                //
+                // This will install the latest version from Builder
+                let installed = util::pkg::install(req, bldr_url, &source, bldr_channel)?;
+                let mut specs = Self::generate_new_specs_from_package(&installed, &opts)?;
+
+                for spec in specs.iter_mut() {
+                    Self::save_spec_for(&mgr.cfg, spec)?;
+                    req.info(format!(
+                        "The {} service was successfully loaded",
+                        spec.ident
+                    ))?;
+                }
+
+                // Only saves a composite spec if it's, well, a composite
+                if let Ok(composite_spec) =
+                    CompositeSpec::from_package_install(source.as_ref(), &installed)
+                {
+                    Self::save_composite_spec_for(&mgr.cfg, &composite_spec)?;
+                    req.info(format!(
+                        "The {} composite was successfully loaded",
+                        composite_spec.ident()
+                    ))?;
+                }
+            }
+            Some(spec) => {
+                // We've seen this service / composite before. Thus `load`
+                // basically acts as a way to edit spec files on the
+                // command line. As a result, we a) check that you
+                // *really* meant to change an existing spec, and b) DO
+                // NOT download a potentially new version of the package
+                // in question
+
+                if !opts.get_force() {
+                    // TODO (CM): make this error reflect composites
+                    return Err(net::err(
+                        ErrCode::Conflict,
+                        format!(
+                            "Service already loaded, unload '{}' and try again",
+                            opts.get_ident()
+                        ),
+                    ));
+                }
+
+                match spec {
+                    Spec::Service(mut service_spec) => {
+                        opts.into_spec(&mut service_spec);
+
+                        // Only install if we don't have something
+                        // locally; otherwise you could potentially
+                        // upgrade each time you load.
+                        //
+                        // Also make sure you're pulling from where you're
+                        // supposed to be pulling from!
+                        util::pkg::satisfy_or_install(
+                            req,
+                            &source,
+                            &service_spec.bldr_url,
+                            &service_spec.channel,
+                        )?;
+
+                        Self::save_spec_for(&mgr.cfg, &service_spec)?;
+                        req.info(format!(
+                            "The {} service was successfully loaded",
+                            service_spec.ident
+                        ))?;
+                    }
+                    Spec::Composite(composite_spec, mut existing_service_specs) => {
+                        if source.as_ref() == composite_spec.ident() {
+                            let mut bind_map =
+                                match util::pkg::installed(composite_spec.package_ident()) {
+                                    Some(package) => package.bind_map()?,
+                                    // TODO (CM): this should be a proper error
+                                    None => unreachable!(),
+                                };
+
+                            for mut service_spec in existing_service_specs.iter_mut() {
+                                opts.update_composite(&mut bind_map, &mut service_spec);
+                                Self::save_spec_for(&mgr.cfg, service_spec)?;
+                                req.info(format!(
+                                    "The {} service was successfully loaded",
+                                    service_spec.ident
+                                ))?;
+                            }
+                            req.info(format!(
+                                "The {} composite was successfully loaded",
+                                composite_spec.ident()
+                            ))?;
+                        } else {
+                            // It changed!
+                            // OK, here's the deal.
+                            //
+                            // We're going to install a new composite if
+                            // we need to in order to satisfy the spec
+                            // we've now got. That also means that the
+                            // services that are currently running may get
+                            // unloaded (because they are no longer in the
+                            // composite), and new services may start
+                            // (because they were added to the composite).
+
+                            let installed_package = util::pkg::satisfy_or_install(
+                                req,
+                                &source,
+                                // This (updating from the command-line
+                                // args) is a difference from
+                                // force-loading a spec, because
+                                // composites don't auto-update themselves
+                                // like services can.
+                                &bldr_url,
+                                &bldr_channel,
+                            )?;
+
+                            // Generate new specs from the new composite package and
+                            // CLI inputs
+                            let new_service_specs =
+                                Self::generate_new_specs_from_package(&installed_package, &opts)?;
+
+                            // Delete any specs that are not in the new
+                            // composite
+                            let mut old_spec_names = HashSet::new();
+                            for s in existing_service_specs.iter() {
+                                old_spec_names.insert(s.ident.name.clone());
+                            }
+                            let mut new_spec_names = HashSet::new();
+                            for s in new_service_specs.iter() {
+                                new_spec_names.insert(s.ident.name.clone());
+                            }
+
+                            let specs_to_delete: HashSet<_> =
+                                old_spec_names.difference(&new_spec_names).collect();
+                            for spec in existing_service_specs.iter() {
+                                if specs_to_delete.contains(&spec.ident.name) {
+                                    let file = Manager::spec_path_for(&mgr.cfg, spec);
+                                    req.info(format!("Unloading {:?}", file))?;
+                                    std::fs::remove_file(&file).map_err(|err| {
+                                        sup_error!(Error::ServiceSpecFileIO(file, err))
+                                    })?;
+                                }
+                            }
+                            // <-- end of deletion
+
+                            // Save all the new specs. If there are
+                            // services that exist in both composites,
+                            // their service spec files will have the same
+                            // name, so they'll be taken care of here (we
+                            // don't need to treat them differently)
+                            for spec in new_service_specs.iter() {
+                                Self::save_spec_for(&mgr.cfg, spec)?;
+                                req.info(format!(
+                                    "The {} service was successfully loaded",
+                                    spec.ident
+                                ))?;
+                            }
+
+                            // Generate and save the new spec
+                            let new_composite_spec = CompositeSpec::from_package_install(
+                                source.as_ref(),
+                                &installed_package,
+                            )?;
+                            Self::save_composite_spec_for(&mgr.cfg, &new_composite_spec)?;
+                            req.info(format!(
+                                "The {} composite was successfully loaded",
+                                new_composite_spec.ident()
+                            ))?;
+                        }
+                    }
+                }
+            }
+        }
+        req.reply_complete(net::ok());
+        Ok(())
+    }
+
+    pub fn service_unload(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocols::ctl::SvcUnload,
+    ) -> NetResult<()> {
+        let ident: PackageIdent = opts.take_ident().into();
+        // Gather up the paths to all the spec files we care about. This
+        // includes all service specs as well as any composite spec.
+        let spec_paths = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
+            Some(Spec::Service(spec)) => vec![Self::spec_path_for(&mgr.cfg, &spec)],
+            Some(Spec::Composite(composite_spec, specs)) => {
+                let mut paths = Vec::with_capacity(specs.len() + 1);
+                for spec in specs.iter() {
+                    paths.push(Self::spec_path_for(&mgr.cfg, spec));
+                }
+                paths.push(Self::composite_path_for(&mgr.cfg, &composite_spec));
+                paths
+            }
+            None => vec![],
+        };
+
+        for file in spec_paths {
+            if let Err(err) = std::fs::remove_file(&file) {
+                return Err(net::err(
+                    ErrCode::Internal,
+                    format!(
+                        "{}",
+                        sup_error!(Error::ServiceSpecFileIO(file, err))
+                    ),
+                ));
+            };
+            // JW TODO: Change this to unloaded from unloading when the Supervisor waits for
+            // the work to complete.
+            req.info(format!("Unloading {}", ident))?;
+        }
+        req.reply_complete(net::ok());
+        Ok(())
+    }
+
+    pub fn service_start(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        opts: protocols::ctl::SvcStart,
+    ) -> NetResult<()> {
+        let ident = opts.get_ident().clone().into();
+        let updated_specs = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
+            Some(Spec::Service(mut spec)) => {
+                let mut updated_specs = vec![];
+                if spec.desired_state == DesiredState::Down {
+                    spec.desired_state = DesiredState::Up;
+                    updated_specs.push(spec);
+                }
+                updated_specs
+            }
+            Some(Spec::Composite(_, service_specs)) => {
+                let mut updated_specs = vec![];
+                for mut spec in service_specs {
+                    if spec.desired_state == DesiredState::Down {
+                        spec.desired_state = DesiredState::Up;
+                        updated_specs.push(spec);
+                    }
+                }
+                updated_specs
+            }
+            None => {
+                return Err(net::err(
+                    ErrCode::NotFound,
+                    format!("Failed to locate service, {}", &ident),
+                ));
+            }
+        };
+        let specs_changed = updated_specs.len() > 0;
+        for spec in updated_specs.iter() {
+            Self::save_spec_for(&mgr.cfg, spec)?;
+        }
+        if specs_changed {
+            // JW TODO: Change the language of the message below to "started" when we actually
+            // synchronously control services from the ctl gateway.
+            req.info(format!(
+                "Supervisor starting {}. See the Supervisor output for more details.",
+                &ident
+            ))?;
+        }
+        req.reply_complete(net::ok());
+        Ok(())
+    }
+
+    pub fn service_stop(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocols::ctl::SvcStop,
+    ) -> NetResult<()> {
+        let ident: PackageIdent = opts.take_ident().into();
+        let updated_specs = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
+            Some(Spec::Service(mut spec)) => {
+                let mut updated_specs = vec![];
+                if spec.desired_state == DesiredState::Up {
+                    spec.desired_state = DesiredState::Down;
+                    updated_specs.push(spec);
+                }
+                updated_specs
+            }
+            Some(Spec::Composite(_, service_specs)) => {
+                let mut updated_specs = vec![];
+                for mut spec in service_specs {
+                    if spec.desired_state == DesiredState::Up {
+                        spec.desired_state = DesiredState::Down;
+                        updated_specs.push(spec);
+                    }
+                }
+                updated_specs
+            }
+            None => {
+                return Err(net::err(
+                    ErrCode::NotFound,
+                    format!("Failed to locate service, {}", &ident),
+                ));
+            }
+        };
+        let specs_changed = updated_specs.len() > 0;
+        for spec in updated_specs.iter() {
+            Self::save_spec_for(&mgr.cfg, spec)?;
+        }
+        if specs_changed {
+            // JW TODO: Change the langauge of the message below to "stopped" when we actually
+            // synchronously control services from the ctl gateway.
+            req.info(format!(
+                "Supervisor stopping {}. See the Supervisor output for more details.",
+                &ident
+            ))?;
+        }
+        req.reply_complete(net::ok());
+        Ok(())
     }
 
     fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
@@ -643,7 +1158,6 @@ impl Manager {
         }
         None
     }
-
     /// Walk each service and check if it has an updated package installed via the Update Strategy.
     /// This updates the Service to point to the new service struct, and then marks it for
     /// restarting.
@@ -651,7 +1165,8 @@ impl Manager {
     /// The run loop's last updated census is a required parameter on this function to inform the
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
     fn check_for_updated_packages(&mut self) {
-        for service in self.services
+        for service in self.state
+            .services
             .write()
             .expect("Services lock is poisoned!")
             .iter_mut()
@@ -691,7 +1206,8 @@ impl Manager {
     fn check_for_changed_services(&mut self) -> bool {
         let mut service_states = HashMap::new();
         let mut active_services = Vec::new();
-        for service in self.services
+        for service in self.state
+            .services
             .write()
             .expect("Services lock is poisoned!")
             .iter_mut()
@@ -791,7 +1307,8 @@ impl Manager {
         let mut is_first = true;
         let mut persisted_idents = Vec::new();
 
-        for service in self.services
+        for service in self.state
+            .services
             .read()
             .expect("Services lock is poisoned!")
             .iter()
@@ -854,18 +1371,6 @@ impl Manager {
         if term {
             service.stop(&self.launcher);
         }
-        if service.start_style == StartStyle::Transient {
-            // JW TODO: If we cleanup our Service structure to hold the ServiceSpec instead of
-            // deconstruct it (see my comments in `add_service()` in this module) then we could
-            // leverage `remove_spec()` instead of duplicaing this logic here.
-            if let Err(err) = fs::remove_file(&service.spec_file) {
-                outputln!(
-                    "Unable to cleanup service spec for transient service, {}, {}",
-                    service,
-                    err
-                );
-            }
-        }
         if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
             outputln!(
                 "Unable to cleanup service health cache, {}, {}",
@@ -873,7 +1378,6 @@ impl Manager {
                 err
             );
         }
-
         if let Err(_) = self.user_config_watcher.remove(service) {
             debug!(
                 "Error stopping user-config watcher thread for service {}",
@@ -916,7 +1420,9 @@ impl Manager {
         // `self.remove_service`, and use `mem::swap` to move the services to a variable defined
         // outside the block while we have the lock.
         {
-            let mut services = self.services.write().expect("Services lock is poisoned!");
+            let mut services = self.state.services.write().expect(
+                "Services lock is poisoned!",
+            );
             mem::swap(services.deref_mut(), &mut svcs);
         }
 
@@ -943,7 +1449,8 @@ impl Manager {
 
     fn update_running_services_from_spec_watcher(&mut self) -> Result<()> {
         let mut active_specs = HashMap::new();
-        for service in self.services
+        for service in self.state
+            .services
             .read()
             .expect("Services lock is poisoned!")
             .iter()
@@ -983,7 +1490,9 @@ impl Manager {
     }
 
     fn update_running_services_from_user_config_watcher(&mut self) {
-        let mut services = self.services.write().expect("Services lock is poisoned");
+        let mut services = self.state.services.write().expect(
+            "Services lock is poisoned",
+        );
 
         for service in services.iter_mut() {
             if self.user_config_watcher.have_events_for(service) {
@@ -997,7 +1506,9 @@ impl Manager {
         let mut service: Service;
 
         {
-            let mut services = self.services.write().expect("Services lock is poisoned");
+            let mut services = self.state.services.write().expect(
+                "Services lock is poisoned",
+            );
             // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
             // shenanigans--maybe we want to consider changing the data structure in the future?
             let services_idx = match services.iter().position(|ref s| s.spec_ident == spec.ident) {
@@ -1016,17 +1527,6 @@ impl Manager {
 
         self.remove_service(&mut service, true);
         Ok(())
-    }
-
-    /// Remove the on disk representation of the given service spec
-    fn remove_spec(&self, spec: &ServiceSpec) {
-        if let Err(err) = fs::remove_file(self.fs_cfg.specs_path.join(spec.file_name())) {
-            outputln!(
-                "Unable to cleanup service spec for transient service, {}, {}",
-                spec.ident,
-                err
-            );
-        }
     }
 }
 
@@ -1061,7 +1561,6 @@ pub struct ServiceStatus {
     pub pkg: Pkg,
     pub process: ProcessStatus,
     pub service_group: ServiceGroup,
-    pub start_style: StartStyle,
     pub composite: Option<String>,
 }
 
@@ -1069,12 +1568,11 @@ impl fmt::Display for ServiceStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{} ({}), {}, group:{}, style:{}",
+            "{} ({}), {}, group:{}",
             self.pkg.ident,
             self.composite.as_ref().unwrap_or(&"standalone".to_string()),
             self.process,
             self.service_group,
-            self.start_style
         )
     }
 }
@@ -1201,16 +1699,82 @@ where
     }
 }
 
+struct CtlAcceptor {
+    rx: ctl_gateway::server::MgrReceiver,
+    state: Rc<ManagerState>,
+}
+
+impl CtlAcceptor {
+    fn new(state: Rc<ManagerState>, rx: ctl_gateway::server::MgrReceiver) -> Self {
+        CtlAcceptor {
+            state: state,
+            rx: rx,
+        }
+    }
+}
+
+impl Stream for CtlAcceptor {
+    type Item = CtlHandler;
+    type Error = ();
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        match self.rx.poll() {
+            Ok(Async::Ready(Some(cmd))) => {
+                let task = CtlHandler::new(cmd, self.state.clone());
+                Ok(Async::Ready(Some(task)))
+            }
+            Ok(Async::Ready(None)) => Ok(Async::Ready(None)),
+            Ok(Async::NotReady) => Ok(Async::NotReady),
+            Err(e) => {
+                debug!("CtlAcceptor error, {:?}", e);
+                Err(())
+            }
+        }
+    }
+}
+
+struct CtlHandler {
+    cmd: ctl_gateway::server::CtlCommand,
+    state: Rc<ManagerState>,
+}
+
+impl CtlHandler {
+    fn new(cmd: ctl_gateway::server::CtlCommand, state: Rc<ManagerState>) -> Self {
+        CtlHandler {
+            cmd: cmd,
+            state: state,
+        }
+    }
+}
+
+impl Future for CtlHandler {
+    type Item = ();
+    type Error = ();
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        match self.cmd.run(&self.state) {
+            Ok(()) => (),
+            Err(err) => {
+                debug!("CtlHandler failed, {:?}", err);
+                if self.cmd.req.transactional() {
+                    self.cmd.req.reply_complete(err);
+                }
+            }
+        }
+        Ok(Async::Ready(()))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;
 
-    use super::{Manager, ManagerConfig, STATE_PATH_PREFIX};
+    use super::{ManagerConfig, STATE_PATH_PREFIX};
 
     #[test]
     fn manager_state_path_default() {
         let cfg = ManagerConfig::default();
-        let path = Manager::state_path_from(&cfg);
+        let path = cfg.sup_root();
 
         assert_eq!(
             PathBuf::from(format!("{}/default", STATE_PATH_PREFIX.to_string_lossy())),
@@ -1222,7 +1786,7 @@ mod test {
     fn manager_state_path_with_name() {
         let mut cfg = ManagerConfig::default();
         cfg.name = Some(String::from("peanuts"));
-        let path = Manager::state_path_from(&cfg);
+        let path = cfg.sup_root();
 
         assert_eq!(
             PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX.to_string_lossy())),
@@ -1234,7 +1798,7 @@ mod test {
     fn manager_state_path_custom() {
         let mut cfg = ManagerConfig::default();
         cfg.custom_state_path = Some(PathBuf::from("/tmp/peanuts-and-cake"));
-        let path = Manager::state_path_from(&cfg);
+        let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/peanuts-and-cake"), path);
     }
@@ -1244,7 +1808,7 @@ mod test {
         let mut cfg = ManagerConfig::default();
         cfg.custom_state_path = Some(PathBuf::from("/tmp/partay"));
         cfg.name = Some(String::from("nope"));
-        let path = Manager::state_path_from(&cfg);
+        let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/partay"), path);
     }

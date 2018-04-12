@@ -35,7 +35,7 @@ use std::thread;
 
 use clap::ArgMatches;
 
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SymKey};
 use hcore::service::ServiceGroup;

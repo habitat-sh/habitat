@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 use depot_client::{self, Client};
 use error::{Error, Result};
 use hcore::crypto::keys::parse_name_with_rev;

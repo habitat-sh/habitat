@@ -29,7 +29,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-use common::ui::{UI, Status};
+use common::ui::{UI, UIWriter, Status};
 
 pub mod error;
 pub mod manifest;

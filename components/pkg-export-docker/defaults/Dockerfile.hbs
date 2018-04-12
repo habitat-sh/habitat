@@ -4,4 +4,4 @@ ADD {{rootfs}} /
 
 EXPOSE 9631 {{exposes}}
 ENTRYPOINT ["/init.sh"]
-CMD ["start", "{{primary_svc_ident}}"]
+CMD ["run", "{{primary_svc_ident}}"]

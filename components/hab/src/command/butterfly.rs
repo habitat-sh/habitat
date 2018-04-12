@@ -66,7 +66,7 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use common::ui::UI;
+    use common::ui::{UI, UIWriter};
 
     use error::{Error, Result};
 

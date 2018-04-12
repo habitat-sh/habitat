@@ -38,7 +38,7 @@ use retry::retry;
 
 // Local Dependencies
 use common::command::package::install::{RETRIES, RETRY_WAIT};
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 use depot_client::{self, Client};
 use error::{Error, Result};
 use hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};

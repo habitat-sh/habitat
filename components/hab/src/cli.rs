@@ -545,15 +545,14 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
             (@subcommand load =>
-                (about: "Load a service to be started and supervised by Habitat from a package or \
-                    artifact. Services started in this manner will persist through Supervisor \
-                    restarts.")
+                (about: "Load a service to be started and supervised by Habitat from a package \
+                    identifier. If an installed package doesn't satisfy the given package identifier, \
+                    a suitable package will be installed from Builder.")
                 (@setting Hidden)
             )
             (@subcommand unload =>
-                (about: "Unload a persistent or transient service started by the Habitat \
-                    Supervisor. If the Supervisor is running when the service is unloaded the \
-                    service will be stopped.")
+                (about: "Unload a service loaded by the Habitat Supervisor. If the service is running \
+                    it will additionally be stopped.")
                 (@setting Hidden)
             )
             (@subcommand start =>

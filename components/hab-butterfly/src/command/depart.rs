@@ -16,7 +16,7 @@ use std::thread;
 use std::time;
 
 use butterfly::client::Client;
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 use hcore::crypto::SymKey;
 
 use error::{Error, Result};

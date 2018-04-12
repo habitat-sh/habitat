@@ -15,7 +15,7 @@
 use std::fs;
 use std::path::Path;
 
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::os::filesystem;
 use hcore::fs as hfs;

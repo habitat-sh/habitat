@@ -29,6 +29,7 @@ const CLI_CONFIG_PATH: &'static str = "hab/etc/cli.toml";
 pub struct Config {
     pub auth_token: Option<String>,
     pub origin: Option<String>,
+    pub ctl_secret: Option<String>,
 }
 
 impl ConfigFile for Config {
@@ -40,6 +41,7 @@ impl Default for Config {
         Config {
             auth_token: None,
             origin: None,
+            ctl_secret: None,
         }
     }
 }

@@ -27,8 +27,6 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
-use std::result;
-use std::str::FromStr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -37,10 +35,8 @@ use hcore::crypto::hash;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
-use hcore::util::deserialize_using_from_str;
 use hcore::util::perm::{set_owner, set_permissions};
 use launcher_client::LauncherCli;
-use serde;
 use time::Timespec;
 
 use super::Sys;
@@ -48,7 +44,7 @@ use self::config::CfgRenderer;
 use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
 use self::supervisor::Supervisor;
 use self::dir::SvcDir;
-use error::{Error, Result, SupError};
+use error::Result;
 use fs;
 use manager;
 use census::{ServiceFile, CensusRing, ElectionStatus};
@@ -59,8 +55,9 @@ pub use self::config::{Cfg, UserConfigPath};
 pub use self::health::{HealthCheck, SmokeCheck};
 pub use self::package::{Env, Pkg};
 pub use self::composite_spec::CompositeSpec;
-pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle};
+pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
 pub use self::supervisor::ProcessState;
+pub use protocols::types::{Topology, UpdateStrategy};
 
 static LOGKEY: &'static str = "SR";
 
@@ -79,7 +76,6 @@ pub struct Service {
     pub channel: String,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
-    pub start_style: StartStyle,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub cfg: Cfg,
@@ -109,7 +105,7 @@ pub struct Service {
     #[serde(skip_serializing)]
     /// Whether a service's default configuration changed on a package
     /// update. Used to control when templates are re-rendered.
-    defaults_updated: bool
+    defaults_updated: bool,
 }
 
 impl Service {
@@ -156,14 +152,13 @@ impl Service {
             binds: spec.binds,
             spec_ident: spec.ident,
             spec_file: spec_file,
-            start_style: spec.start_style,
             topology: spec.topology,
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
             last_health_check: None,
             svc_encrypted_password: spec.svc_encrypted_password,
             composite: spec.composite,
-            defaults_updated: false
+            defaults_updated: false,
         })
     }
 
@@ -334,7 +329,6 @@ impl Service {
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;
         spec.binds = self.binds.clone();
-        spec.start_style = self.start_style;
         spec.config_from = self.config_from.clone();
         if let Some(ref password) = self.svc_encrypted_password {
             spec.svc_encrypted_password = Some(password.clone())
@@ -385,7 +379,8 @@ impl Service {
             "Service update failed; unable to find own service group",
         );
         let cfg_updated_from_rumors = self.cfg.update(census_group);
-        let cfg_changed = self.defaults_updated || cfg_updated_from_rumors || self.user_config_updated;
+        let cfg_changed = self.defaults_updated || cfg_updated_from_rumors ||
+            self.user_config_updated;
 
         if self.user_config_updated {
             if let Err(e) = self.cfg.reload_user() {
@@ -406,8 +401,8 @@ impl Service {
                 let reload = self.compile_hooks(&ctx);
 
                 // If the configuration has changed, execute the `reload` and `reconfigure` hooks.
-                // Note that the configuration does not necessarily change every time the user config has (e.g.
-                // when only a comment has been added to the latter)
+                // Note that the configuration does not necessarily change every time the user
+                // config has (e.g. when only a comment has been added to the latter)
                 let reconfigure = self.compile_configuration(&ctx);
 
                 (reload, reconfigure)
@@ -807,263 +802,5 @@ impl Service {
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} [{}]", self.service_group, self.pkg.ident)
-    }
-}
-
-/// The relationship of a service with peers in the same service group.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Topology {
-    Standalone,
-    Leader,
-}
-
-impl Topology {
-    fn as_str(&self) -> &str {
-        match *self {
-            Topology::Leader => "leader",
-            Topology::Standalone => "standalone",
-        }
-    }
-}
-
-impl FromStr for Topology {
-    type Err = SupError;
-
-    fn from_str(topology: &str) -> result::Result<Self, Self::Err> {
-        match topology {
-            "leader" => Ok(Topology::Leader),
-            "standalone" => Ok(Topology::Standalone),
-            _ => Err(sup_error!(Error::InvalidTopology(String::from(topology)))),
-        }
-    }
-}
-
-impl fmt::Display for Topology {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
-impl Default for Topology {
-    fn default() -> Topology {
-        Topology::Standalone
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for Topology {
-    fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserialize_using_from_str(deserializer)
-    }
-}
-
-impl serde::Serialize for Topology {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(self.as_str())
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum UpdateStrategy {
-    None,
-    AtOnce,
-    Rolling,
-}
-
-impl UpdateStrategy {
-    fn as_str(&self) -> &str {
-        match *self {
-            UpdateStrategy::None => "none",
-            UpdateStrategy::AtOnce => "at-once",
-            UpdateStrategy::Rolling => "rolling",
-        }
-    }
-}
-
-impl FromStr for UpdateStrategy {
-    type Err = SupError;
-
-    fn from_str(strategy: &str) -> result::Result<Self, Self::Err> {
-        match strategy {
-            "none" => Ok(UpdateStrategy::None),
-            "at-once" => Ok(UpdateStrategy::AtOnce),
-            "rolling" => Ok(UpdateStrategy::Rolling),
-            _ => Err(sup_error!(
-                Error::InvalidUpdateStrategy(String::from(strategy))
-            )),
-        }
-    }
-}
-
-impl fmt::Display for UpdateStrategy {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
-impl Default for UpdateStrategy {
-    fn default() -> UpdateStrategy {
-        UpdateStrategy::None
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for UpdateStrategy {
-    fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserialize_using_from_str(deserializer)
-    }
-}
-
-impl serde::Serialize for UpdateStrategy {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(self.as_str())
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use std::str::FromStr;
-
-    use toml;
-
-    use super::{Topology, UpdateStrategy};
-    use error::Error::*;
-
-    #[test]
-    fn topology_default() {
-        // This should always be the default topology, if this default gets changed, we have
-        // a failing test to confirm we changed our minds
-        assert_eq!(Topology::default(), Topology::Standalone);
-    }
-
-    #[test]
-    fn topology_from_str() {
-        assert_eq!(Topology::from_str("leader").unwrap(), Topology::Leader);
-        assert_eq!(
-            Topology::from_str("standalone").unwrap(),
-            Topology::Standalone
-        );
-    }
-
-    #[test]
-    fn topology_from_str_invalid() {
-        let topology_str = "dope";
-
-        match Topology::from_str(topology_str) {
-            Err(e) => {
-                match e.err {
-                    InvalidTopology(s) => assert_eq!("dope", s),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
-            Ok(_) => panic!("String should fail to parse"),
-
-        }
-    }
-
-    #[test]
-    fn topology_to_string() {
-        assert_eq!("standalone", Topology::Standalone.to_string());
-        assert_eq!("leader", Topology::Leader.to_string());
-    }
-
-    #[test]
-    fn topology_toml_deserialize() {
-        #[derive(Deserialize)]
-        struct Data {
-            key: Topology,
-        }
-        let toml = r#"
-            key = "leader"
-            "#;
-        let data: Data = toml::from_str(toml).unwrap();
-
-        assert_eq!(data.key, Topology::Leader);
-    }
-
-    #[test]
-    fn topology_toml_serialize() {
-        #[derive(Serialize)]
-        struct Data {
-            key: Topology,
-        }
-        let data = Data { key: Topology::Leader };
-        let toml = toml::to_string(&data).unwrap();
-
-        assert!(toml.starts_with(r#"key = "leader""#))
-    }
-
-    #[test]
-    fn update_strategy_default() {
-        // This should always be the default update strategy, if this default gets changed, we have
-        // a failing test to confirm we changed our minds
-        assert_eq!(UpdateStrategy::default(), UpdateStrategy::None);
-    }
-
-    #[test]
-    fn update_strategy_from_str() {
-        let strategy_str = "at-once";
-        let strategy = UpdateStrategy::from_str(strategy_str).unwrap();
-
-        assert_eq!(strategy, UpdateStrategy::AtOnce);
-    }
-
-    #[test]
-    fn update_strategy_from_str_invalid() {
-        let strategy_str = "dope";
-
-        match UpdateStrategy::from_str(strategy_str) {
-            Err(e) => {
-                match e.err {
-                    InvalidUpdateStrategy(s) => assert_eq!("dope", s),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
-            Ok(_) => panic!("String should fail to parse"),
-
-        }
-    }
-
-    #[test]
-    fn update_strategy_to_string() {
-        let strategy = UpdateStrategy::AtOnce;
-
-        assert_eq!("at-once", strategy.to_string())
-    }
-
-    #[test]
-    fn update_strategy_toml_deserialize() {
-        #[derive(Deserialize)]
-        struct Data {
-            key: UpdateStrategy,
-        }
-        let toml = r#"
-            key = "at-once"
-            "#;
-        let data: Data = toml::from_str(toml).unwrap();
-
-        assert_eq!(data.key, UpdateStrategy::AtOnce);
-    }
-
-    #[test]
-    fn update_strategy_toml_serialize() {
-        #[derive(Serialize)]
-        struct Data {
-            key: UpdateStrategy,
-        }
-        let data = Data { key: UpdateStrategy::AtOnce };
-        let toml = toml::to_string(&data).unwrap();
-
-        assert!(toml.starts_with(r#"key = "at-once""#));
     }
 }

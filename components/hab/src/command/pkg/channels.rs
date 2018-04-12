@@ -28,7 +28,7 @@
 //!
 
 
-use common::ui::UI;
+use common::ui::{UI, UIWriter};
 use depot_client::Client;
 use hcore::package::PackageIdent;
 

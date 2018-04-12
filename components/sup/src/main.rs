@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017-2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,54 +18,60 @@ extern crate habitat_core as hcore;
 extern crate habitat_launcher_client as launcher_client;
 #[macro_use]
 extern crate habitat_sup as sup;
+#[macro_use]
 extern crate log;
 extern crate env_logger;
 extern crate ansi_term;
+#[macro_use]
+extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate clap;
+extern crate futures;
+extern crate protobuf;
+extern crate pbr;
 extern crate time;
 extern crate url;
 extern crate tabwriter;
+extern crate tokio_core;
 
-use std::collections::{HashMap, HashSet};
-use std::collections::hash_map::Entry;
 use std::env;
 use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process;
 use std::result;
 use std::str::FromStr;
 
 use clap::{App, ArgMatches};
 use common::command::package::install::InstallSource;
-use common::ui::{UI, Coloring, NONINTERACTIVE_ENVVAR};
+use common::ui::{NONINTERACTIVE_ENVVAR, UI, Coloring};
+use futures::prelude::*;
 use hcore::channel;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 use hcore::env as henv;
-use hcore::fs;
 use hcore::package::PackageIdent;
-use hcore::package::install::PackageInstall;
-use hcore::package::metadata::{BindMapping, PackageType};
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use tabwriter::TabWriter;
+use tokio_core::reactor;
 use url::Url;
 
 use sup::VERSION;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
+use sup::ctl_gateway;
+use sup::ctl_gateway::client::{SrvClient, SrvClientError};
+use sup::ctl_gateway::codec::*;
 use sup::error::{Error, Result, SupError};
 use sup::feat;
 use sup::command;
 use sup::http_gateway;
-use sup::http_gateway::ListenAddr;
-use sup::manager::{Manager, ManagerConfig, ServiceStatus};
-use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
-use sup::manager::service::{CompositeSpec, ServiceSpec, StartStyle};
+use sup::manager::{Manager, ManagerConfig};
+use sup::manager::service::{ServiceBind, Topology, UpdateStrategy};
+use sup::protocols;
 use sup::util;
 
 /// Our output key
@@ -73,6 +79,12 @@ static LOGKEY: &'static str = "MN";
 
 static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
+
+lazy_static! {
+    static ref STATUS_HEADER: Vec<&'static str> = {
+        vec!["package", "type", "state", "uptime (s)", "pid", "group"]
+    };
+}
 
 fn main() {
     if let Err(err) = start() {
@@ -127,10 +139,7 @@ fn start() -> Result<()> {
             sub_run(m, launcher)
         }
         ("sh", Some(m)) => sub_sh(m),
-        ("start", Some(m)) => {
-            let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
-            sub_start(m, launcher)
-        }
+        ("start", Some(m)) => sub_start(m),
         ("status", Some(m)) => sub_status(m),
         ("stop", Some(m)) => sub_stop(m),
         ("term", Some(m)) => sub_term(m),
@@ -156,20 +165,17 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand config =>
             (about: "Displays the default configuration options for a service")
             (aliases: &["c", "co", "con", "conf", "confi"])
-            (@arg PKG_IDENT: +required +takes_value
-                "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+            (@arg PKG_IDENT: +required +takes_value "A package identifier (ex: core/redis)")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand load =>
-            (about: "Load a service to be started and supervised by Habitat from a package or \
-                artifact. Services started in this manner will persist through Supervisor \
-                restarts.")
+            (about: "Load a service to be started and supervised by Habitat from a package \
+                identifier. If an installed package doesn't satisfy the given package identifier, \
+                a suitable package will be installed from Builder.")
             (aliases: &["lo", "loa"])
-            (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
-                "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
-                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg PKG_IDENT: +required +takes_value
+                "A Habitat package identifier (ex: core/redis)")
             (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
                 "Application name; [default: not set].")
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
@@ -189,24 +195,26 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "One or more service groups to bind to a configuration")
             (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
                 previously loaded and running this operation will also restart the service")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand unload =>
-            (about: "Unload a persistent or transient service started by the Habitat \
-                Supervisor. If the Supervisor is running when the service is unloaded the \
-                service will be stopped.")
+            (about: "Unload a service loaded by the Habitat Supervisor. If the service is running \
+                it will additionally be stopped.")
             (aliases: &["un", "unl", "unlo", "unloa"])
             (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand run =>
             (about: "Run the Habitat Supervisor")
             (aliases: &["r", "ru"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
-                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_socket_addr}
+                "The listen address for the HTTP Gateway [default: 0.0.0.0:9631]")
+            (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
+                "The listen address for the Control Gateway [default: 127.0.0.1:9632]")
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if launching more than one [default: default]")
             (@arg ORGANIZATION: --org +takes_value
@@ -228,75 +236,51 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward Supervisor and service event data to")
-        )
-        (@subcommand sh =>
-            (about: "Start an interactive Bourne-like shell")
-            (aliases: &[])
-        )
-        (@subcommand start =>
-            (about: "Start a loaded, but stopped, Habitat service or a transient service from \
-                a package or artifact. If the Habitat Supervisor is not already running this \
-                will additionally start one for you.")
-            (aliases: &["sta", "star"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
-                "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
-                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if launching more than one Supervisor \
-                [default: default]")
-            (@arg ORGANIZATION: --org +takes_value
-                "The organization that the Supervisor and its subsequent services are part of \
-                [default: default]")
-            (@arg PEER: --peer +takes_value +multiple
-                "The listen address of an initial peer (IP[:PORT])")
-            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
-                "Watch this file for connecting to the ring"
-            )
-            (@arg RING: --ring -r +takes_value "Ring key name")
-            (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
-                "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
-                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            // === Optional arguments to additionally load an initial service for the Supervisor 
+            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
+                the Supervisor startup specified by a package identifier \
+                (ex: core/redis) or filepath to a Habitat Artifact \
+                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
             (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
                 "Application name; [default: not set].")
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
                 "Environment name; [default: not set].")
-            (@arg CHANNEL: --channel +takes_value
-                "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
-                "The service group; shared config and topology [default: default]")
-            (@arg BLDR_URL: --url -u +takes_value {valid_url}
-                "Receive package updates from Builder at the specified URL \
-                [default: https://bldr.habitat.sh]")
+                "The service group; shared config and topology [default: default].")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
                 "The update strategy; [default: none] [values: none, at-once, rolling]")
             (@arg BIND: --bind +takes_value +multiple
                 "One or more service groups to bind to a configuration")
-            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-                "Use package config from this path, rather than the package itself")
-            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
-                itself")
-            (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-                group running a Habitat EventSrv to forward Supervisor and service event data to")
+            (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
+                previously loaded and running this operation will also restart the service")
+        )
+        (@subcommand sh =>
+            (about: "Start an interactive Bourne-like shell")
+            (aliases: &[])
+        )
+        (@subcommand start =>
+            (about: "Start a loaded, but stopped, Habitat service.")
+            (aliases: &["sta", "star"])
+            (@arg PKG_IDENT: +required +takes_value
+                "A Habitat package identifier (ex: core/redis)")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
             (aliases: &["stat", "statu", "status"])
             (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand stop =>
             (about: "Stop a running Habitat service.")
             (aliases: &["sto"])
             (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand term =>
             (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
@@ -325,18 +309,16 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (aliases: &["c", "co", "con", "conf", "confi"])
             (@arg PKG_IDENT: +required +takes_value
                 "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand load =>
-            (about: "Load a service to be started and supervised by Habitat from a package or \
-                artifact. Services started in this manner will persist through Supervisor \
-                restarts.")
+            (about: "Load a service to be started and supervised by Habitat from a package \
+                identifier. If an installed package doesn't satisfy the given package identifier, \
+                a suitable package will be installed from Builder.")
             (aliases: &["lo", "loa"])
-            (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
-                "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
-                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg PKG_IDENT: +required +takes_value
+                "A Habitat package identifier (ex: core/redis)")
             (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
                 "Application name; [default: not set].")
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
@@ -356,30 +338,31 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "One or more service groups to bind to a configuration")
             (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
                 previously loaded and running this operation will also restart the service")
-                (@arg PASSWORD: --password +takes_value
-                    "Password of the service user")
+            (@arg PASSWORD: --password +takes_value "Password of the service user")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand unload =>
-            (about: "Unload a persistent or transient service started by the Habitat \
-                Supervisor. If the Supervisor is running when the service is unloaded the \
-                service will be stopped.")
+            (about: "Unload a service loaded by the Habitat Supervisor. If the service is running \
+                it will additionally be stopped.")
             (aliases: &["un", "unl", "unlo", "unloa"])
             (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand run =>
             (about: "Run the Habitat Supervisor")
             (aliases: &["r", "ru"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
-                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_socket_addr}
+                "The listen address for the HTTP Gateway [default: 0.0.0.0:9631]")
+            (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
+                "The listen address for the Control Gateway [default: 127.0.0.1:9632]")
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if launching more than one [default: default]")
             (@arg ORGANIZATION: --org +takes_value
-                "The organization that the Supervisor and it's subsequent services are part of \
+                "The organization that the Supervisor and its subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
@@ -397,76 +380,52 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward Supervisor and service event data to")
-        )
-        (@subcommand sh =>
-            (about: "Start an interactive Bourne-like shell")
-            (aliases: &[])
-        )
-        (@subcommand start =>
-            (about: "Start a loaded, but stopped, Habitat service or a transient service from \
-                a package or artifact. If the Habitat Supervisor is not already running this \
-                will additionally start one for you.")
-            (aliases: &["sta", "star"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_listen_gossip}
-                "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_listen_http}
-                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if launching more than one Supervisor \
-                [default: default]")
-            (@arg ORGANIZATION: --org +takes_value
-                "The organization that the Supervisor and it's subsequent services are part of \
-                [default: default]")
-            (@arg PEER: --peer +takes_value +multiple
-                "The listen address of an initial peer (IP[:PORT])")
-            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
-                "Watch this file for connecting to the ring"
-            )
-            (@arg RING: --ring -r +takes_value "Ring key name")
-            (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
-                "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
-                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            // === Optional arguments to additionally load an initial service for the Supervisor 
+            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
+                the Supervisor startup specified by a package identifier \
+                (ex: core/redis) or filepath to a Habitat Artifact \
+                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
             (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
                 "Application name; [default: not set].")
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
                 "Environment name; [default: not set].")
-            (@arg CHANNEL: --channel +takes_value
-                "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
-                "The service group; shared config and topology [default: default]")
-            (@arg BLDR_URL: --url -u +takes_value {valid_url}
-                "Receive package updates from Builder at the specified URL \
-                [default: https://bldr.habitat.sh]")
+                "The service group; shared config and topology [default: default].")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
                 "The update strategy; [default: none] [values: none, at-once, rolling]")
             (@arg BIND: --bind +takes_value +multiple
                 "One or more service groups to bind to a configuration")
-            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-                "Use package config from this path, rather than the package itself")
-            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
-                itself")
-            (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-                group running a Habitat EventSrv to forward Supervisor and service event data to")
+            (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
+                previously loaded and running this operation will also restart the service")
             (@arg PASSWORD: --password +takes_value "Password of the service user")
+        )
+        (@subcommand sh =>
+            (about: "Start an interactive Bourne-like shell")
+            (aliases: &[])
+        )
+        (@subcommand start =>
+            (about: "Start a loaded, but stopped, Habitat service.")
+            (aliases: &["sta", "star"])
+            (@arg PKG_IDENT: +required +takes_value
+                "A Habitat package identifier (ex: core/redis)")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
             (aliases: &["stat", "statu", "status"])
             (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
         (@subcommand stop =>
             (about: "Stop a running Habitat service.")
             (aliases: &["sto"])
             (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
-            (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if there is more than one Supervisor running \
-                [default: default]")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
     )
 }
@@ -479,234 +438,102 @@ fn sub_bash(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_config(m: &ArgMatches) -> Result<()> {
+    toggle_verbosity(m);
+    toggle_color(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
-    common::command::package::config::start(&ident, "/")?;
+    let cfg = mgrcfg_from_matches(m)?;
+    let sup_addr = m.value_of("REMOTE_SUP")
+        .map(|a| SocketAddr::from_str(a).unwrap())
+        .unwrap_or(ctl_gateway::default_addr());
+    let mut core = reactor::Core::new().unwrap();
+    let mut msg = protocols::ctl::SvcGetDefaultCfg::new();
+    msg.set_ident(ident.into());
+    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
+    let req = conn.call(msg).for_each(|reply| {
+        match reply.message_id() {
+            "ServiceCfg" => {
+                let m = reply.parse::<protocols::types::ServiceCfg>().unwrap();
+                println!("{}", m.get_default());
+            }
+            "NetErr" => {
+                let m = reply.parse::<protocols::net::NetErr>().unwrap();
+                println!("{}", m);
+            }
+            _ => (),
+        }
+        Ok(())
+    });
+    core.run(req)?;
     Ok(())
 }
 
 fn sub_load(m: &ArgMatches) -> Result<()> {
     toggle_verbosity(m);
     toggle_color(m);
-
     let cfg = mgrcfg_from_matches(m)?;
-    let install_source = install_source_from_input(m)?;
-
-    // TODO (CM): should load be able to download new artifacts if
-    // you're re-loading with --force?
-    // If we've already got a spec for this thing, we don't want to
-    // inadvertently download a new version
-
-    match existing_specs_for_ident(&cfg, install_source.as_ref().clone())? {
-        None => {
-            // We don't have any record of this thing; let's set it
-            // up!
-            //
-            // This will install the latest version from Builder if no
-            // package can be found locally that satisfies the given
-            // identifier.
-            let installed =
-                install_package_if_not_present(&install_source, &bldr_url(m), &channel(m))?;
-
-            let original_ident = install_source.as_ref();
-            let mut specs = generate_new_specs_from_package(original_ident, &installed, m)?;
-
-            for spec in specs.iter_mut() {
-                // "load" == persistent services, by definition
-                spec.start_style = StartStyle::Persistent;
-                Manager::save_spec_for(&cfg, spec)?;
-                outputln!("The {} service was successfully loaded", spec.ident);
-            }
-
-            // Only saves a composite spec if it's, well, a composite
-            if let Ok(composite_spec) =
-                CompositeSpec::from_package_install(&original_ident, &installed)
-            {
-                Manager::save_composite_spec_for(&cfg, &composite_spec)?;
-                outputln!(
-                    "The {} composite was successfully loaded",
-                    composite_spec.ident()
-                );
-            }
-            Ok(())
-        }
-        Some(spec) => {
-            // We've seen this service / composite before. Thus `load`
-            // basically acts as a way to edit spec files on the
-            // command line. As a result, we a) check that you
-            // *really* meant to change an existing spec, and b) DO
-            // NOT download a potentially new version of the package
-            // in question
-
-            if !m.is_present("FORCE") {
-                // TODO (CM): make this error reflect composites
-                return Err(sup_error!(Error::ServiceLoaded(spec.ident().clone())));
-            }
-
-            match spec {
-                Spec::Service(mut service_spec) => {
-                    service_spec.ident = install_source.as_ref().clone();
-                    update_spec_from_input(&mut service_spec, m)?;
-                    service_spec.start_style = StartStyle::Persistent;
-
-                    // Only install if we don't have something
-                    // locally; otherwise you could potentially
-                    // upgrade each time you load.
-                    //
-                    // Also make sure you're pulling from where you're
-                    // supposed to be pulling from!
-                    install_package_if_not_present(
-                        &install_source,
-                        &service_spec.bldr_url,
-                        &service_spec.channel,
-                    )?;
-
-                    Manager::save_spec_for(&cfg, &service_spec)?;
-                    outputln!("The {} service was successfully loaded", service_spec.ident);
-                    Ok(())
-                }
-                Spec::Composite(composite_spec, mut existing_service_specs) => {
-                    if install_source.as_ref() == composite_spec.ident() {
-                        let composite_package =
-                            match util::pkg::installed(composite_spec.package_ident()) {
-                                Some(package) => package,
-                                // TODO (CM): this should be a proper error
-                                None => unreachable!(),
-                            };
-
-                        update_composite_service_specs(
-                            &mut existing_service_specs,
-                            &composite_package,
-                            m,
-                        )?;
-
-                        for service_spec in existing_service_specs.iter() {
-                            Manager::save_spec_for(&cfg, service_spec)?;
-                            outputln!("The {} service was successfully loaded", service_spec.ident);
-                        }
-                        outputln!(
-                            "The {} composite was successfully loaded",
-                            composite_spec.ident()
-                        );
-                    } else {
-                        // It changed!
-                        // OK, here's the deal.
-                        //
-                        // We're going to install a new composite if
-                        // we need to in order to satisfy the spec
-                        // we've now got. That also means that the
-                        // services that are currently running may get
-                        // unloaded (because they are no longer in the
-                        // composite), and new services may start
-                        // (because they were added to the composite).
-
-                        let installed_package = install_package_if_not_present(
-                            &install_source,
-                            // This (updating from the command-line
-                            // args) is a difference from
-                            // force-loading a spec, because
-                            // composites don't auto-update themselves
-                            // like services can.
-                            &bldr_url(m),
-                            &channel(m),
-                        )?;
-
-                        // Generate new specs from the new composite package and
-                        // CLI inputs
-                        let new_service_specs = generate_new_specs_from_package(
-                            install_source.as_ref(),
-                            &installed_package,
-                            m,
-                        )?;
-
-                        // Delete any specs that are not in the new
-                        // composite
-                        let mut old_spec_names = HashSet::new();
-                        for s in existing_service_specs.iter() {
-                            old_spec_names.insert(s.ident.name.clone());
-                        }
-                        let mut new_spec_names = HashSet::new();
-                        for s in new_service_specs.iter() {
-                            new_spec_names.insert(s.ident.name.clone());
-                        }
-
-                        let specs_to_delete: HashSet<_> =
-                            old_spec_names.difference(&new_spec_names).collect();
-                        for spec in existing_service_specs.iter() {
-                            if specs_to_delete.contains(&spec.ident.name) {
-                                let file = Manager::spec_path_for(&cfg, spec);
-                                outputln!("Unloading {:?}", file);
-                                std::fs::remove_file(&file).map_err(|err| {
-                                    sup_error!(Error::ServiceSpecFileIO(file, err))
-                                })?;
-                            }
-                        }
-                        // <-- end of deletion
-
-                        // Save all the new specs. If there are
-                        // services that exist in both composites,
-                        // their service spec files will have the same
-                        // name, so they'll be taken care of here (we
-                        // don't need to treat them differently)
-                        for spec in new_service_specs.iter() {
-                            Manager::save_spec_for(&cfg, spec)?;
-                            outputln!("The {} service was successfully loaded", spec.ident);
-                        }
-
-                        // Generate and save the new spec
-                        let new_composite_spec = CompositeSpec::from_package_install(
-                            install_source.as_ref(),
-                            &installed_package,
-                        )?;
-                        Manager::save_composite_spec_for(&cfg, &new_composite_spec)?;
-                        outputln!(
-                            "The {} composite was successfully loaded",
-                            new_composite_spec.ident()
-                        );
-                    }
-                    Ok(())
-                }
-            }
-        }
-    }
+    let sup_addr = m.value_of("REMOTE_SUP")
+        .map(|a| SocketAddr::from_str(a).unwrap())
+        .unwrap_or(ctl_gateway::default_addr());
+    let mut core = reactor::Core::new().unwrap();
+    let mut msg = protocols::ctl::SvcLoad::new();
+    update_svc_load_from_input(m, &mut msg)?;
+    let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
+    msg.set_ident(ident.into());
+    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
+    let req = conn.call(msg).for_each(handle_ctl_reply);
+    core.run(req)?;
+    Ok(())
 }
 
 fn sub_unload(m: &ArgMatches) -> Result<()> {
     toggle_verbosity(m);
     toggle_color(m);
-
-    let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
-    // Gather up the paths to all the spec files we care about. This
-    // includes all service specs as well as any composite spec.
-    let spec_paths = match existing_specs_for_ident(&cfg, ident)? {
-        Some(Spec::Service(spec)) => vec![Manager::spec_path_for(&cfg, &spec)],
-        Some(Spec::Composite(composite_spec, specs)) => {
-            let mut paths = Vec::with_capacity(specs.len() + 1);
-            for spec in specs.iter() {
-                paths.push(Manager::spec_path_for(&cfg, spec));
-            }
-            paths.push(Manager::composite_path_for(&cfg, &composite_spec));
-            paths
-        }
-        None => vec![],
-    };
-
-    for file in spec_paths {
-        outputln!("Unloading {:?}", file);
-        std::fs::remove_file(&file).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(file, err))
-        })?;
-    }
-
+    let cfg = mgrcfg_from_matches(m)?;
+    let sup_addr = m.value_of("REMOTE_SUP")
+        .map(|a| SocketAddr::from_str(a).unwrap())
+        .unwrap_or(ctl_gateway::default_addr());
+    let mut core = reactor::Core::new().unwrap();
+    let mut msg = protocols::ctl::SvcUnload::new();
+    msg.set_ident(ident.into());
+    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
+    let req = conn.call(msg).for_each(handle_ctl_reply);
+    core.run(req)?;
     Ok(())
 }
 
 fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     let cfg = mgrcfg_from_matches(m)?;
-    let mut manager = Manager::load(cfg, launcher)?;
-    manager.run()
+    if Manager::is_running(&cfg)? {
+        process::exit(OK_NO_RETRY_EXCODE);
+    } else {
+        let manager = Manager::load(cfg, launcher)?;
+        // We need to determine if we have an initial service to start
+        let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
+            let mut msg = protocols::ctl::SvcLoad::new();
+            update_svc_load_from_input(m, &mut msg)?;
+            let ident = match pkg.parse::<InstallSource>()? {
+                source @ InstallSource::Archive(_) => {
+                    // Install the archive manually then explicitly set the pkg ident to the
+                    // version found in the archive. This will lock the software to this
+                    // specific version.
+                    let install = util::pkg::install(
+                        &mut ui(),
+                        msg.get_bldr_url(),
+                        &source,
+                        msg.get_bldr_channel(),
+                    )?;
+                    install.ident.into()
+                }
+                InstallSource::Ident(ident) => ident.into(),
+            };
+            msg.set_ident(ident);
+            Some(msg)
+        } else {
+            None
+        };
+        manager.run(svc)
+    }
 }
 
 fn sub_sh(m: &ArgMatches) -> Result<()> {
@@ -716,188 +543,123 @@ fn sub_sh(m: &ArgMatches) -> Result<()> {
     command::shell::sh()
 }
 
-fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
+fn sub_start(m: &ArgMatches) -> Result<()> {
     toggle_verbosity(m);
     toggle_color(m);
-
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = mgrcfg_from_matches(m)?;
-
-    if !fs::am_i_root() {
-        let mut ui = ui();
-        ui.warn(
-            "Running the Habitat Supervisor with root or superuser privileges is recommended",
-        )?;
-        ui.br()?;
-    }
-
-    let install_source = install_source_from_input(m)?;
-    let original_ident: &PackageIdent = install_source.as_ref();
-
-    // NOTE: As coded, if you try to start a service from a hart file,
-    // but you already have a spec for that service (regardless of
-    // version), you're not going to ever install your hart file, and
-    // the spec isn't going to be updated to point to that exact
-    // version.
-
-    let updated_specs = match existing_specs_for_ident(&cfg, original_ident.clone())? {
-        Some(Spec::Service(mut spec)) => {
-            let mut updated_specs = vec![];
-            if spec.desired_state == DesiredState::Down {
-                spec.desired_state = DesiredState::Up;
-                updated_specs.push(spec);
-            }
-            updated_specs
-        }
-        Some(Spec::Composite(_, service_specs)) => {
-            let mut updated_specs = vec![];
-            for mut spec in service_specs {
-                if spec.desired_state == DesiredState::Down {
-                    spec.desired_state = DesiredState::Up;
-                    updated_specs.push(spec);
-                }
-            }
-            updated_specs
-        }
-        None => {
-            // We don't have any specs for this thing yet, so we'll
-            // need to make some. If we don't already have installed
-            // software that satisfies the given identifier, then
-            // we'll install the latest thing that will
-            // suffice. Otherwise, we'll just use what we find in the
-            // local cache of software.
-            let installed_package =
-                install_package_if_not_present(&install_source, &bldr_url(m), &channel(m))?;
-            let new_specs =
-                generate_new_specs_from_package(&original_ident, &installed_package, m)?;
-
-            // Saving the composite spec here, because we currently
-            // need the PackageInstall to create it! It'll only create
-            // a composite spec if the package is itself a composite.
-            if let Ok(composite_spec) =
-                CompositeSpec::from_package_install(&original_ident, &installed_package)
-            {
-                Manager::save_composite_spec_for(&cfg, &composite_spec)?;
-            }
-
-            new_specs
-        }
-    };
-
-    let specs_changed = updated_specs.len() > 0;
-
-    for spec in updated_specs.iter() {
-        Manager::save_spec_for(&cfg, spec)?;
-    }
-
-    if Manager::is_running(&cfg)? {
-        if specs_changed {
-            outputln!(
-                "Supervisor starting {}. See the Supervisor output for more details.",
-                original_ident
-            );
-            Ok(())
-        } else {
-            // TODO (CM): somehow, this doesn't actually seem to be
-            // exiting with a non-zero exit code
-            process::exit(OK_NO_RETRY_EXCODE);
-        }
-    } else {
-        let mut manager = Manager::load(cfg, launcher)?;
-        manager.run()
-    }
+    let sup_addr = m.value_of("REMOTE_SUP")
+        .map(|a| SocketAddr::from_str(a).unwrap())
+        .unwrap_or(ctl_gateway::default_addr());
+    let mut core = reactor::Core::new().unwrap();
+    let mut msg = protocols::ctl::SvcStart::new();
+    msg.set_ident(ident.into());
+    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
+    let req = conn.call(msg).for_each(handle_ctl_reply);
+    core.run(req)?;
+    Ok(())
 }
 
 fn sub_status(m: &ArgMatches) -> Result<()> {
     toggle_verbosity(m);
     toggle_color(m);
-
     let cfg = mgrcfg_from_matches(m)?;
-    if !Manager::is_running(&cfg)? {
-        println!("The Supervisor is not running.");
-        process::exit(3);
+    let sup_addr = m.value_of("REMOTE_SUP")
+        .map(|a| SocketAddr::from_str(a).unwrap())
+        .unwrap_or(ctl_gateway::default_addr());
+    let mut core = reactor::Core::new().unwrap();
+    let mut msg = protocols::ctl::SvcStatus::new();
+    if let Some(pkg) = m.value_of("PKG_IDENT") {
+        let ident = PackageIdent::from_str(pkg)?;
+        msg.set_ident(ident.into());
     }
-
-    // Note that PKG_IDENT is NOT required here
-    match m.value_of("PKG_IDENT") {
-        Some(pkg) => {
-            let ident = PackageIdent::from_str(pkg)?;
-            let specs = match existing_specs_for_ident(&cfg, ident)? {
-                Some(Spec::Service(spec)) => vec![spec],
-                Some(Spec::Composite(_, specs)) => specs,
+    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
+    let mut out = TabWriter::new(io::stdout());
+    let req = conn.call(msg)
+        .into_future()
+        .map_err(|(err, _)| err)
+        .and_then(move |(reply, rest)| {
+            match reply {
                 None => {
-                    println!("{} is not currently loaded.", pkg);
-                    process::exit(2);
+                    return Err(SrvClientError::from(
+                        io::Error::from(io::ErrorKind::UnexpectedEof),
+                    ))
                 }
-            };
-            print_statuses(
-                specs
-                    .iter()
-                    .filter_map(|spec| Manager::service_status(&cfg, &spec.ident).ok())
-                    .collect::<Vec<ServiceStatus>>(),
-            )?;
-        }
-        None => {
-            print_statuses(Manager::status(&cfg)?)?;
-        }
-    }
+                Some(m) => print_svc_status(&mut out, m, true)?,
+            }
+            Ok((out, rest))
+        })
+        .and_then(|(mut out, rest)| {
+            rest.for_each(move |reply| print_svc_status(&mut out, reply, false))
+        });
+    core.run(req)?;
     Ok(())
 }
 
-fn print_statuses(statuses: Vec<ServiceStatus>) -> Result<()> {
-    if statuses.is_empty() {
-        println!("No services loaded.");
-        return Ok(());
+fn print_svc_status<T>(
+    out: &mut T,
+    reply: SrvMessage,
+    print_header: bool,
+) -> result::Result<(), SrvClientError>
+where
+    T: io::Write,
+{
+    let mut status = match reply.message_id() {
+        "ServiceStatus" => reply.parse::<protocols::types::ServiceStatus>()?,
+        "NetOk" => {
+            println!("No services loaded.");
+            return Ok(());
+        }
+        "NetErr" => {
+            let err = reply.parse::<protocols::net::NetErr>()?;
+            return Err(SrvClientError::from(err));
+        }
+        _ => {
+            warn!("Unexpected status message, {:?}", reply);
+            return Ok(());
+        }
+    };
+    let svc_type = if status.has_composite() {
+        status.take_composite()
+    } else {
+        "standalone".to_string()
+    };
+    let svc_pid = if status.get_process().has_pid() {
+        status.get_process().get_pid().to_string()
+    } else {
+        "<none>".to_string()
+    };
+    if print_header {
+        write!(out, "{}\n", STATUS_HEADER.join("\t")).unwrap();
     }
-    let titles = vec![
-        "package",
-        "type",
-        "state",
-        "uptime (s)",
-        "pid",
-        "group",
-        "style",
-    ];
-    let mut tw = TabWriter::new(io::stdout());
-    write!(tw, "{}\n", titles.join("\t"))?;
-    for status in statuses {
-        write!(
-            tw,
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-            status.pkg.ident,
-            status.composite.unwrap_or("standalone".to_string()),
-            status.process.state,
-            status.process.elapsed.num_seconds(),
-            status.process.pid.map(|p| p.to_string()).unwrap_or(
-                "<none>"
-                    .to_string(),
-            ),
-            status.service_group,
-            status.start_style
-        )?;
-    }
-    tw.flush()?;
+    write!(
+        out,
+        "{}\t{}\t{}\t{}\t{}\t{}\n",
+        status.get_ident(),
+        svc_type,
+        status.get_process().get_state(),
+        status.get_process().get_elapsed(),
+        svc_pid,
+        status.get_service_group(),
+    )?;
+    out.flush()?;
     return Ok(());
 }
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {
     toggle_verbosity(m);
     toggle_color(m);
-
-    let cfg = mgrcfg_from_matches(m)?;
-
-    // PKG_IDENT is required, so unwrap() is safe
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let mut specs = match existing_specs_for_ident(&cfg, ident)? {
-        Some(Spec::Service(spec)) => vec![spec],
-        Some(Spec::Composite(_, specs)) => specs,
-        None => vec![],
-    };
-
-    for spec in specs.iter_mut() {
-        spec.desired_state = DesiredState::Down;
-        Manager::save_spec_for(&cfg, &spec)?;
-    }
-
+    let cfg = mgrcfg_from_matches(m)?;
+    let sup_addr = m.value_of("REMOTE_SUP")
+        .map(|a| SocketAddr::from_str(a).unwrap())
+        .unwrap_or(ctl_gateway::default_addr());
+    let mut core = reactor::Core::new().unwrap();
+    let mut msg = protocols::ctl::SvcStop::new();
+    msg.set_ident(ident.into());
+    let conn = SrvClient::connect(&sup_addr, ctl_secret_key(&cfg)?).wait()?;
+    let req = conn.call(msg).for_each(handle_ctl_reply);
+    core.run(req)?;
     Ok(())
 }
 
@@ -915,67 +677,8 @@ fn sub_term(m: &ArgMatches) -> Result<()> {
 // Internal Implementation Details
 ////////////////////////////////////////////////////////////////////////
 
-/// Helper enum to abstract over spec type.
-///
-/// Currently needed only here. Don't bother moving anywhere because
-/// ServiceSpecs AND CompositeSpecs will be going away soon anyway.
-enum Spec {
-    Service(ServiceSpec),
-    Composite(CompositeSpec, Vec<ServiceSpec>),
-}
-
-impl Spec {
-    /// We need to get at the identifier of a spec, regardless of
-    /// which kind it is.
-    fn ident(&self) -> &PackageIdent {
-        match self {
-            &Spec::Composite(ref s, _) => s.ident(),
-            &Spec::Service(ref s) => s.ident.as_ref(),
-        }
-    }
-}
-
-/// Given a `PackageIdent`, return current specs if they exist. If
-/// the package is a standalone service, only that spec will be
-/// returned, but if it is a composite, the composite spec as well as
-/// the specs for all the services in the composite will be returned.
-fn existing_specs_for_ident(cfg: &ManagerConfig, ident: PackageIdent) -> Result<Option<Spec>> {
-    let default_spec = ServiceSpec::default_for(ident.clone());
-    let spec_file = Manager::spec_path_for(cfg, &default_spec);
-
-    // Try it as a service first
-    if let Ok(spec) = ServiceSpec::from_file(&spec_file) {
-        Ok(Some(Spec::Service(spec)))
-    } else {
-        // Try it as a composite next
-        let composite_spec_file = Manager::composite_path_by_ident(&cfg, &ident);
-        match CompositeSpec::from_file(composite_spec_file) {
-            Ok(composite_spec) => {
-                let fs_root_path = Path::new(&*fs::FS_ROOT_PATH);
-                let package =
-                    PackageInstall::load(composite_spec.package_ident(), Some(fs_root_path))?;
-                let mut specs = vec![];
-
-                let services = package.pkg_services()?;
-                for service in services {
-                    let spec = ServiceSpec::from_file(Manager::spec_path_for(
-                        cfg,
-                        &ServiceSpec::default_for(service),
-                    ))?;
-                    specs.push(spec);
-                }
-
-                Ok(Some(Spec::Composite(composite_spec, specs)))
-            }
-            // Looks like we have no specs for this thing at all
-            Err(_) => Ok(None),
-        }
-    }
-}
-
 fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let mut cfg = ManagerConfig::default();
-
     cfg.auto_update = m.is_present("AUTO_UPDATE");
     cfg.update_url = bldr_url(m);
     cfg.update_channel = channel(m);
@@ -984,6 +687,10 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
+    }
+    if let Some(addr_str) = m.value_of("LISTEN_CTL") {
+        cfg.ctl_listen =
+            SocketAddr::from_str(addr_str).unwrap_or_else(|_err| ctl_gateway::default_addr());
     }
     if let Some(name_str) = m.value_of("NAME") {
         cfg.name = Some(String::from(name_str));
@@ -1088,353 +795,77 @@ fn channel_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("CHANNEL").and_then(|c| Some(c.to_string()))
 }
 
-fn install_source_from_input(m: &ArgMatches) -> Result<InstallSource> {
-    // PKG_IDENT_OR_ARTIFACT is required in subcommands that use it,
-    // so unwrap() is safe here.
-    let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
-    let install_source: InstallSource = ident_or_artifact.parse()?;
-    Ok(install_source)
-}
-
 // ServiceSpec Modification Functions
 ////////////////////////////////////////////////////////////////////////
 
-/// If the user supplied a --group option, set it on the
-/// spec. Otherwise, we inherit the default value in the ServiceSpec,
-/// which is "default".
-fn set_group_from_input(spec: &mut ServiceSpec, m: &ArgMatches) {
-    if let Some(g) = m.value_of("GROUP") {
-        spec.group = g.to_string();
-    }
+fn get_group_from_input(m: &ArgMatches) -> Option<String> {
+    m.value_of("GROUP").map(ToString::to_string)
 }
 
 /// If the user provides both --application and --environment options,
-/// parse and set the value on the spec. Otherwise, we inherit the
-/// default value of the ServiceSpec, which is None
-fn set_app_env_from_input(spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
+/// parse and set the value on the spec.
+fn get_app_env_from_input(m: &ArgMatches) -> Result<Option<ApplicationEnvironment>> {
     if let (Some(app), Some(env)) = (m.value_of("APPLICATION"), m.value_of("ENVIRONMENT")) {
-        spec.application_environment = Some(ApplicationEnvironment::new(
+        Ok(Some(ApplicationEnvironment::new(
             app.to_string(),
             env.to_string(),
-        )?);
-    }
-    Ok(())
-}
-
-/// Set a spec's Builder URL from CLI / environment variables, falling back
-/// to a default value.
-fn set_bldr_url(spec: &mut ServiceSpec, m: &ArgMatches) {
-    spec.bldr_url = bldr_url(m);
-}
-
-/// Set a Builder URL only if specified by the user as a CLI argument
-/// or an environment variable.
-fn set_bldr_url_from_input(spec: &mut ServiceSpec, m: &ArgMatches) {
-    if let Some(url) = bldr_url_from_input(m) {
-        spec.bldr_url = url
+        )?))
+    } else {
+        Ok(None)
     }
 }
 
-/// Set a channel only if specified by the user as a CLI argument.
-fn set_channel_from_input(spec: &mut ServiceSpec, m: &ArgMatches) {
-    if let Some(channel) = channel_from_input(m) {
-        spec.channel = channel
-    }
+fn get_topology_from_input(m: &ArgMatches) -> Option<Topology> {
+    m.value_of("TOPOLOGY").and_then(
+        |f| Topology::from_str(f).ok(),
+    )
 }
 
-/// Set a spec's channel from CLI values, falling back
-/// to a default value.
-fn set_channel(spec: &mut ServiceSpec, m: &ArgMatches) {
-    spec.channel = channel(m);
+fn get_strategy_from_input(m: &ArgMatches) -> Option<UpdateStrategy> {
+    m.value_of("STRATEGY").and_then(
+        |f| UpdateStrategy::from_str(f).ok(),
+    )
 }
 
-/// Set a topology value only if specified by the user as a CLI
-/// argument.
-fn set_topology_from_input(spec: &mut ServiceSpec, m: &ArgMatches) {
-    if let Some(t) = m.value_of("TOPOLOGY") {
-        // unwrap() is safe, because the input is validated by
-        // `valid_topology`
-        spec.topology = Topology::from_str(t).unwrap();
-    }
-}
-
-/// Set an update strategy only if specified by the user as a CLI
-/// argument.
-fn set_strategy_from_input(spec: &mut ServiceSpec, m: &ArgMatches) {
-    if let Some(s) = m.value_of("STRATEGY") {
-        // unwrap() is safe, because the input is validated by `valid_update_strategy`
-        spec.update_strategy = UpdateStrategy::from_str(s).unwrap();
-    }
-}
-
-/// Set bind values if given on the command line.
-///
-/// NOTE: At the moment, binds for composite services should NOT be
-/// set using this, as we do not have a mechanism to distinguish
-/// between the different services within the composite.
-fn set_binds_from_input(spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
-    if let Some(bind_strs) = m.values_of("BIND") {
-        let mut binds = Vec::new();
-        for bind_str in bind_strs {
-            binds.push(ServiceBind::from_str(bind_str)?);
-        }
-        spec.binds = binds;
-    }
-    Ok(())
-}
-
-/// When loading a composite, the services within it may require
-/// additional binds that cannot be satisfied by the other services
-/// within the composite.
-///
-/// In this case, we modify the existing bind syntax to allow a user
-/// to specify which service within the composite is to receive the
-/// bind (when you're loading a single service, this is understood to
-/// the be that exact service).
-///
-/// This alternative syntax is "service_name:bind_name:group"
-///
-/// Since the CLI option may contain multiple values, and since they
-/// could each be for different services within the composite, we
-/// construct a map of service name to a vector of ServiceBinds and
-/// return that for subsequent reconciliation with the binds from the
-/// composite.
-// TODO (CM): consider making a new type for this return value
-// TODO (CM): Consolidate this with non-composite bind processing;
-// don't want composite binds showing up in non-composite services and vice-versa
-fn composite_binds_from_input(m: &ArgMatches) -> Result<HashMap<String, Vec<ServiceBind>>> {
-    let mut map = HashMap::new();
-
+fn get_binds_from_input(m: &ArgMatches) -> Result<Vec<protocols::types::ServiceBind>> {
+    let mut binds = vec![];
     if let Some(bind_strs) = m.values_of("BIND") {
         for bind_str in bind_strs {
-            let parts: Vec<&str> = bind_str.splitn(3, ':').collect();
-            if parts.len() == 3 {
-                // It's a composite bind
-                let service_name = parts[0];
-                let bind = format!("{}:{}", parts[1], parts[2]);
-                let mut binds = map.entry(service_name.to_string()).or_insert(vec![]);
-                binds.push(ServiceBind::from_str(&bind)?);
-            } else {
-                // You supplied a 2-part (i.e., standalone service)
-                // bind when trying to set up a composite!
-                return Err(sup_error!(
-                    Error::InvalidCompositeBinding(bind_str.to_string())
-                ));
-            }
+            binds.push(ServiceBind::from_str(bind_str)?.into());
         }
     }
-
-    Ok(map)
+    Ok(binds)
 }
 
-/// Set a custom config directory if given on the command line.
-///
-/// NOTE: At the moment, this should not be used for composite
-/// services, as we do not have a mechanism to distinguish between the
-/// different services within the composite.
-fn set_config_from_input(spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
+fn get_config_from_input(m: &ArgMatches) -> Option<PathBuf> {
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
-        spec.config_from = Some(PathBuf::from(config_from));
         outputln!("");
         outputln!(
             "WARNING: Setting '--config-from' should only be used in development, not production!"
         );
         outputln!("");
+        Some(PathBuf::from(config_from))
+    } else {
+        None
     }
-    Ok(())
 }
 
 #[cfg(target_os = "windows")]
-fn set_password_from_input(spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
+fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
     if let Some(password) = m.value_of("PASSWORD") {
-        spec.svc_encrypted_password = Some(encrypt(password.to_string())?);
+        Ok(Some(encrypt(password.to_string())?))
+    } else {
+        Ok(None)
     }
-    Ok(())
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn set_password_from_input(_: &mut ServiceSpec, _: &ArgMatches) -> Result<()> {
-    Ok(())
-}
-
-// ServiceSpec Generation Functions
-////////////////////////////////////////////////////////////////////////
-//
-// While ServiceSpec has an implementation of the Default trait, we
-// want to be sure that specs created in this module unquestionably
-// conform to the defaults that our CLI lays out.
-//
-// Similarly, when ever we update existing specs (e.g., hab svc load
-// --force) we must take care that we only change values that the user
-// has given explicitly, and not override using default values.
-//
-// To that end, we have a function that create a "default ServiceSpec"
-// as far as this module is concerned, which is to be used when
-// creating *new* specs, and another that merges an *existing* spec
-// with only command-line arguments.
-//
-////////////////////////////////////////////////////////////////////////
-
-// Only use this for standalone services!
-fn new_service_spec(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec> {
-    let mut spec = ServiceSpec::default_for(ident);
-
-    set_bldr_url(&mut spec, m);
-    set_channel(&mut spec, m);
-
-    set_app_env_from_input(&mut spec, m)?;
-    set_group_from_input(&mut spec, m);
-    set_strategy_from_input(&mut spec, m);
-    set_topology_from_input(&mut spec, m);
-    set_binds_from_input(&mut spec, m)?;
-    set_config_from_input(&mut spec, m)?;
-    set_password_from_input(&mut spec, m)?;
-    Ok(spec)
-}
-
-fn update_spec_from_input(mut spec: &mut ServiceSpec, m: &ArgMatches) -> Result<()> {
-    // The Builder URL and channel have default values; we only want to
-    // change them if the user specified something!
-    set_bldr_url_from_input(&mut spec, m);
-    set_channel_from_input(&mut spec, m);
-
-    set_app_env_from_input(&mut spec, m)?;
-    set_group_from_input(&mut spec, m);
-    set_strategy_from_input(&mut spec, m);
-    set_topology_from_input(&mut spec, m);
-
-    // TODO (CM): Remove these for composite-member specs
-    set_binds_from_input(&mut spec, m)?;
-    set_config_from_input(&mut spec, m)?;
-    set_password_from_input(&mut spec, m)?;
-
-    Ok(())
-}
-
-/// All specs in a composite currently share a lot of the same
-/// information. Here, we create a "base spec" that we can clone and
-/// further customize for each individual service as needed.
-fn base_composite_service_spec(composite_name: &str, m: &ArgMatches) -> Result<ServiceSpec> {
-    let mut spec = ServiceSpec::default();
-
-    // All the composite's services are in the same composite,
-    // tautologically enough!
-    spec.composite = Some(composite_name.to_string());
-
-    // All services will pull from the same channel in the same
-    // Builder instance
-    set_bldr_url(&mut spec, m);
-    set_channel(&mut spec, m);
-
-    // All services will be in the same group and app/env. Binds among
-    // the composite's services are generated based on this
-    // assumption.
-    //
-    // (We do not set binds here, though, because that requires
-    // specialized, service-specific handling.)
-    set_app_env_from_input(&mut spec, m)?;
-    set_group_from_input(&mut spec, m);
-
-    // For now, all a composite's services will also share the same
-    // update strategy and topology, though we may want to revisit
-    // this in the future (particularly for topology).
-    set_strategy_from_input(&mut spec, m);
-    set_topology_from_input(&mut spec, m);
-
-    // TODO (CM): Not dealing with service passwords for now, since
-    // that's a Windows-only feature, and we don't currently build
-    // Windows composites yet. And we don't have a nice way target
-    // them on a per-service basis.
-
-    // TODO (CM): Not setting the dev-mode service config_from value
-    // because we don't currently have a nice way to target them on a
-    // per-service basis.
-
-    Ok(spec)
-}
-
-/// Generate the binds for a composite's service, taking into account
-/// both the values laid out in composite definition and any CLI value
-/// the user may have specified. This allows the user to override a
-/// composite-defined bind, but also (perhaps more usefully) to
-/// declare binds for services within the composite that are not
-/// themselves *satisfied* by other members of the composite.
-///
-/// The final list of bind mappings is generated and then set in the
-/// `ServiceSpec`. Any binds that may have been present in the spec
-/// before are completely ignored.
-///
-/// # Parameters
-///
-/// * bind_map: output of package.bind_map()
-/// * cli_binds: per-service overrides given on the CLI
-fn set_composite_binds(
-    spec: &mut ServiceSpec,
-    bind_map: &HashMap<PackageIdent, Vec<BindMapping>>,
-    cli_binds: &mut HashMap<String, Vec<ServiceBind>>,
-) -> Result<()> {
-
-    // We'll be layering bind specifications from the composite
-    // with any additional ones from the CLI. We'll store them here,
-    // keyed to the bind name
-    let mut final_binds: HashMap<String, ServiceBind> = HashMap::new();
-
-    // First, generate the binds from the composite
-    if let Some(bind_mappings) = bind_map.get(&spec.ident) {
-        // Turn each BindMapping into a ServiceBind
-
-        // NOTE: We are explicitly NOT generating binds that include
-        // "organization". This is a feature that never quite found
-        // its footing, and will likely be removed / greatly
-        // overhauled Real Soon Now (TM) (as of September 2017).
-        //
-        // As it exists right now, "organization" is a supervisor-wide
-        // setting, and thus is only available for `hab sup run` and
-        // `hab svc start`. We don't have a way from `hab svc load` to
-        // access the organization setting of an active supervisor,
-        // and so we can't generate binds that include organizations.
-        for bind_mapping in bind_mappings.iter() {
-            let group = ServiceGroup::new(
-                spec.application_environment.as_ref(),
-                &bind_mapping.satisfying_service.name,
-                &spec.group,
-                None, // <-- organization
-            )?;
-            let bind = ServiceBind {
-                name: bind_mapping.bind_name.clone(),
-                service_group: group,
-            };
-            final_binds.insert(bind.name.clone(), bind);
-        }
-    }
-
-    // If anything was overridden or added on the CLI, layer that on
-    // now as well. These will take precedence over anything in the
-    // composite itself.
-    //
-    // Note that it consumes the values from cli_binds
-    if let Entry::Occupied(b) = cli_binds.entry(spec.ident.name.clone()) {
-        let binds = b.remove();
-        for bind in binds {
-            final_binds.insert(bind.name.clone(), bind);
-        }
-    }
-
-    // Now take all the ServiceBinds we've collected.
-    spec.binds = final_binds.drain().map(|(_, v)| v).collect();
-    Ok(())
+fn get_password_from_input(_m: &ArgMatches) -> Result<Option<String>> {
+    Ok(None)
 }
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
-
-fn dir_exists(val: String) -> result::Result<(), String> {
-    if Path::new(&val).is_dir() {
-        Ok(())
-    } else {
-        Err(format!("Directory: '{}' cannot be found", &val))
-    }
-}
 
 fn valid_service_group(val: String) -> result::Result<(), String> {
     match ServiceGroup::validate(&val) {
@@ -1450,20 +881,11 @@ fn valid_topology(val: String) -> result::Result<(), String> {
     }
 }
 
-fn valid_listen_gossip(val: String) -> result::Result<(), String> {
-    match GossipListenAddr::from_str(&val) {
+fn valid_socket_addr(val: String) -> result::Result<(), String> {
+    match SocketAddr::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!(
-            "Listen gossip address should include both IP and port, eg: '0.0.0.0:9700'"
-        )),
-    }
-}
-
-fn valid_listen_http(val: String) -> result::Result<(), String> {
-    match ListenAddr::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!(
-            "Listen http address should include both IP and port, eg: '0.0.0.0:9700'"
+            "Socket address should include both IP and port, eg: '0.0.0.0:9700'"
         )),
     }
 }
@@ -1483,6 +905,16 @@ fn valid_url(val: String) -> result::Result<(), String> {
 }
 
 ////////////////////////////////////////////////////////////////////////
+fn ctl_secret_key(cfg: &ManagerConfig) -> Result<String> {
+    let sup_root = cfg.sup_root();
+    let mut secret_key = String::new();
+    if !ctl_gateway::read_secret_key(&sup_root, &mut secret_key)? {
+        return Err(sup_error!(Error::CtlSecretNotFound(
+            ctl_gateway::secret_key_path(sup_root),
+        )));
+    }
+    Ok(secret_key)
+}
 
 fn enable_features_from_env() {
     let features = vec![(feat::List, "LIST")];
@@ -1506,100 +938,6 @@ fn enable_features_from_env() {
     }
 }
 
-/// Given an InstallSource, install a new package only if an existing
-/// one that can satisfy the package identifier is not already
-/// present.
-///
-/// Return the PackageInstall corresponding to the package that was
-/// installed, or was pre-existing.
-fn install_package_if_not_present(
-    install_source: &InstallSource,
-    bldr_url: &str,
-    channel: &str,
-) -> Result<PackageInstall> {
-    match util::pkg::installed(install_source.as_ref()) {
-        Some(package) => Ok(package),
-        None => {
-            outputln!("Missing package for {}", install_source.as_ref());
-            util::pkg::install(&mut ui(), bldr_url, install_source, channel)
-        }
-    }
-}
-
-/// Given an installed package, generate a spec (or specs, in the case
-/// of composite packages!) from it and the arguments passed in on the
-/// command line.
-fn generate_new_specs_from_package(
-    original_ident: &PackageIdent,
-    package: &PackageInstall,
-    m: &ArgMatches,
-) -> Result<Vec<ServiceSpec>> {
-    let specs = match package.pkg_type()? {
-        PackageType::Standalone => {
-            let spec = new_service_spec(original_ident.clone(), m)?;
-            vec![spec]
-        }
-        PackageType::Composite => {
-            let composite_name = &package.ident().name;
-
-            // All the service specs will be customized copies of
-            // this.
-            let base_spec = base_composite_service_spec(composite_name, m)?;
-
-            let bind_map = package.bind_map()?;
-            let mut cli_composite_binds = composite_binds_from_input(m)?;
-
-            let services = package.pkg_services()?;
-            let mut specs: Vec<ServiceSpec> = Vec::with_capacity(services.len());
-            for service in services {
-                // Customize each service's spec as appropriate
-                let mut spec = base_spec.clone();
-                spec.ident = service;
-                set_composite_binds(&mut spec, &bind_map, &mut cli_composite_binds)?;
-                specs.push(spec);
-            }
-            specs
-        }
-    };
-    Ok(specs)
-}
-
-fn update_composite_service_specs(
-    spec: &mut Vec<ServiceSpec>,
-    package: &PackageInstall,
-    m: &ArgMatches,
-) -> Result<()> {
-    let bind_map = package.bind_map()?;
-    // TODO (CM): maybe not mutable?
-    let mut cli_composite_binds = composite_binds_from_input(m)?;
-
-    let update_binds = m.values_of("BIND").is_some();
-
-    for spec in spec.iter_mut() {
-        // The Builder URL and channel have default values; we only want to
-        // change them if the user specified something!
-        set_bldr_url_from_input(spec, m);
-        set_channel_from_input(spec, m);
-
-        set_app_env_from_input(spec, m)?;
-        set_group_from_input(spec, m);
-        set_strategy_from_input(spec, m);
-        set_topology_from_input(spec, m);
-
-        // No setting of config or password either; see notes in
-        // `base_composite_service_spec` for more.
-
-        // Just as with standalone services, we don't do anything to
-        // the binds unless you've specified new ones on the CLI. For
-        // composites, such binds can be thought of as binds for the
-        // overall composite.
-        if update_binds {
-            set_composite_binds(spec, &bind_map, &mut cli_composite_binds)?;
-        }
-    }
-    Ok(())
-}
-
 fn toggle_verbosity(m: &ArgMatches) {
     if m.is_present("VERBOSE") {
         hcore::output::set_verbose(true);
@@ -1610,6 +948,32 @@ fn toggle_color(m: &ArgMatches) {
     if m.is_present("NO_COLOR") {
         hcore::output::set_no_color(true);
     }
+}
+
+fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
+    let mut bar = pbr::ProgressBar::<io::Stdout>::new(0);
+    bar.set_units(pbr::Units::Bytes);
+    bar.show_tick = true;
+    bar.message("    ");
+    match reply.message_id() {
+        "ConsoleLine" => {
+            let m = reply.parse::<protocols::ctl::ConsoleLine>().unwrap();
+            print!("{}", m);
+        }
+        "NetProgress" => {
+            let m = reply.parse::<protocols::ctl::NetProgress>().unwrap();
+            bar.total = m.get_total();
+            if bar.set(m.get_position()) >= m.get_total() {
+                bar.finish();
+            }
+        }
+        "NetErr" => {
+            let m = reply.parse::<protocols::net::NetErr>().unwrap();
+            return Err(SrvClientError::from(m));
+        }
+        _ => (),
+    }
+    Ok(())
 }
 
 // Based on UI::default_with_env, but taking into account the setting
@@ -1624,9 +988,7 @@ fn ui() -> UI {
     } else {
         Coloring::Never
     };
-
     let isatty = if env::var(NONINTERACTIVE_ENVVAR)
-    // Keep string boolean for backwards-compatibility
         .map(|val| val == "1" || val == "true")
         .unwrap_or(false)
     {
@@ -1634,6 +996,34 @@ fn ui() -> UI {
     } else {
         None
     };
-
     UI::default_with(coloring, isatty)
+}
+
+/// Set all fields for an `SvcLoad` message that we can from the given opts. This function
+/// populates all *shared* options between `run` and `load`.
+fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocols::ctl::SvcLoad) -> Result<()> {
+    msg.set_bldr_url(bldr_url(m));
+    msg.set_bldr_channel(channel(m));
+    if let Some(app_env) = get_app_env_from_input(m)? {
+        msg.set_application_environment(app_env.into());
+    }
+    msg.set_binds(protobuf::RepeatedField::from_vec(get_binds_from_input(m)?));
+    msg.set_specified_binds(m.is_present("BIND"));
+    if let Some(config_from) = get_config_from_input(m) {
+        msg.set_config_from(config_from.to_string_lossy().into_owned());
+    }
+    msg.set_force(!m.is_present("FORCE"));
+    if let Some(group) = get_group_from_input(m) {
+        msg.set_group(group);
+    }
+    if let Some(svc_encrypted_password) = get_password_from_input(m)? {
+        msg.set_svc_encrypted_password(svc_encrypted_password);
+    }
+    if let Some(topology) = get_topology_from_input(m) {
+        msg.set_topology(topology);
+    }
+    if let Some(update_strategy) = get_strategy_from_input(m) {
+        msg.set_update_strategy(update_strategy);
+    }
+    Ok(())
 }

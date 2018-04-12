@@ -71,7 +71,7 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use common::ui::UI;
+    use common::ui::{UI, UIWriter};
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
     use hcore::fs::{am_i_root, find_command};

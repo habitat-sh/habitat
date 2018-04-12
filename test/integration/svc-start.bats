@@ -20,7 +20,6 @@ teardown() {
 
     assert_spec_value redis ident core/redis
     assert_spec_value redis group default
-    assert_spec_value redis start_style transient
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -38,7 +37,6 @@ teardown() {
 
     assert_spec_value redis ident core/redis/3.2.4
     assert_spec_value redis group default
-    assert_spec_value redis start_style transient
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -56,7 +54,6 @@ teardown() {
 
     assert_spec_value redis ident "${desired_version}"
     assert_spec_value redis group default
-    assert_spec_value redis start_style transient
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -81,7 +78,6 @@ teardown() {
 
     assert_spec_value redis ident "${desired_version}"
     assert_spec_value redis group default
-    assert_spec_value redis start_style transient
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none

@@ -18,7 +18,7 @@ use std::str::FromStr;
 
 use api_client;
 use depot_client::{self, SchedulerResponse};
-use common::ui::{Status, UI};
+use common::ui::{Status, UI, UIWriter, UIReader};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};

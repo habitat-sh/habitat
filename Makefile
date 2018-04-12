@@ -34,6 +34,11 @@ ifneq ($(DOCKER_HOST),)
 else
 	docs_host := 127.0.0.1
 endif
+ifeq (${CI},true)
+	CARGO_FLAGS := --no-default-features
+else
+	CARGO_FLAGS :=
+endif
 
 BIN = hab hab-butterfly pkg-export-docker pkg-export-kubernetes sup
 LIB = butterfly common builder-depot-client
@@ -174,7 +179,7 @@ publish-release:
 
 define BUILD
 build-$1: image ## builds the $1 component
-	$(run) sh -c 'cd components/$1 && cargo build'
+	$(run) sh -c 'cd components/$1 && cargo build $(CARGO_FLAGS)'
 .PHONY: build-$1
 
 endef
@@ -182,7 +187,7 @@ $(foreach component,$(ALL),$(eval $(call BUILD,$(component))))
 
 define UNIT
 unit-$1: image ## executes the $1 component's unit test suite
-	$(run) sh -c 'cd components/$1 && cargo test'
+	$(run) sh -c 'cd components/$1 && cargo test $(CARGO_FLAGS)'
 .PHONY: unit-$1
 endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
@@ -190,20 +195,20 @@ $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
 # Here we just add a dependency on the hab-launch binary for the
 # Supervisor (integration) tests
 build-launcher-for-supervisor-tests:
-	$(run) sh -c 'cd components/launcher && cargo build --bin=hab-launch'
+	$(run) sh -c 'cd components/launcher && cargo build --bin=hab-launch $(CARGO_FLAGS)'
 unit-sup: build-launcher-for-supervisor-tests
 .PHONY: build-launcher-for-supervisor-tests
 
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
-	$(run) sh -c 'cd components/$1 && cargo build --features clippy'
+	$(run) sh -c 'cd components/$1 && cargo build --features clippy $(CARGO_FLAGS)'
 .PHONY: lint-$1
 endef
 $(foreach component,$(ALL),$(eval $(call LINT,$(component))))
 
 define FUNCTIONAL
 functional-$1: image ## executes the $1 component's functional test suite
-	$(run) sh -c 'cd components/$1 && cargo test --features functional'
+	$(run) sh -c 'cd components/$1 && cargo test --features functional $(CARGO_FLAGS)'
 .PHONY: functional-$1
 
 endef

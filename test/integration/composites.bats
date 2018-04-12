@@ -43,7 +43,6 @@ composite_name="builder-tiny"
         assert_spec_value "${service_name}" ident "${service}"
         assert_spec_value "${service_name}" group default
         assert_spec_value "${service_name}" composite "${composite_name}"
-        assert_spec_value "${service_name}" start_style persistent
         assert_spec_value "${service_name}" channel stable
         assert_spec_value "${service_name}" topology standalone
         assert_spec_value "${service_name}" update_strategy none
@@ -76,7 +75,6 @@ composite_name="builder-tiny"
         assert_spec_value "${service_name}" ident "${service}"
         assert_spec_value "${service_name}" group default
         assert_spec_value "${service_name}" composite "${composite_name}"
-        assert_spec_value "${service_name}" start_style persistent
         assert_spec_value "${service_name}" channel unstable
         assert_spec_value "${service_name}" topology standalone
         assert_spec_value "${service_name}" update_strategy none
@@ -97,7 +95,6 @@ composite_name="builder-tiny"
         assert_spec_value "${service_name}" ident "${service}"
         assert_spec_value "${service_name}" group zzzz # <-- all should have switched
         assert_spec_value "${service_name}" composite "${composite_name}"
-        assert_spec_value "${service_name}" start_style persistent
         assert_spec_value "${service_name}" channel unstable
         assert_spec_value "${service_name}" topology standalone
         assert_spec_value "${service_name}" update_strategy none
@@ -185,7 +182,6 @@ composite_name="builder-tiny"
         assert_spec_value "${service_name}" ident "${service}"
         assert_spec_value "${service_name}" group default
         assert_spec_value "${service_name}" composite "${composite_name}"
-        assert_spec_value "${service_name}" start_style persistent
         assert_spec_value "${service_name}" channel unstable
         assert_spec_value "${service_name}" topology standalone
         assert_spec_value "${service_name}" update_strategy none
@@ -205,7 +201,6 @@ composite_name="builder-tiny"
         assert_spec_value "${service_name}" ident "${service}"
         assert_spec_value "${service_name}" group zzzz # <-- all should have switched
         assert_spec_value "${service_name}" composite "${composite_name}"
-        assert_spec_value "${service_name}" start_style persistent
         assert_spec_value "${service_name}" channel unstable
         assert_spec_value "${service_name}" topology standalone
         assert_spec_value "${service_name}" update_strategy none

@@ -1021,7 +1021,8 @@ mod tests {
     use std::string::ToString;
     use manager::sys::Sys;
     use config::GossipListenAddr;
-    use http_gateway::ListenAddr;
+    use ctl_gateway;
+    use http_gateway;
     use hcore::package::{PackageIdent, PackageInstall};
     use manager::service::{Pkg, Cfg};
     use manager::service::spec::ServiceBind;
@@ -1272,7 +1273,12 @@ echo "The message is Hola Mundo"
         // BEGIN RENDER CONTEXT SETUP
         // (See comment above)
 
-        let sys = Sys::new(true, GossipListenAddr::default(), ListenAddr::default());
+        let sys = Sys::new(
+            true,
+            GossipListenAddr::default(),
+            ctl_gateway::default_addr(),
+            http_gateway::ListenAddr::default(),
+        );
 
         let pg_id = PackageIdent::new(
             "testing",
@@ -1374,7 +1380,12 @@ echo "The message is Hello"
         // BEGIN RENDER CONTEXT SETUP
         // (See comment above)
 
-        let sys = Sys::new(true, GossipListenAddr::default(), ListenAddr::default());
+        let sys = Sys::new(
+            true,
+            GossipListenAddr::default(),
+            ctl_gateway::default_addr(),
+            http_gateway::ListenAddr::default(),
+        );
 
         let pg_id = PackageIdent::new(
             "testing",

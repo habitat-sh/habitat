@@ -132,7 +132,7 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use error::{Error, Result};
-    use common::ui::UI;
+    use common::ui::{UI, UIWriter};
     use hcore::package::PackageIdent;
     use std::env;
     use super::ExportFormat;

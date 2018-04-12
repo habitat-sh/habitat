@@ -34,7 +34,6 @@ teardown() {
 
     assert_spec_value redis ident core/redis
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -52,7 +51,6 @@ teardown() {
 
     assert_spec_value redis ident core/redis/3.2.4
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -70,7 +68,6 @@ teardown() {
 
     assert_spec_value redis ident "${desired_version}"
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -91,7 +88,6 @@ teardown() {
 
     assert_spec_value redis ident "${desired_version}"
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -119,7 +115,6 @@ teardown() {
     # Assert the default values in the service spec
     assert_spec_value redis ident core/redis
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -133,7 +128,6 @@ teardown() {
     # Assert the spec values after the update
     assert_spec_value redis ident core/redis
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel unstable # <-- changed!
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy at-once # <-- changed!
@@ -148,7 +142,6 @@ teardown() {
     # Assert the contents of the spec file; we'll compare again later
     assert_spec_value redis ident core/redis
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
@@ -162,7 +155,6 @@ teardown() {
     # Check that the spec file values didn't change
     assert_spec_value redis ident core/redis
     assert_spec_value redis group default
-    assert_spec_value redis start_style persistent
     assert_spec_value redis channel stable
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
