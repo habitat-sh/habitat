@@ -15,6 +15,10 @@
     display: block;
     margin-bottom: 8px;
     margin-left: 0;
+    height: 55px;
+    line-height: 55px;
+    padding-top: 0px;
+    padding-bottom: 0px;
 
     @include breakpoint(medium) {
       display: inline-block;
@@ -24,13 +28,6 @@
 
     .chef {
       margin-left: 8px;
-      height: 30px;
-    }
-
-    .github {
-      height: 28px;
-      width: 28px;
-      margin-bottom: 2px;
     }
   }
 

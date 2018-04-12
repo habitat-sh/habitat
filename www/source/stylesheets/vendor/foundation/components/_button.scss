@@ -262,15 +262,17 @@ $button-opacity-disabled: 0.25 !default;
 
 a.button.outline { border: 1px solid #C3C6C8 }
 
-a.button.outline.github {
+a.button.github {
   padding-left: 55px;
 
   background: {
-    image: url('../images/icons/icon-github-gray-trim.svg');
+    image: url('../images/icons/icon-github-white.svg');
     position: 30px center;
     size: 16px;
     repeat: no-repeat;
   }
+
+  &.outline { background-image: url('../images/icons/icon-github-gray-trim.svg'); }
 }
 
 a.button.chef-demo {

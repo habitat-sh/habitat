@@ -1,144 +1,76 @@
 #main-footer {
   position: relative;
-  z-index: 5;
-  background: url('/images/footer-background.svg');
-  background: url('/images/footer-background.svg') left top no-repeat, linear-gradient($hab-green-light-2, $hab-blue-green) left 84px no-repeat;
-  background-size: cover;
+  background-color: $hab-green;
+  padding: 40px 0px;
   color: $white;
-
-  &.has-sidebar,
-  &.try-hab {
-    padding-top: 0;
-  }
-}
-
-.footer--decor {
-  position: absolute;
-  width: 100%;
-  top: rem-calc(-60);
-  z-index: 1;
-}
-.footer--decor-item {
-  text-align: right;
-  position: relative;
-}
-.footer--decor-trees {
-  top: rem-calc(40);
-}
-.footer--decor-cube {
-  top: rem-calc(70);
-  display: none;
-
-  @include breakpoint(large) {
-    display: block;
-  }
-}
-.footer--decor-snorkel {
-  top: rem-calc(-50);
-
-  @include breakpoint(medium) {
-    top: rem-calc(-110);
-  }
-}
-
-.footer--subheader {
-  font-size: rem-calc(14);
-}
-
-.footer--cta {
-  padding: rem-calc(90) 0 rem-calc(30);
-  border-bottom: 1px solid lighten($hab-green-light, 10%);
-  text-align: center;
-}
-
-.footer--cta-heading {
-  margin-bottom: rem-calc(40);
-  font-size: rem-calc(30);
-  text-shadow: 0px 2px 23px rgba(0,0,0,0.4);
-}
-
-.footer--cta-button {
-  @extend .button;
-  @include primary-button;
-
-  &.outline {
-    margin-left: 1rem;
-    font-weight: normal;
-    color: $hab-white !important;
-    text-shadow: none;
-  }
-}
-
-.footer--cta-subtext {
-  margin-bottom: 0;
-  margin-top: rem-calc(10);
-  font-size: rem-calc(13);
-  color: lighten($hab-gray, 15%);
-
-  & > a {
-    color: $white;
-    text-decoration: underline;
-  }
-}
-
-.footer--logo {
-  display: inline-block;
-  padding: rem-calc(60) 0;
-
-  &.habitat {
-    width: 160px;
-  }
-
-  @include breakpoint(small only) {
-
-    &.habitat {
-      max-width: rem-calc(270);
+  .graphics {
+    position: relative;
+    .footer--habicat {
+      @include breakpoint(medium) {
+        left: auto;
+      }
+      position: absolute;
+      top: -140px;
+      height: 110px;
+      left: 50%;
     }
   }
 }
 
 .footer--sitemap {
-  position: relative;
-  z-index: 2;
-
-  @include breakpoint(small only) {
-    padding-top: rem-calc(62);
-  }
-
-  a {
-    color: lighten($hab-green-light, 25%);
-  }
-
-  @extend %social-icons;
+  margin-bottom: 20px;
 }
 
 .footer--sitemap--link {
-  margin-bottom: rem-calc(10);
-  transition: color .2s;
+  padding: 0px 20px;
+  > a { color: $white; }
+}
 
-  a:hover,
-  a:focus,
-  a:active {
-    color: $white;
-    transition: color .2s;
+.footer--socials--link {
+  padding: 0px 8px;
+}
+
+.footer--logo {
+  display: block;
+  text-align: center;
+  @include breakpoint(large) { text-align: left; }
+
+  > img {
+    height: 50px;
   }
 }
 
-.footer--copyright {
-  margin: rem-calc(15) 0 0;
-  padding: rem-calc(15);
-  font-size: rem-calc(12);
-  color: lighten($hab-green-light, 25%);
-  border-top: 1px solid rgba($white, .20);
+.footer--links {
+  @include breakpoint(medium) {
+    height: 50px;
+
+  }
+  line-height: 50px;
+  height: auto;
+
+  &.social {
+    text-align: center;
+
+    @include breakpoint(large) { text-align: right; }
+  }
+}
+
+.footer--legal {
+  opacity: 0.5;
+  font-size: 12px;
+}
+
+.footer--legal--links {
   text-align: center;
+  @include breakpoint(large) { text-align: right; }
+}
 
-  li {
-    display: inline-block;
-    margin-right: rem-calc(25);
-    margin-bottom: 0;
-  }
+.footer--copyright {
+  text-align: center;
+  @include breakpoint(large) { text-align: left; }
+}
 
-  p {
-    margin-bottom: 0;
-  }
+.footer--legal--link {
+  padding: 0px 8px;
+  > a { color: $white; }
 }

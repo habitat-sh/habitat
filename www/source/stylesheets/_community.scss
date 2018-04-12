@@ -107,12 +107,6 @@ $community-xlarge-breakpoint: rem-calc(1060);
     color: $hab-white;
     opacity: .5;
 
-    &.slack {
-      padding-left: rem-calc(30);
-      background: url('/images/icons/icons-social.svg') no-repeat;
-      background-position: left -31px;
-    }
-
     &:hover {
       opacity: 1;
       transition: opacity .15s;
