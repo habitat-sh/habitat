@@ -296,8 +296,6 @@ struct Svc<'a> {
     leader: Cow<'a, Option<SvcMember<'a>>>,
     update_leader: Cow<'a, Option<SvcMember<'a>>>,
     me: Cow<'a, SvcMember<'a>>,
-
-    // TODO (CM): this will need to be optional soon
     first: Cow<'a, SvcMember<'a>>,
 }
 
@@ -329,6 +327,7 @@ impl<'a> Svc<'a> {
             })),
             first: Cow::Owned(select_first(census_group).expect(
                 "First should always be present on svc",
+                // i.e. `me` will always be here, and alive
             )),
         }
     }
@@ -594,8 +593,17 @@ impl<'a> Serialize for SvcMember<'a> {
 
 ////////////////////////////////////////////////////////////////////////
 
-/// Helper for pulling the leader or first member from a census group. This is used to populate the
-/// `.first` field in `bind` and `svc`.
+/// Helper for pulling the leader or first member from a census
+/// group. This is used to populate the `.first` field in `bind` and
+/// `svc`.
+///
+/// IMPORTANT
+///
+/// The `first` field is now deprecated; in order to not change its
+/// behavior until we remove it altogether, we'll continue to populate
+/// it from *all* members, and not just active members. Users should
+/// move away from using `first`, and should instead just use
+/// `members[0]`, or `leader`.
 fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
     match census_group.leader() {
         Some(member) => Some(SvcMember::from_census_member(member)),
@@ -992,5 +1000,33 @@ two = 2
         );
 
         assert_eq!(output, "deadbeefdeadbeefdeadbeefdeadbeef");
+    }
+
+    // Technically, `bind.<SERVICE>.first` could be None, according to
+    // the typing of the code.  This was always been technically
+    // possible, even though for practical purposes, it will be
+    // Some. This test just confirms that the JSON schema is
+    // technically in line with the Rust code, until we are able to
+    // remove `first` altogether.
+    //
+    // `svc.first` can't be `None` currently, because that would mean
+    // that the current Supervisor doesn't know about itself.
+    #[test]
+    fn bind_first_can_technically_be_none() {
+        let mut render_context = default_render_context();
+        let mut new_binds = HashMap::new();
+
+        new_binds.insert(
+            "foo".to_string(),
+            BindGroup {
+                leader: None,
+                first: None,
+                members: vec![],
+            },
+        );
+
+        render_context.bind = Binds(new_binds);
+        let j = serde_json::to_string(&render_context).expect("can't serialize to JSON");
+        assert_valid(&j);
     }
 }

@@ -447,7 +447,8 @@
                     "$ref": "#/definitions/svc_member"
                 },
                 "first": {
-                    "description": "The first member of this service group",
+                    "description": "The first member of this service group, or the leader, if running in a leader topology",
+                    "$deprecated": "Since 0.56.0; if you want the leader, use `leader` explicitly. 'first' isn't deterministic, either, so you can just use `members[0]` instead",
                     "$ref": "#/definitions/svc_member"
                 },
                 "members": {
@@ -499,7 +500,10 @@
                     "first": {
                         "description": "The first member of this service group. If the group is running in a leader topology, this will also be the leader.",
                         "$deprecated": "Since 0.56.0; if you want the leader, use `leader` explicitly. 'first' isn't deterministic, either, so you can just use `members[0]` instead",
-                        "$ref": "#/definitions/svc_member"
+                        "oneOf": [
+                            { "$ref": "#/definitions/svc_member" },
+                            { "type": "null" }
+                        ]
                     },
                     "leader": {
                         "description": "The current leader of this service group, if running in a leader topology",
