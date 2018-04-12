@@ -39,7 +39,7 @@ where
 
 pub fn hash_string(data: &str) -> String {
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
-    let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
+    let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     let pst = unsafe {
         mem::transmute::<*mut u8, *mut libsodium_sys::crypto_generichash_state>(st.as_mut_ptr())
     };
@@ -53,7 +53,7 @@ pub fn hash_string(data: &str) -> String {
 
 pub fn hash_bytes(data: &[u8]) -> String {
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
-    let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
+    let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     let pst = unsafe {
         mem::transmute::<*mut u8, *mut libsodium_sys::crypto_generichash_state>(st.as_mut_ptr())
     };
@@ -67,7 +67,7 @@ pub fn hash_bytes(data: &[u8]) -> String {
 
 pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
-    let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
+    let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     let pst = unsafe {
         mem::transmute::<*mut u8, *mut libsodium_sys::crypto_generichash_state>(st.as_mut_ptr())
     };
