@@ -464,23 +464,25 @@ impl PackageInstall {
         Ok(paths)
     }
 
+    fn parse_runtime_environment_metafile(body: &str) -> Result<HashMap<String, String>> {
+        let mut env = HashMap::new();
+        for line in body.lines() {
+            let parts: Vec<&str> = line.splitn(2, "=").collect();
+            if parts.len() != 2 {
+                return Err(Error::MetaFileMalformed(MetaFile::RuntimeEnvironment));
+            }
+            let key = parts[0].to_string();
+            let value = parts[1].to_string();
+            env.insert(key, value);
+        }
+        Ok(env)
+    }
+
     /// Return the embedded runtime environment specification for a
     /// package.
     pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
         match self.read_metafile(MetaFile::RuntimeEnvironment) {
-            Ok(body) => {
-                let mut env = HashMap::new();
-                for line in body.lines() {
-                    let parts: Vec<&str> = line.splitn(2, "=").collect();
-                    if parts.len() != 2 {
-                        return Err(Error::MetaFileMalformed(MetaFile::RuntimeEnvironment));
-                    }
-                    let key = parts[0].to_string();
-                    let value = parts[1].to_string();
-                    env.insert(key, value);
-                }
-                Ok(env)
-            }
+            Ok(ref body) => Self::parse_runtime_environment_metafile(body),
             Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => {
                 // If there was no RUNTIME_ENVIRONMENT, we can at
                 // least return a proper PATH
