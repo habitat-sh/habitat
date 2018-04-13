@@ -763,7 +763,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("butterfly", _, _) => command::butterfly::start(ui, env::args_os().skip(2).collect()),
         ("apply", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         ("config", _, _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("file", _, _) => command::butterfly::start(ui, env::args_os().skip(1).collect()),
+        ("file", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         ("pkg", "export", "docker") => {
             command::pkg::export::docker::start(ui, env::args_os().skip(4).collect())
         }

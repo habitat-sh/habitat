@@ -15,7 +15,6 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-#[macro_use]
 extern crate clap;
 extern crate env_logger;
 extern crate hab;
@@ -29,26 +28,19 @@ extern crate log;
 
 use std::env;
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
+use std::path::PathBuf;
 use std::thread;
 
 use clap::ArgMatches;
 
 use common::ui::{UI, UIWriter};
 use hcore::env as henv;
-use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SymKey};
-use hcore::service::ServiceGroup;
+use hcore::crypto::{init, default_cache_key_path, SymKey};
 
 use hab_butterfly::{analytics, cli, command};
-use hab_butterfly::error::{Error, Result};
+use hab_butterfly::error::Result;
 
-/// Makes the --org CLI param optional when this env var is set
-const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
-/// Makes the --user CLI param optional when this env var is set
-const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 const HABITAT_BUTTERFLY_PORT: u64 = 9638;
-const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
 lazy_static! {
     /// The default filesystem root path to base all commands from. This is lazily generated on
@@ -88,12 +80,6 @@ fn start(ui: &mut UI) -> Result<()> {
         ("depart", Some(matches)) => {
             try!(sub_depart(ui, matches));
         }
-        ("file", Some(matches)) => {
-            match matches.subcommand() {
-                ("upload", Some(m)) => sub_file_upload(ui, m)?,
-                _ => unreachable!(),
-            }
-        }
         _ => unreachable!(),
     };
     Ok(())
@@ -119,66 +105,6 @@ fn sub_depart(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     command::depart::run(ui, member_id, peers, ring_key)
 }
 
-fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
-    let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
-    for p in peers.iter_mut() {
-        if p.find(':').is_none() {
-            p.push(':');
-            p.push_str(&HABITAT_BUTTERFLY_PORT.to_string());
-        }
-    }
-    let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
-    let file_path = Path::new(m.value_of("FILE").unwrap()); // Required via clap
-    match file_path.metadata() {
-        Ok(md) => {
-            if md.len() > MAX_FILE_UPLOAD_SIZE_BYTES {
-                return Err(Error::CryptoCLI(format!(
-                    "Maximum encrypted file size is {} bytes",
-                    MAX_FILE_UPLOAD_SIZE_BYTES
-                )));
-            }
-        }
-        Err(e) => {
-            return Err(Error::CryptoCLI(
-                format!("Error checking file metadata: {}", e),
-            ));
-
-        }
-    };
-
-    init();
-    let cache = default_cache_key_path(Some(&*FS_ROOT));
-    let ring_key = match m.value_of("RING") {
-        Some(name) => Some(SymKey::get_latest_pair_for(&name, &cache)?),
-        None => None,
-    };
-
-    let mut sg = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
-    if let Some(org) = org_param_or_env(&m) {
-        sg.set_org(org);
-    }
-    let service_pair = if sg.org().is_some() {
-        Some(BoxKeyPair::get_latest_pair_for(&sg, &cache)?)
-    } else {
-        None
-    };
-    let user_pair = match user_param_or_env(&m) {
-        Some(username) => Some(BoxKeyPair::get_latest_pair_for(username, &cache)?),
-        None => None,
-    };
-    command::file::upload::start(
-        ui,
-        &sg,
-        number,
-        file_path,
-        &peers,
-        ring_key.as_ref(),
-        user_pair.as_ref(),
-        service_pair.as_ref(),
-    )
-}
-
 /// Parse the raw program arguments and split off any arguments that will skip clap's parsing.
 ///
 /// **Note** with the current version of clap there is no clean way to ignore arguments after a
@@ -200,35 +126,5 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
             }
         }
         _ => (env::args_os().collect(), Vec::new()),
-    }
-}
-
-/// Check to see if the user has passed in an ORG param.
-/// If not, check the HABITAT_ORG env var. If that's
-/// empty too, then error.
-fn org_param_or_env(m: &ArgMatches) -> Option<String> {
-    match m.value_of("ORG") {
-        Some(o) => Some(o.to_string()),
-        None => {
-            match henv::var(HABITAT_ORG_ENVVAR) {
-                Ok(v) => Some(v),
-                Err(_) => None,
-            }
-        }
-    }
-}
-
-/// Check to see if the user has passed in a USER param.
-/// If not, check the HAB_USER env var. If that's
-/// empty too, then return an error.
-fn user_param_or_env(m: &ArgMatches) -> Option<String> {
-    match m.value_of("USER") {
-        Some(u) => Some(u.to_string()),
-        None => {
-            match env::var(HABITAT_USER_ENVVAR) {
-                Ok(v) => Some(v),
-                Err(_) => None,
-            }
-        }
     }
 }

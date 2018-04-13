@@ -926,6 +926,54 @@ impl Manager {
         ))
     }
 
+    pub fn service_file_put(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocols::ctl::SvcFilePut,
+    ) -> NetResult<()> {
+        if opts.get_content().len() > protocols::butterfly::MAX_FILE_PUT_SIZE_BYTES {
+            return Err(net::err(ErrCode::EntityTooLarge, "File content too large."));
+        }
+        let service_group: ServiceGroup = opts.take_service_group().into();
+        for service in mgr.services.read().unwrap().iter() {
+            if service.service_group != service_group {
+                continue;
+            }
+            outputln!(
+                "Receiving new version {} of file {} for {}",
+                opts.get_version(),
+                opts.get_filename(),
+                service_group,
+            );
+            let mut client = match butterfly::client::Client::new(
+                format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+                mgr.cfg.ring_key.clone(),
+            ) {
+                Ok(client) => client,
+                Err(err) => {
+                    outputln!("Failed to connect to own gossip server, {}", err);
+                    return Err(net::err(ErrCode::Internal, err.to_string()));
+                }
+            };
+            match client.send_service_file(
+                service_group,
+                opts.take_filename(),
+                opts.get_version(),
+                opts.take_content(),
+                opts.get_is_encrypted(),
+            ) {
+                Ok(()) => {
+                    req.reply_complete(net::ok());
+                    return Ok(());
+                }
+                Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
+            }
+        }
+        Err(net::err(
+            ErrCode::NotFound,
+            format!("{} not loaded.", service_group),
+        ))
+    }
     pub fn service_load(
         mgr: &ManagerState,
         req: &mut CtlRequest,

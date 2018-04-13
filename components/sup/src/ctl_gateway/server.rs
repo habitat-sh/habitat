@@ -295,6 +295,18 @@ impl Future for SrvHandler {
                                             },
                                         )
                                     }
+                                    "SvcFilePut" => {
+                                        let m = msg.parse::<protocols::ctl::SvcFilePut>().map_err(
+                                            HandlerError::from,
+                                        )?;
+                                        CtlCommand::new(
+                                            Some(self.tx.clone()),
+                                            msg.transaction(),
+                                            move |state, req| {
+                                                Manager::service_file_put(state, req, m.clone())
+                                            },
+                                        )
+                                    }
                                     "SvcSetCfg" => {
                                         let m = msg.parse::<protocols::ctl::SvcSetCfg>().map_err(
                                             HandlerError::from,

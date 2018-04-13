@@ -25,6 +25,14 @@ message ServiceBindList {
   repeated ServiceBind binds = 1;
 }
 
+message SvcFilePut {
+  optional ServiceGroup service_group = 1;
+  optional bytes content = 2;
+  optional string filename = 3;
+  optional uint64 version = 4;
+  optional bool is_encrypted = 5 [default = false];
+}
+
 // Request for retrieving the default configuration for a given service.
 message SvcGetDefaultCfg {
   // Package identifier to target running service.

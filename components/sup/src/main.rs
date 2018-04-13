@@ -150,6 +150,10 @@ fn start() -> Result<()> {
         ("bash", Some(m)) => sub_bash(m),
         ("apply", Some(m)) => sub_apply(m),
         ("config", Some(m)) => sub_config(m),
+        ("file", Some(m)) => match m.subcommand() {
+            ("upload", Some(m)) => sub_file(m),
+            _ => unreachable!(),
+        }
         ("load", Some(m)) => sub_load(m),
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
@@ -197,6 +201,23 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PKG_IDENT: +required +takes_value "A package identifier (ex: core/redis)")
             (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                 "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        )
+        (@subcommand file =>
+            (about: "Uploads a file to be shared between members of a Service Group")
+            (aliases: &["f", "fi", "fil"])
+            (@setting ArgRequiredElseHelp)
+            (@subcommand upload =>
+                (about: "Upload a file to the Supervisor ring.")
+                (aliases: &["u", "up", "upl", "uplo", "uploa"])
+                (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
+                    "Target service group (ex: redis.default)")
+                (@arg VERSION_NUMBER: +required
+                    "A version number (positive integer) for this configuration (ex: 42)")
+                (@arg FILE: +required {file_exists} "Path to local file on disk")
+                (@arg USER: -u --user +takes_value "Name of the user key")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+            )
         )
         (@subcommand load =>
             (about: "Load a service to be started and supervised by Habitat from a package \
@@ -352,6 +373,23 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                 "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        )
+        (@subcommand file =>
+            (about: "Uploads a file to be shared between members of a Service Group")
+            (aliases: &["f", "fi", "fil"])
+            (@setting ArgRequiredElseHelp)
+            (@subcommand upload =>
+                (about: "Upload a file to the Supervisor ring.")
+                (aliases: &["u", "up", "upl", "uplo", "uploa"])
+                (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
+                    "Target service group (ex: redis.default)")
+                (@arg VERSION_NUMBER: +required
+                    "A version number (positive integer) for this configuration (ex: 42)")
+                (@arg FILE: +required {file_exists} "Path to local file on disk")
+                (@arg USER: -u --user +takes_value "Name of the user key")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+            )
         )
         (@subcommand load =>
             (about: "Load a service to be started and supervised by Habitat from a package \
@@ -609,6 +647,79 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
             })
         })
         .wait()?;
+    Ok(())
+}
+
+fn sub_file(m: &ArgMatches) -> Result<()> {
+    toggle_verbosity(m);
+    toggle_color(m);
+    let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
+    let cfg = mgrcfg_from_matches(m)?;
+    let mut ui = ui();
+    let mut msg = protocols::ctl::SvcFilePut::new();
+    let file = Path::new(m.value_of("FILE").unwrap());
+    if file.metadata()?.len() > protocols::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
+        ui.fatal(format!(
+            "File too large. Maximum size allowed is {} bytes.",
+            protocols::butterfly::MAX_FILE_PUT_SIZE_BYTES
+        ))?;
+        process::exit(1);
+    };
+    msg.set_service_group(service_group.clone().into());
+    msg.set_version(value_t!(m, "VERSION_NUMBER", u64).unwrap());
+    msg.set_filename(file.file_name().unwrap().to_string_lossy().into_owned());
+    let mut buf = Vec::with_capacity(protocols::butterfly::MAX_FILE_PUT_SIZE_BYTES);
+    let cache = default_cache_key_path(Some(&*FS_ROOT));
+    ui.begin(format!(
+        "Uploading file {} to {} incarnation {}",
+        file.display(),
+        msg.get_version(),
+        msg.get_service_group(),
+    ))?;
+    ui.status(Status::Creating, format!("service file"))?;
+    File::open(&file)?.read_to_end(&mut buf)?;
+    match (service_group.org(), user_param_or_env(&m)) {
+        (Some(_org), Some(username)) => {
+            let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
+            let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
+            ui.status(
+                Status::Encrypting,
+                format!(
+                    "file as {} for {}",
+                    user_pair.name_with_rev(),
+                    service_pair.name_with_rev()
+                ),
+            )?;
+            msg.set_content(user_pair.encrypt(&buf, Some(&service_pair))?);
+            msg.set_is_encrypted(true);
+        }
+        _ => msg.set_content(buf.to_vec()),
+    }
+    SrvClient::connect(&cfg.ctl_listen, ctl_secret_key(&cfg)?)
+        .and_then(|conn| {
+            ui.status(Status::Applying, format!("via peer {}", cfg.ctl_listen))
+                .unwrap();
+            conn.call(msg).for_each(|reply| match reply.message_id() {
+                "NetOk" => Ok(()),
+                "NetErr" => {
+                    let m = reply.parse::<protocols::net::NetErr>().unwrap();
+                    match m.get_code() {
+                        ErrCode::InvalidPayload => {
+                            ui.warn(m)?;
+                            Ok(())
+                        }
+                        _ => Err(SrvClientError::from(m)),
+                    }
+                }
+                _ => {
+                    Err(SrvClientError::from(
+                        io::Error::from(io::ErrorKind::UnexpectedEof),
+                    ))
+                }
+            })
+        })
+        .wait()?;
+    ui.end("Uploaded file")?;
     Ok(())
 }
 
