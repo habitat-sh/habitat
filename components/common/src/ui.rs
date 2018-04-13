@@ -115,10 +115,15 @@ pub trait UIWriter {
     fn err(&mut self) -> &mut io::Write;
     /// IO Stream for sending normal or informational messages to.
     fn out(&mut self) -> &mut io::Write;
-    /// Messages sent to the IO streams will be formatted in color if true.
-    fn is_colored(&self) -> bool;
-    /// Messages sent to the IO streams will be formatted for a terminal if true.
-    fn is_a_terminal(&self) -> bool;
+    /// Messages sent to the normal or informational IO stream will be formatted in color if true.
+    fn is_out_colored(&self) -> bool;
+    /// Messages sent to the error IO stream will be formatted in color if true.
+    fn is_err_colored(&self) -> bool;
+    /// Messages sent to the normal or informational IO stream will be formatted for a terminal if
+    /// true.
+    fn is_out_a_terminal(&self) -> bool;
+    /// Messages sent to the error IO stream will be formatted for a terminal if true.
+    fn is_err_a_terminal(&self) -> bool;
     /// Returns a progress bar widget implementation for writing operation's progress to.
     fn progress(&self) -> Option<Self::ProgressBar>;
 
@@ -128,18 +133,17 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '»';
-        if self.is_colored() {
-            self.out().write(
-                Colour::Yellow
-                    .bold()
-                    .paint(format!("{} {}\n", symbol, message))
-                    .as_bytes(),
-            )?;
+        let formatted = if self.is_out_colored() {
+            format!(
+                "{}\n",
+                Colour::Yellow.bold().paint(
+                    format!("{} {}", symbol, message),
+                )
+            )
         } else {
-            self.out().write(
-                format!("{} {}\n", symbol, message).as_bytes(),
-            )?;
-        }
+            format!("{} {}\n", symbol, message)
+        };
+        self.out().write(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -149,18 +153,15 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '★';
-        if self.is_colored() {
-            self.out().write(
-                Colour::Yellow
-                    .bold()
-                    .paint(format!("{} {}\n", symbol, message))
-                    .as_bytes(),
-            )?;
+        let formatted = if self.is_out_colored() {
+            format!(
+                "{}\n",
+                Colour::Blue.bold().paint(format!("{} {}", symbol, message))
+            )
         } else {
-            self.out().write(
-                format!("{} {}\n", symbol, message).as_bytes(),
-            )?;
-        }
+            format!("{} {}\n", symbol, message)
+        };
+        self.out().write(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -170,7 +171,7 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let (symbol, status_str, color) = status.parts();
-        let formatted = if self.is_colored() {
+        let formatted = if self.is_out_colored() {
             format!(
                 "{} {}\n",
                 color.bold().paint(format!("{} {}", symbol, status_str)),
@@ -197,16 +198,15 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        if self.is_colored() {
-            self.err().write(
-                Colour::Yellow
-                    .bold()
-                    .paint(format!("∅ {}\n", message))
-                    .as_bytes(),
-            )?;
+        let formatted = if self.is_err_colored() {
+            format!(
+                "{}\n",
+                Colour::Yellow.bold().paint(format!("∅ {}", message))
+            )
         } else {
-            self.err().write(format!("∅ {}\n", message).as_bytes())?;
-        }
+            format!("∅ {}\n", message)
+        };
+        self.err().write(formatted.as_bytes())?;
         self.err().flush()
     }
 
@@ -215,25 +215,26 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        let lines = message
-            .to_string()
-            .lines()
-            .map(|line| format!("✗✗✗ {}", line))
-            .collect::<Vec<_>>()
-            .join("\n");
-        if self.is_colored() {
-            self.err().write(
-                Colour::Red
-                    .bold()
-                    .paint(format!("✗✗✗\n{}\n✗✗✗\n", lines))
-                    .as_bytes(),
-            )?;
+        let color = Colour::Red;
+        let formatted = if self.is_err_colored() {
+            let mut buf = format!("{}\n", color.bold().paint("✗✗✗"));
+            for line in message.to_string().lines() {
+                buf.push_str(&format!(
+                    "{}\n",
+                    color.bold().paint(format!("✗✗✗ {}", line))
+                ));
+            }
+            buf.push_str(&format!("{}\n", color.bold().paint("✗✗✗")));
+            buf
         } else {
-            self.err().write(
-                format!("✗✗✗\n{}\n✗✗✗\n", lines)
-                    .as_bytes(),
-            )?;
-        }
+            let mut buf = format!("✗✗✗\n");
+            for line in message.to_string().lines() {
+                buf.push_str(&format!("✗✗✗ {}\n", line));
+            }
+            buf.push_str("✗✗✗\n");
+            buf
+        };
+        self.err().write(formatted.as_bytes())?;
         self.err().flush()
     }
 
@@ -242,7 +243,7 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        if self.is_colored() {
+        if self.is_out_colored() {
             write!(
                 self.out(),
                 "{}\n",
@@ -273,7 +274,7 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        let formatted = if self.is_colored() {
+        let formatted = if self.is_out_colored() {
             format!("{}\n\n", Colour::Green.bold().paint(text.as_ref()))
         } else {
             format!("{}\n\n", text.as_ref())
@@ -295,6 +296,7 @@ pub trait UIWriter {
 }
 
 /// Console (shell) backed UI.
+#[derive(Debug)]
 pub struct UI {
     shell: Shell,
 }
@@ -330,7 +332,9 @@ impl UI {
             Coloring::Auto
         };
 
-        UI::default_with(coloring, isatty)
+        let ui = UI::default_with(coloring, isatty);
+        debug!("{:?}", &ui);
+        ui
     }
 
     /// Creates a new `UI` from generic `Read` and `Write` streams.
@@ -393,16 +397,24 @@ impl UIWriter for UI {
         &mut self.shell.err
     }
 
-    fn is_colored(&self) -> bool {
-        self.shell.out.is_colored() && self.shell.err.is_colored()
+    fn is_out_colored(&self) -> bool {
+        self.shell.out.is_colored()
     }
 
-    fn is_a_terminal(&self) -> bool {
-        self.shell.out.isatty && self.shell.err.isatty
+    fn is_err_colored(&self) -> bool {
+        self.shell.err.is_colored()
+    }
+
+    fn is_out_a_terminal(&self) -> bool {
+        self.shell.out.is_a_terminal()
+    }
+
+    fn is_err_a_terminal(&self) -> bool {
+        self.shell.err.is_a_terminal()
     }
 
     fn progress(&self) -> Option<Self::ProgressBar> {
-        if self.is_a_terminal() {
+        if self.is_out_a_terminal() {
             Some(Self::ProgressBar::default())
         } else {
             None
@@ -568,6 +580,7 @@ impl UIReader for UI {
     }
 }
 
+#[derive(Debug)]
 pub struct Shell {
     input: InputStream,
     out: OutputStream,
@@ -609,7 +622,7 @@ impl Default for Shell {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Coloring {
     Auto,
     Always,
@@ -647,6 +660,12 @@ impl InputStream {
 impl Read for InputStream {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
+    }
+}
+
+impl fmt::Debug for InputStream {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "InputStream {{ isatty: {} }}", self.isatty)
     }
 }
 
@@ -699,6 +718,10 @@ impl OutputStream {
         self.supports_color() &&
             (Coloring::Auto == self.coloring || Coloring::Always == self.coloring)
     }
+
+    pub fn is_a_terminal(&self) -> bool {
+        self.isatty
+    }
 }
 
 impl Write for OutputStream {
@@ -714,6 +737,19 @@ impl Write for OutputStream {
             WriteStream::Color(ref mut io) => io.flush(),
             WriteStream::NoColor(ref mut io) => io.flush(),
         }
+    }
+}
+
+impl fmt::Debug for OutputStream {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "OutputStream {{ coloring: {:?}, isatty: {}, is_colored(): {}, supports_color(): {} }}",
+            self.coloring,
+            self.isatty,
+            self.is_colored(),
+            self.supports_color(),
+        )
     }
 }
 
