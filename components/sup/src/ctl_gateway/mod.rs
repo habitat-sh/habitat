@@ -131,16 +131,24 @@ impl UIWriter for CtlRequest {
         self
     }
 
-    fn is_colored(&self) -> bool {
+    fn is_out_colored(&self) -> bool {
         true
     }
 
-    fn is_a_terminal(&self) -> bool {
+    fn is_err_colored(&self) -> bool {
+        true
+    }
+
+    fn is_out_a_terminal(&self) -> bool {
+        true
+    }
+
+    fn is_err_a_terminal(&self) -> bool {
         true
     }
 
     fn progress(&self) -> Option<Self::ProgressBar> {
-        if self.is_a_terminal() {
+        if self.is_out_a_terminal() {
             Some(Self::ProgressBar::new(self.clone()))
         } else {
             None
