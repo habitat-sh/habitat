@@ -103,13 +103,13 @@ impl PackageConfigPaths for Pkg {
 #[derive(Clone, Debug)]
 pub struct Cfg {
     /// Default level configuration loaded by a Package's `default.toml`
-    pub default: Option<toml::Value>,
+    pub default: Option<toml::value::Table>,
     /// User level configuration loaded by a Service's `user.toml`
-    pub user: Option<toml::Value>,
+    pub user: Option<toml::value::Table>,
     /// Gossip level configuration loaded by a census group
-    pub gossip: Option<toml::Value>,
+    pub gossip: Option<toml::value::Table>,
     /// Environment level configuration loaded by the Supervisor's process environment
-    pub environment: Option<toml::Value>,
+    pub environment: Option<toml::value::Table>,
     /// Source of the user configuration
     pub user_config_path: UserConfigPath,
     /// The path to an optional dev-time configuration directory that
@@ -120,7 +120,10 @@ pub struct Cfg {
 }
 
 impl Cfg {
-    pub fn new<P: PackageConfigPaths>(package: &P, config_from: Option<&PathBuf>) -> Result<Cfg> {
+    pub fn new<P>(package: &P, config_from: Option<&PathBuf>) -> Result<Cfg>
+    where
+        P: PackageConfigPaths,
+    {
         let override_config_dir = config_from.and_then(|c| Some(c.clone()));
         let default = {
             let pkg_root = match override_config_dir {
@@ -141,6 +144,40 @@ impl Cfg {
             user_config_path: user_config_path,
             override_config_dir: override_config_dir,
         });
+    }
+
+    /// Validates a service configuration against a configuration interface.
+    ///
+    /// Returns `None` if valid and `Some` containing a list of errors if invalid.
+    pub fn validate(
+        interface: &toml::value::Table,
+        cfg: &toml::value::Table,
+    ) -> Option<Vec<String>> {
+        let mut errors = vec![];
+        for (key, _) in cfg {
+            if !interface.contains_key(key) {
+                errors.push(format!("Unknown key: {}", key));
+            }
+        }
+        if errors.is_empty() {
+            None
+        } else {
+            Some(errors)
+        }
+    }
+
+    /// A structured interface which describes configuration keys which are configurable and their
+    /// optional default values.
+    pub fn interface(&self) -> Option<&toml::value::Table> {
+        // JW TODO: For now let's use `default.toml` as it is for the interface. In the future,
+        // we will need to be able to describe more than just the key value relationship that
+        // `default.toml` provides. We will need to be able to describe things like:
+        //
+        // * Keys which have no default
+        // * Key with a default value
+        // * Keys which only accept certain values
+        // * Allowed types for a key
+        self.default.as_ref()
     }
 
     /// Updates the default layer of the configuration when a service
@@ -221,10 +258,11 @@ impl Cfg {
         Ok(map)
     }
 
-    fn load_toml_file<T1: AsRef<Path>, T2: AsRef<Path>>(
-        dir: T1,
-        file: T2,
-    ) -> Result<Option<toml::Value>> {
+    fn load_toml_file<T1, T2>(dir: T1, file: T2) -> Result<Option<toml::value::Table>>
+    where
+        T1: AsRef<Path>,
+        T2: AsRef<Path>,
+    {
         let filename = file.as_ref();
         let path = dir.as_ref().join(&filename);
         let mut file = match File::open(&path) {
@@ -245,7 +283,7 @@ impl Cfg {
                 let toml = toml::de::from_str(&config).map_err(|e| {
                     sup_error!(Error::TomlParser(e))
                 })?;
-                Ok(Some(toml::Value::Table(toml)))
+                Ok(Some(toml))
             }
             Err(e) => {
                 outputln!(
@@ -259,7 +297,10 @@ impl Cfg {
         }
     }
 
-    fn load_default<T: AsRef<Path>>(config_from: T) -> Result<Option<toml::Value>> {
+    fn load_default<T>(config_from: T) -> Result<Option<toml::value::Table>>
+    where
+        T: AsRef<Path>,
+    {
         Self::load_toml_file(config_from, "default.toml")
     }
 
@@ -293,7 +334,10 @@ impl Cfg {
         UserConfigPath::Recommended(recommended_dir)
     }
 
-    fn load_user<T: AsRef<Path>>(path: T) -> Result<Option<toml::Value>> {
+    fn load_user<T>(path: T) -> Result<Option<toml::value::Table>>
+    where
+        T: AsRef<Path>,
+    {
         Self::load_toml_file(path, USER_CONFIG_FILE)
     }
 
@@ -304,22 +348,18 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_environment<P: PackageConfigPaths>(package: &P) -> Result<Option<toml::Value>> {
+    fn load_environment<P: PackageConfigPaths>(package: &P) -> Result<Option<toml::value::Table>> {
         let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name())
             .to_ascii_uppercase()
             .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 match toml::de::from_str(&config) {
-                    Ok(toml) => {
-                        return Ok(Some(toml::Value::Table(toml)));
-                    }
+                    Ok(toml) => return Ok(toml),
                     Err(err) => debug!("Attempted to parse env config as toml and failed {}", err),
                 }
                 match serde_json::from_str(&config) {
-                    Ok(json) => {
-                        return Ok(Some(toml::Value::Table(json)));
-                    }
+                    Ok(json) => return Ok(Some(json)),
                     Err(err) => debug!("Attempted to parse env config as json and failed {}", err),
                 }
                 Err(sup_error!(Error::BadEnvConfig(var_name)))
@@ -342,22 +382,22 @@ impl Serialize for Cfg {
         S: Serializer,
     {
         let mut table = toml::value::Table::new();
-        if let Some(toml::Value::Table(ref default_cfg)) = self.default {
+        if let Some(ref default_cfg) = self.default {
             if let Err(err) = toml_merge(&mut table, default_cfg) {
                 outputln!("Error merging default-cfg into config, {}", err);
             }
         }
-        if let Some(toml::Value::Table(ref env_cfg)) = self.environment {
+        if let Some(ref env_cfg) = self.environment {
             if let Err(err) = toml_merge(&mut table, env_cfg) {
                 outputln!("Error merging environment-cfg into config, {}", err);
             }
         }
-        if let Some(toml::Value::Table(ref user_cfg)) = self.user {
+        if let Some(ref user_cfg) = self.user {
             if let Err(err) = toml_merge(&mut table, user_cfg) {
                 outputln!("Error merging user-cfg into config, {}", err);
             }
         }
-        if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
+        if let Some(ref gossip_cfg) = self.gossip {
             if let Err(err) = toml_merge(&mut table, gossip_cfg) {
                 outputln!("Error merging gossip-cfg into config, {}", err);
             }
@@ -813,10 +853,6 @@ mod test {
         file.flush().expect("flush changes in toml file");
     }
 
-    fn toml_value_from_str(text: &str) -> toml::Value {
-        toml::Value::Table(toml_from_str(text))
-    }
-
     #[test]
     fn default_to_recommended_user_toml_if_missing() {
         let cfg_data = CfgTestData::new();
@@ -840,7 +876,7 @@ mod test {
             cfg.user_config_path,
             UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
         );
-        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+        assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
     #[test]
@@ -854,7 +890,7 @@ mod test {
             cfg.user_config_path,
             UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
         );
-        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+        assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
     #[test]
@@ -869,7 +905,7 @@ mod test {
             cfg.user_config_path,
             UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
         );
-        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+        assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
     #[test]
@@ -883,7 +919,7 @@ mod test {
             cfg.user_config_path,
             UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
         );
-        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+        assert_eq!(cfg.user, Some(toml_from_str(toml)));
 
         toml = "foo = 85";
         write_toml(&cfg_data.ducp, toml);
@@ -894,7 +930,7 @@ mod test {
             cfg.user_config_path,
             UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
         );
-        assert_eq!(cfg.user, Some(toml_value_from_str(toml)));
+        assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
     #[test]
@@ -908,10 +944,7 @@ mod test {
                             password = \"\"\n\
                             user = \"hab\"\n";
 
-        cfg.default = Some(toml::Value::Table(
-            toml::de::from_str(default_toml).unwrap(),
-        ));
-
+        cfg.default = Some(toml::from_str(default_toml).unwrap());
         assert_eq!(default_toml, toml::to_string(&cfg).unwrap());
     }
 }

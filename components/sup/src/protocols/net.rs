@@ -52,6 +52,18 @@ impl error::Error for NetErr {
             ErrCode::NotFound => "Entity not found",
             ErrCode::Unauthorized => "Client failed authorization with server",
             ErrCode::Conflict => "Entity exists or is unable to update with given parameters",
+            ErrCode::NotSupported => {
+                "Request contained a valid payload but a detail of the request was not supported by the remote"
+            }
+            ErrCode::BadPayload => {
+                "Request contained a bad or unreadable value for one or more fields of one or more messages"
+            }
+            ErrCode::InvalidPayload => {
+                "Request contained a well-formed payload but it was rejected as invalid by the remote"
+            }
+            ErrCode::EntityTooLarge => {
+                "Requestor sent a well-formed payload but it exceeded an allowed limit."
+            }
         }
     }
 }

@@ -382,6 +382,10 @@ pub enum ErrCode {
     NotFound = 2,
     Conflict = 3,
     Unauthorized = 4,
+    NotSupported = 5,
+    BadPayload = 6,
+    InvalidPayload = 7,
+    EntityTooLarge = 8,
 }
 
 impl ::protobuf::ProtobufEnum for ErrCode {
@@ -396,6 +400,10 @@ impl ::protobuf::ProtobufEnum for ErrCode {
             2 => ::std::option::Option::Some(ErrCode::NotFound),
             3 => ::std::option::Option::Some(ErrCode::Conflict),
             4 => ::std::option::Option::Some(ErrCode::Unauthorized),
+            5 => ::std::option::Option::Some(ErrCode::NotSupported),
+            6 => ::std::option::Option::Some(ErrCode::BadPayload),
+            7 => ::std::option::Option::Some(ErrCode::InvalidPayload),
+            8 => ::std::option::Option::Some(ErrCode::EntityTooLarge),
             _ => ::std::option::Option::None
         }
     }
@@ -407,6 +415,10 @@ impl ::protobuf::ProtobufEnum for ErrCode {
             ErrCode::NotFound,
             ErrCode::Conflict,
             ErrCode::Unauthorized,
+            ErrCode::NotSupported,
+            ErrCode::BadPayload,
+            ErrCode::InvalidPayload,
+            ErrCode::EntityTooLarge,
         ];
         values
     }
@@ -436,9 +448,11 @@ impl ::protobuf::reflect::ProtobufValue for ErrCode {
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n\tnet.proto\"\x07\n\x05NetOk\"8\n\x06NetErr\x12\x1c\n\x04code\x18\x01\
     \x20\x01(\x0e2\x08.ErrCodeR\x04code\x12\x10\n\x03msg\x18\x02\x20\x01(\tR\
-    \x03msg*M\n\x07ErrCode\x12\x0c\n\x08Internal\x10\0\x12\x06\n\x02Io\x10\
-    \x01\x12\x0c\n\x08NotFound\x10\x02\x12\x0c\n\x08Conflict\x10\x03\x12\x10\
-    \n\x0cUnauthorized\x10\x04\
+    \x03msg*\x97\x01\n\x07ErrCode\x12\x0c\n\x08Internal\x10\0\x12\x06\n\x02I\
+    o\x10\x01\x12\x0c\n\x08NotFound\x10\x02\x12\x0c\n\x08Conflict\x10\x03\
+    \x12\x10\n\x0cUnauthorized\x10\x04\x12\x10\n\x0cNotSupported\x10\x05\x12\
+    \x0e\n\nBadPayload\x10\x06\x12\x12\n\x0eInvalidPayload\x10\x07\x12\x12\n\
+    \x0eEntityTooLarge\x10\x08\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

@@ -153,6 +153,15 @@ impl From<manager::ProcessStatus> for ProcessStatus {
     }
 }
 
+impl fmt::Display for ServiceCfg_Format {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let state = match *self {
+            ServiceCfg_Format::TOML => "TOML",
+        };
+        write!(f, "{}", state)
+    }
+}
+
 impl From<manager::service::ServiceBind> for ServiceBind {
     fn from(bind: manager::service::ServiceBind) -> Self {
         let mut proto = ServiceBind::new();

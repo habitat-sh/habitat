@@ -50,7 +50,7 @@ use common::ui::UIWriter;
 use futures::prelude::*;
 use futures::sync::mpsc;
 use hcore::channel;
-use hcore::crypto::{default_cache_key_path, SymKey};
+use hcore::crypto::SymKey;
 use hcore::env;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::os::process::{self, Pid, Signal};
@@ -69,7 +69,7 @@ pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, 
                         Topology};
 pub use self::sys::Sys;
 use self::self_updater::{SUP_PKG_IDENT, SelfUpdater};
-use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
+use self::service::{Cfg, DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use self::peer_watcher::PeerWatcher;
@@ -149,7 +149,7 @@ impl FsCfg {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ManagerConfig {
     pub auto_update: bool,
     pub custom_state_path: Option<PathBuf>,
@@ -161,10 +161,24 @@ pub struct ManagerConfig {
     pub http_listen: http_gateway::ListenAddr,
     pub gossip_peers: Vec<SocketAddr>,
     pub gossip_permanent: bool,
-    pub ring: Option<String>,
+    pub ring_key: Option<SymKey>,
     pub name: Option<String>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
+}
+
+impl ManagerConfig {
+    pub fn sup_root(&self) -> PathBuf {
+        match self.custom_state_path {
+            Some(ref custom) => custom.clone(),
+            None => {
+                match self.name {
+                    Some(ref name) => STATE_PATH_PREFIX.join(name),
+                    None => STATE_PATH_PREFIX.join("default"),
+                }
+            }
+        }
+    }
 }
 
 impl Default for ManagerConfig {
@@ -180,24 +194,10 @@ impl Default for ManagerConfig {
             http_listen: http_gateway::ListenAddr::default(),
             gossip_peers: vec![],
             gossip_permanent: false,
-            ring: None,
+            ring_key: None,
             name: None,
             organization: None,
             watch_peer_file: None,
-        }
-    }
-}
-
-impl ManagerConfig {
-    pub fn sup_root(&self) -> PathBuf {
-        match self.custom_state_path {
-            Some(ref custom) => custom.clone(),
-            None => {
-                match self.name {
-                    Some(ref name) => STATE_PATH_PREFIX.join(name),
-                    None => STATE_PATH_PREFIX.join("default"),
-                }
-            }
         }
     }
 }
@@ -401,23 +401,13 @@ impl Manager {
             cfg.http_listen,
         );
         let member = Self::load_member(&mut sys, &fs_cfg)?;
-        let ring_key = match cfg.ring {
-            Some(ref ring_with_revision) => {
-                outputln!("Joining ring {}", ring_with_revision);
-                Some(SymKey::get_pair_for(
-                    &ring_with_revision,
-                    &default_cache_key_path(None),
-                )?)
-            }
-            None => None,
-        };
         let services = Arc::new(RwLock::new(Vec::new()));
         let server = butterfly::Server::new(
             sys.gossip_listen(),
             sys.gossip_listen(),
             member,
             Trace::default(),
-            ring_key,
+            cfg.ring_key,
             None,
             Some(&fs_cfg.data_path),
             Box::new(SuitabilityLookup(services.clone())),
@@ -823,6 +813,116 @@ impl Manager {
         Err(net::err(
             ErrCode::NotFound,
             format!("{} not loaded.", ident),
+        ))
+    }
+
+    pub fn service_cfg_validate(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocols::ctl::SvcValidateCfg,
+    ) -> NetResult<()> {
+        if opts.get_cfg().len() > protocols::butterfly::MAX_SVC_CFG_SIZE {
+            return Err(net::err(
+                ErrCode::EntityTooLarge,
+                "Configuration too large.",
+            ));
+        }
+        if opts.get_format() != protocols::types::ServiceCfg_Format::TOML {
+            return Err(net::err(
+                ErrCode::NotSupported,
+                format!(
+                    "Configuration format {} not available.",
+                    opts.get_format()
+                ),
+            ));
+        }
+        let new_cfg = toml::from_slice(opts.get_cfg()).map_err(|e| {
+            net::err(
+                ErrCode::BadPayload,
+                format!(
+                    "Unable to decode configuration as {}, {}",
+                    opts.get_format(),
+                    e
+                ),
+            )
+        })?;
+        let service_group: ServiceGroup = opts.take_service_group().into();
+        for service in mgr.services.read().unwrap().iter() {
+            if service.service_group != service_group {
+                continue;
+            }
+            if let Some(interface) = service.cfg.interface() {
+                match Cfg::validate(interface, &new_cfg) {
+                    None => req.reply_complete(net::ok()),
+                    Some(errors) => {
+                        for error in errors {
+                            req.reply_partial(net::err(ErrCode::InvalidPayload, error));
+                        }
+                        req.reply_complete(net::ok());
+                    }
+                }
+                return Ok(());
+            } else {
+                // No interface, this service can't be configured.
+                return Err(net::err(
+                    ErrCode::NotFound,
+                    "Service has no configurable attributes.",
+                ));
+            }
+        }
+        Err(net::err(
+            ErrCode::NotFound,
+            format!("{} not loaded.", service_group),
+        ))
+    }
+
+    pub fn service_cfg_set(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocols::ctl::SvcSetCfg,
+    ) -> NetResult<()> {
+        if opts.get_cfg().len() > protocols::butterfly::MAX_SVC_CFG_SIZE {
+            return Err(net::err(
+                ErrCode::EntityTooLarge,
+                "Configuration too large.",
+            ));
+        }
+        let service_group: ServiceGroup = opts.take_service_group().into();
+        for service in mgr.services.read().unwrap().iter() {
+            if service.service_group != service_group {
+                continue;
+            }
+            outputln!(
+                "Setting new configuration version {} for {}",
+                opts.get_version(),
+                service_group,
+            );
+            let mut client = match butterfly::client::Client::new(
+                format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+                mgr.cfg.ring_key.clone(),
+            ) {
+                Ok(client) => client,
+                Err(err) => {
+                    outputln!("Failed to connect to own gossip server, {}", err);
+                    return Err(net::err(ErrCode::Internal, err.to_string()));
+                }
+            };
+            match client.send_service_config(
+                service_group,
+                opts.get_version(),
+                opts.take_cfg(),
+                opts.get_is_encrypted(),
+            ) {
+                Ok(()) => {
+                    req.reply_complete(net::ok());
+                    return Ok(());
+                }
+                Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
+            }
+        }
+        Err(net::err(
+            ErrCode::NotFound,
+            format!("{} not loaded.", service_group),
         ))
     }
 

@@ -40,6 +40,7 @@
 //! *not* by a build server intentionally. This is to ensure we have the source available for
 //! all protocol files.
 
+pub mod butterfly;
 pub mod ctl;
 pub mod net;
 pub mod types;
