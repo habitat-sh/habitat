@@ -150,6 +150,7 @@ fn start() -> Result<()> {
         ("bash", Some(m)) => sub_bash(m),
         ("apply", Some(m)) => sub_apply(m),
         ("config", Some(m)) => sub_config(m),
+        ("depart", Some(m)) => sub_depart(m),
         ("file", Some(m)) => match m.subcommand() {
             ("upload", Some(m)) => sub_file(m),
             _ => unreachable!(),
@@ -199,6 +200,14 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (about: "Displays the default configuration options for a service")
             (aliases: &["c", "co", "con", "conf", "confi"])
             (@arg PKG_IDENT: +required +takes_value "A package identifier (ex: core/redis)")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        )
+        (@subcommand depart =>
+            (about: "Depart a Supervisor from the gossip ring; kicking and banning the target from
+                joining again with the same member-id")
+            (aliases: &["d", "de", "dep", "depa", "depart"])
+            (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
             (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                 "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
@@ -371,6 +380,14 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (aliases: &["c", "co", "con", "conf", "confi"])
             (@arg PKG_IDENT: +required +takes_value
                 "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+            (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        )
+        (@subcommand depart =>
+            (about: "Depart a Supervisor from the gossip ring; kicking and banning the target from
+                joining again with the same member-id")
+            (aliases: &["d", "de", "dep", "depa", "depart"])
+            (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
             (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                 "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         )
@@ -609,7 +626,11 @@ fn sub_apply(m: &ArgMatches) -> Result<()> {
                     let m = reply.parse::<protocols::net::NetErr>().unwrap();
                     Err(SrvClientError::from(m))
                 }
-                _ => panic!("nah"),
+                _ => {
+                    Err(SrvClientError::from(
+                        io::Error::from(io::ErrorKind::UnexpectedEof),
+                    ))
+                }
             })
         })
         .wait()?;
@@ -647,6 +668,38 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
             })
         })
         .wait()?;
+    Ok(())
+}
+
+fn sub_depart(m: &ArgMatches) -> Result<()> {
+    toggle_verbosity(m);
+    toggle_color(m);
+    let cfg = mgrcfg_from_matches(m)?;
+    let mut ui = ui();
+    let mut msg = protocols::ctl::SupDepart::new();
+    msg.set_member_id(m.value_of("MEMBER_ID").unwrap().to_string());
+    SrvClient::connect(&cfg.ctl_listen, ctl_secret_key(&cfg)?)
+        .and_then(|conn| {
+    ui.begin(
+        format!("Permanently marking {} as departed", msg.get_member_id()),
+    ).unwrap();
+            ui.status(Status::Applying, format!("via peer {}", cfg.ctl_listen))
+                .unwrap();
+            conn.call(msg).for_each(|reply| match reply.message_id() {
+                "NetOk" => Ok(()),
+                "NetErr" => {
+                    let m = reply.parse::<protocols::net::NetErr>().unwrap();
+                    Err(SrvClientError::from(m))
+                }
+                _ => {
+                    Err(SrvClientError::from(
+                        io::Error::from(io::ErrorKind::UnexpectedEof),
+                    ))
+                }
+            })
+        })
+        .wait()?;
+    ui.end("Departure recorded.")?;
     Ok(())
 }
 

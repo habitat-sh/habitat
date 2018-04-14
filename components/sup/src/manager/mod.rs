@@ -1300,12 +1300,38 @@ impl Manager {
         Ok(())
     }
 
+    pub fn supervisor_depart(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocols::ctl::SupDepart,
+    ) -> NetResult<()> {
+        let mut client = match butterfly::client::Client::new(
+            format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+            mgr.cfg.ring_key.clone(),
+        ) {
+            Ok(client) => client,
+            Err(err) => {
+                outputln!("Failed to connect to own gossip server, {}", err);
+                return Err(net::err(ErrCode::Internal, err.to_string()));
+            }
+        };
+        outputln!("Attempting to depart member: {}", opts.get_member_id());
+        match client.send_departure(opts.take_member_id()) {
+            Ok(()) => {
+                req.reply_complete(net::ok());
+                Ok(())
+            }
+            Err(e) => Err(net::err(ErrCode::Internal, e.to_string())),
+        }
+    }
+
     fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
         if let Some(ref mut updater) = self.self_updater {
             return updater.updated();
         }
         None
     }
+
     /// Walk each service and check if it has an updated package installed via the Update Strategy.
     /// This updates the Service to point to the new service struct, and then marks it for
     /// restarting.

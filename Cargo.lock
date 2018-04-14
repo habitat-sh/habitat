@@ -501,22 +501,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hab-butterfly"
-version = "0.0.0"
-dependencies = [
- "clap 2.30.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.187 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_logger 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "hab 0.0.0",
- "habitat_butterfly 0.1.0",
- "habitat_common 0.0.0",
- "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
- "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "habitat-builder-protocol"
 version = "0.0.0"
 source = "git+https://github.com/habitat-sh/builder.git#d0336bd26026cd47b02094ed6ffec1fdc53f2253"

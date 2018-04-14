@@ -14,16 +14,6 @@ plan_path = "components/backline"
 [hab-bintray-publish]
 plan_path = "components/bintray-publish"
 
-[hab-butterfly]
-plan_path = "components/hab-butterfly"
-paths = [
-  "components/hab-butterfly/*",
-  "components/butterfly/*",
-  "components/common/*",
-  "components/core/*",
-  "components/hab/*",
-]
-
 [hab-eventsrv]
 plan_path = "components/eventsrv/habitat"
 paths = [

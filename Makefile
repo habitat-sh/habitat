@@ -40,7 +40,7 @@ else
 	CARGO_FLAGS :=
 endif
 
-BIN = hab hab-butterfly pkg-export-docker pkg-export-kubernetes sup
+BIN = hab pkg-export-docker pkg-export-kubernetes sup
 LIB = butterfly common builder-depot-client
 ALL = $(BIN) $(LIB)
 VERSION := $(shell cat VERSION)

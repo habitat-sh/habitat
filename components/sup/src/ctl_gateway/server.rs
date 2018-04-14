@@ -390,6 +390,18 @@ impl Future for SrvHandler {
                                             },
                                         )
                                     }
+                                    "SupDepart" => {
+                                        let m = msg.parse::<protocols::ctl::SupDepart>().map_err(
+                                            HandlerError::from,
+                                        )?;
+                                        CtlCommand::new(
+                                            Some(self.tx.clone()),
+                                            msg.transaction(),
+                                            move |state, req| {
+                                                Manager::supervisor_depart(state, req, m.clone())
+                                            },
+                                        )
+                                    }
                                     _ => {
                                         warn!("Unhandled message, {}", msg.message_id());
                                         break;

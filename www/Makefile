@@ -30,7 +30,6 @@ acceptance: build prep
 
 cli_docs:
 	hab studio run "hab pkg install core/hab-studio && \
-	hab pkg install core/hab-butterfly && \
 	hab pkg install core/hab-sup && \
 	hab pkg install core/hab-launcher && \
 	hab pkg install core/node --binlink && \

@@ -760,7 +760,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         args.next().unwrap_or_default().as_str(),
         args.next().unwrap_or_default().as_str(),
     ) {
-        ("butterfly", _, _) => command::butterfly::start(ui, env::args_os().skip(2).collect()),
+        ("butterfly", _, _) => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("apply", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         ("config", _, _) => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("file", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
