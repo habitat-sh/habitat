@@ -1012,22 +1012,12 @@ impl<'a> HookOutput<'a> {
 #[cfg(test)]
 #[cfg(not(windows))]
 mod tests {
-    use super::*;
     use std::fs::{self, DirBuilder};
-    use tempdir::TempDir;
-    use std::process::{Command, Stdio};
-
     use std::iter;
     use std::string::ToString;
-    use manager::sys::Sys;
-    use config::GossipListenAddr;
-    use ctl_gateway;
-    use http_gateway;
-    use hcore::package::{PackageIdent, PackageInstall};
-    use manager::service::{Pkg, Cfg};
-    use manager::service::spec::ServiceBind;
-    use census::CensusRing;
+    use std::process::{Command, Stdio};
 
+    use hcore::package::{PackageIdent, PackageInstall};
     use hcore::service::ServiceGroup;
     use butterfly::member::MemberList;
     use butterfly::rumor::service::Service as ServiceRumor;
@@ -1037,7 +1027,17 @@ mod tests {
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
     use butterfly::rumor::service::SysInfo;
     use butterfly::rumor::RumorStore;
+    use protocol;
+    use tempdir::TempDir;
+
+    use super::*;
     use super::fs as supfs;
+    use census::CensusRing;
+    use config::GossipListenAddr;
+    use http_gateway;
+    use manager::service::{Pkg, Cfg};
+    use manager::service::spec::ServiceBind;
+    use manager::sys::Sys;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use
@@ -1276,7 +1276,7 @@ echo "The message is Hola Mundo"
         let sys = Sys::new(
             true,
             GossipListenAddr::default(),
-            ctl_gateway::default_addr(),
+            protocol::ctl::default_addr(),
             http_gateway::ListenAddr::default(),
         );
 
@@ -1383,7 +1383,7 @@ echo "The message is Hello"
         let sys = Sys::new(
             true,
             GossipListenAddr::default(),
-            ctl_gateway::default_addr(),
+            protocol::ctl::default_addr(),
             http_gateway::ListenAddr::default(),
         );
 

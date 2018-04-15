@@ -18,5 +18,7 @@ members = [
   "components/pkg-export-helm",
   "components/pkg-export-kubernetes",
   "components/pkg-export-tar",
-  "components/sup"
+  "components/sup",
+  "components/sup-client",
+  "components/sup-protocol",
 ]

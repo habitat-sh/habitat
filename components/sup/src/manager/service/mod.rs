@@ -30,6 +30,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+pub use protocol::types::{Topology, UpdateStrategy};
 use butterfly::rumor::service::Service as ServiceRumor;
 use hcore::crypto::hash;
 use hcore::fs::FS_ROOT_PATH;
@@ -39,6 +40,12 @@ use hcore::util::perm::{set_owner, set_permissions};
 use launcher_client::LauncherCli;
 use time::Timespec;
 
+pub use self::config::{Cfg, UserConfigPath};
+pub use self::health::{HealthCheck, SmokeCheck};
+pub use self::package::{Env, Pkg};
+pub use self::composite_spec::CompositeSpec;
+pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
+pub use self::supervisor::ProcessState;
 use super::Sys;
 use self::config::CfgRenderer;
 use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
@@ -50,14 +57,6 @@ use manager;
 use census::{ServiceFile, CensusRing, ElectionStatus};
 use templating::RenderContext;
 use sys::abilities;
-
-pub use self::config::{Cfg, UserConfigPath};
-pub use self::health::{HealthCheck, SmokeCheck};
-pub use self::package::{Env, Pkg};
-pub use self::composite_spec::CompositeSpec;
-pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
-pub use self::supervisor::ProcessState;
-pub use protocols::types::{Topology, UpdateStrategy};
 
 static LOGKEY: &'static str = "SR";
 

@@ -27,6 +27,8 @@ use common;
 use hcore;
 use handlebars;
 use toml;
+use protocol::net;
+use sup_client::SrvClientError;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -39,6 +41,7 @@ pub enum Error {
     CannotRemoveFromChannel((String, String)),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
+    CtlClient(SrvClientError),
     DepotClient(depot_client::Error),
     DockerDaemonDown,
     DockerFileSharingNotEnabled,
@@ -55,6 +58,7 @@ pub enum Error {
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
     JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
+    NetErr(net::NetErr),
     PackageArchiveMalformed(String),
     ParseIntError(num::ParseIntError),
     PathPrefixError(path::StripPrefixError),
@@ -85,6 +89,7 @@ impl fmt::Display for Error {
                 )
             }
             Error::CryptoCLI(ref e) => format!("{}", e),
+            Error::CtlClient(ref e) => format!("{}", e),
             Error::DepotClient(ref err) => format!("{}", err),
             Error::DockerDaemonDown => {
                 format!("Can not connect to Docker. Is the Docker daemon running?")
@@ -148,6 +153,7 @@ impl fmt::Display for Error {
                 )
             }
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
+            Error::NetErr(ref e) => format!("{}", e),
             Error::PackageArchiveMalformed(ref e) => {
                 format!(
                     "Package archive was unreadable or contained unexpected contents: {:?}",
@@ -186,6 +192,7 @@ impl error::Error for Error {
                 "Command was not found under any 'PATH' directories in the package"
             }
             Error::CryptoCLI(_) => "A cryptographic error has occurred",
+            Error::CtlClient(ref err) => err.description(),
             Error::DepotClient(ref err) => err.description(),
             Error::DockerDaemonDown => "The Docker daemon could not be found.",
             Error::DockerFileSharingNotEnabled => "Docker file sharing is not enabled.",
@@ -207,6 +214,7 @@ impl error::Error for Error {
             }
             Error::JobGroupPromoteOrDemote(ref err, _) => err.description(),
             Error::JobGroupCancel(ref err) => err.description(),
+            Error::NetErr(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => {
                 "Package archive was unreadable or had unexpected contents"
             }
@@ -285,5 +293,17 @@ impl From<toml::ser::Error> for Error {
 impl From<env::JoinPathsError> for Error {
     fn from(err: env::JoinPathsError) -> Self {
         Error::EnvJoinPathsError(err)
+    }
+}
+
+impl From<SrvClientError> for Error {
+    fn from(err: SrvClientError) -> Self {
+        Error::CtlClient(err)
+    }
+}
+
+impl From<net::NetErr> for Error {
+    fn from(err: net::NetErr) -> Self {
+        Error::NetErr(err)
     }
 }

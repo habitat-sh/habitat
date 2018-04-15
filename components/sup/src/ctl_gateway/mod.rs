@@ -18,39 +18,29 @@
 //! CtlGateway.
 //!
 //! The [`ctl_gateway.client`] and [`ctl_gateway.server`] speak a streaming, multiplexed, binary
-//! protocol defined in [`ctl_gateway.codec`].
+//! protocol defined in [`protocol.codec`].
 
-pub mod client;
-pub mod codec;
 pub mod server;
 
 use std::fmt;
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 use std::fs::{self, File};
-use std::net::{Ipv4Addr, SocketAddr};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use base64;
 use common::ui::UIWriter;
 use depot_client::DisplayProgress;
 use futures::prelude::*;
-use hcore;
 use hcore::util::perm;
+use protocol;
 use rand::{self, Rng};
 
 use error::{Result, Error};
-use protocols;
 
-/// Default listening port for the CtlGateway listener.
-pub const DEFAULT_PORT: u16 = 9632;
 /// Time to wait in milliseconds for a client connection to timeout.
 pub const REQ_TIMEOUT: u64 = 10_000;
-/// Name of file containing the CtlGateway secret key.
-const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
 /// Length of characters in CtlGateway secret key.
 const CTL_SECRET_LEN: usize = 64;
-/// Environment variable optionally containing the CtlGateway secret key.
-const CTL_SECRET_ENVVAR: &'static str = "HAB_CTL_SECRET";
 static LOGKEY: &'static str = "AG";
 
 /// Used by modules outside of the CtlGateway for seamlessly replying to transactional messages.
@@ -68,12 +58,16 @@ pub struct CtlRequest {
     /// eventually over the network back to the client.
     tx: Option<server::CtlSender>,
     /// Transaction for the given request.
-    transaction: Option<codec::SrvTxn>,
+    transaction: Option<protocol::codec::SrvTxn>,
 }
 
 impl CtlRequest {
-    /// Create a new CtlRequest from an optional [`server.CtlSender`] and [`codec::SrvTxn`].
-    pub fn new(tx: Option<server::CtlSender>, transaction: Option<codec::SrvTxn>) -> Self {
+    /// Create a new CtlRequest from an optional [`server.CtlSender`] and
+    /// [`protocol.codec.SrvTxn`].
+    pub fn new(
+        tx: Option<server::CtlSender>,
+        transaction: Option<protocol::codec::SrvTxn>,
+    ) -> Self {
         CtlRequest {
             tx: tx,
             transaction: transaction,
@@ -84,7 +78,7 @@ impl CtlRequest {
     /// not the final message for the transaction.
     pub fn reply_partial<T>(&mut self, msg: T)
     where
-        T: Into<codec::SrvMessage> + fmt::Debug,
+        T: Into<protocol::codec::SrvMessage> + fmt::Debug,
     {
         self.send_msg(msg, false);
     }
@@ -93,7 +87,7 @@ impl CtlRequest {
     /// the final message for the transaction.
     pub fn reply_complete<T>(&mut self, msg: T)
     where
-        T: Into<codec::SrvMessage> + fmt::Debug,
+        T: Into<protocol::codec::SrvMessage> + fmt::Debug,
     {
         self.send_msg(msg, true);
     }
@@ -105,7 +99,7 @@ impl CtlRequest {
 
     fn send_msg<T>(&mut self, msg: T, complete: bool)
     where
-        T: Into<codec::SrvMessage> + fmt::Debug,
+        T: Into<protocol::codec::SrvMessage> + fmt::Debug,
     {
         if !self.transactional() {
             warn!(
@@ -114,7 +108,7 @@ impl CtlRequest {
             );
             return;
         }
-        let mut wire: codec::SrvMessage = msg.into();
+        let mut wire: protocol::codec::SrvMessage = msg.into();
         wire.reply_for(self.transaction.unwrap(), complete);
         self.tx.as_ref().unwrap().start_send(wire).unwrap();
     }
@@ -160,7 +154,7 @@ impl io::Write for CtlRequest {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let line = String::from_utf8_lossy(buf).into_owned();
         output!("{}", line);
-        let mut msg = protocols::ctl::ConsoleLine::new();
+        let mut msg = protocol::ctl::ConsoleLine::new();
         msg.set_line(line);
         self.reply_partial(msg);
         Ok(buf.len())
@@ -171,10 +165,10 @@ impl io::Write for CtlRequest {
     }
 }
 
-/// A wrapper around a [`protocols.ctl.NetProgress`] and [`CtlRequest`]. This type implements
+/// A wrapper around a [`protocol.ctl.NetProgress`] and [`CtlRequest`]. This type implements
 /// traits for writing it's progress to the console.
 pub struct NetProgressBar {
-    inner: protocols::ctl::NetProgress,
+    inner: protocol::ctl::NetProgress,
     req: CtlRequest,
 }
 
@@ -182,7 +176,7 @@ impl NetProgressBar {
     /// Create a new progress bar.
     pub fn new(req: CtlRequest) -> Self {
         NetProgressBar {
-            inner: protocols::ctl::NetProgress::new(),
+            inner: protocol::ctl::NetProgress::new(),
             req: req,
         }
     }
@@ -211,39 +205,6 @@ impl io::Write for NetProgressBar {
     }
 }
 
-/// Return a SocketAddr with the default listening address and port.
-pub fn default_addr() -> SocketAddr {
-    SocketAddr::from((Ipv4Addr::new(127, 0, 0, 1), DEFAULT_PORT))
-}
-
-/// Read the secret key used to authenticate connections to the `CtlGateway` from disk and write
-/// it to the given out buffer. An `Ok` return value of `true` indicates a successful read while
-/// `false` indicates the file was not found.
-pub fn read_secret_key<T>(sup_root: T, out: &mut String) -> Result<bool>
-where
-    T: AsRef<Path>,
-{
-    // We attempt to read from environment variable before attempting to read from filesystem
-    // because a remote client won't have the sup root on it's disk. The env var is set by the
-    // `hab` binary and populated by it's config.
-    if let Some(value) = hcore::env::var(CTL_SECRET_ENVVAR).ok() {
-        *out = value;
-        return Ok(true);
-    }
-    let secret_key_path = sup_root.as_ref().join(CTL_SECRET_FILENAME);
-    if secret_key_path.exists() {
-        if secret_key_path.is_dir() {
-            return Err(sup_error!(Error::CtlSecretConflict(secret_key_path)));
-        }
-        File::open(&secret_key_path)
-            .and_then(|mut f| f.read_to_string(out))
-            .map_err(move |e| sup_error!(Error::CtlSecretIo(secret_key_path, e)))?;
-        Ok(true)
-    } else {
-        Ok(false)
-    }
-}
-
 /// First attempts to read the secret key used to authenticate with the `CtlGateway` from disk
 /// and, if not found, will generate a new key and write it to disk.
 pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
@@ -254,10 +215,10 @@ where
     fs::create_dir_all(&sup_root).map_err(|e| {
         sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e))
     })?;
-    if read_secret_key(&sup_root, &mut out)? {
+    if protocol::read_secret_key(&sup_root, &mut out).is_ok() {
         Ok(out)
     } else {
-        let secret_key_path = secret_key_path(sup_root);
+        let secret_key_path = protocol::secret_key_path(sup_root);
         {
             let mut f = File::create(&secret_key_path)?;
             generate_secret_key(&mut out);
@@ -267,14 +228,6 @@ where
         perm::set_permissions(&secret_key_path, 0600)?;
         Ok(out)
     }
-}
-
-/// Returns the location of the CtlGateway Secret on disk for the given Supervisor root.
-pub fn secret_key_path<T>(sup_root: T) -> PathBuf
-where
-    T: AsRef<Path>,
-{
-    sup_root.as_ref().join(CTL_SECRET_FILENAME)
 }
 
 /// Generate a new secret key used for authenticating clients to the `CtlGateway`.
