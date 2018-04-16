@@ -207,7 +207,7 @@ Note: **do not** click the Merge Pull Request button if it's enabled.
 
 A service cluster can be started in your host machine with `make bldr-run`. The public API will be available on port 9636 and the admin API will be available on port 8080. The depot web site will be available on port 3000.
 
-Please refer to the detailed setup instructions in the  [BUILDER_DEV.md](https://github.com/habitat-sh/habitat/blob/master/BUILDER_DEV.md) file for how to bring up a service cluster, as there are currently some manual steps involved.
+Please refer to the detailed setup instructions in the [builder repo](https://github.com/habitat-sh/builder)'s [DEVELOPING.md](https://github.com/habitat-sh/builder/blob/master/DEVELOPING.md) file for how to bring up a service cluster, as there are currently some manual steps involved.
 
 
 ## Documentation for Rust Crates
