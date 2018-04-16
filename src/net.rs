@@ -47,11 +47,9 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
 
     fn connect(&self, host: &str, port: u16, scheme: &str) -> hyper::Result<Self::Stream> {
         // Initial connection to the proxy server, using an `HttpConnector`
-        let mut stream = self.proxy_connector.connect(
-            self.proxy.host(),
-            self.proxy.port(),
-            "http",
-        )?;
+        let mut stream =
+            self.proxy_connector
+                .connect(self.proxy.host(), self.proxy.port(), "http")?;
         match scheme {
             "https" => {
                 // If the target URL is an `"https"` scheme, then we use proxy/TCP tunneling as
@@ -64,7 +62,7 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                 // is largely based on hyper's internal proxy tunneling code.
                 let mut connect_msg = format!(
                     "{method} {host}:{port} {version}\r\nHost: \
-                                               {host}:{port}\r\n",
+                     {host}:{port}\r\n",
                     method = Method::Connect,
                     version = HttpVersion::Http11,
                     host = host,
@@ -97,9 +95,9 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                                 self.proxy.port(),
                                 code
                             );
-                            return self.ssl_client.wrap_client(stream, host).map(
-                                HttpsStream::Https,
-                            );
+                            return self.ssl_client
+                                .wrap_client(stream, host)
+                                .map(HttpsStream::Https);
                         } else {
                             debug!(
                                 "Proxy {}:{} CONNECT failed response = {}",

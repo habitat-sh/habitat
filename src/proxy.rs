@@ -250,12 +250,10 @@ impl ProxyBasicAuthorization {
 pub fn http_proxy() -> Result<Option<ProxyInfo>> {
     match env::var("http_proxy") {
         Ok(url) => parse_proxy_url(&url),
-        _ => {
-            match env::var("HTTP_PROXY") {
-                Ok(url) => parse_proxy_url(&url),
-                _ => Ok(None),
-            }
-        }
+        _ => match env::var("HTTP_PROXY") {
+            Ok(url) => parse_proxy_url(&url),
+            _ => Ok(None),
+        },
     }
 }
 
@@ -338,12 +336,10 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 pub fn https_proxy() -> Result<Option<ProxyInfo>> {
     match env::var("https_proxy") {
         Ok(url) => parse_proxy_url(&url),
-        _ => {
-            match env::var("HTTPS_PROXY") {
-                Ok(url) => parse_proxy_url(&url),
-                _ => Ok(None),
-            }
-        }
+        _ => match env::var("HTTPS_PROXY") {
+            Ok(url) => parse_proxy_url(&url),
+            _ => Ok(None),
+        },
     }
 }
 
@@ -459,17 +455,13 @@ pub fn proxy_unless_domain_exempted(for_domain: Option<&Url>) -> Result<Option<P
     };
     match env::var("no_proxy") {
         Ok(domains) => process_no_proxy(for_domain, scheme, domains),
-        _ => {
-            match env::var("NO_PROXY") {
-                Ok(domains) => process_no_proxy(for_domain, scheme, domains),
-                _ => {
-                    match scheme {
-                        "https" => https_proxy(),
-                        _ => http_proxy(),
-                    }
-                }
-            }
-        }
+        _ => match env::var("NO_PROXY") {
+            Ok(domains) => process_no_proxy(for_domain, scheme, domains),
+            _ => match scheme {
+                "https" => https_proxy(),
+                _ => http_proxy(),
+            },
+        },
     }
 }
 
@@ -486,9 +478,7 @@ fn process_no_proxy(
         if domain.ends_with(extension) {
             debug!(
                 "Domain {} matches domain extension {} from no_proxy='{}'",
-                &domain,
-                &extension,
-                &domains
+                &domain, &extension, &domains
             );
             return Ok(None);
         }
@@ -502,16 +492,14 @@ fn process_no_proxy(
 fn parse_proxy_url(url: &str) -> Result<Option<ProxyInfo>> {
     let url = Url::parse(&url)?;
     let auth = match url.password() {
-        Some(password) => {
-            Some(ProxyBasicAuthorization::new(
-                percent_decode(url.username().as_bytes())
-                    .decode_utf8_lossy()
-                    .into_owned(),
-                percent_decode(password.as_bytes())
-                    .decode_utf8_lossy()
-                    .into_owned(),
-            ))
-        }
+        Some(password) => Some(ProxyBasicAuthorization::new(
+            percent_decode(url.username().as_bytes())
+                .decode_utf8_lossy()
+                .into_owned(),
+            percent_decode(password.as_bytes())
+                .decode_utf8_lossy()
+                .into_owned(),
+        )),
         None => None,
     };
     Ok(Some(ProxyInfo::new(url, auth)?))

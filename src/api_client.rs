@@ -22,13 +22,13 @@ use hyper::header::UserAgent;
 use hyper::http::h1::Http11Protocol;
 use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
-use openssl::ssl::{SslConnectorBuilder, SslConnector, SslMethod, SslOption, SSL_OP_NO_SSLV2,
-                   SSL_OP_NO_SSLV3, SSL_OP_NO_COMPRESSION};
+use openssl::ssl::{SSL_OP_NO_SSLV2, SSL_OP_NO_SSLV3, SslConnector, SslConnectorBuilder, SslMethod,
+                   SslOption, SSL_OP_NO_COMPRESSION};
 use url::Url;
 
 use error::{Error, Result};
 use net::ProxyHttpsConnector;
-use proxy::{ProxyInfo, proxy_unless_domain_exempted};
+use proxy::{proxy_unless_domain_exempted, ProxyInfo};
 use ssl;
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
@@ -316,8 +316,6 @@ fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
     options.toggle(SSL_OP_NO_COMPRESSION);
     ssl::set_ca(&mut conn, fs_root_path)?;
     conn.set_options(options);
-    conn.set_cipher_list(
-        "ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH",
-    )?;
+    conn.set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH")?;
     Ok(conn.build())
 }
