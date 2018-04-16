@@ -248,6 +248,14 @@ impl PackageInstall {
         Ok(env)
     }
 
+    /// Returns all the package's binds, required and then optional
+    pub fn all_binds(&self) -> Result<Vec<Bind>> {
+        let mut all_binds = self.binds()?;
+        let mut optional = self.binds_optional()?;
+        all_binds.append(&mut optional);
+        Ok(all_binds)
+    }
+
     pub fn binds(&self) -> Result<Vec<Bind>> {
         match self.read_metafile(MetaFile::Binds) {
             Ok(body) => {
