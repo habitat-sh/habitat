@@ -75,9 +75,7 @@ impl FromStr for Maintainer {
         let email = values.get(1).map(|&s| s.to_owned());
         let url = values.get(2).map(|&s| s.to_owned());
         if let Some(ref u) = url {
-            Url::parse(&u).map_err(|e| {
-                Error::InvalidUrl(u.to_owned(), format!("{}", e))
-            })?;
+            Url::parse(&u).map_err(|e| Error::InvalidUrl(u.to_owned(), format!("{}", e)))?;
         };
 
         Ok(Maintainer { name, email, url })

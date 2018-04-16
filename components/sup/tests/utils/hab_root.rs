@@ -26,7 +26,7 @@
 
 use std::fs::File;
 use std::io::Read;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::string::ToString;
 
 use hcore::fs::PKG_PATH;
@@ -42,9 +42,8 @@ impl HabRoot {
         S: ToString,
     {
         let s = name.to_string();
-        let t = TempDir::new(&s).expect(
-            format!("Could not create temporary directory {}", s).as_str(),
-        );
+        let t =
+            TempDir::new(&s).expect(format!("Could not create temporary directory {}", s).as_str());
         HabRoot(t)
     }
 
@@ -72,9 +71,8 @@ impl HabRoot {
         S: AsRef<Path>,
         T: AsRef<Path>,
     {
-        self.pkg_path(origin, pkg_name).join(
-            MetaFile::SvcUser.to_string(),
-        )
+        self.pkg_path(origin, pkg_name)
+            .join(MetaFile::SvcUser.to_string())
     }
 
     /// Returns the path to the service group metafile for a given package.
@@ -83,10 +81,8 @@ impl HabRoot {
         S: AsRef<Path>,
         T: AsRef<Path>,
     {
-        self.pkg_path(origin, pkg_name).join(
-            MetaFile::SvcGroup
-                .to_string(),
-        )
+        self.pkg_path(origin, pkg_name)
+            .join(MetaFile::SvcGroup.to_string())
     }
 
     /// The path to which a spec file should be written for a given
@@ -111,10 +107,8 @@ impl HabRoot {
         P: ToString,
         S: AsRef<Path>,
     {
-        self.spec_dir(service_group).join(format!(
-            "{}.spec",
-            pkg_name.to_string()
-        ))
+        self.spec_dir(service_group)
+            .join(format!("{}.spec", pkg_name.to_string()))
     }
 
     /// Return the contents of a hook
@@ -153,9 +147,12 @@ impl HabRoot {
     where
         P: AsRef<Path>,
     {
-        self.0.as_ref().to_path_buf().join("hab").join("svc").join(
-            pkg_name.as_ref(),
-        )
+        self.0
+            .as_ref()
+            .to_path_buf()
+            .join("hab")
+            .join("svc")
+            .join(pkg_name.as_ref())
     }
 
     /// Path to a the hooks directory for a package
@@ -181,12 +178,8 @@ impl HabRoot {
         let mut buffer = String::new();
         let p = path.as_ref();
         let mut f = File::open(&p).expect(format!("Couldn't open file {:?}", p).as_str());
-        f.read_to_string(&mut buffer).expect(
-            format!(
-                "Couldn't read file {:?}",
-                p
-            ).as_str(),
-        );
+        f.read_to_string(&mut buffer)
+            .expect(format!("Couldn't read file {:?}", p).as_str());
         buffer
     }
 }

@@ -66,13 +66,8 @@ pub fn setup_package_files<O, P, S>(
         spec_source.exists(),
         format!("Missing a spec file at {:?}", spec_source)
     );
-    fs::copy(&spec_source, &spec_destination).expect(
-        format!(
-            "Could not copy {:?} to {:?}",
-            spec_source,
-            spec_destination
-        ).as_str(),
-    );
+    fs::copy(&spec_source, &spec_destination)
+        .expect(format!("Could not copy {:?} to {:?}", spec_source, spec_destination).as_str());
 
     // Copy the expanded package directory over
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
@@ -98,27 +93,19 @@ where
     );
     let dest_dir = dest_dir.as_ref().to_path_buf();
 
-    fs::create_dir_all(&dest_dir).expect(
-        format!("Could not create directory {:?}", dest_dir).as_str(),
-    );
+    fs::create_dir_all(&dest_dir)
+        .expect(format!("Could not create directory {:?}", dest_dir).as_str());
 
-    let source_dir_entries =
-        fs::read_dir(&source_dir).expect(
-            format!("Could not read entries in {:?}", source_dir).as_str(),
-        );
+    let source_dir_entries = fs::read_dir(&source_dir)
+        .expect(format!("Could not read entries in {:?}", source_dir).as_str());
 
     for entry in source_dir_entries {
         let source = entry.unwrap().path();
         let destination = &dest_dir.join(source.file_name().unwrap());
 
         if source.is_file() {
-            fs::copy(&source, &destination).expect(
-                format!(
-                    "could not copy {:?} to {:?}",
-                    source,
-                    destination
-                ).as_str(),
-            );
+            fs::copy(&source, &destination)
+                .expect(format!("could not copy {:?} to {:?}", source, destination).as_str());
         } else if source.is_dir() {
             copy_dir(&source, &destination);
         }
@@ -163,11 +150,8 @@ fn write_metafile<P>(metafile: P, content: &str)
 where
     P: AsRef<Path>,
 {
-    let mut f =
-        File::create(&metafile).expect(
-            format!("Could not create metafile {}", metafile.as_ref().display())
-                .as_str(),
-        );
+    let mut f = File::create(&metafile)
+        .expect(format!("Could not create metafile {}", metafile.as_ref().display()).as_str());
     f.write_all(content.as_bytes()).expect(
         format!(
             "Could not write file contents to metafile {}",

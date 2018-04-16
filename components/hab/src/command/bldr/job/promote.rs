@@ -18,7 +18,7 @@ use std::str::FromStr;
 
 use api_client;
 use depot_client::{self, SchedulerResponse};
-use common::ui::{Status, UI, UIWriter, UIReader};
+use common::ui::{Status, UIReader, UIWriter, UI};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
@@ -63,24 +63,20 @@ pub fn get_ident_list(
 
     idents = idents.iter().map(|s| format!("{}\n", s)).collect();
 
-    Ok(
-        ui.edit(&idents)?
-            .split("\n")
-            .filter(|s| is_ident(s))
-            .map(|s: &str| s.to_string())
-            .collect(),
-    )
+    Ok(ui.edit(&idents)?
+        .split("\n")
+        .filter(|s| is_ident(s))
+        .map(|s: &str| s.to_string())
+        .collect())
 }
 
 fn get_group_status(bldr_url: &str, group_id: u64) -> Result<SchedulerResponse> {
-    let depot_client = depot_client::Client::new(bldr_url, PRODUCT, VERSION, None)
-        .map_err(Error::DepotClient)?;
+    let depot_client =
+        depot_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
 
-    let group_status = depot_client.get_schedule(group_id as i64, true).map_err(
-        |e| {
-            Error::ScheduleStatus(e)
-        },
-    )?;
+    let group_status = depot_client
+        .get_schedule(group_id as i64, true)
+        .map_err(|e| Error::ScheduleStatus(e))?;
 
     Ok(group_status)
 }
@@ -96,8 +92,8 @@ pub fn start(
     token: &str,
     promote: bool,
 ) -> Result<()> {
-    let api_client = api_client::Client::new(bldr_url, PRODUCT, VERSION, None)
-        .map_err(Error::APIClient)?;
+    let api_client =
+        api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
     let (promoted_demoted, promoting_demoting, to_from, changing_status, changed_status) =
         if promote {
             (
@@ -154,24 +150,14 @@ pub fn start(
 
     ui.status(
         changing_status,
-        format!(
-            "job group {} {} channel '{}'",
-            group_id,
-            to_from,
-            channel
-        ),
+        format!("job group {} {} channel '{}'", group_id, to_from, channel),
     )?;
 
     match api_client.job_group_promote_or_demote(gid, &idents, channel, token, promote) {
         Ok(_) => {
             ui.status(
                 changed_status,
-                format!(
-                    "job group {} {} channel '{}'",
-                    group_id,
-                    to_from,
-                    channel
-                ),
+                format!("job group {} {} channel '{}'", group_id, to_from, channel),
             )?;
         }
         Err(api_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
@@ -234,7 +220,9 @@ mod test {
 
     impl OutputBuffer {
         fn new() -> Self {
-            OutputBuffer { cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))) }
+            OutputBuffer {
+                cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))),
+            }
         }
     }
 

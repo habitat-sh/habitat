@@ -20,7 +20,7 @@ use error::Result;
 
 use hcore::crypto::init;
 use hcore::package::PackageIdent;
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 
 const SCAFFOLDING_GO_IDENT: &'static str = "core/scaffolding-go";
 const SCAFFOLDING_GRADLE_IDENT: &'static str = "core/scaffolding-gradle";
@@ -34,52 +34,33 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
         Some(scaffold) => {
             init();
             match scaffold.to_lowercase().as_ref() {
-                SCAFFOLDING_GO_IDENT |
-                "go" => {
+                SCAFFOLDING_GO_IDENT | "go" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT).unwrap();
-                    ui.status(
-                        Status::Using,
-                        &format!("Go Scaffolding '{}'", ident),
-                    )?;
+                    ui.status(Status::Using, &format!("Go Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
-                SCAFFOLDING_GRADLE_IDENT |
-                "gradle" => {
+                SCAFFOLDING_GRADLE_IDENT | "gradle" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT).unwrap();
-                    ui.status(
-                        Status::Using,
-                        &format!("Gradle Scaffolding '{}'", ident),
-                    )?;
+                    ui.status(Status::Using, &format!("Gradle Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
-                SCAFFOLDING_NODE_IDENT |
-                "node" => {
+                SCAFFOLDING_NODE_IDENT | "node" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT).unwrap();
-                    ui.status(
-                        Status::Using,
-                        &format!("Node Scaffolding '{}'", ident),
-                    )?;
+                    ui.status(Status::Using, &format!("Node Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
-                SCAFFOLDING_RUBY_IDENT |
-                "ruby" => {
+                SCAFFOLDING_RUBY_IDENT | "ruby" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_RUBY_IDENT).unwrap();
-                    ui.status(
-                        Status::Using,
-                        &format!("Ruby Scaffolding '{}'", ident),
-                    )?;
+                    ui.status(Status::Using, &format!("Ruby Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 _ => {
                     let ident = PackageIdent::from_str(scaffold).unwrap();
-                    ui.status(
-                        Status::Using,
-                        &format!("custom Scaffolding: '{}'", ident),
-                    )?;
+                    ui.status(Status::Using, &format!("custom Scaffolding: '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
@@ -96,53 +77,39 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
     ui.begin("Attempting autodiscovery ")?;
     ui.para(
         "No scaffolding type was provided. Let's see if we can figure out \
-        what kind of application you're planning to package.",
+         what kind of application you're planning to package.",
     )?;
     let current_path = Path::new(".");
     if is_project_go(&current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT).unwrap();
         ui.begin("We've detected a Go codebase")?;
-        ui.status(
-            Status::Using,
-            &format!("Scaffolding package: '{}'", ident),
-        )?;
+        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_gradle(&current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT).unwrap();
         ui.begin("We've detected a Gradle codebase")?;
-        ui.status(
-            Status::Using,
-            &format!("Scaffolding package: '{}'", ident),
-        )?;
+        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_node(&current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT).unwrap();
         ui.begin("We've detected a Node.js codebase")?;
-        ui.status(
-            Status::Using,
-            &format!("Scaffolding package: '{}'", ident),
-        )?;
+        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_ruby(&current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_RUBY_IDENT).unwrap();
         ui.begin("We've detected a Ruby codebase")?;
-        ui.status(
-            Status::Using,
-            &format!("Scaffolding package: '{}'", ident),
-        )?;
+        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else {
-        ui.warn(
-            "Unable to determine the type of app in your current directory",
-        )?;
+        ui.warn("Unable to determine the type of app in your current directory")?;
         ui.para(
             "For now, we'll generate a plan with all of the available plan variables and build \
-            phase callbacks. For more documentation on plan options try passing --withdocs \
-            or visit https://www.habitat.sh/docs/reference/plan-syntax/",
+             phase callbacks. For more documentation on plan options try passing --withdocs \
+             or visit https://www.habitat.sh/docs/reference/plan-syntax/",
         )?;
         Ok(None)
     }
@@ -152,11 +119,10 @@ fn is_project_go<T>(path: T) -> bool
 where
     T: AsRef<Path>,
 {
-    if path.as_ref().join("main.go").is_file() ||
-        path.as_ref().join("Godeps/Godeps.json").is_file() ||
-        path.as_ref().join("vendor/vendor.json").is_file() ||
-        path.as_ref().join("glide.yaml").is_file() ||
-        project_uses_gb(path.as_ref()).expect("Result<bool> not returned from .go file check")
+    if path.as_ref().join("main.go").is_file() || path.as_ref().join("Godeps/Godeps.json").is_file()
+        || path.as_ref().join("vendor/vendor.json").is_file()
+        || path.as_ref().join("glide.yaml").is_file()
+        || project_uses_gb(path.as_ref()).expect("Result<bool> not returned from .go file check")
     {
         return true;
     }
@@ -167,8 +133,8 @@ fn is_project_gradle<T>(path: T) -> bool
 where
     T: AsRef<Path>,
 {
-    if path.as_ref().join("build.gradle").is_file() ||
-        path.as_ref().join("settings.gradle").is_file()
+    if path.as_ref().join("build.gradle").is_file()
+        || path.as_ref().join("settings.gradle").is_file()
     {
         return true;
     }

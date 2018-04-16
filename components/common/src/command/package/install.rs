@@ -49,7 +49,7 @@ use hcore;
 use hcore::fs::cache_key_path;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
-use hcore::package::{Identifiable, PackageArchive, PackageIdent, Target, PackageInstall};
+use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, Target};
 use hcore::package::metadata::PackageType;
 use hyper::status::StatusCode;
 
@@ -223,9 +223,7 @@ impl<'a> FullyQualifiedPackageIdent<'a> {
             Ok(FullyQualifiedPackageIdent { ident })
         } else {
             Err(Error::HabitatCore(
-                hcore::Error::FullyQualifiedPackageIdentRequired(
-                    ident.to_owned().to_string(),
-                ),
+                hcore::Error::FullyQualifiedPackageIdentRequired(ident.to_owned().to_string()),
             ))
         }
     }
@@ -377,8 +375,7 @@ impl<'a> InstallTask<'a> {
                 ui.status(Status::Using, &target_ident)?;
                 ui.end(format!(
                     "Install of {} complete with {} new packages installed.",
-                    &target_ident,
-                    0
+                    &target_ident, 0
                 ))?;
                 Ok(package_install)
             }
@@ -400,9 +397,7 @@ impl<'a> InstallTask<'a> {
     where
         T: UIWriter,
     {
-        ui.begin(
-            format!("Installing {}", local_archive.path.display()),
-        )?;
+        ui.begin(format!("Installing {}", local_archive.path.display()))?;
         let target_ident = FullyQualifiedPackageIdent::from(&local_archive.ident)?;
         match self.installed_package(&target_ident) {
             Some(package_install) => {
@@ -410,17 +405,13 @@ impl<'a> InstallTask<'a> {
                 ui.status(Status::Using, &target_ident)?;
                 ui.end(format!(
                     "Install of {} complete with {} new packages installed.",
-                    &target_ident,
-                    0
+                    &target_ident, 0
                 ))?;
                 Ok(package_install)
             }
             None => {
                 // No installed package was found
-                self.store_artifact_in_cache(
-                    &target_ident,
-                    &local_archive.path,
-                )?;
+                self.store_artifact_in_cache(&target_ident, &local_archive.path)?;
                 self.install_package(ui, &target_ident, token)
             }
         }
@@ -472,33 +463,30 @@ impl<'a> InstallTask<'a> {
                 Status::Determining,
                 format!(
                     "latest version of {} in the '{}' channel",
-                    &ident,
-                    self.channel
+                    &ident, self.channel
                 ),
             )?;
             let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, token) {
                 Ok(latest_ident) => latest_ident,
-                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
-                    match latest_local {
-                        Ok(ref local) => {
-                            ui.status(
-                                Status::Missing,
-                                format!(
-                                    "remote version of {} in the '{}' channel, but a \
-                                    newer installed version was found locally ({})",
-                                    &ident,
-                                    self.channel,
-                                    local.as_ref()
-                                ),
-                            )?;
-                            FullyQualifiedPackageIdent::from(local.as_ref().clone())?
-                        }
-                        Err(_) => {
-                            self.recommend_channels(ui, &ident, token)?;
-                            return Err(Error::PackageNotFound);
-                        }
+                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => match latest_local {
+                    Ok(ref local) => {
+                        ui.status(
+                            Status::Missing,
+                            format!(
+                                "remote version of {} in the '{}' channel, but a \
+                                 newer installed version was found locally ({})",
+                                &ident,
+                                self.channel,
+                                local.as_ref()
+                            ),
+                        )?;
+                        FullyQualifiedPackageIdent::from(local.as_ref().clone())?
                     }
-                }
+                    Err(_) => {
+                        self.recommend_channels(ui, &ident, token)?;
+                        return Err(Error::PackageNotFound);
+                    }
+                },
                 Err(e) => {
                     debug!("error fetching ident: {:?}", e);
                     return Err(e);
@@ -634,8 +622,7 @@ impl<'a> InstallTask<'a> {
             {
                 return Err(Error::from(depot_client::Error::DownloadFailed(format!(
                     "We tried {} times but could not download {}. Giving up.",
-                    RETRIES,
-                    ident
+                    RETRIES, ident
                 ))));
             }
         }
@@ -671,10 +658,9 @@ impl<'a> InstallTask<'a> {
         let latest_installed = self.latest_installed_ident(&ident);
         let latest_cached = self.latest_cached_ident(&ident);
         debug!(
-                "latest installed: {:?}, latest_cached: {:?}",
-                &latest_installed,
-                &latest_cached,
-            );
+            "latest installed: {:?}, latest_cached: {:?}",
+            &latest_installed, &latest_cached,
+        );
         let latest = match (latest_installed, latest_cached) {
             (Ok(pkg_install), Err(_)) => pkg_install,
             (Err(_), Ok(pkg_artifact)) => pkg_artifact,
@@ -746,9 +732,11 @@ impl<'a> InstallTask<'a> {
         if latest.is_empty() {
             Err(Error::PackageNotFound)
         } else {
-            Ok(FullyQualifiedPackageIdent::from(
-                latest.pop().unwrap().1.ident()?,
-            )?)
+            Ok(FullyQualifiedPackageIdent::from(latest
+                .pop()
+                .unwrap()
+                .1
+                .ident()?)?)
         }
     }
 
@@ -805,7 +793,7 @@ impl<'a> InstallTask<'a> {
             Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
                 println!(
                     "Host platform or architecture not supported by the targted depot; \
-                          skipping."
+                     skipping."
                 );
                 Ok(())
             }
@@ -825,12 +813,8 @@ impl<'a> InstallTask<'a> {
                 format!("{} public origin key", &name_with_rev),
             )?;
             let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-            self.depot_client.fetch_origin_key(
-                &name,
-                &rev,
-                self.key_cache_path,
-                ui.progress(),
-            )?;
+            self.depot_client
+                .fetch_origin_key(&name, &rev, self.key_cache_path, ui.progress())?;
             ui.status(
                 Status::Cached,
                 format!("{} public origin key", &name_with_rev),
@@ -855,12 +839,11 @@ impl<'a> InstallTask<'a> {
             artifact_path.to_path_buf()
         };
         fs::create_dir_all(self.artifact_cache_path)?;
-        let cache_path =
-            if let Some(canonicalized) = self.artifact_cache_path.canonicalize().ok() {
-                canonicalized.join(ident.archive_name())
-            } else {
-                self.artifact_cache_path.join(ident.archive_name())
-            };
+        let cache_path = if let Some(canonicalized) = self.artifact_cache_path.canonicalize().ok() {
+            canonicalized.join(ident.archive_name())
+        } else {
+            self.artifact_cache_path.join(ident.archive_name())
+        };
 
         // Handle the pathological case where you're trying to install
         // an artifact file directly from the cache. Otherwise, you'd
@@ -869,7 +852,7 @@ impl<'a> InstallTask<'a> {
         if artifact_path == cache_path {
             debug!(
                 "skipping artifact copy, it is being referenced directly from cache, \
-                artifact_path={}, cache_path={}",
+                 artifact_path={}, cache_path={}",
                 artifact_path.display(),
                 cache_path.display()
             );
@@ -935,8 +918,7 @@ impl<'a> InstallTask<'a> {
             if !recommendations.is_empty() {
                 ui.warn(format!(
                     "No releases of {} exist in the '{}' channel",
-                    &ident,
-                    self.channel
+                    &ident, self.channel
                 ))?;
                 ui.warn("The following releases were found:")?;
                 for r in recommendations {

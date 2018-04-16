@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{UI, UIWriter};
+use common::ui::{UIWriter, UI};
 use hcore::crypto::SigKeyPair;
 use hcore::package::ident;
 use hcore::Error::InvalidOrigin;

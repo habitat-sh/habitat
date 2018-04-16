@@ -140,9 +140,7 @@ impl Server {
                 self.services.kill_all();
                 Ok(TickState::Exit(0))
             }
-            Some(_) => {
-                Err(Error::SupShutdown)
-            }
+            Some(_) => Err(Error::SupShutdown),
             None => {
                 // TODO (CM): kill services?
                 Err(Error::SupShutdown)
@@ -280,7 +278,10 @@ impl Server {
                 // at least one restart/stop cycle of the
                 // Supervisor. This just makes the behavior explicit;
                 // it can be revisited later.
-                outputln!("Supervisor process killed by signal {}; shutting everything down now", signal);
+                outputln!(
+                    "Supervisor process killed by signal {}; shutting everything down now",
+                    signal
+                );
                 Some(self.handle_supervisor_exit(Some(ERR_NO_RETRY_EXCODE)))
             } else {
                 // We should never get here; a Linux process either
@@ -383,11 +384,9 @@ pub fn run(args: Vec<String>) -> Result<i32> {
             Ok(TickState::Exit(code)) => {
                 return Ok(code);
             }
-            Err(_) => {
-                while server.reload().is_err() {
-                    thread::sleep(Duration::from_millis(1_000));
-                }
-            }
+            Err(_) => while server.reload().is_err() {
+                thread::sleep(Duration::from_millis(1_000));
+            },
         }
     }
 }
@@ -430,12 +429,9 @@ fn dispatch(tx: &Sender, bytes: &[u8], services: &mut ServiceTable) {
 
 fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Sender)> {
     let (rx, raw) = server.accept().map_err(|_| Error::AcceptConn)?;
-    let txn = protocol::NetTxn::from_bytes(&raw).map_err(
-        Error::Deserialize,
-    )?;
-    let mut msg = txn.decode::<protocol::Register>().map_err(
-        Error::Deserialize,
-    )?;
+    let txn = protocol::NetTxn::from_bytes(&raw).map_err(Error::Deserialize)?;
+    let mut msg = txn.decode::<protocol::Register>()
+        .map_err(Error::Deserialize)?;
     let tx = IpcSender::connect(msg.take_pipe()).map_err(Error::Connect)?;
     send(&tx, &protocol::NetOk::new())?;
     Ok((rx, tx))
@@ -477,12 +473,10 @@ fn supervisor_cmd() -> Result<PathBuf> {
     }
     let ident = PackageIdent::from_str(SUP_PACKAGE_IDENT).unwrap();
     match PackageInstall::load_at_least(&ident, None) {
-        Ok(install) => {
-            match core::fs::find_command_in_pkg(SUP_CMD, &install, "/") {
-                Ok(Some(cmd)) => Ok(cmd),
-                _ => Err(Error::SupBinaryNotFound),
-            }
-        }
+        Ok(install) => match core::fs::find_command_in_pkg(SUP_CMD, &install, "/") {
+            Ok(Some(cmd)) => Ok(cmd),
+            _ => Err(Error::SupBinaryNotFound),
+        },
         Err(_) => Err(Error::SupPackageNotFound),
     }
 }

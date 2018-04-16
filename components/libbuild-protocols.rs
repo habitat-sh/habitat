@@ -15,12 +15,10 @@ mod protocols {
     fn generate_protocols() {
         let prefix = match env::var("PROTOBUF_PREFIX").ok() {
             Some(prefix) => prefix,
-            None => {
-                match pkg_config::get_variable("protobuf", "prefix") {
-                    Ok(prefix) => prefix,
-                    Err(msg) => panic!("Unable to locate protobuf, err={:?}", msg),
-                }
-            }
+            None => match pkg_config::get_variable("protobuf", "prefix") {
+                Ok(prefix) => prefix,
+                Err(msg) => panic!("Unable to locate protobuf, err={:?}", msg),
+            },
         };
 
         let out_dir = r"src/message";

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 extern crate ansi_term;
+#[macro_use]
+extern crate clap;
 extern crate env_logger;
 extern crate habitat_common as common;
 #[macro_use]
@@ -21,8 +23,6 @@ extern crate habitat_launcher_client as launcher_client;
 #[macro_use]
 extern crate habitat_sup as sup;
 extern crate habitat_sup_protocol as protocol;
-#[macro_use]
-extern crate clap;
 extern crate libc;
 #[macro_use]
 extern crate log;
@@ -41,7 +41,7 @@ use std::str::{self, FromStr};
 
 use clap::{App, ArgMatches};
 use common::command::package::install::InstallSource;
-use common::ui::{NONINTERACTIVE_ENVVAR, UI, Coloring};
+use common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
 use hcore::channel;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
@@ -72,8 +72,14 @@ fn main() {
     if let Err(err) = start() {
         println!("{}", err);
         match err {
-            SupError { err: Error::ProcessLocked(_), .. } => process::exit(ERR_NO_RETRY_EXCODE),
-            SupError { err: Error::Departed, .. } => {
+            SupError {
+                err: Error::ProcessLocked(_),
+                ..
+            } => process::exit(ERR_NO_RETRY_EXCODE),
+            SupError {
+                err: Error::Departed,
+                ..
+            } => {
                 process::exit(ERR_NO_RETRY_EXCODE);
             }
             _ => process::exit(1),
@@ -89,15 +95,13 @@ fn boot() -> Option<LauncherCli> {
         process::exit(1);
     }
     match launcher_client::env_pipe() {
-        Some(pipe) => {
-            match LauncherCli::connect(pipe) {
-                Ok(launcher) => Some(launcher),
-                Err(err) => {
-                    println!("{}", err);
-                    process::exit(1);
-                }
+        Some(pipe) => match LauncherCli::connect(pipe) {
+            Ok(launcher) => Some(launcher),
+            Err(err) => {
+                println!("{}", err);
+                process::exit(1);
             }
-        }
+        },
         None => None,
     }
 }
@@ -169,7 +173,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward Supervisor and service event data to")
-            // === Optional arguments to additionally load an initial service for the Supervisor 
+            // === Optional arguments to additionally load an initial service for the Supervisor
             (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
                 the Supervisor startup specified by a package identifier \
                 (ex: core/redis) or filepath to a Habitat Artifact \
@@ -252,7 +256,10 @@ fn sub_sh(m: &ArgMatches) -> Result<()> {
 fn sub_term(m: &ArgMatches) -> Result<()> {
     let cfg = mgrcfg_from_matches(m)?;
     match Manager::term(&cfg) {
-        Err(SupError { err: Error::ProcessLockIO(_, _), .. }) => {
+        Err(SupError {
+            err: Error::ProcessLockIO(_, _),
+            ..
+        }) => {
             println!("Supervisor not started.");
             Ok(())
         }
@@ -320,26 +327,19 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
             &val,
             &default_cache_key_path(None),
         )?),
-        None => {
-            match henv::var(RING_KEY_ENVVAR) {
-                Ok(val) => {
-                    let (key, _) =
-                        SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
-                    Some(key)
-                }
-                Err(_) => {
-                    match henv::var(RING_ENVVAR) {
-                        Ok(val) => {
-                            Some(SymKey::get_latest_pair_for(
-                                &val,
-                                &default_cache_key_path(None),
-                            )?)
-                        }
-                        Err(_) => None,
-                    }
-                }
+        None => match henv::var(RING_KEY_ENVVAR) {
+            Ok(val) => {
+                let (key, _) = SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
+                Some(key)
             }
-        }
+            Err(_) => match henv::var(RING_ENVVAR) {
+                Ok(val) => Some(SymKey::get_latest_pair_for(
+                    &val,
+                    &default_cache_key_path(None),
+                )?),
+                Err(_) => None,
+            },
+        },
     };
     if let Some(events) = m.value_of("EVENTS") {
         cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
@@ -399,15 +399,13 @@ fn get_app_env_from_input(m: &ArgMatches) -> Result<Option<ApplicationEnvironmen
 }
 
 fn get_topology_from_input(m: &ArgMatches) -> Option<Topology> {
-    m.value_of("TOPOLOGY").and_then(
-        |f| Topology::from_str(f).ok(),
-    )
+    m.value_of("TOPOLOGY")
+        .and_then(|f| Topology::from_str(f).ok())
 }
 
 fn get_strategy_from_input(m: &ArgMatches) -> Option<UpdateStrategy> {
-    m.value_of("STRATEGY").and_then(
-        |f| UpdateStrategy::from_str(f).ok(),
-    )
+    m.value_of("STRATEGY")
+        .and_then(|f| UpdateStrategy::from_str(f).ok())
 }
 
 fn get_binds_from_input(m: &ArgMatches) -> Result<Vec<protocol::types::ServiceBind>> {

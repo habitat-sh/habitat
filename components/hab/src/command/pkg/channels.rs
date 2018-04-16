@@ -27,14 +27,12 @@
 //!    If the specified package does not exist, this will fail.
 //!
 
-
-use common::ui::{UI, UIWriter};
+use common::ui::{UIWriter, UI};
 use depot_client::Client;
 use hcore::package::PackageIdent;
 
 use {PRODUCT, VERSION};
 use error::Result;
-
 
 /// Return a list of channels that a package is in.
 ///

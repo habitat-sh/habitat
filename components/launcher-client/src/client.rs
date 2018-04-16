@@ -48,11 +48,10 @@ impl LauncherCli {
     where
         T: protobuf::MessageStatic,
     {
-        let txn = protocol::NetTxn::from_bytes(bytes).map_err(
-            Error::Deserialize,
-        )?;
+        let txn = protocol::NetTxn::from_bytes(bytes).map_err(Error::Deserialize)?;
         if txn.message_id() == "NetErr" {
-            let err = txn.decode::<protocol::NetErr>().map_err(Error::Deserialize)?;
+            let err = txn.decode::<protocol::NetErr>()
+                .map_err(Error::Deserialize)?;
             return Err(Error::Protocol(err));
         }
         let msg = txn.decode::<T>().map_err(Error::Deserialize)?;
@@ -98,8 +97,7 @@ impl LauncherCli {
 
     pub fn is_stopping(&self) -> bool {
         match Self::try_recv::<protocol::Shutdown>(&self.rx) {
-            Ok(Some(_)) |
-            Err(Error::IPCIO(_)) => true,
+            Ok(Some(_)) | Err(Error::IPCIO(_)) => true,
             Ok(None) => false,
             Err(err) => panic!("Unexpected error checking for shutdown request, {}", err),
         }

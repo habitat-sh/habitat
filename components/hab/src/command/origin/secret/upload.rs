@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use depot_client::Client as DepotClient;
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use super::super::key::download::download_public_encryption_key;
 
 use hcore::crypto::BoxKeyPair;
@@ -30,9 +30,8 @@ pub fn start(
     secret: &str,
     cache: &Path,
 ) -> Result<()> {
-    let depot_client = DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
-        Error::DepotClient,
-    )?;
+    let depot_client =
+        DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
 
     let encryption_key = match BoxKeyPair::get_latest_pair_for(origin, cache) {
         Ok(key) => key,
@@ -43,10 +42,7 @@ pub fn start(
         }
     };
 
-    ui.status(
-        Status::Encrypting,
-        format!("value for key {}.", key),
-    )?;
+    ui.status(Status::Encrypting, format!("value for key {}.", key))?;
     let encrypted_secret_bytes = encryption_key.encrypt(secret.as_bytes(), None)?;
     let encrypted_secret_string = match String::from_utf8(encrypted_secret_bytes) {
         Ok(string_from_bytes) => string_from_bytes,
@@ -58,10 +54,7 @@ pub fn start(
     };
     ui.status(Status::Encrypted, format!("{}=[REDACTED].", key))?;
 
-    ui.status(
-        Status::Uploading,
-        format!("secret for key {}.", key),
-    )?;
+    ui.status(Status::Uploading, format!("secret for key {}.", key))?;
 
     depot_client
         .create_origin_secret(origin, token, key, &encrypted_secret_string)

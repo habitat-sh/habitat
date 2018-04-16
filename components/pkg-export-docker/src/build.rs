@@ -23,16 +23,16 @@ use std::str::FromStr;
 use clap;
 use common;
 use common::command::package::install::{InstallMode, InstallSource};
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use hab;
-use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, cache_artifact_path, cache_key_path};
+use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::PROGRAM_NAME;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use tempdir::TempDir;
 
-use super::{VERSION, BUSYBOX_IDENT, CACERTS_IDENT};
-use accounts::{EtcPasswdEntry, EtcGroupEntry};
+use super::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION};
+use accounts::{EtcGroupEntry, EtcPasswdEntry};
 use chmod;
 use error::{Error, Result};
 use rootfs;
@@ -86,9 +86,8 @@ impl<'a> BuildSpec<'a> {
     ) -> Self {
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
-            hab_launcher: m.value_of("HAB_LAUNCHER_PKG").unwrap_or(
-                DEFAULT_LAUNCHER_IDENT,
-            ),
+            hab_launcher: m.value_of("HAB_LAUNCHER_PKG")
+                .unwrap_or(DEFAULT_LAUNCHER_IDENT),
             hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
             url: m.value_of("BLDR_URL").unwrap_or(&default_url),
             channel: m.value_of("CHANNEL").unwrap_or(&default_channel),
@@ -250,8 +249,7 @@ impl<'a> BuildSpec<'a> {
         base_pkgs: &BasePkgIdents,
     ) -> Result<()> {
         ui.status(Status::Creating, "cacerts symlink into /etc")?;
-        let src = util::pkg_path_for(&base_pkgs.cacerts, rootfs.as_ref())?
-            .join("ssl");
+        let src = util::pkg_path_for(&base_pkgs.cacerts, rootfs.as_ref())?.join("ssl");
         let dst = rootfs.as_ref().join("etc").join("ssl");
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!(
@@ -333,7 +331,6 @@ impl<'a> BuildSpec<'a> {
         channel: &str,
         fs_root_path: P,
     ) -> Result<PackageIdent> {
-
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install = common::command::package::install::start(
             ui,
@@ -469,9 +466,10 @@ impl BuildRootContext {
 
     /// Returns the first service package from the provided Habitat packages.
     pub fn primary_svc_ident(&self) -> &PackageIdent {
-        self.svc_idents().first().map(|e| *e).expect(
-            "Primary service package was confirmed",
-        )
+        self.svc_idents()
+            .first()
+            .map(|e| *e)
+            .expect("Primary service package was confirmed")
     }
 
     fn primary_svc(&self) -> Result<PackageInstall> {
@@ -494,8 +492,7 @@ impl BuildRootContext {
         for svc in self.idents.iter().filter_map(|t| match *t {
             PkgIdentType::Svc(ref svc) => Some(svc),
             _ => None,
-        })
-        {
+        }) {
             let pkg_exposes_vec: Vec<&str> = svc.exposes.iter().map(|e| e.as_ref()).collect();
             exposes.extend_from_slice(&pkg_exposes_vec);
         }
@@ -806,7 +803,6 @@ mod test {
             self
         }
 
-
         pub fn install(&self) -> PackageIdent {
             let mut ident = PackageIdent::from_str(&self.ident).unwrap();
             if let None = ident.version {
@@ -966,7 +962,6 @@ mod test {
             FakePkg::new("acme/hab-launcher", rootfs.as_ref())
                 .add_bin("hab-launch")
                 .install()
-
         }
 
         fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
@@ -991,7 +986,9 @@ mod test {
 
         impl OutputBuffer {
             fn new() -> Self {
-                OutputBuffer { cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))) }
+                OutputBuffer {
+                    cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))),
+                }
             }
         }
 
@@ -1069,7 +1066,6 @@ mod test {
 
         #[test]
         fn hab_user_and_group_are_created_even_if_not_explicitly_called_for() {
-
             let rootfs = TempDir::new("rootfs").unwrap();
 
             let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())

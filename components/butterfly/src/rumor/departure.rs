@@ -96,7 +96,11 @@ impl Rumor for Departure {
     }
 
     fn merge(&mut self, other: Departure) -> bool {
-        if *self >= other { false } else { true }
+        if *self >= other {
+            false
+        } else {
+            true
+        }
     }
 
     fn kind(&self) -> ProtoRumor_Type {

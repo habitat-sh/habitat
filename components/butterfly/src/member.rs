@@ -70,9 +70,7 @@ impl FromStr for Health {
 
 impl From<i32> for Health {
     fn from(value: i32) -> Health {
-        Self::from(ProtoMembership_Health::from_i32(value).unwrap_or(
-            ProtoMembership_Health::ALIVE,
-        ))
+        Self::from(ProtoMembership_Health::from_i32(value).unwrap_or(ProtoMembership_Health::ALIVE))
     }
 }
 
@@ -109,7 +107,6 @@ impl<'a> From<&'a Health> for ProtoMembership_Health {
         }
     }
 }
-
 
 impl fmt::Display for Health {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -153,7 +150,9 @@ impl Default for Member {
         let mut proto_member = ProtoMember::new();
         proto_member.set_id(Uuid::new_v4().simple().to_string());
         proto_member.set_incarnation(0);
-        Member { proto: proto_member }
+        Member {
+            proto: proto_member,
+        }
     }
 }
 
@@ -179,7 +178,9 @@ impl From<ProtoMember> for Member {
 
 impl<'a> From<&'a ProtoMember> for Member {
     fn from(member: &'a ProtoMember) -> Member {
-        Member { proto: member.clone() }
+        Member {
+            proto: member.clone(),
+        }
     }
 }
 
@@ -263,23 +264,23 @@ impl MemberList {
     }
 
     pub fn len_initial_members(&self) -> usize {
-        let im = self.initial_members.read().expect(
-            "Initial members lock is poisoned",
-        );
+        let im = self.initial_members
+            .read()
+            .expect("Initial members lock is poisoned");
         im.len()
     }
 
     pub fn add_initial_member(&self, member: Member) {
-        let mut im = self.initial_members.write().expect(
-            "Initial members lock is poisoned",
-        );
+        let mut im = self.initial_members
+            .write()
+            .expect("Initial members lock is poisoned");
         im.push(member);
     }
 
     pub fn set_initial_members(&self, members: Vec<Member>) {
-        let mut im = self.initial_members.write().expect(
-            "Initial members lock is poisoned",
-        );
+        let mut im = self.initial_members
+            .write()
+            .expect("Initial members lock is poisoned");
         im.clear();
         im.extend(members);
     }
@@ -288,9 +289,9 @@ impl MemberList {
     where
         F: FnMut(&Member),
     {
-        let im = self.initial_members.read().expect(
-            "Initial members lock is poisoned",
-        );
+        let im = self.initial_members
+            .read()
+            .expect("Initial members lock is poisoned");
         for member in im.iter() {
             with_closure(member);
         }
@@ -304,11 +305,10 @@ impl MemberList {
         let mut stop_departure: bool = false;
 
         // If we have an existing member record..
-        if let Some(current_member) =
-            self.members
-                .read()
-                .expect("Member List read lock poisoned")
-                .get(member.get_id())
+        if let Some(current_member) = self.members
+            .read()
+            .expect("Member List read lock poisoned")
+            .get(member.get_id())
         {
             // If my incarnation is newer than the member we are being asked
             // to insert, we want to prefer our member, health and all.
@@ -330,7 +330,7 @@ impl MemberList {
                 let hl = self.health.read().expect("Health lock is poisoned");
                 let current_health = hl.get(current_member.get_id()).expect(
                     "No health for a membership record should be impossible; did you use \
-                             insert?",
+                     insert?",
                 );
                 // If currently healthy and the rumor is suspicion, then we are now suspicious.
                 if *current_health == Health::Alive && health == Health::Suspect {
@@ -409,9 +409,11 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of(&self, member: &Member) -> Option<Health> {
-        match self.health.read().expect("Health lock is poisoned").get(
-            member.get_id(),
-        ) {
+        match self.health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member.get_id())
+        {
             Some(health) => Some(*health),
             None => None,
         }
@@ -419,21 +421,23 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
-        match self.health.read().expect("Health lock is poisoned").get(
-            member_id,
-        ) {
+        match self.health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member_id)
+        {
             Some(health) => Some(*health),
             None => None,
         }
     }
 
     pub fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
-        match self.health.read().expect("Health lock is poisoned").get(
-            member_id,
-        ) {
-            Some(&Health::Alive) |
-            Some(&Health::Suspect) |
-            Some(&Health::Confirmed) => true,
+        match self.health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member_id)
+        {
+            Some(&Health::Alive) | Some(&Health::Suspect) | Some(&Health::Confirmed) => true,
             Some(&Health::Departed) => false,
             None => false,
         }
@@ -441,9 +445,11 @@ impl MemberList {
 
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of(&self, member: &Member, health: Health) -> bool {
-        match self.health.read().expect("Health lock is poisoned").get(
-            member.get_id(),
-        ) {
+        match self.health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member.get_id())
+        {
             Some(real_health) if *real_health == health => true,
             Some(_) => false,
             None => false,
@@ -452,9 +458,11 @@ impl MemberList {
 
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of_by_id(&self, member_id: &str, health: Health) -> bool {
-        match self.health.read().expect("Health lock is poisoned").get(
-            member_id,
-        ) {
+        match self.health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member_id)
+        {
             Some(real_health) if *real_health == health => true,
             Some(_) => false,
             None => false,
@@ -479,11 +487,10 @@ impl MemberList {
     /// Updates the health of a member without touching the member itself. Returns true if the
     /// health changed, false otherwise.
     pub fn insert_health_by_id(&self, member_id: &str, health: Health) -> bool {
-        if let Some(current_health) =
-            self.health
-                .read()
-                .expect("Health read lock is poisoned")
-                .get(member_id)
+        if let Some(current_health) = self.health
+            .read()
+            .expect("Health read lock is poisoned")
+            .get(member_id)
         {
             if *current_health == health {
                 return false;
@@ -512,7 +519,8 @@ impl MemberList {
         let mhealth: ProtoMembership_Health = match self.health
             .read()
             .expect("Health lock is poisoned")
-            .get(member_id) {
+            .get(member_id)
+        {
             Some(health) => health.into(),
             None => return None,
         };
@@ -569,8 +577,8 @@ impl MemberList {
         for member in members
             .into_iter()
             .filter(|m| {
-                m.get_id() != sending_member_id && m.get_id() != target_member_id &&
-                    self.check_health_of_by_id(m.get_id(), Health::Alive)
+                m.get_id() != sending_member_id && m.get_id() != target_member_id
+                    && self.check_health_of_by_id(m.get_id(), Health::Alive)
             })
             .take(PINGREQ_TARGETS)
         {
@@ -648,11 +656,10 @@ impl MemberList {
     where
         F: FnMut((&str, &SteadyTime)) -> (),
     {
-        for (id, departure_time) in
-            self.depart
-                .read()
-                .expect("Departure list lock is poisoned")
-                .iter()
+        for (id, departure_time) in self.depart
+            .read()
+            .expect("Departure list lock is poisoned")
+            .iter()
         {
             with_closure((id, departure_time));
         }
@@ -666,17 +673,17 @@ impl MemberList {
 
     /// Sets a departure time for a member who has been confirmed
     pub fn depart(&self, member_id: &str) {
-        let mut depart = self.depart.write().expect(
-            "Departure list lock is poisoned",
-        );
+        let mut depart = self.depart
+            .write()
+            .expect("Departure list lock is poisoned");
         depart.insert(member_id.to_string(), SteadyTime::now());
     }
 
     /// Removes a member from the departure list
     pub fn depart_remove(&self, member_id: &str) {
-        let mut depart = self.depart.write().expect(
-            "Departure list lock is poisoned",
-        );
+        let mut depart = self.depart
+            .write()
+            .expect("Departure list lock is poisoned");
         depart.remove(member_id);
     }
 
@@ -717,7 +724,7 @@ mod tests {
     }
 
     mod member_list {
-        use member::{Member, MemberList, Health, PINGREQ_TARGETS};
+        use member::{Health, Member, MemberList, PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
             let ml = MemberList::new();
@@ -773,10 +780,10 @@ mod tests {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut excluded_appears: bool = false;
-                ml.with_pingreq_targets(from.get_id(), target.get_id(), |m| if m.get_id() ==
-                    from.get_id()
-                {
-                    excluded_appears = true
+                ml.with_pingreq_targets(from.get_id(), target.get_id(), |m| {
+                    if m.get_id() == from.get_id() {
+                        excluded_appears = true
+                    }
                 });
                 assert_eq!(excluded_appears, false);
             });
@@ -789,10 +796,10 @@ mod tests {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut excluded_appears: bool = false;
-                ml.with_pingreq_targets(from.get_id(), target.get_id(), |m| if m.get_id() ==
-                    target.get_id()
-                {
-                    excluded_appears = true
+                ml.with_pingreq_targets(from.get_id(), target.get_id(), |m| {
+                    if m.get_id() == target.get_id() {
+                        excluded_appears = true
+                    }
                 });
                 assert_eq!(excluded_appears, false);
             });

@@ -19,7 +19,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 use export_docker::Result;
 use error::Error;
 
@@ -71,15 +71,14 @@ impl Deps {
             .arg(OPERATOR_REPO_URL)
             .spawn()
             .map_err(|_| Error::HelmLaunchFailed)
-            .and_then(|mut c| if !c.wait()
-                .map_err(|_| Error::HelmLaunchFailed)?
-                .success()
-            {
-                Err(Error::HelmNotSetup(
-                    String::from("Failed to update chart dependencies"),
-                ))?
-            } else {
-                Ok(())
+            .and_then(|mut c| {
+                if !c.wait().map_err(|_| Error::HelmLaunchFailed)?.success() {
+                    Err(Error::HelmNotSetup(String::from(
+                        "Failed to update chart dependencies",
+                    )))?
+                } else {
+                    Ok(())
+                }
             })?;
 
         ui.status(Status::Downloading, "dependencies")?;

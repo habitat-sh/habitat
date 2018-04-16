@@ -17,7 +17,7 @@
 use std::thread;
 use std::time::Duration;
 
-use time::{SteadyTime, Duration as TimeDuration};
+use time::{Duration as TimeDuration, SteadyTime};
 
 /// Encapsulate logic for carrying out periodic tasks (or at least
 /// managing the timing of such).

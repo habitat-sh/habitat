@@ -24,9 +24,9 @@ use std::time::Duration;
 
 use protobuf;
 
-use member::{Member, Health};
+use member::{Health, Member};
 use message::swim::{Swim, Swim_Type};
-use server::{Server, outbound};
+use server::{outbound, Server};
 use trace::TraceKind;
 
 /// Takes the Server and a channel to send received Acks to the outbound thread.
@@ -82,9 +82,8 @@ impl Inbound {
                     trace!("SWIM Message: {:?}", msg);
                     match msg.get_field_type() {
                         Swim_Type::PING => {
-                            if self.server.check_blacklist(
-                                msg.get_ping().get_from().get_id(),
-                            )
+                            if self.server
+                                .check_blacklist(msg.get_ping().get_from().get_id())
                             {
                                 debug!(
                                     "Not processing message from {} - it is blacklisted",
@@ -95,9 +94,9 @@ impl Inbound {
                             self.process_ping(addr, msg);
                         }
                         Swim_Type::ACK => {
-                            if self.server.check_blacklist(
-                                msg.get_ack().get_from().get_id(),
-                            ) && !msg.get_ack().has_forward_to()
+                            if self.server
+                                .check_blacklist(msg.get_ack().get_from().get_id())
+                                && !msg.get_ack().has_forward_to()
                             {
                                 debug!(
                                     "Not processing message from {} - it is blacklisted",
@@ -108,9 +107,8 @@ impl Inbound {
                             self.process_ack(addr, msg);
                         }
                         Swim_Type::PINGREQ => {
-                            if self.server.check_blacklist(
-                                msg.get_pingreq().get_from().get_id(),
-                            )
+                            if self.server
+                                .check_blacklist(msg.get_pingreq().get_from().get_id())
                             {
                                 debug!(
                                     "Not processing message from {} - it is blacklisted",
@@ -197,15 +195,16 @@ impl Inbound {
                         return;
                     }
                 };
-                trace!("Forwarding Ack from {}@{} to {}@{}",
-                      msg.get_ack().get_from().get_id(),
-                      addr,
-                      msg.get_ack().get_forward_to().get_id(),
-                      msg.get_ack().get_forward_to().get_address(),
-                      );
-                msg.mut_ack().mut_from().set_address(
-                    format!("{}", addr.ip()),
+                trace!(
+                    "Forwarding Ack from {}@{} to {}@{}",
+                    msg.get_ack().get_from().get_id(),
+                    addr,
+                    msg.get_ack().get_forward_to().get_id(),
+                    msg.get_ack().get_forward_to().get_address(),
                 );
+                msg.mut_ack()
+                    .mut_from()
+                    .set_address(format!("{}", addr.ip()));
                 outbound::forward_ack(&self.server, &self.socket, forward_to_addr, msg);
                 return;
             }
@@ -213,9 +212,7 @@ impl Inbound {
         let membership = {
             let membership: Vec<(Member, Health)> = msg.take_membership()
                 .iter()
-                .map(|m| {
-                    (Member::from(m.get_member()), Health::from(m.get_health()))
-                })
+                .map(|m| (Member::from(m.get_member()), Health::from(m.get_health())))
                 .collect();
             membership
         };
@@ -260,9 +257,7 @@ impl Inbound {
         }
         let membership: Vec<(Member, Health)> = msg.take_membership()
             .iter()
-            .map(|m| {
-                (Member::from(m.get_member()), Health::from(m.get_health()))
-            })
+            .map(|m| (Member::from(m.get_member()), Health::from(m.get_health())))
             .collect();
         self.server.insert_member_from_rumors(membership);
     }

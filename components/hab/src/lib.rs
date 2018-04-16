@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![recursion_limit="128"]
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![recursion_limit = "128"]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate habitat_core as hcore;
-extern crate habitat_common as common;
-extern crate habitat_depot_client as depot_client;
 extern crate habitat_api_client as api_client;
+extern crate habitat_common as common;
+extern crate habitat_core as hcore;
+extern crate habitat_depot_client as depot_client;
 extern crate habitat_http_client as http_client;
 extern crate habitat_sup_client as sup_client;
 extern crate habitat_sup_protocol as protocol;
 extern crate handlebars;
 
 extern crate ansi_term;
+extern crate base64;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
@@ -42,14 +43,13 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate tabwriter;
+#[cfg(test)]
+extern crate tempdir;
 extern crate toml;
 extern crate url;
 extern crate uuid;
 extern crate walkdir;
-extern crate base64;
-#[cfg(test)]
-extern crate tempdir;
-extern crate tabwriter;
 
 pub mod analytics;
 pub mod cli;

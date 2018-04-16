@@ -21,7 +21,7 @@ pub enum Error {
     #[fail(display = "Invalid topology '{}'. Possible values: standalone, leader", _0)]
     InvalidTopology(String),
     #[fail(display = "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
-                         <NAME> is a service name and <SERVICE_GROUP> is a valid service group",
+                      <NAME> is a service name and <SERVICE_GROUP> is a valid service group",
            _0)]
     InvalidBinding(String),
     #[fail(display = "{}", _0)]

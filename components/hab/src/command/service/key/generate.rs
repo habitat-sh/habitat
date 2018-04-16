@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{UI, UIWriter};
+use common::ui::{UIWriter, UI};
 use hcore::crypto::BoxKeyPair;
 use hcore::service::ServiceGroup;
 
@@ -23,8 +23,7 @@ use error::Result;
 pub fn start(ui: &mut UI, org: &str, service_group: &ServiceGroup, cache: &Path) -> Result<()> {
     ui.begin(format!(
         "Generating service key for {} in {}",
-        &service_group,
-        org
+        &service_group, org
     ))?;
     let pair = BoxKeyPair::generate_pair_for_service(org, &service_group.to_string())?;
     pair.to_pair_files(cache)?;

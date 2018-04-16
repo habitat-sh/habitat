@@ -63,7 +63,7 @@ mod inner {
     use std::str::FromStr;
 
     use common::ui::UI;
-    use hcore::crypto::{init, default_cache_key_path};
+    use hcore::crypto::{default_cache_key_path, init};
     use hcore::url::BLDR_URL_ENVVAR;
     use hcore::channel::BLDR_CHANNEL_ENVVAR;
     use hcore::fs::find_command;
@@ -87,9 +87,10 @@ mod inner {
             }
             "mesos" => {
                 let format = ExportFormat {
-                    pkg_ident: PackageIdent::from_str(
-                        &format!("core/hab-pkg-mesosize/{}", version[0]),
-                    )?,
+                    pkg_ident: PackageIdent::from_str(&format!(
+                        "core/hab-pkg-mesosize/{}",
+                        version[0]
+                    ))?,
                     cmd: "hab-pkg-mesosize".to_string(),
                 };
                 Ok(format)
@@ -132,7 +133,7 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use error::{Error, Result};
-    use common::ui::{UI, UIWriter};
+    use common::ui::{UIWriter, UI};
     use hcore::package::PackageIdent;
     use std::env;
     use super::ExportFormat;
@@ -140,8 +141,8 @@ mod inner {
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
         ui.warn(format!(
             "∅ Exporting {} packages from this operating system is not yet \
-                           supported. Try running this command again on a 64-bit Linux \
-                           operating system.\n",
+             supported. Try running this command again on a 64-bit Linux \
+             operating system.\n",
             value
         ))?;
         ui.br()?;
@@ -160,11 +161,12 @@ mod inner {
         let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
         ui.warn(
             "Exporting packages from this operating system is not yet supported. Try \
-                   running this command again on a 64-bit Linux operating system.",
+             running this command again on a 64-bit Linux operating system.",
         )?;
         ui.br()?;
-        Err(Error::SubcommandNotSupported(
-            format!("{} {}", subcmd, subsubcmd),
-        ))
+        Err(Error::SubcommandNotSupported(format!(
+            "{} {}",
+            subcmd, subsubcmd
+        )))
     }
 }

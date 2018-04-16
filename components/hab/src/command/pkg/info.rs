@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::path::Path;
-use common::ui::{UI, UIWriter};
+use common::ui::{UIWriter, UI};
 use std::io::{self, Write};
 use hcore::package::PackageArchive;
 use error::Result;
@@ -33,35 +33,14 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
     if to_json {
         println!("{}", convert_to_json(&ident));
     } else {
-        ui.begin(
-            format!("Reading PackageIdent from {}", &src.display()),
-        )?;
+        ui.begin(format!("Reading PackageIdent from {}", &src.display()))?;
         ui.para("")?;
 
-        io::stdout().write(
-            format!("Package Path   : {}\n", &src.display())
-                .as_bytes(),
-        )?;
-        io::stdout().write(
-            format!("Origin         : {}\n", &ident.origin)
-                .as_bytes(),
-        )?;
-        io::stdout().write(
-            format!("Name           : {}\n", &ident.name)
-                .as_bytes(),
-        )?;
-        io::stdout().write(
-            format!(
-                "Version        : {}\n",
-                &ident.version.unwrap()
-            ).as_bytes(),
-        )?;
-        io::stdout().write(
-            format!(
-                "Release        : {}\n",
-                &ident.release.unwrap()
-            ).as_bytes(),
-        )?;
+        io::stdout().write(format!("Package Path   : {}\n", &src.display()).as_bytes())?;
+        io::stdout().write(format!("Origin         : {}\n", &ident.origin).as_bytes())?;
+        io::stdout().write(format!("Name           : {}\n", &ident.name).as_bytes())?;
+        io::stdout().write(format!("Version        : {}\n", &ident.version.unwrap()).as_bytes())?;
+        io::stdout().write(format!("Release        : {}\n", &ident.release.unwrap()).as_bytes())?;
     }
     Ok(())
 }

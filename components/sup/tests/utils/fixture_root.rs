@@ -55,7 +55,7 @@
 //!
 //! In general, each fixture should be used by a single test.
 
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::string::ToString;
 
 #[derive(Clone, Debug)]
@@ -78,10 +78,9 @@ impl FixtureRoot {
     where
         P: ToString,
     {
-        self.0.to_path_buf().join(format!(
-            "{}.spec",
-            &package_name.to_string()
-        ))
+        self.0
+            .to_path_buf()
+            .join(format!("{}.spec", &package_name.to_string()))
     }
 
     /// Fixture files for an expanded bundle... think of what a .hart

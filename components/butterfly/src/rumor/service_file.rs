@@ -20,13 +20,13 @@ use std::cmp::Ordering;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 
-use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
+use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
 use habitat_core::service::ServiceGroup;
 use protobuf::{self, Message};
 
 use error::Result;
-use message::swim::{ServiceFile as ProtoServiceFile, Rumor as ProtoRumor,
-                    Rumor_Type as ProtoRumor_Type};
+use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type,
+                    ServiceFile as ProtoServiceFile};
 use rumor::Rumor;
 
 #[derive(Debug, Clone, Serialize)]
@@ -44,11 +44,11 @@ impl PartialOrd for ServiceFile {
 
 impl PartialEq for ServiceFile {
     fn eq(&self, other: &ServiceFile) -> bool {
-        self.get_service_group() == other.get_service_group() &&
-            self.get_incarnation() == other.get_incarnation() &&
-            self.get_encrypted() == other.get_encrypted() &&
-            self.get_filename() == other.get_filename() &&
-            self.get_body() == other.get_body()
+        self.get_service_group() == other.get_service_group()
+            && self.get_incarnation() == other.get_incarnation()
+            && self.get_encrypted() == other.get_encrypted()
+            && self.get_filename() == other.get_filename()
+            && self.get_body() == other.get_body()
     }
 }
 

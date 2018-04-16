@@ -59,9 +59,9 @@ mod habitat {
         let f = File::open(ver_file).expect("Failed to open version file");
         let mut reader = BufReader::new(f);
         let mut ver = String::new();
-        reader.read_line(&mut ver).expect(
-            "Failed to read line from version file",
-        );
+        reader
+            .read_line(&mut ver)
+            .expect("Failed to read line from version file");
         ver
     }
 }
@@ -79,13 +79,11 @@ mod util {
         S: AsRef<str>,
     {
         let mut f = File::create(
-            Path::new(&env::var("OUT_DIR").expect(
-                "Failed to read OUT_DIR environment variable",
-            )).join(filename),
+            Path::new(&env::var("OUT_DIR").expect("Failed to read OUT_DIR environment variable"))
+                .join(filename),
         ).expect("Failed to create OUT_DIR file");
-        f.write_all(content.as_ref().trim().as_bytes()).expect(
-            "Failed to write to OUT_DIR file",
-        );
+        f.write_all(content.as_ref().trim().as_bytes())
+            .expect("Failed to write to OUT_DIR file");
     }
 }
 

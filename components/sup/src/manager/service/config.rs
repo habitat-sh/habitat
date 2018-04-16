@@ -34,7 +34,7 @@ use super::Pkg;
 use census::CensusGroup;
 use error::{Error, Result};
 use sys::abilities;
-use templating::{TemplateRenderer, RenderContext};
+use templating::{RenderContext, TemplateRenderer};
 
 static LOGKEY: &'static str = "CF";
 static ENV_VAR_PREFIX: &'static str = "HAB";
@@ -57,8 +57,7 @@ pub enum UserConfigPath {
 impl UserConfigPath {
     pub fn get_path(&self) -> &PathBuf {
         match self {
-            &UserConfigPath::Recommended(ref p) |
-            &UserConfigPath::Deprecated(ref p) => p,
+            &UserConfigPath::Recommended(ref p) | &UserConfigPath::Deprecated(ref p) => p,
         }
     }
 }
@@ -66,8 +65,7 @@ impl UserConfigPath {
 impl From<UserConfigPath> for PathBuf {
     fn from(ucp: UserConfigPath) -> Self {
         match ucp {
-            UserConfigPath::Recommended(p) |
-            UserConfigPath::Deprecated(p) => p,
+            UserConfigPath::Recommended(p) | UserConfigPath::Deprecated(p) => p,
         }
     }
 }
@@ -280,9 +278,8 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let toml = toml::de::from_str(&config).map_err(|e| {
-                    sup_error!(Error::TomlParser(e))
-                })?;
+                let toml =
+                    toml::de::from_str(&config).map_err(|e| sup_error!(Error::TomlParser(e)))?;
                 Ok(Some(toml))
             }
             Err(e) => {
@@ -367,8 +364,7 @@ impl Cfg {
             Err(e) => {
                 debug!(
                     "Looking up environment variable {} failed: {:?}",
-                    var_name,
-                    e
+                    var_name, e
                 );
                 Ok(None)
             }
@@ -455,11 +451,9 @@ impl CfgRenderer {
                     let file = entry.path();
                     let name = entry.file_name().to_string_lossy().into_owned();
                     // JW TODO: This error needs improvement. TemplateFileError is too generic.
-                    template.register_template_file(&name, &file).map_err(
-                        |err| {
-                            sup_error!(Error::TemplateFileError(err))
-                        },
-                    )?;
+                    template
+                        .register_template_file(&name, &file)
+                        .map_err(|err| sup_error!(Error::TemplateFileError(err)))?;
                 }
             }
         }
@@ -557,16 +551,17 @@ fn toml_merge_recurse(
             let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
                 toml::Value::Table(ref mut t) => t,
                 _ => {
-                    return Err(sup_error!(Error::TomlMergeError(
-                        format!("Value at key {} should be a Table", &key),
-                    )));
+                    return Err(sup_error!(Error::TomlMergeError(format!(
+                        "Value at key {} should be a Table",
+                        &key
+                    ),)));
                 }
             };
             toml_merge_recurse(
                 &mut me_at_key,
-                other_value.as_table().expect(
-                    "TOML Value should be a Table",
-                ),
+                other_value
+                    .as_table()
+                    .expect("TOML Value should be a Table"),
                 depth + 1,
             )?;
         } else {
@@ -579,12 +574,10 @@ fn toml_merge_recurse(
 fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
     match table.get(key) {
         None => return false,
-        Some(value) => {
-            match value.as_table() {
-                Some(_) => return true,
-                None => return false,
-            }
-        }
+        Some(value) => match value.as_table() {
+            Some(_) => return true,
+            None => return false,
+        },
     }
 }
 
@@ -771,12 +764,10 @@ mod test {
         );
 
         match toml_merge(&mut me, &other) {
-            Err(e) => {
-                match e.err {
-                    Error::TomlMergeError(_) => assert!(true),
-                    _ => panic!("Should fail with Error::TomlMergeError"),
-                }
-            }
+            Err(e) => match e.err {
+                Error::TomlMergeError(_) => assert!(true),
+                _ => panic!("Should fail with Error::TomlMergeError"),
+            },
             Ok(_) => panic!("Should not complete successfully"),
         }
     }
@@ -787,11 +778,12 @@ mod test {
 
     impl TestPkg {
         fn new(tmp: &TempDir) -> Self {
-            let pkg = Self { base_path: tmp.path().to_owned() };
+            let pkg = Self {
+                base_path: tmp.path().to_owned(),
+            };
 
-            fs::create_dir_all(pkg.default_config_dir()).expect(
-                "create deprecated user config dir",
-            );
+            fs::create_dir_all(pkg.default_config_dir())
+                .expect("create deprecated user config dir");
             fs::create_dir_all(pkg.recommended_user_config_dir())
                 .expect("create recommended user config dir");
             fs::create_dir_all(pkg.deprecated_user_config_dir())
@@ -847,9 +839,8 @@ mod test {
             .truncate(true)
             .open(path)
             .expect("create toml file");
-        file.write_all(text.as_bytes()).expect(
-            "write raw toml value",
-        );
+        file.write_all(text.as_bytes())
+            .expect("write raw toml value");
         file.flush().expect("flush changes in toml file");
     }
 

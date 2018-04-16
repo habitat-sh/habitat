@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate time;
 #[macro_use]
 extern crate habitat_butterfly;
 extern crate habitat_core;
+extern crate time;
 
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::thread;
@@ -29,7 +29,7 @@ use std::str::FromStr;
 use time::SteadyTime;
 
 use habitat_butterfly::server::{Server, Suitability};
-use habitat_butterfly::member::{Member, Health};
+use habitat_butterfly::member::{Health, Member};
 use habitat_butterfly::server::timing::Timing;
 use habitat_butterfly::rumor::departure::Departure;
 use habitat_butterfly::rumor::service::{Service, SysInfo};
@@ -70,9 +70,9 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
         None::<PathBuf>,
         Box::new(NSuitability(suitability)),
     ).unwrap();
-    server.start(Timing::default()).expect(
-        "Cannot start server",
-    );
+    server
+        .start(Timing::default())
+        .expect("Cannot start server");
     server
 }
 
@@ -86,7 +86,6 @@ pub fn member_from_server(server: &Server) -> Member {
     new_member.set_gossip_port(server.gossip_port() as i32);
     new_member
 }
-
 
 #[derive(Debug)]
 pub struct SwimNet {
@@ -139,9 +138,8 @@ impl SwimNet {
 
     pub fn add_member(&mut self) {
         let number = self.members.len() + 1;
-        self.members.push(
-            start_server(&format!("{}", number), None, 0),
-        );
+        self.members
+            .push(start_server(&format!("{}", number), None, 0));
     }
 
     // Fully mesh the network
@@ -164,12 +162,12 @@ impl SwimNet {
     }
 
     pub fn blacklist(&self, from_entry: usize, to_entry: usize) {
-        let from = self.members.get(from_entry).expect(
-            "Asked for a network member who is out of bounds",
-        );
-        let to = self.members.get(to_entry).expect(
-            "Asked for a network member who is out of bounds",
-        );
+        let from = self.members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
+        let to = self.members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.add_to_blacklist(String::from(
             to.member.read().expect("Member lock is poisoned").get_id(),
@@ -177,24 +175,24 @@ impl SwimNet {
     }
 
     pub fn unblacklist(&self, from_entry: usize, to_entry: usize) {
-        let from = self.members.get(from_entry).expect(
-            "Asked for a network member who is out of bounds",
-        );
-        let to = self.members.get(to_entry).expect(
-            "Asked for a network member who is out of bounds",
-        );
+        let from = self.members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
+        let to = self.members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Un-Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.remove_from_blacklist(to.member_id());
     }
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
-        let from = self.members.get(from_entry).expect(
-            "Asked for a network member who is out of bounds",
-        );
+        let from = self.members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
 
-        let to = self.members.get(to_entry).expect(
-            "Asked for a network member who is out of bounds",
-        );
+        let to = self.members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         let to_member = to.member.read().expect("Member lock is poisoned");
         from.member_list.health_of(&to_member)
     }
@@ -305,26 +303,21 @@ impl SwimNet {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
             let mut result = false;
-            let server = self.members.get(e_num).expect(
-                "Asked for a network member who is out of bounds",
-            );
-            server.election_store.with_rumor(
-                key,
-                "election",
-                |e| if e.is_some() &&
-                    e.unwrap().get_status() == status
-                {
+            let server = self.members
+                .get(e_num)
+                .expect("Asked for a network member who is out of bounds");
+            server.election_store.with_rumor(key, "election", |e| {
+                if e.is_some() && e.unwrap().get_status() == status {
                     result = true;
-                },
-            );
+                }
+            });
             if result {
                 return true;
             }
             if self.check_gossip_rounds(&rounds_in) {
                 println!(
                     "Failed election check for status {:?}: {:#?}",
-                    status,
-                    self.members[e_num].election_store
+                    status, self.members[e_num].election_store
                 );
                 return false;
             }
@@ -336,30 +329,28 @@ impl SwimNet {
         loop {
             let mut result = false;
 
-            let left_server = self.members.get(left).expect(
-                "Asked for a network member who is out of bounds",
-            );
-            let right_server = self.members.get(right).expect(
-                "Asked for a network member who is out of bounds",
-            );
+            let left_server = self.members
+                .get(left)
+                .expect("Asked for a network member who is out of bounds");
+            let right_server = self.members
+                .get(right)
+                .expect("Asked for a network member who is out of bounds");
 
             left_server.election_store.with_rumor(key, "election", |l| {
-                right_server.election_store.with_rumor(
-                    key,
-                    "election",
-                    |r| {
+                right_server
+                    .election_store
+                    .with_rumor(key, "election", |r| {
                         result = l.is_some() && r.is_some() && l.unwrap() == r.unwrap();
-                    },
-                );
+                    });
             });
             if result {
                 return true;
             }
             if self.check_gossip_rounds(&rounds_in) {
-                println!("Failed election check for equality:\nL: {:#?}\n\nR: {:#?}",
-                         self.members[left].election_store,
-                         self.members[right].election_store,
-                         );
+                println!(
+                    "Failed election check for equality:\nL: {:#?}\n\nR: {:#?}",
+                    self.members[left].election_store, self.members[right].election_store,
+                );
                 return false;
             }
         }
@@ -406,8 +397,7 @@ impl SwimNet {
                 println!("MEMBERS: {:#?}", self.members);
                 println!(
                     "Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
-                    self.members[from_entry],
-                    self.members[to_check]
+                    self.members[from_entry], self.members[to_check]
                 );
                 return false;
             }
@@ -418,12 +408,13 @@ impl SwimNet {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
             let network_health = self.network_health_of(to_check);
-            if network_health.iter().all(|x| if let &Some(ref h) = x {
-                *h == health
-            } else {
-                false
-            })
-            {
+            if network_health.iter().all(|x| {
+                if let &Some(ref h) = x {
+                    *h == health
+                } else {
+                    false
+                }
+            }) {
                 trace_it!(
                     TEST_NET: self,
                     format!(
@@ -464,9 +455,8 @@ impl SwimNet {
     }
 
     pub fn add_service(&mut self, member: usize, package: &str) {
-        let ident = PackageIdent::from_str(package).expect(
-            "package needs to be a fully qualified package identifier",
-        );
+        let ident = PackageIdent::from_str(package)
+            .expect("package needs to be a fully qualified package identifier");
         let sg = ServiceGroup::new(None, ident.name(), "prod", None).unwrap();
         let s = Service::new(
             self[member].member_id().to_string(),

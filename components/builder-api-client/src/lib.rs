@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate habitat_http_client as hab_http;
 extern crate habitat_core as hab_core;
+extern crate habitat_http_client as hab_http;
 extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
@@ -37,7 +37,7 @@ use std::path::Path;
 
 use hab_core::package::PackageIdent;
 use hab_http::ApiClient;
-use hyper::client::{IntoUrl, Response, RequestBuilder};
+use hyper::client::{IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
 
@@ -72,10 +72,12 @@ impl Client {
         if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
             endpoint.set_path(DEFAULT_API_PATH);
         }
-        Ok(Client(
-            ApiClient::new(endpoint, product, version, fs_root_path)
-                .map_err(Error::HabitatHttpClient)?,
-        ))
+        Ok(Client(ApiClient::new(
+            endpoint,
+            product,
+            version,
+            fs_root_path,
+        ).map_err(Error::HabitatHttpClient)?))
     }
 
     /// Create a job.
@@ -90,9 +92,7 @@ impl Client {
     pub fn create_job(&self, ident: &PackageIdent, token: &str) -> Result<(String)> {
         debug!("Creating a job for {}", ident);
 
-        let body = json!({
-            "project_id": format!("{}", ident)
-        });
+        let body = json!({ "project_id": format!("{}", ident) });
 
         let sbody = serde_json::to_string(&body).unwrap();
 
@@ -102,28 +102,23 @@ impl Client {
             .header(ContentType::json())
             .send();
         match result {
-            Ok(mut response) => {
-                match response.status {
-                    StatusCode::Created => {
-                        let mut encoded = String::new();
-                        response.read_to_string(&mut encoded).map_err(Error::IO)?;
-                        debug!("Body: {:?}", encoded);
-                        let v: serde_json::Value =
-                            serde_json::from_str(&encoded).map_err(Error::Json)?;
-                        let id = v["id"].as_str().unwrap();
-                        Ok(id.to_string())
-                    }
-                    StatusCode::Unauthorized => {
-                        Err(Error::APIError(
-                            response.status,
-                            "Your GitHub token requires both user:email and read:org \
-                                             permissions."
-                                .to_string(),
-                        ))
-                    }
-                    _ => Err(err_from_response(response)),
+            Ok(mut response) => match response.status {
+                StatusCode::Created => {
+                    let mut encoded = String::new();
+                    response.read_to_string(&mut encoded).map_err(Error::IO)?;
+                    debug!("Body: {:?}", encoded);
+                    let v: serde_json::Value = serde_json::from_str(&encoded).map_err(Error::Json)?;
+                    let id = v["id"].as_str().unwrap();
+                    Ok(id.to_string())
                 }
-            }
+                StatusCode::Unauthorized => Err(Error::APIError(
+                    response.status,
+                    "Your GitHub token requires both user:email and read:org \
+                     permissions."
+                        .to_string(),
+                )),
+                _ => Err(err_from_response(response)),
+            },
             Err(e) => Err(Error::HyperError(e)),
         }
     }
@@ -163,9 +158,7 @@ impl Client {
         promote: bool,
     ) -> Result<()> {
         let json_idents = json!(idents);
-        let body = json!({
-            "idents": json_idents
-        });
+        let body = json!({ "idents": json_idents });
         let sbody = serde_json::to_string(&body).unwrap();
         let url = format!(
             "jobs/group/{}/{}/{}",
@@ -199,9 +192,9 @@ impl Client {
     /// * Remote API Server is not available
     pub fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
         let url = format!("jobs/group/{}/cancel", group_id);
-        let res = self.add_authz(self.0.post(&url), token).send().map_err(
-            Error::HyperError,
-        )?;
+        let res = self.add_authz(self.0.post(&url), token)
+            .send()
+            .map_err(Error::HyperError)?;
 
         if res.status != StatusCode::NoContent {
             debug!("Failed to cancel group, status: {:?}", res.status);
@@ -212,7 +205,9 @@ impl Client {
     }
 
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
-        rb.header(Authorization(Bearer { token: token.to_string() }))
+        rb.header(Authorization(Bearer {
+            token: token.to_string(),
+        }))
     }
 }
 

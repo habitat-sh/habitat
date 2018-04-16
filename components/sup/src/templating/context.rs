@@ -107,9 +107,9 @@ impl<'a> RenderContext<'a> {
     where
         T: Iterator<Item = &'a ServiceBind>,
     {
-        let census_group = census.census_group_for(&service_group).expect(
-            "Census Group missing from list!",
-        );
+        let census_group = census
+            .census_group_for(&service_group)
+            .expect("Census Group missing from list!");
         RenderContext {
             sys: SystemInfo::from_sys(sys),
             pkg: Package::from_pkg(pkg),
@@ -262,16 +262,10 @@ impl<'a> Serialize for Package<'a> {
         map.serialize_entry("path", &self.path)?;
 
         map.serialize_entry("svc_path", &self.svc_path)?;
-        map.serialize_entry(
-            "svc_config_path",
-            &self.svc_config_path,
-        )?;
+        map.serialize_entry("svc_config_path", &self.svc_config_path)?;
         map.serialize_entry("svc_data_path", &self.svc_data_path)?;
         map.serialize_entry("svc_files_path", &self.svc_files_path)?;
-        map.serialize_entry(
-            "svc_static_path",
-            &self.svc_static_path,
-        )?;
+        map.serialize_entry("svc_static_path", &self.svc_static_path)?;
         map.serialize_entry("svc_var_path", &self.svc_var_path)?;
         map.serialize_entry("svc_pid_file", &self.svc_pid_file)?;
         map.serialize_entry("svc_run", &self.svc_run)?;
@@ -319,12 +313,16 @@ impl<'a> Svc<'a> {
                     .map(|m| SvcMember::from_census_member(m))
                     .expect("Missing 'me'"),
             ),
-            leader: Cow::Owned(census_group.leader().map(
-                |m| SvcMember::from_census_member(m),
-            )),
-            update_leader: Cow::Owned(census_group.update_leader().map(|m| {
-                SvcMember::from_census_member(m)
-            })),
+            leader: Cow::Owned(
+                census_group
+                    .leader()
+                    .map(|m| SvcMember::from_census_member(m)),
+            ),
+            update_leader: Cow::Owned(
+                census_group
+                    .update_leader()
+                    .map(|m| SvcMember::from_census_member(m)),
+            ),
             first: Cow::Owned(select_first(census_group).expect(
                 "First should always be present on svc",
                 // i.e. `me` will always be here, and alive
@@ -342,10 +340,7 @@ impl<'a> Serialize for Svc<'a> {
         // need a length hint (thus the `None`)
         let mut map = serializer.serialize_map(None)?;
 
-        map.serialize_entry(
-            "service",
-            &self.service_group.service(),
-        )?;
+        map.serialize_entry("service", &self.service_group.service())?;
         map.serialize_entry("group", &self.service_group.group())?;
         map.serialize_entry("org", &self.service_group.org())?;
         // TODO (CM): need to add application, environment (to
@@ -354,33 +349,27 @@ impl<'a> Serialize for Svc<'a> {
 
         map.serialize_entry(
             "election_is_running",
-            &(self.election_status.as_ref() ==
-                  &ElectionStatus::ElectionInProgress),
+            &(self.election_status.as_ref() == &ElectionStatus::ElectionInProgress),
         )?;
         map.serialize_entry(
             "election_is_no_quorum",
-            &(self.election_status.as_ref() ==
-                  &ElectionStatus::ElectionNoQuorum),
+            &(self.election_status.as_ref() == &ElectionStatus::ElectionNoQuorum),
         )?;
         map.serialize_entry(
             "election_is_finished",
-            &(self.election_status.as_ref() ==
-                  &ElectionStatus::ElectionFinished),
+            &(self.election_status.as_ref() == &ElectionStatus::ElectionFinished),
         )?;
         map.serialize_entry(
             "update_election_is_running",
-            &(self.update_election_status.as_ref() ==
-                  &ElectionStatus::ElectionInProgress),
+            &(self.update_election_status.as_ref() == &ElectionStatus::ElectionInProgress),
         )?;
         map.serialize_entry(
             "update_election_is_no_quorum",
-            &(self.update_election_status.as_ref() ==
-                  &ElectionStatus::ElectionNoQuorum),
+            &(self.update_election_status.as_ref() == &ElectionStatus::ElectionNoQuorum),
         )?;
         map.serialize_entry(
             "update_election_is_finished",
-            &(self.update_election_status.as_ref() ==
-                  &ElectionStatus::ElectionFinished),
+            &(self.update_election_status.as_ref() == &ElectionStatus::ElectionFinished),
         )?;
 
         map.serialize_entry("me", &self.me)?;
@@ -546,23 +535,11 @@ impl<'a> Serialize for SvcMember<'a> {
         // TODO (CM): is_update_leader
         map.serialize_entry("update_leader", &self.update_leader)?;
         // TODO (CM): is_update_follower
-        map.serialize_entry(
-            "update_follower",
-            &self.update_follower,
-        )?;
+        map.serialize_entry("update_follower", &self.update_follower)?;
 
-        map.serialize_entry(
-            "election_is_running",
-            &self.election_is_running,
-        )?;
-        map.serialize_entry(
-            "election_is_no_quorum",
-            &self.election_is_no_quorum,
-        )?;
-        map.serialize_entry(
-            "election_is_finished",
-            &self.election_is_finished,
-        )?;
+        map.serialize_entry("election_is_running", &self.election_is_running)?;
+        map.serialize_entry("election_is_no_quorum", &self.election_is_no_quorum)?;
+        map.serialize_entry("election_is_finished", &self.election_is_finished)?;
         map.serialize_entry(
             "update_election_is_running",
             &self.update_election_is_running,
@@ -607,11 +584,10 @@ impl<'a> Serialize for SvcMember<'a> {
 fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
     match census_group.leader() {
         Some(member) => Some(SvcMember::from_census_member(member)),
-        None => {
-            census_group.members().first().and_then(|m| {
-                Some(SvcMember::from_census_member(m))
-            })
-        }
+        None => census_group
+            .members()
+            .first()
+            .and_then(|m| Some(SvcMember::from_census_member(m))),
     }
 }
 
@@ -654,11 +630,10 @@ mod tests {
                 .map(|x| format!("  {:?}", x))
                 .collect::<Vec<String>>()
                 .join("\n");
-            let pretty_json =
-                json::stringify_pretty(
-                    json::parse(json_string).expect("JSON should parse if we get this far"),
-                    2,
-                );
+            let pretty_json = json::stringify_pretty(
+                json::parse(json_string).expect("JSON should parse if we get this far"),
+                2,
+            );
             assert!(
                 false,
                 r#"
@@ -669,8 +644,7 @@ Errors:
 JSON:
 {}
 "#,
-                error_string,
-                pretty_json
+                error_string, pretty_json
             );
         }
     }
@@ -687,9 +661,9 @@ JSON:
         // NOTE: using `false` instead of `true` allows us to use
         // `$comment` keyword, as well as our own `$deprecated` and
         // `$since` keywords.
-        let schema = scope.compile_and_return(parsed_schema, false).expect(
-            "Could not compile the schema",
-        );
+        let schema = scope
+            .compile_and_return(parsed_schema, false)
+            .expect("Could not compile the schema");
 
         let input_json: serde_json::Value =
             serde_json::from_str(input).expect("Could not parse input as JSON");
@@ -708,11 +682,12 @@ JSON:
 
     impl TestPkg {
         fn new(tmp: &TempDir) -> Self {
-            let pkg = Self { base_path: tmp.path().to_owned() };
+            let pkg = Self {
+                base_path: tmp.path().to_owned(),
+            };
 
-            fs::create_dir_all(pkg.default_config_dir()).expect(
-                "create deprecated user config dir",
-            );
+            fs::create_dir_all(pkg.default_config_dir())
+                .expect("create deprecated user config dir");
             fs::create_dir_all(pkg.recommended_user_config_dir())
                 .expect("create recommended user config dir");
             fs::create_dir_all(pkg.deprecated_user_config_dir())
@@ -751,8 +726,7 @@ baz = "boo"
 [foobar]
 one = 1
 two = 2
-"#
-                    .as_bytes(),
+"#.as_bytes(),
             )
             .expect("Couldn't write default.toml");
         (tmp, pkg)
@@ -906,9 +880,9 @@ two = 2
         renderer
             .register_template_string("testing", template_content)
             .expect("Could not register template content");
-        renderer.render("testing", ctx).expect(
-            "Could not render template",
-        )
+        renderer
+            .render("testing", ctx)
+            .expect("Could not render template")
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -925,9 +899,8 @@ two = 2
 
         let mut f = fs::File::open(path).expect("could not open sample_render_context.json");
         let mut json = String::new();
-        f.read_to_string(&mut json).expect(
-            "could not read sample_render_context.json",
-        );
+        f.read_to_string(&mut json)
+            .expect("could not read sample_render_context.json");
 
         assert_valid(&json);
     }

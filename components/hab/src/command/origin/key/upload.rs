@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use common::command::package::install::{RETRIES, RETRY_WAIT};
 use depot_client::{self, Client};
 use hcore::crypto::keys::parse_name_with_rev;
@@ -52,7 +52,7 @@ pub fn start(
                         Status::Using,
                         format!(
                             "public key revision {} which already exists in the \
-                                            depot",
+                             depot",
                             &name_with_rev
                         ),
                     )?;
@@ -62,19 +62,20 @@ pub fn start(
             Ok(())
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
+        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| {
+            res.is_ok()
+        }).is_err()
+        {
             return Err(Error::from(depot_client::Error::UploadFailed(format!(
                 "We tried \
-                                                                              {} times \
-                                                                              but could \
-                                                                              not upload \
-                                                                              {}/{} public \
-                                                                              origin key. \
-                                                                              Giving up.\
-                                                                              ",
-                RETRIES,
-                &name,
-                &rev
+                 {} times \
+                 but could \
+                 not upload \
+                 {}/{} public \
+                 origin key. \
+                 Giving up.\
+                 ",
+                RETRIES, &name, &rev
             ))));
         }
     }
@@ -99,8 +100,10 @@ pub fn start(
             ) {
                 Ok(()) => {
                     ui.status(Status::Uploaded, &name_with_rev)?;
-                    ui.end(format!("Upload of secret origin key {} complete.",
-                                   &name_with_rev))?;
+                    ui.end(format!(
+                        "Upload of secret origin key {} complete.",
+                        &name_with_rev
+                    ))?;
                     Ok(())
                 }
                 Err(e) => {
@@ -109,19 +112,20 @@ pub fn start(
             }
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
+        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| {
+            res.is_ok()
+        }).is_err()
+        {
             return Err(Error::from(depot_client::Error::UploadFailed(format!(
                 "We tried \
-                                                                              {} times \
-                                                                              but could \
-                                                                              not upload \
-                                                                              {}/{} secret \
-                                                                              origin key. \
-                                                                              Giving up.\
-                                                                              ",
-                RETRIES,
-                &name,
-                &rev
+                 {} times \
+                 but could \
+                 not upload \
+                 {}/{} secret \
+                 origin key. \
+                 Giving up.\
+                 ",
+                RETRIES, &name, &rev
             ))));
         }
     }

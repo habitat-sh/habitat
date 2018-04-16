@@ -38,7 +38,7 @@ use retry::retry;
 
 // Local Dependencies
 use common::command::package::install::{RETRIES, RETRY_WAIT};
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use depot_client::{self, Client};
 use error::{Error, Result};
 use hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
@@ -87,24 +87,21 @@ where
 
     match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
         Ok(()) => {
-            ui.status(Status::Uploaded,
-                      format!("public origin key {}", &public_keyfile_name))?;
+            ui.status(
+                Status::Uploaded,
+                format!("public origin key {}", &public_keyfile_name),
+            )?;
         }
         Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
             ui.status(
                 Status::Using,
-                format!(
-                    "existing public origin key {}",
-                    &public_keyfile_name
-                ),
+                format!("existing public origin key {}", &public_keyfile_name),
             )?;
         }
         Err(err) => return Err(Error::from(err)),
     };
 
-    ui.begin(
-        format!("Uploading {}", archive_path.as_ref().display()),
-    )?;
+    ui.begin(format!("Uploading {}", archive_path.as_ref().display()))?;
 
     let tdeps = archive.tdeps()?;
     let ident = archive.ident()?;
@@ -142,13 +139,12 @@ where
                         {
                             return Err(Error::from(depot_client::Error::UploadFailed(format!(
                                 "We tried \
-                                                                                      {} times \
-                                                                                      but could \
-                                                                                      not upload \
-                                                                                      {}. Giving \
-                                                                                      up.",
-                                RETRIES,
-                                &dep
+                                 {} times \
+                                 but could \
+                                 not upload \
+                                 {}. Giving \
+                                 up.",
+                                RETRIES, &dep
                             ))));
                         }
                     }
@@ -174,8 +170,7 @@ where
             {
                 return Err(Error::from(depot_client::Error::UploadFailed(format!(
                     "We tried {} times but could not upload {}. Giving up.",
-                    RETRIES,
-                    &ident
+                    RETRIES, &ident
                 ))));
             }
             ui.end(format!("Upload of {} complete.", &ident))?;
@@ -205,21 +200,22 @@ fn upload_into_depot(
             true
         }
         Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
-            return Err(Error::PackageArchiveMalformed(
-                format!("{}", archive.path.display()),
-            ));
+            return Err(Error::PackageArchiveMalformed(format!(
+                "{}",
+                archive.path.display()
+            )));
         }
         Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
             println!(
                 "Package platform or architecture not supported by the targeted \
-                    depot; skipping."
+                 depot; skipping."
             );
             false
         }
         Err(depot_client::Error::APIError(StatusCode::FailedDependency, _)) => {
             ui.fatal(
                 "Package upload introduces a circular dependency - please check \
-                    pkg_deps; skipping.",
+                 pkg_deps; skipping.",
             )?;
             false
         }
@@ -230,11 +226,7 @@ fn upload_into_depot(
     // Promote to additional_release_channel if specified
     if package_uploaded && additional_release_channel.is_some() {
         let channel_str = additional_release_channel.unwrap();
-        ui.begin(format!(
-            "Promoting {} to channel '{}'",
-            ident,
-            channel_str
-        ))?;
+        ui.begin(format!("Promoting {} to channel '{}'", ident, channel_str))?;
 
         if channel_str != STABLE_CHANNEL && channel_str != UNSTABLE_CHANNEL {
             match depot_client.create_channel(&ident.origin, channel_str, token) {

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
+extern crate ansi_term;
+extern crate glob;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hcore;
 extern crate habitat_depot_client as depot_client;
-extern crate ansi_term;
-extern crate glob;
 extern crate hyper;
 #[macro_use]
 extern crate log;

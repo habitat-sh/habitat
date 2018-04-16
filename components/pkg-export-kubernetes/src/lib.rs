@@ -29,7 +29,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 
 pub mod error;
 pub mod manifest;
@@ -65,15 +65,9 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
 
     let mut write: Box<Write> = match matches.value_of("OUTPUT") {
         Some(o) if o != "-" => {
-            ui.status(
-                Status::Creating,
-                format!("Kubernetes manifest file {}", o),
-            )?;
+            ui.status(Status::Creating, format!("Kubernetes manifest file {}", o))?;
             let file = Box::new(File::create(o)?);
-            ui.status(
-                Status::Created,
-                format!("Kubernetes manifest file {}", o),
-            )?;
+            ui.status(Status::Created, format!("Kubernetes manifest file {}", o))?;
 
             file
         }

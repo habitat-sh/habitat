@@ -54,13 +54,12 @@ impl TemplateRenderer {
     where
         T: Serialize,
     {
-        let raw = serde_json::to_value(ctx).map_err(|e| {
-            sup_error!(Error::RenderContextSerialization(e))
-        })?;
+        let raw = serde_json::to_value(ctx)
+            .map_err(|e| sup_error!(Error::RenderContextSerialization(e)))?;
         debug!("Rendering template with context, {}, {}", template, raw);
-        self.0.render(template, &raw).map_err(|e| {
-            sup_error!(Error::TemplateRenderError(e))
-        })
+        self.0
+            .render(template, &raw)
+            .map_err(|e| sup_error!(Error::TemplateRenderError(e)))
     }
 }
 
@@ -145,8 +144,7 @@ mod test {
             r.ok().unwrap(),
             r#"{
   "test": "something"
-}"#
-                .to_string()
+}"#.to_string()
         );
     }
 
@@ -167,8 +165,7 @@ mod test {
         assert_eq!(
             r.ok().unwrap(),
             r#"test = "something"
-"#
-                .to_string()
+"#.to_string()
         );
     }
 
@@ -189,8 +186,7 @@ mod test {
         assert_eq!(
             r.ok().unwrap(),
             r#"---
-test: something"#
-                .to_string()
+test: something"#.to_string()
         );
     }
 
@@ -254,9 +250,7 @@ test: something"#
         let rendered = renderer.render("t", &data).unwrap();
         assert_eq!(
             PathBuf::from(rendered),
-            PathBuf::from((&*FS_ROOT_PATH).join(
-                "/hab/pkgs/core/acl/2.2.52/20161208223311",
-            ))
+            PathBuf::from((&*FS_ROOT_PATH).join("/hab/pkgs/core/acl/2.2.52/20161208223311",))
         );
     }
 

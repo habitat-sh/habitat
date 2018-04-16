@@ -26,7 +26,7 @@
 //!    If the specified channel does not exist, it will be created.
 //!
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use depot_client::{self, Client};
 use hcore::package::PackageIdent;
 use hyper::status::StatusCode;
@@ -46,12 +46,9 @@ pub fn start(
     channel: &str,
     token: &str,
 ) -> Result<()> {
-
     let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
 
-    ui.begin(
-        format!("Promoting {} to channel '{}'", ident, channel),
-    )?;
+    ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
     if channel != "stable" && channel != "unstable" {
         match depot_client.create_channel(&ident.origin, channel, token) {

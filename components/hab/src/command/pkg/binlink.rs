@@ -15,7 +15,7 @@
 use std::fs;
 use std::path::Path;
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::os::filesystem;
 use hcore::fs as hfs;
@@ -42,9 +42,10 @@ pub fn start(
     let src = match hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)? {
         Some(c) => c,
         None => {
-            return Err(Error::CommandNotFoundInPkg(
-                (pkg_install.ident().to_string(), binary.to_string()),
-            ))
+            return Err(Error::CommandNotFoundInPkg((
+                pkg_install.ident().to_string(),
+                binary.to_string(),
+            )))
         }
     };
     if !dst_path.is_dir() {
@@ -54,8 +55,7 @@ pub fn start(
         )?;
         fs::create_dir_all(&dst_path)?
     }
-    let ui_binlinked =
-        format!(
+    let ui_binlinked = format!(
         "Binlinked {} from {} to {}",
         &binary,
         &pkg_install.ident(),
@@ -68,12 +68,11 @@ pub fn start(
                 filesystem::symlink(&src, &dst)?;
                 ui.end(&ui_binlinked)?;
             } else if path != src {
-                ui.warn(
-                    format!("Skipping binlink because {} already exists at {}. Use --force to overwrite",
-                &binary,
-                &dst.display(),
-                ),
-                )?;
+                ui.warn(format!(
+                    "Skipping binlink because {} already exists at {}. Use --force to overwrite",
+                    &binary,
+                    &dst.display(),
+                ))?;
             } else {
                 ui.end(&ui_binlinked)?;
             }
@@ -248,13 +247,14 @@ mod test {
     }
 
     fn write_file<P: AsRef<Path>>(file: P, content: &str) {
-        fs::create_dir_all(file.as_ref().parent().expect(
-            "Parent directory doesn't exist",
-        )).expect("Failed to create parent directory");
+        fs::create_dir_all(
+            file.as_ref()
+                .parent()
+                .expect("Parent directory doesn't exist"),
+        ).expect("Failed to create parent directory");
         let mut f = File::create(file).expect("File is not created");
-        f.write_all(content.as_bytes()).expect(
-            "Bytes not written to file",
-        );
+        f.write_all(content.as_bytes())
+            .expect("Bytes not written to file");
     }
 
     #[derive(Clone)]
@@ -264,7 +264,9 @@ mod test {
 
     impl OutputBuffer {
         fn new() -> Self {
-            OutputBuffer { cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))) }
+            OutputBuffer {
+                cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))),
+            }
         }
     }
 

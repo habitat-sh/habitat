@@ -118,9 +118,8 @@ impl FromStr for ServiceGroup {
     type Err = NetErr;
 
     fn from_str(value: &str) -> Result<ServiceGroup, Self::Err> {
-        let sg = core::service::ServiceGroup::from_str(value).map_err(|e| {
-            net::err(ErrCode::InvalidPayload, e)
-        })?;
+        let sg = core::service::ServiceGroup::from_str(value)
+            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
         Ok(sg.into())
     }
 }
@@ -393,14 +392,11 @@ mod test {
         let topology_str = "dope";
 
         match Topology::from_str(topology_str) {
-            Err(e) => {
-                match e.err {
-                    InvalidTopology(s) => assert_eq!("dope", s),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                InvalidTopology(s) => assert_eq!("dope", s),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("String should fail to parse"),
-
         }
     }
 
@@ -430,7 +426,9 @@ mod test {
         struct Data {
             key: Topology,
         }
-        let data = Data { key: Topology::Leader };
+        let data = Data {
+            key: Topology::Leader,
+        };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"key = "leader""#))
@@ -456,14 +454,11 @@ mod test {
         let strategy_str = "dope";
 
         match UpdateStrategy::from_str(strategy_str) {
-            Err(e) => {
-                match e.err {
-                    InvalidUpdateStrategy(s) => assert_eq!("dope", s),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                InvalidUpdateStrategy(s) => assert_eq!("dope", s),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("String should fail to parse"),
-
         }
     }
 
@@ -494,7 +489,9 @@ mod test {
         struct Data {
             key: UpdateStrategy,
         }
-        let data = Data { key: UpdateStrategy::AtOnce };
+        let data = Data {
+            key: UpdateStrategy::AtOnce,
+        };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"key = "at-once""#));

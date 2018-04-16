@@ -31,14 +31,14 @@ use std::ffi;
 use std::fmt::{self, Debug};
 use std::fs;
 use std::io;
-use std::net::{ToSocketAddrs, UdpSocket, SocketAddr};
+use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
 use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::channel;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use std::thread;
 
 use habitat_core::service::ServiceGroup;
@@ -46,8 +46,8 @@ use habitat_core::crypto::SymKey;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 
-use error::{Result, Error};
-use member::{Member, Health, MemberList};
+use error::{Error, Result};
+use member::{Health, Member, MemberList};
 use message;
 use rumor::{Rumor, RumorKey, RumorStore};
 use rumor::heat::RumorHeat;
@@ -177,12 +177,10 @@ impl Server {
                 })
             }
             (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
-            (Ok(None), _) | (_, Ok(None)) => {
-                Err(Error::CannotBind(io::Error::new(
-                    io::ErrorKind::AddrNotAvailable,
-                    "No address discovered.",
-                )))
-            }
+            (Ok(None), _) | (_, Ok(None)) => Err(Error::CannotBind(io::Error::new(
+                io::ErrorKind::AddrNotAvailable,
+                "No address discovered.",
+            ))),
         }
     }
 
@@ -205,7 +203,7 @@ impl Server {
             None => {
                 debug!(
                     "Exceeded an isize integer in swim-rounds. Congratulations, this is a \
-                        very long running Supervisor!"
+                     very long running Supervisor!"
                 );
                 self.swim_rounds.store(0, Ordering::SeqCst);
             }
@@ -231,7 +229,7 @@ impl Server {
             None => {
                 debug!(
                     "Exceeded an isize integer in gossip-rounds. Congratulations, this is a \
-                        very long running Supervisor!"
+                     very long running Supervisor!"
                 );
                 self.gossip_rounds.store(0, Ordering::SeqCst);
             }
@@ -260,9 +258,10 @@ impl Server {
             *dat_file = Some(file);
         }
 
-        let socket = match UdpSocket::bind(*self.swim_addr.read().expect(
-            "Swim address lock is poisoned",
-        )) {
+        let socket = match UdpSocket::bind(*self.swim_addr
+            .read()
+            .expect("Swim address lock is poisoned"))
+        {
             Ok(socket) => socket,
             Err(e) => return Err(Error::CannotBind(e)),
         };
@@ -347,33 +346,34 @@ impl Server {
     }
 
     pub fn need_peer_seeding(&self) -> bool {
-        let m = self.member_list.members.read().expect(
-            "Members lock is poisoned",
-        );
+        let m = self.member_list
+            .members
+            .read()
+            .expect("Members lock is poisoned");
         m.is_empty()
     }
 
     /// Blacklist a given address, causing no traffic to be seen.
     pub fn add_to_blacklist(&self, member_id: String) {
-        let mut blacklist = self.blacklist.write().expect(
-            "Write lock for blacklist is poisoned",
-        );
+        let mut blacklist = self.blacklist
+            .write()
+            .expect("Write lock for blacklist is poisoned");
         blacklist.insert(member_id);
     }
 
     /// Remove a given address from the blacklist.
     pub fn remove_from_blacklist(&self, member_id: &str) {
-        let mut blacklist = self.blacklist.write().expect(
-            "Write lock for blacklist is poisoned",
-        );
+        let mut blacklist = self.blacklist
+            .write()
+            .expect("Write lock for blacklist is poisoned");
         blacklist.remove(member_id);
     }
 
     /// Check that a given address is on the blacklist.
     fn check_blacklist(&self, member_id: &str) -> bool {
-        let blacklist = self.blacklist.write().expect(
-            "Write lock for blacklist is poisoned",
-        );
+        let blacklist = self.blacklist
+            .write()
+            .expect("Write lock for blacklist is poisoned");
         blacklist.contains(member_id)
     }
 
@@ -403,9 +403,9 @@ impl Server {
 
     /// Return the gossip address we are bound to
     pub fn gossip_addr(&self) -> SocketAddr {
-        let ga = self.gossip_addr.read().expect(
-            "Gossip Address lock poisoned",
-        );
+        let ga = self.gossip_addr
+            .read()
+            .expect("Gossip Address lock poisoned");
         ga.clone()
     }
 
@@ -483,10 +483,8 @@ impl Server {
             };
             let trace_member_id = String::from(member.get_id());
             let trace_incarnation = member.get_incarnation();
-            self.member_list.insert_health_by_id(
-                member.get_id(),
-                Health::Departed,
-            );
+            self.member_list
+                .insert_health_by_id(member.get_id(), Health::Departed);
             trace_it!(
                 MEMBERSHIP: self,
                 TraceKind::MemberUpdate,
@@ -556,24 +554,19 @@ impl Server {
         if !self.service_store.contains_rumor(&rk.key, &rk.id) {
             let mut service_entries: Vec<Service> = Vec::new();
             self.service_store.with_rumors(&rk.key, |service_rumor| {
-                if self.member_list.check_health_of_by_id(
-                    service_rumor.get_member_id(),
-                    Health::Confirmed,
-                )
+                if self.member_list
+                    .check_health_of_by_id(service_rumor.get_member_id(), Health::Confirmed)
                 {
                     service_entries.push(service_rumor.clone());
                 }
             });
             service_entries.sort_by_key(|k| k.get_member_id().to_string());
             for service_rumor in service_entries.iter().take(1) {
-                if self.member_list.insert_health_by_id(
-                    service_rumor.get_member_id(),
-                    Health::Departed,
-                )
+                if self.member_list
+                    .insert_health_by_id(service_rumor.get_member_id(), Health::Departed)
                 {
-                    self.member_list.depart_remove(
-                        service_rumor.get_member_id(),
-                    );
+                    self.member_list
+                        .depart_remove(service_rumor.get_member_id());
                     self.rumor_heat.start_hot_rumor(RumorKey::new(
                         message::swim::Rumor_Type::Member,
                         service_rumor.get_member_id().clone(),
@@ -607,16 +600,11 @@ impl Server {
     pub fn insert_departure(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
         if &*self.member_id == departure.get_member_id() {
-            self.departed.compare_and_swap(
-                false,
-                true,
-                Ordering::Relaxed,
-            );
+            self.departed
+                .compare_and_swap(false, true, Ordering::Relaxed);
         }
-        if self.member_list.insert_health_by_id(
-            departure.get_member_id(),
-            Health::Departed,
-        )
+        if self.member_list
+            .insert_health_by_id(departure.get_member_id(), Health::Departed)
         {
             self.member_list.depart_remove(departure.get_member_id());
             self.rumor_heat.start_hot_rumor(RumorKey::new(
@@ -635,10 +623,8 @@ impl Server {
     fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
         self.service_store.with_rumors(key, |s| {
-            if self.member_list.check_health_of_by_id(
-                s.get_member_id(),
-                Health::Alive,
-            )
+            if self.member_list
+                .check_health_of_by_id(s.get_member_id(), Health::Alive)
             {
                 electorate.push(String::from(s.get_member_id()));
             }
@@ -650,9 +636,8 @@ impl Server {
     pub fn get_total_population(&self, key: &str) -> usize {
         let mut total_pop = 0;
         self.service_store.with_rumors(key, |s| {
-            if self.member_list.check_in_voting_population_by_id(
-                s.get_member_id(),
-            )
+            if self.member_list
+                .check_in_voting_population_by_id(s.get_member_id())
             {
                 total_pop += 1;
             }
@@ -715,90 +700,72 @@ impl Server {
         let mut update_elections_to_restart = vec![];
 
         self.election_store.with_keys(|(service_group, rumors)| {
-            if self.service_store.contains_rumor(
-                &service_group,
-                self.member_id(),
-            )
+            if self.service_store
+                .contains_rumor(&service_group, self.member_id())
             {
                 // This is safe; there is only one id for an election, and it is "election"
-                let election = rumors.get("election").expect(
-                    "Lost an election struct between looking it up and reading it.",
-                );
+                let election = rumors
+                    .get("election")
+                    .expect("Lost an election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
                 if election.is_finished() && election.get_member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
                         warn!(
                             "Restarting election with a new term as the leader has lost \
-                              quorum: {:?}",
+                             quorum: {:?}",
                             election
                         );
-                        elections_to_restart.push((
-                            String::from(&service_group[..]),
-                            election.get_term(),
-                        ));
-
+                        elections_to_restart
+                            .push((String::from(&service_group[..]), election.get_term()));
                     }
                 } else if election.is_finished() {
-                    if self.member_list.check_health_of_by_id(
-                        election.get_member_id(),
-                        Health::Confirmed,
-                    )
+                    if self.member_list
+                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed)
                     {
                         warn!(
                             "Restarting election with a new term as the leader is dead {}: {:?}",
                             self.member_id(),
                             election
                         );
-                        elections_to_restart.push((
-                            String::from(&service_group[..]),
-                            election.get_term(),
-                        ));
+                        elections_to_restart
+                            .push((String::from(&service_group[..]), election.get_term()));
                     }
                 }
             }
         });
 
         self.update_store.with_keys(|(service_group, rumors)| {
-            if self.service_store.contains_rumor(
-                &service_group,
-                self.member_id(),
-            )
+            if self.service_store
+                .contains_rumor(&service_group, self.member_id())
             {
                 // This is safe; there is only one id for an election, and it is "election"
-                let election = rumors.get("election").expect(
-                    "Lost an update election struct between looking it up and reading it.",
-                );
+                let election = rumors
+                    .get("election")
+                    .expect("Lost an update election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
                 if election.is_finished() && election.get_member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
                         warn!(
                             "Restarting election with a new term as the leader has lost \
-                              quorum: {:?}",
+                             quorum: {:?}",
                             election
                         );
-                        update_elections_to_restart.push((
-                            String::from(&service_group[..]),
-                            election.get_term(),
-                        ));
-
+                        update_elections_to_restart
+                            .push((String::from(&service_group[..]), election.get_term()));
                     }
                 } else if election.is_finished() {
-                    if self.member_list.check_health_of_by_id(
-                        election.get_member_id(),
-                        Health::Confirmed,
-                    )
+                    if self.member_list
+                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed)
                     {
                         warn!(
                             "Restarting election with a new term as the leader is dead {}: {:?}",
                             self.member_id(),
                             election
                         );
-                        update_elections_to_restart.push((
-                            String::from(&service_group[..]),
-                            election.get_term(),
-                        ));
+                        update_elections_to_restart
+                            .push((String::from(&service_group[..]), election.get_term()));
                     }
                 }
             }
@@ -810,8 +777,7 @@ impl Server {
                 Err(e) => {
                     error!(
                         "Failed to process service group from string '{}': {}",
-                        service_group,
-                        e
+                        service_group, e
                     );
                     return;
                 }
@@ -828,8 +794,7 @@ impl Server {
                 Err(e) => {
                     error!(
                         "Failed to process service group from string '{}': {}",
-                        service_group,
-                        e
+                        service_group, e
                     );
                     return;
                 }
@@ -848,25 +813,18 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store.contains_rumor(
-            election.get_service_group(),
-            self.member_id(),
-        )
+        if self.service_store
+            .contains_rumor(election.get_service_group(), self.member_id())
         {
             // And the election store already has an election rumor for this election
-            if self.election_store.contains_rumor(
-                election.key(),
-                election.id(),
-            )
+            if self.election_store
+                .contains_rumor(election.key(), election.id())
             {
                 let mut new_term = false;
-                self.election_store.with_rumor(
-                    election.key(),
-                    election.id(),
-                    |ce| {
+                self.election_store
+                    .with_rumor(election.key(), election.id(), |ce| {
                         new_term = election.get_term() > ce.unwrap().get_term()
-                    },
-                );
+                    });
                 if new_term {
                     self.election_store.remove(election.key(), election.id());
                     let sg = match ServiceGroup::from_str(election.get_service_group()) {
@@ -934,25 +892,18 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store.contains_rumor(
-            election.get_service_group(),
-            self.member_id(),
-        )
+        if self.service_store
+            .contains_rumor(election.get_service_group(), self.member_id())
         {
             // And the election store already has an election rumor for this election
-            if self.update_store.contains_rumor(
-                election.key(),
-                election.id(),
-            )
+            if self.update_store
+                .contains_rumor(election.key(), election.id())
             {
                 let mut new_term = false;
-                self.update_store.with_rumor(
-                    election.key(),
-                    election.id(),
-                    |ce| {
+                self.update_store
+                    .with_rumor(election.key(), election.id(), |ce| {
                         new_term = election.get_term() > ce.unwrap().get_term()
-                    },
-                );
+                    });
                 if new_term {
                     self.update_store.remove(election.key(), election.id());
                     let sg = match ServiceGroup::from_str(election.get_service_group()) {
@@ -1046,19 +997,10 @@ impl Serialize for Server {
         let mut strukt = serializer.serialize_struct("butterfly", 6)?;
         strukt.serialize_field("member", &self.member_list)?;
         strukt.serialize_field("service", &self.service_store)?;
-        strukt.serialize_field(
-            "service_config",
-            &self.service_config_store,
-        )?;
-        strukt.serialize_field(
-            "service_file",
-            &self.service_file_store,
-        )?;
+        strukt.serialize_field("service_config", &self.service_config_store)?;
+        strukt.serialize_field("service_file", &self.service_file_store)?;
         strukt.serialize_field("election", &self.election_store)?;
-        strukt.serialize_field(
-            "election_update",
-            &self.update_store,
-        )?;
+        strukt.serialize_field("election_update", &self.update_store)?;
         strukt.serialize_field("departure", &self.departure_store)?;
         strukt.end()
     }
@@ -1162,9 +1104,9 @@ mod tests {
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start(Timing::default()).expect(
-                "Server failed to start",
-            );
+            server
+                .start(Timing::default())
+                .expect("Server failed to start");
         }
     }
 }

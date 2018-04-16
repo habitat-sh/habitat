@@ -16,7 +16,7 @@ use std::str::FromStr;
 
 use handlebars::{Handlebars, Helper, HelperDef, RenderContext, RenderError};
 use hcore::fs;
-use hcore::package::{PackageIdent, Identifiable};
+use hcore::package::{Identifiable, PackageIdent};
 use serde_json;
 
 use super::super::RenderResult;
@@ -29,9 +29,7 @@ impl HelperDef for PkgPathForHelper {
         let param = h.param(0)
             .and_then(|v| v.value().as_str())
             .and_then(|v| PackageIdent::from_str(v).ok())
-            .ok_or_else(|| {
-                RenderError::new("Invalid package identifier for \"pkgPathFor\"")
-            })?;
+            .ok_or_else(|| RenderError::new("Invalid package identifier for \"pkgPathFor\""))?;
         let deps = serde_json::from_value::<Vec<PackageIdent>>(
             rc.context().data()["pkg"]["deps"].clone(),
         ).unwrap();

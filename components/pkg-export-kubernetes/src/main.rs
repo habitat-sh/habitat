@@ -14,15 +14,15 @@
 
 extern crate clap;
 extern crate env_logger;
-extern crate habitat_core as hcore;
 extern crate habitat_common as common;
+extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
 extern crate habitat_pkg_export_kubernetes as export_k8s;
 #[macro_use]
 extern crate log;
 
 use hcore::PROGRAM_NAME;
-use common::ui::{UI, UIWriter};
+use common::ui::{UIWriter, UI};
 
 fn main() {
     env_logger::init();

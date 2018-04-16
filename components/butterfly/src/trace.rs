@@ -167,23 +167,18 @@ impl Trace {
             let now = time::now_utc();
             let filename = format!("{}-{}.swimtrace", server.name(), now.rfc3339());
             match fs::create_dir_all(&self.directory) {
-                Ok(_) => {
-                    match fs::File::create(self.directory.join(&filename)) {
-                        Ok(f) => self.file = Some(f),
-                        Err(e) => {
-                            panic!(
-                                "Trace requested, but cannot create file {:?}: {}",
-                                self.directory.join(&filename),
-                                e
-                            )
-                        }
-                    }
-                }
+                Ok(_) => match fs::File::create(self.directory.join(&filename)) {
+                    Ok(f) => self.file = Some(f),
+                    Err(e) => panic!(
+                        "Trace requested, but cannot create file {:?}: {}",
+                        self.directory.join(&filename),
+                        e
+                    ),
+                },
                 Err(e) => {
                     panic!(
                         "Trace requested, but cannot create directory {:?}: {}",
-                        self.directory,
-                        e
+                        self.directory, e
                     );
                 }
             }
@@ -202,16 +197,14 @@ impl Trace {
     pub fn write(&mut self, trace_write: TraceWrite) {
         let dump = format!("{:#?}", self);
         match self.file.as_mut() {
-            Some(file) => {
-                match write!(file, "{}", trace_write) {
-                    Ok(_) => {}
-                    Err(e) => panic!("Trace requested, but failed to write {:?}", e),
-                }
-            }
+            Some(file) => match write!(file, "{}", trace_write) {
+                Ok(_) => {}
+                Err(e) => panic!("Trace requested, but failed to write {:?}", e),
+            },
             None => {
                 panic!(
                     "Trace requested, but init was never called; use the trace! macro \
-                        instead: {:#?}",
+                     instead: {:#?}",
                     dump
                 );
             }

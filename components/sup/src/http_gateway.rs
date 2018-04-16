@@ -15,7 +15,7 @@
 use std::fmt;
 use std::fs::File;
 use std::io::{self, Read};
-use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
 use std::ops::{Deref, DerefMut};
 use std::option;
 use std::path::Path;
@@ -32,7 +32,7 @@ use persistent;
 use router::Router;
 use serde_json::{self, Value as Json};
 
-use error::{Result, Error, SupError};
+use error::{Error, Result, SupError};
 use manager;
 use manager::service::HealthCheck;
 use manager::service::hooks::{self, HealthCheckHook};
@@ -51,9 +51,10 @@ impl ListenAddr {
 
 impl Default for ListenAddr {
     fn default() -> ListenAddr {
-        ListenAddr(SocketAddr::V4(
-            SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9631),
-        ))
+        ListenAddr(SocketAddr::V4(SocketAddrV4::new(
+            Ipv4Addr::new(0, 0, 0, 0),
+            9631,
+        )))
     }
 }
 
@@ -77,16 +78,14 @@ impl FromStr for ListenAddr {
     fn from_str(val: &str) -> Result<Self> {
         match SocketAddr::from_str(val) {
             Ok(addr) => Ok(ListenAddr(addr)),
-            Err(_) => {
-                match IpAddr::from_str(val) {
-                    Ok(ip) => {
-                        let mut addr = ListenAddr::default();
-                        addr.set_ip(ip);
-                        Ok(addr)
-                    }
-                    Err(_) => Err(sup_error!(Error::IPFailed)),
+            Err(_) => match IpAddr::from_str(val) {
+                Ok(ip) => {
+                    let mut addr = ListenAddr::default();
+                    addr.set_ip(ip);
+                    Ok(addr)
                 }
-            }
+                Err(_) => Err(sup_error!(Error::IPFailed)),
+            },
         }
     }
 }
@@ -115,8 +114,7 @@ pub struct Server(Iron<Chain>, ListenAddr);
 
 impl Server {
     pub fn new(manager_state: Arc<manager::FsCfg>, listen_addr: ListenAddr) -> Self {
-        let router =
-            router!(
+        let router = router!(
             doc: get "/" => doc,
             butterfly: get "/butterfly" => butterfly,
             census: get "/census" => census,
@@ -137,9 +135,9 @@ impl Server {
         let handle = thread::Builder::new()
             .name("http-gateway".to_string())
             .spawn(move || {
-                self.0.http(*self.1).expect(
-                    "unable to start http-gateway thread",
-                );
+                self.0
+                    .http(*self.1)
+                    .expect("unable to start http-gateway thread");
             })?;
         Ok(handle)
     }
@@ -155,9 +153,11 @@ struct HealthCheckBody {
 fn butterfly(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     match File::open(&state.butterfly_data_path) {
-        Ok(file) => Ok(Response::with(
-            (status::Ok, Header(headers::ContentType::json()), file),
-        )),
+        Ok(file) => Ok(Response::with((
+            status::Ok,
+            Header(headers::ContentType::json()),
+            file,
+        ))),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
@@ -165,9 +165,11 @@ fn butterfly(req: &mut Request) -> IronResult<Response> {
 fn census(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     match File::open(&state.census_data_path) {
-        Ok(file) => Ok(Response::with(
-            (status::Ok, Header(headers::ContentType::json()), file),
-        )),
+        Ok(file) => Ok(Response::with((
+            status::Ok,
+            Header(headers::ContentType::json()),
+            file,
+        ))),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
@@ -179,13 +181,11 @@ fn config(req: &mut Request) -> IronResult<Response> {
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
     match service_from_file(&service_group, &state.services_data_path) {
-        Ok(Some(service)) => {
-            Ok(Response::with((
-                status::Ok,
-                Header(headers::ContentType::json()),
-                service["cfg"].to_string(),
-            )))
-        }
+        Ok(Some(service)) => Ok(Response::with((
+            status::Ok,
+            Header(headers::ContentType::json()),
+            service["cfg"].to_string(),
+        ))),
         Ok(None) => Ok(Response::with(status::NotFound)),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
@@ -194,13 +194,11 @@ fn config(req: &mut Request) -> IronResult<Response> {
 fn health(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     let (health_file, stdout_path, stderr_path) = match build_service_group(req) {
-        Ok(sg) => {
-            (
-                state.health_check_cache(&sg),
-                hooks::stdout_log_path::<HealthCheckHook>(&sg),
-                hooks::stderr_log_path::<HealthCheckHook>(&sg),
-            )
-        }
+        Ok(sg) => (
+            state.health_check_cache(&sg),
+            hooks::stdout_log_path::<HealthCheckHook>(&sg),
+            hooks::stderr_log_path::<HealthCheckHook>(&sg),
+        ),
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
     match File::open(&health_file) {
@@ -237,13 +235,11 @@ fn service(req: &mut Request) -> IronResult<Response> {
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
     match service_from_file(&service_group, &state.services_data_path) {
-        Ok(Some(service)) => {
-            Ok(Response::with((
-                status::Ok,
-                Header(headers::ContentType::json()),
-                service.to_string(),
-            )))
-        }
+        Ok(Some(service)) => Ok(Response::with((
+            status::Ok,
+            Header(headers::ContentType::json()),
+            service.to_string(),
+        ))),
         Ok(None) => Ok(Response::with(status::NotFound)),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
@@ -252,17 +248,21 @@ fn service(req: &mut Request) -> IronResult<Response> {
 fn services(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     match File::open(&state.services_data_path) {
-        Ok(file) => Ok(Response::with(
-            (status::Ok, Header(headers::ContentType::json()), file),
-        )),
+        Ok(file) => Ok(Response::with((
+            status::Ok,
+            Header(headers::ContentType::json()),
+            file,
+        ))),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
 
 fn doc(_req: &mut Request) -> IronResult<Response> {
-    Ok(Response::with(
-        (status::Ok, Header(headers::ContentType::html()), APIDOCS),
-    ))
+    Ok(Response::with((
+        status::Ok,
+        Header(headers::ContentType::html()),
+        APIDOCS,
+    )))
 }
 
 impl Into<Response> for HealthCheck {
@@ -283,15 +283,15 @@ impl Into<status::Status> for HealthCheck {
 }
 
 fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
-    let app_env = match req.extensions.get::<Router>().unwrap().find(
-        "application_environment",
-    ) {
-        Some(s) => {
-            match ApplicationEnvironment::from_str(s) {
-                Ok(app_env) => Some(app_env),
-                Err(_) => None,
-            }
-        }
+    let app_env = match req.extensions
+        .get::<Router>()
+        .unwrap()
+        .find("application_environment")
+    {
+        Some(s) => match ApplicationEnvironment::from_str(s) {
+            Ok(app_env) => Some(app_env),
+            Err(_) => None,
+        },
         None => None,
     };
     let sg = ServiceGroup::new(
@@ -319,16 +319,12 @@ where
     T: AsRef<Path>,
 {
     match File::open(services_data_path) {
-        Ok(file) => {
-            match serde_json::from_reader(file) {
-                Ok(Json::Array(services)) => {
-                    Ok(services.into_iter().find(|s| {
-                        s["service_group"] == service_group.as_ref()
-                    }))
-                }
-                _ => Ok(None),
-            }
-        }
+        Ok(file) => match serde_json::from_reader(file) {
+            Ok(Json::Array(services)) => Ok(services
+                .into_iter()
+                .find(|s| s["service_group"] == service_group.as_ref())),
+            _ => Ok(None),
+        },
         Err(err) => Err(err),
     }
 }

@@ -83,9 +83,7 @@ impl RumorHeat {
             .read()
             .expect("RumorHeat lock poisoned")
             .iter()
-            .map(|(k, heat_map)| {
-                (k.clone(), heat_map.get(id).unwrap_or(&0).clone())
-            })
+            .map(|(k, heat_map)| (k.clone(), heat_map.get(id).unwrap_or(&0).clone()))
             .filter(|&(_, heat)| heat < RUMOR_COOL_DOWN_LIMIT)
             .collect();
 
@@ -120,7 +118,7 @@ impl RumorHeat {
                 } else {
                     debug!(
                         "Rumor does not exist in map; was probably deleted between retrieval \
-                            and sending"
+                         and sending"
                     );
                 }
             }

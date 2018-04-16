@@ -55,25 +55,19 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => {
-                format!(
-                    "Artifact ident {} for `{}' does not match expected ident {}",
-                    ai,
-                    a,
-                    i
-                )
-            }
+            Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => format!(
+                "Artifact ident {} for `{}' does not match expected ident {}",
+                ai, a, i
+            ),
             Error::CantUploadGossipToml => {
                 format!("Can't upload gossip.toml, it's a reserved file name")
             }
             Error::ChannelNotFound => format!("Channel not found"),
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
-            Error::GossipFileRelativePath(ref s) => {
-                format!(
-                    "Path for gossip file cannot have relative components (eg: ..): {}",
-                    s
-                )
-            }
+            Error::GossipFileRelativePath(ref s) => format!(
+                "Path for gossip file cannot have relative components (eg: ..): {}",
+                s
+            ),
             Error::DepotClient(ref err) => format!("{}", err),
             Error::EditStatus => format!("Failed edit text command"),
             Error::FileNameError => format!("Failed to extract a filename"),
@@ -82,19 +76,15 @@ impl fmt::Display for Error {
             Error::OfflineArtifactNotFound(ref ident) => {
                 format!("Cached artifact not found in offline mode: {}", ident)
             }
-            Error::OfflineOriginKeyNotFound(ref name_with_rev) => {
-                format!(
-                    "Cached origin key not found in offline mode: {}",
-                    name_with_rev
-                )
-            }
-            Error::OfflinePackageNotFound(ref ident) => {
-                format!(
-                    "No installed package or cached artifact could be found \
-                    locally in offline mode: {}",
-                    ident
-                )
-            }
+            Error::OfflineOriginKeyNotFound(ref name_with_rev) => format!(
+                "Cached origin key not found in offline mode: {}",
+                name_with_rev
+            ),
+            Error::OfflinePackageNotFound(ref ident) => format!(
+                "No installed package or cached artifact could be found \
+                 locally in offline mode: {}",
+                ident
+            ),
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }

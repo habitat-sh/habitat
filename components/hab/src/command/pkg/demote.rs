@@ -26,14 +26,12 @@
 //!    If the specified channel does not exist, this will fail.
 //!
 
-
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use depot_client::Client;
 use hcore::package::PackageIdent;
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
-
 
 /// Demote a package from the specified channel.
 ///
@@ -49,15 +47,15 @@ pub fn start(
     channel: &str,
     token: &str,
 ) -> Result<()> {
-
     let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Demoting {} from {}", ident, channel))?;
 
     if channel == "unstable" {
-        return Err(Error::CannotRemoveFromChannel(
-            (format!("{}", ident), "unstable".to_string()),
-        ));
+        return Err(Error::CannotRemoveFromChannel((
+            format!("{}", ident),
+            "unstable".to_string(),
+        )));
     }
 
     match depot_client.demote_package(ident, channel, token) {

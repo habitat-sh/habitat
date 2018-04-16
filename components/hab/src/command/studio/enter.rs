@@ -71,8 +71,8 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use common::ui::{UI, UIWriter};
-    use hcore::crypto::{init, default_cache_key_path};
+    use common::ui::{UIWriter, UI};
+    use hcore::crypto::{default_cache_key_path, init};
     use hcore::env as henv;
     use hcore::fs::{am_i_root, find_command};
     use hcore::os::process;
@@ -97,9 +97,11 @@ mod inner {
                 Err(_) => {
                     init();
                     let version: Vec<&str> = VERSION.split("/").collect();
-                    let ident = PackageIdent::from_str(
-                        &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
-                    )?;
+                    let ident = PackageIdent::from_str(&format!(
+                        "{}/{}",
+                        super::STUDIO_PACKAGE_IDENT,
+                        version[0]
+                    ))?;
                     exec::command_from_min_pkg(
                         ui,
                         super::STUDIO_CMD,
@@ -168,8 +170,8 @@ mod inner {
                 ))?;
                 ui.warn(
                     "Running Habitat Studio requires root or administrator privileges. \
-                              Please retry this command as a super user or use a \
-                              privilege-granting facility such as sudo.",
+                     Please retry this command as a super user or use a \
+                     privilege-granting facility such as sudo.",
                 )?;
                 ui.br()?;
                 Err(Error::RootRequired)
@@ -185,7 +187,7 @@ mod inner {
     use std::str::FromStr;
 
     use common::ui::UI;
-    use hcore::crypto::{init, default_cache_key_path};
+    use hcore::crypto::{default_cache_key_path, init};
     use hcore::env as henv;
     use hcore::fs::find_command;
     use hcore::os::process;
@@ -195,8 +197,6 @@ mod inner {
     use exec;
     use VERSION;
     use command::studio::docker;
-
-
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {
@@ -212,9 +212,11 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = PackageIdent::from_str(
-                    &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
-                )?;
+                let ident = PackageIdent::from_str(&format!(
+                    "{}/{}",
+                    super::STUDIO_PACKAGE_IDENT,
+                    version[0]
+                ))?;
                 exec::command_from_min_pkg(
                     ui,
                     super::STUDIO_CMD,

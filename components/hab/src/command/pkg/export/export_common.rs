@@ -43,7 +43,7 @@ mod inner {
     use std::str::FromStr;
 
     use common::ui::UI;
-    use hcore::crypto::{init, default_cache_key_path};
+    use hcore::crypto::{default_cache_key_path, init};
     use hcore::env as henv;
     use hcore::fs::find_command;
     use hcore::os::process;
@@ -94,7 +94,7 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use common::ui::{UI, UIWriter};
+    use common::ui::{UIWriter, UI};
 
     use error::{Error, Result};
 
@@ -109,7 +109,7 @@ mod inner {
         let cmd = export_cmd.replace("hab", "").replace("-", " ");
         ui.warn(format!(
             "Running 'hab {}' on this operating system is not yet supported. \
-            Try running this command again on 64-bit Linux.",
+             Try running this command again on 64-bit Linux.",
             &cmd
         ))?;
         ui.br()?;

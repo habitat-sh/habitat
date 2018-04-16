@@ -78,8 +78,8 @@ fn main() {
 
                     match event.get_field_type() {
                         EventEnvelope_Type::ProtoBuf => {
-                            let data = parse_from_bytes::<ServiceUpdateProto>(&payload_buf)
-                                .unwrap();
+                            let data =
+                                parse_from_bytes::<ServiceUpdateProto>(&payload_buf).unwrap();
                             println!(
                                 "SUBSCRIBER: Service Update Member ID {}",
                                 data.get_member_id()
@@ -87,10 +87,8 @@ fn main() {
                             let cfg = data.get_cfg().to_vec();
                             let cfg_str = String::from_utf8(cfg).unwrap();
                             println!("SUBSCRIBER: Census Entry Config {}", cfg_str);
-
                         }
-                        EventEnvelope_Type::JSON |
-                        EventEnvelope_Type::TOML => {
+                        EventEnvelope_Type::JSON | EventEnvelope_Type::TOML => {
                             let data = String::from_utf8(payload_buf.clone()).unwrap();
                             println!("Data: {}", data);
                         }

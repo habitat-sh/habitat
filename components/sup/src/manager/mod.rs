@@ -56,19 +56,19 @@ use hcore::os::process::{self, Pid, Signal};
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::package::metadata::PackageType;
 use hcore::service::ServiceGroup;
-use launcher_client::{LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, LauncherCli};
+use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
-use protocol::net::{self, NetResult, ErrCode};
+use protocol::net::{self, ErrCode, NetResult};
 use serde;
 use serde_json;
-use time::{self, Timespec, Duration as TimeDuration};
+use time::{self, Duration as TimeDuration, Timespec};
 use tokio_core::reactor;
 use toml;
 
-pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, UpdateStrategy,
-                        Topology};
+pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, Topology,
+                        UpdateStrategy};
 pub use self::sys::Sys;
-use self::self_updater::{SUP_PKG_IDENT, SelfUpdater};
+use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
 use self::service::{Cfg, DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
@@ -126,9 +126,8 @@ impl FsCfg {
     }
 
     pub fn health_check_cache(&self, service_group: &ServiceGroup) -> PathBuf {
-        self.data_path.join(
-            format!("{}.health", service_group.service()),
-        )
+        self.data_path
+            .join(format!("{}.health", service_group.service()))
     }
 }
 
@@ -208,8 +207,14 @@ impl Manager {
 
         match read_process_lock(&fs_cfg.proc_lock_file) {
             Ok(pid) => Ok(process::is_alive(pid)),
-            Err(SupError { err: Error::ProcessLockCorrupt, .. }) => Ok(false),
-            Err(SupError { err: Error::ProcessLockIO(_, _), .. }) => {
+            Err(SupError {
+                err: Error::ProcessLockCorrupt,
+                ..
+            }) => Ok(false),
+            Err(SupError {
+                err: Error::ProcessLockIO(_, _),
+                ..
+            }) => {
                 // JW TODO: We need to check the raw OS error and translate it to a "file not found"
                 // case. This is an acceptable reason to assume that another manager is not running
                 // but other IO errors are an actual problem. For now, let's just assume an IO
@@ -250,13 +255,11 @@ impl Manager {
                 opts.into_spec(&mut spec);
                 vec![spec]
             }
-            PackageType::Composite => {
-                opts.into_composite_spec(
-                    package.ident().name.clone(),
-                    package.pkg_services()?,
-                    package.bind_map()?,
-                )
-            }
+            PackageType::Composite => opts.into_composite_spec(
+                package.ident().name.clone(),
+                package.pkg_services()?,
+                package.bind_map()?,
+            ),
         };
         Ok(specs)
     }
@@ -308,9 +311,7 @@ impl Manager {
         let fs_cfg = FsCfg::new(cfg.sup_root());
         match read_process_lock(&fs_cfg.proc_lock_file) {
             Ok(pid) => {
-                process::signal(pid, Signal::TERM).map_err(|_| {
-                    sup_error!(Error::SignalFailed)
-                })?;
+                process::signal(pid, Signal::TERM).map_err(|_| sup_error!(Error::SignalFailed))?;
                 Ok(())
             }
             Err(err) => Err(err),
@@ -326,19 +327,10 @@ impl Manager {
         // Supervisor asynchronously. We need to move to communicating directly with the
         // Supervisor's main loop through IPC.
         match SpecWatcher::spec_files(&fs_cfg.specs_path) {
-            Ok(specs) => {
-                for spec_file in specs {
-                    match ServiceSpec::from_file(&spec_file) {
-                        Ok(spec) => {
-                            if let Err(err) = spec.to_file(&spec_file) {
-                                outputln!(
-                                    "Unable to migrate service spec, {}, {}",
-                                    spec_file.display(),
-                                    err
-                                );
-                            }
-                        }
-                        Err(err) => {
+            Ok(specs) => for spec_file in specs {
+                match ServiceSpec::from_file(&spec_file) {
+                    Ok(spec) => {
+                        if let Err(err) = spec.to_file(&spec_file) {
                             outputln!(
                                 "Unable to migrate service spec, {}, {}",
                                 spec_file.display(),
@@ -346,8 +338,15 @@ impl Manager {
                             );
                         }
                     }
+                    Err(err) => {
+                        outputln!(
+                            "Unable to migrate service spec, {}, {}",
+                            spec_file.display(),
+                            err
+                        );
+                    }
                 }
-            }
+            },
             Err(err) => outputln!("Unable to migrate service specs, {}", err),
         }
     }
@@ -433,25 +432,23 @@ impl Manager {
         match File::open(&fs_cfg.member_id_file) {
             Ok(mut file) => {
                 let mut member_id = String::new();
-                file.read_to_string(&mut member_id).map_err(|e| {
-                    sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
-                })?;
+                file.read_to_string(&mut member_id)
+                    .map_err(|e| sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e)))?;
                 member.set_id(member_id);
             }
-            Err(_) => {
-                match File::create(&fs_cfg.member_id_file) {
-                    Ok(mut file) => {
-                        file.write(member.get_id().as_bytes()).map_err(|e| {
-                            sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
-                        })?;
-                    }
-                    Err(err) => {
-                        return Err(sup_error!(
-                            Error::BadDataFile(fs_cfg.member_id_file.clone(), err)
-                        ))
-                    }
+            Err(_) => match File::create(&fs_cfg.member_id_file) {
+                Ok(mut file) => {
+                    file.write(member.get_id().as_bytes()).map_err(|e| {
+                        sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
+                    })?;
                 }
-            }
+                Err(err) => {
+                    return Err(sup_error!(Error::BadDataFile(
+                        fs_cfg.member_id_file.clone(),
+                        err
+                    )))
+                }
+            },
         }
         sys.member_id = member.get_id().to_string();
         member.set_persistent(sys.permanent);
@@ -627,7 +624,7 @@ impl Manager {
             );
             outputln!(
                 "If this service is running as non-root, you'll need to create \
-                       {} and give the current user write access to it",
+                 {} and give the current user write access to it",
                 service.pkg.svc_path.display()
             );
             outputln!("{} failed to start", &spec.ident);
@@ -636,10 +633,8 @@ impl Manager {
 
         self.gossip_latest_service_rumor(&service);
         if service.topology == Topology::Leader {
-            self.butterfly.start_election(
-                service.service_group.clone(),
-                0,
-            );
+            self.butterfly
+                .start_election(service.service_group.clone(), 0);
         }
 
         if let Err(e) = self.user_config_watcher.add(&service) {
@@ -687,8 +682,7 @@ impl Manager {
         ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, ctl_tx);
         debug!("ctl-gateway started");
         outputln!("Starting http-gateway on {}", &http_listen_addr);
-        http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr)
-            .start()?;
+        http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr).start()?;
         debug!("http-gateway started");
         let events = match self.events_group {
             Some(ref evg) => Some(events::EventsMgr::start(evg.clone())),
@@ -732,9 +726,9 @@ impl Manager {
 
             if self.census_ring.changed() {
                 self.persist_state();
-                events.as_ref().map(|events| {
-                    events.try_connect(&self.census_ring)
-                });
+                events
+                    .as_ref()
+                    .map(|events| events.try_connect(&self.census_ring));
 
                 for service in self.state
                     .services
@@ -746,9 +740,9 @@ impl Manager {
                         self.census_ring.census_group_for(&service.service_group)
                     {
                         if let Some(member) = census_group.me() {
-                            events.as_ref().map(
-                                |events| events.send_service(member, service),
-                            );
+                            events
+                                .as_ref()
+                                .map(|events| events.send_service(member, service));
                         }
                     }
                 }
@@ -805,10 +799,7 @@ impl Manager {
         if opts.get_format() != protocol::types::ServiceCfg_Format::TOML {
             return Err(net::err(
                 ErrCode::NotSupported,
-                format!(
-                    "Configuration format {} not available.",
-                    opts.get_format()
-                ),
+                format!("Configuration format {} not available.", opts.get_format()),
             ));
         }
         let new_cfg = toml::from_slice(opts.get_cfg()).map_err(|e| {
@@ -1165,10 +1156,7 @@ impl Manager {
             if let Err(err) = std::fs::remove_file(&file) {
                 return Err(net::err(
                     ErrCode::Internal,
-                    format!(
-                        "{}",
-                        sup_error!(Error::ServiceSpecFileIO(file, err))
-                    ),
+                    format!("{}", sup_error!(Error::ServiceSpecFileIO(file, err))),
                 ));
             };
             // JW TODO: Change this to unloaded from unloading when the Supervisor waits for
@@ -1320,11 +1308,8 @@ impl Manager {
             .expect("Services lock is poisoned!")
             .iter_mut()
         {
-            if self.updater.check_for_updated_package(
-                service,
-                &self.census_ring,
-                &self.launcher,
-            )
+            if self.updater
+                .check_for_updated_package(service, &self.census_ring, &self.launcher)
             {
                 self.gossip_latest_service_rumor(&service);
             }
@@ -1335,12 +1320,13 @@ impl Manager {
     fn gossip_latest_service_rumor(&self, service: &Service) {
         let mut incarnation = 1;
         {
-            let list = self.butterfly.service_store.list.read().expect(
-                "Rumor store lock poisoned",
-            );
-            if let Some(rumor) = list.get(&*service.service_group).and_then(|r| {
-                r.get(&self.sys.member_id)
-            })
+            let list = self.butterfly
+                .service_store
+                .list
+                .read()
+                .expect("Rumor store lock poisoned");
+            if let Some(rumor) = list.get(&*service.service_group)
+                .and_then(|r| r.get(&self.sys.member_id))
             {
                 incarnation = rumor.clone().get_incarnation() + 1;
             }
@@ -1547,9 +1533,8 @@ impl Manager {
         if !is_first {
             writer.write(",".as_bytes())?;
         }
-        serde_json::to_writer(writer, service).map_err(|e| {
-            sup_error!(Error::ServiceSerializationError(e))
-        })
+        serde_json::to_writer(writer, service)
+            .map_err(|e| sup_error!(Error::ServiceSerializationError(e)))
     }
 
     /// Check if any elections need restarting.
@@ -1569,9 +1554,10 @@ impl Manager {
         // `self.remove_service`, and use `mem::swap` to move the services to a variable defined
         // outside the block while we have the lock.
         {
-            let mut services = self.state.services.write().expect(
-                "Services lock is poisoned!",
-            );
+            let mut services = self.state
+                .services
+                .write()
+                .expect("Services lock is poisoned!");
             mem::swap(services.deref_mut(), &mut svcs);
         }
 
@@ -1639,9 +1625,10 @@ impl Manager {
     }
 
     fn update_running_services_from_user_config_watcher(&mut self) {
-        let mut services = self.state.services.write().expect(
-            "Services lock is poisoned",
-        );
+        let mut services = self.state
+            .services
+            .write()
+            .expect("Services lock is poisoned");
 
         for service in services.iter_mut() {
             if self.user_config_watcher.have_events_for(service) {
@@ -1655,9 +1642,10 @@ impl Manager {
         let mut service: Service;
 
         {
-            let mut services = self.state.services.write().expect(
-                "Services lock is poisoned",
-            );
+            let mut services = self.state
+                .services
+                .write()
+                .expect("Services lock is poisoned");
             // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
             // shenanigans--maybe we want to consider changing the data structure in the future?
             let services_idx = match services.iter().position(|ref s| s.spec_ident == spec.ident) {
@@ -1690,18 +1678,13 @@ pub struct ProcessStatus {
 impl fmt::Display for ProcessStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.pid {
-            Some(pid) => {
-                write!(
-                    f,
-                    "state:{}, time:{}, pid:{}",
-                    self.state,
-                    self.elapsed,
-                    pid
-                )
-            }
+            Some(pid) => write!(
+                f,
+                "state:{}, time:{}, pid:{}",
+                self.state, self.elapsed, pid
+            ),
             None => write!(f, "state:{}, time:{}", self.state, self.elapsed),
         }
-
     }
 }
 
@@ -1772,22 +1755,23 @@ where
 fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
     match write_process_lock(&fs_cfg.proc_lock_file) {
         Ok(()) => Ok(()),
-        Err(_) => {
-            match read_process_lock(&fs_cfg.proc_lock_file) {
-                Ok(pid) => {
-                    if process::is_alive(pid) {
-                        return Err(sup_error!(Error::ProcessLocked(pid)));
-                    }
-                    release_process_lock(&fs_cfg);
-                    write_process_lock(&fs_cfg.proc_lock_file)
+        Err(_) => match read_process_lock(&fs_cfg.proc_lock_file) {
+            Ok(pid) => {
+                if process::is_alive(pid) {
+                    return Err(sup_error!(Error::ProcessLocked(pid)));
                 }
-                Err(SupError { err: Error::ProcessLockCorrupt, .. }) => {
-                    release_process_lock(&fs_cfg);
-                    write_process_lock(&fs_cfg.proc_lock_file)
-                }
-                Err(err) => Err(err),
+                release_process_lock(&fs_cfg);
+                write_process_lock(&fs_cfg.proc_lock_file)
             }
-        }
+            Err(SupError {
+                err: Error::ProcessLockCorrupt,
+                ..
+            }) => {
+                release_process_lock(&fs_cfg);
+                write_process_lock(&fs_cfg.proc_lock_file)
+            }
+            Err(err) => Err(err),
+        },
     }
 }
 
@@ -1799,18 +1783,17 @@ where
         Ok(file) => {
             let reader = BufReader::new(file);
             match reader.lines().next() {
-                Some(Ok(line)) => {
-                    match line.parse::<Pid>() {
-                        Ok(pid) => Ok(pid),
-                        Err(_) => Err(sup_error!(Error::ProcessLockCorrupt)),
-                    }
-                }
+                Some(Ok(line)) => match line.parse::<Pid>() {
+                    Ok(pid) => Ok(pid),
+                    Err(_) => Err(sup_error!(Error::ProcessLockCorrupt)),
+                },
                 _ => Err(sup_error!(Error::ProcessLockCorrupt)),
             }
         }
-        Err(err) => Err(sup_error!(
-            Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)
-        )),
+        Err(err) => Err(sup_error!(Error::ProcessLockIO(
+            lock_path.as_ref().to_path_buf(),
+            err
+        ))),
     }
 }
 
@@ -1824,10 +1807,11 @@ fn write_process_lock<T>(lock_path: T) -> Result<()>
 where
     T: AsRef<Path>,
 {
-    match OpenOptions::new().write(true).create_new(true).open(
-        lock_path
-            .as_ref(),
-    ) {
+    match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(lock_path.as_ref())
+    {
         Ok(mut file) => {
             let pid = match env::var(LAUNCHER_PID_ENV) {
                 Ok(pid) => pid.parse::<Pid>().expect("Unable to parse launcher pid"),
@@ -1835,16 +1819,16 @@ where
             };
             match write!(&mut file, "{}", pid) {
                 Ok(()) => Ok(()),
-                Err(err) => {
-                    Err(sup_error!(
-                        Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)
-                    ))
-                }
+                Err(err) => Err(sup_error!(Error::ProcessLockIO(
+                    lock_path.as_ref().to_path_buf(),
+                    err
+                ))),
             }
         }
-        Err(err) => Err(sup_error!(
-            Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)
-        )),
+        Err(err) => Err(sup_error!(Error::ProcessLockIO(
+            lock_path.as_ref().to_path_buf(),
+            err
+        ))),
     }
 }
 

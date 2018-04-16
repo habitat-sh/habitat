@@ -14,14 +14,14 @@
 
 use std::net::IpAddr;
 use std::str::FromStr;
-use std::sync::mpsc::{self, Receiver, Sender, SyncSender, RecvError};
+use std::sync::mpsc::{self, Receiver, RecvError, Sender, SyncSender};
 use std::thread;
 
 use byteorder::{ByteOrder, LittleEndian};
 use eventsrv_client::{EventSrvAddr, EventSrvClient};
 use eventsrv_client::message::{EventEnvelope, EventEnvelope_Type,
-                               ServiceUpdate as ServiceUpdateProto,
-                               PackageIdent as PackageIdentProto, SysInfo as SysInfoProto};
+                               PackageIdent as PackageIdentProto,
+                               ServiceUpdate as ServiceUpdateProto, SysInfo as SysInfoProto};
 use hcore::service::ServiceGroup;
 use protobuf::Message;
 use toml;
@@ -106,12 +106,10 @@ impl EventsMgr {
         rz.send(()).unwrap();
         loop {
             match self.rx.recv() {
-                Ok(Command::TryConnect(addrs)) => {
-                    for addr in addrs {
-                        debug!("Connecting to eventsrv, {:?}", addr);
-                        self.client.connect(&addr)
-                    }
-                }
+                Ok(Command::TryConnect(addrs)) => for addr in addrs {
+                    debug!("Connecting to eventsrv, {:?}", addr);
+                    self.client.connect(&addr)
+                },
                 Ok(Command::SendEvent(mut event)) => {
                     debug!("Sending event, {:?}", event);
                     self.client.send(&mut event);

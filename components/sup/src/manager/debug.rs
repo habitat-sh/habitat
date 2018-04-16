@@ -143,11 +143,7 @@ impl IndentedToString for HashSet<PathBuf> {
         let mut str = String::new();
         str.push_str("{\n");
         for path in paths {
-            str.push_str(&format!(
-                "{}{},\n",
-                indent,
-                path.display(),
-            ));
+            str.push_str(&format!("{}{},\n", indent, path.display(),));
         }
         str.push_str(&format!("{}}}", spaces.repeat(repeat)));
         str
