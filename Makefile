@@ -40,6 +40,8 @@ else
 	CARGO_FLAGS :=
 endif
 
+# launcher is intentionally omitted from the standard build process
+# see https://github.com/habitat-sh/habitat/blob/master/components/launcher/README.md
 BIN = hab pkg-export-docker pkg-export-kubernetes sup
 LIB = butterfly common builder-depot-client
 ALL = $(BIN) $(LIB)

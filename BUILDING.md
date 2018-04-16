@@ -67,6 +67,13 @@ cargo run -- --help
 cargo run -- status
 ```
 
+## Compiling launcher
+
+The `hab-launch` binary has a separate build and release process from the rest of the habitat ecosystem.
+Generally the launcher does not need to change and it is not necessary to update it with each habitat
+release. For details on building and releasing the launcher see
+[its README](components/launcher/README.md).
+
 # Testing changes
 
 The `hab` command execs various other binaries such as `hab-sup`. By default, this will run the latest installed habitat package version of the binary. To use your development version, this behavior can be overridden with the following environment variables:

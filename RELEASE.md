@@ -3,6 +3,12 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Thursday.
 
+## Releasing launcher
+
+The [`core/hab-launcher` package](https://bldr.habitat.sh/#/pkgs/core/hab-launcher), which contains
+the `hab-launch` binary has a separate release process. See
+[its README](components/launcher/README.md) for details.
+
 ## Submit a Release Notes Blog Post PR
 
 If one has not already been opened, create a "Release Notes" blog post PR. Add a file to the Habitat repo: `www/source/blog/2018-02-20-0540Release.html.md`. Of course you will change the date and version to match the reality that is manifesting itself in your present moment. This post should begin with the following structure:

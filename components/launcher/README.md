@@ -16,4 +16,16 @@ When the Supervisor needs to spawn a long lived process it sends a `Spawn` messa
 
 ## Dev Instructions
 
+Since the launcher is updated infrequently relative to the rest of the habitat ecosystem, it has a separate build and release process. To build locally run
+```
+cargo build
+```
+from this directory. To make a build for release, run the `build` command from within the studio against this directory.
+
+### Testing
+
 Since the Supervisor requires the Launcher to start and it always attempts to start the latest version of the Supervisor packaged and installed on the host you may find it difficult to start your dev version of the Supervisor. You can force the Supervisor to start a specific version of the Supervisor by setting the `HAB_SUP_BINARY` environment variable to the file path of the desired Supervisor binary to start.
+
+### Releasing
+
+To release a new version of the supervisor, upload the new `.hart` file and then [promote it to stable in builder](https://bldr.habitat.sh/#/pkgs/core/hab-launcher). If a new release contains important features or bug fixes, it will have to be communicated to the community and installed manually. Because of the nature of the launcher, this will require downtime in production environments, but it should be an exceedingly rare occurrence.
