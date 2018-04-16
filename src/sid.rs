@@ -211,15 +211,13 @@ impl Sid {
             ) == 0
             {
                 match io::Error::last_os_error().raw_os_error() {
-                    Some(error) => {
-                        match error as u32 {
-                            winapi::winerror::ERROR_INSUFFICIENT_BUFFER => {
-                                sd = Vec::with_capacity((needed_len) as usize);
-                                sd_new = Vec::with_capacity((needed_len) as usize);
-                            }
-                            _ => return Err(io::Error::last_os_error()),
+                    Some(error) => match error as u32 {
+                        winapi::winerror::ERROR_INSUFFICIENT_BUFFER => {
+                            sd = Vec::with_capacity((needed_len) as usize);
+                            sd_new = Vec::with_capacity((needed_len) as usize);
                         }
-                    }
+                        _ => return Err(io::Error::last_os_error()),
+                    },
                     None => {}
                 }
             }
@@ -267,10 +265,10 @@ impl Sid {
             }
 
             let psid_length = GetLengthSid(self.raw.as_ptr() as winapi::PSID);
-            let new_acl_size = size_info.aclBytesInUse +
-                (2 * (mem::size_of::<ACCESS_ALLOWED_ACE>() as winapi::DWORD)) +
-                (2 * psid_length) -
-                (2 * (mem::size_of::<winapi::DWORD>() as winapi::DWORD));
+            let new_acl_size = size_info.aclBytesInUse
+                + (2 * (mem::size_of::<ACCESS_ALLOWED_ACE>() as winapi::DWORD))
+                + (2 * psid_length)
+                - (2 * (mem::size_of::<winapi::DWORD>() as winapi::DWORD));
             let mut new_acl_buf: Vec<u8> = Vec::with_capacity(new_acl_size as usize);
             cvt(InitializeAcl(
                 new_acl_buf.as_mut_ptr() as winapi::PACL,

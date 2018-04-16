@@ -16,7 +16,7 @@ use std::ptr::null_mut;
 use std::io::Error;
 
 use widestring::WideCString;
-use winapi::{LPCWSTR, BOOL, PSID, PSID_NAME_USE, LPDWORD, SID_NAME_USE};
+use winapi::{BOOL, LPCWSTR, LPDWORD, PSID, PSID_NAME_USE, SID_NAME_USE};
 use winapi::winerror::*;
 
 use super::sid::Sid;
@@ -52,7 +52,6 @@ impl Account {
 }
 
 fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
-
     // if this is a machine account, strip the terminating '$'
     // LookupAccountName will return the sid of the computer account
     // given the computer name. Windows forbids usernames to match the
@@ -79,13 +78,11 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     match Error::last_os_error().raw_os_error().unwrap() as u32 {
         ERROR_INSUFFICIENT_BUFFER => {}
         ERROR_NONE_MAPPED => return None,
-        _ => {
-            panic!(
-                "Error while looking up account for {}: {}",
-                name,
-                Error::last_os_error()
-            )
-        }
+        _ => panic!(
+            "Error while looking up account for {}: {}",
+            name,
+            Error::last_os_error()
+        ),
     }
 
     let mut sid: Vec<u8> = Vec::with_capacity(sid_size as usize);
