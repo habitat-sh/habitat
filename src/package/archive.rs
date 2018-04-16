@@ -20,7 +20,7 @@ use std::str::{self, FromStr};
 
 use libarchive::writer;
 use libarchive::reader::{self, Reader};
-use libarchive::archive::{Entry, ReadFilter, ReadFormat, ExtractOption, ExtractOptions};
+use libarchive::archive::{Entry, ExtractOption, ExtractOptions, ReadFilter, ReadFormat};
 use regex::Regex;
 
 use super::{Identifiable, PackageIdent, PackageTarget};
@@ -274,10 +274,7 @@ impl PackageArchive {
         extract_options.add(ExtractOption::Permissions);
         writer.set_options(&extract_options)?;
         writer.set_standard_lookup()?;
-        writer.write(
-            &mut reader,
-            Some(root.to_string_lossy().as_ref()),
-        )?;
+        writer.write(&mut reader, Some(root.to_string_lossy().as_ref()))?;
         writer.close()?;
         Ok(())
     }
@@ -287,9 +284,7 @@ impl PackageArchive {
 
         // For now, all deps files but SERVICES need fully-qualified
         // package identifiers
-        let must_be_fully_qualified = {
-            file != MetaFile::Services
-        };
+        let must_be_fully_qualified = { file != MetaFile::Services };
 
         match self.read_metadata(file) {
             Ok(Some(body)) => {
@@ -387,9 +382,9 @@ mod test {
 
     #[test]
     fn reading_artifact_metadata() {
-        let mut hart = PackageArchive::new(fixtures().join(
-            "happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart",
-        ));
+        let mut hart = PackageArchive::new(
+            fixtures().join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
+        );
         let ident = hart.ident().unwrap();
         assert_eq!(ident.origin, "happyhumans");
         assert_eq!(ident.name, "possums");
@@ -407,27 +402,27 @@ mod test {
 
     #[test]
     fn reading_artifact_deps() {
-        let mut hart = PackageArchive::new(fixtures().join(
-            "happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart",
-        ));
+        let mut hart = PackageArchive::new(
+            fixtures().join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
+        );
         let _ = hart.deps().unwrap();
         let _ = hart.tdeps().unwrap();
     }
 
     #[test]
     fn reading_artifact_large_tdeps() {
-        let mut hart = PackageArchive::new(fixtures().join(
-            "unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart",
-        ));
+        let mut hart = PackageArchive::new(
+            fixtures().join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
+        );
         let tdeps = hart.tdeps().unwrap();
         assert_eq!(1024, tdeps.len());
     }
 
     #[test]
     fn reading_artifact_target() {
-        let mut hart = PackageArchive::new(fixtures().join(
-            "unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart",
-        ));
+        let mut hart = PackageArchive::new(
+            fixtures().join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
+        );
         let target = hart.target().unwrap();
         assert_eq!(target.platform, Platform::Linux);
         assert_eq!(target.architecture, Architecture::X86_64);

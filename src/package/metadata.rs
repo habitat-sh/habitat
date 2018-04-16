@@ -85,9 +85,10 @@ impl FromStr for BindMapping {
 
     fn from_str(line: &str) -> Result<Self> {
         let mut parts = line.split(':');
-        let bind_name = parts.next().and_then(|bn| Some(bn.to_string())).ok_or(
-            Error::MetaFileBadBind,
-        )?;
+        let bind_name = parts
+            .next()
+            .and_then(|bn| Some(bn.to_string()))
+            .ok_or(Error::MetaFileBadBind)?;
         let satisfying_service = match parts.next() {
             None => return Err(Error::MetaFileBadBind),
             Some(satisfying_service) => satisfying_service.parse()?,
@@ -116,17 +117,19 @@ impl PkgEnv {
         Self {
             inner: values
                 .into_iter()
-                .map(|(key, value)| if let Some(sep) = separators.get(&key) {
-                    EnvVar {
-                        key: key,
-                        value: value,
-                        separator: sep.to_owned().pop(),
-                    }
-                } else {
-                    EnvVar {
-                        key: key,
-                        value: value,
-                        separator: None,
+                .map(|(key, value)| {
+                    if let Some(sep) = separators.get(&key) {
+                        EnvVar {
+                            key: key,
+                            value: value,
+                            separator: sep.to_owned().pop(),
+                        }
+                    } else {
+                        EnvVar {
+                            key: key,
+                            value: value,
+                            separator: None,
+                        }
                     }
                 })
                 .collect(),
@@ -139,9 +142,8 @@ impl PkgEnv {
             inner: vec![
                 EnvVar {
                     key: "PATH".to_string(),
-                    value: p.into_string().expect(
-                        "Failed to convert path to utf8 string"
-                    ),
+                    value: p.into_string()
+                        .expect("Failed to convert path to utf8 string"),
                     separator: Some(ENV_PATH_SEPARATOR),
                 },
             ],
@@ -320,8 +322,9 @@ port=front-end.port
             },
             EnvVar {
                 key: "PYTHONPATH".to_string(),
-                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
-                    .to_string(),
+                value:
+                    "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
+                        .to_string(),
                 separator: Some(':'),
             },
         ];

@@ -73,13 +73,11 @@ pub fn current_pid() -> Pid {
 pub fn is_alive(pid: Pid) -> bool {
     match unsafe { libc::kill(pid as pid_t, 0) } {
         0 => true,
-        _ => {
-            match io::Error::last_os_error().raw_os_error() {
-                Some(libc::EPERM) => true,
-                Some(libc::ESRCH) => false,
-                _ => false,
-            }
-        }
+        _ => match io::Error::last_os_error().raw_os_error() {
+            Some(libc::EPERM) => true,
+            Some(libc::ESRCH) => false,
+            _ => false,
+        },
     }
 }
 

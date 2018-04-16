@@ -19,7 +19,7 @@ use std::str::FromStr;
 
 use users;
 
-use package::{Identifiable, PackageInstall, PackageIdent};
+use package::{Identifiable, PackageIdent, PackageInstall};
 use env as henv;
 use error::Result;
 
@@ -322,33 +322,23 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
         Ok(ref pkg_install) => {
             match find_command_in_pkg(program, pkg_install, Path::new(&*FS_ROOT_PATH)) {
                 Ok(Some(p)) => p,
-                Ok(None) => {
-                    panic!(format!(
-                        "Could not find '{}' in the '{}' package! This is required for the \
-                        proper operation of this program.",
-                        program,
-                        &ident
-                    ))
-                }
-                Err(err) => {
-                    panic!(format!(
-                        "Error finding '{}' in the '{}' package! This is required for the \
-                        proper operation of this program. (Err: {:?})",
-                        program,
-                        &ident,
-                        err
-                    ))
-                }
+                Ok(None) => panic!(format!(
+                    "Could not find '{}' in the '{}' package! This is required for the \
+                     proper operation of this program.",
+                    program, &ident
+                )),
+                Err(err) => panic!(format!(
+                    "Error finding '{}' in the '{}' package! This is required for the \
+                     proper operation of this program. (Err: {:?})",
+                    program, &ident, err
+                )),
             }
         }
-        Err(err) => {
-            panic!(format!(
-                "Package installation for '{}' not found on disk! This is required for the \
-                proper operation of this program (Err: {:?})",
-                &ident,
-                err
-            ))
-        }
+        Err(err) => panic!(format!(
+            "Package installation for '{}' not found on disk! This is required for the \
+             proper operation of this program (Err: {:?})",
+            &ident, err
+        )),
     };
     debug!(
         "resolved absolute path to program, program={}, ident={}, abs_path={}",
@@ -365,17 +355,15 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
     if candidate.extension().is_none() {
         match henv::var_os("PATHEXT") {
-            Some(pathexts) => {
-                for pathext in env::split_paths(&pathexts) {
-                    let mut source_candidate = candidate.to_path_buf();
-                    let extension = pathext.to_str().unwrap().trim_matches('.');
-                    source_candidate.set_extension(extension);
-                    let current_candidate = source_candidate.to_path_buf();
-                    if current_candidate.is_file() {
-                        return Some(current_candidate);
-                    }
+            Some(pathexts) => for pathext in env::split_paths(&pathexts) {
+                let mut source_candidate = candidate.to_path_buf();
+                let extension = pathext.to_str().unwrap().trim_matches('.');
+                source_candidate.set_extension(extension);
+                let current_candidate = source_candidate.to_path_buf();
+                if current_candidate.is_file() {
+                    return Some(current_candidate);
                 }
-            }
+            },
             None => {}
         };
     }
@@ -434,12 +422,10 @@ fn fs_root_path() -> PathBuf {
         match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
             (Ok(path), _) => PathBuf::from(path),
             (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
-            (Err(_), Err(_)) => {
-                unreachable!(
-                    "Windows should always have a SYSTEMDRIVE \
-                    environment variable."
-                )
-            }
+            (Err(_), Err(_)) => unreachable!(
+                "Windows should always have a SYSTEMDRIVE \
+                 environment variable."
+            ),
         }
     } else {
         PathBuf::from("/")
@@ -476,7 +462,7 @@ mod test_find_command {
     }
 
     mod without_pathext_set {
-        use super::{setup_path, setup_empty_pathext};
+        use super::{setup_empty_pathext, setup_path};
         pub use super::find_command;
 
         fn setup_environment() {
@@ -485,7 +471,7 @@ mod test_find_command {
         }
 
         mod argument_without_extension {
-            use super::{setup_environment, find_command};
+            use super::{find_command, setup_environment};
 
             #[test]
             fn command_exists() {
@@ -511,7 +497,7 @@ mod test_find_command {
 
         mod argument_with_extension {
             use std::fs::canonicalize;
-            use super::{setup_environment, find_command};
+            use super::{find_command, setup_environment};
 
             #[test]
             fn command_exists() {
@@ -556,7 +542,7 @@ mod test_find_command {
         }
 
         mod argument_without_extension {
-            use super::{setup_environment, find_command};
+            use super::{find_command, setup_environment};
 
             #[test]
             fn command_exists() {
@@ -591,7 +577,7 @@ mod test_find_command {
 
         mod argument_with_extension {
             use std::fs::canonicalize;
-            use super::{setup_environment, find_command};
+            use super::{find_command, setup_environment};
 
             #[test]
             fn command_exists() {

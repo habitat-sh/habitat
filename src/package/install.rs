@@ -25,8 +25,8 @@ use std::str::FromStr;
 use toml;
 use toml::Value;
 
-use super::{Identifiable, PackageIdent, Target, PackageTarget};
-use super::metadata::{Bind, BindMapping, MetaFile, PackageType, parse_key_value};
+use super::{Identifiable, PackageIdent, PackageTarget, Target};
+use super::metadata::{parse_key_value, Bind, BindMapping, MetaFile, PackageType};
 use error::{Error, Result};
 use fs;
 
@@ -111,19 +111,14 @@ impl PackageInstall {
         } else {
             let latest: Option<PackageIdent> = pl.iter().filter(|&p| p.satisfies(ident)).fold(
                 None,
-                |winner,
-                 b| {
-                    match winner {
-                        Some(a) => {
-                            match a.partial_cmp(&b) {
-                                Some(Ordering::Greater) => Some(a),
-                                Some(Ordering::Equal) => Some(a),
-                                Some(Ordering::Less) => Some(b.clone()),
-                                None => Some(a),
-                            }
-                        }
-                        None => Some(b.clone()),
-                    }
+                |winner, b| match winner {
+                    Some(a) => match a.partial_cmp(&b) {
+                        Some(Ordering::Greater) => Some(a),
+                        Some(Ordering::Equal) => Some(a),
+                        Some(Ordering::Less) => Some(b.clone()),
+                        None => Some(a),
+                    },
+                    None => Some(b.clone()),
                 },
             );
             if let Some(id) = latest {
@@ -169,28 +164,22 @@ impl PackageInstall {
         let latest: Option<PackageIdent> = pl.iter()
             .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
             .fold(None, |winner, b| match winner {
-                Some(a) => {
-                    match a.cmp(&b) {
-                        Ordering::Greater | Ordering::Equal => Some(a),
-                        Ordering::Less => Some(b.clone()),
-                    }
-                }
-                None => {
-                    match b.cmp(&ident) {
-                        Ordering::Greater | Ordering::Equal => Some(b.clone()),
-                        Ordering::Less => None,
-                    }
-                }
+                Some(a) => match a.cmp(&b) {
+                    Ordering::Greater | Ordering::Equal => Some(a),
+                    Ordering::Less => Some(b.clone()),
+                },
+                None => match b.cmp(&ident) {
+                    Ordering::Greater | Ordering::Equal => Some(b.clone()),
+                    Ordering::Less => None,
+                },
             });
         match latest {
-            Some(id) => {
-                Ok(PackageInstall {
-                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                    fs_root_path: fs_root_path,
-                    package_root_path: package_root_path,
-                    ident: id.clone(),
-                })
-            }
+            Some(id) => Ok(PackageInstall {
+                installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
+                fs_root_path: fs_root_path,
+                package_root_path: package_root_path,
+                ident: id.clone(),
+            }),
             None => Err(Error::PackageNotFound(ident.clone())),
         }
     }
@@ -213,8 +202,8 @@ impl PackageInstall {
     pub fn is_runnable(&self) -> bool {
         // Currently, a runnable package can be determined by checking if a `run` hook exists in
         // package's hooks directory or directly in the package prefix.
-        if self.installed_path.join("hooks").join("run").is_file() ||
-            self.installed_path.join("run").is_file()
+        if self.installed_path.join("hooks").join("run").is_file()
+            || self.installed_path.join("run").is_file()
         {
             true
         } else {
@@ -334,9 +323,9 @@ impl PackageInstall {
     pub fn exports(&self) -> Result<HashMap<String, String>> {
         match self.read_metafile(MetaFile::Exports) {
             Ok(body) => {
-                Ok(parse_key_value(&body).map_err(|_| {
-                    Error::MetaFileMalformed(MetaFile::Exports)
-                })?)
+                let parsed_value = parse_key_value(&body);
+                let result = parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
+                Ok(result)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::new()),
             Err(e) => Err(e),
@@ -475,9 +464,9 @@ impl PackageInstall {
             paths.push(p);
         }
 
-        let ordered_pkgs = self.load_deps()?.into_iter().chain(
-            self.load_tdeps()?.into_iter(),
-        );
+        let ordered_pkgs = self.load_deps()?
+            .into_iter()
+            .chain(self.load_tdeps()?.into_iter());
         for pkg in ordered_pkgs {
             for p in pkg.paths()? {
                 if seen.contains(&p) {
@@ -520,7 +509,6 @@ impl PackageInstall {
                 let mut env = HashMap::new();
                 env.insert(String::from("PATH"), path);
                 Ok(env)
-
             }
             Err(e) => Err(e),
         }
@@ -566,18 +554,16 @@ impl PackageInstall {
     /// * Contents of the metafile are unreadable or malformed
     fn read_metafile(&self, file: MetaFile) -> Result<String> {
         match self.existing_metafile(file.clone()) {
-            Some(filepath) => {
-                match File::open(&filepath) {
-                    Ok(mut f) => {
-                        let mut data = String::new();
-                        if f.read_to_string(&mut data).is_err() {
-                            return Err(Error::MetaFileMalformed(file));
-                        }
-                        Ok(data.trim().to_string())
+            Some(filepath) => match File::open(&filepath) {
+                Ok(mut f) => {
+                    let mut data = String::new();
+                    if f.read_to_string(&mut data).is_err() {
+                        return Err(Error::MetaFileMalformed(file));
                     }
-                    Err(e) => Err(Error::MetaFileIO(e)),
+                    Ok(data.trim().to_string())
                 }
-            }
+                Err(e) => Err(Error::MetaFileIO(e)),
+            },
             None => Err(Error::MetaFileNotFound(file)),
         }
     }
@@ -610,9 +596,7 @@ impl PackageInstall {
 
         // For now, all deps files but SERVICES need fully-qualified
         // package identifiers
-        let must_be_fully_qualified = {
-            file != MetaFile::Services
-        };
+        let must_be_fully_qualified = { file != MetaFile::Services };
 
         match self.read_metafile(file) {
             Ok(body) => {
@@ -773,12 +757,8 @@ mod test {
             &PackageTarget::default().to_string(),
         );
 
-        PackageInstall::load(&pkg_ident, Some(fs_root)).expect(
-            &format!(
-                "PackageInstall should load for {}",
-                &pkg_ident
-            ),
-        )
+        PackageInstall::load(&pkg_ident, Some(fs_root))
+            .expect(&format!("PackageInstall should load for {}", &pkg_ident))
     }
 
     /// Write the given contents into the specified metadata file for
@@ -786,9 +766,8 @@ mod test {
     fn write_metafile(pkg_install: &PackageInstall, metafile: MetaFile, content: &str) {
         let path = pkg_install.installed_path().join(metafile.to_string());
         let mut f = File::create(path).expect("Could not create metafile");
-        f.write_all(content.as_bytes()).expect(
-            "Could not write metafile contents",
-        );
+        f.write_all(content.as_bytes())
+            .expect("Could not write metafile contents");
     }
 
     /// Creates a `PATH` metafile with path entries all prefixed with the package's `pkg_prefix`.
@@ -887,7 +866,6 @@ core/bar=pub:core/publish sub:core/subscribe
         // Grab the bind map from that package
         let bind_map = package_install.bind_map().unwrap();
         assert!(bind_map.is_empty());
-
     }
 
     #[test]

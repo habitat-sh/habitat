@@ -15,7 +15,7 @@
 //! Traps and notifies UNIX signals.
 
 use std::sync::{Once, ONCE_INIT};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_BOOL_INIT, ATOMIC_USIZE_INIT};
 
 use os::process::{OsSignal, Signal, SignalCode};
 
@@ -52,8 +52,7 @@ pub fn check_for_signal() -> Option<SignalEvent> {
     if CAUGHT.load(Ordering::SeqCst) {
         let code = SIGNAL.load(Ordering::SeqCst) as SignalCode;
         let event = match Signal::from_signal_code(code) {
-            Some(Signal::INT) |
-            Some(Signal::TERM) => Some(SignalEvent::Shutdown),
+            Some(Signal::INT) | Some(Signal::TERM) => Some(SignalEvent::Shutdown),
             Some(Signal::CHLD) => Some(SignalEvent::WaitForChild),
             Some(signal) => Some(SignalEvent::Passthrough(signal)),
             None => {

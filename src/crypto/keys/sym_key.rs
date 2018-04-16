@@ -25,7 +25,7 @@ use sodiumoxide::randombytes::randombytes;
 use error::{Error, Result};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
             read_key_bytes, write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile};
-use super::super::{SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION, hash};
+use super::super::{hash, SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
 
 pub type SymKey = KeyPair<(), SymSecretKey>;
 
@@ -56,8 +56,7 @@ impl SymKey {
         for name_with_rev in &revisions {
             debug!(
                 "Attempting to read key name_with_rev {} for {}",
-                name_with_rev,
-                name
+                name_with_rev, name
             );
             let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
             key_pairs.push(kp);
@@ -76,8 +75,7 @@ impl SymKey {
                 // Not an error, just continue
                 debug!(
                     "Can't find public key for name_with_rev {}: {}",
-                    name_with_rev,
-                    e
+                    name_with_rev, e
                 );
                 None
             }
@@ -88,8 +86,7 @@ impl SymKey {
                 // Not an error, just continue
                 debug!(
                     "Can't find secret key for name_with_rev {}: {}",
-                    name_with_rev,
-                    e
+                    name_with_rev, e
                 );
                 None
             }
@@ -160,9 +157,10 @@ impl SymKey {
     ) -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SYM_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(
-                format!("No secret key found at {}", path.display()),
-            ));
+            return Err(Error::CryptoError(format!(
+                "No secret key found at {}",
+                path.display()
+            )));
         }
         Ok(path)
     }
@@ -197,10 +195,7 @@ impl SymKey {
     pub fn encrypt(&self, data: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
         let key = self.secret()?;
         let nonce = secretbox::gen_nonce();
-        Ok((
-            nonce.as_ref().to_vec(),
-            secretbox::seal(data, &nonce, &key),
-        ))
+        Ok((nonce.as_ref().to_vec(), secretbox::seal(data, &nonce, &key)))
     }
 
     /// Decrypts a byte slice of ciphertext using a given nonce value and a `SymKey`.
@@ -241,25 +236,20 @@ impl SymKey {
         };
         match secretbox::open(ciphertext, &nonce, &key) {
             Ok(msg) => Ok(msg),
-            Err(_) => {
-                Err(Error::CryptoError(
-                    "Secret key and nonce could not decrypt ciphertext"
-                        .to_string(),
-                ))
-            }
+            Err(_) => Err(Error::CryptoError(
+                "Secret key and nonce could not decrypt ciphertext".to_string(),
+            )),
         }
     }
 
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
-            Some(ref sk) => {
-                Ok(format!(
-                    "{}\n{}\n\n{}",
-                    SECRET_SYM_KEY_VERSION,
-                    self.name_with_rev(),
-                    &base64::encode(&sk[..])
-                ))
-            }
+            Some(ref sk) => Ok(format!(
+                "{}\n{}\n\n{}",
+                SECRET_SYM_KEY_VERSION,
+                self.name_with_rev(),
+                &base64::encode(&sk[..])
+            )),
             None => {
                 return Err(Error::CryptoError(format!(
                     "No secret key present for {}",
@@ -293,9 +283,10 @@ impl SymKey {
         match SymSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
-                    format!("Can't read sym secret key for {}", key_with_rev),
-                ))
+                return Err(Error::CryptoError(format!(
+                    "Can't read sym secret key for {}",
+                    key_with_rev
+                )))
             }
         }
     }
@@ -347,9 +338,10 @@ impl SymKey {
         let _ = match lines.next() {
             Some(val) => {
                 if val != SECRET_SYM_KEY_VERSION {
-                    return Err(Error::CryptoError(
-                        format!("Unsupported key version: {}", val),
-                    ));
+                    return Err(Error::CryptoError(format!(
+                        "Unsupported key version: {}",
+                        val
+                    )));
                 }
                 ()
             }
@@ -402,7 +394,7 @@ impl SymKey {
             if existing_hash != new_hash {
                 let msg = format!(
                     "Existing key file {} found but new version hash is different, \
-                                  failing to write new file over existing. ({} = {}, {} = {})",
+                     failing to write new file over existing. ({} = {}, {} = {})",
                     secret_keyfile.display(),
                     secret_keyfile.display(),
                     existing_hash,
@@ -414,7 +406,7 @@ impl SymKey {
                 // Otherwise, hashes match and we can skip writing over the existing file
                 debug!(
                     "New content hash matches existing file {} hash, removing temp key file \
-                        {}.",
+                     {}.",
                     secret_keyfile.display(),
                     tmpfile.path.display()
                 );

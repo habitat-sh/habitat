@@ -221,8 +221,7 @@ impl PartialOrd for PackageIdent {
             self.version.as_ref().unwrap(),
             other.version.as_ref().unwrap(),
         ) {
-            ord @ Ok(Ordering::Greater) |
-            ord @ Ok(Ordering::Less) => ord.ok(),
+            ord @ Ok(Ordering::Greater) | ord @ Ok(Ordering::Less) => ord.ok(),
             Ok(Ordering::Equal) => Some(self.release.cmp(&other.release)),
             Err(_) => {
                 // TODO: Can we do better than this? As long as we allow
@@ -234,14 +233,12 @@ impl PartialOrd for PackageIdent {
                     self.version.as_ref().unwrap(),
                     other.version.as_ref().unwrap()
                 );
-                match self.version.as_ref().unwrap().cmp(
-                    other
-                        .version
-                        .as_ref()
-                        .unwrap(),
-                ) {
-                    ord @ Ordering::Greater |
-                    ord @ Ordering::Less => Some(ord),
+                match self.version
+                    .as_ref()
+                    .unwrap()
+                    .cmp(other.version.as_ref().unwrap())
+                {
+                    ord @ Ordering::Greater | ord @ Ordering::Less => Some(ord),
                     Ordering::Equal => Some(self.release.cmp(&other.release)),
                 }
             }
@@ -267,8 +264,7 @@ impl Ord for PackageIdent {
             self.version.as_ref().unwrap(),
             other.version.as_ref().unwrap(),
         ) {
-            ord @ Ok(Ordering::Greater) |
-            ord @ Ok(Ordering::Less) => ord.unwrap(),
+            ord @ Ok(Ordering::Greater) | ord @ Ok(Ordering::Less) => ord.unwrap(),
             Ok(Ordering::Equal) => self.release.cmp(&other.release),
             Err(_) => Ordering::Less,
         }
@@ -645,6 +641,5 @@ mod tests {
         assert!(!super::is_valid_origin_name("!foo"));
         assert!(!super::is_valid_origin_name("foo bar"));
         assert!(!super::is_valid_origin_name("0xDEADBEEF"));
-
     }
 }

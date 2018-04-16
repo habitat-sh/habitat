@@ -29,10 +29,10 @@ use time;
 use error::{Error, Result};
 use util::perm;
 
-use super::{PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
-            SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX, SECRET_SYM_KEY_SUFFIX,
-            PUBLIC_BOX_KEY_VERSION, SECRET_BOX_KEY_VERSION, PUBLIC_SIG_KEY_VERSION,
-            SECRET_SIG_KEY_VERSION, SECRET_SYM_KEY_VERSION};
+use super::{PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX,
+            PUBLIC_SIG_KEY_VERSION, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION,
+            SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX, SECRET_SIG_KEY_VERSION,
+            SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
 
 lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -83,9 +83,10 @@ impl FromStr for PairType {
             "public" => Ok(PairType::Public),
             "secret" => Ok(PairType::Secret),
             _ => {
-                return Err(Error::CryptoError(
-                    format!("Invalid PairType conversion from {}", value),
-                ))
+                return Err(Error::CryptoError(format!(
+                    "Invalid PairType conversion from {}",
+                    value
+                )))
             }
         }
     }
@@ -205,8 +206,8 @@ fn check_filename(
         }
     };
 
-    if suffix == PUBLIC_KEY_SUFFIX || suffix == SECRET_SIG_KEY_SUFFIX ||
-        suffix == SECRET_BOX_KEY_SUFFIX || suffix == SECRET_SYM_KEY_SUFFIX
+    if suffix == PUBLIC_KEY_SUFFIX || suffix == SECRET_SIG_KEY_SUFFIX
+        || suffix == SECRET_BOX_KEY_SUFFIX || suffix == SECRET_SYM_KEY_SUFFIX
     {
         debug!("valid key suffix");
     } else {
@@ -219,8 +220,8 @@ fn check_filename(
 
         let do_insert = match pair_type {
             Some(&PairType::Secret) => {
-                if suffix == SECRET_SIG_KEY_SUFFIX || suffix == SECRET_BOX_KEY_SUFFIX ||
-                    suffix == SECRET_SYM_KEY_SUFFIX
+                if suffix == SECRET_SIG_KEY_SUFFIX || suffix == SECRET_BOX_KEY_SUFFIX
+                    || suffix == SECRET_SYM_KEY_SUFFIX
                 {
                     true
                 } else {
@@ -301,8 +302,7 @@ where
         if !buf.starts_with(&key_type.to_string().to_uppercase()) {
             debug!(
                 "Invalid key content in {:?} for type {}",
-                dir_entry,
-                &key_type
+                dir_entry, &key_type
             );
             continue;
         }
@@ -336,11 +336,8 @@ where
     S1: AsRef<str>,
     S2: AsRef<str>,
 {
-    path.as_ref().join(format!(
-        "{}.{}",
-        keyname.as_ref(),
-        suffix.as_ref()
-    ))
+    path.as_ref()
+        .join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
 }
 
 /// generates a revision string in the form:
@@ -447,20 +444,18 @@ where
 pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
     let mut lines = content.lines();
     let pair_type = match lines.next() {
-        Some(val) => {
-            match val {
-                PUBLIC_SIG_KEY_VERSION |
-                PUBLIC_BOX_KEY_VERSION => PairType::Public,
-                SECRET_SIG_KEY_VERSION |
-                SECRET_BOX_KEY_VERSION |
-                SECRET_SYM_KEY_VERSION => PairType::Secret,
-                _ => {
-                    return Err(Error::CryptoError(
-                        format!("Unsupported key version: {}", val),
-                    ))
-                }
+        Some(val) => match val {
+            PUBLIC_SIG_KEY_VERSION | PUBLIC_BOX_KEY_VERSION => PairType::Public,
+            SECRET_SIG_KEY_VERSION | SECRET_BOX_KEY_VERSION | SECRET_SYM_KEY_VERSION => {
+                PairType::Secret
             }
-        }
+            _ => {
+                return Err(Error::CryptoError(format!(
+                    "Unsupported key version: {}",
+                    val
+                )))
+            }
+        },
         None => {
             let msg = format!("write_key_from_str:1 Malformed key string:\n({})", content);
             return Err(Error::CryptoError(msg));
@@ -478,15 +473,11 @@ pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
             base64::decode(val.trim()).map_err(|_| {
                 Error::CryptoError(format!(
                     "write_key_from_str:3 Malformed key \
-                                            string:\n({})",
+                     string:\n({})",
                     content
                 ))
             })?;
-            Ok((
-                pair_type,
-                name_with_rev.to_string(),
-                val.trim().to_string(),
-            ))
+            Ok((pair_type, name_with_rev.to_string(), val.trim().to_string()))
         }
         None => {
             let msg = format!("write_key_from_str:3 Malformed key string:\n({})", content);
@@ -507,9 +498,8 @@ fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
 fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> {
     match key.lines().nth(3) {
         Some(encoded) => {
-            let v = base64::decode(encoded).map_err(|e| {
-                Error::CryptoError(format!("Can't read raw key {}", e))
-            })?;
+            let v = base64::decode(encoded)
+                .map_err(|e| Error::CryptoError(format!("Can't read raw key {}", e)))?;
             Ok(v)
         }
         None => Err(Error::CryptoError(format!("Malformed key contents"))),
@@ -538,7 +528,7 @@ fn write_keypair_files(
         if public_keyfile.exists() {
             return Err(Error::CryptoError(format!(
                 "Public keyfile or a directory already \
-                                                   exists {}",
+                 exists {}",
                 public_keyfile.display()
             )));
         }
@@ -564,7 +554,7 @@ fn write_keypair_files(
         if secret_keyfile.exists() {
             return Err(Error::CryptoError(format!(
                 "Secret keyfile or a directory already \
-                                                   exists {}",
+                 exists {}",
                 secret_keyfile.display()
             )));
         }
@@ -597,8 +587,9 @@ mod test {
     use super::super::test_support::*;
 
     static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
-    static VALID_KEY_AS_HEX: &'static str = "\
-        44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
+    static VALID_KEY_AS_HEX: &'static str =
+        "\
+         44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
 
     #[test]
     fn tmp_keyfile_delete_on_drop() {
@@ -775,12 +766,12 @@ mod test {
             .unwrap();
 
         // we shouldn't see wecoyote-foo as a 4th revision
-        let revisions = super::get_key_revisions("wecoyote", cache.path(), None, &KeyType::Box)
-            .unwrap();
+        let revisions =
+            super::get_key_revisions("wecoyote", cache.path(), None, &KeyType::Box).unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("wecoyote-foo", cache.path(), None, &KeyType::Box)
-            .unwrap();
+        let revisions =
+            super::get_key_revisions("wecoyote-foo", cache.path(), None, &KeyType::Box).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -829,12 +820,12 @@ mod test {
             .to_pair_files(cache.path())
             .unwrap();
 
-        let revisions = super::get_key_revisions("acme", cache.path(), None, &KeyType::Sym)
-            .unwrap();
+        let revisions =
+            super::get_key_revisions("acme", cache.path(), None, &KeyType::Sym).unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("acme-you", cache.path(), None, &KeyType::Sym)
-            .unwrap();
+        let revisions =
+            super::get_key_revisions("acme-you", cache.path(), None, &KeyType::Sym).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -855,12 +846,12 @@ mod test {
             .to_pair_files(cache.path())
             .unwrap();
 
-        let revisions = super::get_key_revisions("mutants", cache.path(), None, &KeyType::Sig)
-            .unwrap();
+        let revisions =
+            super::get_key_revisions("mutants", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("mutants-x", cache.path(), None, &KeyType::Sig)
-            .unwrap();
+        let revisions =
+            super::get_key_revisions("mutants-x", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -888,9 +879,8 @@ mod test {
         symlink_file(&src, &dest).expect("Could not generate symlink");
 
         // For sanity, confirm that we are indeed dealing with a symlink
-        let sym_meta = dest.symlink_metadata().expect(
-            "Could not get file metadata",
-        );
+        let sym_meta = dest.symlink_metadata()
+            .expect("Could not get file metadata");
         assert!(sym_meta.file_type().is_symlink());
 
         let revisions = super::get_key_revisions(
@@ -1004,7 +994,6 @@ mod test {
         );
         assert_eq!(1, candidates.len());
     }
-
 
     #[test]
     fn check_filename_key_with_dash() {

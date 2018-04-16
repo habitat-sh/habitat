@@ -22,7 +22,7 @@ use base64;
 use sodiumoxide::crypto::sign;
 
 use error::{Error, Result};
-use super::{HART_FORMAT_VERSION, SIG_HASH_TYPE, SigKeyPair};
+use super::{SigKeyPair, HART_FORMAT_VERSION, SIG_HASH_TYPE};
 use super::hash;
 use super::keys::parse_name_with_rev;
 
@@ -38,12 +38,14 @@ where
     let signature = sign::sign(&hash.as_bytes(), pair.secret()?);
     let output_file = File::create(dst)?;
     let mut writer = BufWriter::new(&output_file);
-    let () = write!(writer,
-                    "{}\n{}\n{}\n{}\n\n",
-                    HART_FORMAT_VERSION,
-                    pair.name_with_rev(),
-                    SIG_HASH_TYPE,
-                    base64::encode(&signature))?;
+    let () = write!(
+        writer,
+        "{}\n{}\n{}\n{}\n\n",
+        HART_FORMAT_VERSION,
+        pair.name_with_rev(),
+        SIG_HASH_TYPE,
+        base64::encode(&signature)
+    )?;
     let mut file = File::open(src)?;
     io::copy(&mut file, &mut writer)?;
     Ok(())
@@ -167,7 +169,6 @@ where
                 }
             }
             Err(e) => return Err(Error::from(e)),
-
         };
         buffer.trim().to_string()
     };
@@ -205,11 +206,8 @@ where
                     "Corrupt payload, can't read signature".to_string(),
                 ))
             }
-            Ok(_) => {
-                base64::decode(buffer.trim()).map_err(|e| {
-                    Error::CryptoError(format!("Can't decode signature: {}", e))
-                })?
-            }
+            Ok(_) => base64::decode(buffer.trim())
+                .map_err(|e| Error::CryptoError(format!("Can't decode signature: {}", e)))?,
             Err(e) => return Err(Error::from(e)),
         }
     };
@@ -222,11 +220,8 @@ where
         }
     };
     let expected_hash = match sign::verify(signature.as_slice(), pair.public()?) {
-        Ok(signed_data) => {
-            String::from_utf8(signed_data).map_err(|_| {
-                Error::CryptoError("Error parsing artifact signature".to_string())
-            })?
-        }
+        Ok(signed_data) => String::from_utf8(signed_data)
+            .map_err(|_| Error::CryptoError("Error parsing artifact signature".to_string()))?,
         Err(_) => return Err(Error::CryptoError("Verification failed".to_string())),
     };
     let computed_hash = hash::hash_reader(&mut reader)?;
@@ -235,9 +230,8 @@ where
     } else {
         let msg = format!(
             "Habitat artifact is invalid, \
-                          hashes don't match (expected: {}, computed: {})",
-            expected_hash,
-            computed_hash
+             hashes don't match (expected: {}, computed: {})",
+            expected_hash, computed_hash
         );
         Err(Error::CryptoError(msg))
     }
@@ -262,7 +256,6 @@ pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
                 }
             }
             Err(e) => return Err(Error::from(e)),
-
         };
         buffer.trim().to_string()
     };
@@ -287,7 +280,7 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use super::super::{HART_FORMAT_VERSION, SIG_HASH_TYPE, SigKeyPair};
+    use super::super::{SigKeyPair, HART_FORMAT_VERSION, SIG_HASH_TYPE};
     use super::super::test_support::*;
     use super::super::keys::parse_name_with_rev;
 
@@ -406,9 +399,8 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(
-            format!("HART-1\n{}\nBESTEST\nuhoh", pair.name_with_rev()).as_bytes(),
-        ).unwrap();
+        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", pair.name_with_rev()).as_bytes())
+            .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -421,9 +413,8 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(
-            format!("HART-1\n{}\nBLAKE2b\n", pair.name_with_rev()).as_bytes(),
-        ).unwrap();
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", pair.name_with_rev()).as_bytes())
+            .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -454,9 +445,8 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(
-            format!("HART-1\n{}\nBLAKE2b\nbase64\n", pair.name_with_rev()).as_bytes(),
-        ).unwrap();
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\nbase64\n", pair.name_with_rev()).as_bytes())
+            .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }

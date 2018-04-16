@@ -63,7 +63,6 @@ impl BoxKeyPair {
         Self::generate_pair_for_string(origin)
     }
 
-
     pub fn get_pairs_for<T, P>(name: T, cache_key_path: P) -> Result<Vec<Self>>
     where
         T: AsRef<str>,
@@ -143,9 +142,10 @@ impl BoxKeyPair {
     ) -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, PUBLIC_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(
-                format!("No public key found at {}", path.display()),
-            ));
+            return Err(Error::CryptoError(format!(
+                "No public key found at {}",
+                path.display()
+            )));
         }
         Ok(path)
     }
@@ -156,9 +156,10 @@ impl BoxKeyPair {
     ) -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_BOX_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(
-                format!("No secret key found at {}", path.display()),
-            ));
+            return Err(Error::CryptoError(format!(
+                "No secret key found at {}",
+                path.display()
+            )));
         }
         Ok(path)
     }
@@ -254,67 +255,53 @@ impl BoxKeyPair {
                 };
                 Ok(val)
             }
-            None => {
-                Err(Error::CryptoError(
-                    "Corrupt payload, can't read version".to_string(),
-                ))
-            }
+            None => Err(Error::CryptoError(
+                "Corrupt payload, can't read version".to_string(),
+            )),
         }
     }
 
     pub fn box_key_sender(sender: Option<&str>) -> Result<&str> {
         match sender {
             Some(val) => Ok(val),
-            None => {
-                Err(Error::CryptoError(
-                    "Corrupt payload, can't read sender key name".to_string(),
-                ))
-            }
+            None => Err(Error::CryptoError(
+                "Corrupt payload, can't read sender key name".to_string(),
+            )),
         }
     }
 
     pub fn box_key_receiver(receiver: Option<&str>) -> Result<&str> {
         match receiver {
             Some(val) => Ok(val),
-            None => {
-                Err(Error::CryptoError(
-                    "Corrupt payload, can't read receiver key name".to_string(),
-                ))
-            }
+            None => Err(Error::CryptoError(
+                "Corrupt payload, can't read receiver key name".to_string(),
+            )),
         }
     }
 
     pub fn box_key_nonce(nonce: Option<&str>) -> Result<Nonce> {
         match nonce {
             Some(val) => {
-                let decoded = base64::decode(val).map_err(|e| {
-                    Error::CryptoError(format!("Can't decode nonce: {}", e))
-                })?;
+                let decoded = base64::decode(val)
+                    .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))?;
                 match Nonce::from_slice(&decoded) {
                     Some(nonce) => Ok(nonce),
                     None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
                 }
             }
-            None => {
-                Err(Error::CryptoError(
-                    "Corrupt payload, can't read nonce".to_string(),
-                ))
-            }
+            None => Err(Error::CryptoError(
+                "Corrupt payload, can't read nonce".to_string(),
+            )),
         }
     }
 
     pub fn box_key_ciphertext(ciphertext: Option<&str>) -> Result<Vec<u8>> {
         match ciphertext {
-            Some(val) => {
-                Ok(base64::decode(val).map_err(|e| {
-                    Error::CryptoError(format!("Can't decode ciphertext: {}", e))
-                })?)
-            }
-            None => {
-                Err(Error::CryptoError(
-                    "Corrupt payload, can't read ciphertext".to_string(),
-                ))
-            }
+            Some(val) => Ok(base64::decode(val)
+                .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?),
+            None => Err(Error::CryptoError(
+                "Corrupt payload, can't read ciphertext".to_string(),
+            )),
         }
     }
 
@@ -425,9 +412,9 @@ impl BoxKeyPair {
         match BoxPublicKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
-                    format!("Can't convert key bytes to BoxPublicKey"),
-                ))
+                return Err(Error::CryptoError(format!(
+                    "Can't convert key bytes to BoxPublicKey"
+                )))
             }
         }
     }
@@ -462,9 +449,9 @@ impl BoxKeyPair {
         match BoxSecretKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
-                    format!("Can't convert key bytes to BoxSecretKey"),
-                ))
+                return Err(Error::CryptoError(format!(
+                    "Can't convert key bytes to BoxSecretKey"
+                )))
             }
         }
     }
@@ -817,8 +804,8 @@ mod test {
         let ciphertext = {
             // Load the sender and receiver keys from sender cache to encrypt
             let sender = BoxKeyPair::get_latest_pair_for("wecoyote", sender_cache.path()).unwrap();
-            let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", sender_cache.path())
-                .unwrap();
+            let receiver =
+                BoxKeyPair::get_latest_pair_for("tnt.default@acme", sender_cache.path()).unwrap();
             sender
                 .encrypt("Falling hurts".as_bytes(), Some(&receiver))
                 .unwrap()

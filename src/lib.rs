@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 extern crate ansi_term;
 extern crate base64;
@@ -25,8 +25,9 @@ extern crate hex;
 extern crate hyper;
 #[macro_use]
 extern crate lazy_static;
-extern crate libc;
 extern crate libarchive;
+extern crate libc;
+extern crate libsodium_sys;
 #[macro_use]
 extern crate log;
 extern crate rand;
@@ -36,7 +37,6 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate sodiumoxide;
-extern crate libsodium_sys;
 #[cfg(test)]
 extern crate tempdir;
 extern crate time;
@@ -48,9 +48,9 @@ extern crate url as extern_url;
 extern crate users as linux_users;
 
 #[cfg(windows)]
-extern crate habitat_win_users;
-#[cfg(windows)]
 extern crate crypt32;
+#[cfg(windows)]
+extern crate habitat_win_users;
 #[cfg(windows)]
 extern crate kernel32;
 #[cfg(windows)]

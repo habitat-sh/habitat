@@ -76,14 +76,11 @@ impl Target for PackageTarget {
         if self.architecture == default.architecture && self.platform == default.platform {
             Ok(())
         } else {
-            Err(Error::TargetMatchError(
-                format!("Package target ({}-{}) does not match system \
-                                                 target ({}-{}).",
-                                                self.architecture,
-                                                self.platform,
-                                                default.architecture,
-                                                default.platform,),
-            ))
+            Err(Error::TargetMatchError(format!(
+                "Package target ({}-{}) does not match system \
+                 target ({}-{}).",
+                self.architecture, self.platform, default.architecture, default.platform,
+            )))
         }
     }
 }
@@ -109,12 +106,10 @@ impl FromStr for PackageTarget {
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
         let items: Vec<&str> = value.split("-").collect();
         let (architecture, platform) = match items.len() {
-            2 => {
-                (
-                    Architecture::from_str(items[0].into())?,
-                    Platform::from_str(items[1].into())?,
-                )
-            }
+            2 => (
+                Architecture::from_str(items[0].into())?,
+                Platform::from_str(items[1].into())?,
+            ),
             _ => return Err(Error::InvalidPackageTarget(value.to_string())),
         };
         Ok(PackageTarget::new(platform, architecture))
@@ -139,7 +134,7 @@ mod tests {
         } else {
             unreachable!(
                 "Platform not defined for target_os! Fix this by adding a conditional \
-                          compilation to PackageTarget::current_platform()"
+                 compilation to PackageTarget::current_platform()"
             );
         }
         assert_eq!(target.architecture, Architecture::X86_64);
@@ -191,7 +186,7 @@ mod tests {
         } else {
             unreachable!(
                 "Test case not defined for target_os! Fix this by adding a conditional \
-                          compilation to tests::current_platform_target()"
+                 compilation to tests::current_platform_target()"
             );
         }
     }
@@ -206,7 +201,7 @@ mod tests {
         } else {
             unreachable!(
                 "Test case not defined for target_os! Fix this by adding a conditional \
-                          compilation to tests::unsupported_platform_target()"
+                 compilation to tests::unsupported_platform_target()"
             );
         }
     }

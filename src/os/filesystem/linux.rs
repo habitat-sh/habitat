@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use libc::{self, c_int, c_char, mode_t};
+use libc::{self, c_char, c_int, mode_t};
 
 pub use std::os::unix::fs::symlink;
 use std::ffi::CString;
 
-use error::{Result, Error};
+use error::{Error, Result};
 
 fn validate_raw_path(path: &str) -> Result<*mut c_char> {
     let c_path = match CString::new(path) {
         Ok(c) => c,
         Err(e) => {
-            return Err(Error::PermissionFailed(
-                format!("Can't create string from path {:?}: {}", path, e),
-            ))
+            return Err(Error::PermissionFailed(format!(
+                "Can't create string from path {:?}: {}",
+                path, e
+            )))
         }
     };
     Ok(c_path.into_raw())
@@ -48,9 +49,10 @@ pub fn chmod(path: &str, mode: u32) -> Result<c_int> {
     let c_path = match CString::new(path) {
         Ok(c) => c,
         Err(e) => {
-            return Err(Error::PermissionFailed(
-                format!("Can't create string from path {:?}: {}", path, e),
-            ))
+            return Err(Error::PermissionFailed(format!(
+                "Can't create string from path {:?}: {}",
+                path, e
+            )))
         }
     };
     let r_path = c_path.into_raw();

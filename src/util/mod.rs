@@ -48,13 +48,11 @@ where
         {
             match FromStr::from_str(value) {
                 Ok(t) => Ok(t),
-                Err(err) => {
-                    Err(R::custom(format!(
-                        "string cannot be parsed: \"{}\" ({})",
-                        value,
-                        err.description()
-                    )))
-                }
+                Err(err) => Err(R::custom(format!(
+                    "string cannot be parsed: \"{}\" ({})",
+                    value,
+                    err.description()
+                ))),
             }
         }
     }

@@ -17,10 +17,10 @@
 mod windows;
 
 #[cfg(windows)]
-pub use self::windows::{chown, chmod, symlink};
+pub use self::windows::{chmod, chown, symlink};
 
 #[cfg(not(windows))]
 mod linux;
 
 #[cfg(not(windows))]
-pub use self::linux::{chown, chmod, symlink};
+pub use self::linux::{chmod, chown, symlink};

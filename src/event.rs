@@ -86,10 +86,22 @@ pub enum Event {
         id: String,
         account: String,
     },
-    OriginInvitationAccept { id: String, account: String },
-    OriginInvitationIgnore { id: String, account: String },
-    JobCreate { package: String, account: String },
-    GithubAuthenticate { user: String, account: String },
+    OriginInvitationAccept {
+        id: String,
+        account: String,
+    },
+    OriginInvitationIgnore {
+        id: String,
+        account: String,
+    },
+    JobCreate {
+        package: String,
+        account: String,
+    },
+    GithubAuthenticate {
+        user: String,
+        account: String,
+    },
 }
 
 impl fmt::Display for Event {
@@ -307,9 +319,8 @@ impl EventLogger {
     pub fn record_event(&self, event: Event) {
         if self.enabled {
             let envelope = Envelope::new(&event);
-            let file_path = self.log_dir.join(
-                format!("event-{}.json", &envelope.timestamp),
-            );
+            let file_path = self.log_dir
+                .join(format!("event-{}.json", &envelope.timestamp));
             write_file(&self.log_dir, &file_path, &envelope);
         }
     }

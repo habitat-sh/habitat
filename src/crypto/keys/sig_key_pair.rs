@@ -25,8 +25,8 @@ use sodiumoxide::randombytes::randombytes;
 use error::{Error, Result};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
             read_key_bytes, write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile};
-use super::super::{PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_SUFFIX,
-                   SECRET_SIG_KEY_VERSION, hash};
+use super::super::{hash, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_SUFFIX,
+                   SECRET_SIG_KEY_VERSION};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
@@ -50,8 +50,7 @@ impl SigKeyPair {
         for name_with_rev in &revisions {
             debug!(
                 "Attempting to read key name_with_rev {} for {}",
-                name_with_rev,
-                name
+                name_with_rev, name
             );
             let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
             key_pairs.push(kp);
@@ -70,8 +69,7 @@ impl SigKeyPair {
                 // Not an error, just continue
                 debug!(
                     "Can't find public key for name_with_rev {}: {}",
-                    name_with_rev,
-                    e
+                    name_with_rev, e
                 );
                 None
             }
@@ -82,8 +80,7 @@ impl SigKeyPair {
                 // Not an error, just continue
                 debug!(
                     "Can't find secret key for name_with_rev {}: {}",
-                    name_with_rev,
-                    e
+                    name_with_rev, e
                 );
                 None
             }
@@ -119,9 +116,10 @@ impl SigKeyPair {
     ) -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, PUBLIC_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(
-                format!("No public key found at {}", path.display()),
-            ));
+            return Err(Error::CryptoError(format!(
+                "No public key found at {}",
+                path.display()
+            )));
         }
         Ok(path)
     }
@@ -132,9 +130,10 @@ impl SigKeyPair {
     ) -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SIG_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(
-                format!("No secret key found at {}", path.display()),
-            ));
+            return Err(Error::CryptoError(format!(
+                "No secret key found at {}",
+                path.display()
+            )));
         }
         Ok(path)
     }
@@ -252,7 +251,7 @@ impl SigKeyPair {
             if existing_hash != new_hash {
                 let msg = format!(
                     "Existing key file {} found but new version hash is different, \
-                                  failing to write new file over existing. ({} = {}, {} = {})",
+                     failing to write new file over existing. ({} = {}, {} = {})",
                     keyfile.display(),
                     keyfile.display(),
                     existing_hash,
@@ -264,7 +263,7 @@ impl SigKeyPair {
                 // Otherwise, hashes match and we can skip writing over the existing file
                 debug!(
                     "New content hash matches existing file {} hash, removing temp key file \
-                        {}.",
+                     {}.",
                     keyfile.display(),
                     tmpfile.path.display()
                 );
@@ -281,14 +280,12 @@ impl SigKeyPair {
 
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
-            Some(pk) => {
-                Ok(format!(
-                    "{}\n{}\n\n{}",
-                    PUBLIC_SIG_KEY_VERSION,
-                    self.name_with_rev(),
-                    &base64::encode(&pk[..])
-                ))
-            }
+            Some(pk) => Ok(format!(
+                "{}\n{}\n\n{}",
+                PUBLIC_SIG_KEY_VERSION,
+                self.name_with_rev(),
+                &base64::encode(&pk[..])
+            )),
             None => {
                 return Err(Error::CryptoError(format!(
                     "No public key present for {}",
@@ -300,14 +297,12 @@ impl SigKeyPair {
 
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
-            Some(ref sk) => {
-                Ok(format!(
-                    "{}\n{}\n\n{}",
-                    SECRET_SIG_KEY_VERSION,
-                    self.name_with_rev(),
-                    &base64::encode(&sk[..])
-                ))
-            }
+            Some(ref sk) => Ok(format!(
+                "{}\n{}\n\n{}",
+                SECRET_SIG_KEY_VERSION,
+                self.name_with_rev(),
+                &base64::encode(&sk[..])
+            )),
             None => {
                 return Err(Error::CryptoError(format!(
                     "No secret key present for {}",
@@ -337,9 +332,10 @@ impl SigKeyPair {
         match SigPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
-                    format!("Can't read sig public key for {}", key_with_rev),
-                ))
+                return Err(Error::CryptoError(format!(
+                    "Can't read sig public key for {}",
+                    key_with_rev
+                )))
             }
         }
     }
@@ -350,9 +346,10 @@ impl SigKeyPair {
         match SigSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
-                    format!("Can't read sig secret key for {}", key_with_rev),
-                ))
+                return Err(Error::CryptoError(format!(
+                    "Can't read sig secret key for {}",
+                    key_with_rev
+                )))
             }
         }
     }
@@ -455,12 +452,12 @@ mod test {
         assert_eq!(pairs.len(), 2);
 
         // We should be able to count public and private keys separately
-        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Secret))
-            .unwrap();
+        let pairs =
+            SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Secret)).unwrap();
         assert_eq!(pairs.len(), 2);
 
-        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Public))
-            .unwrap();
+        let pairs =
+            SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Public)).unwrap();
         assert_eq!(pairs.len(), 2);
     }
 

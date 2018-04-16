@@ -59,15 +59,13 @@ impl ServiceGroup {
         S2: AsRef<str>,
     {
         match (app_env, organization) {
-            (Some(app_env), Some(org)) => {
-                format!(
-                    "{}#{}.{}@{}",
-                    app_env,
-                    service.as_ref(),
-                    group.as_ref(),
-                    org
-                )
-            }
+            (Some(app_env), Some(org)) => format!(
+                "{}#{}.{}@{}",
+                app_env,
+                service.as_ref(),
+                group.as_ref(),
+                org
+            ),
             (Some(app_env), None) => format!("{}#{}.{}", app_env, service.as_ref(), group.as_ref()),
             (None, Some(org)) => format!("{}.{}@{}", service.as_ref(), group.as_ref(), org),
             (None, None) => format!("{}.{}", service.as_ref(), group.as_ref()),
@@ -75,11 +73,9 @@ impl ServiceGroup {
     }
 
     pub fn validate(value: &str) -> Result<()> {
-        let caps = SG_FROM_STR_RE.captures(value).ok_or(
-            Error::InvalidServiceGroup(
-                value.to_string(),
-            ),
-        )?;
+        let caps = SG_FROM_STR_RE
+            .captures(value)
+            .ok_or(Error::InvalidServiceGroup(value.to_string()))?;
         if caps.name("service").is_none() {
             return Err(Error::InvalidServiceGroup(value.to_string()));
         }
@@ -95,9 +91,10 @@ impl ServiceGroup {
             .unwrap()
             .name("application_environment")
             .and_then(|v| {
-                Some(ApplicationEnvironment::from_str(v.as_str()).expect(
-                    "ApplicationEnvironment is valid and parses.",
-                ))
+                Some(
+                    ApplicationEnvironment::from_str(v.as_str())
+                        .expect("ApplicationEnvironment is valid and parses."),
+                )
             })
     }
 
@@ -190,9 +187,12 @@ impl FromStr for ServiceGroup {
             Some(o) => Some(o.as_str()),
             None => None,
         };
-        Ok(ServiceGroup(
-            ServiceGroup::format(app_env.as_ref(), service, group, org),
-        ))
+        Ok(ServiceGroup(ServiceGroup::format(
+            app_env.as_ref(),
+            service,
+            group,
+            org,
+        )))
     }
 }
 
@@ -219,9 +219,9 @@ impl ApplicationEnvironment {
     }
 
     pub fn validate(value: &str) -> Result<()> {
-        let caps = AE_FROM_STR_RE.captures(value).ok_or(
-            Error::InvalidApplicationEnvironment(value.to_string()),
-        )?;
+        let caps = AE_FROM_STR_RE
+            .captures(value)
+            .ok_or(Error::InvalidApplicationEnvironment(value.to_string()))?;
         if caps.name("application").is_none() {
             return Err(Error::InvalidApplicationEnvironment(value.to_string()));
         }
@@ -292,12 +292,12 @@ impl FromStr for ApplicationEnvironment {
             Some(g) => g.as_str(),
             None => return Err(Error::InvalidApplicationEnvironment(value.to_string())),
         };
-        Ok(ApplicationEnvironment(
-            ApplicationEnvironment::format(app, env),
-        ))
+        Ok(ApplicationEnvironment(ApplicationEnvironment::format(
+            app,
+            env,
+        )))
     }
 }
-
 
 #[cfg(test)]
 mod test {

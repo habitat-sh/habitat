@@ -24,8 +24,9 @@ use super::SignalEvent;
 static CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
 
 pub fn init() {
-    ctrlc::set_handler(move || { CAUGHT.store(true, Ordering::SeqCst); })
-        .expect("Error setting Ctrl-C handler");
+    ctrlc::set_handler(move || {
+        CAUGHT.store(true, Ordering::SeqCst);
+    }).expect("Error setting Ctrl-C handler");
 }
 
 pub fn check_for_signal() -> Option<SignalEvent> {

@@ -28,7 +28,7 @@
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::fmt;
 
-use ansi_term::Colour::{White, Cyan, Green};
+use ansi_term::Colour::{Cyan, Green, White};
 
 use PROGRAM_NAME;
 
@@ -122,24 +122,16 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
                     "{}({})[{}]: {}",
                     preamble_color.paint(self.preamble),
                     White.bold().paint(self.logkey),
-                    White.underline().paint(format!(
-                        "{}:{}:{}",
-                        self.file,
-                        self.line,
-                        self.column
-                    )),
+                    White
+                        .underline()
+                        .paint(format!("{}:{}:{}", self.file, self.line, self.column)),
                     self.content
                 )
             } else {
                 write!(
                     f,
                     "{}({})[{}:{}:{}]: {}",
-                    self.preamble,
-                    self.logkey,
-                    self.file,
-                    self.line,
-                    self.column,
-                    self.content
+                    self.preamble, self.logkey, self.file, self.line, self.column, self.content
                 )
             }
         } else {
@@ -348,7 +340,7 @@ macro_rules! output_format {
 #[cfg(test)]
 mod tests {
     use super::StructuredOutput;
-    use ansi_term::Colour::{White, Cyan};
+    use ansi_term::Colour::{Cyan, White};
 
     use PROGRAM_NAME;
 

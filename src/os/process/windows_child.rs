@@ -140,7 +140,6 @@ impl ServiceCredential {
     }
 }
 
-
 pub struct Child {
     pub handle: Handle,
     pub stdout: Option<ChildStdout>,
@@ -175,9 +174,8 @@ impl Child {
                 // Split the value and test each path to see if the
                 // program exists.
                 for path in env::split_paths(&v) {
-                    let path = path.join(program).with_extension(
-                        env::consts::EXE_EXTENSION,
-                    );
+                    let path = path.join(program)
+                        .with_extension(env::consts::EXE_EXTENSION);
                     if fs::metadata(&path).is_ok() {
                         res = Some(path.into_os_string());
                         break;
@@ -423,8 +421,8 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
             let handle = kernel32::CreateNamedPipeW(
                 wide_name.as_ptr(),
                 flags,
-                winapi::PIPE_TYPE_BYTE | winapi::PIPE_READMODE_BYTE | winapi::PIPE_WAIT |
-                    reject_remote_clients_flag,
+                winapi::PIPE_TYPE_BYTE | winapi::PIPE_READMODE_BYTE | winapi::PIPE_WAIT
+                    | reject_remote_clients_flag,
                 1,
                 4096,
                 4096,
@@ -455,8 +453,8 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
                 if tries < 10 {
                     if raw_os_err == Some(winapi::ERROR_ACCESS_DENIED as i32) {
                         continue;
-                    } else if reject_remote_clients_flag != 0 &&
-                               raw_os_err == Some(winapi::ERROR_INVALID_PARAMETER as i32)
+                    } else if reject_remote_clients_flag != 0
+                        && raw_os_err == Some(winapi::ERROR_INVALID_PARAMETER as i32)
                     {
                         reject_remote_clients_flag = 0;
                         tries -= 1;
@@ -481,11 +479,15 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         opts.read(!ours_readable);
         opts.share_mode(0);
         let theirs = File::open(Path::new(&name), &opts)?;
-        let theirs = AnonPipe { inner: theirs.into_handle() };
+        let theirs = AnonPipe {
+            inner: theirs.into_handle(),
+        };
 
         Ok(Pipes {
             ours: AnonPipe { inner: ours },
-            theirs: AnonPipe { inner: theirs.into_handle() },
+            theirs: AnonPipe {
+                inner: theirs.into_handle(),
+            },
         })
     }
 }
@@ -548,8 +550,8 @@ impl OpenOptions {
             // system-specific
             custom_flags: 0,
             access_mode: None,
-            share_mode: winapi::FILE_SHARE_READ | winapi::FILE_SHARE_WRITE |
-                winapi::FILE_SHARE_DELETE,
+            share_mode: winapi::FILE_SHARE_READ | winapi::FILE_SHARE_WRITE
+                | winapi::FILE_SHARE_DELETE,
             attributes: 0,
             security_qos_flags: 0,
             security_attributes: 0,
@@ -582,9 +584,7 @@ impl OpenOptions {
             (true, true, false, None) => Ok(winapi::GENERIC_READ | winapi::GENERIC_WRITE),
             (false, _, true, None) => Ok(winapi::FILE_GENERIC_WRITE & !winapi::FILE_WRITE_DATA),
             (true, _, true, None) => {
-                Ok(
-                    winapi::GENERIC_READ | (winapi::FILE_GENERIC_WRITE & !winapi::FILE_WRITE_DATA),
-                )
+                Ok(winapi::GENERIC_READ | (winapi::FILE_GENERIC_WRITE & !winapi::FILE_WRITE_DATA))
             }
             (false, false, false, None) => {
                 Err(io::Error::from_raw_os_error(ERROR_INVALID_PARAMETER))
@@ -619,17 +619,16 @@ impl OpenOptions {
     }
 
     fn get_flags_and_attributes(&self) -> winapi::DWORD {
-        self.custom_flags | self.attributes | self.security_qos_flags |
-            if self.security_qos_flags != 0 {
+        self.custom_flags | self.attributes | self.security_qos_flags
+            | if self.security_qos_flags != 0 {
                 winapi::SECURITY_SQOS_PRESENT
             } else {
                 0
-            } |
-            if self.create_new {
-                winapi::FILE_FLAG_OPEN_REPARSE_POINT
-            } else {
-                0
-            }
+            } | if self.create_new {
+            winapi::FILE_FLAG_OPEN_REPARSE_POINT
+        } else {
+            0
+        }
     }
 }
 
@@ -654,7 +653,9 @@ impl File {
         if handle == winapi::INVALID_HANDLE_VALUE {
             Err(io::Error::last_os_error())
         } else {
-            Ok(File { handle: Handle::new(handle) })
+            Ok(File {
+                handle: Handle::new(handle),
+            })
         }
     }
 
@@ -809,14 +810,13 @@ impl RawHandle {
         unsafe {
             let mut bytes = 0;
             let wait = if wait { winapi::TRUE } else { winapi::FALSE };
-            let res = cvt({
-                kernel32::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait)
-            });
+            let res =
+                cvt({ kernel32::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait) });
             match res {
                 Ok(_) => Ok(bytes as usize),
                 Err(e) => {
-                    if e.raw_os_error() == Some(winapi::ERROR_HANDLE_EOF as i32) ||
-                        e.raw_os_error() == Some(winapi::ERROR_BROKEN_PIPE as i32)
+                    if e.raw_os_error() == Some(winapi::ERROR_HANDLE_EOF as i32)
+                        || e.raw_os_error() == Some(winapi::ERROR_BROKEN_PIPE as i32)
                     {
                         Ok(0)
                     } else {
@@ -926,7 +926,8 @@ fn create_process_as_user(
         )) {
             Ok(_) => {}
             Err(ref err)
-                if err.raw_os_error() == Some(winapi::ERROR_LOGON_TYPE_NOT_GRANTED as i32) => {
+                if err.raw_os_error() == Some(winapi::ERROR_LOGON_TYPE_NOT_GRANTED as i32) =>
+            {
                 return Err(Error::LogonTypeNotGranted)
             }
             Err(_) => return Err(Error::LogonUserFailed(io::Error::last_os_error())),
@@ -939,8 +940,8 @@ fn create_process_as_user(
             desktop.into_raw(),
             0,
             winapi::FALSE,
-            winapi::READ_CONTROL | winapi::WRITE_DAC | sid::DESKTOP_WRITEOBJECTS |
-                sid::DESKTOP_READOBJECTS,
+            winapi::READ_CONTROL | winapi::WRITE_DAC | sid::DESKTOP_WRITEOBJECTS
+                | sid::DESKTOP_READOBJECTS,
         );
         if hdesk == ptr::null_mut() {
             return Err(Error::OpenDesktopFailed(format!(
@@ -952,27 +953,23 @@ fn create_process_as_user(
         let sid = Sid::from_token(token)?;
         sid.add_to_user_object(
             station as winapi::HANDLE,
-            sid::CONTAINER_INHERIT_ACE | sid::INHERIT_ONLY_ACE |
-                sid::OBJECECT_INHERIT_ACE,
-            sid::GENERIC_READ | sid::GENERIC_WRITE |
-                sid::GENERIC_EXECUTE | sid::GENERIC_ALL,
+            sid::CONTAINER_INHERIT_ACE | sid::INHERIT_ONLY_ACE | sid::OBJECECT_INHERIT_ACE,
+            sid::GENERIC_READ | sid::GENERIC_WRITE | sid::GENERIC_EXECUTE | sid::GENERIC_ALL,
         )?;
         sid.add_to_user_object(
             station as winapi::HANDLE,
             sid::NO_PROPAGATE_INHERIT_ACE,
-            sid::WINSTA_ALL_ACCESS | sid::DELETE | sid::READ_CONTROL | sid::WRITE_DAC |
-                sid::WRITE_OWNER,
+            sid::WINSTA_ALL_ACCESS | sid::DELETE | sid::READ_CONTROL | sid::WRITE_DAC
+                | sid::WRITE_OWNER,
         )?;
         sid.add_to_user_object(
             hdesk as winapi::HANDLE,
             0,
-            sid::DESKTOP_CREATEMENU | sid::DESKTOP_CREATEWINDOW | sid::DESKTOP_ENUMERATE |
-                sid::DESKTOP_HOOKCONTROL | sid::DESKTOP_JOURNALPLAYBACK |
-                sid::DESKTOP_JOURNALRECORD |
-                sid::DESKTOP_READOBJECTS | sid::DESKTOP_SWITCHDESKTOP |
-                sid::DESKTOP_WRITEOBJECTS |
-                sid::DELETE | sid::READ_CONTROL |
-                sid::WRITE_DAC | sid::WRITE_OWNER,
+            sid::DESKTOP_CREATEMENU | sid::DESKTOP_CREATEWINDOW | sid::DESKTOP_ENUMERATE
+                | sid::DESKTOP_HOOKCONTROL | sid::DESKTOP_JOURNALPLAYBACK
+                | sid::DESKTOP_JOURNALRECORD | sid::DESKTOP_READOBJECTS
+                | sid::DESKTOP_SWITCHDESKTOP | sid::DESKTOP_WRITEOBJECTS | sid::DELETE
+                | sid::READ_CONTROL | sid::WRITE_DAC | sid::WRITE_OWNER,
         )?;
 
         let mut os_env = create_user_environment(token, &mut env.clone())?;
@@ -1169,13 +1166,10 @@ fn null_stdio_handle() -> Result<Handle> {
     opts.read(true);
     opts.write(false);
     opts.security_attributes(&mut sa);
-    Ok(File::open(Path::new("NUL"), &opts).map(
-        |file| file.into_handle(),
-    )?)
+    Ok(File::open(Path::new("NUL"), &opts).map(|file| file.into_handle())?)
 }
 
 unsafe fn read_to_end_uninitialized(r: &mut Read, buf: &mut Vec<u8>) -> io::Result<usize> {
-
     let start_len = buf.len();
     buf.reserve(16);
 

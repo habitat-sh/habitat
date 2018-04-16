@@ -29,18 +29,20 @@ pub trait ConfigFile: DeserializeOwned + Sized {
         let mut file = match File::open(filepath.as_ref()) {
             Ok(f) => f,
             Err(e) => {
-                return Err(Self::Error::from(
-                    Error::ConfigFileIO(filepath.as_ref().to_path_buf(), e),
-                ))
+                return Err(Self::Error::from(Error::ConfigFileIO(
+                    filepath.as_ref().to_path_buf(),
+                    e,
+                )))
             }
         };
         let mut raw = String::new();
         match file.read_to_string(&mut raw) {
             Ok(_) => (),
             Err(e) => {
-                return Err(Self::Error::from(
-                    Error::ConfigFileIO(filepath.as_ref().to_path_buf(), e),
-                ))
+                return Err(Self::Error::from(Error::ConfigFileIO(
+                    filepath.as_ref().to_path_buf(),
+                    e,
+                )))
             }
         }
         Self::from_raw(&raw)
