@@ -38,11 +38,11 @@
 //! })
 //! ```
 
+#[macro_use]
+extern crate futures;
 extern crate habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate futures;
 extern crate protobuf;
 extern crate tokio;
 extern crate tokio_io;
@@ -93,14 +93,12 @@ impl fmt::Display for SrvClientError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match *self {
             SrvClientError::ConnectionClosed => format!("Connection closed"),
-            SrvClientError::CtlSecretNotFound(ref path) => {
-                format!(
-                    "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
-                    `hab setup` or run the Supervisor for the first time before attempting to \
-                    command the Supervisor.",
-                    path.display()
-                )
-            }
+            SrvClientError::CtlSecretNotFound(ref path) => format!(
+                "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
+                 `hab setup` or run the Supervisor for the first time before attempting to \
+                 command the Supervisor.",
+                path.display()
+            ),
             SrvClientError::Decode(ref err) => format!("{}", err),
             SrvClientError::Io(ref err) => format!("{}", err),
             SrvClientError::NetErr(ref err) => format!("{}", err),
@@ -162,9 +160,14 @@ impl SrvClient {
                     .into_future()
                     .map_err(|(err, _)| err)
                     .and_then(move |(m, io)| {
-                        m.map_or_else(|| Err(SrvClientError::ConnectionClosed), move |m| {
-                        m.try_ok().map_err(SrvClientError::from).and_then(|()| Ok(io.into_inner()))
-                    })
+                        m.map_or_else(
+                            || Err(SrvClientError::ConnectionClosed),
+                            move |m| {
+                                m.try_ok()
+                                    .map_err(SrvClientError::from)
+                                    .and_then(|()| Ok(io.into_inner()))
+                            },
+                        )
                     })
             });
         Box::new(conn)

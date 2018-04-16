@@ -81,13 +81,10 @@ impl fmt::Display for Error {
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
                 format!("{} cannot be removed from the {} channel.", p, c)
             }
-            Error::CommandNotFoundInPkg((ref p, ref c)) => {
-                format!(
-                    "`{}' was not found under any 'PATH' directories in the {} package",
-                    c,
-                    p
-                )
-            }
+            Error::CommandNotFoundInPkg((ref p, ref c)) => format!(
+                "`{}' was not found under any 'PATH' directories in the {} package",
+                c, p
+            ),
             Error::CryptoCLI(ref e) => format!("{}", e),
             Error::CtlClient(ref e) => format!("{}", e),
             Error::DepotClient(ref err) => format!("{}", err),
@@ -95,44 +92,34 @@ impl fmt::Display for Error {
                 format!("Can not connect to Docker. Is the Docker daemon running?")
             }
             #[cfg(not(windows))]
-            Error::DockerFileSharingNotEnabled => {
-                format!(
-                    "File Sharing must be enabled in order to enter a studio.\nPlease enable \
-                         it in the Docker preferences and share (at a minimum) your home \
-                         directory."
-                )
-            }
+            Error::DockerFileSharingNotEnabled => format!(
+                "File Sharing must be enabled in order to enter a studio.\nPlease enable \
+                 it in the Docker preferences and share (at a minimum) your home \
+                 directory."
+            ),
             #[cfg(windows)]
-            Error::DockerFileSharingNotEnabled => {
-                format!(
-                    "File Sharing must be enabled in order to enter a studio.\nPlease select \
-                         a drive to share in the Docker preferences."
-                )
-            }
-            Error::DockerImageNotFound(ref e) => {
-                format!(
-                    "The Docker image {} was not found in the docker registry.\nYou can \
-                         specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
-                         environment variable.",
-                    e
-                )
-            }
-            Error::DockerNetworkDown(ref e) => {
-                format!(
-                    "The Docker image {} is unreachable due to a network error.\nThe \
-                         image must be reachable to ensure the versions of hab inside and \
-                         outside the studio match.\nYou can specify your own Docker image using \
-                         the HAB_DOCKER_STUDIO_IMAGE environment variable.",
-                    e
-                )
-            }
+            Error::DockerFileSharingNotEnabled => format!(
+                "File Sharing must be enabled in order to enter a studio.\nPlease select \
+                 a drive to share in the Docker preferences."
+            ),
+            Error::DockerImageNotFound(ref e) => format!(
+                "The Docker image {} was not found in the docker registry.\nYou can \
+                 specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
+                 environment variable.",
+                e
+            ),
+            Error::DockerNetworkDown(ref e) => format!(
+                "The Docker image {} is unreachable due to a network error.\nThe \
+                 image must be reachable to ensure the versions of hab inside and \
+                 outside the studio match.\nYou can specify your own Docker image using \
+                 the HAB_DOCKER_STUDIO_IMAGE environment variable.",
+                e
+            ),
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
-            Error::ExecCommandNotFound(ref c) => {
-                format!(
-                    "`{}' was not found on the filesystem or in PATH",
-                    c.display()
-                )
-            }
+            Error::ExecCommandNotFound(ref c) => format!(
+                "`{}' was not found on the filesystem or in PATH",
+                c.display()
+            ),
             Error::FFINulError(ref e) => format!("{}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::HabitatCommon(ref e) => format!("{}", e),
@@ -145,21 +132,17 @@ impl fmt::Display for Error {
             Error::JobGroupPromoteOrDemoteUnprocessable(false) => {
                 "Failed to demote job group, the build job is still in progress".to_string()
             }
-            Error::JobGroupPromoteOrDemote(ref e, promote) => {
-                format!(
-                    "Failed to {} job group: {:?}",
-                    if promote { "promote" } else { "demote" },
-                    e
-                )
-            }
+            Error::JobGroupPromoteOrDemote(ref e, promote) => format!(
+                "Failed to {} job group: {:?}",
+                if promote { "promote" } else { "demote" },
+                e
+            ),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
             Error::NetErr(ref e) => format!("{}", e),
-            Error::PackageArchiveMalformed(ref e) => {
-                format!(
-                    "Package archive was unreadable or contained unexpected contents: {:?}",
-                    e
-                )
-            }
+            Error::PackageArchiveMalformed(ref e) => format!(
+                "Package archive was unreadable or contained unexpected contents: {:?}",
+                e
+            ),
             Error::ParseIntError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
@@ -232,7 +215,6 @@ impl error::Error for Error {
             Error::TomlDeserializeError(_) => "Can't deserialize TOML",
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::Utf8Error(_) => "Error processing string as UTF-8",
-
         }
     }
 }

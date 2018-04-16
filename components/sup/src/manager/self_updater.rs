@@ -19,7 +19,7 @@ use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
 use std::thread;
 use std::time::Duration;
 
-use time::{SteadyTime, Duration as TimeDuration};
+use time::{Duration as TimeDuration, SteadyTime};
 
 use common::command::package::install::InstallSource;
 use common::ui::UI;

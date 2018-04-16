@@ -41,14 +41,12 @@ pub fn busybox_ident() -> Result<PackageIdent> {
 /// * If a package cannot be loaded from in the root file system
 pub fn pkg_path_for<P: AsRef<Path>>(ident: &PackageIdent, rootfs: P) -> Result<PathBuf> {
     let pkg_install = PackageInstall::load(ident, Some(rootfs.as_ref()))?;
-    Ok(
-        Path::new("/").join(
-            pkg_install
-                .installed_path()
-                .strip_prefix(rootfs.as_ref())
-                .expect("installed path contains rootfs path"),
-        ),
-    )
+    Ok(Path::new("/").join(
+        pkg_install
+            .installed_path()
+            .strip_prefix(rootfs.as_ref())
+            .expect("installed path contains rootfs path"),
+    ))
 }
 
 /// Writes a truncated/new file at the provided path with the provided content.

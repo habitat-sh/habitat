@@ -26,11 +26,11 @@ use std::fmt;
 use time::SteadyTime;
 use protobuf::{Message, RepeatedField};
 
-use message::swim::{Ack, Ping, PingReq, Swim, Swim_Type, Rumor_Type};
+use message::swim::{Ack, Ping, PingReq, Rumor_Type, Swim, Swim_Type};
 use rumor::RumorKey;
 use server::Server;
 use server::timing::Timing;
-use member::{Member, Health};
+use member::{Health, Member};
 use trace::TraceKind;
 
 /// How long to sleep between calls to `recv`.
@@ -133,8 +133,8 @@ impl Outbound {
                     self.probe(member);
 
                     if SteadyTime::now() <= next_protocol_period {
-                        let wait_time = (next_protocol_period - SteadyTime::now())
-                            .num_milliseconds();
+                        let wait_time =
+                            (next_protocol_period - SteadyTime::now()).num_milliseconds();
                         if wait_time > 0 {
                             debug!("Waiting {} until the next protocol period", wait_time);
                             thread::sleep(Duration::from_millis(wait_time as u64));
@@ -323,25 +323,21 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
         }
     };
     match socket.send_to(&payload, addr) {
-        Ok(_s) => {
-            trace!(
-                "Sent PingReq to {}@{} for {}@{}",
-                pingreq_target.get_id(),
-                addr,
-                target.get_id(),
-                target.swim_socket_address()
-            )
-        }
-        Err(e) => {
-            error!(
-                "Failed PingReq to {}@{} for {}@{}: {}",
-                pingreq_target.get_id(),
-                addr,
-                target.get_id(),
-                target.swim_socket_address(),
-                e
-            )
-        }
+        Ok(_s) => trace!(
+            "Sent PingReq to {}@{} for {}@{}",
+            pingreq_target.get_id(),
+            addr,
+            target.get_id(),
+            target.swim_socket_address()
+        ),
+        Err(e) => error!(
+            "Failed PingReq to {}@{} for {}@{}: {}",
+            pingreq_target.get_id(),
+            addr,
+            target.get_id(),
+            target.swim_socket_address(),
+            e
+        ),
     }
     trace_it!(
         SWIM: server,
@@ -439,21 +435,17 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, swim: 
     };
 
     match socket.send_to(&payload, addr) {
-        Ok(_s) => {
-            trace!(
-                "Forwarded ack to {}@{}",
-                swim.get_ack().get_from().get_id(),
-                addr
-            )
-        }
-        Err(e) => {
-            error!(
-                "Failed ack to {}@{}: {}",
-                swim.get_ack().get_from().get_id(),
-                addr,
-                e
-            )
-        }
+        Ok(_s) => trace!(
+            "Forwarded ack to {}@{}",
+            swim.get_ack().get_from().get_id(),
+            addr
+        ),
+        Err(e) => error!(
+            "Failed ack to {}@{}: {}",
+            swim.get_ack().get_from().get_id(),
+            addr,
+            e
+        ),
     }
 }
 
@@ -495,21 +487,17 @@ pub fn ack(
     };
 
     match socket.send_to(&payload, addr) {
-        Ok(_s) => {
-            trace!(
-                "Sent ack to {}@{}",
-                swim.get_ack().get_from().get_id(),
-                addr
-            )
-        }
-        Err(e) => {
-            error!(
-                "Failed ack to {}@{}: {}",
-                swim.get_ack().get_from().get_id(),
-                addr,
-                e
-            )
-        }
+        Ok(_s) => trace!(
+            "Sent ack to {}@{}",
+            swim.get_ack().get_from().get_id(),
+            addr
+        ),
+        Err(e) => error!(
+            "Failed ack to {}@{}: {}",
+            swim.get_ack().get_from().get_id(),
+            addr,
+            e
+        ),
     }
     trace_it!(
         SWIM: server,

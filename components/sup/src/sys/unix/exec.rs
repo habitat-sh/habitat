@@ -31,9 +31,9 @@ where
     S: AsRef<OsStr>,
 {
     let mut cmd = Command::new(path.as_ref());
-    cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(
-        Stdio::piped(),
-    );
+    cmd.stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
     for (key, val) in pkg.env.iter() {
         cmd.env(key, val);
     }
@@ -42,20 +42,14 @@ where
         // If we can SETUID/SETGID, then run the script as the service
         // user; otherwise, we'll just run it as ourselves.
 
-        let uid = os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(
-            Error::Permissions(format!(
-                "No uid for user '{}' could be found",
-                &pkg.svc_user
-            ))
-        ))?;
-        let gid = os::users::get_gid_by_name(&pkg.svc_group).ok_or(
-            sup_error!(
-                Error::Permissions(format!(
-                    "No gid for group '{}' could be found",
-                    &pkg.svc_group
-                ))
-            ),
-        )?;
+        let uid =
+            os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(Error::Permissions(
+                format!("No uid for user '{}' could be found", &pkg.svc_user)
+            )))?;
+        let gid =
+            os::users::get_gid_by_name(&pkg.svc_group).ok_or(sup_error!(Error::Permissions(
+                format!("No gid for group '{}' could be found", &pkg.svc_group)
+            )))?;
 
         cmd.uid(uid).gid(gid);
     } else {

@@ -33,7 +33,7 @@ mod inner {
     use std::str::FromStr;
 
     use common::ui::UI;
-    use hcore::crypto::{init, default_cache_key_path};
+    use hcore::crypto::{default_cache_key_path, init};
     use hcore::env as henv;
     use hcore::fs::find_command;
     use hcore::os::process;
@@ -73,7 +73,7 @@ mod inner {
     use std::env;
     use std::ffi::OsString;
 
-    use common::ui::{UI, UIWriter};
+    use common::ui::{UIWriter, UI};
 
     use error::{Error, Result};
 
@@ -81,7 +81,7 @@ mod inner {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         ui.warn(
             "Launching a native Supervisor on this operating system is not yet supported. \
-            Try running this command again on 64-bit Linux or Windows.",
+             Try running this command again on 64-bit Linux or Windows.",
         )?;
         ui.br()?;
         Err(Error::SubcommandNotSupported(subcmd))

@@ -29,7 +29,7 @@ use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use protocol;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 use serde::{self, Deserialize};
 use toml;
 
@@ -99,9 +99,7 @@ where
 {
     let s: Option<String> = Option::deserialize(d)?;
     if let Some(s) = s {
-        Ok(Some(
-            FromStr::from_str(&s).map_err(serde::de::Error::custom)?,
-        ))
+        Ok(Some(FromStr::from_str(&s).map_err(serde::de::Error::custom)?))
     } else {
         Ok(None)
     }
@@ -302,14 +300,12 @@ impl ServiceSpec {
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file = File::open(&path).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        let file = File::open(&path)
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
-        file.read_to_string(&mut buf).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        file.read_to_string(&mut buf)
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         Self::from_str(&buf)
     }
 
@@ -319,31 +315,23 @@ impl ServiceSpec {
             path.as_ref().display(),
             &self
         );
-        let dst_path = path.as_ref().parent().expect(
-            "Cannot determine parent directory for service spec",
-        );
-        let tmpfile = path.as_ref().with_extension(
-            thread_rng()
-                .gen_ascii_chars()
-                .take(8)
-                .collect::<String>(),
-        );
-        fs::create_dir_all(dst_path).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        let dst_path = path.as_ref()
+            .parent()
+            .expect("Cannot determine parent directory for service spec");
+        let tmpfile = path.as_ref()
+            .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
+        fs::create_dir_all(dst_path)
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         // Release the write file handle before the end of the function since we're done
         {
-            let mut file = File::create(&tmpfile).map_err(|err| {
-                sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err))
-            })?;
+            let mut file = File::create(&tmpfile)
+                .map_err(|err| sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err)))?;
             let toml = self.to_toml_string()?;
-            file.write_all(toml.as_bytes()).map_err(|err| {
-                sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err))
-            })?;
+            file.write_all(toml.as_bytes())
+                .map_err(|err| sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err)))?;
         }
-        fs::rename(&tmpfile, path.as_ref()).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        fs::rename(&tmpfile, path.as_ref())
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
 
         Ok(())
     }
@@ -392,9 +380,9 @@ impl ServiceSpec {
         // If we have remaining service binds then they are neither required nor optional package
         // binds. In this case, return an `Err`.
         if !svc_binds.is_empty() {
-            return Err(sup_error!(
-                Error::InvalidBinds(svc_binds.into_iter().collect())
-            ));
+            return Err(sup_error!(Error::InvalidBinds(
+                svc_binds.into_iter().collect()
+            )));
         }
 
         Ok(())
@@ -424,9 +412,8 @@ impl FromStr for ServiceSpec {
     type Err = SupError;
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
-        let spec: ServiceSpec = toml::from_str(toml).map_err(|e| {
-            sup_error!(Error::ServiceSpecParse(e))
-        })?;
+        let spec: ServiceSpec =
+            toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
         if spec.ident == PackageIdent::default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
@@ -557,9 +544,9 @@ fn set_composite_binds(spec: &mut ServiceSpec, bind_map: &mut BindMap, binds: &V
     // composite itself.
     //
     // Note that it consumes the values from cli_binds
-    for bind in binds.iter().filter(|bind| {
-        bind.service_name.as_ref().unwrap() == &spec.ident.name
-    })
+    for bind in binds
+        .iter()
+        .filter(|bind| bind.service_name.as_ref().unwrap() == &spec.ident.name)
     {
         final_binds.insert(bind.name.clone(), bind.clone());
     }
@@ -585,22 +572,22 @@ mod test {
     use error::Error::*;
 
     fn file_from_str<P: AsRef<Path>>(path: P, content: &str) {
-        fs::create_dir_all(path.as_ref().parent().expect(
-            "failed to determine file's parent directory",
-        )).expect("failed to create parent directory recursively");
+        fs::create_dir_all(
+            path.as_ref()
+                .parent()
+                .expect("failed to determine file's parent directory"),
+        ).expect("failed to create parent directory recursively");
         let mut file = File::create(path).expect("failed to create file");
-        file.write_all(content.as_bytes()).expect(
-            "failed to write content to file",
-        );
+        file.write_all(content.as_bytes())
+            .expect("failed to write content to file");
     }
 
     fn string_from_file<P: AsRef<Path>>(path: P) -> String {
         let file = File::open(path).expect("failed to open file");
         let mut file = BufReader::new(file);
         let mut buf = String::new();
-        file.read_to_string(&mut buf).expect(
-            "cannot read file to string",
-        );
+        file.read_to_string(&mut buf)
+            .expect("cannot read file to string");
         buf
     }
 
@@ -627,9 +614,7 @@ mod test {
         assert_eq!(spec.group, String::from("jobs"));
         assert_eq!(
             spec.application_environment,
-            Some(
-                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
-            )
+            Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),)
         );
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
@@ -652,12 +637,10 @@ mod test {
         let toml = r#""#;
 
         match ServiceSpec::from_str(toml) {
-            Err(e) => {
-                match e.err {
-                    MissingRequiredIdent => assert!(true),
-                    e => panic!("Unexpected error returned: {:?}", e),
-                }
-            }
+            Err(e) => match e.err {
+                MissingRequiredIdent => assert!(true),
+                e => panic!("Unexpected error returned: {:?}", e),
+            },
             Ok(_) => panic!("Spec TOML should fail to parse"),
         }
     }
@@ -670,12 +653,10 @@ mod test {
             "#;
 
         match ServiceSpec::from_str(toml) {
-            Err(e) => {
-                match e.err {
-                    ServiceSpecParse(_) => assert!(true),
-                    e => panic!("Unexpected error returned: {:?}", e),
-                }
-            }
+            Err(e) => match e.err {
+                ServiceSpecParse(_) => assert!(true),
+                e => panic!("Unexpected error returned: {:?}", e),
+            },
             Ok(_) => panic!("Spec TOML should fail to parse"),
         }
     }
@@ -689,12 +670,10 @@ mod test {
             "#;
 
         match ServiceSpec::from_str(toml) {
-            Err(e) => {
-                match e.err {
-                    ServiceSpecParse(_) => assert!(true),
-                    e => panic!("Unexpected error returned: {:?}", e),
-                }
-            }
+            Err(e) => match e.err {
+                ServiceSpecParse(_) => assert!(true),
+                e => panic!("Unexpected error returned: {:?}", e),
+            },
             Ok(_) => panic!("Spec TOML should fail to parse"),
         }
     }
@@ -705,8 +684,7 @@ mod test {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
             application_environment: Some(
-                ApplicationEnvironment::from_str("theinternet.preprod")
-                    .unwrap(),
+                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
             ),
             bldr_url: String::from("http://example.com/depot"),
             channel: String::from("unstable"),
@@ -723,13 +701,9 @@ mod test {
         };
         let toml = spec.to_toml_string().unwrap();
 
-        assert!(toml.contains(
-            r#"ident = "origin/name/1.2.3/20170223130020""#,
-        ));
+        assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#,));
         assert!(toml.contains(r#"group = "jobs""#));
-        assert!(toml.contains(
-            r#"application_environment = "theinternet.preprod""#,
-        ));
+        assert!(toml.contains(r#"application_environment = "theinternet.preprod""#,));
         assert!(toml.contains(r#"bldr_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));
@@ -747,12 +721,10 @@ mod test {
         let spec = ServiceSpec::default();
 
         match spec.to_toml_string() {
-            Err(e) => {
-                match e.err {
-                    MissingRequiredIdent => assert!(true),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                MissingRequiredIdent => assert!(true),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("Spec TOML should fail to render"),
         }
     }
@@ -785,9 +757,7 @@ mod test {
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(
             spec.application_environment,
-            Some(
-                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
-            )
+            Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),)
         );
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
         assert_eq!(
@@ -810,12 +780,10 @@ mod test {
         let path = tmpdir.path().join("nope.spec");
 
         match ServiceSpec::from_file(&path) {
-            Err(e) => {
-                match e.err {
-                    ServiceSpecFileIO(p, _) => assert_eq!(path, p),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                ServiceSpecFileIO(p, _) => assert_eq!(path, p),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("File should not exist for read"),
         }
     }
@@ -827,12 +795,10 @@ mod test {
         file_from_str(&path, "");
 
         match ServiceSpec::from_file(&path) {
-            Err(e) => {
-                match e.err {
-                    MissingRequiredIdent => assert!(true),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                MissingRequiredIdent => assert!(true),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("File should not exist for read"),
         }
     }
@@ -844,12 +810,10 @@ mod test {
         file_from_str(&path, "You're gonna have a bad time");
 
         match ServiceSpec::from_file(&path) {
-            Err(e) => {
-                match e.err {
-                    ServiceSpecParse(_) => assert!(true),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                ServiceSpecParse(_) => assert!(true),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("File should not exist for read"),
         }
     }
@@ -862,8 +826,7 @@ mod test {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
             application_environment: Some(
-                ApplicationEnvironment::from_str("theinternet.preprod")
-                    .unwrap(),
+                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
             ),
             bldr_url: String::from("http://example.com/depot"),
             channel: String::from("unstable"),
@@ -881,13 +844,9 @@ mod test {
         spec.to_file(&path).unwrap();
         let toml = string_from_file(path);
 
-        assert!(toml.contains(
-            r#"ident = "origin/name/1.2.3/20170223130020""#,
-        ));
+        assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#,));
         assert!(toml.contains(r#"group = "jobs""#));
-        assert!(toml.contains(
-            r#"application_environment = "theinternet.preprod""#,
-        ));
+        assert!(toml.contains(r#"application_environment = "theinternet.preprod""#,));
         assert!(toml.contains(r#"bldr_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));
@@ -907,12 +866,10 @@ mod test {
         let spec = ServiceSpec::default();
 
         match spec.to_file(path) {
-            Err(e) => {
-                match e.err {
-                    MissingRequiredIdent => assert!(true),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                MissingRequiredIdent => assert!(true),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("Service spec file should not have been written"),
         }
     }
@@ -953,12 +910,10 @@ mod test {
         let bind_str = "uhoh";
 
         match ServiceBind::from_str(bind_str) {
-            Err(e) => {
-                match e.err {
-                    InvalidBinding(val) => assert_eq!("uhoh", val),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                InvalidBinding(val) => assert_eq!("uhoh", val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("String should fail to parse"),
         }
     }
@@ -968,12 +923,10 @@ mod test {
         let bind_str = "uhoh:this:is:bad";
 
         match ServiceBind::from_str(bind_str) {
-            Err(e) => {
-                match e.err {
-                    InvalidBinding(val) => assert_eq!("uhoh:this:is:bad", val),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                InvalidBinding(val) => assert_eq!("uhoh:this:is:bad", val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("String should fail to parse"),
         }
     }
@@ -983,14 +936,12 @@ mod test {
         let bind_str = "uhoh:nosuchservicegroup@nope";
 
         match ServiceBind::from_str(bind_str) {
-            Err(e) => {
-                match e.err {
-                    HabitatCore(HError::InvalidServiceGroup(val)) => {
-                        assert_eq!("nosuchservicegroup@nope", val)
-                    }
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+            Err(e) => match e.err {
+                HabitatCore(HError::InvalidServiceGroup(val)) => {
+                    assert_eq!("nosuchservicegroup@nope", val)
                 }
-            }
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("String should fail to parse"),
         }
     }

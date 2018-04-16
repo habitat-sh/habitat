@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
 
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use hcore::os::filesystem;
 use hcore::fs as hfs;
@@ -300,10 +300,7 @@ impl<'a> DockerImage {
         if !exit_status.success() {
             return Err(Error::PushImageFailed(exit_status))?;
         }
-        ui.status(
-            Status::Uploaded,
-            format!("image '{}'", &image_tag),
-        )?;
+        ui.status(Status::Uploaded, format!("image '{}'", &image_tag))?;
 
         Ok(())
     }
@@ -313,10 +310,7 @@ impl<'a> DockerImage {
             Some(tag) => format!("{}:{}", &self.name, tag),
             None => self.name.to_string(),
         };
-        ui.status(
-            Status::Deleting,
-            format!("local image '{}'", &image_tag),
-        )?;
+        ui.status(Status::Deleting, format!("local image '{}'", &image_tag))?;
         let mut cmd = docker_cmd();
         cmd.arg("rmi").arg(&image_tag);
         debug!("Running: {:?}", &cmd);
@@ -392,9 +386,9 @@ impl DockerBuildRoot {
         let (users, groups) = ctx.svc_users_and_groups()?;
         {
             let file = "etc/passwd";
-            let mut f = OpenOptions::new().append(true).open(
-                ctx.rootfs().join(&file),
-            )?;
+            let mut f = OpenOptions::new()
+                .append(true)
+                .open(ctx.rootfs().join(&file))?;
             for user in users {
                 ui.status(
                     Status::Creating,
@@ -405,9 +399,9 @@ impl DockerBuildRoot {
         }
         {
             let file = "etc/group";
-            let mut f = OpenOptions::new().append(true).open(
-                ctx.rootfs().join(&file),
-            )?;
+            let mut f = OpenOptions::new()
+                .append(true)
+                .open(ctx.rootfs().join(&file))?;
             for group in groups {
                 ui.status(
                     Status::Creating,
@@ -422,8 +416,8 @@ impl DockerBuildRoot {
     fn create_entrypoint(&self, ui: &mut UI) -> Result<()> {
         ui.status(Status::Creating, "entrypoint script")?;
         let ctx = self.0.ctx();
-        let busybox_shell = util::pkg_path_for(&util::busybox_ident()?, ctx.rootfs())?
-            .join("bin/sh");
+        let busybox_shell =
+            util::pkg_path_for(&util::busybox_ident()?, ctx.rootfs())?.join("bin/sh");
         let json = json!({
             "busybox_shell": busybox_shell,
             "path": ctx.env_path(),
@@ -433,9 +427,9 @@ impl DockerBuildRoot {
         let init = ctx.rootfs().join("init.sh");
         util::write_file(
             &init,
-            &Handlebars::new().template_render(INIT_SH, &json).map_err(
-                SyncFailure::new,
-            )?,
+            &Handlebars::new()
+                .template_render(INIT_SH, &json)
+                .map_err(SyncFailure::new)?,
         )?;
         filesystem::chmod(init.to_string_lossy().as_ref(), 0o0755)?;
         Ok(())
@@ -479,11 +473,9 @@ impl DockerBuildRoot {
             "channel": self.0.ctx().channel(),
         });
         let image_name = match naming.custom_image_name {
-            Some(ref custom) => {
-                Handlebars::new().template_render(custom, &json).map_err(
-                    SyncFailure::new,
-                )?
-            }
+            Some(ref custom) => Handlebars::new()
+                .template_render(custom, &json)
+                .map_err(SyncFailure::new)?,
             None => format!("{}/{}", ident.origin, ident.name),
         }.to_lowercase();
 

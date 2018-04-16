@@ -48,13 +48,13 @@ pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, Servic
 pub use self::supervisor::ProcessState;
 use super::Sys;
 use self::config::CfgRenderer;
-use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
+use self::hooks::{Hook, HookTable, HOOK_PERMISSIONS};
 use self::supervisor::Supervisor;
 use self::dir::SvcDir;
 use error::Result;
 use fs;
 use manager;
-use census::{ServiceFile, CensusRing, ElectionStatus};
+use census::{CensusRing, ElectionStatus, ServiceFile};
 use templating::RenderContext;
 use sys::abilities;
 
@@ -269,9 +269,9 @@ impl Service {
                 self.execute_hooks(launcher);
             }
             Topology::Leader => {
-                let census_group = census_ring.census_group_for(&self.service_group).expect(
-                    "Service Group's census entry missing from list!",
-                );
+                let census_group = census_ring
+                    .census_group_for(&self.service_group)
+                    .expect("Service Group's census entry missing from list!");
                 match census_group.election_status {
                     ElectionStatus::None => {
                         if self.last_election_status != census_group.election_status {
@@ -297,9 +297,10 @@ impl Service {
                         }
                     }
                     ElectionStatus::ElectionFinished => {
-                        let leader_id = census_group.leader_id.as_ref().expect(
-                            "No leader with finished election",
-                        );
+                        let leader_id = census_group
+                            .leader_id
+                            .as_ref()
+                            .expect("No leader with finished election");
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Executing hooks; {} is the leader",
@@ -347,7 +348,6 @@ impl Service {
                               bind.service_group,
                               bind.name);
                 }
-
             } else {
                 ret = false;
                 outputln!(preamble self.service_group,
@@ -374,12 +374,12 @@ impl Service {
     ///
     /// Returns `true` if any modifications were made.
     fn update_templates(&mut self, census_ring: &CensusRing) -> bool {
-        let census_group = census_ring.census_group_for(&self.service_group).expect(
-            "Service update failed; unable to find own service group",
-        );
+        let census_group = census_ring
+            .census_group_for(&self.service_group)
+            .expect("Service update failed; unable to find own service group");
         let cfg_updated_from_rumors = self.cfg.update(census_group);
-        let cfg_changed = self.defaults_updated || cfg_updated_from_rumors ||
-            self.user_config_updated;
+        let cfg_changed =
+            self.defaults_updated || cfg_updated_from_rumors || self.user_config_updated;
 
         if self.user_config_updated {
             if let Err(e) = self.cfg.reload_user() {
@@ -549,8 +549,7 @@ impl Service {
             Err(err) => {
                 warn!(
                     "Couldn't open temporary health check file, {}, {}",
-                    self.service_group,
-                    err
+                    self.service_group, err
                 );
                 return;
             }
@@ -562,15 +561,13 @@ impl Service {
         {
             warn!(
                 "Couldn't write to temporary health check state file, {}, {}",
-                self.service_group,
-                err
+                self.service_group, err
             );
         }
         if let Some(err) = std::fs::rename(&tmp_file, &state_file).err() {
             warn!(
                 "Couldn't finalize health check state file, {}, {}",
-                self.service_group,
-                err
+                self.service_group, err
             );
         }
     }
@@ -689,9 +686,9 @@ impl Service {
     /// Returns `true` if a file was changed, added, or removed, and
     /// `false` if there were no updates.
     fn update_service_files(&mut self, census_ring: &CensusRing) -> bool {
-        let census_group = census_ring.census_group_for(&self.service_group).expect(
-            "Service update service files failed; unable to find own service group",
-        );
+        let census_group = census_ring
+            .census_group_for(&self.service_group)
+            .expect("Service update service files failed; unable to find own service group");
         let mut updated = false;
         for service_file in census_group.changed_service_files() {
             if self.cache_service_file(&service_file) {

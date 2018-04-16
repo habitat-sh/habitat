@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 
 use common;
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use common::command::package::install::InstallMode;
 use hcore::{self, channel};
 use hcore::env as henv;
@@ -79,17 +79,12 @@ where
 
     let fs_root_path = Path::new("/");
     match PackageInstall::load_at_least(ident, None) {
-        Ok(pi) => {
-            match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
-                Some(cmd) => Ok(cmd),
-                None => Err(Error::ExecCommandNotFound(command)),
-            }
-        }
+        Ok(pi) => match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
+            Some(cmd) => Ok(cmd),
+            None => Err(Error::ExecCommandNotFound(command)),
+        },
         Err(hcore::Error::PackageNotFound(_)) => {
-            ui.status(
-                Status::Missing,
-                format!("package for {}", &ident),
-            )?;
+            ui.status(Status::Missing, format!("package for {}", &ident))?;
 
             // JB TODO - Does an auth token need to be plumbed into here?  Not 100% sure.
             common::command::package::install::start(

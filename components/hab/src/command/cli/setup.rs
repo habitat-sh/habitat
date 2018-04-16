@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{UI, UIReader, UIWriter};
+use common::ui::{UIReader, UIWriter, UI};
 use hcore::crypto::SigKeyPair;
 use hcore::env;
 use hcore::package::ident;
@@ -36,30 +36,30 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     ui.heading("Set up a default origin")?;
     ui.para(
         "Every package in Habitat belongs to an origin, which indicates the person or \
-               organization responsible for maintaining that package. Each origin also has \
-               a key used to cryptographically sign packages in that origin.",
+         organization responsible for maintaining that package. Each origin also has \
+         a key used to cryptographically sign packages in that origin.",
     )?;
     ui.para(
         "Selecting a default origin tells package building operations such as 'hab \
-                  pkg build' what key should be used to sign the packages produced. If you \
-                  do not set a default origin now, you will have to tell package building \
-                  commands each time what origin to use.",
+         pkg build' what key should be used to sign the packages produced. If you \
+         do not set a default origin now, you will have to tell package building \
+         commands each time what origin to use.",
     )?;
     ui.para(
         "For more information on origins and how they are used in building packages, \
-               please consult the docs at https://www.habitat.sh/docs/create-packages-build/",
+         please consult the docs at https://www.habitat.sh/docs/create-packages-build/",
     )?;
     if ask_default_origin(ui)? {
         ui.br()?;
         ui.para(
             "Enter the name of your origin. If you plan to publish your packages \
-                      publicly, we recommend that you select one that is not already in use \
-                      on the Habitat build service found at https://bldr.habitat.sh/.",
+             publicly, we recommend that you select one that is not already in use \
+             on the Habitat build service found at https://bldr.habitat.sh/.",
         )?;
         ui.para(&format!(
             "Origins must begin with a lowercase letter or number. \
-                Allowed characters include lowercase letters, numbers, _, -. \
-                No more than 255 characters."
+             Allowed characters include lowercase letters, numbers, _, -. \
+             No more than 255 characters."
         ))?;
         let mut origin = prompt_origin(ui)?;
 
@@ -75,26 +75,26 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
         if is_origin_in_cache(&origin, cache_path) {
             ui.para(&format!(
                 "You already have an origin key for {} created and \
-                                   installed. Great work!",
+                 installed. Great work!",
                 &origin
             ))?;
         } else {
             ui.heading("Create origin key pair")?;
             ui.para(&format!(
                 "It doesn't look like you have a signing key for the origin \
-                                `{}'. Without it, you won't be able to build new packages \
-                                successfully.",
+                 `{}'. Without it, you won't be able to build new packages \
+                 successfully.",
                 &origin
             ))?;
             ui.para(
                 "You can either create a new signing key now, or, if you are building \
-                       packages for an origin that already exists, ask the owner to give \
-                       you the signing key.",
+                 packages for an origin that already exists, ask the owner to give \
+                 you the signing key.",
             )?;
             ui.para(
                 "For more information on the use of origin keys, please consult \
-                          the documentation at \
-                          https://www.habitat.sh/docs/concepts-keys/#origin-keys",
+                 the documentation at \
+                 https://www.habitat.sh/docs/concepts-keys/#origin-keys",
             )?;
             if ask_create_origin(ui, &origin)? {
                 create_origin(ui, &origin, cache_path)?;
@@ -102,7 +102,7 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
             } else {
                 ui.para(&format!(
                     "You might want to create an origin key later with: \
-                                       `hab origin key generate {}'",
+                     `hab origin key generate {}'",
                     &origin
                 ))?;
             }
@@ -113,22 +113,22 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     ui.heading("Habitat Personal Access Token")?;
     ui.para(
         "While you can perform tasks like building and running Habitat packages without needing \
-            to authenticate with Builder, some operations like uploading your packages to \
-            Builder, or checking status of your build jobs from the Habitat client will require \
-            you to use an access token.",
+         to authenticate with Builder, some operations like uploading your packages to \
+         Builder, or checking status of your build jobs from the Habitat client will require \
+         you to use an access token.",
     )?;
     ui.para(
         "The Habitat Personal Access Token can be generated via the Builder  \
-               Profile page (https://bldr.habitat.sh/#/profile). Once you have \
-               generated your token, you can enter it here.",
+         Profile page (https://bldr.habitat.sh/#/profile). Once you have \
+         generated your token, you can enter it here.",
     )?;
     ui.para(
         "If you would like to save your token for use by the Habitat client, please enter \
-               your access token. Otherwise, just enter No.",
+         your access token. Otherwise, just enter No.",
     )?;
     ui.para(
         "For more information on using Builder, please read the \
-          documentation at https://www.habitat.sh/docs/using-builder/",
+         documentation at https://www.habitat.sh/docs/using-builder/",
     )?;
     if ask_default_auth_token(ui)? {
         ui.br()?;
@@ -149,18 +149,18 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     ui.heading("Analytics")?;
     ui.para(
         "The `hab` command-line tool will optionally send anonymous usage data to \
-               Habitat's Google Analytics account. This is a strictly opt-in activity and \
-               no tracking will occur unless you respond affirmatively to the question \
-               below.",
+         Habitat's Google Analytics account. This is a strictly opt-in activity and \
+         no tracking will occur unless you respond affirmatively to the question \
+         below.",
     )?;
     ui.para(
         "We collect this data to help improve Habitat's user experience. For example, we \
-               would like to know the category of tasks users are performing, and which ones \
-               they are having trouble with (e.g. mistyping command line arguments).",
+         would like to know the category of tasks users are performing, and which ones \
+         they are having trouble with (e.g. mistyping command line arguments).",
     )?;
     ui.para(
         "To see what kinds of data are sent and how they are anonymized, please read more \
-               about our analytics here: https://www.habitat.sh/docs/about-analytics/",
+         about our analytics here: https://www.habitat.sh/docs/about-analytics/",
     )?;
     if ask_enable_analytics(ui, analytics_path)? {
         opt_in_analytics(ui, analytics_path, generated_origin)?;
@@ -212,12 +212,10 @@ where
 
 fn is_origin_in_cache(origin: &str, cache_path: &Path) -> bool {
     match SigKeyPair::get_latest_pair_for(origin, cache_path, None) {
-        Ok(pair) => {
-            match pair.secret() {
-                Ok(_) => true,
-                _ => false,
-            }
-        }
+        Ok(pair) => match pair.secret() {
+            Ok(_) => true,
+            _ => false,
+        },
         _ => false,
     }
 }
@@ -234,17 +232,14 @@ fn prompt_origin(ui: &mut UI) -> Result<String> {
         Some(o) => {
             ui.para(&format!(
                 "You already have a default origin set up as `{}', but feel \
-                                free to change it if you wish.",
+                 free to change it if you wish.",
                 &o
             ))?;
             Some(o)
         }
         None => env::var(ORIGIN_ENVVAR).or(env::var("USER")).ok(),
     };
-    Ok(ui.prompt_ask(
-        "Default origin name",
-        default.as_ref().map(|x| &**x),
-    )?)
+    Ok(ui.prompt_ask("Default origin name", default.as_ref().map(|x| &**x))?)
 }
 
 fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {
@@ -267,7 +262,7 @@ fn prompt_auth_token(ui: &mut UI) -> Result<String> {
         Some(o) => {
             ui.para(
                 "You already have a default auth token set up, but feel free to change it \
-                       if you wish.",
+                 if you wish.",
             )?;
             Some(o)
         }

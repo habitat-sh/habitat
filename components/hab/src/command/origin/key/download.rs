@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use depot_client::{self, Client};
 use hcore::crypto::SigKeyPair;
 use common::command::package::install::{RETRIES, RETRY_WAIT};
@@ -66,9 +66,7 @@ fn handle_public(
             }
         }
         None => {
-            ui.begin(
-                format!("Downloading public origin keys for {}", origin),
-            )?;
+            ui.begin(format!("Downloading public origin keys for {}", origin))?;
             match depot_client.show_origin_keys(origin) {
                 Ok(ref keys) if keys.len() == 0 => {
                     ui.end(format!("No public keys for {}.", origin))?;
@@ -112,9 +110,7 @@ fn handle_secret(
         return Ok(());
     }
 
-    ui.begin(
-        format!("Downloading secret origin keys for {}", origin),
-    )?;
+    ui.begin(format!("Downloading secret origin keys for {}", origin))?;
     download_secret_key(ui, &depot_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
     ui.end(format!(
         "Download of {} public origin keys completed.",
@@ -157,16 +153,9 @@ pub fn download_public_encryption_key(
     cache: &Path,
 ) -> Result<()> {
     let download_fn = || -> Result<()> {
-        ui.status(
-            Status::Downloading,
-            "latest public encryption key",
-        )?;
-        let key_path = depot_client.fetch_origin_public_encryption_key(
-            name,
-            token,
-            cache,
-            ui.progress(),
-        )?;
+        ui.status(Status::Downloading, "latest public encryption key")?;
+        let key_path =
+            depot_client.fetch_origin_public_encryption_key(name, token, cache, ui.progress())?;
         ui.status(
             Status::Cached,
             key_path.file_name().unwrap().to_str().unwrap(), // lol
@@ -174,14 +163,17 @@ pub fn download_public_encryption_key(
         Ok(())
     };
 
-    if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
+    if retry(RETRIES, RETRY_WAIT, download_fn, |res| {
+        res.is_ok()
+    }).is_err()
+    {
         return Err(Error::from(depot_client::Error::DownloadFailed(format!(
             "We tried {} \
-                                                                            times but \
-                                                                            could not \
-                                                                            download the latest \
-                                                                            public encryption key. \
-                                                                            Giving up.",
+             times but \
+             could not \
+             download the latest \
+             public encryption key. \
+             Giving up.",
             RETRIES,
         ))));
     }
@@ -198,12 +190,7 @@ fn download_secret_key(
 ) -> Result<()> {
     let download_fn = || -> Result<()> {
         ui.status(Status::Downloading, "latest secret key")?;
-        let key_path = depot_client.fetch_secret_origin_key(
-            name,
-            token,
-            cache,
-            ui.progress(),
-        )?;
+        let key_path = depot_client.fetch_secret_origin_key(name, token, cache, ui.progress())?;
         ui.status(
             Status::Cached,
             key_path.file_name().unwrap().to_str().unwrap(), // lol
@@ -211,14 +198,17 @@ fn download_secret_key(
         Ok(())
     };
 
-    if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
+    if retry(RETRIES, RETRY_WAIT, download_fn, |res| {
+        res.is_ok()
+    }).is_err()
+    {
         return Err(Error::from(depot_client::Error::DownloadFailed(format!(
             "We tried {} \
-                                                                            times but \
-                                                                            could not \
-                                                                            download the latest \
-                                                                            secret origin key. \
-                                                                            Giving up.",
+             times but \
+             could not \
+             download the latest \
+             secret origin key. \
+             Giving up.",
             RETRIES,
         ))));
     }
@@ -239,27 +229,23 @@ fn download_key(
         Err(_) => {
             let download_fn = || -> Result<()> {
                 ui.status(Status::Downloading, &nwr)?;
-                depot_client.fetch_origin_key(
-                    name,
-                    rev,
-                    cache,
-                    ui.progress(),
-                )?;
+                depot_client.fetch_origin_key(name, rev, cache, ui.progress())?;
                 ui.status(Status::Cached, &nwr)?;
                 Ok(())
             };
 
-            if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
+            if retry(RETRIES, RETRY_WAIT, download_fn, |res| {
+                res.is_ok()
+            }).is_err()
+            {
                 return Err(Error::from(depot_client::Error::DownloadFailed(format!(
                     "We tried {} \
-                                                                                    times but \
-                                                                                    could not \
-                                                                                    download {}/{} \
-                                                                                    origin key. \
-                                                                                    Giving up.",
-                    RETRIES,
-                    &name,
-                    &rev
+                     times but \
+                     could not \
+                     download {}/{} \
+                     origin key. \
+                     Giving up.",
+                    RETRIES, &name, &rev
                 ))));
             }
         }

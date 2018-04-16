@@ -79,7 +79,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_url)
                     .help(
                         "Install packages from Builder at the specified URL \
-                        (default: https://bldr.habitat.sh)",
+                         (default: https://bldr.habitat.sh)",
                     ),
             )
             .arg(
@@ -87,9 +87,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .long("channel")
                     .short("c")
                     .value_name("CHANNEL")
-                    .help(
-                        "Install packages from the specified release channel (default: stable)",
-                    ),
+                    .help("Install packages from the specified release channel (default: stable)"),
             )
             .arg(
                 Arg::with_name("BASE_PKGS_BLDR_URL")
@@ -98,7 +96,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_url)
                     .help(
                         "Install base packages from Builder at the specified URL \
-                        (default: https://bldr.habitat.sh)",
+                         (default: https://bldr.habitat.sh)",
                     ),
             )
             .arg(
@@ -107,15 +105,16 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("BASE_PKGS_CHANNEL")
                     .help(
                         "Install base packages from the specified release channel \
-                        (default: stable)",
+                         (default: stable)",
                     ),
             );
 
         Cli { app: app }
     }
     pub fn add_pkg_ident_arg(self) -> Self {
-        let help = "A Habitat package identifier (ex: acme/redis) and/or filepath to \
-            a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
+        let help =
+            "A Habitat package identifier (ex: acme/redis) and/or filepath to \
+             a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
 
         let app = self.app.arg(
             Arg::with_name("PKG_IDENT_OR_ARTIFACT")

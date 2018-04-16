@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use hcore::crypto::{artifact, SigKeyPair};
 
 use error::Result;

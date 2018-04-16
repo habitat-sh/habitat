@@ -134,11 +134,9 @@ where
 {
     match custom_state_path {
         Some(ref custom) => custom.as_ref().to_path_buf(),
-        None => {
-            match name {
-                Some(ref name) => STATE_PATH_PREFIX.join(name),
-                None => STATE_PATH_PREFIX.join("default"),
-            }
-        }
+        None => match name {
+            Some(ref name) => STATE_PATH_PREFIX.join(name),
+            None => STATE_PATH_PREFIX.join("default"),
+        },
     }
 }

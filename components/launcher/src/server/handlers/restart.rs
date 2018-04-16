@@ -15,7 +15,7 @@
 use core::os::process::Pid;
 use protocol;
 
-use super::{Handler, HandleResult};
+use super::{HandleResult, Handler};
 use server::ServiceTable;
 use service;
 
@@ -35,17 +35,15 @@ impl Handler for RestartHandler {
         };
         service.kill();
         match service.wait() {
-            Ok(_status) => {
-                match service::run(service.take_args()) {
-                    Ok(new_service) => {
-                        let mut reply = protocol::SpawnOk::new();
-                        reply.set_pid(new_service.id().into());
-                        services.insert(new_service);
-                        Ok(reply)
-                    }
-                    Err(err) => Err(protocol::error(err)),
+            Ok(_status) => match service::run(service.take_args()) {
+                Ok(new_service) => {
+                    let mut reply = protocol::SpawnOk::new();
+                    reply.set_pid(new_service.id().into());
+                    services.insert(new_service);
+                    Ok(reply)
                 }
-            }
+                Err(err) => Err(protocol::error(err)),
+            },
             Err(err) => Err(protocol::error(err)),
         }
     }

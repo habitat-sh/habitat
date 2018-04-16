@@ -14,11 +14,11 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use depot_client::{self, Client};
 use error::{Error, Result};
 use hcore::crypto::keys::parse_name_with_rev;
-use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION, SigKeyPair};
+use hcore::crypto::{SigKeyPair, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
 use hyper::status::StatusCode;
 
 use super::get_name_with_rev;
@@ -33,9 +33,7 @@ pub fn start(
     cache: &Path,
 ) -> Result<()> {
     let depot_client = Client::new(depot, PRODUCT, VERSION, None)?;
-    ui.begin(
-        format!("Uploading latest public origin key {}", &origin),
-    )?;
+    ui.begin(format!("Uploading latest public origin key {}", &origin))?;
     let latest = SigKeyPair::get_latest_pair_for(origin, cache, None)?;
     let public_keyfile = SigKeyPair::get_public_key_path(&latest.name_with_rev(), cache)?;
     let name_with_rev = get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION)?;
@@ -49,7 +47,7 @@ pub fn start(
                 Status::Using,
                 format!(
                     "public key revision {} which already \
-                                   exists in the depot",
+                     exists in the depot",
                     &name_with_rev
                 ),
             )?;
@@ -68,17 +66,14 @@ pub fn start(
         // check the SECRET_SIG_KEY_VERSION
         let name_with_rev = get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION)?;
         ui.status(Status::Uploading, secret_keyfile.display())?;
-        match depot_client.put_origin_secret_key(
-            &name,
-            &rev,
-            &secret_keyfile,
-            token,
-            ui.progress(),
-        ) {
+        match depot_client.put_origin_secret_key(&name, &rev, &secret_keyfile, token, ui.progress())
+        {
             Ok(()) => {
                 ui.status(Status::Uploaded, &name_with_rev)?;
-                ui.end(format!("Upload of secret origin key {} complete.",
-                               &name_with_rev))?;
+                ui.end(format!(
+                    "Upload of secret origin key {} complete.",
+                    &name_with_rev
+                ))?;
             }
             Err(e) => {
                 return Err(Error::DepotClient(e));

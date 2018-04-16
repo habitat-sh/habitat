@@ -54,18 +54,19 @@ matrix:
         cargo: true
         directories:
           - "$HOME/pkgs"
+      before_script:
+        - rustup component add rustfmt-preview
       before_install:
         - ./support/ci/fast_pass.sh || exit 0
         - ./support/ci/compile_libsodium.sh
         - ./support/ci/compile_libarchive.sh
         - ./support/ci/compile_zmq.sh
-        - ./support/ci/install_rustfmt.sh
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
 
 #
-# Job for testing Habitat  and Builder Rust crate components
+# Job for testing Habitat Rust crate components
 #
     - language: rust
       env:
@@ -98,7 +99,8 @@ matrix:
         - ./support/ci/compile_libsodium.sh
         - ./support/ci/compile_libarchive.sh
         - ./support/ci/compile_zmq.sh
-        - ./support/ci/install_rustfmt.sh
+      before_script:
+        - rustup component add rustfmt-preview
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh

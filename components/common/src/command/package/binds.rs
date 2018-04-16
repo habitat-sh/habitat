@@ -60,13 +60,11 @@ fn print_binds(
                 println!("{}: none", bind_type)
             }
         }
-        Err(_) => {
-            writeln!(
-                &mut io::stderr(),
-                "Error while querying {} binds for {}",
-                bind_type,
-                package_ident
-            ).expect("Failed printing to stderr")
-        }
+        Err(_) => writeln!(
+            &mut io::stderr(),
+            "Error while querying {} binds for {}",
+            bind_type,
+            package_ident
+        ).expect("Failed printing to stderr"),
     }
 }

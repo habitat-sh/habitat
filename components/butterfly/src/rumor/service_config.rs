@@ -21,14 +21,14 @@ use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::str;
 
-use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
+use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
 use habitat_core::service::ServiceGroup;
 use protobuf::{self, Message};
 use toml;
 
 use error::{Error, Result};
-use message::swim::{ServiceConfig as ProtoServiceConfig, Rumor as ProtoRumor,
-                    Rumor_Type as ProtoRumor_Type};
+use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type,
+                    ServiceConfig as ProtoServiceConfig};
 use rumor::Rumor;
 
 #[derive(Debug, Clone, Serialize)]
@@ -46,10 +46,10 @@ impl PartialOrd for ServiceConfig {
 
 impl PartialEq for ServiceConfig {
     fn eq(&self, other: &ServiceConfig) -> bool {
-        self.get_service_group() == other.get_service_group() &&
-            self.get_incarnation() == other.get_incarnation() &&
-            self.get_encrypted() == other.get_encrypted() &&
-            self.get_config() == other.get_config()
+        self.get_service_group() == other.get_service_group()
+            && self.get_incarnation() == other.get_incarnation()
+            && self.get_encrypted() == other.get_encrypted()
+            && self.get_config() == other.get_config()
     }
 }
 
@@ -111,23 +111,20 @@ impl ServiceConfig {
         let config = if self.get_encrypted() {
             let bytes =
                 BoxKeyPair::decrypt_with_path(self.get_config(), &default_cache_key_path(None))?;
-            let encoded = str::from_utf8(&bytes).map_err(|e| {
-                Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)
-            })?;
+            let encoded = str::from_utf8(&bytes)
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e))?;
             self.parse_config(&encoded)?
         } else {
-            let encoded = str::from_utf8(self.get_config()).map_err(|e| {
-                Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)
-            })?;
+            let encoded = str::from_utf8(self.get_config())
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e))?;
             self.parse_config(&encoded)?
         };
         Ok(config)
     }
 
     fn parse_config(&self, encoded: &str) -> Result<toml::value::Table> {
-        toml::from_str(encoded).map_err(|e| {
-            Error::ServiceConfigDecode(self.get_service_group().to_string(), e)
-        })
+        toml::from_str(encoded)
+            .map_err(|e| Error::ServiceConfigDecode(self.get_service_group().to_string(), e))
     }
 }
 

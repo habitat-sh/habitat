@@ -22,7 +22,7 @@
 
 use std::fmt;
 use std::io;
-use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
 use std::ops::{Deref, DerefMut};
 use std::option;
 use std::result;
@@ -66,16 +66,14 @@ impl FromStr for GossipListenAddr {
     fn from_str(val: &str) -> Result<Self> {
         match SocketAddr::from_str(val) {
             Ok(addr) => Ok(GossipListenAddr(addr)),
-            Err(_) => {
-                match IpAddr::from_str(val) {
-                    Ok(ip) => {
-                        let mut addr = GossipListenAddr::default();
-                        addr.set_ip(ip);
-                        Ok(addr)
-                    }
-                    Err(_) => Err(sup_error!(Error::IPFailed)),
+            Err(_) => match IpAddr::from_str(val) {
+                Ok(ip) => {
+                    let mut addr = GossipListenAddr::default();
+                    addr.set_ip(ip);
+                    Ok(addr)
                 }
-            }
+                Err(_) => Err(sup_error!(Error::IPFailed)),
+            },
         }
     }
 }

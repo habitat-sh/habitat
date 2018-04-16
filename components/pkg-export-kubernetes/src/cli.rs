@@ -80,9 +80,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("OUTPUT")
                     .long("output")
                     .short("o")
-                    .help(
-                        "Name of manifest file to create. Pass '-' for stdout (default: -)",
-                    ),
+                    .help("Name of manifest file to create. Pass '-' for stdout (default: -)"),
             ),
         }
     }
@@ -115,8 +113,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .possible_values(&["standalone", "leader"])
                         .help(
                             "A topology describes the intended relationship between peers \
-                         within a Habitat service group. Specify either standalone or leader \
-                         topology (default: standalone)",
+                             within a Habitat service group. Specify either standalone or leader \
+                             topology (default: standalone)",
                         ),
                 )
                 .arg(
@@ -126,7 +124,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .short("g")
                         .help(
                             "group is a logical grouping of services with the same package and \
-                         topology type connected together in a ring (default: default)",
+                             topology type connected together in a ring (default: default)",
                         ),
                 )
                 .arg(
@@ -136,8 +134,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .short("n")
                         .help(
                             "The path to Habitat configuration file in user.toml format. Habitat \
-                            will use it for initial configuration of the service running in a \
-                            Kubernetes cluster",
+                             will use it for initial configuration of the service running in a \
+                             Kubernetes cluster",
                         ),
                 ),
         }
@@ -182,7 +180,6 @@ fn valid_natural_number(val: String) -> result::Result<(), String> {
         Err(_) => Err(format!("{} is not a natural number", val)),
     }
 }
-
 
 #[cfg(test)]
 mod tests {

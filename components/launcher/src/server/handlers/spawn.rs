@@ -14,7 +14,7 @@
 
 use protocol;
 
-use super::{Handler, HandleResult};
+use super::{HandleResult, Handler};
 use server::ServiceTable;
 use service;
 

@@ -94,9 +94,9 @@ impl ServiceUpdater {
                 true
             }
             UpdateStrategy::Rolling => {
-                self.states.entry(service.service_group.clone()).or_insert(
-                    UpdaterState::Rolling(RollingState::AwaitingElection),
-                );
+                self.states
+                    .entry(service.service_group.clone())
+                    .or_insert(UpdaterState::Rolling(RollingState::AwaitingElection));
                 true
             }
         }
@@ -116,26 +116,24 @@ impl ServiceUpdater {
     ) -> bool {
         let mut updated = false;
         match self.states.get_mut(&service.service_group) {
-            Some(&mut UpdaterState::AtOnce(ref mut rx)) => {
-                match rx.try_recv() {
-                    Ok(package) => {
-                        service.update_package(package, launcher);
-                        return true;
-                    }
-                    Err(TryRecvError::Empty) => return false,
-                    Err(TryRecvError::Disconnected) => {
-                        debug!("Service Updater worker has died; restarting...");
-                        *rx = Worker::new(service).start(&service.service_group, None);
-                    }
+            Some(&mut UpdaterState::AtOnce(ref mut rx)) => match rx.try_recv() {
+                Ok(package) => {
+                    service.update_package(package, launcher);
+                    return true;
                 }
-            }
+                Err(TryRecvError::Empty) => return false,
+                Err(TryRecvError::Disconnected) => {
+                    debug!("Service Updater worker has died; restarting...");
+                    *rx = Worker::new(service).start(&service.service_group, None);
+                }
+            },
 
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::AwaitingElection)) => {
                 if let Some(census_group) = census_ring.census_group_for(&service.service_group) {
                     if service.topology == Topology::Leader {
                         debug!(
                             "Rolling Update, determining proper suitability because we're in \
-                                a leader topology"
+                             a leader topology"
                         );
                         match (census_group.me(), census_group.leader()) {
                             (Some(me), Some(leader)) => {
@@ -155,11 +153,8 @@ impl ServiceUpdater {
                         }
                     } else {
                         debug!("Rolling update, using default suitability");
-                        self.butterfly.start_update_election(
-                            service.service_group.clone(),
-                            0,
-                            0,
-                        );
+                        self.butterfly
+                            .start_update_election(service.service_group.clone(), 0, 0);
                         *st = RollingState::InElection;
                     }
                 }
@@ -185,40 +180,35 @@ impl ServiceUpdater {
             }
             Some(&mut UpdaterState::Rolling(RollingState::Leader(ref mut state))) => {
                 match *state {
-                    LeaderState::Polling(ref mut rx) => {
-                        match rx.try_recv() {
-                            Ok(package) => {
-                                debug!("Rolling Update, polling found a new package");
-                                service.update_package(package, launcher);
-                                updated = true;
-                            }
-                            Err(TryRecvError::Empty) => return false,
-                            Err(TryRecvError::Disconnected) => {
-                                debug!("Service Updater worker has died; restarting...");
-                                *rx = Worker::new(service).start(&service.service_group, None);
-                            }
+                    LeaderState::Polling(ref mut rx) => match rx.try_recv() {
+                        Ok(package) => {
+                            debug!("Rolling Update, polling found a new package");
+                            service.update_package(package, launcher);
+                            updated = true;
                         }
-                    }
+                        Err(TryRecvError::Empty) => return false,
+                        Err(TryRecvError::Disconnected) => {
+                            debug!("Service Updater worker has died; restarting...");
+                            *rx = Worker::new(service).start(&service.service_group, None);
+                        }
+                    },
                     LeaderState::Waiting => {
                         match census_ring.census_group_for(&service.service_group) {
                             Some(census_group) => {
                                 if census_group.members().iter().any(|cm| {
-                                    cm.pkg.as_ref().unwrap() !=
-                                        census_group.me().unwrap().pkg.as_ref().unwrap()
-                                })
-                                {
+                                    cm.pkg.as_ref().unwrap()
+                                        != census_group.me().unwrap().pkg.as_ref().unwrap()
+                                }) {
                                     debug!("Update leader still waiting for followers...");
                                     return false;
                                 }
                                 let rx = Worker::new(service).start(&service.service_group, None);
                                 *state = LeaderState::Polling(rx);
                             }
-                            None => {
-                                panic!(
-                                    "Expected census list to have service group '{}'!",
-                                    &*service.service_group
-                                )
-                            }
+                            None => panic!(
+                                "Expected census list to have service group '{}'!",
+                                &*service.service_group
+                            ),
                         }
                     }
                 }
@@ -230,67 +220,53 @@ impl ServiceUpdater {
                 match *state {
                     FollowerState::Waiting => {
                         match census_ring.census_group_for(&service.service_group) {
-                            Some(census_group) => {
-                                match (
-                                    census_group.update_leader(),
-                                    census_group.previous_peer(),
-                                    census_group.me(),
-                                ) {
-                                    (Some(leader), Some(peer), Some(me)) => {
-                                        if leader.pkg == me.pkg {
-                                            debug!("We're not in an update");
-                                            return false;
-                                        }
-                                        if leader.pkg != peer.pkg {
-                                            debug!("We're in an update but it's not our turn");
-                                            return false;
-                                        }
-                                        debug!("We're in an update and it's our turn");
-                                        let rx = Worker::new(service).start(
-                                            &service.service_group,
-                                            leader.pkg.clone(),
-                                        );
-                                        *state = FollowerState::Updating(rx);
+                            Some(census_group) => match (
+                                census_group.update_leader(),
+                                census_group.previous_peer(),
+                                census_group.me(),
+                            ) {
+                                (Some(leader), Some(peer), Some(me)) => {
+                                    if leader.pkg == me.pkg {
+                                        debug!("We're not in an update");
+                                        return false;
                                     }
-                                    _ => return false,
+                                    if leader.pkg != peer.pkg {
+                                        debug!("We're in an update but it's not our turn");
+                                        return false;
+                                    }
+                                    debug!("We're in an update and it's our turn");
+                                    let rx = Worker::new(service)
+                                        .start(&service.service_group, leader.pkg.clone());
+                                    *state = FollowerState::Updating(rx);
                                 }
-                            }
-                            None => {
-                                panic!(
-                                    "Expected census list to have service group '{}'!",
-                                    &*service.service_group
-                                )
-                            }
+                                _ => return false,
+                            },
+                            None => panic!(
+                                "Expected census list to have service group '{}'!",
+                                &*service.service_group
+                            ),
                         }
                     }
-                    FollowerState::Updating(ref mut rx) => {
-                        match census_ring.census_group_for(&service.service_group) {
-                            Some(census_group) => {
-                                match rx.try_recv() {
-                                    Ok(package) => {
-                                        service.update_package(package, launcher);
-                                        updated = true
-                                    }
-                                    Err(TryRecvError::Empty) => return false,
-                                    Err(TryRecvError::Disconnected) => {
-                                        debug!("Service Updater worker has died; restarting...");
-                                        let package =
-                                            census_group.update_leader().unwrap().pkg.clone();
-                                        *rx = Worker::new(service).start(
-                                            &service.service_group,
-                                            package,
-                                        );
-                                    }
-                                }
+                    FollowerState::Updating(ref mut rx) => match census_ring
+                        .census_group_for(&service.service_group)
+                    {
+                        Some(census_group) => match rx.try_recv() {
+                            Ok(package) => {
+                                service.update_package(package, launcher);
+                                updated = true
                             }
-                            None => {
-                                panic!(
-                                    "Expected census list to have service group '{}'!",
-                                    &*service.service_group
-                                )
+                            Err(TryRecvError::Empty) => return false,
+                            Err(TryRecvError::Disconnected) => {
+                                debug!("Service Updater worker has died; restarting...");
+                                let package = census_group.update_leader().unwrap().pkg.clone();
+                                *rx = Worker::new(service).start(&service.service_group, package);
                             }
-                        }
-                    }
+                        },
+                        None => panic!(
+                            "Expected census list to have service group '{}'!",
+                            &*service.service_group
+                        ),
+                    },
                 }
                 if updated {
                     *state = FollowerState::Waiting;
@@ -314,48 +290,46 @@ impl Periodic for Worker {
     // instead of re-checking every time.
     fn update_period(&self) -> i64 {
         match env::var(FREQUENCY_ENVVAR) {
-            Ok(val) => {
-                match val.parse::<i64>() {
-                    Ok(num) => {
-                        if (env::var(FREQUENCY_BYPASS_CHECK_ENVVAR).is_ok() && num > 0) ||
-                            num >= MIN_ALLOWED_FREQUENCY
-                        {
-                            num
-                        } else if num <= 0 {
-                            outputln!(
-                                "{} has been set, but {} value ({}) is negative ({}) \
-                                Falling back to minimal {} MS frequency.",
-                                FREQUENCY_BYPASS_CHECK_ENVVAR,
-                                FREQUENCY_ENVVAR,
-                                num,
-                                MIN_ALLOWED_FREQUENCY,
-                                MIN_ALLOWED_FREQUENCY
-                            );
-                            MIN_ALLOWED_FREQUENCY
-                        } else {
-                            outputln!(
-                                "{} value ({}) is below the minimal authorized value ({}) \
-                                Falling back to minimal {} MS frequency.",
-                                FREQUENCY_ENVVAR,
-                                num,
-                                MIN_ALLOWED_FREQUENCY,
-                                MIN_ALLOWED_FREQUENCY
-                            );
-                            MIN_ALLOWED_FREQUENCY
-                        }
-                    }
-                    Err(_) => {
+            Ok(val) => match val.parse::<i64>() {
+                Ok(num) => {
+                    if (env::var(FREQUENCY_BYPASS_CHECK_ENVVAR).is_ok() && num > 0)
+                        || num >= MIN_ALLOWED_FREQUENCY
+                    {
+                        num
+                    } else if num <= 0 {
                         outputln!(
-                            "Unable to parse '{}' from {} as a valid integer. Falling back \
-                             to default {} MS frequency.",
-                            val,
+                            "{} has been set, but {} value ({}) is negative ({}) \
+                             Falling back to minimal {} MS frequency.",
+                            FREQUENCY_BYPASS_CHECK_ENVVAR,
                             FREQUENCY_ENVVAR,
-                            DEFAULT_FREQUENCY
+                            num,
+                            MIN_ALLOWED_FREQUENCY,
+                            MIN_ALLOWED_FREQUENCY
                         );
-                        DEFAULT_FREQUENCY
+                        MIN_ALLOWED_FREQUENCY
+                    } else {
+                        outputln!(
+                            "{} value ({}) is below the minimal authorized value ({}) \
+                             Falling back to minimal {} MS frequency.",
+                            FREQUENCY_ENVVAR,
+                            num,
+                            MIN_ALLOWED_FREQUENCY,
+                            MIN_ALLOWED_FREQUENCY
+                        );
+                        MIN_ALLOWED_FREQUENCY
                     }
                 }
-            }
+                Err(_) => {
+                    outputln!(
+                        "Unable to parse '{}' from {} as a valid integer. Falling back \
+                         to default {} MS frequency.",
+                        val,
+                        FREQUENCY_ENVVAR,
+                        DEFAULT_FREQUENCY
+                    );
+                    DEFAULT_FREQUENCY
+                }
+            },
             Err(_) => DEFAULT_FREQUENCY,
         }
     }
@@ -460,9 +434,9 @@ impl Worker {
                             maybe_newer_package.ident()
                         );
                         self.current = maybe_newer_package.ident().clone();
-                        sender.send(maybe_newer_package).expect(
-                            "Main thread has gone away!",
-                        );
+                        sender
+                            .send(maybe_newer_package)
+                            .expect("Main thread has gone away!");
                         break;
                     } else {
                         debug!("Package found is not newer than ours");

@@ -328,9 +328,7 @@ impl fmt::Debug for SrvMessage {
         write!(
             f,
             "{:?}, {:?}, {:?}",
-            self.header,
-            self.transaction,
-            self.message_id
+            self.header, self.transaction, self.message_id
         )
     }
 }

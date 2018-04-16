@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
+extern crate broadcast;
 extern crate chrono;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_http_client as hab_http;
-extern crate broadcast;
 #[macro_use]
 extern crate hyper;
 extern crate hyper_openssl;
@@ -51,13 +51,13 @@ use chrono::DateTime;
 use hab_core::package::{Identifiable, PackageArchive};
 use hab_http::ApiClient;
 use hab_http::util::decoded_response;
-use hyper::client::{Body, IntoUrl, Response, RequestBuilder};
+use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::status::StatusCode;
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::Url;
 use protobuf::core::ProtobufEnum;
-use protocol::{originsrv, net};
-use rand::{Rng, thread_rng};
+use protocol::{net, originsrv};
+use rand::{thread_rng, Rng};
 use tee::TeeReader;
 use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -134,9 +134,7 @@ impl fmt::Display for SchedulerResponse {
         let mut output = Vec::new();
         output.push(format!(
             "Status for Job Group {} ({}): {}",
-            self.id,
-            self.project_name,
-            self.state
+            self.id, self.project_name, self.state
         ));
 
         if let Ok(c) = DateTime::parse_from_rfc3339(&self.created_at) {
@@ -185,7 +183,7 @@ impl Into<originsrv::OriginSecret> for OriginSecret {
 /// To use it, add `#[serde(with = "json_u64")]` to any `u64`-typed struct
 /// fields.
 mod json_u64 {
-    use serde::{self, Deserialize, Serializer, Deserializer};
+    use serde::{self, Deserialize, Deserializer, Serializer};
 
     pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -303,9 +301,12 @@ impl Client {
         if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
             endpoint.set_path(DEFAULT_API_PATH);
         }
-        Ok(Client(
-            ApiClient::new(endpoint, product, version, fs_root_path)?,
-        ))
+        Ok(Client(ApiClient::new(
+            endpoint,
+            product,
+            version,
+            fs_root_path,
+        )?))
     }
 
     /// Retrieves the status of every group job in an origin
@@ -323,10 +324,8 @@ impl Client {
         let path = format!("depot/pkgs/schedule/{}/status", origin);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut().append_pair(
-                "limit",
-                &limit.to_string(),
-            );
+            url.query_pairs_mut()
+                .append_pair("limit", &limit.to_string());
         };
 
         let res = self.0.get_with_custom_url(&path, custom).send()?;
@@ -350,10 +349,8 @@ impl Client {
         let path = format!("depot/pkgs/schedule/{}", group_id);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut().append_pair(
-                "include_projects",
-                &include_projects.to_string(),
-            );
+            url.query_pairs_mut()
+                .append_pair("include_projects", &include_projects.to_string());
         };
 
         let res = self.0.get_with_custom_url(&path, custom).send()?;
@@ -379,8 +376,9 @@ impl Client {
         // TODO (SA): This API needs to be extended to support a target param.
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
         let result = if package_only {
-            let custom =
-                |url: &mut Url| { url.query_pairs_mut().append_pair("package_only", "true"); };
+            let custom = |url: &mut Url| {
+                url.query_pairs_mut().append_pair("package_only", "true");
+            };
             self.add_authz(self.0.post_with_custom_url(&path, custom), token)
                 .send()
         } else {
@@ -640,7 +638,10 @@ impl Client {
                 .send()
         };
         match result {
-            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
+            Ok(Response {
+                status: StatusCode::Created,
+                ..
+            }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -705,7 +706,10 @@ impl Client {
                 .send()
         };
         match result {
-            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
+            Ok(Response {
+                status: StatusCode::Created,
+                ..
+            }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -811,7 +815,9 @@ impl Client {
         let mut file = File::open(&pa.path)?;
         let file_size = file.metadata()?.len();
         let path = package_path(&ident);
-        let custom = |url: &mut Url| { url.query_pairs_mut().append_pair("checksum", &checksum); };
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut().append_pair("checksum", &checksum);
+        };
         debug!("Reading from {}", &pa.path.display());
 
         let result = if let Some(mut progress) = progress {
@@ -826,7 +832,10 @@ impl Client {
                 .send()
         };
         match result {
-            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
+            Ok(Response {
+                status: StatusCode::Created,
+                ..
+            }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -849,7 +858,10 @@ impl Client {
             .body(Body::SizedBody(&mut file, file_size))
             .send();
         match result {
-            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
+            Ok(Response {
+                status: StatusCode::Created,
+                ..
+            }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -971,8 +983,7 @@ impl Client {
         }
 
         match res.status {
-            StatusCode::Ok |
-            StatusCode::PartialContent => {
+            StatusCode::Ok | StatusCode::PartialContent => {
                 let mut encoded = String::new();
                 res.read_to_string(&mut encoded)?;
                 let results: Vec<OriginChannelIdent> = serde_json::from_str(&encoded)?;
@@ -996,12 +1007,12 @@ impl Client {
         let mut res = self.maybe_add_authz(self.0.get(&package_search(search_term)), token)
             .send()?;
         match res.status {
-            StatusCode::Ok |
-            StatusCode::PartialContent => {
+            StatusCode::Ok | StatusCode::PartialContent => {
                 let mut encoded = String::new();
                 res.read_to_string(&mut encoded)?;
-                let package_results: PackageResults<hab_core::package::PackageIdent> =
-                    serde_json::from_str(&encoded)?;
+                let package_results: PackageResults<
+                    hab_core::package::PackageIdent,
+                > = serde_json::from_str(&encoded)?;
                 let packages: Vec<hab_core::package::PackageIdent> = package_results.data;
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
@@ -1015,14 +1026,18 @@ impl Client {
         token: Option<&str>,
     ) -> RequestBuilder {
         if token.is_some() {
-            rb.header(Authorization(Bearer { token: token.unwrap().to_string() }))
+            rb.header(Authorization(Bearer {
+                token: token.unwrap().to_string(),
+            }))
         } else {
             rb
         }
     }
 
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
-        rb.header(Authorization(Bearer { token: token.to_string() }))
+        rb.header(Authorization(Bearer {
+            token: token.to_string(),
+        }))
     }
 
     fn download<D>(
@@ -1058,10 +1073,9 @@ impl Client {
         let mut f = File::create(&tmp_file_path)?;
         match progress {
             Some(mut progress) => {
-                let size: u64 = res.headers.get::<hyper::header::ContentLength>().map_or(
-                    0,
-                    |v| **v,
-                );
+                let size: u64 = res.headers
+                    .get::<hyper::header::ContentLength>()
+                    .map_or(0, |v| **v);
                 progress.size(size);
                 let mut writer = BroadcastWriter::new(&mut f, progress);
                 io::copy(&mut res, &mut writer)?
@@ -1124,12 +1138,10 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
 
     let mut buff = String::new();
     match response.read_to_string(&mut buff) {
-        Ok(_) => {
-            match serde_json::from_str::<NetError>(&buff) {
-                Ok(err) => Error::APIError(response.status, err.to_string()),
-                Err(_) => Error::APIError(response.status, buff),
-            }
-        }
+        Ok(_) => match serde_json::from_str::<NetError>(&buff) {
+            Ok(err) => Error::APIError(response.status, err.to_string()),
+            Err(_) => Error::APIError(response.status, buff),
+        },
         Err(_) => {
             buff.truncate(0);
             Error::APIError(response.status, buff)

@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
+extern crate base64;
 #[macro_use]
 extern crate clap;
 extern crate hab;
-extern crate habitat_core as hcore;
 extern crate habitat_common as common;
+extern crate habitat_core as hcore;
 extern crate handlebars;
-extern crate rusoto_core;
-extern crate rusoto_ecr;
-extern crate rusoto_credential as aws_creds;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
+extern crate rusoto_core;
+extern crate rusoto_credential as aws_creds;
+extern crate rusoto_ecr;
 #[macro_use]
 extern crate serde_json;
 extern crate tempdir;
-extern crate base64;
 extern crate url;
 
 extern crate failure;
@@ -52,7 +52,7 @@ use std::fmt;
 use std::result;
 use std::str::FromStr;
 
-use common::ui::{UI, UIWriter};
+use common::ui::{UIWriter, UI};
 use hcore::{channel, PROGRAM_NAME};
 use hcore::url as hurl;
 
@@ -64,7 +64,7 @@ use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
 pub use cli::{Cli, PkgIdentArgOptions};
 pub use build::BuildSpec;
-pub use docker::{DockerImage, DockerBuildRoot};
+pub use docker::{DockerBuildRoot, DockerImage};
 pub use error::{Error, Result};
 
 /// The version of this library and program when built.
@@ -102,8 +102,8 @@ pub struct Naming<'a> {
 impl<'a> Naming<'a> {
     /// Creates a `Naming` from cli arguments.
     pub fn new_from_cli_matches(m: &'a clap::ArgMatches) -> Self {
-        let registry_type = value_t!(m.value_of("REGISTRY_TYPE"), RegistryType)
-            .unwrap_or(RegistryType::Docker);
+        let registry_type =
+            value_t!(m.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or(RegistryType::Docker);
         let registry_url = m.value_of("REGISTRY_URL");
 
         Naming {
@@ -180,23 +180,22 @@ impl Credentials {
                         resp.authorization_data
                             .ok_or(Error::NoECRTokensReturned)
                             .and_then(|auth_data| {
-                                auth_data[0].clone().authorization_token.ok_or(
-                                    Error::NoECRTokensReturned,
-                                )
+                                auth_data[0]
+                                    .clone()
+                                    .authorization_token
+                                    .ok_or(Error::NoECRTokensReturned)
                             })
                     })?;
 
                 Ok(Credentials { token: token })
             }
-            RegistryType::Docker | RegistryType::Azure => {
-                Ok(Credentials {
-                    token: base64::encode(&format!(
-                        "{}:{}",
-                        username.to_string(),
-                        password.to_string()
-                    )),
-                })
-            }
+            RegistryType::Docker | RegistryType::Azure => Ok(Credentials {
+                token: base64::encode(&format!(
+                    "{}:{}",
+                    username.to_string(),
+                    password.to_string()
+                )),
+            }),
         }
     }
 }
@@ -248,20 +247,17 @@ pub fn export_for_cli_matches(
     let naming = Naming::new_from_cli_matches(&matches);
 
     let docker_image = export(ui, spec, &naming)?;
-    docker_image.create_report(
-        ui,
-        env::current_dir()?.join("results"),
-    )?;
+    docker_image.create_report(ui, env::current_dir()?.join("results"))?;
 
     if matches.is_present("PUSH_IMAGE") {
         let credentials = Credentials::new(
             naming.registry_type,
-            matches.value_of("REGISTRY_USERNAME").expect(
-                "Username not specified",
-            ),
-            matches.value_of("REGISTRY_PASSWORD").expect(
-                "Password not specified",
-            ),
+            matches
+                .value_of("REGISTRY_USERNAME")
+                .expect("Username not specified"),
+            matches
+                .value_of("REGISTRY_PASSWORD")
+                .expect("Password not specified"),
         )?;
         docker_image.push(ui, &credentials, naming.registry_url)?;
     }

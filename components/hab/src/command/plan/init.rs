@@ -14,15 +14,15 @@
 
 use std::env;
 use std::fs::create_dir_all;
-use std::fs::{File, canonicalize, OpenOptions};
-use std::io::{Write, BufRead, BufReader};
+use std::fs::{canonicalize, File, OpenOptions};
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::collections::HashMap;
 
 use handlebars::Handlebars;
 use hcore::package::PackageIdent;
 
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 use error::Result;
 
 const DEFAULT_PLAN_TEMPLATE: &'static str = include_str!(concat!(
@@ -96,10 +96,7 @@ pub fn start(
     data.insert("pkg_version".to_string(), DEFAULT_PKG_VERSION.to_string());
 
     let scaffold = match scaffolding_ident {
-        Some(ident) => Some(data.insert(
-            "scaffolding_ident".to_string(),
-            ident.to_string(),
-        )),
+        Some(ident) => Some(data.insert("scaffolding_ident".to_string(), ident.to_string())),
         None => None,
     };
 
@@ -137,7 +134,7 @@ pub fn start(
     }
     ui.para(
         "`plan.sh` is the foundation of your new habitat. It contains \
-        metadata, dependencies, and tasks.",
+         metadata, dependencies, and tasks.",
     )?;
     let rendered_default_toml = handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data)?;
     create_with_template(
@@ -145,59 +142,38 @@ pub fn start(
         &format!("{}/default.toml", root),
         &rendered_default_toml,
     )?;
-    ui.para(
-        "`default.toml` contains default values for `cfg` prefixed variables.",
-    )?;
+    ui.para("`default.toml` contains default values for `cfg` prefixed variables.")?;
 
     let rendered_readme_md = handlebars.template_render(README_TEMPLATE, &data)?;
     create_with_template(ui, &format!("{}/README.md", root), &rendered_readme_md)?;
-    ui.para(
-        "`README.md` contains a basic README document which you should update.",
-    )?;
+    ui.para("`README.md` contains a basic README document which you should update.")?;
 
     let config_path = format!("{}/config/", root);
     match Path::new(&config_path).exists() {
-        true => {
-            ui.status(
-                Status::Using,
-                format!("existing directory: {}", config_path),
-            )?
-        }
+        true => ui.status(
+            Status::Using,
+            format!("existing directory: {}", config_path),
+        )?,
         false => {
-            ui.status(
-                Status::Creating,
-                format!("directory: {}", config_path),
-            )?;
+            ui.status(Status::Creating, format!("directory: {}", config_path))?;
             create_dir_all(&config_path)?;
         }
     };
-    ui.para(
-        "`/config/` contains configuration files for your app.",
-    )?;
+    ui.para("`/config/` contains configuration files for your app.")?;
 
     let hooks_path = format!("{}/hooks/", root);
     match Path::new(&hooks_path).exists() {
-        true => {
-            ui.status(
-                Status::Using,
-                format!("existing directory: {}", hooks_path),
-            )?
-        }
+        true => ui.status(Status::Using, format!("existing directory: {}", hooks_path))?,
         false => {
-            ui.status(
-                Status::Creating,
-                format!("directory: {}", hooks_path),
-            )?;
+            ui.status(Status::Creating, format!("directory: {}", hooks_path))?;
             create_dir_all(&hooks_path)?;
         }
     };
-    ui.para(
-        "`/hooks/` contains automation hooks into your habitat.",
-    )?;
+    ui.para("`/hooks/` contains automation hooks into your habitat.")?;
 
     ui.para(
         "For more information on any of the files: \
-        https://www.habitat.sh/docs/reference/plan-syntax/",
+         https://www.habitat.sh/docs/reference/plan-syntax/",
     )?;
 
     render_ignorefile(ui, &root)?;
@@ -218,7 +194,10 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
         if !target_path.exists() {
             create_with_template(ui, &target, GITIGNORE_TEMPLATE)?
         } else {
-            let file = OpenOptions::new().read(true).append(true).open(target_path)?;
+            let file = OpenOptions::new()
+                .read(true)
+                .append(true)
+                .open(target_path)?;
 
             let entries: Vec<String> = BufReader::new(&file)
                 .lines()
@@ -238,11 +217,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 
             ui.status(
                 Status::Using,
-                format!(
-                    "existing file: {} ({} lines appended)",
-                    &target,
-                    appended
-                ),
+                format!("existing file: {} ({} lines appended)", &target, appended),
             )?;
         }
     }
@@ -250,7 +225,6 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 }
 
 fn is_git_managed(path: &Path) -> bool {
-
     if path.join(".git").is_dir() {
         return true;
     }
@@ -272,16 +246,11 @@ fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<(
                 create_dir_all(directory)?;
             }
             // Create and then render the template with Handlebars
-            File::create(path).and_then(
-                |mut file| file.write(template.as_bytes()),
-            )?;
+            File::create(path).and_then(|mut file| file.write(template.as_bytes()))?;
         }
         true => {
             // If the user has already configured a file overwriting would be impolite.
-            ui.status(
-                Status::Using,
-                format!("existing file: {}", location),
-            )?;
+            ui.status(Status::Using, format!("existing file: {}", location))?;
         }
     };
     Ok(())

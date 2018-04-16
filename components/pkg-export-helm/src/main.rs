@@ -14,8 +14,8 @@
 
 extern crate clap;
 extern crate env_logger;
-extern crate habitat_core as hcore;
 extern crate habitat_common as common;
+extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
 extern crate habitat_pkg_export_kubernetes as export_k8s;
 extern crate handlebars;
@@ -43,7 +43,7 @@ use std::str::FromStr;
 
 use clap::Arg;
 
-use common::ui::{UI, UIWriter};
+use common::ui::{UIWriter, UI};
 use export_docker::Result;
 use export_k8s::Cli;
 use hcore::PROGRAM_NAME;
@@ -92,9 +92,7 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .value_name("CHART")
                 .long("chart")
                 .short("h")
-                .help(
-                    "Name of the chart to create, if different from the package name",
-                ),
+                .help("Name of the chart to create, if different from the package name"),
         )
         .arg(
             Arg::with_name("VERSION")
@@ -148,13 +146,13 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .short("m")
                 .multiple(true)
                 .validator(valid_maintainer)
-                .help(
-                    "A maintainer of the project, in the form of NAME,[EMAIL[,URL]]",
-                ),
+                .help("A maintainer of the project, in the form of NAME,[EMAIL[,URL]]"),
         )
-        .arg(Arg::with_name("DEPRECATED").long("depr").help(
-            "Mark this chart as deprecated",
-        ))
+        .arg(
+            Arg::with_name("DEPRECATED")
+                .long("depr")
+                .help("Mark this chart as deprecated"),
+        )
         .arg(
             Arg::with_name("OPERATOR_VERSION")
                 .value_name("OPERATOR_VERSION")
@@ -170,7 +168,7 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .long("output-dir")
                 .help(
                     "The directory to put the chart directory under (default: current working \
-                       directory)",
+                     directory)",
                 ),
         )
         .arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
@@ -204,11 +202,9 @@ fn valid_url(val: String) -> result::Result<(), String> {
 }
 
 fn valid_maintainer(val: String) -> result::Result<(), String> {
-    maintainer::Maintainer::from_str(&val).map(|_| ()).map_err(
-        |e| {
-            format!("{}", e)
-        },
-    )
+    maintainer::Maintainer::from_str(&val)
+        .map(|_| ())
+        .map_err(|e| format!("{}", e))
 }
 
 #[cfg(test)]

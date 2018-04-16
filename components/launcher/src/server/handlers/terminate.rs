@@ -15,7 +15,7 @@
 use core::os::process::Pid;
 use protocol;
 
-use super::{Handler, HandleResult};
+use super::{HandleResult, Handler};
 use server::ServiceTable;
 
 pub struct TerminateHandler;

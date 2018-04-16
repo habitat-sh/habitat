@@ -20,15 +20,15 @@ use std::os::windows::fs::symlink_dir as symlink;
 use clap;
 use common;
 use common::command::package::install::{InstallMode, InstallSource};
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 use tempdir::TempDir;
 use std::path::Path;
 use hcore::package::PackageIdent;
 use error::Result;
 use hcore::PROGRAM_NAME;
-use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, cache_artifact_path, cache_key_path};
+use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 
-use super::{VERSION, BUSYBOX_IDENT};
+use super::{BUSYBOX_IDENT, VERSION};
 
 use rootfs;
 
@@ -73,12 +73,10 @@ impl<'a> BuildSpec<'a> {
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {
-
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
-            hab_launcher: m.value_of("HAB_LAUNCHER_PKG").unwrap_or(
-                DEFAULT_LAUNCHER_IDENT,
-            ),
+            hab_launcher: m.value_of("HAB_LAUNCHER_PKG")
+                .unwrap_or(DEFAULT_LAUNCHER_IDENT),
             hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
             url: m.value_of("BLDR_URL").unwrap_or(&default_url),
             channel: m.value_of("CHANNEL").unwrap_or(&default_channel),
@@ -206,7 +204,6 @@ impl<'a> BuildSpec<'a> {
         channel: &str,
         fs_root_path: P,
     ) -> Result<PackageIdent> {
-
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install = common::command::package::install::start(
             ui,

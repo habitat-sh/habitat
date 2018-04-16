@@ -13,8 +13,8 @@
 // limitations under the License.
 
 extern crate env_logger;
-extern crate habitat_launcher as launcher;
 extern crate habitat_core as core;
+extern crate habitat_launcher as launcher;
 
 use std::env;
 use std::process;

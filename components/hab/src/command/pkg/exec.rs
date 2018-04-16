@@ -42,9 +42,9 @@ where
     let joined = env::join_paths(paths)?;
     run_env.insert(
         String::from("PATH"),
-        joined.into_string().expect(
-            "Unable to convert OsStr path to string!",
-        ),
+        joined
+            .into_string()
+            .expect("Unable to convert OsStr path to string!"),
     );
 
     for (key, value) in run_env.into_iter() {

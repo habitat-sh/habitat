@@ -48,37 +48,28 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::BadDataPath(ref path, ref err) => {
-                format!(
-                    "Unable to read or write to data directory, {}, {}",
-                    path.display(),
-                    err
-                )
-            }
-            Error::BadDatFile(ref path, ref err) => {
-                format!(
-                    "Unable to decode contents of DatFile, {}, {}",
-                    path.display(),
-                    err
-                )
-            }
+            Error::BadDataPath(ref path, ref err) => format!(
+                "Unable to read or write to data directory, {}, {}",
+                path.display(),
+                err
+            ),
+            Error::BadDatFile(ref path, ref err) => format!(
+                "Unable to decode contents of DatFile, {}, {}",
+                path.display(),
+                err
+            ),
             Error::BadMessage(ref err) => format!("Bad Message: {:?}", err),
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
-            Error::DatFileIO(ref path, ref err) => {
-                format!(
-                    "Error reading or writing to DatFile, {}, {}",
-                    path.display(),
-                    err
-                )
-            }
+            Error::DatFileIO(ref path, ref err) => format!(
+                "Error reading or writing to DatFile, {}, {}",
+                path.display(),
+                err
+            ),
             Error::HabitatCore(ref err) => format!("{}", err),
-            Error::NonExistentRumor(ref member_id, ref rumor_id) => {
-                format!(
-                    "Non existent rumor asked to be written to bytes: {} {}",
-                    member_id,
-                    rumor_id
-                )
-            }
+            Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
+                "Non existent rumor asked to be written to bytes: {} {}",
+                member_id, rumor_id
+            ),
             Error::ProtobufError(ref err) => format!("ProtoBuf Error: {}", err),
             Error::ServiceConfigDecode(ref sg, ref err) => {
                 format!("Cannot decode service config: group={}, {:?}", sg, err)
@@ -97,7 +88,6 @@ impl fmt::Display for Error {
             Error::ZmqSendError(ref err) => {
                 format!("Cannot send message through ZMQ socket: {}", err)
             }
-
         };
         write!(f, "{}", msg)
     }

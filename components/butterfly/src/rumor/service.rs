@@ -35,8 +35,8 @@ pub struct Service(ProtoRumor);
 
 impl PartialOrd for Service {
     fn partial_cmp(&self, other: &Service) -> Option<Ordering> {
-        if self.get_member_id() != other.get_member_id() ||
-            self.get_service_group() != other.get_service_group()
+        if self.get_member_id() != other.get_member_id()
+            || self.get_service_group() != other.get_service_group()
         {
             None
         } else {
@@ -47,9 +47,9 @@ impl PartialOrd for Service {
 
 impl PartialEq for Service {
     fn eq(&self, other: &Service) -> bool {
-        self.get_member_id() == other.get_member_id() &&
-            self.get_service_group() == other.get_service_group() &&
-            self.get_incarnation() == other.get_incarnation()
+        self.get_member_id() == other.get_member_id()
+            && self.get_service_group() == other.get_service_group()
+            && self.get_incarnation() == other.get_incarnation()
     }
 }
 
@@ -100,7 +100,7 @@ impl Service {
             service_group.service(),
             package.name(),
             "Service constructor requires the given package name to match the service \
-                    group's name"
+             group's name"
         );
         let mut rumor = ProtoRumor::new();
         rumor.set_from_id(member_id.into());
@@ -115,9 +115,7 @@ impl Service {
         if let Some(cfg) = cfg {
             // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
             // in this constructor?
-            proto.set_cfg(toml::ser::to_vec(cfg).expect(
-                "Struct should serialize to bytes",
-            ));
+            proto.set_cfg(toml::ser::to_vec(cfg).expect("Struct should serialize to bytes"));
         }
 
         rumor.set_service(proto);

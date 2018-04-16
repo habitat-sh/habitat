@@ -561,7 +561,7 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Unload a service loaded by the Habitat Supervisor. If the service is \
                     running it will additionally be stopped.")
                 (aliases: &["un", "unl", "unlo", "unloa"])
-                (@arg PKG_IDENT: +required +takes_value 
+                (@arg PKG_IDENT: +required +takes_value
                     "A Habitat package identifier (ex: core/redis)")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
@@ -584,7 +584,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand stop =>
                 (about: "Stop a running Habitat service.")
                 (aliases: &["sto"])
-                (@arg PKG_IDENT: +required +takes_value 
+                (@arg PKG_IDENT: +required +takes_value
                     "A Habitat package identifier (ex: core/redis)")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
@@ -696,7 +696,7 @@ fn sub_cli_completers() -> App<'static, 'static> {
         Arg::with_name("SHELL")
             .help(
                 "The name of the shell you want to generate the command-completion. Supported \
-               Shells: bash, fish, zsh, powershell",
+                 Shells: bash, fish, zsh, powershell",
             )
             .short("s")
             .long("shell")
@@ -725,20 +725,18 @@ fn sub_pkg_build() -> App<'static, 'static> {
     if cfg!(target_os = "linux") {
         sub.arg(
             Arg::with_name("REUSE")
-                .help(
-                    "Reuses a previous Studio for the build (default: clean up before building)",
-                )
+                .help("Reuses a previous Studio for the build (default: clean up before building)")
                 .short("R")
                 .long("reuse"),
         ).arg(
-                Arg::with_name("DOCKER")
-                    .help(
-                        "Uses a Dockerized Studio for the build (default: Studio uses a chroot on \
-                        linux)",
-                    )
-                    .short("D")
-                    .long("docker"),
-            )
+            Arg::with_name("DOCKER")
+                .help(
+                    "Uses a Dockerized Studio for the build (default: Studio uses a chroot on \
+                     linux)",
+                )
+                .short("D")
+                .long("docker"),
+        )
     } else if cfg!(target_os = "windows") {
         sub.arg(
             Arg::with_name("WINDOWS")
@@ -854,18 +852,20 @@ fn file_exists(val: String) -> result::Result<(), String> {
 }
 
 fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
-    if val == "-" { Ok(()) } else { file_exists(val) }
+    if val == "-" {
+        Ok(())
+    } else {
+        file_exists(val)
+    }
 }
 
 fn valid_pair_type(val: String) -> result::Result<(), String> {
     match PairType::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => {
-            Err(format!(
-                "PAIR_TYPE: {} is invalid, must be one of (public, secret)",
-                &val
-            ))
-        }
+        Err(_) => Err(format!(
+            "PAIR_TYPE: {} is invalid, must be one of (public, secret)",
+            &val
+        )),
     }
 }
 

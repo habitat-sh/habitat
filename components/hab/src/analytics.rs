@@ -190,10 +190,10 @@ use std::env;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
-use std::time::{UNIX_EPOCH, SystemTime};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use clap;
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use hcore;
 use http_client::ApiClient;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
@@ -262,29 +262,25 @@ pub fn instrument_subcommand() {
         // Match against any pre-selected subcommands that are 2 levels deep and ignore any
         // potential arguments, options, or flags to that subcommand--these extras will not be
         // reported.
-        ("config", "apply", _) |
-        ("file", "upload", _) |
-        ("pkg", "build", _) |
-        ("pkg", "upload", _) |
-        ("studio", "build", _) |
-        ("studio", "enter", _) => {
-            record_event(
-                Event::Subcommand,
-                &format!("{}--{}--{}", PRODUCT, arg1, arg2),
-            )
-        }
+        ("config", "apply", _)
+        | ("file", "upload", _)
+        | ("pkg", "build", _)
+        | ("pkg", "upload", _)
+        | ("studio", "build", _)
+        | ("studio", "enter", _) => record_event(
+            Event::Subcommand,
+            &format!("{}--{}--{}", PRODUCT, arg1, arg2),
+        ),
         // Match against any pre-selected subcommands that are 3 levels deep. Since there are no
         // more positional matches left, we ignore all further arguments, options, or flags to that
         // subcommand.
-        ("origin", "key", "generate") |
-        ("ring", "key", "generate") |
-        ("svc", "key", "generate") |
-        ("user", "key", "generate") => {
-            record_event(
-                Event::Subcommand,
-                &format!("{}--{}--{}--{}", PRODUCT, arg1, arg2, arg3),
-            )
-        }
+        ("origin", "key", "generate")
+        | ("ring", "key", "generate")
+        | ("svc", "key", "generate")
+        | ("user", "key", "generate") => record_event(
+            Event::Subcommand,
+            &format!("{}--{}--{}--{}", PRODUCT, arg1, arg2, arg3),
+        ),
         // If the subcommand to be invoked doesn't match any of the above arms, then it has not
         // been pre-selected and we can return early, all done.
         _ => (),
@@ -319,27 +315,21 @@ pub fn instrument_clap_error(err: &clap::Error) {
     // Use a pattern match against the first program argument.
     match arg1.as_str() {
         // Match against subcommands which are 2 levels deep.
-        "config" | "file" | "pkg" => {
-            record_event(
-                Event::CliError,
-                &format!("{:?}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2),
-            )
-        }
+        "config" | "file" | "pkg" => record_event(
+            Event::CliError,
+            &format!("{:?}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2),
+        ),
         // Match against subcommands which are 3 levels deep.
-        "origin" | "ring" | "svc" | "user" => {
-            record_event(
-                Event::CliError,
-                &format!("{:?}--{}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2, arg3),
-            )
-        }
+        "origin" | "ring" | "svc" | "user" => record_event(
+            Event::CliError,
+            &format!("{:?}--{}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2, arg3),
+        ),
         // Match against subcommands which are 1 levels deep or anything else remaining. This match
         // arm appears last because it "slurps" up all remaining cases with `_`.
-        "apply" | "install" | "setup" | _ => {
-            record_event(
-                Event::CliError,
-                &format!("{:?}--{}--{}", err.kind, PRODUCT, arg1),
-            )
-        }
+        "apply" | "install" | "setup" | _ => record_event(
+            Event::CliError,
+            &format!("{:?}--{}--{}", err.kind, PRODUCT, arg1),
+        ),
     }
 }
 
@@ -496,13 +486,13 @@ fn should_send() -> bool {
         args.next().unwrap_or_default().as_str(),
         args.next().unwrap_or_default().as_str(),
     ) {
-        ("apply", _, _) |
-        ("config", "apply", _) |
-        ("file", "upload", _) |
-        ("install", _, _) |
-        ("origin", "key", "upload") |
-        ("pkg", "install", _) |
-        ("pkg", "upload", _) => true,
+        ("apply", _, _)
+        | ("config", "apply", _)
+        | ("file", "upload", _)
+        | ("install", _, _)
+        | ("origin", "key", "upload")
+        | ("pkg", "install", _)
+        | ("pkg", "upload", _) => true,
         _ => false,
     }
 }
@@ -616,10 +606,12 @@ fn send_pending() {
         };
         // If the directory entry is a file and the base file name starts with `event-`, then this
         // is a cached event. Otherwise proceed to the next entry.
-        if metadata.is_file() &&
-            entry.file_name().to_string_lossy().as_ref().starts_with(
-                "event-",
-            )
+        if metadata.is_file()
+            && entry
+                .file_name()
+                .to_string_lossy()
+                .as_ref()
+                .starts_with("event-")
         {
             let file_path = entry.path();
             // Send the event, but if not successful report and proceed to the next entry.

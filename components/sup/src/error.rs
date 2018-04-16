@@ -176,56 +176,51 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
-            Error::BadCompositesPath(ref path, ref err) => {
-                format!(
-                    "Unable to create the composites directory '{}' ({})",
-                    path.display(),
-                    err
-                )
-            }
-            Error::Departed => {
-                format!(
-                    "This Supervisor has been manually departed.\n\nFor the safety of the system, this Supervisor cannot be started (if we did, we would risk the services on this machine behaving badly without our knowledge.) If you know that the services on this system are safe, and want them to rejoin the habitat ring, you need to:\n\n  rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\nThis will cause the Supervisor to join the ring as a new member.\n\nIf you are in doubt, it is better to consider the services managed by this Supervisor as unsafe to run."
-                )
-            }
-            Error::BadDataFile(ref path, ref err) => {
-                format!(
-                    "Unable to read or write to data file, {}, {}",
-                    path.display(),
-                    err
-                )
-            }
-            Error::BadDataPath(ref path, ref err) => {
-                format!(
-                    "Unable to read or write to data directory, {}, {}",
-                    path.display(),
-                    err
-                )
-            }
+            Error::BadCompositesPath(ref path, ref err) => format!(
+                "Unable to create the composites directory '{}' ({})",
+                path.display(),
+                err
+            ),
+            Error::Departed => format!(
+                "This Supervisor has been manually departed.\n\nFor the safety of the system, \
+                 this Supervisor cannot be started (if we did, we would risk the services on \
+                 this machine behaving badly without our knowledge.) If you know that the \
+                 services on this system are safe, and want them to rejoin the habitat ring, \
+                 you need to:\n\n  rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\n \
+                 This will cause the Supervisor to join the ring as a new member.\n\n \
+                 If you are in doubt, it is better to consider the services managed by this \
+                 Supervisor as unsafe to run."
+            ),
+            Error::BadDataFile(ref path, ref err) => format!(
+                "Unable to read or write to data file, {}, {}",
+                path.display(),
+                err
+            ),
+            Error::BadDataPath(ref path, ref err) => format!(
+                "Unable to read or write to data directory, {}, {}",
+                path.display(),
+                err
+            ),
             Error::BadDesiredState(ref state) => {
                 format!("Unknown service desired state style '{}'", state)
             }
             Error::BadElectionStatus(ref status) => format!("Unknown election status '{}'", status),
             Error::BadPackage(ref pkg, ref err) => format!("Bad package, {}, {}", pkg, err),
-            Error::BadSpecsPath(ref path, ref err) => {
-                format!(
-                    "Unable to create the specs directory '{}' ({})",
-                    path.display(),
-                    err
-                )
-            }
+            Error::BadSpecsPath(ref path, ref err) => format!(
+                "Unable to create the specs directory '{}' ({})",
+                path.display(),
+                err
+            ),
             Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
-            Error::CtlSecretIo(ref path, ref err) => {
-                format!(
-                    "IoError while reading or writing ctl secret, {}, {}",
-                    path.display(),
-                    err
-                )
-            }
+            Error::CtlSecretIo(ref path, ref err) => format!(
+                "IoError while reading or writing ctl secret, {}, {}",
+                path.display(),
+                err
+            ),
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
@@ -239,15 +234,13 @@ impl fmt::Display for SupError {
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FileWatcherFileIsRoot => format!("Watched file is root"),
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
-            Error::InvalidBinding(ref binding) => {
-                format!(
-                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> or \
+            Error::InvalidBinding(ref binding) => format!(
+                "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> or \
                     <SERVICE_NAME>:<NAME>:<SERVICE_GROUP> where <NAME> is a service name,
                     <SERVICE_GROUP> is a valid service group, and <SERVICE_NAME> is the name of
                     a service within a composite if the given bind is for a composite service.",
-                    binding
-                )
-            }
+                binding
+            ),
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
@@ -284,23 +277,19 @@ impl fmt::Display for SupError {
                 format!("Unable to read PID file, {}, {}", path.display(), err)
             }
             Error::ProcessLockCorrupt => format!("Unable to decode contents of process lock"),
-            Error::ProcessLocked(ref pid) => {
-                format!(
-                    "Unable to start Habitat Supervisor because another instance is already \
-                    running with the pid {}. If your intention was to run multiple Supervisors - \
-                    that can be done by setting a value for `--override-name` at startup - but \
-                    it is not recommended.",
-                    pid
-                )
-            }
-            Error::ProcessLockIO(ref path, ref err) => {
-                format!(
-                    "Unable to start Habitat Supervisor because we weren't able to write or \
-                    read to a process lock at {}, {}",
-                    path.display(),
-                    err
-                )
-            }
+            Error::ProcessLocked(ref pid) => format!(
+                "Unable to start Habitat Supervisor because another instance is already \
+                 running with the pid {}. If your intention was to run multiple Supervisors - \
+                 that can be done by setting a value for `--override-name` at startup - but \
+                 it is not recommended.",
+                pid
+            ),
+            Error::ProcessLockIO(ref path, ref err) => format!(
+                "Unable to start Habitat Supervisor because we weren't able to write or \
+                 read to a process lock at {}, {}",
+                path.display(),
+                err
+            ),
             Error::RecvError(ref err) => format!("{}", err),
             Error::RenderContextSerialization(ref e) => {
                 format!("Unable to serialize rendering context, {}", e)
@@ -312,13 +301,11 @@ impl fmt::Display for SupError {
             Error::ServiceSerializationError(ref e) => {
                 format!("Can't serialize service to file: {}", e)
             }
-            Error::ServiceSpecFileIO(ref path, ref err) => {
-                format!(
-                    "Unable to write or read to a service spec file at {}, {}",
-                    path.display(),
-                    err
-                )
-            }
+            Error::ServiceSpecFileIO(ref path, ref err) => format!(
+                "Unable to write or read to a service spec file at {}, {}",
+                path.display(),
+                err
+            ),
             Error::ServiceSpecParse(ref err) => {
                 format!("Unable to parse contents of service spec file, {}", err)
             }
@@ -326,12 +313,10 @@ impl fmt::Display for SupError {
                 format!("Service spec could not be rendered successfully: {}", err)
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
-            Error::SpecWatcherDirNotFound(ref path) => {
-                format!(
-                    "Spec directory '{}' not created or is not a directory",
-                    path
-                )
-            }
+            Error::SpecWatcherDirNotFound(ref path) => format!(
+                "Spec directory '{}' not created or is not a directory",
+                path
+            ),
             Error::SpecWatcherGlob(ref e) => format!("{}", e),
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),

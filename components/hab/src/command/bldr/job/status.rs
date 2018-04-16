@@ -14,7 +14,7 @@
 
 use std::io::Write;
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use depot_client;
 use tabwriter::TabWriter;
 
@@ -29,8 +29,8 @@ pub fn start(
     limit: usize,
     show_jobs: bool,
 ) -> Result<()> {
-    let depot_client = depot_client::Client::new(bldr_url, PRODUCT, VERSION, None)
-        .map_err(Error::DepotClient)?;
+    let depot_client =
+        depot_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
 
     if origin.is_some() {
         do_origin_status(ui, &depot_client, origin.unwrap(), limit)?;
@@ -64,12 +64,10 @@ fn do_job_group_status(
         Ok(sr) => {
             let mut tw = TabWriter::new(vec![]);
             write!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\n").unwrap();
-            write!(&mut tw,
+            write!(
+                &mut tw,
                 "{}\t{}\t{}\t{}\n",
-                sr.created_at,
-                sr.id,
-                sr.state,
-                sr.project_name,
+                sr.created_at, sr.id, sr.state, sr.project_name,
             ).unwrap();
             tw.flush().unwrap();
             let mut written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
@@ -79,13 +77,11 @@ fn do_job_group_status(
                 tw = TabWriter::new(vec![]);
                 write!(&mut tw, "NAME\tSTATUS\tJOB ID\tIDENT\n").unwrap();
                 for p in sr.projects {
-                    write!(&mut tw,
-                    "{}\t{}\t{}\t{}\n",
-                    p.name,
-                    p.state,
-                    p.job_id,
-                    p.ident,
-                ).unwrap();
+                    write!(
+                        &mut tw,
+                        "{}\t{}\t{}\t{}\n",
+                        p.name, p.state, p.job_id, p.ident,
+                    ).unwrap();
                 }
                 written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
                 println!("{}", written);
@@ -112,12 +108,10 @@ fn do_origin_status(
             let mut tw = TabWriter::new(vec![]);
             write!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\n").unwrap();
             for s in sr.iter() {
-                write!(&mut tw,
+                write!(
+                    &mut tw,
                     "{}\t{}\t{}\t{}\n",
-                    s.created_at,
-                    s.id,
-                    s.state,
-                    s.project_name,
+                    s.created_at, s.id, s.state, s.project_name,
                 ).unwrap();
             }
 

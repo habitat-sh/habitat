@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 use std::path::Path;
 use std::result;
@@ -107,7 +107,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_url)
                     .help(
                         "Install packages from Builder at the specified URL \
-                        (default: https://bldr.habitat.sh)",
+                         (default: https://bldr.habitat.sh)",
                     ),
             )
             .arg(
@@ -115,9 +115,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .long("channel")
                     .short("c")
                     .value_name("CHANNEL")
-                    .help(
-                        "Install packages from the specified release channel (default: stable)",
-                    ),
+                    .help("Install packages from the specified release channel (default: stable)"),
             )
             .arg(
                 Arg::with_name("BASE_PKGS_BLDR_URL")
@@ -126,7 +124,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_url)
                     .help(
                         "Install base packages from Builder at the specified URL \
-                        (default: https://bldr.habitat.sh)",
+                         (default: https://bldr.habitat.sh)",
                     ),
             )
             .arg(
@@ -135,7 +133,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("BASE_PKGS_CHANNEL")
                     .help(
                         "Install base packages from the specified release channel \
-                        (default: stable)",
+                         (default: stable)",
                     ),
             );
 
@@ -148,9 +146,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                 Arg::with_name("TAG_VERSION_RELEASE")
                     .long("tag-version-release")
                     .conflicts_with("NO_TAG_VERSION_RELEASE")
-                    .help(
-                        "Tag image with :\"{{pkg_version}}-{{pkg_release}}\" (default: yes)",
-                    ),
+                    .help("Tag image with :\"{{pkg_version}}-{{pkg_release}}\" (default: yes)"),
             )
             .arg(
                 Arg::with_name("NO_TAG_VERSION_RELEASE")
@@ -190,7 +186,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("TAG_CUSTOM")
                     .help(
                         "Tag image with additional custom tag (supports: {{pkg_origin}}, \
-                        {{pkg_name}}, {{pkg_version}}, {{pkg_release}}, {{channel}})",
+                         {{pkg_name}}, {{pkg_version}}, {{pkg_release}}, {{channel}})",
                     ),
             );
 
@@ -245,10 +241,10 @@ impl<'a, 'b> Cli<'a, 'b> {
     pub fn add_pkg_ident_arg(self, options: PkgIdentArgOptions) -> Self {
         let help = if options.multiple {
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a \
-            Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
+             Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
         } else {
             "A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat Artifact \
-            (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
+             (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
         };
 
         let app = self.app.arg(

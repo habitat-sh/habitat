@@ -25,7 +25,6 @@ use http_gateway;
 
 static LOGKEY: &'static str = "SY";
 
-
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Sys {
     pub version: String,

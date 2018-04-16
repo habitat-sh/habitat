@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 use hcore::crypto::artifact;
 
 use error::Result;
@@ -24,11 +24,7 @@ pub fn start(ui: &mut UI, src: &Path, cache: &Path) -> Result<()> {
     let (name_with_rev, hash) = artifact::verify(src, cache)?;
     ui.status(
         Status::Verified,
-        format!(
-            "checksum {} signed with {}",
-            &hash,
-            &name_with_rev
-        ),
+        format!("checksum {} signed with {}", &hash, &name_with_rev),
     )?;
     ui.end(format!("Verified artifact {}.", &src.display()))?;
     Ok(())

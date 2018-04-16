@@ -23,7 +23,6 @@ mod to_toml;
 mod to_uppercase;
 mod to_yaml;
 
-
 use serde::Serialize;
 use serde_json::{self, Value as Json};
 

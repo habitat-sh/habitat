@@ -661,7 +661,8 @@ impl Hook for SuitabilityHook {
                             Ok(line) => {
                                 match line.trim().parse::<u64>() {
                                     Ok(suitability) => {
-                                        outputln!(preamble service_group, "Reporting suitability of: {}", suitability);
+                                        outputln!(preamble service_group,
+                                                  "Reporting suitability of: {}", suitability);
                                         return Some(suitability);
                                     }
                                     Err(err) => {
@@ -769,7 +770,6 @@ impl Hook for PostStopHook {
         &self.stderr_log_path
     }
 }
-
 
 /// Cryptographically hash the contents of the compiled hook
 /// file.
@@ -921,10 +921,7 @@ impl RenderPair {
             .unwrap()
             .to_string_lossy()
             .into_owned();
-        renderer.register_template_file(
-            &name,
-            template_path.as_ref(),
-        )?;
+        renderer.register_template_file(&name, template_path.as_ref())?;
         Ok(RenderPair {
             path: concrete_path.into(),
             renderer: renderer,
@@ -986,9 +983,9 @@ impl<'a> HookOutput<'a> {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stdout_log.write_fmt(format_args!("{}\n", l)).expect(
-                        "couldn't write line",
-                    );
+                    stdout_log
+                        .write_fmt(format_args!("{}\n", l))
+                        .expect("couldn't write line");
                 }
             }
         }
@@ -996,9 +993,9 @@ impl<'a> HookOutput<'a> {
             for line in BufReader::new(stderr).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stderr_log.write_fmt(format_args!("{}\n", l)).expect(
-                        "couldn't write line",
-                    );
+                    stderr_log
+                        .write_fmt(format_args!("{}\n", l))
+                        .expect("couldn't write line");
                 }
             }
         }
@@ -1035,7 +1032,7 @@ mod tests {
     use census::CensusRing;
     use config::GossipListenAddr;
     use http_gateway;
-    use manager::service::{Pkg, Cfg};
+    use manager::service::{Cfg, Pkg};
     use manager::service::spec::ServiceBind;
     use manager::sys::Sys;
 
@@ -1094,9 +1091,8 @@ mod tests {
     {
         let mut file = File::open(path).expect("Could not open file!");
         let mut contents = String::new();
-        file.read_to_string(&mut contents).expect(
-            "Unable to read file!",
-        );
+        file.read_to_string(&mut contents)
+            .expect("Unable to read file!");
         contents
     }
 
@@ -1106,9 +1102,8 @@ mod tests {
         C: ToString,
     {
         let mut file = File::create(path).expect("Cannot create file");
-        file.write_all(content.to_string().as_bytes()).expect(
-            "Cannot write to file",
-        );
+        file.write_all(content.to_string().as_bytes())
+            .expect("Cannot write to file");
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -1492,26 +1487,26 @@ echo "The message is Hello"
     fn hook_output() {
         let tmp_dir = TempDir::new("habitat_hooks_test").expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");
-        DirBuilder::new().recursive(true).create(logs_dir).expect(
-            "couldn't create logs dir",
-        );
+        DirBuilder::new()
+            .recursive(true)
+            .create(logs_dir)
+            .expect("couldn't create logs dir");
         let mut cmd = Command::new(hook_fixtures_path().join(InitHook::file_name()));
-        cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(
-            Stdio::piped(),
-        );
+        cmd.stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
         let mut child = cmd.spawn().expect("couldn't run hook");
-        let stdout_log = tmp_dir.path().join("logs").join(format!(
-            "{}.stdout.log",
-            InitHook::file_name()
-        ));
-        let stderr_log = tmp_dir.path().join("logs").join(format!(
-            "{}.stderr.log",
-            InitHook::file_name()
-        ));
+        let stdout_log = tmp_dir
+            .path()
+            .join("logs")
+            .join(format!("{}.stdout.log", InitHook::file_name()));
+        let stderr_log = tmp_dir
+            .path()
+            .join("logs")
+            .join(format!("{}.stderr.log", InitHook::file_name()));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
-        let service_group = ServiceGroup::new(None, "dummy", "service", None).expect(
-            "couldn't create ServiceGroup",
-        );
+        let service_group = ServiceGroup::new(None, "dummy", "service", None)
+            .expect("couldn't create ServiceGroup");
 
         hook_output.stream_output::<InitHook>(&service_group, &mut child);
 

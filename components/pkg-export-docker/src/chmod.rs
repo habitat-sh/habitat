@@ -95,7 +95,6 @@ fn set_g_equal_u<P>(path: P, permissions: Permissions) -> Result<()> {
 /// And no, we do _not_ need anything more general purpose than this,
 /// thankyouverymuch.
 fn g_equals_u(perms: u32) -> u32 {
-
     // On Linux the permission bits are laid out thusly in a 32-bit
     // integer:
     //

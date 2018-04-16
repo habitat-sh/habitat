@@ -126,11 +126,12 @@ impl Election {
 impl PartialEq for Election {
     /// We ignore id in equality checking, because we only have one per service group
     fn eq(&self, other: &Election) -> bool {
-        self.get_service_group() == other.get_service_group() &&
-            self.get_member_id() == other.get_member_id() &&
-            self.get_suitability() == other.get_suitability() &&
-            self.get_votes() == other.get_votes() &&
-            self.get_status() == other.get_status() && self.get_term() == other.get_term()
+        self.get_service_group() == other.get_service_group()
+            && self.get_member_id() == other.get_member_id()
+            && self.get_suitability() == other.get_suitability()
+            && self.get_votes() == other.get_votes()
+            && self.get_status() == other.get_status()
+            && self.get_term() == other.get_term()
     }
 }
 
@@ -146,15 +147,15 @@ impl Rumor for Election {
             // If we are the same object, just return false
             // println!("Equal: {:?} {:?}", self, other);
             false
-        } else if other.get_term() >= self.get_term() &&
-                   other.get_status() == Election_Status::Finished
+        } else if other.get_term() >= self.get_term()
+            && other.get_status() == Election_Status::Finished
         {
             // If the new rumors term is bigger or equal to ours, and it has a leader, we take it as
             // the leader and move on.
             *self = other;
             true
-        } else if other.get_term() == self.get_term() &&
-                   self.get_status() == Election_Status::Finished
+        } else if other.get_term() == self.get_term()
+            && self.get_status() == Election_Status::Finished
         {
             // If the terms are equal, and we are finished, then we drop the other side on the
             // floor

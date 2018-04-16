@@ -25,9 +25,8 @@ impl HelperDef for ToTomlHelper {
         let param = h.param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\""))?
             .value();
-        let bytes = toml::ser::to_vec(&param).map_err(|e| {
-            RenderError::new(format!("Can't serialize parameter to TOML: {}", e))
-        })?;
+        let bytes = toml::ser::to_vec(&param)
+            .map_err(|e| RenderError::new(format!("Can't serialize parameter to TOML: {}", e)))?;
         rc.writer.write_all(bytes.as_ref())?;
         Ok(())
     }

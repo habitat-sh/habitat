@@ -38,15 +38,14 @@ pub fn start(
     // recursively walk the directories in pkg_root looking for matches
     for entry in WalkDir::new(pkg_root).into_iter().filter_map(|e| e.ok()) {
         if let Some(f) = entry.path().file_name().and_then(|f| f.to_str()) {
-
             if filename == f {
                 found_any = true;
                 let mut comps = entry.path().components();
 
                 // skip prefix_count segments of the path
-                let _ = comps.nth(prefix_count).ok_or(
-                    Error::FileNotFound(f.to_string()),
-                )?;
+                let _ = comps
+                    .nth(prefix_count)
+                    .ok_or(Error::FileNotFound(f.to_string()))?;
 
                 let segments = if full_releases {
                     // take all 4 segments of the path

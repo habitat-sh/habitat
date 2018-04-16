@@ -104,21 +104,11 @@ impl<'a> SvcDir<'a> {
     /// ownership, however, they will be owned by the Supervisor
     /// instead.
     fn create_all_svc_owned_dirs(&self) -> Result<()> {
-        self.create_svc_owned_dir(
-            fs::svc_config_path(&self.service_name),
-        )?;
-        self.create_svc_owned_dir(
-            fs::svc_data_path(&self.service_name),
-        )?;
-        self.create_svc_owned_dir(
-            fs::svc_files_path(&self.service_name),
-        )?;
-        self.create_svc_owned_dir(
-            fs::svc_var_path(&self.service_name),
-        )?;
-        self.create_svc_owned_dir(
-            fs::svc_static_path(&self.service_name),
-        )?;
+        self.create_svc_owned_dir(fs::svc_config_path(&self.service_name))?;
+        self.create_svc_owned_dir(fs::svc_data_path(&self.service_name))?;
+        self.create_svc_owned_dir(fs::svc_files_path(&self.service_name))?;
+        self.create_svc_owned_dir(fs::svc_var_path(&self.service_name))?;
+        self.create_svc_owned_dir(fs::svc_static_path(&self.service_name))?;
         Ok(())
     }
 
@@ -136,9 +126,11 @@ impl<'a> SvcDir<'a> {
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
         debug!("Creating dir with subdirs: {:?}", &path.as_ref());
         if let Err(e) = stdfs::create_dir_all(&path) {
-            Err(sup_error!(Error::Permissions(
-                format!("Can't create {:?}, {}", &path.as_ref(), e),
-            )))
+            Err(sup_error!(Error::Permissions(format!(
+                "Can't create {:?}, {}",
+                &path.as_ref(),
+                e
+            ),)))
         } else {
             Ok(())
         }

@@ -1,23 +1,23 @@
+extern crate base64;
 #[macro_use]
 extern crate clap;
+extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 extern crate url;
-extern crate habitat_common as common;
-extern crate base64;
 
 extern crate hab;
 extern crate handlebars;
 
-extern crate mktemp;
-extern crate tempdir;
 extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
+extern crate mktemp;
 extern crate serde_json;
 extern crate tar;
+extern crate tempdir;
 
 mod build;
 pub mod cli;

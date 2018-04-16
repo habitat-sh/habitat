@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 extern crate env_logger;
-extern crate log;
 extern crate habitat_butterfly;
 extern crate habitat_core;
+extern crate log;
 
 use std::env;
 use std::thread;
@@ -25,7 +25,7 @@ use std::time::Duration;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 
-use habitat_butterfly::{server, member, trace};
+use habitat_butterfly::{member, server, trace};
 use habitat_butterfly::server::Suitability;
 use habitat_core::service::ServiceGroup;
 
@@ -78,9 +78,9 @@ fn main() {
         server.member_list.add_initial_member(member);
     }
 
-    server.start(server::timing::Timing::default()).expect(
-        "Cannot start server",
-    );
+    server
+        .start(server::timing::Timing::default())
+        .expect("Cannot start server");
     loop {
         println!("{:#?}", server.member_list);
         thread::sleep(Duration::from_millis(1000));

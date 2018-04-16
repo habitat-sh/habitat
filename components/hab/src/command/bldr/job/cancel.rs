@@ -13,23 +13,24 @@
 // limitations under the License.
 
 use api_client;
-use common::ui::{Status, UI, UIReader, UIWriter};
+use common::ui::{Status, UIReader, UIWriter, UI};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
 
 pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str) -> Result<()> {
     // TODO (SA): Show all the in-progress builds that will get canceled
-    let question = "If you choose to cancel a group build, \
-    all of the builds that are in progress will be canceled. Is this what you want?";
+    let question =
+        "If you choose to cancel a group build, \
+         all of the builds that are in progress will be canceled. Is this what you want?";
 
     if !ui.prompt_yes_no(question, Some(true))? {
         ui.fatal("Aborted")?;
         return Ok(());
     }
 
-    let api_client = api_client::Client::new(bldr_url, PRODUCT, VERSION, None)
-        .map_err(Error::APIClient)?;
+    let api_client =
+        api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
     let gid = match group_id.parse::<u64>() {
         Ok(g) => g,
         Err(e) => {
@@ -38,17 +39,11 @@ pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str) -> Result
         }
     };
 
-    ui.status(
-        Status::Canceling,
-        format!("job group {}", group_id),
-    )?;
+    ui.status(Status::Canceling, format!("job group {}", group_id))?;
 
     match api_client.job_group_cancel(gid, token) {
         Ok(_) => {
-            ui.status(
-                Status::Canceled,
-                format!("job group {}", group_id),
-            )?;
+            ui.status(Status::Canceled, format!("job group {}", group_id))?;
         }
 
         Err(e) => {

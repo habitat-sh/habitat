@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use time::{SteadyTime, Duration as TimeDuration};
+use time::{Duration as TimeDuration, SteadyTime};
 
 /// How long to wait for an Ack after we ping
 const PING_TIMING_DEFAULT_MS: i64 = 1000;

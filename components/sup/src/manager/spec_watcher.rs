@@ -56,16 +56,14 @@ impl SpecWatcher {
     where
         T: AsRef<Path>,
     {
-        Ok(
-            glob(&watch_path
-                .as_ref()
-                .join(SPEC_FILE_GLOB)
-                .display()
-                .to_string())?
-                .filter_map(|p| p.ok())
-                .filter(|p| p.is_file())
-                .collect(),
-        )
+        Ok(glob(&watch_path
+            .as_ref()
+            .join(SPEC_FILE_GLOB)
+            .display()
+            .to_string())?
+            .filter_map(|p| p.ok())
+            .filter(|p| p.is_file())
+            .collect())
     }
 
     pub fn initial_events(&mut self) -> Result<Vec<SpecWatcherEvent>> {
@@ -90,9 +88,9 @@ impl SpecWatcher {
     {
         let path = path.into();
         if !path.is_dir() {
-            return Err(sup_error!(
-                Error::SpecWatcherDirNotFound(path.display().to_string())
-            ));
+            return Err(sup_error!(Error::SpecWatcherDirNotFound(
+                path.display().to_string()
+            )));
         }
         let have_events = Arc::new(AtomicBool::new(false));
         Self::setup_watcher::<W>(path.clone(), have_events.clone())?;
@@ -167,28 +165,26 @@ impl SpecWatcher {
 
         // Eneueue a `RemoveService` for all services that no longer have a spec on disk.
         for name in active_names.difference(&desired_names) {
-            let remove_spec = active_specs.remove(name).expect(
-                "value should exist for key",
-            );
+            let remove_spec = active_specs
+                .remove(name)
+                .expect("value should exist for key");
             let event = SpecWatcherEvent::RemoveService(remove_spec);
             debug!(
                 "Service spec for {} is gone, enqueuing {:?} event",
-                &name,
-                &event
+                &name, &event
             );
             events.push(event);
         }
 
         // Eneueue an `AddService` for all new specs on disk without a corresponding service.
         for name in desired_names.difference(&active_names) {
-            let add_spec = desired_specs.remove(name).expect(
-                "value should exist for key",
-            );
+            let add_spec = desired_specs
+                .remove(name)
+                .expect("value should exist for key");
             let event = SpecWatcherEvent::AddService(add_spec);
             debug!(
                 "Service spec for {} is new, enqueuing {:?} event",
-                &name,
-                &event
+                &name, &event
             );
             events.push(event);
         }
@@ -197,21 +193,19 @@ impl SpecWatcher {
         // found we're going to do the simple thing and remove, then add the service. In the future
         // we should attempt to update a service in-place, if possible.
         for name in active_names.intersection(&desired_names) {
-            let active_spec = active_specs.remove(name).expect(
-                "value should exist for key",
-            );
-            let desired_spec = desired_specs.remove(name).expect(
-                "value should exist for key",
-            );
+            let active_spec = active_specs
+                .remove(name)
+                .expect("value should exist for key");
+            let desired_spec = desired_specs
+                .remove(name)
+                .expect("value should exist for key");
             if active_spec != desired_spec {
                 let remove_event = SpecWatcherEvent::RemoveService(active_spec);
                 let add_event = SpecWatcherEvent::AddService(desired_spec);
                 debug!(
                     "Service spec for {} is different on disk than loaded state, \
-                       enqueuing {:?} for existing and {:?} event for updated spec",
-                    &name,
-                    &remove_event,
-                    &add_event
+                     enqueuing {:?} for existing and {:?} event for updated spec",
+                    &name, &remove_event, &add_event
                 );
                 events.push(remove_event);
                 events.push(add_event);
@@ -235,11 +229,10 @@ impl SpecWatcher {
                         // If the error is related to loading a `ServiceSpec`, emit a warning
                         // message and continue on to the next spec file. The best we can do to
                         // fail-safe is report and skip.
-                        Error::ServiceSpecParse(_) |
-                        Error::MissingRequiredIdent => {
+                        Error::ServiceSpecParse(_) | Error::MissingRequiredIdent => {
                             outputln!(
                                 "Error when loading service spec file '{}' ({}). \
-                                      This file will be skipped.",
+                                 This file will be skipped.",
                                 spec_file.display(),
                                 e.description()
                             );
@@ -256,8 +249,8 @@ impl SpecWatcher {
                 None => {
                     outputln!(
                         "Error when loading service spec file '{}' \
-                              (File stem could not be determined). \
-                              This file will be skipped.",
+                         (File stem could not be determined). \
+                         This file will be skipped.",
                         spec_file.display()
                     );
                     continue;
@@ -266,9 +259,9 @@ impl SpecWatcher {
             if file_stem != &spec.ident.name {
                 outputln!(
                     "Error when loading service spec file '{}' \
-                          (File name does not match ident name '{}' from ident = \"{}\", \
-                          it should be called '{}.{}'). \
-                          This file will be skipped.",
+                     (File name does not match ident name '{}' from ident = \"{}\", \
+                     it should be called '{}.{}'). \
+                     This file will be skipped.",
                     spec_file.display(),
                     &spec.ident.name,
                     &spec.ident,
@@ -308,12 +301,10 @@ mod test {
         let not_a_dir = tmpdir.path().join("i-dont-exist");
 
         match SpecWatcher::run(&not_a_dir) {
-            Err(e) => {
-                match e.err {
-                    SpecWatcherDirNotFound(dir) => assert_eq!(dir, not_a_dir.display().to_string()),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e.err {
+                SpecWatcherDirNotFound(dir) => assert_eq!(dir, not_a_dir.display().to_string()),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("Watcher should fail to run"),
         }
     }
@@ -498,12 +489,8 @@ mod test {
         assert_eq!(4, events.len());
         assert!(events.contains(&SpecWatcherEvent::RemoveService(oldie)));
         assert!(events.contains(&SpecWatcherEvent::AddService(newbie)));
-        assert!(events.contains(
-            &SpecWatcherEvent::RemoveService(transformer_before),
-        ));
-        assert!(events.contains(
-            &SpecWatcherEvent::AddService(transformer_after),
-        ));
+        assert!(events.contains(&SpecWatcherEvent::RemoveService(transformer_before),));
+        assert!(events.contains(&SpecWatcherEvent::AddService(transformer_after),));
     }
 
     #[test]
@@ -529,8 +516,7 @@ mod test {
                 .expect("can't create file");
             bad.write_all(
                 r#"ident = "acme/beta"
-                          I am a bad bad file."#
-                    .as_bytes(),
+                          I am a bad bad file."#.as_bytes(),
             ).expect("can't write file content");
         }
 
@@ -643,9 +629,7 @@ mod test {
     }
 
     fn new_spec(ident: &str) -> ServiceSpec {
-        ServiceSpec::default_for(PackageIdent::from_str(ident).expect(
-            "couldn't parse ident str",
-        ))
+        ServiceSpec::default_for(PackageIdent::from_str(ident).expect("couldn't parse ident str"))
     }
 
     fn new_saved_spec(tmpdir: &Path, ident: &str) -> ServiceSpec {
@@ -658,9 +642,9 @@ mod test {
     fn map_for_specs(idents: Vec<&str>) -> HashMap<String, ServiceSpec> {
         let mut map = HashMap::new();
         for ident in idents {
-            let spec = ServiceSpec::default_for(PackageIdent::from_str(ident).expect(
-                "couldn't parse ident str",
-            ));
+            let spec = ServiceSpec::default_for(
+                PackageIdent::from_str(ident).expect("couldn't parse ident str"),
+            );
             map.insert(spec.ident.name.clone(), spec);
         }
         map

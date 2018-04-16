@@ -20,7 +20,7 @@ pub use self::imp::*;
 
 #[cfg(target_os = "linux")]
 mod imp {
-    use caps::{self, Capability, CapSet};
+    use caps::{self, CapSet, Capability};
 
     /// This is currently the "master check" for whether the Supervisor
     /// can behave "as root".

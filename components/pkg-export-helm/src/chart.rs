@@ -17,7 +17,7 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-use common::ui::{UI, UIWriter, Status};
+use common::ui::{Status, UIWriter, UI};
 use export_docker;
 use export_docker::Result;
 use export_k8s::{Manifest, ManifestJson};
@@ -160,17 +160,13 @@ impl<'a> Chart<'a> {
     fn generate_manifest_template(&mut self) -> Result<()> {
         let mut path = self.chartdir.clone();
         path.push("templates");
-        self.ui.status(
-            Status::Creating,
-            format!("directory `{}`", path.display()),
-        )?;
+        self.ui
+            .status(Status::Creating, format!("directory `{}`", path.display()))?;
         fs::create_dir_all(&path)?;
 
         path.push("habitat.yaml");
-        self.ui.status(
-            Status::Creating,
-            format!("file `{}`", path.display()),
-        )?;
+        self.ui
+            .status(Status::Creating, format!("file `{}`", path.display()))?;
         let mut write = fs::File::create(path)?;
         let out: String = self.manifest_template
             .take()
@@ -203,10 +199,8 @@ impl<'a> Chart<'a> {
     fn create_file(&mut self, name: &str) -> Result<fs::File> {
         let mut path = self.chartdir.clone();
         path.push(name);
-        self.ui.status(
-            Status::Creating,
-            format!("file `{}`", path.display()),
-        )?;
+        self.ui
+            .status(Status::Creating, format!("file `{}`", path.display()))?;
 
         fs::File::create(path).map_err(From::from)
     }

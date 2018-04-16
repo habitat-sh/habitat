@@ -46,7 +46,7 @@ use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 
 use message::swim::Rumor_Type;
-use error::{Result, Error};
+use error::{Error, Result};
 
 /// The description of a `RumorKey`.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -128,14 +128,8 @@ impl<T: Rumor> Serialize for RumorStore<T> {
         S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("rumor_store", 2)?;
-        strukt.serialize_field(
-            "list",
-            &*(self.list.read().unwrap()),
-        )?;
-        strukt.serialize_field(
-            "update_counter",
-            &self.get_update_counter(),
-        )?;
+        strukt.serialize_field("list", &*(self.list.read().unwrap()))?;
+        strukt.serialize_field("update_counter", &self.get_update_counter())?;
         strukt.end()
     }
 }
@@ -181,9 +175,8 @@ impl<T: Rumor> RumorStore<T> {
     /// mutated; if nothing changed, returns false.
     pub fn insert(&self, rumor: T) -> bool {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
-        let rumors = list.entry(String::from(rumor.key())).or_insert(
-            HashMap::new(),
-        );
+        let rumors = list.entry(String::from(rumor.key()))
+            .or_insert(HashMap::new());
         // Result reveals if there was a change so we can increment the counter if needed.
         let result = match rumors.entry(rumor.id().into()) {
             Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),

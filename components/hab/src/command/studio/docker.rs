@@ -20,7 +20,7 @@ use std::process::{Command, Stdio};
 use common::ui::UI;
 use hcore::crypto::default_cache_key_path;
 use hcore::env as henv;
-use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, find_command};
+use hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::os::process;
 use command::studio::enter::ARTIFACT_PATH_ENVVAR;
 
@@ -67,13 +67,11 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
         volumes.push(format!(
             "{}:{}/{}",
-            cache_artifact_path,
-            mnt_prefix,
-            CACHE_ARTIFACT_PATH
+            cache_artifact_path, mnt_prefix, CACHE_ARTIFACT_PATH
         ));
     }
-    if !is_serving_windows_containers(&docker_cmd) &&
-        (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows"))
+    if !is_serving_windows_containers(&docker_cmd)
+        && (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows"))
     {
         volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
     }
@@ -115,7 +113,6 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
     run_container(docker_cmd, args, volumes.iter(), env_vars.iter())
 }
 
-
 fn find_docker_cmd() -> Result<PathBuf> {
     let docker_cmd = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
 
@@ -127,9 +124,9 @@ fn find_docker_cmd() -> Result<PathBuf> {
 
 fn is_image_present(docker_cmd: &Path) -> bool {
     let mut cmd = Command::new(docker_cmd);
-    cmd.arg("images").arg(&image_identifier(docker_cmd)).arg(
-        "-q",
-    );
+    cmd.arg("images")
+        .arg(&image_identifier(docker_cmd))
+        .arg("-q");
     debug!("Running command: {:?}", cmd);
     let result = cmd.output().expect("Docker command failed to spawn");
 
@@ -162,8 +159,7 @@ fn pull_image(docker_cmd: &Path) -> Result<()> {
     } else {
         debug!(
             "Pulling Docker image '{}' failed with exit code: {:?}",
-            &image,
-            result.status
+            &image, result.status
         );
 
         let err_output = String::from_utf8_lossy(&result.stderr);
@@ -204,14 +200,15 @@ where
     cmd_args.push("--privileged".into());
     cmd_args.push(image_identifier(docker_cmd).into());
     cmd_args.push("-V".into());
-    let version_output = Command::new(docker_cmd).args(&cmd_args).output().expect(
-        "docker failed to start",
-    );
+    let version_output = Command::new(docker_cmd)
+        .args(&cmd_args)
+        .output()
+        .expect("docker failed to start");
 
     let stderr = String::from_utf8(version_output.stderr).unwrap();
-    if !stderr.is_empty() &&
-        (stderr.as_str().contains("Mounts denied") ||
-             stderr.as_str().contains("drive is not shared"))
+    if !stderr.is_empty()
+        && (stderr.as_str().contains("Mounts denied")
+            || stderr.as_str().contains("drive is not shared"))
     {
         return Err(Error::DockerFileSharingNotEnabled);
     }
@@ -250,8 +247,7 @@ where
         if !opts.is_empty() {
             debug!(
                 "Adding extra Docker options from {} = {:?}",
-                DOCKER_OPTS_ENVVAR,
-                opts
+                DOCKER_OPTS_ENVVAR, opts
             );
             cmd_args.extend_from_slice(opts.as_slice());
         }

@@ -29,7 +29,7 @@ use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 
 use error::{Error, Result, SupError};
 use toml;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 const SPEC_FILE_EXT: &'static str = "spec";
 
@@ -74,17 +74,13 @@ impl CompositeSpec {
                 } else {
                     // HOW DID THIS EVEN HAPPEN?
                     Err(SupError::from(
-                        HCoreError::FullyQualifiedPackageIdentRequired(
-                            package_ident.to_string(),
-                        ),
+                        HCoreError::FullyQualifiedPackageIdentRequired(package_ident.to_string()),
                     ))
                 }
             }
-            PackageType::Standalone => {
-                Err(SupError::from(HCoreError::CompositePackageExpected(
-                    package_install.ident().to_string(),
-                )))
-            }
+            PackageType::Standalone => Err(SupError::from(HCoreError::CompositePackageExpected(
+                package_install.ident().to_string(),
+            ))),
         }
     }
 
@@ -106,50 +102,39 @@ impl CompositeSpec {
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file = File::open(&path).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        let file = File::open(&path)
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
-        file.read_to_string(&mut buf).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        file.read_to_string(&mut buf)
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         Self::from_str(&buf)
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
-
         debug!(
             "Writing composite spec to '{}': {:?}",
             path.as_ref().display(),
             &self
         );
-        let dst_path = path.as_ref().parent().expect(
-            "Cannot determine parent directory for composite spec",
-        );
-        let tmpfile = path.as_ref().with_extension(
-            thread_rng()
-                .gen_ascii_chars()
-                .take(8)
-                .collect::<String>(),
-        );
-        fs::create_dir_all(dst_path).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        let dst_path = path.as_ref()
+            .parent()
+            .expect("Cannot determine parent directory for composite spec");
+        let tmpfile = path.as_ref()
+            .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
+        fs::create_dir_all(dst_path)
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
 
         // Release the write file handle before the end of the function since we're done
         {
-            let mut file = File::create(&tmpfile).map_err(|err| {
-                sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err))
-            })?;
+            let mut file = File::create(&tmpfile)
+                .map_err(|err| sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err)))?;
             let toml = self.to_toml_string()?;
-            file.write_all(toml.as_bytes()).map_err(|err| {
-                sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err))
-            })?;
+            file.write_all(toml.as_bytes())
+                .map_err(|err| sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err)))?;
         }
-        fs::rename(&tmpfile, path.as_ref()).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+        fs::rename(&tmpfile, path.as_ref())
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
 
         Ok(())
     }
@@ -166,9 +151,8 @@ impl FromStr for CompositeSpec {
     type Err = SupError;
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
-        let spec: CompositeSpec = toml::from_str(toml).map_err(|e| {
-            sup_error!(Error::ServiceSpecParse(e))
-        })?;
+        let spec: CompositeSpec =
+            toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
 
         if spec.ident == PackageIdent::default() || spec.package_ident == PackageIdent::default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
@@ -176,9 +160,7 @@ impl FromStr for CompositeSpec {
 
         if !spec.package_ident.fully_qualified() {
             return Err(SupError::from(
-                HCoreError::FullyQualifiedPackageIdentRequired(
-                    spec.ident().to_string(),
-                ),
+                HCoreError::FullyQualifiedPackageIdentRequired(spec.ident().to_string()),
             ));
         }
         Ok(spec)

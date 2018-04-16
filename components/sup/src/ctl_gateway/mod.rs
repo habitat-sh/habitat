@@ -35,7 +35,7 @@ use hcore::util::perm;
 use protocol;
 use rand::{self, Rng};
 
-use error::{Result, Error};
+use error::{Error, Result};
 
 /// Time to wait in milliseconds for a client connection to timeout.
 pub const REQ_TIMEOUT: u64 = 10_000;
@@ -212,9 +212,8 @@ where
     T: AsRef<Path>,
 {
     let mut out = String::new();
-    fs::create_dir_all(&sup_root).map_err(|e| {
-        sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e))
-    })?;
+    fs::create_dir_all(&sup_root)
+        .map_err(|e| sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e)))?;
     if protocol::read_secret_key(&sup_root, &mut out).is_ok() {
         Ok(out)
     } else {

@@ -40,8 +40,8 @@
 //!
 //! Start exploring the code base by following the thread of execution in the `server` module.
 
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 extern crate byteorder;
 extern crate habitat_core;

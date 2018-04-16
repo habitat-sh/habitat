@@ -15,11 +15,11 @@
 use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{channel, sync_channel, Sender, SendError, SyncSender, Receiver,
-                      TrySendError, TryRecvError};
+use std::sync::mpsc::{channel, sync_channel, Receiver, SendError, Sender, SyncSender,
+                      TryRecvError, TrySendError};
 use std::thread::Builder as ThreadBuilder;
 
-use super::file_watcher::{Callbacks, default_file_watcher_with_no_initial_event};
+use super::file_watcher::{default_file_watcher_with_no_initial_event, Callbacks};
 
 use hcore::fs::USER_CONFIG_FILE;
 use hcore::service::ServiceGroup;
@@ -49,7 +49,6 @@ impl Serviceable for Service {
         &self.service_group
     }
 }
-
 
 // WorkerState contains the channels the worker uses to communicate
 // with the Watcher.
@@ -81,7 +80,9 @@ pub struct UserConfigWatcher {
 
 impl UserConfigWatcher {
     pub fn new() -> Self {
-        Self { states: HashMap::new() }
+        Self {
+            states: HashMap::new(),
+        }
     }
 
     /// Adds a service to the User Config Watcher, thereby starting a watcher thread.
@@ -201,7 +202,9 @@ impl Worker {
                     "UserConfigWatcher({}) worker thread starting",
                     path.display(),
                 );
-                let callbacks = UserConfigCallbacks { have_events: have_events };
+                let callbacks = UserConfigCallbacks {
+                    have_events: have_events,
+                };
                 let mut file_watcher =
                     match default_file_watcher_with_no_initial_event(&path, callbacks) {
                         Ok(w) => w,

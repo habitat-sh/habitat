@@ -22,7 +22,7 @@ use clap::ArgMatches;
 use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
 
-use export_docker::{Result, DockerImage};
+use export_docker::{DockerImage, Result};
 
 use manifestjson::ManifestJson;
 use service_bind::ServiceBind;
@@ -73,9 +73,9 @@ impl Manifest {
         let config_file = matches.value_of("CONFIG");
         let ring_secret_name = matches.value_of("RING_SECRET_NAME").map(|s| s.to_string());
         // clap ensures that we do have the mandatory args so unwrap() is fine here
-        let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT").expect(
-            "No package specified",
-        );
+        let pkg_ident_str = matches
+            .value_of("PKG_IDENT_OR_ARTIFACT")
+            .expect("No package specified");
         let pkg_ident = if Path::new(pkg_ident_str).is_file() {
             // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
             // identifier to ensure that update strategies will work if desired
@@ -85,13 +85,11 @@ impl Manifest {
         };
 
         let version_suffix = match pkg_ident.version {
-            Some(ref v) => {
-                pkg_ident
-                    .release
-                    .as_ref()
-                    .map(|r| format!("{}-{}", v, r))
-                    .unwrap_or(v.to_string())
-            }
+            Some(ref v) => pkg_ident
+                .release
+                .as_ref()
+                .map(|r| format!("{}-{}", v, r))
+                .unwrap_or(v.to_string()),
             None => "latest".to_owned(),
         };
         let name = matches
@@ -103,20 +101,17 @@ impl Manifest {
             Some(i) => i.to_string(),
             None => {
                 let (image_name, tag) = match image {
-                    Some(i) => {
-                        (
-                            i.name().to_owned(),
-                            i.tags().get(0).cloned().unwrap_or_else(
-                                || "latest".to_owned(),
-                            ),
-                        )
-                    }
-                    None => {
-                        (
-                            format!("{}/{}", pkg_ident.origin, pkg_ident.name),
-                            version_suffix,
-                        )
-                    }
+                    Some(i) => (
+                        i.name().to_owned(),
+                        i.tags()
+                            .get(0)
+                            .cloned()
+                            .unwrap_or_else(|| "latest".to_owned()),
+                    ),
+                    None => (
+                        format!("{}/{}", pkg_ident.origin, pkg_ident.name),
+                        version_suffix,
+                    ),
                 };
 
                 format!("{}:{}", image_name, tag)

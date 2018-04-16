@@ -13,20 +13,16 @@
 // limitations under the License.
 
 use depot_client::Client as DepotClient;
-use common::ui::{Status, UI, UIWriter};
+use common::ui::{Status, UIWriter, UI};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
-    let depot_client = DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
-        Error::DepotClient,
-    )?;
+    let depot_client =
+        DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
 
-    ui.status(
-        Status::Determining,
-        format!("secrets for {}.", origin),
-    )?;
+    ui.status(Status::Determining, format!("secrets for {}.", origin))?;
 
     match depot_client.list_origin_secrets(origin, token) {
         Ok(secrets) => {

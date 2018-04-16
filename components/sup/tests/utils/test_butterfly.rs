@@ -27,7 +27,7 @@ use self::habitat_core::service::ServiceGroup;
 extern crate toml;
 
 use std::net::SocketAddr;
-use std::time::{UNIX_EPOCH, SystemTime};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct Client {
     butterfly_client: ButterflyClient,
@@ -41,13 +41,11 @@ impl Client {
         T: ToString,
         U: ToString,
     {
-
-        let gossip_addr = format!("127.0.0.1:{}", port).parse::<SocketAddr>().expect(
-            "Could not parse Butterfly gossip address!",
-        );
-        let c = ButterflyClient::new(&gossip_addr, None).expect(
-            "Could not create Butterfly Client for test!",
-        );
+        let gossip_addr = format!("127.0.0.1:{}", port)
+            .parse::<SocketAddr>()
+            .expect("Could not parse Butterfly gossip address!");
+        let c = ButterflyClient::new(&gossip_addr, None)
+            .expect("Could not create Butterfly Client for test!");
         Client {
             butterfly_client: c,
             package_name: package_name.to_string(),
@@ -68,9 +66,7 @@ impl Client {
         let config = config.to_string();
 
         // Validate the TOML, to save you from typos in your tests
-        if let Err(err) = self::toml::de::from_slice::<self::toml::value::Value>(
-            &config.as_bytes(),
-        )
+        if let Err(err) = self::toml::de::from_slice::<self::toml::value::Value>(&config.as_bytes())
         {
             panic!("Invalid TOML! {:?} ==> {:?}", config, err);
         }

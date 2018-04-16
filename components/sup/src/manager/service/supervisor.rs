@@ -35,7 +35,7 @@ use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 use time::{self, Timespec};
 
-use error::{Result, Error};
+use error::{Error, Result};
 use fs;
 use manager::service::Pkg;
 #[cfg(unix)]
@@ -129,18 +129,10 @@ impl Supervisor {
         if abilities::can_run_services_as_svc_user() {
             // We have the ability to run services as a user / group other
             // than ourselves, so they better exist
-            let uid = users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(
-                Error::UserNotFound(
-                    pkg.svc_user
-                        .to_string(),
-                )
-            ))?;
-            let gid = users::get_gid_by_name(&pkg.svc_group).ok_or(sup_error!(
-                Error::GroupNotFound(
-                    pkg.svc_group
-                        .to_string(),
-                )
-            ))?;
+            let uid = users::get_uid_by_name(&pkg.svc_user)
+                .ok_or(sup_error!(Error::UserNotFound(pkg.svc_user.to_string(),)))?;
+            let gid = users::get_gid_by_name(&pkg.svc_group)
+                .ok_or(sup_error!(Error::GroupNotFound(pkg.svc_group.to_string(),)))?;
 
             Ok(UserInfo {
                 username: Some(pkg.svc_user.clone()),
@@ -157,11 +149,10 @@ impl Supervisor {
             let groupname = users::get_effective_groupname();
             let gid = users::get_effective_gid();
 
-            let name_for_logging = username.as_ref().map(|name| name.clone()).unwrap_or_else(
-                || {
-                    format!("anonymous [UID={}]", uid)
-                },
-            );
+            let name_for_logging = username
+                .as_ref()
+                .map(|name| name.clone())
+                .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
             outputln!(preamble self.preamble, "Current user ({}) lacks sufficient capabilites to \
                 run services as a different user; running as self!", name_for_logging);
 
@@ -232,11 +223,11 @@ impl Supervisor {
         let pid = launcher.spawn(
             group.to_string(),
             &pkg.svc_run,
-            service_user, // Windows required, Linux optional
-            service_group, // Linux optional
-            service_user_id, // Linux preferred
+            service_user,     // Windows required, Linux optional
+            service_group,    // Linux optional
+            service_user_id,  // Linux preferred
             service_group_id, // Linux preferred
-            svc_password, // Windows optional
+            svc_password,     // Windows optional
             (*pkg.env).clone(),
         )?;
         self.pid = Some(pid);
@@ -280,21 +271,19 @@ impl Supervisor {
         T: ToString,
     {
         match self.pid {
-            Some(pid) => {
-                match launcher.restart(pid) {
-                    Ok(pid) => {
-                        self.pid = Some(pid);
-                        self.create_pidfile()?;
-                        self.change_state(ProcessState::Up);
-                        Ok(())
-                    }
-                    Err(err) => {
-                        self.cleanup_pidfile();
-                        self.change_state(ProcessState::Down);
-                        Err(sup_error!(Error::Launcher(err)))
-                    }
+            Some(pid) => match launcher.restart(pid) {
+                Ok(pid) => {
+                    self.pid = Some(pid);
+                    self.create_pidfile()?;
+                    self.change_state(ProcessState::Up);
+                    Ok(())
                 }
-            }
+                Err(err) => {
+                    self.cleanup_pidfile();
+                    self.change_state(ProcessState::Down);
+                    Err(sup_error!(Error::Launcher(err)))
+                }
+            },
             None => self.start(pkg, group, launcher, svc_password),
         }
     }
@@ -346,10 +335,7 @@ impl Serialize for Supervisor {
         let mut strukt = serializer.serialize_struct("supervisor", 5)?;
         strukt.serialize_field("pid", &self.pid)?;
         strukt.serialize_field("state", &self.state)?;
-        strukt.serialize_field(
-            "state_entered",
-            &self.state_entered.sec,
-        )?;
+        strukt.serialize_field("state_entered", &self.state_entered.sec)?;
         strukt.end()
     }
 }
@@ -362,21 +348,20 @@ where
         Ok(file) => {
             let reader = BufReader::new(file);
             match reader.lines().next() {
-                Some(Ok(line)) => {
-                    match line.parse::<Pid>() {
-                        Ok(pid) => Ok(pid),
-                        Err(_) => Err(sup_error!(
-                            Error::PidFileCorrupt(pid_file.as_ref().to_path_buf())
-                        )),
-                    }
-                }
-                _ => Err(sup_error!(
-                    Error::PidFileCorrupt(pid_file.as_ref().to_path_buf())
-                )),
+                Some(Ok(line)) => match line.parse::<Pid>() {
+                    Ok(pid) => Ok(pid),
+                    Err(_) => Err(sup_error!(Error::PidFileCorrupt(
+                        pid_file.as_ref().to_path_buf()
+                    ))),
+                },
+                _ => Err(sup_error!(Error::PidFileCorrupt(
+                    pid_file.as_ref().to_path_buf()
+                ))),
             }
         }
-        Err(err) => Err(sup_error!(
-            Error::PidFileIO(pid_file.as_ref().to_path_buf(), err)
-        )),
+        Err(err) => Err(sup_error!(Error::PidFileIO(
+            pid_file.as_ref().to_path_buf(),
+            err
+        ))),
     }
 }

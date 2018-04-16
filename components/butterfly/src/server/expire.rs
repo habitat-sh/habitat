@@ -51,10 +51,9 @@ impl Expire {
                 let now = SteadyTime::now();
                 if now >= *suspect + self.timing.suspicion_timeout_duration() {
                     expired_list.push(String::from(id));
-                    self.server.member_list.insert_health_by_id(
-                        id,
-                        Health::Confirmed,
-                    );
+                    self.server
+                        .member_list
+                        .insert_health_by_id(id, Health::Confirmed);
                     self.server.member_list.with_member(id, |has_member| {
                         let member = has_member.expect("Member does not exist when expiring it");
                         trace!("Marking {:?} as Confirmed", member);
@@ -76,15 +75,15 @@ impl Expire {
             }
 
             let mut departed_list: Vec<String> = Vec::new();
-            self.server.member_list.with_departures(
-                |(id, departure_time)| {
+            self.server
+                .member_list
+                .with_departures(|(id, departure_time)| {
                     let now = SteadyTime::now();
                     if now >= *departure_time + self.timing.departure_timeout_duration() {
                         departed_list.push(String::from(id));
-                        self.server.member_list.insert_health_by_id(
-                            id,
-                            Health::Departed,
-                        );
+                        self.server
+                            .member_list
+                            .insert_health_by_id(id, Health::Departed);
                         self.server.member_list.with_member(id, |has_member| {
                             let member =
                                 has_member.expect("Member does not exist when departing it");
@@ -95,8 +94,7 @@ impl Expire {
                                           member.get_address());
                         });
                     }
-                },
-            );
+                });
             for mid in departed_list.iter() {
                 self.server.member_list.depart_remove(mid);
                 self.server.rumor_heat.start_hot_rumor(RumorKey::new(

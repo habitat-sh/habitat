@@ -136,9 +136,9 @@ pub trait UIWriter {
         let formatted = if self.is_out_colored() {
             format!(
                 "{}\n",
-                Colour::Yellow.bold().paint(
-                    format!("{} {}", symbol, message),
-                )
+                Colour::Yellow
+                    .bold()
+                    .paint(format!("{} {}", symbol, message),)
             )
         } else {
             format!("{} {}\n", symbol, message)
@@ -354,16 +354,8 @@ impl UI {
     {
         Self::new(Shell::new(
             InputStream::new(stdin, isatty),
-            OutputStream::new(
-                WriteStream::create(stdout_fn),
-                coloring,
-                isatty,
-            ),
-            OutputStream::new(
-                WriteStream::create(stderr_fn),
-                coloring,
-                isatty,
-            ),
+            OutputStream::new(WriteStream::create(stdout_fn), coloring, isatty),
+            OutputStream::new(WriteStream::create(stderr_fn), coloring, isatty),
         ))
     }
 
@@ -433,36 +425,30 @@ impl UIReader for UI {
             Some(yes) => {
                 if yes {
                     match stream.is_colored() {
-                        true => {
-                            format!(
-                                "{}{}{}",
-                                Colour::White.paint("["),
-                                Colour::White.bold().paint("Yes"),
-                                Colour::White.paint("/no/quit]")
-                            )
-                        }
+                        true => format!(
+                            "{}{}{}",
+                            Colour::White.paint("["),
+                            Colour::White.bold().paint("Yes"),
+                            Colour::White.paint("/no/quit]")
+                        ),
                         false => format!("[Yes/no/quit]"),
                     }
                 } else {
                     match stream.is_colored() {
-                        true => {
-                            format!(
-                                "{}{}{}",
-                                Colour::White.paint("[yes/"),
-                                Colour::White.bold().paint("No"),
-                                Colour::White.paint("/quit]")
-                            )
-                        }
+                        true => format!(
+                            "{}{}{}",
+                            Colour::White.paint("[yes/"),
+                            Colour::White.bold().paint("No"),
+                            Colour::White.paint("/quit]")
+                        ),
                         false => format!("[yes/No/quit]"),
                     }
                 }
             }
-            None => {
-                match stream.is_colored() {
-                    true => format!("{}", Colour::White.paint("[yes/no/quit]")),
-                    false => format!("[yes/no/quit]"),
-                }
-            }
+            None => match stream.is_colored() {
+                true => format!("{}", Colour::White.paint("[yes/no/quit]")),
+                false => format!("[yes/no/quit]"),
+            },
         };
         loop {
             stream.flush()?;
@@ -484,12 +470,10 @@ impl UIReader for UI {
                 'y' | 'Y' => return Ok(true),
                 'n' | 'N' => return Ok(false),
                 'q' | 'Q' => process::exit(0),
-                '\n' => {
-                    match default {
-                        Some(default) => return Ok(default),
-                        None => continue,
-                    }
-                }
+                '\n' => match default {
+                    Some(default) => return Ok(default),
+                    None => continue,
+                },
                 _ => continue,
             }
         }
@@ -498,19 +482,15 @@ impl UIReader for UI {
     fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
         let ref mut stream = self.shell.out;
         let choice = match default {
-            Some(d) => {
-                match stream.is_colored() {
-                    true => {
-                        format!(
-                            " {}{}{}",
-                            Colour::White.paint("[default: "),
-                            Colour::White.bold().paint(d),
-                            Colour::White.paint("]")
-                        )
-                    }
-                    false => format!(" [default: {}]", d),
-                }
-            }
+            Some(d) => match stream.is_colored() {
+                true => format!(
+                    " {}{}{}",
+                    Colour::White.paint("[default: "),
+                    Colour::White.bold().paint(d),
+                    Colour::White.paint("]")
+                ),
+                false => format!(" [default: {}]", d),
+            },
             None => "".to_string(),
         };
         loop {
@@ -710,13 +690,12 @@ impl OutputStream {
         match self.inner {
             WriteStream::Color(_) => true,
             WriteStream::NoColor(_) => false,
-
         }
     }
 
     pub fn is_colored(&self) -> bool {
-        self.supports_color() &&
-            (Coloring::Auto == self.coloring || Coloring::Always == self.coloring)
+        self.supports_color()
+            && (Coloring::Auto == self.coloring || Coloring::Always == self.coloring)
     }
 
     pub fn is_a_terminal(&self) -> bool {

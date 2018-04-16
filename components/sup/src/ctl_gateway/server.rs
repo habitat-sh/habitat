@@ -43,7 +43,7 @@ use tokio::net::TcpListener;
 use tokio_core::reactor;
 use tokio_io::AsyncRead;
 
-use super::{REQ_TIMEOUT, CtlRequest};
+use super::{CtlRequest, REQ_TIMEOUT};
 use manager::{Manager, ManagerState};
 
 /// Sending half of an mpsc unbounded channel used for sending replies for a transactional message
@@ -155,9 +155,10 @@ impl Client {
     /// Serve the client from the given framed socket stream.
     pub fn serve(self, socket: SrvStream) -> Box<Future<Item = (), Error = HandlerError>> {
         let mgr_tx = self.state.borrow().mgr_tx.clone();
-        Box::new(self.handshake(socket).and_then(|socket| {
-            SrvHandler::new(socket, mgr_tx)
-        }))
+        Box::new(
+            self.handshake(socket)
+                .and_then(|socket| SrvHandler::new(socket, mgr_tx)),
+        )
     }
 
     /// Initiate a handshake with the connected client before allowing future requests. A failed
@@ -170,21 +171,21 @@ impl Client {
             .and_then(move |(m, io)| {
                 m.map_or_else(
                     || {
-                        Err(HandlerError::from(
-                            io::Error::from(io::ErrorKind::UnexpectedEof),
-                        ))
+                        Err(HandlerError::from(io::Error::from(
+                            io::ErrorKind::UnexpectedEof,
+                        )))
                     },
                     move |m| {
                         if m.message_id() != "Handshake" {
                             debug!("No handshake");
-                            return Err(HandlerError::from(
-                                io::Error::from(io::ErrorKind::ConnectionAborted),
-                            ));
+                            return Err(HandlerError::from(io::Error::from(
+                                io::ErrorKind::ConnectionAborted,
+                            )));
                         }
                         if !m.is_transaction() {
-                            return Err(HandlerError::from(
-                                io::Error::from(io::ErrorKind::ConnectionAborted),
-                            ));
+                            return Err(HandlerError::from(io::Error::from(
+                                io::ErrorKind::ConnectionAborted,
+                            )));
                         }
                         match m.parse::<protocol::ctl::Handshake>() {
                             Ok(decoded) => {
@@ -200,9 +201,9 @@ impl Client {
                             }
                             Err(err) => {
                                 warn!("Handshake error, {:?}", err);
-                                Err(HandlerError::from(
-                                    io::Error::from(io::ErrorKind::ConnectionAborted),
-                                ))
+                                Err(HandlerError::from(io::Error::from(
+                                    io::ErrorKind::ConnectionAborted,
+                                )))
                             }
                         }
                     },
@@ -215,30 +216,27 @@ impl Client {
                     SrvMessage::from(net::err(ErrCode::Unauthorized, "secret key mismatch"))
                 };
                 reply.reply_for(msg.transaction().unwrap(), true);
-                socket.send(reply).map_err(HandlerError::from).and_then(
-                    move |io| {
-                        Ok((io, success))
-                    },
-                )
+                socket
+                    .send(reply)
+                    .map_err(HandlerError::from)
+                    .and_then(move |io| Ok((io, success)))
             });
-        Box::new(handshake.select2(self.timeout(REQ_TIMEOUT)).then(|res| {
-            match res {
-                Ok(Either::A(((io, true), _to))) => future::ok(io),
-                Ok(Either::A(((_, false), _to))) => {
-                    future::err(HandlerError::from(io::Error::new(
-                        io::ErrorKind::ConnectionAborted,
-                        "handshake failed",
-                    )))
-                }
-                Ok(Either::B((_to, _hs))) => {
-                    future::err(HandlerError::from(
-                        io::Error::new(io::ErrorKind::TimedOut, "client timed out"),
-                    ))
-                }
-                Err(Either::A((err, _))) => future::err(HandlerError::from(err)),
-                Err(Either::B((err, _))) => future::err(HandlerError::from(err)),
-            }
-        }))
+        Box::new(
+            handshake
+                .select2(self.timeout(REQ_TIMEOUT))
+                .then(|res| match res {
+                    Ok(Either::A(((io, true), _to))) => future::ok(io),
+                    Ok(Either::A(((_, false), _to))) => future::err(HandlerError::from(
+                        io::Error::new(io::ErrorKind::ConnectionAborted, "handshake failed"),
+                    )),
+                    Ok(Either::B((_to, _hs))) => future::err(HandlerError::from(io::Error::new(
+                        io::ErrorKind::TimedOut,
+                        "client timed out",
+                    ))),
+                    Err(Either::A((err, _))) => future::err(HandlerError::from(err)),
+                    Err(Either::B((err, _))) => future::err(HandlerError::from(err)),
+                }),
+        )
     }
 
     /// Generate a new timeout future with the given duration in milliseconds.
@@ -278,166 +276,145 @@ impl Future for SrvHandler {
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
             match self.state {
-                SrvHandlerState::Receiving => {
-                    match try_ready!(self.io.poll()) {
-                        Some(msg) => {
-                            trace!("OnMessage, {}", msg.message_id());
-                            let cmd =
-                                match msg.message_id() {
-                                    "SvcGetDefaultCfg" => {
-                                        let m = msg.parse::<protocol::ctl::SvcGetDefaultCfg>()
-                                            .map_err(HandlerError::from)?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_cfg(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcFilePut" => {
-                                        let m = msg.parse::<protocol::ctl::SvcFilePut>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_file_put(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcSetCfg" => {
-                                        let m = msg.parse::<protocol::ctl::SvcSetCfg>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_cfg_set(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcValidateCfg" => {
-                                        let m = msg.parse::<protocol::ctl::SvcValidateCfg>()
-                                            .map_err(HandlerError::from)?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_cfg_validate(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcLoad" => {
-                                        let m = msg.parse::<protocol::ctl::SvcLoad>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_load(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcUnload" => {
-                                        let m = msg.parse::<protocol::ctl::SvcUnload>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_unload(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcStart" => {
-                                        let m = msg.parse::<protocol::ctl::SvcStart>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_start(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcStop" => {
-                                        let m = msg.parse::<protocol::ctl::SvcStop>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_stop(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SvcStatus" => {
-                                        let m = msg.parse::<protocol::ctl::SvcStatus>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::service_status(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    "SupDepart" => {
-                                        let m = msg.parse::<protocol::ctl::SupDepart>().map_err(
-                                            HandlerError::from,
-                                        )?;
-                                        CtlCommand::new(
-                                            Some(self.tx.clone()),
-                                            msg.transaction(),
-                                            move |state, req| {
-                                                Manager::supervisor_depart(state, req, m.clone())
-                                            },
-                                        )
-                                    }
-                                    _ => {
-                                        warn!("Unhandled message, {}", msg.message_id());
-                                        break;
-                                    }
-                                };
-                            match self.mgr_tx.start_send(cmd) {
-                                Ok(AsyncSink::Ready) => {
-                                    self.state = SrvHandlerState::Sending;
-                                    continue;
-                                }
-                                Ok(AsyncSink::NotReady(_)) => return Ok(Async::NotReady),
-                                Err(err) => {
-                                    warn!("ManagerReceiver err, {:?}", err);
-                                    return Err(HandlerError::from(err));
-                                }
+                SrvHandlerState::Receiving => match try_ready!(self.io.poll()) {
+                    Some(msg) => {
+                        trace!("OnMessage, {}", msg.message_id());
+                        let cmd = match msg.message_id() {
+                            "SvcGetDefaultCfg" => {
+                                let m = msg.parse::<protocol::ctl::SvcGetDefaultCfg>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| Manager::service_cfg(state, req, m.clone()),
+                                )
+                            }
+                            "SvcFilePut" => {
+                                let m = msg.parse::<protocol::ctl::SvcFilePut>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| {
+                                        Manager::service_file_put(state, req, m.clone())
+                                    },
+                                )
+                            }
+                            "SvcSetCfg" => {
+                                let m = msg.parse::<protocol::ctl::SvcSetCfg>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| {
+                                        Manager::service_cfg_set(state, req, m.clone())
+                                    },
+                                )
+                            }
+                            "SvcValidateCfg" => {
+                                let m = msg.parse::<protocol::ctl::SvcValidateCfg>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| {
+                                        Manager::service_cfg_validate(state, req, m.clone())
+                                    },
+                                )
+                            }
+                            "SvcLoad" => {
+                                let m = msg.parse::<protocol::ctl::SvcLoad>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| Manager::service_load(state, req, m.clone()),
+                                )
+                            }
+                            "SvcUnload" => {
+                                let m = msg.parse::<protocol::ctl::SvcUnload>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| {
+                                        Manager::service_unload(state, req, m.clone())
+                                    },
+                                )
+                            }
+                            "SvcStart" => {
+                                let m = msg.parse::<protocol::ctl::SvcStart>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| Manager::service_start(state, req, m.clone()),
+                                )
+                            }
+                            "SvcStop" => {
+                                let m = msg.parse::<protocol::ctl::SvcStop>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| Manager::service_stop(state, req, m.clone()),
+                                )
+                            }
+                            "SvcStatus" => {
+                                let m = msg.parse::<protocol::ctl::SvcStatus>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| {
+                                        Manager::service_status(state, req, m.clone())
+                                    },
+                                )
+                            }
+                            "SupDepart" => {
+                                let m = msg.parse::<protocol::ctl::SupDepart>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| {
+                                        Manager::supervisor_depart(state, req, m.clone())
+                                    },
+                                )
+                            }
+                            _ => {
+                                warn!("Unhandled message, {}", msg.message_id());
+                                break;
+                            }
+                        };
+                        match self.mgr_tx.start_send(cmd) {
+                            Ok(AsyncSink::Ready) => {
+                                self.state = SrvHandlerState::Sending;
+                                continue;
+                            }
+                            Ok(AsyncSink::NotReady(_)) => return Ok(Async::NotReady),
+                            Err(err) => {
+                                warn!("ManagerReceiver err, {:?}", err);
+                                return Err(HandlerError::from(err));
                             }
                         }
-                        None => break,
                     }
-                }
-                SrvHandlerState::Sending => {
-                    match self.rx.poll() {
-                        Ok(Async::Ready(Some(msg))) => {
-                            trace!("MgrSender -> SrvHandler, {:?}", msg);
-                            if msg.is_complete() {
-                                self.state = SrvHandlerState::Sent;
-                            }
-                            try_nb!(self.io.start_send(msg));
-                            try_ready!(self.io.poll_complete());
-                            continue;
+                    None => break,
+                },
+                SrvHandlerState::Sending => match self.rx.poll() {
+                    Ok(Async::Ready(Some(msg))) => {
+                        trace!("MgrSender -> SrvHandler, {:?}", msg);
+                        if msg.is_complete() {
+                            self.state = SrvHandlerState::Sent;
                         }
-                        Ok(Async::Ready(None)) => self.state = SrvHandlerState::Sent,
-                        Ok(Async::NotReady) => return Ok(Async::NotReady),
-                        Err(()) => break,
+                        try_nb!(self.io.start_send(msg));
+                        try_ready!(self.io.poll_complete());
+                        continue;
                     }
-                }
+                    Ok(Async::Ready(None)) => self.state = SrvHandlerState::Sent,
+                    Ok(Async::NotReady) => return Ok(Async::NotReady),
+                    Err(()) => break,
+                },
                 SrvHandlerState::Sent => {
                     trace!("OnMessage complete");
                     break;

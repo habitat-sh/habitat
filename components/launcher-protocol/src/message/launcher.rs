@@ -1391,11 +1391,7 @@ impl ::protobuf::Message for TerminateOk {
                     self.exit_code = ::std::option::Option::Some(tmp);
                 },
                 2 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_enum()?;
-                    self.shutdown_method = ::std::option::Option::Some(tmp);
+                    ::protobuf::rt::read_proto2_enum_with_unknown_fields_into(wire_type, is, &mut self.shutdown_method, 2, &mut self.unknown_fields)?
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
