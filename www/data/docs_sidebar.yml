@@ -116,6 +116,8 @@ sidebar_links:
       link: "/docs/diagrams/#runtime-services-group-binding"
     - title: Builder Architecture
       link: "/docs/diagrams/#builder-architecture"
+    - title: On-Premises Builder Depot Flow
+      link: "/docs/diagrams/#on-premises-builder-depot-flow"
     - title: Habitat and Kubernetes
       link: "/docs/diagrams/#habitat-and-kubernetes"
   - title: Best Practice Guides
