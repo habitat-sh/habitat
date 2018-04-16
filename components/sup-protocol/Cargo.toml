@@ -1,0 +1,26 @@
+[package]
+name = "habitat-sup-protocol"
+version = "0.0.0"
+authors = ["Jamie Winsor <reset@chef.io>"]
+build = "./build.rs"
+workspace = "../../"
+
+[dependencies]
+bytes = "*"
+futures = "*"
+habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+lazy_static = "*"
+log = "*"
+protobuf = { version = "*", features = ["bytes"] }
+serde = "*"
+tokio = "*"
+tokio-io = "*"
+
+[build-dependencies]
+protoc = "1.4"
+protoc-rust = "1.4"
+
+[features]
+default = ["protocols"]
+protocols = []
+

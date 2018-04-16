@@ -12,22 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::net::SocketAddr;
 use std::path::Path;
 use std::result;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
 use hcore::crypto::keys::PairType;
+use protocol;
 use regex::Regex;
 use url::Url;
 
 use feat;
 
 pub fn get() -> App<'static, 'static> {
-    let alias_apply = sub_config_apply()
-        .about("Alias for 'config apply'")
-        .aliases(&["ap", "app", "appl"])
-        .setting(AppSettings::Hidden);
     let alias_install = sub_pkg_install()
         .about("Alias for 'pkg install'")
         .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
@@ -43,6 +41,8 @@ pub fn get() -> App<'static, 'static> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
+        (@arg VERBOSE: -v +global "Verbose output; shows line numbers")
+        (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
             (aliases: &["cl"])
@@ -51,30 +51,46 @@ pub fn get() -> App<'static, 'static> {
             (subcommand: sub_cli_completers().aliases(&["c", "co", "com", "comp"]))
         )
         (@subcommand config =>
-            (about: "Commands relating to Habitat runtime config")
+            (about: "Commands relating to a Service's runtime config")
             (aliases: &["co", "con", "conf", "confi"])
             (@setting ArgRequiredElseHelp)
-            (subcommand: sub_config_apply().aliases(&["a", "ap", "app", "appl"]))
+            (@subcommand apply =>
+                (about: "Sets a configuration to be shared by members of a Service Group")
+                (aliases: &["ap", "app", "appl"]) 
+                (@arg SERVICE_GROUP: +required {valid_service_group}
+                    "Target service group (ex: redis.default)")
+                (@arg VERSION_NUMBER: +required
+                    "A version number (positive integer) for this configuration (ex: 42)")
+                (@arg FILE: {file_exists_or_stdin}
+                    "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+                (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+            )
+            (@subcommand show =>
+                (about: "Displays the default configuration options for a service")
+                (aliases: &["sh", "sho"]) 
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+            )
         )
         (@subcommand file =>
             (about: "Commands relating to Habitat files")
             (aliases: &["f", "fi", "fil"])
             (@setting ArgRequiredElseHelp)
             (@subcommand upload =>
-                (about: "Upload a file to the Supervisor ring.")
+                (about: "Uploads a file to be shared between members of a Service Group")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
                     "Target service group (ex: redis.default)")
-                (@arg FILE: +required {file_exists} "Path to local file on disk")
                 (@arg VERSION_NUMBER: +required
                     "A version number (positive integer) for this configuration (ex: 42)")
-                (@arg ORG: --org +takes_value "Name of service organization")
-                (@arg USER: +takes_value "Name of the user key")
-                (@arg PEER: -p --peer +takes_value
-                    "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-                    (default: 127.0.0.1:9638)")
-                (@arg RING: -r --ring +takes_value
-                    "Ring key name, which will encrypt communication messages")
+                (@arg FILE: +required {file_exists} "Path to local file on disk")
+                (@arg USER: -u --user +takes_value "Name of the user key")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
         )
         (@subcommand bldr =>
@@ -121,8 +137,6 @@ pub fn get() -> App<'static, 'static> {
                         "Limit the promotable packages to the specified origin")
                     (@arg INTERACTIVE: -i --interactive
                         "Allow editing the list of promotable packages")
-                    (@arg VERBOSE: -v --verbose
-                        "Show full list of promotable packages")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -140,8 +154,6 @@ pub fn get() -> App<'static, 'static> {
                         "Limit the demotable packages to the specified origin")
                     (@arg INTERACTIVE: -i --interactive
                         "Allow editing the list of demotable packages")
-                    (@arg VERBOSE: -v --verbose
-                        "Show full list of demotable packages")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -157,10 +169,12 @@ pub fn get() -> App<'static, 'static> {
                             "The group id that was returned from \"hab bldr job start\" \
                             (ex: 771100000000000000)")
                         (@arg ORIGIN: -o --origin +takes_value
-                            "Show the status of recent job groups created in this origin (default: 10 most recent)")
+                            "Show the status of recent job groups created in this origin \
+                            (default: 10 most recent)")
                     )
                     (@arg LIMIT: -l --limit +takes_value {valid_numeric::<usize>}
-                        "Limit how many job groups to retrieve, ordered by most recent (default: 10)")
+                        "Limit how many job groups to retrieve, ordered by most recent \
+                        (default: 10)")
                     (@arg SHOW_JOBS: -s --showjobs
                         "Show the status of all build jobs for a retrieved job group")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
@@ -180,7 +194,8 @@ pub fn get() -> App<'static, 'static> {
                         "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                     (@arg CHANNEL: +required + takes_value "The channel name")
                     (@arg ORIGIN: -o --origin +takes_value
-                        "Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or cli.toml")
+                        "Sets the origin to which the channel will belong. Default is from \
+                        'HAB_ORIGIN' or cli.toml")
                 )
                 (@subcommand destroy =>
                     (about: "Destroys a channel")
@@ -189,7 +204,8 @@ pub fn get() -> App<'static, 'static> {
                         "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                     (@arg CHANNEL: +required + takes_value "The channel name")
                     (@arg ORIGIN: -o --origin +takes_value
-                        "Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml")
+                        "Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN'\
+                        or cli.toml")
                 )
                 (@subcommand list =>
                     (about: "Lists origin channels")
@@ -197,7 +213,8 @@ pub fn get() -> App<'static, 'static> {
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
                     (@arg ORIGIN: +takes_value
-                        "The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml")
+                        "The origin for which channels will be listed. Default is from 'HAB_ORIGIN'\
+                        or cli.toml")
                 )
             )
         )
@@ -222,7 +239,8 @@ pub fn get() -> App<'static, 'static> {
                         "Download secret signing key instead of public signing key")
                     (@arg WITH_ENCRYPTION: -e --encryption
                         "Download public encryption key instead of public signing key")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder (required for downloading secret keys)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder \
+                        (required for downloading secret keys)")
                 )
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
@@ -267,7 +285,8 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand upload =>
                     (about: "Create and upload a secret for your origin.")
                     (@arg KEY_NAME: +required +takes_value
-                        "The name of the variable key to be injected into the studio. Ex: KEY=\"some_value\"")
+                        "The name of the variable key to be injected into the studio. \
+                        Ex: KEY=\"some_value\"")
                     (@arg SECRET: +required +takes_value
                         "The contents of the variable to be injected into the studio.")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
@@ -276,7 +295,8 @@ pub fn get() -> App<'static, 'static> {
                          https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                     (@arg ORIGIN: -o --origin +takes_value
-                        "The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or cli.toml")
+                        "The origin for which the secret will be uploaded. Default is from \
+                        'HAB_ORIGIN' or cli.toml")
                 )
                 (@subcommand delete =>
                     (about: "Delete a secret for your origin")
@@ -288,7 +308,8 @@ pub fn get() -> App<'static, 'static> {
                          https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                     (@arg ORIGIN: -o --origin +takes_value
-                        "The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or cli.toml")
+                        "The origin for which the secret will be deleted. Default is from \
+                        'HAB_ORIGIN' or cli.toml")
                 )
                 (@subcommand list =>
                     (about: "List all secrets for your origin")
@@ -298,7 +319,8 @@ pub fn get() -> App<'static, 'static> {
                          https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                     (@arg ORIGIN: -o --origin +takes_value
-                        "The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml")
+                        "The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' \
+                        or cli.toml")
                 )
             )
         )
@@ -351,7 +373,8 @@ pub fn get() -> App<'static, 'static> {
                     "The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
-                    filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+                    filepath to a Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                 (@arg BLDR_URL: --url -u +takes_value {valid_url}
                     "Retrieve the container's package from the specified Builder \
                     (default: https://bldr.habitat.sh)")
@@ -384,10 +407,9 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand search =>
                 (about: "Search for a package in Builder")
                 (@arg SEARCH_TERM: +required +takes_value "Search term")
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
+                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
+                    environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand sign =>
@@ -404,10 +426,9 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand upload =>
                 (about: "Uploads a local Habitat Artifact to Builder")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
+                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
+                    environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg CHANNEL: --channel -c +takes_value
                     "Additional release channel to upload package to. \
@@ -420,62 +441,53 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand promote =>
                 (about: "Promote a package to a specified channel")
                 (aliases: &["pr", "pro", "promo", "promot"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value
-                    "A fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
-                (@arg CHANNEL: +required +takes_value
-                    "Promote to the specified release channel")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
+                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
+                    environment variable if defined. (default: https://bldr.habitat.sh)")
+                (@arg PKG_IDENT: +required +takes_value "A fully qualifed package identifier \
+                    (ex: core/busybox-static/1.42.2/20170513215502)")
+                (@arg CHANNEL: +required +takes_value "Promote to the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand demote =>
                 (about: "Demote a package from a specified channel")
                 (aliases: &["de", "dem", "demo", "demot"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value
-                    "A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
-                (@arg CHANNEL: +required +takes_value
-                    "Demote from the specified release channel")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
+                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
+                    environment variable if defined. (default: https://bldr.habitat.sh)")
+                (@arg PKG_IDENT: +required +takes_value "A fully qualified package identifier \
+                    (ex: core/busybox-static/1.42.2/20170513215502)")
+                (@arg CHANNEL: +required +takes_value "Demote from the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand channels =>
                 (about: "Find out what channels a package belongs to")
                 (aliases: &["ch", "cha", "chan", "chann", "channe", "channel"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value
-                    "A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
+                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
+                    environment variable if defined. (default: https://bldr.habitat.sh)")
+                (@arg PKG_IDENT: +required +takes_value "A fully qualified package identifier \
+                    (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat Artifact with an origin key")
                 (aliases: &["v", "ve", "ver", "veri", "verif"])
-                (@arg SOURCE: +required {file_exists}
-                    "A path to a Habitat Artifact \
+                (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand header =>
                 (about: "Returns the Habitat Artifact header")
                 (aliases: &["hea", "head", "heade", "header"])
                 (@setting Hidden)
-                (@arg SOURCE: +required {file_exists}
-                    "A path to a Habitat Artifact \
+                (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand info =>
                 (about: "Returns the Habitat Artifact information")
                 (aliases: &["inf", "info"])
-                (@arg TO_JSON: -j --json
-                    "Output will be rendered in json")
-                (@arg SOURCE: +required {file_exists}
-                    "A path to a Habitat Artifact \
+                (@arg TO_JSON: -j --json "Output will be rendered in json")
+                (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
         )
@@ -544,34 +556,38 @@ pub fn get() -> App<'static, 'static> {
                     (@arg ORG: "The service organization")
                 )
             )
-            (@subcommand load =>
-                (about: "Load a service to be started and supervised by Habitat from a package \
-                    identifier. If an installed package doesn't satisfy the given package identifier, \
-                    a suitable package will be installed from Builder.")
-                (@setting Hidden)
-            )
+            (subcommand: sub_svc_load())
             (@subcommand unload =>
-                (about: "Unload a service loaded by the Habitat Supervisor. If the service is running \
-                    it will additionally be stopped.")
-                (@setting Hidden)
+                (about: "Unload a service loaded by the Habitat Supervisor. If the service is \
+                    running it will additionally be stopped.")
+                (aliases: &["un", "unl", "unlo", "unloa"])
+                (@arg PKG_IDENT: +required +takes_value 
+                    "A Habitat package identifier (ex: core/redis)")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
             (@subcommand start =>
-                (about: "Start a loaded, but stopped, Habitat service or a transient service from \
-                    a package or artifact. If the Habitat Supervisor is not already running this \
-                    will additionally start one for you.")
-                (@setting Hidden)
+                (about: "Start a loaded, but stopped, Habitat service.")
+                (aliases: &["sta", "star"])
+                (@arg PKG_IDENT: +required +takes_value
+                    "A Habitat package identifier (ex: core/redis)")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+            )
+            (@subcommand status =>
+                (about: "Query the status of Habitat services.")
+                (aliases: &["stat", "statu", "status"])
+                (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
             (@subcommand stop =>
                 (about: "Stop a running Habitat service.")
-                (@setting Hidden)
-            )
-            (after_help: "\nALIASES:\
-                \n    load       Alias for: 'sup load'\
-                \n    unload     Alias for: 'sup unload'\
-                \n    start      Alias for: 'sup start'\
-                \n    stop       Alias for: 'sup stop'\
-                \n    status     Alias for: 'sup status'\
-                \n"
+                (aliases: &["sto"])
+                (@arg PKG_IDENT: +required +takes_value 
+                    "A Habitat package identifier (ex: core/redis)")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
         )
         (@subcommand studio =>
@@ -581,6 +597,15 @@ pub fn get() -> App<'static, 'static> {
         (@subcommand sup =>
             (about: "Commands relating to the Habitat Supervisor")
             (aliases: &["su"])
+            (@setting ArgRequiredElseHelp)
+            (@subcommand depart =>
+                (about: "Depart a Supervisor from the gossip ring; kicking and banning the target \
+                    from joining again with the same member-id")
+                (aliases: &["d", "de", "dep", "depa", "depart"])
+                (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+            )
         )
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
@@ -597,7 +622,11 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
         )
-        (subcommand: alias_apply)
+        (@subcommand apply =>
+            (about: "Alias for 'config apply'")
+            (aliases: &["ap", "app", "appl"]) 
+            (@setting Hidden)
+        )
         (subcommand: alias_install)
         (subcommand: alias_run())
         (subcommand: alias_setup)
@@ -677,24 +706,6 @@ fn sub_cli_completers() -> App<'static, 'static> {
     )
 }
 
-fn sub_config_apply() -> App<'static, 'static> {
-    clap_app!(@subcommand apply =>
-        (about: "Applies a configuration to a group of Habitat Supervisors")
-        (@arg PEER: -p --peer +takes_value
-            "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-            (default: 127.0.0.1:9638)")
-        (@arg RING: -r --ring +takes_value
-            "Ring key name, which will encrypt communication messages")
-        (@arg SERVICE_GROUP: +required {valid_service_group}
-            "Target service group (ex: redis.default)")
-        (@arg VERSION_NUMBER: +required
-            "A version number (positive integer) for this configuration (ex: 42)")
-        (@arg FILE: {file_exists_or_stdin}
-            "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
-        (@arg ORG: --org +takes_value "Name of service organization")
-    )
-}
-
 fn sub_pkg_build() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand build =>
         (about: "Builds a Plan using a Studio")
@@ -767,6 +778,73 @@ fn sub_pkg_install() -> App<'static, 'static> {
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn sub_svc_load() -> App<'static, 'static> {
+    clap_app!(@subcommand load =>
+        (about: "Load a service to be started and supervised by Habitat from a package \
+            identifier. If an installed package doesn't satisfy the given package \
+            identifier, a suitable package will be installed from Builder.")
+        (aliases: &["lo", "loa"])
+        (@arg PKG_IDENT: +required +takes_value
+            "A Habitat package identifier (ex: core/redis)")
+        (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+            "Application name; [default: not set].")
+        (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+            "Environment name; [default: not set].")
+        (@arg CHANNEL: --channel +takes_value
+            "Receive package updates from the specified release channel [default: stable]")
+        (@arg GROUP: --group +takes_value
+            "The service group; shared config and topology [default: default].")
+        (@arg BLDR_URL: --url -u +takes_value {valid_url}
+            "Receive package updates from Builder at the specified URL \
+            [default: https://bldr.habitat.sh]")
+        (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+            "Service topology; [default: none]")
+        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+            "The update strategy; [default: none] [values: none, at-once, rolling]")
+        (@arg BIND: --bind +takes_value +multiple
+            "One or more service groups to bind to a configuration")
+        (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
+            was previously loaded and running this operation will also restart the service")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+   )
+}
+
+#[cfg(target_os = "windows")]
+fn sub_svc_load() -> App<'static, 'static> {
+    clap_app!(@subcommand load =>
+        (about: "Load a service to be started and supervised by Habitat from a package \
+            identifier. If an installed package doesn't satisfy the given package \
+            identifier, a suitable package will be installed from Builder.")
+        (aliases: &["lo", "loa"])
+        (@arg PKG_IDENT: +required +takes_value
+            "A Habitat package identifier (ex: core/redis)")
+        (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+            "Application name; [default: not set].")
+        (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+            "Environment name; [default: not set].")
+        (@arg CHANNEL: --channel +takes_value
+            "Receive package updates from the specified release channel [default: stable]")
+        (@arg GROUP: --group +takes_value
+            "The service group; shared config and topology [default: default].")
+        (@arg BLDR_URL: --url -u +takes_value {valid_url}
+            "Receive package updates from Builder at the specified URL \
+            [default: https://bldr.habitat.sh]")
+        (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+            "Service topology; [default: none]")
+        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+            "The update strategy; [default: none] [values: none, at-once, rolling]")
+        (@arg BIND: --bind +takes_value +multiple
+            "One or more service groups to bind to a configuration")
+        (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
+            was previously loaded and running this operation will also restart the service")
+        (@arg PASSWORD: --password +takes_value "Password of the service user")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+   )
+}
+
 fn file_exists(val: String) -> result::Result<(), String> {
     if Path::new(&val).is_file() {
         Ok(())
@@ -811,5 +889,28 @@ fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
     match val.parse::<T>() {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("'{}' is not a valid number", &val)),
+    }
+}
+
+fn valid_topology(val: String) -> result::Result<(), String> {
+    match protocol::types::Topology::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Service topology: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_socket_addr(val: String) -> result::Result<(), String> {
+    match SocketAddr::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!(
+            "Socket address should include both IP and port, eg: '0.0.0.0:9700'"
+        )),
+    }
+}
+
+fn valid_update_strategy(val: String) -> result::Result<(), String> {
+    match protocol::types::UpdateStrategy::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
     }
 }

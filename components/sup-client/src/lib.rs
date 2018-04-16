@@ -38,20 +38,27 @@
 //! })
 //! ```
 
+extern crate habitat_sup_protocol as protocol;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate futures;
+extern crate protobuf;
+extern crate tokio;
+extern crate tokio_io;
+
 use std::error;
 use std::fmt;
 use std::io;
 use std::net::SocketAddr;
+use std::path::PathBuf;
 
 use futures::sink;
 use futures::prelude::*;
-use protobuf;
+use protocol::codec::*;
+use protocol::net::NetErr;
 use tokio::net::TcpStream;
 use tokio_io::AsyncRead;
-
-use super::codec::*;
-use protocols;
-use protocols::net::NetErr;
 
 pub type SrvSend = sink::Send<SrvStream>;
 
@@ -60,6 +67,8 @@ pub type SrvSend = sink::Send<SrvStream>;
 pub enum SrvClientError {
     /// The remote server unexpectedly closed the connection.
     ConnectionClosed,
+    /// Unable to locate a secret key on disk.
+    CtlSecretNotFound(PathBuf),
     /// Decoding a message from the remote failed.
     Decode(protobuf::ProtobufError),
     /// An Os level IO error occurred.
@@ -72,6 +81,7 @@ impl error::Error for SrvClientError {
     fn description(&self) -> &str {
         match *self {
             SrvClientError::ConnectionClosed => "Connection closed",
+            SrvClientError::CtlSecretNotFound(_) => "Ctl secret key not found",
             SrvClientError::Decode(ref err) => err.description(),
             SrvClientError::Io(ref err) => err.description(),
             SrvClientError::NetErr(ref err) => err.description(),
@@ -83,6 +93,14 @@ impl fmt::Display for SrvClientError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match *self {
             SrvClientError::ConnectionClosed => format!("Connection closed"),
+            SrvClientError::CtlSecretNotFound(ref path) => {
+                format!(
+                    "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
+                    `hab setup` or run the Supervisor for the first time before attempting to \
+                    command the Supervisor.",
+                    path.display()
+                )
+            }
             SrvClientError::Decode(ref err) => format!("{}", err),
             SrvClientError::Io(ref err) => format!("{}", err),
             SrvClientError::NetErr(ref err) => format!("{}", err),
@@ -137,7 +155,7 @@ impl SrvClient {
             .map_err(SrvClientError::from)
             .and_then(move |socket| {
                 let client = Self::new(socket, None);
-                let mut request = protocols::ctl::Handshake::new();
+                let mut request = protocol::ctl::Handshake::new();
                 request.set_secret_key(secret_key);
                 client
                     .call(request)
@@ -150,6 +168,13 @@ impl SrvClient {
                     })
             });
         Box::new(conn)
+    }
+
+    pub fn read_secret_key() -> Result<String, SrvClientError> {
+        let mut buf = String::new();
+        protocol::read_secret_key(protocol::sup_root(None::<String>, None::<String>), &mut buf)
+            .map_err(SrvClientError::from)?;
+        Ok(buf)
     }
 
     fn new(socket: TcpStream, current_txn: Option<SrvTxn>) -> Self {

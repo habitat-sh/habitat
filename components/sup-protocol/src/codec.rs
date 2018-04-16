@@ -63,7 +63,7 @@ use protobuf::{self, MessageStatic};
 use tokio::net::TcpStream;
 use tokio_io::codec::{Decoder, Encoder, Framed};
 
-use protocols::net::{NetErr, NetResult};
+use net::{NetErr, NetResult};
 
 const BODY_LEN_MASK: u32 = 0xFFFFF;
 const HEADER_LEN: usize = 4;

@@ -22,16 +22,26 @@
 use std::fmt;
 use std::str::FromStr;
 
-use hcore;
-use hcore::package::{self, Identifiable};
-use hcore::util::deserialize_using_from_str;
+use core;
+use core::package::{self, Identifiable};
+use core::util::deserialize_using_from_str;
 use serde;
 
-pub use super::generated::types::*;
-use error::{Error, SupError};
-use manager;
+pub use generated::types::*;
+use net::{self, ErrCode, NetErr};
 
-static LOGKEY: &'static str = "PT";
+impl<T, U> From<(T, U)> for ApplicationEnvironment
+where
+    T: ToString,
+    U: ToString,
+{
+    fn from(value: (T, U)) -> ApplicationEnvironment {
+        let mut ae = ApplicationEnvironment::default();
+        ae.set_application(value.0.to_string());
+        ae.set_environment(value.1.to_string());
+        ae
+    }
+}
 
 impl fmt::Display for ApplicationEnvironment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -74,6 +84,47 @@ impl fmt::Display for ProcessState {
     }
 }
 
+impl FromStr for ServiceBind {
+    type Err = NetErr;
+
+    fn from_str(bind_str: &str) -> Result<Self, Self::Err> {
+        let values: Vec<&str> = bind_str.split(':').collect();
+        if !(values.len() == 3 || values.len() == 2) {
+            return Err(net::err(
+                ErrCode::InvalidPayload,
+                format!(
+                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> or \
+                    <SERVICE_NAME>:<NAME>:<SERVICE_GROUP> where <NAME> is a service name,
+                    <SERVICE_GROUP> is a valid service group, and <SERVICE_NAME> is the name of
+                    a service within a composite if the given bind is for a composite service.",
+                    bind_str
+                ),
+            ));
+        }
+        let mut bind = ServiceBind::default();
+        if values.len() == 3 {
+            bind.set_name(values[1].to_string());
+            bind.set_service_group(ServiceGroup::from_str(values[2])?);
+            bind.set_service_name(values[0].to_string());
+        } else {
+            bind.set_name(values[0].to_string());
+            bind.set_service_group(ServiceGroup::from_str(values[1])?);
+        }
+        Ok(bind)
+    }
+}
+
+impl FromStr for ServiceGroup {
+    type Err = NetErr;
+
+    fn from_str(value: &str) -> Result<ServiceGroup, Self::Err> {
+        let sg = core::service::ServiceGroup::from_str(value).map_err(|e| {
+            net::err(ErrCode::InvalidPayload, e)
+        })?;
+        Ok(sg.into())
+    }
+}
+
 impl fmt::Display for ServiceGroup {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut value = format!("{}.{}", self.get_service(), self.get_group());
@@ -92,8 +143,8 @@ impl fmt::Display for ServiceGroup {
 // core crate back into the Supervisor's repository and untangle our dependency hell before
 // that can happen.
 
-impl From<hcore::service::ApplicationEnvironment> for ApplicationEnvironment {
-    fn from(app_env: hcore::service::ApplicationEnvironment) -> Self {
+impl From<core::service::ApplicationEnvironment> for ApplicationEnvironment {
+    fn from(app_env: core::service::ApplicationEnvironment) -> Self {
         let mut proto = ApplicationEnvironment::new();
         proto.set_application(app_env.application().to_string());
         proto.set_environment(app_env.environment().to_string());
@@ -132,27 +183,6 @@ impl Into<package::PackageIdent> for PackageIdent {
     }
 }
 
-impl From<manager::service::ProcessState> for ProcessState {
-    fn from(other: manager::service::ProcessState) -> Self {
-        match other {
-            manager::service::ProcessState::Down => ProcessState::Down,
-            manager::service::ProcessState::Up => ProcessState::Up,
-        }
-    }
-}
-
-impl From<manager::ProcessStatus> for ProcessStatus {
-    fn from(other: manager::ProcessStatus) -> Self {
-        let mut proto = ProcessStatus::new();
-        proto.set_elapsed(other.elapsed.num_seconds());
-        proto.set_state(other.state.into());
-        if let Some(pid) = other.pid {
-            proto.set_pid(pid);
-        }
-        proto
-    }
-}
-
 impl fmt::Display for ServiceCfg_Format {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let state = match *self {
@@ -162,17 +192,8 @@ impl fmt::Display for ServiceCfg_Format {
     }
 }
 
-impl From<manager::service::ServiceBind> for ServiceBind {
-    fn from(bind: manager::service::ServiceBind) -> Self {
-        let mut proto = ServiceBind::new();
-        proto.set_name(bind.name);
-        proto.set_service_group(bind.service_group.into());
-        proto
-    }
-}
-
-impl From<hcore::service::ServiceGroup> for ServiceGroup {
-    fn from(service_group: hcore::service::ServiceGroup) -> Self {
+impl From<core::service::ServiceGroup> for ServiceGroup {
+    fn from(service_group: core::service::ServiceGroup) -> Self {
         let mut proto = ServiceGroup::new();
         if let Some(app_env) = service_group.application_environment() {
             proto.set_application_environment(app_env.into());
@@ -186,39 +207,11 @@ impl From<hcore::service::ServiceGroup> for ServiceGroup {
     }
 }
 
-impl From<manager::ServiceStatus> for ServiceStatus {
-    fn from(other: manager::ServiceStatus) -> Self {
-        let mut proto = ServiceStatus::new();
-        proto.set_ident(other.pkg.ident.into());
-        proto.set_process(other.process.into());
-        proto.set_service_group(other.service_group.into());
-        if let Some(composite) = other.composite {
-            proto.set_composite(composite);
-        }
-        proto
-    }
-}
-
-impl Into<manager::service::ServiceBind> for ServiceBind {
-    fn into(mut self) -> manager::service::ServiceBind {
-        let service_name = if self.has_service_name() {
-            Some(self.take_service_name())
-        } else {
-            None
-        };
-        manager::service::ServiceBind {
-            name: self.take_name(),
-            service_group: self.take_service_group().into(),
-            service_name: service_name,
-        }
-    }
-}
-
-impl Into<hcore::service::ServiceGroup> for ServiceGroup {
-    fn into(mut self) -> hcore::service::ServiceGroup {
+impl Into<core::service::ServiceGroup> for ServiceGroup {
+    fn into(mut self) -> core::service::ServiceGroup {
         let app_env = if self.has_application_environment() {
             Some(
-                hcore::service::ApplicationEnvironment::new(
+                core::service::ApplicationEnvironment::new(
                     self.get_application_environment().get_application(),
                     self.get_application_environment().get_environment(),
                 ).unwrap(),
@@ -233,7 +226,7 @@ impl Into<hcore::service::ServiceGroup> for ServiceGroup {
         } else {
             None
         };
-        hcore::service::ServiceGroup::new(app_env.as_ref(), service, group, organization).unwrap()
+        core::service::ServiceGroup::new(app_env.as_ref(), service, group, organization).unwrap()
     }
 }
 
@@ -273,13 +266,13 @@ impl Topology {
 }
 
 impl FromStr for Topology {
-    type Err = SupError;
+    type Err = NetErr;
 
     fn from_str(topology: &str) -> Result<Self, Self::Err> {
         match topology {
             "leader" => Ok(Topology::Leader),
             "standalone" => Ok(Topology::Standalone),
-            _ => Err(sup_error!(Error::InvalidTopology(String::from(topology)))),
+            _ => Err(net::err(ErrCode::InvalidPayload, "Invalid topology.")),
         }
     }
 }
@@ -325,15 +318,16 @@ impl UpdateStrategy {
 }
 
 impl FromStr for UpdateStrategy {
-    type Err = SupError;
+    type Err = NetErr;
 
     fn from_str(strategy: &str) -> Result<Self, Self::Err> {
         match strategy {
             "none" => Ok(UpdateStrategy::None),
             "at-once" => Ok(UpdateStrategy::AtOnce),
             "rolling" => Ok(UpdateStrategy::Rolling),
-            _ => Err(sup_error!(
-                Error::InvalidUpdateStrategy(String::from(strategy))
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                "Invalid update strategy.",
             )),
         }
     }

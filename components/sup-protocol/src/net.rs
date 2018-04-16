@@ -21,10 +21,10 @@ use std::error;
 use std::fmt;
 use std::io;
 
-use hcore;
+use core;
 use protobuf::ProtobufEnum;
 
-pub use protocols::generated::net::*;
+pub use generated::net::*;
 
 pub type NetResult<T> = Result<T, NetErr>;
 
@@ -74,20 +74,14 @@ impl fmt::Display for NetErr {
     }
 }
 
-impl From<::error::SupError> for NetErr {
-    fn from(other: ::error::SupError) -> Self {
-        err(ErrCode::Internal, other)
-    }
-}
-
 impl From<io::Error> for NetErr {
     fn from(other: io::Error) -> Self {
         err(ErrCode::Io, other)
     }
 }
 
-impl From<hcore::Error> for NetErr {
-    fn from(other: hcore::Error) -> Self {
+impl From<core::Error> for NetErr {
+    fn from(other: core::Error) -> Self {
         err(ErrCode::Internal, other)
     }
 }

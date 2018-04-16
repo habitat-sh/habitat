@@ -44,7 +44,6 @@ extern crate base64;
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;
-extern crate bytes;
 #[cfg(target_os = "linux")]
 extern crate caps;
 extern crate crypto;
@@ -62,6 +61,7 @@ extern crate habitat_core as hcore;
 extern crate habitat_depot_client as depot_client;
 extern crate habitat_eventsrv_client as eventsrv_client;
 extern crate habitat_launcher_client as launcher_client;
+extern crate habitat_sup_protocol as protocol;
 extern crate handlebars;
 extern crate iron;
 #[macro_use]
@@ -115,7 +115,6 @@ pub mod error;
 pub mod fs;
 pub mod http_gateway;
 pub mod manager;
-pub mod protocols;
 pub mod templating;
 pub mod util;
 mod sys;

@@ -611,6 +611,597 @@ impl ::protobuf::reflect::ProtobufValue for ServiceBindList {
 }
 
 #[derive(PartialEq,Clone,Default)]
+pub struct SupDepart {
+    // message fields
+    member_id: ::protobuf::SingularField<::std::string::String>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for SupDepart {}
+
+impl SupDepart {
+    pub fn new() -> SupDepart {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static SupDepart {
+        static mut instance: ::protobuf::lazy::Lazy<SupDepart> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const SupDepart,
+        };
+        unsafe {
+            instance.get(SupDepart::new)
+        }
+    }
+
+    // optional string member_id = 1;
+
+    pub fn clear_member_id(&mut self) {
+        self.member_id.clear();
+    }
+
+    pub fn has_member_id(&self) -> bool {
+        self.member_id.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_member_id(&mut self, v: ::std::string::String) {
+        self.member_id = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_member_id(&mut self) -> &mut ::std::string::String {
+        if self.member_id.is_none() {
+            self.member_id.set_default();
+        }
+        self.member_id.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_member_id(&mut self) -> ::std::string::String {
+        self.member_id.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_member_id(&self) -> &str {
+        match self.member_id.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_member_id_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.member_id
+    }
+
+    fn mut_member_id_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.member_id
+    }
+}
+
+impl ::protobuf::Message for SupDepart {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.member_id)?;
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.member_id.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.member_id.as_ref() {
+            os.write_string(1, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for SupDepart {
+    fn new() -> SupDepart {
+        SupDepart::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<SupDepart>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "member_id",
+                    SupDepart::get_member_id_for_reflect,
+                    SupDepart::mut_member_id_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<SupDepart>(
+                    "SupDepart",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for SupDepart {
+    fn clear(&mut self) {
+        self.clear_member_id();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for SupDepart {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for SupDepart {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct SvcFilePut {
+    // message fields
+    service_group: ::protobuf::SingularPtrField<super::types::ServiceGroup>,
+    content: ::protobuf::SingularField<::std::vec::Vec<u8>>,
+    filename: ::protobuf::SingularField<::std::string::String>,
+    version: ::std::option::Option<u64>,
+    is_encrypted: ::std::option::Option<bool>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+// see codegen.rs for the explanation why impl Sync explicitly
+unsafe impl ::std::marker::Sync for SvcFilePut {}
+
+impl SvcFilePut {
+    pub fn new() -> SvcFilePut {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static SvcFilePut {
+        static mut instance: ::protobuf::lazy::Lazy<SvcFilePut> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const SvcFilePut,
+        };
+        unsafe {
+            instance.get(SvcFilePut::new)
+        }
+    }
+
+    // optional .ServiceGroup service_group = 1;
+
+    pub fn clear_service_group(&mut self) {
+        self.service_group.clear();
+    }
+
+    pub fn has_service_group(&self) -> bool {
+        self.service_group.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_service_group(&mut self, v: super::types::ServiceGroup) {
+        self.service_group = ::protobuf::SingularPtrField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_service_group(&mut self) -> &mut super::types::ServiceGroup {
+        if self.service_group.is_none() {
+            self.service_group.set_default();
+        }
+        self.service_group.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_service_group(&mut self) -> super::types::ServiceGroup {
+        self.service_group.take().unwrap_or_else(|| super::types::ServiceGroup::new())
+    }
+
+    pub fn get_service_group(&self) -> &super::types::ServiceGroup {
+        self.service_group.as_ref().unwrap_or_else(|| super::types::ServiceGroup::default_instance())
+    }
+
+    fn get_service_group_for_reflect(&self) -> &::protobuf::SingularPtrField<super::types::ServiceGroup> {
+        &self.service_group
+    }
+
+    fn mut_service_group_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<super::types::ServiceGroup> {
+        &mut self.service_group
+    }
+
+    // optional bytes content = 2;
+
+    pub fn clear_content(&mut self) {
+        self.content.clear();
+    }
+
+    pub fn has_content(&self) -> bool {
+        self.content.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_content(&mut self, v: ::std::vec::Vec<u8>) {
+        self.content = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_content(&mut self) -> &mut ::std::vec::Vec<u8> {
+        if self.content.is_none() {
+            self.content.set_default();
+        }
+        self.content.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_content(&mut self) -> ::std::vec::Vec<u8> {
+        self.content.take().unwrap_or_else(|| ::std::vec::Vec::new())
+    }
+
+    pub fn get_content(&self) -> &[u8] {
+        match self.content.as_ref() {
+            Some(v) => &v,
+            None => &[],
+        }
+    }
+
+    fn get_content_for_reflect(&self) -> &::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &self.content
+    }
+
+    fn mut_content_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &mut self.content
+    }
+
+    // optional string filename = 3;
+
+    pub fn clear_filename(&mut self) {
+        self.filename.clear();
+    }
+
+    pub fn has_filename(&self) -> bool {
+        self.filename.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_filename(&mut self, v: ::std::string::String) {
+        self.filename = ::protobuf::SingularField::some(v);
+    }
+
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_filename(&mut self) -> &mut ::std::string::String {
+        if self.filename.is_none() {
+            self.filename.set_default();
+        }
+        self.filename.as_mut().unwrap()
+    }
+
+    // Take field
+    pub fn take_filename(&mut self) -> ::std::string::String {
+        self.filename.take().unwrap_or_else(|| ::std::string::String::new())
+    }
+
+    pub fn get_filename(&self) -> &str {
+        match self.filename.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    fn get_filename_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.filename
+    }
+
+    fn mut_filename_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.filename
+    }
+
+    // optional uint64 version = 4;
+
+    pub fn clear_version(&mut self) {
+        self.version = ::std::option::Option::None;
+    }
+
+    pub fn has_version(&self) -> bool {
+        self.version.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_version(&mut self, v: u64) {
+        self.version = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_version(&self) -> u64 {
+        self.version.unwrap_or(0)
+    }
+
+    fn get_version_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.version
+    }
+
+    fn mut_version_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.version
+    }
+
+    // optional bool is_encrypted = 5;
+
+    pub fn clear_is_encrypted(&mut self) {
+        self.is_encrypted = ::std::option::Option::None;
+    }
+
+    pub fn has_is_encrypted(&self) -> bool {
+        self.is_encrypted.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_is_encrypted(&mut self, v: bool) {
+        self.is_encrypted = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_is_encrypted(&self) -> bool {
+        self.is_encrypted.unwrap_or(false)
+    }
+
+    fn get_is_encrypted_for_reflect(&self) -> &::std::option::Option<bool> {
+        &self.is_encrypted
+    }
+
+    fn mut_is_encrypted_for_reflect(&mut self) -> &mut ::std::option::Option<bool> {
+        &mut self.is_encrypted
+    }
+}
+
+impl ::protobuf::Message for SvcFilePut {
+    fn is_initialized(&self) -> bool {
+        for v in &self.service_group {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.service_group)?;
+                },
+                2 => {
+                    ::protobuf::rt::read_singular_bytes_into(wire_type, is, &mut self.content)?;
+                },
+                3 => {
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.filename)?;
+                },
+                4 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.version = ::std::option::Option::Some(tmp);
+                },
+                5 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_bool()?;
+                    self.is_encrypted = ::std::option::Option::Some(tmp);
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let Some(ref v) = self.service_group.as_ref() {
+            let len = v.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        }
+        if let Some(ref v) = self.content.as_ref() {
+            my_size += ::protobuf::rt::bytes_size(2, &v);
+        }
+        if let Some(ref v) = self.filename.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
+        }
+        if let Some(v) = self.version {
+            my_size += ::protobuf::rt::value_size(4, v, ::protobuf::wire_format::WireTypeVarint);
+        }
+        if let Some(v) = self.is_encrypted {
+            my_size += 2;
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let Some(ref v) = self.service_group.as_ref() {
+            os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        }
+        if let Some(ref v) = self.content.as_ref() {
+            os.write_bytes(2, &v)?;
+        }
+        if let Some(ref v) = self.filename.as_ref() {
+            os.write_string(3, &v)?;
+        }
+        if let Some(v) = self.version {
+            os.write_uint64(4, v)?;
+        }
+        if let Some(v) = self.is_encrypted {
+            os.write_bool(5, v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
+    }
+}
+
+impl ::protobuf::MessageStatic for SvcFilePut {
+    fn new() -> SvcFilePut {
+        SvcFilePut::new()
+    }
+
+    fn descriptor_static(_: ::std::option::Option<SvcFilePut>) -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::types::ServiceGroup>>(
+                    "service_group",
+                    SvcFilePut::get_service_group_for_reflect,
+                    SvcFilePut::mut_service_group_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeBytes>(
+                    "content",
+                    SvcFilePut::get_content_for_reflect,
+                    SvcFilePut::mut_content_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
+                    "filename",
+                    SvcFilePut::get_filename_for_reflect,
+                    SvcFilePut::mut_filename_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "version",
+                    SvcFilePut::get_version_for_reflect,
+                    SvcFilePut::mut_version_for_reflect,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
+                    "is_encrypted",
+                    SvcFilePut::get_is_encrypted_for_reflect,
+                    SvcFilePut::mut_is_encrypted_for_reflect,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<SvcFilePut>(
+                    "SvcFilePut",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+}
+
+impl ::protobuf::Clear for SvcFilePut {
+    fn clear(&mut self) {
+        self.clear_service_group();
+        self.clear_content();
+        self.clear_filename();
+        self.clear_version();
+        self.clear_is_encrypted();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for SvcFilePut {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for SvcFilePut {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct SvcGetDefaultCfg {
     // message fields
     ident: ::protobuf::SingularPtrField<super::types::PackageIdent>,
@@ -3188,32 +3779,38 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x18\x01\x20\x01(\x04R\x05total\x12\x1a\n\x08position\x18\x02\x20\x01(\
     \x04R\x08position\"*\n\tHandshake\x12\x1d\n\nsecret_key\x18\x01\x20\x01(\
     \tR\tsecretKey\"5\n\x0fServiceBindList\x12\"\n\x05binds\x18\x01\x20\x03(\
-    \x0b2\x0c.ServiceBindR\x05binds\"7\n\x10SvcGetDefaultCfg\x12#\n\x05ident\
-    \x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\"\x88\x01\n\x0eSvcValida\
-    teCfg\x122\n\rservice_group\x18\x01\x20\x01(\x0b2\r.ServiceGroupR\x0cser\
-    viceGroup\x120\n\x06format\x18\x02\x20\x01(\x0e2\x12.ServiceCfg.Format:\
-    \x04TOMLR\x06format\x12\x10\n\x03cfg\x18\x03\x20\x01(\x0cR\x03cfg\"\x95\
-    \x01\n\tSvcSetCfg\x122\n\rservice_group\x18\x01\x20\x01(\x0b2\r.ServiceG\
-    roupR\x0cserviceGroup\x12\x10\n\x03cfg\x18\x02\x20\x01(\x0cR\x03cfg\x12\
-    \x18\n\x07version\x18\x03\x20\x01(\x04R\x07version\x12(\n\x0cis_encrypte\
-    d\x18\x04\x20\x01(\x08:\x05falseR\x0bisEncrypted\"\xf6\x03\n\x07SvcLoad\
-    \x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\x12P\n\
-    \x17application_environment\x18\x02\x20\x01(\x0b2\x17.ApplicationEnviron\
-    mentR\x16applicationEnvironment\x12\"\n\x05binds\x18\x03\x20\x03(\x0b2\
-    \x0c.ServiceBindR\x05binds\x12'\n\x0fspecified_binds\x18\x05\x20\x01(\
-    \x08R\x0especifiedBinds\x12\x19\n\x08bldr_url\x18\x06\x20\x01(\tR\x07bld\
-    rUrl\x12!\n\x0cbldr_channel\x18\x07\x20\x01(\tR\x0bbldrChannel\x12\x1f\n\
-    \x0bconfig_from\x18\x08\x20\x01(\tR\nconfigFrom\x12\x1b\n\x05force\x18\t\
-    \x20\x01(\x08:\x05falseR\x05force\x12\x14\n\x05group\x18\n\x20\x01(\tR\
-    \x05group\x124\n\x16svc_encrypted_password\x18\x0b\x20\x01(\tR\x14svcEnc\
-    ryptedPassword\x12%\n\x08topology\x18\x0c\x20\x01(\x0e2\t.TopologyR\x08t\
-    opology\x128\n\x0fupdate_strategy\x18\r\x20\x01(\x0e2\x0f.UpdateStrategy\
-    R\x0eupdateStrategy\"0\n\tSvcUnload\x12#\n\x05ident\x18\x01\x20\x01(\x0b\
-    2\r.PackageIdentR\x05ident\"/\n\x08SvcStart\x12#\n\x05ident\x18\x01\x20\
-    \x01(\x0b2\r.PackageIdentR\x05ident\".\n\x07SvcStop\x12#\n\x05ident\x18\
-    \x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\"0\n\tSvcStatus\x12#\n\x05id\
-    ent\x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\"!\n\x0bConsoleLine\
-    \x12\x12\n\x04line\x18\x01\x20\x01(\tR\x04line\
+    \x0b2\x0c.ServiceBindR\x05binds\"(\n\tSupDepart\x12\x1b\n\tmember_id\x18\
+    \x01\x20\x01(\tR\x08memberId\"\xba\x01\n\nSvcFilePut\x122\n\rservice_gro\
+    up\x18\x01\x20\x01(\x0b2\r.ServiceGroupR\x0cserviceGroup\x12\x18\n\x07co\
+    ntent\x18\x02\x20\x01(\x0cR\x07content\x12\x1a\n\x08filename\x18\x03\x20\
+    \x01(\tR\x08filename\x12\x18\n\x07version\x18\x04\x20\x01(\x04R\x07versi\
+    on\x12(\n\x0cis_encrypted\x18\x05\x20\x01(\x08:\x05falseR\x0bisEncrypted\
+    \"7\n\x10SvcGetDefaultCfg\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.Packag\
+    eIdentR\x05ident\"\x88\x01\n\x0eSvcValidateCfg\x122\n\rservice_group\x18\
+    \x01\x20\x01(\x0b2\r.ServiceGroupR\x0cserviceGroup\x120\n\x06format\x18\
+    \x02\x20\x01(\x0e2\x12.ServiceCfg.Format:\x04TOMLR\x06format\x12\x10\n\
+    \x03cfg\x18\x03\x20\x01(\x0cR\x03cfg\"\x95\x01\n\tSvcSetCfg\x122\n\rserv\
+    ice_group\x18\x01\x20\x01(\x0b2\r.ServiceGroupR\x0cserviceGroup\x12\x10\
+    \n\x03cfg\x18\x02\x20\x01(\x0cR\x03cfg\x12\x18\n\x07version\x18\x03\x20\
+    \x01(\x04R\x07version\x12(\n\x0cis_encrypted\x18\x04\x20\x01(\x08:\x05fa\
+    lseR\x0bisEncrypted\"\xf6\x03\n\x07SvcLoad\x12#\n\x05ident\x18\x01\x20\
+    \x01(\x0b2\r.PackageIdentR\x05ident\x12P\n\x17application_environment\
+    \x18\x02\x20\x01(\x0b2\x17.ApplicationEnvironmentR\x16applicationEnviron\
+    ment\x12\"\n\x05binds\x18\x03\x20\x03(\x0b2\x0c.ServiceBindR\x05binds\
+    \x12'\n\x0fspecified_binds\x18\x05\x20\x01(\x08R\x0especifiedBinds\x12\
+    \x19\n\x08bldr_url\x18\x06\x20\x01(\tR\x07bldrUrl\x12!\n\x0cbldr_channel\
+    \x18\x07\x20\x01(\tR\x0bbldrChannel\x12\x1f\n\x0bconfig_from\x18\x08\x20\
+    \x01(\tR\nconfigFrom\x12\x1b\n\x05force\x18\t\x20\x01(\x08:\x05falseR\
+    \x05force\x12\x14\n\x05group\x18\n\x20\x01(\tR\x05group\x124\n\x16svc_en\
+    crypted_password\x18\x0b\x20\x01(\tR\x14svcEncryptedPassword\x12%\n\x08t\
+    opology\x18\x0c\x20\x01(\x0e2\t.TopologyR\x08topology\x128\n\x0fupdate_s\
+    trategy\x18\r\x20\x01(\x0e2\x0f.UpdateStrategyR\x0eupdateStrategy\"0\n\t\
+    SvcUnload\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\
+    \"/\n\x08SvcStart\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdentR\
+    \x05ident\".\n\x07SvcStop\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.Packag\
+    eIdentR\x05ident\"0\n\tSvcStatus\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r\
+    .PackageIdentR\x05ident\"!\n\x0bConsoleLine\x12\x12\n\x04line\x18\x01\
+    \x20\x01(\tR\x04line\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

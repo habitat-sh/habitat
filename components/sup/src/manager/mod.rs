@@ -49,16 +49,16 @@ use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
 use futures::prelude::*;
 use futures::sync::mpsc;
-use hcore::channel;
+use hcore::fs::FS_ROOT_PATH;
 use hcore::crypto::SymKey;
 use hcore::env;
-use hcore::fs::FS_ROOT_PATH;
 use hcore::os::process::{self, Pid, Signal};
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::package::metadata::PackageType;
 use hcore::service::ServiceGroup;
-use hcore::url::default_bldr_url;
 use launcher_client::{LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, LauncherCli};
+use protocol;
+use protocol::net::{self, NetResult, ErrCode};
 use serde;
 use serde_json;
 use time::{self, Timespec, Duration as TimeDuration};
@@ -80,29 +80,12 @@ use ctl_gateway::{self, CtlRequest};
 use census::CensusRing;
 use error::{Error, Result, SupError};
 use http_gateway;
-use protocols;
-use protocols::net::{self, NetResult, ErrCode};
 use util;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
-
-lazy_static! {
-    /// The root path containing all runtime service directories and files
-    pub static ref STATE_PATH_PREFIX: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("hab/sup")
-    };
-
-    static ref DEFAULT_BLDR_URL: String = {
-        default_bldr_url()
-    };
-
-    static ref DEFAULT_BLDR_CHANNEL: String = {
-        channel::default()
-    };
-}
 
 /// FileSystem paths that the Manager uses to persist data to disk.
 ///
@@ -169,15 +152,7 @@ pub struct ManagerConfig {
 
 impl ManagerConfig {
     pub fn sup_root(&self) -> PathBuf {
-        match self.custom_state_path {
-            Some(ref custom) => custom.clone(),
-            None => {
-                match self.name {
-                    Some(ref name) => STATE_PATH_PREFIX.join(name),
-                    None => STATE_PATH_PREFIX.join("default"),
-                }
-            }
-        }
+        protocol::sup_root(self.name.as_ref(), self.custom_state_path.as_ref())
     }
 }
 
@@ -190,7 +165,7 @@ impl Default for ManagerConfig {
             update_url: "".to_string(),
             update_channel: "".to_string(),
             gossip_listen: GossipListenAddr::default(),
-            ctl_listen: ctl_gateway::default_addr(),
+            ctl_listen: protocol::ctl::default_addr(),
             http_listen: http_gateway::ListenAddr::default(),
             gossip_peers: vec![],
             gossip_permanent: false,
@@ -267,7 +242,7 @@ impl Manager {
     /// command line.
     pub fn generate_new_specs_from_package(
         package: &PackageInstall,
-        opts: &protocols::ctl::SvcLoad,
+        opts: &protocol::ctl::SvcLoad,
     ) -> Result<Vec<ServiceSpec>> {
         let specs = match package.pkg_type()? {
             PackageType::Standalone => {
@@ -289,7 +264,7 @@ impl Manager {
     pub fn service_status(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        opts: protocols::ctl::SvcStatus,
+        opts: protocol::ctl::SvcStatus,
     ) -> NetResult<()> {
         let statuses = Self::status(&mgr.cfg)?;
         if statuses.is_empty() {
@@ -299,7 +274,7 @@ impl Manager {
         if opts.has_ident() {
             for status in statuses {
                 if status.pkg.ident.satisfies(opts.get_ident()) {
-                    let mut msg: protocols::types::ServiceStatus = status.into();
+                    let mut msg: protocol::types::ServiceStatus = status.into();
                     req.reply_complete(msg);
                     break;
                 }
@@ -311,7 +286,7 @@ impl Manager {
         } else {
             let mut list = statuses.into_iter().peekable();
             while let Some(status) = list.next() {
-                let mut msg: protocols::types::ServiceStatus = status.into();
+                let mut msg: protocol::types::ServiceStatus = status.into();
                 if list.peek().is_some() {
                     req.reply_partial(msg);
                 } else {
@@ -684,7 +659,7 @@ impl Manager {
             .push(service);
     }
 
-    pub fn run(mut self, svc: Option<protocols::ctl::SvcLoad>) -> Result<()> {
+    pub fn run(mut self, svc: Option<protocol::ctl::SvcLoad>) -> Result<()> {
         let mut core = reactor::Core::new().expect("Couldn't start main reactor");
         let handle = core.handle();
         let (ctl_tx, ctl_rx) = mpsc::unbounded();
@@ -797,12 +772,12 @@ impl Manager {
     pub fn service_cfg(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocols::ctl::SvcGetDefaultCfg,
+        mut opts: protocol::ctl::SvcGetDefaultCfg,
     ) -> NetResult<()> {
         let ident: PackageIdent = opts.take_ident().into();
         for service in mgr.services.read().unwrap().iter() {
             if service.pkg.ident.satisfies(&ident) {
-                let mut msg = protocols::types::ServiceCfg::new();
+                let mut msg = protocol::types::ServiceCfg::new();
                 if let Some(ref cfg) = service.cfg.default {
                     msg.set_default(toml::to_string_pretty(cfg).unwrap());
                     req.reply_complete(msg);
@@ -819,15 +794,15 @@ impl Manager {
     pub fn service_cfg_validate(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocols::ctl::SvcValidateCfg,
+        mut opts: protocol::ctl::SvcValidateCfg,
     ) -> NetResult<()> {
-        if opts.get_cfg().len() > protocols::butterfly::MAX_SVC_CFG_SIZE {
+        if opts.get_cfg().len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
             return Err(net::err(
                 ErrCode::EntityTooLarge,
                 "Configuration too large.",
             ));
         }
-        if opts.get_format() != protocols::types::ServiceCfg_Format::TOML {
+        if opts.get_format() != protocol::types::ServiceCfg_Format::TOML {
             return Err(net::err(
                 ErrCode::NotSupported,
                 format!(
@@ -879,9 +854,9 @@ impl Manager {
     pub fn service_cfg_set(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocols::ctl::SvcSetCfg,
+        mut opts: protocol::ctl::SvcSetCfg,
     ) -> NetResult<()> {
-        if opts.get_cfg().len() > protocols::butterfly::MAX_SVC_CFG_SIZE {
+        if opts.get_cfg().len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
             return Err(net::err(
                 ErrCode::EntityTooLarge,
                 "Configuration too large.",
@@ -926,20 +901,68 @@ impl Manager {
         ))
     }
 
+    pub fn service_file_put(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocol::ctl::SvcFilePut,
+    ) -> NetResult<()> {
+        if opts.get_content().len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES {
+            return Err(net::err(ErrCode::EntityTooLarge, "File content too large."));
+        }
+        let service_group: ServiceGroup = opts.take_service_group().into();
+        for service in mgr.services.read().unwrap().iter() {
+            if service.service_group != service_group {
+                continue;
+            }
+            outputln!(
+                "Receiving new version {} of file {} for {}",
+                opts.get_version(),
+                opts.get_filename(),
+                service_group,
+            );
+            let mut client = match butterfly::client::Client::new(
+                format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+                mgr.cfg.ring_key.clone(),
+            ) {
+                Ok(client) => client,
+                Err(err) => {
+                    outputln!("Failed to connect to own gossip server, {}", err);
+                    return Err(net::err(ErrCode::Internal, err.to_string()));
+                }
+            };
+            match client.send_service_file(
+                service_group,
+                opts.take_filename(),
+                opts.get_version(),
+                opts.take_content(),
+                opts.get_is_encrypted(),
+            ) {
+                Ok(()) => {
+                    req.reply_complete(net::ok());
+                    return Ok(());
+                }
+                Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
+            }
+        }
+        Err(net::err(
+            ErrCode::NotFound,
+            format!("{} not loaded.", service_group),
+        ))
+    }
     pub fn service_load(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        opts: protocols::ctl::SvcLoad,
+        opts: protocol::ctl::SvcLoad,
     ) -> NetResult<()> {
         let bldr_url = if opts.has_bldr_url() {
             opts.get_bldr_url()
         } else {
-            &DEFAULT_BLDR_URL
+            &protocol::DEFAULT_BLDR_URL
         };
         let bldr_channel = if opts.has_bldr_channel() {
             opts.get_bldr_channel()
         } else {
-            &DEFAULT_BLDR_CHANNEL
+            &protocol::DEFAULT_BLDR_CHANNEL
         };
         let source = InstallSource::Ident(opts.get_ident().clone().into());
         match Self::existing_specs_for_ident(&mgr.cfg, source.as_ref())? {
@@ -1120,7 +1143,7 @@ impl Manager {
     pub fn service_unload(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocols::ctl::SvcUnload,
+        mut opts: protocol::ctl::SvcUnload,
     ) -> NetResult<()> {
         let ident: PackageIdent = opts.take_ident().into();
         // Gather up the paths to all the spec files we care about. This
@@ -1159,7 +1182,7 @@ impl Manager {
     pub fn service_start(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        opts: protocols::ctl::SvcStart,
+        opts: protocol::ctl::SvcStart,
     ) -> NetResult<()> {
         let ident = opts.get_ident().clone().into();
         let updated_specs = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
@@ -1207,7 +1230,7 @@ impl Manager {
     pub fn service_stop(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocols::ctl::SvcStop,
+        mut opts: protocol::ctl::SvcStop,
     ) -> NetResult<()> {
         let ident: PackageIdent = opts.take_ident().into();
         let updated_specs = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
@@ -1252,12 +1275,38 @@ impl Manager {
         Ok(())
     }
 
+    pub fn supervisor_depart(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        mut opts: protocol::ctl::SupDepart,
+    ) -> NetResult<()> {
+        let mut client = match butterfly::client::Client::new(
+            format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+            mgr.cfg.ring_key.clone(),
+        ) {
+            Ok(client) => client,
+            Err(err) => {
+                outputln!("Failed to connect to own gossip server, {}", err);
+                return Err(net::err(ErrCode::Internal, err.to_string()));
+            }
+        };
+        outputln!("Attempting to depart member: {}", opts.get_member_id());
+        match client.send_departure(opts.take_member_id()) {
+            Ok(()) => {
+                req.reply_complete(net::ok());
+                Ok(())
+            }
+            Err(e) => Err(net::err(ErrCode::Internal, e.to_string())),
+        }
+    }
+
     fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
         if let Some(ref mut updater) = self.self_updater {
             return updater.updated();
         }
         None
     }
+
     /// Walk each service and check if it has an updated package installed via the Update Strategy.
     /// This updates the Service to point to the new service struct, and then marks it for
     /// restarting.
@@ -1865,11 +1914,71 @@ impl Future for CtlHandler {
     }
 }
 
+impl From<service::ProcessState> for protocol::types::ProcessState {
+    fn from(other: service::ProcessState) -> Self {
+        match other {
+            service::ProcessState::Down => protocol::types::ProcessState::Down,
+            service::ProcessState::Up => protocol::types::ProcessState::Up,
+        }
+    }
+}
+
+impl From<ProcessStatus> for protocol::types::ProcessStatus {
+    fn from(other: ProcessStatus) -> Self {
+        let mut proto = protocol::types::ProcessStatus::new();
+        proto.set_elapsed(other.elapsed.num_seconds());
+        proto.set_state(other.state.into());
+        if let Some(pid) = other.pid {
+            proto.set_pid(pid);
+        }
+        proto
+    }
+}
+
+impl From<service::ServiceBind> for protocol::types::ServiceBind {
+    fn from(bind: service::ServiceBind) -> Self {
+        let mut proto = protocol::types::ServiceBind::new();
+        proto.set_name(bind.name);
+        proto.set_service_group(bind.service_group.into());
+        proto
+    }
+}
+
+impl From<ServiceStatus> for protocol::types::ServiceStatus {
+    fn from(other: ServiceStatus) -> Self {
+        let mut proto = protocol::types::ServiceStatus::new();
+        proto.set_ident(other.pkg.ident.into());
+        proto.set_process(other.process.into());
+        proto.set_service_group(other.service_group.into());
+        if let Some(composite) = other.composite {
+            proto.set_composite(composite);
+        }
+        proto
+    }
+}
+
+impl Into<service::ServiceBind> for protocol::types::ServiceBind {
+    fn into(mut self) -> service::ServiceBind {
+        let service_name = if self.has_service_name() {
+            Some(self.take_service_name())
+        } else {
+            None
+        };
+        service::ServiceBind {
+            name: self.take_name(),
+            service_group: self.take_service_group().into(),
+            service_name: service_name,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;
 
-    use super::{ManagerConfig, STATE_PATH_PREFIX};
+    use protocol::STATE_PATH_PREFIX;
+
+    use super::ManagerConfig;
 
     #[test]
     fn manager_state_path_default() {

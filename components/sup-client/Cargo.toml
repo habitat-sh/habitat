@@ -1,0 +1,19 @@
+[package]
+name = "habitat-sup-client"
+version = "0.0.0"
+authors = ["Jamie Winsor <reset@chef.io>"]
+workspace = "../../"
+
+[dependencies]
+futures = "*"
+habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
+log = "*"
+protobuf = { version = "*", features = ["bytes"] }
+tokio = "*"
+tokio-core = "*"
+tokio-io = "*"
+
+[build-dependencies]
+protoc = "1.4"
+protoc-rust = "1.4"
+

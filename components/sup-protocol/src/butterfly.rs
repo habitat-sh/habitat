@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod depart;
-pub mod file;
+/// Maximum allowed size for a file to be uploaded to a service (in bytes).
+pub const MAX_FILE_PUT_SIZE_BYTES: usize = 64 * 1024;
+/// Maximum allowed size for a configuration to be applied to a service (in bytes).
+pub const MAX_SVC_CFG_SIZE: usize = 64 * 1024;

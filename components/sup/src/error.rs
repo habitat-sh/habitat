@@ -59,10 +59,9 @@ use hcore::output::StructuredOutput;
 use hcore::package::{self, Identifiable, PackageInstall};
 use launcher_client;
 use notify;
+use protocol;
 use serde_json;
 use toml;
-
-use ctl_gateway::client::SrvClientError;
 
 use PROGRAM_NAME;
 
@@ -116,10 +115,7 @@ pub enum Error {
     BadStartStyle(String),
     BadEnvConfig(String),
     ButterflyError(butterfly::error::Error),
-    CtlClient(SrvClientError),
-    CtlSecretConflict(PathBuf),
     CtlSecretIo(PathBuf, io::Error),
-    CtlSecretNotFound(PathBuf),
     DepotClient(depot_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
@@ -223,26 +219,11 @@ impl fmt::Display for SupError {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
-            Error::CtlClient(ref err) => format!("{}", err),
-            Error::CtlSecretConflict(ref path) => {
-                format!(
-                    "Expected file but found directory when reading ctl secret, {}",
-                    path.display()
-                )
-            }
             Error::CtlSecretIo(ref path, ref err) => {
                 format!(
                     "IoError while reading or writing ctl secret, {}, {}",
                     path.display(),
                     err
-                )
-            }
-            Error::CtlSecretNotFound(ref path) => {
-                format!(
-                    "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
-                    `hab setup` or run the Supervisor for the first time before attempting to \
-                    command the Supervisor.",
-                    path.display()
                 )
             }
             Error::ExecCommandNotFound(ref c) => {
@@ -389,12 +370,7 @@ impl error::Error for SupError {
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
             Error::ButterflyError(ref err) => err.description(),
-            Error::CtlClient(ref err) => err.description(),
-            Error::CtlSecretConflict(_) => {
-                "Expected file but found directory when reading ctl secret"
-            }
             Error::CtlSecretIo(_, _) => "IoError while reading ctl secret",
-            Error::CtlSecretNotFound(_) => "Ctl secret key not found",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::TemplateFileError(ref err) => err.description(),
@@ -459,6 +435,12 @@ impl error::Error for SupError {
             Error::UnpackFailed => "Failed to unpack a package",
             Error::UserNotFound(_) => "No matching UID for user found",
         }
+    }
+}
+
+impl From<SupError> for protocol::net::NetErr {
+    fn from(err: SupError) -> protocol::net::NetErr {
+        protocol::net::err(protocol::net::ErrCode::Internal, err)
     }
 }
 
@@ -573,11 +555,5 @@ impl From<toml::de::Error> for SupError {
 impl From<toml::ser::Error> for SupError {
     fn from(err: toml::ser::Error) -> Self {
         sup_error!(Error::TomlEncode(err))
-    }
-}
-
-impl From<SrvClientError> for SupError {
-    fn from(err: SrvClientError) -> Self {
-        sup_error!(Error::CtlClient(err))
     }
 }
