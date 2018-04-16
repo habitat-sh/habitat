@@ -37,7 +37,7 @@ pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
     ))
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Bind {
     pub service: String,
     pub exports: Vec<String>,
