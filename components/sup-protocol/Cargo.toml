@@ -6,12 +6,14 @@ build = "./build.rs"
 workspace = "../../"
 
 [dependencies]
+base64 = "*"
 bytes = "*"
 futures = "*"
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 lazy_static = "*"
 log = "*"
 protobuf = { version = "*", features = ["bytes"] }
+rand = "*"
 serde = "*"
 tokio = "*"
 tokio-io = "*"

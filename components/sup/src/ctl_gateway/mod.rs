@@ -27,20 +27,16 @@ use std::io::{self, Write};
 use std::fs::{self, File};
 use std::path::Path;
 
-use base64;
 use common::ui::UIWriter;
 use depot_client::DisplayProgress;
 use futures::prelude::*;
 use hcore::util::perm;
 use protocol;
-use rand::{self, Rng};
 
 use error::{Error, Result};
 
 /// Time to wait in milliseconds for a client connection to timeout.
 pub const REQ_TIMEOUT: u64 = 10_000;
-/// Length of characters in CtlGateway secret key.
-const CTL_SECRET_LEN: usize = 64;
 static LOGKEY: &'static str = "AG";
 
 /// Used by modules outside of the CtlGateway for seamlessly replying to transactional messages.
@@ -223,19 +219,11 @@ where
         let secret_key_path = protocol::secret_key_path(sup_root);
         {
             let mut f = File::create(&secret_key_path)?;
-            generate_secret_key(&mut out);
+            protocol::generate_secret_key(&mut out);
             f.write_all(out.as_bytes())?;
             f.sync_all()?;
         }
         perm::set_permissions(&secret_key_path, 0600)?;
         Ok(out)
     }
-}
-
-/// Generate a new secret key used for authenticating clients to the `CtlGateway`.
-fn generate_secret_key(out: &mut String) {
-    let mut rng = rand::OsRng::new().unwrap();
-    let mut result = vec![0u8; CTL_SECRET_LEN];
-    rng.fill_bytes(&mut result);
-    *out = base64::encode(&result);
 }

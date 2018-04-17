@@ -235,6 +235,10 @@ fn start(ui: &mut UI) -> Result<()> {
         },
         ("sup", Some(m)) => match m.subcommand() {
             ("depart", Some(m)) => sub_sup_depart(m)?,
+            ("secret", Some(m)) => match m.subcommand() {
+                ("generate", _) => sub_sup_secret_generate()?,
+                _ => unreachable!(),
+            },
             _ => unreachable!(),
         },
         ("setup", Some(_)) => sub_cli_setup(ui)?,
@@ -1043,6 +1047,14 @@ fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
         })
         .wait()?;
     ui.end("Departure recorded.")?;
+    Ok(())
+}
+
+fn sub_sup_secret_generate() -> Result<()> {
+    let mut ui = ui();
+    let mut buf = String::new();
+    protocol::generate_secret_key(&mut buf);
+    ui.info(buf)?;
     Ok(())
 }
 

@@ -40,7 +40,6 @@
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
 extern crate ansi_term;
-extern crate base64;
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;

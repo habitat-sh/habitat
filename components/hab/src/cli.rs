@@ -606,6 +606,14 @@ pub fn get() -> App<'static, 'static> {
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
+            (@subcommand secret =>
+                (about: "Commands relating to a Habitat Supervisor's Contorl Gateway secret")
+                (@setting ArgRequiredElseHelp)
+                (@subcommand generate =>
+                    (about: "Generate a secret key to use as a Supervisor's Control Gateway secret")
+                    (aliases: &["g", "gen"])
+                )
+            )
         )
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
