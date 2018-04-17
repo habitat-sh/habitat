@@ -214,7 +214,10 @@ where
     let mut out = String::new();
     fs::create_dir_all(&sup_root)
         .map_err(|e| sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e)))?;
-    if protocol::read_secret_key(&sup_root, &mut out).is_ok() {
+    if protocol::read_secret_key(&sup_root, &mut out)
+        .ok()
+        .unwrap_or(false)
+    {
         Ok(out)
     } else {
         let secret_key_path = protocol::secret_key_path(sup_root);
