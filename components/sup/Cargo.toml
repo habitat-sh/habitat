@@ -16,7 +16,6 @@ doc = false
 [dependencies]
 clippy = { version = "*", optional = true }
 ansi_term = "*"
-base64 = "*"
 bitflags = "*"
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }

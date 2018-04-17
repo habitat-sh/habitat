@@ -40,6 +40,7 @@
 //! *not* by a build server intentionally. This is to ensure we have the source available for
 //! all protocol files.
 
+extern crate base64;
 extern crate bytes;
 extern crate futures;
 extern crate habitat_core as core;
@@ -48,6 +49,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
+extern crate rand;
 extern crate serde;
 extern crate tokio;
 extern crate tokio_io;
@@ -63,10 +65,14 @@ use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
+use rand::Rng;
+
 use net::{ErrCode, NetResult};
 
 /// Name of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
+/// Length of characters in CtlGateway secret key.
+const CTL_SECRET_LEN: usize = 64;
 
 lazy_static! {
     /// The root path containing all runtime service directories and files
@@ -81,6 +87,14 @@ lazy_static! {
     pub static ref DEFAULT_BLDR_CHANNEL: String = {
         core::channel::default()
     };
+}
+
+/// Generate a new secret key used for authenticating clients to the `CtlGateway`.
+pub fn generate_secret_key(out: &mut String) {
+    let mut rng = rand::OsRng::new().unwrap();
+    let mut result = vec![0u8; CTL_SECRET_LEN];
+    rng.fill_bytes(&mut result);
+    *out = base64::encode(&result);
 }
 
 /// Read the secret key used to authenticate connections to the `CtlGateway` from disk and write
