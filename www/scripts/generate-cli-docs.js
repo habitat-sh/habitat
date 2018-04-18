@@ -35,7 +35,7 @@ function parseOutput(command, output) {
     const body = s.slice(c + 1);
     result[heading.trim()] = body
       .trim()
-      .replace(/(\n[ ]{5,})[\w]/gm, '$2')
+      .replace(/(\n[ ]{5,})/gm, ' ')
       .split('\n')
       .map(line => line.trim().replace(/^--/, '    --'));
   });
