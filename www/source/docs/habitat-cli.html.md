@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.55.0/20180321220925 (linux) | 22 Mar 2018 |
+| hab 0.55.0/20180321220925 (linux) | 18 Apr 2018 |
 
 ## hab
 
@@ -461,7 +461,7 @@ hab cli setup
 
 ## hab config
 
-Commands relating to Habitat runtime config
+[1;33m» Installing core/hab-butterfly/0.55.0 from channel 'stable'[0m
 
 **USAGE**
 
@@ -982,7 +982,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 **ARGS**
 
 ```
-<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh$2ile
+<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh file
 ```
 
 
@@ -1148,7 +1148,7 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 
 ```
 <FORMAT>       The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)
-<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat$2rtifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1204,7 +1204,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a$2abitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1343,8 +1343,7 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 
 ```
 <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-<DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201
--x86_64-linux.hart)
+<DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201 -x86_64-linux.hart)
 ```
 
 
@@ -1371,8 +1370,7 @@ hab pkg upload [OPTIONS] <HART_FILE>...
 **ARGS**
 
 ```
-<HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64
--linux.hart)
+<HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64 -linux.hart)
 ```
 
 
@@ -1428,7 +1426,7 @@ hab plan [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a$2abitat directory in your current folder for the plan. If PKG_NAME is specified it will create a$2older with that name. Environment variables (those starting with 'pkg_') that are set will be used in$2he generated plan |
+| [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a habitat directory in your current folder for the plan. If PKG_NAME is specified it will create a folder with that name. Environment variables (those starting with 'pkg_') that are set will be used in the generated plan |
 ---
 
 ### hab plan init
@@ -1444,10 +1442,7 @@ hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 **FLAGS**
 
 ```
---windows           Use a Windows Powershell plan template
-    --with-all          Generate omnibus plan with all available plan options
-    --with-callbacks    Include callback functions in template
-    --with-docs         Include plan options documentation
+--windows           Use a Windows Powershell plan template --with-all          Generate omnibus plan with all available plan options --with-callbacks    Include callback functions in template --with-docs         Include plan options documentation
 -h, --help              Prints help information
 -V, --version           Prints version information
 ```
@@ -1739,14 +1734,14 @@ hab sup [FLAGS] <SUBCOMMAND>
 | ------- | ----------- |
 | [hab sup bash](#hab-sup-bash) | Start an interactive Bash-like shell |
 | [hab sup config](#hab-sup-config) | Displays the default configuration options for a service |
-| [hab sup load](#hab-sup-load) | Load a service to be started and supervised by Habitat from a package or artifact. Services started in$2his manner will persist through Supervisor restarts. |
+| [hab sup load](#hab-sup-load) | Load a service to be started and supervised by Habitat from a package or artifact. Services started in this manner will persist through Supervisor restarts. |
 | [hab sup run](#hab-sup-run) | Run the Habitat Supervisor |
 | [hab sup sh](#hab-sup-sh) | Start an interactive Bourne-like shell |
-| [hab sup start](#hab-sup-start) | Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the$2abitat Supervisor is not already running this will additionally start one for you. |
+| [hab sup start](#hab-sup-start) | Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the Habitat Supervisor is not already running this will additionally start one for you. |
 | [hab sup status](#hab-sup-status) | Query the status of Habitat services. |
 | [hab sup stop](#hab-sup-stop) | Stop a running Habitat service. |
 | [hab sup term](#hab-sup-term) | Gracefully terminate the Habitat Supervisor and all of its running services |
-| [hab sup unload](#hab-sup-unload) | Unload a persistent or transient service started by the Habitat Supervisor. If the Supervisor is$2unning when the service is unloaded the service will be stopped. |
+| [hab sup unload](#hab-sup-unload) | Unload a persistent or transient service started by the Habitat Supervisor. If the Supervisor is running when the service is unloaded the service will be stopped. |
 ---
 
 ### hab sup bash
@@ -1813,8 +1808,7 @@ hab sup load [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
 **FLAGS**
 
 ```
--f, --force       Load or reload an already loaded service. If the service was previously loaded and running this$2peration will also restart the service
-    --no-color    Turn ANSI color off
+-f, --force       Load or reload an already loaded service. If the service was previously loaded and running this operation will also restart the service --no-color    Turn ANSI color off
 -v                Verbose output; shows line numbers
 -h, --help        Prints help information
 ```
@@ -1822,8 +1816,7 @@ hab sup load [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
-/home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1843,8 +1836,7 @@ hab sup run [FLAGS] [OPTIONS]
 **FLAGS**
 
 ```
--A, --auto-update       Enable automatic updates for the Supervisor itself
-    --no-color          Turn ANSI color off
+-A, --auto-update       Enable automatic updates for the Supervisor itself --no-color          Turn ANSI color off
 -I, --permanent-peer    If this Supervisor is a permanent peer
 -v                      Verbose output; shows line numbers
 -h, --help              Prints help information
@@ -1891,8 +1883,7 @@ hab sup start [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
 **FLAGS**
 
 ```
--A, --auto-update       Enable automatic updates for the Supervisor itself
-    --no-color          Turn ANSI color off
+-A, --auto-update       Enable automatic updates for the Supervisor itself --no-color          Turn ANSI color off
 -I, --permanent-peer    If this Supervisor is a permanent peer
 -v                      Verbose output; shows line numbers
 -h, --help              Prints help information
@@ -1901,8 +1892,7 @@ hab sup start [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
-/home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
