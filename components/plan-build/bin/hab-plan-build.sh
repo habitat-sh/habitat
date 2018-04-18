@@ -377,6 +377,8 @@ export HAB_BLDR_URL
 export HAB_BLDR_CHANNEL
 # Fall back here if package can't be installed from $HAB_BLDR_CHANNEL
 FALLBACK_CHANNEL="stable"
+# The value of `$PATH` on initial start of this program
+INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
 # The compression level to use when compression harts (0..9)
@@ -1047,6 +1049,25 @@ _populate_dependency_arrays() {
     "${pkg_deps_resolved[@]}"
     "${pkg_build_deps_resolved[@]}"
   )
+
+  # Build an ordered set of all build and run dependencies (direct and
+  # transitive). The order is important as this gets used when setting the
+  # `$PATH` ordering in the build environment. To give priority to direct
+  # dependencies over transitive ones the order of packages is the following:
+  #
+  # 1. All direct run dependencies
+  # 2. All direct build dependencies
+  # 3. All unique transitive run dependencies that aren't already added
+  # 4. All unique transitive build dependencies that aren't already added
+  pkg_all_tdeps_resolved=(
+    "${pkg_deps_resolved[@]}"
+    "${pkg_build_deps_resolved[@]}"
+  )
+  for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
+    pkg_all_tdeps_resolved=(
+      $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
+    )
+  done
 }
 
 # **Internal** Validates that the computed dependencies are reasonable and that
@@ -1325,6 +1346,10 @@ do_default_begin() {
 #    and the run dependencies for each direct run dependency.
 # * `$pkg_all_deps_resolved`: A package-path array of all direct build and
 #    run dependencies, declared in `$pkg_build_deps` and `$pkg_deps`.
+# * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
+#    run and build dependencies, and the run dependencies for each direct
+#    dependency. Further details in the `_populate_dependency_arrays()`
+#    function.
 _resolve_dependencies() {
   # Create initial package arrays
   _init_dependencies
@@ -1351,6 +1376,47 @@ _resolve_dependencies() {
 
   # Validate the dependency arrays
   _validate_deps
+}
+
+# **Internal**  Build and export `$PATH` containing each path in our own
+# `${pkg_bin_dirs[@]}` array, and then any dependency's `PATH` entry (direct or
+# transitive) if one exists. The ordering of the path is specific to
+# `${pkg_all_tdeps_resolved[@]}` which is further explained in the
+# `_resolve_dependencies()` function.
+#
+# Reference implementation:
+# https://github.com/habitat-sh/habitat/blob/3d63753468ace168bbbe4c52e600d408c4981b03/components/plan-build/bin/hab-plan-build.sh#L1584-L1638
+_set_build_path() {
+  local paths=()
+  local dir dep data
+
+  # Add element for each entry in `$pkg_bin_dirs[@]` first
+  for dir in "${pkg_bin_dirs[@]}"; do
+    paths+=("$pkg_prefix/$dir")
+  done
+
+  # Iterate through all build and run dependencies in the order present in
+  # `${pkg_all_tdeps_resolved[@]}` and for each, append each path entry onto
+  # the result, assuming it hasn't already been added. Additionally, any path
+  # entries that don't relate to the dependency in question are filtered out to
+  # deal with a vintage of packages which included more data in `PATH` and have
+  # since been addressed.
+  for dep_prefix in "${pkg_all_tdeps_resolved[@]}"; do
+    if [[ -f "$dep_prefix/PATH" ]]; then
+      data="$(cat "$dep_prefix/PATH")"
+      data="$(trim "$data")"
+      while read -r entry; do
+        paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
+      done <<< $(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")
+    fi
+  done
+
+  paths+=("$INITIAL_PATH")
+
+  PATH="$(join_by ':' "${paths[@]}")"
+  export PATH
+
+  build_line "Setting PATH=$PATH"
 }
 
 # **Internal** This writes out a pre_build.env file, similar to the last_build.env
@@ -1729,6 +1795,7 @@ do_default_install() {
 # * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
 # * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
 # * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
+# * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
 _build_metadata() {
   build_line "Building package metadata"
 
@@ -2267,6 +2334,10 @@ case "${pkg_type}" in
         #   their own Special Thing (they've got their own metadata
         #   files, etc.)
         do_setup_environment_wrapper
+
+        # Set up the `PATH` environment variable so that commands will be found
+        # for all subsequent phases
+        _set_build_path
 
         mkdir -pv "$HAB_CACHE_SRC_PATH"
 

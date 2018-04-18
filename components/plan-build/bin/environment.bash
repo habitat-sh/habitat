@@ -166,6 +166,14 @@ __populate_environment_from_deps() {
         if [ -f "${path_to_dep}/RUNTIME_ENVIRONMENT" ]; then
             while read -r line; do
                 IFS== read var val <<< "${line}"
+                # Any values of `PATH` are skipped as we will be computing the
+                # runtime path independently of the RUNTIME_ENVIRONMENT
+                # metadata files. Additionally, this acts as backwards
+                # compatibility for all `RUNTIME_ENVIRONMENT` files that
+                # contain a `PATH` key.
+                if [[ "${var}" == "PATH" ]]; then
+                  continue;
+                fi
 
                 if [ -n env["${var}"] ]; then
                     # There was a previous value; need to figure out
@@ -204,80 +212,63 @@ __populate_environment_from_deps() {
                     provenance["${var}"]="${dep_ident}"
                 fi
             done < <(_read_metadata_file_for "${path_to_dep}" RUNTIME_ENVIRONMENT)
-        else
-            # Versions of Habitat prior to the introduction of
-            # RUNTIME_ENVIRONMENT have a PATH file. Let's pull that in
-            # to assemble a PATH for our environment going forward.
-            #
-            # This will (in time) fix the issues in the old PATH data,
-            # which included build-time dependencies and system
-            # directories from the Studio. As older,
-            # lower-down-the-stack packages are rebuilt, they'll get
-            # the correct PATH, which will cascade outward.
-            #
-            # The old PATH also would include duplicate entries, as
-            # well as empty entries sometimes. The current resolution
-            # algorithm should filter these out immediately.
-            warn "No RUNTIME_ENVIRONMENT metadata file found for ${dep_ident}; falling back to PATH metadata"
-            local old_path=$(__assemble_legacy_path "${path_to_dep}")
-            if [ -n "${old_path}" ]; then
-                warn "Final generated PATH for ${path_to_dep}: ${old_path}"
-                __push_env "${env_name}" "PATH" "${old_path}" ":" "${dep_ident}"
-            else
-                warn "No PATH metadata found for ${path_to_dep}"
-            fi
         fi
     done
-
-    # NB: This adds any local binaries to the build-time environment;
-    # strictly speaking, not necessary
-
-    # Push new PATH entries in from this package. We currently
-    # disallow users from directly manipulating PATH themselves.
-    local path="$(__process_path)"
-    if [ -n "${path}" ]; then
-        __push_env "${env_name}" "PATH" "${path}" ":" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
-    fi
 }
 
-# For dependencies that do not have a RUNTIME_ENVIRONMENT file, we'll
-# at least assemble a PATH variable that can be used. To be complete
-# and utterly paranoid, we'll iterate through the TDEPS of the
-# dependency and assemble a PATH by layering all the PATHs of each of
-# those dependencies.
+# **Internal**  Build a `PATH` string suitable for entering into the `PATH` key
+# of this package's `RUNTIME_ENVIRONMENT` metadata file. The ordering of this
+# path is important as this value will ultimately be consumed by other programs
+# such as the Supervisor when constructing the `PATH` environment variable
+# before spawning a process.
 #
-# Don't need to do this for packages that already have a
-# RUNTIME_ENVIRONMENT file, because this operation will have already
-# been done when those packages were built. This is to help preserve
-# backward compatibility.
-__assemble_legacy_path() {
-    local path_to_dep="${1}"
-    local path=""
+# The path is constructed by taking all `PATH` metadata file entries from this
+# package (in for the form of `$pkg_bin_dirs[@]`), followed by entries from the
+# *direct* dependencies first (in declared order), and then from any remaining
+# transitive dependencies last (in lexically sorted order). All entries are
+# present only once in the order of their first appearance.
+__assemble_runtime_path() {
+  local paths=()
+  local dir dep data
 
-    local tdeps
-    tdeps=$(_read_metadata_file_for ${path_to_dep} "TDEPS")
-    if [[ -n "${tdeps}" ]]; then
-        for tdep in ${tdeps}; do
-            local path_to_tdep="${HAB_PKG_PATH}/${tdep}"
-            # If a PATH exists for this transitive dependency, collect
-            # it, prepending to the beginning of our accumulating path
-            local tdep_path
-            tdep_path=$(_read_metadata_file_for "${path_to_tdep}" "PATH")
-            if [[ -n "${tdep_path}" ]]; then
-                path=$(push_to_path "${tdep_path}" "${path}")
-            fi
-        done
-    fi
-    # If the current dependency has PATH data itself, prepend it to
-    # what we've been accumulating so far
-    local current_dep_path
-    current_dep_path=$(_read_metadata_file_for "${path_to_dep}" "PATH")
-    if [[ -n "${current_dep_path}" ]]; then
-        path=$(push_to_path "${current_dep_path}" "${path}")
-    fi
+  # Add element for each entry in `$pkg_bin_dirs[@]` first
+  for dir in "${pkg_bin_dirs[@]}"; do
+    paths+=("$pkg_prefix/$dir")
+  done
 
-    # Finally, return the path
-    echo "$path"
+  # Iterate through all direct direct run dependencies following by all
+  # remaining transitive run dependencies and for each, append each path entry
+  # onto the result, assuming it hasn't already been added. In this way, all
+  # direct dependencies will match first and any programs that are used by a
+  # direct dependency will also be present on PATH, albeit at the very end of
+  # the PATH. Additionally, any path entries that don't relate to the
+  # dependency in question are filtered out to deal with a vintage of packages
+  # which included more data in `PATH` and have since been addressed.
+  for dep_prefix in "${pkg_deps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
+    if [[ -f "$dep_prefix/PATH" ]]; then
+      data="$(cat "$dep_prefix/PATH")"
+      data="$(trim "$data")"
+      while read -r entry; do
+        paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
+      done <<< $(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")
+    fi
+  done
+
+  # Return the elements of the result, joined with a colon
+  join_by ':' "${paths[@]}"
+}
+
+# **Internal**  Set the `PATH` key for the runtime environment if a computed
+# runtime path is necessary. If a package has no `${pkg_bin_dirs[@]}` elements
+# and has no runtime dependencies with `PATH` entries, then a computed runtime
+# path would be empty, meaning that no `PATH` value should be set.
+__set_runtime_env_path() {
+  local runtime_path
+
+  runtime_path="$(__assemble_runtime_path)"
+  if [[ -n "$runtime_path" ]]; then
+    __runtime_environment["PATH"]="$runtime_path"
+  fi
 }
 
 set_buildtime_env() {
@@ -463,12 +454,7 @@ do_setup_environment_wrapper() {
     # runtime path onto the front of the system path
     for k in ${!__runtime_environment[@]}; do
         local v="${__runtime_environment[${k}]}"
-        if [ "${k}" == "PATH" ]; then
-            build_line "Value of ${k} is ${!k}"
-            export "${k}"="$(push_to_path ${v} ${!k})"
-        else
-            export "${k}"="${v}"
-        fi
+        export "${k}"="${v}"
     done
 
     build_line "Layering buildtime environment on top of system environment"
@@ -501,6 +487,8 @@ do_setup_environment_wrapper() {
             export "${k}"="${v}"
         fi
     done
+
+    __set_runtime_env_path
 }
 
 do_setup_environment() {
