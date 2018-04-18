@@ -1,111 +1,53 @@
 footer#main-footer class="#{layout_class}" data-swiftype-index="false"
+  .row.graphics
+    .columns.small-offset-8.small-4.end
+      img.footer--habicat src='/images/graphics/habicat-wave.svg'
+  .row.footer--sitemap
+    .columns.large-2.small-12
+      a.footer--logo.habitat href="/" title="Habitat Home"
+        img[src="/images/habitat-logo-by-chef-white.svg"
+          onerror="this.src='/images/habitat-logo-by-chef-white.png'" alt="Habitat by Chef"]
+    .columns.large-8.small-12.center
+      ul.footer--links.inline
+        li.footer--sitemap--link
+          =link_to 'Learn', '/learn'
+        li.footer--sitemap--link
+          =link_to 'Docs', '/docs'
+        li.footer--sitemap--link
+          =link_to 'Community', '/community'
+        li.footer--sitemap--link
+          =link_to 'Enterprise', '/enterprise'
+        li.footer--sitemap--link
+          =link_to 'Blog', '/blog'
+        li.footer--sitemap--link
+            a href="#{builder_web_url}/#/" Habitat Builder
+    .columns.large-2.small-12.footer--social-links
+      ul.footer--links.social.inline
+        li.footer--socials--link
+          a.github.small.white.icon-only href="https://github.com/habitat-sh/habitat" GitHub
+        li.footer--socials--link
+          a.slack.small.white.icon-only href="http://slack.habitat.sh/" Slack
+        li.footer--socials--link
+          a.twitter.small.white.icon-only href="https://twitter.com/habitatsh" Twitter
+        li.footer--socials--link
+          a.youtube.small.white.icon-only href="https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk" YouTube
 
-  .footer--decor
-    .row
-      .columns.large-6.small-4.footer--decor-item.footer--decor-clam
-        img src="/images/decor/habs-in-clams.svg" alt="Habitat in your enviroments!"/
-      .columns.large-2.small-4.footer--decor-item.footer--decor-trees
-        img src="/images/decor/tree-pair.svg"/
-      .columns.large-2.footer--decor-item.hide-small.footer--decor-cube
-        img src="/images/decor/hab-cube.svg"/
-      .columns.large-2.small-4.footer--decor-item.footer--decor-snorkel
-        img src="/images/decor/snorkelling-habicat.svg"/
-
-  .footer--sitemap
-    .row
-      .columns.medium-12
-        a.footer--logo.habitat href="/" title="Habitat Home"
-          img[src="/images/habitat-logo-by-chef-white.svg"
-            onerror="this.src='/images/habitat-logo-by-chef-white.png'" alt="Habitat by Chef"]
-    .row
-      .columns.medium-12
-        .row
-          .columns.medium-2.small-6
-            ul.no-bullet
-              li
-                h4.footer--subheader About Habitat
-              li.footer--sitemap--link
-                a href="/" Home
-              li.footer--sitemap--link
-                a href="/about" Why Habitat
-              li.footer--sitemap--link
-                a href="https://github.com/habitat-sh/habitat/blob/master/CONTRIBUTING.md#report-a-security-vulnerability" Security
-
-          .columns.medium-2.small-6
-            ul.no-bullet
-              li
-                h4.footer--subheader Resources
-              li.footer--sitemap--link
-                a href="/learn" Learn Habitat
-              li.footer--sitemap--link
-                a href="/docs" Docs
-              li.footer--sitemap--link
-                a href="/blog" Blog
-
-          .columns.medium-2.small-6
-            ul.no-bullet
-              li
-                h4.footer--subheader Habitat Builder
-              li.footer--sitemap--link
-                a href="#{builder_web_url}/#/pkgs/core" Search Packages
-              li.footer--sitemap--link
-                a href="#{builder_web_url}/#/sign-in" Sign In
-              li.footer--sitemap--link
-                a href="/docs/install-habitat/" Download CLI
-
-          .columns.medium-2.small-6
-            ul.no-bullet
-              li
-                h4.footer--subheader Community
-              li.footer--sitemap--link
-                a href="https://forums.habitat.sh/" Forums
-              li.footer--sitemap--link
-                a href="https://events.chef.io/events/categories/habitat/" Events
-              li.footer--sitemap--link
-                a href="https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6" Roadmap
-              li.footer--sitemap--link
-                a href="https://github.com/habitat-sh/habitat/projects/1" GitHub Tracker
-
-          .columns.medium-2.small-6
-            ul.no-bullet
-              li
-                h4.footer--subheader Support
-              li.footer--sitemap--link
-                a href="https://github.com/habitat-sh/habitat/issues" New Issues
-              li.footer--sitemap--link
-                a href="https://portal.prodpad.com/24539" Feature Request
-              li.footer--sitemap--link
-                a href="http://slack.habitat.sh/" Habitat Slack
-              li.footer--sitemap--link
-                a href="https://status.habitat.sh/" target="_blank" Status
-
-          .columns.medium-2.small-6
-            ul.no-bullet.social
-              li
-                h4.footer--subheader Around the Web
-              li.footer--sitemap--link
-                a.github href="https://github.com/habitat-sh/habitat" GitHub
-              li.footer--sitemap--link
-                a.twitter href="https://twitter.com/habitatsh" Twitter
-              li.footer--sitemap--link
-                a.youtube href="https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk" YouTube
-
-        .row
-          .columns.medium-12
-            ul.no-bullet.footer--copyright
-              li.footer--sitemap--link
-                p &copy; #{Time.now.year} Chef Software, Inc. All Rights Reserved. Patent Pending.
-              li.footer--sitemap--link
-                a href="/legal/licensing" Licensing
-              li.footer--sitemap--link
-                a href="/legal/terms-and-conditions" Terms &amp; Conditions
-              li.footer--sitemap--link
-                a href="/legal/trademark-policy" Trademark Policy
-              li.footer--sitemap--link
-                a href="/legal/privacy-policy" Privacy Policy
-              li.footer--sitemap--link
-                a href="https://github.com/habitat-sh/habitat/blob/master/CONTRIBUTING.md#contributing-to-habitat" Contributing
-              li.footer--sitemap--link
-                a href="https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md" Code of Conduct
-              li.footer--sitemap--link
-                a href="https://www.chef.io/cookie-policy/" Cookie Policy
+  .row.footer--legal
+    .columns.large-4.small-12
+      p.footer--copyright &copy; #{Time.now.year} Chef Software, Inc. All Rights Reserved. Patent Pending.
+    .columns.large-8.small-12
+      ul.inline.footer--legal--links
+        li.footer--legal--link
+          a href="/legal/licensing" Licensing
+        li.footer--legal--link
+          a href="/legal/terms-and-conditions" Terms &amp; Conditions
+        li.footer--legal--link
+          a href="/legal/trademark-policy" Trademark Policy
+        li.footer--legal--link
+          a href="/legal/privacy-policy" Privacy Policy
+        li.footer--legal--link
+          a href="https://github.com/habitat-sh/habitat/blob/master/CONTRIBUTING.md#contributing-to-habitat" Contributing
+        li.footer--legal--link
+          a href="https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md" Code of Conduct
+        li.footer--legal--link
+          a href="https://www.chef.io/cookie-policy/" Cookie Policy

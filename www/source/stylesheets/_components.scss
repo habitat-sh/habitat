@@ -130,3 +130,37 @@ $std-margin: 20;
   &.cloudfoundry { background-image: url('/images/solutions-logos/icon-cloudfoundry-contrast.svg'); }
   &.coreos { background-image: url('/images/solutions-logos/icon-coreos.svg'); }
 }
+
+ul.inline {
+  list-style-type: none;
+  margin: 0px;
+
+  > li {
+    display: inline-block;
+  }
+}
+
+a.icon-only {
+  text-indent: -999px;
+  display: inline-block;
+  overflow: hidden;
+  background: {
+    position: center center;
+    repeat: no-repeat;
+    color: transparent;
+    size: cover;
+  }
+
+  &.small {
+    height: 14px;
+    width: 14px;
+  }
+
+  &.white {
+    &.github  { background-image: url('/images/icons/icon-github-white.svg'); }
+    &.twitter { background-image: url('/images/icons/icon-twitter-white.svg'); }
+    &.slack   { background-image: url('/images/icons/icon-slack-white.svg'); }
+    &.youtube { background-image: url('/images/icons/icon-youtube-white.svg'); }
+  }
+
+}
