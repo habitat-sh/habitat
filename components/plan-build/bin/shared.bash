@@ -143,26 +143,26 @@ _render_metadata_LD_RUN_PATH() {
     fi
 }
 
-# Simply converts contents of pkg_bin_dirs into a PATH variable
-__process_path() {
-    local path=()
-
-    # Contents of `pkg_bin_dirs` are relative to the plan root;
-    # prepend the full path to this release so everything resolves
-    # properly once the package is installed.
-    for bin in "${pkg_bin_dirs[@]}"; do
-        path+=("${pkg_prefix}/${bin}")
-    done
-
-    echo "$(join_by ':' ${path[@]})"
-}
-
 # The PATH metadata file contains ONLY the bins contained in your package
 # for `pkg_bin_dirs`
 #
 _render_metadata_PATH() {
+  if [[ ${#pkg_bin_dirs[@]} -gt 0 ]]; then
+    local paths=()
+    local dir
+
     debug "Rendering PATH metadata file"
-    echo "$(__process_path)" > "${pkg_prefix}/PATH"
+    # Contents of `pkg_bin_dirs` are relative to the plan root;
+    # prepend the full path to this release so everything resolves
+    # properly once the package is installed.
+    for dir in "${pkg_bin_dirs[@]}"; do
+        paths+=("${pkg_prefix}/${dir}")
+    done
+
+    echo "$(join_by ':' ${paths[@]})" > "${pkg_prefix}/PATH"
+  else
+    debug "Would have rendered PATH, but there was no data for it"
+  fi
 }
 
 _render_metadata_PKG_CONFIG_PATH() {
