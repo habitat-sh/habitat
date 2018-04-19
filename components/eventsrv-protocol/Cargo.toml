@@ -1,0 +1,21 @@
+[package]
+name = "habitat-eventsrv-protocol"
+version = "0.0.0"
+authors = [
+  "Josh Black <raskchanky@gmail.com>",
+  "Christopher Maier <cmaier@chef.io>",
+  "Jamie Winsor <reset@habitat.sh>",
+]
+build = "build.rs"
+workspace = "../../"
+
+[dependencies]
+protobuf = "*"
+serde = "*"
+serde_derive = "*"
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[features]
+protocols = []
