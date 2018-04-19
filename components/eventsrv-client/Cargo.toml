@@ -12,7 +12,7 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 byteorder = "*"
-habitat-eventsrv-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
+habitat-eventsrv-protocol = { path = "../eventsrv-protocol", default-features = false }
 lazy_static = "*"
 log = "*"
 protobuf = "*"
