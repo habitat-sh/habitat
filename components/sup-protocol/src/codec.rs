@@ -56,6 +56,7 @@
 
 use std::fmt;
 use std::io::{self, Cursor};
+use std::str;
 
 use bytes::{BigEndian, Buf, BufMut, Bytes, BytesMut};
 use futures;
@@ -350,13 +351,17 @@ where
 }
 
 /// Binary encoder decoder for the `SrvProtocol` binary protocol.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct SrvCodec(());
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct SrvCodec {
+    recv_buf: Vec<u8>,
+}
 
 impl SrvCodec {
     /// Creates a new `SrvCodec` for shipping around `SrvMessage`s.
     pub fn new() -> SrvCodec {
-        SrvCodec(())
+        SrvCodec {
+            recv_buf: vec![0; BODY_LEN_MASK as usize],
+        }
     }
 }
 
@@ -385,13 +390,11 @@ impl Decoder for SrvCodec {
             // Not enough bytes to read message_id and body
             return Ok(None);
         }
-        // I can probably use a single buffer for this instead of allocating two everytime we want
-        // to process a message.
-        let mut message_id_buf: Vec<u8> = vec![0; header.message_id_len()];
-        let mut body_buf: Vec<u8> = vec![0; header.body_len()];
-        buf.copy_to_slice(&mut message_id_buf);
-        buf.copy_to_slice(&mut body_buf);
-        let message_id = String::from_utf8(message_id_buf).unwrap();
+        buf.copy_to_slice(&mut self.recv_buf[0..header.message_id_len()]);
+        let message_id = str::from_utf8(&self.recv_buf[0..header.message_id_len()])
+            .unwrap()
+            .to_string();
+        buf.copy_to_slice(&mut self.recv_buf[0..header.body_len()]);
         let position = buf.position() as usize;
         let bytes = buf.into_inner();
         bytes.split_to(position);
@@ -399,7 +402,7 @@ impl Decoder for SrvCodec {
             header: header,
             transaction: txn,
             message_id: message_id,
-            body: Bytes::from(body_buf),
+            body: Bytes::from(&self.recv_buf[0..header.body_len()]),
         }))
     }
 }
