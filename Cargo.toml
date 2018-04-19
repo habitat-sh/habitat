@@ -10,6 +10,7 @@ members = [
   "components/common",
   "components/eventsrv",
   "components/eventsrv-client",
+  "components/eventsrv-protocol",
   "components/hab",
   "components/launcher",
   "components/launcher-client",

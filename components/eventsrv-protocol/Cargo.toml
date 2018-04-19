@@ -15,7 +15,9 @@ serde = "*"
 serde_derive = "*"
 
 [build-dependencies]
-pkg-config = "0.3"
+protoc = "1.4"
+protoc-rust = "1.4"
 
 [features]
+default = ["protocols"]
 protocols = []

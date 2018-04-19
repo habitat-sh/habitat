@@ -16,7 +16,7 @@ byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 env_logger = "*"
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
-habitat-eventsrv-protocol = { git = "https://github.com/habitat-sh/protocols.git" }
+habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
 log = "*"
 protobuf = "*"
 serde = "*"
