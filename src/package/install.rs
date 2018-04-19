@@ -31,6 +31,7 @@ use error::{Error, Result};
 use fs;
 
 pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
+const PATH_KEY: &'static str = "PATH";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PackageInstall {
@@ -228,6 +229,25 @@ impl PackageInstall {
         self.read_deps(MetaFile::Services)
     }
 
+    /// Constructs and returns a `HashMap` of environment variable/value key pairs of all
+    /// environment variables needed to properly run a command from the context of this package.
+    pub fn environment_for_command(&self) -> Result<HashMap<String, String>> {
+        let mut env = self.runtime_environment()?;
+        // Remove any pre-existing PATH key as this is either from an older package or is
+        // present for backwards compatibility with older Habitat releases.
+        env.remove(PATH_KEY);
+
+        let path = env::join_paths(self.runtime_paths()?)?
+            .into_string()
+            .map_err(|s| Error::InvalidPathString(s))?;
+        // Only insert a PATH entry if the resulting path string is non-empty
+        if !path.is_empty() {
+            env.insert(PATH_KEY.to_string(), path);
+        }
+
+        Ok(env)
+    }
+
     pub fn binds(&self) -> Result<Vec<Bind>> {
         match self.read_metafile(MetaFile::Binds) {
             Ok(body) => {
@@ -387,7 +407,7 @@ impl PackageInstall {
                     let pkg_prefix = fs::pkg_install_path(self.ident(), None::<&Path>);
                     match self.read_metafile(MetaFile::RuntimeEnvironment) {
                         Ok(ref body) => {
-                            match Self::parse_runtime_environment_metafile(body)?.get("PATH") {
+                            match Self::parse_runtime_environment_metafile(body)?.get(PATH_KEY) {
                                 Some(env_path) => {
                                     let v = env::split_paths(env_path)
                                         .filter(|p| p.starts_with(&pkg_prefix))
@@ -442,8 +462,29 @@ impl PackageInstall {
         Ok(deps)
     }
 
+    /// Returns an ordered `Vec` of path entries which are read from the package's `RUNTIME_PATH`
+    /// metafile if it exists, or calcuated using `PATH` metafiles if the package is older.
+    /// Otherwise, an empty `Vec` is returned.
+    ///
+    /// # Errors
+    ///
+    /// * If a metafile exists but cannot be properly parsed
+    fn runtime_paths(&self) -> Result<Vec<PathBuf>> {
+        match self.read_metafile(MetaFile::RuntimePath) {
+            Ok(body) => {
+                if body.is_empty() {
+                    return Ok(vec![]);
+                }
+
+                Ok(env::split_paths(&body).collect())
+            }
+            Err(Error::MetaFileNotFound(MetaFile::RuntimePath)) => self.legacy_runtime_paths(),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Returns an ordered `Vec` of path entries which can be used to create a runtime `PATH` value
-    /// when an older package is missing a `RUNTIME_ENVIRONMENT` metafile.
+    /// when an older package is missing a `RUNTIME_PATH` metafile.
     ///
     /// The path is constructed by taking all `PATH` metafile entries from the current package,
     /// followed by entries from the *direct* dependencies first (in declared order), and then from
@@ -452,7 +493,7 @@ impl PackageInstall {
     ///
     /// Preserved reference implementation:
     /// https://github.com/habitat-sh/habitat/blob/333b75d6234db0531cf4a5bdcb859f7d4adc2478/components/core/src/package/install.rs#L321-L350
-    fn legacy_runtime_path(&self) -> Result<Vec<PathBuf>> {
+    fn legacy_runtime_paths(&self) -> Result<Vec<PathBuf>> {
         let mut paths = Vec::new();
         let mut seen = HashSet::new();
 
@@ -494,22 +535,14 @@ impl PackageInstall {
         Ok(env)
     }
 
-    /// Return the embedded runtime environment specification for a
-    /// package.
-    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
+    /// Return the parsed contents of the package's `RUNTIME_ENVIRONMENT` metafile as a `HashMap`,
+    /// or an empty `HashMap` if not found.
+    ///
+    /// If no value of `RUNTIME_ENVIRONMENT` is found, return an empty `HashMap`.
+    fn runtime_environment(&self) -> Result<HashMap<String, String>> {
         match self.read_metafile(MetaFile::RuntimeEnvironment) {
             Ok(ref body) => Self::parse_runtime_environment_metafile(body),
-            Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => {
-                // If there was no RUNTIME_ENVIRONMENT, we can at
-                // least return a proper PATH
-                let path = env::join_paths(self.legacy_runtime_path()?.iter())?
-                    .into_string()
-                    .map_err(|os_string| Error::InvalidPathString(os_string))?;
-
-                let mut env = HashMap::new();
-                env.insert(String::from("PATH"), path);
-                Ok(env)
-            }
+            Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -782,6 +815,46 @@ mod test {
         );
     }
 
+    /// Creates a `RUNTIME_PATH` metafile with path entries in the order of the `Vec` of
+    /// `PackageInstall`s. Note that this implementation uses the `PATH` metafile of each
+    /// `PackageInstall`, including the target `pkg_install`.
+    fn set_runtime_path_for(pkg_install: &PackageInstall, installs: Vec<&PackageInstall>) {
+        let mut paths = Vec::new();
+        for install in installs {
+            for path in install
+                .paths()
+                .expect("Could not read or parse PATH metafile")
+            {
+                paths.push(path)
+            }
+        }
+
+        write_metafile(
+            &pkg_install,
+            MetaFile::RuntimePath,
+            env::join_paths(paths).unwrap().to_string_lossy().as_ref(),
+        );
+    }
+
+    /// Creates a `DEPS` metafile for the given `PackageInstall` populated with the provided deps.
+    fn set_deps_for(pkg_install: &PackageInstall, deps: Vec<&PackageInstall>) {
+        let mut content = String::new();
+        for dep in deps.iter().map(|d| d.ident()) {
+            content.push_str(&format!("{}\n", dep));
+        }
+        write_metafile(&pkg_install, MetaFile::Deps, &content);
+    }
+
+    /// Creates a `TDEPS` metafile for the given `PackageInstall` populated with the provided
+    /// tdeps.
+    fn set_tdeps_for(pkg_install: &PackageInstall, tdeps: Vec<&PackageInstall>) {
+        let mut content = String::new();
+        for tdep in tdeps.iter().map(|d| d.ident()) {
+            content.push_str(&format!("{}\n", tdep));
+        }
+        write_metafile(&pkg_install, MetaFile::TDeps, &content);
+    }
+
     /// Returns the prefix path for a `PackageInstall`, making sure to not include any `FS_ROOT`.
     fn pkg_prefix_for(pkg_install: &PackageInstall) -> PathBuf {
         fs::pkg_install_path(pkg_install.ident(), None::<&Path>)
@@ -973,26 +1046,101 @@ core/bar=pub:core/publish sub:core/subscribe
         );
     }
 
-    // This test ensures the correct ordering of runtime `PATH` entries for legacy packages which
-    // lack a `RUNTIME_ENVIRONMENT` metafile.
     #[test]
-    fn legacy_runtime_path() {
-        fn set_deps_for(pkg_install: &PackageInstall, deps: Vec<&PackageInstall>) {
-            let mut content = String::new();
-            for dep in deps.iter().map(|d| d.ident()) {
-                content.push_str(&format!("{}\n", dep));
-            }
-            write_metafile(&pkg_install, MetaFile::Deps, &content);
-        }
+    fn runtime_paths_single_package_single_path() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        set_path_for(&pkg_install, vec!["bin"]);
+        set_runtime_path_for(&pkg_install, vec![&pkg_install]);
 
-        fn set_tdeps_for(pkg_install: &PackageInstall, tdeps: Vec<&PackageInstall>) {
-            let mut content = String::new();
-            for tdep in tdeps.iter().map(|d| d.ident()) {
-                content.push_str(&format!("{}\n", tdep));
-            }
-            write_metafile(&pkg_install, MetaFile::TDeps, &content);
-        }
+        assert_eq!(
+            vec![pkg_prefix_for(&pkg_install).join("bin")],
+            pkg_install.runtime_paths().unwrap()
+        );
+    }
 
+    #[test]
+    fn runtime_paths_single_package_multiple_paths() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        set_path_for(&pkg_install, vec!["sbin", ".gem/bin", "bin"]);
+        set_runtime_path_for(&pkg_install, vec![&pkg_install]);
+
+        let pkg_prefix = pkg_prefix_for(&pkg_install);
+
+        assert_eq!(
+            vec![
+                pkg_prefix.join("sbin"),
+                pkg_prefix.join(".gem/bin"),
+                pkg_prefix.join("bin"),
+            ],
+            pkg_install.runtime_paths().unwrap()
+        );
+    }
+
+    #[test]
+    fn runtime_paths_multiple_packages() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+
+        let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
+        set_path_for(&other_pkg_install, vec!["sbin"]);
+
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        set_path_for(&pkg_install, vec!["bin"]);
+        set_runtime_path_for(&pkg_install, vec![&pkg_install, &other_pkg_install]);
+
+        assert_eq!(
+            vec![
+                pkg_prefix_for(&pkg_install).join("bin"),
+                pkg_prefix_for(&other_pkg_install).join("sbin"),
+            ],
+            pkg_install.runtime_paths().unwrap()
+        );
+    }
+
+    // This test uses the legacy/fallback implementation of determining the runtime path
+    #[test]
+    fn runtime_paths_metafile_missing_with_path_metafiles() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+
+        let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
+        set_path_for(&other_pkg_install, vec!["sbin"]);
+
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        set_path_for(&pkg_install, vec!["bin"]);
+        set_deps_for(&pkg_install, vec![&other_pkg_install]);
+        set_tdeps_for(&pkg_install, vec![&other_pkg_install]);
+
+        assert_eq!(
+            vec![
+                pkg_prefix_for(&pkg_install).join("bin"),
+                pkg_prefix_for(&other_pkg_install).join("sbin"),
+            ],
+            pkg_install.runtime_paths().unwrap()
+        );
+    }
+
+    #[test]
+    fn runtime_paths_metafile_empty() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        // A `PATH` metafile should *not* influence this test
+        set_path_for(&pkg_install, vec!["nope"]);
+
+        // Create a zero-sizd `RUNTIME_PATH` metafile
+        let _ = File::create(
+            pkg_install
+                .installed_path
+                .join(MetaFile::RuntimePath.to_string()),
+        ).unwrap();
+
+        assert_eq!(Vec::<PathBuf>::new(), pkg_install.runtime_paths().unwrap());
+    }
+
+    // This test ensures the correct ordering of runtime `PATH` entries for legacy packages which
+    // lack a `RUNTIME_PATH` metafile.
+    #[test]
+    fn legacy_runtime_paths() {
         fn paths_for(pkg_install: &PackageInstall) -> Vec<PathBuf> {
             pkg_install.paths().unwrap()
         }
@@ -1042,6 +1190,70 @@ core/bar=pub:core/publish sub:core/subscribe
         expected.append(&mut paths_for(&foxtrot));
         expected.append(&mut paths_for(&golf));
 
-        assert_eq!(expected, alpha.legacy_runtime_path().unwrap());
+        assert_eq!(expected, alpha.legacy_runtime_paths().unwrap());
+    }
+
+    #[test]
+    fn environment_for_command_missing_all_metafiles() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+
+        assert_eq!(
+            HashMap::<String, String>::new(),
+            pkg_install.environment_for_command().unwrap()
+        );
+    }
+
+    #[test]
+    fn environment_for_command_with_runtime_environment_with_no_path() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+
+        // Create a `RUNTIME_ENVIRONMENT` metafile including a `PATH` key which should be ignored
+        write_metafile(
+            &pkg_install,
+            MetaFile::RuntimeEnvironment,
+            "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n",
+        );
+
+        let mut expected = HashMap::new();
+        expected.insert("FOO".to_string(), "bar".to_string());
+        expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
+
+        assert_eq!(expected, pkg_install.environment_for_command().unwrap());
+    }
+
+    #[test]
+    fn environment_for_command_with_runtime_environment_with_path() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+
+        let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
+        set_path_for(&other_pkg_install, vec!["sbin"]);
+
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+        set_path_for(&pkg_install, vec!["bin"]);
+        set_runtime_path_for(&pkg_install, vec![&pkg_install, &other_pkg_install]);
+
+        // Create a `RUNTIME_ENVIRONMENT` metafile including a `PATH` key which should be ignored
+        write_metafile(
+            &pkg_install,
+            MetaFile::RuntimeEnvironment,
+            "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n",
+        );
+
+        let mut expected = HashMap::new();
+        expected.insert("FOO".to_string(), "bar".to_string());
+        expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
+        expected.insert(
+            "PATH".to_string(),
+            env::join_paths(vec![
+                pkg_prefix_for(&pkg_install).join("bin"),
+                pkg_prefix_for(&other_pkg_install).join("sbin"),
+            ]).unwrap()
+                .to_string_lossy()
+                .into_owned(),
+        );
+
+        assert_eq!(expected, pkg_install.environment_for_command().unwrap());
     }
 }
