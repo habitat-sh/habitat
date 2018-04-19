@@ -7,8 +7,6 @@ github:
   # The file where our CHANGELOG is kept. This file is updated automatically with
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
   changelog_file: "CHANGELOG.md"
-  # The Github Team primarily responsible for handling incoming Pull Requests.
-  maintainer_group: habitat-sh/habitat-core-maintainers
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
