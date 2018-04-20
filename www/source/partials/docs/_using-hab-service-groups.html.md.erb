@@ -12,7 +12,7 @@ In addition, multiple service groups can reside in the same ring. This allows da
 be shared with other members of the ring regardless of which group they are in.
 
 ## Joining a service group
-To join a service group, run your service either natively with the `hab start` command, or
+To join a service group, run your service either natively with the `hab sup run` command, or
 through an external runtime format such as a Docker container. A best practice is to name the
 group after an environment to support continuous deployment workflows.
 
@@ -21,7 +21,7 @@ group after an environment to support continuous deployment workflows.
 Here's how to start up the `myapp` service with the `prod` group name using the Supervisor (`hab-sup`) directly:
 
 ```shell
-$ hab start myorigin/myapp --group prod
+$ hab sup run myorigin/myapp --group prod
 ```
 
 Here's how to run the same command from a Docker container:
@@ -45,11 +45,11 @@ at runtime.  In a new window or external runtime format, run the same command yo
 reference the peer IP address of the previous service specified in the Supervisor output above.
 
 ```shell
-$ hab start myorigin/myapp --group prod --peer 172.17.0.2
+$ hab sup run myorigin/myapp --group prod --peer 172.17.0.2
 ```
 
 > Note: The default port for listening to gossip rumors is `9638` unless specified at runtime by the initial service (through `--listen-gossip` option
-at start up) and by any peers connecting to it through the `--peer` option. See `hab start --help` for more information and examples.
+at start up) and by any peers connecting to it through the `--peer` option. See `hab sup run --help` for more information and examples.
 
 The output for this new service shows that it has either formed a new ring with the service above, or joined
 an existing ring where the other service was a member.

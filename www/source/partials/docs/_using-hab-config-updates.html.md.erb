@@ -16,7 +16,7 @@ You can supply a `user.toml` containing any configuration data that you want to 
 Override default configuration data through the use of an environment variable with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
 
 ```shell
-$ HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab start <origin>/<packagename>
+$ HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab svc start <origin>/<packagename>
 ```
 
 > Note: The preferred syntax used for applying configuration through environment variables is JSON but must be valid JSON input. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
@@ -25,7 +25,7 @@ For multiline environment variables, such as those in a TOML table or nested key
 file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
 ```shell
-$ HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab start <origin>/<packagename>
+$ HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab svc start <origin>/<packagename>
 ```
 
 The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied to one service at a time, and you have to manually interrupt (Ctrl+C) a running service before changing its configuration settings again.

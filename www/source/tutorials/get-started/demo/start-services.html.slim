@@ -5,7 +5,7 @@ title: Habitat - Start Up Services
 section
   h2 Start Up Services
 
-  p In the first window below, start up the front end using the <code>hab start</code> command. This command first starts up the Habitat #{link_to 'Supervisor', '/docs/glossary#glossary-supervisor'} and then runs your application according to the behavior specified in your package.
+  p In the first window below, start up the front end using the <code>hab sup run</code> command. This command first starts up the Habitat #{link_to 'Supervisor', '/docs/glossary#glossary-supervisor'} and then runs your application according to the behavior specified in your package.
 
   p The start up procedure for the PostgreSQL package is similar, so in the second window, we have already started that package for you.
 
@@ -16,7 +16,7 @@ section
 
     = code(:shell) do
       |
-       $ hab start example/myrubyapp
+       $ hab sup run example/myrubyapp
 
   .window-buttons
     ul
@@ -30,7 +30,7 @@ section
 
   .shell-panel.window-node id="window-node-2" style="display:none;"
     pre
-      | user@workstation-machine:~$ hab start core/postgresql
+      | user@workstation-machine:~$ hab sup run core/postgresql
 
         hab-sup(MR): Butterfly Member ID 5eea050dcf5e41dd990c8552f4784c19
         hab-sup(SR): Adding core/postgresql/9.6.1/20170424032128

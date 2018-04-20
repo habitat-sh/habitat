@@ -314,13 +314,13 @@ section
 
    = code(:shell) do
      | 
-      $ sudo hab start core/postgresql --topology leader --group production
+      $ sudo hab sup run core/postgresql --topology leader --group production
 
    p Then, in each of the other two instances, run this command:
 
    = code(:shell) do
    |
-    $ sudo hab start core/postgresql --topology leader --group production --peer first_instance_public_ip_address
+    $ sudo hab sup run core/postgresql --topology leader --group production --peer first_instance_public_ip_address
 
    p This will connect them with the first instance and create a Supervisor ring. When all three are up, you will see them hold an election and select a leader.
 

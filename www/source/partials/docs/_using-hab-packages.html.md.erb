@@ -1,4 +1,4 @@
-# <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Habitat Packages</a>
+hab pkg install# <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Habitat Packages</a>
 
 Habitat packages used to start services are run under the Habitat Supervisor. At runtime, you can join Supervisors together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
 
@@ -13,7 +13,7 @@ Packages can be tested in the interactive studio environment or natively on a ho
 When entering an interactive studio, a Supervisor is started for you in the background. To run packages inside of this Supervisor:
 
 1. [Build your package](/docs/developing-packages/#plan-builds) inside an interactive studio. Do not exit the studio after it is built.
-2. To start your service in the running Supervisor, type `hab sup start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
+2. To start your service in the running Supervisor, type `hab svc start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
 
 Because the Supervisor is running in the background, you will not see the Supervisor output as you start your service. However you can use the `sup-log` (or `Get-SupervisorLog` on Windows) command that will stream the tail of the Supervisor output.
 
@@ -29,14 +29,14 @@ If your host machine is running Linux, do the following to run your packages:
 * Run the `hab` CLI as root.
 
     ```shell
-    $ sudo hab start yourorigin/yourname
+    $ sudo hab svc start yourorigin/yourname
     ```
 
-You may use the same `hab start` command on Windows but omit the `sudo` command. However, you should be inside of an elevated shell. Also, note that the `hab` user is not necessary on Windows. If it is absent, services will run under the identity of the current user. If a `hab` user is present, you will need to provide its password via the`--password` argument:
+You may use the same `hab svc start` command on Windows by omitting the `sudo` command. However, you should be inside of an elevated shell. Also, note that the `hab` user is not necessary on Windows. If it is absent, services will run under the identity of the current user. If a `hab` user is present, you will need to provide its password via the`--password` argument:
 
 ```shell
 PS C:\\> $cred = Get-Credential hab
-PS C:\\> hab start yourorigin/yourname --password $cred.GetNetworkCredential().Password
+PS C:\\> hab svc start yourorigin/yourname --password $cred.GetNetworkCredential().Password
 ```
 
 ## Running packages in any environment
@@ -80,7 +80,7 @@ After you have built the hart package, do the following:
      2. Install the package (which should be on the virtual machine)
 
         ```shell
-        $ sudo hab install your_package.hart
+        $ sudo hab pkg install your_package.hart
         ```
 
      3. Create the Habitat group
@@ -93,7 +93,7 @@ After you have built the hart package, do the following:
      4. Start the package
 
         ```shell
-        $ sudo hab start your_origin/your_package
+        $ sudo hab sup run your_origin/your_package
         ```
 
 On Windows this looks very similar with the additional step of installing the Chocolatey package manager:
@@ -102,8 +102,8 @@ On Windows this looks very similar with the additional step of installing the Ch
 PS C:\\> Set-ExecutionPolicy Bypass -Scope Process -Force
 PS C:\\> iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 PS C:\\> choco install habitat
-PS C:\\> hab install your_package.hart
-PS C:\\> hab start your_origin/your_package
+PS C:\\> hab pkg install your_package.hart
+PS C:\\> hab sup run your_origin/your_package
 ```
 
 ## Starting only the Supervisor
@@ -114,7 +114,7 @@ Starting the Supervisor is as simple as running:
 $ hab sup run
 ```
 
-This command also lets you override the default gossip and http gateway binding ports, just like when using `hab start`.
+This command also lets you override the default gossip and http gateway binding ports.
 
 ## Running the Supervisor with a Host's init System
 
@@ -144,7 +144,7 @@ PS C:\\> hab pkg exec core/windows-service install
 
 ## Loading a Service for Supervision
 
-To add a service to a Supervisor, you use the `hab svc load` subcommand. It has many of the same service-related flags and options as `hab start`, so there's nothing extra to learn here (for more details, read through the [Run packages sections](/docs/using-habitat)). For example, to load `yourorigin/yourname` in a Leader topology, a Rolling update strategy and a Group of "acme", run the following:
+To add a service to a Supervisor, you use the `hab svc load` subcommand. It has many of the same service-related flags and options as `hab sup run`, so there's nothing extra to learn here (for more details, read through the [Run packages sections](/docs/using-habitat)). For example, to load `yourorigin/yourname` in a Leader topology, a Rolling update strategy and a Group of "acme", run the following:
 
 ```shell
 $ hab svc load yourorigin/yourname --topology leader --strategy rolling --group acme

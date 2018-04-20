@@ -11,7 +11,7 @@ section
 
   = code(:shell) do
     |
-     $ hab start example/myrubyapp --peer 172.17.0.2 --bind database:postgresql.default
+     $ hab sup run example/myrubyapp --peer 172.17.0.2 --bind database:postgresql.default
 
   #window-node-1.window-node
     = partial "partials/terminal" do
