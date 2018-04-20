@@ -55,6 +55,7 @@ serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"
 serde_yaml = "*"
+serde-transcode = "*"
 tempdir = "*"
 time = "*"
 toml = { version = "*", default-features = false }
