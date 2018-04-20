@@ -11,6 +11,7 @@ HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/ha
 
 export HAB_ORIGIN=core
 
+# shellcheck disable=2153
 if [ "${HAB_VERSION}" == "${TRAVIS_TAG}" ]; then
     IS_RELEASE_BUILD=1
 fi
@@ -55,8 +56,7 @@ fi
 
 rm ./core.sig.key
 
-PACKAGES=($PACKAGES)
-for package in "${PACKAGES[@]}"
+for package in $PACKAGES
 do
   # Always build the package if it's a release; otherwise, only build a
   # package if there are relevant code changes.
@@ -88,11 +88,12 @@ do
          fi
      fi
 
-     ${TRAVIS_HAB} studio run HAB_CARGO_TARGET_DIR=/src/target build components/${directory_name}
+     ${TRAVIS_HAB} studio run HAB_CARGO_TARGET_DIR=/src/target build "components/${directory_name}"
 
      source ./results/last_build.env
+     # shellcheck disable=2154
      HART="./results/$pkg_artifact"
-     ${TRAVIS_HAB} pkg install $HART
+     ${TRAVIS_HAB} pkg install "$HART"
 
      # Once we have built the studio, switch over to bits built here
      if [[ "${package}" == "hab-studio" ]]; then
@@ -106,21 +107,21 @@ do
          TRAVIS_HAB=$(find /hab/pkgs/core/hab -type f -name hab | tail -1)
      elif [[ "${package}" == "hab" ]]; then
          HAB_RELEASE_ARTIFACT="${HART}_keep"
-         cp $HART $HAB_RELEASE_ARTIFACT
+         cp "$HART" "$HAB_RELEASE_ARTIFACT"
      fi
 
      if [ -n "$HAB_AUTH_TOKEN" ]; then
-         ${TRAVIS_HAB} pkg upload $HART --channel $CI_OVERRIDE_CHANNEL
+         ${TRAVIS_HAB} pkg upload "$HART" --channel $CI_OVERRIDE_CHANNEL
      fi
 
-     rm $HART
+     rm "$HART"
   else
      echo "Skipping build of ${package}; no relevant code changes"
   fi
 done
 
 echo "--> Removing origin secret keys from Studio"
-env HAB_ORIGIN= ${TRAVIS_HAB} studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
+env HAB_ORIGIN= "${TRAVIS_HAB}" studio run sh -c \'rm -f /hab/cache/keys/*-*.sig.key\'
 
 if [ -n "$BINTRAY_USER" ]; then
   if [ ! -d "/hab/pkgs/core/hab-bintray-publish" ] ; then
@@ -136,7 +137,7 @@ if [ -n "$BINTRAY_USER" ]; then
   # publish if we do.
   if [ -n "${PUBLISH_HAB_STUDIO}" ]; then
       echo "Publishing hab-studio to Bintray"
-      env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
+      env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL "${TRAVIS_HAB}" pkg exec core/hab-bintray-publish publish-studio
   fi
 
   # On 'master' branch builds, we might not build a hab artifact to
@@ -144,9 +145,9 @@ if [ -n "$BINTRAY_USER" ]; then
   if [ -n "${HAB_RELEASE_ARTIFACT}" ]; then
       echo "Publishing hab to $BINTRAY_REPO"
       if [ -n "${IS_RELEASE_BUILD}" ]; then
-          env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -s -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
+          env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL "${TRAVIS_HAB}" pkg exec core/hab-bintray-publish publish-hab -s -r $BINTRAY_REPO "$HAB_RELEASE_ARTIFACT"
       else
-          env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $HAB_RELEASE_ARTIFACT
+          env HAB_BLDR_CHANNEL=$CI_OVERRIDE_CHANNEL "${TRAVIS_HAB}" pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO "$HAB_RELEASE_ARTIFACT"
       fi
   fi
 fi

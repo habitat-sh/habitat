@@ -26,7 +26,7 @@ export HAB_LAUNCH_BINARY="${HAB_BIN_DIR}/hab-launch"
 
 # Ensure required utilities are present
 find_if_exists() {
-    command -v ${1} || { log "Required utility '${1}' cannot be found!  Aborting."; exit 1; }
+    command -v "${1}" || { log "Required utility '${1}' cannot be found!  Aborting."; exit 1; }
 }
 awk=$(find_if_exists awk)
 curl=$(find_if_exists curl)
@@ -37,12 +37,12 @@ jq=$(find_if_exists jq)
 
 assert_spec_exists_for() {
     local service_name=${1}
-    assert_file_exist $(spec_file_for ${service_name})
+    assert_file_exist "$(spec_file_for "${service_name}")"
 }
 
 assert_spec_not_exists_for() {
     local service_name=${1}
-    assert_file_not_exist $(spec_file_for ${service_name})
+    assert_file_not_exist "$(spec_file_for "${service_name}")"
 }
 
 # Given a fully-qualified package identifer, assert that the package has been
@@ -57,11 +57,12 @@ assert_spec_not_exists_for() {
 # assertion. For that, see `assert_package_and_deps_installed` below.
 assert_package_installed() {
     local ident=${1}
-    local cached_hart_file=$(cached_artifact_for "${ident}")
+    local cached_hart_file
+    cached_hart_file=$(cached_artifact_for "${ident}")
 
     assert_file_exist "${cached_hart_file}"
-    assert_file_exist $(cached_signing_key_for "${cached_hart_file}")
-    assert_file_exist $(installation_directory_for "${ident}")
+    assert_file_exist "$(cached_signing_key_for "${cached_hart_file}")"
+    assert_file_exist "$(installation_directory_for "${ident}")"
 }
 
 # Given a fully-qualified package identifer, assert that it and all
@@ -72,6 +73,7 @@ assert_package_and_deps_installed() {
 
     tdeps_file="/hab/pkgs/${ident}/TDEPS"
     if [ -e "${tdeps_file}" ]; then
+        # shellcheck disable=2013
         for dep in $(cat "${tdeps_file}"); do
             assert_package_installed "${dep}"
         done
@@ -88,9 +90,9 @@ assert_service_running() {
     local service_name="${parsed[1]}"
     echo "ASR: ${service_name}" >&2
 
-    assert_file_exist "$(spec_file_for ${service_name})"
-    assert_file_exist "$(service_directory_for ${service_name})"
-    assert_equal $(current_running_version_for "${service_name}") "${ident}"
+    assert_file_exist "$(spec_file_for "${service_name}")"
+    assert_file_exist "$(service_directory_for "${service_name}")"
+    assert_equal "$(current_running_version_for "${service_name}")" "${ident}"
 }
 
 # Extracts a value from the given service's spec file and asserts that
@@ -106,8 +108,9 @@ assert_spec_value() {
     local key=${2}
     local expected=${3}
 
-    local spec=$(spec_file_for ${service})
-    run grep "${key} = " ${spec}
+    local spec
+    spec=$(spec_file_for "${service}")
+    run grep "${key} = " "${spec}"
     assert_success
 
     if [ "${key}" = "binds" ]; then
@@ -123,9 +126,11 @@ assert_spec_value() {
 # the composite.
 assert_composite_spec() {
     local composite_ident=${1} # fully-qualified
-    local composite_name=$(name_from_ident "${composite_ident}")
+    local composite_name
+    composite_name=$(name_from_ident "${composite_ident}")
 
-    local composite_spec=$(composite_spec_file_for "${composite_name}")
+    local composite_spec
+    composite_spec=$(composite_spec_file_for "${composite_name}")
     assert_file_exist "${composite_spec}"
     assert_composite_spec_value "${composite_name}" package_ident "${composite_ident}"
 }
@@ -137,8 +142,9 @@ assert_composite_spec_value() {
     local key=${2}
     local expected=${3}
 
-    local spec=$(composite_spec_file_for ${composite})
-    run grep "${key} = " ${spec}
+    local spec
+    spec=$(composite_spec_file_for "${composite}")
+    run grep "${key} = " "${spec}"
     assert_success
     assert_line "${key} = \"${expected}\""
 }
@@ -153,6 +159,7 @@ assert_composite_and_services_are_installed() {
     local resolved_services_file="/hab/pkgs/${composite_ident}/RESOLVED_SERVICES"
     assert_file_exist "${resolved_services_file}"
 
+    # shellcheck disable=2013
     for service in $(cat "${resolved_services_file}"); do
         assert_package_and_deps_installed "${service}"
     done
@@ -233,7 +240,7 @@ run_only_test() {
 # Stop a test with the given message output to standard error for
 # debugging.
 fail_with_msg() {
-    echo ${1} >&2
+    echo "${1}" >&2
     exit 1
 }
 
@@ -248,13 +255,15 @@ retry() {
 
     for ((i=0; i < attempts; i++)); do
         run "$@"
+        # shellcheck disable=2154
         if [[ "$status" -eq 0 ]] ; then
             return 0
         fi
-        sleep $delay
+        sleep "$delay"
     done
 
-    echo "Command \"$@\" failed $attempts times. Output: $output"
+    # shellcheck disable=2154
+    echo "Command \"$*\" failed $attempts times. Output: $output"
     false
 }
 
@@ -289,14 +298,17 @@ pid_of_service() {
 
 service_is_alive() {
     local service_name="${1}"
-    local pid=$(pid_of_service "${service_name}")
+    local pid
+    pid=$(pid_of_service "${service_name}")
     ps -p "${pid}" > /dev/null 2>&1
 }
 
 service_is_not_alive() {
     local service_name="${1}"
-    local pid=$(pid_of_service "${service_name}")
+    local pid
+    pid=$(pid_of_service "${service_name}")
     ps -p "${pid}" > /dev/null 2>&1
+    # shellcheck disable=2181
     [ $? -ne 0 ]
 }
 
@@ -317,7 +329,8 @@ wait_for_service_to_die() {
 pid_has_changed() {
     local service_name="${1}"
     local original_pid="${2}"
-    local current_pid=$(pid_of_service "${service_name}")
+    local current_pid
+    current_pid=$(pid_of_service "${service_name}")
     [ "${current_pid}" -ne "${original_pid}" ]
 }
 
@@ -331,7 +344,7 @@ current_running_version_for() {
     service_name=${1}
     member_id=$(cat /hab/sup/default/MEMBER_ID)
 
-    ${jq} -r '.census_groups."redis.default".population."'${member_id}'".pkg | (.origin + "/" +.name + "/" + .version + "/" + .release)' /hab/sup/default/data/census.dat
+    ${jq} -r '.census_groups."redis.default".population."'"${member_id}"'".pkg | (.origin + "/" +.name + "/" + .version + "/" + .release)' /hab/sup/default/data/census.dat
 }
 
 # Given a package identifier and a channel name, query Builder to discover the
@@ -391,7 +404,7 @@ latest_from_builder() {
         *)
             fail_with_msg "Invalid package identifier given: '${ident}'"
     esac
-    echo ${url} >&2
+    echo "${url}" >&2
 
     # TODO (CM): If there is no version in the specified channel, this is
     # going to return nothing... should we fail?
@@ -405,7 +418,7 @@ latest_from_builder() {
 signing_key_name() {
     local hart_archive=${1}
     # The key name is the second line of the file
-    ${awk} 'NR==2' ${hart_archive}
+    ${awk} 'NR==2' "${hart_archive}"
 }
 
 # Given a fully-qualified package identifier, return the path to the
@@ -431,7 +444,8 @@ cached_artifact_for() {
 # Return the path to the cached signing key for a given hart file
 cached_signing_key_for() {
     local hart_file=${1}
-    local key_name=$(signing_key_name "${hart_file}")
+    local key_name
+    key_name=$(signing_key_name "${hart_file}")
 
     echo "/hab/cache/keys/${key_name}.pub"
 }
@@ -449,13 +463,13 @@ installation_directory_for() {
 download_hart_for() {
     ident=${1}
 
-    run ${hab} pkg install "${ident}"
+    run "${hab}" pkg install "${ident}"
     assert_success
 
     cached_artifact=$(cached_artifact_for "${ident}")
     file_name=$(basename "${cached_artifact}")
 
-    cp ${cached_artifact} "${BATS_TMPDIR}"
+    cp "${cached_artifact}" "${BATS_TMPDIR}"
     echo "${BATS_TMPDIR}/${file_name}"
 }
 

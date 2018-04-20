@@ -1,4 +1,5 @@
-PLAN_CONTEXT=$(dirname $PLAN_CONTEXT) source ../plan.sh
+# shellcheck disable=2034
+PLAN_CONTEXT=$(dirname "$PLAN_CONTEXT") source ../plan.sh
 
 pkg_name=hab-sup-static
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
@@ -14,6 +15,7 @@ do_begin() {
   PLAN_CONTEXT=$(abspath ..)
 }
 
+# shellcheck disable=2155
 do_prepare() {
   _common_prepare
 

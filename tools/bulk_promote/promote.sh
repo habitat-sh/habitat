@@ -21,7 +21,7 @@ select yn in "Yes" "No"; do
     esac
 done
 
-list=$(cat $1)
+list=$(cat "$1")
 for ident in $list; do
-  hab pkg promote $ident $2
+  hab pkg promote "$ident" "$2"
 done

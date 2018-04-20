@@ -1,3 +1,4 @@
+# shellcheck disable=2154
 pkg_name=hab-pkg-export-docker
 _pkg_distname=$pkg_name
 pkg_origin=core
@@ -36,6 +37,7 @@ _common_prepare() {
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
 }
 
+# shellcheck disable=2155
 do_prepare() {
   _common_prepare
 
@@ -69,14 +71,14 @@ do_prepare() {
 }
 
 do_build() {
-  pushd $PLAN_CONTEXT > /dev/null
+  pushd "$PLAN_CONTEXT" > /dev/null
   cargo build ${build_type#--debug} --target=$rustc_target --verbose
   popd > /dev/null
 }
 
 do_install() {
-  install -v -D $CARGO_TARGET_DIR/$rustc_target/${build_type#--}/$bin \
-    $pkg_prefix/bin/$bin
+  install -v -D "$CARGO_TARGET_DIR"/$rustc_target/${build_type#--}/$bin \
+    "$pkg_prefix"/bin/$bin
 }
 
 do_strip() {

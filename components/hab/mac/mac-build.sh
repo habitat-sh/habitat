@@ -13,10 +13,10 @@ fi
 info() {
   case "${TERM:-}" in
     *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "   \033[1;33m$(basename $0): \033[1;37m$1\033[0m\n"
+      printf -- "   \033[1;33m%s: \033[1;37m%s\033[0m\n" "$(basename "$0")" "$1"
       ;;
     *)
-      printf -- "   $(basename $0): $1\n"
+      printf -- "   %s: %s\n" "$(basename "$0")" "$1"
       ;;
   esac
   return 0
@@ -30,15 +30,15 @@ install_if_missing() {
     local formula="$pkg"
   fi
 
-  echo $(sudo -u ${SUDO_USER} brew list --versions ${pkg})
+  sudo -u "${SUDO_USER}" brew list --versions "${pkg}"
 
-  if [[ $(sudo -u ${SUDO_USER} brew list --versions $pkg | wc -l) -eq 0 ]]; then
+  if [[ $(sudo -u "${SUDO_USER}" brew list --versions "$pkg" | wc -l) -eq 0 ]]; then
     info "Installing missing Homebrew package $formula"
-    sudo -u $SUDO_USER brew install $formula
+    sudo -u "$SUDO_USER" brew install "$formula"
   fi
 }
 
-if (( $EUID != 0 )); then
+if (( EUID != 0 )); then
   info "Please run as root (with \`sudo $0 $*\`)"
   exit 1
 fi
@@ -46,17 +46,18 @@ fi
 if [[ ! -f /usr/local/bin/hab ]]; then
   info "Habitat CLI missing, attempting to install latest release"
   mkdir -p /usr/local/bin
-  sh $(dirname $0)/../install.sh
+  sh "$(dirname "$0")"/../install.sh
 fi
 
 while true; do
+  # shellcheck disable=2012
   if [[ $(ls -1 /hab/cache/keys/core-*.sig.key 2> /dev/null | wc -l) -gt 0 ]]; then
     break
   elif [[ -f /tmp/hab.sig.key ]]; then
-    cat /tmp/hab.sig.key | hab origin key import
+    hab origin key import < /tmp/hab.sig.key
     rm -f /tmp/hab.sig.key
   else
-    printf ${ORIGIN_KEY} | hab origin key import
+    hab origin key import <<< "${ORIGIN_KEY}"
   fi
 done
 
@@ -76,7 +77,7 @@ fi
 
 if ! command -v brew >/dev/null; then
   info "Homebrew missing, attempting to install"
-  sudo -u $SUDO_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
+  sudo -u "$SUDO_USER" /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
 fi
 
 # Homebrew packages required to run `hab-plan-build.sh
@@ -84,7 +85,7 @@ install_if_missing coreutils
 install_if_missing gnu-tar
 install_if_missing wget
 install_if_missing bash
-install_if_missing hab-rq $(dirname $0)/homebrew/hab-rq.rb
+install_if_missing hab-rq "$(dirname "$0")"/homebrew/hab-rq.rb
 
 # Homebrew packages required to build `hab`
 install_if_missing zlib homebrew/dupes/zlib
@@ -93,8 +94,8 @@ install_if_missing bzip2 homebrew/dupes/bzip2
 install_if_missing expat
 install_if_missing openssl
 install_if_missing libsodium
-install_if_missing hab-libiconv $(dirname $0)/homebrew/hab-libiconv.rb
-install_if_missing hab-libarchive $(dirname $0)/homebrew/hab-libarchive.rb
+install_if_missing hab-libiconv "$(dirname "$0")"/homebrew/hab-libiconv.rb
+install_if_missing hab-libarchive "$(dirname "$0")"/homebrew/hab-libarchive.rb
 
 if ! command -v rustc >/dev/null; then
   info "Rust missing, attempting to install"
@@ -112,7 +113,7 @@ gnu_path="$gnu_path:$(brew --prefix bash)/bin"
 export PATH="$gnu_path:$PATH"
 info "Setting PATH=$PATH"
 
-program="$(dirname $0)/../../plan-build/bin/hab-plan-build.sh"
+program="$(dirname "$0")/../../plan-build/bin/hab-plan-build.sh"
 info "Executing: $program $*"
 echo
-exec $(brew --prefix bash)/bin/bash $program $*
+exec "$(brew --prefix bash)"/bin/bash "$program" "$@"

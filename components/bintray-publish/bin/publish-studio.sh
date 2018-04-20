@@ -46,7 +46,7 @@ fi
 
 # **Internal** Prints help and usage information. Straight forward, no?
 print_help() {
-  printf -- "$program $version
+  echo -- "$program $version
 
 $author
 
@@ -60,7 +60,6 @@ COMMON FLAGS:
     -o  Specify the Bintray organization to publish to (default: habitat)
     -r  Specify the Bintray repo to publish to (default: stable)
     -V  Prints version information
-
 "
 }
 
@@ -73,7 +72,7 @@ COMMON FLAGS:
 #
 # Would return 0 if gsha256sum exists, 1 if it does not.
 exists() {
-  if command -v $1 >/dev/null 2>&1
+  if command -v "$1" >/dev/null 2>&1
   then
     return 0
   else
@@ -95,7 +94,7 @@ exit_with() {
       echo "ERROR: $1"
       ;;
   esac
-  exit $2
+  exit "$2"
 }
 
 # **Internal** Ensures that the correct versions of key system commands are
@@ -132,18 +131,19 @@ _find_system_commands() {
 info() {
   case "${TERM:-}" in
     *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "   \033[1;36m${program:-unknown}: \033[1;37m${1:-}\033[0m\n"
+      printf -- "   \033[1;36m%s: \033[1;37m%s\033[0m\n" "${program:-unknown}" "${1:-}"
       ;;
     *)
-      printf -- "   ${program:-unknown}: ${1:-}\n"
+      printf -- "   %s: %s\n" "${program:-unknown}" "${1:-}"
       ;;
   esac
   return 0
 }
 
 # **Internal** Main program.
+# shellcheck disable=2120,2154
 _main() {
-  build-docker-image $@
+  build-docker-image "$@"
   if [[ ! -f ./results/last_image.env ]]; then
     exit_with "Image build report ./results/last_image.env missing, aborting" 5
   fi
@@ -172,6 +172,7 @@ _main() {
 
 BINTRAY_ORG=habitat
 BINTRAY_REPO=stable
+# shellcheck disable=2123
 PATH=@path@
 
 # The current version of this program
@@ -179,7 +180,7 @@ version='@version@'
 # The author of this program
 author='@author@'
 # The short version of the program name which is used in logging output
-program=$(basename $0)
+program=$(basename "$0")
 
 # ## CLI Argument Parsing
 
@@ -219,4 +220,5 @@ if [[ -z "${BINTRAY_KEY:-}" ]]; then
 fi
 
 _find_system_commands
+# shellcheck disable=2119
 _main

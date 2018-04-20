@@ -3,7 +3,9 @@
 declare -A __runtime_environment
 declare -A __buildtime_environment
 
+# shellcheck disable=2034
 declare -A __runtime_environment_provenance
+# shellcheck disable=2034
 declare -A __buildtime_environment_provenance
 
 # Layer all direct dependencies' environment together.
@@ -139,14 +141,15 @@ __env_aggregate_separator() {
 # (in `pkg_deps` / `pkg_build_deps` order!) and layer them as appropriate.
 __populate_environment_from_deps() {
     local path_to_dep
-    local env_file
 
     local env_name=${1}
     __fail_on_unrecognized_env "${env_name}"
     declare -n env="${env_name}"
-    declare -n provenance="$(__provenance_for_environment ${env_name})"
+    declare -n provenance
+    provenance="$(__provenance_for_environment "${env_name}")"
 
-    local dep_array_name="$(__dep_array_for_environment ${env_name})"
+    local dep_array_name
+    dep_array_name="$(__dep_array_for_environment "${env_name}")"
     declare -n dep_array="${dep_array_name}"
 
 
@@ -161,11 +164,12 @@ __populate_environment_from_deps() {
                 ;;
         esac
 
-        local dep_ident=$(cat "${path_to_dep}/IDENT")
+        local dep_ident
+        dep_ident=$(cat "${path_to_dep}/IDENT")
 
         if [ -f "${path_to_dep}/RUNTIME_ENVIRONMENT" ]; then
             while read -r line; do
-                IFS== read var val <<< "${line}"
+                IFS="=" read -r var val <<< "${line}"
                 # Any values of `PATH` are skipped as we will be computing the
                 # runtime path independently of the RUNTIME_ENVIRONMENT
                 # metadata files. Additionally, this acts as backwards
@@ -175,7 +179,7 @@ __populate_environment_from_deps() {
                   continue;
                 fi
 
-                if [ -n env["${var}"] ]; then
+                if [ -n "${env["${var}"]}" ]; then
                     # There was a previous value; need to figure out
                     # how to proceed
 
@@ -202,7 +206,8 @@ __populate_environment_from_deps() {
                             fi
 
                             # if aggregate, push to front with separator
-                            local separator=$(__env_aggregate_separator "${var}")
+                            local separator
+                            separator=$(__env_aggregate_separator "${var}")
                             __push_env "${env_name}" "${var}" "${val}" "${separator}" "${dep_ident}"
                             ;;
                     esac
@@ -217,13 +222,14 @@ __populate_environment_from_deps() {
 }
 
 set_buildtime_env() {
-    set_env $* "__buildtime_environment"
+    set_env "$@" "__buildtime_environment"
 }
 
 set_runtime_env() {
-    set_env $* "__runtime_environment"
+    set_env "$@" "__runtime_environment"
 }
 
+# shellcheck disable=2154
 set_env(){
     local force=false
     local option
@@ -244,8 +250,11 @@ set_env(){
 
     local env_name=${3}
     __fail_on_unrecognized_env "${env_name}"
+    # shellcheck disable=2178
+    # This appears to be a bug: https://github.com/koalaman/shellcheck/issues/1225
     declare -n env="${env_name}"
-    declare -n provenance="$(__provenance_for_environment ${env_name})"
+    declare -n provenance
+    provenance="$(__provenance_for_environment "${env_name}")"
 
     if [ -n "${env[${key}]}" ]; then
         if [ "${force}" == "false" ]; then
@@ -266,9 +275,12 @@ __set_env(){
     local ident=${4}
 
     __fail_on_unrecognized_env "${env_name}"
+    # shellcheck disable=2178
+    # This appears to be a bug: https://github.com/koalaman/shellcheck/issues/1225
     declare -n env="${env_name}"
 
-    declare -n provenance="$(__provenance_for_environment ${env_name})"
+    declare -n provenance
+    provenance="$(__provenance_for_environment "${env_name}")"
 
     env["${var_name}"]="${value}"
     provenance["${var_name}"]="${ident}"
@@ -276,12 +288,12 @@ __set_env(){
 
 push_buildtime_env() {
     build_line "PUSH TO BUILD"
-    do_push_env "__buildtime_environment" $*
+    do_push_env "__buildtime_environment" "$@"
 }
 
 push_runtime_env() {
     build_line "PUSH TO RUN"
-    do_push_env "__runtime_environment" $*
+    do_push_env "__runtime_environment" "$@"
 }
 
 do_push_env() {
@@ -293,7 +305,8 @@ do_push_env() {
 
     local value=${3}
 
-    local sep="$(__env_aggregate_separator ${key})"
+    local sep
+    sep="$(__env_aggregate_separator "${key}")"
 
     __push_env "${env_name}" "${key}" "${value}" "${sep}" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
 }
@@ -308,9 +321,12 @@ __push_env() {
     local ident=${5}
 
     __fail_on_unrecognized_env "${env_name}"
+    # shellcheck disable=2178
+    # This appears to be a bug: https://github.com/koalaman/shellcheck/issues/1225
     declare -n env="${env_name}"
 
-    declare -n provenance="$(__provenance_for_environment ${env_name})"
+    declare -n provenance
+    provenance="$(__provenance_for_environment "${env_name}")"
 
     # If there is no current value (that is, $current_value == ""), we
     # can still push onto that with no loss of generality. Because
@@ -320,7 +336,8 @@ __push_env() {
     # Habitat metadata files) and this will effectively "clean" them
     # for us!
     local current_value="${env[${var_name}]}"
-    local new_value=$(push_to_path "${value}" "${current_value}" "${separator}")
+    local new_value
+    new_value=$(push_to_path "${value}" "${current_value}" "${separator}")
     env["${var_name}"]="${new_value}"
 
     local existing_provenance="${provenance[${var_name}]}"
@@ -397,7 +414,7 @@ do_setup_environment_wrapper() {
     # Export everything from our collected runtime environment into
     # the real environment, except for PATH; for that, push the
     # runtime path onto the front of the system path
-    for k in ${!__runtime_environment[@]}; do
+    for k in "${!__runtime_environment[@]}"; do
         local v="${__runtime_environment[${k}]}"
         export "${k}"="${v}"
     done
@@ -407,7 +424,7 @@ do_setup_environment_wrapper() {
     # which has already had the runtime values merged in. This is a
     # stripped-down version of the logic used to layer environments
     # from dependencies in the first place.
-    for k in ${!__buildtime_environment[@]}; do
+    for k in "${!__buildtime_environment[@]}"; do
         local v="${__buildtime_environment[${k}]}"
         if [ -n "${!k}" ]; then
             # There was a previous value; need to figure out
@@ -423,8 +440,9 @@ do_setup_environment_wrapper() {
                     export "${k}"="${v}"
                     ;;
                 aggregate)
-                    local separator=$(__env_aggregate_separator "${k}")
-                    export "${k}"="$(push_to_path ${v} ${!k} ${separator})"
+                    local separator
+                    separator=$(__env_aggregate_separator "${k}")
+                    export "${k}"="$(push_to_path "${v}" "${!k}" "${separator}")"
                     ;;
             esac
         else

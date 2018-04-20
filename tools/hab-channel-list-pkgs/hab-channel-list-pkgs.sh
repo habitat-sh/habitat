@@ -12,18 +12,18 @@ main() {
   need_cmd jq
 
   # Set the default Builder URL
-  : ${HAB_BLDR_URL:=https://bldr.habitat.sh}
+  : "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
   # Origin name is required
   origin="${1:-}"
   if [[ -z "$origin" ]]; then
-    echo "Usage: $(basename $0) <ORIGIN> <CHANNEL>" >&2
+    echo "Usage: $(basename "$0") <ORIGIN> <CHANNEL>" >&2
     exit 1
   fi
   shift
   # Channel name is required
   channel="${1:-}"
   if [[ -z "$channel" ]]; then
-    echo "Usage: $(basename $0) <ORIGIN> <CHANNEL>" >&2
+    echo "Usage: $(basename "$0") <ORIGIN> <CHANNEL>" >&2
     exit 1
   fi
   # Calculate the channel URL from which to fetch
@@ -43,8 +43,8 @@ main() {
 
   # Fetch each page and output a fully qualified package identifier, one per
   # line
-  for (( n=0; n<$num_pages; n+=1 )) do
-    curl -s "${url}?range=$(( ${n}*${npp} ))" \
+  for (( n=0; n<num_pages; n+=1 )) do
+    curl -s "${url}?range=$(( n * npp ))" \
       | jq --raw-output '.data[] | "\(.origin)/\(.name)/\(.version)/\(.release)"'
   done
 }

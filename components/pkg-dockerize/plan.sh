@@ -1,3 +1,4 @@
+# shellcheck disable=2154
 pkg_name=hab-pkg-dockerize
 pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
@@ -11,7 +12,7 @@ pkg_bin_dirs=(bin)
 program=$pkg_name
 
 do_build() {
-  cp -v $PLAN_CONTEXT/bin/${program}.sh ${program}
+  cp -v "$PLAN_CONTEXT"/bin/${program}.sh ${program}
 
   # Use the bash from our dependency list as the shebang. Also, embed the
   # release version of the program.
@@ -23,7 +24,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $program $pkg_prefix/bin/$program
+  install -v -D $program "$pkg_prefix"/bin/$program
 }
 
 # Turn the remaining default phases into no-ops
