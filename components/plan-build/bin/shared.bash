@@ -202,6 +202,25 @@ _render_metadata_RUNTIME_ENVIRONMENT_PROVENANCE(){
     _render_associative_array_file ${pkg_prefix} RUNTIME_ENVIRONMENT_PROVENANCE __runtime_environment_provenance
 }
 
+_render_metadata_RUNTIME_PATH(){
+  local runtime_path
+
+  runtime_path="$(_assemble_runtime_path)"
+  if [[ -n "$runtime_path" ]]; then
+    debug "Rendering RUNTIME_PATH metadata file"
+    echo "$runtime_path" > "${pkg_prefix}/RUNTIME_PATH"
+
+    # **Internal**  Backwards Compatibility: Set the `PATH` key for the runtime
+    # environment if a computed runtime path is necessary which will be used by
+    # Habitat releases between 0.50.0 (released 2017-11-30) and up to including
+    # 0.55.0 (released 2018-03-20). All future releases will ignore the `PATH`
+    # entry in favor of using the `RUNTIME_PATH` metadata file.
+    __runtime_environment["PATH"]="$runtime_path"
+  else
+    debug "Would have rendered RUNTIME_PATH, but there was no data for it"
+  fi
+}
+
 _render_metadata_SVC_GROUP() {
   debug "Rendering SVC_GROUP metadata file"
   echo "$pkg_svc_group" > $pkg_prefix/SVC_GROUP

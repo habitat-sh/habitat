@@ -516,6 +516,47 @@ _on_exit() {
 #   above.
 trap _on_exit 1 2 3 15 ERR
 
+# **Internal**  Build a `PATH` string suitable for entering into this package's
+# `RUNTIME_PATH` metadata file. The ordering of this path is important as this
+# value will ultimately be consumed by other programs such as the Supervisor
+# when constructing the `PATH` environment variable before spawning a process.
+#
+# The path is constructed by taking all `PATH` metadata file entries from this
+# package (in for the form of `$pkg_bin_dirs[@]`), followed by entries from the
+# *direct* dependencies first (in declared order), and then from any remaining
+# transitive dependencies last (in lexically sorted order). All entries are
+# present only once in the order of their first appearance.
+_assemble_runtime_path() {
+  local paths=()
+  local dir dep data
+
+  # Add element for each entry in `$pkg_bin_dirs[@]` first
+  for dir in "${pkg_bin_dirs[@]}"; do
+    paths+=("$pkg_prefix/$dir")
+  done
+
+  # Iterate through all direct direct run dependencies following by all
+  # remaining transitive run dependencies and for each, append each path entry
+  # onto the result, assuming it hasn't already been added. In this way, all
+  # direct dependencies will match first and any programs that are used by a
+  # direct dependency will also be present on PATH, albeit at the very end of
+  # the PATH. Additionally, any path entries that don't relate to the
+  # dependency in question are filtered out to deal with a vintage of packages
+  # which included more data in `PATH` and have since been addressed.
+  for dep_prefix in "${pkg_deps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
+    if [[ -f "$dep_prefix/PATH" ]]; then
+      data="$(cat "$dep_prefix/PATH")"
+      data="$(trim "$data")"
+      while read -r entry; do
+        paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
+      done <<< $(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")
+    fi
+  done
+
+  # Return the elements of the result, joined with a colon
+  join_by ':' "${paths[@]}"
+}
+
 _ensure_origin_key_present() {
   local cache="$HAB_CACHE_KEY_PATH"
   local keys_found="$(find $cache -name "${pkg_origin}-*.sig.key" | wc -l)"
@@ -1821,6 +1862,7 @@ _build_metadata() {
   _render_metadata_TARGET
   _render_metadata_TYPE
   _render_metadata_IDENT
+  _render_metadata_RUNTIME_PATH
   _render_metadata_RUNTIME_ENVIRONMENT
   _render_metadata_RUNTIME_ENVIRONMENT_PROVENANCE
 
