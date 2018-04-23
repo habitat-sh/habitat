@@ -106,6 +106,7 @@ where
     let tdeps = archive.tdeps()?;
     let ident = archive.ident()?;
     let target = archive.target()?;
+
     match depot_client.show_package(&ident, None, Some(token)) {
         Ok(_) => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
@@ -129,7 +130,7 @@ where
                                     &depot_client,
                                     token,
                                     &dep,
-                                    Some(&target),
+                                    &target,
                                     additional_release_channel,
                                     &candidate_path,
                                 )
@@ -251,14 +252,12 @@ fn attempt_upload_dep(
     depot_client: &Client,
     token: &str,
     ident: &PackageIdent,
-    target: Option<&PackageTarget>,
+    target: &PackageTarget,
     additional_release_channel: Option<&str>,
     archives_dir: &PathBuf,
 ) -> Result<()> {
-    let candidate_path = match target {
-        Some(t) => archives_dir.join(ident.archive_name_with_target(t).unwrap()),
-        None => archives_dir.join(ident.archive_name().unwrap()),
-    };
+    let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
+
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
         upload_into_depot(
@@ -270,11 +269,13 @@ fn attempt_upload_dep(
             &mut archive,
         )
     } else {
+        let archive_name = ident.archive_name_with_target(target).unwrap();
+
         ui.status(
             Status::Missing,
             format!(
-                "artifact for {} was not found in {}",
-                ident.archive_name().unwrap(),
+                "artifact {}. It was not found in {}",
+                archive_name,
                 archives_dir.display()
             ),
         )?;
