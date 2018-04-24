@@ -28,6 +28,7 @@ use hcore::fs::USER_CONFIG_FILE;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use serde_json;
+use serde_transcode;
 use toml;
 
 use super::Pkg;
@@ -132,7 +133,7 @@ impl Cfg {
         };
         let user_config_path = Self::determine_user_config_path(package);
         let user = Self::load_user(user_config_path.get_path())?;
-        let environment = Self::load_environment(package)?;
+        let environment = Self::load_environment(&package.name())?;
         return Ok(Self {
             default: default,
             user: user,
@@ -345,20 +346,56 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_environment<P: PackageConfigPaths>(package: &P) -> Result<Option<toml::value::Table>> {
-        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name())
+    fn load_environment(package_name: &String) -> Result<Option<toml::value::Table>> {
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package_name)
             .to_ascii_uppercase()
             .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
+                // If we've got an environment variable, we'll parsing
+                // as TOML first, since that's easiest.
                 match toml::de::from_str(&config) {
-                    Ok(toml) => return Ok(toml),
+                    Ok(toml) => {
+                        return Ok(Some(toml));
+                    }
                     Err(err) => debug!("Attempted to parse env config as toml and failed {}", err),
                 }
-                match serde_json::from_str(&config) {
-                    Ok(json) => return Ok(Some(json)),
+
+                // We know we're not dealing with TOML, so we'll
+                // assume it's JSON. Since we're currently decoding to
+                // toml::value::Table, and there isn't really an easy
+                // way to directly go from a JSON string to that, we
+                // first transcode the JSON string into a TOML string,
+                // and then deserialize from THAT.
+                //
+                // Not the greatest, but it works.
+                let (as_toml, transcode_result) = {
+                    let mut buffer = String::new();
+                    let mut deserializer = serde_json::Deserializer::from_str(&config);
+                    let res = {
+                        let mut serializer = toml::Serializer::new(&mut buffer);
+                        serde_transcode::transcode(&mut deserializer, &mut serializer)
+                    };
+                    (buffer, res)
+                };
+                match transcode_result {
+                    Ok(()) => {
+                        // it's TOML now, so turn it into a TOML table
+                        match toml::de::from_str(&as_toml) {
+                            Ok(toml) => {
+                                return Ok(Some(toml));
+                            }
+                            Err(err) => {
+                                // Note: it should be impossible to
+                                // get down here
+                                debug!("Attempted to reparse env config as toml and failed {}", err)
+                            }
+                        }
+                    }
                     Err(err) => debug!("Attempted to parse env config as json and failed {}", err),
                 }
+
+                // It's neither TOML nor JSON, so bail out
                 Err(sup_error!(Error::BadEnvConfig(var_name)))
             }
             Err(e) => {
@@ -583,6 +620,7 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(test)]
 mod test {
+    use std::env;
     use std::fs;
     use std::fs::OpenOptions;
 
@@ -938,4 +976,84 @@ mod test {
         cfg.default = Some(toml::from_str(default_toml).unwrap());
         assert_eq!(default_toml, toml::to_string(&cfg).unwrap());
     }
+
+    // env_key: the name of the environment variable the config should
+    //     be read from
+    // package_name: the name of the package that would read
+    //     environment configuration from `env_key`.
+    // input_config: the value of the environment variable `env_key`;
+    //     can be either JSON or TOML
+    // expected_config_as_toml: for validation purposes; this should
+    //     be the TOML version of `input_config`, since we always read to
+    //     TOML, regardless of the input format.
+    fn test_expected_successful_environment_parsing(
+        env_key: &str,
+        package_name: &str,
+        input_config: &str,
+        expected_config_as_toml: &str,
+    ) {
+        env::set_var(env_key, &input_config);
+
+        let expected = toml_from_str(expected_config_as_toml);
+        let result = Cfg::load_environment(&package_name.to_string());
+
+        // Clean up the environment after ourselves
+        env::remove_var(env_key);
+
+        match result {
+            Ok(Some(actual)) => {
+                assert_eq!(actual, expected);
+            }
+            _ => {
+                panic!("Expected '{:?}', but got {:?}", expected, result);
+            }
+        }
+    }
+
+    #[test]
+    fn can_parse_toml_environment_config() {
+        test_expected_successful_environment_parsing(
+            "HAB_TESTING_TOML",
+            "testing-toml",
+            "port = 1234",
+            "port = 1234",
+        );
+    }
+
+    #[test]
+    fn can_parse_json_environment_config() {
+        test_expected_successful_environment_parsing(
+            "HAB_TESTING_JSON",
+            "testing-json",
+            "{\"port\": 1234}",
+            "port = 1234",
+        );
+    }
+
+    #[test]
+    fn parse_environment_config_that_is_neither_toml_nor_json_fails() {
+        let key = "HAB_TESTING_TRASH";
+        let config = "{\"port: 1234 what even is this!!!!?! =";
+
+        env::set_var(key, &config);
+
+        let result = Cfg::load_environment(&"testing-trash".to_string());
+
+        // Clean up the environment after ourselves
+        env::remove_var(key);
+
+        assert!(result.is_err(), "Expected an error: got {:?}", result);
+    }
+
+    #[test]
+    fn no_environment_config_is_fine() {
+        match Cfg::load_environment(&"omg-there-wont-be-an-environment-variable-for-this".to_string())
+        {
+            Ok(None) => (),
+            other => {
+                panic!("Expected Ok(None); got {:?}", other);
+            }
+        }
+    }
+
 }
