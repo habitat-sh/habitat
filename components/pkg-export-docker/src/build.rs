@@ -43,9 +43,9 @@ use util;
 // the future for use with further exporters.
 // https://github.com/habitat-sh/habitat/issues/4522
 
-const DEFAULT_HAB_IDENT: &'static str = "core/hab";
+const DEFAULT_HAB_IDENT: &'static str = "core/habitat";
 const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
-const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
+const DEFAULT_SUP_IDENT: &'static str = "core/habitat";
 const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 
 const DEFAULT_HAB_UID: u32 = 84;

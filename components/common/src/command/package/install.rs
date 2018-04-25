@@ -108,7 +108,7 @@ impl FromStr for InstallSource {
     type Err = hcore::Error;
 
     /// Create an `InstallSource` from either a package identifier
-    /// string (e.g. "core/hab"), or from the path to a local package.
+    /// string (e.g. "core/habitat"), or from the path to a local package.
     ///
     /// Returns an error if the string is neither a valid package
     /// identifier, or is not the path to an actual Habitat package.
