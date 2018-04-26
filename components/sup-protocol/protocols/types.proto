@@ -25,6 +25,13 @@ enum UpdateStrategy {
   Rolling = 2;
 }
 
+enum BindingMode {
+  // Services may start whether binds are available or not
+  Relaxed = 0;
+  // Service start-up is blocked until all binds are available
+  Strict = 1;
+}
+
 message ApplicationEnvironment {
   required string application = 1;
   optional string environment = 2 [default = "default"];

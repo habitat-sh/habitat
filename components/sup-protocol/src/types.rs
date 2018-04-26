@@ -84,6 +84,21 @@ impl fmt::Display for ProcessState {
     }
 }
 
+impl FromStr for BindingMode {
+    type Err = NetErr;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "relaxed" => Ok(BindingMode::Relaxed),
+            "strict" => Ok(BindingMode::Strict),
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                format!("Invalid binding mode \"{}\"", value),
+            )),
+        }
+    }
+}
+
 impl FromStr for ServiceBind {
     type Err = NetErr;
 
@@ -188,6 +203,24 @@ impl fmt::Display for ServiceCfg_Format {
             ServiceCfg_Format::TOML => "TOML",
         };
         write!(f, "{}", state)
+    }
+}
+
+impl From<core::service::BindingMode> for BindingMode {
+    fn from(mode: core::service::BindingMode) -> Self {
+        match mode {
+            core::service::BindingMode::Strict => BindingMode::Strict,
+            core::service::BindingMode::Relaxed => BindingMode::Relaxed,
+        }
+    }
+}
+
+impl Into<core::service::BindingMode> for BindingMode {
+    fn into(self) -> core::service::BindingMode {
+        match self {
+            BindingMode::Strict => core::service::BindingMode::Strict,
+            BindingMode::Relaxed => core::service::BindingMode::Relaxed,
+        }
     }
 }
 

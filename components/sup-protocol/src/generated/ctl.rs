@@ -2038,6 +2038,7 @@ pub struct SvcLoad {
     application_environment: ::protobuf::SingularPtrField<super::types::ApplicationEnvironment>,
     binds: ::protobuf::RepeatedField<super::types::ServiceBind>,
     specified_binds: ::std::option::Option<bool>,
+    binding_mode: ::std::option::Option<super::types::BindingMode>,
     bldr_url: ::protobuf::SingularField<::std::string::String>,
     bldr_channel: ::protobuf::SingularField<::std::string::String>,
     config_from: ::protobuf::SingularField<::std::string::String>,
@@ -2209,6 +2210,33 @@ impl SvcLoad {
 
     fn mut_specified_binds_for_reflect(&mut self) -> &mut ::std::option::Option<bool> {
         &mut self.specified_binds
+    }
+
+    // optional .BindingMode binding_mode = 14;
+
+    pub fn clear_binding_mode(&mut self) {
+        self.binding_mode = ::std::option::Option::None;
+    }
+
+    pub fn has_binding_mode(&self) -> bool {
+        self.binding_mode.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_binding_mode(&mut self, v: super::types::BindingMode) {
+        self.binding_mode = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_binding_mode(&self) -> super::types::BindingMode {
+        self.binding_mode.unwrap_or(super::types::BindingMode::Relaxed)
+    }
+
+    fn get_binding_mode_for_reflect(&self) -> &::std::option::Option<super::types::BindingMode> {
+        &self.binding_mode
+    }
+
+    fn mut_binding_mode_for_reflect(&mut self) -> &mut ::std::option::Option<super::types::BindingMode> {
+        &mut self.binding_mode
     }
 
     // optional string bldr_url = 6;
@@ -2553,6 +2581,9 @@ impl ::protobuf::Message for SvcLoad {
                     let tmp = is.read_bool()?;
                     self.specified_binds = ::std::option::Option::Some(tmp);
                 },
+                14 => {
+                    ::protobuf::rt::read_proto2_enum_with_unknown_fields_into(wire_type, is, &mut self.binding_mode, 14, &mut self.unknown_fields)?
+                },
                 6 => {
                     ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.bldr_url)?;
                 },
@@ -2608,6 +2639,9 @@ impl ::protobuf::Message for SvcLoad {
         if let Some(v) = self.specified_binds {
             my_size += 2;
         }
+        if let Some(v) = self.binding_mode {
+            my_size += ::protobuf::rt::enum_size(14, v);
+        }
         if let Some(ref v) = self.bldr_url.as_ref() {
             my_size += ::protobuf::rt::string_size(6, &v);
         }
@@ -2655,6 +2689,9 @@ impl ::protobuf::Message for SvcLoad {
         };
         if let Some(v) = self.specified_binds {
             os.write_bool(5, v)?;
+        }
+        if let Some(v) = self.binding_mode {
+            os.write_enum(14, v.value())?;
         }
         if let Some(ref v) = self.bldr_url.as_ref() {
             os.write_string(6, &v)?;
@@ -2744,6 +2781,11 @@ impl ::protobuf::MessageStatic for SvcLoad {
                     SvcLoad::get_specified_binds_for_reflect,
                     SvcLoad::mut_specified_binds_for_reflect,
                 ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<super::types::BindingMode>>(
+                    "binding_mode",
+                    SvcLoad::get_binding_mode_for_reflect,
+                    SvcLoad::mut_binding_mode_for_reflect,
+                ));
                 fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "bldr_url",
                     SvcLoad::get_bldr_url_for_reflect,
@@ -2800,6 +2842,7 @@ impl ::protobuf::Clear for SvcLoad {
         self.clear_application_environment();
         self.clear_binds();
         self.clear_specified_binds();
+        self.clear_binding_mode();
         self.clear_bldr_url();
         self.clear_bldr_channel();
         self.clear_config_from();
@@ -3793,23 +3836,24 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     ice_group\x18\x01\x20\x01(\x0b2\r.ServiceGroupR\x0cserviceGroup\x12\x10\
     \n\x03cfg\x18\x02\x20\x01(\x0cR\x03cfg\x12\x18\n\x07version\x18\x03\x20\
     \x01(\x04R\x07version\x12(\n\x0cis_encrypted\x18\x04\x20\x01(\x08:\x05fa\
-    lseR\x0bisEncrypted\"\xf6\x03\n\x07SvcLoad\x12#\n\x05ident\x18\x01\x20\
+    lseR\x0bisEncrypted\"\xa7\x04\n\x07SvcLoad\x12#\n\x05ident\x18\x01\x20\
     \x01(\x0b2\r.PackageIdentR\x05ident\x12P\n\x17application_environment\
     \x18\x02\x20\x01(\x0b2\x17.ApplicationEnvironmentR\x16applicationEnviron\
     ment\x12\"\n\x05binds\x18\x03\x20\x03(\x0b2\x0c.ServiceBindR\x05binds\
-    \x12'\n\x0fspecified_binds\x18\x05\x20\x01(\x08R\x0especifiedBinds\x12\
-    \x19\n\x08bldr_url\x18\x06\x20\x01(\tR\x07bldrUrl\x12!\n\x0cbldr_channel\
-    \x18\x07\x20\x01(\tR\x0bbldrChannel\x12\x1f\n\x0bconfig_from\x18\x08\x20\
-    \x01(\tR\nconfigFrom\x12\x1b\n\x05force\x18\t\x20\x01(\x08:\x05falseR\
-    \x05force\x12\x14\n\x05group\x18\n\x20\x01(\tR\x05group\x124\n\x16svc_en\
-    crypted_password\x18\x0b\x20\x01(\tR\x14svcEncryptedPassword\x12%\n\x08t\
-    opology\x18\x0c\x20\x01(\x0e2\t.TopologyR\x08topology\x128\n\x0fupdate_s\
-    trategy\x18\r\x20\x01(\x0e2\x0f.UpdateStrategyR\x0eupdateStrategy\"0\n\t\
-    SvcUnload\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ident\
-    \"/\n\x08SvcStart\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdentR\
-    \x05ident\".\n\x07SvcStop\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.Packag\
-    eIdentR\x05ident\"0\n\tSvcStatus\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r\
-    .PackageIdentR\x05ident\"!\n\x0bConsoleLine\x12\x12\n\x04line\x18\x01\
+    \x12'\n\x0fspecified_binds\x18\x05\x20\x01(\x08R\x0especifiedBinds\x12/\
+    \n\x0cbinding_mode\x18\x0e\x20\x01(\x0e2\x0c.BindingModeR\x0bbindingMode\
+    \x12\x19\n\x08bldr_url\x18\x06\x20\x01(\tR\x07bldrUrl\x12!\n\x0cbldr_cha\
+    nnel\x18\x07\x20\x01(\tR\x0bbldrChannel\x12\x1f\n\x0bconfig_from\x18\x08\
+    \x20\x01(\tR\nconfigFrom\x12\x1b\n\x05force\x18\t\x20\x01(\x08:\x05false\
+    R\x05force\x12\x14\n\x05group\x18\n\x20\x01(\tR\x05group\x124\n\x16svc_e\
+    ncrypted_password\x18\x0b\x20\x01(\tR\x14svcEncryptedPassword\x12%\n\x08\
+    topology\x18\x0c\x20\x01(\x0e2\t.TopologyR\x08topology\x128\n\x0fupdate_\
+    strategy\x18\r\x20\x01(\x0e2\x0f.UpdateStrategyR\x0eupdateStrategy\"0\n\
+    \tSvcUnload\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdentR\x05ide\
+    nt\"/\n\x08SvcStart\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.PackageIdent\
+    R\x05ident\".\n\x07SvcStop\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.Packa\
+    geIdentR\x05ident\"0\n\tSvcStatus\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\
+    \r.PackageIdentR\x05ident\"!\n\x0bConsoleLine\x12\x12\n\x04line\x18\x01\
     \x20\x01(\tR\x04line\
 ";
 

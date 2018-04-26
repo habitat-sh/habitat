@@ -809,6 +809,9 @@ fn sub_svc_load() -> App<'static, 'static> {
             "The update strategy; [default: none] [values: none, at-once, rolling]")
         (@arg BIND: --bind +takes_value +multiple
             "One or more service groups to bind to a configuration")
+        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+              startup until all binds are present. [default: strict] [values: relaxed, strict]")
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
@@ -842,6 +845,9 @@ fn sub_svc_load() -> App<'static, 'static> {
             "The update strategy; [default: none] [values: none, at-once, rolling]")
         (@arg BIND: --bind +takes_value +multiple
             "One or more service groups to bind to a configuration")
+        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+              startup until all binds are present. [default: strict] [values: relaxed, strict]")
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
         (@arg PASSWORD: --password +takes_value "Password of the service user")
@@ -863,6 +869,13 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         file_exists(val)
+    }
+}
+
+fn valid_binding_mode(val: String) -> result::Result<(), String> {
+    match protocol::types::BindingMode::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Binding mode: '{}' is not valid", &val)),
     }
 }
 

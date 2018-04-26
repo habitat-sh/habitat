@@ -25,7 +25,7 @@ use hcore;
 use hcore::channel::STABLE_CHANNEL;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::package::metadata::BindMapping;
-use hcore::service::{ApplicationEnvironment, ServiceGroup};
+use hcore::service::{ApplicationEnvironment, BindingMode, ServiceGroup};
 use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use protocol;
@@ -156,6 +156,9 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
             let (_, standard) = binds.into_iter().partition(|ref bind| bind.is_composite());
             spec.binds = standard;
         }
+        if self.has_binding_mode() {
+            spec.binding_mode = self.get_binding_mode().into();
+        }
         if self.has_config_from() {
             spec.config_from = Some(PathBuf::from(self.get_config_from()));
         }
@@ -276,6 +279,9 @@ pub struct ServiceSpec {
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
+    pub binding_mode: BindingMode,
     pub config_from: Option<PathBuf>,
     #[serde(deserialize_with = "deserialize_using_from_str",
             serialize_with = "serialize_using_to_string")]
@@ -400,6 +406,7 @@ impl Default for ServiceSpec {
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
             binds: Vec::default(),
+            binding_mode: BindingMode::default(),
             config_from: None,
             desired_state: DesiredState::default(),
             svc_encrypted_password: None,
@@ -694,6 +701,7 @@ mod test {
                 ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ],
+            binding_mode: BindingMode::Relaxed,
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             svc_encrypted_password: None,
@@ -712,6 +720,7 @@ mod test {
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
+        assert!(toml.contains(r#"binding_mode = "relaxed""#));
     }
 
     #[test]
@@ -771,6 +780,12 @@ mod test {
         assert_eq!(
             spec.config_from,
             Some(PathBuf::from("/only/for/development"))
+        );
+
+        assert_eq!(
+            spec.binding_mode,
+            BindingMode::Strict,
+            "Strict is the default mode, if nothing was previously specified."
         );
     }
 
@@ -836,6 +851,7 @@ mod test {
                 ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ],
+            binding_mode: BindingMode::Relaxed,
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             svc_encrypted_password: None,
@@ -855,6 +871,7 @@ mod test {
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
+        assert!(toml.contains(r#"binding_mode = "relaxed""#));
     }
 
     #[test]
