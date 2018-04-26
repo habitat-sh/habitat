@@ -126,9 +126,9 @@ section
    p To pass in an environment variable, make sure the value to pass in is quoted correctly.
 
    = code(:shell) do
-     | $ echo -n 'secret_key_base="$(rails secret)"' | hab apply --peer RAILS_IP_ADDRESS yourapp.default $(date +%s)
+     | $ echo -n 'secret_key_base="$(rails secret)"' | hab config apply --peer RAILS_IP_ADDRESS yourapp.default $(date +%s)
 
-   p To pass in <code>secret_key_base</code> in TOML, you can do that by either running <code>hab apply</code> or defining the value in the <code>default.toml</code> in your web application's Habitat plan. To do the latter, add this to your <code>default.toml</code>:
+   p To pass in <code>secret_key_base</code> in TOML, you can do that by either running <code>hab config apply</code> or defining the value in the <code>default.toml</code> in your web application's Habitat plan. To do the latter, add this to your <code>default.toml</code>:
 
    = code(:toml) do
      | secret_key_base = "some_secret_key_value"

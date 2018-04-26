@@ -53,7 +53,7 @@ The full source for any packages in core will always be made available via GitHu
 https://www.github.com/habitat-sh/core-plans
 ```
 
-# 'Hab Install': Installing Packages
+# 'hab pkg install': Installing Packages
 
 To install a discovered package, use the `hab pkg install` command. The subcommand has a couple of options and flags but typically you'll want to provide at least an origin and package name.
 
