@@ -187,7 +187,7 @@ matrix:
 #
     - env:
         # These Habitat packages will build in the provided order
-        - PACKAGES="hab-pkg-aci hab-pkg-cfize hab-pkg-export-docker hab-pkg-export-kubernetes hab-pkg-export-helm hab-pkg-export-tar hab-pkg-mesosize hab-pkg-tarize"
+        - PACKAGES="hab-pkg-aci hab-pkg-cfize hab-pkg-export-docker hab-pkg-export-kubernetes hab-pkg-export-helm hab-pkg-export-tar hab-pkg-mesosize"
         # HAB_AUTH_TOKEN
         - secure: "PLeYdfVwRhhmsLVA+7cv1qlTWPADDNmZQzfts/jUjXYCJXciHGKSd6NCGdbCB29N9vv/4AHfkuz5xzkSxlxnyqqc9/45zMr9CgsKBL6zyzRXFl4iTRGFj5dOAn6MGcjJybXF6wXcT91RaFfbAYqbGSEUDXdiJdlLnJuY8fC+rJlWz/QJUyGFwa6tV1rtfwH4HcaafBMkTny/Zt/rmVvb7gtWGn8eNcmdwsD8i6I6X35GhIofy4lCEEYjF/AeERxJeluXNfcCGgqAIGro/jX0FZsnB1KYxCUGJ7P+UQSkshA7LiwH6VlK+ULKi/ZlEhng29sIi06GlZg9xVTEIvRw8YdJYR1gauxmblEgKudw4qOqSklw0DgoOpuG2anpYOkvqmc0rHOs6Rd/FUBKqcAXIF2lLFThcSaf8Cxu3CSv4/Bc4kQ8Mkyg0m3Uzx8/7uxbCc7SrGolsPG84vXKD/PFcrQJDBS6ovVxbOxzU2PgvJ/MOBcGkzwFUxFjH9mnJd+5bdDsRDNq+CBRKrwJ17vD+r0lJrUR4OVZ0ugBeyom5cn9N9HkHosJoZIOJoAlreyU02WX6utraeMtYqerZ+KmDNJswuV3bBfqpmNyP4FOOLkkNHd8L+9QbXi1K1ZMnU1L4pmKVOPMWAzp7gzCr6mMms1iLxYgR9irjmVHlAykhE0="
         # HAB_ORIGIN_KEY
