@@ -1,11 +1,11 @@
 [hab]
 plan_path = "components/hab"
 paths = [
-  "components/hab/*",
   "components/builder-api-client/*",
   "components/builder-depot-client/*",
   "components/common/*",
-  "components/core/*",
+  "components/sup-client/*",
+  "components/sup-protocol/*",
 ]
 
 [hab-backline]
@@ -13,13 +13,15 @@ plan_path = "components/backline"
 
 [hab-bintray-publish]
 plan_path = "components/bintray-publish"
+paths = [
+  "studio/build-docker-image.sh",
+]
 
 [hab-eventsrv]
 plan_path = "components/eventsrv/habitat"
 paths = [
-  "components/eventsrv/*",
   "components/eventsrv-protocol/*",
-  "components/core/*",
+  "components/eventsrv/*",
   "support/ci/builder-base-plan.sh",
 ]
 
@@ -40,12 +42,12 @@ plan_path = "components/studio"
 [hab-sup]
 plan_path = "components/sup"
 paths = [
-  "components/sup/*",
+  "components/builder-depot-client/*",
+  "components/butterfly/*",
+  "components/common/*",
   "components/eventsrv-client/*",
   "components/launcher-client/*",
-  "components/butterfly/*",
-  "components/core/*",
-  "components/builder-depot-client/*",
+  "components/sup-protocol/*",
 ]
 
 [hab-pkg-aci]
@@ -54,7 +56,6 @@ plan_path = "components/pkg-aci"
 [hab-pkg-export-docker]
 plan_path = "components/pkg-export-docker"
 paths = [
-  "components/core/*",
   "components/common/*",
   "components/hab/*",
 ]
@@ -62,18 +63,16 @@ paths = [
 [hab-pkg-export-kubernetes]
 plan_path = "components/pkg-export-kubernetes"
 paths = [
-  "components/core/*",
   "components/common/*",
-  "components/hab/*",
+  "components/hab/*", # because pkg-export-docker depends on it
   "components/pkg-export-docker/*",
 ]
 
 [hab-pkg-export-helm]
 plan_path = "components/pkg-export-helm"
 paths = [
-  "components/core/*",
   "components/common/*",
-  "components/hab/*",
+  "components/hab/*", # because pkg-export-docker depends on it
   "components/pkg-export-docker/*",
   "components/pkg-export-kubernetes/*",
 ]
@@ -83,7 +82,6 @@ plan_path = "components/pkg-export-tar"
 paths = [
   "components/common/*",
   "components/hab/*",
-  "components/pkg-export-tar/*"
 ]
 
 # NOTE: cfize has a dependency on hab-pkg-dockerize, but we are
