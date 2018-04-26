@@ -46,6 +46,7 @@ pub struct TestSup {
     pub service_group: String,
     pub http_port: u16,
     pub butterfly_port: u16,
+    pub control_port: u16,
     pub butterfly_client: test_butterfly::Client,
     pub cmd: Command,
     pub process: Option<Child>,
@@ -172,6 +173,7 @@ impl TestSup {
         // We'll give 10 tries to find a free port number
         let http_port = unclaimed_port(10);
         let butterfly_port = unclaimed_port(10);
+        let control_port = unclaimed_port(10);
 
         TestSup::new(
             fs_root,
@@ -180,6 +182,7 @@ impl TestSup {
             service_group,
             http_port,
             butterfly_port,
+            control_port,
         )
     }
 
@@ -208,6 +211,7 @@ impl TestSup {
         service_group: S,
         http_port: u16,
         butterfly_port: u16,
+        control_port: u16,
     ) -> TestSup
     where
         R: AsRef<Path>,
@@ -235,7 +239,11 @@ impl TestSup {
             .arg(format!("{}:{}", listen_host, butterfly_port))
             .arg("--listen-http")
             .arg(format!("{}:{}", listen_host, http_port))
-            .arg(format!("{}/{}", origin, pkg_name))
+            .arg("--listen-ctl")
+            .arg(format!("{}:{}", listen_host, control_port))
+            // Note: we will have already dropped off the spec files
+            // needed to run our test service, so we don't supply a
+            // package identifier here
             .stdin(Stdio::null());
         if !nocapture_set() {
             cmd.stdout(Stdio::null());
@@ -251,6 +259,7 @@ impl TestSup {
             service_group: service_group.to_string(),
             http_port: http_port,
             butterfly_port: butterfly_port,
+            control_port: control_port,
             butterfly_client: bc,
             cmd: cmd,
             process: None,
@@ -280,6 +289,7 @@ impl Drop for TestSup {
         let mut ports = CLAIMED_PORTS.lock().unwrap();
         ports.remove(&self.http_port);
         ports.remove(&self.butterfly_port);
+        ports.remove(&self.control_port);
         self.process
             .take()
             .expect("No process to kill!")
