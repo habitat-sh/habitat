@@ -94,6 +94,3 @@ plan_path = "components/pkg-cfize"
 
 [hab-pkg-mesosize]
 plan_path = "components/pkg-mesosize"
-
-[hab-pkg-tarize]
-plan_path = "components/pkg-tarize"
