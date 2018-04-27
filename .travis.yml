@@ -259,7 +259,8 @@ notifications:
       - "%{repository} (%{commit}) : %{message}"
       - "Build details: %{build_url}"
       - "Status: %{result}"
-    secure: "bRaFFuuxhV4bv53JzWRWXqe2vZNfQ3UvhNJnqwxp+hPG6wYxJ8hsvPQtUq7esetDhnlru5aje2tUMioBcZB33ByO/DF4Q52WEi3nwdOmVkcmbn+FJEpCX7y+vfwglzHC1UvtOm2qIaIKjSsWY5vK05Ee5QIZtZtO0Qa6jg9JF521erSYqNV40qJwsEfvsm16RHVuV6tJGmz20EDXt47c3D1aTkhDCtufJWHNOj0pG6nGw7UVlh/xpEm3SikW141s6PtZ8dsG57emYW902s1F1G+DJRGVC0TquatWCqc7PYnmuZMofR01LMfXvya0O6TcXqppHBBm2snnucQeeB+r/tyPJTFulXpUOvDHz/Elhj+Bu6hxOufyWBRQCOnr6ubclxiFYMK4At8qAQE51HjhT4aqfxqHaOZdy2STwi6HPVdQvd8wCVnWYz6DbBLx6c1FBX93uuj/n3nP3LX9+IOc5O/gpHC91m/Fids5QvKVVpKV71ZNMNouJANIw/qAa2bZ6b14RNusUo0zTB4CjzvNbItUNvG5hIhtQXHS3jobfZekYFW42e+jlCMVYpBzSCNi9dwsfXvMsRKoW7Cel5fnscYneCagHbGDC1azi+Uv+dWY13y2MaGFv8QForFt2yQRGHl82ht91sEqrBiF1F4fs9mTBcrLq3oFDrUKKaH87WI="
+    rooms:
+      - secure: "uERbGr6e+5PdQLQdAhkElVg4NGmg0SCcFuebxcpFGKAbb5l5w5pYmmorNHdcDDpG4L+g3/wtTlRt9EiN2R1VYsJ/tLydrQF+9ZS7ERiYi7VhJRjZsVxOsNNz6VJNfypB7ZMq3t3zlwThWCqQyx6scvL9H1GEBWzd34Cm8+KA8t+37OfcTDU5UNWpblYx4HaSVsJygPQdGJM7SJ1nu9k7qkLsR2QNPKc9gJHbbhcUZQjjp6jFb1YMM1RWh6iK/GBxA2rTlqykmDiWBjQNDq6/G+jfPCuAVchMB2CBDH1SUYRfqOQ3A3/66seBnLif2m4q+cDJcjH2BggXkqu3MEGvNx8R8+d5dJnamS1T3G0zPax0kEQ3Uozsf/W+KEDTGylh57MqS/i8aIjKxlzPqia74S2d85IyP6hM8qgGzZUlcoRUXwNyaM1rj1K7uL8JHOq/3JHalQOV0qhq12pYKagSqwP/LV/+WvJE1U6aO39VnOGSzfN6ukxbfZAzP+dR6C08EJC137tcLEL4a32rEjK2C95vCw2Po02mXdatK7Sa0XI1hl5ZaQwm0nXycCcZDt1YYAotk3S5fCCe0Tsdw2gSxiOyXWalWC74WeMnP5vithZpReGIcwq4UvGlHx2/LEjP9azLhzTzDRQypaTMYVJFvcg6NccB4Z9gh5eNn1wWz90="
     on_pull_requests: false
     on_failure: always
     on_success: change
