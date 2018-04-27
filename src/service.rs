@@ -29,6 +29,58 @@ lazy_static! {
         Regex::new(r"\A(?P<application>[^#.@]+)\.(?P<environment>[^#.@]+)\z").unwrap();
 }
 
+/// Determines how the presence of bound service groups affects the
+/// starting of a service.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub enum BindingMode {
+    /// Binds may be satisfied at runtime, and are not required to be
+    /// satisfied before a service starts. Modern distributed services
+    /// should be constructed in this way.
+    Relaxed,
+    /// Binds *must* be satisfied before a service can start. Legacy
+    /// applications that cannot cope with the absence of a service
+    /// dependency at startup should bind with this mode.
+    Strict,
+}
+
+impl Default for BindingMode {
+    /// Strict is the default _for now_, since that's the de facto
+    /// behavior that has been in place for until this point.
+    ///
+    /// Once this feature has been available for a while (and before
+    /// Habitat hits 1.0), Relaxed will become the default, because a
+    /// well-behaved service in a distributed system should be able to
+    /// gracefully degrade when one of its service dependencies is not
+    /// available, including at start-up.
+    fn default() -> BindingMode {
+        BindingMode::Strict
+    }
+}
+
+impl fmt::Display for BindingMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            BindingMode::Relaxed => "relaxed",
+            BindingMode::Strict => "strict",
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for BindingMode {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "relaxed" => Ok(BindingMode::Relaxed),
+            "strict" => Ok(BindingMode::Strict),
+            _ => Err(Error::BadBindingMode(value.to_string())),
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct ServiceGroup(String);
 

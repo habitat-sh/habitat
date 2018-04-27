@@ -36,6 +36,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     /// Occurs when a `habitat_core::package::PackageArchive` is being read.
     ArchiveError(libarchive::error::ArchiveError),
+    BadBindingMode(String),
     /// An invalid path to a keyfile was given.
     BadKeyPath(String),
     /// An operation expected a composite package
@@ -170,6 +171,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::ArchiveError(ref err) => format!("{}", err),
+            Error::BadBindingMode(ref value) => format!("Unknown binding mode '{}'", value),
             Error::BadKeyPath(ref e) => format!(
                 "Invalid keypath: {}. Specify an absolute path to a file on disk.",
                 e
@@ -345,6 +347,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::ArchiveError(ref err) => err.description(),
+            Error::BadBindingMode(_) => "Unknown binding mode",
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
             Error::CompositePackageExpected(_) => "A composite package was expected",
             Error::ConfigFileIO(_, _) => "Unable to read the raw contents of a configuration file",
