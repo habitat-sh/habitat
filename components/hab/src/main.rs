@@ -1535,7 +1535,7 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
     }
     msg.set_binds(protobuf::RepeatedField::from_vec(get_binds_from_input(m)?));
     msg.set_specified_binds(m.is_present("BIND"));
-    msg.set_force(!m.is_present("FORCE"));
+    msg.set_force(m.is_present("FORCE"));
     if let Some(group) = get_group_from_input(m) {
         msg.set_group(group);
     }

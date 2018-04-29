@@ -564,7 +564,7 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
     if let Some(config_from) = get_config_from_input(m) {
         msg.set_config_from(config_from.to_string_lossy().into_owned());
     }
-    msg.set_force(!m.is_present("FORCE"));
+    msg.set_force(m.is_present("FORCE"));
     if let Some(group) = get_group_from_input(m) {
         msg.set_group(group);
     }
