@@ -1,9 +1,10 @@
+* @reset @fnichol @christophermaier
 components/backline @fnichol
-components/builder* @raskchanky
+components/builder* @chefsalim @raskchanky
 components/butterfly* @christophermaier @reset
 components/common @fnichol
 components/eventsrv* @reset @raskchanky
-components/hab* @reset @fnichol @christophermaier @elliott-davis @raskchanky
+components/hab* @reset @fnichol @christophermaier @chefsalim @elliott-davis @raskchanky
 components/launcher* @reset
 components/net @reset
 components/pkg-* @fnichol
@@ -11,5 +12,5 @@ components/plan-build @fnichol @christophermaier @elliott-davis
 components/studio @fnichol @elliott-davis
 components/sup @christophermaier @reset @fnichol
 support @fnichol @elliott-davis @raskchanky
-tools @baumanj @chefsalim @christophermaier @eeyun
+tools @chefsalim @christophermaier @eeyun
 www @cnunciato @mgamini
