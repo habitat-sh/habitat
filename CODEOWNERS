@@ -1,15 +1,15 @@
-components/backline @fnichol @baumanj
+components/backline @fnichol
 components/builder* @raskchanky
 components/butterfly* @christophermaier @reset
-components/common @fnichol @baumanj
+components/common @fnichol
 components/eventsrv* @reset @raskchanky
-components/hab* @reset @fnichol @christophermaier @baumanj @elliott-davis @raskchanky
-components/launcher* @reset @baumanj
-components/net @reset @baumanj
+components/hab* @reset @fnichol @christophermaier @elliott-davis @raskchanky
+components/launcher* @reset
+components/net @reset
 components/pkg-* @fnichol
 components/plan-build @fnichol @christophermaier @elliott-davis
-components/studio @fnichol @baumanj @elliott-davis
-components/sup @christophermaier @reset @fnichol @baumanj
-support @fnichol @baumanj @elliott-davis @raskchanky
+components/studio @fnichol @elliott-davis
+components/sup @christophermaier @reset @fnichol
+support @fnichol @elliott-davis @raskchanky
 tools @baumanj @chefsalim @christophermaier @eeyun
 www @cnunciato @mgamini
