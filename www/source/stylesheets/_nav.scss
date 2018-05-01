@@ -1,4 +1,4 @@
-$main-nav-breakpoint: 960px;
+$main-nav-breakpoint: 1060px;
 
 @mixin large-nav {
   @media (min-width: $main-nav-breakpoint) {
