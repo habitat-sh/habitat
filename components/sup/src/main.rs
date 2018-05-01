@@ -117,12 +117,12 @@ fn start() -> Result<()> {
         }
     };
     match app_matches.subcommand() {
-        ("bash", Some(m)) => sub_bash(m),
+        ("bash", Some(_)) => sub_bash(),
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
             sub_run(m, launcher)
         }
-        ("sh", Some(m)) => sub_sh(m),
+        ("sh", Some(_)) => sub_sh(),
         ("term", Some(m)) => sub_term(m),
         _ => unreachable!(),
     }
@@ -135,8 +135,6 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
-        (@arg VERBOSE: -v +global "Verbose output; shows line numbers")
-        (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
         (@subcommand bash =>
             (about: "Start an interactive Bash-like shell")
             (aliases: &["b", "ba", "bas"])
@@ -195,6 +193,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                  startup until all binds are present. [default: strict] [values: relaxed, strict]")
             (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
                 previously loaded and running this operation will also restart the service")
+            (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
+            (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
+            (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
+                Implies NO_COLOR")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -208,14 +210,13 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
     )
 }
 
-fn sub_bash(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
-
+fn sub_bash() -> Result<()> {
     command::shell::bash()
 }
 
 fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
+    set_supervisor_logging_options(m);
+
     let cfg = mgrcfg_from_matches(m)?;
     if Manager::is_running(&cfg)? {
         process::exit(OK_NO_RETRY_EXCODE);
@@ -249,10 +250,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     }
 }
 
-fn sub_sh(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
-
+fn sub_sh() -> Result<()> {
     command::shell::sh()
 }
 
@@ -533,15 +531,15 @@ fn enable_features_from_env() {
     }
 }
 
-fn toggle_verbosity(m: &ArgMatches) {
+fn set_supervisor_logging_options(m: &ArgMatches) {
     if m.is_present("VERBOSE") {
         hcore::output::set_verbose(true);
     }
-}
-
-fn toggle_color(m: &ArgMatches) {
     if m.is_present("NO_COLOR") {
         hcore::output::set_no_color(true);
+    }
+    if m.is_present("JSON") {
+        hcore::output::set_json(true)
     }
 }
 

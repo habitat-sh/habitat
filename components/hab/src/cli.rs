@@ -41,8 +41,6 @@ pub fn get() -> App<'static, 'static> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
-        (@arg VERBOSE: -v +global "Verbose output; shows line numbers")
-        (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
             (aliases: &["cl"])

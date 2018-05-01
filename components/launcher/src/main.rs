@@ -25,22 +25,37 @@ fn main() {
     env_logger::init();
 
     let args: Vec<String> = env::args().skip(1).collect();
-
-    // Since we have access to all the arguments passed to the
-    // Supervisor here, we can simply see if the user requested
-    // `--no-color` and set our global variable accordingly.
-    //
-    // This does, of course, rely on the option name used here staying
-    // in sync with the name used in the Supervisor.
-    //
-    // There is currently no short option to check; just the long
-    // name.
-    if args.contains(&String::from("--no-color")) {
-        core::output::set_no_color(true);
-    }
+    set_global_logging_options(&args);
 
     if let Err(err) = server::run(args) {
         println!("{}", err);
         process::exit(1);
+    }
+}
+
+/// In order to ensure that log output from the Launcher itself
+/// behaves the same as the Supervisor, we'll eavesdrop on the
+/// arguments being passed to the Supervisor in order to configure
+/// ourselves.
+fn set_global_logging_options(args: &Vec<String>) {
+    // Yeah, this is pretty weird, but it comes out of how the
+    // hab-launch, hab, and hab-sup binaries interact.
+    //
+    // These flags are defined with CLAP on `hab`, so they can be
+    // passed through `hab-launch` (and intercepted here), before
+    // being passed on to `hab-sup`, where they are _also_ defined.
+    //
+    // What a tangled web we weave!
+
+    // Note that each of these options has only one form, so we don't
+    // have to check for long _and_ short options, for example.
+    if args.contains(&String::from("--no-color")) {
+        core::output::set_no_color(true);
+    }
+    if args.contains(&String::from("--json-logging")) {
+        core::output::set_json(true);
+    }
+    if args.contains(&String::from("-v")) {
+        core::output::set_verbose(true);
     }
 }

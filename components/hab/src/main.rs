@@ -722,8 +722,6 @@ fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_set(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
     let secret_key = ctl_secret_key(&cfg)?;
@@ -818,8 +816,6 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_config(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
@@ -848,8 +844,6 @@ fn sub_svc_config(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_load(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
     let secret_key = ctl_secret_key(&cfg)?;
@@ -864,8 +858,6 @@ fn sub_svc_load(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
@@ -879,8 +871,6 @@ fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_start(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
@@ -894,8 +884,6 @@ fn sub_svc_start(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_status(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
     let secret_key = ctl_secret_key(&cfg)?;
@@ -930,8 +918,6 @@ fn sub_svc_status(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_stop(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
@@ -945,8 +931,6 @@ fn sub_svc_stop(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_file_put(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
@@ -1018,8 +1002,6 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
-    toggle_verbosity(m);
-    toggle_color(m);
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m);
     let secret_key = ctl_secret_key(&cfg)?;
@@ -1494,18 +1476,6 @@ fn user_param_or_env(m: &ArgMatches) -> Option<String> {
             Ok(v) => Some(v),
             Err(_) => None,
         },
-    }
-}
-
-fn toggle_verbosity(m: &ArgMatches) {
-    if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
-    }
-}
-
-fn toggle_color(m: &ArgMatches) {
-    if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
     }
 }
 
