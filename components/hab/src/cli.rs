@@ -56,7 +56,7 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (@subcommand apply =>
                 (about: "Sets a configuration to be shared by members of a Service Group")
-                (aliases: &["ap", "app", "appl"]) 
+                (aliases: &["ap", "app", "appl"])
                 (@arg SERVICE_GROUP: +required {valid_service_group}
                     "Target service group (ex: redis.default)")
                 (@arg VERSION_NUMBER: +required
@@ -69,7 +69,7 @@ pub fn get() -> App<'static, 'static> {
             )
             (@subcommand show =>
                 (about: "Displays the default configuration options for a service")
-                (aliases: &["sh", "sho"]) 
+                (aliases: &["sh", "sho"])
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
@@ -261,7 +261,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand upload =>
                     (@group upload =>
                         (@attributes +required)
-                        (@arg ORIGIN: +required "The origin name")
+                        (@arg ORIGIN: "The origin name")
                         (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
                             "Path to a local public origin key file on disk")
                     )
@@ -631,7 +631,7 @@ pub fn get() -> App<'static, 'static> {
         )
         (@subcommand apply =>
             (about: "Alias for 'config apply'")
-            (aliases: &["ap", "app", "appl"]) 
+            (aliases: &["ap", "app", "appl"])
             (@setting Hidden)
         )
         (subcommand: alias_install)
