@@ -60,7 +60,7 @@ impl Env {
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
     pub fn new(package: &PackageInstall) -> Result<Self> {
-        let mut env = package.runtime_environment()?;
+        let mut env = package.environment_for_command()?;
         let path = Self::transform_path(env.get(PATH_KEY))?;
         env.insert(PATH_KEY.to_string(), path);
         Ok(Env(env))
