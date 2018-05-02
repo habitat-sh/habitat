@@ -592,6 +592,10 @@ pub fn get() -> App<'static, 'static> {
             )
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
         )
+        (@subcommand supportbundle =>
+            (about: "Create a tarball of Habitat Supervisor data to send to support")
+            (aliases: &["supp", "suppo", "suppor", "support-bundle"])
+        )
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
             (aliases: &["u", "us", "use"])
@@ -636,7 +640,7 @@ fn alias_run() -> App<'static, 'static> {
 
 fn alias_term() -> App<'static, 'static> {
     clap_app!(@subcommand term =>
-        (about: "Gracefully terminate the Habitat Supervisor and all of it's running services")
+        (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
         (@setting Hidden)
     )
 }

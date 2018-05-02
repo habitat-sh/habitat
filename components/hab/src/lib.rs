@@ -29,10 +29,12 @@ extern crate ansi_term;
 extern crate base64;
 #[macro_use]
 extern crate bitflags;
+extern crate chrono;
 #[macro_use]
 extern crate clap;
 #[macro_use]
 extern crate features;
+extern crate flate2;
 extern crate hyper;
 #[macro_use]
 extern crate log;
@@ -44,6 +46,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate tabwriter;
+extern crate tar;
 #[cfg(test)]
 extern crate tempdir;
 extern crate toml;

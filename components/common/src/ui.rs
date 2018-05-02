@@ -34,6 +34,8 @@ pub const NOCOLORING_ENVVAR: &'static str = "HAB_NOCOLORING";
 
 pub enum Status {
     Applying,
+    Added,
+    Adding,
     Cached,
     Canceled,
     Canceling,
@@ -48,6 +50,8 @@ pub enum Status {
     Encrypting,
     Encrypted,
     Found,
+    Generated,
+    Generating,
     Installed,
     Missing,
     Promoted,
@@ -66,6 +70,8 @@ impl Status {
     pub fn parts(&self) -> (char, String, Colour) {
         match *self {
             Status::Applying => ('↑', "Applying".into(), Colour::Green),
+            Status::Added => ('↑', "Added".into(), Colour::Green),
+            Status::Adding => ('☛', "Adding".into(), Colour::Green),
             Status::Canceled => ('✓', "Canceled".into(), Colour::Green),
             Status::Canceling => ('☛', "Canceling".into(), Colour::Green),
             Status::Cached => ('☑', "Cached".into(), Colour::Green),
@@ -80,6 +86,8 @@ impl Status {
             Status::Encrypting => ('☛', "Encrypting".into(), Colour::Green),
             Status::Encrypted => ('✓', "Encrypted".into(), Colour::Green),
             Status::Found => ('→', "Found".into(), Colour::Cyan),
+            Status::Generated => ('→', "Generated".into(), Colour::Cyan),
+            Status::Generating => ('☛', "Generating".into(), Colour::Green),
             Status::Installed => ('✓', "Installed".into(), Colour::Green),
             Status::Missing => ('∵', "Missing".into(), Colour::Red),
             Status::Promoted => ('✓', "Promoted".into(), Colour::Green),
