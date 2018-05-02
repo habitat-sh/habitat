@@ -220,63 +220,6 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
 }
 
 #[macro_export]
-/// Works the same as the print! macro, but uses our StructuredOutput formatter.
-macro_rules! output {
-    ($content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            print!("{}", so);
-        }
-    };
-    (preamble $preamble:expr, $content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new(&$preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            print!("{}", so);
-        }
-    };
-    ($content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            print!("{}", so);
-        }
-    };
-    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new(&$preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            print!("{}", so);
-        }
-    };
-}
-
-#[macro_export]
 /// Works the same as println!, but uses our structured output formatter.
 macro_rules! outputln {
     ($content: expr) => {
@@ -336,71 +279,16 @@ macro_rules! outputln {
 #[macro_export]
 /// Works the same as format!, but uses our structured output formatter.
 macro_rules! output_format {
-    ($content: expr) => {
+    (preamble $preamble: expr, logkey $logkey:expr, $content: expr) => {
         {
             use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            format!("{}", so)
-        }
-    };
-    (preamble $preamble:expr, $content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            format!("{}", so)
-        }
-    };
-    (preamble $preamble:expr, logkey $logkey:expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
+            let trimmed_content = &$content.trim_right_matches('\n');
+            let so = StructuredOutput::new(&$preamble,
                                            $logkey,
                                            line!(),
                                            file!(),
                                            column!(),
-                                           "");
-            format!("{}", so)
-        }
-    };
-
-    ($content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            format!("{}", so)
-        }
-    };
-    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            let content = format!($content, $($arg)*);
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
+                                           trimmed_content);
             format!("{}", so)
         }
     }
