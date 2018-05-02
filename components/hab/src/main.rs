@@ -244,6 +244,7 @@ fn start(ui: &mut UI) -> Result<()> {
             ("status", Some(m)) => sub_svc_status(m)?,
             _ => unreachable!(),
         },
+        ("supportbundle", _) => sub_supportbundle(ui)?,
         ("setup", Some(_)) => sub_cli_setup(ui)?,
         ("start", Some(m)) => sub_svc_start(m)?,
         ("stop", Some(m)) => sub_svc_stop(m)?,
@@ -1043,6 +1044,12 @@ fn sub_sup_secret_generate() -> Result<()> {
     protocol::generate_secret_key(&mut buf);
     ui.info(buf)?;
     Ok(())
+}
+
+fn sub_supportbundle(ui: &mut UI) -> Result<()> {
+    init();
+
+    command::supportbundle::start(ui)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {

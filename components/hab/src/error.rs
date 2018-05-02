@@ -58,6 +58,7 @@ pub enum Error {
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
     JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
+    NameLookup,
     NetErr(net::NetErr),
     PackageArchiveMalformed(String),
     ParseIntError(num::ParseIntError),
@@ -138,6 +139,7 @@ impl fmt::Display for Error {
                 e
             ),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
+            Error::NameLookup => format!("Error resolving a name or IP address"),
             Error::NetErr(ref e) => format!("{}", e),
             Error::PackageArchiveMalformed(ref e) => format!(
                 "Package archive was unreadable or contained unexpected contents: {:?}",
@@ -198,6 +200,7 @@ impl error::Error for Error {
             Error::JobGroupPromoteOrDemote(ref err, _) => err.description(),
             Error::JobGroupCancel(ref err) => err.description(),
             Error::NetErr(ref err) => err.description(),
+            Error::NameLookup => "Error resolving a name or IP address",
             Error::PackageArchiveMalformed(_) => {
                 "Package archive was unreadable or had unexpected contents"
             }
