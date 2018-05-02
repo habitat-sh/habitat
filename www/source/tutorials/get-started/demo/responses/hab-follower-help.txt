@@ -2,4 +2,4 @@ A peer node was not properly defined.
 We started the leader in the previous step, now let's connect a follower.
 
 The command to add the peer node is:
-   [1;33mhab start -t leader core/redis --peer 172.17.0.4
+   hab sup run -t leader core/redis --peer 172.17.0.4

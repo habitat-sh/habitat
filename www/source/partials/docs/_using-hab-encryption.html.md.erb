@@ -23,20 +23,14 @@ Supervisors running in a ring can be configured to encrypt all traffic between t
 3. Start the Supervisor with the `-r` or `--ring` parameter, specifying the name of the ring key to use.
 
     ```shell
-    $ hab start --ring yourringname yourorigin/yourapp
-    ```
-
-    or, if using a standalone Supervisor package:
-
-    ```shell
-    $ hab-sup start --ring yourringname yourorigin/yourapp
+    $ hab sup run --ring yourringname yourorigin/yourapp
     ```
 
 4. The Supervisor becomes part of the named ring `yourringname` and uses the key for network encryption. Other supervisors that now attempt to connect to it without presenting the correct ring key will be rejected.
 5. It is also possible to set the environment variable `HAB_RING_KEY` to the contents of the ring key; for example:
 
     ```shell
-    $ env HAB_RING_KEY=$(cat /hab/cache/keys/ring-key-file) hab-sup start yourorigin/yourapp
+    $ env HAB_RING_KEY=$(cat /hab/cache/keys/ring-key-file) hab sup run yourorigin/yourapp
     ```
 
 ### Using a Ring Key When Applying Configuration Changes
@@ -61,7 +55,7 @@ As explained in the [security overview](/docs/internals#crypto-internals), this 
 3. Start the Supervisor, specifying both the service group and organization that it belongs to:
 
     ```shell
-    $ hab start --org yourorg --group servicegroupname.example yourorigin/yourapp
+    $ hab sup run --org yourorg --group servicegroupname.example yourorigin/yourapp
     ```
 
 4. Only users whose public keys that the Supervisor already has in its cache will be allowed to reconfigure this service group. If you need to generate a user key pair, see the next section.

@@ -66,7 +66,7 @@ Once you've defined both ends of the contract you can leverage the bind in any o
 Since your application server defined `database` as a required bind, you'll need to provide the name of a service group running a package which fulfills the contract using the `--bind` parameter to the Supervisor. For example, running the following:
 
 ```shell
-$ hab start my-origin/app-server --bind database:amnesia.default
+$ hab sup run my-origin/app-server --bind database:amnesia.default
 ```
 
 would create a bind aliasing `database` to the `amnesia` service in the `default` service group.

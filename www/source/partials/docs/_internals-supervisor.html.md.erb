@@ -28,6 +28,38 @@ Butterfly is an eventually consistent system - it says, with a very high degree 
 * _Ring_: All the members connected to one another form a Ring.
 * _Incarnation_: A counter used to determine which message is "newer".
 
+## Control Gateway
+
+The Supervisor control gateway is used to issue commands to a remote Supervisor. When a new Supervisor is created, a key for the `CTL_SECRET` environment variable is generated for it by default, if one is not already present; this key is used to authenticate requests that are made via the control gateway. 
+
+You can generate a new key with the `hab sup` command:
+
+```
+$ hab sup secret generate
+```
+
+Copy the generated key, then add it as the default by re-running `hab setup`. You will be prompted to set up a default control gateway secret:
+
+```
+Set up a default Habitat Supervisor CtlGateway secret? [Yes/no/quit]
+```
+
+When you answer `yes`, you will be prompted to enter your key. Paste the contents of the key you generated previously.
+
+Now when you create a Supervisor on a remote machine, you can pass the key along via the `HAB_CTL_SECRET` environment variable:
+
+```
+$ HAB_CTL_SECRET='secret123' hab sup run origin/app
+```
+
+This ensures that the remote Supervisor will be able to authenticate properly when receiving commands. 
+
+Now you can use the `-r` or `--remote-sup` flag to pass commands to the remote Supervisor:
+
+```
+hab svc stop -r 192.0.2.2:9632 origin/app
+```
+
 ### Transport Protocols
 
 Supervisors communicate with each other using UDP and ZeroMQ, over port 9638.

@@ -39,7 +39,7 @@ Configuring a Supervisor's update strategy to point to a channel ensures that ne
 
 To start a Supervisor with an update strategy and pointing to a channel, specify them as options when starting a service.
 
-    $ hab start <origin>/<package> --strategy rolling --channel test
+    $ hab sup run <origin>/<package> --strategy rolling --channel test
 
 While that service is running, update your package, rebuild it, and then promote it to the same channel that the previous release of that serviceis currently running in (e.g. `test`). Those running instances should now update according to their update strategy.
 
