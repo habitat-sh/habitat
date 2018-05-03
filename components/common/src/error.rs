@@ -49,7 +49,7 @@ pub enum Error {
     TomlSerializeError(toml::ser::Error),
     WireDecode(String),
     EditorEnv(env::VarError),
-    PackageNotFound,
+    PackageNotFound(String),
 }
 
 impl fmt::Display for Error {
@@ -93,7 +93,7 @@ impl fmt::Display for Error {
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::WireDecode(ref m) => format!("Failed to decode wire message: {}", m),
             Error::EditorEnv(ref e) => format!("Missing EDITOR environment variable: {}", e),
-            Error::PackageNotFound => format!("Package not found"),
+            Error::PackageNotFound(ref e) => format!("Package not found. {}", e),
         };
         write!(f, "{}", msg)
     }
@@ -129,7 +129,7 @@ impl error::Error for Error {
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::WireDecode(_) => "Failed to decode wire message",
             Error::EditorEnv(_) => "Missing EDITOR environment variable",
-            Error::PackageNotFound => "Package not found",
+            Error::PackageNotFound(_) => "Package not found",
         }
     }
 }
