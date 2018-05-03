@@ -1,20 +1,20 @@
 # <a name="aks-and-habitat" id="aks-and-habitat" data-magellan-target="aks-and-habitat">Azure Container Services (AKS)</a>
 [Azure Container Services (AKS)](https://azure.microsoft.com/en-us/services/container-service/)
-is a fully managed Kubernetes service running on the Azure platform. It supports running habitat
+is a fully managed Kubernetes service running on the Azure platform. It supports running Habitat
 packages using the [Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator).
 
 ## Azure Container Registry (ACR)
 Azure Container Registry is a managed Docker container registry service used for storing
 private Docker container images. It’s a fully managed Azure resource and gives you local,
 network-close storage of your container images when deploying to AKS. Habitat Builder has
-a native integration With this integration so you can publish your packages directly to
+a native integration with this service so you can publish your packages directly to
 Azure Container Registry.
 
 In order to do this you need to create an Azure Service Principal that has `Owner` rights
 on your ACR instance.  You can do this with the following script, changing the environment
-variables to match your environment.
+variable values to match your environment.
 
-```shell
+```
 #!/bin/bash
 
 ACR_RESOURCE_GROUP=myACRResourceGroup
@@ -32,17 +32,17 @@ echo "  ID : $BLDR_ID"
 echo "  Password : $BLDR_PRINCIPAL_PASSWORD"
 ```
 
-Note: The usique Service Principal Name (the UUID) should be provided in the Habitat Builder
+Note: The unique Service Principal Name (the UUID) should be provided in the Habitat Builder
 configuration.
 
 ## Connecting ACR and AKS for Habitat Operator
-Since ACR is a private docker registry, AKS must be authorized to pull images from it.  The best way is to
+Since ACR is a private Docker registry, AKS must be authorized to pull images from it.  The best way is to
 create a role assignment on the Service Principal that is automatically created for AKS, granting it
 `Reader` access on your ACR instance.
 
-To do this you can use the following script, changing the environment variables to match your configuration.
+To do this you can use the following script, changing the environment variable values to match your configuration.
 
-```shell
+```
 #!/bin/bash
 
 AKS_RESOURCE_GROUP=myAKSResourceGroup
@@ -62,10 +62,9 @@ az role assignment create --assignee $CLIENT_ID --role Reader --scope $ACR_ID
 
 ## Habitat Updater
 As for any other Kubernetes cluster, you should use the [Habitat Kubernetes Updater](https://github.com/habitat-sh/habitat-updater) if you want automatic updates
-of habitat packages on AKS.
+of Habitat packages on AKS.
 
 ## Related Reading
 * [Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator)
 * [Habitat Kubernetes Updater](https://github.com/habitat-sh/habitat-updater)
 * [Authenticate with Azure Container Registry from Azure Container Service](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-auth-aks#grant-aks-access-to-acr)
-
