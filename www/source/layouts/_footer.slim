@@ -16,11 +16,13 @@ footer#main-footer class="#{layout_class}" data-swiftype-index="false"
         li.footer--sitemap--link
           =link_to 'Community', '/community'
         li.footer--sitemap--link
+            a href="#{builder_web_url}/#/pkgs" Builder
+        li.footer--sitemap--link
           =link_to 'Enterprise', '/enterprise'
         li.footer--sitemap--link
           =link_to 'Blog', '/blog'
         li.footer--sitemap--link
-            a href="#{builder_web_url}/#/" Habitat Builder
+            a href="https://status.habitat.sh/" target="_blank" Status
     .columns.large-2.small-12.footer--social-links
       ul.footer--links.social.inline
         li.footer--socials--link
