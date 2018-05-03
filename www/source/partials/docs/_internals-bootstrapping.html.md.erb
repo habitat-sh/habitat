@@ -61,7 +61,7 @@ In this stage, we rebuild all the base packages needed by Habitat using the tool
 ```shell
 $ rm -rf /hab
 $ ./components/hab/install.sh
-$ hab install ~ubuntu/results/core-hab-studio-0.6.0-20160701030246-x86_64-linux.hart
+$ hab pkg install ~ubuntu/results/core-hab-studio-0.6.0-20160701030246-x86_64-linux.hart
 $ hab origin key generate core
 ```
 
@@ -143,9 +143,9 @@ In this stage, we rebuild all of the remaining packages using the base packages 
 Update build host now:
 
 ```shell
-$ hab install ~ubuntu/launch-stage2-base-harts/core-hab-0.6.0-20160612082139-x86_64-linux.hart
+$ hab pkg install ~ubuntu/launch-stage2-base-harts/core-hab-0.6.0-20160612082139-x86_64-linux.hart
 $ hab pkg binlink core/hab hab
-$ hab install ~ubuntu/launch-stage2-base-harts/core-hab-studio-0.6.0-20160612082608-x86_64-linux.hart
+$ hab pkg install ~ubuntu/launch-stage2-base-harts/core-hab-studio-0.6.0-20160612082608-x86_64-linux.hart
 ```
 
 ```shell

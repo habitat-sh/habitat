@@ -80,7 +80,7 @@ After you have built the hart package, do the following:
      2. Install the package (which should be on the virtual machine)
 
         ```shell
-        $ sudo hab install your_package.hart
+        $ sudo hab pkg install your_package.hart
         ```
 
      3. Create the Habitat group
@@ -102,7 +102,7 @@ On Windows this looks very similar with the additional step of installing the Ch
 PS C:\\> Set-ExecutionPolicy Bypass -Scope Process -Force
 PS C:\\> iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 PS C:\\> choco install habitat
-PS C:\\> hab install your_package.hart
+PS C:\\> hab pkg install your_package.hart
 PS C:\\> hab start your_origin/your_package
 ```
 

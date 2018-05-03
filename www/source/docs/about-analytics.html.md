@@ -6,7 +6,7 @@ title: Analytics in Habitat
 
 ## Command-Line Analytics
 
-The `hab` command-line utility is instrumented to _optionally_ send anonymous usage data to us. This is an opt-in activity and no tracking occurs unless you respond affirmatively to the question during `hab setup`. If you do not use `hab setup`, no data will ever be sent.
+The `hab` command-line utility is instrumented to _optionally_ send anonymous usage data to us. This is an opt-in activity and no tracking occurs unless you respond affirmatively to the question during `hab cli setup`. If you do not use `hab cli setup`, no data will ever be sent.
 
 We collect this data to help improve Habitat's user experience: for example, to know what tasks users are performing, and which ones they are having trouble with.
 
