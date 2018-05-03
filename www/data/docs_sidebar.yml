@@ -133,6 +133,8 @@ sidebar_links:
       link: "/docs/best-practices/#container-orchestration"
     - title: Kubernetes
       link: "/docs/best-practices/#kubernetes"
+    - title: "AKS and Habitat"
+      link: "/docs/best-practices/#aks-and-habitat"
     - title: "ECS and Habitat"
       link: "/docs/best-practices/#ecs-and-habitat"
     - title: "Apache Mesos and DC/OS"
