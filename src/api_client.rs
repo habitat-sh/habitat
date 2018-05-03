@@ -15,6 +15,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use hab_core::env;
 use hab_core::util::sys;
 use hyper::client::{Client as HyperClient, IntoUrl, RequestBuilder};
 use hyper::client::pool::{Config, Pool};
@@ -23,7 +24,7 @@ use hyper::http::h1::Http11Protocol;
 use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
 use openssl::ssl::{SSL_OP_NO_SSLV2, SSL_OP_NO_SSLV3, SslConnector, SslConnectorBuilder, SslMethod,
-                   SslOption, SSL_OP_NO_COMPRESSION};
+                   SslOption, SSL_OP_NO_COMPRESSION, SSL_VERIFY_NONE};
 use url::Url;
 
 use error::{Error, Result};
@@ -317,5 +318,10 @@ fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
     ssl::set_ca(&mut conn, fs_root_path)?;
     conn.set_options(options);
     conn.set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH")?;
+
+    if env::var("HAB_SSL_CERT_VERIFY_NONE").is_ok() {
+        conn.set_verify(SSL_VERIFY_NONE);
+    }
+
     Ok(conn.build())
 }
