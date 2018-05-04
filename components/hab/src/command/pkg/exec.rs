@@ -28,7 +28,7 @@ where
 {
     let command = command.into();
     let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;
-    let mut run_env = pkg_install.runtime_environment()?;
+    let mut run_env = pkg_install.environment_for_command()?;
 
     let mut paths: Vec<PathBuf> = match run_env.get("PATH") {
         Some(path) => env::split_paths(&path).collect(),
