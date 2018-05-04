@@ -11,6 +11,7 @@ extern crate handlebars;
 extern crate failure;
 #[macro_use]
 extern crate failure_derive;
+extern crate flate2;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
@@ -34,6 +35,8 @@ use hcore::url as hurl;
 use hcore::package::{PackageIdent, PackageInstall};
 use tar::Builder;
 use std::str::FromStr;
+use flate2::Compression;
+use flate2::write::GzEncoder;
 
 pub use build::BuildSpec;
 
@@ -66,7 +69,8 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str) {
     let tarball_name = format_tar_name(pkg_ident);
 
     let tarball = File::create(tarball_name).unwrap();
-    let mut tar_builder = Builder::new(tarball);
+    let enc = GzEncoder::new(tarball, Compression::default());
+    let mut tar_builder = Builder::new(enc);
     tar_builder.follow_symlinks(false);
 
     let root_fs = temp_dir_path.clone().join("rootfs");
