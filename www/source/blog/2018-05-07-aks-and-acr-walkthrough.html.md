@@ -16,7 +16,7 @@ Azure Container Registry is a managed Docker container registry service used for
 
 Azure Kubernetes Service (AKS) is a fully managed hosted Kubernetes environment that makes it quick and easy to deploy and manage containerized applications without container orchestration expertise. It also eliminates the burden of ongoing operations and maintenance by provisioning, upgrading, and scaling resources on demand, without taking your applications offline.
 
-Using both of them together allows you to quickly stand up a Kubernetes cluster along with a private repositgory to hold the containers.
+Using both of them together allows you to quickly stand up a Kubernetes cluster along with a private repository to hold the containers.
 
 ## Walkthrough
 We're going to use the `az` and `kubectl` command-line tools throughout this example. If you're using the Azure Cloud Shell both of these tools are already installed.
@@ -106,7 +106,7 @@ Now that you have setup the registry you need to use the Habitat Builder user in
 
 
 ## Connect your packages to the registry
-The final step to be carried out in the Habitat Builder user interface is to connect a plan file (we're using the `wordpress` and `mysql` plans from the [GitHub repository](https://github.com/jamesc/azure-habitat-example)) and configure it to export it to our container registry.  First we do this for the `wordpress` package which has it's plan file at `wordpress/plan.sh`.
+The final step to be carried out in the Habitat Builder user interface is to connect a plan file (we're using the `wordpress` and `mysql` plans from the [GitHub repository](https://github.com/jamesc/azure-habitat-example)) and configure it to export it to our container registry.  First we do this for the `wordpress` package which has its plan file at `wordpress/plan.sh`.
 
 ![Publish to the registry](media/2018-05-07-aks-and-acr-walkthrough/publish-to-registry.png)
 
