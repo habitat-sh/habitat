@@ -444,7 +444,7 @@ impl<'a> InstallTask<'a> {
             )?;
             match self.latest_installed_or_cached(&ident) {
                 Ok(i) => Ok(i),
-                Err(Error::PackageNotFound) => {
+                Err(Error::PackageNotFound(_)) => {
                     return Err(Error::OfflinePackageNotFound(ident.clone()));
                 }
                 Err(e) => return Err(e),
@@ -484,7 +484,7 @@ impl<'a> InstallTask<'a> {
                     }
                     Err(_) => {
                         self.recommend_channels(ui, &ident, token)?;
-                        return Err(Error::PackageNotFound);
+                        return Err(Error::PackageNotFound("If you are attempting to install from a local depot with an upstream configured, try again in a few seconds.".to_string()));
                     }
                 },
                 Err(e) => {
@@ -671,7 +671,7 @@ impl<'a> InstallTask<'a> {
                     pkg_artifact
                 }
             }
-            (Err(_), Err(_)) => return Err(Error::PackageNotFound),
+            (Err(_), Err(_)) => return Err(Error::PackageNotFound("".to_string())),
         };
         debug!("offline mode: winner: {:?}", &latest);
 
@@ -681,7 +681,7 @@ impl<'a> InstallTask<'a> {
     fn latest_installed_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
         match PackageInstall::load(ident, Some(self.fs_root_path)) {
             Ok(pi) => FullyQualifiedPackageIdent::from(pi.ident().clone()),
-            Err(_) => Err(Error::PackageNotFound),
+            Err(_) => Err(Error::PackageNotFound("".to_string())),
         }
     }
 
@@ -699,7 +699,7 @@ impl<'a> InstallTask<'a> {
             }
             match ident.archive_name() {
                 Some(name) => name,
-                None => return Err(Error::PackageNotFound),
+                None => return Err(Error::PackageNotFound("".to_string())),
             }
         };
         let glob_path = self.artifact_cache_path.join(filename_glob);
@@ -730,7 +730,7 @@ impl<'a> InstallTask<'a> {
         }
 
         if latest.is_empty() {
-            Err(Error::PackageNotFound)
+            Err(Error::PackageNotFound("".to_string()))
         } else {
             Ok(FullyQualifiedPackageIdent::from(latest
                 .pop()
@@ -945,7 +945,7 @@ impl<'a> InstallTask<'a> {
             Ok(channels) => channels,
             Err(e) => {
                 debug!("Failed to get channel list: {:?}", e);
-                return Err(Error::PackageNotFound);
+                return Err(Error::PackageNotFound("".to_string()));
             }
         };
 
