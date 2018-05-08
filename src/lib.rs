@@ -35,7 +35,15 @@ extern crate regex;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+
+// This is a little gross, but we only need the macros in tests right
+// now.
+#[cfg(test)]
+#[macro_use]
 extern crate serde_json;
+#[cfg(not(test))]
+extern crate serde_json;
+
 extern crate sodiumoxide;
 #[cfg(test)]
 extern crate tempdir;
