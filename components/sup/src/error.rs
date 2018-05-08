@@ -139,7 +139,9 @@ pub enum Error {
     MissingRequiredIdent,
     NameLookup(io::Error),
     NetParseError(net::AddrParseError),
+    NoActiveMembers(hcore::service::ServiceGroup),
     NoLauncher,
+    NoSuchBind(String),
     NotifyCreateError(notify::Error),
     NotifyError(notify::Error),
     NulError(ffi::NulError),
@@ -259,7 +261,9 @@ impl fmt::Display for SupError {
             }
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
+            Error::NoActiveMembers(ref g) => format!("No active members in service group {}", g),
             Error::NoLauncher => format!("Supervisor must be run from `hab-launch`"),
+            Error::NoSuchBind(ref b) => format!("No such bind: {}", b),
             Error::NotifyCreateError(ref e) => format!("Notify create error: {}", e),
             Error::NotifyError(ref e) => format!("Notify error: {}", e),
             Error::NulError(ref e) => format!("{}", e),
@@ -385,7 +389,9 @@ impl error::Error for SupError {
             }
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
+            Error::NoActiveMembers(_) => "Group has no active members",
             Error::NoLauncher => "Supervisor must be run from `hab-launch`",
+            Error::NoSuchBind(_) => "No such bind found for this service",
             Error::NotifyCreateError(_) => "Notify create error",
             Error::NotifyError(_) => "Notify error",
             Error::NulError(_) => {

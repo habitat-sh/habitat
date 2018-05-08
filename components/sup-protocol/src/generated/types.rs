@@ -2445,6 +2445,55 @@ impl ::protobuf::reflect::ProtobufValue for UpdateStrategy {
     }
 }
 
+#[derive(Clone,PartialEq,Eq,Debug,Hash)]
+pub enum BindingMode {
+    Relaxed = 0,
+    Strict = 1,
+}
+
+impl ::protobuf::ProtobufEnum for BindingMode {
+    fn value(&self) -> i32 {
+        *self as i32
+    }
+
+    fn from_i32(value: i32) -> ::std::option::Option<BindingMode> {
+        match value {
+            0 => ::std::option::Option::Some(BindingMode::Relaxed),
+            1 => ::std::option::Option::Some(BindingMode::Strict),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    fn values() -> &'static [Self] {
+        static values: &'static [BindingMode] = &[
+            BindingMode::Relaxed,
+            BindingMode::Strict,
+        ];
+        values
+    }
+
+    fn enum_descriptor_static(_: ::std::option::Option<BindingMode>) -> &'static ::protobuf::reflect::EnumDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::EnumDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                ::protobuf::reflect::EnumDescriptor::new("BindingMode", file_descriptor_proto())
+            })
+        }
+    }
+}
+
+impl ::std::marker::Copy for BindingMode {
+}
+
+impl ::protobuf::reflect::ProtobufValue for BindingMode {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
+}
+
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n\x0btypes.proto\"e\n\x16ApplicationEnvironment\x12\x20\n\x0bapplicatio\
     n\x18\x01\x20\x02(\tR\x0bapplication\x12)\n\x0benvironment\x18\x02\x20\
@@ -2472,7 +2521,8 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x20\n\x0cProcessState\x12\x08\n\x04Down\x10\0\x12\x06\n\x02Up\x10\x01*&\
     \n\x08Topology\x12\x0e\n\nStandalone\x10\0\x12\n\n\x06Leader\x10\x01*3\n\
     \x0eUpdateStrategy\x12\x08\n\x04None\x10\0\x12\n\n\x06AtOnce\x10\x01\x12\
-    \x0b\n\x07Rolling\x10\x02\
+    \x0b\n\x07Rolling\x10\x02*&\n\x0bBindingMode\x12\x0b\n\x07Relaxed\x10\0\
+    \x12\n\n\x06Strict\x10\x01\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

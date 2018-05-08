@@ -1443,6 +1443,13 @@ fn get_binds_from_input(m: &ArgMatches) -> Result<Vec<protocol::types::ServiceBi
     Ok(binds)
 }
 
+fn get_binding_mode_from_input(m: &ArgMatches) -> Option<protocol::types::BindingMode> {
+    // There won't be errors, because we validate with `valid_binding_mode`
+    m.value_of("BINDING_MODE")
+        .and_then(|b| BindingMode::from_str(b).ok())
+        .map(|b| b.into())
+}
+
 fn get_group_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("GROUP").map(ToString::to_string)
 }
@@ -1535,6 +1542,9 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
     }
     msg.set_binds(protobuf::RepeatedField::from_vec(get_binds_from_input(m)?));
     msg.set_specified_binds(m.is_present("BIND"));
+    if let Some(binding_mode) = get_binding_mode_from_input(m) {
+        msg.set_binding_mode(binding_mode);
+    }
     msg.set_force(m.is_present("FORCE"));
     if let Some(group) = get_group_from_input(m) {
         msg.set_group(group);

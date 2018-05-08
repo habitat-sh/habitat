@@ -47,7 +47,7 @@ use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 use hcore::env as henv;
-use hcore::service::{ApplicationEnvironment, ServiceGroup};
+use hcore::service::{ApplicationEnvironment, BindingMode, ServiceGroup};
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
@@ -190,6 +190,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The update strategy; [default: none] [values: none, at-once, rolling]")
             (@arg BIND: --bind +takes_value +multiple
                 "One or more service groups to bind to a configuration")
+            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+                "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+                 startup until all binds are present. [default: strict] [values: relaxed, strict]")
             (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
                 previously loaded and running this operation will also restart the service")
         )
@@ -418,6 +421,13 @@ fn get_binds_from_input(m: &ArgMatches) -> Result<Vec<protocol::types::ServiceBi
     Ok(binds)
 }
 
+fn get_binding_mode_from_input(m: &ArgMatches) -> Option<protocol::types::BindingMode> {
+    // There won't be errors, because we validate with `valid_binding_mode`
+    m.value_of("BINDING_MODE")
+        .and_then(|b| BindingMode::from_str(b).ok())
+        .map(|b| b.into())
+}
+
 fn get_config_from_input(m: &ArgMatches) -> Option<PathBuf> {
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         warn!("");
@@ -453,6 +463,13 @@ fn dir_exists(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         Err(format!("Directory: '{}' cannot be found", &val))
+    }
+}
+
+fn valid_binding_mode(val: String) -> result::Result<(), String> {
+    match protocol::types::BindingMode::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Binding mode: '{}' is not valid", &val)),
     }
 }
 
@@ -561,6 +578,9 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
     }
     msg.set_binds(protobuf::RepeatedField::from_vec(get_binds_from_input(m)?));
     msg.set_specified_binds(m.is_present("BIND"));
+    if let Some(binding_mode) = get_binding_mode_from_input(m) {
+        msg.set_binding_mode(binding_mode);
+    }
     if let Some(config_from) = get_config_from_input(m) {
         msg.set_config_from(config_from.to_string_lossy().into_owned());
     }

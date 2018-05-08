@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
 use std::str::FromStr;
 
@@ -477,6 +477,25 @@ impl CensusGroup {
 
     fn find_member_mut(&mut self, member_id: &str) -> Option<&mut CensusMember> {
         self.population.get_mut(member_id)
+    }
+
+    /// Determine what configuration keys the group as a whole
+    /// exports. Returns a set of the top-level exported keys.
+    ///
+    /// This implementation is a righteous hack to cover the fact that
+    /// there is not yet a centralized view of what a "group" actually
+    /// exports! There has been some talk of having a "leader" role in
+    /// all topologies, in which case we could just ask the leader
+    /// what the group exports. Until that time, the best we can do is
+    /// ask an active member what *they* export (if there is a leader,
+    /// though, we'll just ask them).
+    pub fn group_exports<'a>(&'a self) -> Result<HashSet<&'a String>, SupError> {
+        self.leader()
+            .or_else(|| self.active_members().first().map(|m| *m))
+            .ok_or(sup_error!(Error::NoActiveMembers(
+                self.service_group.clone()
+            )))
+            .map(|m| m.cfg.keys().collect())
     }
 }
 // NOTE: This is exposed to users in templates. Any public member is

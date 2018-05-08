@@ -22,6 +22,7 @@ mod spec;
 mod supervisor;
 
 use std;
+use std::collections::HashSet;
 use std::fmt;
 use std::fs::File;
 use std::io::BufWriter;
@@ -35,7 +36,8 @@ use butterfly::rumor::service::Service as ServiceRumor;
 use hcore::crypto::hash;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
+use hcore::package::metadata::Bind;
+use hcore::service::{BindingMode, ServiceGroup};
 use hcore::util::perm::{set_owner, set_permissions};
 use launcher_client::LauncherCli;
 use time::Timespec;
@@ -51,10 +53,10 @@ use self::config::CfgRenderer;
 use self::hooks::{Hook, HookTable, HOOK_PERMISSIONS};
 use self::supervisor::Supervisor;
 use self::dir::SvcDir;
-use error::Result;
+use error::{Error, Result, SupError};
 use fs;
 use manager;
-use census::{CensusRing, ElectionStatus, ServiceFile};
+use census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
 use templating::RenderContext;
 use sys::abilities;
 
@@ -66,6 +68,28 @@ lazy_static! {
     static ref HEALTH_CHECK_INTERVAL: Duration = {
         Duration::from_millis(30_000)
     };
+}
+
+/// When evaluating whether a particular service group can satisfy a
+/// bind of the Service, there are several states it can be
+/// in. Depending on which point in the lifecycle of the Service we
+/// are in, we may want to take different actions depending on the
+/// current status.
+enum BindStatus<'a> {
+    /// The bound group is not present in the census
+    NotPresent,
+    /// The bound group is present in the census, but has no active
+    /// members.
+    Empty,
+    /// The bound group is present in the census, has active members,
+    /// but does not satisfy the contract of the bind; the set of
+    /// unsatisfied exports is returned.
+    Unsatisfied(HashSet<&'a String>),
+    /// The bound group is present, has active members, and fully
+    /// satisfies the contract of the bind.
+    Satisfied,
+    /// An error was encountered determining the status
+    Unknown(SupError),
 }
 
 #[derive(Debug, Serialize)]
@@ -90,7 +114,31 @@ pub struct Service {
     needs_reload: bool,
     needs_reconfiguration: bool,
     smoke_check: SmokeCheck,
+    /// The mapping of bind name to a service group, specified by the
+    /// user when the service definition was loaded into the Supervisor.
     binds: Vec<ServiceBind>,
+    /// The binds that the current service package declares, both
+    /// required and optional. We don't differentiate because this is
+    /// used to validate the user-specified bindings against the
+    /// current state of the census; once you get into the actual
+    /// running of the service, the distinction is immaterial.
+    all_pkg_binds: Vec<Bind>,
+    /// Controls how the presence or absence of bound service groups
+    /// impacts the service's start-up.
+    binding_mode: BindingMode,
+    /// Binds specified by the user that are currently mapped to
+    /// service groups that do _not_ satisfy the bind's contract, as
+    /// defined in the service's current package.
+    ///
+    /// They may not satisfy them because they do not have the
+    /// requisite exports, because no live members of the group exist,
+    /// or because the group itself does not exist in the census.
+    ///
+    /// We don't serialize because this is purely runtime information
+    /// that should be reconciled against the current state of the
+    /// census.
+    #[serde(skip_serializing)]
+    unsatisfied_binds: HashSet<ServiceBind>,
     hooks: HookTable,
     config_from: Option<PathBuf>,
     #[serde(skip_serializing)]
@@ -116,6 +164,7 @@ impl Service {
         organization: Option<&str>,
     ) -> Result<Service> {
         spec.validate(&package)?;
+        let all_pkg_binds = (&package).all_binds()?;
         let pkg = Pkg::from_install(package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
         let service_group = ServiceGroup::new(
@@ -149,6 +198,9 @@ impl Service {
             service_group: service_group,
             smoke_check: SmokeCheck::default(),
             binds: spec.binds,
+            all_pkg_binds: all_pkg_binds,
+            unsatisfied_binds: HashSet::new(),
+            binding_mode: spec.binding_mode,
             spec_ident: spec.ident,
             spec_file: spec_file,
             topology: spec.topology,
@@ -252,11 +304,26 @@ impl Service {
     ///
     /// Returns `true` if the service was updated.
     pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
+        // We may need to block the service from starting until all
+        // its binds are satisfied
         if !self.initialized {
-            if !self.all_binds_satisfied(census_ring) {
-                outputln!(preamble self.service_group, "Waiting for service binds...");
-                return false;
+            match self.binding_mode {
+                BindingMode::Relaxed => (),
+                BindingMode::Strict => {
+                    self.validate_binds(census_ring);
+                    if !self.unsatisfied_binds.is_empty() {
+                        outputln!(preamble self.service_group, "Waiting for service binds...");
+                        return false;
+                    }
+                }
             }
+        }
+
+        // Binds may become unsatisfied as a service is running (e.g.,
+        // service members disappear, etc.) This can affect the data
+        // we pass to templates, so we must account for it here.
+        if census_ring.changed() {
+            self.validate_binds(census_ring);
         }
 
         let svc_updated = self.update_templates(census_ring);
@@ -336,28 +403,134 @@ impl Service {
         spec
     }
 
-    fn all_binds_satisfied(&self, census_ring: &CensusRing) -> bool {
-        let mut ret = true;
+    /// Iterate through all the service binds, marking any that are
+    /// unsatisfied in `self.unsatisfied_binds`.
+    ///
+    /// When starting with a "strict" binding mode, the presence of
+    /// any unsatisfied binds will block service startup.
+    ///
+    /// Thereafter, if binds become unsatisfied during the running of
+    /// the service, those binds will be removed from the rendering
+    /// context, allowing services to take appropriate action.
+    fn validate_binds(&mut self, census_ring: &CensusRing) {
         for ref bind in self.binds.iter() {
-            if let Some(group) = census_ring.census_group_for(&bind.service_group) {
-                if group.members().iter().all(|m| !m.alive()) {
-                    ret = false;
+            let mut bind_is_unsatisfied = true;
+
+            match self.current_bind_status(census_ring, bind) {
+                BindStatus::NotPresent => {
                     outputln!(preamble self.service_group,
-                              "The specified service group '{}' for binding '{}' is present in the \
-                               census, but currently has no live members.",
-                              bind.service_group,
-                              bind.name);
+                                  "The specified service group '{}' for binding '{}' is not (yet?) present \
+                                   in the census data.",
+                                  bind.service_group,
+                                  bind.name);
                 }
+                BindStatus::Empty => {
+                    outputln!(preamble self.service_group,
+                                  "The specified service group '{}' for binding '{}' is present in the \
+                                   census, but currently has no active members.",
+                                  bind.service_group,
+                                  bind.name);
+                }
+                BindStatus::Unsatisfied(ref unsatisfied) => {
+                    outputln!(preamble self.service_group,
+                                  "The group '{}' cannot satisfy the `{}` bind because it does not export \
+                                   the following required fields: {:?}",
+                                  bind.service_group,
+                                  bind.name,
+                                  unsatisfied);
+                }
+                BindStatus::Satisfied => {
+                    outputln!(preamble self.service_group,
+                                  "The group '{}' satisfies the `{}` bind",
+                                  bind.service_group,
+                                  bind.name);
+
+                    bind_is_unsatisfied = false;
+                }
+                BindStatus::Unknown(ref e) => {
+                    outputln!(preamble self.service_group,
+                                  "Error validating bind for {}=>{}: {}",
+                                  bind.name,
+                                  bind.service_group,
+                                  e);
+                }
+            };
+
+            if bind_is_unsatisfied {
+                // TODO (CM): use Entry API to clone only when necessary
+                self.unsatisfied_binds.insert((*bind).clone())
             } else {
-                ret = false;
-                outputln!(preamble self.service_group,
-                          "The specified service group '{}' for binding '{}' is not (yet?) present \
-                          in the census data.",
-                          bind.service_group,
-                          bind.name);
+                self.unsatisfied_binds.remove(*bind)
+            };
+        }
+    }
+
+    /// Evaluate the suitability of the given `ServiceBind` based on
+    /// current census information.
+    fn current_bind_status<'a>(
+        &'a self,
+        census_ring: &'a CensusRing,
+        service_bind: &'a ServiceBind,
+    ) -> BindStatus<'a> {
+        match census_ring.census_group_for(&service_bind.service_group) {
+            None => BindStatus::NotPresent,
+            Some(group) => {
+                if group.active_members().is_empty() {
+                    BindStatus::Empty
+                } else {
+                    match self.unsatisfied_bind_exports(group, &service_bind.name) {
+                        Ok(unsatisfied) => {
+                            if unsatisfied.is_empty() {
+                                BindStatus::Satisfied
+                            } else {
+                                BindStatus::Unsatisfied(unsatisfied)
+                            }
+                        }
+                        Err(e) => BindStatus::Unknown(e),
+                    }
+                }
             }
         }
-        ret
+    }
+
+    /// Does the service we've bound to actually satisfy the bind's
+    /// contract (i.e., does it export everything we need)?
+    ///
+    /// Returns the set of unsatisfied exports. If everything is
+    /// present, though, you get an empty set.
+    ///
+    /// Can return `Error::NoSuchBind` if there's not a bind with the
+    /// given name.
+    /// Can return `Error::NoActiveMembers` if there are no active members
+    /// of the group.
+    fn unsatisfied_bind_exports<'a>(
+        &'a self,
+        group: &'a CensusGroup,
+        bind_name: &'a str,
+    ) -> Result<HashSet<&'a String>> {
+        let exports = self.exports_required_for_bind(bind_name)?;
+        let group_exports = group.group_exports()?;
+
+        let diff: HashSet<&String> = exports
+            .difference(&group_exports)
+            .map(|m| *m) // &&String -> &String
+            .collect();
+
+        Ok(diff)
+    }
+
+    /// Returns the list of exported values a given bind requires
+    ///
+    /// Returns Err if there is no bind by the given name... by the
+    /// time we get to this code, though, that shouldn't happen.
+    fn exports_required_for_bind<'a>(&'a self, binding_name: &str) -> Result<HashSet<&'a String>> {
+        // TODO (CM): Really, we want a HashMap of name => HashSet instead of a
+        // Vec<Bind>... this finding is for the birds
+        self.all_pkg_binds
+            .iter()
+            .find(|b| b.service == binding_name)
+            .ok_or(sup_error!(Error::NoSuchBind(binding_name.to_string())))
+            .map(|b| b.exports.iter().collect())
     }
 
     /// Updates the process state of the service's supervisor
@@ -702,13 +875,18 @@ impl Service {
 
     /// Helper for constructing a new render context for the service.
     fn render_context<'a>(&'a self, census: &'a CensusRing) -> RenderContext<'a> {
+        // Unsatisfied binds are filtered out; you only get bind
+        // information in the render context if they actually satisfy
+        // the contract!
         RenderContext::new(
             &self.service_group,
             &self.sys,
             &self.pkg,
             &self.cfg,
             census,
-            self.binds.iter(),
+            self.binds
+                .iter()
+                .filter(|b| !self.unsatisfied_binds.contains(b)),
         )
     }
 
