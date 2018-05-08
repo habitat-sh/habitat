@@ -22,18 +22,32 @@
 
 pub mod server;
 
+use std::borrow::Cow;
 use std::fmt;
 use std::io::{self, Write};
 use std::fs::{self, File};
 use std::path::Path;
 
+use regex::Regex;
+
 use common::ui::UIWriter;
 use depot_client::DisplayProgress;
 use futures::prelude::*;
 use hcore::util::perm;
+use hcore::output;
 use protocol;
 
 use error::{Error, Result};
+
+lazy_static! {
+    /// Regular expression to, um, strip ANSI color codes out of a
+    /// string.
+    ///
+    /// Shamelessly stolen from https://github.com/chalk/ansi-regex/blob/master/index.js.
+    static ref STRIP_ANSI_CODES: Regex = Regex::new(
+        r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]")
+        .unwrap();
+}
 
 /// Time to wait in milliseconds for a client connection to timeout.
 pub const REQ_TIMEOUT: u64 = 10_000;
@@ -121,6 +135,20 @@ impl UIWriter for CtlRequest {
         self
     }
 
+    // Whether output is colored, or the output is a terminal is,
+    // technically, a bit more complicated than simply `true`, since
+    // output from the CtlRequest ends up being streamed back to the
+    // client (which may or may not be an interactive terminal, by the
+    // way), as well as being rendered into the Supervisor's output
+    // streams, which have their own, possibly opposing, formatting
+    // constraints.
+    //
+    // For the time being, this is mostly addressed manually down in
+    // the `io::Write` implementation. Furthermore, this is currently
+    // the only implementation of UIWriter subject to these
+    // constraints, so it's not clear that adding additional
+    // complexity at the type / trait modeling level is worthwhile.
+
     fn is_out_colored(&self) -> bool {
         true
     }
@@ -149,10 +177,35 @@ impl UIWriter for CtlRequest {
 impl io::Write for CtlRequest {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let line = String::from_utf8_lossy(buf).into_owned();
-        output!("{}", line);
+
+        // The protocol reply is destined for the client, so (for now,
+        // at least), we'll retain any colored output.
+        //
+        // `line` will also have a newline character at the end, FYI.
         let mut msg = protocol::ctl::ConsoleLine::new();
-        msg.set_line(line);
+        msg.set_line(line.clone());
         self.reply_partial(msg);
+
+        // Down here, however, we're doing double-duty by *also*
+        // sending the output to the Supervisor's output stream. In
+        // _this_ case, we want to honor whatever global logging flags
+        // have been set; in particular, if we're emitting
+        // JSON-formatted logs or if we've been instructed to not
+        // output ANSI color codes, we need to strip those codes out.
+        //
+        // TODO (CM): Obviously, this feels hacky to the extreme. It'd
+        // be nice to find a cleaner way to model this, but the fact
+        // that CtlRequest is sending output to two destinations with
+        // different formatting requirements complicates things a bit.
+        let maybe_stripped = if output::is_json() || !output::is_color() {
+            STRIP_ANSI_CODES.replace_all(&line, "")
+        } else {
+            Cow::Owned(line)
+        };
+        // TODO (CM): Consider pulling this newline trimming up into
+        // the macro
+        outputln!("{}", maybe_stripped.trim_right_matches('\n'));
+
         Ok(buf.len())
     }
 

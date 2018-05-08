@@ -110,9 +110,8 @@ where
     let mut reader = BufReader::new(out);
     let mut buffer = String::new();
     while reader.read_line(&mut buffer).unwrap() > 0 {
-        let mut line = output_format!(preamble &id, logkey "O");
-        line.push_str(&buffer);
-        write!(&mut io::stdout(), "{}", line).expect("unable to write to stdout");
+        let line = output_format!(preamble &id, logkey "O", buffer);
+        writeln!(&mut io::stdout(), "{}", line).expect("unable to write to stdout");
         buffer.clear();
     }
 }
@@ -125,9 +124,8 @@ where
     let mut reader = BufReader::new(err);
     let mut buffer = String::new();
     while reader.read_line(&mut buffer).unwrap() > 0 {
-        let mut line = output_format!(preamble &id, logkey "E");
-        line.push_str(&buffer);
-        write!(&mut io::stderr(), "{}", line).expect("unable to write to stderr");
+        let line = output_format!(preamble &id, logkey "E", buffer);
+        writeln!(&mut io::stderr(), "{}", line).expect("unable to write to stderr");
         buffer.clear();
     }
 }
