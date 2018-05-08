@@ -305,6 +305,66 @@ function Invoke-Begin {
 function Invoke-DefaultBegin {
 }
 
+# **Internal**  Build and export `$PATH` containing each path in our own
+# `${pkg_bin_dirs[@]}` array, and then any dependency's `PATH` entry (direct or
+# transitive) if one exists. The ordering of the path is specific to
+# `${pkg_all_tdeps_resolved[@]}` which is further explained in the
+# `_resolve_dependencies()` function.
+#
+# Reference implementation:
+# https://github.com/habitat-sh/habitat/blob/3d63753468ace168bbbe4c52e600d408c4981b03/components/plan-build/bin/hab-plan-build.sh#L1584-L1638
+function _Set-BuildPath {
+  $prefixDrive = (Resolve-Path $originalPath).Drive.Root
+
+  $paths=@()
+
+  # Add element for each entry in `$pkg_bin_dirs[@]` first
+  foreach($dir in $pkg_bin_dirs) {
+    $paths += "$pkg_prefix\$dir"
+  }
+
+  # Iterate through all build and run dependencies in the order present in
+  # `${pkg_all_tdeps_resolved[@]}` and for each, append each path entry onto
+  # the result, assuming it hasn't already been added. Additionally, any path
+  # entries that don't relate to the dependency in question are filtered out to
+  # deal with a vintage of packages which included more data in `PATH` and have
+  # since been addressed.
+  foreach($dep_prefix in $pkg_all_tdeps_resolved) {
+    if (Test-Path (Join-Path $dep_prefix "PATH")) {
+      $data = (Get-Content (Join-Path $dep_prefix "PATH") | Out-String).Trim()
+      foreach($entry in $data.split(";")) {
+        $paths = @(_return_or_append_to_set (_Resolve-Path $entry) $paths)
+      }
+    } elseif (Test-Path (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT")) {
+      # Backwards Compatibility: If `PATH` can't be found, then attempt to fall
+      # back to looking in an existing `RUNTIME_ENVIRONMENT` metadata file for
+      # a `PATH` entry. This is necessary for packages created using a release
+      # of Habitat between 0.53.0 (released 2018-02-05) and up to including
+      # 0.55.0 (released 2018-03-20).
+      $strippedPrefix = $dep_prefix.Substring($prefixDrive.length)
+      if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
+
+      foreach ($line in (Get-Content (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT"))) {
+          $varval = $line.split("=")
+          if ($varval[0] -eq "PATH") {
+              foreach($entry in $varval[1].split(";")) {
+                # Filter out entries that are not related to the `$dep_prefix`
+                if ("$entry" -Like "$strippedPrefix\*") {
+                  $paths = @(_return_or_append_to_set (_Resolve-Path $entry) $paths)
+                }
+              }
+              break;
+          }
+      }
+    }
+  }
+
+  $paths += $INITIAL_PATH
+
+  $env:PATH = $paths -join ';'
+  Write-BuildLine "Setting env:PATH=$env:PATH"
+}
+
 # At this phase of the build, all dependencies are downloaded, the build
 # environment is set, but this is just before any source downloading would
 # occur (if `$pkg_source` is set). This could be a suitable phase in which to
@@ -387,6 +447,52 @@ function _resolve-dependency($dependency) {
   else {
     return $false
   }
+}
+
+# **Internal**  Build a `PATH` string suitable for entering into this package's
+# `RUNTIME_PATH` metadata file. The ordering of this path is important as this
+# value will ultimately be consumed by other programs such as the Supervisor
+# when constructing the `PATH` environment variable before spawning a process.
+#
+# The path is constructed by taking all `PATH` metadata file entries from this
+# package (in for the form of `$pkg_bin_dirs[@]`), followed by entries from the
+# *direct* dependencies first (in declared order), and then from any remaining
+# transitive dependencies last (in lexically sorted order). All entries are
+# present only once in the order of their first appearance.
+function _Assemble-RuntimePath() {
+  # Contents of `pkg_xxx_dirs` are relative to the plan root;
+  # prepend the full path to this release so everything resolves
+  # properly once the package is installed.
+  $prefixDrive = (Resolve-Path $originalPath).Drive.Root
+  $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
+  if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
+
+  $paths = @()
+
+  # Add element for each entry in `$pkg_bin_dirs[@]` first
+  foreach($dir in $pkg_bin_dirs) {
+    $paths += "$strippedPrefix\$dir"
+  }
+
+  # Iterate through all direct direct run dependencies following by all
+  # remaining transitive run dependencies and for each, append each path entry
+  # onto the result, assuming it hasn't already been added. In this way, all
+  # direct dependencies will match first and any programs that are used by a
+  # direct dependency will also be present on PATH, albeit at the very end of
+  # the PATH. Additionally, any path entries that don't relate to the
+  # dependency in question are filtered out to deal with a vintage of packages
+  # which included more data in `PATH` and have since been addressed.
+  foreach($dep_prefix in ($pkg_deps_resolved + $pkg_tdeps_resolved)) {
+    if (Test-Path (Join-Path $dep_prefix "PATH")) {
+      $data = (Get-Content (Join-Path $dep_prefix "PATH") | Out-String).Trim()
+      foreach($entry in $data.split(";")) {
+        $paths = @(_return_or_append_to_set $entry $paths)
+      }
+    }
+  }
+
+  # Return the elements of the result, joined with a colon
+  $paths -join ';'
 }
 
 # **Internal** Returns (on stdout) the `DEPS` file contents of another locally
@@ -699,10 +805,10 @@ function _Set_DependencyArrays {
   # `$PATH` ordering in the build environment. To give priority to direct
   # dependencies over transitive ones the order of packages is the following:
   #
-  # 1. All direct build dependencies
   # 1. All direct run dependencies
-  # 1. All unique transitive build dependencies that aren't already added
-  # 1. All unique transitive run dependencies that aren't already added
+  # 2. All direct build dependencies
+  # 3. All unique transitive run dependencies that aren't already added
+  # 4. All unique transitive build dependencies that aren't already added
   $script:pkg_all_tdeps_resolved = $pkg_deps_resolved + $pkg_build_deps_resolved
   foreach($dep in ($pkg_tdeps_resolved + $pkg_build_tdeps_resolved)) {
     $script:pkg_all_tdeps_resolved = @(_return_or_append_to_set $dep $pkg_all_tdeps_resolved)
@@ -789,7 +895,17 @@ function _Set_DependencyArrays {
     finally { Pop-Location }
     $path_part
   }
-  
+
+function _Resolve-Path($path) {
+  $result = $null
+  Push-Location $originalPath
+  try {
+    $result = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
+  }
+  finally { Pop-Location}
+  $result
+}
+
 function _Write-Pre-Build-File {
     New-Item "$pkg_output_path" -ItemType Directory -Force | Out-Null
     $preBuild = "$pkg_output_path\pre_build.env"
@@ -940,9 +1056,87 @@ function Invoke-DefaultUnpack {
 }
 
 function _Set-Environment {
+    $prefixDrive = (Resolve-Path $originalPath).Drive.Root
+
+    $libs = @()
+    $includes = @()
+
+    # Add element for each entry in `$pkg_lib_dirs[@]` first
+    foreach ($dir in $pkg_lib_dirs) {
+        $libs += "$pkg_prefix\$dir"
+    }
+
+    # Add element for each entry in `$pkg_include_dirs[@]` first
+    foreach ($dir in $pkg_include_dirs) {
+        $includes += "$pkg_prefix\$dir"
+    }
+
+    foreach ($dep_prefix in $pkg_all_deps_resolved) {
+        $strippedPrefix = $dep_prefix.Substring($prefixDrive.length)
+        if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
+
+        if (Test-Path (Join-Path $dep_prefix "LIB_DIRS")) {
+            $data = (Get-Content (Join-Path $dep_prefix "LIB_DIRS") | Out-String).Trim()
+            foreach ($entry in $data.split(";")) {
+                $libs = @(_return_or_append_to_set (_Resolve-Path $entry) $libs)
+            }
+        } elseif (Test-Path (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT")) {
+            # Backwards Compatibility: If `LIB_DIRS` can't be found, then
+            # attempt to fall back to looking in an existing
+            # `RUNTIME_ENVIRONMENT` metadata file for a `LIB` entry. This is
+            # necessary for packages created using a release of Habitat between
+            # 0.53.0 (released 2018-02-05) and up to including 0.55.0 (released
+            # 2018-03-20).
+            foreach ($line in (Get-Content (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT"))) {
+                $varval = $line.split("=")
+                if ($varval[0] -eq "LIB") {
+                    foreach($entry in $varval[1].split(";")) {
+                        # Filter out entries that are not related to the `$dep_prefix`
+                        if ("$entry" -Like "$strippedPrefix\*") {
+                            $libs = @(_return_or_append_to_set (_Resolve-Path $varval[1]) $libs)
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (Test-Path (Join-Path $dep_prefix "INCLUDE_DIRS")) {
+            $data = (Get-Content (Join-Path $dep_prefix "INCLUDE_DIRS") | Out-String).Trim()
+            foreach($entry in $data.split(";")) {
+                $includes = @(_return_or_append_to_set (_Resolve-Path $entry) $includes)
+            }
+        } elseif (Test-Path (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT")) {
+            # Backwards Compatibility: If `INCLUDE_DIRS` can't be found, then
+            # attempt to fall back to looking in an existing
+            # `RUNTIME_ENVIRONMENT` metadata file for a `INCLUDE` entry. This
+            # is necessary for packages created using a release of Habitat
+            # between 0.53.0 (released 2018-02-05) and up to including 0.55.0
+            # (released 2018-03-20).
+            foreach ($line in (Get-Content (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT"))) {
+                $varval = $line.split("=")
+                if ($varval[0] -eq "INCLUDE") {
+                    foreach($entry in $varval[1].split(";")) {
+                        # Filter out entries that are not related to the `$dep_prefix`
+                        if ("$entry" -Like "$strippedPrefix\*") {
+                            $includes = @(_return_or_append_to_set (_Resolve-Path $varval[1]) $includes)
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    $env:LIB = $libs -join ';'
+    $env:INCLUDE = $includes -join ';'
+
     # Create a working directory if it doesn't already exist from `Invoke-Unpack`
     New-Item "$HAB_CACHE_SRC_PATH\$pkg_dirname" -ItemType Directory -Force |
         Out-Null
+
+    Write-BuildLine "Setting env:LIB=$env:LIB"
+    Write-BuildLine "Setting env:INCLUDE=$env:INCLUDE"
 }
 
 # This function simply makes sure that the working directory for the prepare
@@ -1119,6 +1313,14 @@ function __populate_environment_from_deps {
         if(Test-Path "$path_to_dep/RUNTIME_ENVIRONMENT") {
             foreach($line in (Get-Content "$path_to_dep/RUNTIME_ENVIRONMENT")) {
                 $varval = $line.split("=")
+                # Any values of `PATH`, `LIB`, and `INCLUDE` are skipped as we
+                # will be computing these variables independently of the
+                # RUNTIME_ENVIRONMENT metadata files. Additionally, this acts
+                # as backwards compatibility for all `RUNTIME_ENVIRONMENT`
+                # files that contain a `PATH` key.
+                if(@("PATH", "LIB", "INCLUDE") -contains $varval[0]) {
+                  continue
+                }
 
                 if($env[$Environment].ContainsKey($varval[0])) {
                     # There was a previous value; need to figure out
@@ -1150,57 +1352,8 @@ function __populate_environment_from_deps {
                     $provenance[$Environment][$varval[0]]="${dep_ident}"
                 }
             }
-        }    
-        else {
-            # Versions of Habitat prior to the introduction of
-            # RUNTIME_ENVIRONMENT have a PATH file. Let's pull that in
-            # to assemble a PATH for our environment going forward.
-            #
-            # This will (in time) fix the issues in the old PATH data,
-            # which included build-time dependencies and system
-            # directories from the Studio. As older,
-            # lower-down-the-stack packages are rebuilt, they'll get
-            # the correct PATH, which will cascade outward.
-            #
-            # The old PATH also would include duplicate entries, as
-            # well as empty entries sometimes. The current resolution
-            # algorithm should filter these out immediately.
-            Write-Warning "No RUNTIME_ENVIRONMENT metadata file found for ${dep_ident}; falling back to PATH metadata"
-            $old_path = __assemble_legacy_paths $path_to_dep 'PATH'
-            if($old_path -and ($old_path.length -gt 0)) {
-                Write-Warning "Final generated PATH for ${path_to_dep}: $old_path"
-                __push_env $Environment "PATH" $old_path ";" $dep_ident
-            }
-            else {
-                Write-Warning "No PATH metadata found for $path_to_dep"
-            }
-
-            $old_lib = __assemble_legacy_paths $path_to_dep 'LIB_DIRS'
-            if($old_lib -and ($old_lib.length -gt 0)) {
-                Write-Warning "Final generated LIB for ${path_to_dep}: $old_lib"
-                __push_env $Environment "LIB" $old_lib ";" $dep_ident
-            }
-            else {
-                Write-Warning "No LIB metadata found for $path_to_dep"
-            }
-
-            $old_include = __assemble_legacy_paths $path_to_dep 'INCLUDE_DIRS'
-            if($old_include -and ($old_include.length -gt 0)) {
-                Write-Warning "Final generated INCLUDE for ${path_to_dep}: $old_include"
-                __push_env $Environment "INCLUDE" $old_include ";" $dep_ident
-            }
-            else {
-                Write-Warning "No INCLUDE metadata found for $path_to_dep"
-            }
         }
     }
-
-    # NB: This adds any local binaries to the build-time environment;
-    # strictly speaking, not necessary
-
-    # Push new PATH, LIB and INCLUDE entries in from this package. We currently
-    # disallow users from directly manipulating these vars themselves.
-    __process_paths $Environment
 }
 
 # Internal function implementing core "set" logic for environment variables.
@@ -1704,6 +1857,16 @@ function _Write-Metadata {
             Out-File "$pkg_prefix\PATH" -Encoding ascii
     }
 
+    if ($pkg_lib_dirs.Length -gt 0) {
+        $($pkg_lib_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+            Out-File "$pkg_prefix\LIB_DIRS" -Encoding ascii
+     }
+
+    if ($pkg_include_dirs.Length -gt 0) {
+        $($pkg_include_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+            Out-File "$pkg_prefix\INCLUDE_DIRS" -Encoding ascii
+     }
+
     if ($pkg_expose.Length -gt 0) {
         "$($pkg_expose -join ' ')" |
             Out-File "$pkg_prefix\EXPOSES" -Encoding ascii
@@ -1725,6 +1888,18 @@ function _Write-Metadata {
         foreach ($bind in $pkg_binds_optional.GetEnumerator()) {
             "$($bind.Key)=$($bind.Value)" | Out-File "$pkg_prefix\BINDS_OPTIONAL" -Encoding ascii -Append
         }
+    }
+
+    $runtime_path = _Assemble-RuntimePath
+    if ($runtime_path) {
+      "$runtime_path" | Out-File "$pkg_prefix\RUNTIME_PATH" -Encoding ascii
+
+      # Backwards Compatibility: Set the `PATH` key for the runtime environment
+      # if a computed runtime path is necessary which will be used by Habitat
+      # releases between 0.53.0 (released 2018-02-05) and up to including
+      # 0.55.0 (released 2018-03-20). All future releases will ignore the
+      # `PATH` entry in favor of using the `RUNTIME_PATH` metadata file.
+      $env["RunTime"]["PATH"] = "$runtime_path"
     }
 
     if ($env.Runtime.length -gt 0) {
@@ -1885,7 +2060,6 @@ $ErrorActionPreference = "Stop"
 # Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
 # paths in `plan.ps1`
 Push-Location "$PLAN_CONTEXT"
-$originalPathVar = $env:path
 try {
     # Load the Plan
     Write-BuildLine "Loading $PLAN_CONTEXT\plan.ps1"
@@ -2022,6 +2196,8 @@ try {
 
     Invoke-SetupEnvironmentWrapper
 
+    _Set-BuildPath
+
     New-Item "$HAB_CACHE_SRC_PATH" -ItemType Directory -Force | Out-Null
 
     # Run any code after the environment is set but before the build starts
@@ -2080,7 +2256,7 @@ try {
 }
 finally {
     Pop-Location
-    $env:path = $originalPathVar
+    $env:path = $INITIAL_PATH
 }
 
 # Print the results

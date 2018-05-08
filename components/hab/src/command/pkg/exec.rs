@@ -28,9 +28,9 @@ where
 {
     let command = command.into();
     let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;
-    let mut run_env = pkg_install.environment_for_command()?;
+    let mut cmd_env = pkg_install.environment_for_command()?;
 
-    let mut paths: Vec<PathBuf> = match run_env.get("PATH") {
+    let mut paths: Vec<PathBuf> = match cmd_env.get("PATH") {
         Some(path) => env::split_paths(&path).collect(),
         None => vec![],
     };
@@ -40,14 +40,14 @@ where
         }
     }
     let joined = env::join_paths(paths)?;
-    run_env.insert(
+    cmd_env.insert(
         String::from("PATH"),
         joined
             .into_string()
             .expect("Unable to convert OsStr path to string!"),
     );
 
-    for (key, value) in run_env.into_iter() {
+    for (key, value) in cmd_env.into_iter() {
         debug!("Setting: {}='{}'", key, value);
         env::set_var(key, value);
     }

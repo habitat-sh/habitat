@@ -143,26 +143,26 @@ _render_metadata_LD_RUN_PATH() {
     fi
 }
 
-# Simply converts contents of pkg_bin_dirs into a PATH variable
-__process_path() {
-    local path=()
-
-    # Contents of `pkg_bin_dirs` are relative to the plan root;
-    # prepend the full path to this release so everything resolves
-    # properly once the package is installed.
-    for bin in "${pkg_bin_dirs[@]}"; do
-        path+=("${pkg_prefix}/${bin}")
-    done
-
-    echo "$(join_by ':' ${path[@]})"
-}
-
 # The PATH metadata file contains ONLY the bins contained in your package
 # for `pkg_bin_dirs`
 #
 _render_metadata_PATH() {
+  if [[ ${#pkg_bin_dirs[@]} -gt 0 ]]; then
+    local paths=()
+    local dir
+
     debug "Rendering PATH metadata file"
-    echo "$(__process_path)" > "${pkg_prefix}/PATH"
+    # Contents of `pkg_bin_dirs` are relative to the plan root;
+    # prepend the full path to this release so everything resolves
+    # properly once the package is installed.
+    for dir in "${pkg_bin_dirs[@]}"; do
+        paths+=("${pkg_prefix}/${dir}")
+    done
+
+    echo "$(join_by ':' ${paths[@]})" > "${pkg_prefix}/PATH"
+  else
+    debug "Would have rendered PATH, but there was no data for it"
+  fi
 }
 
 _render_metadata_PKG_CONFIG_PATH() {
@@ -200,6 +200,25 @@ _render_metadata_RUNTIME_ENVIRONMENT(){
 _render_metadata_RUNTIME_ENVIRONMENT_PROVENANCE(){
     debug "Rendering RUNTIME_ENVIRONMENT_PROVENANCE metadata file"
     _render_associative_array_file ${pkg_prefix} RUNTIME_ENVIRONMENT_PROVENANCE __runtime_environment_provenance
+}
+
+_render_metadata_RUNTIME_PATH(){
+  local runtime_path
+
+  runtime_path="$(_assemble_runtime_path)"
+  if [[ -n "$runtime_path" ]]; then
+    debug "Rendering RUNTIME_PATH metadata file"
+    echo "$runtime_path" > "${pkg_prefix}/RUNTIME_PATH"
+
+    # **Internal**  Backwards Compatibility: Set the `PATH` key for the runtime
+    # environment if a computed runtime path is necessary which will be used by
+    # Habitat releases between 0.50.0 (released 2017-11-30) and up to including
+    # 0.55.0 (released 2018-03-20). All future releases will ignore the `PATH`
+    # entry in favor of using the `RUNTIME_PATH` metadata file.
+    __runtime_environment["PATH"]="$runtime_path"
+  else
+    debug "Would have rendered RUNTIME_PATH, but there was no data for it"
+  fi
 }
 
 _render_metadata_SVC_GROUP() {
