@@ -250,12 +250,10 @@ fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClien
     let ssl_client = OpensslClient::from(connector);
 
     let timeout_in_secs = match env::var("HAB_CLIENT_SOCKET_TIMEOUT") {
-        Ok(t) => {
-            match t.parse::<u64>() {
-                Ok(n) => n,
-                Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
-            }
-        }
+        Ok(t) => match t.parse::<u64>() {
+            Ok(n) => n,
+            Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
+        },
         Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
     };
     debug!("Client socket timeout: {} secs", timeout_in_secs);
@@ -329,9 +327,7 @@ fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
     options.toggle(SSL_OP_NO_COMPRESSION);
     ssl::set_ca(&mut conn, fs_root_path)?;
     conn.set_options(options);
-    conn.set_cipher_list(
-        "ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH",
-    )?;
+    conn.set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH")?;
 
     if env::var("HAB_SSL_CERT_VERIFY_NONE").is_ok() {
         conn.set_verify(SSL_VERIFY_NONE);
