@@ -102,6 +102,10 @@ where
     for bin_path in pkg_path.paths()? {
         for bin in fs::read_dir(fs_root_path.join(bin_path.strip_prefix("/")?))? {
             let bin_file = bin?;
+            // Skip any directory entries as we're looking for files and symlinks
+            if bin_file.file_type()?.is_dir() {
+                continue;
+            }
             let bin_name = match bin_file.file_name().to_str() {
                 Some(bn) => bn.to_owned(),
                 None => {
@@ -198,6 +202,38 @@ mod test {
         assert_eq!(
             rootfs_src_dir.join("sbin/securitize"),
             rootfs_bin_dir.join("securitize").read_link().unwrap()
+        );
+    }
+
+    #[test]
+    fn binlink_all_in_pkg_skips_invalid_sub_dirs() {
+        let rootfs = TempDir::new("rootfs").unwrap();
+        let mut tools = HashMap::new();
+        tools.insert("bin", vec!["magicate"]);
+        tools.insert("bin/moar", vec!["bonus-round"]);
+        let ident = fake_bin_pkg_install("acme/securetools", tools, rootfs.path());
+        let dst_path = Path::new("/opt/bin");
+
+        let rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
+        let rootfs_bin_dir = rootfs.path().join("opt/bin");
+        let force = true;
+
+        // Create an empty subdirectory that is not strictly a directory containing package
+        // binaries
+        fs::create_dir_all(
+            hcore::fs::pkg_install_path(&ident, Some(rootfs.path())).join("bin/__junk__"),
+        ).unwrap();
+
+        let (mut ui, _stdout, _stderr) = ui();
+        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
+
+        assert_eq!(
+            rootfs_src_dir.join("bin/magicate"),
+            rootfs_bin_dir.join("magicate").read_link().unwrap()
+        );
+        assert_eq!(
+            rootfs_src_dir.join("bin/moar/bonus-round"),
+            rootfs_bin_dir.join("bonus-round").read_link().unwrap()
         );
     }
 
