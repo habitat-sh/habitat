@@ -61,6 +61,7 @@
 
 ## Bug fixes
 
+- Fix some command aliases [\#5064](https://github.com/habitat-sh/habitat/pull/5064) ([christophermaier](https://github.com/christophermaier))
 - \[hab\] Ignore subdir entries when binlinking all programs in package. [\#5058](https://github.com/habitat-sh/habitat/pull/5058) ([fnichol](https://github.com/fnichol))
 - hab origin key upload fails with --pubfile option [\#5012](https://github.com/habitat-sh/habitat/issues/5012)
 - tar exporter filename ends with .gz but file is not a gzip [\#5011](https://github.com/habitat-sh/habitat/issues/5011)
