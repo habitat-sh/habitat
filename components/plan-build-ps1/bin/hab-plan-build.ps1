@@ -488,6 +488,27 @@ function _Assemble-RuntimePath() {
       foreach($entry in $data.split(";")) {
         $paths = @(_return_or_append_to_set $entry $paths)
       }
+    } elseif (Test-Path (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT")) {
+      # Backwards Compatibility: If `PATH` can't be found, then attempt to fall
+      # back to looking in an existing `RUNTIME_ENVIRONMENT` metadata file for
+      # a `PATH` entry. This is necessary for packages created using a release
+      # of Habitat between 0.53.0 (released 2018-02-05) and up to including
+      # 0.55.0 (released 2018-03-20).
+      $strippedPrefix = $dep_prefix.Substring($prefixDrive.length)
+      if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
+
+      foreach ($line in (Get-Content (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT"))) {
+          $varval = $line.split("=")
+          if ($varval[0] -eq "PATH") {
+              foreach($entry in $varval[1].split(";")) {
+                # Filter out entries that are not related to the `$dep_prefix`
+                if ("$entry" -Like "$strippedPrefix\*") {
+                  $paths = @(_return_or_append_to_set (_Resolve-Path $entry) $paths)
+                }
+              }
+              break;
+          }
+      }
     }
   }
 
