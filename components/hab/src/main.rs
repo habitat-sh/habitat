@@ -1110,6 +1110,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
         ("sup", "run", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("sup", "term", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("term", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
     }
