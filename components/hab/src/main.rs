@@ -239,6 +239,8 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("generate", _) => sub_sup_secret_generate()?,
                 _ => unreachable!(),
             },
+            // this is effectively an alias of `hab svc status`
+            ("status", Some(m)) => sub_svc_status(m)?,
             _ => unreachable!(),
         },
         ("setup", Some(_)) => sub_cli_setup(ui)?,
@@ -1110,6 +1112,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
         ("sup", "run", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("sup", "term", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("term", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
     }

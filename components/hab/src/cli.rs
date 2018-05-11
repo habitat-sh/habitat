@@ -571,13 +571,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
-            (@subcommand status =>
-                (about: "Query the status of Habitat services.")
-                (aliases: &["stat", "statu", "status"])
-                (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-            )
+            (subcommand: sub_svc_status())
             (@subcommand stop =>
                 (about: "Stop a running Habitat service.")
                 (aliases: &["sto"])
@@ -611,6 +605,7 @@ pub fn get() -> App<'static, 'static> {
                     (aliases: &["g", "gen"])
                 )
             )
+            (subcommand: sub_svc_status())
         )
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
@@ -779,6 +774,18 @@ fn sub_pkg_install() -> App<'static, 'static> {
     } else {
         sub
     }
+}
+
+// `hab svc status` is the canonical location for this command, but we
+// have historically used `hab sup status` as an alias.
+fn sub_svc_status() -> App<'static, 'static> {
+    clap_app!(@subcommand status =>
+              (about: "Query the status of Habitat services.")
+              (aliases: &["stat", "statu", "status"])
+              (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
+              (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+               "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    )
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
