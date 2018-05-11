@@ -30,7 +30,7 @@ environment:
   BINTRAY_KEY:
     secure: KGpNfhM18alwGRviNGcMUStNMw3W2u002bf38+fs+mt9wf+4BGGuiUMKtu7Nrs8i
   HAB_AUTH_TOKEN:
-    secure: il1kqjDtQSFOoD12nDaJhCBntC905Q8T9jRzyTZtqlJPxc3vCoS1bBeNbB55J82M
+    secure: /deSCNJcZdHrtFNJ3zl4zgTjUs+AjT3MStKYbikPLa0anFOS7f4RydFV5cER/mamh5b2sDT2IVASK1uc5SRzE/LTNbcTvspontu9Kbu8to4LEyk4R/MGYpYRHImcVmKHo8zAs7lqp1zx7gJu+TLYi24RfWDQOu4M8WEX4CzFAtcLn2B21obLEehqp6vO6xUXDSTY3WeFfEoPfL3DUUo6BsWNgm68lvGcif6fGt/bw+g=
   ORIGIN_KEY:
     secure: T03FGJrevgQSlLfkc0mDaIkRyfu0/ci6+ryDnSqrezAmbtTayisHStac1yS4/96fMQmyfPYpGP5tMtvjuyw0cplUAUEtXarcK8CgatwnE+t7c9sjpBWgKfSE3wLOiDla
   HAB_CRYPTO_KEY:
