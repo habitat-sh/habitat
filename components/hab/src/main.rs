@@ -239,6 +239,8 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("generate", _) => sub_sup_secret_generate()?,
                 _ => unreachable!(),
             },
+            // this is effectively an alias of `hab svc status`
+            ("status", Some(m)) => sub_svc_status(m)?,
             _ => unreachable!(),
         },
         ("setup", Some(_)) => sub_cli_setup(ui)?,
