@@ -198,7 +198,7 @@ fn start(ui: &mut UI) -> Result<()> {
             ("install", Some(m)) => sub_pkg_install(ui, m)?,
             ("path", Some(m)) => sub_pkg_path(m)?,
             ("provides", Some(m)) => sub_pkg_provides(m)?,
-            ("search", Some(m)) => sub_pkg_search(ui, m)?,
+            ("search", Some(m)) => sub_pkg_search(m)?,
             ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
             ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
             ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
@@ -276,7 +276,7 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let revision = m.value_of("REVISION");
     let with_secret = m.is_present("WITH_SECRET");
     let with_encryption = m.is_present("WITH_ENCRYPTION");
-    let token = maybe_auth_token(ui, &m);
+    let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(m);
 
     command::origin::key::download::start(
@@ -321,7 +321,7 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
 
     init();
 
@@ -346,7 +346,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
     let secret = m.value_of("SECRET").unwrap();
@@ -363,7 +363,7 @@ fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
     command::origin::secret::delete::start(ui, &url, &token, &origin, &key)
@@ -371,7 +371,7 @@ fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_origin_secret_list(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     command::origin::secret::list::start(ui, &url, &token, &origin)
 }
@@ -480,7 +480,7 @@ fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let origin = origin_param_or_env(&m)?;
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     command::bldr::channel::create::start(ui, &url, &token, &origin, &channel)
 }
 
@@ -488,7 +488,7 @@ fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let origin = origin_param_or_env(&m)?;
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     command::bldr::channel::destroy::start(ui, &url, &token, &origin, &channel)
 }
 
@@ -502,14 +502,14 @@ fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let url = bldr_url_from_matches(m);
     let group = m.is_present("GROUP");
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     command::bldr::job::start::start(ui, &url, &ident, &token, group)
 }
 
 fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     command::bldr::job::cancel::start(ui, &url, &group_id, &token)
 }
 
@@ -520,7 +520,7 @@ fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches, promote: bool) ->
     let origin = m.value_of("ORIGIN");
     let interactive = m.is_present("INTERACTIVE");
     let verbose = m.is_present("VERBOSE");
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     command::bldr::job::promote::start(
         ui,
         &url,
@@ -579,7 +579,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let channel = channel_from_matches(m);
     let install_sources = install_sources_from_matches(m)?;
-    let token = maybe_auth_token(ui, &m);
+    let token = maybe_auth_token(&m);
     let install_mode = if feat::is_enabled(feat::OfflineInstall) && m.is_present("OFFLINE") {
         InstallMode::Offline
     } else {
@@ -632,10 +632,10 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
     command::pkg::provides::start(&filename, &*FS_ROOT, full_releases, full_paths)
 }
 
-fn sub_pkg_search(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
-    let token = maybe_auth_token(ui, &m);
+    let token = maybe_auth_token(&m);
     command::pkg::search::start(&search_term, &url, token.as_ref().map(String::as_str))
 }
 
@@ -660,7 +660,7 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     // they can optionally get added to another channel, too.
     let additional_release_channel: Option<&str> = m.value_of("CHANNEL");
 
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
         command::pkg::upload::start(
@@ -700,7 +700,7 @@ fn sub_pkg_info(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let channel = m.value_of("CHANNEL").unwrap();
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     command::pkg::promote::start(ui, &url, &ident, &channel, &token)
 }
@@ -708,7 +708,7 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let channel = m.value_of("CHANNEL").unwrap();
-    let token = auth_token_param_or_env(ui, &m)?;
+    let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     command::pkg::demote::start(ui, &url, &ident, &channel, &token)
 }
@@ -716,7 +716,7 @@ fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    let token = maybe_auth_token(ui, &m);
+    let token = maybe_auth_token(&m);
 
     command::pkg::channels::start(ui, &url, &ident, token.as_ref().map(String::as_str))
 }
@@ -1139,47 +1139,22 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     }
 }
 
-// Temporary warning function
-fn warn_accesss_token(token: &str, ui: &mut UI) {
-    if !token.starts_with("_") {
-        ui.warn("WARNING:").unwrap();
-        ui.warn(
-            "Github tokens are being deprecated, please migrate to a Habitat Personal \
-             Access Token instead.",
-        ).unwrap();
-        ui.warn(
-            "To generate a Habitat Personal Access token, please visit the Builder Profile \
-             page (https://bldr.habitat.sh/#/profile).",
-        ).unwrap();
-        ui.warn(
-            "For more information, please read the documentation at \
-             https://www.habitat.sh/docs/using-builder/",
-        ).unwrap();
-    }
-}
-
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the
 /// HAB_AUTH_TOKEN env var. If not, check the CLI config to see if there is a default auth
 /// token set. If that's empty too, then error.
-fn auth_token_param_or_env(ui: &mut UI, m: &ArgMatches) -> Result<String> {
+fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("AUTH_TOKEN") {
         Some(o) => Ok(o.to_string()),
-        None => {
-            match henv::var(AUTH_TOKEN_ENVVAR) {
-                Ok(v) => {
-                    // Temporary warning until we deprecate Github tokens completely
-                    warn_accesss_token(&v, ui);
-                    Ok(v)
-                }
-                Err(_) => {
-                    let config = config::load()?;
-                    match config.auth_token {
-                        Some(v) => Ok(v),
-                        None => return Err(Error::ArgumentError("No auth token specified")),
-                    }
+        None => match henv::var(AUTH_TOKEN_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                let config = config::load()?;
+                match config.auth_token {
+                    Some(v) => Ok(v),
+                    None => return Err(Error::ArgumentError("No auth token specified")),
                 }
             }
-        }
+        },
     }
 }
 
@@ -1198,13 +1173,9 @@ fn ctl_secret_key(config: &Config) -> Result<String> {
 /// Check to see if an auth token exists and convert it to a string slice if it does. Unlike
 /// auth_token_param_or_env, it's ok for no auth token to be present here. This is useful for
 /// commands that can optionally take an auth token for operating on private packages.
-fn maybe_auth_token(ui: &mut UI, m: &ArgMatches) -> Option<String> {
-    match auth_token_param_or_env(ui, &m) {
-        Ok(t) => {
-            // Temporary warning until we deprecate Github tokens completely
-            warn_accesss_token(&t, ui);
-            Some(t)
-        }
+fn maybe_auth_token(m: &ArgMatches) -> Option<String> {
+    match auth_token_param_or_env(&m) {
+        Ok(t) => Some(t),
         Err(_) => None,
     }
 }
