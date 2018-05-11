@@ -61,6 +61,7 @@
 
 ## Bug fixes
 
+- \[plan-build.ps1]\ Use `RUNTIME_ENVIRONMENT` if necessary for run path. [\#5070](https://github.com/habitat-sh/habitat/pull/5070) ([fnichol](https://github.com/fnichol))
 - Fix some command aliases [\#5064](https://github.com/habitat-sh/habitat/pull/5064) ([christophermaier](https://github.com/christophermaier))
 - \[hab\] Ignore subdir entries when binlinking all programs in package. [\#5058](https://github.com/habitat-sh/habitat/pull/5058) ([fnichol](https://github.com/fnichol))
 - hab origin key upload fails with --pubfile option [\#5012](https://github.com/habitat-sh/habitat/issues/5012)
@@ -106,6 +107,7 @@
 
 **Merged pull requests:**
 
+- \[ci\] Update auth token now that GitHub tokens are fully deprecated. [\#5068](https://github.com/habitat-sh/habitat/pull/5068) ([fnichol](https://github.com/fnichol))
 - Remove access token warning [\#5060](https://github.com/habitat-sh/habitat/pull/5060) ([chefsalim](https://github.com/chefsalim))
 - Bump habitat\_core dependency to pick up HTTP client changes [\#5050](https://github.com/habitat-sh/habitat/pull/5050) ([christophermaier](https://github.com/christophermaier))
 - correct the 'ACR' typo in the kubernetes flow diagram [\#5047](https://github.com/habitat-sh/habitat/pull/5047) ([apriofrost](https://github.com/apriofrost))
