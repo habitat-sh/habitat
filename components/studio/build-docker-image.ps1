@@ -36,7 +36,7 @@ try {
         )
     }
     $InstallHarts | % {
-        hab pkg install $_
+        Invoke-Expression "hab pkg install $_"
         if ($LASTEXITCODE -ne 0) {
             Write-Error "hab install failed for $_, aborting"
         }
