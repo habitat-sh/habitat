@@ -61,7 +61,8 @@
 
 ## Bug fixes
 
-- \[studio\] Fix building the Windows Docker image when installing pkgs. [\#5072](https://github.com/habitat-sh/habitat/pull/5072)
+- \[hab\] Fix {apply, start, stop} aliases. [\#5078](https://github.com/habitat-sh/habitat/pull/5078) ([fnichol](https://github.com/fnichol))
+- \[studio\] Fix building the Windows Docker image when installing pkgs. [\#5072](https://github.com/habitat-sh/habitat/pull/5072) ([fnichol](https://github.com/fnichol))
 - \[plan-build.ps1]\ Use `RUNTIME_ENVIRONMENT` if necessary for run path. [\#5070](https://github.com/habitat-sh/habitat/pull/5070) ([fnichol](https://github.com/fnichol))
 - Fix some command aliases [\#5064](https://github.com/habitat-sh/habitat/pull/5064) ([christophermaier](https://github.com/christophermaier))
 - \[hab\] Ignore subdir entries when binlinking all programs in package. [\#5058](https://github.com/habitat-sh/habitat/pull/5058) ([fnichol](https://github.com/fnichol))
