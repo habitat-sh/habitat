@@ -26,6 +26,10 @@ use url::Url;
 use feat;
 
 pub fn get() -> App<'static, 'static> {
+    let alias_apply = sub_config_apply()
+        .about("Alias for 'config apply'")
+        .aliases(&["ap", "app", "appl"])
+        .setting(AppSettings::Hidden);
     let alias_install = sub_pkg_install()
         .about("Alias for 'pkg install'")
         .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
@@ -33,6 +37,14 @@ pub fn get() -> App<'static, 'static> {
     let alias_setup = sub_cli_setup()
         .about("Alias for 'cli setup'")
         .aliases(&["set", "setu"])
+        .setting(AppSettings::Hidden);
+    let alias_start = sub_svc_start()
+        .about("Alias for 'svc start'")
+        .aliases(&["sta", "star"])
+        .setting(AppSettings::Hidden);
+    let alias_stop = sub_svc_stop()
+        .about("Alias for 'svc stop'")
+        .aliases(&["sto"])
         .setting(AppSettings::Hidden);
 
     clap_app!(hab =>
@@ -52,19 +64,7 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to a Service's runtime config")
             (aliases: &["co", "con", "conf", "confi"])
             (@setting ArgRequiredElseHelp)
-            (@subcommand apply =>
-                (about: "Sets a configuration to be shared by members of a Service Group")
-                (aliases: &["ap", "app", "appl"])
-                (@arg SERVICE_GROUP: +required {valid_service_group}
-                    "Target service group (ex: redis.default)")
-                (@arg VERSION_NUMBER: +required
-                    "A version number (positive integer) for this configuration (ex: 42)")
-                (@arg FILE: {file_exists_or_stdin}
-                    "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
-                (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-            )
+            (subcommand: sub_config_apply().aliases(&["ap", "app", "appl"]))
             (@subcommand show =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["sh", "sho"])
@@ -553,28 +553,14 @@ pub fn get() -> App<'static, 'static> {
                     (@arg ORG: "The service organization")
                 )
             )
-            (subcommand: sub_svc_load())
+            (subcommand: sub_svc_load().aliases(&["l", "lo", "loa"]))
+            (subcommand: sub_svc_start().aliases(&["star"]))
+            (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
+            (subcommand: sub_svc_stop().aliases(&["sto"]))
             (@subcommand unload =>
                 (about: "Unload a service loaded by the Habitat Supervisor. If the service is \
                     running it will additionally be stopped.")
-                (aliases: &["un", "unl", "unlo", "unloa"])
-                (@arg PKG_IDENT: +required +takes_value
-                    "A Habitat package identifier (ex: core/redis)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-            )
-            (@subcommand start =>
-                (about: "Start a loaded, but stopped, Habitat service.")
-                (aliases: &["sta", "star"])
-                (@arg PKG_IDENT: +required +takes_value
-                    "A Habitat package identifier (ex: core/redis)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-            )
-            (subcommand: sub_svc_status())
-            (@subcommand stop =>
-                (about: "Stop a running Habitat service.")
-                (aliases: &["sto"])
+                (aliases: &["u", "un", "unl", "unlo", "unloa"])
                 (@arg PKG_IDENT: +required +takes_value
                     "A Habitat package identifier (ex: core/redis)")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
@@ -605,7 +591,7 @@ pub fn get() -> App<'static, 'static> {
                     (aliases: &["g", "gen"])
                 )
             )
-            (subcommand: sub_svc_status())
+            (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
         )
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
@@ -622,16 +608,12 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
         )
-        (@subcommand apply =>
-            (about: "Alias for 'config apply'")
-            (aliases: &["ap", "app", "appl"])
-            (@setting Hidden)
-        )
+        (subcommand: alias_apply)
         (subcommand: alias_install)
         (subcommand: alias_run())
         (subcommand: alias_setup)
-        (subcommand: alias_start())
-        (subcommand: alias_stop())
+        (subcommand: alias_start)
+        (subcommand: alias_stop)
         (subcommand: alias_term())
         (after_help: "\nALIASES:\
             \n    apply      Alias for: 'config apply'\
@@ -649,22 +631,6 @@ pub fn get() -> App<'static, 'static> {
 fn alias_run() -> App<'static, 'static> {
     clap_app!(@subcommand run =>
         (about: "Run the Habitat Supervisor")
-        (@setting Hidden)
-    )
-}
-
-fn alias_start() -> App<'static, 'static> {
-    clap_app!(@subcommand start =>
-        (about: "Starts a Habitat-supervised service")
-        (aliases: &["sta", "star"])
-        (@setting Hidden)
-    )
-}
-
-fn alias_stop() -> App<'static, 'static> {
-    clap_app!(@subcommand stop =>
-        (about: "Stop a running Habitat service.")
-        (aliases: &["sto"])
         (@setting Hidden)
     )
 }
@@ -776,15 +742,49 @@ fn sub_pkg_install() -> App<'static, 'static> {
     }
 }
 
+fn sub_config_apply() -> App<'static, 'static> {
+    clap_app!(@subcommand apply =>
+        (about: "Sets a configuration to be shared by members of a Service Group")
+        (@arg SERVICE_GROUP: +required {valid_service_group}
+            "Target service group (ex: redis.default)")
+        (@arg VERSION_NUMBER: +required
+            "A version number (positive integer) for this configuration (ex: 42)")
+        (@arg FILE: {file_exists_or_stdin}
+            "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+        (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    )
+}
+
+fn sub_svc_start() -> App<'static, 'static> {
+    clap_app!(@subcommand start =>
+        (about: "Start a loaded, but stopped, Habitat service.")
+        (@arg PKG_IDENT: +required +takes_value
+            "A Habitat package identifier (ex: core/redis)")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    )
+}
+
 // `hab svc status` is the canonical location for this command, but we
 // have historically used `hab sup status` as an alias.
 fn sub_svc_status() -> App<'static, 'static> {
     clap_app!(@subcommand status =>
-              (about: "Query the status of Habitat services.")
-              (aliases: &["stat", "statu", "status"])
-              (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
-              (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
-               "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (about: "Query the status of Habitat services.")
+        (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+        "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    )
+}
+
+fn sub_svc_stop() -> App<'static, 'static> {
+    clap_app!(@subcommand stop =>
+        (about: "Stop a running Habitat service.")
+        (@arg PKG_IDENT: +required +takes_value
+            "A Habitat package identifier (ex: core/redis)")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
 
@@ -794,7 +794,6 @@ fn sub_svc_load() -> App<'static, 'static> {
         (about: "Load a service to be started and supervised by Habitat from a package \
             identifier. If an installed package doesn't satisfy the given package \
             identifier, a suitable package will be installed from Builder.")
-        (aliases: &["lo", "loa"])
         (@arg PKG_IDENT: +required +takes_value
             "A Habitat package identifier (ex: core/redis)")
         (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
@@ -821,7 +820,7 @@ fn sub_svc_load() -> App<'static, 'static> {
             was previously loaded and running this operation will also restart the service")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-   )
+    )
 }
 
 #[cfg(target_os = "windows")]
@@ -830,7 +829,6 @@ fn sub_svc_load() -> App<'static, 'static> {
         (about: "Load a service to be started and supervised by Habitat from a package \
             identifier. If an installed package doesn't satisfy the given package \
             identifier, a suitable package will be installed from Builder.")
-        (aliases: &["lo", "loa"])
         (@arg PKG_IDENT: +required +takes_value
             "A Habitat package identifier (ex: core/redis)")
         (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
@@ -858,7 +856,7 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg PASSWORD: --password +takes_value "Password of the service user")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-   )
+    )
 }
 
 fn file_exists(val: String) -> result::Result<(), String> {
