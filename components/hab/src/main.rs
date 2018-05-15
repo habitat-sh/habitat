@@ -136,6 +136,7 @@ fn start(ui: &mut UI) -> Result<()> {
     let app_matches = child.join().unwrap();
 
     match app_matches.subcommand() {
+        ("apply", Some(m)) => sub_svc_set(m)?,
         ("cli", Some(matches)) => match matches.subcommand() {
             ("setup", Some(_)) => sub_cli_setup(ui)?,
             ("completers", Some(m)) => sub_cli_completers(m)?,
@@ -244,6 +245,8 @@ fn start(ui: &mut UI) -> Result<()> {
             _ => unreachable!(),
         },
         ("setup", Some(_)) => sub_cli_setup(ui)?,
+        ("start", Some(m)) => sub_svc_start(m)?,
+        ("stop", Some(m)) => sub_svc_stop(m)?,
         ("user", Some(matches)) => match matches.subcommand() {
             ("key", Some(m)) => match m.subcommand() {
                 ("generate", Some(sc)) => sub_user_key_generate(ui, sc)?,
