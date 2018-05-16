@@ -960,8 +960,13 @@ impl Manager {
             None => {
                 // We don't have any record of this thing; let's set it up!
                 //
-                // This will install the latest version from Builder
-                let installed = util::pkg::install(req, bldr_url, &source, bldr_channel)?;
+                // If a package exists on disk that satisfies the
+                // desired package identifier, it will be used;
+                // otherwise, we'll install the latest suitable
+                // version from the specified Builder channel.
+                let installed =
+                    util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
+
                 let mut specs = Self::generate_new_specs_from_package(&installed, &opts)?;
 
                 for spec in specs.iter_mut() {
