@@ -61,6 +61,8 @@
 
 ## Bug fixes
 
+- Run the best local candidate of a service first [\#5087](https://github.com/habitat-sh/habitat/pull/5087) ([christophermaier](https://github.com/christophermaier))
+- \[hab\] Fix the subcommand delegation to `hab-sup`. [\#5086](https://github.com/habitat-sh/habitat/pull/5086) ([fnichol](https://github.com/fnichol))
 - \[hab\] Fix missing invocation matches for {apply,start,stop}. [\#5082](https://github.com/habitat-sh/habitat/pull/5082) ([fnichol](https://github.com/fnichol))
 - \[hab\] Fix {apply, start, stop} aliases. [\#5078](https://github.com/habitat-sh/habitat/pull/5078) ([fnichol](https://github.com/fnichol))
 - \[studio\] Fix building the Windows Docker image when installing pkgs. [\#5072](https://github.com/habitat-sh/habitat/pull/5072) ([fnichol](https://github.com/fnichol))
