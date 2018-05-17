@@ -803,7 +803,7 @@ impl Manager {
                 format!("Configuration format {} not available.", opts.get_format()),
             ));
         }
-        let _new_cfg: Vec<String> = toml::from_slice(opts.get_cfg()).map_err(|e| {
+        let _new_cfg: toml::value::Table = toml::from_slice(opts.get_cfg()).map_err(|e| {
             net::err(
                 ErrCode::BadPayload,
                 format!(
