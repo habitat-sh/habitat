@@ -812,34 +812,38 @@ impl Manager {
                 ),
             )
         })?;
-        let service_group: ServiceGroup = opts.take_service_group().into();
-        for service in mgr.services.read().unwrap().iter() {
-            if service.service_group != service_group {
-                continue;
-            }
-            if let Some(interface) = service.cfg.interface() {
-                match Cfg::validate(interface, &new_cfg) {
-                    None => req.reply_complete(net::ok()),
-                    Some(errors) => {
-                        for error in errors {
-                            req.reply_partial(net::err(ErrCode::InvalidPayload, error));
-                        }
-                        req.reply_complete(net::ok());
-                    }
-                }
-                return Ok(());
-            } else {
-                // No interface, this service can't be configured.
-                return Err(net::err(
-                    ErrCode::NotFound,
-                    "Service has no configurable attributes.",
-                ));
-            }
-        }
-        Err(net::err(
-            ErrCode::NotFound,
-            format!("{} not loaded.", service_group),
-        ))
+        req.reply_complete(net::ok());
+        Ok(())
+        // JW TODO: Hold off on validation until we can validate services which aren't currently
+        // loaded in the Supervisor but are known through rumor propagation.
+        // let service_group: ServiceGroup = opts.take_service_group().into();
+        // for service in mgr.services.read().unwrap().iter() {
+        //     if service.service_group != service_group {
+        //         continue;
+        //     }
+        //     if let Some(interface) = service.cfg.interface() {
+        //         match Cfg::validate(interface, &new_cfg) {
+        //             None => req.reply_complete(net::ok()),
+        //             Some(errors) => {
+        //                 for error in errors {
+        //                     req.reply_partial(net::err(ErrCode::InvalidPayload, error));
+        //                 }
+        //                 req.reply_complete(net::ok());
+        //             }
+        //         }
+        //         return Ok(());
+        //     } else {
+        //         // No interface, this service can't be configured.
+        //         return Err(net::err(
+        //             ErrCode::NotFound,
+        //             "Service has no configurable attributes.",
+        //         ));
+        //     }
+        // }
+        // Err(net::err(
+        //     ErrCode::NotFound,
+        //     format!("{} not loaded.", service_group),
+        // ))
     }
 
     pub fn service_cfg_set(
