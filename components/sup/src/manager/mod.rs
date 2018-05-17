@@ -69,7 +69,7 @@ pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, 
                         UpdateStrategy};
 pub use self::sys::Sys;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
-use self::service::{Cfg, DesiredState, IntoServiceSpec, Pkg, ProcessState};
+use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use self::peer_watcher::PeerWatcher;
@@ -786,9 +786,10 @@ impl Manager {
     }
 
     pub fn service_cfg_validate(
-        mgr: &ManagerState,
+        _mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocol::ctl::SvcValidateCfg,
+        opts: protocol::ctl::SvcValidateCfg, // TODO (CM): once we're
+                                             // validating, this needs to be mut
     ) -> NetResult<()> {
         if opts.get_cfg().len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
             return Err(net::err(
@@ -802,7 +803,7 @@ impl Manager {
                 format!("Configuration format {} not available.", opts.get_format()),
             ));
         }
-        let new_cfg = toml::from_slice(opts.get_cfg()).map_err(|e| {
+        let _new_cfg: Vec<String> = toml::from_slice(opts.get_cfg()).map_err(|e| {
             net::err(
                 ErrCode::BadPayload,
                 format!(
