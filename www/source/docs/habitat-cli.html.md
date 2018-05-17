@@ -982,7 +982,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 **ARGS**
 
 ```
-<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh$2ile
+<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh file
 ```
 
 
