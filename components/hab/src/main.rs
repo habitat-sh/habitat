@@ -736,11 +736,11 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
     validate.set_service_group(service_group.clone().into());
     let mut buf = Vec::with_capacity(protocol::butterfly::MAX_SVC_CFG_SIZE);
     let cfg_len = match m.value_of("FILE") {
+        Some("-") | None => io::stdin().read_to_end(&mut buf)?,
         Some(f) => {
-            let mut file = File::open(f).unwrap();
-            file.read_to_end(&mut buf).unwrap()
+            let mut file = File::open(f)?;
+            file.read_to_end(&mut buf)?
         }
-        None => io::stdin().read(&mut buf).unwrap(),
     };
     if cfg_len > protocol::butterfly::MAX_SVC_CFG_SIZE {
         ui.fatal(format!(
