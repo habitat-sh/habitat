@@ -16,45 +16,45 @@ pub mod service;
 #[macro_use]
 mod debug;
 mod events;
+mod file_watcher;
+mod peer_watcher;
 mod periodic;
 mod self_updater;
 mod service_updater;
 mod spec_watcher;
-mod file_watcher;
-mod peer_watcher;
-mod user_config_watcher;
 mod sys;
+mod user_config_watcher;
 
 use std;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
+use std::mem;
 use std::net::SocketAddr;
+use std::ops::DerefMut;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use std::result;
 use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use std::mem;
-use std::ops::DerefMut;
-use std::rc::Rc;
 
 use butterfly;
 use butterfly::member::Member;
-use butterfly::trace::Trace;
-use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
+use butterfly::server::timing::Timing;
+use butterfly::trace::Trace;
 use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
 use futures::prelude::*;
 use futures::sync::mpsc;
-use hcore::fs::FS_ROOT_PATH;
 use hcore::crypto::SymKey;
 use hcore::env;
+use hcore::fs::FS_ROOT_PATH;
 use hcore::os::process::{self, Pid, Signal};
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::package::metadata::PackageType;
+use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
@@ -65,19 +65,19 @@ use time::{self, Duration as TimeDuration, Timespec};
 use tokio_core::reactor;
 use toml;
 
+use self::peer_watcher::PeerWatcher;
+use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
 pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, Topology,
                         UpdateStrategy};
-pub use self::sys::Sys;
-use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
 use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
-use self::peer_watcher::PeerWatcher;
+pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use VERSION;
+use census::CensusRing;
 use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
-use census::CensusRing;
 use error::{Error, Result, SupError};
 use http_gateway;
 use util;
@@ -664,7 +664,7 @@ impl Manager {
         });
         core.handle().spawn(ctl_handler);
         if let Some(svc_load) = svc {
-            Self::service_load(&self.state, &mut CtlRequest::default(), svc_load).unwrap();
+            Self::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
         }
         self.start_initial_services_from_spec_watcher()?;
 

@@ -23,8 +23,8 @@ use std::str::FromStr;
 
 use hcore;
 use hcore::channel::STABLE_CHANNEL;
-use hcore::package::{PackageIdent, PackageInstall};
 use hcore::package::metadata::BindMapping;
+use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::{ApplicationEnvironment, BindingMode, ServiceGroup};
 use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
@@ -33,8 +33,8 @@ use rand::{thread_rng, Rng};
 use serde::{self, Deserialize};
 use toml;
 
-use super::{Topology, UpdateStrategy};
 use super::composite_spec::CompositeSpec;
+use super::{Topology, UpdateStrategy};
 use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
@@ -566,8 +566,8 @@ fn set_composite_binds(spec: &mut ServiceSpec, bind_map: &mut BindMap, binds: &V
 mod test {
     use std::fs::{self, File};
     use std::io::{BufReader, Read, Write};
-    use std::str::FromStr;
     use std::path::{Path, PathBuf};
+    use std::str::FromStr;
 
     use hcore::error::Error as HError;
     use hcore::package::PackageIdent;

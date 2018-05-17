@@ -161,12 +161,12 @@ impl PeerWatcher {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::{File, OpenOptions};
-    use tempdir::TempDir;
     use super::PeerWatcher;
     use butterfly::member::Member;
     use config::GOSSIP_DEFAULT_PORT;
+    use std::fs::{File, OpenOptions};
     use std::io::Write;
+    use tempdir::TempDir;
 
     #[test]
     fn no_file() {

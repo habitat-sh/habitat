@@ -36,11 +36,11 @@
 //! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
 //! it instead of the longer `Result` form.
 
-use std::io;
 use std::env;
 use std::error;
 use std::ffi;
 use std::fmt;
+use std::io;
 use std::net;
 use std::path::PathBuf;
 use std::result;
@@ -138,6 +138,7 @@ pub enum Error {
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
     NameLookup(io::Error),
+    NetErr(protocol::net::NetErr),
     NetParseError(net::AddrParseError),
     NoActiveMembers(hcore::service::ServiceGroup),
     NoLauncher,
@@ -260,6 +261,7 @@ impl fmt::Display for SupError {
                 format!("Missing required ident field: (example: ident = \"core/redis\")")
             }
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
+            Error::NetErr(ref err) => format!("{}", err),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NoActiveMembers(ref g) => format!("No active members in service group {}", g),
             Error::NoLauncher => format!("Supervisor must be run from `hab-launch`"),
@@ -387,6 +389,7 @@ impl error::Error for SupError {
             Error::MissingRequiredIdent => {
                 "Missing required ident field: (example: ident = \"core/redis\")"
             }
+            Error::NetErr(ref err) => err.description(),
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
             Error::NoActiveMembers(_) => "Group has no active members",
@@ -546,5 +549,11 @@ impl From<toml::de::Error> for SupError {
 impl From<toml::ser::Error> for SupError {
     fn from(err: toml::ser::Error) -> Self {
         sup_error!(Error::TomlEncode(err))
+    }
+}
+
+impl From<protocol::net::NetErr> for SupError {
+    fn from(err: protocol::net::NetErr) -> Self {
+        sup_error!(Error::NetErr(err))
     }
 }

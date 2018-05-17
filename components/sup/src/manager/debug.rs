@@ -13,9 +13,9 @@
 // limitations under the License.
 
 use std::collections::{HashMap, HashSet};
+use std::ffi::OsString;
 use std::fmt::Debug;
 use std::path::PathBuf;
-use std::ffi::OsString;
 
 pub trait IndentedToString {
     fn indented_to_string(&self, spaces: &str, repeat: usize) -> String;

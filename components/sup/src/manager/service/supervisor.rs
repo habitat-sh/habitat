@@ -12,27 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use hcore::os::process::{self, Pid};
 /// Supervise a service.
 ///
 /// The Supervisor is responsible for running any services we are asked to start. It handles
 /// spawning the new process, watching for failure, and ensuring the service is either up or down.
 /// If the process dies, the Supervisor will restart it.
-
 use std;
 use std::fmt;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
-use hcore::os::process::{self, Pid};
 use std::result;
 
 #[cfg(unix)]
 use hcore::os::users;
 use hcore::service::ServiceGroup;
 use launcher_client::LauncherCli;
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use time::{self, Timespec};
 
 use error::{Error, Result};
