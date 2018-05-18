@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod hooks;
 mod composite_spec;
 pub mod config;
 mod dir;
 mod health;
+pub mod hooks;
 mod package;
 mod spec;
 mod supervisor;
@@ -31,43 +31,41 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-pub use protocol::types::{Topology, UpdateStrategy};
 use butterfly::rumor::service::Service as ServiceRumor;
 use hcore::crypto::hash;
 use hcore::fs::FS_ROOT_PATH;
-use hcore::package::{PackageIdent, PackageInstall};
 use hcore::package::metadata::Bind;
+use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::{BindingMode, ServiceGroup};
 use hcore::util::perm::{set_owner, set_permissions};
 use launcher_client::LauncherCli;
+pub use protocol::types::{Topology, UpdateStrategy};
 use time::Timespec;
 
-pub use self::config::{Cfg, UserConfigPath};
-pub use self::health::{HealthCheck, SmokeCheck};
-pub use self::package::{Env, Pkg};
 pub use self::composite_spec::CompositeSpec;
+use self::config::CfgRenderer;
+pub use self::config::{Cfg, UserConfigPath};
+use self::dir::SvcDir;
+pub use self::health::{HealthCheck, SmokeCheck};
+use self::hooks::{Hook, HookTable, HOOK_PERMISSIONS};
+pub use self::package::{Env, Pkg};
 pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
 pub use self::supervisor::ProcessState;
-use super::Sys;
-use self::config::CfgRenderer;
-use self::hooks::{Hook, HookTable, HOOK_PERMISSIONS};
 use self::supervisor::Supervisor;
-use self::dir::SvcDir;
+use super::Sys;
+use census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
 use error::{Error, Result, SupError};
 use fs;
 use manager;
-use census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
-use templating::RenderContext;
 use sys::abilities;
+use templating::RenderContext;
 
 static LOGKEY: &'static str = "SR";
 
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
 
 lazy_static! {
-    static ref HEALTH_CHECK_INTERVAL: Duration = {
-        Duration::from_millis(30_000)
-    };
+    static ref HEALTH_CHECK_INTERVAL: Duration = { Duration::from_millis(30_000) };
 }
 
 /// When evaluating whether a particular service group can satisfy a

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 /// Collect all the configuration data that is exposed to users, and render it.
-
 use std;
 use std::borrow::Cow;
 use std::env;
@@ -23,10 +22,10 @@ use std::path::{Path, PathBuf};
 use std::result;
 
 use fs;
-use hcore::{crypto, util};
 use hcore::fs::USER_CONFIG_FILE;
-use serde::{Serialize, Serializer};
+use hcore::{crypto, util};
 use serde::ser::SerializeMap;
+use serde::{Serialize, Serializer};
 use serde_json;
 use serde_transcode;
 use toml;
@@ -624,8 +623,8 @@ mod test {
     use std::fs;
     use std::fs::OpenOptions;
 
-    use toml;
     use tempdir::TempDir;
+    use toml;
 
     use super::*;
     use error::Error;

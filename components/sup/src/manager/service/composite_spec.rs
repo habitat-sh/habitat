@@ -16,20 +16,20 @@
 //! about the current composite definition that is in play. A
 //! `CompositeSpec` plays this role.
 
-use std::str::FromStr;
+use std::fs::{self, File};
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
-use std::fs::{self, File};
 use std::result;
+use std::str::FromStr;
 
 use hcore::error::Error as HCoreError;
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::package::metadata::PackageType;
+use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 
 use error::{Error, Result, SupError};
-use toml;
 use rand::{thread_rng, Rng};
+use toml;
 
 const SPEC_FILE_EXT: &'static str = "spec";
 

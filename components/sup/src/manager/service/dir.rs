@@ -15,8 +15,8 @@
 //! Encapsulate operations for creating a supervised service's service
 //! directories (i.e., `/hab/svc/$NAME`).
 
-use std::fs as stdfs;
 use std::convert::From;
+use std::fs as stdfs;
 use std::path::Path;
 
 use error::{Error, Result};

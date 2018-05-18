@@ -43,9 +43,9 @@ use clap::{App, ArgMatches};
 use common::command::package::install::InstallSource;
 use common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
 use hcore::channel;
-use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
+use hcore::crypto::{self, default_cache_key_path, SymKey};
 use hcore::env as henv;
 use hcore::service::{ApplicationEnvironment, BindingMode, ServiceGroup};
 use hcore::url::{bldr_url_from_env, default_bldr_url};
@@ -53,13 +53,13 @@ use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
 
 use sup::VERSION;
+use sup::command;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result, SupError};
 use sup::feat;
-use sup::command;
 use sup::http_gateway;
-use sup::manager::{Manager, ManagerConfig};
 use sup::manager::service::{ServiceBind, Topology, UpdateStrategy};
+use sup::manager::{Manager, ManagerConfig};
 use sup::util;
 
 /// Our output key
@@ -191,8 +191,6 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
                 "Governs how the presence or absence of binds affects service startup. `strict` blocks \
                  startup until all binds are present. [default: strict] [values: relaxed, strict]")
-            (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
-                previously loaded and running this operation will also restart the service")
             (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
             (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
             (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
@@ -226,6 +224,10 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
         let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
             let mut msg = protocol::ctl::SvcLoad::new();
             update_svc_load_from_input(m, &mut msg)?;
+            // Always force - running with a package ident is a "do what I mean" operation. You
+            // don't care if a service was loaded previously or not and with what options. You
+            // want one loaded right now and in this way.
+            msg.set_force(true);
             let ident = match pkg.parse::<InstallSource>()? {
                 source @ InstallSource::Archive(_) => {
                     // Install the archive manually then explicitly set the pkg ident to the

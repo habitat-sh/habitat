@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[cfg(windows)]
+use hcore::os::process::windows_child::{Child, ExitStatus};
 use std;
 use std::fmt;
+use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
-use std::fs::File;
 use std::path::{Path, PathBuf};
 #[cfg(not(windows))]
 use std::process::{Child, ExitStatus};
-#[cfg(windows)]
-use hcore::os::process::windows_child::{Child, ExitStatus};
 use std::result;
 
 use hcore;
@@ -1011,29 +1011,29 @@ impl<'a> HookOutput<'a> {
 mod tests {
     use std::fs::{self, DirBuilder};
     use std::iter;
-    use std::string::ToString;
     use std::process::{Command, Stdio};
+    use std::string::ToString;
 
-    use hcore::package::{PackageIdent, PackageInstall};
-    use hcore::service::ServiceGroup;
     use butterfly::member::MemberList;
-    use butterfly::rumor::service::Service as ServiceRumor;
-    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use butterfly::rumor::RumorStore;
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+    use butterfly::rumor::service::Service as ServiceRumor;
     use butterfly::rumor::service::SysInfo;
-    use butterfly::rumor::RumorStore;
+    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use hcore::package::{PackageIdent, PackageInstall};
+    use hcore::service::ServiceGroup;
     use protocol;
     use tempdir::TempDir;
 
-    use super::*;
     use super::fs as supfs;
+    use super::*;
     use census::CensusRing;
     use config::GossipListenAddr;
     use http_gateway;
-    use manager::service::{Cfg, Pkg};
     use manager::service::spec::ServiceBind;
+    use manager::service::{Cfg, Pkg};
     use manager::sys::Sys;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
