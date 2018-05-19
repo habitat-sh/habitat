@@ -111,6 +111,7 @@ $std-margin: 20;
 }
 
 .hide-small { @include breakpoint(small only) { display: none; }}
+.small-only { @include breakpoint(medium) { display: none; }}
 
 .logo-icon {
   text-indent: -9999px;
