@@ -38,19 +38,19 @@ Graphics that will help you and your team better understand the concepts and how
 Try the interactive infographics on the [website](http://habitat.sh#reference-diagram)!
 
 ### How Habitat Works
-* [Architecture Overview](https://www.habitat.sh/images/infographics/habitat-architecture-overview-3678af94.png)
-* [Initial Package Build Flow](https://www.habitat.sh/images/infographics/habitat-initial-package-build-flow-9c664414.png)
-* [Application Rebuild Flow](https://www.habitat.sh/images/infographics/habitat-application-rebuild-flow-3259186b.png)
-* [Dependency Update Flow](https://www.habitat.sh/images/infographics/habitat-dependency-update-flow-7a450e58.png)
-* [Promote Packages Through Channels](https://www.habitat.sh/images/infographics/habitat-promote-packages-through-channels-1fe654c7.png)
+* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-architecture-overview.png)
+* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-initial-package-build-flow.png)
+* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-application-rebuild-flow.png)
+* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-dependency-update-flow.png)
+* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-promote-packages-through-channels.png)
 
 ### Habitat and **Docker**
-* [Initial Docker Container Publishing Flow](https://www.habitat.sh/images/infographics/habitat-initial-docker-container-publishing-flow-75704ad7.png)
-* [Automated Docker Container Publishing Flow](https://www.habitat.sh/images/infographics/habitat-automated-docker-container-publishing-flow-b59adf86.png)
+* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-initial-docker-container-publishing-flow.png)
+* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-automated-docker-container-publishing-flow.png)
 
 ### Habitat and **Kubernetes**
-* [Three Tiers of Service Deployment](https://www.habitat.sh/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment-fdf10879.png)
-* [Deploy Services to Kubernetes with Habitat](https://www.habitat.sh/images/infographics/deploy-services-to-kubernetes-with-habitat-flow-6ddca9cd.png)
+* [Three Tiers of Service Deployment](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment.png)
+* [Deploy Services to Kubernetes with Habitat](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/deploy-services-to-kubernetes-with-habitat-flow.png)
 
 *View all diagrams in [Docs](https://www.habitat.sh/docs/diagrams/)*
 
