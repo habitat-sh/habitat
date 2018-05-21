@@ -10,27 +10,25 @@ File updates for service groups must be versioned. The version number must be an
 Here are some examples of how to upload a file to the ring:
 
 ```shell
-$ hab file upload myapp.prod 1 /tmp/yourfile.txt --peer 172.0.0.3
+$ hab file upload myapp.prod 1 /tmp/yourfile.txt --remote-sup 172.0.0.3:9632
 ```
 
-  > Note: 1 is the version number. Increment this for additional configuration updates.
+  > Note: 1 is the version number. Increment this for subsequent updates.
 
     Your output would look something like this:
 
-       » Uploading file /tmp/yourfile.txt to myapp.prod incarnation 1
+       » Uploading file yourfile.txt to 1 incarnation myapp.prod
        Ω Creating service file
-       ↑ Applying to peer 127.0.0.1:9638
+       ↑ Applying via peer 172.0.0.3:9632
        ★ Uploaded file
 
-  The services in the myapp.prod service group will restart.
+  The services in the `myapp.prod` service group will receive the file, restarting if necessary:
 
-       myapp.prod(SR): Service file updated from butterfly /hab/svc/myapp/files/yourfile.txt: 7a3d9e87e6b917e0ec53665038adfda0a6b43ab9c3f72640dcf7e43a280af719
-       myapp.prod(SR): File update hook succeeded.
-       myapp.prod(SV): Stopping
+       hab-sup(MR): Receiving new version 1 of file secret.txt for myapp.prod
        ...
-       myapp.prod(SV): Starting
+       myapp.prod(SR): Service file updated, yourfile.txt
 
-  > Note: The file will be put in your services svc directory.
+  > Note: The file will be put in your service's `svc/files` directory.
 
 #### Encryption
 

@@ -16,27 +16,29 @@ You can supply a `user.toml` containing any configuration data that you want to 
 Override default configuration data through the use of an environment variable with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
 
 ```shell
-$ HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab start <origin>/<packagename>
+$ HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab run <origin>/<packagename>
 ```
+> Note: The syntax used for applying configuration through environment variables can be either JSON or TOML, but TOML is preferred. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
 
-> Note: The preferred syntax used for applying configuration through environment variables is JSON but must be valid JSON input. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
+> Note: The way that environment variable configuration is currently processed means that variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Habitat operator. This may change in the future.
 
-For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a .toml
-file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
+For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a file and pass it in using something like `HAB_PACKAGENAME="$(cat foo.toml)"` or `HAB_PACKAGENAME="$(cat foo.json)"`.
 
 ```shell
-$ HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab start <origin>/<packagename>
+$ HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run
+$ hab svc load <origin>/mytutorialapp
 ```
+(or `HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run <origin>/mytutorialapp` for testing scenarios and containerized workflows; see [here](#using-packages)).
 
-The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied to one service at a time, and you have to manually interrupt (Ctrl+C) a running service before changing its configuration settings again.
+The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied when the Supervisor itself starts up, and you have to restart a running Supervisor (and thus, all services it may be running) in order to change these settings again.
 
 For an example of how to use an environment variable to update default configuration values, see [the Getting Started demo](/tutorials/get-started/demo/).
 
 ## Apply configuration updates to a service group
-Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime using stdin from your shell or through a TOML file. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/using-habitat/#using-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
+Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/using-habitat/#using-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
 
 ### Usage
-When submitting a configuration update to a service group, you must specify a peer in the ring to connect to, the version number of the configuration update, and the new configuration itself. Configuration updates can be either TOML passed into stdin, or passed in a TOML file that is referenced in `hab config apply`.
+When submitting a configuration update to a service group, you must specify a Supervisor to connect to, the version number of the configuration update, and the new configuration itself. Configuration updates can be either TOML passed into stdin, or passed in a TOML file that is referenced in `hab config apply`.
 
 Configuration updates for service groups must be versioned. The version number must be an integer that starts at one and must be incremented with every subsequent update to the same service group. *If the version number is less than or equal to the current version number, the change(s) will not be applied.*
 
@@ -45,13 +47,13 @@ Here are some examples of how to apply configuration changes through both the sh
 **Stdin**
 
 ```shell
-$ echo 'buffersize = 16384' | hab config apply --peer 172.17.0.3 myapp.prod 1
+$ echo 'buffersize = 16384' | hab config apply --remote-sup 172.17.0.3:9632 myapp.prod 1
 ```
 
 **TOML file**
 
 ```shell
-$ hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
+$ hab config apply --remote-sup 172.17.0.3:9632 myapp.prod 1 /tmp/newconfig.toml
 ```
 
   > Note: The filename of the configuration file is not important.
@@ -61,10 +63,9 @@ $ hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
 
     Your output would look something like this:
 
-       » Applying configuration for myapp.prod incarnation 1
+       » Setting new configuration version 1 for myapp.prod
        Ω Creating service configuration
-       ✓ Verified this configuration is valid TOML
-       ↑ Applying to peer 172.17.0.3:9638
+       ↑ Applying via peer 172.18.0.2:9632
        ★ Applied configuration
 
   The services in the myapp.prod service group will restart.
@@ -74,6 +75,8 @@ $ hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
        myapp.prod(SV): Stopping
        ...
        myapp.prod(SV): Starting
+
+> Note: As with all Supervisor interaction commands, if you do not specify `--remote-sup`, `hab config apply` will attempt to connect to a Supervisor running on the same host.
 
 #### Encryption
 

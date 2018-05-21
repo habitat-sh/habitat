@@ -1,6 +1,6 @@
 # <a name="continuous-deployment" id="continuous-deployment" data-magellan-target="continuous-deployment">Continuous Deployment Using Channels</a>
 
-Continuous deployment is a well-known software development practice of building and testing code changes in preparation for a release to a production environment. 
+Continuous deployment is a well-known software development practice of building and testing code changes in preparation for a release to a production environment.
 
 <%= partial "/partials/global/channel-overview" %>
 
@@ -37,9 +37,9 @@ Using the infographic as a guide, a typical continuous deployment scenario would
 
 Configuring a Supervisor's update strategy to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.
 
-To start a Supervisor with an update strategy and pointing to a channel, specify them as options when starting a service.
+To start a service with an update strategy and pointing to a channel, specify them as options when loading the service.
 
-    $ hab start <origin>/<package> --strategy rolling --channel test
+    $ hab svc load <origin>/<package> --strategy rolling --channel test
 
 While that service is running, update your package, rebuild it, and then promote it to the same channel that the previous release of that serviceis currently running in (e.g. `test`). Those running instances should now update according to their update strategy.
 
@@ -51,10 +51,10 @@ If you need to unassociate a channel from a specific package release, you can do
 $ hab pkg demote -z <OAuth_token> <origin>/<package>/<version>/<release> test
 ```
 
-The Builder UI for that package release and `hab pkg channels` will both reflect the removal of that channel. 
+The Builder UI for that package release and `hab pkg channels` will both reflect the removal of that channel.
 
 If you are running a package in a specific channel and demote
 
-> **Note** If you demote a package from the `stable` channel, then any other packages that depend on the stable version of that package will either fail to load or build depending on how that demoted packaged was used. 
+> **Note** If you demote a package from the `stable` channel, then any other packages that depend on the stable version of that package will either fail to load or build depending on how that demoted packaged was used.
 
-> Also, downgrading to another release for a specific channel is not available at this time. This means if you run the latest release of a package from a specific channel, and demote the channel for that release, the package will not downgrade to the next most recent release from that channel. 
+> Also, downgrading to another release for a specific channel is not available at this time. This means if you run the latest release of a package from a specific channel, and demote the channel for that release, the package will not downgrade to the next most recent release from that channel.

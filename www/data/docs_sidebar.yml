@@ -125,6 +125,8 @@ sidebar_links:
   - title: Best Practice Guides
     link: "/docs/best-practices"
     sub_links:
+    - title: Running Habitat on Servers
+      link: "/docs/best-practices/#running-habitat-servers"
     - title: Running Habitat Linux Containers
       link: "/docs/best-practices/#running-habitat-linux-containers"
     - title: Running Habitat Windows Containers
