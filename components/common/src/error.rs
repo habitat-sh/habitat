@@ -35,6 +35,7 @@ pub enum Error {
     CryptoKeyError(String),
     GossipFileRelativePath(String),
     DepotClient(depot_client::Error),
+    DownloadFailed(String),
     EditStatus,
     FileNameError,
     HabitatCore(hcore::Error),
@@ -69,6 +70,7 @@ impl fmt::Display for Error {
                 s
             ),
             Error::DepotClient(ref err) => format!("{}", err),
+            Error::DownloadFailed(ref msg) => format!("{}", msg),
             Error::EditStatus => format!("Failed edit text command"),
             Error::FileNameError => format!("Failed to extract a filename"),
             Error::HabitatCore(ref e) => format!("{}", e),
@@ -108,6 +110,7 @@ impl error::Error for Error {
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::ChannelNotFound => "Channel not found",
             Error::CryptoKeyError(_) => "Missing or invalid key",
+            Error::DownloadFailed(_) => "Failed to download from remote",
             Error::GossipFileRelativePath(_) => {
                 "Path for gossip file cannot have relative components (eg: ..)"
             }

@@ -487,7 +487,8 @@ impl Client {
         }
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)?;
+        res.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
         let secret_keys: Vec<String> = serde_json::from_str::<Vec<OriginSecret>>(&encoded)?
             .into_iter()
@@ -558,7 +559,8 @@ impl Client {
         };
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)?;
+        res.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
         let revisions: Vec<originsrv::OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(
             &encoded,
@@ -592,7 +594,8 @@ impl Client {
         }
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)?;
+        res.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
         let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?
             .into_iter()
@@ -623,8 +626,11 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
-        let mut file = File::open(src_path)?;
-        let file_size = file.metadata()?.len();
+        let mut file =
+            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
+        let file_size = file.metadata()
+            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
+            .len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -691,8 +697,11 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
-        let mut file = File::open(src_path)?;
-        let file_size = file.metadata()?.len();
+        let mut file =
+            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
+        let file_size = file.metadata()
+            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
+            .len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -785,7 +794,8 @@ impl Client {
         }
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)?;
+        res.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
         let package: originsrv::OriginPackage = serde_json::from_str::<Package>(&encoded)?.into();
         Ok(package)
@@ -812,8 +822,11 @@ impl Client {
     {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
-        let mut file = File::open(&pa.path)?;
-        let file_size = file.metadata()?.len();
+        let mut file =
+            File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
+        let file_size = file.metadata()
+            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
+            .len();
         let path = package_path(&ident);
         let custom = |url: &mut Url| {
             url.query_pairs_mut().append_pair("checksum", &checksum);
@@ -844,8 +857,11 @@ impl Client {
     pub fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()> {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
-        let mut file = File::open(&pa.path)?;
-        let file_size = file.metadata()?.len();
+        let mut file =
+            File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
+        let file_size = file.metadata()
+            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
+            .len();
         let path = package_path(&ident);
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
@@ -985,7 +1001,8 @@ impl Client {
         match res.status {
             StatusCode::Ok | StatusCode::PartialContent => {
                 let mut encoded = String::new();
-                res.read_to_string(&mut encoded)?;
+                res.read_to_string(&mut encoded)
+                    .map_err(Error::BadResponseBody)?;
                 let results: Vec<OriginChannelIdent> = serde_json::from_str(&encoded)?;
                 let channels = results.into_iter().map(|o| o.name).collect();
                 Ok(channels)
@@ -1009,7 +1026,8 @@ impl Client {
         match res.status {
             StatusCode::Ok | StatusCode::PartialContent => {
                 let mut encoded = String::new();
-                res.read_to_string(&mut encoded)?;
+                res.read_to_string(&mut encoded)
+                    .map_err(Error::BadResponseBody)?;
                 let package_results: PackageResults<
                     hab_core::package::PackageIdent,
                 > = serde_json::from_str(&encoded)?;
@@ -1057,12 +1075,12 @@ impl Client {
         if res.status != hyper::status::StatusCode::Ok {
             return Err(err_from_response(res));
         }
-        fs::create_dir_all(&dst_path)?;
+        fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
 
-        let file_name = match res.headers.get::<XFileName>() {
-            Some(filename) => format!("{}", filename),
-            None => return Err(Error::NoXFilename),
-        };
+        let file_name = res.headers
+            .get::<XFileName>()
+            .expect("XFileName missing from response")
+            .to_string();
         let tmp_file_path = dst_path.join(format!(
             "{}.tmp-{}",
             file_name,
@@ -1070,7 +1088,8 @@ impl Client {
         ));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = File::create(&tmp_file_path)?;
+        let mut f = File::create(&tmp_file_path)
+            .map_err(|e| Error::DownloadWrite(tmp_file_path.clone(), e))?;
         match progress {
             Some(mut progress) => {
                 let size: u64 = res.headers
@@ -1078,16 +1097,17 @@ impl Client {
                     .map_or(0, |v| **v);
                 progress.size(size);
                 let mut writer = BroadcastWriter::new(&mut f, progress);
-                io::copy(&mut res, &mut writer)?
+                io::copy(&mut res, &mut writer).map_err(Error::BadResponseBody)?
             }
-            None => io::copy(&mut res, &mut f)?,
+            None => io::copy(&mut res, &mut f).map_err(Error::BadResponseBody)?,
         };
         debug!(
             "Moving {} to {}",
             &tmp_file_path.display(),
             &dst_file_path.display()
         );
-        fs::rename(&tmp_file_path, &dst_file_path)?;
+        fs::rename(&tmp_file_path, &dst_file_path)
+            .map_err(|e| Error::DownloadWrite(dst_file_path.clone(), e))?;
         Ok(dst_file_path)
     }
 
@@ -1102,12 +1122,12 @@ impl Client {
         if res.status != hyper::status::StatusCode::Ok {
             return Err(err_from_response(res));
         }
-        fs::create_dir_all(&dst_path)?;
+        fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
 
-        let file_name = match res.headers.get::<XFileName>() {
-            Some(filename) => format!("{}", filename),
-            None => return Err(Error::NoXFilename),
-        };
+        let file_name = res.headers
+            .get::<XFileName>()
+            .expect("XFileName missing from response")
+            .to_string();
         let tmp_file_path = dst_path.join(format!(
             "{}.tmp-{}",
             file_name,
@@ -1115,15 +1135,16 @@ impl Client {
         ));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = File::create(&tmp_file_path)?;
-        io::copy(&mut res, &mut f)?;
-
+        let mut f = File::create(&tmp_file_path)
+            .map_err(|e| Error::DownloadWrite(tmp_file_path.clone(), e))?;
+        io::copy(&mut res, &mut f).map_err(Error::BadResponseBody)?;
         debug!(
             "Moving {} to {}",
             &tmp_file_path.display(),
             &dst_file_path.display()
         );
-        fs::rename(&tmp_file_path, &dst_file_path)?;
+        fs::rename(&tmp_file_path, &dst_file_path)
+            .map_err(|e| Error::DownloadWrite(dst_file_path.clone(), e))?;
         Ok(dst_file_path)
     }
 }
