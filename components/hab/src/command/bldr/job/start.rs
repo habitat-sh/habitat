@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use api_client::Client as ApiClient;
-use depot_client::Client as DepotClient;
 use common::ui::{Status, UIReader, UIWriter, UI};
+use depot_client::Client as DepotClient;
 use hcore::package::PackageIdent;
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 pub fn start(
     ui: &mut UI,

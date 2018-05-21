@@ -17,8 +17,8 @@ extern crate habitat_launcher_protocol as protocol;
 extern crate ipc_channel;
 extern crate protobuf;
 
-pub mod error;
 mod client;
+pub mod error;
 
 pub use protocol::{ERR_NO_RETRY_EXCODE, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV,
                    OK_NO_RETRY_EXCODE};

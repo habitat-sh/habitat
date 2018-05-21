@@ -19,8 +19,8 @@ use std::str::FromStr;
 
 use hcore::package::{PackageIdent, PackageInstall};
 
-use error::Result;
 use super::BUSYBOX_IDENT;
+use error::Result;
 
 const BIN_PATH: &'static str = "/bin";
 

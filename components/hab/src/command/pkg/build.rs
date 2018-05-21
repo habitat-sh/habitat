@@ -16,8 +16,8 @@ use std::ffi::OsString;
 
 use common::ui::UI;
 
-use error::Result;
 use command::studio;
+use error::Result;
 
 pub fn start(
     ui: &mut UI,

@@ -14,8 +14,8 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UIWriter, UI};
 use common::command::package::install::{RETRIES, RETRY_WAIT};
+use common::ui::{Status, UIWriter, UI};
 use depot_client::{self, Client};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
@@ -23,8 +23,8 @@ use hyper::status::StatusCode;
 use retry::retry;
 
 use super::get_name_with_rev;
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 pub fn start(
     ui: &mut UI,

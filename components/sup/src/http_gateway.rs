@@ -25,9 +25,9 @@ use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
+use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::{headers, status, typemap};
-use iron::modifiers::Header;
 use persistent;
 use router::Router;
 use serde_json::{self, Value as Json};

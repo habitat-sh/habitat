@@ -35,28 +35,28 @@ use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
 use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
-use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::channel;
-use std::time::{Duration, Instant};
+use std::sync::{Arc, RwLock};
 use std::thread;
+use std::time::{Duration, Instant};
 
-use habitat_core::service::ServiceGroup;
 use habitat_core::crypto::SymKey;
-use serde::{Serialize, Serializer};
+use habitat_core::service::ServiceGroup;
 use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 
 use error::{Error, Result};
 use member::{Health, Member, MemberList};
 use message;
-use rumor::{Rumor, RumorKey, RumorStore};
-use rumor::heat::RumorHeat;
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
+use rumor::election::{Election, ElectionUpdate};
+use rumor::heat::RumorHeat;
 use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
-use rumor::election::{Election, ElectionUpdate};
+use rumor::{Rumor, RumorKey, RumorStore};
 use trace::{Trace, TraceKind};
 
 pub trait Suitability: Debug + Send + Sync {
@@ -1037,12 +1037,12 @@ fn persist_loop(server: Server) {
 mod tests {
     mod server {
         use habitat_core::service::ServiceGroup;
-        use server::{Server, Suitability};
-        use server::timing::Timing;
         use member::Member;
-        use trace::Trace;
+        use server::timing::Timing;
+        use server::{Server, Suitability};
         use std::path::PathBuf;
         use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+        use trace::Trace;
 
         static SWIM_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
         static GOSSIP_PORT: AtomicUsize = ATOMIC_USIZE_INIT;

@@ -57,9 +57,9 @@ extern crate tokio_io;
 pub mod butterfly;
 pub mod codec;
 pub mod ctl;
+mod generated;
 pub mod net;
 pub mod types;
-mod generated;
 
 use std::fs::File;
 use std::io::Read;

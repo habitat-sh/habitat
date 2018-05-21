@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use clap;
+use common;
+use common::command::package::install::{InstallMode, InstallSource};
+use common::ui::{Status, UIWriter, UI};
+use error::Result;
+use hcore::PROGRAM_NAME;
+use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use hcore::package::PackageIdent;
 use std::fs as stdfs;
 #[cfg(target_os = "linux")]
 use std::os::unix::fs::symlink;
 #[cfg(target_os = "windows")]
 use std::os::windows::fs::symlink_dir as symlink;
-use clap;
-use common;
-use common::command::package::install::{InstallMode, InstallSource};
-use common::ui::{Status, UIWriter, UI};
-use tempdir::TempDir;
 use std::path::Path;
-use hcore::package::PackageIdent;
-use error::Result;
-use hcore::PROGRAM_NAME;
-use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use tempdir::TempDir;
 
 use super::{BUSYBOX_IDENT, VERSION};
 

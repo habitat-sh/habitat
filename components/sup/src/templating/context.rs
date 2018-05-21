@@ -53,8 +53,8 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 use std::result;
 
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
+use serde::{Serialize, Serializer};
 use toml;
 
 use butterfly::rumor::service::SysInfo;
@@ -62,8 +62,8 @@ use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 
 use census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId};
-use manager::service::{Cfg, Env, Pkg, ServiceBind};
 use manager::Sys;
+use manager::service::{Cfg, Env, Pkg, ServiceBind};
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -603,8 +603,8 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr};
     use std::path::PathBuf;
 
-    use serde_json;
     use json;
+    use serde_json;
     use tempdir::TempDir;
     use valico::json_schema;
 

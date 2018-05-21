@@ -22,13 +22,13 @@ use std::path::{self, PathBuf};
 use std::result;
 
 use api_client;
-use depot_client;
 use common;
-use hcore;
+use depot_client;
 use handlebars;
-use toml;
+use hcore;
 use protocol::net;
 use sup_client::SrvClientError;
+use toml;
 
 pub type Result<T> = result::Result<T, Error>;
 

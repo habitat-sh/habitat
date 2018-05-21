@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use depot_client::Client as DepotClient;
 use common::ui::{Status, UIWriter, UI};
+use depot_client::Client as DepotClient;
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
     let depot_client =

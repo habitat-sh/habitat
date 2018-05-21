@@ -51,10 +51,10 @@ use chrono::DateTime;
 use hab_core::package::{Identifiable, PackageArchive};
 use hab_http::ApiClient;
 use hab_http::util::decoded_response;
-use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
-use hyper::status::StatusCode;
-use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::Url;
+use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
+use hyper::header::{Accept, Authorization, Bearer, ContentType};
+use hyper::status::StatusCode;
 use protobuf::core::ProtobufEnum;
 use protocol::{net, originsrv};
 use rand::{thread_rng, Rng};
@@ -560,11 +560,11 @@ impl Client {
         let mut encoded = String::new();
         res.read_to_string(&mut encoded)?;
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<originsrv::OriginKeyIdent> =
-            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?
-                .into_iter()
-                .map(|m| m.into())
-                .collect();
+        let revisions: Vec<originsrv::OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(
+            &encoded,
+        )?.into_iter()
+            .map(|m| m.into())
+            .collect();
         Ok(revisions)
     }
 
@@ -1240,8 +1240,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use serde_json;
     use super::*;
+    use serde_json;
 
     #[test]
     fn json_round_trip_u64_fields() {

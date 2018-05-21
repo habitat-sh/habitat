@@ -31,12 +31,12 @@ use std::io::prelude::*;
 
 use common::ui::{Status, UIWriter, UI};
 
+pub mod cli;
 pub mod error;
 pub mod manifest;
 pub mod manifestjson;
 pub mod service_bind;
 pub mod topology;
-pub mod cli;
 
 use export_docker::Result;
 

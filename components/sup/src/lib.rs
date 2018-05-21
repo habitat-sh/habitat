@@ -99,33 +99,35 @@ extern crate json;
 #[macro_export]
 /// Creates a new SupError, embedding the current file name, line number, column, and module path.
 macro_rules! sup_error {
-    ($p: expr) => {
-        {
-            use $crate::error::SupError;
-            SupError::new($p, LOGKEY, file!(), line!(), column!())
-        }
-    }
+    ($p:expr) => {{
+        use $crate::error::SupError;
+        SupError::new($p, LOGKEY, file!(), line!(), column!())
+    }};
 }
 
+pub mod census;
 pub mod command;
 pub mod config;
-pub mod census;
 pub mod ctl_gateway;
 pub mod error;
 pub mod fs;
 pub mod http_gateway;
 pub mod manager;
+mod sys;
 pub mod templating;
 pub mod util;
-mod sys;
 
 use std::env;
 use std::path::PathBuf;
 
-lazy_static!{
+lazy_static! {
     pub static ref PROGRAM_NAME: String = {
         let arg0 = env::args().next().map(|p| PathBuf::from(p));
-        arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap().to_string()
+        arg0.as_ref()
+            .and_then(|p| p.file_stem())
+            .and_then(|p| p.to_str())
+            .unwrap()
+            .to_string()
     };
 }
 

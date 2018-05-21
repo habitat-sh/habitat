@@ -25,18 +25,18 @@ pub mod cli;
 mod error;
 mod rootfs;
 
-use std::path::{Path, PathBuf};
-use std::fs::File;
 pub use cli::Cli;
-pub use error::{Error, Result};
 use common::ui::UI;
-use hcore::channel;
-use hcore::url as hurl;
-use hcore::package::{PackageIdent, PackageInstall};
-use tar::Builder;
-use std::str::FromStr;
+pub use error::{Error, Result};
 use flate2::Compression;
 use flate2::write::GzEncoder;
+use hcore::channel;
+use hcore::package::{PackageIdent, PackageInstall};
+use hcore::url as hurl;
+use std::fs::File;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
+use tar::Builder;
 
 pub use build::BuildSpec;
 

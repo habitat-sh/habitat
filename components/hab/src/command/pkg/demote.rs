@@ -30,8 +30,8 @@ use common::ui::{Status, UIWriter, UI};
 use depot_client::Client;
 use hcore::package::PackageIdent;
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 /// Demote a package from the specified channel.
 ///

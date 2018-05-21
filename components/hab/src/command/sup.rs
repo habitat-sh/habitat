@@ -40,9 +40,9 @@ mod inner {
     use hcore::package::PackageIdent;
 
     use super::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
+    use VERSION;
     use error::{Error, Result};
     use exec;
-    use VERSION;
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(SUP_CMD_ENVVAR) {

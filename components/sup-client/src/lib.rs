@@ -53,8 +53,8 @@ use std::io;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 
-use futures::sink;
 use futures::prelude::*;
+use futures::sink;
 use protocol::codec::*;
 use protocol::net::NetErr;
 use tokio::net::TcpStream;

@@ -25,8 +25,8 @@
 use std::io::{self, Write};
 use std::path::Path;
 
-use hcore::package::{PackageIdent, PackageInstall};
 use hcore::package::install::DEFAULT_CFG_FILE;
+use hcore::package::{PackageIdent, PackageInstall};
 use toml;
 
 use error::Result;

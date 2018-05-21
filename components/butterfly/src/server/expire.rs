@@ -22,8 +22,8 @@ use std::time::Duration;
 
 use time::SteadyTime;
 
-use message::swim::Rumor_Type;
 use member::Health;
+use message::swim::Rumor_Type;
 use rumor::RumorKey;
 use server::Server;
 use server::timing::Timing;

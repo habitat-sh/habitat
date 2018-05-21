@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use depot_client::Client as DepotClient;
-use common::ui::{Status, UIWriter, UI};
 use super::super::key::download::download_public_encryption_key;
+use common::ui::{Status, UIWriter, UI};
+use depot_client::Client as DepotClient;
 
-use hcore::crypto::BoxKeyPair;
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use hcore::crypto::BoxKeyPair;
 use std::path::Path;
+use {PRODUCT, VERSION};
 
 pub fn start(
     ui: &mut UI,

@@ -8,8 +8,8 @@ extern crate log;
 
 use clap::App;
 use common::ui::{UIWriter, UI};
-use hcore::PROGRAM_NAME;
 use export_tar::{Cli, Result};
+use hcore::PROGRAM_NAME;
 
 fn main() {
     let mut ui = UI::default_with_env();

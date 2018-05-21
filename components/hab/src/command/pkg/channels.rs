@@ -31,8 +31,8 @@ use common::ui::{UIWriter, UI};
 use depot_client::Client;
 use hcore::package::PackageIdent;
 
-use {PRODUCT, VERSION};
 use error::Result;
+use {PRODUCT, VERSION};
 
 /// Return a list of channels that a package is in.
 ///

@@ -18,8 +18,8 @@ use std::result;
 use std::str;
 
 use habitat_core::crypto::SymKey;
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use toml;
 
 use error::Result;

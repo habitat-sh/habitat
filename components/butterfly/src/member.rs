@@ -21,15 +21,15 @@ use std::net::SocketAddr;
 use std::ops::{Deref, DerefMut};
 use std::result;
 use std::str::FromStr;
-use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, RwLock};
 
 use protobuf::ProtobufEnum;
 use rand::{thread_rng, Rng};
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use time::SteadyTime;
 use uuid::Uuid;
-use serde::{Serialize, Serializer};
-use serde::ser::SerializeStruct;
 
 use error::Error;
 use message::swim::{Member as ProtoMember, Membership as ProtoMembership,
@@ -698,9 +698,9 @@ impl MemberList {
 #[cfg(test)]
 mod tests {
     mod member {
-        use uuid::Uuid;
-        use message::swim;
         use member::Member;
+        use message::swim;
+        use uuid::Uuid;
 
         // Sets the uuid to simple, and the incarnation to zero.
         #[test]

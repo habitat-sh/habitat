@@ -17,8 +17,8 @@ use hcore::package::PackageIdent;
 
 use error::Result;
 
-pub mod docker;
 pub mod cf;
+pub mod docker;
 pub mod helm;
 pub mod kubernetes;
 pub mod tar;
@@ -63,17 +63,17 @@ mod inner {
     use std::str::FromStr;
 
     use common::ui::UI;
-    use hcore::crypto::{default_cache_key_path, init};
-    use hcore::url::BLDR_URL_ENVVAR;
     use hcore::channel::BLDR_CHANNEL_ENVVAR;
+    use hcore::crypto::{default_cache_key_path, init};
     use hcore::fs::find_command;
     use hcore::package::PackageIdent;
+    use hcore::url::BLDR_URL_ENVVAR;
 
+    use super::ExportFormat;
     use VERSION;
     use command;
     use error::{Error, Result};
     use exec;
-    use super::ExportFormat;
 
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
         let version: Vec<_> = VERSION.split("/").collect();
@@ -132,11 +132,11 @@ mod inner {
 
 #[cfg(not(target_os = "linux"))]
 mod inner {
-    use error::{Error, Result};
+    use super::ExportFormat;
     use common::ui::{UIWriter, UI};
+    use error::{Error, Result};
     use hcore::package::PackageIdent;
     use std::env;
-    use super::ExportFormat;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
         ui.warn(format!(

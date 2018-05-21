@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod departure;
+pub mod election;
 pub mod service;
 pub mod service_config;
 pub mod service_file;
-pub mod election;
-pub mod departure;

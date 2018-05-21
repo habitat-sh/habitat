@@ -20,10 +20,10 @@ use std::str::FromStr;
 
 use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
-use hcore::os::filesystem;
-use hcore::fs as hfs;
-use hcore::package::PackageIdent;
 use handlebars::Handlebars;
+use hcore::fs as hfs;
+use hcore::os::filesystem;
+use hcore::package::PackageIdent;
 
 use super::{Credentials, Naming};
 use build::BuildRoot;

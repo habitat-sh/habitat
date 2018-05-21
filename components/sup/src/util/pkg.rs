@@ -17,13 +17,13 @@ use std::path::Path;
 use common;
 use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::UIWriter;
-use hcore::env as henv;
 use hcore::AUTH_TOKEN_ENVVAR;
+use hcore::env as henv;
 use hcore::fs::{self, FS_ROOT_PATH};
 use hcore::package::{PackageIdent, PackageInstall};
 
-use {PRODUCT, VERSION};
 use error::{Result, SupError};
+use {PRODUCT, VERSION};
 
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.

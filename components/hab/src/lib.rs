@@ -56,8 +56,8 @@ pub mod cli;
 pub mod command;
 pub mod config;
 pub mod error;
-pub mod scaffolding;
 mod exec;
+pub mod scaffolding;
 
 pub const PRODUCT: &'static str = "hab";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

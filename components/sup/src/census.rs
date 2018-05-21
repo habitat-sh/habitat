@@ -18,16 +18,16 @@ use std::str::FromStr;
 
 use butterfly::member::{Health, Member, MemberList};
 use butterfly::rumor::RumorStore;
-use butterfly::rumor::service::Service as ServiceRumor;
-use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
 use butterfly::rumor::election::Election as ElectionRumor;
-use butterfly::rumor::election::Election_Status as ElectionStatusRumor;
 use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+use butterfly::rumor::election::Election_Status as ElectionStatusRumor;
+use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::rumor::service::SysInfo;
+use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
 use hcore;
-use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
+use hcore::service::ServiceGroup;
 use toml;
 
 use error::{Error, SupError};
@@ -640,16 +640,16 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hcore::package::ident::PackageIdent;
-    use hcore::service::ServiceGroup;
     use butterfly::member::{Health, MemberList};
-    use butterfly::rumor::service::Service as ServiceRumor;
-    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use butterfly::rumor::RumorStore;
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+    use butterfly::rumor::service::Service as ServiceRumor;
     use butterfly::rumor::service::SysInfo;
-    use butterfly::rumor::RumorStore;
+    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use hcore::package::ident::PackageIdent;
+    use hcore::service::ServiceGroup;
 
     #[test]
     fn update_from_rumors() {

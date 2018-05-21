@@ -19,8 +19,8 @@ extern crate habitat_butterfly_test as btest;
 extern crate habitat_core;
 extern crate time;
 
-mod rumor;
 mod encryption;
+mod rumor;
 
 use habitat_butterfly::member::Health;
 

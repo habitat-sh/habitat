@@ -16,9 +16,9 @@ use std::fs;
 use std::path::Path;
 
 use common::ui::{Status, UIWriter, UI};
-use hcore::package::{PackageIdent, PackageInstall};
-use hcore::os::filesystem;
 use hcore::fs as hfs;
+use hcore::os::filesystem;
+use hcore::package::{PackageIdent, PackageInstall};
 
 use error::{Error, Result};
 
@@ -129,10 +129,10 @@ where
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
-    use std::io::{self, Cursor, Write};
     use std::fs::{self, File};
-    use std::str::{self, FromStr};
+    use std::io::{self, Cursor, Write};
     use std::path::Path;
+    use std::str::{self, FromStr};
     use std::sync::{Arc, RwLock};
 
     use common::ui::{Coloring, UI};

@@ -22,8 +22,8 @@ use protobuf::Message;
 
 pub use message::error::*;
 pub use message::launcher::*;
-pub use message::supervisor::*;
 use message::net::*;
+pub use message::supervisor::*;
 
 pub const LAUNCHER_PIPE_ENV: &'static str = "HAB_LAUNCHER_PIPE";
 pub const LAUNCHER_PID_ENV: &'static str = "HAB_LAUNCHER_PID";

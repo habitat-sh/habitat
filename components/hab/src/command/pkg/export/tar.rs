@@ -37,10 +37,10 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
+    use super::EXPORT_CMD;
+    use VERSION;
     use error::{Error, Result};
     use exec;
-    use VERSION;
-    use super::EXPORT_CMD;
 
     const EXPORT_CMD_ENVVAR: &'static str = "HAB_PKG_EXPORT_TAR_BINARY";
     const EXPORT_PKG_IDENT: &'static str = "core/hab-pkg-export-tar";
@@ -82,8 +82,8 @@ mod inner {
 
     use common::ui::{UIWriter, UI};
 
-    use error::{Error, Result};
     use super::EXPORT_CMD;
+    use error::{Error, Result};
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let cmd = EXPORT_CMD.replace("hab", "").replace("-", " ");

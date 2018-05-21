@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use btest;
-use habitat_core::service::ServiceGroup;
 use habitat_butterfly::client::Client;
+use habitat_core::service::ServiceGroup;
 
 #[test]
 fn two_members_share_service_config() {

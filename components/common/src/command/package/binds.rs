@@ -26,8 +26,8 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use hcore;
-use hcore::package::{PackageIdent, PackageInstall};
 use hcore::package::metadata::Bind;
+use hcore::package::{PackageIdent, PackageInstall};
 
 use error::Result;
 

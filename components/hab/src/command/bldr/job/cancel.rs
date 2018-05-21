@@ -15,8 +15,8 @@
 use api_client;
 use common::ui::{Status, UIReader, UIWriter, UI};
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str) -> Result<()> {
     // TODO (SA): Show all the in-progress builds that will get canceled

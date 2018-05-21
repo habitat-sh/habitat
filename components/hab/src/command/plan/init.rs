@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::env;
 use std::fs::create_dir_all;
 use std::fs::{canonicalize, File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
-use std::collections::HashMap;
 
 use handlebars::Handlebars;
 use hcore::package::PackageIdent;

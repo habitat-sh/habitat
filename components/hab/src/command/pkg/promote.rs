@@ -31,8 +31,8 @@ use depot_client::{self, Client};
 use hcore::package::PackageIdent;
 use hyper::status::StatusCode;
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 /// Promote a package to the specified channel.
 ///
