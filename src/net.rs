@@ -17,8 +17,8 @@ use std::io::{Read, Write};
 use httparse;
 use hyper;
 use hyper::method::Method;
-use hyper::version::HttpVersion;
 use hyper::net::{HttpConnector, HttpsStream, NetworkConnector, SslClient};
+use hyper::version::HttpVersion;
 
 use proxy::ProxyInfo;
 

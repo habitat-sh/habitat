@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use url::{self, Url};
 use url::percent_encoding::percent_decode;
+use url::{self, Url};
 
 use base64;
 use hab_core::env;

@@ -17,8 +17,8 @@ use std::time::Duration;
 
 use hab_core::env;
 use hab_core::util::sys;
-use hyper::client::{Client as HyperClient, IntoUrl, RequestBuilder};
 use hyper::client::pool::{Config, Pool};
+use hyper::client::{Client as HyperClient, IntoUrl, RequestBuilder};
 use hyper::header::UserAgent;
 use hyper::http::h1::Http11Protocol;
 use hyper::net::HttpsConnector;

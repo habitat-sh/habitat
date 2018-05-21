@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use std::error;
-use std::io;
 use std::fmt;
+use std::io;
 use std::result;
 
 use hab_core;
