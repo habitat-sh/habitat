@@ -26,10 +26,10 @@ use time::SteadyTime;
 use zmq;
 
 use ZMQ_CONTEXT;
+use member::Member;
 use message::swim::{Member as ProtoMember, Membership as ProtoMembership, Rumor as ProtoRumor,
                     Rumor_Type as ProtoRumor_Type};
 use rumor::RumorKey;
-use member::Member;
 use server::Server;
 use server::timing::Timing;
 use trace::TraceKind;

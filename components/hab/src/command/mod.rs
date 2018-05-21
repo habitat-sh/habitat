@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod bldr;
 pub mod cli;
 pub mod launcher;
 pub mod origin;
@@ -22,4 +23,3 @@ pub mod service;
 pub mod studio;
 pub mod sup;
 pub mod user;
-pub mod bldr;

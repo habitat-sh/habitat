@@ -33,10 +33,10 @@ extern crate failure_derive;
 
 mod chart;
 mod chartfile;
-mod values;
 mod deps;
 mod error;
 mod maintainer;
+mod values;
 
 use std::result;
 use std::str::FromStr;
@@ -71,9 +71,10 @@ fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()>
 }
 
 lazy_static! {
-    pub static ref VERSION_HELP: String =
-        format!("Version of the chart to create (default: {{pkg_version}} if available, or {})",
-                chartfile::DEFAULT_VERSION);
+    pub static ref VERSION_HELP: String = format!(
+        "Version of the chart to create (default: {{pkg_version}} if available, or {})",
+        chartfile::DEFAULT_VERSION
+    );
 }
 
 fn cli<'a, 'b>() -> clap::App<'a, 'b> {

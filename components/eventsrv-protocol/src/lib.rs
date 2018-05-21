@@ -19,8 +19,8 @@ extern crate serde_derive;
 
 mod message;
 
-use std::net::{IpAddr, Ipv4Addr};
 pub use message::event::*;
+use std::net::{IpAddr, Ipv4Addr};
 
 pub const DEFAULT_CONSUMER_PORT: u16 = 9689;
 pub const DEFAULT_PRODUCER_PORT: u16 = 9688;

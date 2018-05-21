@@ -14,13 +14,13 @@
 
 use std::path::Path;
 
+use common::command::package::install::{RETRIES, RETRY_WAIT};
 use common::ui::{Status, UIWriter, UI};
 use depot_client::{self, Client};
 use hcore::crypto::SigKeyPair;
-use common::command::package::install::{RETRIES, RETRY_WAIT};
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 use retry::retry;
 

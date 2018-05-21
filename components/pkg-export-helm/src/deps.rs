@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use clap;
 use failure::SyncFailure;
 use handlebars::Handlebars;
-use clap;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
 use common::ui::{Status, UIWriter, UI};
-use export_docker::Result;
 use error::Error;
+use export_docker::Result;
 
 pub const DEFAULT_OPERATOR_VERSION: &'static str = "0.5.1";
 pub const OPERATOR_REPO_URL: &'static str = "https://habitat-sh.github.io/\

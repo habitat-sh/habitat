@@ -16,21 +16,21 @@
 //!
 //! This module handles the implementation of the swim probe protocol.
 
+use std::fmt;
+use std::net::{SocketAddr, UdpSocket};
 use std::sync::atomic::Ordering;
 use std::sync::mpsc;
-use std::net::{SocketAddr, UdpSocket};
 use std::thread;
 use std::time::Duration;
-use std::fmt;
 
-use time::SteadyTime;
 use protobuf::{Message, RepeatedField};
+use time::SteadyTime;
 
+use member::{Health, Member};
 use message::swim::{Ack, Ping, PingReq, Rumor_Type, Swim, Swim_Type};
 use rumor::RumorKey;
 use server::Server;
 use server::timing::Timing;
-use member::{Health, Member};
 use trace::TraceKind;
 
 /// How long to sleep between calls to `recv`.

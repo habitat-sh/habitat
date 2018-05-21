@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod helpers;
 mod context;
+pub mod helpers;
 
 use std::fmt;
 use std::ops::{Deref, DerefMut};
@@ -90,11 +90,11 @@ fn never_escape(data: &str) -> String {
 
 #[cfg(test)]
 mod test {
+    use serde_json;
+    use std::collections::BTreeMap;
     use std::fs::File;
     use std::io::Read;
     use std::path::PathBuf;
-    use std::collections::BTreeMap;
-    use serde_json;
     use toml;
 
     use super::*;

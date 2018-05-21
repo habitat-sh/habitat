@@ -16,9 +16,9 @@ use std::env;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use hcore::fs::{find_command, FS_ROOT_PATH};
 use hcore::os::process;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::fs::{find_command, FS_ROOT_PATH};
 
 use error::{Error, Result};
 

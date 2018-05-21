@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::str::FromStr;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::str::FromStr;
 
 use base64;
 use clap::ArgMatches;
-use hcore::package::{PackageArchive, PackageIdent};
 use common::ui::UI;
+use hcore::package::{PackageArchive, PackageIdent};
 
 use export_docker::{DockerImage, Result};
 

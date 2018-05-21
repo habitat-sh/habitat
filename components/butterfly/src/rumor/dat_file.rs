@@ -488,8 +488,8 @@ impl Header {
 mod tests {
     use std::mem;
 
-    use rand;
     use super::*;
+    use rand;
 
     #[test]
     fn read_write_header() {

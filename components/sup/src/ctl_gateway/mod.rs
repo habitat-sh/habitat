@@ -24,8 +24,8 @@ pub mod server;
 
 use std::borrow::Cow;
 use std::fmt;
-use std::io::{self, Write};
 use std::fs::{self, File};
+use std::io::{self, Write};
 use std::path::Path;
 
 use regex::Regex;
@@ -33,8 +33,8 @@ use regex::Regex;
 use common::ui::UIWriter;
 use depot_client::DisplayProgress;
 use futures::prelude::*;
-use hcore::util::perm;
 use hcore::output;
+use hcore::util::perm;
 use protocol;
 
 use error::{Error, Result};

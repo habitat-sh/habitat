@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use btest;
-use habitat_butterfly::member::Health;
 use habitat_butterfly::client::Client;
+use habitat_butterfly::member::Health;
 
 #[test]
 fn two_members_share_departures() {

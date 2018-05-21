@@ -22,23 +22,23 @@ use std::thread;
 use std::time::Duration;
 
 #[cfg(unix)]
-use std::process::ExitStatus;
-#[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
+#[cfg(unix)]
+use std::process::ExitStatus;
 
 use core;
-use core::package::{PackageIdent, PackageInstall};
 use core::os::process::{self, Pid, Signal};
 use core::os::signals::{self, SignalEvent};
+use core::package::{PackageIdent, PackageInstall};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use libc;
 use protobuf;
 use protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 
 use self::handlers::Handler;
-use {SUP_CMD, SUP_PACKAGE_IDENT};
 use error::{Error, Result};
 use service::Service;
+use {SUP_CMD, SUP_PACKAGE_IDENT};
 
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 static LOGKEY: &'static str = "SV";

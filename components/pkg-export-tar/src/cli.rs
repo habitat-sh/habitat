@@ -2,8 +2,8 @@ use clap::{App, Arg};
 use std::result;
 use std::str::FromStr;
 
-use url::Url;
 use common::command::package::install::InstallSource;
+use url::Url;
 
 /// The version of this library and program when built.
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

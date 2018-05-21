@@ -23,8 +23,8 @@ use export_docker::Result;
 use export_k8s::{Manifest, ManifestJson};
 
 use chartfile::ChartFile;
-use values::Values;
 use deps::Deps;
+use values::Values;
 
 pub struct Chart<'a> {
     chartdir: PathBuf,

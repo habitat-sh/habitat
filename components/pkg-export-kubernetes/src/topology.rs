@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use std::fmt;
-use std::str::FromStr;
 use std::result;
+use std::str::FromStr;
 
 use error::Error;
 

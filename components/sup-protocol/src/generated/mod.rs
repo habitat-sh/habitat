@@ -14,7 +14,6 @@
 
 ///! Module definitions for all generated protocol files. A new module must be defined here when a
 ///! new Protobuf package is added. See the notes in [`protocols`] for more details.
-
 pub mod ctl;
 pub mod net;
 pub mod types;

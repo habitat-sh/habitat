@@ -13,10 +13,10 @@
 // limitations under the License.
 
 use base64::DecodeError;
+use rusoto_ecr::GetAuthorizationTokenError;
 use std::process::ExitStatus;
 use std::result;
 use std::string::FromUtf8Error;
-use rusoto_ecr::GetAuthorizationTokenError;
 
 use failure;
 

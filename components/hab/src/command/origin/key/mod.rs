@@ -16,8 +16,8 @@ pub mod download;
 pub mod export;
 pub mod generate;
 pub mod import;
-pub mod upload_latest;
 pub mod upload;
+pub mod upload_latest;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};

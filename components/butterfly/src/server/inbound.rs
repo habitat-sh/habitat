@@ -16,9 +16,9 @@
 //!
 //! This module handles all the inbound SWIM messages.
 
-use std::sync::mpsc;
-use std::sync::atomic::Ordering;
 use std::net::{SocketAddr, UdpSocket};
+use std::sync::atomic::Ordering;
+use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 

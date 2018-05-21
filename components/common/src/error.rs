@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
 use std::error;
-use std::io;
 use std::fmt;
+use std::io;
 use std::result;
 use std::str;
 use std::string;
-use std::env;
 use toml;
 
 use depot_client;

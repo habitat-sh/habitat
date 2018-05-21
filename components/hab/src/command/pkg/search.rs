@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use error::Result;
 use depot_client::Client;
+use error::Result;
 use {PRODUCT, VERSION};
 
 pub fn start(st: &str, url: &str, token: Option<&str>) -> Result<()> {

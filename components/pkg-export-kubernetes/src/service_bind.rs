@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::str::FromStr;
-use std::result;
 use clap::ArgMatches;
 use serde_json;
+use std::result;
+use std::str::FromStr;
 
 use export_docker::Result;
 use hcore::service::ServiceGroup;

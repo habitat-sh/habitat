@@ -15,16 +15,16 @@
 use std::path::Path;
 
 use common::ui::{UIReader, UIWriter, UI};
+use hcore::Error::InvalidOrigin;
 use hcore::crypto::SigKeyPair;
 use hcore::env;
 use hcore::package::ident;
-use hcore::Error::InvalidOrigin;
 
-use {AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
 use analytics;
 use command;
 use config;
 use error::Result;
+use {AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
 
 pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()> {
     let mut generated_origin = false;

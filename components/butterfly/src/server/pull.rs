@@ -24,8 +24,8 @@ use protobuf;
 use zmq;
 
 use ZMQ_CONTEXT;
-use server::Server;
 use message::swim::{Rumor, Rumor_Type};
+use server::Server;
 use trace::TraceKind;
 
 /// Takes a reference to the server itself

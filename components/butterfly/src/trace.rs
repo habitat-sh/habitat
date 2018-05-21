@@ -21,8 +21,8 @@ use std::default::Default;
 use std::env;
 use std::fmt;
 use std::fs;
-use std::path::PathBuf;
 use std::io::Write;
+use std::path::PathBuf;
 
 use server::Server;
 
@@ -214,215 +214,200 @@ impl Trace {
 
 #[macro_export]
 macro_rules! trace_it {
-    (TEST: $server:expr, $payload:expr) => {
-        {
-            let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
+    (TEST: $server:expr, $payload:expr) => {{
+        let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
+        if trace_on {
+            use habitat_butterfly::trace::TraceKind;
+            use habitat_butterfly::trace::TraceWrite;
+            use std::thread;
+            let mut trace = $server.trace.write().expect("Trace lock is poisoned");
+            trace.init($server);
+            let thread = thread::current();
+            let thread_name = thread.name().unwrap_or("undefined");
+            let member_id = $server.member_id();
+            let server_name = $server.name();
+            let payload = format!("{} {} {}", server_name, member_id, $payload);
+
+            let mut tw =
+                TraceWrite::new(TraceKind::TestEvent, module_path!(), line!(), thread_name);
+            tw.server_name = Some(&server_name);
+            tw.member_id = Some(member_id);
+            tw.rumor = Some(&payload);
+            trace.write(tw);
+        }
+    }};
+
+    (TEST_NET: $net:expr, $payload:expr) => {{
+        for x in $net.members.iter() {
+            let trace_on = x.trace.read().expect("Trace lock is poisoned").on();
             if trace_on {
-                use std::thread;
-                use habitat_butterfly::trace::TraceWrite;
                 use habitat_butterfly::trace::TraceKind;
-                let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-                trace.init($server);
+                use habitat_butterfly::trace::TraceWrite;
+                use std::thread;
+                let mut trace = x.trace.write().expect("Trace lock is poisoned");
+                trace.init(x);
                 let thread = thread::current();
                 let thread_name = thread.name().unwrap_or("undefined");
-                let member_id = $server.member_id();
-                let server_name = $server.name();
+                let member_id = x.member_id();
+                let server_name = x.name();
                 let payload = format!("{} {} {}", server_name, member_id, $payload);
 
-                let mut tw = TraceWrite::new(TraceKind::TestEvent,
-                                             module_path!(),
-                                             line!(),
-                                             thread_name);
+                let mut tw =
+                    TraceWrite::new(TraceKind::TestEvent, module_path!(), line!(), thread_name);
                 tw.server_name = Some(&server_name);
                 tw.member_id = Some(member_id);
                 tw.rumor = Some(&payload);
                 trace.write(tw);
             }
         }
-    };
+    }};
 
-    (TEST_NET: $net:expr, $payload:expr) => {
-        {
-            for x in $net.members.iter() {
-                let trace_on = x.trace.read().expect("Trace lock is poisoned").on();
-                if trace_on {
-                    use std::thread;
-                    use habitat_butterfly::trace::TraceWrite;
-                    use habitat_butterfly::trace::TraceKind;
-                    let mut trace = x.trace.write().expect("Trace lock is poisoned");
-                    trace.init(x);
-                    let thread = thread::current();
-                    let thread_name = thread.name().unwrap_or("undefined");
-                    let member_id = x.member_id();
-                    let server_name = x.name();
-                    let payload = format!("{} {} {}", server_name, member_id, $payload);
+    (MEMBERSHIP: $server:expr, $msg_type:expr, $member_id:expr, $mem_incar:expr, $health:expr) => {{
+        let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
+        if trace_on {
+            use trace::TraceWrite;
+            let mut trace = $server.trace.write().expect("Trace lock is poisoned");
+            trace.init($server);
+            let thread = thread::current();
+            let thread_name = thread.name().unwrap_or("undefined");
+            let member_id = $server.member_id();
+            let server_name = $server.name();
+            let rumor_text = format!("{}-{}-{}", $member_id, $mem_incar, $health);
 
-                    let mut tw = TraceWrite::new(TraceKind::TestEvent,
-                                                 module_path!(),
-                                                 line!(),
-                                                 thread_name);
-                    tw.server_name = Some(&server_name);
-                    tw.member_id = Some(member_id);
-                    tw.rumor = Some(&payload);
-                    trace.write(tw);
-                }
-            }
+            let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
+            tw.server_name = Some(&server_name);
+            tw.member_id = Some(member_id);
+            tw.rumor = Some(&rumor_text);
+            trace.write(tw);
         }
-    };
+    }};
 
-    (MEMBERSHIP: $server:expr, $msg_type:expr, $member_id:expr, $mem_incar:expr, $health:expr) => {
-        {
-            let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
-            if trace_on {
-                use trace::TraceWrite;
-                let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-                trace.init($server);
-                let thread = thread::current();
-                let thread_name = thread.name().unwrap_or("undefined");
-                let member_id = $server.member_id();
-                let server_name = $server.name();
-                let rumor_text = format!("{}-{}-{}", $member_id, $mem_incar, $health);
+    (PROBE: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr) => {{
+        let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
+        if trace_on {
+            use trace::TraceWrite;
+            let mut trace = $server.trace.write().expect("Trace lock is poisoned");
+            trace.init($server);
+            let thread = thread::current();
+            let thread_name = thread.name().unwrap_or("undefined");
+            let listening = format!("{}", $server.swim_addr());
+            let to_addr = format!("{}", $to_addr);
+            let member_id = $server.member_id();
+            let server_name = $server.name();
 
-                let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
-                tw.server_name = Some(&server_name);
-                tw.member_id = Some(member_id);
-                tw.rumor = Some(&rumor_text);
-                trace.write(tw);
-            }
+            let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
+            tw.server_name = Some(&server_name);
+            tw.member_id = Some(member_id);
+            tw.to_member_id = Some($to_member_id);
+            tw.listening = Some(&listening);
+            tw.to_addr = Some(&to_addr);
+            tw.swim = None;
+            tw.rumor = None;
+            trace.write(tw);
         }
-    };
-
-    (PROBE: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr) => {
-        {
-            let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
-            if trace_on {
-                use trace::TraceWrite;
-                let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-                trace.init($server);
-                let thread = thread::current();
-                let thread_name = thread.name().unwrap_or("undefined");
-                let listening = format!("{}", $server.swim_addr());
-                let to_addr = format!("{}", $to_addr);
-                let member_id = $server.member_id();
-                let server_name = $server.name();
-
-                let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
-                tw.server_name = Some(&server_name);
-                tw.member_id = Some(member_id);
-                tw.to_member_id = Some($to_member_id);
-                tw.listening = Some(&listening);
-                tw.to_addr = Some(&to_addr);
-                tw.swim = None;
-                tw.rumor = None;
-                trace.write(tw);
+    }};
+    (SWIM: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr, $payload:expr) => {{
+        let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
+        if trace_on {
+            use trace::TraceWrite;
+            let mut trace = $server.trace.write().expect("Trace lock is poisoned");
+            trace.init($server);
+            let thread = thread::current();
+            let thread_name = thread.name().unwrap_or("undefined");
+            let listening = format!("{}", $server.swim_addr());
+            let to_addr = format!("{}", $to_addr);
+            let member_id = $server.member_id();
+            let server_name = $server.name();
+            let mut swim_str = String::new();
+            for m_string in $payload.get_membership().iter().map(|m| {
+                format!(
+                    "{}-{}-{:?} ",
+                    m.get_member().get_id(),
+                    m.get_member().get_incarnation(),
+                    m.get_health()
+                )
+            }) {
+                swim_str.push_str(&format!("{} ", &m_string)[..]);
             }
+            let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
+            tw.server_name = Some(&server_name);
+            tw.member_id = Some(member_id);
+            tw.to_member_id = Some($to_member_id);
+            tw.listening = Some(&listening);
+            tw.to_addr = Some(&to_addr);
+            tw.swim = Some(&swim_str);
+            tw.rumor = None;
+            trace.write(tw);
         }
-    };
-    (SWIM: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr, $payload:expr) => {
-        {
-            let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
-            if trace_on {
-                use trace::TraceWrite;
-                let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-                trace.init($server);
-                let thread = thread::current();
-                let thread_name = thread.name().unwrap_or("undefined");
-                let listening = format!("{}", $server.swim_addr());
-                let to_addr = format!("{}", $to_addr);
-                let member_id = $server.member_id();
-                let server_name = $server.name();
-                let mut swim_str = String::new();
-                for m_string in $payload.get_membership()
-                        .iter().map(|m| format!("{}-{}-{:?} ",
-                                                m.get_member().get_id(),
-                                                m.get_member().get_incarnation(),
-                                                m.get_health())) {
-                    swim_str.push_str(&format!("{} ", &m_string)[..]);
-                }
-                let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
-                tw.server_name = Some(&server_name);
-                tw.member_id = Some(member_id);
-                tw.to_member_id = Some($to_member_id);
-                tw.listening = Some(&listening);
-                tw.to_addr = Some(&to_addr);
-                tw.swim = Some(&swim_str);
-                tw.rumor = None;
-                trace.write(tw);
-            }
-        }
-    };
-    (GOSSIP: $server:expr, $msg_type:expr, $to_member_id:expr, $payload:expr) => {
-        {
-            let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
-            if trace_on {
-                let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-                use trace::TraceWrite;
-                use message::swim::Rumor_Type;
-                trace.init($server);
-                let thread = thread::current();
-                let thread_name = thread.name().unwrap_or("undefined");
-                let listening = format!("{}", $server.gossip_addr());
-                let member_id = $server.member_id();
-                let server_name = $server.name();
-                let rp = match $payload.get_field_type() {
-                    Rumor_Type::Member => {
-                        format!("{}-{}-{:?}",
-                                $payload.get_member().get_member().get_id(),
-                                $payload.get_member().get_member().get_incarnation(),
-                                $payload.get_member().get_health())
-                    }
-                    Rumor_Type::Service => {
-                        format!("{}-{}-{}",
-                                $payload.get_service().get_member_id(),
-                                $payload.get_service().get_service_group(),
-                                $payload.get_service().get_incarnation())
-                    }
-                    Rumor_Type::ServiceConfig => {
-                        format!("{}-{}-{}",
-                                $payload.get_service_config().get_service_group(),
-                                $payload.get_service_config().get_incarnation(),
-                                $payload.get_service_config().get_encrypted())
-                    }
-                    Rumor_Type::ServiceFile => {
-                        format!("{}-{}-{}-{}",
-                                $payload.get_service_file().get_service_group(),
-                                $payload.get_service_file().get_incarnation(),
-                                $payload.get_service_file().get_encrypted(),
-                                $payload.get_service_file().get_filename())
-                    }
-                    Rumor_Type::Election | Rumor_Type::ElectionUpdate => {
-                        format!("{}-{}-{}-{}-{:?}-{:?}",
-                                $payload.get_election().get_member_id(),
-                                $payload.get_election().get_service_group(),
-                                $payload.get_election().get_term(),
-                                $payload.get_election().get_suitability(),
-                                $payload.get_election().get_status(),
-                                $payload.get_election().get_votes())
-                    }
-                    Rumor_Type::Departure => {
-                        format!("{}", $payload.get_departure().get_member_id())
-                    }
-                    Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
-                };
+    }};
+    (GOSSIP: $server:expr, $msg_type:expr, $to_member_id:expr, $payload:expr) => {{
+        let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
+        if trace_on {
+            let mut trace = $server.trace.write().expect("Trace lock is poisoned");
+            use message::swim::Rumor_Type;
+            use trace::TraceWrite;
+            trace.init($server);
+            let thread = thread::current();
+            let thread_name = thread.name().unwrap_or("undefined");
+            let listening = format!("{}", $server.gossip_addr());
+            let member_id = $server.member_id();
+            let server_name = $server.name();
+            let rp = match $payload.get_field_type() {
+                Rumor_Type::Member => format!(
+                    "{}-{}-{:?}",
+                    $payload.get_member().get_member().get_id(),
+                    $payload.get_member().get_member().get_incarnation(),
+                    $payload.get_member().get_health()
+                ),
+                Rumor_Type::Service => format!(
+                    "{}-{}-{}",
+                    $payload.get_service().get_member_id(),
+                    $payload.get_service().get_service_group(),
+                    $payload.get_service().get_incarnation()
+                ),
+                Rumor_Type::ServiceConfig => format!(
+                    "{}-{}-{}",
+                    $payload.get_service_config().get_service_group(),
+                    $payload.get_service_config().get_incarnation(),
+                    $payload.get_service_config().get_encrypted()
+                ),
+                Rumor_Type::ServiceFile => format!(
+                    "{}-{}-{}-{}",
+                    $payload.get_service_file().get_service_group(),
+                    $payload.get_service_file().get_incarnation(),
+                    $payload.get_service_file().get_encrypted(),
+                    $payload.get_service_file().get_filename()
+                ),
+                Rumor_Type::Election | Rumor_Type::ElectionUpdate => format!(
+                    "{}-{}-{}-{}-{:?}-{:?}",
+                    $payload.get_election().get_member_id(),
+                    $payload.get_election().get_service_group(),
+                    $payload.get_election().get_term(),
+                    $payload.get_election().get_suitability(),
+                    $payload.get_election().get_status(),
+                    $payload.get_election().get_votes()
+                ),
+                Rumor_Type::Departure => format!("{}", $payload.get_departure().get_member_id()),
+                Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
+            };
 
-                let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
-                tw.server_name = Some(&server_name);
-                tw.member_id = Some(member_id);
-                tw.to_member_id = Some($to_member_id);
-                tw.listening = Some(&listening);
-                tw.swim = None;
-                tw.rumor = Some(&rp);
-                trace.write(tw);
-            }
+            let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
+            tw.server_name = Some(&server_name);
+            tw.member_id = Some(member_id);
+            tw.to_member_id = Some($to_member_id);
+            tw.listening = Some(&listening);
+            tw.swim = None;
+            tw.rumor = Some(&rp);
+            trace.write(tw);
         }
-    }
+    }};
 }
 
 #[cfg(test)]
 mod tests {
     mod trace {
-        use trace::Trace;
         use std::path::Path;
+        use trace::Trace;
 
         #[test]
         fn default() {

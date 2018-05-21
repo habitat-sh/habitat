@@ -39,18 +39,18 @@ use std::borrow::Cow;
 use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 use std::result::Result as StdResult;
+use std::str::FromStr;
 
-use depot_client::{self, Client};
 use depot_client::Error::APIError;
+use depot_client::{self, Client};
 use glob;
 use hcore;
-use hcore::fs::cache_key_path;
-use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
-use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, Target};
+use hcore::crypto::{artifact, SigKeyPair};
+use hcore::fs::cache_key_path;
 use hcore::package::metadata::PackageType;
+use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, Target};
 use hyper::status::StatusCode;
 
 use error::{Error, Result};

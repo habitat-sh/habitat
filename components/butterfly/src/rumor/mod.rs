@@ -22,31 +22,31 @@
 
 pub mod dat_file;
 pub mod departure;
-pub mod heat;
 pub mod election;
+pub mod heat;
 pub mod service;
 pub mod service_config;
 pub mod service_file;
 
+pub use self::departure::Departure;
 pub use self::election::{Election, ElectionUpdate};
 pub use self::service::Service;
 pub use self::service_config::ServiceConfig;
 pub use self::service_file::ServiceFile;
-pub use self::departure::Departure;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::default::Default;
 use std::ops::Deref;
 use std::result;
-use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, RwLock};
 
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 
-use message::swim::Rumor_Type;
 use error::{Error, Result};
+use message::swim::Rumor_Type;
 
 /// The description of a `RumorKey`.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -258,9 +258,9 @@ impl<T: Rumor> RumorStore<T> {
 mod tests {
     use uuid::Uuid;
 
-    use rumor::Rumor;
-    use message::swim::Rumor_Type;
     use error::Result;
+    use message::swim::Rumor_Type;
+    use rumor::Rumor;
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
@@ -346,8 +346,8 @@ mod tests {
 
     mod rumor_store {
         use super::FakeRumor;
-        use rumor::RumorStore;
         use rumor::Rumor;
+        use rumor::RumorStore;
         use std::usize;
 
         fn create_rumor_store() -> RumorStore<FakeRumor> {

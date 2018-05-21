@@ -27,8 +27,8 @@ use std::ops::{Deref, DerefMut};
 use habitat_core::service::ServiceGroup;
 use protobuf::{self, Message, RepeatedField};
 
-pub use message::swim::Election_Status;
 use error::Result;
+pub use message::swim::Election_Status;
 use message::swim::{Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
 
@@ -288,9 +288,9 @@ impl Rumor for ElectionUpdate {
 
 #[cfg(test)]
 mod tests {
+    use habitat_core::service::ServiceGroup;
     use rumor::Rumor;
     use rumor::election::Election;
-    use habitat_core::service::ServiceGroup;
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(

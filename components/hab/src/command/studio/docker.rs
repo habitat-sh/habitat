@@ -17,15 +17,15 @@ use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use command::studio::enter::ARTIFACT_PATH_ENVVAR;
 use common::ui::UI;
 use hcore::crypto::default_cache_key_path;
 use hcore::env as henv;
 use hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::os::process;
-use command::studio::enter::ARTIFACT_PATH_ENVVAR;
 
-use error::{Error, Result};
 use VERSION;
+use error::{Error, Result};
 
 const DOCKER_CMD: &'static str = "docker";
 const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";

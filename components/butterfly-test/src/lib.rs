@@ -19,27 +19,27 @@ extern crate habitat_butterfly;
 extern crate habitat_core;
 extern crate time;
 
-use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
-use std::thread;
 use std::ops::{Deref, DerefMut, Range};
 use std::path::PathBuf;
-use std::time::Duration;
 use std::str::FromStr;
+use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::thread;
+use std::time::Duration;
 
 use time::SteadyTime;
 
-use habitat_butterfly::server::{Server, Suitability};
 use habitat_butterfly::member::{Health, Member};
-use habitat_butterfly::server::timing::Timing;
+use habitat_butterfly::message::swim::Election_Status;
 use habitat_butterfly::rumor::departure::Departure;
 use habitat_butterfly::rumor::service::{Service, SysInfo};
 use habitat_butterfly::rumor::service_config::ServiceConfig;
 use habitat_butterfly::rumor::service_file::ServiceFile;
-use habitat_butterfly::message::swim::Election_Status;
-use habitat_core::service::ServiceGroup;
-use habitat_core::package::{Identifiable, PackageIdent};
-use habitat_core::crypto::keys::sym_key::SymKey;
+use habitat_butterfly::server::timing::Timing;
+use habitat_butterfly::server::{Server, Suitability};
 use habitat_butterfly::trace::Trace;
+use habitat_core::crypto::keys::sym_key::SymKey;
+use habitat_core::package::{Identifiable, PackageIdent};
+use habitat_core::service::ServiceGroup;
 
 static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
 
@@ -502,16 +502,30 @@ impl SwimNet {
 #[macro_export]
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.network_health_of($to).into_iter().all(|x| x == $health), "Member {} does not always have health {}", $to, $health)
+        assert!(
+            $network
+                .network_health_of($to)
+                .into_iter()
+                .all(|x| x == $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        )
     };
-    ($network:expr, $from: expr, $to:expr, $health:expr) => {
-        assert!($network.health_of($from, $to) == $health, "Member {} does not see {} as {}", $from, $to, $health)
-    }
+    ($network:expr, $from:expr, $to:expr, $health:expr) => {
+        assert!(
+            $network.health_of($from, $to) == $health,
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        )
+    };
 }
 
 #[macro_export]
 macro_rules! assert_wait_for_health_of {
-    ($network:expr, [$from: expr, $to:expr], $health:expr) => {
+    ($network:expr,[$from:expr, $to:expr], $health:expr) => {
         let left: Vec<usize> = $from.collect();
         let right: Vec<usize> = $to.collect();
         for l in left.iter() {
@@ -519,27 +533,50 @@ macro_rules! assert_wait_for_health_of {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_health_of(*l, *r, $health), "Member {} does not see {} as {}", l, r, $health);
-                assert!($network.wait_for_health_of(*r, *l, $health), "Member {} does not see {} as {}", r, l, $health);
+                assert!(
+                    $network.wait_for_health_of(*l, *r, $health),
+                    "Member {} does not see {} as {}",
+                    l,
+                    r,
+                    $health
+                );
+                assert!(
+                    $network.wait_for_health_of(*r, *l, $health),
+                    "Member {} does not see {} as {}",
+                    r,
+                    l,
+                    $health
+                );
             }
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_network_health_of($to, $health), "Member {} does not always have health {}", $to, $health);
+        assert!(
+            $network.wait_for_network_health_of($to, $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        );
     };
-    ($network:expr, $from: expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_health_of($from, $to, $health), "Member {} does not see {} as {}", $from, $to, $health);
+    ($network:expr, $from:expr, $to:expr, $health:expr) => {
+        assert!(
+            $network.wait_for_health_of($from, $to, $health),
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        );
     };
 }
 
 #[macro_export]
 macro_rules! assert_wait_for_election_status {
-    ($network:expr, [$range:expr], $key:expr, $status: expr) => {
+    ($network:expr,[$range:expr], $key:expr, $status:expr) => {
         for x in $range {
             assert!($network.wait_for_election_status(x, $key, $status));
         }
     };
-    ($network:expr, $to:expr, $key:expr, $status: expr) => {
+    ($network:expr, $to:expr, $key:expr, $status:expr) => {
         assert!($network.wait_for_election_status($to, $key, $status));
     };
 }
@@ -549,7 +586,7 @@ macro_rules! assert_wait_for_equal_election {
     ($network:expr, $left:expr, $right:expr, $key:expr) => {
         assert!($network.wait_for_equal_election($left, $right, $key));
     };
-    ($network:expr, [$from: expr, $to:expr], $key:expr) => {
+    ($network:expr,[$from:expr, $to:expr], $key:expr) => {
         let left: Vec<usize> = $from.collect();
         let right: Vec<usize> = $to.collect();
         for l in left.iter() {
@@ -557,7 +594,12 @@ macro_rules! assert_wait_for_equal_election {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_equal_election(*l, *r, $key), "Member {} is not equal to {}", l, r);
+                assert!(
+                    $network.wait_for_equal_election(*l, *r, $key),
+                    "Member {} is not equal to {}",
+                    l,
+                    r
+                );
             }
         }
     };

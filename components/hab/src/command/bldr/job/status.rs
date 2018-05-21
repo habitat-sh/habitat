@@ -18,8 +18,8 @@ use common::ui::{Status, UIWriter, UI};
 use depot_client;
 use tabwriter::TabWriter;
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 pub fn start(
     ui: &mut UI,

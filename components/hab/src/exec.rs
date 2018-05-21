@@ -15,16 +15,16 @@
 use std::path::{Path, PathBuf};
 
 use common;
-use common::ui::{Status, UIWriter, UI};
 use common::command::package::install::InstallMode;
-use hcore::{self, channel};
+use common::ui::{Status, UIWriter, UI};
 use hcore::env as henv;
 use hcore::fs::{self, cache_artifact_path};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::url::default_bldr_url;
+use hcore::{self, channel};
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 const MAX_RETRIES: u8 = 4;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &'static str = "HAB_INTERNAL_BLDR_CHANNEL";

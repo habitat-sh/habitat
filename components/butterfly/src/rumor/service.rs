@@ -20,13 +20,13 @@ use std::cmp::Ordering;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 
-use habitat_core::service::ServiceGroup;
 use habitat_core::package::Identifiable;
+use habitat_core::service::ServiceGroup;
 use protobuf::{self, Message};
 use toml;
 
-pub use message::swim::SysInfo;
 use error::Result;
+pub use message::swim::SysInfo;
 use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, Service as ProtoService};
 use rumor::Rumor;
 
@@ -162,8 +162,8 @@ mod tests {
     use std::cmp::Ordering;
     use std::str::FromStr;
 
-    use habitat_core::service::ServiceGroup;
     use habitat_core::package::{Identifiable, PackageIdent};
+    use habitat_core::service::ServiceGroup;
 
     use super::Service;
     use rumor::Rumor;

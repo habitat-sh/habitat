@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io;
 use std::fs::File;
+use std::io;
 use std::path::Path;
 
 use hcore::crypto::SymKey;

@@ -53,8 +53,8 @@ use std::result;
 use std::str::FromStr;
 
 use common::ui::{UIWriter, UI};
-use hcore::{channel, PROGRAM_NAME};
 use hcore::url as hurl;
+use hcore::{channel, PROGRAM_NAME};
 
 use aws_creds::StaticProvider;
 use clap::App;
@@ -62,8 +62,8 @@ use rusoto_core::Region;
 use rusoto_core::request::*;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use cli::{Cli, PkgIdentArgOptions};
 pub use build::BuildSpec;
+pub use cli::{Cli, PkgIdentArgOptions};
 pub use docker::{DockerBuildRoot, DockerImage};
 pub use error::{Error, Result};
 

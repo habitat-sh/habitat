@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hyper::status::StatusCode;
 use hcore::package::PackageIdent;
+use hyper::status::StatusCode;
 use std::str::FromStr;
 
 use api_client;
-use depot_client::{self, SchedulerResponse};
 use common::ui::{Status, UIReader, UIWriter, UI};
+use depot_client::{self, SchedulerResponse};
 
-use {PRODUCT, VERSION};
 use error::{Error, Result};
+use {PRODUCT, VERSION};
 
 fn is_ident(s: &str) -> bool {
     PackageIdent::from_str(s).is_ok()
@@ -177,9 +177,9 @@ mod test {
     use std::io::{self, Cursor, Write};
     use std::sync::{Arc, RwLock};
 
+    use super::get_ident_list;
     use common::ui::{Coloring, UI};
     use depot_client::{Project, SchedulerResponse};
-    use super::get_ident_list;
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {

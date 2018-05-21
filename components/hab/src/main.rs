@@ -38,8 +38,8 @@ extern crate tabwriter;
 use std::env;
 use std::ffi::OsString;
 use std::fs::File;
-use std::io::{self, Read};
 use std::io::prelude::*;
+use std::io::{self, Read};
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::process;
@@ -51,31 +51,31 @@ use clap::{ArgMatches, Shell};
 use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
 use futures::prelude::*;
+use hcore::binlink::default_binlink_dir;
 use hcore::channel;
-use hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
-use hcore::crypto::keys::PairType;
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
+use hcore::crypto::keys::PairType;
+use hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
 use hcore::env as henv;
 use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 use hcore::url::{bldr_url_from_env, default_bldr_url};
-use hcore::binlink::default_binlink_dir;
-use sup_client::{SrvClient, SrvClientError};
 use protocol::codec::*;
 use protocol::net::ErrCode;
 use protocol::types::*;
+use sup_client::{SrvClient, SrvClientError};
 use tabwriter::TabWriter;
 
-use hab::{AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 use hab::analytics;
 use hab::cli;
 use hab::command;
 use hab::config::{self, Config};
+use hab::error::{Error, Result};
 use hab::feat;
 use hab::scaffolding;
-use hab::error::{Error, Result};
+use hab::{AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";

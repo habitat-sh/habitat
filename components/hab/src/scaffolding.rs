@@ -11,16 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::str::FromStr;
-use std::path::Path;
-use std::io;
 use std::fs;
+use std::io;
+use std::path::Path;
+use std::str::FromStr;
 
 use error::Result;
 
+use common::ui::{Status, UIWriter, UI};
 use hcore::crypto::init;
 use hcore::package::PackageIdent;
-use common::ui::{Status, UIWriter, UI};
 
 const SCAFFOLDING_GO_IDENT: &'static str = "core/scaffolding-go";
 const SCAFFOLDING_GRADLE_IDENT: &'static str = "core/scaffolding-gradle";

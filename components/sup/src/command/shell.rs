@@ -14,8 +14,8 @@
 
 use std::env;
 use std::ffi::CString;
-use std::ptr;
 use std::path::PathBuf;
+use std::ptr;
 
 use hcore::fs::find_command;
 use libc;

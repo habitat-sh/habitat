@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Read, Stdout, Write};
 use std::process::{self, Command};
-use std::env;
 use uuid::Uuid;
 
 use ansi_term::Colour;
@@ -25,8 +25,8 @@ use pbr;
 use term::terminfo::TermInfo;
 use term::{Terminal, TerminfoTerminal};
 
-use error::{Error, Result};
 use self::tty::StdStream;
+use error::{Error, Result};
 
 pub const NONINTERACTIVE_ENVVAR: &'static str = "HAB_NONINTERACTIVE";
 
@@ -138,7 +138,7 @@ pub trait UIWriter {
                 "{}\n",
                 Colour::Yellow
                     .bold()
-                    .paint(format!("{} {}", symbol, message),)
+                    .paint(format!("{} {}", symbol, message))
             )
         } else {
             format!("{} {}\n", symbol, message)

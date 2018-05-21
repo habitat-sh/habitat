@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use std::env;
-use std::fs as stdfs;
 use std::ffi::OsString;
+use std::fs as stdfs;
 use std::path::PathBuf;
 
 use common::ui::UI;
@@ -76,12 +76,12 @@ mod inner {
     use hcore::env as henv;
     use hcore::fs::{am_i_root, find_command};
     use hcore::os::process;
-    use hcore::users::linux as group;
     use hcore::package::PackageIdent;
+    use hcore::users::linux as group;
 
+    use VERSION;
     use error::{Error, Result};
     use exec;
-    use VERSION;
 
     use command::studio::docker;
 
@@ -193,10 +193,10 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
-    use error::{Error, Result};
-    use exec;
     use VERSION;
     use command::studio::docker;
+    use error::{Error, Result};
+    use exec;
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {
