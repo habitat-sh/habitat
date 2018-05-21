@@ -620,10 +620,10 @@ impl<'a> InstallTask<'a> {
                 |res| res.is_ok(),
             ).is_err()
             {
-                return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+                return Err(Error::DownloadFailed(format!(
                     "We tried {} times but could not download {}. Giving up.",
                     RETRIES, ident
-                ))));
+                )));
             }
         }
 

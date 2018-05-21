@@ -16,6 +16,7 @@ use std::error;
 use std::fmt;
 use std::io;
 use std::num;
+use std::path::PathBuf;
 use std::result;
 
 use hyper;
@@ -28,14 +29,15 @@ use hab_http;
 #[derive(Debug)]
 pub enum Error {
     APIError(hyper::status::StatusCode, String),
-    DownloadFailed(String),
+    BadResponseBody(io::Error),
+    DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
     HyperError(hyper::error::Error),
-    IO(io::Error),
     Json(serde_json::Error),
+    KeyReadError(PathBuf, io::Error),
     NoFilePart,
-    NoXFilename,
+    PackageReadError(PathBuf, io::Error),
     ParseIntError(num::ParseIntError),
     IdentNotFullyQualified,
     UploadFailed(String),
@@ -50,21 +52,20 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::APIError(ref c, ref m) if m.len() > 0 => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),
-            Error::DownloadFailed(ref s) => format!("Download failed: {}", s),
+            Error::BadResponseBody(ref e) => format!("Failed to read response body, {}", e),
+            Error::DownloadWrite(ref p, ref e) => format!("Failed to write contents of builder response, {}, {}", p.display(), e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatHttpClient(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
-            Error::IO(ref e) => format!("{}", e),
             Error::Json(ref e) => format!("{}", e),
+            Error::KeyReadError(ref p, ref e) => format!("Failed to read origin key, {}, {}", p.display(), e),
             Error::NoFilePart => {
                 format!(
                     "An invalid path was passed - we needed a filename, and this path does \
                          not have one"
                 )
             }
-            Error::NoXFilename => {
-                format!("Invalid download from Builder - missing X-Filename header")
-            }
+            Error::PackageReadError(ref p, ref e) => format!("Failed to read package artifact, {}, {}", p.display(), e),
             Error::ParseIntError(ref err) => format!("{}", err),
             Error::IdentNotFullyQualified => {
                 format!(
@@ -86,16 +87,17 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::APIError(_, _) => "Received a non-2XX response code from API",
-            Error::DownloadFailed(_) => "Download failed",
+            Error::BadResponseBody(_) => "Failed to read response body",
+            Error::DownloadWrite(_, _) => "Failed to write response contents to file",
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatHttpClient(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
             Error::Json(ref err) => err.description(),
+            Error::KeyReadError(_, _) => "Failed to read origin key from disk",
             Error::NoFilePart => {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
-            Error::NoXFilename => "Invalid download from Builder - missing X-Filename header",
+            Error::PackageReadError(_, _) => "Failed to read package artifact from disk",
             Error::ParseIntError(ref err) => err.description(),
             Error::IdentNotFullyQualified => {
                 "Cannot perform the specified operation. \
@@ -125,12 +127,6 @@ impl From<hab_http::Error> for Error {
 impl From<hyper::error::Error> for Error {
     fn from(err: hyper::error::Error) -> Error {
         Error::HyperError(err)
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::IO(err)
     }
 }
 

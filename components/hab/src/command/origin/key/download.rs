@@ -14,9 +14,10 @@
 
 use std::path::Path;
 
+use common;
 use common::command::package::install::{RETRIES, RETRY_WAIT};
 use common::ui::{Status, UIWriter, UI};
-use depot_client::{self, Client};
+use depot_client::Client;
 use hcore::crypto::SigKeyPair;
 
 use error::{Error, Result};
@@ -167,7 +168,7 @@ pub fn download_public_encryption_key(
         res.is_ok()
     }).is_err()
     {
-        return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+        return Err(Error::from(common::error::Error::DownloadFailed(format!(
             "We tried {} \
              times but \
              could not \
@@ -202,7 +203,7 @@ fn download_secret_key(
         res.is_ok()
     }).is_err()
     {
-        return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+        return Err(Error::from(common::error::Error::DownloadFailed(format!(
             "We tried {} \
              times but \
              could not \
@@ -238,7 +239,7 @@ fn download_key(
                 res.is_ok()
             }).is_err()
             {
-                return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+                return Err(Error::from(common::error::Error::DownloadFailed(format!(
                     "We tried {} \
                      times but \
                      could not \
