@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ptr::null_mut;
 use std::io::Error;
+use std::ptr::null_mut;
 
 use widestring::WideCString;
-use winapi::{BOOL, LPCWSTR, LPDWORD, PSID, PSID_NAME_USE, SID_NAME_USE};
 use winapi::winerror::*;
+use winapi::{BOOL, LPCWSTR, LPDWORD, PSID, PSID_NAME_USE, SID_NAME_USE};
 
 use super::sid::Sid;
 

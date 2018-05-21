@@ -14,9 +14,9 @@
 
 #![allow(non_snake_case)]
 
-use std::ptr::{copy, null_mut};
 use std::io;
 use std::mem;
+use std::ptr::{copy, null_mut};
 
 use kernel32::{self, LocalFree};
 use widestring::WideCString;
