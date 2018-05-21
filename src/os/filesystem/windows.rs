@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use libc::c_int;
-use std::path::Path;
 use std::io;
+use std::path::Path;
 
 use error::Result;
 

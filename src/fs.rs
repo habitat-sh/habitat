@@ -19,9 +19,9 @@ use std::str::FromStr;
 
 use users;
 
-use package::{Identifiable, PackageIdent, PackageInstall};
 use env as henv;
 use error::Result;
+use package::{Identifiable, PackageIdent, PackageInstall};
 
 /// The default root path of the Habitat filesystem
 pub const ROOT_PATH: &'static str = "hab";
@@ -435,10 +435,10 @@ fn fs_root_path() -> PathBuf {
 #[cfg(test)]
 mod test_find_command {
 
+    pub use super::find_command;
     use std::env;
     use std::fs;
     use std::path::PathBuf;
-    pub use super::find_command;
 
     #[allow(dead_code)]
     fn setup_pathext() {
@@ -462,8 +462,8 @@ mod test_find_command {
     }
 
     mod without_pathext_set {
-        use super::{setup_empty_pathext, setup_path};
         pub use super::find_command;
+        use super::{setup_empty_pathext, setup_path};
 
         fn setup_environment() {
             setup_path();
@@ -496,8 +496,8 @@ mod test_find_command {
         }
 
         mod argument_with_extension {
-            use std::fs::canonicalize;
             use super::{find_command, setup_environment};
+            use std::fs::canonicalize;
 
             #[test]
             fn command_exists() {
@@ -533,8 +533,8 @@ mod test_find_command {
 
     #[cfg(target_os = "windows")]
     mod with_pathext_set {
-        use super::{setup_path, setup_pathext};
         pub use super::find_command;
+        use super::{setup_path, setup_pathext};
 
         fn setup_environment() {
             setup_path();
@@ -576,8 +576,8 @@ mod test_find_command {
         }
 
         mod argument_with_extension {
-            use std::fs::canonicalize;
             use super::{find_command, setup_environment};
+            use std::fs::canonicalize;
 
             #[test]
             fn command_exists() {

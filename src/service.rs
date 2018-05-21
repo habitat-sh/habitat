@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use std::fmt;
-use std::result;
 use std::ops::{Deref, DerefMut};
+use std::result;
 use std::str::FromStr;
 
 use regex::Regex;

@@ -32,14 +32,14 @@
 //! JSON object. It ignores the coloring option, and does _not_ ever log
 //! with ANSI color codes, but does honor the verbose flag.
 
-use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::fmt;
 use std::result;
+use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 
 use ansi_term::Colour::{Cyan, Green, White};
-use serde_json;
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
+use serde::{Serialize, Serializer};
+use serde_json;
 
 use PROGRAM_NAME;
 
@@ -279,19 +279,19 @@ macro_rules! outputln {
 #[macro_export]
 /// Works the same as format!, but uses our structured output formatter.
 macro_rules! output_format {
-    (preamble $preamble: expr, logkey $logkey:expr, $content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            let trimmed_content = &$content.trim_right_matches('\n');
-            let so = StructuredOutput::new(&$preamble,
-                                           $logkey,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           trimmed_content);
-            format!("{}", so)
-        }
-    }
+    (preamble $preamble:expr,logkey $logkey:expr, $content:expr) => {{
+        use $crate::output::StructuredOutput;
+        let trimmed_content = &$content.trim_right_matches('\n');
+        let so = StructuredOutput::new(
+            &$preamble,
+            $logkey,
+            line!(),
+            file!(),
+            column!(),
+            trimmed_content,
+        );
+        format!("{}", so)
+    }};
 }
 
 #[cfg(test)]

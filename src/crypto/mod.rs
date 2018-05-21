@@ -226,12 +226,12 @@
 
 use std::path::{Path, PathBuf};
 
-pub use sodiumoxide::init;
 use env as henv;
+pub use sodiumoxide::init;
 
 pub use self::keys::box_key_pair::BoxKeyPair;
-pub use self::keys::sym_key::SymKey;
 pub use self::keys::sig_key_pair::SigKeyPair;
+pub use self::keys::sym_key::SymKey;
 use fs::cache_key_path;
 
 /// The suffix on the end of a public sig/box file
@@ -276,8 +276,8 @@ pub fn default_cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
 
 #[cfg(test)]
 pub mod test_support {
-    use std::io::Read;
     use std::fs::File;
+    use std::io::Read;
     use std::path::PathBuf;
 
     use time;

@@ -14,8 +14,8 @@
 
 use libc::{self, c_char, c_int, mode_t};
 
-pub use std::os::unix::fs::symlink;
 use std::ffi::CString;
+pub use std::os::unix::fs::symlink;
 
 use error::{Error, Result};
 

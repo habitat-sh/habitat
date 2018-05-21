@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use error::Error;
 use std::fmt;
 use std::result;
 use std::str::FromStr;
-use error::Error;
 #[cfg(windows)]
 mod windows;
 

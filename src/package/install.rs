@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use std;
-use std::collections::{HashMap, HashSet};
 use std::cmp::{Ordering, PartialOrd};
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fmt;
 use std::fs::{DirEntry, File};
@@ -25,8 +25,8 @@ use std::str::FromStr;
 use toml;
 use toml::Value;
 
-use super::{Identifiable, PackageIdent, PackageTarget, Target};
 use super::metadata::{parse_key_value, Bind, BindMapping, MetaFile, PackageType};
+use super::{Identifiable, PackageIdent, PackageTarget, Target};
 use error::{Error, Result};
 use fs;
 

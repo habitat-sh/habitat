@@ -21,10 +21,10 @@ use std::path::Path;
 use base64;
 use sodiumoxide::crypto::sign;
 
-use error::{Error, Result};
-use super::{SigKeyPair, HART_FORMAT_VERSION, SIG_HASH_TYPE};
 use super::hash;
 use super::keys::parse_name_with_rev;
+use super::{SigKeyPair, HART_FORMAT_VERSION, SIG_HASH_TYPE};
+use error::{Error, Result};
 
 /// Generate and sign a package
 pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Result<()>
@@ -279,10 +279,10 @@ mod test {
 
     use tempdir::TempDir;
 
-    use super::*;
-    use super::super::{SigKeyPair, HART_FORMAT_VERSION, SIG_HASH_TYPE};
-    use super::super::test_support::*;
     use super::super::keys::parse_name_with_rev;
+    use super::super::test_support::*;
+    use super::super::{SigKeyPair, HART_FORMAT_VERSION, SIG_HASH_TYPE};
+    use super::*;
 
     #[test]
     fn sign_and_verify() {

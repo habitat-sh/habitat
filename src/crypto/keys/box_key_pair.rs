@@ -17,16 +17,16 @@ use std::str;
 
 use base64;
 use sodiumoxide::crypto::box_;
-use sodiumoxide::crypto::sealedbox;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecretKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{gen_nonce, Nonce};
+use sodiumoxide::crypto::sealedbox;
 
-use error::{Error, Result};
-use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
-            read_key_bytes, read_key_bytes_from_str, write_keypair_files, KeyPair, KeyType};
 use super::super::{ANONYMOUS_BOX_FORMAT_VERSION, BOX_FORMAT_VERSION, PUBLIC_BOX_KEY_VERSION,
                    PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION};
+use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
+            read_key_bytes, read_key_bytes_from_str, write_keypair_files, KeyPair, KeyType};
+use error::{Error, Result};
 
 #[derive(Debug)]
 pub struct BoxSecret<'a> {
@@ -472,8 +472,8 @@ mod test {
 
     use tempdir::TempDir;
 
-    use super::BoxKeyPair;
     use super::super::super::test_support::*;
+    use super::BoxKeyPair;
 
     static VALID_KEY: &'static str = "service-key-valid.default@acme-20160509181736.box.key";
     static VALID_PUB: &'static str = "service-key-valid.default@acme-20160509181736.pub";

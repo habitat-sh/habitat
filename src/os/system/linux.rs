@@ -17,9 +17,9 @@ use std::mem;
 
 use libc;
 
-use os::system::Uname;
 use errno::errno;
 use error::{Error, Result};
+use os::system::Uname;
 
 pub fn uname() -> Result<Uname> {
     unsafe { uname_libc() }

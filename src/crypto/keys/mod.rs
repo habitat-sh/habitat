@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use std::collections::HashSet;
-use std::fs;
 use std::fmt;
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
@@ -41,8 +41,8 @@ lazy_static! {
 }
 
 pub mod box_key_pair;
-pub mod sym_key;
 pub mod sig_key_pair;
+pub mod sym_key;
 
 enum KeyType {
     Sig,
@@ -577,14 +577,14 @@ mod test {
     use hex;
     use tempdir::TempDir;
 
+    use super::KeyType;
+    use super::PairType;
     use super::box_key_pair::BoxKeyPair;
     use super::sig_key_pair::SigKeyPair;
     use super::sym_key::SymKey;
-    use super::KeyType;
-    use super::PairType;
 
-    use super::TmpKeyfile;
     use super::super::test_support::*;
+    use super::TmpKeyfile;
 
     static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
     static VALID_KEY_AS_HEX: &'static str =

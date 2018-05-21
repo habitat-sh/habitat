@@ -13,16 +13,16 @@
 // limitations under the License.
 
 use std::ffi::OsString;
+use std::io;
 use std::path::PathBuf;
 use std::process::{self, Command};
 use std::ptr;
-use std::io;
 
 use kernel32;
 use winapi;
 
-use error::{Error, Result};
 use super::{OsSignal, Signal};
+use error::{Error, Result};
 
 const STILL_ACTIVE: u32 = 259;
 

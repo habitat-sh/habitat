@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::fmt;
 
 use base64;
 use hex;
@@ -22,10 +22,10 @@ use sodiumoxide::crypto::secretbox;
 use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use sodiumoxide::randombytes::randombytes;
 
-use error::{Error, Result};
+use super::super::{hash, SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
             read_key_bytes, write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile};
-use super::super::{hash, SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
+use error::{Error, Result};
 
 pub type SymKey = KeyPair<(), SymSecretKey>;
 
@@ -436,9 +436,9 @@ mod test {
 
     use tempdir::TempDir;
 
-    use super::SymKey;
-    use super::super::PairType;
     use super::super::super::test_support::*;
+    use super::super::PairType;
+    use super::SymKey;
 
     static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &'static str = "ring-key-valid-20160504220722";

@@ -100,10 +100,10 @@ mod test {
     use std::io;
     use std::path::PathBuf;
 
+    use super::super::test_support::*;
+    use super::*;
     #[cfg(feature = "functional")]
     use hyper::{header, Client, Url};
-    use super::*;
-    use super::super::test_support::*;
 
     #[allow(dead_code)]
     fn mk_local_tmpdir() -> PathBuf {

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use os::system::Uname;
 use error::Result;
+use os::system::Uname;
 
 pub fn uname() -> Result<Uname> {
     Ok(Uname {

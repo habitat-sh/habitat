@@ -14,8 +14,8 @@
 
 use std::ffi::OsString;
 use std::io;
-use std::path::PathBuf;
 use std::os::unix::process::CommandExt;
+use std::path::PathBuf;
 use std::process::Command;
 
 use libc::{self, pid_t};

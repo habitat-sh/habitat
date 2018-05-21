@@ -14,8 +14,8 @@
 
 //! Traps and notifies UNIX signals.
 
-use std::sync::{Once, ONCE_INIT};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_BOOL_INIT, ATOMIC_USIZE_INIT};
+use std::sync::{Once, ONCE_INIT};
 
 use os::process::{OsSignal, Signal, SignalCode};
 

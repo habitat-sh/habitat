@@ -15,8 +15,8 @@
 use std::env;
 use std::error;
 use std::ffi;
-use std::io;
 use std::fmt;
+use std::io;
 use std::num;
 use std::path::PathBuf;
 use std::result;

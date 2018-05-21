@@ -119,8 +119,8 @@ impl FromStr for PackageTarget {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
     use os::system::{Architecture, Platform};
+    use std::str::FromStr;
 
     #[test]
     fn package_target_matches_current_operating_system() {

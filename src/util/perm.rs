@@ -107,8 +107,8 @@ mod tests {
 
     use tempdir::TempDir;
 
-    use error::Error;
     use super::*;
+    use error::Error;
 
     #[test]
     fn chmod_ok_test() {

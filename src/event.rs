@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::fmt;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::result;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::fmt;
 
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use serde_json;
 
 /// Sample envelope JSON payload
@@ -44,7 +44,7 @@ macro_rules! define_event_log {
         impl typemap::Key for EventLog {
             type Value = EventLogger;
         }
-    }
+    };
 }
 
 #[macro_export]

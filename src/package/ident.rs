@@ -20,11 +20,12 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-use package::PackageTarget;
 use error::{Error, Result};
+use package::PackageTarget;
 
 lazy_static! {
-    static ref ORIGIN_NAME_RE: Regex = Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
+    static ref ORIGIN_NAME_RE: Regex =
+        Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
 }
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
@@ -390,8 +391,8 @@ pub fn is_valid_origin_name(origin: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::split_version;
+    use super::*;
     use std::cmp::Ordering;
     use std::cmp::PartialOrd;
 

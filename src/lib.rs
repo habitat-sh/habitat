@@ -71,19 +71,19 @@ extern crate winapi;
 pub use self::error::{Error, Result};
 
 pub mod binlink;
+pub mod channel;
 pub mod config;
 pub mod crypto;
 pub mod env;
 pub mod error;
+pub mod event;
 pub mod fs;
+pub mod os;
+pub mod output;
 pub mod package;
 pub mod service;
 pub mod url;
 pub mod util;
-pub mod os;
-pub mod output;
-pub mod event;
-pub mod channel;
 
 use std::path::PathBuf;
 
@@ -92,9 +92,13 @@ pub use os::users;
 
 pub const AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
 
-lazy_static!{
+lazy_static! {
     pub static ref PROGRAM_NAME: String = {
         let arg0 = std::env::args().next().map(|p| PathBuf::from(p));
-        arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap().to_string()
+        arg0.as_ref()
+            .and_then(|p| p.file_stem())
+            .and_then(|p| p.to_str())
+            .unwrap()
+            .to_string()
     };
 }
