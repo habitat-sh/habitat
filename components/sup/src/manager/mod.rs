@@ -773,7 +773,9 @@ impl Manager {
             if service.pkg.ident.satisfies(&ident) {
                 let mut msg = protocol::types::ServiceCfg::new();
                 if let Some(ref cfg) = service.cfg.default {
-                    msg.set_default(toml::to_string_pretty(cfg).unwrap());
+                    msg.set_default(
+                        toml::to_string_pretty(&toml::value::Value::Table(cfg.clone())).unwrap(),
+                    );
                     req.reply_complete(msg);
                 }
                 return Ok(());

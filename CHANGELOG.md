@@ -61,6 +61,7 @@
 
 ## Bug fixes
 
+- Fix default configuration serialization bug [\#5110](https://github.com/habitat-sh/habitat/pull/5110)
 - Fix panic when an initial service fails to load [\#5096](https://github.com/habitat-sh/habitat/pull/5096)
 - Disable interface validation of config/files [\#5091](https://github.com/habitat-sh/habitat/pull/5091)
 - Disable validation of config/files [\#5090](https://github.com/habitat-sh/habitat/pull/5090)
