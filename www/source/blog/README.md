@@ -24,3 +24,9 @@ Be sure to make a pull request to add yourself to the [authors list with your bi
 Obviously with _your_ name and the date you wrote your article. Once you've opened that PR we can vet the content and on approval it will get published out to the habitat.sh site! 
 
 Thanks for taking the time read and as always thanks for using Habitat!
+
+### Appendix
+
+Some additional information on the approval workflow:
+1. The "@thesentinels acceptance" command, when entered as a comment in the PR,  is used to have the blog post built and deployed to the Habitat acceptance environment, i.e., https://www.acceptance.habitat.sh/
+2. The relative URL of the blog post in the live environment will be the same as the acceptance environment.
