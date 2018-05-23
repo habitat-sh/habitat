@@ -133,6 +133,23 @@ impl<'a> Chart<'a> {
         }
         manifest_template.value["binds"] = json!(binds);
 
+        let mut environment = Vec::new();
+        for (i, envvar) in manifest.environment.iter().enumerate() {
+            let name_var = format!("envName{}", i);
+            let value_var = format!("envValue{}", i);
+
+            values.add_entry(&name_var, &envvar.name);
+            values.add_entry(&value_var, &envvar.value);
+
+            let json = json!({
+                "name": format!("{{{{.Values.{}}}}}", name_var),
+                "value": format!("{{{{.Values.{}}}}}", value_var),
+            });
+
+            environment.push(json);
+        }
+        manifest_template.value["environment"] = json!(environment);
+
         Chart {
             chartdir: chartdir,
             chartfile: chartfile,
