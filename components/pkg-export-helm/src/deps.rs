@@ -51,6 +51,7 @@ impl Deps {
         //       operator dependency:
         //
         //       https://github.com/kubernetes/helm/issues/3632
+        //       https://github.com/kubernetes/helm/issues/2994
         //
         //let out = self.into_string()?;
         let out = String::new();
