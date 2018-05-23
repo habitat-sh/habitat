@@ -35,10 +35,11 @@ pub struct ManifestJson {
 impl ManifestJson {
     /// Create a `ManifestJson` from `manifest`.
     pub fn new(manifest: &Manifest) -> Self {
-        let mut binds = Vec::new();
-        for bind in &manifest.binds {
-            binds.push(bind.to_json());
-        }
+        let binds = manifest
+            .binds
+            .iter()
+            .map(|bind| bind.to_json())
+            .collect::<Vec<_>>();
 
         ManifestJson {
             value: json!({
