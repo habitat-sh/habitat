@@ -100,12 +100,10 @@ impl<'a> Chart<'a> {
         }
 
         let mut binds = Vec::new();
-        let mut i = 0;
-        for bind in &manifest.binds {
+        for (i, bind) in manifest.binds.iter().enumerate() {
             let name_var = format!("bindName{}", i);
             let service_var = format!("bindService{}", i);
             let group_var = format!("bindGroup{}", i);
-            i = i + 1;
 
             values.add_entry(&name_var, &bind.name);
             values.add_entry(&service_var, &bind.service_group.service());
