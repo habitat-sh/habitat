@@ -33,6 +33,7 @@ use std::io::prelude::*;
 use common::ui::{Status, UIWriter, UI};
 
 pub mod cli;
+pub mod env;
 pub mod error;
 pub mod hb;
 pub mod manifest;

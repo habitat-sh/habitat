@@ -37,6 +37,11 @@ impl ManifestJson {
             .iter()
             .map(|bind| bind.to_json())
             .collect::<Vec<_>>();
+        let environment = manifest
+            .environment
+            .iter()
+            .map(|e| e.to_json())
+            .collect::<Vec<_>>();
 
         ManifestJson {
             value: json!({
@@ -49,6 +54,7 @@ impl ManifestJson {
                 "config": manifest.config,
                 "ring_secret_name": manifest.ring_secret_name,
                 "binds": binds,
+                "environment": environment,
             }),
         }
     }

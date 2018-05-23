@@ -137,6 +137,15 @@ impl<'a, 'b> Cli<'a, 'b> {
                              will use it for initial configuration of the service running in a \
                              Kubernetes cluster",
                         ),
+                )
+                .arg(
+                    Arg::with_name("ENVIRONMENT")
+                        .value_name("ENVIRONMENT")
+                        .long("env")
+                        .short("e")
+                        .multiple(true)
+                        .number_of_values(1)
+                        .help("Additional environment variables to set for the service"),
                 ),
         }
     }

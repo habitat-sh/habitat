@@ -23,6 +23,15 @@ spec:
     image: {{image}}
     ## Number of desired instances.
     count: {{count}}
+{{~ #if environment}}
+    ## List of names and values specifying additional environment variables
+    ## for the service.
+    env:
+{{~ #each environment}}
+      - name: {{this.name}}
+        value: {{quote this.value}}
+{{~ /each ~}}
+{{~ /if}}
     ## An object containing parameters that affects how the Habitat service
     ## is executed.
     service:

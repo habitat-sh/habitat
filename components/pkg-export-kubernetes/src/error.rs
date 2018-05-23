@@ -26,6 +26,8 @@ pub enum Error {
         _0
     )]
     InvalidBinding(String),
+    #[fail(display = "Invalid environment variable \"{}\", must be in the form <NAME>=<VALUE>", _0)]
+    InvalidEnvironmentVariable(String),
     #[fail(display = "{}", _0)]
     HabitatCore(hcore::Error),
 }
