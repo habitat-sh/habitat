@@ -60,9 +60,9 @@ impl Into<String> for ManifestJson {
     /// Convert into a string. The returned string is the final manifest YAML file content, ready
     /// for consumption by a Kubernetes cluster.
     fn into(self) -> String {
-        // The Result::expect() usage in this function is justied by the fact that errors can only
-        // come from the crate programmer (e.g they messed-up the manifest template or don't check
-        // the user input).
+        // The Result::expect() usage in this function is justified by the fact that errors can
+        // only come from the crate programmer (e.g they messed-up the manifest template or didn't
+        // check the user input).
         Handlebars::new()
             .template_render(MANIFESTFILE, &self.value)
             .expect("Rendering of manifest from template failed")

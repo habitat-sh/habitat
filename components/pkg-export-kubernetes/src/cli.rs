@@ -167,7 +167,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .number_of_values(1)
                     .help(
                         "Bind to another service to form a producer/consumer relationship, \
-                         specified as name:service:group",
+                         specified as name:service.group",
                     ),
             ),
         }
