@@ -46,8 +46,10 @@ use export_docker::Result;
 
 pub use cli::Cli;
 pub use error::Error;
+pub use hb::QuoteHelper;
 pub use manifest::Manifest;
 pub use manifestjson::ManifestJson;
+pub use storage::PersistentStorage;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";
