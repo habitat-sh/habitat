@@ -23,7 +23,7 @@ use common::ui::{Status, UIWriter, UI};
 use error::Error;
 use export_docker::Result;
 
-pub const DEFAULT_OPERATOR_VERSION: &'static str = "0.5.1";
+pub const DEFAULT_OPERATOR_VERSION: &'static str = "0.6.1";
 pub const OPERATOR_REPO_URL: &'static str = "https://habitat-sh.github.io/\
                                              habitat-operator/helm/charts/stable/";
 
