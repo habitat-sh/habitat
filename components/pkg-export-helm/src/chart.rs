@@ -20,7 +20,7 @@ use std::path::PathBuf;
 use common::ui::{Status, UIWriter, UI};
 use export_docker;
 use export_docker::Result;
-use export_k8s::{Manifest, ManifestJson};
+use export_k8s::{Manifest, ManifestJson, PersistentStorage};
 
 use chartfile::ChartFile;
 use deps::Deps;
@@ -80,6 +80,15 @@ impl<'a> Chart<'a> {
             "ring_secret_name": manifest.ring_secret_name
                 .as_ref()
                 .map(|_| "{{.Values.ringSecretName}}"),
+            "persistent_storage": manifest.persistent_storage
+                .as_ref()
+                .map(|_| {
+                    PersistentStorage {
+                        size: "{{.Values.persistentStorageSize}}".to_string(),
+                        path: "{{.Values.persistentStoragePath}}".to_string(),
+                        class: "{{.Values.persistentStorageClass}}".to_string(),
+                    }.to_json()
+                }),
             }),
         };
 
@@ -97,6 +106,11 @@ impl<'a> Chart<'a> {
         }
         if let Some(ref name) = manifest.ring_secret_name {
             values.add_entry("ringSecretName", name);
+        }
+        if let Some(ref persistent_storage) = manifest.persistent_storage {
+            values.add_entry("persistentStorageSize", &persistent_storage.size);
+            values.add_entry("persistentStoragePath", &persistent_storage.path);
+            values.add_entry("persistentStorageClass", &persistent_storage.class);
         }
 
         let mut binds = Vec::new();
