@@ -71,14 +71,16 @@ impl<'a> Chart<'a> {
             "image": "{{.Values.imageName}}",
             "count": "{{.Values.instanceCount}}",
             "service_topology": "{{.Values.serviceTopology}}",
-            "service_group": manifest.service_group.clone().map(|_| "{{.Values.serviceGroup}}"),
+            "service_group": manifest.service_group
+                .as_ref()
+                .map(|_| "{{.Values.serviceGroup}}"),
             "config": manifest.config
-                .clone()
+                .as_ref()
                 .map(|_| "{{.Values.config}}"),
             "ring_secret_name": manifest.ring_secret_name
-                .clone()
+                .as_ref()
                 .map(|_| "{{.Values.ringSecretName}}"),
-        }),
+            }),
         };
 
         let mut values = Values::new();
