@@ -35,11 +35,15 @@ classes: demo_step
         = code(:shell) do
           | $ hab studio enter
         = code(:shell) do
-          | [1][default:/src:0]# hab start yourorigin/sample-node-app --strategy at-once
+          |
+            [1][default:/src:0]# hab sup run
+            [2][default:/src:0]# hab svc load yourorigin/sample-node-app --strategy at-once
         p
-          ' The Supervisor will reach out to the depot (i.e.
-          a.link-external target="_blank" href="https://bldr.habitat.sh/#/pkgs/" Builder web UI
-          ' ), download, and run the latest stable version of this package.
+          ' The first command starts the Habitat Supervisor, and the second instructs it to download, install
+            and run the latest stable version of the package from the public
+            <a href="https://bldr.habitat.sh/#/pkgs/" target="_blank" class="link-external">Habitat Builder Depot</a>.
+            Passing the <code>--strategy at-once</code> option tells the Supervisor to watch the Depot for new
+            packages in the stable channel, and to download, install and run them automatically.
         .footnote
           p.mb-0
             span.asterisk="*"
