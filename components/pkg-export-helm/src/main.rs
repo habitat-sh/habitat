@@ -174,7 +174,7 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
         )
         .arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
             "Whether to download dependencies. The Kubernetes Habitat Operator is the only \
-             dependancy currently. (default: no)",
+             dependency currently. (default: no)",
         ))
 }
 
