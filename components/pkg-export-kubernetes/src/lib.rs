@@ -39,6 +39,7 @@ pub mod hb;
 pub mod manifest;
 pub mod manifestjson;
 pub mod service_bind;
+pub mod storage;
 pub mod topology;
 
 use export_docker::Result;

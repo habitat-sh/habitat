@@ -146,6 +146,20 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .multiple(true)
                         .number_of_values(1)
                         .help("Additional environment variables to set for the service"),
+                )
+                .arg(
+                    Arg::with_name("PERSISTENT_STORAGE")
+                        .value_name("PERSISTENT_STORAGE")
+                        .long("storage")
+                        .help(
+                            "Storage specification in form of <size>:<path>:<storage class name>. \
+                             <size> uses the same format as Kubernetes' size field (e.g. 10Gi). \
+                             <path> describes where the storage will be mounted. \
+                             <storage class name> is the name of the storage class \
+                             that will be used as a backing store; \
+                             it is a Kubernetes platform-specific thing \
+                             (GCE has its own classes, Azure - its own).",
+                        ),
                 ),
         }
     }

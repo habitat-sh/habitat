@@ -42,6 +42,7 @@ impl ManifestJson {
             .iter()
             .map(|e| e.to_json())
             .collect::<Vec<_>>();
+        let persistent_storage = manifest.persistent_storage.as_ref().map(|s| s.to_json());
 
         ManifestJson {
             value: json!({
@@ -55,6 +56,7 @@ impl ManifestJson {
                 "ring_secret_name": manifest.ring_secret_name,
                 "binds": binds,
                 "environment": environment,
+                "persistent_storage": persistent_storage,
             }),
         }
     }

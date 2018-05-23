@@ -31,6 +31,17 @@ spec:
       - name: {{this.name}}
         value: {{quote this.value}}
 {{~ /each ~}}
+{{~ /if ~}}
+{{~ #if persistent_storage}}
+    ## The presence of this key activates persistent storage.
+    persistentStorage:
+      ## A size of the volume that will be mounted in each Pod.
+      size: {{persistent_storage.size}}
+      ## A name of a StorageClass object which must be created beforehand
+      ## by the cluster administrator.
+      storageClassName: {{persistent_storage.class}}
+      ## A location under which the volume will be mounted.
+      mountPath: {{persistent_storage.path}}
 {{~ /if}}
     ## An object containing parameters that affects how the Habitat service
     ## is executed.

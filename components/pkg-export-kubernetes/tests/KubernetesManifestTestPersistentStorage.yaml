@@ -1,0 +1,35 @@
+---
+apiVersion: habitat.sh/v1beta1
+kind: Habitat
+customVersion: v1beta2
+metadata:
+  ## Name of the Kubernetes resource.
+  name: nginx-latest
+spec:
+  v1beta2:
+    ## Name of the Habitat service package exported as a Docker image.
+    image: core/nginx:latest
+    ## Number of desired instances.
+    count: 3
+    ## The presence of this key activates persistent storage.
+    persistentStorage:
+      ## A size of the volume that will be mounted in each Pod.
+      size: 10Gi
+      ## A name of a StorageClass object which must be created beforehand
+      ## by the cluster administrator.
+      storageClassName: standard
+      ## A location under which the volume will be mounted.
+      mountPath: /foo/bar
+    ## An object containing parameters that affects how the Habitat service
+    ## is executed.
+    service:
+      ## Name of the Habitat service.
+      name: nginx
+      ## Habitat topology of the service.
+      topology: standalone
+      ## Habitat service group name, a logical grouping of services
+      ## with the same package.
+      group: group1
+      ## The name of the Kubernetes Secret that contains the ring key, which
+      ## encrypts the communication between Habitat supervisors.
+      ringSecretName: deltaechofoxtrot
