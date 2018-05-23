@@ -18,6 +18,7 @@ extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
 extern crate handlebars;
+extern crate serde;
 #[macro_use]
 extern crate serde_json;
 
@@ -33,6 +34,7 @@ use common::ui::{Status, UIWriter, UI};
 
 pub mod cli;
 pub mod error;
+pub mod hb;
 pub mod manifest;
 pub mod manifestjson;
 pub mod service_bind;

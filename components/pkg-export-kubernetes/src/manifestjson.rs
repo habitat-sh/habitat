@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use handlebars::Handlebars;
 use serde_json::Value;
 
+use hb;
 use manifest::Manifest;
-
-// Kubernetes manifest template
-const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
 
 /// Represents the [`Manifest`] in JSON format. This is an intermediate type that can be converted
 /// to the final manifest YAML file content, ready for consumption by a Kubernetes cluster.
@@ -61,11 +58,6 @@ impl Into<String> for ManifestJson {
     /// Convert into a string. The returned string is the final manifest YAML file content, ready
     /// for consumption by a Kubernetes cluster.
     fn into(self) -> String {
-        // The Result::expect() usage in this function is justified by the fact that errors can
-        // only come from the crate programmer (e.g they messed-up the manifest template or didn't
-        // check the user input).
-        Handlebars::new()
-            .template_render(MANIFESTFILE, &self.value)
-            .expect("Rendering of manifest from template failed")
+        hb::render(&self.value)
     }
 }
