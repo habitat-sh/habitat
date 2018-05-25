@@ -201,9 +201,25 @@ build-launcher-for-supervisor-tests:
 unit-sup: build-launcher-for-supervisor-tests
 .PHONY: build-launcher-for-supervisor-tests
 
+ALLOWED_LINTS = absurd_extreme_comparisons assign_op_pattern blacklisted_name \
+                block_in_if_condition_stmt bool_comparison cast_lossless clone_double_ref \
+                clone_on_copy cmp_owned collapsible_if const_static_lifetime \
+                cyclomatic_complexity explicit_into_iter_loop explicit_iter_loop for_kv_map \
+                get_unwrap identity_conversion if_let_redundant_pattern_matching \
+                if_let_some_result if_same_then_else large_enum_variant len_without_is_empty \
+                len_zero let_unit_value map_clone match_bool match_ref_pats mut_from_ref \
+                needless_bool needless_pass_by_value needless_range_loop needless_return \
+                new_ret_no_self new_without_default new_without_default_derive ok_expect \
+                op_ref option_map_unit_fn or_fun_call print_with_newline ptr_arg question_mark \
+                redundant_closure redundant_field_names single_char_pattern single_match \
+                string_lit_as_bytes too_many_arguments toplevel_ref_arg unit_arg \
+                unreadable_literal unused_io_amount unused_label unused_lifetimes \
+                useless_attribute useless_format useless_let_if_seq useless_vec \
+                write_with_newline wrong_self_convention zero_prefixed_literal
+FORBIDDEN_LINTS = # absurd_extreme_comparisons zero_prefixed_literal
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
-	$(run) sh -c 'cd components/$1 && cargo build --features clippy $(CARGO_FLAGS)'
+	$(run) sh -c 'cd components/$1 && cargo +nightly clippy $(CARGO_FLAGS) -- $(addprefix -F ,$(FORBIDDEN_LINTS)) $(addprefix -A ,$(ALLOWED_LINTS))'
 .PHONY: lint-$1
 endef
 $(foreach component,$(ALL),$(eval $(call LINT,$(component))))
