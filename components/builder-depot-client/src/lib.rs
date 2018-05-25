@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
-
 extern crate broadcast;
 extern crate chrono;
 extern crate habitat_builder_protocol as protocol;
@@ -562,11 +559,11 @@ impl Client {
         res.read_to_string(&mut encoded)
             .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<originsrv::OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(
-            &encoded,
-        )?.into_iter()
-            .map(|m| m.into())
-            .collect();
+        let revisions: Vec<originsrv::OriginKeyIdent> =
+            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?
+                .into_iter()
+                .map(|m| m.into())
+                .collect();
         Ok(revisions)
     }
 

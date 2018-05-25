@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
-
 extern crate habitat_core as hab_core;
 extern crate habitat_http_client as hab_http;
 extern crate hyper;
