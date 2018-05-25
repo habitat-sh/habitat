@@ -8,17 +8,17 @@ Here, we'll discuss how this is implemented, how it can be enabled in your Habit
 
 The Habitat Supervisor uses a defined TCP protocol for all interactions; the `hab` CLI tool is the client for this protocol, and the Supervisor is the server. Interactions are authenticated using a shared secret.
 
-Previously, in order to run `core/redis` on a Supervisor running on (say), 192.168.1.1, you would have to have direct access to the machine (as well as root privileges) in order to load the service, which might look like this:
+Previously, in order to run `core/redis` on a Supervisor running on (say), `hab1.mycompany.com`, you would have to have direct access to the machine (as well as root privileges) in order to load the service, which might look like this:
 
 ```
-ssh 192.168.1.1
+ssh hab1.mycompany.com
 sudo hab svc load core/redis
 ```
 
 Now, using the remote control capabilities of the Supervisor, this could be accomplished from a workstation or bastion host with an invocation that could be as simple as this:
 
 ```
-hab svc load core/redis --remote-sup=192.168.1.1:9632
+hab svc load core/redis --remote-sup=hab1.mycompany.com:9632
 ```
 
 No direct host access is necessary, and multiple Supervisors can be controlled from one central location.

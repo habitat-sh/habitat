@@ -47,13 +47,13 @@ Here are some examples of how to apply configuration changes through both the sh
 **Stdin**
 
 ```shell
-$ echo 'buffersize = 16384' | hab config apply --remote-sup 172.17.0.3:9632 myapp.prod 1
+$ echo 'buffersize = 16384' | hab config apply --remote-sup=hab1.mycompany.com myapp.prod 1
 ```
 
 **TOML file**
 
 ```shell
-$ hab config apply --remote-sup 172.17.0.3:9632 myapp.prod 1 /tmp/newconfig.toml
+$ hab config apply --remote-sup=hab1.mycompany.com myapp.prod 1 /tmp/newconfig.toml
 ```
 
   > Note: The filename of the configuration file is not important.
