@@ -70,7 +70,7 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["sh", "sho"])
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
         )
@@ -87,7 +87,7 @@ pub fn get() -> App<'static, 'static> {
                     "A version number (positive integer) for this configuration (ex: 42)")
                 (@arg FILE: +required {file_exists} "Path to local file on disk")
                 (@arg USER: -u --user +takes_value "Name of the user key")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
         )
@@ -563,7 +563,7 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["u", "un", "unl", "unlo", "unloa"])
                 (@arg PKG_IDENT: +required +takes_value
                     "A Habitat package identifier (ex: core/redis)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
         )
@@ -580,7 +580,7 @@ pub fn get() -> App<'static, 'static> {
                     from joining again with the same member-id")
                 (aliases: &["d", "de", "dep", "depa", "depart"])
                 (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
             (@subcommand secret =>
@@ -752,7 +752,7 @@ fn sub_config_apply() -> App<'static, 'static> {
         (@arg FILE: {file_exists_or_stdin}
             "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
         (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
@@ -762,7 +762,7 @@ fn sub_svc_start() -> App<'static, 'static> {
         (about: "Start a loaded, but stopped, Habitat service.")
         (@arg PKG_IDENT: +required +takes_value
             "A Habitat package identifier (ex: core/redis)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
@@ -773,7 +773,7 @@ fn sub_svc_status() -> App<'static, 'static> {
     clap_app!(@subcommand status =>
         (about: "Query the status of Habitat services.")
         (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
         "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
@@ -783,7 +783,7 @@ fn sub_svc_stop() -> App<'static, 'static> {
         (about: "Stop a running Habitat service.")
         (@arg PKG_IDENT: +required +takes_value
             "A Habitat package identifier (ex: core/redis)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
@@ -818,7 +818,7 @@ fn sub_svc_load() -> App<'static, 'static> {
               startup until all binds are present. [default: strict] [values: relaxed, strict]")
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
@@ -854,7 +854,7 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
         (@arg PASSWORD: --password +takes_value "Password of the service user")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value {valid_socket_addr}
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
@@ -919,15 +919,6 @@ fn valid_topology(val: String) -> result::Result<(), String> {
     match protocol::types::Topology::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Service topology: '{}' is not valid", &val)),
-    }
-}
-
-fn valid_socket_addr(val: String) -> result::Result<(), String> {
-    match SocketAddr::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!(
-            "Socket address should include both IP and port, eg: '0.0.0.0:9700'"
-        )),
     }
 }
 

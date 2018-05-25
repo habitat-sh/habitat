@@ -40,7 +40,7 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, Read};
-use std::net::SocketAddr;
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::process;
 use std::result;
@@ -728,7 +728,7 @@ fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_svc_set(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui();
@@ -823,7 +823,7 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
 fn sub_svc_config(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcGetDefaultCfg::new();
     msg.set_ident(ident.into());
@@ -850,7 +850,7 @@ fn sub_svc_config(m: &ArgMatches) -> Result<()> {
 
 fn sub_svc_load(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcLoad::new();
     update_svc_load_from_input(m, &mut msg)?;
@@ -865,7 +865,7 @@ fn sub_svc_load(m: &ArgMatches) -> Result<()> {
 fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcUnload::new();
     msg.set_ident(ident.into());
@@ -878,7 +878,7 @@ fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
 fn sub_svc_start(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStart::new();
     msg.set_ident(ident.into());
@@ -890,7 +890,7 @@ fn sub_svc_start(m: &ArgMatches) -> Result<()> {
 
 fn sub_svc_status(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStatus::new();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
@@ -925,7 +925,7 @@ fn sub_svc_status(m: &ArgMatches) -> Result<()> {
 fn sub_svc_stop(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStop::new();
     msg.set_ident(ident.into());
@@ -938,7 +938,7 @@ fn sub_svc_stop(m: &ArgMatches) -> Result<()> {
 fn sub_file_put(m: &ArgMatches) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
     let mut msg = protocol::ctl::SvcFilePut::new();
@@ -1008,7 +1008,7 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
 
 fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m);
+    let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
     let mut msg = protocol::ctl::SupDepart::new();
@@ -1447,10 +1447,24 @@ fn get_strategy_from_input(m: &ArgMatches) -> Option<UpdateStrategy> {
         .and_then(|f| UpdateStrategy::from_str(f).ok())
 }
 
-fn sup_addr_from_input(m: &ArgMatches) -> SocketAddr {
-    m.value_of("REMOTE_SUP")
-        .map(|a| SocketAddr::from_str(a).unwrap())
-        .unwrap_or(protocol::ctl::default_addr())
+fn sup_addr_from_input(m: &ArgMatches) -> Result<SocketAddr> {
+    match m.value_of("REMOTE_SUP") {
+        Some(rs) => {
+            let sup_addr = if rs.find(':').is_some() {
+                rs.to_string()
+            } else {
+                format!("{}:{}", rs, protocol::ctl::DEFAULT_PORT)
+            };
+            let addrs: Vec<SocketAddr> = match sup_addr.to_socket_addrs() {
+                Ok(addrs) => addrs.collect(),
+                Err(e) => {
+                    return Err(Error::RemoteSupResolutionError(sup_addr, e));
+                }
+            };
+            Ok(addrs[0])
+        }
+        None => Ok(protocol::ctl::default_addr()),
+    }
 }
 
 /// Check to see if the user has passed in a USER param.
