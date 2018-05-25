@@ -6,7 +6,6 @@ workspace = "../../"
 
 [dependencies]
 chrono = "*"
-clippy = {version = "*", optional = true}
 broadcast = "*"
 habitat-builder-protocol = { git = "https://github.com/habitat-sh/builder.git" }
 hyper = "0.10"

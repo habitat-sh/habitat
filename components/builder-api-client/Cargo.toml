@@ -5,7 +5,6 @@ authors = ["Josh Black <jblack@chef.io>"]
 workspace = "../../"
 
 [dependencies]
-clippy = {version = "*", optional = true}
 hyper = "0.10"
 hyper-openssl = ""
 log = "*"
