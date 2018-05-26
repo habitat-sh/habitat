@@ -1,1 +1,2 @@
-hab-sup(MN): dwrede/myrubyapp/0.1.0/20170520062324, state:up, time:PT234.585418865S, pid:584, group:myrubyapp.default
+package                                 type        state  uptime (s)  pid  group
+example/myrubyapp/0.1.0/20180220033145  standalone  up     140         434  myrubyapp.default

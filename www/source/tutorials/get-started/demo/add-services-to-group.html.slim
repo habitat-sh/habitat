@@ -5,15 +5,15 @@ title: Habitat - Add Services to a Group
 section
   h2 Add Services to a Group
 
-  p Now that you have your first node running, we went ahead and added a second running node for you since this topology requires a minimum of three. Once we add a third, we'll see them elect a leader for the group.
+  p Now that you have your first node running, we've gone ahead and added a second node for you, since this topology requires a minimum of three. Now you'll add a third, and we'll watch as Habitat elects a leader for the group.
 
-  p Adding a new node to a group is as simple as setting a flag that references any existing peer (by IP address or hostname) in the target service group.
+  p Adding a new node to a group is as simple as setting a flag that references an existing Supervisor as a peer (by IP address or hostname) in the target service group.
 
-  p Start the third node, then switch between all three windows to see that each node has been connected to one another.
+  p Start the third node, then switch between the tabs below to see that the nodes have been connected to one another.
 
   = code(:shell) do
     |
-     $ hab start core/postgresql -t leader --peer 172.17.0.2
+     $ hab sup run core/postgresql -t leader --peer 172.17.0.2
 
   .window-buttons
     ul
@@ -29,7 +29,8 @@ section
 
   .shell-panel.window-node id="window-node-1" style="display:none;"
     pre
-      | # node is up and running as leader
+      | # This node is up and running as leader
+
         hab-sup(MR): Supervisor Member-ID 361f7a786ea642b0af33bd10a44ce12a
         hab-sup(MR): Starting core/postgresql
         hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
@@ -138,6 +139,6 @@ section
         postgresql.default(O): 2017-05-21 07:29:49 GMT LOG:  autovacuum launcher started
 
   #success
-    p Now that you've setup a leader-follower topology using command-line flags, learn how to use the built-in service monitoring capabilities of Habitat.
+    p Now that you've set up a leader-follower topology using command-line flags, learn how to use the built-in service monitoring capabilities of Habitat.
 
 = link_to 'Next: Check the Health of a Service', '/tutorials/get-started/demo/check-service-health/', class: 'button cta'

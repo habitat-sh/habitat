@@ -5,18 +5,16 @@ title: Habitat - Start Up Services
 section
   h2 Start Up Services
 
-  p In the first window below, start up the front end using the <code>hab start</code> command. This command first starts up the Habitat #{link_to 'Supervisor', '/docs/glossary#glossary-supervisor'} and then runs your application according to the behavior specified in your package.
+  p If you peek into the PostgreSQL tab below, you'll notice that we've taken the liberty of starting a Habitat #{link_to 'Supervisor', '/docs/glossary#glossary-supervisor'} for you with <code>hab sup run</code> and instructed it to load the <code>core/postgresql</code> package, which is now running in the background as a Habitat-managed service.
 
-  p The start up procedure for the PostgreSQL package is similar, so in the second window, we have already started that package for you.
+  p Now let's try loading our Ruby application into the same Supervisor using <code>hab svc load</code>. In the Ruby-on-Rails tab, run that command, passing it the origin and name of our example package:
 
-  p You will see in each output that the Supervisor starts up first and then starts up any packaged applications or services. In the case of our Ruby-on-Rails application, the Supervisor recognizes that the application must bind to a database (specified in its plan), before initialization can take place. We will address that problem in the next step.
+  = code(:shell) do
+    |
+      $  hab svc load example/myrubyapp
 
   blockquote
-    p Tip: If you mess up entering a command, hit the Up arrow on your keyboard to re-enter your command in the terminal window. You can fix your error without having to type the whole command over again.
-
-    = code(:shell) do
-      |
-       $ hab start example/myrubyapp
+    p Tip: If you make a mistake while entering a command, hit the Up arrow on your keyboard to re-enter it in the terminal window. You can fix your mistake without having to type the whole command over again.
 
   .window-buttons
     ul
@@ -30,52 +28,49 @@ section
 
   .shell-panel.window-node id="window-node-2" style="display:none;"
     pre
-      | user@workstation-machine:~$ hab start core/postgresql
+      | user@workstation-machine:~$ hab sup run
+        user@workstation-machine:~$ hab svc load core/postgresql
 
-        hab-sup(MR): Butterfly Member ID 5eea050dcf5e41dd990c8552f4784c19
-        hab-sup(SR): Adding core/postgresql/9.6.1/20170424032128
-        hab-sup(MR): Starting butterfly on 0.0.0.0:9638
-        hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
-        connecting to tcp://localhost:10001
-        connecting to tcp://localhost:10011
-        connecting to tcp://localhost:10021
-        hab-sup(SC): Updated postgresql.conf 520f0b4f92b53312db6c512e577af98e2fe76c09d774eb81bfd62bb7fcc50b41
-        hab-sup(SC): Updated pg_ident.conf 0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
-        hab-sup(SC): Updated pwfile 5b4b01a4a3892ea3751793da57f072ae08eec694ddcda872239fc8239e4bcd1b
-        hab-sup(SC): Updated pg_hba.conf 262f519376471182971fc230c25775ee43c3507927be36a57813f62fd18e64e4
-        postgresql.default(SR): Initializing
-        postgresql.default hook[init]:(HK):  Database does not exist, creating with 'initdb'
-        postgresql.default hook[init]:(HK): The files belonging to this database system will be owned by user "hab".
-        postgresql.default hook[init]:(HK): This user must also own the server process.
-        postgresql.default hook[init]:(HK):
-        postgresql.default hook[init]:(HK): The database cluster will be initialized with locale "C".
-        postgresql.default hook[init]:(HK): The default text search configuration will be set to "english".
-        postgresql.default hook[init]:(HK):
-        postgresql.default hook[init]:(HK): Data page checksums are disabled.
-        postgresql.default hook[init]:(HK):
-        postgresql.default hook[init]:(HK): fixing permissions on existing directory /hab/svc/postgresql/data ... ok
-        postgresql.default hook[init]:(HK): creating subdirectories ... ok
-        postgresql.default hook[init]:(HK): selecting default max_connections ... 100
-        postgresql.default hook[init]:(HK): selecting default shared_buffers ... 128MB
-        postgresql.default hook[init]:(HK): selecting dynamic shared memory implementation ... posix
-        postgresql.default hook[init]:(HK): creating configuration files ... ok
-        postgresql.default hook[init]:(HK): running bootstrap script ... ok
-        postgresql.default hook[init]:(HK): performing post-bootstrap initialization ... ok
-        postgresql.default hook[init]:(HK): syncing data to disk ... ok
-        postgresql.default hook[init]:(HK):
-        postgresql.default hook[init]:(HK): WARNING: enabling "trust" authentication for local connections
-        postgresql.default hook[init]:(HK): You can change this by editing pg_hba.conf or using the option -A, or
-        postgresql.default hook[init]:(HK): --auth-local and --auth-host, the next time you run initdb.
-        postgresql.default hook[init]:(HK):
-        postgresql.default hook[init]:(HK): Success. You can now start the database server using:
-        postgresql.default hook[init]:(HK):
-        postgresql.default hook[init]:(HK):     pg_ctl -D /hab/svc/postgresql/data -l logfile start
-        postgresql.default hook[init]:(HK):
-        postgresql.default(SV): Starting process as user=hab, group=hab
-        postgresql.default(O): 2017-05-21 05:36:44 GMT FATAL:  the database system is starting up
-        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  database system was shut down at 2017-05-21 05:36:43 GMT
-        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  MultiXact member wraparound protections are now enabled
-        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  database system is ready to accept connections
-        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  autovacuum launcher started
+        » Installing core/postgresql
+        ☁ Determining latest version of core/postgresql in the 'stable' channel
+        ☛ Verifying core/postgresql/9.6.8/20180423183113
+        → Using core/acl/2.2.52/20170513213108
+        → Using core/attr/2.4.47/20170513213059
+        → Using core/bash/4.3.42/20170513213519
+        → Using core/bzip2/1.0.6/20170513212938
+        → Using core/cacerts/2017.09.20/20171014212239
+        → Using core/coreutils/8.25/20170513213226
+        ☛ Verifying core/db/5.3.28/20170513213734
+        → Using core/gcc-libs/5.2.0/20170513212920
+        ☛ Verifying core/gdal/2.2.1/20171025112525
+        ☛ Verifying core/gdbm/1.11/20170513213716
+        ☛ Verifying core/geos/3.6.2/20171025112556
+        → Using core/glibc/2.22/20170513201042
+        → Using core/gmp/6.1.0/20170513202112
+        → Using core/less/481/20170513213936
+        → Using core/libcap/2.24/20170513213120
+        ☛ Verifying core/libossp-uuid/1.6.2/20170514001348
+        ☛ Verifying core/libxml2/2.9.6/20171025112053
+        → Using core/linux-headers/4.3/20170513200956
+        → Using core/ncurses/6.0/20170513213009
+        → Using core/openssl/1.0.2l/20171014213633
+        → Using core/pcre/8.38/20170513213423
+        ☛ Verifying core/perl/5.22.1/20170513213942
+        ☛ Verifying core/proj/4.9.3/20171025112633
+        → Using core/readline/6.3.8/20170513213506
+        → Using core/zlib/1.2.8/20170513201911
+        ✓ Installed core/db/5.3.28/20170513213734
+        ✓ Installed core/gdal/2.2.1/20171025112525
+        ✓ Installed core/gdbm/1.11/20170513213716
+        ✓ Installed core/geos/3.6.2/20171025112556
+        ✓ Installed core/libossp-uuid/1.6.2/20170514001348
+        ✓ Installed core/libxml2/2.9.6/20171025112053
+        ✓ Installed core/perl/5.22.1/20170513213942
+        ✓ Installed core/proj/4.9.3/20171025112633
+        ✓ Installed core/postgresql/9.6.8/20180423183113
+        ★ Install of core/postgresql/9.6.8/20180423183113 complete with 9 new packages installed.
+        The core/postgresql service was successfully loaded
+
+  p Notice that when you do so, the Supervisor recognizes that the application (as specified in its plan) must <a href="/docs/developing-packages/#runtime-binding">bind to a database</a> before it can be started. We will address that problem in the next step.
 
 = link_to 'Next: Join Services Together', '/tutorials/get-started/demo/join-services/', class: 'button cta'

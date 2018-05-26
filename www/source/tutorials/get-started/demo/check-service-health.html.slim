@@ -7,24 +7,23 @@ section
 
   p Habitat provides a consistent interface for retrieving the status of your running services.
 
-  p To retrieve status for an individual service, specify the origin and package name in the <code>hab sup status</code> subcommand. Check the status of <code>example/myrubyapp</code> by entering the following into the terminal window:
+  p To check the status of an individual service, specify the origin and package name in the <code>hab sup status</code> subcommand. Go ahead and check the statuses of our running services now:
 
   = code(:shell) do
     |
      $ hab sup status example/myrubyapp
+     $ hab sup status core/postgresql
 
-  p In addition to retrieving general status information about a service, the Supervisor also exposes service health, leader election results, census information, and other data through an HTTP API endpoint.
+  p In addition to retrieving general status information about a service, the Supervisor also exposes service health, leader election results, census information, and other data <a href="/docs/using-habitat/#monitor-services-through-the-http-api">through its REST API</a>.
 
-  p In our example, you will use <code>curl</code> to connect to the Supervisor of the <code>myrubyapp</code> service and query for its health. This health check is user-defined in the plan, and can be used for basic tasks such as checking whether your web app is available for requests.
-
-  p To see the results of a basic availability test for the Ruby-on-Rails application, enter the following:
+  p Try using <code>curl</code> below to connect to the Supervisor of the <code>myrubyapp</code> service and query for its health. This <a href="/docs/reference/#health_check">health check</a> is user-definable as an optional part of a Habitat plan, and can be used for basic tasks such as determining whether your web app is available for requests. To see the results of a basic availability test for our Rails application, try:
 
   = code(:shell) do
     |
      $ curl http://172.17.0.3:9631/services/myrubyapp/default/health
 
-  p This health check is available by default when using the Ruby scaffolding to create your package.
-
   = partial "partials/terminal" do
+
+  p This health check is available by default when you use the Ruby <a href="/docs/glossary/#scaffolding">scaffolding</a> to create your package.
 
 = link_to 'Next: Learn More About Habitat', '/tutorials/get-started/demo/learn-more/', class: 'button cta'
