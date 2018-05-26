@@ -13,6 +13,13 @@ enum ProcessState {
   Up = 1;
 }
 
+enum DesiredState {
+  // enum values must be unique within global scope
+  // therefore we cannot re-use Down/Up
+  DesiredDown = 0;
+  DesiredUp = 1;
+}
+
 // The relationship of a service with peers in the same service group.
 enum Topology {
   Standalone = 0;
@@ -79,5 +86,5 @@ message ServiceStatus {
   optional ProcessStatus process = 2;
   optional ServiceGroup service_group = 3;
   optional string composite = 4;
+  optional DesiredState desired_state = 5;
 }
-

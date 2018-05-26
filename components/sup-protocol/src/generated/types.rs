@@ -1872,6 +1872,7 @@ pub struct ServiceStatus {
     process: ::protobuf::SingularPtrField<ProcessStatus>,
     service_group: ::protobuf::SingularPtrField<ServiceGroup>,
     composite: ::protobuf::SingularField<::std::string::String>,
+    desired_state: ::std::option::Option<DesiredState>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -2061,6 +2062,33 @@ impl ServiceStatus {
     fn mut_composite_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
         &mut self.composite
     }
+
+    // optional .DesiredState desired_state = 5;
+
+    pub fn clear_desired_state(&mut self) {
+        self.desired_state = ::std::option::Option::None;
+    }
+
+    pub fn has_desired_state(&self) -> bool {
+        self.desired_state.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_desired_state(&mut self, v: DesiredState) {
+        self.desired_state = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_desired_state(&self) -> DesiredState {
+        self.desired_state.unwrap_or(DesiredState::DesiredDown)
+    }
+
+    fn get_desired_state_for_reflect(&self) -> &::std::option::Option<DesiredState> {
+        &self.desired_state
+    }
+
+    fn mut_desired_state_for_reflect(&mut self) -> &mut ::std::option::Option<DesiredState> {
+        &mut self.desired_state
+    }
 }
 
 impl ::protobuf::Message for ServiceStatus {
@@ -2099,6 +2127,9 @@ impl ::protobuf::Message for ServiceStatus {
                 4 => {
                     ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.composite)?;
                 },
+                5 => {
+                    ::protobuf::rt::read_proto2_enum_with_unknown_fields_into(wire_type, is, &mut self.desired_state, 5, &mut self.unknown_fields)?
+                },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
@@ -2126,6 +2157,9 @@ impl ::protobuf::Message for ServiceStatus {
         if let Some(ref v) = self.composite.as_ref() {
             my_size += ::protobuf::rt::string_size(4, &v);
         }
+        if let Some(v) = self.desired_state {
+            my_size += ::protobuf::rt::enum_size(5, v);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -2149,6 +2183,9 @@ impl ::protobuf::Message for ServiceStatus {
         }
         if let Some(ref v) = self.composite.as_ref() {
             os.write_string(4, &v)?;
+        }
+        if let Some(v) = self.desired_state {
+            os.write_enum(5, v.value())?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -2214,6 +2251,11 @@ impl ::protobuf::MessageStatic for ServiceStatus {
                     ServiceStatus::get_composite_for_reflect,
                     ServiceStatus::mut_composite_for_reflect,
                 ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<DesiredState>>(
+                    "desired_state",
+                    ServiceStatus::get_desired_state_for_reflect,
+                    ServiceStatus::mut_desired_state_for_reflect,
+                ));
                 ::protobuf::reflect::MessageDescriptor::new::<ServiceStatus>(
                     "ServiceStatus",
                     fields,
@@ -2230,6 +2272,7 @@ impl ::protobuf::Clear for ServiceStatus {
         self.clear_process();
         self.clear_service_group();
         self.clear_composite();
+        self.clear_desired_state();
         self.unknown_fields.clear();
     }
 }
@@ -2339,6 +2382,55 @@ impl ::std::marker::Copy for ProcessState {
 }
 
 impl ::protobuf::reflect::ProtobufValue for ProcessState {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
+}
+
+#[derive(Clone,PartialEq,Eq,Debug,Hash)]
+pub enum DesiredState {
+    DesiredDown = 0,
+    DesiredUp = 1,
+}
+
+impl ::protobuf::ProtobufEnum for DesiredState {
+    fn value(&self) -> i32 {
+        *self as i32
+    }
+
+    fn from_i32(value: i32) -> ::std::option::Option<DesiredState> {
+        match value {
+            0 => ::std::option::Option::Some(DesiredState::DesiredDown),
+            1 => ::std::option::Option::Some(DesiredState::DesiredUp),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    fn values() -> &'static [Self] {
+        static values: &'static [DesiredState] = &[
+            DesiredState::DesiredDown,
+            DesiredState::DesiredUp,
+        ];
+        values
+    }
+
+    fn enum_descriptor_static(_: ::std::option::Option<DesiredState>) -> &'static ::protobuf::reflect::EnumDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::EnumDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                ::protobuf::reflect::EnumDescriptor::new("DesiredState", file_descriptor_proto())
+            })
+        }
+    }
+}
+
+impl ::std::marker::Copy for DesiredState {
+}
+
+impl ::protobuf::reflect::ProtobufValue for DesiredState {
     fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
         ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
     }
@@ -2513,16 +2605,18 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x18\x02\x20\x01(\t:\x07defaultR\x05group\x12P\n\x17application_environm\
     ent\x18\x03\x20\x01(\x0b2\x17.ApplicationEnvironmentR\x16applicationEnvi\
     ronment\x12\"\n\x0corganization\x18\x04\x20\x01(\tR\x0corganization\"\
-    \xb0\x01\n\rServiceStatus\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.Packag\
+    \xe4\x01\n\rServiceStatus\x12#\n\x05ident\x18\x01\x20\x01(\x0b2\r.Packag\
     eIdentR\x05ident\x12(\n\x07process\x18\x02\x20\x01(\x0b2\x0e.ProcessStat\
     usR\x07process\x122\n\rservice_group\x18\x03\x20\x01(\x0b2\r.ServiceGrou\
-    pR\x0cserviceGroup\x12\x1c\n\tcomposite\x18\x04\x20\x01(\tR\tcomposite*'\
-    \n\rInstallSource\x12\t\n\x05Ident\x10\0\x12\x0b\n\x07Archive\x10\x01*\
-    \x20\n\x0cProcessState\x12\x08\n\x04Down\x10\0\x12\x06\n\x02Up\x10\x01*&\
-    \n\x08Topology\x12\x0e\n\nStandalone\x10\0\x12\n\n\x06Leader\x10\x01*3\n\
-    \x0eUpdateStrategy\x12\x08\n\x04None\x10\0\x12\n\n\x06AtOnce\x10\x01\x12\
-    \x0b\n\x07Rolling\x10\x02*&\n\x0bBindingMode\x12\x0b\n\x07Relaxed\x10\0\
-    \x12\n\n\x06Strict\x10\x01\
+    pR\x0cserviceGroup\x12\x1c\n\tcomposite\x18\x04\x20\x01(\tR\tcomposite\
+    \x122\n\rdesired_state\x18\x05\x20\x01(\x0e2\r.DesiredStateR\x0cdesiredS\
+    tate*'\n\rInstallSource\x12\t\n\x05Ident\x10\0\x12\x0b\n\x07Archive\x10\
+    \x01*\x20\n\x0cProcessState\x12\x08\n\x04Down\x10\0\x12\x06\n\x02Up\x10\
+    \x01*.\n\x0cDesiredState\x12\x0f\n\x0bDesiredDown\x10\0\x12\r\n\tDesired\
+    Up\x10\x01*&\n\x08Topology\x12\x0e\n\nStandalone\x10\0\x12\n\n\x06Leader\
+    \x10\x01*3\n\x0eUpdateStrategy\x12\x08\n\x04None\x10\0\x12\n\n\x06AtOnce\
+    \x10\x01\x12\x0b\n\x07Rolling\x10\x02*&\n\x0bBindingMode\x12\x0b\n\x07Re\
+    laxed\x10\0\x12\n\n\x06Strict\x10\x01\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

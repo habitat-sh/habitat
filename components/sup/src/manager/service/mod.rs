@@ -95,6 +95,7 @@ pub struct Service {
     pub service_group: ServiceGroup,
     pub bldr_url: String,
     pub channel: String,
+    pub desired_state: DesiredState,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
     pub topology: Topology,
@@ -179,6 +180,7 @@ impl Service {
             config_renderer: CfgRenderer::new(&config_root)?,
             bldr_url: spec.bldr_url,
             channel: spec.channel,
+            desired_state: spec.desired_state,
             health_check: HealthCheck::default(),
             hooks: HookTable::load(
                 &service_group,

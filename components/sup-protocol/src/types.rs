@@ -84,6 +84,16 @@ impl fmt::Display for ProcessState {
     }
 }
 
+impl fmt::Display for DesiredState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let state = match *self {
+            DesiredState::DesiredDown => "down",
+            DesiredState::DesiredUp => "up",
+        };
+        write!(f, "{}", state)
+    }
+}
+
 impl FromStr for BindingMode {
     type Err = NetErr;
 
