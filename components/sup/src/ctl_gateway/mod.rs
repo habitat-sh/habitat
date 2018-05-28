@@ -182,8 +182,8 @@ impl io::Write for CtlRequest {
         // at least), we'll retain any colored output.
         //
         // `line` will also have a newline character at the end, FYI.
-        let mut msg = protocol::ctl::ConsoleLine::new();
-        msg.set_line(line.clone());
+        let mut msg = protocol::ctl::ConsoleLine::default();
+        msg.line = line.clone();
         self.reply_partial(msg);
 
         // Down here, however, we're doing double-duty by *also*
@@ -225,7 +225,7 @@ impl NetProgressBar {
     /// Create a new progress bar.
     pub fn new(req: CtlRequest) -> Self {
         NetProgressBar {
-            inner: protocol::ctl::NetProgress::new(),
+            inner: protocol::ctl::NetProgress::default(),
             req: req,
         }
     }
@@ -233,7 +233,7 @@ impl NetProgressBar {
 
 impl DisplayProgress for NetProgressBar {
     fn size(&mut self, size: u64) {
-        self.inner.set_total(size);
+        self.inner.total = size;
     }
 
     fn finish(&mut self) {
@@ -243,8 +243,7 @@ impl DisplayProgress for NetProgressBar {
 
 impl io::Write for NetProgressBar {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let position = self.inner.get_position() + buf.len() as u64;
-        self.inner.set_position(position);
+        self.inner.position = self.inner.position + buf.len() as u64;
         self.req.reply_partial(self.inner.clone());
         Ok(buf.len())
     }

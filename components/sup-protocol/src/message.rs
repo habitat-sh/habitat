@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-///! Module definitions for all generated protocol files. A new module must be defined here when a
-///! new Protobuf package is added. See the notes in [`protocols`] for more details.
-pub mod ctl;
-pub mod net;
-pub mod types;
+pub trait MessageStatic {
+    const MESSAGE_ID: &'static str;
+}

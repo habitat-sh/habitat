@@ -90,8 +90,10 @@ impl Env {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Pkg {
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub ident: PackageIdent,
     pub origin: String,
     pub name: String,

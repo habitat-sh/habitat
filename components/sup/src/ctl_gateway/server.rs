@@ -35,7 +35,7 @@ use crypto;
 use futures::future::{self, Either};
 use futures::prelude::*;
 use futures::sync::mpsc;
-use protobuf;
+use prost;
 use protocol;
 use protocol::codec::*;
 use protocol::net::{self, ErrCode, NetErr, NetResult};
@@ -61,7 +61,7 @@ pub type MgrReceiver = mpsc::UnboundedReceiver<CtlCommand>;
 
 #[derive(Debug)]
 pub enum HandlerError {
-    Decode(protobuf::ProtobufError),
+    Decode(prost::DecodeError),
     Io(io::Error),
     NetErr(NetErr),
     SendError(mpsc::SendError<CtlCommand>),
@@ -102,8 +102,8 @@ impl From<io::Error> for HandlerError {
     }
 }
 
-impl From<protobuf::ProtobufError> for HandlerError {
-    fn from(err: protobuf::ProtobufError) -> Self {
+impl From<prost::DecodeError> for HandlerError {
+    fn from(err: prost::DecodeError) -> Self {
         HandlerError::Decode(err)
     }
 }
@@ -190,10 +190,11 @@ impl Client {
                         match m.parse::<protocol::ctl::Handshake>() {
                             Ok(decoded) => {
                                 trace!("Received handshake, {:?}", decoded);
+                                let decoded_key = decoded.secret_key.unwrap_or_default();
                                 Ok((
                                     m,
                                     crypto::util::fixed_time_eq(
-                                        decoded.get_secret_key().as_bytes(),
+                                        decoded_key.as_bytes(),
                                         secret_key.as_bytes(),
                                     ),
                                     io,

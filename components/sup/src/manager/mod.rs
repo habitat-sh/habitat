@@ -42,8 +42,8 @@ use std::time::Duration;
 
 use butterfly;
 use butterfly::member::Member;
-use butterfly::server::Suitability;
 use butterfly::server::timing::Timing;
+use butterfly::server::Suitability;
 use butterfly::trace::Trace;
 use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
@@ -74,13 +74,13 @@ use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
-use VERSION;
 use census::CensusRing;
 use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
 use http_gateway;
 use util;
+use VERSION;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
@@ -274,9 +274,9 @@ impl Manager {
             req.reply_complete(net::ok());
             return Ok(());
         }
-        if opts.has_ident() {
+        if let Some(ident) = opts.ident {
             for status in statuses {
-                if status.pkg.ident.satisfies(opts.get_ident()) {
+                if status.pkg.ident.satisfies(&ident) {
                     let mut msg: protocol::types::ServiceStatus = status.into();
                     req.reply_complete(msg);
                     break;
@@ -284,7 +284,7 @@ impl Manager {
             }
             return Err(net::err(
                 ErrCode::NotFound,
-                format!("{} not loaded.", opts.get_ident()),
+                format!("{} not loaded.", ident),
             ));
         } else {
             let mut list = statuses.into_iter().peekable();
@@ -766,14 +766,17 @@ impl Manager {
     pub fn service_cfg(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocol::ctl::SvcGetDefaultCfg,
+        opts: protocol::ctl::SvcGetDefaultCfg,
     ) -> NetResult<()> {
-        let ident: PackageIdent = opts.take_ident().into();
+        let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
+        let mut msg = protocol::types::ServiceCfg {
+            format: Some(protocol::types::service_cfg::Format::Toml as i32),
+            default: None,
+        };
         for service in mgr.services.read().unwrap().iter() {
             if service.pkg.ident.satisfies(&ident) {
-                let mut msg = protocol::types::ServiceCfg::new();
                 if let Some(ref cfg) = service.cfg.default {
-                    msg.set_default(
+                    msg.default = Some(
                         toml::to_string_pretty(&toml::value::Value::Table(cfg.clone())).unwrap(),
                     );
                     req.reply_complete(msg);
@@ -790,36 +793,35 @@ impl Manager {
     pub fn service_cfg_validate(
         _mgr: &ManagerState,
         req: &mut CtlRequest,
-        opts: protocol::ctl::SvcValidateCfg, // TODO (CM): once we're
-                                             // validating, this needs to be mut
+        opts: protocol::ctl::SvcValidateCfg,
     ) -> NetResult<()> {
-        if opts.get_cfg().len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
+        let cfg = opts.cfg.ok_or(err_update_client())?;
+        let format = opts.format
+            .and_then(protocol::types::service_cfg::Format::from_i32)
+            .unwrap_or_default();
+        if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
             return Err(net::err(
                 ErrCode::EntityTooLarge,
                 "Configuration too large.",
             ));
         }
-        if opts.get_format() != protocol::types::ServiceCfg_Format::TOML {
+        if format != protocol::types::service_cfg::Format::Toml {
             return Err(net::err(
                 ErrCode::NotSupported,
-                format!("Configuration format {} not available.", opts.get_format()),
+                format!("Configuration format {} not available.", format),
             ));
         }
-        let _new_cfg: toml::value::Table = toml::from_slice(opts.get_cfg()).map_err(|e| {
+        let _new_cfg: toml::value::Table = toml::from_slice(&cfg).map_err(|e| {
             net::err(
                 ErrCode::BadPayload,
-                format!(
-                    "Unable to decode configuration as {}, {}",
-                    opts.get_format(),
-                    e
-                ),
+                format!("Unable to decode configuration as {}, {}", format, e),
             )
         })?;
         req.reply_complete(net::ok());
         Ok(())
         // JW TODO: Hold off on validation until we can validate services which aren't currently
         // loaded in the Supervisor but are known through rumor propagation.
-        // let service_group: ServiceGroup = opts.take_service_group().into();
+        // let service_group: ServiceGroup = opts.service_group.into();
         // for service in mgr.services.read().unwrap().iter() {
         //     if service.service_group != service_group {
         //         continue;
@@ -852,18 +854,21 @@ impl Manager {
     pub fn service_cfg_set(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocol::ctl::SvcSetCfg,
+        opts: protocol::ctl::SvcSetCfg,
     ) -> NetResult<()> {
-        if opts.get_cfg().len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
+        let cfg = opts.cfg.ok_or(err_update_client())?;
+        let is_encrypted = opts.is_encrypted.unwrap_or(false);
+        let version = opts.version.ok_or(err_update_client())?;
+        let service_group: ServiceGroup = opts.service_group.ok_or(err_update_client())?.into();
+        if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
             return Err(net::err(
                 ErrCode::EntityTooLarge,
                 "Configuration too large.",
             ));
         }
-        let service_group: ServiceGroup = opts.take_service_group().into();
         outputln!(
             "Setting new configuration version {} for {}",
-            opts.get_version(),
+            version,
             service_group,
         );
         let mut client = match butterfly::client::Client::new(
@@ -876,12 +881,7 @@ impl Manager {
                 return Err(net::err(ErrCode::Internal, err.to_string()));
             }
         };
-        match client.send_service_config(
-            service_group,
-            opts.get_version(),
-            opts.take_cfg(),
-            opts.get_is_encrypted(),
-        ) {
+        match client.send_service_config(service_group, version, cfg, is_encrypted) {
             Ok(()) => {
                 req.reply_complete(net::ok());
                 return Ok(());
@@ -893,16 +893,20 @@ impl Manager {
     pub fn service_file_put(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocol::ctl::SvcFilePut,
+        opts: protocol::ctl::SvcFilePut,
     ) -> NetResult<()> {
-        if opts.get_content().len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES {
+        let content = opts.content.ok_or(err_update_client())?;
+        let filename = opts.filename.ok_or(err_update_client())?;
+        let is_encrypted = opts.is_encrypted.unwrap_or(false);
+        let version = opts.version.ok_or(err_update_client())?;
+        let service_group: ServiceGroup = opts.service_group.ok_or(err_update_client())?.into();
+        if content.len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES {
             return Err(net::err(ErrCode::EntityTooLarge, "File content too large."));
         }
-        let service_group: ServiceGroup = opts.take_service_group().into();
         outputln!(
             "Receiving new version {} of file {} for {}",
-            opts.get_version(),
-            opts.get_filename(),
+            version,
+            filename,
             service_group,
         );
         let mut client = match butterfly::client::Client::new(
@@ -915,13 +919,7 @@ impl Manager {
                 return Err(net::err(ErrCode::Internal, err.to_string()));
             }
         };
-        match client.send_service_file(
-            service_group,
-            opts.take_filename(),
-            opts.get_version(),
-            opts.take_content(),
-            opts.get_is_encrypted(),
-        ) {
+        match client.send_service_file(service_group, filename, version, content, is_encrypted) {
             Ok(()) => {
                 req.reply_complete(net::ok());
                 return Ok(());
@@ -929,22 +927,21 @@ impl Manager {
             Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
         }
     }
+
     pub fn service_load(
         mgr: &ManagerState,
         req: &mut CtlRequest,
         opts: protocol::ctl::SvcLoad,
     ) -> NetResult<()> {
-        let bldr_url = if opts.has_bldr_url() {
-            opts.get_bldr_url()
-        } else {
-            &protocol::DEFAULT_BLDR_URL
-        };
-        let bldr_channel = if opts.has_bldr_channel() {
-            opts.get_bldr_channel()
-        } else {
-            &protocol::DEFAULT_BLDR_CHANNEL
-        };
-        let source = InstallSource::Ident(opts.get_ident().clone().into());
+        let ident: PackageIdent = opts.ident.clone().ok_or(err_update_client())?.into();
+        let bldr_url = opts.bldr_url
+            .clone()
+            .unwrap_or(protocol::DEFAULT_BLDR_URL.to_string());
+        let bldr_channel = opts.bldr_channel
+            .clone()
+            .unwrap_or(protocol::DEFAULT_BLDR_CHANNEL.to_string());
+        let force = opts.force.clone().unwrap_or(false);
+        let source = InstallSource::Ident(ident.clone());
         match Self::existing_specs_for_ident(&mgr.cfg, source.as_ref())? {
             None => {
                 // We don't have any record of this thing; let's set it up!
@@ -985,14 +982,11 @@ impl Manager {
                 // NOT download a potentially new version of the package
                 // in question
 
-                if !opts.get_force() {
+                if !force {
                     // TODO (CM): make this error reflect composites
                     return Err(net::err(
                         ErrCode::Conflict,
-                        format!(
-                            "Service already loaded, unload '{}' and try again",
-                            opts.get_ident()
-                        ),
+                        format!("Service already loaded, unload '{}' and try again", ident),
                     ));
                 }
 
@@ -1128,9 +1122,9 @@ impl Manager {
     pub fn service_unload(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocol::ctl::SvcUnload,
+        opts: protocol::ctl::SvcUnload,
     ) -> NetResult<()> {
-        let ident: PackageIdent = opts.take_ident().into();
+        let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
         // Gather up the paths to all the spec files we care about. This
         // includes all service specs as well as any composite spec.
         let spec_paths = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
@@ -1166,7 +1160,7 @@ impl Manager {
         req: &mut CtlRequest,
         opts: protocol::ctl::SvcStart,
     ) -> NetResult<()> {
-        let ident = opts.get_ident().clone().into();
+        let ident = opts.ident.ok_or(err_update_client())?.into();
         let updated_specs = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
             Some(Spec::Service(mut spec)) => {
                 let mut updated_specs = vec![];
@@ -1212,9 +1206,9 @@ impl Manager {
     pub fn service_stop(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocol::ctl::SvcStop,
+        opts: protocol::ctl::SvcStop,
     ) -> NetResult<()> {
-        let ident: PackageIdent = opts.take_ident().into();
+        let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
         let updated_specs = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
             Some(Spec::Service(mut spec)) => {
                 let mut updated_specs = vec![];
@@ -1260,8 +1254,9 @@ impl Manager {
     pub fn supervisor_depart(
         mgr: &ManagerState,
         req: &mut CtlRequest,
-        mut opts: protocol::ctl::SupDepart,
+        opts: protocol::ctl::SupDepart,
     ) -> NetResult<()> {
+        let member_id = opts.member_id.ok_or(err_update_client())?;
         let mut client = match butterfly::client::Client::new(
             format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
             mgr.cfg.ring_key.clone(),
@@ -1272,8 +1267,8 @@ impl Manager {
                 return Err(net::err(ErrCode::Internal, err.to_string()));
             }
         };
-        outputln!("Attempting to depart member: {}", opts.get_member_id());
-        match client.send_departure(opts.take_member_id()) {
+        outputln!("Attempting to depart member: {}", member_id);
+        match client.send_departure(member_id) {
             Ok(()) => {
                 req.reply_complete(net::ok());
                 Ok(())
@@ -1718,6 +1713,10 @@ impl Suitability for SuitabilityLookup {
     }
 }
 
+fn err_update_client() -> net::NetErr {
+    net::err(ErrCode::UpdateClient, "client out of date")
+}
+
 fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -1892,22 +1891,13 @@ impl Future for CtlHandler {
     }
 }
 
-impl From<service::ProcessState> for protocol::types::ProcessState {
-    fn from(other: service::ProcessState) -> Self {
-        match other {
-            service::ProcessState::Down => protocol::types::ProcessState::Down,
-            service::ProcessState::Up => protocol::types::ProcessState::Up,
-        }
-    }
-}
-
 impl From<ProcessStatus> for protocol::types::ProcessStatus {
     fn from(other: ProcessStatus) -> Self {
-        let mut proto = protocol::types::ProcessStatus::new();
-        proto.set_elapsed(other.elapsed.num_seconds());
-        proto.set_state(other.state.into());
+        let mut proto = protocol::types::ProcessStatus::default();
+        proto.elapsed = Some(other.elapsed.num_seconds());
+        proto.state = other.state.into();
         if let Some(pid) = other.pid {
-            proto.set_pid(pid);
+            proto.pid = Some(pid);
         }
         proto
     }
@@ -1915,37 +1905,32 @@ impl From<ProcessStatus> for protocol::types::ProcessStatus {
 
 impl From<service::ServiceBind> for protocol::types::ServiceBind {
     fn from(bind: service::ServiceBind) -> Self {
-        let mut proto = protocol::types::ServiceBind::new();
-        proto.set_name(bind.name);
-        proto.set_service_group(bind.service_group.into());
+        let mut proto = protocol::types::ServiceBind::default();
+        proto.name = bind.name;
+        proto.service_group = bind.service_group.into();
         proto
     }
 }
 
 impl From<ServiceStatus> for protocol::types::ServiceStatus {
     fn from(other: ServiceStatus) -> Self {
-        let mut proto = protocol::types::ServiceStatus::new();
-        proto.set_ident(other.pkg.ident.into());
-        proto.set_process(other.process.into());
-        proto.set_service_group(other.service_group.into());
+        let mut proto = protocol::types::ServiceStatus::default();
+        proto.ident = other.pkg.ident.into();
+        proto.process = Some(other.process.into());
+        proto.service_group = other.service_group.into();
         if let Some(composite) = other.composite {
-            proto.set_composite(composite);
+            proto.composite = Some(composite);
         }
         proto
     }
 }
 
 impl Into<service::ServiceBind> for protocol::types::ServiceBind {
-    fn into(mut self) -> service::ServiceBind {
-        let service_name = if self.has_service_name() {
-            Some(self.take_service_name())
-        } else {
-            None
-        };
+    fn into(self) -> service::ServiceBind {
         service::ServiceBind {
-            name: self.take_name(),
-            service_group: self.take_service_group().into(),
-            service_name: service_name,
+            name: self.name,
+            service_group: self.service_group.into(),
+            service_name: self.service_name,
         }
     }
 }
