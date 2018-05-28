@@ -123,7 +123,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .long("service-group")
                         .short("g")
                         .help(
-                            "group is a logical grouping of services with the same package and \
+                            "Group is a logical grouping of services with the same package and \
                              topology type connected together in a ring (default: default)",
                         ),
                 )
@@ -172,7 +172,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .long("ring-secret-name")
                     .short("r")
                     .help(
-                        "name of the Kubernetes Secret that contains the ring key, which \
+                        "Name of the Kubernetes Secret that contains the ring key, which \
                          encrypts the communication between Habitat supervisors",
                     ),
             ),
