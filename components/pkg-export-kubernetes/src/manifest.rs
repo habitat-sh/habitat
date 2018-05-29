@@ -147,7 +147,7 @@ impl Manifest {
     pub fn generate(&mut self, write: &mut Write) -> Result<()> {
         let out: String = ManifestJson::new(&self).into();
 
-        write.write(out.as_bytes())?;
+        write.write_all(out.as_bytes())?;
 
         Ok(())
     }

@@ -360,13 +360,8 @@ impl CensusGroup {
             .iter()
             .position(|cm| cm.member_id == self.me().unwrap().member_id)
         {
-            Some(idx) => {
-                if idx <= 0 {
-                    Some(alive_members[alive_members.len() - 1])
-                } else {
-                    Some(alive_members[idx - 1])
-                }
-            }
+            Some(0) => Some(alive_members[alive_members.len() - 1]),
+            Some(idx) => Some(alive_members[idx - 1]),
             None => None,
         }
     }

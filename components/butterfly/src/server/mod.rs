@@ -569,7 +569,7 @@ impl Server {
                         .depart_remove(service_rumor.get_member_id());
                     self.rumor_heat.start_hot_rumor(RumorKey::new(
                         message::swim::Rumor_Type::Member,
-                        service_rumor.get_member_id().clone(),
+                        service_rumor.get_member_id(),
                         "",
                     ));
                 }
@@ -609,7 +609,7 @@ impl Server {
             self.member_list.depart_remove(departure.get_member_id());
             self.rumor_heat.start_hot_rumor(RumorKey::new(
                 message::swim::Rumor_Type::Member,
-                departure.get_member_id().clone(),
+                departure.get_member_id(),
                 "",
             ));
         }

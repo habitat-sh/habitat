@@ -79,8 +79,6 @@ extern crate router;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-#[allow(unused_imports)]
-#[macro_use]
 extern crate serde_json;
 extern crate serde_transcode;
 extern crate serde_yaml;

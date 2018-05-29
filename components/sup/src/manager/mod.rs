@@ -1520,7 +1520,7 @@ impl Manager {
         W: io::Write,
     {
         if !is_first {
-            writer.write(",".as_bytes())?;
+            writer.write_all(b",")?;
         }
         serde_json::to_writer(writer, service)
             .map_err(|e| sup_error!(Error::ServiceSerializationError(e)))

@@ -215,8 +215,8 @@ ALLOWED_LINTS = absurd_extreme_comparisons assign_op_pattern blacklisted_name \
                 string_lit_as_bytes too_many_arguments toplevel_ref_arg unit_arg \
                 unreadable_literal unused_io_amount unused_label unused_lifetimes \
                 useless_attribute useless_format useless_let_if_seq useless_vec \
-                write_with_newline wrong_self_convention zero_prefixed_literal
-DENIED_LINTS = # absurd_extreme_comparisons zero_prefixed_literal
+                write_with_newline wrong_self_convention
+DENIED_LINTS = clippy_correctness
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
 	$(run) sh -c 'cd components/$1 && cargo +nightly clippy $(CARGO_FLAGS) -- $(addprefix -D ,$(DENIED_LINTS)) $(addprefix -A ,$(ALLOWED_LINTS))'

@@ -24,11 +24,11 @@ pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
     ui.begin(format!("Reading package header for {}", &src.display()))?;
     ui.para("")?;
     if let Ok(header) = artifact::get_artifact_header(src) {
-        io::stdout().write(format!("Package        : {}\n", &src.display()).as_bytes())?;
-        io::stdout().write(format!("Format Version : {}\n", header.format_version).as_bytes())?;
-        io::stdout().write(format!("Key Name       : {}\n", header.key_name).as_bytes())?;
-        io::stdout().write(format!("Hash Type      : {}\n", header.hash_type).as_bytes())?;
-        io::stdout().write(format!("Raw Signature  : {}\n", header.signature_raw).as_bytes())?;
+        io::stdout().write_all(format!("Package        : {}\n", &src.display()).as_bytes())?;
+        io::stdout().write_all(format!("Format Version : {}\n", header.format_version).as_bytes())?;
+        io::stdout().write_all(format!("Key Name       : {}\n", header.key_name).as_bytes())?;
+        io::stdout().write_all(format!("Hash Type      : {}\n", header.hash_type).as_bytes())?;
+        io::stdout().write_all(format!("Raw Signature  : {}\n", header.signature_raw).as_bytes())?;
     } else {
         ui.warn("Failed to read package header.")?;
     }
