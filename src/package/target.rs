@@ -28,11 +28,15 @@ pub trait Target: fmt::Display + Into<PackageTarget> {
 /// and architecture (x86_64, i386, etc..) that a package is built for
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageTarget {
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub platform: Platform,
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub architecture: Architecture,
 }
 

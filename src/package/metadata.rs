@@ -139,14 +139,12 @@ impl PkgEnv {
     pub fn from_paths(paths: Vec<PathBuf>) -> Self {
         let p = env::join_paths(&paths).expect("Failed to build path string");
         Self {
-            inner: vec![
-                EnvVar {
-                    key: "PATH".to_string(),
-                    value: p.into_string()
-                        .expect("Failed to convert path to utf8 string"),
-                    separator: Some(ENV_PATH_SEPARATOR),
-                },
-            ],
+            inner: vec![EnvVar {
+                key: "PATH".to_string(),
+                value: p.into_string()
+                    .expect("Failed to convert path to utf8 string"),
+                separator: Some(ENV_PATH_SEPARATOR),
+            }],
         }
     }
 
@@ -346,13 +344,11 @@ port=front-end.port
             .into_iter()
             .collect::<Vec<_>>();
 
-        let expected = vec![
-            EnvVar {
-                key: "PATH".to_string(),
-                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-                separator: Some(ENV_PATH_SEPARATOR),
-            },
-        ];
+        let expected = vec![EnvVar {
+            key: "PATH".to_string(),
+            value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+            separator: Some(ENV_PATH_SEPARATOR),
+        }];
 
         assert_eq!(result, expected);
     }

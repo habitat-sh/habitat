@@ -345,8 +345,7 @@ impl FromStr for ApplicationEnvironment {
             None => return Err(Error::InvalidApplicationEnvironment(value.to_string())),
         };
         Ok(ApplicationEnvironment(ApplicationEnvironment::format(
-            app,
-            env,
+            app, env,
         )))
     }
 }

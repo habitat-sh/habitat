@@ -577,11 +577,11 @@ mod test {
     use hex;
     use tempdir::TempDir;
 
-    use super::KeyType;
-    use super::PairType;
     use super::box_key_pair::BoxKeyPair;
     use super::sig_key_pair::SigKeyPair;
     use super::sym_key::SymKey;
+    use super::KeyType;
+    use super::PairType;
 
     use super::super::test_support::*;
     use super::TmpKeyfile;
