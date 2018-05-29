@@ -46,12 +46,12 @@ use std::string::ToString;
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
 use hab_core::package::{Identifiable, PackageArchive};
-use hab_http::ApiClient;
 use hab_http::util::decoded_response;
-use hyper::Url;
+use hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
+use hyper::Url;
 use protobuf::core::ProtobufEnum;
 use protocol::{net, originsrv};
 use rand::{thread_rng, Rng};
@@ -559,11 +559,11 @@ impl Client {
         res.read_to_string(&mut encoded)
             .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<originsrv::OriginKeyIdent> =
-            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?
-                .into_iter()
-                .map(|m| m.into())
-                .collect();
+        let revisions: Vec<originsrv::OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(
+            &encoded,
+        )?.into_iter()
+            .map(|m| m.into())
+            .collect();
         Ok(revisions)
     }
 
