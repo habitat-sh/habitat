@@ -12,20 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hcore::os::process::{self, Pid};
 /// Supervise a service.
 ///
 /// The Supervisor is responsible for running any services we are asked to start. It handles
 /// spawning the new process, watching for failure, and ensuring the service is either up or down.
 /// If the process dies, the Supervisor will restart it.
 use std;
-use std::fmt;
 use std::fs::File;
-use std::io::BufReader;
 use std::io::prelude::*;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::result;
 
+use hcore::os::process::{self, Pid};
 #[cfg(unix)]
 use hcore::os::users;
 use hcore::service::ServiceGroup;
@@ -34,6 +33,7 @@ use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use time::{self, Timespec};
 
+use super::ProcessState;
 use error::{Error, Result};
 use fs;
 use manager::service::Pkg;
@@ -41,22 +41,6 @@ use manager::service::Pkg;
 use sys::abilities;
 
 static LOGKEY: &'static str = "SV";
-
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
-pub enum ProcessState {
-    Down,
-    Up,
-}
-
-impl fmt::Display for ProcessState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let state = match *self {
-            ProcessState::Down => "down",
-            ProcessState::Up => "up",
-        };
-        write!(f, "{}", state)
-    }
-}
 
 /// Bundles up information about the user and group that a supervised
 /// service should be run as. If the Supervisor itself is running with
