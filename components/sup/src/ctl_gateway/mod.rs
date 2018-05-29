@@ -53,6 +53,10 @@ lazy_static! {
 pub const REQ_TIMEOUT: u64 = 10_000;
 static LOGKEY: &'static str = "AG";
 
+/// The control gateway secret should only be readable by the
+/// Supervisor process
+pub const CTL_SECRET_PERMISSIONS: u32 = 0o600;
+
 /// Used by modules outside of the CtlGateway for seamlessly replying to transactional messages.
 /// This type is used in functions which can be called by the CtlGateway such as
 /// [`Manager::service_load`] and [`Manager::service_unload`].
@@ -276,7 +280,7 @@ where
             f.write_all(out.as_bytes())?;
             f.sync_all()?;
         }
-        perm::set_permissions(&secret_key_path, 0600)?;
+        perm::set_permissions(&secret_key_path, CTL_SECRET_PERMISSIONS)?;
         Ok(out)
     }
 }
