@@ -1688,6 +1688,7 @@ pub struct ServiceStatus {
     pub process: ProcessStatus,
     pub service_group: ServiceGroup,
     pub composite: Option<String>,
+    pub desired_state: DesiredState,
 }
 
 impl fmt::Display for ServiceStatus {
@@ -1892,6 +1893,15 @@ impl Future for CtlHandler {
     }
 }
 
+impl From<service::DesiredState> for protocol::types::DesiredState {
+    fn from(other: service::DesiredState) -> Self {
+        match other {
+            service::DesiredState::Down => protocol::types::DesiredState::DesiredDown,
+            service::DesiredState::Up => protocol::types::DesiredState::DesiredUp,
+        }
+    }
+}
+
 impl From<service::ProcessState> for protocol::types::ProcessState {
     fn from(other: service::ProcessState) -> Self {
         match other {
@@ -1928,6 +1938,7 @@ impl From<ServiceStatus> for protocol::types::ServiceStatus {
         proto.set_ident(other.pkg.ident.into());
         proto.set_process(other.process.into());
         proto.set_service_group(other.service_group.into());
+        proto.set_desired_state(other.desired_state.into());
         if let Some(composite) = other.composite {
             proto.set_composite(composite);
         }
