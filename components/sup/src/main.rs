@@ -52,7 +52,6 @@ use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
 
-use sup::VERSION;
 use sup::command;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result, SupError};
@@ -61,6 +60,7 @@ use sup::http_gateway;
 use sup::manager::service::{ServiceBind, Topology, UpdateStrategy};
 use sup::manager::{Manager, ManagerConfig};
 use sup::util;
+use sup::VERSION;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";

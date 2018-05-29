@@ -42,8 +42,8 @@ use std::time::Duration;
 
 use butterfly;
 use butterfly::member::Member;
-use butterfly::server::Suitability;
 use butterfly::server::timing::Timing;
+use butterfly::server::Suitability;
 use butterfly::trace::Trace;
 use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
@@ -74,13 +74,13 @@ use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
-use VERSION;
 use census::CensusRing;
 use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
 use http_gateway;
 use util;
+use VERSION;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";

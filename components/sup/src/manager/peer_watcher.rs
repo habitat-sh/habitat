@@ -16,8 +16,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread::Builder as ThreadBuilder;
 
 use butterfly::member::Member;

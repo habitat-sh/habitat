@@ -34,8 +34,8 @@ use serde_json::{self, Value as Json};
 
 use error::{Error, Result, SupError};
 use manager;
-use manager::service::HealthCheck;
 use manager::service::hooks::{self, HealthCheckHook};
+use manager::service::HealthCheck;
 
 static LOGKEY: &'static str = "HG";
 const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
