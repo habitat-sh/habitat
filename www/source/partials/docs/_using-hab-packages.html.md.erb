@@ -1,6 +1,6 @@
 # <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Habitat Packages</a>
 
-Habitat packages used to start services are run under the Habitat Supervisor. At runtime, you can join Supervisors together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
+Habitat packages used to start services are run under the Habitat Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
 
 <%= partial 'partials/global/package_platform_support' %>
 
@@ -20,7 +20,7 @@ When executing `hab sup run`, additional options can be passed that allow the Su
 
 ### hab sup run \<PACKAGE_IDENTIFIER\>
 
-When you pass a package identifier (e.g., `core/redis`) as an argument to `hab sup run`, it will start up a Supervisor process, and then load and start the given package in what is effectively a single operation. This is a convenience that is intended primarily for container entrypoint workflows, where a single defined service is the only thing ever intended to run on the Supervisor, but it can also be used for testing or one-off, ad-hoc operations.
+When you pass a package identifier (e.g., `core/redis`) as an argument to `hab sup run`, it will start up a Supervisor process, and then load and start the given package in what is effectively a single operation. This is a convenience that is intended primarily for container entrypoint workflows, where a single defined service is the only thing ever intended to run on the Supervisor, but it can also be used for local testing or experimentation.
 
 This version of `hab sup run` can also accept options that affect how the _package_ should run, such as `--strategy` and `--topology`, in addition to the aforementioned Supervisor-specific options. It can be thought of as running the identifier-less `hab sup run`, along with a `hab sup load`, all as a single command.
 
