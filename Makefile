@@ -70,6 +70,7 @@ unit-lib: $(addprefix unit-,$(LIB)) ## executes the library components' unit tes
 .PHONY: unit-lib
 
 lint: lint-bin lint-lib
+	$(info Linting ran against files modified since last compile. To lint everything, "make clean" first)
 lint-all: lint
 .PHONY: lint lint-all
 
@@ -219,7 +220,7 @@ ALLOWED_LINTS = absurd_extreme_comparisons assign_op_pattern blacklisted_name \
 DENIED_LINTS = clippy_correctness
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
-	$(run) sh -c 'cd components/$1 && cargo +nightly clippy --all-targets --tests $(CARGO_FLAGS) -- $(addprefix -D ,$(DENIED_LINTS)) $(addprefix -A ,$(ALLOWED_LINTS))'
+	@$(run) sh -c 'cd components/$1 && cargo +nightly clippy --all-targets --tests $(CARGO_FLAGS) -- $(addprefix -D ,$(DENIED_LINTS)) $(addprefix -A ,$(ALLOWED_LINTS))'
 .PHONY: lint-$1
 endef
 $(foreach component,$(ALL),$(eval $(call LINT,$(component))))
