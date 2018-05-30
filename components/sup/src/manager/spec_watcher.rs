@@ -219,7 +219,7 @@ impl SpecWatcher {
         Ok(events)
     }
 
-    pub fn specs_from_watch_path<'a>(&self) -> Result<HashMap<String, ServiceSpec>> {
+    pub fn specs_from_watch_path(&self) -> Result<HashMap<String, ServiceSpec>> {
         let mut specs = HashMap::new();
         for spec_file in Self::spec_files(&self.watch_path)? {
             let spec = match ServiceSpec::from_file(&spec_file) {
