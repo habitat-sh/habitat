@@ -43,7 +43,7 @@ extern crate futures;
 extern crate habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
-extern crate prost;
+extern crate protobuf;
 extern crate tokio;
 extern crate tokio_io;
 
@@ -70,7 +70,7 @@ pub enum SrvClientError {
     /// Unable to locate a secret key on disk.
     CtlSecretNotFound(PathBuf),
     /// Decoding a message from the remote failed.
-    Decode(prost::DecodeError),
+    Decode(protobuf::ProtobufError),
     /// An Os level IO error occurred.
     Io(io::Error),
     /// An RPC call to the remote was received but failed.
@@ -119,8 +119,8 @@ impl From<io::Error> for SrvClientError {
     }
 }
 
-impl From<prost::DecodeError> for SrvClientError {
-    fn from(err: prost::DecodeError) -> Self {
+impl From<protobuf::ProtobufError> for SrvClientError {
+    fn from(err: protobuf::ProtobufError) -> Self {
         SrvClientError::Decode(err)
     }
 }
@@ -153,8 +153,8 @@ impl SrvClient {
             .map_err(SrvClientError::from)
             .and_then(move |socket| {
                 let client = Self::new(socket, None);
-                let mut request = protocol::ctl::Handshake::default();
-                request.secret_key = Some(secret_key);
+                let mut request = protocol::ctl::Handshake::new();
+                request.set_secret_key(secret_key);
                 client
                     .call(request)
                     .into_future()

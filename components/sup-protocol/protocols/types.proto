@@ -1,5 +1,4 @@
 syntax = "proto2";
-package sup.types;
 
 // Encapsulate all possible sources we can install packages from.
 enum InstallSource {
@@ -35,12 +34,12 @@ enum BindingMode {
 
 message ApplicationEnvironment {
   required string application = 1;
-  required string environment = 2 [default = "default"];
+  optional string environment = 2 [default = "default"];
 }
 
 message PackageIdent {
-  required string origin = 1;
-  required string name = 2;
+  optional string origin = 1;
+  optional string name = 2;
   optional string version = 3;
   optional string release = 4;
 }
@@ -48,7 +47,7 @@ message PackageIdent {
 message ProcessStatus {
   optional int64 elapsed = 1;
   optional uint32 pid = 2;
-  required ProcessState state = 3;
+  optional ProcessState state = 3;
 }
 
 message ServiceBind {
@@ -59,26 +58,26 @@ message ServiceBind {
 
 message ServiceCfg {
   enum Format {
-    Toml = 0;
+    TOML = 0;
   }
   // The self describing string format used in each configuration field. This
   // is present if we ever change from using TOML to represent service configurations
   // to another self describing type.
-  optional Format format = 1 [default = Toml];
+  optional Format format = 1 [default = TOML];
   optional string default = 2;
 }
 
 message ServiceGroup {
   required string service = 1;
-  required string group = 2 [default = "default"];
+  optional string group = 2 [default = "default"];
   optional ApplicationEnvironment application_environment = 3;
   optional string organization = 4;
 }
 
 message ServiceStatus {
-  required PackageIdent ident = 1;
+  optional PackageIdent ident = 1;
   optional ProcessStatus process = 2;
-  required ServiceGroup service_group = 3;
+  optional ServiceGroup service_group = 3;
   optional string composite = 4;
 }
 

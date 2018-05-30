@@ -34,7 +34,7 @@ extern crate url;
 use std::env;
 use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process;
 use std::result;
 use std::str::{self, FromStr};
@@ -47,21 +47,20 @@ use hcore::channel;
 use hcore::crypto::dpapi::encrypt;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 use hcore::env as henv;
+use hcore::service::{ApplicationEnvironment, BindingMode, ServiceGroup};
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
-use protocol::{ctl::ServiceBindList,
-               types::{ApplicationEnvironment, BindingMode, ServiceBind, ServiceGroup, Topology,
-                       UpdateStrategy}};
 use url::Url;
 
+use sup::VERSION;
 use sup::command;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result, SupError};
 use sup::feat;
 use sup::http_gateway;
+use sup::manager::service::{ServiceBind, Topology, UpdateStrategy};
 use sup::manager::{Manager, ManagerConfig};
 use sup::util;
-use sup::VERSION;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -223,12 +222,12 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
         let manager = Manager::load(cfg, launcher)?;
         // We need to determine if we have an initial service to start
         let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
-            let mut msg = protocol::ctl::SvcLoad::default();
+            let mut msg = protocol::ctl::SvcLoad::new();
             update_svc_load_from_input(m, &mut msg)?;
             // Always force - running with a package ident is a "do what I mean" operation. You
             // don't care if a service was loaded previously or not and with what options. You
             // want one loaded right now and in this way.
-            msg.force = Some(true);
+            msg.set_force(true);
             let ident = match pkg.parse::<InstallSource>()? {
                 source @ InstallSource::Archive(_) => {
                     // Install the archive manually then explicitly set the pkg ident to the
@@ -236,19 +235,15 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                     // specific version.
                     let install = util::pkg::install(
                         &mut ui(),
-                        msg.bldr_url
-                            .as_ref()
-                            .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
+                        msg.get_bldr_url(),
                         &source,
-                        msg.bldr_channel
-                            .as_ref()
-                            .unwrap_or(&*protocol::DEFAULT_BLDR_CHANNEL),
+                        msg.get_bldr_channel(),
                     )?;
                     install.ident.into()
                 }
                 InstallSource::Ident(ident) => ident.into(),
             };
-            msg.ident = Some(ident);
+            msg.set_ident(ident);
             Some(msg)
         } else {
             None
@@ -350,7 +345,7 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         },
     };
     if let Some(events) = m.value_of("EVENTS") {
-        cfg.eventsrv_group = ServiceGroup::from_str(events).ok().map(Into::into);
+        cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
     }
     Ok(cfg)
 }
@@ -397,10 +392,10 @@ fn get_group_from_input(m: &ArgMatches) -> Option<String> {
 /// parse and set the value on the spec.
 fn get_app_env_from_input(m: &ArgMatches) -> Result<Option<ApplicationEnvironment>> {
     if let (Some(app), Some(env)) = (m.value_of("APPLICATION"), m.value_of("ENVIRONMENT")) {
-        Ok(Some(ApplicationEnvironment {
-            application: app.to_string(),
-            environment: env.to_string(),
-        }))
+        Ok(Some(ApplicationEnvironment::new(
+            app.to_string(),
+            env.to_string(),
+        )?))
     } else {
         Ok(None)
     }
@@ -416,33 +411,31 @@ fn get_strategy_from_input(m: &ArgMatches) -> Option<UpdateStrategy> {
         .and_then(|f| UpdateStrategy::from_str(f).ok())
 }
 
-fn get_binds_from_input(m: &ArgMatches) -> Result<Option<ServiceBindList>> {
-    match m.values_of("BIND") {
-        Some(bind_strs) => {
-            let mut list = ServiceBindList::default();
-            for bind_str in bind_strs {
-                list.binds.push(ServiceBind::from_str(bind_str)?.into());
-            }
-            Ok(Some(list))
+fn get_binds_from_input(m: &ArgMatches) -> Result<Vec<protocol::types::ServiceBind>> {
+    let mut binds = vec![];
+    if let Some(bind_strs) = m.values_of("BIND") {
+        for bind_str in bind_strs {
+            binds.push(ServiceBind::from_str(bind_str)?.into());
         }
-        None => Ok(None),
     }
+    Ok(binds)
 }
 
-fn get_binding_mode_from_input(m: &ArgMatches) -> Option<BindingMode> {
+fn get_binding_mode_from_input(m: &ArgMatches) -> Option<protocol::types::BindingMode> {
     // There won't be errors, because we validate with `valid_binding_mode`
     m.value_of("BINDING_MODE")
         .and_then(|b| BindingMode::from_str(b).ok())
+        .map(|b| b.into())
 }
 
-fn get_config_from_input(m: &ArgMatches) -> Option<String> {
+fn get_config_from_input(m: &ArgMatches) -> Option<PathBuf> {
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         warn!("");
         warn!(
             "WARNING: Setting '--config-from' should only be used in development, not production!"
         );
         warn!("");
-        Some(config_from.to_string())
+        Some(PathBuf::from(config_from))
     } else {
         None
     }
@@ -474,7 +467,7 @@ fn dir_exists(val: String) -> result::Result<(), String> {
 }
 
 fn valid_binding_mode(val: String) -> result::Result<(), String> {
-    match BindingMode::from_str(&val) {
+    match protocol::types::BindingMode::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Binding mode: '{}' is not valid", &val)),
     }
@@ -578,18 +571,31 @@ fn ui() -> UI {
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
 fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
-    msg.bldr_url = Some(bldr_url(m));
-    msg.bldr_channel = Some(channel(m));
-    msg.application_environment = get_app_env_from_input(m)?;
-    msg.binds = get_binds_from_input(m)?;
-    msg.config_from = get_config_from_input(m);
-    if m.is_present("FORCE") {
-        msg.force = Some(true);
+    msg.set_bldr_url(bldr_url(m));
+    msg.set_bldr_channel(channel(m));
+    if let Some(app_env) = get_app_env_from_input(m)? {
+        msg.set_application_environment(app_env.into());
     }
-    msg.group = get_group_from_input(m);
-    msg.svc_encrypted_password = get_password_from_input(m)?;
-    msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
-    msg.topology = get_topology_from_input(m).map(|v| v as i32);
-    msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
+    msg.set_binds(protobuf::RepeatedField::from_vec(get_binds_from_input(m)?));
+    msg.set_specified_binds(m.is_present("BIND"));
+    if let Some(binding_mode) = get_binding_mode_from_input(m) {
+        msg.set_binding_mode(binding_mode);
+    }
+    if let Some(config_from) = get_config_from_input(m) {
+        msg.set_config_from(config_from.to_string_lossy().into_owned());
+    }
+    msg.set_force(m.is_present("FORCE"));
+    if let Some(group) = get_group_from_input(m) {
+        msg.set_group(group);
+    }
+    if let Some(svc_encrypted_password) = get_password_from_input(m)? {
+        msg.set_svc_encrypted_password(svc_encrypted_password);
+    }
+    if let Some(topology) = get_topology_from_input(m) {
+        msg.set_topology(topology);
+    }
+    if let Some(update_strategy) = get_strategy_from_input(m) {
+        msg.set_update_strategy(update_strategy);
+    }
     Ok(())
 }

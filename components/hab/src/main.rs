@@ -63,7 +63,6 @@ use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use protocol::codec::*;
-use protocol::ctl::ServiceBindList;
 use protocol::net::ErrCode;
 use protocol::types::*;
 use sup_client::{SrvClient, SrvClientError};
@@ -733,8 +732,8 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui();
-    let mut validate = protocol::ctl::SvcValidateCfg::default();
-    validate.service_group = Some(service_group.clone().into());
+    let mut validate = protocol::ctl::SvcValidateCfg::new();
+    validate.set_service_group(service_group.clone().into());
     let mut buf = Vec::with_capacity(protocol::butterfly::MAX_SVC_CFG_SIZE);
     let cfg_len = match m.value_of("FILE") {
         Some("-") | None => io::stdin().read_to_end(&mut buf)?,
@@ -750,9 +749,9 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
         ))?;
         process::exit(1);
     }
-    validate.cfg = Some(buf.clone());
+    validate.set_cfg(buf.clone());
     let cache = default_cache_key_path(Some(&*FS_ROOT));
-    let mut set = protocol::ctl::SvcSetCfg::default();
+    let mut set = protocol::ctl::SvcSetCfg::new();
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
             let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
@@ -765,23 +764,17 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
                     service_pair.name_with_rev()
                 ),
             )?;
-            set.cfg = Some(user_pair.encrypt(&buf, Some(&service_pair))?);
-            set.is_encrypted = Some(true);
+            set.set_cfg(user_pair.encrypt(&buf, Some(&service_pair))?);
+            set.set_is_encrypted(true);
         }
-        _ => set.cfg = Some(buf.to_vec()),
+        _ => set.set_cfg(buf.to_vec()),
     }
-    set.service_group = Some(service_group.into());
-    set.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
+    set.set_service_group(service_group.into());
+    set.set_version(value_t!(m, "VERSION_NUMBER", u64).unwrap());
     ui.begin(format!(
         "Setting new configuration version {} for {}",
-        set.version
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or("UNKNOWN".to_string()),
-        set.service_group
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or("UNKNOWN".to_string()),
+        set.get_version(),
+        set.get_service_group(),
     ))?;
     ui.status(Status::Creating, format!("service configuration"))?;
     SrvClient::connect(&sup_addr, &secret_key)
@@ -791,8 +784,8 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
                     "NetOk" => Ok(()),
                     "NetErr" => {
                         let m = reply.parse::<protocol::net::NetErr>().unwrap();
-                        match ErrCode::from_i32(m.code) {
-                            Some(ErrCode::InvalidPayload) => {
+                        match m.get_code() {
+                            ErrCode::InvalidPayload => {
                                 ui.warn(m)?;
                                 Ok(())
                             }
@@ -832,14 +825,14 @@ fn sub_svc_config(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
-    msg.ident = Some(ident.into());
+    let mut msg = protocol::ctl::SvcGetDefaultCfg::new();
+    msg.set_ident(ident.into());
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceCfg" => {
                     let m = reply.parse::<protocol::types::ServiceCfg>().unwrap();
-                    println!("{}", m.default.unwrap_or_default());
+                    println!("{}", m.get_default());
                     Ok(())
                 }
                 "NetErr" => {
@@ -859,10 +852,10 @@ fn sub_svc_load(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcLoad::default();
+    let mut msg = protocol::ctl::SvcLoad::new();
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
-    msg.ident = Some(ident.into());
+    msg.set_ident(ident.into());
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
@@ -874,8 +867,8 @@ fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcUnload::default();
-    msg.ident = Some(ident.into());
+    let mut msg = protocol::ctl::SvcUnload::new();
+    msg.set_ident(ident.into());
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
@@ -887,8 +880,8 @@ fn sub_svc_start(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcStart::default();
-    msg.ident = Some(ident.into());
+    let mut msg = protocol::ctl::SvcStart::new();
+    msg.set_ident(ident.into());
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
@@ -899,9 +892,10 @@ fn sub_svc_status(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcStatus::default();
+    let mut msg = protocol::ctl::SvcStatus::new();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
-        msg.ident = Some(PackageIdent::from_str(pkg)?.into());
+        let ident = PackageIdent::from_str(pkg)?;
+        msg.set_ident(ident.into());
     }
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| {
@@ -933,8 +927,8 @@ fn sub_svc_stop(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcStop::default();
-    msg.ident = Some(ident.into());
+    let mut msg = protocol::ctl::SvcStop::new();
+    msg.set_ident(ident.into());
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
@@ -947,7 +941,7 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
-    let mut msg = protocol::ctl::SvcFilePut::default();
+    let mut msg = protocol::ctl::SvcFilePut::new();
     let file = Path::new(m.value_of("FILE").unwrap());
     if file.metadata()?.len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
         ui.fatal(format!(
@@ -956,22 +950,16 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
         ))?;
         process::exit(1);
     };
-    msg.service_group = Some(service_group.clone().into());
-    msg.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
-    msg.filename = Some(file.file_name().unwrap().to_string_lossy().into_owned());
+    msg.set_service_group(service_group.clone().into());
+    msg.set_version(value_t!(m, "VERSION_NUMBER", u64).unwrap());
+    msg.set_filename(file.file_name().unwrap().to_string_lossy().into_owned());
     let mut buf = Vec::with_capacity(protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES);
     let cache = default_cache_key_path(Some(&*FS_ROOT));
     ui.begin(format!(
         "Uploading file {} to {} incarnation {}",
         file.display(),
-        msg.version
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or("UNKNOWN".to_string()),
-        msg.service_group
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or("UKNOWN".to_string()),
+        msg.get_version(),
+        msg.get_service_group(),
     ))?;
     ui.status(Status::Creating, format!("service file"))?;
     File::open(&file)?.read_to_end(&mut buf)?;
@@ -987,10 +975,10 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
                     service_pair.name_with_rev()
                 ),
             )?;
-            msg.content = Some(user_pair.encrypt(&buf, Some(&service_pair))?);
-            msg.is_encrypted = Some(true);
+            msg.set_content(user_pair.encrypt(&buf, Some(&service_pair))?);
+            msg.set_is_encrypted(true);
         }
-        _ => msg.content = Some(buf.to_vec()),
+        _ => msg.set_content(buf.to_vec()),
     }
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| {
@@ -1000,8 +988,8 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply.parse::<protocol::net::NetErr>().unwrap();
-                    match ErrCode::from_i32(m.code) {
-                        Some(ErrCode::InvalidPayload) => {
+                    match m.get_code() {
+                        ErrCode::InvalidPayload => {
                             ui.warn(m)?;
                             Ok(())
                         }
@@ -1023,16 +1011,13 @@ fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
-    let mut msg = protocol::ctl::SupDepart::default();
-    msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
+    let mut msg = protocol::ctl::SupDepart::new();
+    msg.set_member_id(m.value_of("MEMBER_ID").unwrap().to_string());
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| {
             ui.begin(format!(
                 "Permanently marking {} as departed",
-                msg.member_id
-                    .as_ref()
-                    .map(String::as_str)
-                    .unwrap_or("UNKNOWN")
+                msg.get_member_id()
             )).unwrap();
             ui.status(Status::Applying, format!("via peer {}", sup_addr))
                 .unwrap();
@@ -1312,8 +1297,8 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
         }
         "NetProgress" => {
             let m = reply.parse::<protocol::ctl::NetProgress>().unwrap();
-            bar.total = m.total;
-            if bar.set(m.position) >= m.total {
+            bar.total = m.get_total();
+            if bar.set(m.get_position()) >= m.get_total() {
                 bar.finish();
             }
         }
@@ -1334,7 +1319,7 @@ fn print_svc_status<T>(
 where
     T: io::Write,
 {
-    let status = match reply.message_id() {
+    let mut status = match reply.message_id() {
         "ServiceStatus" => reply.parse::<protocol::types::ServiceStatus>()?,
         "NetOk" => {
             println!("No services loaded.");
@@ -1349,20 +1334,15 @@ where
             return Ok(());
         }
     };
-    let svc_type = status.composite.unwrap_or("standalone".to_string());
-    let (svc_state, svc_pid, svc_elapsed) = {
-        match status.process {
-            Some(process) => (
-                process.state.to_string(),
-                process.pid.unwrap_or_default().to_string(),
-                process.elapsed.unwrap_or_default().to_string(),
-            ),
-            None => (
-                ProcessState::default().to_string(),
-                "<none>".to_string(),
-                "<none>".to_string(),
-            ),
-        }
+    let svc_type = if status.has_composite() {
+        status.take_composite()
+    } else {
+        "standalone".to_string()
+    };
+    let svc_pid = if status.get_process().has_pid() {
+        status.get_process().get_pid().to_string()
+    } else {
+        "<none>".to_string()
     };
     if print_header {
         write!(out, "{}\n", STATUS_HEADER.join("\t")).unwrap();
@@ -1370,10 +1350,24 @@ where
     write!(
         out,
         "{}\t{}\t{}\t{}\t{}\t{}\n",
-        status.ident, svc_type, svc_state, svc_elapsed, svc_pid, status.service_group,
+        status.get_ident(),
+        svc_type,
+        status.get_process().get_state(),
+        status.get_process().get_elapsed(),
+        svc_pid,
+        status.get_service_group(),
     )?;
     out.flush()?;
     return Ok(());
+}
+
+/// Resolve a Builder URL. Taken from CLI args, the environment, or
+/// (failing those) a default value.
+fn bldr_url(m: &ArgMatches) -> String {
+    match bldr_url_from_input(m) {
+        Some(url) => url.to_string(),
+        None => default_bldr_url(),
+    }
 }
 
 /// A Builder URL, but *only* if the user specified it via CLI args or
@@ -1382,6 +1376,12 @@ fn bldr_url_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("BLDR_URL")
         .and_then(|u| Some(u.to_string()))
         .or_else(|| bldr_url_from_env())
+}
+
+/// Resolve a channel. Taken from CLI args, or (failing that), a
+/// default value.
+fn channel(matches: &ArgMatches) -> String {
+    channel_from_input(matches).unwrap_or(channel::default())
 }
 
 /// A channel name, but *only* if the user specified via CLI args.
@@ -1393,26 +1393,23 @@ fn channel_from_input(m: &ArgMatches) -> Option<String> {
 /// parse and set the value on the spec.
 fn get_app_env_from_input(m: &ArgMatches) -> Result<Option<ApplicationEnvironment>> {
     if let (Some(app), Some(env)) = (m.value_of("APPLICATION"), m.value_of("ENVIRONMENT")) {
-        Ok(Some(ApplicationEnvironment {
-            application: app.to_string(),
-            environment: env.to_string(),
-        }))
+        Ok(Some(ApplicationEnvironment::from((
+            app.to_string(),
+            env.to_string(),
+        ))))
     } else {
         Ok(None)
     }
 }
 
-fn get_binds_from_input(m: &ArgMatches) -> Result<Option<ServiceBindList>> {
-    match m.values_of("BIND") {
-        Some(bind_strs) => {
-            let mut list = ServiceBindList::default();
-            for bind_str in bind_strs {
-                list.binds.push(ServiceBind::from_str(bind_str)?.into());
-            }
-            Ok(Some(list))
+fn get_binds_from_input(m: &ArgMatches) -> Result<Vec<protocol::types::ServiceBind>> {
+    let mut binds = vec![];
+    if let Some(bind_strs) = m.values_of("BIND") {
+        for bind_str in bind_strs {
+            binds.push(ServiceBind::from_str(bind_str)?.into());
         }
-        None => Ok(None),
     }
+    Ok(binds)
 }
 
 fn get_binding_mode_from_input(m: &ArgMatches) -> Option<protocol::types::BindingMode> {
@@ -1509,17 +1506,28 @@ fn ui() -> UI {
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
 fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
-    msg.bldr_url = bldr_url_from_input(m);
-    msg.bldr_channel = channel_from_input(m);
-    msg.application_environment = get_app_env_from_input(m)?;
-    msg.binds = get_binds_from_input(m)?;
-    if m.is_present("FORCE") {
-        msg.force = Some(true);
+    msg.set_bldr_url(bldr_url(m));
+    msg.set_bldr_channel(channel(m));
+    if let Some(app_env) = get_app_env_from_input(m)? {
+        msg.set_application_environment(app_env.into());
     }
-    msg.group = get_group_from_input(m);
-    msg.svc_encrypted_password = get_password_from_input(m)?;
-    msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
-    msg.topology = get_topology_from_input(m).map(|v| v as i32);
-    msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
+    msg.set_binds(protobuf::RepeatedField::from_vec(get_binds_from_input(m)?));
+    msg.set_specified_binds(m.is_present("BIND"));
+    if let Some(binding_mode) = get_binding_mode_from_input(m) {
+        msg.set_binding_mode(binding_mode);
+    }
+    msg.set_force(m.is_present("FORCE"));
+    if let Some(group) = get_group_from_input(m) {
+        msg.set_group(group);
+    }
+    if let Some(svc_encrypted_password) = get_password_from_input(m)? {
+        msg.set_svc_encrypted_password(svc_encrypted_password);
+    }
+    if let Some(topology) = get_topology_from_input(m) {
+        msg.set_topology(topology);
+    }
+    if let Some(update_strategy) = get_strategy_from_input(m) {
+        msg.set_update_strategy(update_strategy);
+    }
     Ok(())
 }

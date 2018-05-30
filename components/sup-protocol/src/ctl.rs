@@ -17,11 +17,10 @@
 //!
 //! Note: See `protocols/ctl.proto` for type level documentation for generated types.
 
-include!("generated/sup.ctl.rs");
-include!("generated/sup.ctl.impl.rs");
-
 use std::fmt;
 use std::net::{Ipv4Addr, SocketAddr};
+
+pub use generated::ctl::*;
 
 /// Default listening port for the CtlGateway listener.
 pub const DEFAULT_PORT: u16 = 9632;
@@ -33,6 +32,6 @@ pub fn default_addr() -> SocketAddr {
 
 impl fmt::Display for ConsoleLine {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.line)
+        write!(f, "{}", self.get_line())
     }
 }

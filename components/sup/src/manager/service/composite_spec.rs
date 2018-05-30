@@ -39,17 +39,13 @@ static LOGKEY: &'static str = "CS";
 #[serde(default)]
 pub struct CompositeSpec {
     /// The identifier of the composite as given when it was loaded.
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     ident: PackageIdent,
 
     /// The fully-qualified package identifier for the composite.
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     package_ident: PackageIdent,
 }
 
