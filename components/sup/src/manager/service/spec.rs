@@ -21,11 +21,10 @@ use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
 
-use hcore;
 use hcore::channel::STABLE_CHANNEL;
 use hcore::package::metadata::BindMapping;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::{ApplicationEnvironment, BindingMode, ServiceGroup};
+use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use protocol;
@@ -34,7 +33,7 @@ use serde::{self, Deserialize};
 use toml;
 
 use super::composite_spec::CompositeSpec;
-use super::{Topology, UpdateStrategy};
+use super::{BindingMode, Topology, UpdateStrategy};
 use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
@@ -123,47 +122,36 @@ pub trait IntoServiceSpec {
 
 impl IntoServiceSpec for protocol::ctl::SvcLoad {
     fn into_spec(&self, spec: &mut ServiceSpec) {
-        spec.ident = self.get_ident().clone().into();
-        if self.has_group() {
-            spec.group = self.get_group().to_string();
+        spec.ident = self.ident.clone().unwrap().into();
+        spec.group = self.group.clone().unwrap_or_default();
+        if let Some(ref app_env) = self.application_environment {
+            spec.application_environment = Some(app_env.clone().into());
         }
-        if self.has_application_environment() {
-            spec.application_environment = Some(
-                hcore::service::ApplicationEnvironment::new(
-                    self.get_application_environment().get_application(),
-                    self.get_application_environment().get_environment(),
-                ).unwrap(),
-            )
+        if let Some(ref bldr_url) = self.bldr_url {
+            spec.bldr_url = bldr_url.to_string();
         }
-        if self.has_bldr_url() {
-            spec.bldr_url = self.get_bldr_url().to_string();
+        if let Some(ref channel) = self.bldr_channel {
+            spec.channel = channel.to_string();
         }
-        if self.has_bldr_channel() {
-            spec.channel = self.get_bldr_channel().to_string();
+        if let Some(topology) = self.topology {
+            spec.topology = Topology::from_i32(topology).unwrap_or_default();
         }
-        if self.has_topology() {
-            spec.topology = self.get_topology();
+        if let Some(update_strategy) = self.update_strategy {
+            spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
         }
-        if self.has_update_strategy() {
-            spec.update_strategy = self.get_update_strategy();
-        }
-        if self.has_specified_binds() {
-            let binds: Vec<ServiceBind> = self.get_binds()
-                .into_iter()
-                .map(Clone::clone)
-                .map(Into::into)
-                .collect();
+        if let Some(ref list) = self.binds {
+            let binds: Vec<ServiceBind> = list.binds.clone().into_iter().map(Into::into).collect();
             let (_, standard) = binds.into_iter().partition(|ref bind| bind.is_composite());
             spec.binds = standard;
         }
-        if self.has_binding_mode() {
-            spec.binding_mode = self.get_binding_mode().into();
+        if let Some(binding_mode) = self.binding_mode {
+            spec.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
         }
-        if self.has_config_from() {
-            spec.config_from = Some(PathBuf::from(self.get_config_from()));
+        if let Some(ref config_from) = self.config_from {
+            spec.config_from = Some(PathBuf::from(config_from));
         }
-        if self.has_svc_encrypted_password() {
-            spec.svc_encrypted_password = Some(self.get_svc_encrypted_password().to_string());
+        if let Some(ref svc_encrypted_password) = self.svc_encrypted_password {
+            spec.svc_encrypted_password = Some(svc_encrypted_password.to_string());
         }
         spec.composite = None;
     }
@@ -202,12 +190,8 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
         // per-service basis.
         base_spec.config_from = None;
 
-        let composite_binds = if self.has_specified_binds() {
-            let binds: Vec<ServiceBind> = self.get_binds()
-                .into_iter()
-                .map(Clone::clone)
-                .map(Into::into)
-                .collect();
+        let composite_binds = if let Some(ref list) = self.binds {
+            let binds: Vec<ServiceBind> = list.binds.clone().into_iter().map(Into::into).collect();
             let (composite, _) = binds.into_iter().partition(|ref bind| bind.is_composite());
             Some(composite)
         } else {
@@ -228,31 +212,24 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
 
     fn update_composite(&self, bind_map: &mut BindMap, spec: &mut ServiceSpec) {
         // We only want to update fields that were set by SvcLoad
-        if self.has_group() {
-            spec.group = self.get_group().to_string();
+        spec.group = self.group.clone().unwrap_or_default();
+        if let Some(ref app_env) = self.application_environment {
+            spec.application_environment = Some(app_env.clone().into());
         }
-        if self.has_application_environment() {
-            spec.application_environment = Some(
-                hcore::service::ApplicationEnvironment::new(
-                    self.get_application_environment().get_application(),
-                    self.get_application_environment().get_environment(),
-                ).unwrap(),
-            )
+        if let Some(ref bldr_url) = self.bldr_url {
+            spec.bldr_url = bldr_url.to_string();
         }
-        if self.has_bldr_url() {
-            spec.bldr_url = self.get_bldr_url().to_string();
+        if let Some(ref channel) = self.bldr_channel {
+            spec.channel = channel.to_string();
         }
-        if self.has_bldr_channel() {
-            spec.channel = self.get_bldr_channel().to_string();
+        if let Some(topology) = self.topology {
+            spec.topology = Topology::from_i32(topology).unwrap_or_default();
         }
-        if self.has_topology() {
-            spec.topology = self.get_topology();
+        if let Some(update_strategy) = self.update_strategy {
+            spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
         }
-        if self.has_update_strategy() {
-            spec.update_strategy = self.get_update_strategy();
-        }
-        if self.has_specified_binds() {
-            let binds: Vec<ServiceBind> = self.get_binds()
+        if let Some(ref list) = self.binds {
+            let binds: Vec<ServiceBind> = list.binds
                 .iter()
                 .map(Clone::clone)
                 .map(Into::into)
@@ -280,7 +257,15 @@ pub struct ServiceSpec {
     pub application_environment: Option<ApplicationEnvironment>,
     pub bldr_url: String,
     pub channel: String,
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub topology: Topology,
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
     #[serde(
@@ -414,7 +399,7 @@ impl Default for ServiceSpec {
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
             binds: Vec::default(),
-            binding_mode: BindingMode::default(),
+            binding_mode: BindingMode::Strict,
             config_from: None,
             desired_state: DesiredState::default(),
             svc_encrypted_password: None,

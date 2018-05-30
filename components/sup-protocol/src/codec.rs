@@ -60,10 +60,11 @@ use std::str;
 
 use bytes::{BigEndian, Buf, BufMut, Bytes, BytesMut};
 use futures;
-use protobuf::{self, MessageStatic};
+use prost::{self, Message};
 use tokio::net::TcpStream;
 use tokio_io::codec::{Decoder, Encoder, Framed};
 
+use message::MessageStatic;
 use net::{NetErr, NetResult};
 
 const BODY_LEN_MASK: u32 = 0xFFFFF;
@@ -272,11 +273,11 @@ impl SrvMessage {
     ///     let msg = m.parse::<protocols::net::NetErr>().unwrap();
     /// }
     /// ```
-    pub fn parse<T>(&self) -> Result<T, protobuf::ProtobufError>
+    pub fn parse<T>(&self) -> Result<T, prost::DecodeError>
     where
-        T: protobuf::Message + protobuf::MessageStatic,
+        T: Message + MessageStatic + Default,
     {
-        protobuf::parse_from_carllerche_bytes::<T>(&self.body)
+        T::decode(&self.body)
     }
 
     /// Update the message as a reply for the given transaction. The `complete` argument will
@@ -315,9 +316,8 @@ impl SrvMessage {
     /// if the message contains a net error. This is useful in combinators when you want to quickly
     /// fail out if the received message contains an error.
     pub fn try_ok(&self) -> NetResult<()> {
-        if self.message_id() == NetErr::descriptor_static(None).name() {
-            let err = protobuf::parse_from_carllerche_bytes::<NetErr>(self.body())
-                .expect("try_ok bad NetErr");
+        if self.message_id() == NetErr::MESSAGE_ID {
+            let err = NetErr::decode(self.body()).expect("try_ok bad NetErr");
             return Err(err);
         }
         Ok(())
@@ -336,11 +336,13 @@ impl fmt::Debug for SrvMessage {
 
 impl<T> From<T> for SrvMessage
 where
-    T: protobuf::MessageStatic,
+    T: Message + MessageStatic,
 {
     fn from(msg: T) -> Self {
-        let body = Bytes::from(msg.write_to_bytes().unwrap());
-        let message_id = msg.descriptor().name().to_string();
+        let mut buf = BytesMut::with_capacity(msg.encoded_len());
+        msg.encode(&mut buf).unwrap();
+        let body = buf.freeze();
+        let message_id = T::MESSAGE_ID.to_string();
         SrvMessage {
             header: SrvHeader::new(body.len() as u32, message_id.len() as u32, false),
             transaction: None,

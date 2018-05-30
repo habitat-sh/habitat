@@ -17,14 +17,14 @@
 //!
 //! Note: See `protocols/net.proto` for type level documentation for generated types.
 
+include!("generated/sup.net.rs");
+include!("generated/sup.net.impl.rs");
+
 use std::error;
 use std::fmt;
 use std::io;
 
 use core;
-use protobuf::ProtobufEnum;
-
-pub use generated::net::*;
 
 pub type NetResult<T> = Result<T, NetErr>;
 
@@ -33,20 +33,20 @@ pub fn err<T>(code: ErrCode, msg: T) -> NetErr
 where
     T: fmt::Display,
 {
-    let mut err = NetErr::new();
-    err.set_code(code);
-    err.set_msg(format!("{}", msg));
-    err
+    NetErr {
+        code: code as i32,
+        msg: msg.to_string(),
+    }
 }
 
 /// Helper function for quickly generating a `NetOk` message.
 pub fn ok() -> NetOk {
-    NetOk::new()
+    NetOk::default()
 }
 
 impl error::Error for NetErr {
     fn description(&self) -> &str {
-        match self.get_code() {
+        match ErrCode::from_i32(self.code).unwrap_or_default() {
             ErrCode::Internal => "Internal error",
             ErrCode::Io => "IO error",
             ErrCode::NotFound => "Entity not found",
@@ -64,13 +64,16 @@ impl error::Error for NetErr {
             ErrCode::EntityTooLarge => {
                 "Requestor sent a well-formed payload but it exceeded an allowed limit."
             }
+            ErrCode::UpdateClient => {
+                "Requestor sent a message which the server cannot process. The requestor should update their client before making the same request again."
+            }
         }
     }
 }
 
 impl fmt::Display for NetErr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[Err: {}] {}", self.get_code().value(), self.get_msg())
+        write!(f, "[Err: {}] {}", self.code, self.msg)
     }
 }
 

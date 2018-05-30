@@ -8,7 +8,7 @@ workspace = "../../"
 futures = "*"
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 log = "*"
-protobuf = { version = "*", features = ["bytes"] }
+prost = "*"
 tokio = "*"
 tokio-core = "*"
 tokio-io = "*"
