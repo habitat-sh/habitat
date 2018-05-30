@@ -1,5 +1,6 @@
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct ApplicationEnvironment {
     #[prost(string, required, tag="1")]
     pub application: String,
@@ -8,6 +9,7 @@ pub struct ApplicationEnvironment {
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct PackageIdent {
     #[prost(string, required, tag="1")]
     pub origin: String,
@@ -20,6 +22,7 @@ pub struct PackageIdent {
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct ProcessStatus {
     #[prost(int64, optional, tag="1")]
     pub elapsed: ::std::option::Option<i64>,
@@ -30,6 +33,7 @@ pub struct ProcessStatus {
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct ServiceBind {
     #[prost(string, required, tag="1")]
     pub name: String,
@@ -40,6 +44,7 @@ pub struct ServiceBind {
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct ServiceCfg {
     /// The self describing string format used in each configuration field. This
     /// is present if we ever change from using TOML to represent service configurations
@@ -52,12 +57,14 @@ pub struct ServiceCfg {
 pub mod service_cfg {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
     #[derive(Serialize, Deserialize, Hash)]
+    #[serde(rename_all = "kebab-case")]
     pub enum Format {
         Toml = 0,
     }
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct ServiceGroup {
     #[prost(string, required, tag="1")]
     pub service: String,
@@ -70,6 +77,7 @@ pub struct ServiceGroup {
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct ServiceStatus {
     #[prost(message, required, tag="1")]
     pub ident: PackageIdent,
@@ -83,6 +91,7 @@ pub struct ServiceStatus {
 /// Encapsulate all possible sources we can install packages from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub enum InstallSource {
     /// Install from a remote hosting the package
     Ident = 0,
@@ -91,6 +100,7 @@ pub enum InstallSource {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub enum ProcessState {
     Down = 0,
     Up = 1,
@@ -98,12 +108,14 @@ pub enum ProcessState {
 /// The relationship of a service with peers in the same service group.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub enum Topology {
     Standalone = 0,
     Leader = 1,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub enum UpdateStrategy {
     None = 0,
     AtOnce = 1,
@@ -111,6 +123,7 @@ pub enum UpdateStrategy {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub enum BindingMode {
     /// Services may start whether binds are available or not
     Relaxed = 0,

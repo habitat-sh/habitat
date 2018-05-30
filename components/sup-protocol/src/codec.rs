@@ -266,11 +266,12 @@ impl SrvMessage {
     /// # Example
     ///
     /// ```
-    /// # use habitat_sup::ctl_gateway::codec::SrvMessage;
-    /// # use habitat_sup::protocols;
-    /// # let m = SrvMessage::from(protocols::net::NetErr::new());
-    /// if m.message_id() == "NetErr" {
-    ///     let msg = m.parse::<protocols::net::NetErr>().unwrap();
+    /// # use habitat_sup_protocol::message::MessageStatic;
+    /// # use habitat_sup_protocol::codec::SrvMessage;
+    /// # use habitat_sup_protocol::net;
+    /// # let m = SrvMessage::from(net::NetErr::default());
+    /// if m.message_id() == net::NetErr::MESSAGE_ID {
+    ///     let msg = m.parse::<net::NetErr>().unwrap();
     /// }
     /// ```
     pub fn parse<T>(&self) -> Result<T, prost::DecodeError>
@@ -428,7 +429,7 @@ impl Encoder for SrvCodec {
 #[cfg(test)]
 mod test {
     use super::*;
-    use protocols;
+    use net;
 
     #[test]
     fn test_header_pack_unpack() {
@@ -491,9 +492,9 @@ mod test {
     #[test]
     fn test_codec() {
         let mut codec = SrvCodec::new();
-        let mut inner = protocols::net::NetErr::new();
-        inner.set_code(protocols::net::ErrCode::NotFound);
-        inner.set_msg("this".to_string());
+        let mut inner = net::NetErr::default();
+        inner.code = net::ErrCode::NotFound as i32;
+        inner.msg = "this".to_string();
         let msg = SrvMessage::from(inner);
         let mut buf = BytesMut::new();
         codec.encode(msg.clone(), &mut buf).unwrap();

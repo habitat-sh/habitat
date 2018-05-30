@@ -2,6 +2,7 @@
 /// when making a request which requires no response but the caller wants to block for completion.
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct NetOk {
 }
 /// Returned when a transactional request is a failure. Contains an `ErrCode` indicating a failure
@@ -11,6 +12,7 @@ pub struct NetOk {
 /// this time.
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub struct NetErr {
     #[prost(enumeration="ErrCode", required, tag="1")]
     pub code: i32,
@@ -20,6 +22,7 @@ pub struct NetErr {
 /// Error codes mapping to a high level failure reason for a `NetErr`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
 #[derive(Serialize, Deserialize, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub enum ErrCode {
     Internal = 0,
     Io = 1,

@@ -335,12 +335,11 @@ impl fmt::Display for UpdateStrategy {
 
 #[cfg(test)]
 mod test {
+    extern crate toml;
+
     use std::str::FromStr;
 
-    use toml;
-
-    use super::{Topology, UpdateStrategy};
-    use error::Error::*;
+    use super::*;
 
     #[test]
     fn topology_default() {
@@ -362,13 +361,7 @@ mod test {
     fn topology_from_str_invalid() {
         let topology_str = "dope";
 
-        match Topology::from_str(topology_str) {
-            Err(e) => match e.err {
-                InvalidTopology(s) => assert_eq!("dope", s),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
-            Ok(_) => panic!("String should fail to parse"),
-        }
+        assert!(Topology::from_str(topology_str).is_err());
     }
 
     #[test]
@@ -424,13 +417,7 @@ mod test {
     fn update_strategy_from_str_invalid() {
         let strategy_str = "dope";
 
-        match UpdateStrategy::from_str(strategy_str) {
-            Err(e) => match e.err {
-                InvalidUpdateStrategy(s) => assert_eq!("dope", s),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
-            Ok(_) => panic!("String should fail to parse"),
-        }
+        assert!(UpdateStrategy::from_str(strategy_str).is_err());
     }
 
     #[test]
