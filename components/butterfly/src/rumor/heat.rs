@@ -136,8 +136,8 @@ impl Default for RumorHeat {
 mod tests {
     use super::*;
     use error::Result;
-    use message::swim::Rumor_Type;
-    use rumor::{Rumor, RumorKey};
+    use protocol::{self, newscast};
+    use rumor::{Rumor, RumorKey, RumorType};
     use uuid::Uuid;
 
     // TODO (CM): This FakeRumor implementation is copied from
@@ -159,12 +159,8 @@ mod tests {
     }
 
     impl Rumor for FakeRumor {
-        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
-            Ok(FakeRumor::default())
-        }
-
-        fn kind(&self) -> Rumor_Type {
-            Rumor_Type::Fake
+        fn kind(&self) -> RumorType {
+            RumorType::Fake
         }
 
         fn key(&self) -> &str {
@@ -177,6 +173,24 @@ mod tests {
 
         fn merge(&mut self, mut _other: FakeRumor) -> bool {
             false
+        }
+    }
+
+    impl protocol::FromProto<newscast::Rumor> for FakeRumor {
+        fn from_proto(_other: newscast::Rumor) -> Result<Self> {
+            Ok(FakeRumor::default())
+        }
+    }
+
+    impl From<FakeRumor> for newscast::Rumor {
+        fn from(_other: FakeRumor) -> newscast::Rumor {
+            newscast::Rumor::default()
+        }
+    }
+
+    impl protocol::Message<newscast::Rumor> for FakeRumor {
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(FakeRumor::default())
         }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {

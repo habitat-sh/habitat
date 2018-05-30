@@ -148,9 +148,9 @@ impl PeerWatcher {
                 };
                 let addr: SocketAddr = addrs[0];
                 let mut member = Member::default();
-                member.set_address(format!("{}", addr.ip()));
-                member.set_swim_port(addr.port() as i32);
-                member.set_gossip_port(addr.port() as i32);
+                member.address = format!("{}", addr.ip());
+                member.swim_port = addr.port() as i32;
+                member.gossip_port = addr.port() as i32;
                 members.push(member);
             }
         }
@@ -201,19 +201,19 @@ mod tests {
         writeln!(file, "1.2.3.4:5").unwrap();
         writeln!(file, "4.3.2.1").unwrap();
         let mut member1 = Member::default();
-        member1.set_id(String::new());
-        member1.set_address(String::from("1.2.3.4"));
-        member1.set_swim_port(5 as i32);
-        member1.set_gossip_port(5 as i32);
+        member1.id = String::new();
+        member1.address = String::from("1.2.3.4");
+        member1.swim_port = 5;
+        member1.gossip_port = 5;
         let mut member2 = Member::default();
-        member2.set_id(String::new());
-        member2.set_address(String::from("4.3.2.1"));
-        member2.set_swim_port(GOSSIP_DEFAULT_PORT as i32);
-        member2.set_gossip_port(GOSSIP_DEFAULT_PORT as i32);
+        member2.id = String::new();
+        member2.address = String::from("4.3.2.1");
+        member2.swim_port = GOSSIP_DEFAULT_PORT as i32;
+        member2.gossip_port = GOSSIP_DEFAULT_PORT as i32;
         let expected_members = vec![member1, member2];
         let mut members = watcher.get_members().unwrap();
         for mut member in &mut members {
-            member.set_id(String::new());
+            member.id = String::new();
         }
         assert_eq!(expected_members, members);
     }

@@ -17,7 +17,6 @@
 
 use time;
 
-use std::default::Default;
 use std::env;
 use std::fmt;
 use std::fs;
@@ -227,7 +226,6 @@ macro_rules! trace_it {
             let member_id = $server.member_id();
             let server_name = $server.name();
             let payload = format!("{} {} {}", server_name, member_id, $payload);
-
             let mut tw =
                 TraceWrite::new(TraceKind::TestEvent, module_path!(), line!(), thread_name);
             tw.server_name = Some(&server_name);
@@ -319,14 +317,11 @@ macro_rules! trace_it {
             let member_id = $server.member_id();
             let server_name = $server.name();
             let mut swim_str = String::new();
-            for m_string in $payload.get_membership().iter().map(|m| {
-                format!(
-                    "{}-{}-{:?} ",
-                    m.get_member().get_id(),
-                    m.get_member().get_incarnation(),
-                    m.get_health()
-                )
-            }) {
+            for m_string in $payload
+                .membership
+                .iter()
+                .map(|m| format!("{}-{}-{:?} ", m.member.id, m.member.incarnation, m.health))
+            {
                 swim_str.push_str(&format!("{} ", &m_string)[..]);
             }
             let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
@@ -344,7 +339,7 @@ macro_rules! trace_it {
         let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
         if trace_on {
             let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-            use message::swim::Rumor_Type;
+            use rumor;
             use trace::TraceWrite;
             trace.init($server);
             let thread = thread::current();
@@ -352,43 +347,47 @@ macro_rules! trace_it {
             let listening = format!("{}", $server.gossip_addr());
             let member_id = $server.member_id();
             let server_name = $server.name();
-            let rp = match $payload.get_field_type() {
-                Rumor_Type::Member => format!(
+            let rp = match $payload.kind {
+                rumor::RumorKind::Membership(ref membership) => format!(
                     "{}-{}-{:?}",
-                    $payload.get_member().get_member().get_id(),
-                    $payload.get_member().get_member().get_incarnation(),
-                    $payload.get_member().get_health()
+                    membership.member.id, membership.member.incarnation, membership.health
                 ),
-                Rumor_Type::Service => format!(
+                rumor::RumorKind::Service(ref service) => format!(
                     "{}-{}-{}",
-                    $payload.get_service().get_member_id(),
-                    $payload.get_service().get_service_group(),
-                    $payload.get_service().get_incarnation()
+                    service.member_id, service.service_group, service.incarnation
                 ),
-                Rumor_Type::ServiceConfig => format!(
+                rumor::RumorKind::ServiceConfig(ref service_config) => format!(
                     "{}-{}-{}",
-                    $payload.get_service_config().get_service_group(),
-                    $payload.get_service_config().get_incarnation(),
-                    $payload.get_service_config().get_encrypted()
+                    service_config.service_group,
+                    service_config.incarnation,
+                    service_config.encrypted
                 ),
-                Rumor_Type::ServiceFile => format!(
+                rumor::RumorKind::ServiceFile(ref service_file) => format!(
                     "{}-{}-{}-{}",
-                    $payload.get_service_file().get_service_group(),
-                    $payload.get_service_file().get_incarnation(),
-                    $payload.get_service_file().get_encrypted(),
-                    $payload.get_service_file().get_filename()
+                    service_file.service_group,
+                    service_file.incarnation,
+                    service_file.encrypted,
+                    service_file.filename
                 ),
-                Rumor_Type::Election | Rumor_Type::ElectionUpdate => format!(
+                rumor::RumorKind::Election(ref election) => format!(
                     "{}-{}-{}-{}-{:?}-{:?}",
-                    $payload.get_election().get_member_id(),
-                    $payload.get_election().get_service_group(),
-                    $payload.get_election().get_term(),
-                    $payload.get_election().get_suitability(),
-                    $payload.get_election().get_status(),
-                    $payload.get_election().get_votes()
+                    election.member_id,
+                    election.service_group,
+                    election.term,
+                    election.suitability,
+                    election.status,
+                    election.votes
                 ),
-                Rumor_Type::Departure => format!("{}", $payload.get_departure().get_member_id()),
-                Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
+                rumor::RumorKind::ElectionUpdate(ref election) => format!(
+                    "{}-{}-{}-{}-{:?}-{:?}",
+                    election.member_id,
+                    election.service_group,
+                    election.term,
+                    election.suitability,
+                    election.status,
+                    election.votes
+                ),
+                rumor::RumorKind::Departure(ref departure) => format!("{}", departure.member_id),
             };
 
             let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);

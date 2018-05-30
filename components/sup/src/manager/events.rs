@@ -123,7 +123,7 @@ impl EventsMgr {
 
 fn eventsrv_addr(member: &CensusMember) -> EventSrvAddr {
     let mut addr = EventSrvAddr::default();
-    addr.host = IpAddr::from_str(member.sys.get_ip()).unwrap();
+    addr.host = IpAddr::from_str(&member.sys.ip).unwrap();
     addr.consumer_port = member
         .cfg
         .get("consumer_port")
@@ -171,12 +171,12 @@ fn build_service_update(member: &CensusMember, service: &Service) -> ServiceUpda
     // will alleviate this translation and make things more re-usable.
     let mut sys_info_proto = SysInfoProto::new();
     let sys_info = service.sys.as_sys_info();
-    sys_info_proto.set_ip(sys_info.get_ip().to_string());
-    sys_info_proto.set_hostname(sys_info.get_hostname().to_string());
-    sys_info_proto.set_gossip_ip(sys_info.get_gossip_ip().to_string());
-    sys_info_proto.set_gossip_port(sys_info.get_gossip_port().to_string());
-    sys_info_proto.set_http_gateway_ip(sys_info.get_http_gateway_ip().to_string());
-    sys_info_proto.set_http_gateway_port(sys_info.get_http_gateway_port().to_string());
+    sys_info_proto.set_ip(sys_info.ip.to_string());
+    sys_info_proto.set_hostname(sys_info.hostname.to_string());
+    sys_info_proto.set_gossip_ip(sys_info.gossip_ip.to_string());
+    sys_info_proto.set_gossip_port(sys_info.gossip_port.to_string());
+    sys_info_proto.set_http_gateway_ip(sys_info.http_gateway_ip.to_string());
+    sys_info_proto.set_http_gateway_port(sys_info.http_gateway_port.to_string());
     sep.set_sys(sys_info_proto);
     let pkg = service.pkg.clone();
     let mut pkg_ident = PackageIdentProto::new();

@@ -36,7 +36,7 @@ use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{self, channel};
 use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -56,8 +56,12 @@ use rumor::heat::RumorHeat;
 use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
-use rumor::{Rumor, RumorKey, RumorStore};
+use rumor::{Rumor, RumorKey, RumorStore, RumorType};
+use swim::Ack;
 use trace::{Trace, TraceKind};
+
+type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
+type AckSender = mpsc::Sender<(SocketAddr, Ack)>;
 
 pub trait Suitability: Debug + Send + Sync {
     fn get(&self, service_group: &ServiceGroup) -> u64;
@@ -147,11 +151,11 @@ impl Server {
 
         match (maybe_swim_socket_addr, maybe_gossip_socket_addr) {
             (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => {
-                member.set_swim_port(swim_socket_addr.port() as i32);
-                member.set_gossip_port(gossip_socket_addr.port() as i32);
+                member.swim_port = swim_socket_addr.port() as i32;
+                member.gossip_port = gossip_socket_addr.port() as i32;
                 Ok(Server {
-                    name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
-                    member_id: Arc::new(String::from(member.get_id())),
+                    name: Arc::new(name.unwrap_or(member.id.clone())),
+                    member_id: Arc::new(member.id.clone()),
                     member: Arc::new(RwLock::new(member)),
                     member_list: MemberList::new(),
                     ring_key: Arc::new(ring_key),
@@ -441,8 +445,8 @@ impl Server {
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
         // of just how the logic goes. The value of the trace is really high, though, so we suck it
         // for now.
-        let trace_member_id = String::from(member.get_id());
-        let trace_incarnation = member.get_incarnation();
+        let trace_member_id = member.id.clone();
+        let trace_incarnation = member.incarnation;
         let trace_health = health.clone();
         if self.member_list.insert(member, health) {
             trace_it!(
@@ -462,8 +466,8 @@ impl Server {
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
         // of just how the logic goes. The value of the trace is really high, though, so we suck it
         // for now.
-        let trace_member_id = String::from(member.get_id());
-        let trace_incarnation = member.get_incarnation();
+        let trace_member_id = member.id.clone();
+        let trace_incarnation = member.incarnation;
         let trace_health = health.clone();
         if self.member_list.insert_health(member, health) {
             trace_it!(
@@ -483,16 +487,16 @@ impl Server {
         if self.socket.is_some() {
             let member = {
                 let mut me = self.member.write().expect("Member lock is poisoned");
-                let mut incarnation = me.get_incarnation();
+                let mut incarnation = me.incarnation;
                 incarnation += 1;
-                me.set_incarnation(incarnation);
-                me.set_departed(true);
+                me.incarnation = incarnation;
+                me.departed = true;
                 me.clone()
             };
-            let trace_member_id = String::from(member.get_id());
-            let trace_incarnation = member.get_incarnation();
+            let trace_member_id = member.id.clone();
+            let trace_incarnation = member.incarnation;
             self.member_list
-                .insert_health_by_id(member.get_id(), Health::Departed);
+                .insert_health_by_id(&member.id, Health::Departed);
             trace_it!(
                 MEMBERSHIP: self,
                 TraceKind::MemberUpdate,
@@ -501,7 +505,7 @@ impl Server {
                 Health::Departed
             );
 
-            let check_list = self.member_list.check_list(member.get_id());
+            let check_list = self.member_list.check_list(&member.id);
             for member in check_list.iter().take(10) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
@@ -516,12 +520,12 @@ impl Server {
     fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
         let mut incremented_incarnation = false;
         let rk: RumorKey = RumorKey::from(&member);
-        if member.get_id() == self.member_id() {
+        if member.id == self.member_id() {
             if health != Health::Alive {
                 let mut me = self.member.write().expect("Member lock is poisoned");
-                let mut incarnation = me.get_incarnation();
+                let mut incarnation = me.incarnation;
                 incarnation += 1;
-                me.set_incarnation(incarnation);
+                me.incarnation = incarnation;
                 health = Health::Alive;
                 incremented_incarnation = true;
             }
@@ -529,8 +533,8 @@ impl Server {
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
         // of just how the logic goes. The value of the trace is really high, though, so we suck it
         // for now.
-        let trace_member_id = String::from(member.get_id());
-        let trace_incarnation = member.get_incarnation();
+        let trace_member_id = member.id.clone();
+        let trace_incarnation = member.incarnation;
         let trace_health = health.clone();
 
         if self.member_list.insert(member, health) || incremented_incarnation {
@@ -545,13 +549,6 @@ impl Server {
         }
     }
 
-    /// Insert members from a list of received rumors.
-    fn insert_member_from_rumors(&self, members: Vec<(Member, Health)>) {
-        for (member, health) in members.into_iter() {
-            self.insert_member_from_rumor(member, health);
-        }
-    }
-
     /// Insert a service rumor into the service store.
     pub fn insert_service(&self, service: Service) {
         let rk = RumorKey::from(&service);
@@ -563,21 +560,20 @@ impl Server {
             let mut service_entries: Vec<Service> = Vec::new();
             self.service_store.with_rumors(&rk.key, |service_rumor| {
                 if self.member_list
-                    .check_health_of_by_id(service_rumor.get_member_id(), Health::Confirmed)
+                    .check_health_of_by_id(&service_rumor.member_id, Health::Confirmed)
                 {
                     service_entries.push(service_rumor.clone());
                 }
             });
-            service_entries.sort_by_key(|k| k.get_member_id().to_string());
+            service_entries.sort_by_key(|k| k.member_id.clone());
             for service_rumor in service_entries.iter().take(1) {
                 if self.member_list
-                    .insert_health_by_id(service_rumor.get_member_id(), Health::Departed)
+                    .insert_health_by_id(&service_rumor.member_id, Health::Departed)
                 {
-                    self.member_list
-                        .depart_remove(service_rumor.get_member_id());
+                    self.member_list.depart_remove(&service_rumor.member_id);
                     self.rumor_heat.start_hot_rumor(RumorKey::new(
-                        message::swim::Rumor_Type::Member,
-                        service_rumor.get_member_id().clone(),
+                        RumorType::Member,
+                        service_rumor.member_id.clone(),
                         "",
                     ));
                 }
@@ -607,17 +603,17 @@ impl Server {
     /// Insert a departure rumor into the departure store.
     pub fn insert_departure(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
-        if &*self.member_id == departure.get_member_id() {
+        if &*self.member_id == &departure.member_id {
             self.departed
                 .compare_and_swap(false, true, Ordering::Relaxed);
         }
         if self.member_list
-            .insert_health_by_id(departure.get_member_id(), Health::Departed)
+            .insert_health_by_id(&departure.member_id, Health::Departed)
         {
-            self.member_list.depart_remove(departure.get_member_id());
+            self.member_list.depart_remove(&departure.member_id);
             self.rumor_heat.start_hot_rumor(RumorKey::new(
-                message::swim::Rumor_Type::Member,
-                departure.get_member_id().clone(),
+                RumorType::Member,
+                departure.member_id.clone(),
                 "",
             ));
         }
@@ -632,9 +628,9 @@ impl Server {
         let mut electorate = vec![];
         self.service_store.with_rumors(key, |s| {
             if self.member_list
-                .check_health_of_by_id(s.get_member_id(), Health::Alive)
+                .check_health_of_by_id(&s.member_id, Health::Alive)
             {
-                electorate.push(String::from(s.get_member_id()));
+                electorate.push(s.member_id.clone());
             }
         });
         electorate
@@ -645,7 +641,7 @@ impl Server {
         let mut total_pop = 0;
         self.service_store.with_rumors(key, |s| {
             if self.member_list
-                .check_in_voting_population_by_id(s.get_member_id())
+                .check_in_voting_population_by_id(&s.member_id)
             {
                 total_pop += 1;
             }
@@ -679,7 +675,7 @@ impl Server {
     pub fn start_election(&self, sg: ServiceGroup, term: u64) {
         let suitability = self.suitability_lookup.get(&sg);
         let mut e = Election::new(self.member_id(), sg, suitability);
-        e.set_term(term);
+        e.term = term;
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
             e.no_quorum();
@@ -690,7 +686,7 @@ impl Server {
 
     pub fn start_update_election(&self, sg: ServiceGroup, suitability: u64, term: u64) {
         let mut e = ElectionUpdate::new(self.member_id(), sg, suitability);
-        e.set_term(term);
+        e.term = term;
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
             e.no_quorum();
@@ -704,8 +700,8 @@ impl Server {
     /// a) We are the leader, and we have lost quorum with the rest of the group.
     /// b) We are not the leader, and we have detected that the leader is confirmed dead.
     pub fn restart_elections(&self) {
-        let mut elections_to_restart = vec![];
-        let mut update_elections_to_restart = vec![];
+        let mut elections_to_restart: Vec<(String, u64)> = vec![];
+        let mut update_elections_to_restart: Vec<(String, u64)> = vec![];
 
         self.election_store.with_keys(|(service_group, rumors)| {
             if self.service_store
@@ -716,7 +712,7 @@ impl Server {
                     .get("election")
                     .expect("Lost an election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
-                if election.is_finished() && election.get_member_id() == self.member_id() {
+                if election.is_finished() && election.member_id == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
                         warn!(
@@ -725,11 +721,11 @@ impl Server {
                             election
                         );
                         elections_to_restart
-                            .push((String::from(&service_group[..]), election.get_term()));
+                            .push((String::from(&service_group[..]), election.term));
                     }
                 } else if election.is_finished() {
                     if self.member_list
-                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed)
+                        .check_health_of_by_id(&election.member_id, Health::Confirmed)
                     {
                         warn!(
                             "Restarting election with a new term as the leader is dead {}: {:?}",
@@ -737,7 +733,7 @@ impl Server {
                             election
                         );
                         elections_to_restart
-                            .push((String::from(&service_group[..]), election.get_term()));
+                            .push((String::from(&service_group[..]), election.term));
                     }
                 }
             }
@@ -752,7 +748,7 @@ impl Server {
                     .get("election")
                     .expect("Lost an update election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
-                if election.is_finished() && election.get_member_id() == self.member_id() {
+                if election.is_finished() && election.member_id == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
                         warn!(
@@ -761,11 +757,11 @@ impl Server {
                             election
                         );
                         update_elections_to_restart
-                            .push((String::from(&service_group[..]), election.get_term()));
+                            .push((String::from(&service_group[..]), election.term));
                     }
                 } else if election.is_finished() {
                     if self.member_list
-                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed)
+                        .check_health_of_by_id(&election.member_id, Health::Confirmed)
                     {
                         warn!(
                             "Restarting election with a new term as the leader is dead {}: {:?}",
@@ -773,7 +769,7 @@ impl Server {
                             election
                         );
                         update_elections_to_restart
-                            .push((String::from(&service_group[..]), election.get_term()));
+                            .push((String::from(&service_group[..]), election.term));
                     }
                 }
             }
@@ -822,7 +818,7 @@ impl Server {
 
         // If this is an election for a service group we care about
         if self.service_store
-            .contains_rumor(election.get_service_group(), self.member_id())
+            .contains_rumor(&election.service_group, self.member_id())
         {
             // And the election store already has an election rumor for this election
             if self.election_store
@@ -831,26 +827,26 @@ impl Server {
                 let mut new_term = false;
                 self.election_store
                     .with_rumor(election.key(), election.id(), |ce| {
-                        new_term = election.get_term() > ce.unwrap().get_term()
+                        new_term = election.term > ce.unwrap().term
                     });
                 if new_term {
                     self.election_store.remove(election.key(), election.id());
-                    let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                    let sg = match ServiceGroup::from_str(&election.service_group) {
                         Ok(sg) => sg,
                         Err(e) => {
                             error!("Election malformed; cannot parse service group: {}", e);
                             return;
                         }
                     };
-                    self.start_election(sg, election.get_term());
+                    self.start_election(sg, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
-                if self.member_id() == election.get_member_id() {
+                if self.member_id() == election.member_id {
                     if self.check_quorum(election.key()) {
                         let electorate = self.get_electorate(election.key());
                         let mut num_votes = 0;
-                        for vote in election.get_votes().iter() {
+                        for vote in election.votes.iter() {
                             if electorate.contains(vote) {
                                 num_votes += 1;
                             }
@@ -873,14 +869,14 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                let sg = match ServiceGroup::from_str(&election.service_group) {
                     Ok(sg) => sg,
                     Err(e) => {
                         error!("Election malformed; cannot parse service group: {}", e);
                         return;
                     }
                 };
-                self.start_election(sg, election.get_term());
+                self.start_election(sg, election.term);
             }
             if !election.is_finished() {
                 let has_quorum = self.check_quorum(election.key());
@@ -901,7 +897,7 @@ impl Server {
 
         // If this is an election for a service group we care about
         if self.service_store
-            .contains_rumor(election.get_service_group(), self.member_id())
+            .contains_rumor(&election.service_group, self.member_id())
         {
             // And the election store already has an election rumor for this election
             if self.update_store
@@ -910,26 +906,19 @@ impl Server {
                 let mut new_term = false;
                 self.update_store
                     .with_rumor(election.key(), election.id(), |ce| {
-                        new_term = election.get_term() > ce.unwrap().get_term()
+                        new_term = election.term > ce.unwrap().term
                     });
                 if new_term {
                     self.update_store.remove(election.key(), election.id());
-                    let sg = match ServiceGroup::from_str(election.get_service_group()) {
-                        Ok(sg) => sg,
-                        Err(e) => {
-                            error!("Election malformed; cannot parse service group: {}", e);
-                            return;
-                        }
-                    };
-                    self.start_update_election(sg, 0, election.get_term());
+                    self.start_update_election(election.service_group.clone(), 0, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
-                if self.member_id() == election.get_member_id() {
+                if self.member_id() == election.member_id {
                     if self.check_quorum(election.key()) {
                         let electorate = self.get_electorate(election.key());
                         let mut num_votes = 0;
-                        for vote in election.get_votes().iter() {
+                        for vote in election.votes.iter() {
                             if electorate.contains(vote) {
                                 num_votes += 1;
                             }
@@ -952,14 +941,14 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                let sg = match ServiceGroup::from_str(&election.service_group) {
                     Ok(sg) => sg,
                     Err(e) => {
                         error!("Election malformed; cannot parse service group: {}", e);
                         return;
                     }
                 };
-                self.start_update_election(sg, 0, election.get_term());
+                self.start_update_election(sg, 0, election.term);
             }
             if !election.is_finished() {
                 let has_quorum = self.check_quorum(election.key());
@@ -1079,8 +1068,8 @@ mod tests {
             let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
             let gossip_listen = format!("127.0.0.1:{}", gossip_port);
             let mut member = Member::default();
-            member.set_swim_port(swim_port as i32);
-            member.set_gossip_port(gossip_port as i32);
+            member.swim_port = swim_port as i32;
+            member.gossip_port = gossip_port as i32;
             Server::new(
                 &swim_listen[..],
                 &gossip_listen[..],

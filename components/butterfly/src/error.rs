@@ -20,7 +20,7 @@ use std::result;
 use std::str;
 
 use habitat_core;
-use protobuf;
+use prost;
 use toml;
 use zmq;
 
@@ -30,12 +30,13 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     BadDataPath(PathBuf, io::Error),
     BadDatFile(PathBuf, io::Error),
-    BadMessage(String),
     CannotBind(io::Error),
     DatFileIO(PathBuf, io::Error),
+    DecodeError(prost::DecodeError),
+    EncodeError(prost::EncodeError),
     HabitatCore(habitat_core::error::Error),
     NonExistentRumor(String, String),
-    ProtobufError(protobuf::ProtobufError),
+    ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
     ServiceConfigNotUtf8(String, str::Utf8Error),
     SocketSetReadTimeout(io::Error),
@@ -58,19 +59,23 @@ impl fmt::Display for Error {
                 path.display(),
                 err
             ),
-            Error::BadMessage(ref err) => format!("Bad Message: {:?}", err),
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
             Error::DatFileIO(ref path, ref err) => format!(
                 "Error reading or writing to DatFile, {}, {}",
                 path.display(),
                 err
             ),
+            Error::DecodeError(ref err) => format!("Failed to decode protocol message: {}", err),
+            Error::EncodeError(ref err) => format!("Failed to encode protocol message: {}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
                 "Non existent rumor asked to be written to bytes: {} {}",
                 member_id, rumor_id
             ),
-            Error::ProtobufError(ref err) => format!("ProtoBuf Error: {}", err),
+            Error::ProtocolMismatch(ref field) => format!(
+                "Received an unsupported or bad protocol message. Missing field: {}",
+                field
+            ),
             Error::ServiceConfigDecode(ref sg, ref err) => {
                 format!("Cannot decode service config: group={}, {:?}", sg, err)
             }
@@ -98,14 +103,17 @@ impl error::Error for Error {
         match *self {
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",
             Error::BadDatFile(_, _) => "Unable to decode contents of DatFile",
-            Error::BadMessage(_) => "Bad Protobuf Message; should be Ping/Ack/PingReq",
             Error::CannotBind(_) => "Cannot bind to port",
             Error::DatFileIO(_, _) => "Error reading or writing to DatFile",
+            Error::DecodeError(ref err) => err.description(),
+            Error::EncodeError(ref err) => err.description(),
             Error::HabitatCore(_) => "Habitat core error",
             Error::NonExistentRumor(_, _) => {
                 "Cannot write rumor to bytes because it does not exist"
             }
-            Error::ProtobufError(ref err) => err.description(),
+            Error::ProtocolMismatch(_) => {
+                "Received an unprocessable wire message from another Supervisor"
+            }
             Error::ServiceConfigDecode(_, _) => "Cannot decode service config into TOML",
             Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",
             Error::SocketSetReadTimeout(_) => "Cannot set UDP socket read timeout",
@@ -117,12 +125,17 @@ impl error::Error for Error {
     }
 }
 
-impl From<protobuf::ProtobufError> for Error {
-    fn from(err: protobuf::ProtobufError) -> Error {
-        Error::ProtobufError(err)
+impl From<prost::DecodeError> for Error {
+    fn from(err: prost::DecodeError) -> Error {
+        Error::DecodeError(err)
     }
 }
 
+impl From<prost::EncodeError> for Error {
+    fn from(err: prost::EncodeError) -> Error {
+        Error::EncodeError(err)
+    }
+}
 impl From<habitat_core::error::Error> for Error {
     fn from(err: habitat_core::error::Error) -> Error {
         Error::HabitatCore(err)

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,156 +23,160 @@
 //! the election finishing. There can, in the end, be only one.
 
 use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 
 use habitat_core::service::ServiceGroup;
-use protobuf::{self, Message, RepeatedField};
 
-use error::Result;
-pub use message::swim::Election_Status;
-use message::swim::{
-    Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type,
-};
-use rumor::Rumor;
+use error::{Error, Result};
+use protocol::newscast::Rumor as ProtoRumor;
+pub use protocol::newscast::{election::Status as ElectionStatus, Election as ProtoElection};
+use protocol::{self, newscast, FromProto};
+use rumor::{Rumor, RumorPayload, RumorType};
 
 #[derive(Debug, Clone, Serialize)]
-pub struct Election(ProtoRumor);
-
-impl From<ProtoRumor> for Election {
-    fn from(pr: ProtoRumor) -> Election {
-        Election(pr)
-    }
-}
-
-impl From<Election> for ProtoRumor {
-    fn from(election: Election) -> ProtoRumor {
-        election.0
-    }
-}
-
-impl Deref for Election {
-    type Target = ProtoElection;
-
-    fn deref(&self) -> &ProtoElection {
-        self.0.get_election()
-    }
-}
-
-impl DerefMut for Election {
-    fn deref_mut(&mut self) -> &mut ProtoElection {
-        self.0.mut_election()
-    }
+pub struct Election {
+    pub from_id: String,
+    pub member_id: String,
+    pub service_group: ServiceGroup,
+    pub term: u64,
+    pub suitability: u64,
+    pub status: ElectionStatus,
+    pub votes: Vec<String>,
 }
 
 impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
-    pub fn new<S1: Into<String>>(
-        member_id: S1,
-        service_group: ServiceGroup,
-        suitability: u64,
-    ) -> Election {
-        let mut rumor = ProtoRumor::new();
+    pub fn new<S1>(member_id: S1, service_group: ServiceGroup, suitability: u64) -> Election
+    where
+        S1: Into<String>,
+    {
         let from_id = member_id.into();
-        let real_member_id = from_id.clone();
-        let vote_member_id = from_id.clone();
-        rumor.set_from_id(from_id);
-        rumor.set_field_type(ProtoRumor_Type::Election);
-
-        let mut proto = ProtoElection::new();
-        proto.set_member_id(real_member_id);
-        proto.set_service_group(format!("{}", service_group));
-        proto.set_term(0);
-        proto.set_suitability(suitability);
-        proto.set_status(Election_Status::Running);
-        proto.set_votes(RepeatedField::from_vec(vec![vote_member_id]));
-
-        rumor.set_election(proto);
-        Election(rumor)
+        Election {
+            from_id: from_id.clone(),
+            member_id: from_id.clone(),
+            service_group: service_group,
+            term: 0,
+            suitability: suitability,
+            status: ElectionStatus::Running,
+            votes: vec![from_id],
+        }
     }
 
     /// Insert a vote for the election.
     pub fn insert_vote(&mut self, member_id: &str) {
-        if !self.get_votes().contains(&String::from(member_id)) {
-            self.mut_votes().push(String::from(member_id));
+        if !self.votes.contains(&String::from(member_id)) {
+            self.votes.push(String::from(member_id));
         }
     }
 
     /// Steal all the votes from another election for ourselves.
     pub fn steal_votes(&mut self, other: &mut Election) {
-        for x in other.mut_votes().iter() {
+        for x in other.votes.iter() {
             self.insert_vote(x);
         }
     }
 
     /// Sets the status of the election to "running".
     pub fn running(&mut self) {
-        self.set_status(Election_Status::Running);
+        self.status = ElectionStatus::Running;
     }
 
     /// Sets the status of the election to "finished"
     pub fn finish(&mut self) {
-        self.set_status(Election_Status::Finished);
+        self.status = ElectionStatus::Finished;
     }
 
     /// Sets the status of the election to "NoQuorum"
     pub fn no_quorum(&mut self) {
-        self.set_status(Election_Status::NoQuorum);
+        self.status = ElectionStatus::NoQuorum;
     }
 
     /// Returns true if the election is finished.
     pub fn is_finished(&self) -> bool {
-        self.get_status() == Election_Status::Finished
+        self.status == ElectionStatus::Finished
     }
 }
 
 impl PartialEq for Election {
     /// We ignore id in equality checking, because we only have one per service group
     fn eq(&self, other: &Election) -> bool {
-        self.get_service_group() == other.get_service_group()
-            && self.get_member_id() == other.get_member_id()
-            && self.get_suitability() == other.get_suitability()
-            && self.get_votes() == other.get_votes()
-            && self.get_status() == other.get_status()
-            && self.get_term() == other.get_term()
+        self.service_group == other.service_group
+            && self.member_id == other.member_id
+            && self.suitability == other.suitability
+            && self.votes == other.votes
+            && self.status == other.status
+            && self.term == other.term
+    }
+}
+
+impl protocol::Message<ProtoRumor> for Election {}
+
+impl FromProto<ProtoRumor> for Election {
+    fn from_proto(rumor: ProtoRumor) -> Result<Self> {
+        let payload = match rumor.payload.ok_or(Error::ProtocolMismatch("payload"))? {
+            RumorPayload::Election(payload) => payload,
+            _ => panic!("from-bytes election"),
+        };
+        let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
+        Ok(Election {
+            from_id: from_id.clone(),
+            member_id: from_id.clone(),
+            service_group: payload
+                .service_group
+                .ok_or(Error::ProtocolMismatch("service-group"))
+                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+            term: payload.term.unwrap_or(0),
+            suitability: payload.suitability.unwrap_or(0),
+            status: payload
+                .status
+                .and_then(ElectionStatus::from_i32)
+                .unwrap_or(ElectionStatus::Running),
+            votes: payload.votes,
+        })
+    }
+}
+
+impl From<Election> for newscast::Election {
+    fn from(value: Election) -> Self {
+        newscast::Election {
+            member_id: Some(value.member_id),
+            service_group: Some(value.service_group.to_string()),
+            term: Some(value.term),
+            suitability: Some(value.suitability),
+            status: Some(value.status as i32),
+            votes: value.votes,
+        }
     }
 }
 
 impl Rumor for Election {
-    fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let rumor = protobuf::parse_from_bytes::<ProtoRumor>(bytes)?;
-        Ok(Election::from(rumor))
-    }
-
     /// Updates this election based on the contents of another election.
     fn merge(&mut self, mut other: Election) -> bool {
         if *self == other {
             // If we are the same object, just return false
             debug!("Equal: {:?} {:?}", self, other);
             false
-        } else if other.get_term() >= self.get_term()
-            && other.get_status() == Election_Status::Finished
-        {
+        } else if other.term >= self.term && other.status == ElectionStatus::Finished {
             // If the new rumors term is bigger or equal to ours, and it has a leader, we take it as
             // the leader and move on.
             *self = other;
             true
-        } else if other.get_term() == self.get_term()
-            && self.get_status() == Election_Status::Finished
-        {
+        } else if other.term == self.term && self.status == ElectionStatus::Finished {
             // If the terms are equal, and we are finished, then we drop the other side on the
             // floor
             false
-        } else if self.get_term() > other.get_term() {
+        } else if self.term > other.term {
             // If the rumor we got has a term that's lower than ours, keep sharing our rumor no
             // matter what term they are on.
             true
-        } else if self.get_suitability() > other.get_suitability() {
+        } else if self.suitability > other.suitability {
             // If we are more suitable than the other side, we want to steal
             // the other sides votes, and keep sharing.
             debug!("Self suitable: {:?} {:?}", self, other);
             self.steal_votes(&mut other);
             true
-        } else if other.get_suitability() > self.get_suitability() {
+        } else if other.suitability > self.suitability {
             // If the other side is more suitable than we are, we want to add our votes
             // to its tally, then take it as our rumor.
             debug!("Other suitable: {:?} {:?}", self, other);
@@ -180,7 +184,7 @@ impl Rumor for Election {
             *self = other;
             true
         } else {
-            if self.get_member_id() >= other.get_member_id() {
+            if self.member_id >= other.member_id {
                 // If we are equally suitable, and our id sorts before the other, we want to steal
                 // it's votes, and mark it as having voted for us.
                 debug!(
@@ -201,8 +205,8 @@ impl Rumor for Election {
     }
 
     /// We are the Election rumor!
-    fn kind(&self) -> ProtoRumor_Type {
-        ProtoRumor_Type::Election
+    fn kind(&self) -> RumorType {
+        RumorType::Election
     }
 
     /// There can be only
@@ -211,11 +215,7 @@ impl Rumor for Election {
     }
 
     fn key(&self) -> &str {
-        self.get_service_group()
-    }
-
-    fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(self.0.write_to_bytes()?)
+        self.service_group.as_ref()
     }
 }
 
@@ -223,13 +223,11 @@ impl Rumor for Election {
 pub struct ElectionUpdate(Election);
 
 impl ElectionUpdate {
-    pub fn new<S1: Into<String>>(
-        member_id: S1,
-        service_group: ServiceGroup,
-        suitability: u64,
-    ) -> ElectionUpdate {
-        let mut election = Election::new(member_id, service_group, suitability);
-        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
+    pub fn new<S1>(member_id: S1, service_group: ServiceGroup, suitability: u64) -> ElectionUpdate
+    where
+        S1: Into<String>,
+    {
+        let election = Election::new(member_id, service_group, suitability);
         ElectionUpdate(election)
     }
 }
@@ -237,43 +235,44 @@ impl ElectionUpdate {
 impl Deref for ElectionUpdate {
     type Target = Election;
 
-    fn deref(&self) -> &Election {
+    fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
 impl DerefMut for ElectionUpdate {
-    fn deref_mut(&mut self) -> &mut Election {
+    fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl From<ProtoRumor> for ElectionUpdate {
-    fn from(pr: ProtoRumor) -> ElectionUpdate {
-        let mut election = Election::from(pr);
-        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
-        ElectionUpdate(election)
+impl From<Election> for ElectionUpdate {
+    fn from(other: Election) -> Self {
+        ElectionUpdate(other)
     }
 }
 
-impl From<ElectionUpdate> for ProtoRumor {
-    fn from(election: ElectionUpdate) -> ProtoRumor {
-        (election.0).0
+impl protocol::Message<ProtoRumor> for ElectionUpdate {}
+
+impl FromProto<ProtoRumor> for ElectionUpdate {
+    fn from_proto(rumor: ProtoRumor) -> Result<Self> {
+        Ok(ElectionUpdate(Election::from_proto(rumor)?))
+    }
+}
+
+impl From<ElectionUpdate> for newscast::Election {
+    fn from(value: ElectionUpdate) -> Self {
+        value.0.into()
     }
 }
 
 impl Rumor for ElectionUpdate {
-    fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let rumor = Election::from_bytes(bytes)?;
-        Ok(ElectionUpdate(rumor))
-    }
-
     fn merge(&mut self, other: ElectionUpdate) -> bool {
         self.0.merge(other.0)
     }
 
-    fn kind(&self) -> ProtoRumor_Type {
-        ProtoRumor_Type::ElectionUpdate
+    fn kind(&self) -> RumorType {
+        RumorType::ElectionUpdate
     }
 
     fn id(&self) -> &str {
@@ -282,10 +281,6 @@ impl Rumor for ElectionUpdate {
 
     fn key(&self) -> &str {
         self.0.key()
-    }
-
-    fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        self.0.write_to_bytes()
     }
 }
 
@@ -319,8 +314,8 @@ mod tests {
         assert_eq!(e1.merge(e2), true);
         assert_eq!(e1.merge(e3), true);
         assert_eq!(e1.merge(e4), true);
-        assert_eq!(e1.get_member_id(), "c");
-        assert_eq!(e1.get_votes().len(), 4);
+        assert_eq!(e1.member_id, "c");
+        assert_eq!(e1.votes.len(), 4);
     }
 
     #[test]
@@ -332,7 +327,7 @@ mod tests {
         assert_eq!(e1.merge(e2), true);
         assert_eq!(e1.merge(e3), true);
         assert_eq!(e1.merge(e4), true);
-        assert_eq!(e1.get_member_id(), "d");
-        assert_eq!(e1.get_votes().len(), 4);
+        assert_eq!(e1.member_id, "d");
+        assert_eq!(e1.votes.len(), 4);
     }
 }

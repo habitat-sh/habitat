@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,12 +28,6 @@ pub mod service;
 pub mod service_config;
 pub mod service_file;
 
-pub use self::departure::Departure;
-pub use self::election::{Election, ElectionUpdate};
-pub use self::service::Service;
-pub use self::service_config::ServiceConfig;
-pub use self::service_file::ServiceFile;
-
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::default::Default;
@@ -42,22 +36,58 @@ use std::result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
+use bytes::BytesMut;
+use prost::Message as ProstMessage;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
+pub use self::departure::Departure;
+pub use self::election::{Election, ElectionUpdate};
+pub use self::service::Service;
+pub use self::service_config::ServiceConfig;
+pub use self::service_file::ServiceFile;
 use error::{Error, Result};
-use message::swim::Rumor_Type;
+use member::Membership;
+pub use protocol::newscast::{Rumor as ProtoRumor, RumorPayload, RumorType};
+use protocol::{FromProto, Message};
+
+#[derive(Debug, Clone, Serialize)]
+pub enum RumorKind {
+    Departure(Departure),
+    Election(Election),
+    ElectionUpdate(ElectionUpdate),
+    Membership(Membership),
+    Service(Service),
+    ServiceConfig(ServiceConfig),
+    ServiceFile(ServiceFile),
+}
+
+impl From<RumorKind> for RumorPayload {
+    fn from(value: RumorKind) -> Self {
+        match value {
+            RumorKind::Departure(departure) => RumorPayload::Departure(departure.into()),
+            RumorKind::Election(election) => RumorPayload::Election(election.into()),
+            RumorKind::ElectionUpdate(election) => RumorPayload::Election(election.into()),
+            RumorKind::Membership(membership) => RumorPayload::Member(membership.into()),
+            RumorKind::Service(service) => RumorPayload::Service(service.into()),
+            RumorKind::ServiceConfig(service_config) => {
+                RumorPayload::ServiceConfig(service_config.into())
+            }
+            RumorKind::ServiceFile(service_file) => RumorPayload::ServiceFile(service_file.into()),
+        }
+    }
+}
 
 /// The description of a `RumorKey`.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RumorKey {
-    pub kind: Rumor_Type,
+    pub kind: RumorType,
     pub id: String,
     pub key: String,
 }
 
 impl RumorKey {
-    pub fn new<A, B>(kind: Rumor_Type, id: A, key: B) -> RumorKey
+    pub fn new<A, B>(kind: RumorType, id: A, key: B) -> RumorKey
     where
         A: ToString,
         B: ToString,
@@ -80,13 +110,11 @@ impl RumorKey {
 
 /// A representation of a Rumor; implemented by all the concrete types we share as rumors. The
 /// exception is the Membership rumor, since it's not actually a rumor in the same vein.
-pub trait Rumor: Serialize + Sized {
-    fn from_bytes(&[u8]) -> Result<Self>;
-    fn kind(&self) -> Rumor_Type;
+pub trait Rumor: Message<ProtoRumor> + Sized {
+    fn kind(&self) -> RumorType;
     fn key(&self) -> &str;
     fn id(&self) -> &str;
     fn merge(&mut self, other: Self) -> bool;
-    fn write_to_bytes(&self) -> Result<Vec<u8>>;
 }
 
 impl<'a, T: Rumor> From<&'a T> for RumorKey {
@@ -105,7 +133,10 @@ pub struct RumorStore<T: Rumor> {
     update_counter: Arc<AtomicUsize>,
 }
 
-impl<T: Rumor> Default for RumorStore<T> {
+impl<T> Default for RumorStore<T>
+where
+    T: Rumor,
+{
     fn default() -> RumorStore<T> {
         RumorStore {
             list: Arc::new(RwLock::new(HashMap::new())),
@@ -114,7 +145,10 @@ impl<T: Rumor> Default for RumorStore<T> {
     }
 }
 
-impl<T: Rumor> Deref for RumorStore<T> {
+impl<T> Deref for RumorStore<T>
+where
+    T: Rumor,
+{
     type Target = RwLock<HashMap<String, HashMap<String, T>>>;
 
     fn deref(&self) -> &Self::Target {
@@ -122,7 +156,10 @@ impl<T: Rumor> Deref for RumorStore<T> {
     }
 }
 
-impl<T: Rumor> Serialize for RumorStore<T> {
+impl<T> Serialize for RumorStore<T>
+where
+    T: Rumor,
+{
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -134,7 +171,10 @@ impl<T: Rumor> Serialize for RumorStore<T> {
     }
 }
 
-impl<T: Rumor> RumorStore<T> {
+impl<T> RumorStore<T>
+where
+    T: Rumor,
+{
     /// Create a new RumorStore for the given type. Allows you to initialize the counter to a
     /// pre-set value. Useful mainly in testing.
     pub fn new(counter: usize) -> RumorStore<T> {
@@ -149,6 +189,17 @@ impl<T: Rumor> RumorStore<T> {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
         list.clear();
         self.update_counter.swap(0, Ordering::Relaxed)
+    }
+
+    pub fn encode(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
+        let list = self.list.read().expect("Rumor store lock poisoned");
+        match list.get(key).and_then(|l| l.get(member_id)) {
+            Some(rumor) => rumor.clone().write_to_bytes(),
+            None => Err(Error::NonExistentRumor(
+                String::from(member_id),
+                String::from(key),
+            )),
+        }
     }
 
     pub fn get_update_counter(&self) -> usize {
@@ -226,17 +277,6 @@ impl<T: Rumor> RumorStore<T> {
         with_closure(list.get(key).and_then(|r| r.get(member_id)));
     }
 
-    pub fn write_to_bytes(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
-        let list = self.list.read().expect("Rumor store lock poisoned");
-        match list.get(key).and_then(|l| l.get(member_id)) {
-            Some(rumor) => rumor.write_to_bytes(),
-            None => Err(Error::NonExistentRumor(
-                String::from(member_id),
-                String::from(key),
-            )),
-        }
-    }
-
     pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
         let list = self.list.read().expect("Rumor store lock poisoned");
         match list.get(key).and_then(|l| l.get(id)) {
@@ -254,13 +294,66 @@ impl<T: Rumor> RumorStore<T> {
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct RumorEnvelope {
+    pub type_: RumorType,
+    pub from_id: String,
+    pub kind: RumorKind,
+}
+
+impl RumorEnvelope {
+    pub fn decode(bytes: &[u8]) -> Result<Self> {
+        let proto = ProtoRumor::decode(bytes)?;
+        let type_ = RumorType::from_i32(proto.type_).ok_or(Error::ProtocolMismatch("type"))?;
+        let from_id = proto
+            .from_id
+            .clone()
+            .ok_or(Error::ProtocolMismatch("from-id"))?;
+        let kind = match type_ {
+            RumorType::Departure => RumorKind::Departure(Departure::from_proto(proto)?),
+            RumorType::Election => RumorKind::Election(Election::from_proto(proto)?),
+            RumorType::ElectionUpdate => {
+                RumorKind::ElectionUpdate(ElectionUpdate::from_proto(proto)?)
+            }
+            RumorType::Member => RumorKind::Membership(Membership::from_proto(proto)?),
+            RumorType::Service => RumorKind::Service(Service::from_proto(proto)?),
+            RumorType::ServiceConfig => RumorKind::ServiceConfig(ServiceConfig::from_proto(proto)?),
+            RumorType::ServiceFile => RumorKind::ServiceFile(ServiceFile::from_proto(proto)?),
+            RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),
+        };
+        Ok(RumorEnvelope {
+            type_: type_,
+            from_id: from_id,
+            kind: kind,
+        })
+    }
+
+    pub fn encode(self) -> Result<Vec<u8>> {
+        let proto: ProtoRumor = self.into();
+        let mut buf = BytesMut::with_capacity(proto.encoded_len());
+        proto.encode(&mut buf)?;
+        Ok(buf.to_vec())
+    }
+}
+
+impl From<RumorEnvelope> for ProtoRumor {
+    fn from(value: RumorEnvelope) -> ProtoRumor {
+        ProtoRumor {
+            type_: value.type_ as i32,
+            tag: vec![],
+            from_id: Some(value.from_id),
+            payload: Some(value.kind.into()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use uuid::Uuid;
 
     use error::Result;
-    use message::swim::Rumor_Type;
-    use rumor::Rumor;
+    use protocol::{self, newscast};
+    use rumor::{Rumor, RumorType};
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
@@ -284,12 +377,8 @@ mod tests {
     }
 
     impl Rumor for FakeRumor {
-        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
-            Ok(FakeRumor::default())
-        }
-
-        fn kind(&self) -> Rumor_Type {
-            Rumor_Type::Fake
+        fn kind(&self) -> RumorType {
+            RumorType::Fake
         }
 
         fn key(&self) -> &str {
@@ -302,6 +391,24 @@ mod tests {
 
         fn merge(&mut self, mut _other: FakeRumor) -> bool {
             false
+        }
+    }
+
+    impl protocol::FromProto<newscast::Rumor> for FakeRumor {
+        fn from_proto(_other: newscast::Rumor) -> Result<Self> {
+            Ok(FakeRumor::default())
+        }
+    }
+
+    impl From<FakeRumor> for newscast::Rumor {
+        fn from(_other: FakeRumor) -> newscast::Rumor {
+            newscast::Rumor::default()
+        }
+    }
+
+    impl protocol::Message<newscast::Rumor> for FakeRumor {
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(FakeRumor::default())
         }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {
@@ -319,12 +426,8 @@ mod tests {
     }
 
     impl Rumor for TrumpRumor {
-        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
-            Ok(TrumpRumor::default())
-        }
-
-        fn kind(&self) -> Rumor_Type {
-            Rumor_Type::Fake2
+        fn kind(&self) -> RumorType {
+            RumorType::Fake2
         }
 
         fn key(&self) -> &str {
@@ -337,6 +440,24 @@ mod tests {
 
         fn merge(&mut self, mut _other: TrumpRumor) -> bool {
             false
+        }
+    }
+
+    impl protocol::FromProto<newscast::Rumor> for TrumpRumor {
+        fn from_proto(_other: newscast::Rumor) -> Result<Self> {
+            Ok(TrumpRumor::default())
+        }
+    }
+
+    impl From<TrumpRumor> for newscast::Rumor {
+        fn from(_other: TrumpRumor) -> newscast::Rumor {
+            newscast::Rumor::default()
+        }
+    }
+
+    impl protocol::Message<newscast::Rumor> for TrumpRumor {
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(TrumpRumor::default())
         }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {

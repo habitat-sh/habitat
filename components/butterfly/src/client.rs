@@ -85,28 +85,34 @@ impl Client {
         encrypted: bool,
     ) -> Result<()> {
         let mut sc = ServiceConfig::new("butterflyclient", service_group, config);
-        sc.set_incarnation(incarnation);
-        sc.set_encrypted(encrypted);
+        sc.incarnation = incarnation;
+        sc.encrypted = encrypted;
         self.send(sc)
     }
 
     /// Create a service file and send it to the server.
-    pub fn send_service_file<S: Into<String>>(
+    pub fn send_service_file<S>(
         &mut self,
         service_group: ServiceGroup,
         filename: S,
         incarnation: u64,
         body: Vec<u8>,
         encrypted: bool,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        S: Into<String>,
+    {
         let mut sf = ServiceFile::new("butterflyclient", service_group, filename, body);
-        sf.set_incarnation(incarnation);
-        sf.set_encrypted(encrypted);
+        sf.incarnation = incarnation;
+        sf.encrypted = encrypted;
         self.send(sf)
     }
 
     /// Send any `Rumor` to the server.
-    pub fn send<T: Rumor>(&mut self, rumor: T) -> Result<()> {
+    pub fn send<T>(&mut self, rumor: T) -> Result<()>
+    where
+        T: Rumor,
+    {
         let bytes = rumor.write_to_bytes()?;
         let wire_msg = message::generate_wire(bytes, self.ring_key.as_ref())?;
         self.socket.send(&wire_msg, 0).map_err(Error::ZmqSendError)

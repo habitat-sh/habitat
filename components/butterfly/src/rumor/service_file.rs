@@ -18,64 +18,42 @@
 
 use std::cmp::Ordering;
 use std::mem;
-use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 
 use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
 use habitat_core::service::ServiceGroup;
-use protobuf::{self, Message};
 
-use error::Result;
-use message::swim::{
-    Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, ServiceFile as ProtoServiceFile,
-};
-use rumor::Rumor;
+use error::{Error, Result};
+use protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
+use rumor::{Rumor, RumorPayload, RumorType};
 
 #[derive(Debug, Clone, Serialize)]
-pub struct ServiceFile(ProtoRumor);
+pub struct ServiceFile {
+    pub from_id: String,
+    pub service_group: ServiceGroup,
+    pub incarnation: u64,
+    pub encrypted: bool,
+    pub filename: String,
+    pub body: Vec<u8>,
+}
 
 impl PartialOrd for ServiceFile {
     fn partial_cmp(&self, other: &ServiceFile) -> Option<Ordering> {
-        if self.get_service_group() != other.get_service_group() {
+        if self.service_group != other.service_group {
             None
         } else {
-            Some(self.get_incarnation().cmp(&other.get_incarnation()))
+            Some(self.incarnation.cmp(&other.incarnation))
         }
     }
 }
 
 impl PartialEq for ServiceFile {
     fn eq(&self, other: &ServiceFile) -> bool {
-        self.get_service_group() == other.get_service_group()
-            && self.get_incarnation() == other.get_incarnation()
-            && self.get_encrypted() == other.get_encrypted()
-            && self.get_filename() == other.get_filename()
-            && self.get_body() == other.get_body()
-    }
-}
-
-impl From<ProtoRumor> for ServiceFile {
-    fn from(pr: ProtoRumor) -> ServiceFile {
-        ServiceFile(pr)
-    }
-}
-
-impl From<ServiceFile> for ProtoRumor {
-    fn from(service_file: ServiceFile) -> ProtoRumor {
-        service_file.0
-    }
-}
-
-impl Deref for ServiceFile {
-    type Target = ProtoServiceFile;
-
-    fn deref(&self) -> &ProtoServiceFile {
-        self.0.get_service_file()
-    }
-}
-
-impl DerefMut for ServiceFile {
-    fn deref_mut(&mut self) -> &mut ProtoServiceFile {
-        self.0.mut_service_file()
+        self.service_group == other.service_group
+            && self.incarnation == other.incarnation
+            && self.encrypted == other.encrypted
+            && self.filename == other.filename
+            && self.body == other.body
     }
 }
 
@@ -91,49 +69,70 @@ impl ServiceFile {
         S1: Into<String>,
         S2: Into<String>,
     {
-        let mut rumor = ProtoRumor::new();
-        let from_id = member_id.into();
-        rumor.set_from_id(from_id);
-        rumor.set_field_type(ProtoRumor_Type::ServiceFile);
-
-        let mut proto = ProtoServiceFile::new();
-        proto.set_service_group(format!("{}", service_group));
-        proto.set_incarnation(0);
-        proto.set_filename(filename.into());
-        proto.set_body(body);
-
-        rumor.set_service_file(proto);
-        ServiceFile(rumor)
+        ServiceFile {
+            from_id: member_id.into(),
+            service_group: service_group,
+            incarnation: 0,
+            encrypted: false,
+            filename: filename.into(),
+            body: body,
+        }
     }
 
     /// Encrypt the contents of the service file
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        let body = self.take_body();
-        let encrypted_body = user_pair.encrypt(&body, Some(service_pair))?;
-        self.set_body(encrypted_body);
-        self.set_encrypted(true);
+        self.body = user_pair.encrypt(&self.body, Some(service_pair))?;
+        self.encrypted = true;
         Ok(())
     }
 
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
     /// the fact that we might be encrypted.
     pub fn body(&self) -> Result<Vec<u8>> {
-        if self.get_encrypted() {
-            let bytes =
-                BoxKeyPair::decrypt_with_path(self.get_body(), &default_cache_key_path(None))?;
+        if self.encrypted {
+            let bytes = BoxKeyPair::decrypt_with_path(&self.body, &default_cache_key_path(None))?;
             Ok(bytes)
         } else {
-            Ok(self.get_body().to_vec())
+            Ok(self.body.to_vec())
+        }
+    }
+}
+
+impl protocol::Message<ProtoRumor> for ServiceFile {}
+
+impl FromProto<ProtoRumor> for ServiceFile {
+    fn from_proto(rumor: ProtoRumor) -> Result<Self> {
+        let payload = match rumor.payload.ok_or(Error::ProtocolMismatch("payload"))? {
+            RumorPayload::ServiceFile(payload) => payload,
+            _ => panic!("from-bytes service-config"),
+        };
+        Ok(ServiceFile {
+            from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
+            service_group: payload
+                .service_group
+                .ok_or(Error::ProtocolMismatch("service-group"))
+                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+            incarnation: payload.incarnation.unwrap_or(0),
+            encrypted: payload.encrypted.unwrap_or(false),
+            filename: payload.filename.ok_or(Error::ProtocolMismatch("filename"))?,
+            body: payload.body.unwrap_or_default(),
+        })
+    }
+}
+
+impl From<ServiceFile> for newscast::ServiceFile {
+    fn from(value: ServiceFile) -> Self {
+        newscast::ServiceFile {
+            service_group: Some(value.service_group.to_string()),
+            incarnation: Some(value.incarnation),
+            encrypted: Some(value.encrypted),
+            filename: Some(value.filename),
+            body: Some(value.body),
         }
     }
 }
 
 impl Rumor for ServiceFile {
-    fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let rumor = protobuf::parse_from_bytes::<ProtoRumor>(bytes)?;
-        Ok(ServiceFile::from(rumor))
-    }
-
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
     fn merge(&mut self, mut other: ServiceFile) -> bool {
@@ -145,26 +144,23 @@ impl Rumor for ServiceFile {
         }
     }
 
-    fn kind(&self) -> ProtoRumor_Type {
-        ProtoRumor_Type::ServiceFile
+    fn kind(&self) -> RumorType {
+        RumorType::ServiceFile
     }
 
     fn id(&self) -> &str {
-        self.get_filename()
+        &self.filename
     }
 
     fn key(&self) -> &str {
-        self.get_service_group()
-    }
-
-    fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(self.0.write_to_bytes()?)
+        &self.service_group
     }
 }
 
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
+    use std::str::FromStr;
 
     use habitat_core::service::ServiceGroup;
 
@@ -193,7 +189,7 @@ mod tests {
     fn service_files_with_different_incarnations_are_not_equal() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
         let mut s2 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         assert_eq!(s1, s2);
     }
 
@@ -202,7 +198,7 @@ mod tests {
     fn service_files_with_different_service_groups_are_not_equal() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
         let mut s2 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        s2.set_service_group(String::from("adam.fragile"));
+        s2.service_group = ServiceGroup::from_str("adam.fragile").unwrap();
         assert_eq!(s1, s2);
     }
 
@@ -218,7 +214,7 @@ mod tests {
     fn service_files_with_different_incarnations_are_not_equal_via_cmp() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
         let mut s2 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         assert_eq!(s1.partial_cmp(&s2), Some(Ordering::Less));
         assert_eq!(s2.partial_cmp(&s1), Some(Ordering::Greater));
     }
@@ -227,7 +223,7 @@ mod tests {
     fn merge_chooses_the_higher_incarnation() {
         let mut s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
         let mut s2 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         let s2_check = s2.clone();
         assert_eq!(s1.merge(s2), true);
         assert_eq!(s1, s2_check);
@@ -236,7 +232,7 @@ mod tests {
     #[test]
     fn merge_returns_false_if_nothing_changed() {
         let mut s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        s1.set_incarnation(1);
+        s1.incarnation = 1;
         let s1_check = s1.clone();
         let s2 = create_service_file("adam", "yep", "tcp-backlog = 128");
         assert_eq!(s1.merge(s2), false);

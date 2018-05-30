@@ -1298,22 +1298,23 @@ echo "The message is Hola Mundo"
             .expect("Could not create config");
 
         // SysInfo is basic Swim infrastructure information
-        let mut sys_info = SysInfo::new();
-        sys_info.set_ip("1.2.3.4".to_string());
-        sys_info.set_hostname("hostname".to_string());
-        sys_info.set_gossip_ip("0.0.0.0".to_string());
-        sys_info.set_gossip_port(7777);
-        sys_info.set_http_gateway_ip("0.0.0.0".to_string());
-        sys_info.set_http_gateway_port(9631);
+        let mut sys_info = SysInfo::default();
+        sys_info.ip = "1.2.3.4".to_string();
+        sys_info.hostname = "hostname".to_string();
+        sys_info.gossip_ip = "0.0.0.0".to_string();
+        sys_info.gossip_port = 7777;
+        sys_info.http_gateway_ip = "0.0.0.0".to_string();
+        sys_info.http_gateway_port = 9631;
 
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one = ServiceRumor::new("member-a", &pg_id, &sg_one, &sys_info, None);
+        let service_one =
+            ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info.clone(), None);
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a", sg_one.clone(), 10);
+        let mut election = ElectionRumor::new("member-a", sg_one, 10);
         election.finish();
         election_store.insert(election);
 
@@ -1405,22 +1406,22 @@ echo "The message is Hello"
             .expect("Could not create config");
 
         // SysInfo is basic Swim infrastructure information
-        let mut sys_info = SysInfo::new();
-        sys_info.set_ip("1.2.3.4".to_string());
-        sys_info.set_hostname("hostname".to_string());
-        sys_info.set_gossip_ip("0.0.0.0".to_string());
-        sys_info.set_gossip_port(7777);
-        sys_info.set_http_gateway_ip("0.0.0.0".to_string());
-        sys_info.set_http_gateway_port(9631);
+        let mut sys_info = SysInfo::default();
+        sys_info.ip = "1.2.3.4".to_string();
+        sys_info.hostname = "hostname".to_string();
+        sys_info.gossip_ip = "0.0.0.0".to_string();
+        sys_info.gossip_port = 7777;
+        sys_info.http_gateway_ip = "0.0.0.0".to_string();
+        sys_info.http_gateway_port = 9631;
 
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one = ServiceRumor::new("member-a", &pg_id, &sg_one, &sys_info, None);
+        let service_one = ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info, None);
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a", sg_one.clone(), 10);
+        let mut election = ElectionRumor::new("member-a", sg_one, 10);
         election.finish();
         election_store.insert(election);
 
