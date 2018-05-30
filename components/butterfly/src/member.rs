@@ -298,7 +298,7 @@ impl MemberList {
     }
 
     /// Inserts a member into the member list with the given health.
-    #[allow(unknown_lints,if_same_then_else)]
+    #[allow(unknown_lints, if_same_then_else)]
     pub fn insert(&self, member: Member, health: Health) -> bool {
         let share_rumor: bool;
         let mut start_suspicion: bool = false;
