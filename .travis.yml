@@ -23,6 +23,19 @@ matrix:
 ########################################################################
 
 #
+# Job for running clippy, the Rust linter
+#
+    - language: rust
+      rust: nightly
+      sudo: false
+      cache:
+        cargo: true
+      install:
+        - cargo install clippy
+      script:
+        - cargo clippy --all-targets --tests -- -D clippy_correctness
+
+#
 # Job for testing Habitat Rust program components
 #
     - language: rust
