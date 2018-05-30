@@ -733,8 +733,7 @@ mod test {
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
         let app = ::cli();
-        let matches = app.get_matches_from(&args);
-        matches
+        app.get_matches_from(&args)
     }
 
     fn build_spec<'a>() -> BuildSpec<'a> {

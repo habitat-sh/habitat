@@ -122,8 +122,7 @@ mod test {
         let mut config = String::new();
         let _ = file.read_to_string(&mut config).unwrap();
         let toml = toml::de::from_str(&config).unwrap();
-        let data = convert::toml_to_json(toml::Value::Table(toml));
-        data
+        convert::toml_to_json(toml::Value::Table(toml))
     }
 
     #[test]
