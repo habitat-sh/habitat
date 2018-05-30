@@ -39,7 +39,8 @@ matrix:
       install:
         - cargo clippy -V || cargo install clippy
       script:
-        - cargo clippy --all-targets --tests -- -D clippy_correctness
+        - source support/ci/rust_env.sh
+        - make lint
 
 #
 # Job for testing Habitat Rust program components
