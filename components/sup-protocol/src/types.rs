@@ -19,23 +19,16 @@
 //! JW TODO: These types should be moved to the _core crate_ and where they will replace their
 //!          vanilla Rust type counterparts that we define there.
 
-include!("generated/sup.types.rs");
-include!("generated/sup.types.impl.rs");
-
 use std::fmt;
 use std::str::FromStr;
 
 use core;
 use core::package::{self, Identifiable};
+use core::util::deserialize_using_from_str;
+use serde;
 
+pub use generated::types::*;
 use net::{self, ErrCode, NetErr};
-
-impl ServiceGroup {
-    pub fn validate(value: &str) -> core::Result<()> {
-        core::service::ServiceGroup::validate(value)?;
-        Ok(())
-    }
-}
 
 impl<T, U> From<(T, U)> for ApplicationEnvironment
 where
@@ -44,36 +37,39 @@ where
 {
     fn from(value: (T, U)) -> ApplicationEnvironment {
         let mut ae = ApplicationEnvironment::default();
-        ae.application = value.0.to_string();
-        ae.environment = value.1.to_string();
+        ae.set_application(value.0.to_string());
+        ae.set_environment(value.1.to_string());
         ae
     }
 }
 
 impl fmt::Display for ApplicationEnvironment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}.{}", self.application, self.environment)
-    }
-}
-
-impl fmt::Display for BindingMode {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let value = match *self {
-            BindingMode::Relaxed => "relaxed",
-            BindingMode::Strict => "strict",
-        };
-        write!(f, "{}", value)
+        write!(f, "{}.{}", self.get_application(), self.get_environment())
     }
 }
 
 impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match (self.version.as_ref(), self.release.as_ref()) {
-            (Some(ref version), Some(ref release)) => {
-                write!(f, "{}/{}/{}/{}", self.origin, self.name, version, release,)
-            }
-            (Some(ref version), None) => write!(f, "{}/{}/{}", self.origin, self.name, version,),
-            (None, Some(_)) | (None, None) => write!(f, "{}/{}", self.origin, self.name),
+        if self.has_version() && self.has_release() {
+            write!(
+                f,
+                "{}/{}/{}/{}",
+                self.get_origin(),
+                self.get_name(),
+                self.get_version(),
+                self.get_release()
+            )
+        } else if self.has_version() {
+            write!(
+                f,
+                "{}/{}/{}",
+                self.get_origin(),
+                self.get_name(),
+                self.get_version()
+            )
+        } else {
+            write!(f, "{}/{}", self.get_origin(), self.get_name())
         }
     }
 }
@@ -122,12 +118,12 @@ impl FromStr for ServiceBind {
         }
         let mut bind = ServiceBind::default();
         if values.len() == 3 {
-            bind.name = values[1].to_string();
-            bind.service_group = ServiceGroup::from_str(values[2])?;
-            bind.service_name = Some(values[0].to_string());
+            bind.set_name(values[1].to_string());
+            bind.set_service_group(ServiceGroup::from_str(values[2])?);
+            bind.set_service_name(values[0].to_string());
         } else {
-            bind.name = values[0].to_string();
-            bind.service_group = ServiceGroup::from_str(values[1])?;
+            bind.set_name(values[0].to_string());
+            bind.set_service_group(ServiceGroup::from_str(values[1])?);
         }
         Ok(bind)
     }
@@ -145,12 +141,12 @@ impl FromStr for ServiceGroup {
 
 impl fmt::Display for ServiceGroup {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut value = format!("{}.{}", self.service, self.group);
-        if let Some(ref app_env) = self.application_environment {
-            value.insert_str(0, &format!("{}#", app_env));
+        let mut value = format!("{}.{}", self.get_service(), self.get_group());
+        if self.has_application_environment() {
+            value.insert_str(0, &format!("{}#", self.get_application_environment()));
         }
-        if let Some(ref organization) = self.organization {
-            value.push_str(&format!("@{}", organization));
+        if self.has_organization() {
+            value.push_str(&format!("@{}", self.get_organization()));
         }
         write!(f, "{}", value)
     }
@@ -163,40 +159,48 @@ impl fmt::Display for ServiceGroup {
 
 impl From<core::service::ApplicationEnvironment> for ApplicationEnvironment {
     fn from(app_env: core::service::ApplicationEnvironment) -> Self {
-        let mut proto = ApplicationEnvironment::default();
-        proto.application = app_env.application().to_string();
-        proto.environment = app_env.environment().to_string();
+        let mut proto = ApplicationEnvironment::new();
+        proto.set_application(app_env.application().to_string());
+        proto.set_environment(app_env.environment().to_string());
         proto
-    }
-}
-
-impl Into<core::service::ApplicationEnvironment> for ApplicationEnvironment {
-    fn into(self) -> core::service::ApplicationEnvironment {
-        core::service::ApplicationEnvironment::new(self.application, self.environment).unwrap()
     }
 }
 
 impl From<package::PackageIdent> for PackageIdent {
     fn from(ident: package::PackageIdent) -> Self {
-        let mut proto = PackageIdent::default();
-        proto.origin = ident.origin;
-        proto.name = ident.name;
-        proto.version = ident.version;
-        proto.release = ident.release;
+        let mut proto = PackageIdent::new();
+        proto.set_origin(ident.origin);
+        proto.set_name(ident.name);
+        if let Some(version) = ident.version {
+            proto.set_version(version);
+        }
+        if let Some(release) = ident.release {
+            proto.set_release(release);
+        }
         proto
     }
 }
 
 impl Into<package::PackageIdent> for PackageIdent {
-    fn into(self) -> package::PackageIdent {
-        package::PackageIdent::new(self.origin, self.name, self.version, self.release)
+    fn into(mut self) -> package::PackageIdent {
+        let version = if self.has_version() {
+            Some(self.take_version())
+        } else {
+            None
+        };
+        let release = if self.has_release() {
+            Some(self.take_release())
+        } else {
+            None
+        };
+        package::PackageIdent::new(self.take_origin(), self.take_name(), version, release)
     }
 }
 
-impl fmt::Display for service_cfg::Format {
+impl fmt::Display for ServiceCfg_Format {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let state = match *self {
-            service_cfg::Format::Toml => "TOML",
+            ServiceCfg_Format::TOML => "TOML",
         };
         write!(f, "{}", state)
     }
@@ -222,55 +226,65 @@ impl Into<core::service::BindingMode> for BindingMode {
 
 impl From<core::service::ServiceGroup> for ServiceGroup {
     fn from(service_group: core::service::ServiceGroup) -> Self {
-        let mut proto = ServiceGroup::default();
+        let mut proto = ServiceGroup::new();
         if let Some(app_env) = service_group.application_environment() {
-            proto.application_environment = Some(app_env.into());
+            proto.set_application_environment(app_env.into());
         }
-        proto.group = service_group.group().to_string();
-        proto.service = service_group.service().to_string();
+        proto.set_group(service_group.group().to_string());
+        proto.set_service(service_group.service().to_string());
         if let Some(organization) = service_group.org() {
-            proto.organization = Some(organization.to_string());
+            proto.set_organization(organization.to_string());
         }
         proto
     }
 }
 
 impl Into<core::service::ServiceGroup> for ServiceGroup {
-    fn into(self) -> core::service::ServiceGroup {
-        let app_env = if let Some(app_env) = self.application_environment {
+    fn into(mut self) -> core::service::ServiceGroup {
+        let app_env = if self.has_application_environment() {
             Some(
                 core::service::ApplicationEnvironment::new(
-                    app_env.application,
-                    app_env.environment,
+                    self.get_application_environment().get_application(),
+                    self.get_application_environment().get_environment(),
                 ).unwrap(),
             )
         } else {
             None
         };
-        core::service::ServiceGroup::new(
-            app_env.as_ref(),
-            self.service,
-            self.group,
-            self.organization.as_ref().map(String::as_str),
-        ).unwrap()
+        let service = self.take_service();
+        let group = self.take_group();
+        let organization = if self.has_organization() {
+            Some(self.get_organization())
+        } else {
+            None
+        };
+        core::service::ServiceGroup::new(app_env.as_ref(), service, group, organization).unwrap()
     }
 }
 
 impl Identifiable for PackageIdent {
     fn origin(&self) -> &str {
-        &self.origin
+        self.get_origin()
     }
 
     fn name(&self) -> &str {
-        &self.name
+        self.get_name()
     }
 
     fn version(&self) -> Option<&str> {
-        self.version.as_ref().map(String::as_str)
+        if self.has_version() {
+            Some(self.get_version())
+        } else {
+            None
+        }
     }
 
     fn release(&self) -> Option<&str> {
-        self.release.as_ref().map(String::as_str)
+        if self.has_release() {
+            Some(self.get_release())
+        } else {
+            None
+        }
     }
 }
 
@@ -298,6 +312,30 @@ impl FromStr for Topology {
 impl fmt::Display for Topology {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.as_str())
+    }
+}
+
+impl Default for Topology {
+    fn default() -> Topology {
+        Topology::Standalone
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Topology {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserialize_using_from_str(deserializer)
+    }
+}
+
+impl serde::Serialize for Topology {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
     }
 }
 
@@ -330,6 +368,30 @@ impl FromStr for UpdateStrategy {
 impl fmt::Display for UpdateStrategy {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.as_str())
+    }
+}
+
+impl Default for UpdateStrategy {
+    fn default() -> UpdateStrategy {
+        UpdateStrategy::None
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for UpdateStrategy {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserialize_using_from_str(deserializer)
+    }
+}
+
+impl serde::Serialize for UpdateStrategy {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
     }
 }
 

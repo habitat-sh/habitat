@@ -18,10 +18,10 @@ use std::str;
 use butterfly::rumor::service::SysInfo;
 use hcore;
 
+use VERSION;
 use config::GossipListenAddr;
 use error::{Error, Result};
 use http_gateway;
-use VERSION;
 
 static LOGKEY: &'static str = "SY";
 

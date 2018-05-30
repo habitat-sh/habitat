@@ -17,8 +17,8 @@ use hcore::os::process::windows_child::{Child, ExitStatus};
 use std;
 use std::fmt;
 use std::fs::File;
-use std::io::prelude::*;
 use std::io::BufReader;
+use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 #[cfg(not(windows))]
 use std::process::{Child, ExitStatus};
@@ -1015,13 +1015,13 @@ mod tests {
     use std::string::ToString;
 
     use butterfly::member::MemberList;
+    use butterfly::rumor::RumorStore;
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
     use butterfly::rumor::service::Service as ServiceRumor;
     use butterfly::rumor::service::SysInfo;
     use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
     use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-    use butterfly::rumor::RumorStore;
     use hcore::package::{PackageIdent, PackageInstall};
     use hcore::service::ServiceGroup;
     use protocol;

@@ -26,9 +26,9 @@ use hcore::service::ServiceGroup;
 use protobuf::Message;
 use toml;
 
+use PRODUCT;
 use census::{CensusMember, CensusRing};
 use manager::service::Service;
-use PRODUCT;
 
 enum Command {
     SendEvent(EventEnvelope),
