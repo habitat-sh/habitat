@@ -30,12 +30,14 @@ matrix:
       sudo: false
       cache:
         cargo: true
+        directories:
+          - "$HOME/pkgs"
       before_install:
         - ./support/ci/compile_libsodium.sh
         - ./support/ci/compile_libarchive.sh
         - ./support/ci/compile_zmq.sh
       install:
-        - cargo install clippy
+        - cargo clippy -V || cargo install clippy
       script:
         - cargo clippy --all-targets --tests -- -D clippy_correctness
 
