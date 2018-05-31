@@ -30,6 +30,8 @@ matrix:
       sudo: false
       cache:
         cargo: true
+        directories:
+          - "$HOME/pkgs"
       before_install:
         - ./support/ci/compile_libsodium.sh
         - ./support/ci/compile_libarchive.sh
@@ -38,7 +40,7 @@ matrix:
         - cargo clippy -V || cargo install clippy
       script:
         - source support/ci/rust_env.sh
-        - ls ~/.multirust
+        - ls -l ~/.multirust/toolchains
         - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
         - echo "LD_LIBRARY_PATH='$LD_LIBRARY_PATH'"
         - make lint
