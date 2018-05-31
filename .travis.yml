@@ -29,8 +29,7 @@ matrix:
       rust: nightly
       sudo: false
       cache:
-        directories:
-          - "$TRAVIS_BUILD_DIR/target"
+        cargo: true
       before_install:
         - ./support/ci/compile_libsodium.sh
         - ./support/ci/compile_libarchive.sh
@@ -39,6 +38,9 @@ matrix:
         - cargo clippy -V || cargo install clippy
       script:
         - source support/ci/rust_env.sh
+        - ls ~/.multirust
+        - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
+        - echo "LD_LIBRARY_PATH='$LD_LIBRARY_PATH'"
         - make lint
 
 #
