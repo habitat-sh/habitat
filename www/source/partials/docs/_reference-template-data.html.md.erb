@@ -69,8 +69,8 @@ Information about the current service's service group
 | update_election_is_no_quorum | boolean | Whether there is quorum for an update leader election for this service |
 | update_election_is_finished | boolean | Whether an update leader election for this service has finished |
 | me | [svc_member](#svc_member) | An object that provides information about the service running on the local Supervisor |
-| first | [svc_member](#svc_member) | The first member of this service group |
-| members | array | All members of the service group, across the entire ring. Includes all liveness states! |
+| first | [svc_member](#svc_member) | The first member of this service group, or the leader, if running in a leader topology |
+| members | array | All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members |
 | leader | [svc_member](#svc_member) | The current leader of the service group, if any (`null` otherwise) |
 | update_leader | [svc_member](#svc_member) | The current update_leader of the service group, if any (`null` otherwise) |
 
@@ -81,7 +81,8 @@ Exposes information about the service groups this service is bound to. Each key 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | first | [svc_member](#svc_member) | The first member of this service group. If the group is running in a leader topology, this will also be the leader. |
-| members | array | All members of the service group, across the entire ring. Includes all liveness states! |
+| leader | [svc_member](#svc_member) | The current leader of this service group, if running in a leader topology |
+| members | array | All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members |
 
 ## Reference Objects
 
