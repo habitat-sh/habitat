@@ -31,7 +31,6 @@ matrix:
       cache:
         directories:
           - "$HOME/.cargo"
-          - "$TRAVIS_BUILD_DIR/target"
       before_install:
         - ./support/ci/compile_libsodium.sh
         - ./support/ci/compile_libarchive.sh
