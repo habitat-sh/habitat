@@ -1,4 +1,4 @@
-hab 0.31.0/20170907230858
+hab 0.56.0/20180521172637
 
 Authors: The Habitat Maintainers <humans@habitat.sh>
 "A Habitat is the natural environment for your services" - Alan Turing
@@ -11,16 +11,14 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    bldr      Commands relating to Habitat build service
+    bldr      Commands relating to Habitat Builder
     cli       Commands relating to Habitat runtime config
-    config    Commands relating to Habitat runtime config
+    config    Commands relating to a Service's runtime config
     file      Commands relating to Habitat files
     help      Prints this message or the help of the given subcommand(s)
-    job       Commands relating to build job control
     origin    Commands relating to Habitat origin keys
     pkg       Commands relating to Habitat packages
-    plan      Commands relating to plans and other app-specific
-              configuration.
+    plan      Commands relating to plans and other app-specific configuration.
     ring      Commands relating to Habitat rings
     studio    Commands relating to Habitat Studios
     sup       Commands relating to the Habitat Supervisor
@@ -29,10 +27,10 @@ SUBCOMMANDS:
 
 
 ALIASES:
-apply      Alias for: 'config apply'
-install    Alias for: 'pkg install'
-run        Alias for: 'sup run'
-setup      Alias for: 'cli setup'
-start      Alias for: 'svc start'
-stop       Alias for: 'svc stop'
-term       Alias for: 'sup term'
+    apply      Alias for: 'config apply'
+    install    Alias for: 'pkg install'
+    run        Alias for: 'sup run'
+    setup      Alias for: 'cli setup'
+    start      Alias for: 'svc start'
+    stop       Alias for: 'svc stop'
+    term       Alias for: 'sup term'

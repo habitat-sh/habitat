@@ -124,22 +124,14 @@ $("#mobile-keyboard-trigger").click(function() {
         exec: function(cmd, args, callback) {
 
           switch(args[0]) {
-             case "start":
+             case "svc":
 
-                if (args.join(" ") ===  "start example/myrubyapp") {
-                    getExample("hab-start-service", callback);
-                } else if (args.join(" ") ===  "start example/myrubyapp --peer 172.17.0.2 --bind database:postgresql.default") {
+                if (args.join(" ") ===  "svc load example/myrubyapp") {
+                    getExample("hab-load-service", callback);load
+                } else if (args.join(" ") ===  "svc load example/myrubyapp --bind database:postgresql.default") {
                     getExample("hab-bind", callback);
-                } else if (args.join(" ") ===  "start core/postgresql -t leader") {
-                    getExample("hab-start-first-node", callback);
-
-                    } else if (args.join(" ") ===  "start core/postgresql -t leader --peer 172.17.0.2") {
-                        getExample("hab-start-additional-node", callback);
-
-                        $(".node-status").html("connected").parent().addClass("updated");
-                        $(".button-badge, .full-output").show();
-                    } else {
-                    getResponse("hab-start-help").then(function (txt) {
+                } else {
+                    getResponse("hab-load-help").then(function (txt) {
                         callback(format(txt));
                     });
                 }
@@ -148,7 +140,7 @@ $("#mobile-keyboard-trigger").click(function() {
 
             // Apply service group configuration
             // inject the config.toml into the group
-            if (args.join(" ") === "config apply --peer 172.17.0.2 myrubyapp.default 1 update_config.toml") {
+            if (args.join(" ") === "config apply myrubyapp.default 1 ./update_config.toml") {
 
                     getExample("hab-config-apply", callback);
 
@@ -160,8 +152,15 @@ $("#mobile-keyboard-trigger").click(function() {
                    });
                 break;
              case "sup":
+                if (args.join(" ") ===  "sup run core/postgresql -t leader") {
+                    getExample("hab-load-first-node", callback);
+                } else if (args.join(" ") ===  "sup run core/postgresql -t leader --peer 172.17.0.2") {
+                    getExample("hab-load-additional-node", callback);
+                    $(".node-status").html("connected").parent().addClass("updated");
+                    $(".button-badge, .full-output").show();
+
                 // Find out the status of the service from the Supervisor
-                if (args.join(" ") === "sup status core/postgresql") {
+                } else if (args.join(" ") === "sup status core/postgresql") {
                   getExample("hab-monitor-postgres", callback);
                 } else if(args.join(" ") === "sup status example/myrubyapp") {
                   getExample("hab-monitor-myrubyapp", callback);

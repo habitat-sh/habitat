@@ -420,6 +420,10 @@ $demo-step-count-supervisor: 11;
       @include breakpoint(large) { display: block; }
     }
   }
+
+  img {
+    margin-bottom: rem-calc(20);
+  }
 }
 
 .step-bottom-nav {

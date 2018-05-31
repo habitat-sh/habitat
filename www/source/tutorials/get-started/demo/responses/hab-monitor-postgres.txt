@@ -1,1 +1,2 @@
-hab-sup(MN): core/postgresql/9.6.1/20170514001355, state:up, time:PT319.534202380S, pid:120, group:postgresql.default
+package                               type        state  uptime (s)  pid  group
+core/postgresql/9.6.8/20180423183113  standalone  up     140         394  postgresql.default

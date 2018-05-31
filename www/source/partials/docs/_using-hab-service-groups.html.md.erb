@@ -1,67 +1,66 @@
 # <a name="service-groups" id="service-groups" data-magellan-target="service-groups">Run packages in a service group</a>
 
 A service group is a logical grouping of services with the same package and topology type connected together
-in a ring. They are created to share configuration and file updates among the services within those groups
+across a Supervisor network. They are created to share configuration and file updates among the services within those groups
 and can be segmented based on workflow or deployment needs (QA, Production, and so on). Updates can also be
 [encrypted](/docs/using-habitat/#using-encryption) so that only members of a specific service
 group can decrypt the contents.
 
 By default, every service joins the _servicename_.**default** service group unless otherwise specified at runtime.
 
-In addition, multiple service groups can reside in the same ring. This allows data exposed by supervisors to
-be shared with other members of the ring regardless of which group they are in.
+In addition, multiple service groups can reside in the same Supervisor network. This allows data exposed by Supervisors to
+be shared with other members of the ring, regardless of which group they are in.
 
 ## Joining a service group
-To join a service group, run your service either natively with the `hab start` command, or
-through an external runtime format such as a Docker container. A best practice is to name the
-group after an environment to support continuous deployment workflows.
 
-> Note: When applying configuration updates, you must reference the fully-qualified service group name, _servicename_._groupname_.
+To join services together in a group, they must be running on Supervisors that are participating in the same Supervisor gossip network (i.e., they are ultimately peered together), and they must be using the same group name. To illustrate, we'll show two `core/redis` services joining into the same group.
 
-Here's how to start up the `myapp` service with the `prod` group name using the Supervisor (`hab-sup`) directly:
+First, we'll start up two Supervisors on different hosts, peering the second one back to the first.
 
 ```shell
-$ hab start myorigin/myapp --group prod
+$ hab sup run # on 172.18.0.2 (Supervisor A)
+hab-sup(MR): Supervisor Member-ID e89b6616d2c040c8a82f475b00ba8c69
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting ctl-gateway on 0.0.0.0:9632
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
 ```
-
-Here's how to run the same command from a Docker container:
 
 ```shell
-$ docker run -it myorigin/myapp --group prod
+$ hab sup run --peer=172.18.0.2:9638 # on 172.18.0.3 (Supervisor B)
+hab-sup(MR): Supervisor Member-ID bc8dc23243e44fee8ea7b9023073c28a
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting ctl-gateway on 0.0.0.0:9632
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
 ```
 
-You will see a similar output below when your service starts. The census entry shows which service
-group your service belongs to, which in this case is **myapp.prod**. Keep this service instance running.
+Now, run the following on each Supervisor to load `core/redis` in the "prod" group:
+
+```
+hab svc load core/redis --group=prod
+```
+
+Each will start up, and will be joined into the same group; here is Supervisor A's output:
+![Supervisor A running Redis](/images/docs/service-groups/supervisor_a_before.png)
+
+And here is Supervisor B's output:
+![Supervisor B running Redis](/images/docs/service-groups/supervisor_b_before.png)
+
+Note that they are both listening on the same port.
+
+To prove they are in the same group, we can apply a configuration change; if they are in the same group, they should both receive the change.
+
+Let's change the port they're running on, using the `hab config apply` command, run from Supervisor A.
 
 ```shell
-hab-sup(MN): Starting myorigin/myapp
-hab-sup(GS): Supervisor 172.17.0.2: 38a2ac4f-5348-48df-86f0-b293284740ce
-hab-sup(GS): Census myapp.prod: c60bfa12-c913-4f89-b4f3-d082d1310c3d
-...
+echo 'port = 2112' | hab config apply redis.prod 1
 ```
 
-Services only join together to form a ring when a peer IP address is specified by other similar services
-at runtime.  In a new window or external runtime format, run the same command you ran above, but this time,
-reference the peer IP address of the previous service specified in the Supervisor output above.
+Both service instances restart with the new configuration. Supervisor A's output is:
+![Supervisor A running Redis on a new port](/images/docs/service-groups/supervisor_a_after.png)
 
-```shell
-$ hab start myorigin/myapp --group prod --peer 172.17.0.2
-```
+and Supervisor B's output is:
+![Supervisor B running Redis on a new port](/images/docs/service-groups/supervisor_b_after.png)
 
-> Note: The default port for listening to gossip rumors is `9638` unless specified at runtime by the initial service (through `--listen-gossip` option
-at start up) and by any peers connecting to it through the `--peer` option. See `hab start --help` for more information and examples.
+Note that they have both restarted (as evidenced by the new PID values), and that both are now running on port 2112, as we instructed.
 
-The output for this new service shows that it has either formed a new ring with the service above, or joined
-an existing ring where the other service was a member.
-
-```shell
-hab-sup(MN): Starting myorigin/myapp
-hab-sup(GS): Supervisor 172.17.0.3: 426f2b49-fb04-41fa-b656-f43260ab122e
-hab-sup(GS): Census myapp.prod: 1f9412eb-c1df-4df8-a07a-65540333826a
-hab-sup(GS): Starting inbound gossip listener
-hab-sup(GS): Joining gossip peer at 172.17.0.2:9638
-...
-```
-
-> Note: It is important that you specified the group value above. If not, then your new service would have
-joined the **myapp.default** service group, but remained a gossip peer of the previous service.
+Had the services been in different groups, the configuration change would not have applied to both of them (it was targeted at `redis.prod`). If the Supervisors has not been in gossip communication (achieved here through the use of the `--peer` option when Supervisor B was started), the configuration rumor (injected into Supervisor A's gossip network) would not have made it to `core/redis` service running on Supervisor B.

@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.55.0/20180321220925 (linux) | 22 Mar 2018 |
+| hab 0.56.0/20180525210127 (linux) | 31 May 2018 |
 
 ## hab
 
@@ -47,7 +47,7 @@ term       Alias for: 'sup term'
 | ------- | ----------- |
 | [hab bldr](#hab-bldr) | Commands relating to Habitat Builder |
 | [hab cli](#hab-cli) | Commands relating to Habitat runtime config |
-| [hab config](#hab-config) | Commands relating to Habitat runtime config |
+| [hab config](#hab-config) | Commands relating to a Service's runtime config |
 | [hab file](#hab-file) | Commands relating to Habitat files |
 | [hab origin](#hab-origin) | Commands relating to Habitat origin keys |
 | [hab pkg](#hab-pkg) | Commands relating to Habitat packages |
@@ -82,7 +82,6 @@ hab bldr [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab bldr channel](#hab-bldr-channel) | Commands relating to Habitat Builder channels |
-| [hab bldr encrypt](#hab-bldr-encrypt) | Reads a stdin stream containing plain text and outputs an encrypted representation |
 | [hab bldr job](#hab-bldr-job) | Commands relating to Habitat Builder jobs |
 ---
 
@@ -188,30 +187,8 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 **ARGS**
 
 ```
-<ORIGIN>    The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+<ORIGIN>    The origin for which channels will be listed. Default is from 'HAB_ORIGIN'or cli.toml
 ```
-
-
-
----
-
-### hab bldr encrypt
-
-Reads a stdin stream containing plain text and outputs an encrypted representation
-
-**USAGE**
-
-```
-hab bldr encrypt [OPTIONS]
-```
-
-**FLAGS**
-
-```
--h, --help       Prints help information
--V, --version    Prints version information
-```
-
 
 
 
@@ -244,7 +221,7 @@ hab bldr job [SUBCOMMAND]
 | [hab bldr job demote](#hab-bldr-job-demote) | Demote packages from a completed build job to a specified channel |
 | [hab bldr job promote](#hab-bldr-job-promote) | Promote packages from a completed build job to a specified channel |
 | [hab bldr job start](#hab-bldr-job-start) | Schedule a build job or group of jobs |
-| [hab bldr job status](#hab-bldr-job-status) | Get the status of a job group |
+| [hab bldr job status](#hab-bldr-job-status) | Get the status of one or more job groups |
 ---
 
 ### hab bldr job cancel
@@ -288,7 +265,6 @@ hab bldr job demote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 
 ```
 -i, --interactive    Allow editing the list of demotable packages
--v, --verbose        Show full list of demotable packages
 -h, --help           Prints help information
 -V, --version        Prints version information
 ```
@@ -318,7 +294,6 @@ hab bldr job promote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 
 ```
 -i, --interactive    Allow editing the list of promotable packages
--v, --verbose        Show full list of promotable packages
 -h, --help           Prints help information
 -V, --version        Prints version information
 ```
@@ -364,19 +339,20 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT>
 
 ### hab bldr job status
 
-Get the status of a job group
+Get the status of one or more job groups
 
 **USAGE**
 
 ```
-hab bldr job status [OPTIONS] <GROUP_ID|--origin <ORIGIN>>
+hab bldr job status [FLAGS] [OPTIONS] [GROUP_ID]
 ```
 
 **FLAGS**
 
 ```
--h, --help       Prints help information
--V, --version    Prints version information
+-s, --showjobs    Show the status of all build jobs for a retrieved job group
+-h, --help        Prints help information
+-V, --version     Prints version information
 ```
 
 **ARGS**
@@ -461,7 +437,7 @@ hab cli setup
 
 ## hab config
 
-Commands relating to Habitat runtime config
+Commands relating to a Service's runtime config
 
 **USAGE**
 
@@ -481,12 +457,13 @@ hab config [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab config apply](#hab-config-apply) | Applies a configuration to a group of Habitat Supervisors |
+| [hab config apply](#hab-config-apply) | Sets a configuration to be shared by members of a Service Group |
+| [hab config show](#hab-config-show) | Displays the default configuration options for a service |
 ---
 
 ### hab config apply
 
-Applies a configuration to a group of Habitat Supervisors
+Sets a configuration to be shared by members of a Service Group
 
 **USAGE**
 
@@ -507,6 +484,33 @@ hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [FILE]
 <SERVICE_GROUP>     Target service group (ex: redis.default)
 <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
 <FILE>              Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)
+```
+
+
+
+---
+
+### hab config show
+
+Displays the default configuration options for a service
+
+**USAGE**
+
+```
+hab config show [OPTIONS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
 
@@ -535,12 +539,12 @@ hab file [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab file upload](#hab-file-upload) | Upload a file to the Supervisor ring. |
+| [hab file upload](#hab-file-upload) | Uploads a file to be shared between members of a Service Group |
 ---
 
 ### hab file upload
 
-Upload a file to the Supervisor ring.
+Uploads a file to be shared between members of a Service Group
 
 **USAGE**
 
@@ -894,6 +898,7 @@ hab pkg [SUBCOMMAND]
 | [hab pkg exec](#hab-pkg-exec) | Executes a command using the 'PATH' context of an installed package |
 | [hab pkg export](#hab-pkg-export) | Exports the package to the specified format |
 | [hab pkg hash](#hab-pkg-hash) | Generates a blake2b hashsum from a target at any given filepath |
+| [hab pkg info](#hab-pkg-info) | Returns the Habitat Artifact information |
 | [hab pkg install](#hab-pkg-install) | Installs a Habitat package from Builder or locally from a Habitat Artifact |
 | [hab pkg path](#hab-pkg-path) | Prints the path to a specific installed release of a package |
 | [hab pkg promote](#hab-pkg-promote) | Promote a package to a specified channel |
@@ -982,7 +987,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 **ARGS**
 
 ```
-<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh file
+<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh$2ile
 ```
 
 
@@ -1176,6 +1181,34 @@ hab pkg hash [SOURCE]
 
 ```
 <SOURCE>    A filepath of the target
+```
+
+
+
+---
+
+### hab pkg info
+
+Returns the Habitat Artifact information
+
+**USAGE**
+
+```
+hab pkg info [FLAGS] <SOURCE>
+```
+
+**FLAGS**
+
+```
+-j, --json       Output will be rendered in json
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1719,16 +1752,14 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] run [CMD] [ARG ..]
 **USAGE**
 
 ```
-hab sup [FLAGS] <SUBCOMMAND>
+hab sup <SUBCOMMAND>
 ```
 
 **FLAGS**
 
 ```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
--V, --version     Prints version information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -1738,15 +1769,9 @@ hab sup [FLAGS] <SUBCOMMAND>
 | Command | Description |
 | ------- | ----------- |
 | [hab sup bash](#hab-sup-bash) | Start an interactive Bash-like shell |
-| [hab sup config](#hab-sup-config) | Displays the default configuration options for a service |
-| [hab sup load](#hab-sup-load) | Load a service to be started and supervised by Habitat from a package or artifact. Services started in$2his manner will persist through Supervisor restarts. |
 | [hab sup run](#hab-sup-run) | Run the Habitat Supervisor |
 | [hab sup sh](#hab-sup-sh) | Start an interactive Bourne-like shell |
-| [hab sup start](#hab-sup-start) | Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the$2abitat Supervisor is not already running this will additionally start one for you. |
-| [hab sup status](#hab-sup-status) | Query the status of Habitat services. |
-| [hab sup stop](#hab-sup-stop) | Stop a running Habitat service. |
 | [hab sup term](#hab-sup-term) | Gracefully terminate the Habitat Supervisor and all of its running services |
-| [hab sup unload](#hab-sup-unload) | Unload a persistent or transient service started by the Habitat Supervisor. If the Supervisor is$2unning when the service is unloaded the service will be stopped. |
 ---
 
 ### hab sup bash
@@ -1756,75 +1781,15 @@ Start an interactive Bash-like shell
 **USAGE**
 
 ```
-hab sup bash [FLAGS]
+hab sup bash
 ```
 
 **FLAGS**
 
 ```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
+-h, --help    Prints help information
 ```
 
-
-
-
----
-
-### hab sup config
-
-Displays the default configuration options for a service
-
-**USAGE**
-
-```
-hab sup config [FLAGS] <PKG_IDENT>
-```
-
-**FLAGS**
-
-```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
-```
-
-**ARGS**
-
-```
-<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-```
-
-
-
----
-
-### hab sup load
-
-Load a service to be started and supervised by Habitat from a package or artifact. Services started in this manner will
-
-**USAGE**
-
-```
-hab sup load [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
-```
-
-**FLAGS**
-
-```
--f, --force       Load or reload an already loaded service. If the service was previously loaded and running this$2peration will also restart the service
-    --no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
-```
-
-**ARGS**
-
-```
-<PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
-/home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
-```
 
 
 
@@ -1837,19 +1802,26 @@ Run the Habitat Supervisor
 **USAGE**
 
 ```
-hab sup run [FLAGS] [OPTIONS]
+hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 ```
 
 **FLAGS**
 
 ```
 -A, --auto-update       Enable automatic updates for the Supervisor itself
+    --json-logging      Use structured JSON logging for the Supervisor. Implies NO_COLOR
     --no-color          Turn ANSI color off
 -I, --permanent-peer    If this Supervisor is a permanent peer
--v                      Verbose output; shows line numbers
+-v                      Verbose output; shows file and line/column numbers
 -h, --help              Prints help information
 ```
 
+**ARGS**
+
+```
+<PKG_IDENT_OR_ARTIFACT>    Load the given Habitat package as part of the Supervisor startup specified by a$2ackage identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
+/home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
+```
 
 
 
@@ -1862,104 +1834,15 @@ Start an interactive Bourne-like shell
 **USAGE**
 
 ```
-hab sup sh [FLAGS]
+hab sup sh
 ```
 
 **FLAGS**
 
 ```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
+-h, --help    Prints help information
 ```
 
-
-
-
----
-
-### hab sup start
-
-Start a loaded, but stopped, Habitat service or a transient service from a package or artifact. If the Habitat
-
-**USAGE**
-
-```
-hab sup start [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
-```
-
-**FLAGS**
-
-```
--A, --auto-update       Enable automatic updates for the Supervisor itself
-    --no-color          Turn ANSI color off
--I, --permanent-peer    If this Supervisor is a permanent peer
--v                      Verbose output; shows line numbers
--h, --help              Prints help information
-```
-
-**ARGS**
-
-```
-<PKG_IDENT_OR_ARTIFACT>    A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
-/home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
-```
-
-
-
----
-
-### hab sup status
-
-Query the status of Habitat services.
-
-**USAGE**
-
-```
-hab sup status [FLAGS] [OPTIONS] [PKG_IDENT]
-```
-
-**FLAGS**
-
-```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
-```
-
-**ARGS**
-
-```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
-```
-
-
-
----
-
-### hab sup stop
-
-Stop a running Habitat service.
-
-**USAGE**
-
-```
-hab sup stop [FLAGS] [OPTIONS] <PKG_IDENT>
-```
-
-**FLAGS**
-
-```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
-```
-
-**ARGS**
-
-```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
-```
 
 
 
@@ -1972,45 +1855,15 @@ Gracefully terminate the Habitat Supervisor and all of its running services
 **USAGE**
 
 ```
-hab sup term [FLAGS] [OPTIONS]
+hab sup term [OPTIONS]
 ```
 
 **FLAGS**
 
 ```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
+-h, --help    Prints help information
 ```
 
-
-
-
----
-
-### hab sup unload
-
-Unload a persistent or transient service started by the Habitat Supervisor. If the Supervisor is running when the
-
-**USAGE**
-
-```
-hab sup unload [FLAGS] [OPTIONS] <PKG_IDENT>
-```
-
-**FLAGS**
-
-```
---no-color    Turn ANSI color off
--v                Verbose output; shows line numbers
--h, --help        Prints help information
-```
-
-**ARGS**
-
-```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
-```
 
 
 
@@ -2033,21 +1886,17 @@ hab svc [SUBCOMMAND]
 ```
 
 
-**ALIASES**
-
-```
-load       Alias for: 'sup load'
-unload     Alias for: 'sup unload'
-start      Alias for: 'sup start'
-stop       Alias for: 'sup stop'
-status     Alias for: 'sup status'
-```
 
 **SUBCOMMANDS**
 
 | Command | Description |
 | ------- | ----------- |
 | [hab svc key](#hab-svc-key) | Commands relating to Habitat service keys |
+| [hab svc load](#hab-svc-load) | Load a service to be started and supervised by Habitat from a package identifier. If an installed$2ackage doesn't satisfy the given package identifier, a suitable package will be installed from$2uilder. |
+| [hab svc start](#hab-svc-start) | Start a loaded, but stopped, Habitat service. |
+| [hab svc status](#hab-svc-status) | Query the status of Habitat services. |
+| [hab svc stop](#hab-svc-stop) | Stop a running Habitat service. |
+| [hab svc unload](#hab-svc-unload) | Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be$2topped. |
 ---
 
 ### hab svc key
@@ -2098,6 +1947,142 @@ hab svc key generate <SERVICE_GROUP> [ORG]
 ```
 <SERVICE_GROUP>    Target service group (ex: redis.default)
 <ORG>              The service organization
+```
+
+
+
+---
+
+### hab svc load
+
+Load a service to be started and supervised by Habitat from a package identifier. If an installed package doesn't
+
+**USAGE**
+
+```
+hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-f, --force      Load or reload an already loaded service. If the service was previously loaded and running this$2peration will also restart the service
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+```
+
+
+
+---
+
+### hab svc start
+
+Start a loaded, but stopped, Habitat service.
+
+**USAGE**
+
+```
+hab svc start [OPTIONS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+```
+
+
+
+---
+
+### hab svc status
+
+Query the status of Habitat services.
+
+**USAGE**
+
+```
+hab svc status [OPTIONS] [PKG_IDENT]
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+```
+
+
+
+---
+
+### hab svc stop
+
+Stop a running Habitat service.
+
+**USAGE**
+
+```
+hab svc stop [OPTIONS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+```
+
+
+
+---
+
+### hab svc unload
+
+Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped.
+
+**USAGE**
+
+```
+hab svc unload [OPTIONS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
 ```
 
 

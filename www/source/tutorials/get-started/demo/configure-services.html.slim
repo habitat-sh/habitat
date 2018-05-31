@@ -5,13 +5,13 @@ title: Habitat - Dynamically Configure Services
 section
   h2 Dynamically Configure Services
 
-  p Habitat produces an immutable package artifact where you define which configuration settings should be exposed. You can make configuration changes through environment variables and through a configuration update process that sends updated values to any member within a given service group.
+  p Habitat produces an immutable package artifact that allows you to define the configuration settings it should expose. You can make configuration changes either through environment variables or through a configuration update process that sends updated values to any member within a given service group.
+
+  p Let's use <code>hab config apply</code> to submit the contents of a locally created TOML file (containing a value for <code>secret_key_base</code>) to the Supervisor, which will use that value to reconfigure and restart the Rails application:
 
   = code(:shell) do
     |
-     $ hab config apply --peer 172.17.0.2 myrubyapp.default 1 update_config.toml
-
-  p The Ruby-on-Rails window will show how its output changes in response to the configuration update.
+     $ hab config apply myrubyapp.default 1 ./update_config.toml
 
   .window-buttons
     ul
@@ -117,6 +117,8 @@ section
       | postgresql.default(SR): Hooks recompiled
 
   #success
-    p You have set up the service binding between the front end and the back end, and dynamically reconfigured your front end, but in a real production deployment, you would probably want to connect your front-end application to a highly-available database cluster for resiliency. Habitat has built-in support for a leader-follower topology to enable such a scenario. Find out how in the next step.
+    p Note that the contents of the Ruby-on-Rails tab indicates that the configuration update was applied successfully and the application was restarted.
+
+    p We've now set up a service binding between the Rails app and the database, and applied some configuration dynamically, but in a real production deployment, you'd probably want to connect your application to a highly-available database cluster for resiliency. Habitat has built-in support for <a href="/docs/using-habitat/#leader-follower-topology">leader-follower topology</a> to enable such a scenario. Find out how in the next step.
 
 = link_to 'Next: Set Up a Service Group Topology', '/tutorials/get-started/demo/set-up-topology/', class: 'button cta'

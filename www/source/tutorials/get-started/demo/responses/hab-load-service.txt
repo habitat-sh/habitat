@@ -1,0 +1,3 @@
+hab-sup(AG): The example/myrubyapp service was successfully loaded
+hab-sup(MR): Starting example/myrubyapp
+hab-sup(MR): Unable to start example/myrubyapp, hab-sup(SS): Missing required bind(s), database
