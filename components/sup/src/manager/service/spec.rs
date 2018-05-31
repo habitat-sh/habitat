@@ -123,7 +123,7 @@ pub trait IntoServiceSpec {
 impl IntoServiceSpec for protocol::ctl::SvcLoad {
     fn into_spec(&self, spec: &mut ServiceSpec) {
         spec.ident = self.ident.clone().unwrap().into();
-        spec.group = self.group.clone().unwrap_or_default();
+        spec.group = self.group.clone().unwrap_or(DEFAULT_GROUP.to_string());
         if let Some(ref app_env) = self.application_environment {
             spec.application_environment = Some(app_env.clone().into());
         }
@@ -257,21 +257,9 @@ pub struct ServiceSpec {
     pub application_environment: Option<ApplicationEnvironment>,
     pub bldr_url: String,
     pub channel: String,
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
     pub topology: Topology,
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
     pub binding_mode: BindingMode,
     pub config_from: Option<PathBuf>,
     #[serde(
