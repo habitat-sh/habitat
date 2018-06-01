@@ -51,7 +51,7 @@ matrix:
         - cargo clippy -V || cargo install clippy
       script:
         - source support/ci/rust_env.sh
-        - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
+        # - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
         - env
         - pushd components/hab && { cargo clippy -- -A clippy -D clippy_correctness; popd; }
         - pushd components/hab && { cargo +nightly clippy -- -A clippy -D clippy_correctness; popd; }
