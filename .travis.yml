@@ -29,7 +29,7 @@ matrix:
       rust: nightly
       sudo: false
       cache:
-        # cargo: true
+        cargo: true
         directories:
           - "$HOME/pkgs"
       before_install:
