@@ -41,6 +41,8 @@ matrix:
       script:
         - source support/ci/rust_env.sh
         - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
+        - env grep LD_LIBRARY_PATH
+        - ls -l ~/.multirust/toolchains
         - make lint
 
 #
