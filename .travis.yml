@@ -29,7 +29,7 @@ matrix:
       rust: nightly
       sudo: false
       cache:
-        # cargo: true
+        cargo: true
         directories:
           - "$HOME/pkgs"
       before_install:
@@ -37,13 +37,10 @@ matrix:
         - ./support/ci/compile_libarchive.sh
         - ./support/ci/compile_zmq.sh
       install:
-        - echo "before clippy LD_LIBRARY_PATH='$LD_LIBRARY_PATH'"
         - cargo clippy -V || cargo install clippy
-        - echo "after clippy LD_LIBRARY_PATH='$LD_LIBRARY_PATH'"
       script:
         - source support/ci/rust_env.sh
-        # - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
-        - echo "LD_LIBRARY_PATH='$LD_LIBRARY_PATH'"
+        - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
         - make lint
 
 #
