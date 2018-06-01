@@ -167,6 +167,20 @@ and merge the changes to the master branch.
 
 (This will be a temporary state of affairs; I'll be talking with Engineering Services soon to get their help with automating this, as well as other parts of our release process.)
 
+## Rerun Chocolatey Validation Tests
+
+The Appveyor release will automaticaly publish to Chocolatey. However because we do not publish to bintray right away, Chocolatey's package validation will fail when it performs a test install.
+
+After we perform the final `make publish-release` above, we need to tell Chocolatey to rerun its validation so that they can pass and be visible to the public. To do this:
+
+1. Go to `https://chocolatey.org/`
+1. Login with the `habitat` account (creds can be found in 1password).
+1. Go to `https://chocolatey.org/account/Packages`
+1. Click on the `Habitat` package
+1. Scroll to the bottom of te package page and check `rerun tests` and submit.
+
+The tests should now pass and the package should become publicly visible.
+
 ## Publish Release
 
 Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
