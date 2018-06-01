@@ -10,4 +10,4 @@ github:
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
-  - built_in:update_changelog:
+  - built_in:update_changelog
