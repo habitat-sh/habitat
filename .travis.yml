@@ -33,6 +33,7 @@ matrix:
         directories:
           - "$HOME/pkgs"
           - "$TRAVIS_BUILD_DIR/target"
+          - "$HOME/.cargo"
           # "$HOME/.rustup"
           # "$HOME/.multirust"
       before_install:
@@ -52,8 +53,8 @@ matrix:
         - source support/ci/rust_env.sh
         - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
         - env
-        - pushd components/hab && { cargo clippy; popd; }
-        - pushd components/hab && { cargo +nightly clippy; popd; }
+        - pushd components/hab && { cargo clippy -- -D clippy_correctness; popd; }
+        - pushd components/hab && { cargo +nightly clippy -- -D clippy_correctness; popd; }
         - make lint
 
 #
