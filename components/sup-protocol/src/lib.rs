@@ -48,16 +48,20 @@ extern crate habitat_core as core;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
+extern crate prost;
+#[macro_use]
+extern crate prost_derive;
 extern crate rand;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate tokio;
 extern crate tokio_io;
 
 pub mod butterfly;
 pub mod codec;
 pub mod ctl;
-mod generated;
+pub mod message;
 pub mod net;
 pub mod types;
 
@@ -69,7 +73,7 @@ use rand::Rng;
 
 use net::{ErrCode, NetResult};
 
-/// Name of file containing the CtlGateway secret key.
+// Nane of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
 /// Length of characters in CtlGateway secret key.
 const CTL_SECRET_LEN: usize = 64;

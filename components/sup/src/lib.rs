@@ -70,6 +70,7 @@ extern crate libc;
 extern crate log;
 extern crate notify;
 extern crate persistent;
+extern crate prost;
 extern crate protobuf;
 extern crate rand;
 extern crate regex;
