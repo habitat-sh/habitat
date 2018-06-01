@@ -29,11 +29,11 @@ matrix:
       rust: nightly
       sudo: false
       cache:
-        # cargo: true
+        cargo: true
         directories:
           - "$HOME/pkgs"
-          - "$TRAVIS_BUILD_DIR/target"
-          - "$HOME/.cargo"
+          # - "$TRAVIS_BUILD_DIR/target"
+          # - "$HOME/.cargo"
           # "$HOME/.rustup"
           # "$HOME/.multirust"
       before_install:
