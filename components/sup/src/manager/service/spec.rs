@@ -267,24 +267,32 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub ident: PackageIdent,
     pub group: String,
-    #[serde(deserialize_with = "deserialize_application_environment",
-            skip_serializing_if = "Option::is_none")]
+    #[serde(
+        deserialize_with = "deserialize_application_environment",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub application_environment: Option<ApplicationEnvironment>,
     pub bldr_url: String,
     pub channel: String,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub binding_mode: BindingMode,
     pub config_from: Option<PathBuf>,
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub desired_state: DesiredState,
     pub svc_encrypted_password: Option<String>,
     // The name of the composite this service is a part of

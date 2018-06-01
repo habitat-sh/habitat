@@ -62,8 +62,8 @@ use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 
 use census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId};
-use manager::Sys;
 use manager::service::{Cfg, Env, Pkg, ServiceBind};
+use manager::Sys;
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -611,8 +611,8 @@ mod tests {
     use butterfly::rumor::service::SysInfo;
     use hcore::package::PackageIdent;
 
-    use manager::service::Cfg;
     use manager::service::config::PackageConfigPaths;
+    use manager::service::Cfg;
     use templating::TemplateRenderer;
 
     /// Asserts that `json_string` is valid according to our render

@@ -17,10 +17,10 @@ use std::path::Path;
 use common;
 use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::UIWriter;
-use hcore::AUTH_TOKEN_ENVVAR;
 use hcore::env as henv;
 use hcore::fs::{self, FS_ROOT_PATH};
 use hcore::package::{PackageIdent, PackageInstall};
+use hcore::AUTH_TOKEN_ENVVAR;
 
 use error::{Result, SupError};
 use {PRODUCT, VERSION};

@@ -17,7 +17,6 @@ use std::fmt;
 use std::str::FromStr;
 
 use butterfly::member::{Health, Member, MemberList};
-use butterfly::rumor::RumorStore;
 use butterfly::rumor::election::Election as ElectionRumor;
 use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
 use butterfly::rumor::election::Election_Status as ElectionStatusRumor;
@@ -25,6 +24,7 @@ use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::rumor::service::SysInfo;
 use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
 use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+use butterfly::rumor::RumorStore;
 use hcore;
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
@@ -641,13 +641,13 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
 mod tests {
     use super::*;
     use butterfly::member::{Health, MemberList};
-    use butterfly::rumor::RumorStore;
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
     use butterfly::rumor::service::Service as ServiceRumor;
     use butterfly::rumor::service::SysInfo;
     use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
     use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use butterfly::rumor::RumorStore;
     use hcore::package::ident::PackageIdent;
     use hcore::service::ServiceGroup;
 
