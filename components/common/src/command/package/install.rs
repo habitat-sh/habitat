@@ -766,7 +766,7 @@ impl<'a> InstallTask<'a> {
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent> {
         let origin_package: PackageIdent = self.depot_client
-            .show_package(ident, Some(channel.0), token)?
+            .show_package(ident, Some(channel.0), token, None)?
             .into();
         FullyQualifiedPackageIdent::from(origin_package)
     }
@@ -788,11 +788,12 @@ impl<'a> InstallTask<'a> {
             token,
             self.artifact_cache_path,
             ui.progress(),
+            None,
         ) {
             Ok(_) => Ok(()),
             Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
                 println!(
-                    "Host platform or architecture not supported by the targted depot; \
+                    "Host platform or architecture not supported by the targeted depot; \
                      skipping."
                 );
                 Ok(())
