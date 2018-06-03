@@ -284,7 +284,7 @@ impl Manager {
             }
             return Err(net::err(
                 ErrCode::NotFound,
-                format!("{} not loaded.", ident),
+                format!("Service not loaded, {}", ident),
             ));
         } else {
             let mut list = statuses.into_iter().peekable();
@@ -786,7 +786,7 @@ impl Manager {
         }
         Err(net::err(
             ErrCode::NotFound,
-            format!("{} not loaded.", ident),
+            format!("Service not loaded, {}", ident),
         ))
     }
 
@@ -847,7 +847,7 @@ impl Manager {
         // }
         // Err(net::err(
         //     ErrCode::NotFound,
-        //     format!("{} not loaded.", service_group),
+        //     format!("Service not loaded, {}", service_group),
         // ))
     }
 
@@ -1183,7 +1183,7 @@ impl Manager {
             None => {
                 return Err(net::err(
                     ErrCode::NotFound,
-                    format!("Failed to locate service, {}", &ident),
+                    format!("Service not loaded, {}", &ident),
                 ));
             }
         };
@@ -1231,7 +1231,7 @@ impl Manager {
             None => {
                 return Err(net::err(
                     ErrCode::NotFound,
-                    format!("Failed to locate service, {}", &ident),
+                    format!("Service not loaded, {}", &ident),
                 ));
             }
         };
