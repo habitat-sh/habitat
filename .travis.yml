@@ -37,7 +37,7 @@ matrix:
         - ./support/ci/compile_libarchive.sh
         - ./support/ci/compile_zmq.sh
       install:
-        - cargo clippy -V || cargo install clippy
+        - cargo install --force clippy
       script:
         - source support/ci/rust_env.sh
         - make lint
