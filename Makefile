@@ -218,9 +218,14 @@ ALLOWED_LINTS = absurd_extreme_comparisons assign_op_pattern blacklisted_name \
                 useless_attribute useless_format useless_let_if_seq useless_vec \
                 write_with_newline wrong_self_convention
 DENIED_LINTS = clippy_correctness
+ifeq (${TRAVIS},true)
+	RUST_TOOLCHAIN ?= ${TRAVIS_RUST_VERSION}
+else
+	RUST_TOOLCHAIN ?= nightly
+endif
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
-	@$(run) sh -c 'cd components/$1 && cargo +nightly clippy --all-targets --tests $(CARGO_FLAGS) -- $(addprefix -D ,$(DENIED_LINTS)) $(addprefix -A ,$(ALLOWED_LINTS))'
+	$(run) sh -c 'cd components/$1 && cargo +$(RUST_TOOLCHAIN) clippy --all-targets --tests $(CARGO_FLAGS) -- $(addprefix -D ,$(DENIED_LINTS)) $(addprefix -A ,$(ALLOWED_LINTS))'
 .PHONY: lint-$1
 endef
 $(foreach component,$(ALL),$(eval $(call LINT,$(component))))
