@@ -26,7 +26,7 @@ matrix:
 # Job for running clippy, the Rust linter
 #
     - language: rust
-      rust: nightly
+      rust: nightly-2018-05-31
       sudo: false
       cache:
         cargo: true
