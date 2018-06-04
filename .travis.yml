@@ -32,18 +32,7 @@ matrix:
         cargo: true
         directories:
           - "$HOME/pkgs"
-          # - "$TRAVIS_BUILD_DIR/target"
-          # - "$HOME/.cargo"
-          # "$HOME/.rustup"
-          # "$HOME/.multirust"
       before_install:
-        - which rustc
-        - rustc --version
-        - rustc --print sysroot
-        - ~/.multirust/toolchains/nightly-*/bin/rustc --version
-        - ~/.rustup/toolchains/nightly-*/bin/rustc --version
-        - ls -l ~/.multirust/toolchains
-        - find ~ -name "librustc_driver*.so"
         - ./support/ci/compile_libsodium.sh
         - ./support/ci/compile_libarchive.sh
         - ./support/ci/compile_zmq.sh
@@ -51,10 +40,6 @@ matrix:
         - cargo clippy -V || cargo install clippy
       script:
         - source support/ci/rust_env.sh
-        # - LD_LIBRARY_PATH+=:$(echo ~/.multirust/toolchains/nightly-*/lib)
-        - env
-        - pushd components/hab && { cargo clippy -- -A clippy -D clippy_correctness; popd; }
-        - pushd components/hab && { cargo +nightly clippy -- -A clippy -D clippy_correctness; popd; }
         - make lint
 
 #
