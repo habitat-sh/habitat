@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Add baumanj back to CODEOWNERS [#5158](https://github.com/habitat-sh/habitat/pull/5158) ([baumanj](https://github.com/baumanj))
 - add instructions for rerunning choco tests after publishing release [#5142](https://github.com/habitat-sh/habitat/pull/5142) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
