@@ -33,8 +33,8 @@ serde = { version = "*", features = ["rc"] }
 serde_json = "*"
 tempdir = "*"
 url = "*"
-failure = { git = "https://github.com/withoutboats/failure.git" }
-failure_derive = { git = "https://github.com/withoutboats/failure_derive.git" }
+failure = "*"
+failure_derive = "*"
 
 [features]
 default = []
