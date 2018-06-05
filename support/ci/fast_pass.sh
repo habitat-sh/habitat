@@ -36,17 +36,20 @@ else
   echo
   echo "Checking for changed files since last merge commit:"
   echo
-  echo_indented "$CHANGED_FILES"
+  # shellcheck disable=2086
+  echo_indented $CHANGED_FILES
   echo
 
   echo "Among the affected files:"
   echo
-  echo_indented "$AFFECTED_FILES"
+  # shellcheck disable=2086
+  echo_indented $AFFECTED_FILES
   echo
 
   echo "And in the affected directories:"
   echo
-  echo_indented "$AFFECTED_DIRS"
+  # shellcheck disable=2086
+  echo_indented $AFFECTED_DIRS
   echo
 
   check_affected() {
@@ -69,14 +72,14 @@ else
     return 1
   }
 
-  CHANGED_AFFECTED_FILES=
+  CHANGED_AFFECTED_FILES=()
   for f in $CHANGED_FILES; do
     if check_affected "$f"; then
-      CHANGED_AFFECTED_FILES+="$f "
+      CHANGED_AFFECTED_FILES+=($f)
     fi
   done
 
-  if [ -z "$CHANGED_AFFECTED_FILES" ]; then
+  if [ ${#CHANGED_AFFECTED_FILES[@]} -eq 0 ]; then
     echo "No files in affected directories or files have changed. Skipping CI run."
     exit 1
   fi
