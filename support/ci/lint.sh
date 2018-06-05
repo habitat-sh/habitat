@@ -63,7 +63,8 @@ fi
 
 failed="$(mktemp -t "$(basename "$0")-failed-XXXX")"
 # shellcheck disable=2154
-trap 'code=$?; rm -f $failed; exit $code' INT TERM EXIT
+trap 'code=$?; rm -f "$failed"; exit $code' INT TERM EXIT
+
 
 if [[ -n "${LINT_ALL:-}" ]]; then
   cmd="find components -type f -name '*.rs'"
