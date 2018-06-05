@@ -19,6 +19,7 @@ use std::process::{Command, Stdio};
 
 use command::studio::enter::ARTIFACT_PATH_ENVVAR;
 use common::ui::UI;
+use feat;
 use hcore::crypto::default_cache_key_path;
 use hcore::env as henv;
 use hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
@@ -197,7 +198,9 @@ where
         cmd_args.push(vol.as_ref().into());
     }
 
-    cmd_args.push("--privileged".into());
+    if !feat::is_enabled(feat::RootlessStudio) {
+        cmd_args.push("--privileged".into());
+    }
     cmd_args.push(image_identifier(docker_cmd).into());
     cmd_args.push("-V".into());
     let version_output = Command::new(docker_cmd)

@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Setting the user file-creation mask (umask) to 022 ensures that newly created
+# files and directories are only writable by their owner, but are readable and
+# executable by anyone (assuming default modes are used by the open(2) system
+# call, new files will end up with permission mode 644 and directories with
+# mode 755).
+umask 022
+
+export PATH=$PATH:/bin
+STUDIO_TYPE="default"
+# Colorize ls by default
+if command -v dircolors > /dev/null; then
+  eval "$(dircolors -b)"
+fi
+alias ls="ls --color=auto"
+alias ll="ls -l"
+alias la="ls -al"
+
+# Set a prompt which tells us what kind of Studio we're in
+if [ "${HAB_NOCOLORING:-}" = "true" ]; then
+  PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}[${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+else
+  case "${TERM:-}" in
+  *term | xterm-* | rxvt | screen | screen-*)
+    PS1='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]${HAB_STUDIO_BINARY+[\[\e[1;31m\]HAB_STUDIO_BINARY\[\e[0m\]]}['${STUDIO_TYPE:-unknown}':\[\e[0;35m\]\w\[\e[0;32m\]:\[\e[1;37m\]`echo -n $?`\[\e[0;32m\]]\$\[\e[0m\] '
+    ;;
+  *)
+    PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}[${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+    ;;
+  esac
+fi
+
+# Colorize grep/egrep/fgrep by default
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+
+# Set TERMINFO so hab can give us a delightful experience.
+export TERMINFO=$(hab pkg path core/ncurses)/share/terminfo
+
+emacs() {
+  if command -v emacs > /dev/null; then
+    emacs "$@"
+  else
+    mg "$@"
+  fi
+}
+
+if [[ -n "${HAB_STUDIO_SUP}" ]]; then
+  # This environment variable does not handle spaces well, so we'll re-add
+  # them...
+  HAB_STUDIO_SUP="$(echo $HAB_STUDIO_SUP | sed 's/__sp__/ /g')"
+fi
+
+sup-run() {
+  mkdir -p /hab/sup/default
+  echo "--> Launching the Habitat Supervisor in the background..."
+  echo "    Running: hab sup run $*"
+  hab sup run "$@" > /hab/sup/default/sup.log 2>&1 &
+  echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
+  echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
+  echo "    * Use 'sup-term' to terminate the Supervisor"
+  if [[ -z "${HAB_STUDIO_SUP:-}" ]]; then
+    echo "    * To pass custom arguments to run the Supervisor, export"
+    echo "      'HAB_STUDIO_SUP' with the arguments before running"
+    echo "      'hab studio enter'."
+  fi
+  echo ""
+}
+
+sup-term() {
+  local pid_file="/hab/sup/default/LOCK "
+  if [ -f $pid_file ]; then
+    echo "--> Killing Habitat Supervisor running in the background..."
+    kill $(cat $pid_file) \
+      && (echo "    Supervisor killed." && rm -f $pid_file) \
+      || echo "--> Error killing Supervisor."
+  else
+    echo "--> No Launcher pid file found, Supervisor may not be running."
+  fi
+}
+
+sup-log() {
+  mkdir -p /hab/sup/default
+  touch /hab/sup/default/sup.log
+  echo "--> Tailing the Habitat Supervisor's output (use 'Ctrl+c' to stop)"
+  tail -f /hab/sup/default/sup.log
+}
+
+alias sr='sup-run'
+alias st='sup-term'
+alias sl='sup-log'
+
+if [[ -n "${STUDIO_ENTER:-}" ]]; then
+  unset STUDIO_ENTER
+  source /etc/profile.enter
+fi
+
+# Add command line completion
+source <(hab cli completers --shell bash)

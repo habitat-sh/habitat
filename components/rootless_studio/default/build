@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Create a wrapper to `build` so that any calls to it have a super-stripped
+# `$PATH` and not whatever augmented version is currently in use. This should
+# mean that running `build` from inside a `studio enter` and running `studio
+# build` leads to the exact same experience, at least as far as initial
+# `$PATH` is concerned.
+
+exec hab pkg exec core/hab-plan-build hab-plan-build "$@"
