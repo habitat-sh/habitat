@@ -49,12 +49,12 @@ use std::string::ToString;
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
 use hab_core::package::{Identifiable, PackageArchive};
-use hab_http::ApiClient;
 use hab_http::util::decoded_response;
-use hyper::Url;
+use hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
+use hyper::Url;
 use protobuf::core::ProtobufEnum;
 use protocol::{net, originsrv};
 use rand::{thread_rng, Rng};
@@ -420,6 +420,7 @@ impl Client {
             dst_path.as_ref(),
             Some(token),
             progress,
+            None,
         )
     }
 
@@ -521,6 +522,7 @@ impl Client {
             dst_path.as_ref(),
             None,
             progress,
+            None,
         )
     }
 
@@ -547,6 +549,7 @@ impl Client {
             dst_path.as_ref(),
             Some(token),
             progress,
+            None,
         )
     }
 
@@ -743,6 +746,7 @@ impl Client {
         token: Option<&str>,
         dst_path: &P,
         progress: Option<D>,
+        target: Option<String>,
     ) -> Result<PackageArchive>
     where
         P: AsRef<Path> + ?Sized,
@@ -752,7 +756,13 @@ impl Client {
         // Given that the download URL requires a fully qualified package, the channel is
         // irrelevant, per https://github.com/habitat-sh/habitat/issues/2722. This function is fine
         // as is.
-        match self.download(&package_download(ident), dst_path.as_ref(), token, progress) {
+        match self.download(
+            &package_download(ident),
+            dst_path.as_ref(),
+            token,
+            progress,
+            target,
+        ) {
             Ok(file) => Ok(PackageArchive::new(PathBuf::from(file))),
             Err(e) => Err(e),
         }
@@ -772,6 +782,7 @@ impl Client {
         package: &I,
         channel: Option<&str>,
         token: Option<&str>,
+        target: Option<&str>,
     ) -> Result<originsrv::OriginPackage>
     where
         I: Identifiable,
@@ -788,7 +799,15 @@ impl Client {
             url.push_str("/latest");
         }
 
-        let mut res = self.maybe_add_authz(self.0.get(&url), token).send()?;
+        let mut res = self.maybe_add_authz(
+            self.0.get_with_custom_url(&url, |u| {
+                if target.is_some() {
+                    u.set_query(Some(&format!("target={}", target.unwrap())))
+                }
+            }),
+            token,
+        ).send()?;
+
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
         }
@@ -1064,17 +1083,27 @@ impl Client {
         dst_path: &Path,
         token: Option<&str>,
         progress: Option<D>,
+        target: Option<String>,
     ) -> Result<PathBuf>
     where
         D: DisplayProgress + Sized,
     {
-        let mut res = self.maybe_add_authz(self.0.get(path), token).send()?;
+        let t = target.as_ref();
+        let mut res = self.maybe_add_authz(
+            self.0.get_with_custom_url(path, |u| {
+                if target.is_some() {
+                    u.set_query(Some(&format!("target={}", t.unwrap())))
+                }
+            }),
+            token,
+        ).send()?;
 
         debug!("Response: {:?}", res);
 
         if res.status != hyper::status::StatusCode::Ok {
             return Err(err_from_response(res));
         }
+
         fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
 
         let file_name = res.headers
