@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Add Options to CLI docs [#5167](https://github.com/habitat-sh/habitat/pull/5167) ([cnunciato](https://github.com/cnunciato))
 - Bump RustFmt to 0.4.2 [#5170](https://github.com/habitat-sh/habitat/pull/5170) ([elliott-davis](https://github.com/elliott-davis))
 - ensure local studio key cache is rooted in FS_ROOT and include public key [#5168](https://github.com/habitat-sh/habitat/pull/5168) ([mwrock](https://github.com/mwrock))
 - Ignore Err result in send_msg rather than panicking [#5166](https://github.com/habitat-sh/habitat/pull/5166) ([baumanj](https://github.com/baumanj))
