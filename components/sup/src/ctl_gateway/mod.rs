@@ -124,7 +124,7 @@ impl CtlRequest {
         }
         let mut wire: protocol::codec::SrvMessage = msg.into();
         wire.reply_for(self.transaction.unwrap(), complete);
-        self.tx.as_ref().unwrap().start_send(wire).unwrap();
+        self.tx.as_ref().unwrap().start_send(wire).ok(); // ignore Err return
     }
 }
 
