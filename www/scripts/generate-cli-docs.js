@@ -47,6 +47,7 @@ function parseOutput(command, output) {
     aliases: result.ALIASES || [],
     args: result.ARGS || [],
     flags: result.FLAGS || [],
+    options: result.OPTIONS || [],
     subcommands_body: result.SUBCOMMANDS || [],
     subcommands: (result.SUBCOMMANDS || [])
       .filter(line => !line.match(/help/))
@@ -92,6 +93,7 @@ ${parsed.description}
 
 ${markdownForSubsection('Usage', parsed.usage.join('\n').replace(/^hab-/, 'hab ').replace(/hab butterfly/, 'hab').trim())}
 ${markdownForSubsection('Flags', parsed.flags.join('\n').trim())}
+${markdownForSubsection('Options', parsed.options.join('\n').trim())}
 ${markdownForSubsection('Args', parsed.args.join('\n').trim())}
 ${markdownForSubsection('Aliases', parsed.aliases.join('\n').trim())}
 ${markdownForSubcommands(parsed.subcommands)}
