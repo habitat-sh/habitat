@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- ensure local studio key cache is rooted in FS_ROOT and include public key [#5168](https://github.com/habitat-sh/habitat/pull/5168) ([mwrock](https://github.com/mwrock))
 - Ignore Err result in send_msg rather than panicking [#5166](https://github.com/habitat-sh/habitat/pull/5166) ([baumanj](https://github.com/baumanj))
 - Improve error message when acting on a service that isn&#39;t loaded [#5147](https://github.com/habitat-sh/habitat/pull/5147) ([reset](https://github.com/reset))
 - Add target support so Windows packages work [#5154](https://github.com/habitat-sh/habitat/pull/5154) ([raskchanky](https://github.com/raskchanky))
