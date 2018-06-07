@@ -250,18 +250,24 @@ function New-Studio {
   $env:PATH = [String]::Join(";", $pathArray)
 
   if($env:HAB_ORIGIN_KEYS) {
-    $keys = @()
+    $secret_keys = @()
+    $public_keys = @()
     $env:HAB_ORIGIN_KEYS.Split(" ") | % {
-      $k = & hab origin key export $_ --type=secret | Out-String
+      $pk = & hab origin key export $_ --type=public | Out-String
+      $sk = & hab origin key export $_ --type=secret | Out-String
       # hab key import does not like carriage returns
-      $keys += $k.Replace("`r", "")
+      $secret_keys += $sk.Replace("`r", "")
+      $public_keys += $pk.Replace("`r", "")
     }
 
     $env:FS_ROOT=$HAB_STUDIO_ROOT
-    $keys | % { $_ | & hab origin key import }
+    $env:HAB_CACHE_KEY_PATH = Join-Path $env:FS_ROOT "hab\cache\keys"
+    $public_keys | % { $_ | & hab origin key import }
+    $secret_keys | % { $_ | & hab origin key import }
   }
   else {
     $env:FS_ROOT=$HAB_STUDIO_ROOT
+    $env:HAB_CACHE_KEY_PATH = Join-Path $env:FS_ROOT "hab\cache\keys"
   }
 
   New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $HAB_STUDIO_ROOT -Scope Script | Out-Null
