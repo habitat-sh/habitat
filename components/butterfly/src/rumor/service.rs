@@ -166,8 +166,8 @@ mod tests {
     use habitat_core::service::ServiceGroup;
 
     use super::Service;
-    use rumor::Rumor;
     use rumor::service::SysInfo;
+    use rumor::Rumor;
 
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();

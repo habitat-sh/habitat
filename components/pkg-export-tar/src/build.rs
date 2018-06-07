@@ -17,9 +17,9 @@ use common;
 use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::{Status, UIWriter, UI};
 use error::Result;
-use hcore::PROGRAM_NAME;
 use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::package::PackageIdent;
+use hcore::PROGRAM_NAME;
 use std::fs as stdfs;
 #[cfg(target_os = "linux")]
 use std::os::unix::fs::symlink;

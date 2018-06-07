@@ -16,8 +16,8 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
-use hcore::crypto::SigKeyPair;
 use hcore::crypto::keys::PairType;
+use hcore::crypto::SigKeyPair;
 
 use error::Result;
 

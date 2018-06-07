@@ -36,9 +36,9 @@ mod inner {
     use hcore::package::PackageIdent;
 
     use super::super::sup::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
-    use VERSION;
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     const LAUNCH_CMD: &'static str = "hab-launch";
     const LAUNCH_CMD_ENVVAR: &'static str = "HAB_LAUNCH_BINARY";

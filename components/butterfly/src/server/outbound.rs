@@ -29,8 +29,8 @@ use time::SteadyTime;
 use member::{Health, Member};
 use message::swim::{Ack, Ping, PingReq, Rumor_Type, Swim, Swim_Type};
 use rumor::RumorKey;
-use server::Server;
 use server::timing::Timing;
+use server::Server;
 use trace::TraceKind;
 
 /// How long to sleep between calls to `recv`.

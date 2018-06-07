@@ -23,10 +23,10 @@ use std::time::Duration;
 use protobuf;
 use zmq;
 
-use ZMQ_CONTEXT;
 use message::swim::{Rumor, Rumor_Type};
 use server::Server;
 use trace::TraceKind;
+use ZMQ_CONTEXT;
 
 /// Takes a reference to the server itself
 pub struct Pull {

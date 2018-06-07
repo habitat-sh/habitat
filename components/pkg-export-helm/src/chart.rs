@@ -53,11 +53,7 @@ impl<'a> Chart<'a> {
         chartdir.push(&chartfile.name);
 
         Ok(Self::new_for_manifest(
-            manifest,
-            chartdir,
-            chartfile,
-            deps,
-            ui,
+            manifest, chartdir, chartfile, deps, ui,
         ))
     }
 

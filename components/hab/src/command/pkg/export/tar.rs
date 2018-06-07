@@ -38,9 +38,9 @@ mod inner {
     use hcore::package::PackageIdent;
 
     use super::EXPORT_CMD;
-    use VERSION;
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     const EXPORT_CMD_ENVVAR: &'static str = "HAB_PKG_EXPORT_TAR_BINARY";
     const EXPORT_PKG_IDENT: &'static str = "core/hab-pkg-export-tar";

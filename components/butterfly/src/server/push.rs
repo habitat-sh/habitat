@@ -25,14 +25,14 @@ use protobuf::Message;
 use time::SteadyTime;
 use zmq;
 
-use ZMQ_CONTEXT;
 use member::Member;
 use message::swim::{Member as ProtoMember, Membership as ProtoMembership, Rumor as ProtoRumor,
                     Rumor_Type as ProtoRumor_Type};
 use rumor::RumorKey;
-use server::Server;
 use server::timing::Timing;
+use server::Server;
 use trace::TraceKind;
+use ZMQ_CONTEXT;
 
 const FANOUT: usize = 5;
 

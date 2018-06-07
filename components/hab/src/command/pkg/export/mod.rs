@@ -70,10 +70,10 @@ mod inner {
     use hcore::url::BLDR_URL_ENVVAR;
 
     use super::ExportFormat;
-    use VERSION;
     use command;
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
         let version: Vec<_> = VERSION.split("/").collect();
