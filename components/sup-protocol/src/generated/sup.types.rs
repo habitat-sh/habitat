@@ -3,7 +3,7 @@
 pub struct ApplicationEnvironment {
     #[prost(string, required, tag = "1")]
     pub application: String,
-    #[prost(string, required, tag = "2", default = "default")]
+    #[prost(string, required, tag = "2")]
     pub environment: String,
 }
 #[derive(Clone, PartialEq, Message, Serialize, Deserialize, Hash)]
@@ -61,7 +61,7 @@ pub mod service_cfg {
 pub struct ServiceGroup {
     #[prost(string, required, tag = "1")]
     pub service: String,
-    #[prost(string, required, tag = "2", default = "default")]
+    #[prost(string, required, tag = "2")]
     pub group: String,
     #[prost(message, optional, tag = "3")]
     pub application_environment: ::std::option::Option<ApplicationEnvironment>,
