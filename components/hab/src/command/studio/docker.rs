@@ -24,8 +24,8 @@ use hcore::env as henv;
 use hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::os::process;
 
-use VERSION;
 use error::{Error, Result};
+use VERSION;
 
 const DOCKER_CMD: &'static str = "docker";
 const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";

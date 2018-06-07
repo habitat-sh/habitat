@@ -79,9 +79,9 @@ mod inner {
     use hcore::package::PackageIdent;
     use hcore::users::linux as group;
 
-    use VERSION;
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     use command::studio::docker;
 
@@ -193,10 +193,10 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
-    use VERSION;
     use command::studio::docker;
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {

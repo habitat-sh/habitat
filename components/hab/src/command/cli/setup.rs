@@ -15,10 +15,10 @@
 use std::path::Path;
 
 use common::ui::{UIReader, UIWriter, UI};
-use hcore::Error::InvalidOrigin;
 use hcore::crypto::SigKeyPair;
 use hcore::env;
 use hcore::package::ident;
+use hcore::Error::InvalidOrigin;
 
 use analytics;
 use command;

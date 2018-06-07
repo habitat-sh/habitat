@@ -18,9 +18,9 @@ use std::io::{self, BufRead, BufReader, Read, Write};
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
 use std::thread;
 
-use core::os::process::Pid;
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
+use core::os::process::Pid;
 use protocol;
 
 use error::Result;

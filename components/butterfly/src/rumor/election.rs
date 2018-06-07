@@ -289,8 +289,8 @@ impl Rumor for ElectionUpdate {
 #[cfg(test)]
 mod tests {
     use habitat_core::service::ServiceGroup;
-    use rumor::Rumor;
     use rumor::election::Election;
+    use rumor::Rumor;
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(
