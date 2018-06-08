@@ -1,2 +1,0 @@
-package                               type        state  uptime (s)  pid  group
-core/postgresql/9.6.8/20180423183113  standalone  up     140         394  postgresql.default
