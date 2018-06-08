@@ -18,6 +18,7 @@ extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 extern crate habitat_pkg_export_docker as export_docker;
 extern crate handlebars;
+extern crate serde;
 #[macro_use]
 extern crate serde_json;
 
@@ -32,18 +33,23 @@ use std::io::prelude::*;
 use common::ui::{Status, UIWriter, UI};
 
 pub mod cli;
+pub mod env;
 pub mod error;
+pub mod hb;
 pub mod manifest;
 pub mod manifestjson;
 pub mod service_bind;
+pub mod storage;
 pub mod topology;
 
 use export_docker::Result;
 
 pub use cli::Cli;
 pub use error::Error;
+pub use hb::QuoteHelper;
 pub use manifest::Manifest;
 pub use manifestjson::ManifestJson;
+pub use storage::PersistentStorage;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";

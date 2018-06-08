@@ -1,14 +1,4 @@
 ---
-## Secret for initial configuration.
-apiVersion: v1
-kind: Secret
-metadata:
-  name: user-toml-secret
-type: Opaque
-data:
-  ## Each configuration item needs to be encoded in base64.
-  user.toml: cG9ydCA9IDQ0NDQ=
----
 apiVersion: habitat.sh/v1beta1
 kind: Habitat
 customVersion: v1beta2
@@ -21,6 +11,15 @@ spec:
     image: core/nginx:latest
     ## Number of desired instances.
     count: 3
+    ## The presence of this key activates persistent storage.
+    persistentStorage:
+      ## A size of the volume that will be mounted in each Pod.
+      size: 10Gi
+      ## A name of a StorageClass object which must be created beforehand
+      ## by the cluster administrator.
+      storageClassName: standard
+      ## A location under which the volume will be mounted.
+      mountPath: /foo/bar
     ## An object containing parameters that affects how the Habitat service
     ## is executed.
     service:
@@ -31,8 +30,6 @@ spec:
       ## Habitat service group name, a logical grouping of services
       ## with the same package.
       group: group1
-      ## Name of the configuration secret.
-      configSecretName: user-toml-secret
       ## The name of the Kubernetes Secret that contains the ring key, which
       ## encrypts the communication between Habitat supervisors.
       ringSecretName: deltaechofoxtrot
