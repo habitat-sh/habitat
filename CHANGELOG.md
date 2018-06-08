@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Update kubernetes and helm exporters to use latest manifest version [#5125](https://github.com/habitat-sh/habitat/pull/5125) ([krnowak](https://github.com/krnowak))
 - `supportbundle` hab subcommand [#5174](https://github.com/habitat-sh/habitat/pull/5174) ([jeremymv2](https://github.com/jeremymv2))
 - Fix serialization problem where defaults were injected [#5177](https://github.com/habitat-sh/habitat/pull/5177) ([reset](https://github.com/reset))
 - Add Options to CLI docs [#5167](https://github.com/habitat-sh/habitat/pull/5167) ([cnunciato](https://github.com/cnunciato))
