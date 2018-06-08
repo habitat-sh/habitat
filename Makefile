@@ -152,11 +152,6 @@ distclean: clean ## fully cleans up project tree
 .PHONY: distclean
 endif
 
-bundle: image
-	@$(run) sh -c 'AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) AWS_KEYPAIR_NAME=$(AWS_KEYPAIR_NAME) \
-		AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) terraform/scripts/create_bootstrap_bundle.sh \
-		$(VERSION)'
-
 changelog: image
 	@$(run) sh -c 'hab pkg install core/github_changelog_generator && \
 		hab pkg binlink core/git git --force && \

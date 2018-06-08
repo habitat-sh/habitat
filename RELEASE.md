@@ -146,10 +146,11 @@ Then re push the release tag.
 Once the travis linux deployment has completed, we generate a release bundle of all Habitat and Builder components which are uploaded to an S3 bucket which we read from when we bootstrap new nodes. This bundle is useful if you are bootstrapping in an environment which doesn't have access to Builder or there simply isn't a Builder instance in existence (ah, those were the days).
 
 1. Configure your AWS credentials in your environment
-1. Run the bundle build make task
+1. Execute the script that currently lives in the [builder](https://github.com/habitat-sh/builder) repository:
 
     ```
-    $ make bundle
+    $ cd /path/to/builder-repo
+    $ sudo AWS_ACCESS_KEY_ID=<...> AWS_SECRET_ACCESS_KEY=<...> terraform/scripts/create_bootstrap_bundle.sh <HABITAT_VERSION>'
     ```
 
 ## Update Homebrew Tap
