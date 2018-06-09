@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Update bundle creation docs [#5181](https://github.com/habitat-sh/habitat/pull/5181) ([christophermaier](https://github.com/christophermaier))
 - Drop Interactive Tutorials and Guides [#5182](https://github.com/habitat-sh/habitat/pull/5182) ([cnunciato](https://github.com/cnunciato))
 - Update kubernetes and helm exporters to use latest manifest version [#5125](https://github.com/habitat-sh/habitat/pull/5125) ([krnowak](https://github.com/krnowak))
 - `supportbundle` hab subcommand [#5174](https://github.com/habitat-sh/habitat/pull/5174) ([jeremymv2](https://github.com/jeremymv2))
