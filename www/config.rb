@@ -22,25 +22,11 @@ page '/blog/feed.xml', layout: false
 page 'about/*', layout: :sidebar, locals: { sidebar_layout: 'about' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
-page 'tutorials/index.html', layout: :tutorials
-page 'tutorials/get-started/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'get_started' }
-page 'tutorials/download/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'download' }
-page 'tutorials/sample-app/linux/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app_linux' }
-page 'tutorials/sample-app/windows/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app_windows' }
-page 'tutorials/sample-app/mac/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app_mac' }
-page 'tutorials/sample-app/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app' }
-page 'tutorials/build-your-own/index.html', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app'}
-page 'tutorials/build-your-own/ruby/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_ruby'}
-page 'tutorials/build-your-own/node/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_node'}
-page 'tutorials/build-your-own/gradle/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_gradle'}
-page 'tutorials/build-your-own/aspnet-core/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app_aspnet-core'}
 page '/blog/index.html', layout: :blog_index
 page '/demo/packaging-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_packaging_system'}
 page '/demo/build-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_build_system'}
 page '/demo/process-supervisor/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_process_supervisor'}
 page 'get-started/*', layout: :get_started
-page 'guides/index.html', layout: :get_started
-page 'guides/rails/*', layout: :sidebar, locals: { sidebar_layout: 'guide_rails' }
 
 activate :blog do |blog|
   blog.prefix = 'blog'
@@ -132,12 +118,11 @@ end
 # Redirects
 ###
 redirect 'about/index.html', to: '/about/announcement/'
-redirect 'docs/build-packages-overview.html', to: '/docs/developing-packages#plan-builds/'
-redirect 'docs/get-habitat.html', to: '/tutorials/download/'
-redirect 'docs/try.html', to: '/docs/install-habitat/'
+redirect 'docs/build-packages-overview/index.html', to: '/docs/developing-packages#plan-builds/'
+redirect 'docs/get-habitat/index.html', to: '/learn/'
+redirect 'docs/try/index.html', to: '/docs/install-habitat/'
 redirect 'download/index.html', to: '/docs/install-habitat/'
 redirect 'downloads/index.html', to: '/docs/install-habitat/'
-redirect 'try/index.html', to: '/tutorials/get-started/demo/'
 redirect 'try/index.html', to: '/learn/'
 redirect 'try/2/index.html', to: '/learn/'
 redirect 'try/3/index.html', to: '/learn/'

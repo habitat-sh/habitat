@@ -1,5 +1,0 @@
-
-» Setting new configuration version 1 for myrubyapp.default
-Ω Creating service configuration
-↑ Applying via peer 127.0.0.1:9632
-★ Applied configuration

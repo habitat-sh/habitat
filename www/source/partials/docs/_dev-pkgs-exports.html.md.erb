@@ -3,12 +3,12 @@ Packages can be exported into multiple external, immutable runtime formats. This
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Habitat CLI Reference Guide](/docs/habitat-cli#hab-pkg-export) for more CLI information.
 
-> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Habitat CLI will check Builder for the latest stable version of the package and export that. 
+> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Habitat CLI will check Builder for the latest stable version of the package and export that.
 
-> If you wish to export a package that is not on Builder, create a Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory: 
+> If you wish to export a package that is not on Builder, create a Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory:
    ```shell
    hab pkg export tar ./results/example-app.hart
-   ```  
+   ```
 
 Read on for more detailed instructions.
 
@@ -26,15 +26,13 @@ You can create a Docker container image for any package by performing the follow
     $ hab pkg export docker ./results/<hart-filename>.hart
     ```
 
-  > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
+    > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
-  > **Note** On Linux, exporting your Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported. 
+    > **Note** On Linux, exporting your Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported.
 
-  > **Note** In a Windows container studio, the `export` command will not be able to access the host docker engine. To export a Windows package or hart file built inside of a Windows container studio, first exit the studio and then export the `.hart` file in your local `results` directory.
+    > **Note** In a Windows container studio, the `export` command will not be able to access the host docker engine. To export a Windows package or hart file built inside of a Windows container studio, first exit the studio and then export the `.hart` file in your local `results` directory.
 
-5. You can now exit the studio. The new Docker container image exists on your computer and can be examined with `docker images` or run with `docker run`.
-
-For an example of using Docker Compose to run multiple Habitat containers together, see the [Run the Sample App](/tutorials/sample-app/mac/run-app/) step in the Build a Sample App tutorial.
+4. You may now exit the studio. The new Docker image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
 ## Exporting to a tarball
 
@@ -102,8 +100,8 @@ You can create an Application Container Image (ACI) for any package by performin
 
 5. The `.aci` can now be moved to any runtime capable of running ACIs (e.g. [rkt](https://coreos.com/rkt/) on CoreOS) for execution.
 
-## Exporting to Kubernetes 
-    
+## Exporting to Kubernetes
+
 The Kubernetes exporter is an additional command line subcommand to the standard Habitat CLI interface. It leverages the existing Docker image export functionality and, additionally, generates a Kubernetes manifest that can be deployed to a Kubernetes cluster running the Habitat operator.
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
@@ -119,11 +117,11 @@ The Kubernetes exporter is an additional command line subcommand to the standard
     ```shell
     $ hab pkg export kubernetes yourorigin/yourpackage
     ```
-    
-    You can run `hab pkg export kubernetes --help` to see the full list of available options and general help. 
+
+    You can run `hab pkg export kubernetes --help` to see the full list of available options and general help.
 
 4. More information and a demo video is available on the [announcement blog](https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/)
-    
+
 ## Export to a Helm chart
 
 The Helm exporter is an additional command line subcommand to the standard Habitat CLI interface. It is very similar to the Kubernetes exporter but it takes you even further. It also leverages the existing Docker image export functionality but unlike the Kubernetes exporter, instead of generating a Kubernetes manifest, it creates a distributable Helm chart directory. This chart directory can not only be deployed in your local Kubernetes cluster, but also easily packaged and distributed.
@@ -143,7 +141,7 @@ Additionally, the Kubernetes Habitat operator is automatically added to the Helm
     ```shell
     $ hab pkg export helm yourorigin/yourpackage
     ```
-    
+
     You can run `hab pkg export helm --help` to see the full list of available options and general help.
 
 4. More information on how to setup Helm and use of the Helm exporter can be found on the [announcement blog](https://www.habitat.sh/blog/2018/02/Habitat-Helm/)

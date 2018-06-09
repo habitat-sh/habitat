@@ -32,8 +32,6 @@ $ hab svc load <origin>/mytutorialapp
 
 The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied when the Supervisor itself starts up, and you have to restart a running Supervisor (and thus, all services it may be running) in order to change these settings again.
 
-For an example of how to use an environment variable to update default configuration values, see [the Getting Started demo](/tutorials/get-started/demo/).
-
 ## Apply configuration updates to a service group
 Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/using-habitat/#using-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
 

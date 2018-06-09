@@ -1,7 +1,0 @@
-= code(:bash) do
-   |
-    declare -A scaffolding_process_bins
-    # Override the default web process
-    scaffolding_process_bins[web]='bundle exec puma -t 5:5 -p ${PORT}'
-    # Add an addition process called release
-    scaffolding_process_bins[release]='bundle exec rake db:migrate'
