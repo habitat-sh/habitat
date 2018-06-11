@@ -262,7 +262,7 @@ install_hab() {
       if [ ! -z "${version-}" ]; then _ident="${_ident}/$version"; fi
       info "Installing Habitat package using temporarily downloaded hab"
       # Install hab release using the extracted version and add/update symlink
-      "${archive_dir}/hab" install "$_ident"
+      "${archive_dir}/hab" install --channel "$channel" "$_ident"
       # TODO fn: The updated binlink behavior is to skip targets that already
       # exist so we want to use the `--force` flag. Unfortunetly, old versions
       # of `hab` don't have this flag. For now, we'll run with the new flag and
