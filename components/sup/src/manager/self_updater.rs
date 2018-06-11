@@ -27,7 +27,7 @@ use env;
 use hcore::package::{PackageIdent, PackageInstall};
 use util;
 
-pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
+pub const SUP_PKG_IDENT: &'static str = "core/habitat";
 const DEFAULT_FREQUENCY: i64 = 60_000;
 const FREQUENCY_ENVVAR: &'static str = "HAB_SUP_UPDATE_MS";
 

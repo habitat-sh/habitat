@@ -23,5 +23,5 @@ else
 fi
 
 sudo sh /tmp/install.sh
-sudo hab install core/busybox-static core/hab-studio
+sudo hab install core/busybox-static core/habitat
 sudo rm -rf /tmp/install.sh

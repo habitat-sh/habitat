@@ -20,7 +20,7 @@ use error::Result;
 
 pub const SUP_CMD: &'static str = "hab-sup";
 pub const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
+pub const SUP_PKG_IDENT: &'static str = "core/habitat";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)

@@ -125,7 +125,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 if ($component -eq "hab") {
                     Write-Host "Packaging HAB cli zip file"
                     Write-Host ""
-                    $binPath = (Resolve-Path "/hab/pkgs/core/hab/*/*/bin").Path
+                    $binPath = (Resolve-Path "/hab/pkgs/core/habitat/*/*/bin").Path
                     $pathParts = $binPath.Split("\")
                     $versionStamp = "$($pathParts[-3])-$($pathParts[-2])"
                     Update-AppveyorBuild -Version $versionStamp
@@ -133,7 +133,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                     $zipDir = $zip.Replace(".zip", "")
                     $stagingZipDir = "$(Get-RepoRoot)/windows/x86_64"
                     mkdir $zipDir -Force
-                    Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
+                    Copy-Item "/hab/pkgs/core/habitat/*/*/bin/*" $zipDir
 
                     mkdir $stagingZipDir -Force
                     Compress-Archive -Path $zipDir -DestinationPath "$stagingZipDir/$zip"
@@ -145,7 +145,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                         $choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
 
                         (Get-Content $choco_install) |
-                            % {$_.Replace('$version$', $versionStamp) } | 
+                            % {$_.Replace('$version$', $versionStamp) } |
                             Set-Content $choco_install
 
                         (Get-Content $choco_install) |
@@ -160,7 +160,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 }
                 if ($component -eq "studio") {
                     # Now that we have built the studio we can use current hab and studio bits
-                    Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" (Split-Path $habExe -Parent) -Force
+                    Copy-Item "/hab/pkgs/core/habitat/*/*/bin/*" (Split-Path $habExe -Parent) -Force
                 }
             }
             if(!(Test-PullRequest)) {

@@ -64,9 +64,9 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("HAB_PKG")
                     .validator(valid_ident_or_hart)
                     .help(
-                        "Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat \
-                        artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) to \
-                        install (default: core/hab)",
+                        "Habitat CLI package identifier (ex: core/habitat) or filepath to a Habitat \
+                        artifact (ex: /home/core-habitat-0.56.0-20180102031201-x86_64-linux.hart) \
+                        to install (default: core/habitat)",
                     ),
             )
             .arg(
@@ -76,9 +76,9 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_ident_or_hart)
                     .help(
                         "Launcher package identifier (ex: core/hab-launcher) or filepath to a \
-                        Habitat artifact (ex: \
-                        /home/core-hab-launcher-6083-20171101045646-x86_64-linux.hart) to install \
-                        (default: core/hab-launcher)",
+                        Habitat artifact \
+                        (ex: /home/core-hab-launcher-6083-20171101045646-x86_64-linux.hart) to \
+                        install (default: core/hab-launcher)",
                     ),
             )
             .arg(
@@ -87,10 +87,9 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("HAB_SUP_PKG")
                     .validator(valid_ident_or_hart)
                     .help(
-                        "Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat \
-                        artifact (ex: \
-                        /home/ore-hab-sup-0.39.1-20171118011657-x86_64-linux.hart) to install \
-                        (default: core/hab-sup)",
+                        "Supervisor package identifier (ex: core/habitat) or filepath to a Habitat \
+                        artifact (ex: /home/core-habitat-0.56.0-20181118011657-x86_64-linux.hart) \
+                        to install (default: core/habitat)",
                     ),
             );
 

@@ -1,11 +1,21 @@
-[hab]
-plan_path = "components/hab"
+[habitat]
+plan_path = "habitat"
 paths = [
+  "components/builder-depot-client/*",
+  "components/butterfly/*",
+  "components/common/*",
+  "components/eventsrv-client/*",
+  "components/eventsrv-protocol/*",
+  "components/launcher-client/*",
+  "components/launcher-protocol/*",
+  "components/sup-protocol/*",
   "components/builder-api-client/*",
   "components/builder-depot-client/*",
   "components/common/*",
+  "components/sup/*",
   "components/sup-client/*",
   "components/sup-protocol/*",
+  "components/studio/*",
 ]
 
 [hab-backline]
@@ -35,20 +45,6 @@ paths = [
 
 [hab-plan-build]
 plan_path = "components/plan-build"
-
-[hab-studio]
-plan_path = "components/studio"
-
-[hab-sup]
-plan_path = "components/sup"
-paths = [
-  "components/builder-depot-client/*",
-  "components/butterfly/*",
-  "components/common/*",
-  "components/eventsrv-client/*",
-  "components/launcher-client/*",
-  "components/sup-protocol/*",
-]
 
 [hab-pkg-aci]
 plan_path = "components/pkg-aci"
@@ -92,3 +88,4 @@ plan_path = "components/pkg-cfize"
 
 [hab-pkg-mesosize]
 plan_path = "components/pkg-mesosize"
+
