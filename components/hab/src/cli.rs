@@ -161,6 +161,7 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Get the status of one or more job groups")
                     (aliases: &["stat", "statu"])
                     (@group status =>
+                        (@attributes +required)
                         (@arg GROUP_ID: +takes_value
                             "The group id that was returned from \"hab bldr job start\" \
                             (ex: 771100000000000000)")
