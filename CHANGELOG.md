@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Make querying an unloaded service status always exit nonzero [#5187](https://github.com/habitat-sh/habitat/pull/5187) ([baumanj](https://github.com/baumanj))
 - Fix link label [#5185](https://github.com/habitat-sh/habitat/pull/5185) ([cnunciato](https://github.com/cnunciato))
 - Update bundle creation docs [#5181](https://github.com/habitat-sh/habitat/pull/5181) ([christophermaier](https://github.com/christophermaier))
 - Drop Interactive Tutorials and Guides [#5182](https://github.com/habitat-sh/habitat/pull/5182) ([cnunciato](https://github.com/cnunciato))
