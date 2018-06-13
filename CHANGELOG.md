@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Base package refresh post [#5189](https://github.com/habitat-sh/habitat/pull/5189) ([nellshamrell](https://github.com/nellshamrell))
 - Make one of group ID or origin arguments required for `hab bldr job status` [#5193](https://github.com/habitat-sh/habitat/pull/5193) ([baumanj](https://github.com/baumanj))
 - Allow installing core/hab from channels other than stable with installer [#5186](https://github.com/habitat-sh/habitat/pull/5186) ([baumanj](https://github.com/baumanj))
 - Make querying an unloaded service status always exit nonzero [#5187](https://github.com/habitat-sh/habitat/pull/5187) ([baumanj](https://github.com/baumanj))
