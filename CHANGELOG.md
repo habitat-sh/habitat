@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- updates version for new release [#5208](https://github.com/habitat-sh/habitat/pull/5208) ([nellshamrell](https://github.com/nellshamrell))
 - corrrects typos in blog post [#5200](https://github.com/habitat-sh/habitat/pull/5200) ([nellshamrell](https://github.com/nellshamrell))
 - Base package refresh post [#5189](https://github.com/habitat-sh/habitat/pull/5189) ([nellshamrell](https://github.com/nellshamrell))
 - Make one of group ID or origin arguments required for `hab bldr job status` [#5193](https://github.com/habitat-sh/habitat/pull/5193) ([baumanj](https://github.com/baumanj))
