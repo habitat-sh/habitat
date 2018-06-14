@@ -51,7 +51,7 @@ fi
 
 while true; do
   # shellcheck disable=2012
-  if [[ $(ls -1 /hab/cache/keys/core-*.sig.key 2> /dev/null | wc -l) -gt 0 ]]; then
+  if [[ $(find /hab/cache/keys/ -name "core-*.sig.key") ]]; then
     break
   elif [[ -f /tmp/hab.sig.key ]]; then
     hab origin key import < /tmp/hab.sig.key

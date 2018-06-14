@@ -29,7 +29,7 @@ warn() {
       ;;
     *)
       # shellcheck disable=2154
-      >&2 echo "   ${pkg_name}: WARN $1"
+      >&2 echo "   ${program}: WARN $1"
       ;;
   esac
   return 0

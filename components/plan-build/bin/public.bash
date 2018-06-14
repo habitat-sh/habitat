@@ -140,7 +140,8 @@ trim() {
 pkg_path_for() {
   local dep="$1"
   local e
-  local cutn="$(($(echo "$HAB_PKG_PATH" | grep -o '/' | wc -l)+2))"
+  local cutn
+  cutn="$(($(echo "$HAB_PKG_PATH" | grep -o '/' | wc -l)+2))"
   # shellcheck disable=2154
   for e in "${pkg_all_deps_resolved[@]}"; do
     if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then

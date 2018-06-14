@@ -73,10 +73,9 @@ assert_package_and_deps_installed() {
 
     tdeps_file="/hab/pkgs/${ident}/TDEPS"
     if [ -e "${tdeps_file}" ]; then
-        # shellcheck disable=2013
-        for dep in $(cat "${tdeps_file}"); do
+        while IFS= read -r dep; do
             assert_package_installed "${dep}"
-        done
+        done < "${tdeps_file}"
     fi
 }
 
@@ -159,10 +158,9 @@ assert_composite_and_services_are_installed() {
     local resolved_services_file="/hab/pkgs/${composite_ident}/RESOLVED_SERVICES"
     assert_file_exist "${resolved_services_file}"
 
-    # shellcheck disable=2013
-    for service in $(cat "${resolved_services_file}"); do
+    while IFS= read -r service; do
         assert_package_and_deps_installed "${service}"
-    done
+    done < "${resolved_services_file}"
 }
 
 # Useful Setup / Teardown Functions
@@ -304,12 +302,7 @@ service_is_alive() {
 }
 
 service_is_not_alive() {
-    local service_name="${1}"
-    local pid
-    pid=$(pid_of_service "${service_name}")
-    ps -p "${pid}" > /dev/null 2>&1
-    # shellcheck disable=2181
-    [ $? -ne 0 ]
+    ! service_is_alive "$@"
 }
 
 # Checks once a second to see if the Habitat-supervised service

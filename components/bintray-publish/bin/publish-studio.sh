@@ -143,7 +143,7 @@ info() {
 # **Internal** Main program.
 # shellcheck disable=2120,2154
 _main() {
-  build-docker-image "$@"
+  build-docker-image
   if [[ ! -f ./results/last_image.env ]]; then
     exit_with "Image build report ./results/last_image.env missing, aborting" 5
   fi

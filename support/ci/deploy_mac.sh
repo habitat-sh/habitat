@@ -99,7 +99,7 @@ cd "${bootstrap_dir}"
 
 echo "Publishing hab to $BINTRAY_REPO"
 # shellcheck disable=2061
-release=$(find "$mac_dir"/results -name core-hab-0*.hart | sort -n | tail -n 1)
+release=$(find "$mac_dir"/results -name "core-hab-0*.hart" | sort -n | tail -n 1)
 if [ "$BINTRAY_REPO" == "stable" ]; then
   $program -s -r "$BINTRAY_REPO" "$release"
 else
