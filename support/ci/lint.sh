@@ -47,7 +47,7 @@ exit_with() {
   exit "$2"
 }
 
-program=$(basename $0)
+program=$(basename "$0")
 rf_version="0.4.2"
 
 # Fix commit range in Travis, if set.
