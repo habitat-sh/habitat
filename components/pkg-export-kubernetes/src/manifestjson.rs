@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use handlebars::Handlebars;
 use serde_json::Value;
 
+use hb;
 use manifest::Manifest;
-
-// Kubernetes manifest template
-const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
 
 /// Represents the [`Manifest`] in JSON format. This is an intermediate type that can be converted
 /// to the final manifest YAML file content, ready for consumption by a Kubernetes cluster.
@@ -35,10 +32,17 @@ pub struct ManifestJson {
 impl ManifestJson {
     /// Create a `ManifestJson` from `manifest`.
     pub fn new(manifest: &Manifest) -> Self {
-        let mut binds = Vec::new();
-        for bind in &manifest.binds {
-            binds.push(bind.to_json());
-        }
+        let binds = manifest
+            .binds
+            .iter()
+            .map(|bind| bind.to_json())
+            .collect::<Vec<_>>();
+        let environment = manifest
+            .environment
+            .iter()
+            .map(|e| e.to_json())
+            .collect::<Vec<_>>();
+        let persistent_storage = manifest.persistent_storage.as_ref().map(|s| s.to_json());
 
         ManifestJson {
             value: json!({
@@ -51,6 +55,8 @@ impl ManifestJson {
                 "config": manifest.config,
                 "ring_secret_name": manifest.ring_secret_name,
                 "binds": binds,
+                "environment": environment,
+                "persistent_storage": persistent_storage,
             }),
         }
     }
@@ -60,11 +66,6 @@ impl Into<String> for ManifestJson {
     /// Convert into a string. The returned string is the final manifest YAML file content, ready
     /// for consumption by a Kubernetes cluster.
     fn into(self) -> String {
-        // The Result::expect() usage in this function is justied by the fact that errors can only
-        // come from the crate programmer (e.g they messed-up the manifest template or don't check
-        // the user input).
-        Handlebars::new()
-            .template_render(MANIFESTFILE, &self.value)
-            .expect("Rendering of manifest from template failed")
+        hb::render(&self.value)
     }
 }

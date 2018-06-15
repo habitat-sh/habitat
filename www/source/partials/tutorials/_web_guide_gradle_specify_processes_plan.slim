@@ -1,7 +1,0 @@
-= code(:bash) do
-   |
-    declare -A scaffolding_process_bins
-    # Override the default web process
-    scaffolding_process_bins[web]='java -Dserver.port=$PORT -jar myjar.jar'
-    # Add an addition process bin called release
-    scaffolding_process_bins[release]='java -jar myjar.jar --migrate'

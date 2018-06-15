@@ -4,6 +4,26 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- documents the $CACHE_PATH environmental variable [#5204](https://github.com/habitat-sh/habitat/pull/5204) ([nellshamrell](https://github.com/nellshamrell))
+- updates version for new release [#5208](https://github.com/habitat-sh/habitat/pull/5208) ([nellshamrell](https://github.com/nellshamrell))
+- corrrects typos in blog post [#5200](https://github.com/habitat-sh/habitat/pull/5200) ([nellshamrell](https://github.com/nellshamrell))
+- Base package refresh post [#5189](https://github.com/habitat-sh/habitat/pull/5189) ([nellshamrell](https://github.com/nellshamrell))
+- Make one of group ID or origin arguments required for `hab bldr job status` [#5193](https://github.com/habitat-sh/habitat/pull/5193) ([baumanj](https://github.com/baumanj))
+- Allow installing core/hab from channels other than stable with installer [#5186](https://github.com/habitat-sh/habitat/pull/5186) ([baumanj](https://github.com/baumanj))
+- Make querying an unloaded service status always exit nonzero [#5187](https://github.com/habitat-sh/habitat/pull/5187) ([baumanj](https://github.com/baumanj))
+- Fix link label [#5185](https://github.com/habitat-sh/habitat/pull/5185) ([cnunciato](https://github.com/cnunciato))
+- Update bundle creation docs [#5181](https://github.com/habitat-sh/habitat/pull/5181) ([christophermaier](https://github.com/christophermaier))
+- Drop Interactive Tutorials and Guides [#5182](https://github.com/habitat-sh/habitat/pull/5182) ([cnunciato](https://github.com/cnunciato))
+- Update kubernetes and helm exporters to use latest manifest version [#5125](https://github.com/habitat-sh/habitat/pull/5125) ([krnowak](https://github.com/krnowak))
+- `supportbundle` hab subcommand [#5174](https://github.com/habitat-sh/habitat/pull/5174) ([jeremymv2](https://github.com/jeremymv2))
+- Fix serialization problem where defaults were injected [#5177](https://github.com/habitat-sh/habitat/pull/5177) ([reset](https://github.com/reset))
+- Add Options to CLI docs [#5167](https://github.com/habitat-sh/habitat/pull/5167) ([cnunciato](https://github.com/cnunciato))
+- Bump RustFmt to 0.4.2 [#5170](https://github.com/habitat-sh/habitat/pull/5170) ([elliott-davis](https://github.com/elliott-davis))
+- ensure local studio key cache is rooted in FS_ROOT and include public key [#5168](https://github.com/habitat-sh/habitat/pull/5168) ([mwrock](https://github.com/mwrock))
+- Ignore Err result in send_msg rather than panicking [#5166](https://github.com/habitat-sh/habitat/pull/5166) ([baumanj](https://github.com/baumanj))
+- Improve error message when acting on a service that isn&#39;t loaded [#5147](https://github.com/habitat-sh/habitat/pull/5147) ([reset](https://github.com/reset))
+- Add target support so Windows packages work [#5154](https://github.com/habitat-sh/habitat/pull/5154) ([raskchanky](https://github.com/raskchanky))
+- Add baumanj back to CODEOWNERS [#5158](https://github.com/habitat-sh/habitat/pull/5158) ([baumanj](https://github.com/baumanj))
 - add instructions for rerunning choco tests after publishing release [#5142](https://github.com/habitat-sh/habitat/pull/5142) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 

@@ -34,8 +34,8 @@ pub use self::service::Service;
 pub use self::service_config::ServiceConfig;
 pub use self::service_file::ServiceFile;
 
-use std::collections::HashMap;
 use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::default::Default;
 use std::ops::Deref;
 use std::result;

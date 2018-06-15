@@ -25,8 +25,8 @@ use time::SteadyTime;
 use member::Health;
 use message::swim::Rumor_Type;
 use rumor::RumorKey;
-use server::Server;
 use server::timing::Timing;
+use server::Server;
 use trace::TraceKind;
 
 pub struct Expire {

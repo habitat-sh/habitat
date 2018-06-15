@@ -5,7 +5,5 @@
 //= require nav.js
 //= require home.js
 //= require community.js
-//= require tutorials.js
-//= require demo.js
 //= require carousel.js
 //= require accordion.js

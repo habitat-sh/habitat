@@ -17,6 +17,7 @@ extern crate habitat_pkg_export_docker as export_docker;
 use std::io::Write;
 
 use export_docker::Result;
+use export_k8s::QuoteHelper;
 
 pub struct Values {
     values: Vec<ValuesEntry>,
@@ -37,7 +38,11 @@ impl Values {
     pub fn generate(&self, write: &mut Write) -> Result<()> {
         let mut out = "".to_owned();
         for entry in &self.values {
-            out = out + &format!("{}: \"{}\"\n", entry.variable, entry.value);
+            out = out + &format!(
+                "{}: {}\n",
+                entry.variable,
+                QuoteHelper::escape(&entry.value)
+            );
         }
 
         write.write(out.as_bytes())?;

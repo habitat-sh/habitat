@@ -58,8 +58,8 @@ use hcore::{channel, PROGRAM_NAME};
 
 use aws_creds::StaticProvider;
 use clap::App;
-use rusoto_core::Region;
 use rusoto_core::request::*;
+use rusoto_core::Region;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
 pub use build::BuildSpec;

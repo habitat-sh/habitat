@@ -13,43 +13,65 @@ data:
 ---
 apiVersion: habitat.sh/v1beta1
 kind: Habitat
+customVersion: v1beta2
 metadata:
   ## Name of the Kubernetes resource.
   name: {{metadata_name}}
 spec:
-  ## Name of the Habitat service package exported as a Docker image.
-  image: {{image}}
-  ## Number of desired instances.
-  count: {{count}}
-  ## An object containing parameters that affects how the Habitat service
-  ## is executed.
-  service:
-    ## Name of the Habitat service.
-    name: {{service_name}}
-    ## Habitat topology of the service.
-    topology: {{service_topology}}
+  v1beta2:
+    ## Name of the Habitat service package exported as a Docker image.
+    image: {{image}}
+    ## Number of desired instances.
+    count: {{count}}
+{{~ #if environment}}
+    ## List of names and values specifying additional environment variables
+    ## for the service.
+    env:
+{{~ #each environment}}
+      - name: {{this.name}}
+        value: {{quote this.value}}
+{{~ /each ~}}
+{{~ /if ~}}
+{{~ #if persistent_storage}}
+    ## The presence of this key activates persistent storage.
+    persistentStorage:
+      ## A size of the volume that will be mounted in each Pod.
+      size: {{persistent_storage.size}}
+      ## A name of a StorageClass object which must be created beforehand
+      ## by the cluster administrator.
+      storageClassName: {{persistent_storage.class}}
+      ## A location under which the volume will be mounted.
+      mountPath: {{persistent_storage.path}}
+{{~ /if}}
+    ## An object containing parameters that affects how the Habitat service
+    ## is executed.
+    service:
+      ## Name of the Habitat service.
+      name: {{service_name}}
+      ## Habitat topology of the service.
+      topology: {{service_topology}}
 {{~ #if service_group}}
-    ## Habitat service group name, a logical grouping of services
-    ## with the same package.
-    group: {{service_group}}
+      ## Habitat service group name, a logical grouping of services
+      ## with the same package.
+      group: {{service_group}}
 {{~ /if ~}}
 {{~ #if config}}
-    ## Name of the configuration secret.
-    configSecretName: user-toml-secret
+      ## Name of the configuration secret.
+      configSecretName: user-toml-secret
 {{~ /if ~}}
 {{~ #if ring_secret_name}}
-    ## The name of the Kubernetes Secret that contains the ring key, which
-    ## encrypts the communication between Habitat supervisors.
-    ringSecretName: {{ring_secret_name}}
+      ## The name of the Kubernetes Secret that contains the ring key, which
+      ## encrypts the communication between Habitat supervisors.
+      ringSecretName: {{ring_secret_name}}
 {{~ /if ~}}
 {{~ #if binds}}
-    bind:
+      bind:
 {{~ #each binds}}
-      # Name is the name of the bind specified in the Habitat configuration files.
-      - name: {{this.name}}
-        # Service is the name of the service this bind refers to.
-        service: {{this.service}}
-        # Group is the group of the service this bind refers to.
-        group: {{this.group}}
+        # Name is the name of the bind specified in the Habitat configuration files.
+        - name: {{this.name}}
+          # Service is the name of the service this bind refers to.
+          service: {{this.service}}
+          # Group is the group of the service this bind refers to.
+          group: {{this.group}}
 {{~ /each ~}}
 {{~ /if ~}}

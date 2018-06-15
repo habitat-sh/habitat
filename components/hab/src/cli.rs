@@ -161,6 +161,7 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Get the status of one or more job groups")
                     (aliases: &["stat", "statu"])
                     (@group status =>
+                        (@attributes +required)
                         (@arg GROUP_ID: +takes_value
                             "The group id that was returned from \"hab bldr job start\" \
                             (ex: 771100000000000000)")
@@ -592,6 +593,10 @@ pub fn get() -> App<'static, 'static> {
             )
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
         )
+        (@subcommand supportbundle =>
+            (about: "Create a tarball of Habitat Supervisor data to send to support")
+            (aliases: &["supp", "suppo", "suppor", "support-bundle"])
+        )
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
             (aliases: &["u", "us", "use"])
@@ -636,7 +641,7 @@ fn alias_run() -> App<'static, 'static> {
 
 fn alias_term() -> App<'static, 'static> {
     clap_app!(@subcommand term =>
-        (about: "Gracefully terminate the Habitat Supervisor and all of it's running services")
+        (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
         (@setting Hidden)
     )
 }

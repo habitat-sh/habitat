@@ -1,2 +1,0 @@
-package                                 type        state  uptime (s)  pid  group
-example/myrubyapp/0.1.0/20180220033145  standalone  up     140         434  myrubyapp.default

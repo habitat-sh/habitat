@@ -36,6 +36,9 @@ tabwriter = "1"
 toml = { version = "*", default-features = false }
 url = "*"
 walkdir = "*"
+tar = "*"
+flate2 = "*"
+chrono = "*"
 
 [dependencies.clap]
 version = "*"

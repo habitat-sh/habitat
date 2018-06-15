@@ -26,9 +26,9 @@ use common::command::package::install::{InstallMode, InstallSource};
 use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use hab;
-use hcore::PROGRAM_NAME;
 use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
+use hcore::PROGRAM_NAME;
 use tempdir::TempDir;
 
 use super::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION};

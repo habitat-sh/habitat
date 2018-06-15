@@ -24,8 +24,10 @@ use hcore::package::{PackageArchive, PackageIdent};
 
 use export_docker::{DockerImage, Result};
 
+use env::EnvironmentVariable;
 use manifestjson::ManifestJson;
 use service_bind::ServiceBind;
+use storage::PersistentStorage;
 use topology::Topology;
 
 /// Represents a Kubernetes manifest.
@@ -51,6 +53,10 @@ pub struct Manifest {
 
     /// Any binds, as `ServiceBind` instances.
     pub binds: Vec<ServiceBind>,
+    /// Persistent storage specification.
+    pub persistent_storage: Option<PersistentStorage>,
+    /// Environment.
+    pub environment: Vec<EnvironmentVariable>,
 }
 
 impl Manifest {
@@ -119,6 +125,8 @@ impl Manifest {
         };
 
         let binds = ServiceBind::from_args(&matches)?;
+        let persistent_storage = PersistentStorage::from_args(&matches)?;
+        let environment = EnvironmentVariable::from_args(&matches)?;
 
         let config = match config_file {
             None => None,
@@ -140,6 +148,8 @@ impl Manifest {
             config: config,
             ring_secret_name: ring_secret_name,
             binds: binds,
+            persistent_storage: persistent_storage,
+            environment: environment,
         })
     }
 
@@ -169,6 +179,8 @@ mod tests {
             config: Some(base64::encode(&format!("{}", "port = 4444"))),
             ring_secret_name: Some("deltaechofoxtrot".to_owned()),
             binds: vec![],
+            persistent_storage: None,
+            environment: vec![],
         };
 
         let expected = include_str!("../tests/KubernetesManifestTest.yaml");
@@ -193,9 +205,66 @@ mod tests {
             config: None,
             ring_secret_name: Some("deltaechofoxtrot".to_owned()),
             binds: vec!["name1:service1.group1".parse().unwrap()],
+            persistent_storage: None,
+            environment: vec![],
         };
 
         let expected = include_str!("../tests/KubernetesManifestTestBinds.yaml");
+
+        let mut o = vec![];
+        m.generate(&mut o).unwrap();
+
+        let out = String::from_utf8(o).unwrap();
+
+        assert_eq!(out, expected);
+    }
+
+    #[test]
+    fn test_manifest_generation_persistent_storage() {
+        let mut m = Manifest {
+            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
+            metadata_name: "nginx-latest".to_owned(),
+            image: "core/nginx:latest".to_owned(),
+            count: 3,
+            service_topology: Default::default(),
+            service_group: Some("group1".to_owned()),
+            config: None,
+            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
+            binds: vec![],
+            persistent_storage: Some("10Gi:/foo/bar:standard".parse().unwrap()),
+            environment: vec![],
+        };
+
+        let expected = include_str!("../tests/KubernetesManifestTestPersistentStorage.yaml");
+
+        let mut o = vec![];
+        m.generate(&mut o).unwrap();
+
+        let out = String::from_utf8(o).unwrap();
+
+        assert_eq!(out, expected);
+    }
+
+    #[test]
+    fn test_manifest_generation_environment() {
+        let mut m = Manifest {
+            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
+            metadata_name: "nginx-latest".to_owned(),
+            image: "core/nginx:latest".to_owned(),
+            count: 3,
+            service_topology: Default::default(),
+            service_group: Some("group1".to_owned()),
+            config: None,
+            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
+            binds: vec![],
+            persistent_storage: None,
+            environment: vec![
+                "FOO=bar".parse().unwrap(),
+                "QUOTES=quo\"te".parse().unwrap(),
+            ],
+        };
+
+        let expected = include_str!("../tests/KubernetesManifestTestEnvironment.yaml");
 
         let mut o = vec![];
         m.generate(&mut o).unwrap();

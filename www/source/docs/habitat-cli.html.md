@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.56.0/20180525210127 (linux) | 31 May 2018 |
+| hab 0.56.0/20180530234036 (linux) | 7 Jun 2018 |
 
 ## hab
 
@@ -27,6 +27,7 @@ hab [SUBCOMMAND]
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 
 **ALIASES**
@@ -77,6 +78,7 @@ hab bldr [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -101,6 +103,7 @@ hab bldr channel [SUBCOMMAND]
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 
 
@@ -130,6 +133,13 @@ hab bldr channel create [OPTIONS] <CHANNEL>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>    Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or cli.toml
+```
+
 **ARGS**
 
 ```
@@ -157,6 +167,13 @@ hab bldr channel destroy [OPTIONS] <CHANNEL>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>    Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN'or cli.toml
+```
+
 **ARGS**
 
 ```
@@ -182,6 +199,12 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-u, --url <BLDR_URL>    Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -213,6 +236,7 @@ hab bldr job [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -241,6 +265,13 @@ hab bldr job cancel [OPTIONS] <GROUP_ID>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+```
+
 **ARGS**
 
 ```
@@ -267,6 +298,14 @@ hab bldr job demote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 -i, --interactive    Allow editing the list of demotable packages
 -h, --help           Prints help information
 -V, --version        Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      Limit the demotable packages to the specified origin
 ```
 
 **ARGS**
@@ -298,6 +337,14 @@ hab bldr job promote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 -V, --version        Prints version information
 ```
 
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      Limit the promotable packages to the specified origin
+```
+
 **ARGS**
 
 ```
@@ -325,6 +372,13 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT>
 -g, --group      Schedule jobs for this package and all of its reverse dependencies
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -355,6 +409,14 @@ hab bldr job status [FLAGS] [OPTIONS] [GROUP_ID]
 -V, --version     Prints version information
 ```
 
+**OPTIONS**
+
+```
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-l, --limit <LIMIT>      Limit how many job groups to retrieve, ordered by most recent (default: 10)
+-o, --origin <ORIGIN>    Show the status of recent job groups created in this origin (default: 10 most recent)
+```
+
 **ARGS**
 
 ```
@@ -383,6 +445,7 @@ hab cli [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -406,6 +469,12 @@ hab cli completers --shell <SHELL>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-s, --shell <SHELL>    The name of the shell you want to generate the command-completion. Supported Shells: bash,$2ish, zsh, powershell [possible values: bash, fish, zsh, powershell]
 ```
 
 
@@ -433,6 +502,7 @@ hab cli setup
 
 
 
+
 ---
 
 ## hab config
@@ -450,6 +520,7 @@ hab config [SUBCOMMAND]
 ```
 -h, --help    Prints help information
 ```
+
 
 
 
@@ -476,6 +547,13 @@ hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [FILE]
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+-u, --user <USER>                Name of a user key to use for encryption
 ```
 
 **ARGS**
@@ -507,6 +585,12 @@ hab config show [OPTIONS] <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+```
+
 **ARGS**
 
 ```
@@ -535,6 +619,7 @@ hab file [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -557,6 +642,13 @@ hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+-u, --user <USER>                Name of the user key
 ```
 
 **ARGS**
@@ -589,6 +681,7 @@ hab origin [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -613,6 +706,7 @@ hab origin key [SUBCOMMAND]
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 
 
@@ -646,6 +740,13 @@ hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
 -V, --version       Prints version information
 ```
 
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder (required for downloading secret keys)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+```
+
 **ARGS**
 
 ```
@@ -674,6 +775,12 @@ hab origin key export [OPTIONS] <ORIGIN>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-t, --type <PAIR_TYPE>    Export either the 'public' or 'secret' key
+```
+
 **ARGS**
 
 ```
@@ -700,6 +807,7 @@ hab origin key generate [ORIGIN]
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 **ARGS**
 
@@ -731,6 +839,7 @@ hab origin key import
 
 
 
+
 ---
 
 ### hab origin key upload
@@ -749,6 +858,15 @@ hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 -s, --secret     Upload secret key in addition to the public key
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>        Authentication token for Builder
+-u, --url <BLDR_URL>           Specify an alternate Builder endpoint. If not specified, the value will be taken from$2he HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --pubfile <PUBLIC_FILE>    Path to a local public origin key file on disk
+    --secfile <SECRET_FILE>    Path to a local secret origin key file on disk
 ```
 
 **ARGS**
@@ -780,6 +898,7 @@ hab origin secret [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -804,6 +923,14 @@ hab origin secret delete [OPTIONS] <KEY_NAME>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or cli.toml
 ```
 
 **ARGS**
@@ -833,6 +960,14 @@ hab origin secret list [OPTIONS]
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+```
+
 
 
 
@@ -853,6 +988,14 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or$2li.toml
 ```
 
 **ARGS**
@@ -881,6 +1024,7 @@ hab pkg [SUBCOMMAND]
 ```
 -h, --help    Prints help information
 ```
+
 
 
 
@@ -926,6 +1070,7 @@ hab pkg binds <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+
 **ARGS**
 
 ```
@@ -952,6 +1097,12 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 -f, --force      Overwrite existing binlinks
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-d, --dest <DEST_DIR>    Sets the destination directory (default: /bin)
 ```
 
 **ARGS**
@@ -984,6 +1135,14 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-k, --keys <HAB_ORIGIN_KEYS>    Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
+-r, --root <HAB_STUDIO_ROOT>    Sets the Studio root (default: /hab/studios/<DIR_NAME>)
+-s, --src <SRC_PATH>            Sets the source path (default: $PWD)
+```
+
 **ARGS**
 
 ```
@@ -1009,6 +1168,13 @@ hab pkg channels [OPTIONS] <PKG_IDENT>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -1038,6 +1204,7 @@ hab pkg config <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+
 **ARGS**
 
 ```
@@ -1063,6 +1230,13 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -1093,6 +1267,7 @@ hab pkg env <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+
 **ARGS**
 
 ```
@@ -1119,6 +1294,7 @@ hab pkg exec <PKG_IDENT> <CMD> [ARGS]...
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 **ARGS**
 
@@ -1149,6 +1325,13 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-u, --url <BLDR_URL>       Retrieve the container's package from the specified Builder (default:$2ttps://bldr.habitat.sh)
+-c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel (default: stable)
+```
+
 **ARGS**
 
 ```
@@ -1177,6 +1360,7 @@ hab pkg hash [SOURCE]
 -V, --version    Prints version information
 ```
 
+
 **ARGS**
 
 ```
@@ -1204,6 +1388,7 @@ hab pkg info [FLAGS] <SOURCE>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 **ARGS**
 
@@ -1234,6 +1419,14 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel <CHANNEL>    Install from the specified release channel (default: stable)
+```
+
 **ARGS**
 
 ```
@@ -1261,6 +1454,7 @@ hab pkg path <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+
 **ARGS**
 
 ```
@@ -1286,6 +1480,13 @@ hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -1318,6 +1519,7 @@ hab pkg provides [FLAGS] <FILE>
 -V, --version    Prints version information
 ```
 
+
 **ARGS**
 
 ```
@@ -1345,6 +1547,13 @@ hab pkg search [OPTIONS] <SEARCH_TERM>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+```
+
 **ARGS**
 
 ```
@@ -1370,6 +1579,12 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+--origin <ORIGIN>    Origin key used to create signature
 ```
 
 **ARGS**
@@ -1401,6 +1616,14 @@ hab pkg upload [OPTIONS] <HART_FILE>...
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to$2nstable, regardless of the value of this option. (default: none)
+```
+
 **ARGS**
 
 ```
@@ -1429,6 +1652,7 @@ hab pkg verify <SOURCE>
 -V, --version    Prints version information
 ```
 
+
 **ARGS**
 
 ```
@@ -1454,6 +1678,7 @@ hab plan [SUBCOMMAND]
 ```
 -h, --help    Prints help information
 ```
+
 
 
 
@@ -1485,6 +1710,13 @@ hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 -V, --version           Prints version information
 ```
 
+**OPTIONS**
+
+```
+-o, --origin <ORIGIN>              Origin for the new app
+-s, --scaffolding <SCAFFOLDING>    Specify explicit Scaffolding for your app (ex: node, ruby)
+```
+
 **ARGS**
 
 ```
@@ -1510,6 +1742,7 @@ hab ring [SUBCOMMAND]
 ```
 -h, --help    Prints help information
 ```
+
 
 
 
@@ -1539,6 +1772,7 @@ hab ring key [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -1564,6 +1798,7 @@ hab ring key export <RING>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 **ARGS**
 
@@ -1591,6 +1826,7 @@ hab ring key generate <RING>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 **ARGS**
 
@@ -1622,6 +1858,7 @@ hab ring key import
 
 
 
+
 ---
 
 ## hab studio
@@ -1633,6 +1870,7 @@ hab ring key import
 ```
 hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 ```
+
 
 
 
@@ -1668,6 +1906,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] build [FLAGS] [PLAN_DIR]
 
 
 
+
 ---
 
 ### hab studio enter
@@ -1679,6 +1918,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] build [FLAGS] [PLAN_DIR]
 ```
 hab studio [COMMON_FLAGS] [COMMON_OPTIONS] enter
 ```
+
 
 
 
@@ -1700,6 +1940,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] new
 
 
 
+
 ---
 
 ### hab studio rm
@@ -1711,6 +1952,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] new
 ```
 hab studio [COMMON_FLAGS] [COMMON_OPTIONS] rm
 ```
+
 
 
 
@@ -1732,9 +1974,11 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] run [CMD] [ARG ..]
 
 
 
+
 ---
 
 ### hab studio version
+
 
 
 
@@ -1761,6 +2005,7 @@ hab sup <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 
 
@@ -1793,6 +2038,7 @@ hab sup bash
 
 
 
+
 ---
 
 ### hab sup run
@@ -1814,6 +2060,31 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 -I, --permanent-peer    If this Supervisor is a permanent peer
 -v                      Verbose output; shows file and line/column numbers
 -h, --help              Prints help information
+```
+
+**OPTIONS**
+
+```
+-a, --application <APPLICATION>            Application name; [default: not set].
+    --bind <BIND>...                       One or more service groups to bind to a configuration
+    --binding-mode <BINDING_MODE>          Governs how the presence or absence of binds affects service startup.$2trict blocks startup until all binds are present. [default: strict]
+[values: relaxed, strict]
+-u, --url <BLDR_URL>                       Receive Supervisor updates from Builder at the specified URL [default:$2ttps://bldr.habitat.sh]
+    --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default:$2table]
+    --config-from <CONFIG_DIR>             Use package config from this path, rather than the package itself
+-e, --environment <ENVIRONMENT>            Environment name; [default: not set].
+-n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward$2upervisor and service event data to
+    --group <GROUP>                        The service group; shared config and topology [default: default].
+    --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway [default: 127.0.0.1:9632]
+    --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
+    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway [default: 0.0.0.0:9631]
+    --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
+    --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part$2f [default: default]
+    --peer <PEER>...                       The listen address of an initial peer (IP[:PORT])
+    --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
+-r, --ring <RING>                          Ring key name
+-s, --strategy <STRATEGY>                  The update strategy; [default: none] [values: none, at-once, rolling]
+-t, --topology <TOPOLOGY>                  Service topology; [default: none]
 ```
 
 **ARGS**
@@ -1846,6 +2117,7 @@ hab sup sh
 
 
 
+
 ---
 
 ### hab sup term
@@ -1862,6 +2134,12 @@ hab sup term [OPTIONS]
 
 ```
 -h, --help    Prints help information
+```
+
+**OPTIONS**
+
+```
+--override-name <NAME>    The name of the Supervisor if more than one is running [default: default]
 ```
 
 
@@ -1884,6 +2162,7 @@ hab svc [SUBCOMMAND]
 ```
 -h, --help    Prints help information
 ```
+
 
 
 
@@ -1918,6 +2197,7 @@ hab svc key [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -1941,6 +2221,7 @@ hab svc key generate <SERVICE_GROUP> [ORG]
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 **ARGS**
 
@@ -1971,6 +2252,21 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-a, --application <APPLICATION>      Application name; [default: not set].
+    --bind <BIND>...                 One or more service groups to bind to a configuration
+    --binding-mode <BINDING_MODE>    Governs how the presence or absence of binds affects service startup. strict$2locks startup until all binds are present. [default: strict] [values: relaxed,$2trict]
+-u, --url <BLDR_URL>                 Receive package updates from Builder at the specified URL [default:$2ttps://bldr.habitat.sh]
+    --channel <CHANNEL>              Receive package updates from the specified release channel [default: stable]
+-e, --environment <ENVIRONMENT>      Environment name; [default: not set].
+    --group <GROUP>                  The service group; shared config and topology [default: default].
+-r, --remote-sup <REMOTE_SUP>        Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+-s, --strategy <STRATEGY>            The update strategy; [default: none] [values: none, at-once, rolling]
+-t, --topology <TOPOLOGY>            Service topology; [default: none]
+```
+
 **ARGS**
 
 ```
@@ -1996,6 +2292,12 @@ hab svc start [OPTIONS] <PKG_IDENT>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 ```
 
 **ARGS**
@@ -2025,6 +2327,12 @@ hab svc status [OPTIONS] [PKG_IDENT]
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+```
+
 **ARGS**
 
 ```
@@ -2052,6 +2360,12 @@ hab svc stop [OPTIONS] <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+```
+
 **ARGS**
 
 ```
@@ -2077,6 +2391,12 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 ```
 -h, --help       Prints help information
 -V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 ```
 
 **ARGS**
@@ -2107,6 +2427,7 @@ hab user [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -2133,6 +2454,7 @@ hab user key [SUBCOMMAND]
 
 
 
+
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -2156,6 +2478,7 @@ hab user key generate <USER>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
+
 
 **ARGS**
 

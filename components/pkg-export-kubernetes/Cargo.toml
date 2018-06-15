@@ -26,8 +26,8 @@ handlebars = { version = "0.29.1", default-features = false }
 log = "*"
 serde = "1.0.2"
 serde_json = "1.0.0"
-failure = { git = "https://github.com/withoutboats/failure.git" }
-failure_derive = { git = "https://github.com/withoutboats/failure_derive.git" }
+failure = "*"
+failure_derive = "*"
 
 [features]
 default = []

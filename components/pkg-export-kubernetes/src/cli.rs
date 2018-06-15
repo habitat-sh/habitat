@@ -123,7 +123,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .long("service-group")
                         .short("g")
                         .help(
-                            "group is a logical grouping of services with the same package and \
+                            "Group is a logical grouping of services with the same package and \
                              topology type connected together in a ring (default: default)",
                         ),
                 )
@@ -137,6 +137,29 @@ impl<'a, 'b> Cli<'a, 'b> {
                              will use it for initial configuration of the service running in a \
                              Kubernetes cluster",
                         ),
+                )
+                .arg(
+                    Arg::with_name("ENVIRONMENT")
+                        .value_name("ENVIRONMENT")
+                        .long("env")
+                        .short("e")
+                        .multiple(true)
+                        .number_of_values(1)
+                        .help("Additional environment variables to set for the service"),
+                )
+                .arg(
+                    Arg::with_name("PERSISTENT_STORAGE")
+                        .value_name("PERSISTENT_STORAGE")
+                        .long("storage")
+                        .help(
+                            "Storage specification in form of <size>:<path>:<storage class name>. \
+                             <size> uses the same format as Kubernetes' size field (e.g. 10Gi). \
+                             <path> describes where the storage will be mounted. \
+                             <storage class name> is the name of the storage class \
+                             that will be used as a backing store; \
+                             it is a Kubernetes platform-specific thing \
+                             (GCE has its own classes, Azure - its own).",
+                        ),
                 ),
         }
     }
@@ -149,7 +172,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .long("ring-secret-name")
                     .short("r")
                     .help(
-                        "name of the Kubernetes Secret that contains the ring key, which \
+                        "Name of the Kubernetes Secret that contains the ring key, which \
                          encrypts the communication between Habitat supervisors",
                     ),
             ),
@@ -167,7 +190,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .number_of_values(1)
                     .help(
                         "Bind to another service to form a producer/consumer relationship, \
-                         specified as name:service:group",
+                         specified as name:service.group",
                     ),
             ),
         }

@@ -35,7 +35,7 @@ enum BindingMode {
 
 message ApplicationEnvironment {
   required string application = 1;
-  required string environment = 2 [default = "default"];
+  required string environment = 2;
 }
 
 message PackageIdent {
@@ -70,7 +70,7 @@ message ServiceCfg {
 
 message ServiceGroup {
   required string service = 1;
-  required string group = 2 [default = "default"];
+  required string group = 2;
   optional ApplicationEnvironment application_environment = 3;
   optional string organization = 4;
 }

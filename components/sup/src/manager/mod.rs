@@ -270,22 +270,20 @@ impl Manager {
         opts: protocol::ctl::SvcStatus,
     ) -> NetResult<()> {
         let statuses = Self::status(&mgr.cfg)?;
-        if statuses.is_empty() {
-            req.reply_complete(net::ok());
-            return Ok(());
-        }
         if let Some(ident) = opts.ident {
             for status in statuses {
                 if status.pkg.ident.satisfies(&ident) {
                     let mut msg: protocol::types::ServiceStatus = status.into();
                     req.reply_complete(msg);
-                    break;
+                    return Ok(());
                 }
             }
             return Err(net::err(
                 ErrCode::NotFound,
-                format!("{} not loaded.", ident),
+                format!("Service not loaded, {}", ident),
             ));
+        } else if statuses.is_empty() {
+            req.reply_complete(net::ok());
         } else {
             let mut list = statuses.into_iter().peekable();
             while let Some(status) = list.next() {
@@ -786,7 +784,7 @@ impl Manager {
         }
         Err(net::err(
             ErrCode::NotFound,
-            format!("{} not loaded.", ident),
+            format!("Service not loaded, {}", ident),
         ))
     }
 
@@ -847,7 +845,7 @@ impl Manager {
         // }
         // Err(net::err(
         //     ErrCode::NotFound,
-        //     format!("{} not loaded.", service_group),
+        //     format!("Service not loaded, {}", service_group),
         // ))
     }
 
@@ -1183,7 +1181,7 @@ impl Manager {
             None => {
                 return Err(net::err(
                     ErrCode::NotFound,
-                    format!("Failed to locate service, {}", &ident),
+                    format!("Service not loaded, {}", &ident),
                 ));
             }
         };
@@ -1231,7 +1229,7 @@ impl Manager {
             None => {
                 return Err(net::err(
                     ErrCode::NotFound,
-                    format!("Failed to locate service, {}", &ident),
+                    format!("Service not loaded, {}", &ident),
                 ));
             }
         };

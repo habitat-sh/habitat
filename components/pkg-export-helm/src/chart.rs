@@ -20,7 +20,7 @@ use std::path::PathBuf;
 use common::ui::{Status, UIWriter, UI};
 use export_docker;
 use export_docker::Result;
-use export_k8s::{Manifest, ManifestJson};
+use export_k8s::{Manifest, ManifestJson, PersistentStorage};
 
 use chartfile::ChartFile;
 use deps::Deps;
@@ -53,11 +53,7 @@ impl<'a> Chart<'a> {
         chartdir.push(&chartfile.name);
 
         Ok(Self::new_for_manifest(
-            manifest,
-            chartdir,
-            chartfile,
-            deps,
-            ui,
+            manifest, chartdir, chartfile, deps, ui,
         ))
     }
 
@@ -75,14 +71,25 @@ impl<'a> Chart<'a> {
             "image": "{{.Values.imageName}}",
             "count": "{{.Values.instanceCount}}",
             "service_topology": "{{.Values.serviceTopology}}",
-            "service_group": manifest.service_group.clone().map(|_| "{{.Values.serviceGroup}}"),
+            "service_group": manifest.service_group
+                .as_ref()
+                .map(|_| "{{.Values.serviceGroup}}"),
             "config": manifest.config
-                .clone()
+                .as_ref()
                 .map(|_| "{{.Values.config}}"),
             "ring_secret_name": manifest.ring_secret_name
-                .clone()
+                .as_ref()
                 .map(|_| "{{.Values.ringSecretName}}"),
-        }),
+            "persistent_storage": manifest.persistent_storage
+                .as_ref()
+                .map(|_| {
+                    PersistentStorage {
+                        size: "{{.Values.persistentStorageSize}}".to_string(),
+                        path: "{{.Values.persistentStoragePath}}".to_string(),
+                        class: "{{.Values.persistentStorageClass}}".to_string(),
+                    }.to_json()
+                }),
+            }),
         };
 
         let mut values = Values::new();
@@ -100,14 +107,17 @@ impl<'a> Chart<'a> {
         if let Some(ref name) = manifest.ring_secret_name {
             values.add_entry("ringSecretName", name);
         }
+        if let Some(ref persistent_storage) = manifest.persistent_storage {
+            values.add_entry("persistentStorageSize", &persistent_storage.size);
+            values.add_entry("persistentStoragePath", &persistent_storage.path);
+            values.add_entry("persistentStorageClass", &persistent_storage.class);
+        }
 
         let mut binds = Vec::new();
-        let mut i = 0;
-        for bind in &manifest.binds {
+        for (i, bind) in manifest.binds.iter().enumerate() {
             let name_var = format!("bindName{}", i);
             let service_var = format!("bindService{}", i);
             let group_var = format!("bindGroup{}", i);
-            i = i + 1;
 
             values.add_entry(&name_var, &bind.name);
             values.add_entry(&service_var, &bind.service_group.service());
@@ -122,6 +132,23 @@ impl<'a> Chart<'a> {
             binds.push(json);
         }
         manifest_template.value["binds"] = json!(binds);
+
+        let mut environment = Vec::new();
+        for (i, envvar) in manifest.environment.iter().enumerate() {
+            let name_var = format!("envName{}", i);
+            let value_var = format!("envValue{}", i);
+
+            values.add_entry(&name_var, &envvar.name);
+            values.add_entry(&value_var, &envvar.value);
+
+            let json = json!({
+                "name": format!("{{{{.Values.{}}}}}", name_var),
+                "value": format!("{{{{.Values.{}}}}}", value_var),
+            });
+
+            environment.push(json);
+        }
+        manifest_template.value["environment"] = json!(environment);
 
         Chart {
             chartdir: chartdir,

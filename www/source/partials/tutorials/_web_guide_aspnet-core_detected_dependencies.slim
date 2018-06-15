@@ -1,8 +1,0 @@
-p You will need to declare the following dependencies for any ASP.NET Core Habitat plan:
-
-= code(:shell) do
-  |
-   $pkg_deps=@("core/dotnet-core")
-   $pkg_build_deps=@("core/dotnet-core-sdk")
-
-p This will allow the sdk to be available at buildtime which includes functionality for populating nuget package dependencies and performing MSBUILD based build tasks and .Net compilation. However there is no need for the bulk of the sdk at run time, so only the runtime dependency will be available in your ASP.NET Core application hooks.

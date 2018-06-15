@@ -8,7 +8,7 @@ function writeHeader() {
   lines.push('');
   lines.push(`The following settings can be used during a Habitat service's lifecycle. This means that you can use these settings in any of the plan hooks, such as \`init\`, or \`run\`, and also in any templatized configuration file for your application or service.`)
   lines.push('');
-  lines.push(`These configuration settings are referenced using the [Handlebars.js](https://github.com/wycats/handlebars.js/) version of [Mustache-style](https://mustache.github.io/mustache.5.html) tags. For an example on how these settings are used in plan hooks, see [Add Health Monitoring to a Plan](/tutorials/sample-app/mac/add-health-check-hook/) in the Getting Started tutorial.`)
+  lines.push(`These configuration settings are referenced using the [Handlebars.js](https://github.com/wycats/handlebars.js/) version of [Mustache-style](https://mustache.github.io/mustache.5.html) tags.`)
   lines.push('');
 }
 

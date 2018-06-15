@@ -35,7 +35,7 @@ Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable
 
 After you have done the basic account creation steps, you need to create your origin keys. The private key will be used to sign your packages and the public key will be used by supervisors to verify the integrity of your packages (`.hart` files).
 
-You can either create an origin key pair by running `hab cli setup` from your host machine, or running `hab origin key generate <originname>` from either the host machine or from within the studio.
+You can either create an origin key pair by running `hab cli setup` from your host machine, or running `hab origin key generate <ORIGIN>` from either the host machine or from within the studio.
 
 Your keys are located at `~/.hab/cache/keys` on your host machine and `/hab/cache/keys` inside the studio environment.
 
@@ -56,7 +56,7 @@ Once Builder possesses at least the public key of the origin, you may upload one
 By default, newly uploaded packages are placed in the `unstable` channel, however, the default package that is downloaded is the latest `stable` version of a package, unless overridden in commands such as `hab start`, `hab svc load`, and `hab pkg install`. If you want to promote your package to the `stable` channel, run the `hab pkg promote` command as follows:
 
 ```shell
-$ hab pkg promote -z <OAuth_token> origin/package/version/release stable
+$ hab pkg promote -z <TOKEN> origin/package/version/release stable
 ```
 
 > **Note** You can also promote packages to the `stable` channel using the *promote to stable* button in the web app.

@@ -49,9 +49,9 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
-    use VERSION;
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     pub fn start(
         ui: &mut UI,
