@@ -103,6 +103,21 @@ impl FromStr for BindingMode {
     }
 }
 
+impl FromStr for ProcessState {
+    type Err = NetErr;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "0" => Ok(ProcessState::Down),
+            "1" => Ok(ProcessState::Up),
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                format!("Invalid process state \"{}\"", value),
+            )),
+        }
+    }
+}
+
 impl FromStr for ServiceBind {
     type Err = NetErr;
 

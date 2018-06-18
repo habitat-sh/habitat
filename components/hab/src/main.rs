@@ -85,7 +85,7 @@ const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
-        vec!["package", "type", "state", "uptime (s)", "pid", "group"]
+        vec!["package", "type", "state", "elapsed (s)", "pid", "group"]
     };
 
     /// The default filesystem root path to base all commands from. This is lazily generated on
@@ -1377,7 +1377,12 @@ where
     write!(
         out,
         "{}\t{}\t{}\t{}\t{}\t{}\n",
-        status.ident, svc_type, svc_state, svc_elapsed, svc_pid, status.service_group,
+        status.ident,
+        svc_type,
+        ProcessState::from_str(&svc_state)?,
+        svc_elapsed,
+        svc_pid,
+        status.service_group,
     )?;
     out.flush()?;
     return Ok(());
