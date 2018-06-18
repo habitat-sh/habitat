@@ -11,7 +11,7 @@
 #
 # Would return 0 if gsha256sum exists, 1 if it does not.
 exists() {
-  if command -v "$1" >/dev/null 2>&1
+  if command -v $1 >/dev/null 2>&1
   then
     return 0
   else
@@ -27,7 +27,6 @@ exists() {
 # ```
 build_line() {
   if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
-    # shellcheck disable=2154
     echo "   ${pkg_name}: $1"
   else
     case "${TERM:-}" in
@@ -99,7 +98,7 @@ exit_with() {
         ;;
     esac
   fi
-  exit "${2:-1}"
+  exit ${2:-1}
 }
 
 # Trim leading and trailing whitespace.  [Thanks to these
@@ -140,11 +139,9 @@ trim() {
 pkg_path_for() {
   local dep="$1"
   local e
-  local cutn
-  cutn="$(($(echo "$HAB_PKG_PATH" | grep -o '/' | wc -l)+2))"
-  # shellcheck disable=2154
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   for e in "${pkg_all_deps_resolved[@]}"; do
-    if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
+    if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
       echo "$e"
       return 0
     fi
@@ -208,17 +205,17 @@ attach() {
   # Loop through input, REPL-style until either `"exit"` or `"quit"` is found
   while [[ "$cmd" != "exit" && "$cmd" != "quit" ]]; do
     read -e -r -p "[$replno] ${pkg_name}($fname)> " cmd
-    history -s "$cmd"
+    history -s $cmd
     case "$cmd" in
       vars) (set -o posix; set);;
       whereami*|\@*)
-        _attach_whereami "$(echo "$cmd" \
+        _attach_whereami "$(echo $cmd \
          | awk '{if (NF == 2) print $2; else print "10"}')"
         ;;
       exit|quit) ;;
       exit-program|quit-program) exit $?;;
       help)
-        echo "
+        printf "
 Help
   help          Show a list of command or information about a specific command.
 
@@ -237,12 +234,13 @@ Aliases
   @             Alias for \`whereami\`.
   quit          Alias for \`exit\`.
   quit-program  Alias for \`exit-program\`.
+
 "
         ;;
-      *) eval "$cmd";;
+      *) eval $cmd;;
     esac
     # Increment our REPL command line count, cause that's helpful
-    replno=$((replno + 1))
+    replno=$((${replno}+1))
   done
   # Re-enable on exit trap and restore exit-on-non-zero behavior
   trap _on_exit 1 2 3 15 ERR
@@ -339,21 +337,20 @@ download_file() {
   local dst="$2"
   local sha="$3"
 
-  pushd "$HAB_CACHE_SRC_PATH" > /dev/null
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
   if [[ -f $dst && -n "$sha" ]]; then
     build_line "Found previous file '$dst', attempting to re-use"
-    if verify_file "$dst" "$sha"; then
+    if verify_file $dst $sha; then
       build_line "Using cached and verified '$dst'"
       return 0
     else
       build_line "Clearing previous '$dst' file and re-attempting download"
-      rm -fv "$dst"
+      rm -fv $dst
     fi
   fi
 
   build_line "Downloading '$url' to '$dst'"
-  # shellcheck disable=2154
-  $_wget_cmd "$url" -O "$dst"
+  $_wget_cmd $url -O $dst
   build_line "Downloaded '$dst'";
   popd > /dev/null
 }
@@ -370,10 +367,8 @@ download_file() {
 # will be printed to stderr with the expected and computed shasum values.
 verify_file() {
   build_line "Verifying $1"
-  local checksum
-  # shellcheck disable=2154
-  read -r checksum _ < <($_shasum_cmd "$HAB_CACHE_SRC_PATH"/"$1")
-  if [[ $2 = "$checksum" ]]; then
+  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$1))
+  if [[ $2 = $checksum ]]; then
     build_line "Checksum verified for $1"
   else
     warn "Checksum invalid for $1:"
@@ -399,18 +394,17 @@ unpack_file() {
   # Thanks to:
   # http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
-    pushd "$HAB_CACHE_SRC_PATH" > /dev/null
+    pushd $HAB_CACHE_SRC_PATH > /dev/null
     case $unpack_file in
       *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
-        # shellcheck disable=2154
-        $_tar_cmd xf "$unpack_file" --no-same-owner
+        $_tar_cmd xf $unpack_file --no-same-owner
         ;;
-      *.bz2)  bunzip2 "$unpack_file"    ;;
-      *.rar)  rar x "$unpack_file"      ;;
-      *.gz)   gunzip "$unpack_file"     ;;
-      *.zip)  unzip -o "$unpack_file"   ;;
-      *.Z)    uncompress "$unpack_file" ;;
-      *.7z)   7z x "$unpack_file"       ;;
+      *.bz2)  bunzip2 $unpack_file    ;;
+      *.rar)  rar x $unpack_file      ;;
+      *.gz)   gunzip $unpack_file     ;;
+      *.zip)  unzip -o $unpack_file   ;;
+      *.Z)    uncompress $unpack_file ;;
+      *.7z)   7z x $unpack_file       ;;
       *)
         warn "Error: unknown archive format '.${unpack_file##*.}'"
         return 1
@@ -458,9 +452,8 @@ fix_interpreter() {
     local pkg=$2
     local int=$3
     local interpreter_old=".*${int}"
-    local interpreter_new
-    # shellcheck disable=2154
-    if ! interpreter_new="$(pkg_interpreter_for "${pkg}" "${int}")" || [[ -z $interpreter_new ]]; then
+    local interpreter_new="$(pkg_interpreter_for ${pkg} ${int})"
+    if [[ -z $interpreter_new || $? -ne 0 ]]; then
       warn "fix_interpreter() '$pkg' is not a runtime dependency"
       warn "Only runtime packages may be used as your interpreter must travel"
       warn "with the '$pkg_name' in order to run."
@@ -480,7 +473,7 @@ fix_interpreter() {
       fi
 
       build_line "Replacing '${interpreter_old}' with '${interpreter_new}' in '${t}'"
-      sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i "$t"
+      sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i $t
     done
 }
 
@@ -499,14 +492,13 @@ fix_interpreter() {
 pkg_interpreter_for() {
     local pkg=$1
     local int=$2
-    local path
-    if ! path=$(_pkg_path_for_deps "$pkg") || [[ -z $path ]]; then
+    local path=$(_pkg_path_for_deps $pkg)
+    if [[ -z $path || $? -ne 0 ]]; then
       warn "Could not resolve the path for ${pkg}, is it specified in 'pkg_deps'?"
       return 1
     fi
 
-   local int_path
-   int_path=$(grep -x ".*${int}" "${path}"/INTERPRETERS)
+   local int_path=$(grep -x ".*${int}" ${path}/INTERPRETERS)
     if [[ -n "$int_path" ]]; then
       echo "$int_path"
       return 0
@@ -538,7 +530,7 @@ pkg_interpreter_for() {
 # }
 # ```
 update_pkg_version() {
-  local update_src_path
+  local update_src_path val
 
   if [[ "${_verify_vars:-}" == true ]]; then
     local e
@@ -560,9 +552,7 @@ update_pkg_version() {
   if [[ "${_pkg_dirname_initially_unset:-}" == true ]]; then
     pkg_dirname="${pkg_name}-${pkg_version}"
   fi
-  # shellcheck disable=2034,2154
   pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
-  # shellcheck disable=2034,2154
   pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
   # If the `$CACHE_PATH` and `$SRC_PATH` are the same, then we are building
   # third party software using `$pkg_source` and
@@ -598,7 +588,6 @@ update_pkg_version() {
 __resolve_version_placeholder(){
     local original=${1}
     local real_version=${2}
-    # shellcheck disable=2001
     echo "${original}" | sed "s,__pkg__version__unset__,${real_version},g"
 }
 

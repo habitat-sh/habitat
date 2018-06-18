@@ -8,14 +8,14 @@ version="$(cat VERSION)"
 mac_builder=admin@74.80.245.236
 
 BINTRAY_REPO=unstable
-if [ "$version" == "$TRAVIS_TAG" ]; then
+if [ $version == "$TRAVIS_TAG" ]; then
   BINTRAY_REPO=stable
 fi
 
 # kick off the mac unstable build
 echo "Kicking off the $BINTRAY_REPO mac build"
 var_file=/tmp/our-awesome-vars
-ssh_args=(-o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -i /tmp/habitat-srv-admin)
+ssh_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /tmp/habitat-srv-admin"
 
 if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
   co="FETCH_HEAD"
@@ -26,8 +26,7 @@ else
 fi
 
 # first update the copy of the habitat code stored on the mac server to the latest
-# shellcheck disable=2087
-ssh "${ssh_args[@]}" ${mac_builder} << EOF
+ssh ${ssh_args} ${mac_builder} << EOF
     hab_src_dir="\$HOME/code/$TRAVIS_BUILD_NUMBER"
     mkdir -p \${hab_src_dir}
     cd \${hab_src_dir}
@@ -49,10 +48,9 @@ export BINTRAY_PASSPHRASE=$BINTRAY_PASSPHRASE
 export TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER
 EOF
 
-scp "${ssh_args[@]}" ${var_file} ${mac_builder}:~/tmp
+scp ${ssh_args} ${var_file} ${mac_builder}:~/tmp
 rm ${var_file}
 
 # kick off the build
-# shellcheck disable=2029
-ssh "${ssh_args[@]}" ${mac_builder} \
+ssh ${ssh_args} ${mac_builder} \
   "sudo ~/code/$TRAVIS_BUILD_NUMBER/habitat/support/ci/deploy_mac.sh"

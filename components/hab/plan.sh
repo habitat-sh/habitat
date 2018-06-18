@@ -1,4 +1,3 @@
-# shellcheck disable=2154
 pkg_name=hab
 _pkg_distname=$pkg_name
 pkg_origin=core
@@ -37,7 +36,6 @@ _common_prepare() {
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
 }
 
-# shellcheck disable=2155
 do_prepare() {
   _common_prepare
 
@@ -73,8 +71,8 @@ do_build() {
 }
 
 do_install() {
-  install -v -D "$CARGO_TARGET_DIR"/$rustc_target/${build_type#--}/$bin \
-    "$pkg_prefix"/bin/$bin
+  install -v -D $CARGO_TARGET_DIR/$rustc_target/${build_type#--}/$bin \
+    $pkg_prefix/bin/$bin
 }
 
 do_strip() {
