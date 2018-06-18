@@ -1,4 +1,3 @@
-# shellcheck disable=2086,2128,2207
 # Copyright:: Copyright (c) 2015-2016 The Habitat Maintainers
 #
 # The terms of the Evaluation Agreement (Habitat) between Chef Software Inc.
