@@ -816,8 +816,8 @@ load_secrets() {
 # **Internal** Builds up the environment set to pass to an `env(1)` command for
 # use in a `chroot` environment which is printed on stdout.
 chroot_env() {
-  local studio_path="$1"
-  local extra_env="$2"
+  studio_path="$1"
+  extra_env="$2"
 
   # Set the environment which will be passed to `env(1)` to initialize the
   # session.
@@ -874,7 +874,7 @@ chroot_env() {
   if [ -n "${HAB_STUDIO_SUP:-}" ]; then
     # We want to pass a value that contains spaces, so we'll encode the spaces
     # for unpacking inside the Studio. Sorry world, but it's after 11pm.
-    env="$env HAB_STUDIO_SUP=$(echo $HAB_STUDIO_SUP | $bb sed 's/ /__sp__/g')"
+    env="$env HAB_STUDIO_SUP=$(echo "$HAB_STUDIO_SUP" | $bb sed 's/ /__sp__/g')"
   fi
   # If a Habitat update strategy frequency is set, then propagate it into the
   # Studio's environment.
@@ -901,7 +901,7 @@ chroot_env() {
     # and take care of that little whitespace problem for you.
     #
     # Thanks, Docker, for passing unnecessary spaces. You're a peach.
-    env="$env no_proxy=$(echo $no_proxy | $bb sed 's/, /,/g')"
+    env="$env no_proxy=$(echo "$no_proxy" | $bb sed 's/, /,/g')"
   fi
 
   env="$env $(load_secrets)"

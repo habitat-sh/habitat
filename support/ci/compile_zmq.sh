@@ -12,12 +12,12 @@ if [ -d "$prefix" ]; then
   exit 0
 fi
 
-source $(dirname $0)/rust_env.sh
+source "$(dirname "$0")"/rust_env.sh
 
 echo "--> Compiling $nv"
 trap 'rm -rf /tmp/${nv}*; exit $?' INT TERM EXIT
-(cd /tmp && wget --no-check-certificate $source && tar xf /tmp/$(basename $source))
+(cd /tmp && wget --no-check-certificate $source && tar xf /tmp/"$(basename $source)")
 cd /tmp/$nv
-./autogen.sh && ./configure --prefix=$prefix --with-libsodium
+./autogen.sh && ./configure --prefix="$prefix" --with-libsodium
 make
 make install

@@ -10,7 +10,7 @@ fi
 
 echo "--> Running $0"
 
-source $(dirname $0)/rust_env.sh
+source "$(dirname "$0")"/rust_env.sh
 
 set -e
-make unit-${COMPONENTS:-all}
+make unit-"${COMPONENTS:-all}"

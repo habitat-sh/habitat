@@ -4,7 +4,7 @@ set -eux
 # Install Rust and musl libc target
 curl -sSf https://sh.rustup.rs \
   | env -u CARGO_HOME sh -s -- -y --default-toolchain stable
-. $HOME/.cargo/env
+. "$HOME/.cargo/env"
 env -u CARGO_HOME rustup target add x86_64-unknown-linux-musl
 env -u CARGO_HOME cargo install --force protobuf
 env -u CARGO_HOME cargo install diesel_cli --no-default-features --features postgres

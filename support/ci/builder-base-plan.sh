@@ -5,7 +5,7 @@
 # duplicate the code here.
 
 pkg_version() {
-  echo "$(git rev-list master --count)"
+  git rev-list master --count
 }
 
 do_before() {
@@ -39,10 +39,12 @@ do_builder_build() {
 }
 
 do_builder_install() {
+  # shellcheck disable=2154
   install -v -D "$CARGO_TARGET_DIR/$rustc_target/${builder_build_type#--}/$bin" \
     "$pkg_prefix/bin/$bin"
 }
 
+# shellcheck disable=2154
 do_builder_prepare() {
   export builder_build_type="${builder_build_type:---release}"
   # Can be either `--release` or `--debug` to determine cargo build strategy

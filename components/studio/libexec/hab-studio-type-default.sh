@@ -4,6 +4,7 @@
 # Documentation on testing local changes to this lives here:
 # https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
 
+# shellcheck disable=2034
 studio_type="default"
 studio_path="$HAB_ROOT_PATH/bin"
 studio_enter_environment="STUDIO_ENTER=true"
@@ -25,18 +26,18 @@ finish_setup() {
     # will use the outside cache key path, whereas the `_hab` function has
     # the `$FS_ROOT` set for the inside of the Studio. We're copying from
     # the outside in, using `hab` twice. I love my job.
-    for key in $(echo $HAB_ORIGIN_KEYS | $bb tr ',' ' '); do
-      local key_text
+    for key in $(echo "$HAB_ORIGIN_KEYS" | $bb tr ',' ' '); do
       # Import the secret origin key, required for signing packages
       info "Importing '$key' secret origin key"
-      if key_text=$($hab origin key export --type secret $key); then
-        printf -- "${key_text}" | _hab origin key import
+      if key_text=$($hab origin key export --type secret "$key"); then
+        printf -- "%s" "${key_text}" | _hab origin key import
       else
         echo "Error exporting $key key"
         # key_text will contain an error message
         echo "${key_text}"
         echo "Habitat was unable to export your secret signing key. Please"
         echo "verify that you have a signing key for $key present in either"
+        # shellcheck disable=2088
         echo "~/.hab/cache/keys (if running via sudo) or /hab/cache/keys"
         echo "(if running as root). You can test this by running:"
         echo ""
@@ -54,9 +55,9 @@ finish_setup() {
       fi
       # Attempt to import the public origin key, which can be used for local
       # package installations where the key may not yet be uploaded.
-      if key_text=$($hab origin key export --type public $key 2> /dev/null); then
+      if key_text=$($hab origin key export --type public "$key" 2> /dev/null); then
         info "Importing '$key' public origin key"
-        printf -- "${key_text}" | _hab origin key import
+        printf -- "%s" "${key_text}" | _hab origin key import
       else
         info "Tried to import '$key' public origin key, but key was not found"
       fi
@@ -89,22 +90,23 @@ finish_setup() {
   for pkg in $pkgs; do
     if [ -n "${CI_OVERRIDE_CHANNEL:-}" ]; then
       info "Override channel set; retrieving ${pkg} from ${CI_OVERRIDE_CHANNEL}"
-      _hab install --channel="${CI_OVERRIDE_CHANNEL}" ${pkg} || {
+      _hab install --channel="${CI_OVERRIDE_CHANNEL}" "${pkg}" || {
         info "Package not found in ${CI_OVERRIDE_CHANNEL}; falling back to stable"
-        _hab install ${pkg}
+        _hab install "${pkg}"
       }
     else
-      _hab install $pkg
+      _hab install "$pkg"
     fi
   done
   
-  local bash_path=$(_pkgpath_for core/bash)
-  local coreutils_path=$(_pkgpath_for core/coreutils)
+  bash_path=$(_pkgpath_for core/bash)
+  coreutils_path=$(_pkgpath_for core/coreutils)
 
-  $bb mkdir -p $v $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin
+  # shellcheck disable=2086,2154
+  $bb mkdir -p $v "$HAB_STUDIO_ROOT""$HAB_ROOT_PATH"/bin
 
   # Put `hab` on the default `$PATH`
-  _hab pkg binlink --dest $HAB_ROOT_PATH/bin core/hab hab
+  _hab pkg binlink --dest "$HAB_ROOT_PATH"/bin core/hab hab
 
   # Create `/bin/{sh,bash}` for software that hardcodes these shells
   _hab pkg binlink core/bash bash
@@ -115,16 +117,17 @@ finish_setup() {
   # mean that running `build` from inside a `studio enter` and running `studio
   # build` leads to the exact same experience, at least as far as initial
   # `$PATH` is concerned.
-  $bb cat <<EOF > $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/build
+  $bb cat <<EOF > "$HAB_STUDIO_ROOT""$HAB_ROOT_PATH"/bin/build
 #!$bash_path/bin/sh
 exec $HAB_ROOT_PATH/bin/hab pkg exec core/hab-plan-build hab-plan-build "\$@"
 EOF
-  $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/build
+  # shellcheck disable=2086
+  $bb chmod $v 755 "$HAB_STUDIO_ROOT""$HAB_ROOT_PATH"/bin/build
 
   # Set the login shell for any relevant user to be `/bin/bash`
-  $bb sed -e "s,/bin/sh,$bash_path/bin/bash,g" -i $HAB_STUDIO_ROOT/etc/passwd
+  $bb sed -e "s,/bin/sh,$bash_path/bin/bash,g" -i "$HAB_STUDIO_ROOT"/etc/passwd
 
-  $bb cat >> $HAB_STUDIO_ROOT/etc/profile <<PROFILE
+  $bb cat >> "$HAB_STUDIO_ROOT"/etc/profile <<PROFILE
 # Add hab to the default PATH at the front so any wrapping scripts will
 # be found and called first
 export PATH=$HAB_ROOT_PATH/bin:\$PATH
@@ -200,7 +203,7 @@ fi
 source <(hab cli completers --shell bash)
 PROFILE
 
-  $bb cat > $HAB_STUDIO_ROOT/etc/profile.enter <<PROFILE_ENTER
+  $bb cat > "$HAB_STUDIO_ROOT"/etc/profile.enter <<PROFILE_ENTER
 # Source /src/.studiorc so we can apply user-specific configuration
 if [[ -f /src/.studiorc && -z "\${HAB_STUDIO_NOSTUDIORC:-}" ]]; then
   echo "--> Detected and loading /src/.studiorc"
@@ -223,17 +226,17 @@ case "\${HAB_STUDIO_SUP:-}" in
 esac
 PROFILE_ENTER
 
-  echo "${run_user}:x:42:42:root:/:/bin/sh" >> $HAB_STUDIO_ROOT/etc/passwd
-  echo "${run_group}:x:42:${run_user}" >> $HAB_STUDIO_ROOT/etc/group
+  echo "${run_user}:x:42:42:root:/:/bin/sh" >> "$HAB_STUDIO_ROOT"/etc/passwd
+  echo "${run_group}:x:42:${run_user}" >> "$HAB_STUDIO_ROOT"/etc/group
 
   studio_env_command="$coreutils_path/bin/env"
 }
 
 _hab() {
   # We remove a couple of env vars we do not want for this instance of the studio
-  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= HAB_BLDR_CHANNEL= $hab "$@"
+  $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_CACHE_KEY_PATH= HAB_BLDR_CHANNEL= "$hab" "$@"
 }
 
 _pkgpath_for() {
-  _hab pkg path $1 | $bb sed -e "s,^$HAB_STUDIO_ROOT,,g"
+  _hab pkg path "$1" | $bb sed -e "s,^$HAB_STUDIO_ROOT,,g"
 }

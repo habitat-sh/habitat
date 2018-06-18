@@ -42,24 +42,24 @@ fi
 info() {
   case "${TERM:-}" in
     *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "   \033[1;36m$(basename $0): \033[1;37m${1:-}\033[0m\n"
+      echo -e -- "   \033[1;36m$(basename "$0"): \033[1;37m${1:-}\033[0m"
       ;;
     *)
-      printf -- "   $(basename $0): ${1:-}\n"
+      echo -e -- "   $(basename "$0"): ${1:-}"
       ;;
   esac
   return 0
 }
 
 if ! command -v hab >/dev/null; then
-  >&2 echo "   $(basename $0): WARN 'hab' command must be present on PATH, aborting"
+  >&2 echo "   $(basename "$0"): WARN 'hab' command must be present on PATH, aborting"
   exit 9
 fi
 
 IMAGE_NAME=habitat-docker-registry.bintray.io/studio
 
 start_dir="$(pwd)"
-tmp_root="$(mktemp -d -t "$(basename $0)-XXXX")"
+tmp_root="$(mktemp -d -t "$(basename "$0")-XXXX")"
 trap 'rm -rf $tmp_root; exit $?' INT TERM EXIT
 
 export FS_ROOT="$tmp_root/rootfs"
@@ -69,26 +69,26 @@ unset HAB_BINLINK_DIR
 
 info "Installing and extracting initial Habitat packages"
 default_pkgs="core/hab core/hab-studio"
-hab pkg install ${*:-$default_pkgs}
+hab pkg install "${*:-$default_pkgs}"
 if ! hab pkg path core/hab >/dev/null 2>&1; then
-  >&2 echo "   $(basename $0): WARN core/hab must be installed, aborting"
+  >&2 echo "   $(basename "$0"): WARN core/hab must be installed, aborting"
   exit 1
 fi
 if ! hab pkg path core/hab-studio >/dev/null 2>&1; then
-  >&2 echo "   $(basename $0): WARN core/hab-studio must be installed, aborting"
+  >&2 echo "   $(basename "$0"): WARN core/hab-studio must be installed, aborting"
   exit 2
 fi
 
 info "Putting \`hab' in container PATH"
 hab pkg binlink core/hab hab
 info "Purging container hab cache"
-rm -rf $FS_ROOT/hab/cache
+rm -rf "$FS_ROOT"/hab/cache
 
 ident="$(hab pkg path core/hab-studio | rev | cut -d '/' -f 1-4 | rev)"
-short_version=$(echo $ident | awk -F/ '{print $3}')
-version=$(echo $ident | awk -F/ '{print $3 "-" $4}')
+short_version=$(echo "$ident" | awk -F/ '{print $3}')
+version=$(echo "$ident" | awk -F/ '{print $3 "-" $4}')
 
-cat <<EOF > $tmp_root/Dockerfile
+cat <<EOF > "$tmp_root"/Dockerfile
 FROM busybox:latest
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
@@ -97,16 +97,16 @@ RUN env NO_MOUNT=true HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL CI_OVERRIDE_CHANNEL="${
   && rm -rf /hab/studios/src/hab/cache/artifacts
 ENTRYPOINT ["/bin/hab", "studio"]
 EOF
-cd $tmp_root
+cd "$tmp_root"
 
 info "Building Docker image \`${IMAGE_NAME}:$version'"
-docker build --no-cache -t ${IMAGE_NAME}:$version .
+docker build --no-cache -t ${IMAGE_NAME}:"$version" .
 
 info "Tagging latest image to ${IMAGE_NAME}:$version"
-docker tag ${IMAGE_NAME}:$version ${IMAGE_NAME}:latest
+docker tag ${IMAGE_NAME}:"$version" ${IMAGE_NAME}:latest
 
 info "Tagging latest image to ${IMAGE_NAME}:$short_version"
-docker tag ${IMAGE_NAME}:$version ${IMAGE_NAME}:$short_version
+docker tag ${IMAGE_NAME}:"$version" ${IMAGE_NAME}:"$short_version"
 
 cat <<-EOF > "$start_dir/results/last_image.env"
 docker_image=$IMAGE_NAME

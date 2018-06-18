@@ -43,7 +43,7 @@ fi
 
 # **Internal** Prints help
 print_help() {
-  printf -- "$program $version
+  echo -- "$program $version
 
 $author
 
@@ -61,18 +61,18 @@ USAGE:
 # ```
 exit_with() {
   if [ "${HAB_NOCOLORING:-}" = "true" ]; then
-    printf -- "ERROR: $1\n"
+    echo -- "ERROR: $1"
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        printf -- "\033[1;31mERROR: \033[1;37m$1\033[0m\n"
+        printf -- "\033[1;31mERROR: \033[1;37m%s\033[0m\n" "$1"
         ;;
       *)
-        printf -- "ERROR: $1\n"
+        printf -- "ERROR: %s\n" "$1"
         ;;
     esac
   fi
-  exit $2
+  exit "$2"
 }
 
 dockerize_tags() {
@@ -82,7 +82,7 @@ dockerize_tags() {
 
 sh_shebang() {
   local docker_output_file="$1"
-  echo "#!$(grep ENV $docker_output_file | \
+  echo "#!$(grep ENV "$docker_output_file" | \
     tr ":" "\n" | \
     grep busybox-static | \
     head -n1)/sh"
@@ -95,30 +95,30 @@ build_cf_image() {
   tmp_dir="$(mktemp -t -d "${program}-XXXX")"
 
   dockerize_out="${tmp_dir}/dockerize-out"
-  hab-pkg-export-docker ${hab_package} | tee ${dockerize_out}
+  hab-pkg-export-docker "${hab_package}" | tee "${dockerize_out}"
 
   docker_tag_array=($(dockerize_tags "${dockerize_out}"))
   cf_docker_tag_array=(${docker_tag_array[@]/:/:cf-})
 
   DOCKER_CONTEXT=${tmp_dir}/docker
-  mkdir -p ${DOCKER_CONTEXT}
-  render_helpers > ${DOCKER_CONTEXT}/helpers.sh
+  mkdir -p "${DOCKER_CONTEXT}"
+  render_helpers > "${DOCKER_CONTEXT}"/helpers.sh
 
-  cat <<EOT > $DOCKER_CONTEXT/cf-init.sh
-$(sh_shebang ${dockerize_out})
+  cat <<EOT > "$DOCKER_CONTEXT"/cf-init.sh
+$(sh_shebang "${dockerize_out}")
 source /helpers.sh
 ( echo "cat <<EOF >~/user.toml";
   cat /config.toml;
   echo "EOF";
 ) >~/render.sh
 . ~/render.sh
-mv ~/user.toml /hab/svc/$(basename ${hab_package})/user.toml
+mv ~/user.toml /hab/svc/$(basename "${hab_package}")/user.toml
 exec /init.sh "\$@"
 EOT
-  chmod +x $DOCKER_CONTEXT/cf-init.sh
+  chmod +x "$DOCKER_CONTEXT"/cf-init.sh
 
-  cat ${mapping} > ${DOCKER_CONTEXT}/config.toml
-  cat <<EOT > $DOCKER_CONTEXT/Dockerfile
+  cat "${mapping}" > "${DOCKER_CONTEXT}"/config.toml
+  cat <<EOT > "$DOCKER_CONTEXT"/Dockerfile
 FROM ${docker_tag_array[0]}
 RUN hab pkg install core/jq-static
 ADD cf-init.sh /
@@ -128,8 +128,8 @@ ENTRYPOINT ["/cf-init.sh"]
 CMD ["start", "$1"]
 EOT
 
-  docker build --force-rm --no-cache ${cf_docker_tag_array[@]/#/-t } ${DOCKER_CONTEXT}
-  rm -rf ${tmp_dir}
+  docker build --force-rm --no-cache "${cf_docker_tag_array[@]/#/-t }" "${DOCKER_CONTEXT}"
+  rm -rf "${tmp_dir}"
 }
 
 render_helpers() {
@@ -183,5 +183,5 @@ elif [ "$#" -ne 2 ]; then
   print_help
   exit_with "You must provide a mapping file." 1
 else
-  build_cf_image $@
+  build_cf_image "$@"
 fi

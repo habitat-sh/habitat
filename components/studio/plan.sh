@@ -1,3 +1,4 @@
+# shellcheck disable=2034
 pkg_name=hab-studio
 pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
@@ -9,11 +10,12 @@ pkg_build_deps=(core/coreutils core/tar core/xz core/wget core/busybox-static co
 pkg_bin_dirs=(bin)
 
 do_build() {
-  cp -v $PLAN_CONTEXT/bin/hab-studio.sh hab-studio
-  cp -v $PLAN_CONTEXT/libexec/hab-studio-profile.sh .
-  cp -v $PLAN_CONTEXT/libexec/hab-studio-type-*.sh .
+  cp -v "$PLAN_CONTEXT"/bin/hab-studio.sh hab-studio
+  cp -v "$PLAN_CONTEXT"/libexec/hab-studio-profile.sh .
+  cp -v "$PLAN_CONTEXT"/libexec/hab-studio-type-*.sh .
 
   # Embed the release version and author information of the program.
+  # shellcheck disable=2154
   sed \
     -e "s,@author@,$pkg_maintainer,g" \
     -e "s,@version@,$pkg_version/$pkg_release,g" \
@@ -21,21 +23,23 @@ do_build() {
 }
 
 do_install() {
-  install -v -D hab-studio $pkg_prefix/bin/hab-studio
-  install -v -D hab-studio-profile.sh $pkg_prefix/libexec/hab-studio-profile.sh
-  for f in `ls hab-studio-type-*.sh`; do
-    install -v -D $f $pkg_prefix/libexec/$f
+  # shellcheck disable=2154
+  install -v -D hab-studio "$pkg_prefix"/bin/hab-studio
+  install -v -D hab-studio-profile.sh "$pkg_prefix"/libexec/hab-studio-profile.sh
+  for f in hab-studio-type-*.sh; do
+    [[ -e $f ]] || break # see http://mywiki.wooledge.org/BashPitfalls#pf1
+    install -v -D "$f" "$pkg_prefix"/libexec/"$f"
   done
 
   lbb="$pkg_prefix/libexec/busybox"
 
   # Install a copy of a statically built busybox under `libexec/`
-  install -v -D $(pkg_path_for busybox-static)/bin/busybox $lbb
+  install -v -D "$(pkg_path_for busybox-static)"/bin/busybox "$lbb"
 
-  hab_dir=$(cat $(pkg_path_for hab)/IDENT | tr '/' '-')
-  install -v -D $(pkg_path_for hab)/bin/hab \
-    $pkg_prefix/libexec/$hab_dir/bin/hab
-  ln -sv $hab_dir/bin/hab $pkg_prefix/libexec/hab
+  hab_dir=$(tr '/' '-' < "$(pkg_path_for hab)"/IDENT)
+  install -v -D "$(pkg_path_for hab)"/bin/hab \
+    "$pkg_prefix"/libexec/"$hab_dir"/bin/hab
+  ln -sv "$hab_dir"/bin/hab "$pkg_prefix"/libexec/hab
 }
 
 # Turn the remaining default phases into no-ops

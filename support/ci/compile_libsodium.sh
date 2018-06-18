@@ -13,12 +13,12 @@ if [ -d "$prefix" ]; then
   exit 0
 fi
 
-source $(dirname $0)/rust_env.sh
+source "$(dirname "$0")"/rust_env.sh
 
 echo "--> Compiling $nv"
 trap 'rm -rf /tmp/${nv}*; exit $?' INT TERM EXIT
-(cd /tmp && wget $source && tar xf /tmp/$(basename $source))
+(cd /tmp && wget $source && tar xf /tmp/"$(basename $source)")
 cd /tmp/$nv
-./configure --prefix=$prefix
+./configure --prefix="$prefix"
 make
 make install

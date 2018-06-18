@@ -3,7 +3,7 @@ set -eux
 
 # Install Rust
 curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-. $HOME/.cargo/env
+. "$HOME"/.cargo/env
 # cargo install protobuf
 rustc --version
 cargo --version

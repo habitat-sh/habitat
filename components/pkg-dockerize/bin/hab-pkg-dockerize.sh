@@ -43,7 +43,7 @@ fi
 
 # **Internal** Prints help
 print_help() {
-  printf -- "$program $version
+  echo -- "$program $version
 
 $author
 
@@ -61,25 +61,25 @@ USAGE:
 # ```
 exit_with() {
   if [ "${HAB_NOCOLORING:-}" = "true" ]; then
-    printf -- "ERROR: $1\n"
+    printf -- "ERROR: %s\n" "$1"
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        printf -- "\033[1;31mERROR: \033[1;37m$1\033[0m\n"
+        printf -- "\033[1;31mERROR: \033[1;37m%s\033[0m\n" "$1"
         ;;
       *)
-        printf -- "ERROR: $1\n"
+        printf -- "ERROR: %s\n" "$1"
         ;;
     esac
   fi
-  exit $2
+  exit "$2"
 }
 
 find_system_commands() {
-  if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
+  if mktemp --version 2>&1 | grep -q 'GNU coreutils'; then
     _mktemp_cmd=$(command -v mktemp)
   else
-    if $(/bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
+    if /bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'; then
       _mktemp_cmd=/bin/mktemp
     else
       exit_with "We require GNU mktemp to build docker images; aborting" 1
@@ -92,88 +92,95 @@ find_system_commands() {
 # source code tree.
 build_docker_image() {
   DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
-  pushd $DOCKER_CONTEXT > /dev/null
-  docker_image $@
+  pushd "$DOCKER_CONTEXT" > /dev/null
+  docker_image "$@"
   popd > /dev/null
   rm -rf "$DOCKER_CONTEXT"
 }
 
 package_name_for() {
   local pkg="$1"
-  echo $(echo $pkg | cut -d "/" -f 2)
+  echo "$pkg" | cut -d "/" -f 2
 }
 
 package_exposes() {
   local pkg="$1"
-  local expose_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name EXPOSES)
+  local expose_file
+  expose_file=$(find "$DOCKER_CONTEXT"/rootfs/"$HAB_ROOT_PATH"/pkgs/"$pkg" -name EXPOSES)
   if [ -f "$expose_file" ]; then
-    cat $expose_file
+    cat "$expose_file"
   fi
 }
 
 package_version_tag() {
   local pkg="$1"
-  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
-  cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":" $3 "-" $4 }'
+  local ident_file
+  ident_file=$(find "$DOCKER_CONTEXT"/rootfs/"$HAB_ROOT_PATH"/pkgs/"$pkg" -name IDENT)
+  awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":" $3 "-" $4 }' < "$ident_file"
 }
 
 package_latest_tag() {
   local pkg="$1"
-  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
-  cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":latest" }'
+  local ident_file
+  ident_file=$(find "$DOCKER_CONTEXT"/rootfs/"$HAB_ROOT_PATH"/pkgs/"$pkg" -name IDENT)
+  awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":latest" }' < "$ident_file"
 }
 
 package_latest_path() {
   local pkg="$1"
-  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
-  echo $HAB_ROOT_PATH/pkgs/$(cat $ident_file)
+  local ident_file
+  ident_file=$(find "$DOCKER_CONTEXT"/rootfs/"$HAB_ROOT_PATH"/pkgs/"$pkg" -name IDENT)
+  echo "$HAB_ROOT_PATH"/pkgs/"$(cat "$ident_file")"
 }
 
 docker_image() {
-  env PKGS="$@" NO_MOUNT=1 hab-studio -r $DOCKER_CONTEXT/rootfs -t baseimage new
-  local pkg_name=$(package_name_for $1)
-  local version_tag=$(package_version_tag $1)
-  local latest_tag=$(package_latest_tag $1)
-  echo "$1" > $DOCKER_CONTEXT/rootfs/.hab_pkg
-  cat <<EOT > $DOCKER_CONTEXT/Dockerfile
+  env PKGS="$*" NO_MOUNT=1 hab-studio -r "$DOCKER_CONTEXT"/rootfs -t baseimage new
+  local pkg_name
+  pkg_name=$(package_name_for "$1")
+  local version_tag
+  version_tag=$(package_version_tag "$1")
+  local latest_tag
+  latest_tag=$(package_latest_tag "$1")
+  echo "$1" > "$DOCKER_CONTEXT"/rootfs/.hab_pkg
+  cat <<EOT > "$DOCKER_CONTEXT"/Dockerfile
 FROM scratch
-ENV $(cat $DOCKER_CONTEXT/rootfs/init.sh | grep PATH= | cut -d' ' -f2-)
+ENV $(grep PATH= "$DOCKER_CONTEXT"/rootfs/init.sh | cut -d' ' -f2-)
 WORKDIR /
 ADD rootfs /
 VOLUME $HAB_ROOT_PATH/svc/${pkg_name}/data $HAB_ROOT_PATH/svc/${pkg_name}/config
-EXPOSE 9631 $(package_exposes $1)
+EXPOSE 9631 $(package_exposes "$1")
 RUN ["ln", "-s", "$(package_latest_path core/cacerts)/ssl", "/etc/"]
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
 EOT
   # Docker tags downcased via ${string,,}
   # https://www.gnu.org/software/bash/manual/bashref.html#Shell-Parameter-Expansion
-  docker build --force-rm --no-cache -t ${version_tag,,} .
-  docker tag ${version_tag,,} ${latest_tag,,}
+  docker build --force-rm --no-cache -t "${version_tag,,}" .
+  docker tag "${version_tag,,}" "${latest_tag,,}"
 }
 
 # The root of the filesystem. If the program is running on a separate
 # filesystem or chroot environment, this environment variable may need to be
 # set.
-: ${FS_ROOT:=}
+: "${FS_ROOT:=}"
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=$FS_ROOT/hab}
+: "${HAB_ROOT_PATH:=$FS_ROOT/hab}"
 
 # The current version of Habitat Studio
 version='@version@'
 # The author of this program
 author='@author@'
 # The short version of the program name which is used in logging output
-program=$(basename $0)
+program=$(basename "$0")
 
 find_system_commands
 
-if [ -z "$@" ]; then
+if [ -z "$*" ]; then
   print_help
   exit_with "You must specify one or more Habitat packages to Dockerize." 1
-elif [ "$@" == "--help" ]; then
+elif [ "$*" == "--help" ]; then
   print_help
 else
-  build_docker_image $@
+  build_docker_image "$@"
 fi
