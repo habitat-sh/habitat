@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Fix existing lints and automate running shellcheck [#4974](https://github.com/habitat-sh/habitat/pull/4974) ([baumanj](https://github.com/baumanj))
 - documents the $CACHE_PATH environmental variable [#5204](https://github.com/habitat-sh/habitat/pull/5204) ([nellshamrell](https://github.com/nellshamrell))
 - updates version for new release [#5208](https://github.com/habitat-sh/habitat/pull/5208) ([nellshamrell](https://github.com/nellshamrell))
 - corrrects typos in blog post [#5200](https://github.com/habitat-sh/habitat/pull/5200) ([nellshamrell](https://github.com/nellshamrell))
