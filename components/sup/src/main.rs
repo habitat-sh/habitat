@@ -155,7 +155,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The organization that the Supervisor and its subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
-                "The listen address of an initial peer (IP[:PORT])")
+                "The listen address of one or more initial peers (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
             (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
                 "Watch this file for connecting to the ring"
