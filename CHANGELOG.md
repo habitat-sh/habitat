@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- clarify using multiple peers in docs and cli help [#5213](https://github.com/habitat-sh/habitat/pull/5213) ([mwrock](https://github.com/mwrock))
 - proper process state type on hab svc status [#5214](https://github.com/habitat-sh/habitat/pull/5214) ([jeremymv2](https://github.com/jeremymv2))
 - Fix link in blog post [#5219](https://github.com/habitat-sh/habitat/pull/5219) ([cnunciato](https://github.com/cnunciato))
 - Updates release notes based on my experience... [#5217](https://github.com/habitat-sh/habitat/pull/5217) ([nellshamrell](https://github.com/nellshamrell))
