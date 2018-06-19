@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.56.0/20180530234036 (linux) | 7 Jun 2018 |
+| hab 0.57.0/20180614230004 (linux) | 19 Jun 2018 |
 
 ## hab
 
@@ -56,6 +56,7 @@ term       Alias for: 'sup term'
 | [hab ring](#hab-ring) | Commands relating to Habitat rings |
 | [hab studio](#hab-studio) | Commands relating to Habitat Studios |
 | [hab sup](#hab-sup) | Commands relating to the Habitat Supervisor |
+| [hab supportbundle](#hab-supportbundle) | Create a tarball of Habitat Supervisor data to send to support |
 | [hab svc](#hab-svc) | Commands relating to Habitat services |
 | [hab user](#hab-user) | Commands relating to Habitat users |
 ---
@@ -398,7 +399,7 @@ Get the status of one or more job groups
 **USAGE**
 
 ```
-hab bldr job status [FLAGS] [OPTIONS] [GROUP_ID]
+hab bldr job status [FLAGS] [OPTIONS] <GROUP_ID|--origin <ORIGIN>>
 ```
 
 **FLAGS**
@@ -2141,6 +2142,28 @@ hab sup term [OPTIONS]
 ```
 --override-name <NAME>    The name of the Supervisor if more than one is running [default: default]
 ```
+
+
+
+
+---
+
+## hab supportbundle
+
+Create a tarball of Habitat Supervisor data to send to support
+
+**USAGE**
+
+```
+hab supportbundle
+```
+
+**FLAGS**
+
+```
+-h, --help    Prints help information
+```
+
 
 
 
