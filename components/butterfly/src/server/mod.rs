@@ -245,6 +245,7 @@ impl Server {
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
     pub fn start(&mut self, timing: timing::Timing) -> Result<()> {
+        debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = *self.data_path {
             if let Some(err) = fs::create_dir_all(path).err() {

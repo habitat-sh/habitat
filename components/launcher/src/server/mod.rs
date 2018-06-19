@@ -131,6 +131,7 @@ impl Server {
     // TODO (CM): Consider pulling the status checks into this as
     // well, accepting an ExitStatus instead of Option<i32>
     fn handle_supervisor_exit(&mut self, code: Option<i32>) -> Result<TickState> {
+        debug!("launcher::server::handle_supervisor_exit(code: {:?})", code);
         match code {
             Some(ERR_NO_RETRY_EXCODE) => {
                 self.services.kill_all();
