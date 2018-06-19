@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Updates release notes based on my experience... [#5217](https://github.com/habitat-sh/habitat/pull/5217) ([nellshamrell](https://github.com/nellshamrell))
 - Revert &quot;Revert &quot;Fix existing lints and automate running shellcheck&quot;&quot; [#5215](https://github.com/habitat-sh/habitat/pull/5215) ([raskchanky](https://github.com/raskchanky))
 - Add on-prem docs [#5212](https://github.com/habitat-sh/habitat/pull/5212) ([cnunciato](https://github.com/cnunciato))
 - updates docs for new release [#5216](https://github.com/habitat-sh/habitat/pull/5216) ([nellshamrell](https://github.com/nellshamrell))
