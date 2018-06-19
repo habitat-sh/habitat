@@ -15,6 +15,8 @@
 extern crate env_logger;
 extern crate habitat_core as core;
 extern crate habitat_launcher as launcher;
+#[macro_use]
+extern crate log;
 
 use std::env;
 use std::process;
