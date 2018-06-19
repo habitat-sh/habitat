@@ -348,7 +348,7 @@ _program=$(basename "$0")
 HAB_PLAN_BUILD=0.0.1
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=/hab}
+: "${HAB_ROOT_PATH:=/hab}"
 # The default path where source artifacts are downloaded, extracted, & compiled
 HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
 # The default download root path for package artifacts, used on package
@@ -357,7 +357,7 @@ HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # The default path where cryptographic keys are stored. If the
 # `$HAB_CACHE_KEY_PATH` environment variable is set, this value is overridden,
 # otherwise it is set to its default.
-: ${HAB_CACHE_KEY_PATH:=$HAB_ROOT_PATH/cache/keys}
+: "${HAB_CACHE_KEY_PATH:=$HAB_ROOT_PATH/cache/keys}"
 # Export the key path for other programs and subshells to use
 export HAB_CACHE_KEY_PATH
 # The root path containing all locally installed packages
@@ -367,12 +367,12 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 PLAN_CONTEXT=${1:-.}
 # The default Habitat Depot from where to download dependencies. If
 # `HAB_BLDR_URL` is set, this value is overridden.
-: ${HAB_BLDR_URL:=https://bldr.habitat.sh}
+: "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
 # Export the Builder URL so all other programs and subshells use this same one
 export HAB_BLDR_URL
 # The default Habitat channel from where to download dependencies. If
 # `HAB_BLDR_CHANNEL` is set, this value is overridden.
-: ${HAB_BLDR_CHANNEL:=stable}
+: "${HAB_BLDR_CHANNEL:=stable}"
 # Export Builder channel so all other programs and subshells use this same one
 export HAB_BLDR_CHANNEL
 # Fall back here if package can't be installed from $HAB_BLDR_CHANNEL
@@ -382,7 +382,7 @@ INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
 # The compression level to use when compression harts (0..9)
-: ${HAB_HART_COMPRESSION_LEVEL:=6}
+: "${HAB_HART_COMPRESSION_LEVEL:=6}"
 # The target architecture this plan will be built for
 pkg_arch=$(uname -m | tr '[:upper:]' '[:lower:]')
 # The target system (i.e. operating system variant) this plan will be built for
@@ -473,9 +473,9 @@ _artifact_ext="hart"
 _on_exit() {
   local exit_status=${1:-$?}
   if [[ $BASH_SUBSHELL -gt 0 ]]; then
-    exit $exit_status
+    exit "$exit_status"
   fi
-  : ${pkg_name:=unknown}
+  : "${pkg_name:=unknown}"
   elapsed=$SECONDS
   elapsed=$(echo $elapsed | awk '{printf "%dm%ds", $1/60, $1%60}')
   if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
@@ -504,7 +504,7 @@ _on_exit() {
       esac
     fi
   fi
-  exit $exit_status
+  exit "$exit_status"
 }
 
 # Call the `_on_exit()` function above on:
@@ -549,7 +549,7 @@ _assemble_runtime_path() {
       data="$(trim "$data")"
       while read -r entry; do
         paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
-      done <<< $(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")
+      done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
     fi
   done
 
@@ -559,7 +559,8 @@ _assemble_runtime_path() {
 
 _ensure_origin_key_present() {
   local cache="$HAB_CACHE_KEY_PATH"
-  local keys_found="$(find $cache -name "${pkg_origin}-*.sig.key" | wc -l)"
+  local keys_found
+  keys_found="$(find $cache -name "${pkg_origin}-*.sig.key" | wc -l)"
   if [[ $keys_found -eq 0 ]]; then
     exit_with "Signing origin key '$pkg_origin' not found in $cache, aborting" 35
   fi
@@ -608,10 +609,10 @@ _find_system_commands() {
   fi
   debug "Setting _shasum_cmd=$_shasum_cmd"
 
-  if $(tar --version 2>&1 | grep -q 'GNU tar'); then
+  if tar --version 2>&1 | grep -q 'GNU tar'; then
     _tar_cmd=$(command -v tar)
   else
-    if $(/bin/tar --version 2>&1 | grep -q 'GNU tar'); then
+    if /bin/tar --version 2>&1 | grep -q 'GNU tar'; then
       _tar_cmd=/bin/tar
     else
       exit_with "We require GNU tar for long path support; aborting" 1
@@ -745,7 +746,7 @@ _install_dependency() {
 _get_tdeps_for() {
   local pkg_path="$1"
   if [[ -f "$pkg_path/TDEPS" ]]; then
-    cat $pkg_path/TDEPS
+    cat "$pkg_path"/TDEPS
   else
     # No file, meaning an empty set
     echo
@@ -772,7 +773,7 @@ _get_tdeps_for() {
 _get_deps_for() {
   local pkg_path="$1"
   if [[ -f "$pkg_path/DEPS" ]]; then
-    cat $pkg_path/DEPS
+    cat "$pkg_path"/DEPS
   else
     # No file, meaning an empty set
     echo
@@ -846,9 +847,9 @@ _attach_whereami() {
   echo "From: $src @ line $lnum :"
   echo
   awk '{printf "%d: %s\n", NR, $0}' "$src" \
-    | sed -e "$((${lnum}-${context})),$((${lnum}+${context}))!d" \
+    | sed -e "$((lnum - context)),$((lnum + context))!d" \
       -e 's,^,    ,g' \
-    | sed -e "$((${context}+1))s/^   / =>/"
+    | sed -e "$((context +1))s/^   / =>/"
   echo
 }
 
@@ -922,11 +923,12 @@ _resolve_scaffolding_dependencies() {
   scaff_build_deps=()
   scaff_build_deps_resolved=()
 
+  # shellcheck disable=2066
   for dep in "${pkg_scaffolding}"; do
-    _install_dependency $dep
+    _install_dependency "$dep"
     # Add scaffolding package to the list of scaffolding build deps
     scaff_build_deps+=($dep)
-    if resolved="$(_resolve_dependency $dep)"; then
+    if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved scaffolding dependency '$dep' to $resolved"
       scaff_build_deps_resolved+=($resolved)
       # Add each (fully qualified) direct run dependency of the scaffolding
@@ -981,8 +983,8 @@ _resolve_build_dependencies() {
   # Append to `${pkg_build_deps_resolved[@]}` all resolved direct build
   # dependencies.
   for dep in "${pkg_build_deps[@]}"; do
-    _install_dependency $dep
-    if resolved="$(_resolve_dependency $dep)"; then
+    _install_dependency "$dep"
+    if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved build dependency '$dep' to $resolved"
       pkg_build_deps_resolved+=($resolved)
     else
@@ -1006,7 +1008,7 @@ _set_build_tdeps_resolved() {
   # dependency could pull in `acme/binutils` for us, as an example. Any
   # duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_build_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for $dep))
+    tdeps=($(_get_tdeps_for "$dep"))
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
       pkg_build_tdeps_resolved=(
@@ -1026,7 +1028,7 @@ _load_scaffolding() {
     return 0
   fi
 
-  lib="$(_pkg_path_for_build_deps $pkg_scaffolding)/lib/scaffolding.sh"
+  lib="$(_pkg_path_for_build_deps "$pkg_scaffolding")/lib/scaffolding.sh"
   build_line "Loading Scaffolding $lib"
   if ! source "$lib"; then
     exit_with "Failed to load Scaffolding from $lib" 17
@@ -1052,8 +1054,8 @@ _resolve_run_dependencies() {
 
   # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
   for dep in "${pkg_deps[@]}"; do
-    _install_dependency $dep
-    if resolved="$(_resolve_dependency $dep)"; then
+    _install_dependency "$dep"
+    if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved dependency '$dep' to $resolved"
       pkg_deps_resolved+=($resolved)
     else
@@ -1069,7 +1071,7 @@ _resolve_run_dependencies() {
   # Append all non-direct (transitive) run dependencies for each direct run
   # dependency. Any duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for $dep))
+    tdeps=($(_get_tdeps_for "$dep"))
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
       pkg_tdeps_resolved=(
@@ -1123,12 +1125,14 @@ _populate_dependency_arrays() {
 _validate_deps() {
   # Build the list of full runtime deps (one per line) without the
   # `$HAB_PKG_PATH` prefix.
-  local tdeps=$(echo ${pkg_tdeps_resolved[@]} \
+  local tdeps
+  tdeps=$(echo "${pkg_tdeps_resolved[@]}" \
     | tr ' ' '\n' \
     | sed "s,^${HAB_PKG_PATH}/,,")
   # Build the list of any runtime deps that appear more than once. That is,
   # `ORIGIN/NAME` token duplicates.
-  local dupes=$(echo "$tdeps" \
+  local dupes
+  dupes=$(echo "$tdeps" \
     | awk -F/ '{print $1"/"$2}' \
     | sort \
     | uniq -d)
@@ -1139,34 +1143,34 @@ _validate_deps() {
     # of the duplicated `ORIGIN/NAME` tokens. This will be used to star the
     # problematic dependencies in the graph.
     _dupes_qualified=$(echo "$tdeps" \
-      | egrep "($(echo "$dupes" | tr '\n' '|' | sed 's,|$,,'))")
+      | grep -E "($(echo "$dupes" | tr '\n' '|' | sed 's,|$,,'))")
 
     warn
     warn "The following runtime dependencies have more than one version"
     warn "release in the full dependency chain:"
     warn
-    echo "$dupes" | while read dupe; do
+    echo "$dupes" | while read -r dupe; do
       warn "  * $dupe ( $(echo "$tdeps" | grep "^${dupe}/" | tr '\n' ' '))"
     done
     warn
-    warn 'The current situation usually arises when a Plan has a direct '
-    warn 'dependency on one version of a package (`acme/A/7.0/20160101200001`)'
-    warn 'and has a direct dependency on another package which itself depends'
-    warn 'on another version of the same package (`acme/A/2.0/20151201060001`).'
-    warn 'If this package (`acme/A`) contains shared libraries which are'
-    warn 'loaded at runtime by the current Plan, then both versions of'
-    warn '`acme/A` could be loaded into the same process in a potentially'
-    warn 'surprising order. Worse, if both versions of `acme/A` are'
-    warn 'ABI-incompatible, runtime segmentation faults are more than likely.'
+    warn "The current situation usually arises when a Plan has a direct "
+    warn "dependency on one version of a package (\`acme/A/7.0/20160101200001\`)"
+    warn "and has a direct dependency on another package which itself depends"
+    warn "on another version of the same package (\`acme/A/2.0/20151201060001\`)."
+    warn "If this package (\`acme/A\`) contains shared libraries which are"
+    warn "loaded at runtime by the current Plan, then both versions of"
+    warn "\`acme/A\` could be loaded into the same process in a potentially"
+    warn "surprising order. Worse, if both versions of \`acme/A\` are"
+    warn "ABI-incompatible, runtime segmentation faults are more than likely."
     warn
-    warn 'In order to preserve reliability at runtime the duplicate dependency'
-    warn 'entries will need to be resolved before this Plan can be built.'
-    warn 'Below is an expanded graph of all `$pkg_deps` and their dependencies'
-    warn 'with the problematic lines noted.'
+    warn "In order to preserve reliability at runtime the duplicate dependency"
+    warn "entries will need to be resolved before this Plan can be built."
+    warn "Below is an expanded graph of all \`\$pkg_deps\` and their dependencies"
+    warn "with the problematic lines noted."
     warn
     warn "Computed dependency graph (Lines with '*' denote a problematic entry):"
-    printf "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}\n"
-    echo ${pkg_deps_resolved[@]} \
+    echo -e "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
+    echo "${pkg_deps_resolved[@]}" \
       | tr ' ' '\n' \
       | sed -e "s,^${HAB_PKG_PATH}/,," \
       | _print_recursive_deps 1
@@ -1229,8 +1233,8 @@ _print_recursive_deps() {
   local dep
   # Compute the amount of leading whitespace when display this line and any
   # child dependencies.
-  local padn=$(($level * 4))
-  while read dep; do
+  local padn=$((level * 4))
+  while read -r dep; do
     # If this dependency is a member of the duplicated set, then add an
     # asterisk at the end of the line, otherwise print the dependency.
     if echo "$_dupes_qualified" | grep -q "$dep" > /dev/null; then
@@ -1241,7 +1245,7 @@ _print_recursive_deps() {
     # If this dependency itself has direct dependencies, then recursively print
     # them.
     if [[ -f $HAB_PKG_PATH/$dep/DEPS ]]; then
-      cat $HAB_PKG_PATH/$dep/DEPS | _print_recursive_deps $(($level + 1))
+      _print_recursive_deps $((level + 1)) < "$HAB_PKG_PATH"/"$dep"/DEPS
     fi
   done
 }
@@ -1273,7 +1277,7 @@ _pkg_path_for_build_deps() {
   local e
   local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   for e in "${pkg_build_deps_resolved[@]}"; do
-    if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
+    if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
       echo "$e"
       return 0
     fi
@@ -1308,7 +1312,7 @@ _pkg_path_for_deps() {
   local e
   local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   for e in "${pkg_deps_resolved[@]}"; do
-    if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
+    if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
       echo "$e"
       return 0
     fi
@@ -1345,8 +1349,9 @@ _to_int() {
 # ```
 _port_is_valid() {
     local port="$1"
-    local -i port_num=$(_to_int $port 2>/dev/null)
-    if (( $port_num < 1 || $port_num > 65535 )) ; then
+    local -i port_num
+    port_num=$(_to_int "$port" 2>/dev/null)
+    if (( port_num < 1 || port_num > 65535 )) ; then
         return 1
     fi
     return 0
@@ -1448,7 +1453,7 @@ _set_build_path() {
       data="$(trim "$data")"
       while read -r entry; do
         paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
-      done <<< $(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")
+      done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
     fi
   done
 
@@ -1525,7 +1530,8 @@ do_default_download() {
     return 0
   fi
 
-  download_file $pkg_source $pkg_filename $pkg_shasum
+  # shellcheck disable=2154
+  download_file "$pkg_source" "$pkg_filename" "$pkg_shasum"
 }
 
 # If `$pkg_source` is being used, verify that the package we have in
@@ -1539,7 +1545,7 @@ do_verify() {
 # Default implementation for the `do_verify()` phase.
 do_default_verify() {
   if [[ -n "${pkg_filename:-}" ]]; then
-    verify_file $pkg_filename $pkg_shasum
+    verify_file "$pkg_filename" "$pkg_shasum"
   fi
 }
 
@@ -1573,7 +1579,7 @@ do_unpack() {
 # Default implementation for the `do_unpack()` phase.
 do_default_unpack() {
   if [[ -n "${pkg_filename:-}" ]]; then
-    unpack_file $pkg_filename
+    unpack_file "$pkg_filename"
   fi
 }
 
@@ -1598,13 +1604,16 @@ _build_environment() {
   done
   for dep_path in "${pkg_deps_resolved[@]}"; do
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
-      local data=$(cat $dep_path/LD_RUN_PATH)
-      local trimmed=$(trim $data)
+      local data
+      data=$(cat "$dep_path"/LD_RUN_PATH)
+      local trimmed
+      trimmed=$(trim "$data")
       ld_run_path_part+=("$trimmed")
     fi
   done
-  if [[ -n $ld_run_path_part ]]; then
-    export LD_RUN_PATH=$(join_by ':' ${ld_run_path_part[@]})
+  if [[ -n "${ld_run_path_part[*]}" ]]; then
+    export LD_RUN_PATH
+    LD_RUN_PATH=$(join_by ':' "${ld_run_path_part[@]}")
   fi
 
   # Build `$CFLAGS`, `$CPPFLAGS`, `$CXXFLAGS` and `$LDFLAGS` containing any
@@ -1614,8 +1623,10 @@ _build_environment() {
   # transitive.
   for dep_path in "${pkg_all_deps_resolved[@]}"; do
     if [[ -f "$dep_path/CFLAGS" ]]; then
-      local data=$(cat $dep_path/CFLAGS)
-      local trimmed=$(trim $data)
+      local data
+      data=$(cat "$dep_path"/CFLAGS)
+      local trimmed
+      trimmed=$(trim "$data")
       if [[ -n "$CFLAGS" ]]; then
         export CFLAGS="$CFLAGS $trimmed"
       else
@@ -1638,8 +1649,10 @@ _build_environment() {
     fi
 
     if [[ -f "$dep_path/CPPFLAGS" ]]; then
-      local data=$(cat $dep_path/CPPFLAGS)
-      local trimmed=$(trim $data)
+      local data
+      data=$(cat "$dep_path"/CPPFLAGS)
+      local trimmed
+      trimmed=$(trim "$data")
       if [[ -n "$CPPFLAGS" ]]; then
         export CPPFLAGS="$CPPFLAGS $trimmed"
       else
@@ -1648,8 +1661,10 @@ _build_environment() {
     fi
 
     if [[ -f "$dep_path/CXXFLAGS" ]]; then
-      local data=$(cat $dep_path/CXXFLAGS)
-      local trimmed=$(trim $data)
+      local data
+      data=$(cat "$dep_path"/CXXFLAGS)
+      local trimmed
+      trimmed=$(trim "$data")
       if [[ -n "$CXXFLAGS" ]]; then
         export CXXFLAGS="$CXXFLAGS $trimmed"
       else
@@ -1658,8 +1673,10 @@ _build_environment() {
     fi
 
     if [[ -f "$dep_path/LDFLAGS" ]]; then
-      local data=$(cat $dep_path/LDFLAGS)
-      local trimmed=$(trim $data)
+      local data
+      data=$(cat "$dep_path"/LDFLAGS)
+      local trimmed
+      trimmed=$(trim "$data")
       if [[ -n "$LDFLAGS" ]]; then
         export LDFLAGS="$LDFLAGS $trimmed"
       else
@@ -1668,8 +1685,10 @@ _build_environment() {
     fi
 
     if [[ -f "$dep_path/PKG_CONFIG_PATH" ]]; then
-      local data=$(cat ${dep_path}/PKG_CONFIG_PATH)
-      local trimmed=$(trim $data)
+      local data
+      data=$(cat "${dep_path}"/PKG_CONFIG_PATH)
+      local trimmed
+      trimmed=$(trim "$data")
       if [[ -n "$PKG_CONFIG_PATH" ]]; then
         export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${trimmed}"
       else
@@ -1697,7 +1716,7 @@ _build_environment() {
 # source to remove the default system search path of `/usr/lib`, etc. when
 # looking for shared libraries.
 _fix_libtool() {
-  find "$SRC_PATH" -iname "ltmain.sh" | while read file; do
+  find "$SRC_PATH" -iname "ltmain.sh" | while read -r file; do
     build_line "Fixing libtool script $file"
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
@@ -1757,7 +1776,7 @@ do_build() {
 
 # Default implementation for the `do_build()` phase.
 do_default_build() {
-  ./configure --prefix=$pkg_prefix
+  ./configure --prefix="$pkg_prefix"
   make
 }
 
@@ -1893,13 +1912,13 @@ do_default_build_config() {
       # HAB_CONFIG_EXCLUDE not set, use defaults
       config_exclude_exts=("*.sw?" "*~" "*.bak")
     else
-      IFS=',' read -a config_exclude_exts <<< "$HAB_CONFIG_EXCLUDE"
+      IFS=',' read -r -a config_exclude_exts <<< "$HAB_CONFIG_EXCLUDE"
     fi
     find_exclusions=""
     for ext in "${config_exclude_exts[@]}"; do
       find_exclusions+=" ! -name $ext"
     done
-    find "$PLAN_CONTEXT/config" $find_exclusions | while read FILE
+    find "$PLAN_CONTEXT/config" "$find_exclusions" | while read -r FILE
     do
       if [[ -d "$FILE" ]]; then
         mkdir -p "$pkg_prefix${FILE#$PLAN_CONTEXT}"
@@ -1907,14 +1926,14 @@ do_default_build_config() {
         cp "$FILE" "$pkg_prefix${FILE#$PLAN_CONTEXT}"
       fi
     done
-    chmod 755 $pkg_prefix/config
+    chmod 755 "$pkg_prefix"/config
   fi
   if [[ -d "$PLAN_CONTEXT/hooks" ]]; then
-    cp -r "$PLAN_CONTEXT/hooks" $pkg_prefix
-    chmod 755 $pkg_prefix/hooks
+    cp -r "$PLAN_CONTEXT/hooks" "$pkg_prefix"
+    chmod 755 "$pkg_prefix"/hooks
   fi
   if [[ -f "$PLAN_CONTEXT/default.toml" ]]; then
-    cp "$PLAN_CONTEXT/default.toml" $pkg_prefix
+    cp "$PLAN_CONTEXT/default.toml" "$pkg_prefix"
   fi
   return 0
 }
@@ -1946,7 +1965,7 @@ do_default_build_service() {
       # We use chpst to ensure that the script works outside `hab-sup`
       # for debugging purposes
       build_line "Writing ${pkg_prefix}/run script to run ${pkg_svc_run} as ${pkg_svc_user}:${pkg_svc_group}"
-      cat <<EOT >> $pkg_prefix/run
+      cat <<EOT >> "$pkg_prefix"/run
 #!/bin/sh
 export HOME=$pkg_svc_data_path
 cd $pkg_svc_path
@@ -1975,7 +1994,7 @@ do_strip() {
 # Default implementation for the `do_strip()` phase.
 do_default_strip() {
   build_line "Stripping unneeded symbols from binaries and libraries"
-  find $pkg_prefix -type f -perm -u+w -print0 2> /dev/null \
+  find "$pkg_prefix" -type f -perm -u+w -print0 2> /dev/null \
     | while read -rd '' f; do
       case "$(file -bi "$f")" in
         *application/x-executable*) strip --strip-all "$f";;
@@ -2002,6 +2021,7 @@ do_default_after() {
 # **Internal** Write the `$pkg_prefix/MANIFEST`.
 _build_manifest() {
   build_line "Creating manifest"
+  # shellcheck disable=2154
   if [[ -z $pkg_upstream_url ]]; then
     local _upstream_url_string="upstream project's website or home page is not defined"
   else
@@ -2020,22 +2040,26 @@ _build_manifest() {
     local _sha_string="\`$pkg_shasum\`"
   fi
 
-  if [[ -z "$(echo ${pkg_build_deps[@]})" ]]; then
-    local _build_deps_string="no build dependencies or undefined"
+  local _build_deps_string
+  if [[ -z "${pkg_build_deps[*]}" ]]; then
+    _build_deps_string="no build dependencies or undefined"
   else
-    local _build_deps_string="\`$(printf "%s " ${pkg_build_deps[@]})\`"
+    _build_deps_string="\`$(printf "%s " "${pkg_build_deps[@]}")\`"
   fi
 
-  if [[ -z "$(echo ${pkg_deps[@]})" ]]; then
-    local _deps_string="no runtime dependencies or undefined"
+  local _deps_string
+  if [[ -z "${pkg_deps[*]}" ]]; then
+    _deps_string="no runtime dependencies or undefined"
   else
-    local _deps_string="\`$(printf "%s " ${pkg_deps[@]})\`"
+    _deps_string="\`$(printf "%s " "${pkg_deps[@]}")\`"
   fi
 
-  if [[ -z "$(echo ${pkg_interpreters[@]})" ]]; then
-    local _interpreters_string="no interpreters or undefined"
+  local _interpreters_string
+  # shellcheck disable=2154
+  if [[ -z "${pkg_interpreters[*]}" ]]; then
+    _interpreters_string="no interpreters or undefined"
   else
-    local _interpreters_string="\`$(printf "%s " ${pkg_interpreters[@]})\`"
+    _interpreters_string="\`$(printf "%s " "${pkg_interpreters[@]}")\`"
   fi
 
   if [[ -z "$CFLAGS" ]]; then
@@ -2068,7 +2092,8 @@ _build_manifest() {
     local _ldrunpath_string="$LD_RUN_PATH"
   fi
 
-  cat <<-EOT >> $pkg_prefix/MANIFEST
+  # shellcheck disable=2154
+  cat <<-EOT >> "$pkg_prefix"/MANIFEST
 # $pkg_origin / $pkg_name
 $pkg_description
 
@@ -2079,7 +2104,7 @@ $pkg_description
 * __System__: $pkg_sys
 * __Target__: $pkg_target
 * __Upstream URL__: $_upstream_url_string
-* __License__: $(printf "%s " ${pkg_license[@]})
+* __License__: $(printf "%s " "${pkg_license[@]}")
 * __Source__: $_source_url_string
 * __SHA__: $_sha_string
 * __Path__: \`$pkg_prefix\`
@@ -2102,7 +2127,7 @@ LD_RUN_PATH: $_ldrunpath_string
 ## Plan Source
 
 \`\`\`bash
-$(cat $PLAN_CONTEXT/plan.sh)
+$(cat "$PLAN_CONTEXT"/plan.sh)
 \`\`\`
 EOT
   return 0
@@ -2111,21 +2136,22 @@ EOT
 # **Internal** Create the package artifact with `tar`/`hab pkg sign`
 _generate_artifact() {
   build_line "Generating package artifact"
-  local tarf="$(dirname $pkg_artifact)/.$(basename ${pkg_artifact/%.${_artifact_ext}/.tar})"
+  local tarf
+  tarf="$(dirname "$pkg_artifact")/.$(basename "${pkg_artifact/%.${_artifact_ext}/.tar}")"
   local xzf="${tarf}.xz"
 
   mkdir -pv "$(dirname "$pkg_artifact")"
-  rm -fv $tarf $xzf $pkg_artifact
-  $_tar_cmd -cf $tarf $pkg_prefix
-  $_xz_cmd --compress -${HAB_HART_COMPRESSION_LEVEL} --threads=0 $tarf
-  $HAB_BIN pkg sign --origin $pkg_origin $xzf $pkg_artifact
-  rm -f $tarf $xzf
+  rm -fv "$tarf" "$xzf" "$pkg_artifact"
+  $_tar_cmd -cf "$tarf" "$pkg_prefix"
+  $_xz_cmd --compress -${HAB_HART_COMPRESSION_LEVEL} --threads=0 "$tarf"
+  $HAB_BIN pkg sign --origin $pkg_origin "$xzf" "$pkg_artifact"
+  rm -f "$tarf" "$xzf"
 }
 
 _prepare_build_outputs() {
   local plan_owner
-  _pkg_sha256sum=$($_shasum_cmd $pkg_artifact | cut -d " " -f 1)
-  _pkg_blake2bsum=$($HAB_BIN pkg hash $pkg_artifact | cut -d " " -f 1)
+  _pkg_sha256sum=$($_shasum_cmd "$pkg_artifact" | cut -d " " -f 1)
+  _pkg_blake2bsum=$($HAB_BIN pkg hash "$pkg_artifact" | cut -d " " -f 1)
   plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/plan.sh")"
 
   mkdir -pv "$pkg_output_path"
@@ -2148,7 +2174,7 @@ pkg_name=$pkg_name
 pkg_version=$pkg_version
 pkg_release=$pkg_release
 pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
-pkg_artifact=$(basename $pkg_artifact)
+pkg_artifact=$(basename "$pkg_artifact")
 pkg_sha256sum=$_pkg_sha256sum
 pkg_blake2bsum=$_pkg_blake2bsum
 EOF
@@ -2272,6 +2298,7 @@ done
 # Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
 # from prior pkg_svc_* variables that were set before the Plan was loaded.
 if [[ -n "${pkg_svc_run+xxx}" ]]; then
+    # shellcheck disable=2001
     pkg_svc_run="$(echo $pkg_svc_run | sed "s|@__pkg_name__@|$pkg_name|g")"
 fi
 

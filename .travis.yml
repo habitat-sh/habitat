@@ -23,6 +23,13 @@ matrix:
 ########################################################################
 
 #
+# Job for linting Habitat shell program components
+#
+    - sudo: false
+      script:
+        - ./test/shellcheck.sh
+
+#
 # Job for testing Habitat Rust program components
 #
     - language: rust

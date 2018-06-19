@@ -1,3 +1,6 @@
+#!/bin/bash
+# shellcheck disable=2086,2124,2154,2162,1097,2068,2180
+# ^ FIXME, see https://github.com/habitat-sh/habitat/pull/4974#issuecomment-395916191
 # These functions are used when building a composite package.
 
 # Ensure that a composite package is internally consistent.

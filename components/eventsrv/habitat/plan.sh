@@ -1,3 +1,4 @@
+# shellcheck disable=2154
 source "../../../support/ci/builder-base-plan.sh"
 pkg_name=hab-eventsrv
 pkg_origin=core

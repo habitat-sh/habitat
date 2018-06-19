@@ -14,11 +14,7 @@ echo "======================================================="
 echo "Testing whether or not we need to build ${package_name}"
 echo "======================================================="
 
-cat .bldr.toml | \
-    rq --input-toml | \
-    jq --exit-status '.["'${package_name}'"]' &>/dev/null
-
-if [ $? != 0 ]; then
+if ! rq -t < .bldr.toml | jq -e ".[\"${package_name}\"]" &>/dev/null; then
     echo "No project named ${package_name} in .bldr.toml!"
     exit 1
 fi
@@ -60,10 +56,9 @@ CHANGED_FILES="$(support/ci/what_changed.sh)"
 # also output raw strings, so we don't need a `tr -d '"'` tacked on to
 # the end.)
 
-search_expression=$(cat .bldr.toml | \
-    rq --input-toml | \
+search_expression=$(rq --input-toml < .bldr.toml | \
     # All entries should have a `plan_path` key; not all will have `paths`
-    jq -r '[.["'${package_name}'"]["plan_path"] + "/*", .["'${package_name}'"]["paths"] // empty] |
+    jq -r '[.["'"${package_name}"'"]["plan_path"] + "/*", .["'"${package_name}"'"]["paths"] // empty] |
        flatten |
        sort |
        unique |
@@ -72,6 +67,7 @@ search_expression=$(cat .bldr.toml | \
 echo
 echo "The following files have changes since the last merge commit:"
 echo
+# shellcheck disable=2001
 echo "$CHANGED_FILES" | sed 's,^,    ,g'
 echo
 

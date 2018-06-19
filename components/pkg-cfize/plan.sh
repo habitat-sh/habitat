@@ -1,3 +1,4 @@
+# shellcheck disable=2154
 pkg_name=hab-pkg-cfize
 pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"

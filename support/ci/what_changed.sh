@@ -17,4 +17,4 @@ if [ "${CURRENT_SHA}" == "${LATEST_MERGE_COMMIT}" ] ; then
     LATEST_MERGE_COMMIT="$(git log --merges --max-count=1 --skip=1 --pretty=format:%H)"
 fi
 
-git diff --name-only ${LATEST_MERGE_COMMIT}
+git diff --name-only "${LATEST_MERGE_COMMIT}"
