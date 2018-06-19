@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Update the YouTube image [#5226](https://github.com/habitat-sh/habitat/pull/5226) ([cnunciato](https://github.com/cnunciato))
 - clarify using multiple peers in docs and cli help [#5213](https://github.com/habitat-sh/habitat/pull/5213) ([mwrock](https://github.com/mwrock))
 - proper process state type on hab svc status [#5214](https://github.com/habitat-sh/habitat/pull/5214) ([jeremymv2](https://github.com/jeremymv2))
 - Fix link in blog post [#5219](https://github.com/habitat-sh/habitat/pull/5219) ([cnunciato](https://github.com/cnunciato))
