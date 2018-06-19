@@ -4,7 +4,7 @@
 # executes the tests in that container, mounting the tests and Habitat
 # binaries as needed.
 
-docker build -t hab-bats-cleanroom $(pwd)/test/integration
+docker build -t hab-bats-cleanroom "$(pwd)"/test/integration
 
 docker run -it --rm \
        --mount type=bind,source="$(pwd)/test/integration",target=/test \

@@ -1,4 +1,7 @@
+#!/bin/bash
 # Functions for resolving the runtime environment of a package.
+# shellcheck disable=SC1097,SC2034,SC2048,SC2068,SC2086,SC2148,SC2154,SC2155,SC2162,SC2178,SC2220
+# ^ FIXME, see https://github.com/habitat-sh/habitat/pull/4974#issuecomment-395916191
 
 declare -A __runtime_environment
 declare -A __buildtime_environment
@@ -175,7 +178,7 @@ __populate_environment_from_deps() {
                   continue;
                 fi
 
-                if [ -n env["${var}"] ]; then
+                if [ -n "${env["${var}"]}" ]; then
                     # There was a previous value; need to figure out
                     # how to proceed
 

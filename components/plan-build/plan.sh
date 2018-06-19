@@ -1,3 +1,4 @@
+# shellcheck disable=2034
 pkg_name=hab-plan-build
 pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
@@ -31,10 +32,11 @@ pkg_build_deps=(
 program=$pkg_name
 
 do_build() {
-  cp -v $PLAN_CONTEXT/bin/${program}.sh "$CACHE_PATH/$program"
+  cp -v "$PLAN_CONTEXT"/bin/${program}.sh "$CACHE_PATH/$program"
 
   # Use the bash from our dependency list as the shebang. Also, embed the
   # release version of the program.
+  # shellcheck disable=2154
   sed \
     -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
     -e "s,^HAB_PLAN_BUILD=.*$,HAB_PLAN_BUILD=$pkg_version/$pkg_release," \
@@ -46,9 +48,10 @@ do_check() {
 }
 
 do_install() {
-  install -D "$CACHE_PATH/$program" $pkg_prefix/bin/$program
-  install -D $PLAN_CONTEXT/bin/shared.bash $pkg_prefix/bin/
-  install -D $PLAN_CONTEXT/bin/public.bash $pkg_prefix/bin/
-  install -D $PLAN_CONTEXT/bin/composite_build_functions.bash $pkg_prefix/bin/
-  install -D $PLAN_CONTEXT/bin/environment.bash $pkg_prefix/bin/
+  # shellcheck disable=2154
+  install -D "$CACHE_PATH/$program" "$pkg_prefix"/bin/$program
+  install -D "$PLAN_CONTEXT"/bin/shared.bash "$pkg_prefix"/bin/
+  install -D "$PLAN_CONTEXT"/bin/public.bash "$pkg_prefix"/bin/
+  install -D "$PLAN_CONTEXT"/bin/composite_build_functions.bash "$pkg_prefix"/bin/
+  install -D "$PLAN_CONTEXT"/bin/environment.bash "$pkg_prefix"/bin/
 }

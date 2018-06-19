@@ -1,3 +1,4 @@
+# shellcheck disable=2154
 PLAN_CONTEXT=$(dirname "$PLAN_CONTEXT") source ../plan.sh
 
 pkg_name=hab
@@ -15,6 +16,7 @@ do_begin() {
   PLAN_CONTEXT="$(abspath ..)"
 }
 
+# shellcheck disable=2155
 do_prepare() {
   # Can be either `--release` or `--debug` to determine cargo build strategy
   build_type="--release"

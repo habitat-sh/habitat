@@ -8,6 +8,7 @@ pkg_build_deps=(core/coreutils core/rust core/gcc core/git)
 pkg_bin_dirs=(bin)
 bin="hab-launch"
 
+# shellcheck disable=2155
 do_prepare() {
   do_builder_prepare
 

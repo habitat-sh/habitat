@@ -1,10 +1,10 @@
 info() {
   case "${TERM:-}" in
     *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "   \033[1;36mHabitat devshell: \033[1;37m$1\033[0m\n"
+      printf -- "   \033[1;36mHabitat devshell: \033[1;37m%s\033[0m\n" "$1"
       ;;
     *)
-      printf -- "   devshell: $1\n"
+      printf -- "   devshell: %s\n" "$1"
       ;;
   esac
   return 0
@@ -19,9 +19,11 @@ fi
 if [[ -n "$HAB_BLDR_URL" ]]; then
   info "Exported: HAB_BLDR_URL=$HAB_BLDR_URL"
 fi
+# shellcheck disable=2154
 if [[ -n "$http_proxy" ]]; then
   info "Exported: http_proxy=$http_proxy"
 fi
+# shellcheck disable=2154
 if [[ -n "$https_proxy" ]]; then
   info "Exported: https_proxy=$https_proxy"
 fi
