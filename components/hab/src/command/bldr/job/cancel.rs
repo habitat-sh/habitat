@@ -18,15 +18,17 @@ use common::ui::{Status, UIReader, UIWriter, UI};
 use error::{Error, Result};
 use {PRODUCT, VERSION};
 
-pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str) -> Result<()> {
-    // TODO (SA): Show all the in-progress builds that will get canceled
-    let question =
-        "If you choose to cancel a group build, \
-         all of the builds that are in progress will be canceled. Is this what you want?";
+pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str, force: bool) -> Result<()> {
+    if !force {
+        // TODO (SA): Show all the in-progress builds that will get canceled
+        let question =
+            "If you choose to cancel a group build, \
+             all of the builds that are in progress will be canceled. Is this what you want?";
 
-    if !ui.prompt_yes_no(question, Some(true))? {
-        ui.fatal("Aborted")?;
-        return Ok(());
+        if !ui.prompt_yes_no(question, Some(true))? {
+            ui.fatal("Aborted")?;
+            return Ok(());
+        }
     }
 
     let api_client =

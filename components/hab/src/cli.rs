@@ -121,6 +121,8 @@ pub fn get() -> App<'static, 'static> {
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
+                    (@arg FORCE: -f --force
+                     "Don't prompt for confirmation")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand promote =>

@@ -517,7 +517,8 @@ fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::cancel::start(ui, &url, &group_id, &token)
+    let force = m.is_present("FORCE");
+    command::bldr::job::cancel::start(ui, &url, &group_id, &token, force)
 }
 
 fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches, promote: bool) -> Result<()> {
