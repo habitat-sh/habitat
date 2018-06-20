@@ -17,7 +17,6 @@ To define a hook, simply create a bash file of the same name in `/my_plan_name/h
 * [suitability](#suitability)
 * [run](#run)
 * [post-run](#post-run)
-* [smoke_test](#smoke_test)
 * [post-stop](#post-stop)
 
 ###file_updated
@@ -120,39 +119,6 @@ File location: `<plan>/hooks/post-run`
 The post run hook will get executed after initial startup.
 
 For many data services creation of specific users / roles or datastores is required. This needs to happen once the service has already started.
-
-###smoke_test
-File location: `<plan>/hooks/smoke_test`
-
-This hook is run when a new package is downloaded by the Supervisor, before it is installed.
-
-The `smoke_test` script must return a valid exit code from the list below.
-
-  - **0**- ok
-  - **no code** - failed smoke check with additional output taken from `smoke_check` stdout.
-  - **any other code** - Returns code, returns failed smoke check with additional output taken from `smoke_check` stdout.
-
-A `smoke_check` hook can use the following as a template:
-
-```bash hooks/smoke_check
-#!/bin/sh
-
-# define default return code as 0
-rc=0
-program_that_returns_a_status
-case $? in
-  0)
-    rc=1 ;;
-  3)
-    rc=0 ;;
-  4)
-    rc=2 ;;
-  *)
-    rc=3 ;;
-esac
-
-exit $rc
-```
 
 ###post-stop
 File location: `<plan>/hooks/post-stop`
