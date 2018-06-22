@@ -5,10 +5,12 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_description="Habitat Cloud Foundry image exporter"
 pkg_upstream_url="https://github.com/habitat-sh/habitat"
-pkg_deps=(
-  core/coreutils core/findutils core/grep core/gawk
-  core/hab-pkg-export-docker core/docker
-)
+pkg_deps=(core/coreutils/8.25/20170513213226
+          core/findutils/4.4.2/20170513214305
+          core/grep/2.22/20170513213444
+          core/gawk/4.1.3/20170513213646
+          core/hab-pkg-export-docker
+          core/docker/18.03.0/20180403182455)
 pkg_bin_dirs=(bin)
 
 _bins=($pkg_name)
