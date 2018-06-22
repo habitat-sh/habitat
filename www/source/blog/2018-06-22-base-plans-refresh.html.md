@@ -1,5 +1,5 @@
 ---
-title: Core Plans and Certain Linux kernels
+title: Core Plans and Certain Linux Kernels
 date: 2018-06-22
 author: Nell Shamrell-Harrington
 tags: Core Plans
@@ -39,7 +39,7 @@ Our first inclination was to roll back the base plans refresh to a lower version
 
 We are starting to lay out the work for supporting multiple Linux architectures - Linux using glibc 2.25 (the latest version of glibc that works with Linux kernel 2.6.x) and then Linux using glibc 2.26 and up (which requires Linux kernel 3.2.x). This will set us up well for supporting additional Linux architectures in the future (i.e. ARM Linux).
 
-We will also be adding testing in place for core plans and Habitat components to ensure that they work with both Linux architectures or that, if one does not work with one of the other, there is an alternative and it is well communicated.
+We will also be adding testing for core plans and Habitat components to ensure that they work with both Linux architectures or that, if one does not work with one or the other, there is an alternative and it is well communicated.
 
 ## Questions?
 
