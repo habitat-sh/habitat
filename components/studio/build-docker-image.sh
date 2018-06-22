@@ -68,8 +68,9 @@ export FS_ROOT="$tmp_root/rootfs"
 unset HAB_BINLINK_DIR
 
 info "Installing and extracting initial Habitat packages"
-default_pkgs="core/hab core/hab-studio"
-hab pkg install "${*:-$default_pkgs}"
+default_pkgs=(core/hab core/hab-studio)
+hab pkg install "${@:-${default_pkgs[@]}}"
+
 if ! hab pkg path core/hab >/dev/null 2>&1; then
   >&2 echo "   $(basename "$0"): WARN core/hab must be installed, aborting"
   exit 1
