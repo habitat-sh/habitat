@@ -15,6 +15,8 @@
 extern crate env_logger;
 extern crate habitat_core as core;
 extern crate habitat_launcher as launcher;
+#[macro_use]
+extern crate log;
 
 use std::env;
 use std::process;
@@ -27,9 +29,15 @@ fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
     set_global_logging_options(&args);
 
-    if let Err(err) = server::run(args) {
-        println!("{}", err);
-        process::exit(1);
+    match server::run(args) {
+        Err(err) => {
+            error!("Launcher exiting with 1 due to err: {}", err);
+            process::exit(1);
+        }
+        Ok(code) => {
+            error!("Launcher exiting with code {}", code);
+            process::exit(code);
+        }
     }
 }
 

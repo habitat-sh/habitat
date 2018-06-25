@@ -76,13 +76,15 @@ fn main() {
             SupError {
                 err: Error::ProcessLocked(_),
                 ..
-            } => process::exit(ERR_NO_RETRY_EXCODE),
-            SupError {
+            }
+            | SupError {
                 err: Error::Departed,
                 ..
-            } => {
-                process::exit(ERR_NO_RETRY_EXCODE);
             }
+            | SupError {
+                err: Error::ButterflyError(_),
+                ..
+            } => process::exit(ERR_NO_RETRY_EXCODE),
             _ => process::exit(1),
         }
     }
