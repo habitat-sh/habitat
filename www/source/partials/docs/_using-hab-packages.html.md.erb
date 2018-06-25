@@ -113,19 +113,19 @@ $ hab svc start core/redis
 
 ## Querying the Supervisor for service status
 
-You can query all services currently loaded or running under the local Supervisor using the `hab sup status` command. This command will list all services loaded by the Supervisor along with their current state. The `status` command includes the version and release of the service and for services that are running, it will include the `PID` of the running service.
+You can query all services currently loaded or running under the local Supervisor using the `hab svc status` command. This command will list all services loaded by the Supervisor along with their current state. The `status` command includes the version and release of the service and for services that are running, it will include the `PID` of the running service.
 
 To retrieve status for an individual service, you can pass the service identifier:
 
 ```shell
-$ hab sup status core/mysql
+$ hab svc status core/mysql
 ```
 
 The following exit codes are emitted by the `status` command:
 
 * `0` - The status command successfully reports status on loaded services
 * `1` - A generic error has occured calling the `hab` cli
-* `2` - A service identifier was passed to `hab sup status` and that service is not loaded by the Supervisor
+* `2` - A service identifier was passed to `hab svc status` and that service is not loaded by the Supervisor
 * `3` - There is no local running Supervisor
 
 # <a name="monitor-services" id="monitor-services" data-magellan-target="monitor-services">Monitor services through the HTTP API</a>
