@@ -4,6 +4,8 @@ sidebar_links:
   links:
   - title: Docs Home
     link: "/docs"
+  - title: Habitat and Other Software
+    link: "/docs/habitat-and-other-software"
   - title: Install Habitat
     link: "/docs/install-habitat"
     sub_links:
