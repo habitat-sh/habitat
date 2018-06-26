@@ -390,10 +390,14 @@ function _Set-HabBin {
 
 function _install-dependency($dependency) {
   if (!$env:NO_INSTALL_DEPS) {
-    & $HAB_BIN install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency
+    $cmd = "$HAB_BIN install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency"
+    if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
+    Invoke-Expression $cmd
     if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_URL -ne $FALLBACK_CHANNEL)) {
       Write-BuildLine "Trying to install '$dependency' from '$FALLBACK_CHANNEL'"
-      & $HAB_BIN install -u $env:HAB_BLDR_URL --channel $FALLBACK_CHANNEL $dependency
+      $cmd = "$HAB_BIN install -u $env:HAB_BLDR_URL --channel $FALLBACK_CHANNEL $dependency"
+      if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
+      Invoke-Expression $cmd
     }
   }
 }

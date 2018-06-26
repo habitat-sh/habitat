@@ -15,7 +15,7 @@
 use std::path::Path;
 
 use common;
-use common::command::package::install::{InstallMode, InstallSource};
+use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
 use common::ui::UIWriter;
 use hcore::env as henv;
 use hcore::fs::{self, FS_ROOT_PATH};
@@ -59,6 +59,8 @@ where
         auth_token.as_ref().map(String::as_str),
         // TODO fn: pass through and enable offline install mode
         &InstallMode::default(),
+        // TODO (CM): pass through and enable ignore-local mode
+        &LocalPackageUsage::default(),
     ).map_err(SupError::from)
 }
 

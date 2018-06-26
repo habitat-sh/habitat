@@ -178,6 +178,43 @@ impl Default for InstallMode {
     }
 }
 
+/// When querying Builder, we may not find a package that satisfies
+/// the desired package identifier, but we may have such a package
+/// already installed locally. In most cases, it should be fine for us
+/// to use the locally-installed package. However, it can cause issues
+/// when building packages using HAB_BLDR_CHANNEL, due to how the
+/// fallback logic in `hab-plan-build` is currently implemented.
+///
+/// This enum governs whether or not we should use a locally-installed
+/// package to satisfy a dependency, or if we should ignore it, thus
+/// giving the user the opportunity to try installing from another
+/// channel.
+///
+/// Usage of this is currently hidden behind the IGNORE_LOCAL feature
+/// flag, as there is still some question as to the best way to solve
+/// this.
+#[derive(Debug, Eq, PartialEq)]
+pub enum LocalPackageUsage {
+    /// Use locally-installed packages if they satisfy the desired
+    /// identifier, but a package cannot be found in Builder.
+    ///
+    /// This *may* be a different package than Builder may have found
+    /// in another channel.
+    Prefer,
+    /// Do not use locally-installed packages if a package cannot be
+    /// found in Builder.
+    Ignore,
+}
+
+impl Default for LocalPackageUsage {
+    /// The default behavior is to use locally-installed packages if
+    /// they can satisfy the desired identifier, and if no more
+    /// suitable package could not be found in Builder.
+    fn default() -> Self {
+        LocalPackageUsage::Prefer
+    }
+}
+
 /// Represents a release channel on a Builder Depot.
 // TODO fn: this type could be further developed and generalized outside this module
 struct Channel<'a>(&'a str);
@@ -280,6 +317,7 @@ pub fn start<U, P1, P2>(
     artifact_cache_path: P2,
     token: Option<&str>,
     install_mode: &InstallMode,
+    local_package_usage: &LocalPackageUsage,
 ) -> Result<PackageInstall>
 where
     U: UIWriter,
@@ -298,6 +336,7 @@ where
 
     let task = InstallTask::new(
         install_mode,
+        local_package_usage,
         url,
         channel,
         product,
@@ -315,6 +354,7 @@ where
 
 struct InstallTask<'a> {
     install_mode: &'a InstallMode,
+    local_package_usage: &'a LocalPackageUsage,
     depot_client: Client,
     channel: Channel<'a>,
     fs_root_path: &'a Path,
@@ -326,6 +366,7 @@ struct InstallTask<'a> {
 impl<'a> InstallTask<'a> {
     fn new(
         install_mode: &'a InstallMode,
+        local_package_usage: &'a LocalPackageUsage,
         url: &str,
         channel: Channel<'a>,
         product: &str,
@@ -336,6 +377,7 @@ impl<'a> InstallTask<'a> {
     ) -> Result<Self> {
         Ok(InstallTask {
             install_mode: install_mode,
+            local_package_usage: local_package_usage,
             depot_client: Client::new(url, product, version, Some(fs_root_path))?,
             channel: channel,
             fs_root_path: fs_root_path,
@@ -457,6 +499,7 @@ impl<'a> InstallTask<'a> {
             // package is installed as a signal that it can satisfy a "latest" answer. Checking for
             // any cached artifacts is too aggressive in this case: if you really want that cached
             // version to win--install it first, then it will be counted.
+
             let latest_local = self.latest_installed_ident(&ident);
 
             ui.status(
@@ -467,51 +510,72 @@ impl<'a> InstallTask<'a> {
                 ),
             )?;
             let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, token) {
-                Ok(latest_ident) => latest_ident,
-                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => match latest_local {
-                    Ok(ref local) => {
-                        ui.status(
-                            Status::Missing,
-                            format!(
-                                "remote version of {} in the '{}' channel, but a \
-                                 newer installed version was found locally ({})",
-                                &ident,
-                                self.channel,
-                                local.as_ref()
-                            ),
-                        )?;
-                        FullyQualifiedPackageIdent::from(local.as_ref().clone())?
-                    }
-                    Err(_) => {
-                        self.recommend_channels(ui, &ident, token)?;
-                        return Err(Error::PackageNotFound("If you are attempting to install from a local depot with an upstream configured, try again in a few seconds.".to_string()));
-                    }
-                },
+                Ok(latest_ident) => Some(latest_ident),
+                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => None,
                 Err(e) => {
                     debug!("error fetching ident: {:?}", e);
                     return Err(e);
                 }
             };
 
-            // Return the latest identifier reported by the Builder API *unless* there is a newer
-            // version found installed locally.
-            match latest_local {
-                Ok(local) => {
-                    if local.as_ref() > latest_remote.as_ref() {
+            match (latest_local, latest_remote) {
+                (Ok(local), Some(remote)) => {
+                    if local.as_ref() > remote.as_ref() {
+                        // Return the latest identifier reported by
+                        // the Builder API *unless* there is a newer
+                        // version found installed locally.
                         ui.status(
                             Status::Found,
                             format!(
                                 "newer installed version ({}) than remote version ({})",
                                 &local,
-                                latest_remote.as_ref()
+                                remote.as_ref()
                             ),
                         )?;
                         Ok(local)
                     } else {
-                        Ok(latest_remote)
+                        Ok(remote)
                     }
                 }
-                Err(_) => Ok(latest_remote),
+                (Ok(local), None) => {
+                    if self.ignore_locally_installed_packages() {
+                        // This is the behavior that is currently
+                        // governed by the IGNORE_LOCAL feature-flag
+                        self.recommend_channels(ui, &ident, token)?;
+                        ui.warn(format!(
+                            "Locally-installed package '{}' would satisfy '{}', \
+                             but we are ignoring that as directed",
+                            local.as_ref(),
+                            &ident,
+                        ))?;
+                        Err(Error::PackageNotFound(
+                            "If you are attempting to install from a local depot with an upstream \
+                             configured, try again in a few seconds."
+                                .to_string(),
+                        ))
+                    } else {
+                        ui.status(
+                            Status::Missing,
+                            format!(
+                                "remote version of '{}' in the '{}' channel, but an \
+                                 installed version was found locally ({})",
+                                &ident,
+                                self.channel,
+                                local.as_ref()
+                            ),
+                        )?;
+                        FullyQualifiedPackageIdent::from(local.as_ref().clone())
+                    }
+                }
+                (Err(_), Some(remote)) => Ok(remote),
+                (Err(_), None) => {
+                    self.recommend_channels(ui, &ident, token)?;
+                    Err(Error::PackageNotFound(
+                        "If you are attempting to install from a local depot with an upstream \
+                         configured, try again in a few seconds."
+                            .to_string(),
+                    ))
+                }
             }
         }
     }
@@ -901,6 +965,21 @@ impl<'a> InstallTask<'a> {
 
     fn is_offline(&self) -> bool {
         self.install_mode == &InstallMode::Offline
+    }
+
+    /// We may not want to use currently-installed packages if one
+    /// can't be found in Builder in the given channel.
+    ///
+    /// Specifically, as long as our channel fallback-logic in
+    /// `hab-plan-build` relies on attempting to install a package
+    /// instead of asking Builder what it has, we should provide an
+    /// escape hatch.
+    ///
+    /// This implementation isn't necessarily how this behavior should
+    /// ultimately be implemented; it's feature-flagged for now while
+    /// we figure that out.
+    fn ignore_locally_installed_packages(&self) -> bool {
+        self.local_package_usage == &LocalPackageUsage::Ignore
     }
 
     // TODO fn: I'm skeptical as to whether we want these warnings all the time. Perhaps it's

@@ -722,7 +722,7 @@ fn sub_pkg_build() -> App<'static, 'static> {
 }
 
 fn sub_pkg_install() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand install =>
+    let mut sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from Builder or locally from a Habitat Artifact")
         (@arg BLDR_URL: --url -u +takes_value {valid_url}
             "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -738,14 +738,20 @@ fn sub_pkg_install() -> App<'static, 'static> {
         (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
     );
     if feat::is_enabled(feat::OfflineInstall) {
-        sub.arg(
+        sub = sub.arg(
             Arg::with_name("OFFLINE")
                 .help("Install packages in offline mode")
                 .long("offline"),
-        )
-    } else {
-        sub
-    }
+        );
+    };
+    if feat::is_enabled(feat::IgnoreLocal) {
+        sub = sub.arg(
+            Arg::with_name("IGNORE_LOCAL")
+                .help("Do not use locally-installed packages when a corresponding package cannot be installed from Builder")
+                .long("ignore-local"),
+        );
+    };
+    sub
 }
 
 fn sub_config_apply() -> App<'static, 'static> {

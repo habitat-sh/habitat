@@ -48,7 +48,7 @@ use std::str::FromStr;
 use std::thread;
 
 use clap::{ArgMatches, Shell};
-use common::command::package::install::{InstallMode, InstallSource};
+use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
 use common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
 use futures::prelude::*;
 use hcore::binlink::default_binlink_dir;
@@ -594,6 +594,13 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         InstallMode::default()
     };
 
+    let local_package_usage = if feat::is_enabled(feat::IgnoreLocal) && m.is_present("IGNORE_LOCAL")
+    {
+        LocalPackageUsage::Ignore
+    } else {
+        LocalPackageUsage::default()
+    };
+
     init();
 
     for install_source in install_sources.iter() {
@@ -608,6 +615,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             &cache_artifact_path(Some(&*FS_ROOT)),
             token.as_ref().map(String::as_str),
             &install_mode,
+            &local_package_usage,
         )?;
 
         if m.is_present("BINLINK") {
@@ -1286,6 +1294,7 @@ fn enable_features_from_env(ui: &mut UI) {
         (feat::List, "LIST"),
         (feat::OfflineInstall, "OFFLINE_INSTALL"),
         (feat::RootlessStudio, "ROOTLESS_STUDIO"),
+        (feat::IgnoreLocal, "IGNORE_LOCAL"),
     ];
 
     for feature in &features {
