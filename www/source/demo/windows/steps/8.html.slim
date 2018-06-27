@@ -1,0 +1,106 @@
+section
+ h1 Build and Test
+
+ p The Habitat Studio is a self-contained, minimal, clean environment in which you can develop, build, and package software.
+
+ p Windows based studios run inside a #{link_to 'Powershell Core', 'https://github.com/PowerShell/Powershell'} environment and have a path that only includes the Windows system directories and core Habitat services. The studio includes a Supervisor running in the background and the Habitat build system.
+ 
+ p There are two "flavors" of Windows Studio available: A Docker-based container Studio and a local Studio. The container studio offers the highest level of isolation and a better guarantee of a clean environment that will have no side effects on your local environment, but it does require Docker for Windows to be installed and running in Windows container mode. A local Studio simply launches a new Powershell Core environment on your local Windows system and creates a new <code>PSDrive</code> targeting an alternative habitat environment separate from your local <code>C:\hab</code> environment. Both types of Studios require a native Windows environment. If you are not running on a Windows host, running on a local Windows VM should be sufficient but you will not be able to use the container Studio due to the Hyper-V requirements with Docker for Windows. You will need to use the local Studio instead. Alternatively you can also use a Windows cloud instance that has Docker preinstalled on AWS or Azure.
+
+ p This topic covers the following areas:
+
+ ul
+  li #{link_to 'Building your package','#build-your-package'}
+  li #{link_to 'Testing your package locally','#test-locally'}
+  li #{link_to 'Exporting and Running your Docker container','#export-container'}
+  li #{link_to 'Debugging your plan','#debug-plan'}
+
+ h2 <a name="build-your-package">Building your package</a>
+
+ p From the root of your local project, run the following:
+
+ = code(:shell) do
+   | 
+     PS C:\contosouniversity> $env:HAB_DOCKER_OPTS="--memory 2gb -p 80:8099"
+     PS C:\contosouniversity> hab studio enter
+
+ p Assuming you are on a Windows host with Docker for Windows running in Windows container mode, this will enter a Powershell based Studio inside of a Windows container. We also set the <code>HAB_DOCKER_OPTS</code> variable which is forwarded to <code>docker run</code> when the Studio spawns its container. This will forward port 8099 which is what our application listens to in the container to port 80 locally. It also ensures that the Container is given 2 GB of ram. This is only important on a Windows 10 host which will run containers in #{link_to 'Hyper-V Isolation mode', 'https://docs.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container'} where containers are spawned in their own minimal VM and allocated 1GB of memory by default. For many scenarios, including ours, 1 GB is simply not enough and can lead to odd and surprising results - not the good kind of surprise!
+
+ blockquote
+  p <b>Note</b> If you use a "fancy" console like conemu, console2, etc, you will want to use a standard Powershell or CMD based elevated (run as administrator) console when entering a container based Studio. Otherwise standard input and output render extremely awkwardly and eventually becomes nearly impossible to navigate.
+
+ p You may also add the <code>-w</code> argument to enter a local powershell studio. This will start up much faster but lack some of the isolation benefits of a container.
+
+ p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project.
+
+ p Run <code>build</code> to build your package.
+
+ = code(:studio) do
+   | [HAB-STUDIO] Habitat:\src> build
+
+ blockquote
+  p <b>Note</b> If you build your web application in a CI/CD workflow, you can use the non-interactive build option to build your package. To do this, change directory to the root of your project and run <code>hab pkg build</code>. A Studio will be created, your package will be built, and then Studio will exit without requiring user input.
+
+  p <b>Note</b> The same <code>-w</code> argument applies to <code>hab pkg build</code> if you want to build in a local studio instead of a container.
+
+ h2 <a name="test-locally">Testing your package locally</a>
+
+ p Whenever you enter the Habitat Studio, a Supervisor begins running in the background. When you are ready to test your application, run <code>hab svc load myorigin/contosouniversity</code>.
+
+ p You can see the streaming output by running <code>Get-SupervisorLog</code>. Type <code>Ctrl-C</code> to exit the streaming output.
+
+ blockquote
+  p <b>Note</b> The DSC apply will fail if you are running in a local Windows 10 Studio because the <code>WindowsFeature</code> resource is only available on server operating systems. To work around this issue on Windows 10, make sure you have enabled the IIS and ASP.NET features on your local OS and remove the <code>WindowsFeature</code> resource from the plan's DSC configuration.
+
+ p Following the output, it may take a couple minutes for the DSC to fully apply and for the website to start running. Once the log emits "contosouniversity is running," our application should be ready to accept connections and be viewable in a local browser via <code>http://&lt;local IP&gt;/hab_app</code>.
+
+ blockquote
+  p <b>Note</b> Unlike Linux containers, Windows containers do not bind to the loopback adapter and therefore browsing <code>localhost</code> will not resolve to our application. We must instead browse to our local IP address.
+
+ h2 <a name="export-container">Exporting and Running your Docker container</a>
+
+ p After you have built your package and are ready to test it outside of the Studio, export it to a Docker container.
+
+ = code(:shell) do
+   | PS C:\contosouniversity> hab pkg export docker ./habitat/results/<hart-filename>.hart
+
+ blockquote
+  p <b>Note</b> If you were building inside a Windows container, make sure to exit the studio before exporting the hart file. Also, you must have Docker for Windows running in Windows container mode in order to export docker images.
+
+ blockquote
+  p <b>Note</b> The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
+
+ p The following example shows how to start the Docker container running your Habitat package.
+
+ = code(:shell) do
+   | PS C:\contosouniversity> docker run -it myorigin/contosouniversity
+
+ p For more information on using the Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
+
+ h2 <a name="debug-plan">Debugging your plan</a>
+
+ p When debugging your plan, it is important to understand what you can use to debug buildtime issues versus what you can use to debug runtime issues.
+
+ h3 Debugging at buildtime
+
+ p If you have to customize how your web application is built, such as overriding build phases through callbacks, it is helpful to know what environment variables are available to you, to make sure you have successfully copied/referenced files, or performed the business logic you intended to at that specific point in the build.
+
+ p There are several #{link_to 'built-in functions','/docs/reference#utility-functions'} you can call in your plan.ps1 to help you with these issues, but you will likely find Powershell's own <code>#{link_to 'Set-PSBreakpoint','https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-psbreakpoint?view=powershell-6'}</code> to be the most helpful. You can use its <code>-Command</code> argument and set it to any of the build phase callback functions. When that function is invoked, you will be dropped into an interactive prompt where you can examine variables and files to debug your build.
+
+ h3 Debugging at runtime
+
+ p Debugging at runtime involves using a few different techniques to understand how your running service is behaving, how it interacts with peers in different topologies, how it handles configuration updates, and so on.
+
+ p For verifying that files were copied into the appropriate paths for your service and paths resolve correctly in runtime hooks, log into the VM or connect to the Docker container that is running the service and examine the files and directories at <code>/hab/svc/contosouniversity/</code>. You can access the file structure by running the following command.
+
+ = code(:shell) do
+   | PS C:\contosouniversity> docker exec -it CONTAINERID powershell
+
+ p Once in the container, to observe HTTP endpoint data (such as census or butterfly information), start up your service, then connect to the HTTP endpoint using <code>Invoke-WebRequest</code>. You can pipe the JSON output to <code>ConvertFrom-Json</code> and then <code>ConvertTo-Json</code> to provide a filtered and readable view on the output.
+
+ = code(:shell) do
+   | PS C:\> (Invoke-WebRequest http://localhost:9631/census -UseBasicParsing).Content | ConvertFrom-Json |  ConvertTo-Json
+
+ p For information on what endpoint information you can query, see #{link_to 'Monitoring services','https://www.habitat.sh/docs/run-packages-monitoring/'}.
+
+= link_to 'Next: Connect to Database', "/demo/windows/steps/9", class: 'button cta'

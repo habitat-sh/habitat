@@ -10,6 +10,7 @@ module SidebarHelpers
     demo_packaging_system
     demo_build_system
     demo_process_supervisor
+    demo_windows
     docs
     download
     get_started

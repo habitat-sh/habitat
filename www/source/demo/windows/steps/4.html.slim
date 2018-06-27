@@ -1,0 +1,33 @@
+section
+ h1 Define Build Logic For Your App
+
+ p When building your package, your project source (or pre-built binary) goes through a series of steps as part of the package compilation process. Depending on whether or not your Habitat plan resides in the same repo as your project, these steps could include downloading your source, unpacking it, building it, and then installing it into the appropriate location within a Habitat package.
+
+ p The default behavior for these build steps are defined in build phase #{link_to 'callbacks','/docs/reference#reference-callbacks'}, which are functions called by Habitat when building your package. When overriding any callbacks, you may use any of the #{link_to 'plan variables','/docs/reference#plan-variables'}, #{link_to 'settings','/docs/reference#plan-settings'}, or #{link_to 'functions','/docs/reference#utility-functions'} in the #{link_to 'Plan syntax guide', '/docs/reference'}, except for the #{link_to 'runtime configuration settings','/docs/reference#template-data/'}. Those can only be used in runtime hooks once a Habitat service is running.
+
+ h3 Overriding Build Phase Callbacks
+
+ p You can override build phase callbacks in your plan. Default behavior may be changed and new functionality can be introduced to package your ASP.NET application appropriately.
+
+ p At a minimum, you will want to override the <code>Invoke-Build</code> function to install dependent .Net assemblies and compile your application code. You will also need to override <code>Invoke-Install</code> to publish the artifacts of your build to the Habitat build's package directory.
+
+ = code(:powershell) do
+   |
+     function Invoke-Build {
+       Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -recurse -force
+       nuget restore "$HAB_CACHE_SRC_PATH/$pkg_dirname/C#/$pkg_name/packages.config" -PackagesDirectory "$HAB_CACHE_SRC_PATH/$pkg_dirname/C#/packages" -Source "https://www.nuget.org/api/v2"
+       nuget install MSBuild.Microsoft.VisualStudio.Web.targets -Version 14.0.0.3 -OutputDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/
+       $env:VSToolsPath = "$HAB_CACHE_SRC_PATH/$pkg_dirname/MSBuild.Microsoft.VisualStudio.Web.targets.14.0.0.3/tools/VSToolsPath"
+       ."$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe" "$HAB_CACHE_SRC_PATH/$pkg_dirname/C#/$pkg_name/${pkg_name}.csproj" /t:Build /p:VisualStudioVersion=14.0
+       if($LASTEXITCODE -ne 0) {
+           Write-Error "dotnet build failed!"
+       }
+     }
+
+     function Invoke-Install {
+       ."$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe" "$HAB_CACHE_SRC_PATH/$pkg_dirname/C#/$pkg_name/${pkg_name}.csproj" /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=$pkg_prefix/www
+     }
+   
+ p Here we use the <code>nuget.exe</code> utility to populate dependencies and install the <code>MSBUILD</code> target we need to build Visual Studio web projects. We use <code>MSBUILD.exe</code> in our resident .NET Framework installation to build our C# code and compile our .NET assembly. Next we use the <code>WebPublish</code> target from <code>MSBUILD</code> to copy all of our web application artifacts to the <code>$pkg_prefix</code> directory. This variable is defined by the Habitat build system and expands to the absolute path of the Habitat package staging area. All files located in that directory will find their way to the final Habitat <code>.hart</code> file which is the Habitat package artifact.
+
+= link_to 'Next: Add Configuration', "/demo/windows/steps/5", class: 'button cta'

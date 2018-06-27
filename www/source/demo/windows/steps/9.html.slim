@@ -1,0 +1,138 @@
+section
+ h1 Connect to a Database
+
+ p This topic covers the following areas:
+
+ ul
+  li #{link_to 'Setting service bindings','#setting-bindings'} 
+  li #{link_to 'Defining database connection logic','#connection-logic'}
+  li #{link_to 'Connecting to a database running inside the Habitat Studio','#connect-studio'}
+  li #{link_to 'Connecting to a database running inside a Docker container','#connect-docker'}
+
+ h2 <a name="setting-bindings">Setting service bindings</a>
+
+ p Service bindings allows runtime configuration values for one service group to be shared with another service group, forming a producer/consumer relationship. When you want to share out configuration data with another service group, you must add the <code>pkg_exports</code> setting to your plan.
+ 
+ p The following shows how a <code>plan.ps1</code> exports a port key for consuming services, such as a reverse proxy or load balancer.
+  
+ = code(:bash) do
+  |
+   $pkg_exports=@{"port"="port"}
+
+ p This will expose the following from the default.toml:
+
+ = code(:toml) do
+   |
+    port = 8099
+
+
+ p Conversely, if your web application wants to bind to a key, such as a port from a database, you need to either use the <code>pkg_binds</code> or <code>pkg_binds_optional</code> settings in your plan. This requires that you know what keys are exported by the producer service group.
+
+ p You can find exported keys by searching for the package at #{link_to 'https://bldr.habitat.sh/#/pkgs/core', 'https://bldr.habitat.sh/#/pkgs/core'} and viewing the manifest for a given release of a package.
+
+ .screenshot
+    img src="/images/screenshots/exports_callout.png"
+
+ p If the producer service is running, you can also retrieve this information by connecting to the HTTP API endpoint for the service and filtering the results. The following retrieves the exported keys and their associated configuration values from a running sqlserver service.
+
+ = code(:bash) do
+  |
+   [HAB-STUDIO] Habitat:\src> ((Invoke-WebRequest http://127.0.0.1:9631/services/sqlserver/default -UseBasicParsing).Content | ConvertFrom-Json).pkg.exports
+   instance password     port username
+   -------- --------     ---- --------
+   instance app_password port app_user
+
+ p Once you have identified the key or keys of the producer that you want to consume in your web application, add that information to your plan file.
+
+ = code(:bash) do
+   |
+    $pkg_binds=@{ "database"="username password port" }
+
+ p At this point the first 8 lines of your <code>plan.ps1</code> file (all lines above the build callbacks) should look like the following:
+ = code(:bash) do
+   |
+    $pkg_name="contosouniversity"
+    $pkg_origin="myorigin"
+    $pkg_version="0.1.0"
+    $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+    $pkg_license=@("Apache-2.0")
+    $pkg_deps=@("core/dsc-core")
+    $pkg_build_deps=@("core/nuget")
+    $pkg_binds=@{"database"="username password port"}
+
+ p For more examples and information on binding, see #{link_to 'Runtime Binding','/docs/developing-packages#pkg-binds'}.
+
+ h2 <a name="connection-logic">Defining database connection logic</a>
+
+ p At the most basic level, connecting to a database like SQL Server from a ASP.NET application requires setting the connection string parameters in the application's <code>web.config</code> file. One way to do this is to maintain your <code>web.config</code> as a templated configuration file in your plan's <code>config</code> directory. You can then link that file at runtime to your application root. Let's move our <code>web.config</code> from the root of our application source and into our <code>habitat/config</code> folder. We will also need to delete all ASP.NET web.config files from source and remove them from the project's <code>.csproj</code> file as well.
+
+ = code(:shell) do
+   | 
+    PS C:\contosouniversity> Copy-Item .\C#\ContosoUniversity\Web.config .\habitat\config\
+    PS C:\contosouniversity> Remove-Item .\C#\ContosoUniversity\Web*.config
+    PS C:\contosouniversity> [xml]$xml = Get-Content .\C#\ContosoUniversity\ContosoUniversity.csproj
+    PS C:\contosouniversity> $nodes = $xml.Project.ItemGroup.Content | ? { $_.Include -like "Web.*" }
+    PS C:\contosouniversity> $nodes | % { $_.ParentNode.RemoveChild($_) }
+    PS C:\contosouniversity> $f = Resolve-Path .\C#\ContosoUniversity\ContosoUniversity.csproj
+    PS C:\contosouniversity> $xml.Save($f)
+
+ p By placing the file in the <code>config</code> folder, it will get copied into the <code>/hab/svc/contosouniversity/config</code> directory at runtime and rendered with the appropriate values. We can then use Handlebars helper logic and the <code>Data Source</code>, <code>User ID</code>, and <code>Password</code> values will be derived from the database service binding information gossiped around the Supervisor ring between the web application and database service groups. Let's change the <code>connectionStrings</code> element of our <code>habitat/config/web.config</code> file to the following:
+
+ = code(:xml) do
+   |
+    <connectionStrings>
+      <add name="SchoolContext" connectionString="Data Source={{bind.database.first.sys.ip}},{{bind.database.first.cfg.port}};Initial Catalog=ContosoUniversity2;User ID={{bind.database.first.cfg.username}};Password={{bind.database.first.cfg.password}};" providerName="System.Data.SqlClient" />
+    </connectionStrings>
+
+ p One last thing to be done in order for our templatized <code>web.config</code> to be seen by the ASP.NET runtime is to link the Supervisor rendered file to the root of our application which is where ASP.NET expects it to be. We can do this by adding the following to our <code>init</code> hook:
+
+ = code(:bash) do
+   |
+    Set-Location {{pkg.svc_path}}\var
+    New-Item -Name Web.config -ItemType SymbolicLink -target "{{pkg.svc_config_path}}/Web.config" -Force | Out-Null
+
+ h2 <a name="connect-studio">Connecting to a database running inside the studio</a>
+
+ p This is the easiest scenario and useful for local testing of service binding between your database and application package. It includes three steps:
+
+ ul
+  li Load SQL Server in the Supervisor
+  li Build our plan
+  li Load our package and bind it to SQL Server
+
+ = code(:bash) do
+  |
+   [HAB-STUDIO] Habitat:\src> hab svc load core/sqlserver
+   [HAB-STUDIO] Habitat:\src> build
+   [HAB-STUDIO] Habitat:\src> hab svc load myorigin/contosouniversity --bind database:sqlserver.default
+
+ blockquote
+  p <b>Note</b> The first time that the <code>core/sqlserver</code> package is loaded and started, it may take several minutes to initialize because its <code>init</code> hook actually runs the SQL Server installer. This will cause the third command above that loads our application to hang until that initialization completes.
+
+ h2 <a name="connect-docker">Connecting to a database running inside a Docker container</a>
+
+ p Export the <code>core/sqlserver</code> package to a Docker image and then export your application's build <code>.hart</code> file.
+
+ = code(:studio) do
+   |
+    PS C:\contosouniversity> hab pkg export docker core/sqlserver
+    PS C:\contosouniversity> hab pkg export docker .\habitat\results\myorigin-contosouniversity-0.1.0-20180621125530-x86_64-windows.hart
+
+ blockquote
+  p <b>Note</b> You can only export Docker images in an environment where a Docker engine is running. Therefore you cannot export inside of a container based studio. You must exit the studio and export inside your Docker host environment.
+
+ p Once you've created Docker images for both your web application and your database, you can start them up via <code>docker run</code>.
+
+ = code(:shell) do
+   |
+    PS C:\contosouniversity> $sql = docker run -d --memory 2GB core/sqlserver
+    PS C:\contosouniversity> $ip = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $sql
+    PS C:\contosouniversity> docker run -it -p 80:8099 myorigin/contosouniversity --peer $ip --bind database:sqlserver.default
+
+ p You should now be able to access the web application and receive a <code>200 OK</code> response:
+
+ = code(:studio) do
+   |
+    PS C:\contosouniversity> Invoke-WebRequest http://<LOCAL_IP_ADDRESS>/hab_app -UseBasicParsing -Method head
+
+= link_to 'Next: Next Steps', "/demo/windows/steps/10", class: 'button cta'

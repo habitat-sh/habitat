@@ -26,6 +26,7 @@ page '/blog/index.html', layout: :blog_index
 page '/demo/packaging-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_packaging_system'}
 page '/demo/build-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_build_system'}
 page '/demo/process-supervisor/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_process_supervisor'}
+page '/demo/windows/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_windows'}
 page 'get-started/*', layout: :get_started
 
 activate :blog do |blog|

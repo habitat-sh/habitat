@@ -1,0 +1,19 @@
+section
+ h1 Add Configuration
+
+ p To make your app's package portable in more environments and contexts, you can templatize the configuration settings of your application. The values for these variables and settings will be computed at runtime and can be used to dynamically configure your application.
+ 
+ h2 Specifying config settings in default.toml
+
+ p  To specify default configuration settings, create a <code>default.toml</code> file in the root of your plan. You can add your own configuration elements to templatize native configuration files at start up. We will use the following configuration in our <code>default.toml</code>.
+
+ = code(:bash) do
+   |
+    port = 8099
+    app_pool = "hab_pool"
+    app_name = "hab_app"
+    site_name = "hab_site"
+
+ p For more information on how to configure plans, see #{link_to 'Configuration Templates','/docs/developing-packages#add-configuration'}.
+
+= link_to 'Next: Leveraging Powershell DSC', "/demo/windows/steps/6", class: 'button cta'
