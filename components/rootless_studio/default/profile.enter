@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Source /src/.studiorc so we can apply user-specific configuration
+if [[ -f /src/.studiorc && -z "${HAB_STUDIO_NOSTUDIORC:-}" ]]; then
+  echo "--> Detected and loading /src/.studiorc"
+  echo ""
+  source /src/.studiorc
+fi
+
+# Automatically run the Habitat Supervisor
+case "${HAB_STUDIO_SUP:-}" in
+  false|FALSE|no|NO|0)
+    # If false, we don't run the Supervisor
+    ;;
+  *)
+    sup-run ${HAB_STUDIO_SUP:-}
+    echo "--> To prevent a Supervisor from running automatically in your"
+    echo "    Studio, export 'HAB_STUDIO_SUP=false' before running"
+    echo "    'hab studio enter'."
+    echo ""
+    ;;
+esac
+
