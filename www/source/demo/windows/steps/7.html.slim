@@ -1,0 +1,85 @@
+section
+ h1 Define Hooks
+
+ p Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a #{link_to 'Powershell Core', 'https://github.com/PowerShell/Powershell'} script.
+
+ p The #{link_to 'reference documentation', '/docs/reference#reference-hooks'} contains the complete list of application lifecycle hooks; however, the only required hook is the <code>run</code> hook, and if you are only calling a built binary, you can specify that through a <code>pkg_svc_run</code> setting. Anything more complicated than running a binary and pointing to a local configuration file in the <code>config</code> directory will require you to create a custom <code>run</code> hook.
+
+ h2 Init Hook
+
+ p Create an <code>init</code> file in your plan's <code>hooks</code> directory and place the following code in that file. Our ASP.NET <code>init</code> hook creates a link between the <code>svc/var</code> directory where the Supervisor will run our application and the <code>www</code> directory in the package path of our application where its runtime artifacts are located.
+
+ = code(:bash) do
+   |
+     Set-Location {{pkg.svc_path}}
+     if(Test-Path var) { Remove-Item var -Recurse -Force }
+     New-Item -Name var -ItemType Junction -target "{{pkg.path}}/www" | Out-Null
+
+ h2 Run Hook
+
+ p Create a <code>run</code> file in your plan's <code>hooks</code> directory and place the following code in that file. There is a lot to digest here so have a good look at the comments.
+   
+ = code(:bash) do
+   |
+     # The Powershell Progress stream can sometimes interfere
+     # with the Supervisor output. Its non critical so turn it off
+     $ProgressPreference="SilentlyContinue"
+
+     # We need to install the xWebAdministration DSC resource.
+     # Habitat runs its hooks inside of Powershell Core but DSC
+     # configurations are applied in a hosted WMI process by
+     # Windows Powershell. In order for Windows Powershell to locate
+     # the installed resource, it must be installed using Windows
+     # Powershell instead of Powershell Core. We can use Invoke-Command
+     # and point to localhost to "remote" from Powershell Core to
+     # Windows Powershell.
+     Invoke-Command -ComputerName localhost -EnableNetworkAccess {
+         $ProgressPreference="SilentlyContinue"
+         Write-Host "Checking for nuget package provider..."
+         if(!(Get-PackageProvider -Name nuget -ErrorAction SilentlyContinue -ListAvailable)) {
+             Write-Host "Installing Nuget provider..."
+             Install-PackageProvider -Name NuGet -Force | Out-Null
+         }
+         Write-Host "Checking for xWebAdministration PS module..."
+         if(!(Get-Module xWebAdministration -ListAvailable)) {
+             Write-Host "Installing xWebAdministration PS Module..."
+             Install-Module xWebAdministration -Force | Out-Null
+         }
+     }
+
+     # Leverage the Powershell Module in the dsc-core package
+     # that makes applying DSC configurations in Powershell
+     # Core simple.
+     Import-Module "{{pkgPathFor "core/dsc-core"}}/Modules/DscCore"
+     Start-DscCore (Join-Path {{pkg.svc_config_path}} website.ps1) NewWebsite
+
+     # The run hook must run indefinitely or else the Supervisor
+     # will think the service has terminated and will loop
+     # trying to restart it. The above DSC apply starts our
+     # application in IIS. We will continuously poll our app
+     # and cleanly shut down only if the application stops
+     # responding or if the Habitat service is stopped or
+     # unloaded.
+     try {
+         Write-Host "{{pkg.name}} is running"
+         $running = $true
+         while($running) {
+             Start-Sleep -Seconds 1
+             $resp = Invoke-WebRequest "http://localhost:{{cfg.port}}/{{cfg.app_name}}" -Method Head
+             if($resp.StatusCode -ne 200) { $running = $false }
+         }
+     }
+     catch {
+         Write-Host "{{pkg.name}} HEAD check failed"
+     }
+     finally {
+         # Add any cleanup here which will run after supervisor stops the service
+         Write-Host "{{pkg.name}} is stoping..."
+         ."$env:SystemRoot\System32\inetsrv\appcmd.exe" stop apppool "{{cfg.app_pool}}"
+         ."$env:SystemRoot\System32\inetsrv\appcmd.exe" stop site "{{cfg.site_name}}"
+         Write-Host "{{pkg.name}} has stopped"
+     }
+
+ p This applies our DSC configuration which should complete with IIS running our application. The hook then spins endlessly in a loop as long as the application is responsive or until it is explicitly shut down via a <code>stop</code> or <code>unload</code> command.
+ 
+= link_to 'Next: Build and Test', "/demo/windows/steps/8", class: 'button cta'
