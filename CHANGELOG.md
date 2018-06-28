@@ -6,6 +6,25 @@
 #### Merged Pull Requests
 - Add a feature-flagged `--ignore-local` flag to `hab pkg install` [#5261](https://github.com/habitat-sh/habitat/pull/5261) ([christophermaier](https://github.com/christophermaier))
 - Relax a few explicit dependency pins [#5265](https://github.com/habitat-sh/habitat/pull/5265) ([christophermaier](https://github.com/christophermaier))
+- Fix some Shellcheck violations [#5277](https://github.com/habitat-sh/habitat/pull/5277) ([christophermaier](https://github.com/christophermaier))
+- [hab-sup] Exit 0 when given --help or --version[#4918](https://github.com/habitat-sh/habitat/pull/4918) ([stevendanna](https://github.com/stevendanna))
+- Rootless studio in a container [#5159](https://github.com/habitat-sh/habitat/pull/5159) ([elliott-davis](https://github.com/elliott-davis))
+- adding Windows ASP.NET tutorial[#5256](https://github.com/habitat-sh/habitat/pull/5256) ([mwrock](https://github.com/mwrock))
+- Simplify tar exporter dependencies [#5254](https://github.com/habitat-sh/habitat/pull/5254) ([christophermaier](https://github.com/christophermaier))
+- Rename the most recent blog post [#5255](https://github.com/habitat-sh/habitat/pull/5255) ([cnunciato](https://github.com/cnunciato))
+- Add myself to more stuff [#5251](https://github.com/habitat-sh/habitat/pull/5251) ([raskchanky](https://github.com/raskchanky))
+- Replace `hab sup status` with `hab svc status` [#5252](https://github.com/habitat-sh/habitat/pull/5252) ([cnunciato](https://github.com/cnunciato))
+- Loosen up pins on Docker exporter [#5249](https://github.com/habitat-sh/habitat/pull/5249) ([christophermaier](https://github.com/christophermaier))
+- Add myself as an owner for exporters [#5250](https://github.com/habitat-sh/habitat/pull/5250) ([christophermaier](https://github.com/christophermaier))
+- Make launcher exit status indicate if supervisor exited with a fatal error [#5220](https://github.com/habitat-sh/habitat/pull/5220) ([baumanj](https://github.com/baumanj))
+- adds in blog post around refreshed core plans and older kernel versions[#5246](https://github.com/habitat-sh/habitat/pull/5246) ([nellshamrell](https://github.com/nellshamrell))
+- Add remote command and contol docs [#5240](https://github.com/habitat-sh/habitat/pull/5240) ([cnunciato](https://github.com/cnunciato))
+- Add force option to hab bldr job cancel [#5243](https://github.com/habitat-sh/habitat/pull/5243) ([cnunciato](https://github.com/cnunciato))
+- Add force option to hab bldr job cancel [#5227](https://github.com/habitat-sh/habitat/pull/5227) ([chefsalim](https://github.com/chefsalim))
+- Remove the note about handling non-master merges [#5241](https://github.com/habitat-sh/habitat/pull/5241) ([cnunciato](https://github.com/cnunciato))
+- Pin everything to use pre-refresh core plans [#5238](https://github.com/habitat-sh/habitat/pull/5238) ([christophermaier](https://github.com/christophermaier))
+- Fix an erroneous shellcheck fix [#5237](https://github.com/habitat-sh/habitat/pull/5237) ([christophermaier](https://github.com/christophermaier))
+- Remove smoke_test hook docs [#5234](https://github.com/habitat-sh/habitat/pull/5234) ([cnunciato](https://github.com/cnunciato))
 - Update the YouTube image [#5226](https://github.com/habitat-sh/habitat/pull/5226) ([cnunciato](https://github.com/cnunciato))
 - clarify using multiple peers in docs and cli help [#5213](https://github.com/habitat-sh/habitat/pull/5213) ([mwrock](https://github.com/mwrock))
 - proper process state type on hab svc status [#5214](https://github.com/habitat-sh/habitat/pull/5214) ([jeremymv2](https://github.com/jeremymv2))
@@ -18,6 +37,11 @@
 - Revert &quot;Fix existing lints and automate running shellcheck&quot; [#5211](https://github.com/habitat-sh/habitat/pull/5211) ([raskchanky](https://github.com/raskchanky))
 - Fix existing lints and automate running shellcheck [#4974](https://github.com/habitat-sh/habitat/pull/4974) ([baumanj](https://github.com/baumanj))
 - documents the $CACHE_PATH environmental variable [#5204](https://github.com/habitat-sh/habitat/pull/5204) ([nellshamrell](https://github.com/nellshamrell))
+<!-- latest_release -->
+
+## [0.57.0](https://github.com/habitat-sh/habitat/tree/0.57.0) (06-15-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.56.0...0.57.0)
+
 - updates version for new release [#5208](https://github.com/habitat-sh/habitat/pull/5208) ([nellshamrell](https://github.com/nellshamrell))
 - corrrects typos in blog post [#5200](https://github.com/habitat-sh/habitat/pull/5200) ([nellshamrell](https://github.com/nellshamrell))
 - Base package refresh post [#5189](https://github.com/habitat-sh/habitat/pull/5189) ([nellshamrell](https://github.com/nellshamrell))
@@ -38,9 +62,6 @@
 - Add target support so Windows packages work [#5154](https://github.com/habitat-sh/habitat/pull/5154) ([raskchanky](https://github.com/raskchanky))
 - Add baumanj back to CODEOWNERS [#5158](https://github.com/habitat-sh/habitat/pull/5158) ([baumanj](https://github.com/baumanj))
 - add instructions for rerunning choco tests after publishing release [#5142](https://github.com/habitat-sh/habitat/pull/5142) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
-
-
 
 ## [0.56.0](https://github.com/habitat-sh/habitat/tree/0.56.0) (05-10-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.55.0...0.56.0)
