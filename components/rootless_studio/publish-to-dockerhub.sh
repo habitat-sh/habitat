@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: ${IMAGE_NAME:="habitat/default-studio"}
+: "${IMAGE_NAME:=habitat/default-studio}"
 
 if [[ -z $DOCKERHUB_USER ]]; then
   echo "DockerHub user required" && exit 1
