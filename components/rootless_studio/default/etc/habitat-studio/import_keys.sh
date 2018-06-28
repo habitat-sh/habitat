@@ -7,18 +7,19 @@ if [ -n "$HAB_ORIGIN_KEYS" ]; then
   # will use the outside cache key path, whereas the `hab` function has
   # the `$FS_ROOT` set for the inside of the Studio. We're copying from
   # the outside in, using `hab` twice. I love my job.
-  for key in $(echo $HAB_ORIGIN_KEYS | hab pkg exec core/hab-backline tr ',' ' '); do
+  for key in $(echo "$HAB_ORIGIN_KEYS" | hab pkg exec core/hab-backline tr ',' ' '); do
     key_text=""
     # Import the secret origin key, required for signing packages
     info "Importing '$key' secret origin key"
-    if key_text=$(hab origin key export --type secret $key); then
-      printf -- "${key_text}" | hab origin key import
+    if key_text=$(hab origin key export --type secret "$key"); then
+      printf -- "%s" "${key_text}" | hab origin key import
     else
       echo "Error exporting $key key"
       # key_text will contain an error message
       echo "${key_text}"
       echo "Habitat was unable to export your secret signing key. Please"
       echo "verify that you have a signing key for $key present in either"
+      # shellcheck disable=SC2088
       echo "~/.hab/cache/keys (if running via sudo) or /hab/cache/keys"
       echo "(if running as root). You can test this by running:"
       echo ""
@@ -36,9 +37,9 @@ if [ -n "$HAB_ORIGIN_KEYS" ]; then
     fi
     # Attempt to import the public origin key, which can be used for local
     # package installations where the key may not yet be uploaded.
-    if key_text=$(hab origin key export --type public $key 2> /dev/null); then
+    if key_text=$(hab origin key export --type public "$key" 2> /dev/null); then
       info "Importing '$key' public origin key"
-      printf -- "${key_text}" | hab origin key import
+      printf -- "%s" "${key_text}" | hab origin key import
     else
       info "Tried to import '$key' public origin key, but key was not found"
     fi

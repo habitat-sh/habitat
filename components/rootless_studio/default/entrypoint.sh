@@ -6,7 +6,9 @@ source /etc/habitat-studio/import_keys.sh
 source /etc/habitat-studio/environment.sh
 
 case "$1" in
-  enter) hab pkg exec core/hab-backline env STUDIO_ENTER=true $(load_secrets) bash --login +h;;
+  enter)
+     # shellcheck disable=SC2046
+     hab pkg exec core/hab-backline env STUDIO_ENTER=true $(load_secrets) bash --login +h;;
   build)
     shift
     hab pkg exec core/hab-plan-build hab-plan-build "$@";;
