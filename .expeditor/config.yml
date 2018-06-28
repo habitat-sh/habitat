@@ -10,4 +10,12 @@ github:
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
-  - built_in:update_changelog
+  - built_in:update_changelog:
+      ignore_labels:
+        - "Expeditor: Exclude from Changelog"
+
+changelog:
+  categories:
+    - "X-change": "Behavioral Changes"
+    - "X-feature": "New Features & Enhancements"
+    - "X-fix": "Bug Fixes"
