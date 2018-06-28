@@ -140,3 +140,11 @@ features! {
 
 pub const PRODUCT: &'static str = "hab-sup";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+
+#[derive(Copy, Clone)]
+pub enum ReasonCode {
+    Departed,
+    LauncherStopping,
+    PkgUpdating,
+    SvcStopCmd,
+}
