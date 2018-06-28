@@ -116,7 +116,16 @@ fn start() -> Result<()> {
         Err(err) => {
             let out = io::stdout();
             writeln!(&mut out.lock(), "{}", err.message).expect("Error writing Error to stdout");
-            process::exit(ERR_NO_RETRY_EXCODE);
+            match launcher {
+                Some(_) => process::exit(ERR_NO_RETRY_EXCODE),
+                // If we weren't started by a launcher, exit 0 for
+                // help and version
+                None => match err.kind {
+                    clap::ErrorKind::HelpDisplayed => process::exit(0),
+                    clap::ErrorKind::VersionDisplayed => process::exit(0),
+                    _ => process::exit(ERR_NO_RETRY_EXCODE),
+                },
+            }
         }
     };
     match app_matches.subcommand() {
