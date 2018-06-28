@@ -22,7 +22,7 @@ use std::str::FromStr;
 
 use clap;
 use common;
-use common::command::package::install::{InstallMode, InstallSource};
+use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
 use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use hab;
@@ -344,6 +344,8 @@ impl<'a> BuildSpec<'a> {
             None,
             // TODO fn: pass through and enable offline install mode
             &InstallMode::default(),
+            // TODO (CM): pass through and enable ignore-local mode
+            &LocalPackageUsage::default(),
         )?;
         Ok(package_install.into())
     }

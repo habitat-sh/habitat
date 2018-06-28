@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 
 use common;
-use common::command::package::install::InstallMode;
+use common::command::package::install::{InstallMode, LocalPackageUsage};
 use common::ui::{Status, UIWriter, UI};
 use hcore::env as henv;
 use hcore::fs::{self, cache_artifact_path};
@@ -99,6 +99,8 @@ where
                 None,
                 // TODO fn: pass through and enable offline install mode
                 &InstallMode::default(),
+                // TODO (CM): pass through and enable no-local-package mode
+                &LocalPackageUsage::default(),
             )?;
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
