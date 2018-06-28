@@ -5,18 +5,18 @@ pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=(core/docker/18.03.0/20180403182455)
-pkg_build_deps=(core/musl/1.1.18/20180310000919
-                core/zlib-musl/1.2.8/20180310002650
-                core/xz-musl/5.2.2/20180310002650
-                core/bzip2-musl/1.0.6/20180310002649
-                core/libarchive-musl/3.3.2/20180310020328
-                core/openssl-musl/1.0.2l/20180310010254
-                core/libsodium-musl/1.0.13/20180310002622
-                core/coreutils/8.25/20170513213226
-                core/rust/1.26.2/20180606182054
-                core/gcc/5.2.0/20170513202244
-                core/make/4.2.1/20170513214620)
+pkg_deps=(core/docker)
+pkg_build_deps=(core/musl
+                core/zlib-musl
+                core/xz-musl
+                core/bzip2-musl
+                core/libarchive-musl
+                core/openssl-musl
+                core/libsodium-musl
+                core/coreutils
+                core/rust
+                core/gcc
+                core/make)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname
