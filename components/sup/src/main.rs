@@ -174,9 +174,11 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg CHANNEL: --channel +takes_value
                 "Receive Supervisor updates from the specified release channel [default: stable]")
-            (@arg BLDR_URL: --url -u +takes_value {valid_url}
-                "Receive Supervisor updates from Builder at the specified URL \
-                [default: https://bldr.habitat.sh]")
+            (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                "Specify an alternate Builder endpoint. If not specified, the value will \
+                 be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                 https://bldr.habitat.sh)")
+
             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
                 "Use package config from this path, rather than the package itself")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \

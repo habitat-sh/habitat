@@ -190,7 +190,9 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Creates a new channel")
                     (aliases: &["c", "cr", "cre", "crea", "creat"])
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg CHANNEL: +required + takes_value "The channel name")
                     (@arg ORIGIN: -o --origin +takes_value
                         "Sets the origin to which the channel will belong. Default is from \
@@ -200,7 +202,9 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Destroys a channel")
                     (aliases: &["d", "de", "des", "dest", "destr", "destro"])
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg CHANNEL: +required + takes_value "The channel name")
                     (@arg ORIGIN: -o --origin +takes_value
                         "Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN'\
@@ -210,7 +214,9 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Lists origin channels")
                     (aliases: &["l", "li", "lis"])
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                        "Specify an alternate Builder endpoint. If not specified, the value will \
+                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                         https://bldr.habitat.sh)")
                     (@arg ORIGIN: +takes_value
                         "The origin for which channels will be listed. Default is from 'HAB_ORIGIN'\
                         or cli.toml")
@@ -374,9 +380,10 @@ pub fn get() -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
                     filepath to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (@arg BLDR_URL: --url -u +takes_value {valid_url}
-                    "Retrieve the container's package from the specified Builder \
-                    (default: https://bldr.habitat.sh)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint. If not specified, the value will \
+                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                     https://bldr.habitat.sh)")
                 (@arg CHANNEL: --channel -c +takes_value
                     "Retrieve the container's package from the specified release channel \
                     (default: stable)")
@@ -816,9 +823,10 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Receive package updates from the specified release channel [default: stable]")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default].")
-        (@arg BLDR_URL: --url -u +takes_value {valid_url}
-            "Receive package updates from Builder at the specified URL \
-            [default: https://bldr.habitat.sh]")
+        (@arg BLDR_URL: -u --url +takes_value {valid_url}
+            "Specify an alternate Builder endpoint. If not specified, the value will \
+             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+             https://bldr.habitat.sh)")
         (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
             "Service topology; [default: none]")
         (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -851,9 +859,10 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Receive package updates from the specified release channel [default: stable]")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default].")
-        (@arg BLDR_URL: --url -u +takes_value {valid_url}
-            "Receive package updates from Builder at the specified URL \
-            [default: https://bldr.habitat.sh]")
+        (@arg BLDR_URL: -u --url +takes_value {valid_url}
+            "Specify an alternate Builder endpoint. If not specified, the value will \
+             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+             https://bldr.habitat.sh)")
         (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
             "Service topology; [default: none]")
         (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
