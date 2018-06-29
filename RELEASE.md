@@ -78,7 +78,7 @@ Highlights:
     ```
 
 1. Commit `VERSION` changes and push your branch
-1. Issue a new PR await approval (in the form of a [dank gif](http://imgur.com/X0sNq)) from two maintainers
+1. Issue a new PR with the `Expeditor: Exclude from Changelog` label and await approval (in the form of a [dank gif](http://imgur.com/X0sNq)) from two maintainers
 1. Pull master once again once the PR is merged into master
 1. Create & push a Git tag
 
