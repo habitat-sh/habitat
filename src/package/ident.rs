@@ -91,27 +91,26 @@ impl PackageIdent {
         }
     }
 
-    pub fn archive_name(&self) -> Option<String> {
+    pub fn archive_name(&self) -> Result<String> {
         self.archive_name_impl(&PackageTarget::default())
     }
 
-    pub fn archive_name_with_target(&self, ref target: &PackageTarget) -> Option<String> {
+    pub fn archive_name_with_target(&self, ref target: &PackageTarget) -> Result<String> {
         self.archive_name_impl(target)
     }
 
-    fn archive_name_impl(&self, ref target: &PackageTarget) -> Option<String> {
+    fn archive_name_impl(&self, ref target: &PackageTarget) -> Result<String> {
         if self.fully_qualified() {
-            Some(format!(
-                "{}-{}-{}-{}-{}-{}.hart",
+            Ok(format!(
+                "{}-{}-{}-{}-{}.hart",
                 self.origin,
                 self.name,
                 self.version.as_ref().unwrap(),
                 self.release.as_ref().unwrap(),
-                target.architecture,
-                target.platform
+                target
             ))
         } else {
-            None
+            Err(Error::FullyQualifiedPackageIdentRequired(self.to_string()))
         }
     }
 }
@@ -642,5 +641,57 @@ mod tests {
         assert!(!super::is_valid_origin_name("!foo"));
         assert!(!super::is_valid_origin_name("foo bar"));
         assert!(!super::is_valid_origin_name("0xDEADBEEF"));
+    }
+
+    #[test]
+    fn archive_name() {
+        let ident = PackageIdent::from_str("tom-petty/the_last__dj/1.0.0/20180701125610").unwrap();
+        let target = PackageTarget::default();
+
+        assert_eq!(
+            format!(
+                "{}-{}.hart",
+                "tom-petty-the_last__dj-1.0.0-20180701125610", &target
+            ),
+            ident.archive_name().unwrap()
+        );
+    }
+
+    #[test]
+    fn archive_name_with_fuzzy_ident() {
+        let ident = PackageIdent::from_str("acme/not-enough").unwrap();
+
+        match ident.archive_name() {
+            Err(Error::FullyQualifiedPackageIdentRequired(i)) => {
+                assert_eq!("acme/not-enough".to_string(), i)
+            }
+            Err(e) => panic!("Wrong expected error, found={:?}", e),
+            Ok(s) => panic!("Should not have computed a result, returned={}", s),
+        }
+    }
+
+    #[test]
+    fn archive_name_with_target() {
+        let ident = PackageIdent::from_str("tom-petty/the_last__dj/1.0.0/20180701125610").unwrap();
+        let target = PackageTarget::from_str("x86_64-linux").unwrap();
+
+        assert_eq!(
+            String::from("tom-petty-the_last__dj-1.0.0-20180701125610-x86_64-linux.hart"),
+            ident.archive_name_with_target(&target).unwrap()
+        );
+    }
+
+    #[test]
+    fn archive_name_with_target_with_fuzzy_ident() {
+        let ident = PackageIdent::from_str("acme/not-enough").unwrap();
+        let target = PackageTarget::from_str("x86_64-linux").unwrap();
+
+        match ident.archive_name_with_target(&target) {
+            Err(Error::FullyQualifiedPackageIdentRequired(i)) => {
+                assert_eq!("acme/not-enough".to_string(), i)
+            }
+            Err(e) => panic!("Wrong expected error, found={:?}", e),
+            Ok(s) => panic!("Should not have computed a result, returned={}", s),
+        }
     }
 }
