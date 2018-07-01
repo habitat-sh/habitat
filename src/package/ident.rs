@@ -92,7 +92,7 @@ impl PackageIdent {
     }
 
     pub fn archive_name(&self) -> Result<String> {
-        self.archive_name_impl(&PackageTarget::default())
+        self.archive_name_impl(PackageTarget::active_target())
     }
 
     pub fn archive_name_with_target(&self, ref target: &PackageTarget) -> Result<String> {
@@ -727,12 +727,12 @@ mod tests {
     #[test]
     fn archive_name() {
         let ident = PackageIdent::from_str("tom-petty/the_last__dj/1.0.0/20180701125610").unwrap();
-        let target = PackageTarget::default();
+        let target = PackageTarget::active_target();
 
         assert_eq!(
             format!(
                 "{}-{}.hart",
-                "tom-petty-the_last__dj-1.0.0-20180701125610", &target
+                "tom-petty-the_last__dj-1.0.0-20180701125610", target
             ),
             ident.archive_name().unwrap()
         );

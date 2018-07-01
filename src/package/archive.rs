@@ -436,8 +436,8 @@ pub trait FromArchive: Sized {
 
 #[cfg(test)]
 mod test {
+    use super::super::target;
     use super::*;
-    use os::system::{Architecture, Platform};
     use std::path::PathBuf;
 
     #[test]
@@ -484,7 +484,7 @@ mod test {
             fixtures().join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
         );
         let target = hart.target().unwrap();
-        assert_eq!(target.platform, Platform::Linux);
-        assert_eq!(target.architecture, Architecture::X86_64);
+
+        assert_eq!(target::X86_64_LINUX, target);
     }
 }

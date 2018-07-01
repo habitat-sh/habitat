@@ -26,7 +26,7 @@ use toml;
 use toml::Value;
 
 use super::metadata::{parse_key_value, Bind, BindMapping, MetaFile, PackageType};
-use super::{Identifiable, PackageIdent, PackageTarget, Target};
+use super::{Identifiable, PackageIdent, PackageTarget};
 use error::{Error, Result};
 use fs;
 
@@ -61,11 +61,8 @@ impl PackageInstall {
     /// filesystem not currently rooted at `/`.
     pub fn load(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
         let package_install = Self::resolve_package_install(ident, fs_root_path)?;
-        let package_target = package_install.target()?;
-        match package_target.validate() {
-            Ok(()) => Ok(package_install),
-            Err(e) => Err(e),
-        }
+        // TODO fn: temporarily remove target validation, add back afterwards
+        Ok(package_install)
     }
 
     /// Verifies an installation of a package that is equal or newer to a given ident and returns
@@ -78,11 +75,8 @@ impl PackageInstall {
         fs_root_path: Option<&Path>,
     ) -> Result<PackageInstall> {
         let package_install = Self::resolve_package_install_min(ident, fs_root_path)?;
-        let package_target = package_install.target()?;
-        match package_target.validate() {
-            Ok(()) => Ok(package_install),
-            Err(e) => Err(e),
-        }
+        // TODO fn: temporarily remove target validation, add back afterwards
+        Ok(package_install)
     }
 
     fn resolve_package_install<T>(

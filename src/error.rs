@@ -100,12 +100,8 @@ pub enum Error {
     InvalidPackageIdent(String),
     /// Occurs when a package target string cannot be successfully parsed.
     InvalidPackageTarget(String),
-    /// Occurs when validating a package target for an unsupported architecture.
-    InvalidArchitecture(String),
     /// Occurs when a package type is not recognized.
     InvalidPackageType(String),
-    /// Occurs when validating a package target for an unsupported platform.
-    InvalidPlatform(String),
     /// Occurs when a service group string cannot be successfully parsed.
     InvalidServiceGroup(String),
     /// Occurs when an origin is in an invalid format
@@ -165,6 +161,9 @@ pub enum Error {
     TerminateProcessFailed(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
     Utf8Error(str::Utf8Error),
+    /// When a `PackageTaget` for a package does not match the active `PackageTarget` for this
+    /// system.
+    WrongActivePackageTarget(package::PackageTarget, package::PackageTarget),
 }
 
 impl fmt::Display for Error {
@@ -276,9 +275,7 @@ impl fmt::Display for Error {
                  architecture-platform (example: x86_64-linux)",
                 e
             ),
-            Error::InvalidArchitecture(ref e) => format!("Invalid architecture: {}.", e),
             Error::InvalidPackageType(ref e) => format!("Invalid package type: {}.", e),
-            Error::InvalidPlatform(ref e) => format!("Invalid platform: {}.", e),
             Error::InvalidServiceGroup(ref e) => format!(
                 "Invalid service group: {}. A valid service group string is in the form \
                  service.group (example: redis.production)",
@@ -338,6 +335,11 @@ impl fmt::Display for Error {
             Error::WaitForSingleObjectFailed(ref e) => format!("{}", e),
             Error::TerminateProcessFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
+            Error::WrongActivePackageTarget(ref active, ref wrong) => format!(
+                "Package target '{}' is not supported as this system has a different \
+                 active package target '{}'",
+                wrong, active
+            ),
         };
         write!(f, "{}", msg)
     }
@@ -427,9 +429,7 @@ impl error::Error for Error {
             Error::InvalidPackageTarget(_) => {
                 "Package targets must be in architecture-platform format (example: x86_64-linux)"
             }
-            Error::InvalidArchitecture(_) => "Unsupported target architecture supplied.",
             Error::InvalidPackageType(_) => "Unsupported package type supplied.",
-            Error::InvalidPlatform(_) => "Unsupported target platform supplied.",
             Error::InvalidServiceGroup(_) => {
                 "Service group strings must be in service.group format (example: redis.production)"
             }
@@ -468,6 +468,10 @@ impl error::Error for Error {
             Error::WaitForSingleObjectFailed(_) => "WaitForSingleObjectFailed failed",
             Error::TerminateProcessFailed(_) => "Failed to call TerminateProcess",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
+            Error::WrongActivePackageTarget(_, _) => {
+                "Package target is not supported as this system has a different \
+                 active package target"
+            }
         }
     }
 }
