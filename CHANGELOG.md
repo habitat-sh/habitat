@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 - Make all BLDR_URL CLI docs reference the HAB_BLDR_URL env var override [#5263](https://github.com/habitat-sh/habitat/pull/5263) ([baumanj](https://github.com/baumanj))
 - Add a feature-flagged `--ignore-local` flag to `hab pkg install` [#5261](https://github.com/habitat-sh/habitat/pull/5261) ([christophermaier](https://github.com/christophermaier))
 - Relax a few explicit dependency pins [#5265](https://github.com/habitat-sh/habitat/pull/5265) ([christophermaier](https://github.com/christophermaier))
