@@ -1,12 +1,11 @@
 # Habitat CHANGELOG
 
 <!-- latest_release unreleased -->
-
 ## Unreleased
 
 #### Merged Pull Requests
+- Deploy web site using the keys for the www user, not me [#5290](https://github.com/habitat-sh/habitat/pull/5290) ([raskchanky](https://github.com/raskchanky))
 - Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
-
 <!-- latest_release -->
 
 ## [0.58.0](https://github.com/habitat-sh/habitat/tree/0.58.0) (07-02-2018)
