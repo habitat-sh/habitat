@@ -16,6 +16,7 @@ use std::path::Path;
 use std::time::Duration;
 
 use hab_core::env;
+use hab_core::package::PackageTarget;
 use hab_core::util::sys;
 use hyper::client::pool::{Config, Pool};
 use hyper::client::{Client as HyperClient, IntoUrl, RequestBuilder};
@@ -310,11 +311,10 @@ fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClien
 fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
     let uname = sys::uname()?;
     let ua = format!(
-        "{}/{} ({}-{}; {})",
+        "{}/{} ({}; {})",
         product.trim(),
         version.trim(),
-        uname.machine.trim().to_lowercase(),
-        uname.sys_name.trim().to_lowercase(),
+        PackageTarget::active_target(),
         uname.release.trim().to_lowercase()
     );
     debug!("User-Agent: {}", &ua);
