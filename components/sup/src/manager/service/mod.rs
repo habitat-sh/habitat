@@ -51,7 +51,7 @@ use self::hooks::{Hook, HookTable, HOOK_PERMISSIONS};
 pub use self::package::{Env, Pkg};
 pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
 use self::supervisor::Supervisor;
-use super::ReasonCode;
+use super::ShutdownReason;
 use super::Sys;
 use census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
 use error::{Error, Result, SupError};
@@ -262,7 +262,7 @@ impl Service {
         }
     }
 
-    pub fn stop(&mut self, launcher: &LauncherCli, cause: ReasonCode) {
+    pub fn stop(&mut self, launcher: &LauncherCli, cause: ShutdownReason) {
         match self.supervisor.stop(launcher, cause) {
             Ok(_) => self.post_stop(),
             Err(err) => outputln!(preamble self.service_group, "Service stop failed: {}", err),
@@ -612,7 +612,7 @@ impl Service {
                 return;
             }
         }
-        if let Err(err) = self.supervisor.stop(launcher, ReasonCode::PkgUpdating) {
+        if let Err(err) = self.supervisor.stop(launcher, ShutdownReason::PkgUpdating) {
             outputln!(preamble self.service_group,
                       "Error stopping process while updating package: {}", err);
         }

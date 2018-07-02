@@ -34,7 +34,7 @@ use serde::{Serialize, Serializer};
 use time::{self, Timespec};
 
 use super::ProcessState;
-use super::ReasonCode;
+use super::ShutdownReason;
 use error::{Error, Result};
 use fs;
 use manager::service::Pkg;
@@ -234,11 +234,11 @@ impl Supervisor {
         (healthy, status)
     }
 
-    pub fn stop(&mut self, launcher: &LauncherCli, cause: ReasonCode) -> Result<()> {
+    pub fn stop(&mut self, launcher: &LauncherCli, cause: ShutdownReason) -> Result<()> {
         if self.pid.is_none() {
             return Ok(());
         }
-        if let ReasonCode::LauncherStopping = cause {
+        if let ShutdownReason::LauncherStopping = cause {
             // sending any cmds to launcher will block while it is shutting down
             // we'll avoid this knowing that launcher will gratuitously kill off
             // all services as part of its shutdown routine
