@@ -1372,7 +1372,9 @@ where
         match status.process {
             Some(process) => (
                 process.state.to_string(),
-                process.pid.unwrap_or_default().to_string(),
+                process
+                    .pid
+                    .map_or_else(|| "<none>".to_string(), |p| p.to_string()),
                 process.elapsed.unwrap_or_default().to_string(),
             ),
             None => (
