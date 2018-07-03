@@ -259,7 +259,7 @@ impl Server {
                     println!("Error reading rumors from disk: {}", err);
                 } else {
                     debug!(
-                        "Successfully injested rumor content from {}",
+                        "Successfully ingested rumor content from {}",
                         file.path().display()
                     );
                 }
