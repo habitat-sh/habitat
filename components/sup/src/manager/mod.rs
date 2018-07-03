@@ -80,6 +80,7 @@ use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
 use http_gateway;
 use util;
+use ShutdownReason;
 use VERSION;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
@@ -689,11 +690,11 @@ impl Manager {
         loop {
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
-                self.shutdown();
+                self.shutdown(ShutdownReason::LauncherStopping);
                 return Ok(());
             }
             if self.check_for_departure() {
-                self.shutdown();
+                self.shutdown(ShutdownReason::Departed);
                 return Err(sup_error!(Error::Departed));
             }
             if let Some(package) = self.check_for_updated_supervisor() {
@@ -701,7 +702,7 @@ impl Manager {
                     "Supervisor shutting down for automatic update to {}",
                     package
                 );
-                self.shutdown();
+                self.shutdown(ShutdownReason::PkgUpdating);
                 return Ok(());
             }
             self.update_running_services_from_spec_watcher()?;
@@ -1488,10 +1489,14 @@ impl Manager {
     /// service. Passing a value of `false` will let the Launcher keep the service running. This
     /// useful if you want the Supervisor to shutdown temporarily and then come back and re-attach
     /// to all running processes.
-    fn remove_service(&mut self, service: &mut Service, term: bool) {
+    fn remove_service(&mut self, service: &mut Service, cause: ShutdownReason) {
         // JW TODO: Update service rumor to remove service from cluster
+        let term = match cause {
+            ShutdownReason::LauncherStopping | ShutdownReason::SvcStopCmd => true,
+            _ => false,
+        };
         if term {
-            service.stop(&self.launcher);
+            service.stop(&self.launcher, cause);
         }
         if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
             outputln!(
@@ -1529,7 +1534,7 @@ impl Manager {
         self.butterfly.restart_elections();
     }
 
-    fn shutdown(&mut self) {
+    fn shutdown(&mut self, cause: ShutdownReason) {
         outputln!("Gracefully departing from butterfly network.");
         self.butterfly.set_departed();
 
@@ -1549,7 +1554,7 @@ impl Manager {
         }
 
         for mut service in svcs.drain(..) {
-            self.remove_service(&mut service, false);
+            self.remove_service(&mut service, cause);
         }
         release_process_lock(&self.fs_cfg);
     }
@@ -1649,7 +1654,7 @@ impl Manager {
             service = services.remove(services_idx);
         }
 
-        self.remove_service(&mut service, true);
+        self.remove_service(&mut service, ShutdownReason::SvcStopCmd);
         Ok(())
     }
 }
