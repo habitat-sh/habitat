@@ -70,7 +70,7 @@ impl Pull {
             let payload = match self.server.unwrap_wire(&msg) {
                 Ok(payload) => payload,
                 Err(e) => {
-                    // NOTE: In the future, we might want to blacklist people who send us
+                    // NOTE: In the future, we might want to deny people who send us
                     // garbage all the time.
                     error!("Error parsing protobuf: {:?}", e);
                     continue;
@@ -83,9 +83,9 @@ impl Pull {
                     continue 'recv;
                 }
             };
-            if self.server.check_blacklist(proto.get_from_id()) {
+            if self.server.check_deny_list(proto.get_from_id()) {
                 warn!(
-                    "Not processing message from {} - it is blacklisted",
+                    "Not processing message from {} - it is denied",
                     proto.get_from_id()
                 );
                 continue 'recv;

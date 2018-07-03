@@ -161,28 +161,28 @@ impl SwimNet {
         }
     }
 
-    pub fn blacklist(&self, from_entry: usize, to_entry: usize) {
+    pub fn deny(&self, from_entry: usize, to_entry: usize) {
         let from = self.members
             .get(from_entry)
             .expect("Asked for a network member who is out of bounds");
         let to = self.members
             .get(to_entry)
             .expect("Asked for a network member who is out of bounds");
-        trace_it!(TEST: &self.members[from_entry], format!("Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
-        from.add_to_blacklist(String::from(
+        trace_it!(TEST: &self.members[from_entry], format!("Denied {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        from.add_to_deny_list(String::from(
             to.member.read().expect("Member lock is poisoned").get_id(),
         ));
     }
 
-    pub fn unblacklist(&self, from_entry: usize, to_entry: usize) {
+    pub fn allow(&self, from_entry: usize, to_entry: usize) {
         let from = self.members
             .get(from_entry)
             .expect("Asked for a network member who is out of bounds");
         let to = self.members
             .get(to_entry)
             .expect("Asked for a network member who is out of bounds");
-        trace_it!(TEST: &self.members[from_entry], format!("Un-Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
-        from.remove_from_blacklist(to.member_id());
+        trace_it!(TEST: &self.members[from_entry], format!("Allowed {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        from.remove_from_deny_list(to.member_id());
     }
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
@@ -365,8 +365,8 @@ impl SwimNet {
                 if l == r {
                     continue;
                 }
-                self.blacklist(*l, *r);
-                self.blacklist(*r, *l);
+                self.deny(*l, *r);
+                self.deny(*r, *l);
             }
         }
     }
@@ -377,8 +377,8 @@ impl SwimNet {
         for l in left.iter() {
             for r in right.iter() {
                 println!("UnPartitioning {} from {}", *l, *r);
-                self.unblacklist(*l, *r);
-                self.unblacklist(*r, *l);
+                self.allow(*l, *r);
+                self.allow(*r, *l);
             }
         }
     }

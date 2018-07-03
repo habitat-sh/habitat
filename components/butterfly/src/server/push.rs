@@ -80,11 +80,8 @@ impl Push {
                 };
                 let next_gossip = self.timing.gossip_timeout();
                 for member in check_list.drain(0..drain_length) {
-                    if self.server.check_blacklist(member.get_id()) {
-                        debug!(
-                            "Not sending rumors to {} - it is blacklisted",
-                            member.get_id()
-                        );
+                    if self.server.check_deny_list(member.get_id()) {
+                        debug!("Not sending rumors to {} - it is denied", member.get_id());
                         continue;
                     }
                     // Unlike the SWIM mechanism, we don't actually want to send gossip traffic to
