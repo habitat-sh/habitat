@@ -14,7 +14,7 @@ pkg_deps=(core/busybox-static/1.24.2/20170513215502
           core/zeromq/4.2.5/20180407102804)
 pkg_build_deps=(core/coreutils/8.25/20170513213226
                 core/cacerts/2017.09.20/20171014212239
-                core/rust/1.26.2/20180606182054
+                core/rust
                 core/gcc/5.2.0/20170513202244
                 core/raml2html/6.3.0/20180409195740)
 pkg_bin_dirs=(bin)
