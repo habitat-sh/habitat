@@ -253,7 +253,16 @@ impl Server {
             }
             let mut file = DatFile::new(&self.member_id, path);
             if file.path().exists() {
-                file.read_into(self)?;
+                if let Some(err) = file.read_into(self).err() {
+                    // Display any error and move on, knowing that this is transitory.
+                    // The file will be rewritten shortly and then continually updated.
+                    println!("Error reading rumors from disk: {}", err);
+                } else {
+                    debug!(
+                        "Successfully injested rumor content from {}",
+                        file.path().display()
+                    );
+                }
             }
             let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
             *dat_file = Some(file);
@@ -980,6 +989,11 @@ impl Server {
         if let Some(ref dat_file) = *self.dat_file.read().expect("DatFile lock poisoned") {
             if let Some(err) = dat_file.write(self).err() {
                 println!("Error persisting rumors to disk, {}", err);
+            } else {
+                debug!(
+                    "Successfully persisted rumors to disk: {}",
+                    dat_file.path().display()
+                );
             }
         }
     }
