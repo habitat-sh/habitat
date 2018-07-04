@@ -253,16 +253,14 @@ impl Server {
             }
             let mut file = DatFile::new(&self.member_id, path);
             if file.path().exists() {
-                if let Some(err) = file.read_into(self).err() {
-                    // Display any error and move on, knowing that this is transitory.
-                    // The file will be rewritten shortly and then continually updated.
-                    println!("Error reading rumors from disk: {}", err);
-                } else {
-                    debug!(
-                        "Successfully ingested rumor content from {}",
+                match file.read_into(self) {
+                    Ok(_) => debug!(
+                        "Successfully ingested rumors from {}",
                         file.path().display()
-                    );
-                }
+                    ),
+                    Err(Error::DatFileIO(path, err)) => println!("{}", Error::DatFileIO(path, err)),
+                    Err(err) => return Err(err),
+                };
             }
             let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
             *dat_file = Some(file);
