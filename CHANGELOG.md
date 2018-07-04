@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
 - fixing default value for pid display in hab svc status [#5281](https://github.com/habitat-sh/habitat/pull/5281) ([jeremymv2](https://github.com/jeremymv2))
 - remove svc PID files on hab sup term [#5236](https://github.com/habitat-sh/habitat/pull/5236) ([jeremymv2](https://github.com/jeremymv2))
 - Deploy web site using the keys for the www user, not me [#5290](https://github.com/habitat-sh/habitat/pull/5290) ([raskchanky](https://github.com/raskchanky))
