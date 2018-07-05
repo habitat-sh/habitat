@@ -90,7 +90,7 @@ pub struct Server {
     pub trace: Arc<RwLock<Trace>>,
     swim_rounds: Arc<AtomicIsize>,
     gossip_rounds: Arc<AtomicIsize>,
-    deny_list: Arc<RwLock<HashSet<String>>>,
+    block_list: Arc<RwLock<HashSet<String>>>,
 }
 
 impl Clone for Server {
@@ -118,7 +118,7 @@ impl Clone for Server {
             trace: self.trace.clone(),
             swim_rounds: self.swim_rounds.clone(),
             gossip_rounds: self.gossip_rounds.clone(),
-            deny_list: self.deny_list.clone(),
+            block_list: self.block_list.clone(),
             socket: None,
         }
     }
@@ -172,7 +172,7 @@ impl Server {
                     trace: Arc::new(RwLock::new(trace)),
                     swim_rounds: Arc::new(AtomicIsize::new(0)),
                     gossip_rounds: Arc::new(AtomicIsize::new(0)),
-                    deny_list: Arc::new(RwLock::new(HashSet::new())),
+                    block_list: Arc::new(RwLock::new(HashSet::new())),
                     socket: None,
                 })
             }
@@ -354,28 +354,28 @@ impl Server {
         m.is_empty()
     }
 
-    /// Persistently deny a given address, causing no traffic to be seen.
-    pub fn add_to_deny_list(&self, member_id: String) {
-        let mut deny_list = self.deny_list
+    /// Persistently block a given address, causing no traffic to be seen.
+    pub fn add_to_block_list(&self, member_id: String) {
+        let mut block_list = self.block_list
             .write()
-            .expect("Write lock for deny_list is poisoned");
-        deny_list.insert(member_id);
+            .expect("Write lock for block_list is poisoned");
+        block_list.insert(member_id);
     }
 
-    /// Remove a given address from the deny_list.
-    pub fn remove_from_deny_list(&self, member_id: &str) {
-        let mut deny_list = self.deny_list
+    /// Remove a given address from the block_list.
+    pub fn remove_from_block_list(&self, member_id: &str) {
+        let mut block_list = self.block_list
             .write()
-            .expect("Write lock for deny_list is poisoned");
-        deny_list.remove(member_id);
+            .expect("Write lock for block_list is poisoned");
+        block_list.remove(member_id);
     }
 
-    /// Check that a given address is on the deny_list.
-    fn check_deny_list(&self, member_id: &str) -> bool {
-        let deny_list = self.deny_list
+    /// Check if a given member ID is on the block_list.
+    fn is_member_blocked(&self, member_id: &str) -> bool {
+        let block_list = self.block_list
             .write()
-            .expect("Write lock for deny_list is poisoned");
-        deny_list.contains(member_id)
+            .expect("Write lock for block_list is poisoned");
+        block_list.contains(member_id)
     }
 
     /// Stop the outbound and inbound threads from processing work.
