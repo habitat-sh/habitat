@@ -226,7 +226,7 @@ impl Cfg {
         }
     }
 
-    /// Returns a subset of the overall configuration whitelisted by the given package's exports.
+    /// Returns a subset of the overall configuration which intersects with the given package's exports.
     pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
         let mut map = toml::value::Table::default();
         let cfg = toml::Value::try_from(&self).unwrap();

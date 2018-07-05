@@ -63,7 +63,7 @@ impl Inbound {
                     let swim_payload = match self.server.unwrap_wire(&recv_buffer[0..length]) {
                         Ok(swim_payload) => swim_payload,
                         Err(e) => {
-                            // NOTE: In the future, we might want to blacklist people who send us
+                            // NOTE: In the future, we might want to block people who send us
                             // garbage all the time.
                             error!("Error parsing protobuf: {:?}", e);
                             continue;
@@ -73,7 +73,7 @@ impl Inbound {
                     let msg: Swim = match protobuf::parse_from_bytes(&swim_payload) {
                         Ok(msg) => msg,
                         Err(e) => {
-                            // NOTE: In the future, we might want to blacklist people who send us
+                            // NOTE: In the future, we might want to block people who send us
                             // garbage all the time.
                             error!("Error parsing protobuf: {:?}", e);
                             continue;
@@ -83,10 +83,10 @@ impl Inbound {
                     match msg.get_field_type() {
                         Swim_Type::PING => {
                             if self.server
-                                .check_blacklist(msg.get_ping().get_from().get_id())
+                                .is_member_blocked(msg.get_ping().get_from().get_id())
                             {
                                 debug!(
-                                    "Not processing message from {} - it is blacklisted",
+                                    "Not processing message from {} - it is blocked",
                                     msg.get_ping().get_from().get_id()
                                 );
                                 continue;
@@ -95,11 +95,11 @@ impl Inbound {
                         }
                         Swim_Type::ACK => {
                             if self.server
-                                .check_blacklist(msg.get_ack().get_from().get_id())
+                                .is_member_blocked(msg.get_ack().get_from().get_id())
                                 && !msg.get_ack().has_forward_to()
                             {
                                 debug!(
-                                    "Not processing message from {} - it is blacklisted",
+                                    "Not processing message from {} - it is blocked",
                                     msg.get_ack().get_from().get_id()
                                 );
                                 continue;
@@ -108,10 +108,10 @@ impl Inbound {
                         }
                         Swim_Type::PINGREQ => {
                             if self.server
-                                .check_blacklist(msg.get_pingreq().get_from().get_id())
+                                .is_member_blocked(msg.get_pingreq().get_from().get_id())
                             {
                                 debug!(
-                                    "Not processing message from {} - it is blacklisted",
+                                    "Not processing message from {} - it is blocked",
                                     msg.get_pingreq().get_from().get_id()
                                 );
                                 continue;

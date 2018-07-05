@@ -90,7 +90,7 @@ pub struct Server {
     pub trace: Arc<RwLock<Trace>>,
     swim_rounds: Arc<AtomicIsize>,
     gossip_rounds: Arc<AtomicIsize>,
-    blacklist: Arc<RwLock<HashSet<String>>>,
+    block_list: Arc<RwLock<HashSet<String>>>,
 }
 
 impl Clone for Server {
@@ -118,7 +118,7 @@ impl Clone for Server {
             trace: self.trace.clone(),
             swim_rounds: self.swim_rounds.clone(),
             gossip_rounds: self.gossip_rounds.clone(),
-            blacklist: self.blacklist.clone(),
+            block_list: self.block_list.clone(),
             socket: None,
         }
     }
@@ -172,7 +172,7 @@ impl Server {
                     trace: Arc::new(RwLock::new(trace)),
                     swim_rounds: Arc::new(AtomicIsize::new(0)),
                     gossip_rounds: Arc::new(AtomicIsize::new(0)),
-                    blacklist: Arc::new(RwLock::new(HashSet::new())),
+                    block_list: Arc::new(RwLock::new(HashSet::new())),
                     socket: None,
                 })
             }
@@ -354,28 +354,28 @@ impl Server {
         m.is_empty()
     }
 
-    /// Blacklist a given address, causing no traffic to be seen.
-    pub fn add_to_blacklist(&self, member_id: String) {
-        let mut blacklist = self.blacklist
+    /// Persistently block a given address, causing no traffic to be seen.
+    pub fn add_to_block_list(&self, member_id: String) {
+        let mut block_list = self.block_list
             .write()
-            .expect("Write lock for blacklist is poisoned");
-        blacklist.insert(member_id);
+            .expect("Write lock for block_list is poisoned");
+        block_list.insert(member_id);
     }
 
-    /// Remove a given address from the blacklist.
-    pub fn remove_from_blacklist(&self, member_id: &str) {
-        let mut blacklist = self.blacklist
+    /// Remove a given address from the block_list.
+    pub fn remove_from_block_list(&self, member_id: &str) {
+        let mut block_list = self.block_list
             .write()
-            .expect("Write lock for blacklist is poisoned");
-        blacklist.remove(member_id);
+            .expect("Write lock for block_list is poisoned");
+        block_list.remove(member_id);
     }
 
-    /// Check that a given address is on the blacklist.
-    fn check_blacklist(&self, member_id: &str) -> bool {
-        let blacklist = self.blacklist
+    /// Check if a given member ID is on the block_list.
+    fn is_member_blocked(&self, member_id: &str) -> bool {
+        let block_list = self.block_list
             .write()
-            .expect("Write lock for blacklist is poisoned");
-        blacklist.contains(member_id)
+            .expect("Write lock for block_list is poisoned");
+        block_list.contains(member_id)
     }
 
     /// Stop the outbound and inbound threads from processing work.

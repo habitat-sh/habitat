@@ -26,8 +26,10 @@ use time::SteadyTime;
 use zmq;
 
 use member::Member;
-use message::swim::{Member as ProtoMember, Membership as ProtoMembership, Rumor as ProtoRumor,
-                    Rumor_Type as ProtoRumor_Type};
+use message::swim::{
+    Member as ProtoMember, Membership as ProtoMembership, Rumor as ProtoRumor,
+    Rumor_Type as ProtoRumor_Type,
+};
 use rumor::RumorKey;
 use server::timing::Timing;
 use server::Server;
@@ -80,11 +82,8 @@ impl Push {
                 };
                 let next_gossip = self.timing.gossip_timeout();
                 for member in check_list.drain(0..drain_length) {
-                    if self.server.check_blacklist(member.get_id()) {
-                        debug!(
-                            "Not sending rumors to {} - it is blacklisted",
-                            member.get_id()
-                        );
+                    if self.server.is_member_blocked(member.get_id()) {
+                        debug!("Not sending rumors to {} - it is blocked", member.get_id());
                         continue;
                     }
                     // Unlike the SWIM mechanism, we don't actually want to send gossip traffic to

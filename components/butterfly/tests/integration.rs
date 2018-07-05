@@ -51,7 +51,7 @@ fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
     let mut net = btest::SwimNet::new(6);
     trace_it!(TEST_NET: net, "Mesh");
     net.mesh();
-    net.blacklist(0, 1);
+    net.block(0, 1);
     net.wait_for_rounds(2);
     assert_wait_for_health_of!(net, 1, Health::Alive);
 }
