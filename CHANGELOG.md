@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Replace &quot;blacklist&quot; and &quot;whitelist&quot; with less problematic terminology [#5296](https://github.com/habitat-sh/habitat/pull/5296) ([baumanj](https://github.com/baumanj))
 - Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
 - fixing default value for pid display in hab svc status [#5281](https://github.com/habitat-sh/habitat/pull/5281) ([jeremymv2](https://github.com/jeremymv2))
 - remove svc PID files on hab sup term [#5236](https://github.com/habitat-sh/habitat/pull/5236) ([jeremymv2](https://github.com/jeremymv2))
