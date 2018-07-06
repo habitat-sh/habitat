@@ -524,11 +524,14 @@ impl BuildRootContext {
         let gid = DEFAULT_USER_AND_GROUP_ID;
 
         let pkg = self.primary_svc()?;
-        let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap();
-        let group_name = pkg
-            .svc_group()
-            .unwrap_or(Some(String::from("hab")))
-            .unwrap();
+        let user_name = match pkg.svc_user() {
+            Ok(Some(user)) => user, 
+            _ => String::from("hab")
+        };
+        let group_name = match pkg.svc_group() {
+            Ok(Some(group)) => group, 
+            _ => String::from("hab")
+        };
 
         // TODO: In some cases, packages based on core/nginx and
         // core/httpd (and possibly others) will not work, because
