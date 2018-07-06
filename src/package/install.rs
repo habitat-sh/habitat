@@ -33,7 +33,7 @@ use fs;
 pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
 const PATH_KEY: &'static str = "PATH";
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PackageInstall {
     pub ident: PackageIdent,
     fs_root_path: PathBuf,
@@ -61,7 +61,6 @@ impl PackageInstall {
     /// filesystem not currently rooted at `/`.
     pub fn load(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
         let package_install = Self::resolve_package_install(ident, fs_root_path)?;
-        // TODO fn: temporarily remove target validation, add back afterwards
         Ok(package_install)
     }
 
@@ -75,7 +74,6 @@ impl PackageInstall {
         fs_root_path: Option<&Path>,
     ) -> Result<PackageInstall> {
         let package_install = Self::resolve_package_install_min(ident, fs_root_path)?;
-        // TODO fn: temporarily remove target validation, add back afterwards
         Ok(package_install)
     }
 
@@ -137,6 +135,7 @@ impl PackageInstall {
     where
         T: AsRef<Path>,
     {
+        let original_ident = ident;
         // If the PackageIndent is does not have a version, use a reasonable minimum version that
         // will be satisfied by any installed package with the same origin/name
         let ident = if None == ident.version {
@@ -152,7 +151,7 @@ impl PackageInstall {
         let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
-            return Err(Error::PackageNotFound(ident.clone()));
+            return Err(Error::PackageNotFound(original_ident.clone()));
         }
 
         let pl = Self::package_list(&package_root_path)?;
@@ -175,7 +174,7 @@ impl PackageInstall {
                 package_root_path: package_root_path,
                 ident: id.clone(),
             }),
-            None => Err(Error::PackageNotFound(ident.clone())),
+            None => Err(Error::PackageNotFound(original_ident.clone())),
         }
     }
 
@@ -573,13 +572,6 @@ impl PackageInstall {
         }
     }
 
-    fn target(&self) -> Result<PackageTarget> {
-        match self.read_metafile(MetaFile::Target) {
-            Ok(body) => PackageTarget::from_str(&body),
-            Err(e) => Err(e),
-        }
-    }
-
     /// Read the contents of a given metafile.
     ///
     /// # Failures
@@ -588,31 +580,7 @@ impl PackageInstall {
     /// * Contents of the metafile could not be read
     /// * Contents of the metafile are unreadable or malformed
     fn read_metafile(&self, file: MetaFile) -> Result<String> {
-        match self.existing_metafile(file.clone()) {
-            Some(filepath) => match File::open(&filepath) {
-                Ok(mut f) => {
-                    let mut data = String::new();
-                    if f.read_to_string(&mut data).is_err() {
-                        return Err(Error::MetaFileMalformed(file));
-                    }
-                    Ok(data.trim().to_string())
-                }
-                Err(e) => Err(Error::MetaFileIO(e)),
-            },
-            None => Err(Error::MetaFileNotFound(file)),
-        }
-    }
-
-    /// Returns the path to a package's specified MetaFile if it exists.
-    ///
-    /// Useful for fallback logic for dealing with older Habitat
-    /// packages.
-    fn existing_metafile(&self, file: MetaFile) -> Option<PathBuf> {
-        let filepath = self.installed_path.join(file.to_string());
-        match std::fs::metadata(&filepath) {
-            Ok(_) => Some(filepath),
-            Err(_) => None,
-        }
+        read_metafile(&self.installed_path, &file)
     }
 
     /// Reads metafiles containing dependencies represented by package identifiers separated by new
@@ -719,28 +687,103 @@ impl PackageInstall {
         version: &DirEntry,
         packages: &mut Vec<PackageIdent>,
     ) -> Result<()> {
-        for release in std::fs::read_dir(version.path())? {
-            let release = release?
-                .file_name()
-                .to_string_lossy()
-                .into_owned()
-                .to_string();
-            let version = version
-                .file_name()
-                .to_string_lossy()
-                .into_owned()
-                .to_string();
-            let ident =
-                PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
-            packages.push(ident)
+        let active_target = PackageTarget::active_target();
+
+        for entry in std::fs::read_dir(version.path())? {
+            let entry = entry?;
+            let metafile_content = read_metafile(entry.path(), &MetaFile::Target);
+            // If there is an error reading the target metafile, then skip the candidate
+            if let Err(e) = metafile_content {
+                debug!(
+                    "PackageInstall::walk_releases(): rejected PackageInstall candidate \
+                     due to error reading TARGET metafile, found={}, reason={:?}",
+                    entry.path().display(),
+                    e,
+                );
+                continue;
+            }
+            // Any errors have been cleared, so unwrap is safe
+            let metafile_content = metafile_content.unwrap();
+            let install_target = PackageTarget::from_str(&metafile_content);
+            // If there is an error parsing the target as a valid PackageTarget, then skip the
+            // candidate
+            if let Err(e) = install_target {
+                debug!(
+                    "PackageInstall::walk_releases(): rejected PackageInstall candidate \
+                     due to error parsing TARGET metafile as a valid PackageTarget, \
+                     found={}, reason={:?}",
+                    entry.path().display(),
+                    e,
+                );
+                continue;
+            }
+            // Any errors have been cleared, so unwrap is safe
+            let install_target = install_target.unwrap();
+
+            // Ensure that the installed package's target matches the active `PackageTarget`,
+            // otherwise skip the candidate
+            if active_target == &install_target {
+                let release = entry.file_name().to_string_lossy().into_owned().to_string();
+                let version = version
+                    .file_name()
+                    .to_string_lossy()
+                    .into_owned()
+                    .to_string();
+                let ident =
+                    PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
+                packages.push(ident)
+            } else {
+                debug!(
+                    "PackageInstall::walk_releases(): rejected PackageInstall candidate, \
+                     found={}, installed_target={}, active_target={}",
+                    entry.path().display(),
+                    install_target,
+                    active_target,
+                );
+            }
         }
         Ok(())
+    }
+
+    #[cfg(test)]
+    fn target(&self) -> Result<PackageTarget> {
+        match self.read_metafile(MetaFile::Target) {
+            Ok(body) => PackageTarget::from_str(&body),
+            Err(e) => Err(e),
+        }
     }
 }
 
 impl fmt::Display for PackageInstall {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.ident)
+    }
+}
+
+fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Result<String> {
+    match exisiting_metafile(installed_path, file) {
+        Some(filepath) => match File::open(&filepath) {
+            Ok(mut f) => {
+                let mut data = String::new();
+                if f.read_to_string(&mut data).is_err() {
+                    return Err(Error::MetaFileMalformed(file.clone()));
+                }
+                Ok(data.trim().to_string())
+            }
+            Err(e) => Err(Error::MetaFileIO(e)),
+        },
+        None => Err(Error::MetaFileNotFound(file.clone())),
+    }
+}
+
+/// Returns the path to a specified MetaFile in an installed path if it exists.
+///
+/// Useful for fallback logic for dealing with older Habitat packages.
+fn exisiting_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Option<PathBuf> {
+    let filepath = installed_path.as_ref().join(file.to_string());
+    match std::fs::metadata(&filepath) {
+        Ok(_) => Some(filepath),
+        Err(_) => None,
     }
 }
 
@@ -789,7 +832,7 @@ mod test {
         );
         write_file(
             &pkg_install_path.join(MetaFile::Target.to_string()),
-            &PackageTarget::default().to_string(),
+            PackageTarget::active_target(),
         );
 
         PackageInstall::load(&pkg_ident, Some(fs_root))
@@ -860,6 +903,15 @@ mod test {
     /// Returns the prefix path for a `PackageInstall`, making sure to not include any `FS_ROOT`.
     fn pkg_prefix_for(pkg_install: &PackageInstall) -> PathBuf {
         fs::pkg_install_path(pkg_install.ident(), None::<&Path>)
+    }
+
+    /// Returns a `PackageTarget` that does not match the active target of this system.
+    fn wrong_package_target() -> &'static PackageTarget {
+        let active = PackageTarget::active_target();
+        match PackageTarget::supported_targets().find(|&target| target != active) {
+            Some(wrong) => wrong,
+            None => panic!("Should be able to find an unsupported package type"),
+        }
     }
 
     #[test]
@@ -941,6 +993,310 @@ core/bar=pub:core/publish sub:core/subscribe
         // Grab the bind map from that package
         let bind_map = package_install.bind_map().unwrap();
         assert!(bind_map.is_empty());
+    }
+
+    #[test]
+    fn load_with_fully_qualified_ident_matching_target() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, active_target);
+
+        let loaded = PackageInstall::load(
+            &PackageIdent::from_str(ident_s).unwrap(),
+            Some(fs_root.path()),
+        ).unwrap();
+        assert_eq!(pkg_install, loaded);
+        assert_eq!(active_target, &loaded.target().unwrap());
+    }
+
+    #[test]
+    fn load_with_fully_qualified_ident_with_wrong_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let wrong_target = wrong_package_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        let ident = PackageIdent::from_str(ident_s).unwrap();
+
+        match PackageInstall::load(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target={}, active_target={}",
+                &i,
+                i.target().unwrap(),
+                active_target,
+            ),
+        }
+    }
+
+    #[test]
+    fn load_with_fuzzy_ident_matching_target() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, active_target);
+
+        let loaded = PackageInstall::load(
+            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
+            Some(fs_root.path()),
+        ).unwrap();
+        assert_eq!(pkg_install, loaded);
+        assert_eq!(active_target, &loaded.target().unwrap());
+    }
+
+    #[test]
+    fn load_with_fuzzy_ident_with_wrong_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let wrong_target = wrong_package_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
+
+        match PackageInstall::load(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target={}, active_target={}",
+                &i,
+                i.target().unwrap(),
+                active_target,
+            ),
+        }
+    }
+
+    #[test]
+    fn load_with_fuzzy_ident_with_multiple_packages_only_one_matching_target() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let active_target = PackageTarget::active_target();
+        let wrong_target = wrong_package_target();
+
+        // This installed package is older but matching the active package target
+        let matching_ident_s = "dream-theater/systematic-chaos/1.1.1/20180704142702";
+        let matching_pkg_install = testing_package_install(matching_ident_s, fs_root.path());
+        write_metafile(&matching_pkg_install, MetaFile::Target, active_target);
+
+        // This installed package is newer but does not match the active package target
+        let wrong_ident_s = "dream-theater/systematic-chaos/5.5.5/20180704142702";
+        let wrong_pkg_install = testing_package_install(wrong_ident_s, fs_root.path());
+        write_metafile(&wrong_pkg_install, MetaFile::Target, wrong_target);
+
+        let loaded = PackageInstall::load(
+            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
+            Some(fs_root.path()),
+        ).unwrap();
+        assert_eq!(matching_pkg_install, loaded);
+        assert_eq!(active_target, &loaded.target().unwrap());
+    }
+
+    #[test]
+    fn load_with_missing_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        std::fs::remove_file(
+            pkg_install
+                .installed_path()
+                .join(MetaFile::Target.to_string()),
+        ).unwrap();
+        let ident = PackageIdent::from_str(ident_s).unwrap();
+
+        match PackageInstall::load(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target=missing",
+                &i,
+            ),
+        }
+    }
+
+    #[test]
+    fn load_with_malformed_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, "NOT_A_TARGET_EVER");
+        let ident = PackageIdent::from_str(ident_s).unwrap();
+
+        match PackageInstall::load(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target=missing",
+                &i,
+            ),
+        }
+    }
+
+    #[test]
+    fn load_at_least_with_fully_qualified_ident_matching_target() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, active_target);
+
+        let loaded = PackageInstall::load_at_least(
+            &PackageIdent::from_str(ident_s).unwrap(),
+            Some(fs_root.path()),
+        ).unwrap();
+        assert_eq!(pkg_install, loaded);
+        assert_eq!(active_target, &loaded.target().unwrap());
+    }
+
+    #[test]
+    fn load_at_least_with_fully_qualified_ident_with_wrong_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let wrong_target = wrong_package_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        let ident = PackageIdent::from_str(ident_s).unwrap();
+
+        match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target={}, active_target={}",
+                &i,
+                i.target().unwrap(),
+                active_target,
+            ),
+        }
+    }
+
+    #[test]
+    fn load_at_least_with_fuzzy_ident_matching_target() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, active_target);
+
+        let loaded = PackageInstall::load_at_least(
+            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
+            Some(fs_root.path()),
+        ).unwrap();
+        assert_eq!(pkg_install, loaded);
+        assert_eq!(active_target, &loaded.target().unwrap());
+    }
+
+    #[test]
+    fn load_at_least_with_fuzzy_ident_with_wrong_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let active_target = PackageTarget::active_target();
+        let wrong_target = wrong_package_target();
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
+
+        match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target={}, active_target={}",
+                &i,
+                i.target().unwrap(),
+                active_target,
+            ),
+        }
+    }
+
+    #[test]
+    fn load_at_least_with_fuzzy_ident_with_multiple_packages_only_one_matching_target() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let active_target = PackageTarget::active_target();
+        let wrong_target = wrong_package_target();
+
+        // This installed package is older but matching the active package target
+        let matching_ident_s = "dream-theater/systematic-chaos/1.1.1/20180704142702";
+        let matching_pkg_install = testing_package_install(matching_ident_s, fs_root.path());
+        write_metafile(&matching_pkg_install, MetaFile::Target, active_target);
+
+        // This installed package is newer but does not match the active package target
+        let wrong_ident_s = "dream-theater/systematic-chaos/5.5.5/20180704142702";
+        let wrong_pkg_install = testing_package_install(wrong_ident_s, fs_root.path());
+        write_metafile(&wrong_pkg_install, MetaFile::Target, wrong_target);
+
+        let loaded = PackageInstall::load_at_least(
+            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
+            Some(fs_root.path()),
+        ).unwrap();
+        assert_eq!(matching_pkg_install, loaded);
+        assert_eq!(active_target, &loaded.target().unwrap());
+    }
+
+    #[test]
+    fn load_at_least_with_missing_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        std::fs::remove_file(
+            pkg_install
+                .installed_path()
+                .join(MetaFile::Target.to_string()),
+        ).unwrap();
+        let ident = PackageIdent::from_str(ident_s).unwrap();
+
+        match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target=missing",
+                &i,
+            ),
+        }
+    }
+
+    #[test]
+    fn load_at_least_with_malformed_target_returns_package_not_found_err() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
+        let pkg_install = testing_package_install(ident_s, fs_root.path());
+        write_metafile(&pkg_install, MetaFile::Target, "NOT_A_TARGET_EVER");
+        let ident = PackageIdent::from_str(ident_s).unwrap();
+
+        match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
+            Err(Error::PackageNotFound(ref err_ident)) => {
+                assert_eq!(&ident, err_ident);
+            }
+            Err(e) => panic!("Wrong error returned, error={:?}", e),
+            Ok(i) => panic!(
+                "Should not load successfully, \
+                 install_ident={}, install_target=missing",
+                &i,
+            ),
+        }
     }
 
     #[test]
