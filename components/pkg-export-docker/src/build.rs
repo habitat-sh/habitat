@@ -26,7 +26,9 @@ use common::command::package::install::{InstallMode, InstallSource, LocalPackage
 use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use hab;
+use hcore::error as hcoreerror;
 use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use hcore::package::metadata::MetaFile;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use hcore::PROGRAM_NAME;
 use tempdir::TempDir;
@@ -525,12 +527,18 @@ impl BuildRootContext {
 
         let pkg = self.primary_svc()?;
         let user_name = match pkg.svc_user() {
-            Ok(Some(user)) => user, 
-            _ => String::from("hab")
+            Ok(Some(user)) => user,
+            Ok(None) => {
+                return Err(hcoreerror::Error::MetaFileNotFound(MetaFile::SvcUser).into());
+            }
+            Err(_) => String::from("hab"),
         };
         let group_name = match pkg.svc_group() {
-            Ok(Some(group)) => group, 
-            _ => String::from("hab")
+            Ok(Some(group)) => group,
+            Ok(None) => {
+                return Err(hcoreerror::Error::MetaFileNotFound(MetaFile::SvcGroup).into());
+            }
+            Err(_) => String::from("hab"),
         };
 
         // TODO: In some cases, packages based on core/nginx and
