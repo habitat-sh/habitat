@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Exclude release PRs from changelog with label [#5284](https://github.com/habitat-sh/habitat/pull/5284) ([baumanj](https://github.com/baumanj))
 - Replace &quot;blacklist&quot; and &quot;whitelist&quot; with less problematic terminology [#5296](https://github.com/habitat-sh/habitat/pull/5296) ([baumanj](https://github.com/baumanj))
 - Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
 - fixing default value for pid display in hab svc status [#5281](https://github.com/habitat-sh/habitat/pull/5281) ([jeremymv2](https://github.com/jeremymv2))
