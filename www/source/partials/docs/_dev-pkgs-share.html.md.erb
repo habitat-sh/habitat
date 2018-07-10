@@ -53,7 +53,7 @@ Once Builder possesses at least the public key of the origin, you may upload one
 
 <%= partial "/partials/global/channel-overview" %>
 
-By default, newly uploaded packages are placed in the `unstable` channel, however, the default package that is downloaded is the latest `stable` version of a package, unless overridden in commands such as `hab start`, `hab svc load`, and `hab pkg install`. If you want to promote your package to the `stable` channel, run the `hab pkg promote` command as follows:
+By default, newly uploaded packages are placed in the `unstable` channel. However, the default package that is downloaded is the latest `stable` version of a package, unless overridden in commands such as `hab sup run`, `hab svc load`, and `hab pkg install`. If you want to promote your package to the `stable` channel, run the `hab pkg promote` command as follows:
 
 ```shell
 $ hab pkg promote -z <TOKEN> origin/package/version/release stable
@@ -67,10 +67,11 @@ For more information on how to use channels, see [Continuous Deployment Using Ch
 
 > **Note:** When running private packages from Builder, it's necessary to add your [Habitat access token](/docs/using-builder/#builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
 
-You can instruct the Supervisor to download and run packages from Builder by using the `hab start` command, for example:
+You can instruct the Supervisor to download and run packages from Builder by using the `hab sup` and `hab svc` commands, for example:
 
 ```shell
-$ hab start core/postgresql
+$ hab sup run
+$ hab svc load core/postgresql
 ```
 
 If the Supervisor does not have the `core/postgresql` package in its local cache, it will contact Builder, retrieve the latest version and the public key for the `core` origin, verify the cryptographic integrity of the package, and then start it.
@@ -78,7 +79,7 @@ If the Supervisor does not have the `core/postgresql` package in its local cache
 You may also supply a `--channel` argument to instruct the Supervisor to use a different channel for the purposes of continuous deployment:
 
 ```shell
-$ hab start core/postgresql --channel unstable
+$ hab svc load core/postgresql --channel unstable
 ```
 
 ### Running packages from exported tarballs

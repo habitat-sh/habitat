@@ -122,4 +122,4 @@ While you can install, start, stop, load, and unload composite packages, they ha
 * They cannot do anything like export selected values from their constituent services as "composite-level exports", or map "composite-level binds" onto constituent service binds.
 * A composite package as a whole does not update itself like an individual service can; however, the constituent services of a composite can continue to update independently of each other.
 * At this time, composite package support is only available for Linux services.
-* Composites will not function properly on any Supervisor running with an organization set (e.g. specifying `--org` when running `hab start`).
+* Composites will not function properly on any Supervisor running with an organization set (e.g. specifying `--org` when running `hab sup run`).

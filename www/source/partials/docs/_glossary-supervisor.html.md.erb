@@ -18,3 +18,7 @@ An example is leader election: it's handled here by having a consistent (and sim
 ## Supervisor REST API
 
 The Habitat Supervisor provides a HTTP API to expose cluster metadata, statistics, and general diagnostic information useful for monitoring and support in the form of a JSON document. It also provides detailed information about the Habitat package that it is supervising, including metadata such as the build and runtime dependencies and their versions.
+
+## Control Gateway
+
+The Supervisor control gateway is used to issue commands to a remote Supervisor. When a new Supervisor is created, a key for the `HAB_CTL_SECRET` environment variable is generated for it by default, if one is not already present; this key is used to authenticate requests that are made via the control gateway. See the [control gateway](/docs/internals#control-gateway) documentation for more details.

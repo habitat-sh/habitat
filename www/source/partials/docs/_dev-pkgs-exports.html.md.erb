@@ -36,43 +36,44 @@ You can create a Docker container image for any package by performing the follow
 
 ## Exporting to a tarball
 
-1. Enter the habitat studio by using `hab studio enter`.
+1. Enter the Habitat studio by using `hab studio enter`.
 
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a tarball, for example:
 
     ```shell
-    $ hab pkg install yourorigin/yourpackage
+    $ hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the tar exporter on the package.
 
     ```shell
-    $ hab pkg export tar yourorigin/yourpackage
+    $ hab pkg export tar <ORIGIN>/<NAME>
     ```
 
-4. Your package in a tar file exists locally on your computer in the format `origin-package-version-timestamp.tar.gz` and can be deployed and run on a target machine.
+4. Your package in a tar file exists locally on your computer in the format `<ORIGIN>-<NAME>-<VERSION>-<TIMESTAMP>.tar.gz` and can be deployed and run on a target machine.
 
-5. If you wish to run this tar file on a remote machine (i.e. a virtual machine in a cloud environment), scp (or whatever transfer protocol you prefer) the file to whatever you wish to run it
+5. If you wish to run this tar file on a remote machine (i.e. a virtual machine in a cloud environment), scp (or whatever transfer protocol you prefer) the file to whatever you wish to run it.
 
 6. SSH into the virtual machine
 
-7. Run these commands to set up the required user and group
+7. Run these commands to set up the required user and group:
 
     ```shell
     $ sudo adduser --group hab
     $ sudo useradd -g hab hab
     ```
 
-8. Next, unpack the tar file
+8. Next, unpack the tar file:
 
     ```shell
     $ sudo tar xf your-origin-package-version-timestamp.tar.gz
     ```
 
-9. Now, start your package using the hab binary which is included in the tar archive
+9. Now, start the Supervisor and load your service package using the `hab` binary, which is included in the tar archive:
 
     ```shell
-    $ sudo /hab/bin/hab start yourorigin/yourpackage
+    $ sudo /hab/bin/hab sup run
+    $ sudo /hab/bin/hab svc load <ORIGIN>/<NAME>
     ```
 
 ## Exporting to an Application Container Image (ACI)
@@ -83,19 +84,19 @@ You can create an Application Container Image (ACI) for any package by performin
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an ACI, for example:
 
     ```shell
-    $ hab pkg install yourorigin/yourpackage
+    $ hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the ACI exporter on the package.
 
     ```shell
-    $ hab pkg export aci yourorigin/yourpackage
+    $ hab pkg export aci <ORIGIN>/<NAME>
     ```
 
 4. Note that this will create unsigned ACI images. If you wish to sign your ACI with default options, pass `SIGN=true`:
 
     ```shell
-    $ SIGN=true hab pkg export aci yourorigin/yourpackage
+    $ SIGN=true hab pkg export aci <ORIGIN>/<NAME>
     ```
 
 5. The `.aci` can now be moved to any runtime capable of running ACIs (e.g. [rkt](https://coreos.com/rkt/) on CoreOS) for execution.
@@ -109,13 +110,13 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an application, for example:
 
     ```shell
-    $ hab pkg install yourorigin/yourpackage
+    $ hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the Kubernetes exporter on the package.
 
     ```shell
-    $ hab pkg export kubernetes yourorigin/yourpackage
+    $ hab pkg export kubernetes <ORIGIN>/<NAME>
     ```
 
     You can run `hab pkg export kubernetes --help` to see the full list of available options and general help.
@@ -133,13 +134,13 @@ Additionally, the Kubernetes Habitat operator is automatically added to the Helm
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an application, for example:
 
     ```shell
-    $ hab pkg install yourorigin/yourpackage
+    $ hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the Helm exporter on the package.
 
     ```shell
-    $ hab pkg export helm yourorigin/yourpackage
+    $ hab pkg export helm <ORIGIN>/<NAME>
     ```
 
     You can run `hab pkg export helm --help` to see the full list of available options and general help.
@@ -153,13 +154,13 @@ Additionally, the Kubernetes Habitat operator is automatically added to the Helm
 2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Marathon application, for example:
 
     ```shell
-    $ hab pkg install yourorigin/yourpackage
+    $ hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the Mesos exporter on the package.
 
     ```shell
-    $ hab pkg export mesos yourorigin/yourpackage
+    $ hab pkg export mesos <ORIGIN>/<NAME>
     ```
 
 4. This will create a Mesos container-format tarball in the results directory, and also print the JSON needed to load the application into Marathon. Note that the tarball needs to be uploaded to a download location and the "uris" in the JSON need to be updated manually. This is an example of the output:
@@ -230,13 +231,13 @@ The helper methods are designed to extract information from the standard Cloud F
 3. Install or [build](/docs/developing-packages/#plan-builds) the package that you want to export.
 
     ```shell
-    $ hab pkg install yourorigin/yourpackage
+    $ hab pkg install <ORIGIN>/<NAME>
     ```
 
 4. Run the Cloud Foundry exporter on the package.
 
     ```shell
-    $ hab pkg export cf yourorigin/yourpackage /path/to/mapping.toml
+    $ hab pkg export cf <ORIGIN>/<NAME> /path/to/mapping.toml
     ```
 
    > **Note** To generate this image, a base Docker image is also created. The Cloud Foundry version of the docker image will have `cf-` as a prefix in the image tag.

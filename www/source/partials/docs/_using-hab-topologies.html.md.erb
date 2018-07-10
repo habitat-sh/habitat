@@ -13,13 +13,15 @@ In a leader-follower topology, one of the members of the service group is electe
 As with any topology using leader election, you must start at least three peers using the `--topology leader` flag to the Supervisor.
 
 ```shell
-$ hab start yourname/yourdb --topology leader --group production
+$ hab sup run --topology leader --group production
+$ hab svc load <ORIGIN>/<NAME>
 ```
 
 The first Supervisor will block until it has quorum. You would start additional members by pointing them at the ring, using the `--peer` argument:
 
 ```shell
-$ hab start yourname/yourdb --topology leader --group production --peer 192.168.5.4
+$ hab sup run --topology leader --group production --peer 192.168.5.4
+$ hab svc load <ORIGIN>/<NAME>
 ```
 
 > Note: The `--peer` service does not need to be a peer that is in the same service group; it merely needs to be in the same ring that the other member(s) are in.
@@ -31,7 +33,8 @@ Once you have quorum, one member is elected a leader, the Supervisors in the ser
 Within a leader-follower topology it is possible to get into a partitioned state where nodes are unable to achieve quorum. To solve this a permanent peer can be used to heal the netsplit. To set this pass the `--permanent-peer` option, or it's short form `-I`, to the Supervisor.
 
 ```shell
-$ hab start yourname/yourdb --topology leader --group production --permanent-peer
+$ hab sup run --topology leader --group production --permanent-peer
+$ hab svc load <ORIGIN>/<NAME>
 ```
 
 When this is used we will attempt to ping the permanent peer and achieve quorum, even if they are confirmed dead.
