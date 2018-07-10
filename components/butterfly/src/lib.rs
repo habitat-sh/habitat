@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Butterfly is the [SWIM](https://www.cs.cornell.edu/~asdas/research/dsn02-swim.pdf)
+//! Butterfly is the [SWIM](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf)
 //! implementation for Habitat, along with a ZeroMQ based gossip protocol.
 //!
 //! It implements SWIM+Susp+Inf. It uses Newscast-style "heat" tracking to share membership rumors,
