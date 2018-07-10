@@ -1,11 +1,11 @@
 * @reset @fnichol @christophermaier
 components/backline @fnichol @baumanj
 components/builder* @chefsalim @raskchanky
-components/butterfly* @christophermaier @reset
+components/butterfly* @christophermaier @reset @baumanj
 components/common @fnichol @baumanj @raskchanky
 components/eventsrv* @reset @raskchanky
 components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @elliott-davis @raskchanky
-components/launcher* @reset @baumanj
+components/launcher* @christophermaier @reset @baumanj
 components/pkg-* @fnichol @christophermaier
 components/plan-build @fnichol @christophermaier @elliott-davis
 components/studio @fnichol @baumanj @elliott-davis
