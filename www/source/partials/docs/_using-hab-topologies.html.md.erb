@@ -36,7 +36,7 @@ $ hab start yourname/yourdb --topology leader --group production --permanent-pee
 
 When this is used we will attempt to ping the permanent peer and achieve quorum, even if they are confirmed dead.
 
-The notion of a permanent peer is an extension to the original [SWIM](https://www.cs.cornell.edu/~asdas/research/dsn02-swim.pdf) gossip protocol. It can add robustness provided everyone has a permanent member on both sides of the split.
+The notion of a permanent peer is an extension to the original [SWIM](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) gossip protocol. It can add robustness provided everyone has a permanent member on both sides of the split.
 
 ### Defining Leader and Follower Behavior in Plans
 
