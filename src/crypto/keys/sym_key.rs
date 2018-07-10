@@ -23,8 +23,10 @@ use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use sodiumoxide::randombytes::randombytes;
 
 use super::super::{hash, SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
-use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
-            read_key_bytes, write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile};
+use super::{
+    get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev, read_key_bytes,
+    write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile,
+};
 use error::{Error, Result};
 
 pub type SymKey = KeyPair<(), SymSecretKey>;

@@ -29,10 +29,11 @@ use time;
 use error::{Error, Result};
 use util::perm;
 
-use super::{PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX,
-            PUBLIC_SIG_KEY_VERSION, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION,
-            SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX, SECRET_SIG_KEY_VERSION,
-            SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
+use super::{
+    PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION,
+    SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION, SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX,
+    SECRET_SIG_KEY_VERSION, SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION,
+};
 
 lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -206,8 +207,10 @@ fn check_filename(
         }
     };
 
-    if suffix == PUBLIC_KEY_SUFFIX || suffix == SECRET_SIG_KEY_SUFFIX
-        || suffix == SECRET_BOX_KEY_SUFFIX || suffix == SECRET_SYM_KEY_SUFFIX
+    if suffix == PUBLIC_KEY_SUFFIX
+        || suffix == SECRET_SIG_KEY_SUFFIX
+        || suffix == SECRET_BOX_KEY_SUFFIX
+        || suffix == SECRET_SYM_KEY_SUFFIX
     {
         debug!("valid key suffix");
     } else {
@@ -220,7 +223,8 @@ fn check_filename(
 
         let do_insert = match pair_type {
             Some(&PairType::Secret) => {
-                if suffix == SECRET_SIG_KEY_SUFFIX || suffix == SECRET_BOX_KEY_SUFFIX
+                if suffix == SECRET_SIG_KEY_SUFFIX
+                    || suffix == SECRET_BOX_KEY_SUFFIX
                     || suffix == SECRET_SYM_KEY_SUFFIX
                 {
                     true

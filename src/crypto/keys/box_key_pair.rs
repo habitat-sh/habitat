@@ -22,10 +22,14 @@ use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecre
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{gen_nonce, Nonce};
 use sodiumoxide::crypto::sealedbox;
 
-use super::super::{ANONYMOUS_BOX_FORMAT_VERSION, BOX_FORMAT_VERSION, PUBLIC_BOX_KEY_VERSION,
-                   PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION};
-use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
-            read_key_bytes, read_key_bytes_from_str, write_keypair_files, KeyPair, KeyType};
+use super::super::{
+    ANONYMOUS_BOX_FORMAT_VERSION, BOX_FORMAT_VERSION, PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX,
+    SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION,
+};
+use super::{
+    get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev, read_key_bytes,
+    read_key_bytes_from_str, write_keypair_files, KeyPair, KeyType,
+};
 use error::{Error, Result};
 
 #[derive(Debug)]

@@ -421,7 +421,9 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
             let handle = kernel32::CreateNamedPipeW(
                 wide_name.as_ptr(),
                 flags,
-                winapi::PIPE_TYPE_BYTE | winapi::PIPE_READMODE_BYTE | winapi::PIPE_WAIT
+                winapi::PIPE_TYPE_BYTE
+                    | winapi::PIPE_READMODE_BYTE
+                    | winapi::PIPE_WAIT
                     | reject_remote_clients_flag,
                 1,
                 4096,
@@ -550,7 +552,8 @@ impl OpenOptions {
             // system-specific
             custom_flags: 0,
             access_mode: None,
-            share_mode: winapi::FILE_SHARE_READ | winapi::FILE_SHARE_WRITE
+            share_mode: winapi::FILE_SHARE_READ
+                | winapi::FILE_SHARE_WRITE
                 | winapi::FILE_SHARE_DELETE,
             attributes: 0,
             security_qos_flags: 0,
@@ -940,7 +943,9 @@ fn create_process_as_user(
             desktop.into_raw(),
             0,
             winapi::FALSE,
-            winapi::READ_CONTROL | winapi::WRITE_DAC | sid::DESKTOP_WRITEOBJECTS
+            winapi::READ_CONTROL
+                | winapi::WRITE_DAC
+                | sid::DESKTOP_WRITEOBJECTS
                 | sid::DESKTOP_READOBJECTS,
         );
         if hdesk == ptr::null_mut() {
@@ -959,17 +964,28 @@ fn create_process_as_user(
         sid.add_to_user_object(
             station as winapi::HANDLE,
             sid::NO_PROPAGATE_INHERIT_ACE,
-            sid::WINSTA_ALL_ACCESS | sid::DELETE | sid::READ_CONTROL | sid::WRITE_DAC
+            sid::WINSTA_ALL_ACCESS
+                | sid::DELETE
+                | sid::READ_CONTROL
+                | sid::WRITE_DAC
                 | sid::WRITE_OWNER,
         )?;
         sid.add_to_user_object(
             hdesk as winapi::HANDLE,
             0,
-            sid::DESKTOP_CREATEMENU | sid::DESKTOP_CREATEWINDOW | sid::DESKTOP_ENUMERATE
-                | sid::DESKTOP_HOOKCONTROL | sid::DESKTOP_JOURNALPLAYBACK
-                | sid::DESKTOP_JOURNALRECORD | sid::DESKTOP_READOBJECTS
-                | sid::DESKTOP_SWITCHDESKTOP | sid::DESKTOP_WRITEOBJECTS | sid::DELETE
-                | sid::READ_CONTROL | sid::WRITE_DAC | sid::WRITE_OWNER,
+            sid::DESKTOP_CREATEMENU
+                | sid::DESKTOP_CREATEWINDOW
+                | sid::DESKTOP_ENUMERATE
+                | sid::DESKTOP_HOOKCONTROL
+                | sid::DESKTOP_JOURNALPLAYBACK
+                | sid::DESKTOP_JOURNALRECORD
+                | sid::DESKTOP_READOBJECTS
+                | sid::DESKTOP_SWITCHDESKTOP
+                | sid::DESKTOP_WRITEOBJECTS
+                | sid::DELETE
+                | sid::READ_CONTROL
+                | sid::WRITE_DAC
+                | sid::WRITE_OWNER,
         )?;
 
         let mut os_env = create_user_environment(token, &mut env.clone())?;

@@ -22,10 +22,13 @@ use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
 use sodiumoxide::randombytes::randombytes;
 
-use super::super::{hash, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_SUFFIX,
-                   SECRET_SIG_KEY_VERSION};
-use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
-            read_key_bytes, write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile};
+use super::super::{
+    hash, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_SUFFIX, SECRET_SIG_KEY_VERSION,
+};
+use super::{
+    get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev, read_key_bytes,
+    write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile,
+};
 use error::{Error, Result};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
