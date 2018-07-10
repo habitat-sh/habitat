@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Fix link for SWIM paper [#5302](https://github.com/habitat-sh/habitat/pull/5302) ([baumanj](https://github.com/baumanj))
 - Exclude release PRs from changelog with label [#5284](https://github.com/habitat-sh/habitat/pull/5284) ([baumanj](https://github.com/baumanj))
 - Replace &quot;blacklist&quot; and &quot;whitelist&quot; with less problematic terminology [#5296](https://github.com/habitat-sh/habitat/pull/5296) ([baumanj](https://github.com/baumanj))
 - Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
