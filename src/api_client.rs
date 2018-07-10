@@ -23,8 +23,10 @@ use hyper::header::UserAgent;
 use hyper::http::h1::Http11Protocol;
 use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
-use openssl::ssl::{SSL_OP_NO_SSLV2, SSL_OP_NO_SSLV3, SslConnector, SslConnectorBuilder, SslMethod,
-                   SslOption, SSL_OP_NO_COMPRESSION, SSL_VERIFY_NONE};
+use openssl::ssl::{
+    SSL_OP_NO_SSLV2, SSL_OP_NO_SSLV3, SslConnector, SslConnectorBuilder, SslMethod, SslOption,
+    SSL_OP_NO_COMPRESSION, SSL_VERIFY_NONE,
+};
 use url::Url;
 
 use error::{Error, Result};
