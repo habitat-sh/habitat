@@ -2342,22 +2342,44 @@ THIS_PROGRAM=$(abspath "$0")
 # a Plan author isn't confused if they edit one to have this program read
 # the other.
 
-# We'll make sure that both are not present, and if so abort.
+# ADDITIONAL LOGIC
+# Plans can exist in 4 places per target.  Only two combinations are allowed:
+#   /plan.sh + /$pkg_target/plan.sh  OR 
+#   /habitat/plan.sh + /habitat/$pkg_target/plan.sh 
+# All others combinations need to be rejected.
+
 if [[ -f "$PLAN_CONTEXT/plan.sh" && -f "$PLAN_CONTEXT/habitat/plan.sh" ]];then
   places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/plan.sh"
+elif [[ -f "$PLAN_CONTEXT/plan.sh" && -f "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" ]]; then
+  places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/$pkg_target/plan.sh"
+elif [[ -f "$PLAN_CONTEXT/habitat/plan.sh" && -f "$PLAN_CONTEXT/$pkg_target/plan.sh" ]]; then 
+  places="$PLAN_CONTEXT/habitat/plan.sh and $PLAN_CONTEXT/$pkg_target/plan.sh"
+elif [[ -f "$PLAN_CONTEXT/$pkg_target/plan.sh" && -f "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" ]]; then
+  places="$PLAN_CONTEXT/$pkg_target/plan.sh and $PLAN_CONTEXT/habitat/$pkg_target/plan.sh"
+fi
+
+if [[ -v places ]]; then 
   exit_with "A Plan file was found at $places. Only one is allowed at a time" 42
 fi
-# We check if the provided path has a `plan.sh` in it in either location. If
+
+build_line "Checking for variant at $pkg_target"
+
+# We check if the provided path has a `plan.sh` in it in valid locations. If
 # not, we'll quickly bail.
-if [[ ! -f "$PLAN_CONTEXT/plan.sh" ]]; then
-  if [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then
-    # As the `plan.sh` is in a deeper subdirectory, we'll update the
-    # `$PLAN_CONTEXT` directory to be relative to the actual `plan.sh` file.
-    PLAN_CONTEXT="$PLAN_CONTEXT/habitat"
-  else
-    places="$PLAN_CONTEXT/plan.sh or $PLAN_CONTEXT/habitat/plan.sh"
-    exit_with "Plan file not found at $places" 42
-  fi
+if [[ -f "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" ]]; then
+  PLAN_CONTEXT="$PLAN_CONTEXT/habitat/$pkg_target"
+elif [[ -f "$PLAN_CONTEXT/$pkg_target/plan.sh" ]]; then
+  PLAN_CONTEXT="$PLAN_CONTEXT/$pkg_target"
+elif [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then 
+  PLAN_CONTEXT="$PLAN_CONTEXT/habitat"
+elif [[ -f "$PLAN_CONTEXT/plan.sh" ]]; then
+	: # DO NOTHING
+else
+  locations=("$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" 
+	     "$PLAN_CONTEXT/$pkg_target/plan.sh"
+	     "$PLAN_CONTEXT/habitat/plan.sh"
+	     "$PLAN_CONTEXT/plan.sh")
+  exit_with "plan.sh not found in any of the following locations: ${locations[*]}" 42
 fi
 
 # Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
