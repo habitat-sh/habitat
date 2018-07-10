@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Re-add Vagrantfile. [#5117](https://github.com/habitat-sh/habitat/pull/5117) ([bruce-one](https://github.com/bruce-one))
 - Fix link for SWIM paper [#5302](https://github.com/habitat-sh/habitat/pull/5302) ([baumanj](https://github.com/baumanj))
 - Exclude release PRs from changelog with label [#5284](https://github.com/habitat-sh/habitat/pull/5284) ([baumanj](https://github.com/baumanj))
 - Replace &quot;blacklist&quot; and &quot;whitelist&quot; with less problematic terminology [#5296](https://github.com/habitat-sh/habitat/pull/5296) ([baumanj](https://github.com/baumanj))
