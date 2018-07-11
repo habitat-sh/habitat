@@ -54,6 +54,7 @@ Lieutenant and may have many maintainers.
 * [George Marshall](https://github.com/georgemarshall)
 * [Tasha Drew](https://github.com/tashimi)
 * [Jon Bauman](https://github.com/baumanj)
+* [Scott Hain](https://github.com/scotthain)
 
 ### Habitat Builder Web Application
 
