@@ -72,6 +72,8 @@ sidebar_links:
       link: "/docs/using-habitat/#using-updates"
     - title: Continuous Deployment
       link: "/docs/using-habitat/#continuous-deployment"
+  - title: Habitat and Other Software
+    link: "/docs/habitat-and-other-software"
   - title: CLI Commands
     link: "/docs/habitat-cli"
   - title: Reference
