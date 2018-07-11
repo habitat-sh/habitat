@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- some modernization updates to windows blogs [#5301](https://github.com/habitat-sh/habitat/pull/5301) ([mwrock](https://github.com/mwrock))
 - Add success and failure callbacks for plan builds [#5081](https://github.com/habitat-sh/habitat/pull/5081) ([christophermaier](https://github.com/christophermaier))
 - added habitat and other software doc [#5309](https://github.com/habitat-sh/habitat/pull/5309) ([echohack](https://github.com/echohack))
 - Adds --auth for allowing exports of private packages [#5203](https://github.com/habitat-sh/habitat/pull/5203) ([eeyun](https://github.com/eeyun))
