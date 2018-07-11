@@ -23,14 +23,10 @@ This service simply logs the state of the service to a file. It logs startup and
 $pkg_name="windows-service-sample"
 $pkg_origin="mwrock"
 $pkg_version="0.1.0"
-$pkg_source="nosuchfile.tar.gz"
 $pkg_maintainer="Matt Wrock"
 $pkg_license=@('MIT')
 $pkg_description="A sample .NET Windows Service"
 $pkg_bin_dirs=@("bin")
-
-function invoke-download { }
-function invoke-verify { }
 
 function Invoke-Build {
   Copy-Item $PLAN_CONTEXT/../* $HAB_CACHE_SRC_PATH/$pkg_dirname -recurse -force -Exclude ".vs"
@@ -143,7 +139,7 @@ Project "C:\hab\cache\src\windows-service-sample-0.1.0\windows-service-sample.cs
 Ok, lets start the service with the Studio's Supervisor:
 
 ```studio title:"Starting the studio's supervisor"
-[HAB-STUDIO] Habitat:\src> hab start mwrock/windows-service-sample
+[HAB-STUDIO] Habitat:\src> hab svc load mwrock/windows-service-sample
 hab-sup(MN): Supervisor starting mwrock/windows-service-sample. See the Supervisor output for more details.
 ```
 
@@ -170,7 +166,7 @@ HabSampleService is up
 Now we will stop the service:
 
 ```studio title:"Stopping the service"
-[HAB-STUDIO] Habitat:\src> hab stop mwrock/windows-service-sample
+[HAB-STUDIO] Habitat:\src> hab svc stop mwrock/windows-service-sample
 [HAB-STUDIO] Habitat:\src> Get-Service HabSampleService
 
 Status   Name               DisplayName

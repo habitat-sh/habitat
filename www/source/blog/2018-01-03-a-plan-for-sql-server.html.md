@@ -23,7 +23,9 @@ All of these challenges can be dealt with so lets jump in and explore a working 
 
 ## Packaging Sql Server
 
-SQL Server is a commercial product. You can download an evaluation copy of the database [here](https://www.microsoft.com/en-us/sql-server/sql-server-2017) that will operate for a limited period of time. The complete install media is typically distributed via a `.cab` or `.iso` file and occupies about 1.5 GB of disk space. So its not likely you will be using a `sqlserver` plan from the Habitat [`core-plans`](https://github.com/habitat-sh/core-plans) repo. You will need to build your own package that either includes or points to your own purchased install media.
+SQL Server is a commercial product. You can download an evaluation copy of the database [here](https://www.microsoft.com/en-us/sql-server/sql-server-2017) that will operate for a limited period of time. The complete install media is typically distributed via a `.cab` or `.iso` file and occupies about 1.5 GB of disk space. ~~So its not likely you will be using a `sqlserver` plan from the Habitat [`core-plans`](https://github.com/habitat-sh/core-plans) repo. You will need to build your own package that either includes or points to your own purchased install media.~~
+
+**Update**: We now host a `core/sqlserver` plan in our core-plans repository. This plan will download the free SQL Server Express edition and allow you to specify your own install media in case you want to run your Standard or Enterprise edition.
 
 Here is a plan one might use as a reference for their own SQL Server plan. The `plan.ps1` file is extremely simple because it merely copies the install files into the package. It doesn't actually install SQL Server because that will happen the very first time the `init` hook runs as we will see later.
 
@@ -42,10 +44,6 @@ $pkg_upstream_url = "https://www.microsoft.com/en-us/sql-server/sql-server-2017"
 $pkg_bin_dirs = @("bin")
 
 $setupDir = "d:"
-
-function invoke-download { }
-function invoke-verify { }
-function Invoke-Build { }
 
 function Invoke-Install {
   Copy-Item "$setupDir/*" $pkg_prefix/bin -Recurse
@@ -132,28 +130,27 @@ Configuration NewFirewallRule
 And our `init` hook invokes this:
 
 ```ps1 title:'habitat-sql-server/hooks/init' linenos:true start:10 link: https://github.com/mwrock/habitat-sql-server/blob/master/hooks/init
-Write-Host "Ensuring xNetworking DSC resources are installed..."
-Install-Module xNetworking -Force | Out-Null
+Invoke-Command -ComputerName localhost -EnableNetworkAccess {    Write-Host "Checking for xNetworking PS module..."
+    $ProgressPreference="SilentlyContinue"
+    Write-Host "Checking for nuget package provider..."
+    if(!(Get-PackageProvider -Name nuget -ErrorAction SilentlyContinue -ListAvailable)) {
+        Write-Host "Installing Nuget provider..."
+        Install-PackageProvider -Name NuGet -Force | Out-Null
+    }
+    Write-Host "Checking for xNetworking PS module..."
+    if(!(Get-Module xNetworking -ListAvailable)) {
+        Write-Host "Installing xNetworking PS Module..."
+        Install-Module xNetworking -Force | Out-Null
+    }
+}
 
-Write-Host "Compiling DSC mof..."
-. (Join-Path {{pkg.svc_config_path}} firewall.ps1)
-$mof = NewFirewallRule -OutputPath "{{pkg.svc_data_path}}"
 
-# Need to move xNetworking because LCM is not honoring PS Core's PSModulePath
-$mod = (Get-Module xNetworking -ListAvailable).ModuleBase
-$machine_mod = "C:\Program Files\windowsPowerShell\Modules\xNetworking"
-if(Test-Path $machine_mod) { Remove-Item $machine_mod -Recurse -Force }
-Move-Item $mod $machine_mod -Force
+Import-Module "{{pkgPathFor "core/dsc-core"}}/Modules/DscCore"
+Start-DscCore (Join-Path {{pkg.svc_config_path}} firewall.ps1) NewFirewallRule
 
-$configurationData = Get-Content $mof.FullName -Encoding Byte -ReadCount 0
-$totalSize = [System.BitConverter]::GetBytes($configurationData.Length + 4)
-$configurationData = $totalSize + $configurationData
-
-Write-Host "Applying DSC configuration..."
-Invoke-CimMethod -ComputerName localhost -Namespace "root/Microsoft/Windows/DesiredStateConfiguration" -ClassName "MSFT_DSCLocalConfigurationManager" -MethodName "SendConfigurationApply" -Arguments @{ConfigurationData = $configurationData; Force = $true}
 ```
 
-That may seem like a round about way of applying a DSC configuration but given that the Habitat Supervisor runs Powershell Core, its the only way I could get it to apply.
+This leverages our `core/dsc` package which makes it easy to apply a DSC configuration in Habitat's Powershell core environment. Note that we use `Invoke-Command` to wrap the installation of our `xNetworking` DSC module so that it is installed into the Windows Powershell context and not Powershell Core.
 
 ## Running the Sql Server Service
 

@@ -45,13 +45,14 @@ Now I'll add the codes for building this project:
 $pkg_name="hab-sln"
 $pkg_origin="mwrock"
 $pkg_version="0.1.0"
-$pkg_source="nosuchfile.tar.gz"
 $pkg_maintainer="Matt Wrock"
 $pkg_license=@('MIT')
 $pkg_description="A sample ASP.NET Full FX IIS app"
+$pkg_deps=@("core/dsc-core")
 $pkg_build_deps=@(
   "core/nuget",
-  "core/dotnet-47-dev-pack"
+  "core/dotnet-47-dev-pack",
+  "core/visual-build-tools-2017"
 )
 
 function invoke-download { }
@@ -63,14 +64,14 @@ function Invoke-Build {
   nuget install MSBuild.Microsoft.VisualStudio.Web.targets -Version 14.0.0.3 -OutputDirectory $HAB_CACHE_SRC_PATH/$pkg_dirname/
   $env:TargetFrameworkRootPath="$(Get-HabPackagePath dotnet-47-dev-pack)\Program Files\Reference Assemblies\Microsoft\Framework"
   $env:VSToolsPath = "$HAB_CACHE_SRC_PATH/$pkg_dirname/MSBuild.Microsoft.VisualStudio.Web.targets.14.0.0.3/tools/VSToolsPath"
-  ."$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe" $HAB_CACHE_SRC_PATH/$pkg_dirname/$pkg_name/${pkg_name}.csproj /t:Build /p:VisualStudioVersion=14.0
+  MSBuild $HAB_CACHE_SRC_PATH/$pkg_dirname/$pkg_name/${pkg_name}.csproj /t:Build
   if($LASTEXITCODE -ne 0) {
       Write-Error "dotnet build failed!"
   }
 }
 
 function Invoke-Install {
-  ."$env:SystemRoot\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe" $HAB_CACHE_SRC_PATH/$pkg_dirname/$pkg_name/${pkg_name}.csproj /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=$pkg_prefix/www
+  MSBuild $HAB_CACHE_SRC_PATH/$pkg_dirname/$pkg_name/${pkg_name}.csproj /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=$pkg_prefix/www
 }
 ```
 
@@ -113,6 +114,10 @@ When you build a .NET project, `msbuild` searches for reference assemblies match
 ### Getting the VisualStudio.Web.targets
 
 Most of the `MSBUILD` targets, `.prop` files, and the `msbuild.exe` needed to build .NET assemblies can be found in your local `c:\windows\Microsoft.NET` folder. However, the web targets are not. The easiest way to get those without installing Visual Studio is to use `nuget` to install the `MSBuild.Microsoft.VisualStudio.Web.targets` package and then point `VSToolsPath` to its location.
+
+### Using Compatible MSBuild Tooling
+
+Because we are targeting the v4.7 framework, our project will take a dependency on the v4.7 `Microsoft.Net.Compilers` Nuget package. This is going to require us to use the Visual Studio 2017 MSBuild tooling in our `Invoke-Build`. So we declare a build time dependency on `core/visual-build-tools-2017` which places its version of `msbuild` on the path.
 
 ## Configuring IIS Pools, Sites and Applications
 
@@ -239,7 +244,7 @@ Assuming that the plan has been built as shown above, We can stream the Supervis
 
 ```studio
 [HAB-STUDIO] Habitat:\src> Get-SupervisorLog
-[HAB-STUDIO] Habitat:\src> hab svc start mwrock/hab-sln
+[HAB-STUDIO] Habitat:\src> hab svc load mwrock/hab-sln
 hab-sup(MN): Supervisor starting mwrock/hab-sln. See the Supervisor output for more details.
 ```
 
@@ -316,6 +321,4 @@ Of course changing a port is just one small example of a multitude of possible c
 
 ## What's Next?
 
-Here we have seen how we can build and run our IIS .NET full framework applications but it would be much better if all you needed to do was add a 5 line `plan.ps1` without all the msbuild goo and also write much more concise hooks. We'll be looking at scaffolding next to make it just that easy.
-
-In the mean time, we'd love to hear what you think! Do you have ASP.NET applications that you'd like to build and run with Habitat? Do you think this pattern would work for your applications and tour team's work flows? Do you think it would need some tweaking. We'd love to hear! You can talk with us in the #windows [Habitat slack](http://slack.habitat.sh/) channel.
+We'd love to hear what you think! Do you have ASP.NET applications that you'd like to build and run with Habitat? Do you think this pattern would work for your applications and tour team's work flows? Do you think it would need some tweaking. We'd love to hear! You can talk with us in the #windows [Habitat slack](http://slack.habitat.sh/) channel.
