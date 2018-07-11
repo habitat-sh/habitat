@@ -75,6 +75,8 @@ pub struct BuildSpec<'a> {
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
     pub idents_or_archives: Vec<&'a str>,
+    /// The Builder Auth Token to use in the request
+    pub auth: Option<&'a str>,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -93,6 +95,7 @@ impl<'a> BuildSpec<'a> {
             channel: m.value_of("CHANNEL").unwrap_or(&default_channel),
             base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
             base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL").unwrap_or(&default_channel),
+            auth: m.value_of("BLDR_AUTH_TOKEN"),
             idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
                 .expect("No package specified")
                 .collect(),
@@ -311,6 +314,7 @@ impl<'a> BuildSpec<'a> {
             self.base_pkgs_url,
             self.base_pkgs_channel,
             fs_root_path,
+            None,
         )
     }
 
@@ -320,7 +324,14 @@ impl<'a> BuildSpec<'a> {
         ident_or_archive: &str,
         fs_root_path: P,
     ) -> Result<PackageIdent> {
-        self.install(ui, ident_or_archive, self.url, self.channel, fs_root_path)
+        self.install(
+            ui,
+            ident_or_archive,
+            self.url,
+            self.channel,
+            fs_root_path,
+            self.auth,
+        )
     }
 
     fn install<P: AsRef<Path>>(
@@ -330,6 +341,7 @@ impl<'a> BuildSpec<'a> {
         url: &str,
         channel: &str,
         fs_root_path: P,
+        token: Option<&str>,
     ) -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install = common::command::package::install::start(
@@ -341,7 +353,7 @@ impl<'a> BuildSpec<'a> {
             VERSION,
             &fs_root_path,
             &cache_artifact_path(Some(&fs_root_path)),
-            None,
+            token,
             // TODO fn: pass through and enable offline install mode
             &InstallMode::default(),
             // TODO (CM): pass through and enable ignore-local mode
@@ -749,6 +761,7 @@ mod test {
             base_pkgs_url: "base_pkgs_url",
             base_pkgs_channel: "base_pkgs_channel",
             idents_or_archives: Vec::new(),
+            auth: Some("heresafakeauthtokenduh"),
         }
     }
 
