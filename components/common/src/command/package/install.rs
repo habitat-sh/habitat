@@ -50,7 +50,7 @@ use hcore::crypto::keys::parse_name_with_rev;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::fs::cache_key_path;
 use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, Target};
+use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
 use hyper::status::StatusCode;
 
 use error::{Error, Result};
@@ -761,10 +761,7 @@ impl<'a> InstallTask<'a> {
                 // danger territory, but works today!
                 ident.release = Some(String::from("?*"));
             }
-            match ident.archive_name() {
-                Some(name) => name,
-                None => return Err(Error::PackageNotFound("".to_string())),
-            }
+            ident.archive_name()?
         };
         let glob_path = self.artifact_cache_path.join(filename_glob);
         let glob_path = glob_path.to_string_lossy();
@@ -950,8 +947,18 @@ impl<'a> InstallTask<'a> {
             )));
         }
 
+        // TODO fn: this un-alterable target behavior that's piggybacking off `verify_artifact()`
+        // is troubling and feels like it should at least be configuratble somewhere, allowing a
+        // consumer of the install logic to deal with artifacts not meant for the currently active
+        // system. Until we have better ideas, this implementation preserves past behavior.
         let artifact_target = artifact.target()?;
-        artifact_target.validate()?;
+        let active_target = PackageTarget::active_target();
+        if active_target != &artifact_target {
+            return Err(Error::HabitatCore(hcore::Error::WrongActivePackageTarget(
+                active_target.clone(),
+                active_target.clone(),
+            )));
+        }
 
         let nwr = artifact::artifact_signer(&artifact.path)?;
         if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.key_cache_path) {
