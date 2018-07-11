@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- [common] Updates due to PackageTarget changes in habitat-sh/core#37. [#5311](https://github.com/habitat-sh/habitat/pull/5311) ([fnichol](https://github.com/fnichol))
 - some modernization updates to windows blogs [#5301](https://github.com/habitat-sh/habitat/pull/5301) ([mwrock](https://github.com/mwrock))
 - Add success and failure callbacks for plan builds [#5081](https://github.com/habitat-sh/habitat/pull/5081) ([christophermaier](https://github.com/christophermaier))
 - added habitat and other software doc [#5309](https://github.com/habitat-sh/habitat/pull/5309) ([echohack](https://github.com/echohack))
