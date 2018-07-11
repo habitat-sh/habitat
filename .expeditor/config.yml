@@ -8,6 +8,10 @@ github:
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
   changelog_file: "CHANGELOG.md"
 
+# Slack channel in Chef Software slack to send notifications about Expeditor actions
+slack:
+  notify_channel: habitat-notify
+
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
   - built_in:update_changelog:
