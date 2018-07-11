@@ -187,3 +187,9 @@ Delegates most of the implementation to the `do_default_build_server()` function
 
 **do_default_end()/Invoke-DefaultEnd**
 : There is an empty default implementation of this callback.
+
+**do_after_success()**(`plan.sh` only)
+: A function that is called at the absolute end of a successful build process. This can be used to provide integration points with external systems, among other things, particularly if you are not using Builder (a Notifications feature is coming to Builder in H2 2018). Failure of this callback will not fail your build, nor will it trigger a `do_after_failure` call.
+
+**do_after_failure()**(`plan.sh` only)
+: A function that is called at the absolute end of a failed build process. This can be used to provide integration points with external systems, among other things, particularly if you are not using Builder (a Notifications feature is coming to Builder in H2 2018). The result of this callback cannot affect the disposition of the overall build; once the build has failed, it's failed. Keep in mind that since a build could potentially fail at any time, certain variables or data structures may not be present or initialized when this callback is called, so code accordingly.

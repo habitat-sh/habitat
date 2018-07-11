@@ -471,6 +471,8 @@ _artifact_ext="hart"
 #
 # Would also exit 1.
 _on_exit() {
+  # TODO (CM): would be great to show where in the plan the build failed
+
   local exit_status=${1:-$?}
   if [[ $BASH_SUBSHELL -gt 0 ]]; then
     exit "$exit_status"
@@ -491,19 +493,15 @@ _on_exit() {
     esac
   fi
   if [[ $exit_status -ne 0 ]]; then
-    if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
-      echo "   ${pkg_name}: Exiting on error"
-    else
-      case "${TERM:-}" in
-        *term | xterm-* | rxvt | screen | screen-*)
-          echo -e "   \033[1;36m${pkg_name}: \033[1;31mExiting on error\033[0m"
-          ;;
-        *)
-          echo "   ${pkg_name}: Exiting on error"
-          ;;
-      esac
-    fi
+    _build_error_message "Exiting on error"
+
+    # If the user has set up a failure hook, execute it now
+    do_after_failure_wrapper
   fi
+
+  # If we don't unset the trap for EXIT, we can end up double-exiting,
+  # which could cause a `do_after_failure` callback to fire twice.
+  trap - EXIT
   exit "$exit_status"
 }
 
@@ -514,7 +512,34 @@ _on_exit() {
 # * TERM (15)
 # * ERR - when a shell command raises an error. Useful for `set -e; set -E`
 #   above.
-trap _on_exit 1 2 3 15 ERR
+# * EXIT - ensure we wrap things up properly (including firing any
+#   `do_after_failure` callback) if any thing calls `exit` (such as `exit_with`)
+#
+# See also `_do_final_callback_wrapper()`; it does some trap munging, too.
+trap _on_exit 1 2 3 15 ERR EXIT
+
+# **Internal** Prints out an optionally colorized message indicating
+# an error of some kind.
+#
+# The line will be indented, with the package name in blue, and
+# `message` in red.
+_build_error_message() {
+    local message=${1}
+    : ${pkg_name:=unknown}
+
+    if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+      echo "   ${pkg_name}: ${message}"
+    else
+      case "${TERM:-}" in
+        *term | xterm-* | rxvt | screen | screen-*)
+          echo -e "   \033[1;36m${pkg_name}: \033[1;31m${message}\033[0m"
+          ;;
+        *)
+          echo "   ${pkg_name}: ${message}"
+          ;;
+      esac
+    fi
+}
 
 # **Internal**  Build a `PATH` string suitable for entering into this package's
 # `RUNTIME_PATH` metadata file. The ordering of this path is important as this
@@ -2201,6 +2226,68 @@ do_default_end() {
   return 0
 }
 
+# Internal: Prevent a failure in `do_after_success` from failing the
+# entire job. Execution of this hook is best-effort.
+do_after_success_wrapper() {
+    _do_final_callback_wrapper "do_after_success"
+}
+
+# Internal: Prevent a failure in `do_after_success` from failing the
+# entire job. Execution of this hook is best-effort.
+do_after_failure_wrapper() {
+    _do_final_callback_wrapper "do_after_failure"
+}
+
+# **Internal** Call the `do_after_success` or `do_after_failure`
+# callback functions (if defined), ensuring that errors in *those*
+# functions don't affect the broader build. Failure in a success
+# callback shouldn't fail the build, and the exit code of either
+# shouldn't be able to change the exit code of the build
+# itself. Failure in a callback shouldn't trigger the failure
+# callback.
+_do_final_callback_wrapper() {
+    local callback_function=${1}
+
+    if [[ "$(type -t "${callback_function}")" == "function" ]]; then
+        build_line "'${callback_function}' callback function is defined; executing..."
+
+        # We don't want errors in callback execution to affect the
+        # broader build; execution of these functions is strictly
+        # best-effort, and sugar on top of the build.
+        #
+        # Thus, we need to do a lot of juggling of error handling.
+        #
+        # Kinda gross, but it's Bash.
+
+        # Set this to prevent an error from the hook from triggering
+        # the error handler.
+        set +e
+        # Don't want an error from the success hook to trigger the error hook
+        trap - ERR
+        (
+            # We do want to stop early if one of several commands in
+            # the hook itself fail.
+            set -e
+
+            ${callback_function}
+        )
+        local retval=$?
+
+        # Set handlers back to what they were for consistency
+        trap _on_exit ERR
+        set -e
+
+        if [[ $retval -ne 0 ]]; then
+            local message="'${callback_function}' callback failed"
+            if [[ "${callback_function}" == "do_after_success" ]];
+            then
+                message="${message}; overall build is successful, though"
+            fi
+            _build_error_message "${message}"
+        fi
+    fi
+}
+
 # # Main Flow
 ########################################################################
 
@@ -2493,6 +2580,11 @@ _prepare_build_outputs
 build_line "$_program cleanup"
 do_end
 
+# Fire success callback; if we've failed anywhere else, we will have
+# fired our `do_after_failure` callback, if available (and also never
+# gotten down to here).
+do_after_success_wrapper
+
 # Print the results
 build_line
 build_line "Source Path: $SRC_PATH"
@@ -2506,4 +2598,4 @@ build_line "Blake2b Checksum: $_pkg_blake2bsum"
 build_line
 build_line "I love it when a plan.sh comes together."
 build_line
-_on_exit  0
+_on_exit 0
