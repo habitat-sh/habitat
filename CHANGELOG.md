@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Adds --auth for allowing exports of private packages [#5203](https://github.com/habitat-sh/habitat/pull/5203) ([eeyun](https://github.com/eeyun))
 - Update remaining `hab start` references [#5303](https://github.com/habitat-sh/habitat/pull/5303) ([cnunciato](https://github.com/cnunciato))
 - Re-add Vagrantfile. [#5117](https://github.com/habitat-sh/habitat/pull/5117) ([bruce-one](https://github.com/bruce-one))
 - Fix link for SWIM paper [#5302](https://github.com/habitat-sh/habitat/pull/5302) ([baumanj](https://github.com/baumanj))
