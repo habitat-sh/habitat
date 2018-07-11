@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Add success and failure callbacks for plan builds [#5081](https://github.com/habitat-sh/habitat/pull/5081) ([christophermaier](https://github.com/christophermaier))
 - added habitat and other software doc [#5309](https://github.com/habitat-sh/habitat/pull/5309) ([echohack](https://github.com/echohack))
 - Adds --auth for allowing exports of private packages [#5203](https://github.com/habitat-sh/habitat/pull/5203) ([eeyun](https://github.com/eeyun))
 - Update remaining `hab start` references [#5303](https://github.com/habitat-sh/habitat/pull/5303) ([cnunciato](https://github.com/cnunciato))
