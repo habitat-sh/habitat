@@ -88,6 +88,16 @@ impl fmt::Display for ProcessState {
     }
 }
 
+impl fmt::Display for DesiredState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let state = match *self {
+            DesiredState::DesiredDown => "down",
+            DesiredState::DesiredUp => "up",
+        };
+        write!(f, "{}", state)
+    }
+}
+
 impl FromStr for BindingMode {
     type Err = NetErr;
 
@@ -112,7 +122,22 @@ impl FromStr for ProcessState {
             "1" => Ok(ProcessState::Up),
             _ => Err(net::err(
                 ErrCode::InvalidPayload,
-                format!("Invalid process state \"{}\"", value),
+                format!("Invalid process state \"{:?}\"", value),
+            )),
+        }
+    }
+}
+
+impl FromStr for DesiredState {
+    type Err = NetErr;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "0" => Ok(DesiredState::DesiredDown),
+            "1" => Ok(DesiredState::DesiredUp),
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                format!("Invalid desired state \"{:?}\"", value),
             )),
         }
     }
