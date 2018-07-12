@@ -3,22 +3,32 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-#### Merged Pull Requests
-- [common] Updates due to PackageTarget changes in habitat-sh/core#37. [#5311](https://github.com/habitat-sh/habitat/pull/5311) ([fnichol](https://github.com/fnichol))
-- some modernization updates to windows blogs [#5301](https://github.com/habitat-sh/habitat/pull/5301) ([mwrock](https://github.com/mwrock))
+#### New Features & Enhancements
 - Add success and failure callbacks for plan builds [#5081](https://github.com/habitat-sh/habitat/pull/5081) ([christophermaier](https://github.com/christophermaier))
-- added habitat and other software doc [#5309](https://github.com/habitat-sh/habitat/pull/5309) ([echohack](https://github.com/echohack))
 - Adds --auth for allowing exports of private packages [#5203](https://github.com/habitat-sh/habitat/pull/5203) ([eeyun](https://github.com/eeyun))
+`hab pkg export docker <origin>/<pkg>` should now respect `HAB_AUTH_TOKEN` appropriately as well as now supporting an `--auth` argument!
+
+#### Behavioral Changes
+- [common] Updates due to PackageTarget changes in habitat-sh/core#37. [#5311](https://github.com/habitat-sh/habitat/pull/5311) ([fnichol](https://github.com/fnichol))
+
+#### Bug Fixes
+- fixing default value for pid display in hab svc status [#5281](https://github.com/habitat-sh/habitat/pull/5281) ([jeremymv2](https://github.com/jeremymv2))
+- remove svc PID files on hab sup term [#5236](https://github.com/habitat-sh/habitat/pull/5236) ([jeremymv2](https://github.com/jeremymv2))
+- Deploy web site using the keys for the www user, not me [#5290](https://github.com/habitat-sh/habitat/pull/5290) ([raskchanky](https://github.com/raskchanky))
+
+#### Documentation Updates
+
+- some modernization updates to windows blogs [#5301](https://github.com/habitat-sh/habitat/pull/5301) ([mwrock](https://github.com/mwrock))
+- added habitat and other software doc [#5309](https://github.com/habitat-sh/habitat/pull/5309) ([echohack](https://github.com/echohack))
 - Update remaining `hab start` references [#5303](https://github.com/habitat-sh/habitat/pull/5303) ([cnunciato](https://github.com/cnunciato))
 - Re-add Vagrantfile. [#5117](https://github.com/habitat-sh/habitat/pull/5117) ([bruce-one](https://github.com/bruce-one))
 - Fix link for SWIM paper [#5302](https://github.com/habitat-sh/habitat/pull/5302) ([baumanj](https://github.com/baumanj))
 - Exclude release PRs from changelog with label [#5284](https://github.com/habitat-sh/habitat/pull/5284) ([baumanj](https://github.com/baumanj))
+- Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
+
+#### Merged Pull Requests
 - Replace &quot;blacklist&quot; and &quot;whitelist&quot; with less problematic terminology [#5296](https://github.com/habitat-sh/habitat/pull/5296) ([baumanj](https://github.com/baumanj))
 - Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
-- fixing default value for pid display in hab svc status [#5281](https://github.com/habitat-sh/habitat/pull/5281) ([jeremymv2](https://github.com/jeremymv2))
-- remove svc PID files on hab sup term [#5236](https://github.com/habitat-sh/habitat/pull/5236) ([jeremymv2](https://github.com/jeremymv2))
-- Deploy web site using the keys for the www user, not me [#5290](https://github.com/habitat-sh/habitat/pull/5290) ([raskchanky](https://github.com/raskchanky))
-- Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 <!-- latest_release -->
 
 ## [0.58.0](https://github.com/habitat-sh/habitat/tree/0.58.0) (07-02-2018)
