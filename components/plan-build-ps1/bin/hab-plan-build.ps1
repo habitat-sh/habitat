@@ -89,12 +89,8 @@ if (!(Test-Path Env:\HAB_BLDR_CHANNEL)) {
 $script:FALLBACK_CHANNEL = "stable"
 # The value of `$env:Path` on initial start of this program
 $script:INITIAL_PATH = "$env:Path"
-# The target architecture this plan will be built for
-$script:pkg_arch = "x86_64"
-# The target system (i.e. operating system variant) this plan will be built for
-$script:pkg_sys = "windows"
 # The full target tuple this plan will be built for
-$script:pkg_target = "${pkg_arch}-${pkg_sys}"
+$script:pkg_target = "@@pkg_target@@"
 # The package's origin (i.e. acme)
 $script:pkg_origin = ""
 # The package's name (i.e. myapp)
@@ -1837,8 +1833,6 @@ $pkg_description
 * __Maintainer__: $pkg_maintainer
 * __Version__: $pkg_version
 * __Release__: $pkg_release
-* __Architecture__: $pkg_arch
-* __System__: $pkg_sys
 * __Target__: $pkg_target
 * __Upstream URL__: $upstream_url_string
 * __License__: $($pkg_license -join ' ')
@@ -2050,6 +2044,25 @@ function Invoke-DefaultEnd {
 
 
 # # Main Flow
+
+# If the value of `$pkg_target` is a replacement token, then the program is
+# being run out of a raw source tree (which must be supported), otherwise
+# `$pkg_target` would have a static value set when the Habitat package for this
+# program was built.
+if ($pkg_target -eq "@@pkg_target@@") {
+  if ($env:BUILD_PKG_TARGET) {
+    # If a build environment variable is set with the desired package target,
+    # then update the value of `$pkg_target`. This case is used in
+    # bootstrapping the Habitat packaging system.
+    $script:pkg_target = "$env:BUILD_PKG_TARGET"
+    Write-BuildLine "Setting pkg_target='$pkg_target' from `$env:BUILD_PKG_TARGET"
+  } else {
+    # Otherwise, set a suitable value for `$pkg_target`. This is prior behavior
+    # and is backwards compatible and behavior-preserving.
+    $script:pkg_target = "x86_64-windows"
+    Write-BuildLine "Setting pkg_target='$pkg_target' as fallback default"
+  }
+}
 
 # Expand the context path to an absolute path
 if (-Not (Test-Path "$Context")) {
