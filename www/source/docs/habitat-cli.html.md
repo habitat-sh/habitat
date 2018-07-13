@@ -137,7 +137,7 @@ hab bldr channel create [OPTIONS] <CHANNEL>
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>    Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or cli.toml
 ```
 
@@ -171,7 +171,7 @@ hab bldr channel destroy [OPTIONS] <CHANNEL>
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>    Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN'or cli.toml
 ```
 
@@ -205,7 +205,7 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>    Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>    Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -271,7 +271,7 @@ hab bldr job cancel [FLAGS] [OPTIONS] <GROUP_ID>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -306,7 +306,7 @@ hab bldr job demote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>      Limit the demotable packages to the specified origin
 ```
 
@@ -343,7 +343,7 @@ hab bldr job promote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>      Limit the promotable packages to the specified origin
 ```
 
@@ -380,7 +380,7 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -414,7 +414,7 @@ hab bldr job status [FLAGS] [OPTIONS] <GROUP_ID|--origin <ORIGIN>>
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -l, --limit <LIMIT>      Limit how many job groups to retrieve, ordered by most recent (default: 10)
 -o, --origin <ORIGIN>    Show the status of recent job groups created in this origin (default: 10 most recent)
 ```
@@ -476,7 +476,7 @@ hab cli completers --shell <SHELL>
 **OPTIONS**
 
 ```
--s, --shell <SHELL>    The name of the shell you want to generate the command-completion. Supported Shells: bash,$2ish, zsh, powershell [possible values: bash, fish, zsh, powershell]
+-s, --shell <SHELL>    The name of the shell you want to generate the command-completion. Supported Shells: bash, fish, zsh, powershell [possible values: bash, fish, zsh, powershell]
 ```
 
 
@@ -746,7 +746,7 @@ hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder (required for downloading secret keys)
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -866,7 +866,7 @@ hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 
 ```
 -z, --auth <AUTH_TOKEN>        Authentication token for Builder
--u, --url <BLDR_URL>           Specify an alternate Builder endpoint. If not specified, the value will be taken from$2he HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>           Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     --pubfile <PUBLIC_FILE>    Path to a local public origin key file on disk
     --secfile <SECRET_FILE>    Path to a local secret origin key file on disk
 ```
@@ -931,7 +931,7 @@ hab origin secret delete [OPTIONS] <KEY_NAME>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>      The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or cli.toml
 ```
 
@@ -966,7 +966,7 @@ hab origin secret list [OPTIONS]
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>      The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml
 ```
 
@@ -996,8 +996,8 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--o, --origin <ORIGIN>      The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or$2li.toml
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or cli.toml
 ```
 
 **ARGS**
@@ -1148,7 +1148,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 **ARGS**
 
 ```
-<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh$2ile
+<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh file
 ```
 
 
@@ -1176,7 +1176,7 @@ hab pkg channels [OPTIONS] <PKG_IDENT>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -1238,7 +1238,7 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -1330,7 +1330,7 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel (default: stable)
 ```
 
@@ -1338,7 +1338,7 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 
 ```
 <FORMAT>       The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)
-<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat$2rtifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1425,14 +1425,14 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -c, --channel <CHANNEL>    Install from the specified release channel (default: stable)
 ```
 
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a$2abitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1488,7 +1488,7 @@ hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -1553,7 +1553,7 @@ hab pkg search [OPTIONS] <SEARCH_TERM>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -1593,8 +1593,7 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 
 ```
 <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-<DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201
--x86_64-linux.hart)
+<DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201 x86_64-linux.hart)
 ```
 
 
@@ -1622,15 +1621,14 @@ hab pkg upload [OPTIONS] <HART_FILE>...
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to$2nstable, regardless of the value of this option. (default: none)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option. (default: none)
 ```
 
 **ARGS**
 
 ```
-<HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64
--linux.hart)
+<HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64 linux.hart)
 ```
 
 
@@ -1688,7 +1686,7 @@ hab plan [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a$2abitat directory in your current folder for the plan. If PKG_NAME is specified it will create a$2older with that name. Environment variables (those starting with 'pkg_') that are set will be used in$2he generated plan |
+| [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a habitat directory in your current folder for the plan. If PKG_NAME is specified it will create a folder with that name. Environment variables (those starting with 'pkg_') that are set will be used in the generated plan |
 ---
 
 ### hab plan init
@@ -2069,19 +2067,18 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 ```
 -a, --application <APPLICATION>            Application name; [default: not set].
     --bind <BIND>...                       One or more service groups to bind to a configuration
-    --binding-mode <BINDING_MODE>          Governs how the presence or absence of binds affects service startup.$2trict blocks startup until all binds are present. [default: strict]
-[values: relaxed, strict]
--u, --url <BLDR_URL>                       Specify an alternate Builder endpoint. If not specified, the value will$2e taken from the HAB_BLDR_URL environment variable if defined. (default:$2ttps://bldr.habitat.sh)
-    --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default:$2table]
+    --binding-mode <BINDING_MODE>          Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] values: relaxed, strict]
+-u, --url <BLDR_URL>                       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default: stable]
     --config-from <CONFIG_DIR>             Use package config from this path, rather than the package itself
 -e, --environment <ENVIRONMENT>            Environment name; [default: not set].
--n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward$2upervisor and service event data to
+-n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward Supervisor and service event data to
     --group <GROUP>                        The service group; shared config and topology [default: default].
     --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway [default: 127.0.0.1:9632]
     --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
     --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway [default: 0.0.0.0:9631]
     --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
-    --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part$2f [default: default]
+    --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of [default: default]
     --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
     --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
 -r, --ring <RING>                          Ring key name
@@ -2092,8 +2089,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>    Load the given Habitat package as part of the Supervisor startup specified by a$2ackage identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
-/home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
+<PKG_IDENT_OR_ARTIFACT>    Load the given Habitat package as part of the Supervisor startup specified by a package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex: home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
 ```
 
 
@@ -2195,11 +2191,11 @@ hab svc [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab svc key](#hab-svc-key) | Commands relating to Habitat service keys |
-| [hab svc load](#hab-svc-load) | Load a service to be started and supervised by Habitat from a package identifier. If an installed$2ackage doesn't satisfy the given package identifier, a suitable package will be installed from$2uilder. |
+| [hab svc load](#hab-svc-load) | Load a service to be started and supervised by Habitat from a package identifier. If an installed package doesn't satisfy the given package identifier, a suitable package will be installed from Builder. |
 | [hab svc start](#hab-svc-start) | Start a loaded, but stopped, Habitat service. |
 | [hab svc status](#hab-svc-status) | Query the status of Habitat services. |
 | [hab svc stop](#hab-svc-stop) | Stop a running Habitat service. |
-| [hab svc unload](#hab-svc-unload) | Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be$2topped. |
+| [hab svc unload](#hab-svc-unload) | Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped. |
 ---
 
 ### hab svc key
@@ -2271,7 +2267,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 **FLAGS**
 
 ```
--f, --force      Load or reload an already loaded service. If the service was previously loaded and running this$2peration will also restart the service
+-f, --force      Load or reload an already loaded service. If the service was previously loaded and running this operation will also restart the service
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
@@ -2281,8 +2277,8 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 ```
 -a, --application <APPLICATION>      Application name; [default: not set].
     --bind <BIND>...                 One or more service groups to bind to a configuration
-    --binding-mode <BINDING_MODE>    Governs how the presence or absence of binds affects service startup. strict$2locks startup until all binds are present. [default: strict] [values: relaxed,$2trict]
--u, --url <BLDR_URL>                 Specify an alternate Builder endpoint. If not specified, the value will be$2aken from the HAB_BLDR_URL environment variable if defined. (default:$2ttps://bldr.habitat.sh)
+    --binding-mode <BINDING_MODE>    Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
+-u, --url <BLDR_URL>                 Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     --channel <CHANNEL>              Receive package updates from the specified release channel [default: stable]
 -e, --environment <ENVIRONMENT>      Environment name; [default: not set].
     --group <GROUP>                  The service group; shared config and topology [default: default].
