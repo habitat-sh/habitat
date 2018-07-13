@@ -92,3 +92,8 @@ authors:
     email: "james@chef.io"
     twitter: "@jamesc_000"
     bio: "James leads the Partner Engineering team at Chef. He works with the top technology companies in the world to make Chef, InSpec and Habitat the best way to build, deploy and manage any application on any platform."
+  jonbauman:
+    name: "Jon Bauman"
+    email: "jbauman@chef.io"
+    twitter: "@AnoYaro"
+    bio: "Jon is a software engineer working on Habitat."
