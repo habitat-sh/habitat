@@ -13,7 +13,7 @@ function getHelp(command, sub) {
     });
   }
 
-  render(proc.stderr.toString() || proc.stdout.toString());
+  render(proc.stdout.toString());
 }
 
 function runCommand(command, args) {

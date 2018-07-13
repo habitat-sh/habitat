@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.57.0/20180614230004 (linux) | 19 Jun 2018 |
+| hab 0.59.0/20180712155441 (linux) | 13 Jul 2018 |
 
 ## hab
 
@@ -137,7 +137,7 @@ hab bldr channel create [OPTIONS] <CHANNEL>
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>     Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>    Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or cli.toml
 ```
 
@@ -171,7 +171,7 @@ hab bldr channel destroy [OPTIONS] <CHANNEL>
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>     Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>     Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>    Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN'or cli.toml
 ```
 
@@ -205,7 +205,7 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>    Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>    Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -256,12 +256,13 @@ Cancel a build job group and any in-progress builds
 **USAGE**
 
 ```
-hab bldr job cancel [OPTIONS] <GROUP_ID>
+hab bldr job cancel [FLAGS] [OPTIONS] <GROUP_ID>
 ```
 
 **FLAGS**
 
 ```
+-f, --force      Don't prompt for confirmation
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
@@ -1329,7 +1330,7 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 **OPTIONS**
 
 ```
--u, --url <BLDR_URL>       Retrieve the container's package from the specified Builder (default:$2ttps://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the$2AB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel (default: stable)
 ```
 
@@ -2070,7 +2071,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --bind <BIND>...                       One or more service groups to bind to a configuration
     --binding-mode <BINDING_MODE>          Governs how the presence or absence of binds affects service startup.$2trict blocks startup until all binds are present. [default: strict]
 [values: relaxed, strict]
--u, --url <BLDR_URL>                       Receive Supervisor updates from Builder at the specified URL [default:$2ttps://bldr.habitat.sh]
+-u, --url <BLDR_URL>                       Specify an alternate Builder endpoint. If not specified, the value will$2e taken from the HAB_BLDR_URL environment variable if defined. (default:$2ttps://bldr.habitat.sh)
     --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default:$2table]
     --config-from <CONFIG_DIR>             Use package config from this path, rather than the package itself
 -e, --environment <ENVIRONMENT>            Environment name; [default: not set].
@@ -2081,7 +2082,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway [default: 0.0.0.0:9631]
     --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
     --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part$2f [default: default]
-    --peer <PEER>...                       The listen address of an initial peer (IP[:PORT])
+    --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
     --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
 -r, --ring <RING>                          Ring key name
 -s, --strategy <STRATEGY>                  The update strategy; [default: none] [values: none, at-once, rolling]
@@ -2281,7 +2282,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 -a, --application <APPLICATION>      Application name; [default: not set].
     --bind <BIND>...                 One or more service groups to bind to a configuration
     --binding-mode <BINDING_MODE>    Governs how the presence or absence of binds affects service startup. strict$2locks startup until all binds are present. [default: strict] [values: relaxed,$2trict]
--u, --url <BLDR_URL>                 Receive package updates from Builder at the specified URL [default:$2ttps://bldr.habitat.sh]
+-u, --url <BLDR_URL>                 Specify an alternate Builder endpoint. If not specified, the value will be$2aken from the HAB_BLDR_URL environment variable if defined. (default:$2ttps://bldr.habitat.sh)
     --channel <CHANNEL>              Receive package updates from the specified release channel [default: stable]
 -e, --environment <ENVIRONMENT>      Environment name; [default: not set].
     --group <GROUP>                  The service group; shared config and topology [default: default].
