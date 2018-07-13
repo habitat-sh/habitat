@@ -28,7 +28,7 @@ END=$(echo "$RC_PKGS_JSON" | jq -r '.range_end')
 # the rc channel. We could get all fancy and complicated here to
 # aggregate multiple pages but I'd rather tear my eyes out of their
 # sockets. Instead, we suggest a workaround in the failure message.
-if [ $((END+1)) !=  TOTAL_COUNT ]; then
+if [ $((END+1)) !=  "$TOTAL_COUNT" ]; then
   echo "There are multipe pages of releases. Consider deleting the channel and then rebuild."
   exit 1
 fi
