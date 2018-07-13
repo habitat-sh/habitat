@@ -27,6 +27,7 @@
 - Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 
 #### Merged Pull Requests
+- Fix a replacement bug in the docs generator [#5338](https://github.com/habitat-sh/habitat/pull/5338) ([cnunciato](https://github.com/cnunciato))
 - Add Jon Bauman to authors [#5339](https://github.com/habitat-sh/habitat/pull/5339) ([baumanj](https://github.com/baumanj))
 - Add back unintentionally-removed $ on variable [#5337](https://github.com/habitat-sh/habitat/pull/5337) ([baumanj](https://github.com/baumanj))
 - Add 0.59.0 Release blog post [#5336](https://github.com/habitat-sh/habitat/pull/5336) ([baumanj](https://github.com/baumanj))
