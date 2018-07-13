@@ -26,6 +26,7 @@ protobuf = "*"
 rand = "*"
 serde = "*"
 serde_derive = "*"
+tempdir = "*"
 time = "*"
 threadpool = "*"
 toml = { version = "*", default-features = false }

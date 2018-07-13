@@ -54,6 +54,8 @@ extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+#[cfg(test)]
+extern crate tempdir;
 extern crate time;
 extern crate toml;
 extern crate uuid;
