@@ -253,6 +253,14 @@ hab pkg upload -u https://bldr.acceptance.habitat.sh -c stable -z <AUTH_TOKEN> c
 
 *Important*: Don't forget to include the `-c stable` in the upload step above!
 
+## Promote the Builder Worker
+
+Now that the release is stable, it is time to promote the workers.
+
+In the Builder Web UI, go to the builds page for `habitat/builder-worker` and check that the latest version is a successful recent build.
+
+Promote the release. Wait for a few minutes, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
+
 # Troubleshooting Mac deployments
 
 Travis runs the Mac deployment scripts via SSH to a headless Mac builder affectionately called `74.80.245.236`. You can SSH to this machine as `admin` using the `habitat-srv-admin` key available in 1password.
