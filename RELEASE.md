@@ -24,6 +24,8 @@ Ask all team members to review the google doc and
 
 ## Submit a Release Notes Blog Post PR
 
+If you haven't posted to the blog before, see [this article](https://github.com/habitat-sh/habitat/tree/master/www#how-to-add-a-blog-post) since there may be some setup required. Also, don't forget to build and test your post locally before merging it.
+
 If one has not already been opened, create a "Release Notes" blog post PR. Add a file to the Habitat repo: `www/source/blog/2018-02-20-0540Release.html.md`. Of course you will change the date and version to match the reality that is manifesting itself in your present moment. This post should begin with the following structure:
 
 ```
@@ -64,7 +66,7 @@ Highlights:
     $ git pull origin master
     ```
 
-1. Create a new release branch in the Habitat repo
+1. Create a new release branch in the Habitat repo. You can call this branch whatever you wish.
 
     ```
     $ cd ~/habitat
@@ -87,9 +89,10 @@ Highlights:
     $ git push origin --tags
     ```
 
-Once the release tag is pushed, Travis and Appveyor builds will be triggered on the release tag.
+Once the release tag is pushed, Travis and AppVeyor builds will be triggered on the release tag. AppVeyor builds are currently very prone to timing out,
+so set a 1-hour timer to go and check on them. If they do time out, you just have to restart them and hope. You may also want to set up [email notifications](https://ci.appveyor.com/notifications).
 
-You can view/adminster Travis builds here https://travis-ci.org/habitat-sh/habitat/builds.
+You can view/adminster Travis builds here https://travis-ci.org/habitat-sh/habitat/builds. See [*Troubleshooting Mac deployments*](#troubleshooting-mac-deployments) if there are issues with the [Mac release travis job](https://github.com/habitat-sh/habitat/blob/master/.travis.yml#L227-L255).
 
 There is currently a bug where if multiple mac builds are running concurrently, one build can possibly delete some hab keys needed by the other. Until this is properly addressed, **kill any travis builds running that are NOT part of the release tag build**.
 
@@ -97,7 +100,7 @@ The release tag builds will upload all release binaries to a channel named `rc-[
 
 ## Validate the Release
 
-For each platform, download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable) (you will need to be signed into bintray and a member of the "Habitat" organization). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, run `hab studio enter` and make sure:
+For each platform ([darwin](https://bintray.com/habitat/stable/hab-x86_64-darwin), [linux](https://bintray.com/habitat/stable/hab-x86_64-linux), [windows](https://bintray.com/habitat/stable/hab-x86_64-windows)), download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable) (you will need to be signed into bintray and a member of the "Habitat" organization). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, run `hab studio enter` and make sure:
 
 Due to historical contingincies, evaluating the release is currently a bit tricky.
 
@@ -140,6 +143,8 @@ $ export BINTRAY_KEY=<your-bintray-api-key>
 $ make publish-release
 ```
 
+NOTE: that to find your Bintray API key, you'll have to go to your [profile *edit* page](https://bintray.com/profile/edit), and select "API Key" from the menu.
+
 This should promote all RC packages to stable and publish the hab cli for each platform (linux, mac and windows).
 
 Note that if you end up re pushing a release to address issues with a release, you may receive the error:
@@ -180,7 +185,7 @@ updating. You will need the following bits of information for the latest stable 
 * the SHA256 of the Bintray zip file
 
 With those in hand, update the
-[formula](https://github.com/habitat-sh/homebrew-habitat/blob/5adccfd7bf7657e64abda659160ca116d8bdff1a/Formula/hab.rb#L3-L5),
+[formula](https://github.com/habitat-sh/homebrew-habitat/blob/master/Formula/hab.rb#L3-L5),
 and merge the changes to the master branch.
 
 (This will be a temporary state of affairs; I'll be talking with Engineering Services soon to get their help with automating this, as well as other parts of our release process.)
