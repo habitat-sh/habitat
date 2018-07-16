@@ -2336,17 +2336,30 @@ SRC_PATH="$PLAN_CONTEXT"
 # Expand the path of this program to an absolute path
 THIS_PROGRAM=$(abspath "$0")
 
-# Now to ensure a `plan.sh` exists where we expect it. There are 2 possible
-# candidate locations relative to the `$PLAN_CONTEXT` directory: a `./plan.sh`
-# or a `./habitat/plan.sh`. Only one or the other location is allowed so that
-# a Plan author isn't confused if they edit one to have this program read
-# the other.
+# Now to ensure a `plan.sh` exists where we expect it. There are 4 possible
+# candidate locations relative to the `$PLAN_CONTEXT` directory: 
+#   `./plan.sh`
+#   `./habitat/plan.sh`
+#   `./$pkg_target/plan.sh
+#   `./habitat/$pkg_target/plan.sh 
+# In most cases, only one location is allowed so that a Plan author isn't 
+# confused if they edit one to have this program read the other.
+# The exception to this is when the $pkg_target requires variations to
+# the default `plan.sh`. Plan authors can create these variants by placeing 
+# Plan contents in a subdirectory named the same as the intended $pkg_target. 
+# In this case, we want to check if there is a variant `plan.sh` available 
+# for the $pkg_target, and prefer loading that one. Alternate $pkg_target 
+# are not considered as part of this load logic.
 
-# ADDITIONAL LOGIC
-# Plans can exist in 4 places per target.  Only two combinations are allowed:
-#   /plan.sh + /$pkg_target/plan.sh  OR 
-#   /habitat/plan.sh + /habitat/$pkg_target/plan.sh 
-# All others combinations need to be rejected.
+# With plan variants, plans can exist in 4 places per $pkg_target relative to 
+# the `$PLAN_CONTEXT` directory. Only two combinations are allowed:
+#
+#   `./plan.sh` AND `./$pkg_target/plan.sh` 
+#   OR 
+#   `./habitat/plan.sh` AND `./habitat/$pkg_target/plan.sh`
+# Consider all other combination of two plans and abort if found.
+# All combinations of 3 and 4 plans are covered by a 2 plan case, so we don't
+# need to consider those scenarios. 
 
 if [[ -f "$PLAN_CONTEXT/plan.sh" && -f "$PLAN_CONTEXT/habitat/plan.sh" ]];then
   places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/plan.sh"
@@ -2365,7 +2378,7 @@ fi
 build_line "Checking for variant at $pkg_target"
 
 # We check if the provided path has a `plan.sh` in it in valid locations. If
-# not, we'll quickly bail.
+# not, we'll quickly bail. Prefer most-specific to least specific. 
 if [[ -f "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" ]]; then
   PLAN_CONTEXT="$PLAN_CONTEXT/habitat/$pkg_target"
 elif [[ -f "$PLAN_CONTEXT/$pkg_target/plan.sh" ]]; then
