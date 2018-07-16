@@ -174,7 +174,7 @@ impl SwimNet {
             to.member
                 .read()
                 .expect("Member lock is poisoned")
-                .get_id()
+                .id
                 .to_string(),
         ));
     }
