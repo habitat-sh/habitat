@@ -85,7 +85,7 @@ const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
-        vec!["package", "type", "state", "elapsed (s)", "pid", "group"]
+        vec!["package", "type", "desired", "state", "elapsed (s)", "pid", "group"]
     };
 
     /// The default filesystem root path to base all commands from. This is lazily generated on
@@ -1368,6 +1368,9 @@ where
         }
     };
     let svc_type = status.composite.unwrap_or("standalone".to_string());
+    let svc_desired_state = status
+        .desired_state
+        .map_or("unknown".to_string(), |s| s.to_string());
     let (svc_state, svc_pid, svc_elapsed) = {
         match status.process {
             Some(process) => (
@@ -1389,9 +1392,10 @@ where
     }
     write!(
         out,
-        "{}\t{}\t{}\t{}\t{}\t{}\n",
+        "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
         status.ident,
         svc_type,
+        DesiredState::from_str(&svc_desired_state)?,
         ProcessState::from_str(&svc_state)?,
         svc_elapsed,
         svc_pid,

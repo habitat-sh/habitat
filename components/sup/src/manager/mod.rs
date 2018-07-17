@@ -79,6 +79,7 @@ use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
 use http_gateway;
+use manager::service::spec::DesiredState as SpecDesiredState;
 use util;
 use ShutdownReason;
 use VERSION;
@@ -1686,6 +1687,7 @@ pub struct ServiceStatus {
     pub process: ProcessStatus,
     pub service_group: ServiceGroup,
     pub composite: Option<String>,
+    pub desired_state: DesiredState,
 }
 
 impl fmt::Display for ServiceStatus {
@@ -1924,6 +1926,7 @@ impl From<ServiceStatus> for protocol::types::ServiceStatus {
         if let Some(composite) = other.composite {
             proto.composite = Some(composite);
         }
+        proto.desired_state = Some(other.desired_state.into());
         proto
     }
 }
@@ -1934,6 +1937,15 @@ impl Into<service::ServiceBind> for protocol::types::ServiceBind {
             name: self.name,
             service_group: self.service_group.into(),
             service_name: self.service_name,
+        }
+    }
+}
+
+impl From<SpecDesiredState> for i32 {
+    fn from(other: SpecDesiredState) -> Self {
+        match other {
+            DesiredState::Down => 0,
+            DesiredState::Up => 1,
         }
     }
 }
