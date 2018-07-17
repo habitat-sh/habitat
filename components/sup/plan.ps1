@@ -18,7 +18,6 @@ function Invoke-Prepare {
     }
 
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
-    $env:PLAN_VERSION               = "$pkg_version/$pkg_release"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
     $env:SODIUM_LIB_DIR             = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
@@ -28,6 +27,14 @@ function Invoke-Prepare {
     $env:OPENSSL_LIB_DIR            = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:OPENSSL_INCLUDE_DIR        = "$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
     $env:LIBZMQ_PREFIX              = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+
+    # Used by the `build.rs` program to set the version of the binaries
+    $env:PLAN_VERSION = "$pkg_version/$pkg_release"
+    Write-BuildLine "Setting env:PLAN_VERSION=$env:PLAN_VERSION"
+
+    # Used to set the active package target for the binaries at build time
+    $env:PLAN_PACKAGE_TARGET = "$pkg_target"
+    Write-BuildLine "Setting env:PLAN_PACKAGE_TARGET=$env:PLAN_PACKAGE_TARGET"
 }
 
 function Invoke-Unpack {
