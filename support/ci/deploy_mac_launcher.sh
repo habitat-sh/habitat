@@ -4,7 +4,6 @@ set -e
 
 # Current version being deployed
 version="$(cat VERSION)"
-# Address of the mac builder
 mac_builder=admin@74.80.245.236
 
 BINTRAY_REPO=unstable
@@ -12,7 +11,6 @@ if [ "$version" == "$TRAVIS_TAG" ]; then
   BINTRAY_REPO=stable
 fi
 
-# kick off the mac unstable build
 echo "Kicking off the $BINTRAY_REPO mac build"
 var_file=/tmp/our-awesome-vars
 ssh_args=(-o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -i /tmp/habitat-srv-admin)
@@ -31,6 +29,7 @@ ssh "${ssh_args[@]}" ${mac_builder} << EOF
     hab_src_dir="\$HOME/code/$TRAVIS_BUILD_NUMBER"
     mkdir -p \${hab_src_dir}
     cd \${hab_src_dir}
+    sudo find /hab/cache/src \! -newerct '1 month ago' -print -delete # remove old builds or else we run out of space
     git clone https://github.com/habitat-sh/habitat
     cd habitat
     eval $fetch
