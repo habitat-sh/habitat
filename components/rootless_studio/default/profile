@@ -57,7 +57,8 @@ sup-run() {
   mkdir -p /hab/sup/default
   echo "--> Launching the Habitat Supervisor in the background..."
   echo "    Running: hab sup run $*"
-  hab sup run "$@" > /hab/sup/default/sup.log 2>&1 &
+  setsid hab sup run "$@" > /hab/sup/default/sup.log 2>&1 &
+  disown $!
   echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
   echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
   echo "    * Use 'sup-term' to terminate the Supervisor"
