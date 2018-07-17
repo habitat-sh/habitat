@@ -27,6 +27,7 @@
 - Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 
 #### Merged Pull Requests
+- Allow butterfly server to start given a corrupted rumor file [#5295](https://github.com/habitat-sh/habitat/pull/5295) ([jeremymv2](https://github.com/jeremymv2))
 - Update release doc to add worker promotion [#5340](https://github.com/habitat-sh/habitat/pull/5340) ([chefsalim](https://github.com/chefsalim))
 - Avoid running out of space on the Mac launcher during the release [#5346](https://github.com/habitat-sh/habitat/pull/5346) ([baumanj](https://github.com/baumanj))
 - Update release process documentation [#5344](https://github.com/habitat-sh/habitat/pull/5344) ([baumanj](https://github.com/baumanj))
