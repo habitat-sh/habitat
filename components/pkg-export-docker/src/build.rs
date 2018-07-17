@@ -400,7 +400,7 @@ impl BuildRoot {
     }
 }
 
-/// The file system contents, location, Habitat pacakges, and other context for a build root.
+/// The file system contents, location, Habitat packages, and other context for a build root.
 #[derive(Debug)]
 pub struct BuildRootContext {
     /// A list of all Habitat service and library packages which were determined from the original

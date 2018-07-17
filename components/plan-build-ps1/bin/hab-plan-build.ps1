@@ -368,7 +368,7 @@ function _Set-BuildPath {
 # At this phase of the build, all dependencies are downloaded, the build
 # environment is set, but this is just before any source downloading would
 # occur (if `$pkg_source` is set). This could be a suitable phase in which to
-# compute a dynamic version of a pacakge given the state of a Git repository,
+# compute a dynamic version of a package given the state of a Git repository,
 # fire an API call, start timing something, etc.
 function Invoke-Before {
   Invoke-DefaultBefore
@@ -1871,7 +1871,7 @@ $(Get-Content "$PLAN_CONTEXT\plan.ps1" -Raw)
 # * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
 # * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
 function _Write-Metadata {
-    Write-BuildLine "Building pacakge metadata"
+    Write-BuildLine "Building package metadata"
 
     $prefixDrive = (Resolve-Path $originalPath).Drive.Root
     $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
