@@ -253,7 +253,14 @@ impl Server {
             }
             let mut file = DatFile::new(&self.member_id, path);
             if file.path().exists() {
-                file.read_into(self)?;
+                match file.read_into(self) {
+                    Ok(_) => debug!(
+                        "Successfully ingested rumors from {}",
+                        file.path().display()
+                    ),
+                    Err(Error::DatFileIO(path, err)) => println!("{}", Error::DatFileIO(path, err)),
+                    Err(err) => return Err(err),
+                };
             }
             let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
             *dat_file = Some(file);
@@ -980,6 +987,11 @@ impl Server {
         if let Some(ref dat_file) = *self.dat_file.read().expect("DatFile lock poisoned") {
             if let Some(err) = dat_file.write(self).err() {
                 println!("Error persisting rumors to disk, {}", err);
+            } else {
+                debug!(
+                    "Successfully persisted rumors to disk: {}",
+                    dat_file.path().display()
+                );
             }
         }
     }
@@ -1043,6 +1055,9 @@ mod tests {
         use server::{Server, Suitability};
         use std::path::PathBuf;
         use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+        use std::fs::File;
+        use std::io::prelude::*;
+        use tempdir::TempDir;
         use trace::Trace;
 
         static SWIM_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -1078,9 +1093,44 @@ mod tests {
             ).unwrap()
         }
 
+        fn start_with_corrupt_rumor_file(tmpdir: &TempDir) -> Server {
+            SWIM_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
+            GOSSIP_PORT.compare_and_swap(0, 7777, Ordering::Relaxed);
+            let swim_port = SWIM_PORT.fetch_add(1, Ordering::Relaxed);
+            let swim_listen = format!("127.0.0.1:{}", swim_port);
+            let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
+            let gossip_listen = format!("127.0.0.1:{}", gossip_port);
+            let mut member = Member::default();
+            member.set_swim_port(swim_port as i32);
+            member.set_gossip_port(gossip_port as i32);
+            let rumor_name = format!("{}{}", member.get_id().to_string(), ".rst");
+            let file_path = tmpdir.path().to_owned().join(rumor_name);
+            let mut rumor_file = File::create(file_path).unwrap();
+            writeln!(rumor_file, "This is not a valid rumor file!").unwrap();
+            Server::new(
+                &swim_listen[..],
+                &gossip_listen[..],
+                member,
+                Trace::default(),
+                None,
+                None,
+                Some(tmpdir.path()),
+                Box::new(ZeroSuitability),
+            ).unwrap()
+        }
+
         #[test]
         fn new() {
             start_server();
+        }
+
+        #[test]
+        fn new_with_corrupt_rumor_file() {
+            let tmpdir = TempDir::new("data").unwrap();
+            let mut server = start_with_corrupt_rumor_file(&tmpdir);
+            server
+                .start(Timing::default())
+                .expect("Server failed to start");
         }
 
         #[test]
