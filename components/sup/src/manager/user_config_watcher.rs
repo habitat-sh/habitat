@@ -15,8 +15,9 @@
 use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{channel, sync_channel, Receiver, SendError, Sender, SyncSender,
-                      TryRecvError, TrySendError};
+use std::sync::mpsc::{
+    channel, sync_channel, Receiver, SendError, Sender, SyncSender, TryRecvError, TrySendError,
+};
 use std::thread::Builder as ThreadBuilder;
 
 use super::file_watcher::{default_file_watcher_with_no_initial_event, Callbacks};

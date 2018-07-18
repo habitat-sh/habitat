@@ -67,8 +67,9 @@ use toml;
 
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
-pub use self::service::{CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, Topology,
-                        UpdateStrategy};
+pub use self::service::{
+    CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, Topology, UpdateStrategy,
+};
 use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};

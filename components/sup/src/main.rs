@@ -49,9 +49,12 @@ use hcore::crypto::{self, default_cache_key_path, SymKey};
 use hcore::env as henv;
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
-use protocol::{ctl::ServiceBindList,
-               types::{ApplicationEnvironment, BindingMode, ServiceBind, ServiceGroup, Topology,
-                       UpdateStrategy}};
+use protocol::{
+    ctl::ServiceBindList,
+    types::{
+        ApplicationEnvironment, BindingMode, ServiceBind, ServiceGroup, Topology, UpdateStrategy,
+    },
+};
 use url::Url;
 
 use sup::command;

@@ -1053,10 +1053,10 @@ mod tests {
         use member::Member;
         use server::timing::Timing;
         use server::{Server, Suitability};
-        use std::path::PathBuf;
-        use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
         use std::fs::File;
         use std::io::prelude::*;
+        use std::path::PathBuf;
+        use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
         use tempdir::TempDir;
         use trace::Trace;
 

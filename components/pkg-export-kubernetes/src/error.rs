@@ -26,7 +26,9 @@ pub enum Error {
         _0
     )]
     InvalidBinding(String),
-    #[fail(display = "Invalid environment variable \"{}\", must be in the form <NAME>=<VALUE>", _0)]
+    #[fail(
+        display = "Invalid environment variable \"{}\", must be in the form <NAME>=<VALUE>", _0
+    )]
     InvalidEnvironmentVariable(String),
     #[fail(
         display = "Invalid persistent storage specification \"{}\", \

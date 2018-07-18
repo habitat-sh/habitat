@@ -27,8 +27,9 @@ use protobuf::{self, Message};
 use toml;
 
 use error::{Error, Result};
-use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type,
-                    ServiceConfig as ProtoServiceConfig};
+use message::swim::{
+    Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, ServiceConfig as ProtoServiceConfig,
+};
 use rumor::Rumor;
 
 #[derive(Debug, Clone, Serialize)]

@@ -24,8 +24,9 @@ use std::ops::{Deref, DerefMut};
 use protobuf::{self, Message};
 
 use error::Result;
-use message::swim::{Departure as ProtoDeparture, Rumor as ProtoRumor,
-                    Rumor_Type as ProtoRumor_Type};
+use message::swim::{
+    Departure as ProtoDeparture, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type,
+};
 use rumor::Rumor;
 
 #[derive(Debug, Clone, Serialize)]

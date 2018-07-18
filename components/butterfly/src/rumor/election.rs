@@ -29,7 +29,9 @@ use protobuf::{self, Message, RepeatedField};
 
 use error::Result;
 pub use message::swim::Election_Status;
-use message::swim::{Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
+use message::swim::{
+    Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type,
+};
 use rumor::Rumor;
 
 #[derive(Debug, Clone, Serialize)]

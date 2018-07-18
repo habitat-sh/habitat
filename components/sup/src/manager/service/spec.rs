@@ -98,7 +98,9 @@ where
 {
     let s: Option<String> = Option::deserialize(d)?;
     if let Some(s) = s {
-        Ok(Some(FromStr::from_str(&s).map_err(serde::de::Error::custom)?))
+        Ok(Some(
+            FromStr::from_str(&s).map_err(serde::de::Error::custom)?
+        ))
     } else {
         Ok(None)
     }

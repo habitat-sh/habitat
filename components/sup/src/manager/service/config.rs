@@ -1046,8 +1046,9 @@ mod test {
 
     #[test]
     fn no_environment_config_is_fine() {
-        match Cfg::load_environment(&"omg-there-wont-be-an-environment-variable-for-this".to_string())
-        {
+        match Cfg::load_environment(
+            &"omg-there-wont-be-an-environment-variable-for-this".to_string()
+        ) {
             Ok(None) => (),
             other => {
                 panic!("Expected Ok(None); got {:?}", other);

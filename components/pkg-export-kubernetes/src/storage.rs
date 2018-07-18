@@ -107,8 +107,10 @@ impl FromStr for PersistentStorage {
 
     fn from_str(persistent_storage_str: &str) -> StdResult<Self, Self::Err> {
         let values: Vec<&str> = persistent_storage_str.splitn(3, ':').collect();
-        if values.len() != 3 || !PersistentStorage::valid_size(values[0])
-            || !PersistentStorage::valid_path(values[1]) || values[2].is_empty()
+        if values.len() != 3
+            || !PersistentStorage::valid_size(values[0])
+            || !PersistentStorage::valid_path(values[1])
+            || values[2].is_empty()
         {
             return Err(Error::InvalidPersistentStorageSpec(
                 persistent_storage_str.to_string(),
