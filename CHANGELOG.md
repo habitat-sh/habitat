@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### New Features & Enhancements
+- [plan-build] Set `$pkg_target` at build time for build programs. [#5350](https://github.com/habitat-sh/habitat/pull/5350) ([fnichol](https://github.com/fnichol))
 - Add success and failure callbacks for plan builds [#5081](https://github.com/habitat-sh/habitat/pull/5081) ([christophermaier](https://github.com/christophermaier))
 - Adds --auth for allowing exports of private packages [#5203](https://github.com/habitat-sh/habitat/pull/5203) ([eeyun](https://github.com/eeyun))
 `hab pkg export docker <origin>/<pkg>` should now respect `HAB_AUTH_TOKEN` appropriately as well as now supporting an `--auth` argument!
