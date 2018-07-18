@@ -80,7 +80,7 @@ In all cases, when Habitat is assuming a default strategy, it will emit log mess
 > **Note** If you discover common environment variables that Habitat doesn't currently treat appropriately, feel free to request an addition to the codebase, or even to submit a pull request yourself.
 
 **do_before()/Invoke-Before**
-: At this phase of the build, the origin key has been checked for, all package dependencies have been resolved and downloaded, and the `$PATH` and environment are set, but this is just before any source downloading would occur (if `$pkg_source` is set). This could be a suitable phase in which to compute a dynamic version of a pacakge given the state of a Git repository, fire an API call, start timing something, etc.
+: At this phase of the build, the origin key has been checked for, all package dependencies have been resolved and downloaded, and the `$PATH` and environment are set, but this is just before any source downloading would occur (if `$pkg_source` is set). This could be a suitable phase in which to compute a dynamic version of a package given the state of a Git repository, fire an API call, start timing something, etc.
 
 **do_before_default()/Invoke-BeforeDefault**
 : There is an empty default implementation of this callback.

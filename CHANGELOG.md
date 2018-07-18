@@ -4991,7 +4991,7 @@
 - Update `make gpg` instructions in README. [\#239](https://github.com/habitat-sh/habitat/pull/239) ([fnichol](https://github.com/fnichol))
 - build deps in a post studio world [\#238](https://github.com/habitat-sh/habitat/pull/238) ([jtimberman](https://github.com/jtimberman))
 - \[plan\] Add diffutils to the backline plan. [\#237](https://github.com/habitat-sh/habitat/pull/237) ([fnichol](https://github.com/fnichol))
-- \[bpm\] Allow `bpm install` to complete if no remote pacakge is found. [\#236](https://github.com/habitat-sh/habitat/pull/236) ([fnichol](https://github.com/fnichol))
+- \[bpm\] Allow `bpm install` to complete if no remote package is found. [\#236](https://github.com/habitat-sh/habitat/pull/236) ([fnichol](https://github.com/fnichol))
 - Fix node plan, add python plans [\#235](https://github.com/habitat-sh/habitat/pull/235) ([jtimberman](https://github.com/jtimberman))
 - \[bldr-build\] need quoting for wildcards [\#234](https://github.com/habitat-sh/habitat/pull/234) ([jtimberman](https://github.com/jtimberman))
 - Remove etcd container from compose [\#233](https://github.com/habitat-sh/habitat/pull/233) ([juliandunn](https://github.com/juliandunn))
