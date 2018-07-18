@@ -34,6 +34,10 @@ _common_prepare() {
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 
+  # Used to set the active package target for the binaries at build time
+  export PLAN_PACKAGE_TARGET="$pkg_target"
+  build_line "Setting PLAN_PACKAGE_TARGET=$PLAN_PACKAGE_TARGET"
+
   if [ -z "$HAB_CARGO_TARGET_DIR" ]; then
     # Used by Cargo to use a pristine, isolated directory for all compilation
     export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"

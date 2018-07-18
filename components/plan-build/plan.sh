@@ -33,8 +33,9 @@ do_build() {
   # release version of the program.
   # shellcheck disable=2154
   sed \
-    -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
-    -e "s,^HAB_PLAN_BUILD=.*$,HAB_PLAN_BUILD=$pkg_version/$pkg_release," \
+    -e "s,#!/bin/bash\$,#!$(pkg_path_for bash)/bin/bash," \
+    -e "s,^HAB_PLAN_BUILD=0\.0\.1\$,HAB_PLAN_BUILD=$pkg_version/$pkg_release," \
+    -e "s,^pkg_target='@@pkg_target@@'\$,pkg_target='$pkg_target'," \
     -i "$CACHE_PATH/$program"
 }
 

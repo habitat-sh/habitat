@@ -383,12 +383,8 @@ INITIAL_PATH="$PATH"
 INITIAL_PWD="$(pwd)"
 # The compression level to use when compression harts (0..9)
 : "${HAB_HART_COMPRESSION_LEVEL:=6}"
-# The target architecture this plan will be built for
-pkg_arch=$(uname -m | tr '[:upper:]' '[:lower:]')
-# The target system (i.e. operating system variant) this plan will be built for
-pkg_sys=$(uname -s | tr '[:upper:]' '[:lower:]')
 # The full target tuple this plan will be built for
-pkg_target="${pkg_arch}-${pkg_sys}"
+pkg_target='@@pkg_target@@'
 # The package's origin (i.e. acme)
 pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -2133,8 +2129,6 @@ $pkg_description
 * __Maintainer__: $pkg_maintainer
 * __Version__: $pkg_version
 * __Release__: $pkg_release
-* __Architecture__: $pkg_arch
-* __System__: $pkg_sys
 * __Target__: $pkg_target
 * __Upstream URL__: $_upstream_url_string
 * __License__: $(printf "%s " "${pkg_license[@]}")
@@ -2308,6 +2302,30 @@ while getopts "u:" opt; do
       ;;
   esac
 done
+
+# If the value of `$pkg_target` is a replacement token, then the program is
+# being run out of a raw source tree (which must be supported), otherwise
+# `$pkg_target` would have a static value set when the Habitat package for this
+# program was built.
+if [[ "$pkg_target" == "@@pkg_target@@" ]]; then
+  if [[ -n "${BUILD_PKG_TARGET:-}" ]]; then
+    # If a build environment variable is set with the desired package target,
+    # then update the value of `$pkg_target`. This case is used in
+    # bootstrapping the Habitat packaging system.
+    pkg_target="$BUILD_PKG_TARGET"
+    unset BUILD_PKG_TARGET
+    build_line "Setting pkg_target='$pkg_target' from \$BUILD_PKG_TARGET"
+  else
+    # Otherwise, attempt to detect a suitable value for `$pkg_target` by using
+    # the `uname` program. This is prior behavior and is backwards compatible
+    # and behavior-preserving.
+    _pkg_arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
+    _pkg_sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    pkg_target="${_pkg_arch}-${_pkg_sys}"
+    unset _pkg_arch _pkg_sys
+    build_line "Setting pkg_target='$pkg_target' using \`uname' detection"
+  fi
+fi
 
 # Expand the context path to an absolute path
 PLAN_CONTEXT="$(abspath "$PLAN_CONTEXT")"
