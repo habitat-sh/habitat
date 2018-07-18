@@ -133,6 +133,8 @@ sidebar_links:
       link: "/docs/best-practices/#running-habitat-linux-containers"
     - title: Running Habitat Windows Containers
       link: "/docs/best-practices/#running-habitat-windows-containers"
+    - title: Robust Supervisor Networks
+      link: "/docs/best-practices/#robust-supervisor-networks"
     - title: Container Orchestration
       link: "/docs/best-practices/#container-orchestration"
     - title: Kubernetes
