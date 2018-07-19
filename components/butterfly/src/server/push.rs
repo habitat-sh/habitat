@@ -323,7 +323,9 @@ impl PushWorker {
             };
             match socket.send(&payload, 0) {
                 Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
-                Err(e) => println!(
+                // This case seems to happen quite often, and is not actionable or a blocker
+                // Changing output message to debug instead of a println
+                Err(e) => debug!(
                     "Could not send rumor to {:?} @ {:?}; ZMQ said: {:?}",
                     member.get_id(),
                     to_addr,
