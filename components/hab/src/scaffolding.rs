@@ -119,7 +119,8 @@ fn is_project_go<T>(path: T) -> bool
 where
     T: AsRef<Path>,
 {
-    if path.as_ref().join("main.go").is_file() || path.as_ref().join("Godeps/Godeps.json").is_file()
+    if path.as_ref().join("main.go").is_file()
+        || path.as_ref().join("Godeps/Godeps.json").is_file()
         || path.as_ref().join("vendor/vendor.json").is_file()
         || path.as_ref().join("glide.yaml").is_file()
         || project_uses_gb(path.as_ref()).expect("Result<bool> not returned from .go file check")

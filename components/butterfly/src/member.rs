@@ -32,8 +32,10 @@ use time::SteadyTime;
 use uuid::Uuid;
 
 use error::Error;
-use message::swim::{Member as ProtoMember, Membership as ProtoMembership,
-                    Membership_Health as ProtoMembership_Health, Rumor_Type};
+use message::swim::{
+    Member as ProtoMember, Membership as ProtoMembership,
+    Membership_Health as ProtoMembership_Health, Rumor_Type,
+};
 use rumor::RumorKey;
 
 /// How many nodes do we target when we need to run PingReq.
@@ -577,7 +579,8 @@ impl MemberList {
         for member in members
             .into_iter()
             .filter(|m| {
-                m.get_id() != sending_member_id && m.get_id() != target_member_id
+                m.get_id() != sending_member_id
+                    && m.get_id() != target_member_id
                     && self.check_health_of_by_id(m.get_id(), Health::Alive)
             })
             .take(PINGREQ_TARGETS)

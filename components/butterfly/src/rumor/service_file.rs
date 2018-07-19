@@ -25,8 +25,9 @@ use habitat_core::service::ServiceGroup;
 use protobuf::{self, Message};
 
 use error::Result;
-use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type,
-                    ServiceFile as ProtoServiceFile};
+use message::swim::{
+    Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, ServiceFile as ProtoServiceFile,
+};
 use rumor::Rumor;
 
 #[derive(Debug, Clone, Serialize)]
