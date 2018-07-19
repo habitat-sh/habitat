@@ -2342,14 +2342,11 @@ THIS_PROGRAM=$(abspath "$0")
 #   `./habitat/plan.sh`
 #   `./$pkg_target/plan.sh
 #   `./habitat/$pkg_target/plan.sh 
-# In most cases, only one location is allowed so that a Plan author isn't 
-# confused if they edit one to have this program read the other.
-# The exception to this is when the $pkg_target requires variations to
-# the default `plan.sh`. Plan authors can create these variants by placeing 
-# Plan contents in a subdirectory named the same as the intended $pkg_target. 
-# In this case, we want to check if there is a variant `plan.sh` available 
-# for the $pkg_target, and prefer loading that one. Alternate $pkg_target 
-# are not considered as part of this load logic.
+# In most cases, Plan authors should use the default location of `./plan.sh`
+# or `./habitat/plan.sh`.  The exception to this is when the $pkg_target 
+# requires variations to the default `plan.sh`. Plan authors can create these 
+# variants by placing a plan file in the appropriate $pkg_target directory 
+# relative to the default plan.sh.
 
 # With plan variants, plans can exist in 4 places per $pkg_target relative to 
 # the `$PLAN_CONTEXT` directory. Only two combinations are allowed:
@@ -2357,43 +2354,32 @@ THIS_PROGRAM=$(abspath "$0")
 #   `./plan.sh` AND `./$pkg_target/plan.sh` 
 #   OR 
 #   `./habitat/plan.sh` AND `./habitat/$pkg_target/plan.sh`
-# Consider all other combination of two plans and abort if found.
-# All combinations of 3 and 4 plans are covered by a 2 plan case, so we don't
-# need to consider those scenarios. 
+# Consider all other combination of two plans invalid and abort if found.
 
-if [[ -f "$PLAN_CONTEXT/plan.sh" && -f "$PLAN_CONTEXT/habitat/plan.sh" ]];then
-  places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/plan.sh"
-elif [[ -f "$PLAN_CONTEXT/plan.sh" && -f "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" ]]; then
-  places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/$pkg_target/plan.sh"
-elif [[ -f "$PLAN_CONTEXT/habitat/plan.sh" && -f "$PLAN_CONTEXT/$pkg_target/plan.sh" ]]; then 
-  places="$PLAN_CONTEXT/habitat/plan.sh and $PLAN_CONTEXT/$pkg_target/plan.sh"
-elif [[ -f "$PLAN_CONTEXT/$pkg_target/plan.sh" && -f "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" ]]; then
-  places="$PLAN_CONTEXT/$pkg_target/plan.sh and $PLAN_CONTEXT/habitat/$pkg_target/plan.sh"
-fi
+# ** Internal ** Relative to the current plan context,  check for a variant
+#   that matches the current $pkg_target, and update $PLAN_CONTEXT if found.
+_check_for_plan_variant() {
+  if [[ -f "$PLAN_CONTEXT/$pkg_target/plan.sh" ]]; then
+    PLAN_CONTEXT="$PLAN_CONTEXT/$pkg_target"
+  fi
+}
 
-if [[ -v places ]]; then 
-  exit_with "A Plan file was found at $places. Only one is allowed at a time" 42
-fi
-
-build_line "Checking for variant at $pkg_target"
-
-# We check if the provided path has a `plan.sh` in it in valid locations. If
-# not, we'll quickly bail. Prefer most-specific to least specific. 
-if [[ -f "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" ]]; then
-  PLAN_CONTEXT="$PLAN_CONTEXT/habitat/$pkg_target"
-elif [[ -f "$PLAN_CONTEXT/$pkg_target/plan.sh" ]]; then
-  PLAN_CONTEXT="$PLAN_CONTEXT/$pkg_target"
+# Look for a plan.sh relative to the $PLAN_CONTEXT. If we find an invalid 
+#   combination or are unable to find a plan.sh,  abort with a message to the 
+#   user with the failure case. 
+if [[ -f "$PLAN_CONTEXT/plan.sh" ]]; then
+  if [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then 
+    places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/plan.sh"
+    exit_with "A plan file was found at $places. Only one is allowed at a time" 42
+  fi
+  _check_for_plan_variant
 elif [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then 
   PLAN_CONTEXT="$PLAN_CONTEXT/habitat"
-elif [[ -f "$PLAN_CONTEXT/plan.sh" ]]; then
-	: # DO NOTHING
+  _check_for_plan_variant
 else
-  locations=("$PLAN_CONTEXT/habitat/$pkg_target/plan.sh" 
-	     "$PLAN_CONTEXT/$pkg_target/plan.sh"
-	     "$PLAN_CONTEXT/habitat/plan.sh"
-	     "$PLAN_CONTEXT/plan.sh")
-  exit_with "plan.sh not found in any of the following locations: ${locations[*]}" 42
-fi
+  places="$PLAN_CONTEXT/plan.sh or $PLAN_CONTEXT/habitat/plan.sh"
+  exit_with "Plan file not found at $places" 42
+fi 
 
 # Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
 # paths in `plan.sh`
