@@ -2094,7 +2094,9 @@ $script:PLAN_CONTEXT = (Get-Item $Context).FullName
 #   that matches the current $pkg_target, and update $PLAN_CONTEXT if found.
 function _Check-For-Plan-Variant {
   if (Test-Path "$PLAN_CONTEXT\$pkg_target\plan.ps1") {
-    $PLAN_CONTEXT = "$PLAN_CONTEXT\$pkg_target" 
+    Write-BuildLine "Detected Plan Variant!"
+    $script:PLAN_CONTEXT = "$PLAN_CONTEXT\$pkg_target"
+    Write-BuildLine "$PLAN_CONTEXT"
   }
 }
 
@@ -2108,9 +2110,9 @@ if (Test-Path "$PLAN_CONTEXT\plan.ps1") {
     }
     _Check-For-Plan-Variant
 } elseif (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
-    PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
+    $script:PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
     _Check-For-Plan-Variant
-} else
+} else {
     $places = "$PLAN_CONTEXT\plan.ps1 or $PLAN_CONTEXT\habitat\plan.ps1"
     _Exit-With "Plan file not found at $places" 42
 }
