@@ -30,6 +30,7 @@
 - Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 
 #### Merged Pull Requests
+- Change spamming message to debug only [#5362](https://github.com/habitat-sh/habitat/pull/5362) ([chefsalim](https://github.com/chefsalim))
 - Fix pacakge typo to package [#5349](https://github.com/habitat-sh/habitat/pull/5349) ([gsreynolds](https://github.com/gsreynolds))
 - Add myself to maintainers [#5313](https://github.com/habitat-sh/habitat/pull/5313) ([scotthain](https://github.com/scotthain))
 - adding `DesiredState` enum to `ServiceStatus` proto type [#5308](https://github.com/habitat-sh/habitat/pull/5308) ([jeremymv2](https://github.com/jeremymv2))
