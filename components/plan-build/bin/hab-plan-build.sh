@@ -2340,8 +2340,8 @@ THIS_PROGRAM=$(abspath "$0")
 # candidate locations relative to the `$PLAN_CONTEXT` directory: 
 #   `./plan.sh`
 #   `./habitat/plan.sh`
-#   `./$pkg_target/plan.sh
-#   `./habitat/$pkg_target/plan.sh 
+#   `./$pkg_target/plan.sh`
+#   `./habitat/$pkg_target/plan.sh`
 # In most cases, Plan authors should use the default location of `./plan.sh`
 # or `./habitat/plan.sh`.  The exception to this is when the $pkg_target 
 # requires variations to the default `plan.sh`. Plan authors can create these 
