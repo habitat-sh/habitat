@@ -30,6 +30,7 @@
 - Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 
 #### Merged Pull Requests
+- Add blog post for GKE and GCR [#5352](https://github.com/habitat-sh/habitat/pull/5352) ([skpaterson](https://github.com/skpaterson))
 - Initial draft of &quot;bastion ring&quot; documentation [#5359](https://github.com/habitat-sh/habitat/pull/5359) ([christophermaier](https://github.com/christophermaier))
 - [ci,rustfmt] Formatting due to rustfmt 0.6.1 release in Rust 1.27.1. [#5356](https://github.com/habitat-sh/habitat/pull/5356) ([fnichol](https://github.com/fnichol))
 - Change spamming message to debug only [#5362](https://github.com/habitat-sh/habitat/pull/5362) ([chefsalim](https://github.com/chefsalim))
