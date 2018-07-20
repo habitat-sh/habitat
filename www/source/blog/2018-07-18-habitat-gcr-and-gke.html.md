@@ -38,6 +38,7 @@ do_build() {
 
 do_install() {
   return 0
+}
 ```
 This means we depend on the `core/nginx` maintained package and don't require any special build or installation setup.  This package will export a port which is important for us to see the `index.html` page when deployed at a later stage.  The configuration directory also includes a simple `nginx.conf` file. 
 
@@ -56,13 +57,13 @@ $ ls results/
 habskp-hab-gcr-demo-0.1.0-20180711153450-x86_64-linux.hart	logs
 last_build.env
 ```
-From the studio or otherwise, now execute the following to create a container image.  This is what we will upload to Google Container Registry.
+From the Studio or otherwise, now execute the following to create a container image.  This is what we will upload to Google Container Registry.
 
 ```
 $ hab pkg export kubernetes results/habskp-hab-gcr-demo-0.1.0-20180711153450-x86_64-linux.hart
 ```
 
-This creates a docker image with tags e.g.
+This creates a Docker image with tags e.g.
 ```
 $ docker images
 REPOSITORY                                  TAG                     IMAGE ID            CREATED             SIZE
