@@ -13,9 +13,17 @@ find_socket_files > "$socket_files_before"
 echo -n "Starting launcher (logging to $sup_log)..."
 # shellcheck disable=2024
 hab sup run &> "$sup_log" &
+retries=0
+max_retries=60
 until hab sup status &> /dev/null; do
 	echo -n .
-	sleep 1
+	if [[ $((retries++)) -gt $max_retries ]]; then
+		echo "timed out; dumping log:"
+		cat "$sup_log"
+		exit 2
+	else
+		sleep 1
+	fi
 done
 echo
 
