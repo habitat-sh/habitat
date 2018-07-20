@@ -15,6 +15,7 @@
 mod handlers;
 
 use std::collections::HashMap;
+use std::fs;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
@@ -55,17 +56,25 @@ pub struct Server {
     services: ServiceTable,
     tx: Sender,
     rx: Receiver,
+    pipe: String,
     supervisor: Child,
     args: Vec<String>,
 }
 
+impl Drop for Server {
+    fn drop(&mut self) {
+        self.remove_pipe();
+    }
+}
+
 impl Server {
     pub fn new(args: Vec<String>) -> Result<Self> {
-        let ((rx, tx), supervisor) = Self::init(&args, false)?;
+        let ((rx, tx), supervisor, pipe) = Self::init(&args, false)?;
         Ok(Server {
             services: ServiceTable::default(),
             tx: tx,
             rx: rx,
+            pipe: pipe,
             supervisor: supervisor,
             args: args,
         })
@@ -76,21 +85,31 @@ impl Server {
     /// Passing a value of true to the `clean` argument will force the Supervisor to clean the
     /// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
     /// that terminated gracefully.
-    fn init(args: &[String], clean: bool) -> Result<((Receiver, Sender), Child)> {
+    fn init(args: &[String], clean: bool) -> Result<((Receiver, Sender), Child, String)> {
         let (server, pipe) = IpcOneShotServer::new().map_err(Error::OpenPipe)?;
         let supervisor = spawn_supervisor(&pipe, args, clean)?;
         let channel = setup_connection(server)?;
-        Ok((channel, supervisor))
+        Ok((channel, supervisor, pipe))
+    }
+
+    fn remove_pipe(&self) {
+        if fs::remove_file(&self.pipe).is_err() {
+            error!("Could not remove old pipe to supervisor {}", self.pipe);
+        } else {
+            debug!("Removed old pipe to supervisor {}", self.pipe);
+        }
     }
 
     #[allow(unused_must_use)]
     fn reload(&mut self) -> Result<()> {
         self.supervisor.kill();
         self.supervisor.wait();
-        let ((rx, tx), supervisor) = Self::init(&self.args, true)?;
+        let ((rx, tx), supervisor, pipe) = Self::init(&self.args, true)?;
         self.tx = tx;
         self.rx = rx;
         self.supervisor = supervisor;
+        self.remove_pipe();
+        self.pipe = pipe;
         Ok(())
     }
 
@@ -449,7 +468,13 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
     if clean {
         command.env(protocol::LAUNCHER_LOCK_CLEAN_ENV, clean.to_string());
     }
-    debug!("Starting Supervisor...");
+    debug!(
+        "Starting Supervisor {:?} with args {:?}, {}={}...",
+        binary,
+        args,
+        protocol::LAUNCHER_PIPE_ENV,
+        pipe
+    );
     let child = command
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
