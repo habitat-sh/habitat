@@ -17,15 +17,17 @@ fn generate_protocols() {
     config.type_attribute(".", "#[derive(Serialize, Deserialize, Hash)]");
     config
         .compile_protos(&protocol_files(), &protocol_includes())
-        .expect("protocols");
+        .expect("Error compiling protobuf definitions");
     for file in generated_files() {
-        fs::rename(
+        fs::copy(
             &file,
+            // NB: src/generated is presumed to exist; if you delete
+            // it, this'll fail.
             format!(
                 "src/generated/{}",
                 file.file_name().unwrap().to_string_lossy()
             ),
-        ).unwrap();
+        ).expect("Could not copy generated code to src/generated");
     }
 }
 
