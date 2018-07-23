@@ -11,6 +11,7 @@
 `hab pkg export docker <origin>/<pkg>` should now respect `HAB_AUTH_TOKEN` appropriately as well as now supporting an `--auth` argument!
 
 #### Behavioral Changes
+- Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 - [common] Updates due to PackageTarget changes in habitat-sh/core#37. [#5311](https://github.com/habitat-sh/habitat/pull/5311) ([fnichol](https://github.com/fnichol))
 
 #### Bug Fixes
