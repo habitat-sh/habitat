@@ -606,10 +606,12 @@ name = "habitat-launcher-client"
 version = "0.0.0"
 dependencies = [
  "bincode 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_logger 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-launcher-protocol 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "ipc-channel 0.9.0 (git+https://github.com/habitat-sh/ipc-channel?branch=hbt-windows)",
  "libc 0.2.37 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

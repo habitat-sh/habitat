@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::collections::HashMap;
+use std::fs;
 use std::io;
 use std::path::Path;
 
@@ -29,18 +30,35 @@ type IpcServer = IpcOneShotServer<Vec<u8>>;
 pub struct LauncherCli {
     tx: IpcSender<Vec<u8>>,
     rx: IpcReceiver<Vec<u8>>,
+    pipe: String,
+}
+
+impl Drop for LauncherCli {
+    fn drop(&mut self) {
+        if fs::remove_file(&self.pipe).is_err() {
+            error!("Could not remove old pipe to launcher {}", self.pipe);
+        } else {
+            debug!("Removed old pipe to launcher {}", self.pipe);
+        }
+    }
 }
 
 impl LauncherCli {
-    pub fn connect(pipe: String) -> Result<Self> {
-        let tx = IpcSender::connect(pipe).map_err(Error::Connect)?;
-        let (ipc_srv, pipe) = IpcServer::new().map_err(Error::BadPipe)?;
+    pub fn connect(pipe_to_launcher: String) -> Result<Self> {
+        debug!("LauncherCli::connect({})", pipe_to_launcher);
+        let tx = IpcSender::connect(pipe_to_launcher).map_err(Error::Connect)?;
+        let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(Error::BadPipe)?;
+        debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);
         let mut cmd = protocol::Register::new();
-        cmd.set_pipe(pipe);
+        cmd.set_pipe(pipe_to_sup);
         Self::send(&tx, &cmd)?;
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;
-        Ok(LauncherCli { tx: tx, rx: rx })
+        Ok(LauncherCli {
+            tx: tx,
+            rx: rx,
+            pipe: cmd.take_pipe(),
+        })
     }
 
     /// Read a launcher protocol message from a byte array
