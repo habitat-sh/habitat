@@ -108,6 +108,8 @@ impl Server {
         self.tx = tx;
         self.rx = rx;
         self.supervisor = supervisor;
+        // We're connecting to a new supervisor instance, so we need to remove
+        // the socket files for the old pipe to avoid https://github.com/habitat-sh/habitat/issues/4673
         self.remove_pipe();
         self.pipe = pipe;
         Ok(())
