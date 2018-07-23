@@ -258,7 +258,7 @@ impl Server {
                         "Successfully ingested rumors from {}",
                         file.path().display()
                     ),
-                    Err(Error::DatFileIO(path, err)) => println!("{}", Error::DatFileIO(path, err)),
+                    Err(Error::DatFileIO(path, err)) => error!("{}", Error::DatFileIO(path, err)),
                     Err(err) => return Err(err),
                 };
             }
@@ -986,7 +986,7 @@ impl Server {
     fn persist_data(&self) {
         if let Some(ref dat_file) = *self.dat_file.read().expect("DatFile lock poisoned") {
             if let Some(err) = dat_file.write(self).err() {
-                println!("Error persisting rumors to disk, {}", err);
+                error!("Error persisting rumors to disk, {}", err);
             } else {
                 debug!(
                     "Successfully persisted rumors to disk: {}",

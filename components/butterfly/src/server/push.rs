@@ -115,7 +115,7 @@ impl Push {
                 for guard in thread_list.drain(0..num_threads) {
                     let _ = guard
                         .join()
-                        .map_err(|e| println!("Push worker died: {:?}", e));
+                        .map_err(|e| error!("Push worker died: {:?}", e));
                 }
                 if SteadyTime::now() < next_gossip {
                     let wait_time = (next_gossip - SteadyTime::now()).num_milliseconds();
@@ -173,7 +173,7 @@ impl PushWorker {
         match socket.connect(&format!("tcp://{}", to_addr)) {
             Ok(()) => debug!("Connected push socket to {:?}", member),
             Err(e) => {
-                println!("Cannot connect push socket to {:?}: {:?}", member, e);
+                error!("Cannot connect push socket to {:?}: {:?}", member, e);
                 return;
             }
         }
@@ -192,7 +192,7 @@ impl PushWorker {
                     match send_rumor.write_to_bytes() {
                         Ok(bytes) => bytes,
                         Err(e) => {
-                            println!(
+                            error!(
                                 "Could not write our own rumor to bytes; abandoning \
                                  sending rumor: {:?}",
                                 e
@@ -212,7 +212,7 @@ impl PushWorker {
                     {
                         Ok(bytes) => bytes,
                         Err(e) => {
-                            println!(
+                            error!(
                                 "Could not write our own rumor to bytes; abandoning \
                                  sending rumor: {:?}",
                                 e
@@ -232,7 +232,7 @@ impl PushWorker {
                     {
                         Ok(bytes) => bytes,
                         Err(e) => {
-                            println!(
+                            error!(
                                 "Could not write our own rumor to bytes; abandoning \
                                  sending rumor: {:?}",
                                 e
@@ -252,7 +252,7 @@ impl PushWorker {
                     {
                         Ok(bytes) => bytes,
                         Err(e) => {
-                            println!(
+                            error!(
                                 "Could not write our own rumor to bytes; abandoning \
                                  sending rumor: {:?}",
                                 e
@@ -267,7 +267,7 @@ impl PushWorker {
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        println!(
+                        error!(
                             "Could not write our own rumor to bytes; abandoning \
                              sending rumor: {:?}",
                             e
@@ -286,7 +286,7 @@ impl PushWorker {
                     {
                         Ok(bytes) => bytes,
                         Err(e) => {
-                            println!(
+                            error!(
                                 "Could not write our own rumor to bytes; abandoning \
                                  sending rumor: {:?}",
                                 e
@@ -301,7 +301,7 @@ impl PushWorker {
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        println!(
+                        error!(
                             "Could not write our own rumor to bytes; abandoning sending \
                              rumor: {:?}",
                             e
@@ -323,9 +323,7 @@ impl PushWorker {
             };
             match socket.send(&payload, 0) {
                 Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
-                // This case seems to happen quite often, and is not actionable or a blocker
-                // Changing output message to debug instead of a println
-                Err(e) => debug!(
+                Err(e) => warn!(
                     "Could not send rumor to {:?} @ {:?}; ZMQ said: {:?}",
                     member.get_id(),
                     to_addr,
