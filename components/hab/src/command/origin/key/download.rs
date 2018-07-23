@@ -75,15 +75,8 @@ fn handle_public(
                 }
                 Ok(keys) => {
                     for key in keys {
-                        let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
-                        download_key(
-                            ui,
-                            depot_client,
-                            &nwr,
-                            key.get_origin(),
-                            key.get_revision(),
-                            cache,
-                        )?;
+                        let nwr = format!("{}-{}", key.origin, key.revision);
+                        download_key(ui, depot_client, &nwr, &key.origin, &key.revision, cache)?;
                     }
                     ui.end(format!(
                         "Download of {} public origin keys completed.",

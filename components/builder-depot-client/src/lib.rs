@@ -17,7 +17,6 @@
 
 extern crate broadcast;
 extern crate chrono;
-extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_http_client as hab_http;
 #[macro_use]
@@ -26,7 +25,6 @@ extern crate hyper_openssl;
 #[macro_use]
 extern crate log;
 extern crate pbr;
-extern crate protobuf;
 extern crate rand;
 extern crate serde;
 #[macro_use]
@@ -48,15 +46,13 @@ use std::string::ToString;
 
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hab_core::package::{Identifiable, PackageArchive};
+use hab_core::package::{self, Identifiable, PackageArchive};
 use hab_http::util::decoded_response;
 use hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
 use hyper::Url;
-use protobuf::core::ProtobufEnum;
-use protocol::{net, originsrv};
 use rand::{thread_rng, Rng};
 use tee::TeeReader;
 use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
@@ -73,12 +69,9 @@ pub struct NetError {
     pub msg: String,
 }
 
-impl ToString for NetError {
-    fn to_string(&self) -> String {
-        let mut out = net::NetError::new();
-        out.set_code(net::ErrCode::from_i32(self.code).unwrap());
-        out.set_msg(self.msg.clone());
-        out.to_string()
+impl fmt::Display for NetError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[err: {:?}, msg: {}]", self.code, self.msg)
     }
 }
 
@@ -156,27 +149,6 @@ impl fmt::Display for SchedulerResponse {
     }
 }
 
-impl Into<originsrv::OriginKeyIdent> for OriginKeyIdent {
-    fn into(self) -> originsrv::OriginKeyIdent {
-        let mut out = originsrv::OriginKeyIdent::new();
-        out.set_origin(self.origin);
-        out.set_revision(self.revision);
-        out.set_location(self.location);
-        out
-    }
-}
-
-impl Into<originsrv::OriginSecret> for OriginSecret {
-    fn into(self) -> originsrv::OriginSecret {
-        let mut out = originsrv::OriginSecret::new();
-        out.set_id(self.id.parse::<u64>().unwrap());
-        out.set_origin_id(self.origin_id.parse::<u64>().unwrap());
-        out.set_name(self.name);
-        out.set_value(self.value);
-        out
-    }
-}
-
 /// Custom conversion logic to allow `serde` to successfully
 /// round-trip `u64` datatypes through JSON serialization.
 ///
@@ -226,20 +198,6 @@ pub struct Package {
     pub config: String,
 }
 
-impl Into<originsrv::OriginPackage> for Package {
-    fn into(self) -> originsrv::OriginPackage {
-        let mut out = originsrv::OriginPackage::new();
-        out.set_ident(self.ident.into());
-        out.set_checksum(self.checksum);
-        out.set_manifest(self.manifest);
-        out.set_deps(self.deps.into_iter().map(|m| m.into()).collect());
-        out.set_tdeps(self.tdeps.into_iter().map(|m| m.into()).collect());
-        out.set_exposes(self.exposes);
-        out.set_config(self.config);
-        out
-    }
-}
-
 #[derive(Clone, Deserialize)]
 pub struct PackageIdent {
     pub origin: String,
@@ -248,14 +206,14 @@ pub struct PackageIdent {
     pub release: String,
 }
 
-impl Into<originsrv::OriginPackageIdent> for PackageIdent {
-    fn into(self) -> originsrv::OriginPackageIdent {
-        let mut out = originsrv::OriginPackageIdent::new();
-        out.set_origin(self.origin);
-        out.set_name(self.name);
-        out.set_version(self.version);
-        out.set_release(self.release);
-        out
+impl Into<package::PackageIdent> for PackageIdent {
+    fn into(self) -> package::PackageIdent {
+        package::PackageIdent {
+            origin: self.origin,
+            name: self.name,
+            version: Some(self.version),
+            release: Some(self.release),
+        }
     }
 }
 
@@ -270,14 +228,6 @@ pub struct PackageResults<T> {
 #[derive(Clone, Deserialize)]
 pub struct OriginChannelIdent {
     pub name: String,
-}
-
-impl Into<originsrv::OriginChannelIdent> for OriginChannelIdent {
-    fn into(self) -> originsrv::OriginChannelIdent {
-        let mut out = originsrv::OriginChannelIdent::new();
-        out.set_name(self.name);
-        out
-    }
 }
 
 pub trait DisplayProgress: Write {
@@ -493,8 +443,7 @@ impl Client {
         debug!("Response body: {:?}", encoded);
         let secret_keys: Vec<String> = serde_json::from_str::<Vec<OriginSecret>>(&encoded)?
             .into_iter()
-            .map(|m| m.into())
-            .map(|s: originsrv::OriginSecret| s.get_name().to_string())
+            .map(|s| s.name)
             .collect();
         Ok(secret_keys)
     }
@@ -553,7 +502,7 @@ impl Client {
         )
     }
 
-    pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<originsrv::OriginKeyIdent>> {
+    pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
         let mut res = self.0.get(&origin_keys_path(origin)).send()?;
         debug!("Response: {:?}", res);
 
@@ -565,11 +514,7 @@ impl Client {
         res.read_to_string(&mut encoded)
             .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<originsrv::OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(
-            &encoded,
-        )?.into_iter()
-            .map(|m| m.into())
-            .collect();
+        let revisions: Vec<OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?;
         Ok(revisions)
     }
 
@@ -783,7 +728,7 @@ impl Client {
         channel: Option<&str>,
         token: Option<&str>,
         target: Option<&str>,
-    ) -> Result<originsrv::OriginPackage>
+    ) -> Result<Package>
     where
         I: Identifiable,
     {
@@ -816,7 +761,7 @@ impl Client {
         res.read_to_string(&mut encoded)
             .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
-        let package: originsrv::OriginPackage = serde_json::from_str::<Package>(&encoded)?.into();
+        let package: Package = serde_json::from_str::<Package>(&encoded)?;
         Ok(package)
     }
 

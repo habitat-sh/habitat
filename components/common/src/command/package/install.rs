@@ -828,6 +828,7 @@ impl<'a> InstallTask<'a> {
     ) -> Result<FullyQualifiedPackageIdent> {
         let origin_package: PackageIdent = self.depot_client
             .show_package(ident, Some(channel.0), token, None)?
+            .ident
             .into();
         FullyQualifiedPackageIdent::from(origin_package)
     }
