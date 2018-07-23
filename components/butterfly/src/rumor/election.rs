@@ -147,7 +147,7 @@ impl Rumor for Election {
     fn merge(&mut self, mut other: Election) -> bool {
         if *self == other {
             // If we are the same object, just return false
-            // println!("Equal: {:?} {:?}", self, other);
+            debug!("Equal: {:?} {:?}", self, other);
             false
         } else if other.get_term() >= self.get_term()
             && other.get_status() == Election_Status::Finished
@@ -169,13 +169,13 @@ impl Rumor for Election {
         } else if self.get_suitability() > other.get_suitability() {
             // If we are more suitable than the other side, we want to steal
             // the other sides votes, and keep sharing.
-            // println!("Self suitable: {:?} {:?}", self, other);
+            debug!("Self suitable: {:?} {:?}", self, other);
             self.steal_votes(&mut other);
             true
         } else if other.get_suitability() > self.get_suitability() {
             // If the other side is more suitable than we are, we want to add our votes
             // to its tally, then take it as our rumor.
-            // println!("Other suitable: {:?} {:?}", self, other);
+            debug!("Other suitable: {:?} {:?}", self, other);
             other.steal_votes(self);
             *self = other;
             true
@@ -183,15 +183,16 @@ impl Rumor for Election {
             if self.get_member_id() >= other.get_member_id() {
                 // If we are equally suitable, and our id sorts before the other, we want to steal
                 // it's votes, and mark it as having voted for us.
-                // println!("Self sorts equal or greater than other: {:?} {:?}",
-                //         self,
-                //         other);
+                debug!(
+                    "Self sorts equal or greater than other: {:?} {:?}",
+                    self, other
+                );
                 self.steal_votes(&mut other);
                 true
             } else {
                 // If we are equally suitable, but the other id sorts before ours, then we give it
                 // our votes, vote for it ourselves, and spread it as the new rumor
-                // println!("Self sorts less than other: {:?} {:?}", self, other);
+                debug!("Self sorts less than other: {:?} {:?}", self, other);
                 other.steal_votes(self);
                 *self = other;
                 true
