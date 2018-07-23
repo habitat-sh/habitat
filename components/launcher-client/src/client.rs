@@ -44,11 +44,13 @@ impl Drop for LauncherCli {
 }
 
 impl LauncherCli {
-    pub fn connect(pipe: String) -> Result<Self> {
-        let tx = IpcSender::connect(pipe).map_err(Error::Connect)?;
-        let (ipc_srv, pipe) = IpcServer::new().map_err(Error::BadPipe)?;
+    pub fn connect(pipe_to_launcher: String) -> Result<Self> {
+        debug!("LauncherCli::connect({})", pipe_to_launcher);
+        let tx = IpcSender::connect(pipe_to_launcher).map_err(Error::Connect)?;
+        let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(Error::BadPipe)?;
+        debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);
         let mut cmd = protocol::Register::new();
-        cmd.set_pipe(pipe);
+        cmd.set_pipe(pipe_to_sup);
         Self::send(&tx, &cmd)?;
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;
