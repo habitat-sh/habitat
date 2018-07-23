@@ -6,12 +6,7 @@ set -e
 version="$(cat VERSION)"
 mac_builder=admin@74.80.245.236
 
-BINTRAY_REPO=unstable
-if [ "$version" == "$TRAVIS_TAG" ]; then
-  BINTRAY_REPO=stable
-fi
-
-echo "Kicking off the $BINTRAY_REPO mac build"
+echo "Kicking off the unstable mac build"
 var_file=/tmp/our-awesome-vars
 ssh_args=(-o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -i /tmp/habitat-srv-admin)
 
@@ -40,7 +35,6 @@ EOF
 # passing environment variables over ssh is a pain and never worked quite right.
 # instead, write this out to a file and scp it over, to source later.
 cat << EOF >${var_file}
-export BINTRAY_REPO=$BINTRAY_REPO
 export HAB_ORIGIN_KEY=$HAB_ORIGIN_KEY
 export BINTRAY_USER=$BINTRAY_USER
 export BINTRAY_KEY=$BINTRAY_KEY
