@@ -26,7 +26,6 @@ extern crate log;
 extern crate pbr;
 extern crate regex;
 extern crate retry;
-#[cfg(test)]
 extern crate tempdir;
 extern crate term;
 extern crate time;

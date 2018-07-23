@@ -14,6 +14,7 @@ libc = "*"
 log = "*"
 pbr = "*"
 regex = "*"
+tempdir = "*"
 retry = "*"
 term = "*"
 time = "*"
@@ -29,9 +30,6 @@ path = "../builder-depot-client"
 [target.'cfg(windows)'.dependencies]
 kernel32-sys = "*"
 winapi = "0.2"
-
-[dev-dependencies]
-tempdir = "*"
 
 [features]
 default = []
