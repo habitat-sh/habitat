@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -euo pipefail
+shopt -s extglob
+
+if [[ "${BUILDKITE_AGENT_META_DATA_QUEUE}" == "habitat-release" ]]; then
+    echo "--- Cleaning up... removing newer hab-studios"
+    # Here's the deal: hab will use whatever the latest installed
+    # studio happens to be. If we're re-running a release on the same
+    # node that ran a release earlier (i.e., before it can be
+    # automatically recycled by our scaling group), then it could have
+    # a studio package _from that failed release_ installed locally.
+    #
+    # We want to have more control over the studio that we use than
+    # that, so before we start, we'll ensure that the only studio
+    # present is the one that corresponds to the `hab` that's on our
+    # path, which should be whatever the latest stable release is, per
+    # our build node provisioning.
+
+    # e.g., "hab 0.59.0/20180712155441" => "0.59.0"
+    current_hab_version=$(hab --version | awk '{split($2, a, "/"); print a[1];}')
+
+    # Remove any installed hab-studio that does not correspond to our
+    # active `hab`. Wipe out the archived hart files for them, too,
+    # for good measure.
+    sudo rm -Rfv /hab/pkgs/core/hab-studio/!(${current_hab_version})
+    sudo rm -Rfv /hab/cache/artifacts/core-hab-studio-!(${current_hab_version}-*)
+fi

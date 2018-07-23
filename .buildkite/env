@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Set some important environment variables. Source this in your build
+# scripts as needed.
+
+set -euo pipefail
+
+# Use this to specify a toolchain for Rustup on platforms where that's
+# how we get Rust (e.g., MacOS)
+if [ -z ${RUST_TOOLCHAIN:-} ]; then
+    export RUST_TOOLCHAIN="1.27.1"
+else
+    echo "--- :warning: Using RUST_TOOLCHAIN=\"${RUST_TOOLCHAIN}\", previously set in the environment"
+fi

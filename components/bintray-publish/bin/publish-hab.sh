@@ -315,6 +315,7 @@ pkg_origin=$pkg_origin
 pkg_name=$pkg_name
 pkg_version=$pkg_version
 pkg_release=$pkg_release
+pkg_target=$pkg_target
 pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 pkg_artifact=$(basename "$pkg_artifact")
 EOF

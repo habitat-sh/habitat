@@ -1,0 +1,235 @@
+steps:
+
+  # We do this to ensure a clean slate every time, just in case we had
+  # a failed release process that left things behind.
+  #
+  # It also has the nice side effect of getting our habitat-release
+  # worker queue warmed up
+  #
+  # It's OK if the release channel doesn't exist at this stage; thus
+  # the /bin/true fallback
+  - label: ":habicat: :boom: Destroy release channel"
+    command: .buildkite/scripts/destroy_release_channel.sh || /bin/true
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  - label: ":linux: :habicat: core/hab"
+    command: .buildkite/scripts/build_component.sh hab
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: :habicat: core/hab"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  - label: ":mac: :habicat: core/hab"
+    command: .buildkite/scripts/build_mac_release.sh
+    concurrency_group: "habitat/release/macos"
+    # We only want to run one build at a time because these are long-lived VMs and the builds
+    # are by definition not very isolated
+    concurrency: 1
+    agents:
+      # This is the only queue that has Mac builders at the moment;
+      # they're also not being used by anyone else.
+      queue: omnibus
+      os: Darwin
+      "os:version": 10.11 # Build statically on the oldest thing we can
+
+  - wait
+
+  - label: ":linux: :habicat: :hammer_and_wrench: core/hab-plan-build"
+    command: .buildkite/scripts/build_component.sh plan-build
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  # This must pull in the core/hab we built ^^^
+  - label: ":linux: :habicat: core/hab-bintray-publish"
+    command: .buildkite/scripts/build_component.sh bintray-publish
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: :habicat: core/hab-bintray-publish"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  # This must pull in the core/backline we built ^^^
+  - label: ":drum_with_drumsticks: :habicat: :drum_with_drumsticks: core/hab-backline"
+    command: .buildkite/scripts/build_component.sh backline
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  # TODO: This only depends on core/hab, so it could theoretically be built alongside plan-build and backline
+  - label: ":linux: :habicat: core/hab-studio"
+    command: .buildkite/scripts/build_component.sh studio
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: :habicat: core/hab-studio"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  - label: ":linux: :habicat: core/hab-sup"
+    command: .buildkite/scripts/build_component.sh sup
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: :habicat: core/hab-sup"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  # Exporters
+
+  # TODO: Create an ACI emoji
+  - label: ":habicat: core/hab-pkg-aci"
+    command: .buildkite/scripts/build_component.sh pkg-aci
+    agents:
+      queue: habitat-release
+
+  - label: ":linux: :docker: core/hab-pkg-export-docker"
+    command: .buildkite/scripts/build_component.sh pkg-export-docker
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: :docker: core/hab-pkg-export-docker"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  - label: ":k8s: core/hab-pkg-export-kubernetes"
+    command: .buildkite/scripts/build_component.sh pkg-export-kubernetes
+    agents:
+      queue: habitat-release
+
+  - label: ":helm: core/hab-pkg-export-helm"
+    command: .buildkite/scripts/build_component.sh pkg-export-helm
+    agents:
+      queue: habitat-release
+
+  - label: ":linux: :package: core/hab-pkg-export-tar"
+    command: .buildkite/scripts/build_component.sh pkg-export-tar
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: :package: core/hab-pkg-export-tar"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  # TODO: Create a Mesos emoji
+  - label: ":habicat: core/hab-pkg-mesosize"
+    command: .buildkite/scripts/build_component.sh pkg-mesosize
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  # The cfize export currently has a dependency on
+  # hab-pkg-export-docker, so it must be built after that.
+  - label: ":cloudfoundry: core/hab-pkg-cfize"
+    command: .buildkite/scripts/build_component.sh pkg-cfize
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  # TODO Create a JFrog emoji
+  - label: ":linux: Upload (but don't publish!) artifacts to Bintray"
+    command: .buildkite/scripts/bintray_upload.sh
+    agents:
+      queue: habitat-release
+
+  - label: ":windows: Upload (but don't publish!) artifacts to Bintray"
+    command: /bin/true
+    skip: "No Windows builders yet"
+    agents:
+      queue: habitat-release
+
+  - label: ":mac: Upload (but don't publish!) artifacts to Bintray"
+    command: .buildkite/scripts/bintray_upload_macos.sh
+    agents:
+      queue: habitat-release
+      # NOTE: We don't need to run this on a Mac.
+
+  - block: ":raised_hand: :windows: Wait for Appveyor"
+    prompt: |
+      Windows builds are currently generated in Appveyor. They will be
+      in Buildkite soon, but until then, we need to wait until
+      Appveyor has generated the necessary artifacts and uploaded them
+      to Builder and Bintray. Please ensure those artifacts have been
+      uploaded before continuing with the release.
+
+  - block: ":thumbsup: Select Launcher Versions to Promote to Release Channel"
+    prompt: |
+      Which `core/hab-launcher` versions should be in the release
+      channel? This is helpful for validating a release, since all
+      required packages will be in the same channel.
+
+      Provide the fully-qualified identifier (e.g.,
+      `core/hab-launcher/7797/20180625172404`) for each platform.
+
+      Providing no value means that the current stable releases will be
+      used. This is OK, because promoting something already `stable`
+      to `stable` is a no-op.
+    fields:
+      - text: Linux Launcher
+        key: linux-launcher
+        hint: What is the fully-qualified identifier for the desired Linux Launcher?
+        required: false
+      - text: Windows Launcher
+        key: windows-launcher
+        hint: What is the fully-qualified identifier for the desired Windows Launcher?
+        required: false
+
+  - label: "Promoting Launcher Versions"
+    command: .buildkite/scripts/promote_launchers.sh
+    agents:
+      queue: habitat-release
+
+  - block: ":white_check_mark: Validate the Release Candidate"
+    prompt: |
+      Until we beef up our automated acceptance testing, we need to do
+      some basic manual validation of the release candidates. Invite
+      your friends; it will be so much fun!
+
+  - block: ":shipit: :question:"
+    prompt: "Is it good to release, or do we need to go back to the drawing board?"
+    fields:
+      - select: "Action"
+        required: true
+        key: "release-action"
+        options:
+          - label: "Release"
+            value: "release"
+          - label: "Abort"
+            value: "abort"
+
+  - label: ":pipeline:"
+    command: .buildkite/scripts/finish_release.sh
+    agents:
+      queue: pipeline-trigger
