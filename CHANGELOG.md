@@ -1,7 +1,7 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 0.60.0-dev -->
+## [0.60.0-dev](https://github.com/habitat-sh/habitat/tree/0.60.0-dev) (2018-07-23)
 
 #### New Features & Enhancements
 - [core] Add new PackageTarget from habitat-sh/core#42. [#5355](https://github.com/habitat-sh/habitat/pull/5355) ([fnichol](https://github.com/fnichol))
@@ -32,6 +32,7 @@
 - Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 
 #### Merged Pull Requests
+- Decouple builder-depot-client from protobuf [#5372](https://github.com/habitat-sh/habitat/pull/5372) ([chefsalim](https://github.com/chefsalim))
 - Add blog post for GKE and GCR [#5352](https://github.com/habitat-sh/habitat/pull/5352) ([skpaterson](https://github.com/skpaterson))
 - Initial draft of &quot;bastion ring&quot; documentation [#5359](https://github.com/habitat-sh/habitat/pull/5359) ([christophermaier](https://github.com/christophermaier))
 - [ci,rustfmt] Formatting due to rustfmt 0.6.1 release in Rust 1.27.1. [#5356](https://github.com/habitat-sh/habitat/pull/5356) ([fnichol](https://github.com/fnichol))
