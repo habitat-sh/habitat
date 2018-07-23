@@ -14,6 +14,7 @@
 - [common] Updates due to PackageTarget changes in habitat-sh/core#37. [#5311](https://github.com/habitat-sh/habitat/pull/5311) ([fnichol](https://github.com/fnichol))
 
 #### Bug Fixes
+- Remove rust-ipc-socket files when appropriate [#5365](https://github.com/habitat-sh/habitat/pull/5365) ([baumanj](https://github.com/baumanj))
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 - fixing default value for pid display in hab svc status [#5281](https://github.com/habitat-sh/habitat/pull/5281) ([jeremymv2](https://github.com/jeremymv2))
 - remove svc PID files on hab sup term [#5236](https://github.com/habitat-sh/habitat/pull/5236) ([jeremymv2](https://github.com/jeremymv2))
