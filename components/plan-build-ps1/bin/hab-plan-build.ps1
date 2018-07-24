@@ -2025,6 +2025,7 @@ pkg_origin=$pkg_origin
 pkg_name=$pkg_name
 pkg_version=$pkg_version
 pkg_release=$pkg_release
+pkg_target=$pkg_target
 pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 pkg_artifact=$(Split-Path $pkg_artifact -Leaf)
 pkg_sha256sum=$_pkg_sha256sum
