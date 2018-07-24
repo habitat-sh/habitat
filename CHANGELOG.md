@@ -1,6 +1,12 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.60.0-dev -->
+<!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+-  Switch to `prost` from `protobuf` crate in Butterfly [#5179](https://github.com/habitat-sh/habitat/pull/5179) ([reset](https://github.com/reset))
+<!-- latest_release -->
+
 ## [0.60.0-dev](https://github.com/habitat-sh/habitat/tree/0.60.0-dev) (2018-07-23)
 
 #### New Features & Enhancements
@@ -52,7 +58,6 @@
 - Fix doc generator, generate 0.59.0 docs [#5335](https://github.com/habitat-sh/habitat/pull/5335) ([cnunciato](https://github.com/cnunciato))
 - Replace &quot;blacklist&quot; and &quot;whitelist&quot; with less problematic terminology [#5296](https://github.com/habitat-sh/habitat/pull/5296) ([baumanj](https://github.com/baumanj))
 - Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [0.58.0](https://github.com/habitat-sh/habitat/tree/0.58.0) (07-02-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.57.0...0.58.0)
