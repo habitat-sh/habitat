@@ -31,6 +31,7 @@ use error::{Error, Result};
 use fs;
 
 pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
+pub const INSTALL_TMP_PREFIX: &'static str = ".hab-pkg-install";
 const PATH_KEY: &'static str = "PATH";
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -691,6 +692,17 @@ impl PackageInstall {
 
         for entry in std::fs::read_dir(version.path())? {
             let entry = entry?;
+            if let Some(path) = entry.path().file_name().and_then(|f| f.to_str()) {
+                if path.starts_with(INSTALL_TMP_PREFIX) {
+                    debug!(
+                        "PackageInstall::walk_releases(): rejected PackageInstall candidate \
+                         because it matches installation temporary directory prefix: {}",
+                        path
+                    );
+                    continue
+                }
+            }
+
             let metafile_content = read_metafile(entry.path(), &MetaFile::Target);
             // If there is an error reading the target metafile, then skip the candidate
             if let Err(e) = metafile_content {
