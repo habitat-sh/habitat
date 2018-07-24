@@ -1,23 +1,27 @@
 /// Returned when a transactional request is successful but no entities are returned. Useful
 /// when making a request which requires no response but the caller wants to block for completion.
-#[derive(Clone, PartialEq, Message, Serialize, Deserialize, Hash)]
+#[derive(Clone, PartialEq, Message)]
+#[derive(Serialize, Deserialize, Hash)]
 #[serde(rename_all = "kebab-case")]
-pub struct NetOk {}
+pub struct NetOk {
+}
 /// Returned when a transactional request is a failure. Contains an `ErrCode` indicating a failure
 /// domain or reason and a string message containing a user friendly failure reason.
 ///
 /// Failure reasons are ideally unique and should be user readable. Localization doesn't matter at
 /// this time.
-#[derive(Clone, PartialEq, Message, Serialize, Deserialize, Hash)]
+#[derive(Clone, PartialEq, Message)]
+#[derive(Serialize, Deserialize, Hash)]
 #[serde(rename_all = "kebab-case")]
 pub struct NetErr {
-    #[prost(enumeration = "ErrCode", required, tag = "1")]
+    #[prost(enumeration="ErrCode", required, tag="1")]
     pub code: i32,
-    #[prost(string, required, tag = "2")]
+    #[prost(string, required, tag="2")]
     pub msg: String,
 }
 /// Error codes mapping to a high level failure reason for a `NetErr`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration, Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
+#[derive(Serialize, Deserialize, Hash)]
 #[serde(rename_all = "kebab-case")]
 pub enum ErrCode {
     Internal = 0,

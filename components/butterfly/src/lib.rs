@@ -44,12 +44,15 @@
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
 extern crate byteorder;
+extern crate bytes;
 extern crate habitat_core;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
+extern crate prost;
+#[macro_use]
+extern crate prost_derive;
 extern crate rand;
 extern crate serde;
 #[macro_use]
@@ -67,8 +70,10 @@ pub mod client;
 pub mod error;
 pub mod member;
 pub mod message;
+pub mod protocol;
 pub mod rumor;
 pub mod server;
+pub mod swim;
 
 use std::cell::UnsafeCell;
 

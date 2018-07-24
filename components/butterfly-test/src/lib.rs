@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
@@ -29,8 +30,8 @@ use std::time::Duration;
 use time::SteadyTime;
 
 use habitat_butterfly::member::{Health, Member};
-use habitat_butterfly::message::swim::Election_Status;
 use habitat_butterfly::rumor::departure::Departure;
+use habitat_butterfly::rumor::election::ElectionStatus;
 use habitat_butterfly::rumor::service::{Service, SysInfo};
 use habitat_butterfly::rumor::service_config::ServiceConfig;
 use habitat_butterfly::rumor::service_file::ServiceFile;
@@ -58,8 +59,8 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
     let listen_swim = format!("127.0.0.1:{}", swim_port);
     let listen_gossip = format!("127.0.0.1:{}", gossip_port);
     let mut member = Member::default();
-    member.set_swim_port(swim_port as i32);
-    member.set_gossip_port(gossip_port as i32);
+    member.swim_port = swim_port as i32;
+    member.gossip_port = gossip_port as i32;
     let mut server = Server::new(
         &listen_swim[..],
         &listen_gossip[..],
@@ -79,11 +80,11 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
 pub fn member_from_server(server: &Server) -> Member {
     let mut new_member = Member::default();
     let server_member = server.member.read().expect("Member lock is poisoned");
-    new_member.set_id(String::from(server_member.get_id()));
-    new_member.set_incarnation(server_member.get_incarnation());
-    new_member.set_address(String::from("127.0.0.1"));
-    new_member.set_swim_port(server.swim_port() as i32);
-    new_member.set_gossip_port(server.gossip_port() as i32);
+    new_member.id = server_member.id.to_string();
+    new_member.incarnation = server_member.incarnation;
+    new_member.address = String::from("127.0.0.1");
+    new_member.swim_port = server.swim_port() as i32;
+    new_member.gossip_port = server.gossip_port() as i32;
     new_member
 }
 
@@ -170,7 +171,11 @@ impl SwimNet {
             .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Blocked {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.add_to_block_list(String::from(
-            to.member.read().expect("Member lock is poisoned").get_id(),
+            to.member
+                .read()
+                .expect("Member lock is poisoned")
+                .id
+                .to_string(),
         ));
     }
 
@@ -298,7 +303,7 @@ impl SwimNet {
         &self,
         e_num: usize,
         key: &str,
-        status: Election_Status,
+        status: ElectionStatus,
     ) -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
@@ -307,7 +312,7 @@ impl SwimNet {
                 .get(e_num)
                 .expect("Asked for a network member who is out of bounds");
             server.election_store.with_rumor(key, "election", |e| {
-                if e.is_some() && e.unwrap().get_status() == status {
+                if e.is_some() && e.unwrap().status == status {
                     result = true;
                 }
             });
@@ -461,8 +466,8 @@ impl SwimNet {
         let s = Service::new(
             self[member].member_id().to_string(),
             &ident,
-            &sg,
-            &SysInfo::default(),
+            sg,
+            SysInfo::default(),
             None,
         );
         self[member].insert_service(s);

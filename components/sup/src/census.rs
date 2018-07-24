@@ -18,8 +18,8 @@ use std::str::FromStr;
 
 use butterfly::member::{Health, Member, MemberList};
 use butterfly::rumor::election::Election as ElectionRumor;
+use butterfly::rumor::election::ElectionStatus as ElectionStatusRumor;
 use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-use butterfly::rumor::election::Election_Status as ElectionStatusRumor;
 use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::rumor::service::SysInfo;
 use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
@@ -152,7 +152,7 @@ impl CensusRing {
         member_list.with_members(|member| {
             let health = member_list.health_of(&member).unwrap();
             for group in self.census_groups.values_mut() {
-                if let Some(census_member) = group.find_member_mut(member.get_id()) {
+                if let Some(census_member) = group.find_member_mut(&member.id) {
                     census_member.update_from_member(&member);
                     census_member.update_from_health(health);
                 }
@@ -394,7 +394,7 @@ impl CensusGroup {
                 self.leader_id = Some(census_member.member_id.clone());
             }
         }
-        match election.get_status() {
+        match election.status {
             ElectionStatusRumor::Running => {
                 self.election_status = ElectionStatus::ElectionInProgress;
             }
@@ -414,7 +414,7 @@ impl CensusGroup {
                 self.update_leader_id = Some(census_member.member_id.clone());
             }
         }
-        match election.get_status() {
+        match election.status {
             ElectionStatusRumor::Running => {
                 self.update_election_status = ElectionStatus::ElectionInProgress;
             }
@@ -431,11 +431,11 @@ impl CensusGroup {
         match service_config.config() {
             Ok(config) => {
                 if self.service_config.is_none()
-                    || service_config.get_incarnation()
+                    || service_config.incarnation
                         > self.service_config.as_ref().unwrap().incarnation
                 {
                     self.service_config = Some(ServiceConfig {
-                        incarnation: service_config.get_incarnation(),
+                        incarnation: service_config.incarnation,
                         value: config,
                     });
                 }
@@ -450,24 +450,24 @@ impl CensusGroup {
     ) {
         self.changed_service_files.clear();
         for (_m_id, service_file_rumor) in service_file_rumors.iter() {
-            let filename = service_file_rumor.get_filename().to_string();
+            let filename = service_file_rumor.filename.to_string();
             let file = self.service_files
                 .entry(filename.clone())
                 .or_insert(ServiceFile::default());
 
-            if service_file_rumor.get_incarnation() > file.incarnation {
+            if service_file_rumor.incarnation > file.incarnation {
                 match service_file_rumor.body() {
                     Ok(body) => {
                         self.changed_service_files.push(filename.clone());
                         file.filename = filename.clone();
-                        file.incarnation = service_file_rumor.get_incarnation();
+                        file.incarnation = service_file_rumor.incarnation;
                         file.body = body;
                     }
                     Err(e) => warn!(
                         "Cannot decrypt service file for {} {} {}: {}",
                         self.service_group,
-                        service_file_rumor.get_filename(),
-                        service_file_rumor.get_incarnation(),
+                        service_file_rumor.filename,
+                        service_file_rumor.incarnation,
                         e
                     ),
                 }
@@ -539,7 +539,7 @@ pub struct CensusMember {
 
 impl CensusMember {
     fn update_from_service_rumor(&mut self, sg: &ServiceGroup, rumor: &ServiceRumor) {
-        self.member_id = String::from(rumor.get_member_id());
+        self.member_id = rumor.member_id.to_string();
         self.service = sg.service().to_string();
         self.group = sg.group().to_string();
         if let Some(org) = sg.org() {
@@ -549,20 +549,20 @@ impl CensusMember {
             self.application = Some(appenv.application().to_string());
             self.environment = Some(appenv.environment().to_string());
         }
-        match PackageIdent::from_str(rumor.get_pkg()) {
+        match PackageIdent::from_str(&rumor.pkg) {
             Ok(ident) => self.pkg = Some(ident),
             Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
         };
-        self.sys = rumor.get_sys().clone().into();
-        self.cfg = toml::from_slice(rumor.get_cfg()).unwrap_or(toml::value::Table::default());
+        self.sys = rumor.sys.clone().into();
+        self.cfg = toml::from_slice(&rumor.cfg).unwrap_or(toml::value::Table::default());
     }
 
     fn update_from_election_rumor(&mut self, election: &ElectionRumor) -> bool {
-        self.election_is_running = election.get_status() == ElectionStatusRumor::Running;
-        self.election_is_no_quorum = election.get_status() == ElectionStatusRumor::NoQuorum;
-        self.election_is_finished = election.get_status() == ElectionStatusRumor::Finished;
+        self.election_is_running = election.status == ElectionStatusRumor::Running;
+        self.election_is_no_quorum = election.status == ElectionStatusRumor::NoQuorum;
+        self.election_is_finished = election.status == ElectionStatusRumor::Finished;
         if self.election_is_finished {
-            if self.member_id == election.get_member_id() {
+            if self.member_id == election.member_id {
                 self.leader = true;
                 self.follower = false;
             } else {
@@ -574,11 +574,11 @@ impl CensusMember {
     }
 
     fn update_from_election_update_rumor(&mut self, election: &ElectionUpdateRumor) -> bool {
-        self.update_election_is_running = election.get_status() == ElectionStatusRumor::Running;
-        self.update_election_is_no_quorum = election.get_status() == ElectionStatusRumor::NoQuorum;
-        self.update_election_is_finished = election.get_status() == ElectionStatusRumor::Finished;
+        self.update_election_is_running = election.status == ElectionStatusRumor::Running;
+        self.update_election_is_no_quorum = election.status == ElectionStatusRumor::NoQuorum;
+        self.update_election_is_finished = election.status == ElectionStatusRumor::Finished;
         if self.update_election_is_finished {
-            if self.member_id == election.get_member_id() {
+            if self.member_id == election.member_id {
                 self.update_leader = true;
                 self.update_follower = false;
             } else {
@@ -590,8 +590,8 @@ impl CensusMember {
     }
 
     fn update_from_member(&mut self, member: &Member) {
-        self.sys.set_gossip_ip(member.get_address().to_string());
-        self.sys.set_gossip_port(member.get_gossip_port() as u32);
+        self.sys.gossip_ip = member.address.to_string();
+        self.sys.gossip_port = member.gossip_port as u32;
         self.persistent = true;
     }
 
@@ -653,13 +653,13 @@ mod tests {
 
     #[test]
     fn update_from_rumors() {
-        let mut sys_info = SysInfo::new();
-        sys_info.set_ip("1.2.3.4".to_string());
-        sys_info.set_hostname("hostname".to_string());
-        sys_info.set_gossip_ip("0.0.0.0".to_string());
-        sys_info.set_gossip_port(7777);
-        sys_info.set_http_gateway_ip("0.0.0.0".to_string());
-        sys_info.set_http_gateway_port(9631);
+        let mut sys_info = SysInfo::default();
+        sys_info.ip = "1.2.3.4".to_string();
+        sys_info.hostname = "hostname".to_string();
+        sys_info.gossip_ip = "0.0.0.0".to_string();
+        sys_info.gossip_port = 7777;
+        sys_info.http_gateway_ip = "0.0.0.0".to_string();
+        sys_info.http_gateway_port = 9631;
         let pg_id = PackageIdent::new(
             "starkandwayne",
             "shield",
@@ -669,13 +669,28 @@ mod tests {
         let sg_one = ServiceGroup::new(None, "shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one =
-            ServiceRumor::new("member-a".to_string(), &pg_id, &sg_one, &sys_info, None);
+        let service_one = ServiceRumor::new(
+            "member-a".to_string(),
+            &pg_id,
+            sg_one.clone(),
+            sys_info.clone(),
+            None,
+        );
         let sg_two = ServiceGroup::new(None, "shield", "two", None).unwrap();
-        let service_two =
-            ServiceRumor::new("member-b".to_string(), &pg_id, &sg_two, &sys_info, None);
-        let service_three =
-            ServiceRumor::new("member-a".to_string(), &pg_id, &sg_two, &sys_info, None);
+        let service_two = ServiceRumor::new(
+            "member-b".to_string(),
+            &pg_id,
+            sg_two.clone(),
+            sys_info.clone(),
+            None,
+        );
+        let service_three = ServiceRumor::new(
+            "member-a".to_string(),
+            &pg_id,
+            sg_two.clone(),
+            sys_info.clone(),
+            None,
+        );
 
         service_store.insert(service_one);
         service_store.insert(service_two);
@@ -745,7 +760,7 @@ mod tests {
             update_election_is_running: false,
             update_election_is_no_quorum: false,
             update_election_is_finished: false,
-            sys: SysInfo::new(),
+            sys: SysInfo::default(),
             alive: health == Health::Alive,
             suspect: health == Health::Suspect,
             confirmed: health == Health::Confirmed,

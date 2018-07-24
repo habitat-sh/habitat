@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,64 +18,41 @@
 
 use std::cmp::Ordering;
 use std::mem;
-use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 
 use habitat_core::package::Identifiable;
 use habitat_core::service::ServiceGroup;
-use protobuf::{self, Message};
 use toml;
 
-use error::Result;
-pub use message::swim::SysInfo;
-use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, Service as ProtoService};
-use rumor::Rumor;
+use error::{Error, Result};
+use protocol::{self, newscast, FromProto};
+use rumor::{Rumor, RumorPayload, RumorType};
 
 #[derive(Debug, Clone, Serialize)]
-pub struct Service(ProtoRumor);
+pub struct Service {
+    pub member_id: String,
+    pub service_group: ServiceGroup,
+    pub incarnation: u64,
+    pub initialized: bool,
+    pub pkg: String,
+    pub cfg: Vec<u8>,
+    pub sys: SysInfo,
+}
 
 impl PartialOrd for Service {
     fn partial_cmp(&self, other: &Service) -> Option<Ordering> {
-        if self.get_member_id() != other.get_member_id()
-            || self.get_service_group() != other.get_service_group()
-        {
+        if self.member_id != other.member_id || self.service_group != other.service_group {
             None
         } else {
-            Some(self.get_incarnation().cmp(&other.get_incarnation()))
+            Some(self.incarnation.cmp(&other.incarnation))
         }
     }
 }
 
 impl PartialEq for Service {
     fn eq(&self, other: &Service) -> bool {
-        self.get_member_id() == other.get_member_id()
-            && self.get_service_group() == other.get_service_group()
-            && self.get_incarnation() == other.get_incarnation()
-    }
-}
-
-impl From<ProtoRumor> for Service {
-    fn from(pr: ProtoRumor) -> Service {
-        Service(pr)
-    }
-}
-
-impl From<Service> for ProtoRumor {
-    fn from(service: Service) -> ProtoRumor {
-        service.0
-    }
-}
-
-impl Deref for Service {
-    type Target = ProtoService;
-
-    fn deref(&self) -> &ProtoService {
-        self.0.get_service()
-    }
-}
-
-impl DerefMut for Service {
-    fn deref_mut(&mut self) -> &mut ProtoService {
-        self.0.mut_service()
+        self.member_id == other.member_id && self.service_group == other.service_group
+            && self.incarnation == other.incarnation
     }
 }
 
@@ -84,8 +61,8 @@ impl Service {
     pub fn new<T, U>(
         member_id: U,
         package: &T,
-        service_group: &ServiceGroup,
-        sys: &SysInfo,
+        service_group: ServiceGroup,
+        sys: SysInfo,
         cfg: Option<&toml::value::Table>,
     ) -> Self
     where
@@ -102,33 +79,64 @@ impl Service {
             "Service constructor requires the given package name to match the service \
              group's name"
         );
-        let mut rumor = ProtoRumor::new();
-        rumor.set_from_id(member_id.into());
-        rumor.set_field_type(ProtoRumor_Type::Service);
-
-        let mut proto = ProtoService::new();
-        proto.set_member_id(rumor.get_from_id().to_string());
-        proto.set_service_group(service_group.to_string());
-        proto.set_incarnation(0);
-        proto.set_pkg(package.to_string());
-        proto.set_sys(sys.deref().clone());
-        if let Some(cfg) = cfg {
+        Service {
+            member_id: member_id.into(),
+            service_group: service_group,
+            incarnation: 0,
+            initialized: false,
+            pkg: package.to_string(),
+            sys: sys,
             // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
             // in this constructor?
-            proto.set_cfg(toml::ser::to_vec(cfg).expect("Struct should serialize to bytes"));
+            cfg: cfg.map(|v| toml::ser::to_vec(v).expect("Struct should serialize to bytes"))
+                .unwrap_or_default(),
         }
+    }
+}
 
-        rumor.set_service(proto);
-        Service(rumor)
+impl protocol::Message<newscast::Rumor> for Service {}
+
+impl FromProto<newscast::Rumor> for Service {
+    fn from_proto(rumor: newscast::Rumor) -> Result<Self> {
+        let payload = match rumor.payload.ok_or(Error::ProtocolMismatch("payload"))? {
+            RumorPayload::Service(payload) => payload,
+            _ => panic!("from-bytes service"),
+        };
+        Ok(Service {
+            member_id: payload
+                .member_id
+                .ok_or(Error::ProtocolMismatch("member-id"))?,
+            service_group: payload
+                .service_group
+                .ok_or(Error::ProtocolMismatch("service-group"))
+                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+            incarnation: payload.incarnation.unwrap_or(0),
+            initialized: payload.initialized.unwrap_or(false),
+            pkg: payload.pkg.ok_or(Error::ProtocolMismatch("pkg"))?,
+            cfg: payload.cfg.unwrap_or_default(),
+            sys: payload
+                .sys
+                .ok_or(Error::ProtocolMismatch("sys"))
+                .and_then(SysInfo::from_proto)?,
+        })
+    }
+}
+
+impl From<Service> for newscast::Service {
+    fn from(value: Service) -> Self {
+        newscast::Service {
+            member_id: Some(value.member_id),
+            service_group: Some(value.service_group.to_string()),
+            incarnation: Some(value.incarnation),
+            initialized: Some(value.initialized),
+            pkg: Some(value.pkg),
+            cfg: Some(value.cfg),
+            sys: Some(value.sys.into()),
+        }
     }
 }
 
 impl Rumor for Service {
-    fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let rumor = protobuf::parse_from_bytes::<ProtoRumor>(bytes)?;
-        Ok(Service::from(rumor))
-    }
-
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
     fn merge(&mut self, mut other: Service) -> bool {
@@ -140,20 +148,73 @@ impl Rumor for Service {
         }
     }
 
-    fn kind(&self) -> ProtoRumor_Type {
-        ProtoRumor_Type::Service
+    fn kind(&self) -> RumorType {
+        RumorType::Service
     }
 
     fn id(&self) -> &str {
-        self.get_member_id()
+        &self.member_id
     }
 
     fn key(&self) -> &str {
-        self.get_service_group()
+        self.service_group.as_ref()
     }
+}
 
-    fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(self.0.write_to_bytes()?)
+#[derive(Debug, Clone, Serialize)]
+pub struct SysInfo {
+    pub ip: String,
+    pub hostname: String,
+    pub gossip_ip: String,
+    pub gossip_port: u32,
+    pub http_gateway_ip: String,
+    pub http_gateway_port: u32,
+    pub ctl_gateway_ip: String,
+    pub ctl_gateway_port: u32,
+}
+
+impl Default for SysInfo {
+    fn default() -> Self {
+        SysInfo {
+            ip: "127.0.0.1".to_string(),
+            hostname: "localhost".to_string(),
+            gossip_ip: "127.0.0.1".to_string(),
+            gossip_port: 0,
+            http_gateway_ip: "127.0.0.1".to_string(),
+            http_gateway_port: 0,
+            ctl_gateway_ip: "127.0.0.1".to_string(),
+            ctl_gateway_port: 0,
+        }
+    }
+}
+
+impl FromProto<newscast::SysInfo> for SysInfo {
+    fn from_proto(proto: newscast::SysInfo) -> Result<Self> {
+        Ok(SysInfo {
+            ip: proto.ip.ok_or(Error::ProtocolMismatch("ip"))?,
+            hostname: proto.hostname.ok_or(Error::ProtocolMismatch("hostname"))?,
+            gossip_ip: proto.gossip_ip.unwrap_or_default(),
+            gossip_port: proto.gossip_port.unwrap_or_default(),
+            http_gateway_ip: proto.http_gateway_ip.unwrap_or_default(),
+            http_gateway_port: proto.http_gateway_port.unwrap_or_default(),
+            ctl_gateway_ip: proto.ctl_gateway_ip.unwrap_or_default(),
+            ctl_gateway_port: proto.ctl_gateway_port.unwrap_or_default(),
+        })
+    }
+}
+
+impl From<SysInfo> for newscast::SysInfo {
+    fn from(value: SysInfo) -> Self {
+        newscast::SysInfo {
+            ip: Some(value.ip),
+            hostname: Some(value.hostname),
+            gossip_ip: Some(value.gossip_ip),
+            gossip_port: Some(value.gossip_port),
+            http_gateway_ip: Some(value.http_gateway_ip),
+            http_gateway_port: Some(value.http_gateway_port),
+            ctl_gateway_ip: Some(value.ctl_gateway_ip),
+            ctl_gateway_port: Some(value.ctl_gateway_port),
+        }
     }
 }
 
@@ -172,7 +233,7 @@ mod tests {
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new(None, pkg.name(), "production", None).unwrap();
-        Service::new(member_id.to_string(), &pkg, &sg, &SysInfo::default(), None)
+        Service::new(member_id.to_string(), &pkg, sg, SysInfo::default(), None)
     }
 
     #[test]
@@ -196,7 +257,7 @@ mod tests {
     fn services_with_different_incarnations_are_not_equal() {
         let s1 = create_service("adam");
         let mut s2 = create_service("adam");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         assert_eq!(s1, s2);
     }
 
@@ -205,7 +266,7 @@ mod tests {
     fn services_with_different_service_groups_are_not_equal() {
         let s1 = create_service("adam");
         let mut s2 = create_service("adam");
-        s2.set_service_group(String::from("adam.fragile"));
+        s2.service_group = ServiceGroup::from_str("adam.fragile").unwrap();
         assert_eq!(s1, s2);
     }
 
@@ -221,7 +282,7 @@ mod tests {
     fn services_with_different_incarnations_are_not_equal_via_cmp() {
         let s1 = create_service("adam");
         let mut s2 = create_service("adam");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         assert_eq!(s1.partial_cmp(&s2), Some(Ordering::Less));
         assert_eq!(s2.partial_cmp(&s1), Some(Ordering::Greater));
     }
@@ -237,7 +298,7 @@ mod tests {
     fn merge_chooses_the_higher_incarnation() {
         let mut s1 = create_service("adam");
         let mut s2 = create_service("adam");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         let s2_check = s2.clone();
         assert_eq!(s1.merge(s2), true);
         assert_eq!(s1, s2_check);
@@ -246,7 +307,7 @@ mod tests {
     #[test]
     fn merge_returns_false_if_nothing_changed() {
         let mut s1 = create_service("adam");
-        s1.set_incarnation(1);
+        s1.incarnation = 1;
         let s1_check = s1.clone();
         let s2 = create_service("adam");
         assert_eq!(s1.merge(s2), false);
@@ -261,8 +322,8 @@ mod tests {
         Service::new(
             "bad-member".to_string(),
             &ident,
-            &sg,
-            &SysInfo::default(),
+            sg,
+            SysInfo::default(),
             None,
         );
     }

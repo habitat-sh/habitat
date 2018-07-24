@@ -18,12 +18,11 @@ use std::mem;
 use std::path::{Path, PathBuf};
 
 use byteorder::{ByteOrder, LittleEndian};
-use protobuf::{self, Message};
 use rand::{thread_rng, Rng};
 
 use error::{Error, Result};
-use member::{Health, Member, MemberList};
-use message::swim::Membership as ProtoMembership;
+use member::{MemberList, Membership};
+use protocol::{newscast, Message};
 use rumor::{
     Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile,
 };
@@ -97,11 +96,11 @@ impl DatFile {
             reader
                 .read_exact(&mut rumor_buf)
                 .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let mut proto = protobuf::parse_from_bytes::<ProtoMembership>(&rumor_buf)?;
-            let member = Member::from(proto.take_member());
-            let health = Health::from(proto.get_health());
-            server.insert_member(member, health);
             bytes_read += size_buf.len() as u64 + rumor_size;
+            match Membership::from_bytes(&rumor_buf) {
+                Ok(membership) => server.insert_member(membership.member, membership.health),
+                Err(err) => warn!("Error reading membership rumor from dat file, {}", err),
+            }
         }
 
         debug!("Reading service rumors from {}", self.path().display());
@@ -336,20 +335,20 @@ impl DatFile {
             .read()
             .expect("Member list lock poisoned");
         for member in members.values() {
-            if let Some(membership) = member_list.membership_for(member.get_id()) {
+            if let Some(membership) = member_list.membership_for(&member.id) {
                 total += self.write_member(writer, &membership)?;
             }
         }
         Ok(total)
     }
 
-    fn write_member<W>(&self, writer: &mut W, membership: &ProtoMembership) -> Result<u64>
+    fn write_member<W>(&self, writer: &mut W, membership: &Membership) -> Result<u64>
     where
         W: Write,
     {
         let mut total = 0;
         let mut len_buf = [0; 8];
-        let bytes = membership.write_to_bytes().unwrap();
+        let bytes = membership.clone().write_to_bytes().unwrap();
         LittleEndian::write_u64(&mut len_buf, bytes.len() as u64);
         total += writer
             .write(&len_buf)
@@ -381,7 +380,7 @@ impl DatFile {
 
     fn write_rumor<T, W>(&self, writer: &mut W, rumor: &T) -> Result<u64>
     where
-        T: Rumor,
+        T: Message<newscast::Rumor>,
         W: Write,
     {
         let mut total = 0;

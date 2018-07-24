@@ -18,65 +18,41 @@
 
 use std::cmp::Ordering;
 use std::mem;
-use std::ops::{Deref, DerefMut};
-use std::str;
+use std::str::{self, FromStr};
 
 use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
 use habitat_core::service::ServiceGroup;
-use protobuf::{self, Message};
 use toml;
 
 use error::{Error, Result};
-use message::swim::{
-    Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, ServiceConfig as ProtoServiceConfig,
-};
-use rumor::Rumor;
+use protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
+use rumor::{Rumor, RumorPayload, RumorType};
 
 #[derive(Debug, Clone, Serialize)]
-pub struct ServiceConfig(ProtoRumor);
+pub struct ServiceConfig {
+    pub from_id: String,
+    pub service_group: ServiceGroup,
+    pub incarnation: u64,
+    pub encrypted: bool,
+    pub config: Vec<u8>,
+}
 
 impl PartialOrd for ServiceConfig {
     fn partial_cmp(&self, other: &ServiceConfig) -> Option<Ordering> {
-        if self.get_service_group() != other.get_service_group() {
+        if self.service_group != other.service_group {
             None
         } else {
-            Some(self.get_incarnation().cmp(&other.get_incarnation()))
+            Some(self.incarnation.cmp(&other.incarnation))
         }
     }
 }
 
 impl PartialEq for ServiceConfig {
     fn eq(&self, other: &ServiceConfig) -> bool {
-        self.get_service_group() == other.get_service_group()
-            && self.get_incarnation() == other.get_incarnation()
-            && self.get_encrypted() == other.get_encrypted()
-            && self.get_config() == other.get_config()
-    }
-}
-
-impl From<ProtoRumor> for ServiceConfig {
-    fn from(pr: ProtoRumor) -> ServiceConfig {
-        ServiceConfig(pr)
-    }
-}
-
-impl From<ServiceConfig> for ProtoRumor {
-    fn from(service_config: ServiceConfig) -> ProtoRumor {
-        service_config.0
-    }
-}
-
-impl Deref for ServiceConfig {
-    type Target = ProtoServiceConfig;
-
-    fn deref(&self) -> &ProtoServiceConfig {
-        self.0.get_service_config()
-    }
-}
-
-impl DerefMut for ServiceConfig {
-    fn deref_mut(&mut self) -> &mut ProtoServiceConfig {
-        self.0.mut_service_config()
+        self.service_group == other.service_group
+            && self.incarnation == other.incarnation
+            && self.encrypted == other.encrypted
+            && self.config == other.config
     }
 }
 
@@ -86,38 +62,30 @@ impl ServiceConfig {
     where
         S1: Into<String>,
     {
-        let mut rumor = ProtoRumor::new();
-        let from_id = member_id.into();
-        rumor.set_from_id(from_id);
-        rumor.set_field_type(ProtoRumor_Type::ServiceConfig);
-
-        let mut proto = ProtoServiceConfig::new();
-        proto.set_service_group(format!("{}", service_group));
-        proto.set_incarnation(0);
-        proto.set_config(config);
-
-        rumor.set_service_config(proto);
-        ServiceConfig(rumor)
+        ServiceConfig {
+            from_id: member_id.into(),
+            service_group: service_group,
+            incarnation: 0,
+            encrypted: false,
+            config: config,
+        }
     }
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        let config = self.take_config();
-        let encrypted_config = user_pair.encrypt(&config, Some(service_pair))?;
-        self.set_config(encrypted_config);
-        self.set_encrypted(true);
+        self.config = user_pair.encrypt(&self.config, Some(service_pair))?;
+        self.encrypted = true;
         Ok(())
     }
 
     pub fn config(&self) -> Result<toml::value::Table> {
-        let config = if self.get_encrypted() {
-            let bytes =
-                BoxKeyPair::decrypt_with_path(self.get_config(), &default_cache_key_path(None))?;
+        let config = if self.encrypted {
+            let bytes = BoxKeyPair::decrypt_with_path(&self.config, &default_cache_key_path(None))?;
             let encoded = str::from_utf8(&bytes)
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e))?;
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
             self.parse_config(&encoded)?
         } else {
-            let encoded = str::from_utf8(self.get_config())
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e))?;
+            let encoded = str::from_utf8(&self.config)
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
             self.parse_config(&encoded)?
         };
         Ok(config)
@@ -125,16 +93,43 @@ impl ServiceConfig {
 
     fn parse_config(&self, encoded: &str) -> Result<toml::value::Table> {
         toml::from_str(encoded)
-            .map_err(|e| Error::ServiceConfigDecode(self.get_service_group().to_string(), e))
+            .map_err(|e| Error::ServiceConfigDecode(self.service_group.to_string(), e))
+    }
+}
+
+impl protocol::Message<ProtoRumor> for ServiceConfig {}
+
+impl FromProto<ProtoRumor> for ServiceConfig {
+    fn from_proto(rumor: ProtoRumor) -> Result<Self> {
+        let payload = match rumor.payload.ok_or(Error::ProtocolMismatch("payload"))? {
+            RumorPayload::ServiceConfig(payload) => payload,
+            _ => panic!("from-bytes service-config"),
+        };
+        Ok(ServiceConfig {
+            from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
+            service_group: payload
+                .service_group
+                .ok_or(Error::ProtocolMismatch("service-group"))
+                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+            incarnation: payload.incarnation.unwrap_or(0),
+            encrypted: payload.encrypted.unwrap_or(false),
+            config: payload.config.unwrap_or_default(),
+        })
+    }
+}
+
+impl From<ServiceConfig> for newscast::ServiceConfig {
+    fn from(value: ServiceConfig) -> Self {
+        newscast::ServiceConfig {
+            service_group: Some(value.service_group.to_string()),
+            incarnation: Some(value.incarnation),
+            encrypted: Some(value.encrypted),
+            config: Some(value.config),
+        }
     }
 }
 
 impl Rumor for ServiceConfig {
-    fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let rumor = protobuf::parse_from_bytes::<ProtoRumor>(bytes)?;
-        Ok(ServiceConfig::from(rumor))
-    }
-
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
     fn merge(&mut self, mut other: ServiceConfig) -> bool {
@@ -146,8 +141,8 @@ impl Rumor for ServiceConfig {
         }
     }
 
-    fn kind(&self) -> ProtoRumor_Type {
-        ProtoRumor_Type::ServiceConfig
+    fn kind(&self) -> RumorType {
+        RumorType::ServiceConfig
     }
 
     fn id(&self) -> &str {
@@ -155,17 +150,14 @@ impl Rumor for ServiceConfig {
     }
 
     fn key(&self) -> &str {
-        self.get_service_group()
-    }
-
-    fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(self.0.write_to_bytes()?)
+        &self.service_group
     }
 }
 
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
+    use std::str::FromStr;
 
     use habitat_core::service::ServiceGroup;
     use toml;
@@ -194,7 +186,7 @@ mod tests {
     fn service_configs_with_different_incarnations_are_not_equal() {
         let s1 = create_service_config("adam", "yep");
         let mut s2 = create_service_config("adam", "yep");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         assert_eq!(s1, s2);
     }
 
@@ -203,7 +195,7 @@ mod tests {
     fn service_configs_with_different_service_groups_are_not_equal() {
         let s1 = create_service_config("adam", "yep");
         let mut s2 = create_service_config("adam", "yep");
-        s2.set_service_group(String::from("adam.fragile"));
+        s2.service_group = ServiceGroup::from_str("adam.fragile").unwrap();
         assert_eq!(s1, s2);
     }
 
@@ -219,7 +211,7 @@ mod tests {
     fn service_configs_with_different_incarnations_are_not_equal_via_cmp() {
         let s1 = create_service_config("adam", "yep");
         let mut s2 = create_service_config("adam", "yep");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         assert_eq!(s1.partial_cmp(&s2), Some(Ordering::Less));
         assert_eq!(s2.partial_cmp(&s1), Some(Ordering::Greater));
     }
@@ -228,7 +220,7 @@ mod tests {
     fn merge_chooses_the_higher_incarnation() {
         let mut s1 = create_service_config("adam", "yep");
         let mut s2 = create_service_config("adam", "yep");
-        s2.set_incarnation(1);
+        s2.incarnation = 1;
         let s2_check = s2.clone();
         assert_eq!(s1.merge(s2), true);
         assert_eq!(s1, s2_check);
@@ -237,7 +229,7 @@ mod tests {
     #[test]
     fn merge_returns_false_if_nothing_changed() {
         let mut s1 = create_service_config("adam", "yep");
-        s1.set_incarnation(1);
+        s1.incarnation = 1;
         let s1_check = s1.clone();
         let s2 = create_service_config("adam", "yep");
         assert_eq!(s1.merge(s2), false);

@@ -1,0 +1,9 @@
+syntax = "proto2";
+package butterfly.common;
+
+message Wire {
+  optional bool encrypted = 1 [default = false];
+  optional bytes nonce = 2;
+  optional bytes payload = 3;
+}
+

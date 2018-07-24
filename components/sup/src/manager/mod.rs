@@ -390,9 +390,9 @@ impl Manager {
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
-            peer.set_address(format!("{}", peer_addr.ip()));
-            peer.set_swim_port(peer_addr.port() as i32);
-            peer.set_gossip_port(peer_addr.port() as i32);
+            peer.address = format!("{}", peer_addr.ip());
+            peer.swim_port = peer_addr.port() as i32;
+            peer.gossip_port = peer_addr.port() as i32;
             server.member_list.add_initial_member(peer);
         }
         Self::migrate_specs(&fs_cfg);
@@ -435,11 +435,11 @@ impl Manager {
                 let mut member_id = String::new();
                 file.read_to_string(&mut member_id)
                     .map_err(|e| sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e)))?;
-                member.set_id(member_id);
+                member.id = member_id;
             }
             Err(_) => match File::create(&fs_cfg.member_id_file) {
                 Ok(mut file) => {
-                    file.write(member.get_id().as_bytes()).map_err(|e| {
+                    file.write(member.id.as_bytes()).map_err(|e| {
                         sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
                     })?;
                 }
@@ -451,8 +451,8 @@ impl Manager {
                 }
             },
         }
-        sys.member_id = member.get_id().to_string();
-        member.set_persistent(sys.permanent);
+        sys.member_id = member.id.to_string();
+        member.persistent = sys.permanent;
         Ok(member)
     }
 
@@ -1318,7 +1318,7 @@ impl Manager {
             if let Some(rumor) = list.get(&*service.service_group)
                 .and_then(|r| r.get(&self.sys.member_id))
             {
-                incarnation = rumor.clone().get_incarnation() + 1;
+                incarnation = rumor.clone().incarnation + 1;
             }
         }
         self.butterfly.insert_service(service.to_rumor(incarnation));

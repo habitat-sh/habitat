@@ -10,19 +10,16 @@ name = "butterfly"
 path = "src/main.rs"
 doc = false
 
-[dev-dependencies.habitat_butterfly_test]
-path = "../butterfly-test"
-
-[build-dependencies]
-pkg-config = "0.3"
-
 [dependencies]
 clippy = {version = "*", optional = true}
 byteorder = "*"
+bytes = "*"
 env_logger = "*"
+habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 log = "*"
 lazy_static = "*"
-protobuf = "*"
+prost = "*"
+prost-derive = "*"
 rand = "*"
 serde = "*"
 serde_derive = "*"
@@ -30,19 +27,19 @@ tempdir = "*"
 time = "*"
 threadpool = "*"
 toml = { version = "*", default-features = false }
+uuid = { version = "*", features = ["v4"] }
+zmq = { git = "https://github.com/erickt/rust-zmq", branch = "release/v0.8" }
 
-[dependencies.uuid]
-version = "*"
-features = ["v4"]
+[dev-dependencies]
+habitat_butterfly_test = { path = "../butterfly-test" }
 
-[dependencies.zmq]
-git = "https://github.com/erickt/rust-zmq"
-branch = "release/v0.8"
-
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/core.git"
+[build-dependencies]
+heck = "*"
+pkg-config = "0.3"
+prost = "*"
+prost-build = "*"
+tempdir = "*"
 
 [features]
-default = []
-functional = []
+default = ["protocols"]
 protocols = []

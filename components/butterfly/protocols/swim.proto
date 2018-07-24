@@ -1,4 +1,5 @@
 syntax = "proto2";
+package butterfly.swim;
 
 message Member {
   optional string id = 1;
@@ -32,57 +33,6 @@ message Membership {
   optional Health health = 2;
 }
 
-message Election {
-  enum Status { Running = 1; NoQuorum = 2; Finished = 3; };
-
-  optional string member_id = 1;
-  optional string service_group = 2;
-  optional uint64 term = 3;
-  optional uint64 suitability = 4;
-  optional Status status = 5;
-  repeated string votes = 6;
-}
-
-message Service {
-  optional string member_id = 1;
-  optional string service_group = 2;
-  optional uint64 incarnation = 3;
-  optional bool initialized = 8;
-  optional string pkg = 9;
-  optional bytes cfg = 10;
-  optional SysInfo sys = 12;
-}
-
-message ServiceConfig {
-  optional string service_group = 1;
-  optional uint64 incarnation = 2;
-  optional bool encrypted = 3;
-  optional bytes config = 4;
-}
-
-message ServiceFile {
-  optional string service_group = 1;
-  optional uint64 incarnation = 2;
-  optional bool encrypted = 3;
-  optional string filename = 4;
-  optional bytes body = 5;
-}
-
-message SysInfo {
-  optional string ip = 1 [default = "127.0.0.1"];
-  optional string hostname = 2 [default = "localhost"];
-  optional string gossip_ip = 3 [default = "127.0.0.1"];
-  optional uint32 gossip_port = 4;
-  optional string http_gateway_ip = 5 [default = "127.0.0.1"];
-  optional uint32 http_gateway_port = 6; 
-  optional string ctl_gateway_ip = 7 [default = "127.0.0.1"];
-  optional uint32 ctl_gateway_port = 8 [default = 9632];
-}
-
-message Departure {
-  optional string member_id = 1;
-}
-
 message Swim {
   enum Type { PING = 1; ACK = 2; PINGREQ = 3; };
 
@@ -96,34 +46,3 @@ message Swim {
   repeated Membership membership = 5;
 }
 
-message Rumor {
-  enum Type {
-    Member = 1;
-    Service = 2;
-    Election = 3;
-    ServiceConfig = 4;
-    ServiceFile = 5;
-    Fake = 6;
-    Fake2 = 7;
-    ElectionUpdate = 8;
-    Departure = 9;
-  }
-
-  required Type type = 1;
-  repeated string tag = 2;
-  optional string from_id = 3;
-  oneof payload {
-    Membership member = 4;
-    Service service = 5;
-    ServiceConfig service_config = 6;
-    ServiceFile service_file = 7;
-    Election election = 8;
-    Departure departure = 9;
-  }
-}
-
-message Wire {
-  optional bool encrypted = 1;
-  optional bytes nonce = 2;
-  optional bytes payload = 3;
-}

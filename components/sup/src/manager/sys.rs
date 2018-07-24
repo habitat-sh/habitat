@@ -79,15 +79,15 @@ impl Sys {
     }
 
     pub fn as_sys_info(&self) -> SysInfo {
-        let mut sys_info = SysInfo::new();
-        sys_info.set_ip(self.ip.to_string());
-        sys_info.set_hostname(self.hostname.clone());
-        sys_info.set_gossip_ip(self.gossip_ip.to_string());
-        sys_info.set_gossip_port(self.gossip_port as u32);
-        sys_info.set_ctl_gateway_ip(self.ctl_gateway_ip.to_string());
-        sys_info.set_ctl_gateway_port(self.ctl_gateway_port as u32);
-        sys_info.set_http_gateway_ip(self.http_gateway_ip.to_string());
-        sys_info.set_http_gateway_port(self.http_gateway_port as u32);
+        let mut sys_info = SysInfo::default();
+        sys_info.ip = self.ip.to_string();
+        sys_info.hostname = self.hostname.clone();
+        sys_info.gossip_ip = self.gossip_ip.to_string();
+        sys_info.gossip_port = self.gossip_port as u32;
+        sys_info.ctl_gateway_ip = self.ctl_gateway_ip.to_string();
+        sys_info.ctl_gateway_port = self.ctl_gateway_port as u32;
+        sys_info.http_gateway_ip = self.http_gateway_ip.to_string();
+        sys_info.http_gateway_port = self.http_gateway_port as u32;
         sys_info
     }
 

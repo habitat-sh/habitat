@@ -756,7 +756,7 @@ two = 2
             update_election_is_running: Cow::Owned(false),
             update_election_is_no_quorum: Cow::Owned(false),
             update_election_is_finished: Cow::Owned(false),
-            sys: Cow::Owned(SysInfo::new()),
+            sys: Cow::Owned(SysInfo::default()),
             alive: Cow::Owned(true),
             suspect: Cow::Owned(false),
             confirmed: Cow::Owned(false),

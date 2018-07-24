@@ -23,8 +23,7 @@ use std::time::Duration;
 use time::SteadyTime;
 
 use member::Health;
-use message::swim::Rumor_Type;
-use rumor::RumorKey;
+use rumor::{RumorKey, RumorType};
 use server::timing::Timing;
 use server::Server;
 use trace::TraceKind;
@@ -57,10 +56,7 @@ impl Expire {
                     self.server.member_list.with_member(id, |has_member| {
                         let member = has_member.expect("Member does not exist when expiring it");
                         trace!("Marking {:?} as Confirmed", member);
-                        trace_it!(
-                                    PROBE: &self.server,
-                                    TraceKind::ProbeConfirmed, member.get_id(),
-                                    member.get_address());
+                        trace_it!(PROBE: &self.server, TraceKind::ProbeConfirmed, &member.id, &member.address);
                     });
                 }
             });
@@ -68,7 +64,7 @@ impl Expire {
                 self.server.member_list.expire(mid);
                 self.server.member_list.depart(mid);
                 self.server.rumor_heat.start_hot_rumor(RumorKey::new(
-                    Rumor_Type::Member,
+                    RumorType::Member,
                     mid.clone(),
                     "",
                 ));
@@ -88,17 +84,14 @@ impl Expire {
                             let member =
                                 has_member.expect("Member does not exist when departing it");
                             trace!("Marking {:?} as Departed", member);
-                            trace_it!(PROBE: &self.server,
-                                          TraceKind::ProbeDeparted,
-                                          member.get_id(),
-                                          member.get_address());
+                            trace_it!(PROBE: &self.server, TraceKind::ProbeDeparted, &member.id, &member.address);
                         });
                     }
                 });
             for mid in departed_list.iter() {
                 self.server.member_list.depart_remove(mid);
                 self.server.rumor_heat.start_hot_rumor(RumorKey::new(
-                    Rumor_Type::Member,
+                    RumorType::Member,
                     mid.clone(),
                     "",
                 ));

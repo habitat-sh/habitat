@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
-use protobuf;
 use zmq;
 
-use message::swim::{Rumor, Rumor_Type};
+use rumor::{RumorEnvelope, RumorKind};
 use server::Server;
 use trace::TraceKind;
 use ZMQ_CONTEXT;
@@ -72,51 +71,45 @@ impl Pull {
                 Err(e) => {
                     // NOTE: In the future, we might want to block people who send us
                     // garbage all the time.
-                    error!("Error parsing protobuf: {:?}", e);
+                    error!("Error parsing protocol message: {:?}", e);
                     continue;
                 }
             };
-            let mut proto: Rumor = match protobuf::parse_from_bytes(&payload) {
+            let proto = match RumorEnvelope::decode(&payload) {
                 Ok(proto) => proto,
                 Err(e) => {
-                    error!("Error parsing protobuf: {:?}", e);
+                    error!("Error parsing protocol message: {:?}", e);
                     continue 'recv;
                 }
             };
-            if self.server.is_member_blocked(proto.get_from_id()) {
+            if self.server.is_member_blocked(&proto.from_id) {
                 warn!(
                     "Not processing message from {} - it is blocked",
-                    proto.get_from_id()
+                    proto.from_id
                 );
                 continue 'recv;
             }
-            trace_it!(GOSSIP: &self.server, TraceKind::RecvRumor, proto.get_from_id(), &proto);
-            match proto.get_field_type() {
-                Rumor_Type::Member => {
-                    let member = proto.mut_member().take_member().into();
-                    let health = proto.mut_member().get_health().into();
-                    self.server.insert_member_from_rumor(member, health);
+            trace_it!(GOSSIP: &self.server, TraceKind::RecvRumor, &proto.from_id, &proto);
+            match proto.kind {
+                RumorKind::Membership(membership) => {
+                    self.server
+                        .insert_member_from_rumor(membership.member, membership.health);
                 }
-                Rumor_Type::Service => {
-                    self.server.insert_service(proto.into());
+                RumorKind::Service(service) => self.server.insert_service(service),
+                RumorKind::ServiceConfig(service_config) => {
+                    self.server.insert_service_config(service_config);
                 }
-                Rumor_Type::ServiceConfig => {
-                    self.server.insert_service_config(proto.into());
+                RumorKind::ServiceFile(service_file) => {
+                    self.server.insert_service_file(service_file);
                 }
-                Rumor_Type::ServiceFile => {
-                    self.server.insert_service_file(proto.into());
+                RumorKind::Election(election) => {
+                    self.server.insert_election(election);
                 }
-                Rumor_Type::Election => {
-                    self.server.insert_election(proto.into());
+                RumorKind::ElectionUpdate(election) => {
+                    self.server.insert_update_election(election);
                 }
-                Rumor_Type::ElectionUpdate => {
-                    self.server.insert_update_election(proto.into());
-                }
-                Rumor_Type::Departure => {
-                    self.server.insert_departure(proto.into());
-                }
-                Rumor_Type::Fake | Rumor_Type::Fake2 => {
-                    debug!("Nothing to do for fake rumor types")
+                RumorKind::Departure(departure) => {
+                    self.server.insert_departure(departure);
                 }
             }
         }
