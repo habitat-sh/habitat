@@ -10,6 +10,7 @@
 - Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Bump Sprockets to latest [#5378](https://github.com/habitat-sh/habitat/pull/5378) ([cnunciato](https://github.com/cnunciato))
 -  Switch to `prost` from `protobuf` crate in Butterfly [#5179](https://github.com/habitat-sh/habitat/pull/5179) ([reset](https://github.com/reset))
 <!-- latest_release -->
 
