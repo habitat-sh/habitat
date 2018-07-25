@@ -1314,8 +1314,12 @@ fn enable_features_from_env(ui: &mut UI) {
         ui.warn("Listing feature flags environment variables:")
             .unwrap();
         for feature in &features {
-            ui.warn(&format!("  * {:?}: HAB_FEAT_{}=true", feature.0, feature.1))
-                .unwrap();
+            ui.warn(&format!(
+                "  * {:?}: HAB_FEAT_{}={}",
+                feature.0,
+                feature.1,
+                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or("".to_string())
+            )).unwrap();
         }
     }
 }
