@@ -134,7 +134,8 @@ lazy_static! {
 
 features! {
     pub mod feat {
-        const List = 0b00000001
+        const List     = 0b00000001,
+        const TestExit = 0b00000010
     }
 }
 

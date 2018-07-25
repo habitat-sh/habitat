@@ -75,6 +75,7 @@ use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
+use super::feat;
 use census::CensusRing;
 use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
@@ -690,6 +691,22 @@ impl Manager {
             None => None,
         };
         loop {
+            if feat::is_enabled(feat::TestExit) {
+                if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
+                    if let Ok(mut exit_code_file) = File::open(&exit_file_path) {
+                        let mut buffer = String::new();
+                        exit_code_file
+                            .read_to_string(&mut buffer)
+                            .expect("couldn't read");
+                        if let Ok(exit_code) = buffer.lines().next().unwrap_or("").parse::<i32>() {
+                            fs::remove_file(&exit_file_path).expect("foo");
+                            outputln!("Simulating abrupt, unexpected exit with code {}", exit_code);
+                            std::process::exit(exit_code);
+                        }
+                    }
+                }
+            }
+
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
                 self.shutdown(ShutdownReason::LauncherStopping);

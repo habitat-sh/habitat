@@ -535,7 +535,7 @@ fn valid_url(val: String) -> result::Result<(), String> {
 
 ////////////////////////////////////////////////////////////////////////
 fn enable_features_from_env() {
-    let features = vec![(feat::List, "LIST")];
+    let features = vec![(feat::List, "LIST"), (feat::TestExit, "TEST_EXIT")];
 
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.
