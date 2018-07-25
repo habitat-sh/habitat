@@ -537,9 +537,11 @@ fn valid_url(val: String) -> result::Result<(), String> {
 fn enable_features_from_env() {
     let features = vec![(feat::List, "LIST")];
 
+    // If the environment variable for a flag is set to _anything_ but
+    // the empty string, it is activated.
     for feature in &features {
         match henv::var(format!("HAB_FEAT_{}", feature.1)) {
-            Ok(ref val) if ["true", "TRUE"].contains(&val.as_str()) => {
+            Ok(_) => {
                 feat::enable(feature.0);
                 outputln!("Enabling feature: {:?}", feature.0);
             }
