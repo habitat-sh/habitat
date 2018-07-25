@@ -23,6 +23,7 @@ env_logger = "*"
 features = "*"
 futures = "*"
 glob = "*"
+hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly" }
 habitat_common = { path = "../common" }
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }

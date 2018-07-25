@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::net::SocketAddr;
 use std::path::Path;
 use std::result;
 use std::str::FromStr;
@@ -546,6 +547,15 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
         )
+        (@subcommand sup =>
+            (@setting VersionlessSubcommands)
+            (@setting SubcommandRequiredElseHelp)
+            // these are the only sup cmds handled in `hab`, the remaining
+            // supervisor related commands are handled in `hab-sup`
+            (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
+            (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
+            (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
+        )
         (@subcommand svc =>
             (about: "Commands relating to Habitat services")
             (aliases: &["sv", "ser", "serv", "service"])
@@ -579,28 +589,6 @@ pub fn get() -> App<'static, 'static> {
         (@subcommand studio =>
             (about: "Commands relating to Habitat Studios")
             (aliases: &["stu", "stud", "studi"])
-        )
-        (@subcommand sup =>
-            (about: "Commands relating to the Habitat Supervisor")
-            (aliases: &["su"])
-            (@setting ArgRequiredElseHelp)
-            (@subcommand depart =>
-                (about: "Depart a Supervisor from the gossip ring; kicking and banning the target \
-                    from joining again with the same member-id")
-                (aliases: &["d", "de", "dep", "depa", "depart"])
-                (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-            )
-            (@subcommand secret =>
-                (about: "Commands relating to a Habitat Supervisor's Contorl Gateway secret")
-                (@setting ArgRequiredElseHelp)
-                (@subcommand generate =>
-                    (about: "Generate a secret key to use as a Supervisor's Control Gateway secret")
-                    (aliases: &["g", "gen"])
-                )
-            )
-            (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
         )
         (@subcommand supportbundle =>
             (about: "Create a tarball of Habitat Supervisor data to send to support")
@@ -776,6 +764,126 @@ fn sub_config_apply() -> App<'static, 'static> {
     )
 }
 
+// the following sup related functions are
+// public due to their utilization in `hab-sup`
+// for consistency, all supervisor related clap subcommands are defined in this module
+pub fn sub_sup_depart() -> App<'static, 'static> {
+    clap_app!(@subcommand depart =>
+        (about: "Depart a Supervisor from the gossip ring; kicking and banning the target \
+            from joining again with the same member-id")
+        (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
+            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    )
+}
+
+pub fn sub_sup_secret() -> App<'static, 'static> {
+    clap_app!(@subcommand secret =>
+        (about: "Commands relating to a Habitat Supervisor's Contorl Gateway secret")
+        (@setting ArgRequiredElseHelp)
+        (@subcommand generate =>
+            (about: "Generate a secret key to use as a Supervisor's Control Gateway secret")
+        )
+    )
+}
+
+pub fn sub_sup_bash() -> App<'static, 'static> {
+    clap_app!(@subcommand bash =>
+        (about: "Start an interactive Bash-like shell")
+        // set custom usage string, otherwise the binary
+        // is displayed confusingly as `hab-sup`
+        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+        (usage: "hab sup bash")
+    )
+}
+
+pub fn sub_sup_run() -> App<'static, 'static> {
+    clap_app!(@subcommand run =>
+        (about: "Run the Habitat Supervisor")
+        // set custom usage string, otherwise the binary
+        // is displayed confusingly as `hab-sup`
+        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+        (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
+        (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
+            "The listen address for the gossip system [default: 0.0.0.0:9638]")
+        (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_socket_addr}
+            "The listen address for the HTTP Gateway [default: 0.0.0.0:9631]")
+        (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
+            "The listen address for the Control Gateway [default: 127.0.0.1:9632]")
+        (@arg NAME: --("override-name") +takes_value
+            "The name of the Supervisor if launching more than one [default: default]")
+        (@arg ORGANIZATION: --org +takes_value
+            "The organization that the Supervisor and its subsequent services are part of \
+             [default: default]")
+        (@arg PEER: --peer +takes_value +multiple
+            "The listen address of one or more initial peers (IP[:PORT])")
+        (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+        (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+            "Watch this file for connecting to the ring"
+        )
+        (@arg RING: --ring -r +takes_value "Ring key name")
+        (@arg CHANNEL: --channel +takes_value
+            "Receive Supervisor updates from the specified release channel [default: stable]")
+        (@arg BLDR_URL: -u --url +takes_value {valid_url}
+            "Specify an alternate Builder endpoint. If not specified, the value will \
+             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+             https://bldr.habitat.sh)")
+
+        (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+            "Use package config from this path, rather than the package itself")
+        (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+            itself")
+        (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
+            group running a Habitat EventSrv to forward Supervisor and service event data to")
+        // === Optional arguments to additionally load an initial service for the Supervisor
+        (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
+            the Supervisor startup specified by a package identifier \
+            (ex: core/redis) or filepath to a Habitat Artifact \
+            (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
+        (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+            "Application name; [default: not set].")
+        (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+            "Environment name; [default: not set].")
+        (@arg GROUP: --group +takes_value
+            "The service group; shared config and topology [default: default].")
+        (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+            "Service topology; [default: none]")
+        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+            "The update strategy; [default: none] [values: none, at-once, rolling]")
+        (@arg BIND: --bind +takes_value +multiple
+            "One or more service groups to bind to a configuration")
+        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+            "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+             startup until all binds are present. [default: strict] [values: relaxed, strict]")
+        (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
+        (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
+        (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
+            Implies NO_COLOR")
+    )
+}
+
+pub fn sub_sup_sh() -> App<'static, 'static> {
+    clap_app!(@subcommand sh =>
+        (about: "Start an interactive Bourne-like shell")
+        // set custom usage string, otherwise the binary
+        // is displayed confusingly as `hab-sup`
+        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+        (usage: "hab sup sh")
+    )
+}
+
+pub fn sub_sup_term() -> App<'static, 'static> {
+    clap_app!(@subcommand term =>
+        (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
+        // set custom usage string, otherwise the binary
+        // is displayed confusingly as `hab-sup`
+        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+        (usage: "hab sup term [OPTIONS]")
+        (@arg NAME: --("override-name") +takes_value
+            "The name of the Supervisor if more than one is running [default: default]")
+    )
+}
+
 fn sub_svc_start() -> App<'static, 'static> {
     clap_app!(@subcommand start =>
         (about: "Start a loaded, but stopped, Habitat service.")
@@ -788,7 +896,7 @@ fn sub_svc_start() -> App<'static, 'static> {
 
 // `hab svc status` is the canonical location for this command, but we
 // have historically used `hab sup status` as an alias.
-fn sub_svc_status() -> App<'static, 'static> {
+pub fn sub_svc_status() -> App<'static, 'static> {
     clap_app!(@subcommand status =>
         (about: "Query the status of Habitat services.")
         (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
@@ -896,6 +1004,8 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
     }
 }
 
+// CLAP Validation Functions
+////////////////////////////////////////////////////////////////////////
 fn valid_binding_mode(val: String) -> result::Result<(), String> {
     match protocol::types::BindingMode::from_str(&val) {
         Ok(_) => Ok(()),
@@ -919,6 +1029,23 @@ fn valid_service_group(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         Err(format!("SERVICE_GROUP: '{}' is invalid", &val))
+    }
+}
+
+fn dir_exists(val: String) -> result::Result<(), String> {
+    if Path::new(&val).is_dir() {
+        Ok(())
+    } else {
+        Err(format!("Directory: '{}' cannot be found", &val))
+    }
+}
+
+fn valid_socket_addr(val: String) -> result::Result<(), String> {
+    match SocketAddr::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!(
+            "Socket address should include both IP and port, eg: '0.0.0.0:9700'"
+        )),
     }
 }
 
@@ -949,3 +1076,4 @@ fn valid_update_strategy(val: String) -> result::Result<(), String> {
         Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
     }
 }
+////////////////////////////////////////////////////////////////////////

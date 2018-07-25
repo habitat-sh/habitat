@@ -1145,10 +1145,10 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("stu", _, _) | ("stud", _, _) | ("studi", _, _) | ("studio", _, _) => {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
-        // Delegate `hab sup run *` to the Launcher
-        ("sup", "run", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
         // Delegate remaining Supervisor subcommands to `hab-sup *`
         ("sup", "", "")
+        | ("sup", "run", "-h")
+        | ("sup", "run", "--help")
         | ("sup", "term", _)
         | ("sup", "bash", _)
         | ("sup", "sh", _)
@@ -1158,6 +1158,10 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         | ("sup", "-V", _)
         | ("sup", "--version", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("term", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        // Delegate `hab help sup *` to `hab-sup`, passing only "help"
+        ("help", "sup", _) => command::sup::start(ui, env::args_os().skip(1).take(1).collect()),
+        // Delegate `hab sup run *` to the Launcher
+        ("sup", "run", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
         _ => Ok(()),
     }
 }
