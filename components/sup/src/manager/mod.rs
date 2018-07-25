@@ -205,30 +205,6 @@ pub struct Manager {
 }
 
 impl Manager {
-    /// Determines if there is already a Habitat Supervisor running on the host system.
-    pub fn is_running(cfg: &ManagerConfig) -> Result<bool> {
-        let fs_cfg = FsCfg::new(cfg.sup_root());
-
-        match read_process_lock(&fs_cfg.proc_lock_file) {
-            Ok(pid) => Ok(process::is_alive(pid)),
-            Err(SupError {
-                err: Error::ProcessLockCorrupt,
-                ..
-            }) => Ok(false),
-            Err(SupError {
-                err: Error::ProcessLockIO(_, _),
-                ..
-            }) => {
-                // JW TODO: We need to check the raw OS error and translate it to a "file not found"
-                // case. This is an acceptable reason to assume that another manager is not running
-                // but other IO errors are an actual problem. For now, let's just assume an IO
-                // error here is a file not found.
-                Ok(false)
-            }
-            Err(err) => Err(err),
-        }
-    }
-
     /// Load a Manager with the given configuration.
     ///
     /// The returned Manager will be pre-populated with any cached data from disk from a previous
