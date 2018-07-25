@@ -157,7 +157,7 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
     public_suffix (2.0.5)
-    rack (2.0.2)
+    rack (2.0.5)
     rack-livereload (0.3.16)
       rack
     rainbow (2.1.0)
@@ -183,7 +183,7 @@ GEM
       temple (~> 0.7.3)
       tilt (>= 1.3.3, < 2.1)
     slop (3.6.0)
-    sprockets (3.7.1)
+    sprockets (3.7.2)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     temple (0.7.6)
