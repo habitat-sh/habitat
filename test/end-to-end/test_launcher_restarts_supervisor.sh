@@ -24,6 +24,7 @@ exit_code=${1:-1}
 mkdir -p "$(dirname "$sup_log")"
 echo -n "Starting launcher with root $TESTING_FS_ROOT (logging to $sup_log)..."
 env HAB_FEAT_TEST_EXIT="$exit_file" hab sup run &> "$sup_log" &
+trap 'hab sup term' INT TERM EXIT
 
 wait_for_sup_to_start
 read -r launcher_pid < <(pgrep hab-launch)
@@ -59,5 +60,3 @@ elif [[ $launcher_pid != "$new_launcher_pid" ]]; then
 else
 	echo "Success! Launcher restarted supervisor process"
 fi
-
-hab sup term

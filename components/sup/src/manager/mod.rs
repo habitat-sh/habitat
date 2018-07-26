@@ -675,7 +675,7 @@ impl Manager {
                             .read_to_string(&mut buffer)
                             .expect("couldn't read");
                         if let Ok(exit_code) = buffer.lines().next().unwrap_or("").parse::<i32>() {
-                            fs::remove_file(&exit_file_path).expect("foo");
+                            fs::remove_file(&exit_file_path).expect("couldn't remove");
                             outputln!("Simulating abrupt, unexpected exit with code {}", exit_code);
                             std::process::exit(exit_code);
                         }
