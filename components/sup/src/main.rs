@@ -552,7 +552,12 @@ fn enable_features_from_env() {
     if feat::is_enabled(feat::List) {
         outputln!("Listing feature flags environment variables:");
         for feature in &features {
-            outputln!("     * {:?}: HAB_FEAT_{}=true", feature.0, feature.1);
+            outputln!(
+                "     * {:?}: HAB_FEAT_{}={}",
+                feature.0,
+                feature.1,
+                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or("".to_string())
+            );
         }
         outputln!("The Supervisor will start now, enjoy!");
     }
