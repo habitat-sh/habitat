@@ -48,7 +48,7 @@ use hcore::crypto::dpapi::encrypt;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 use hcore::env as henv;
 use hcore::url::{bldr_url_from_env, default_bldr_url};
-use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
+use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE};
 use protocol::{
     ctl::ServiceBindList,
     types::{
@@ -233,44 +233,41 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     set_supervisor_logging_options(m);
 
     let cfg = mgrcfg_from_matches(m)?;
-    if Manager::is_running(&cfg)? {
-        process::exit(OK_NO_RETRY_EXCODE);
-    } else {
-        let manager = Manager::load(cfg, launcher)?;
-        // We need to determine if we have an initial service to start
-        let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
-            let mut msg = protocol::ctl::SvcLoad::default();
-            update_svc_load_from_input(m, &mut msg)?;
-            // Always force - running with a package ident is a "do what I mean" operation. You
-            // don't care if a service was loaded previously or not and with what options. You
-            // want one loaded right now and in this way.
-            msg.force = Some(true);
-            let ident = match pkg.parse::<InstallSource>()? {
-                source @ InstallSource::Archive(_) => {
-                    // Install the archive manually then explicitly set the pkg ident to the
-                    // version found in the archive. This will lock the software to this
-                    // specific version.
-                    let install = util::pkg::install(
-                        &mut ui(),
-                        msg.bldr_url
-                            .as_ref()
-                            .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
-                        &source,
-                        msg.bldr_channel
-                            .as_ref()
-                            .unwrap_or(&*protocol::DEFAULT_BLDR_CHANNEL),
-                    )?;
-                    install.ident.into()
-                }
-                InstallSource::Ident(ident) => ident.into(),
-            };
-            msg.ident = Some(ident);
-            Some(msg)
-        } else {
-            None
+    let manager = Manager::load(cfg, launcher)?;
+
+    // We need to determine if we have an initial service to start
+    let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
+        let mut msg = protocol::ctl::SvcLoad::default();
+        update_svc_load_from_input(m, &mut msg)?;
+        // Always force - running with a package ident is a "do what I mean" operation. You
+        // don't care if a service was loaded previously or not and with what options. You
+        // want one loaded right now and in this way.
+        msg.force = Some(true);
+        let ident = match pkg.parse::<InstallSource>()? {
+            source @ InstallSource::Archive(_) => {
+                // Install the archive manually then explicitly set the pkg ident to the
+                // version found in the archive. This will lock the software to this
+                // specific version.
+                let install = util::pkg::install(
+                    &mut ui(),
+                    msg.bldr_url
+                        .as_ref()
+                        .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
+                    &source,
+                    msg.bldr_channel
+                        .as_ref()
+                        .unwrap_or(&*protocol::DEFAULT_BLDR_CHANNEL),
+                )?;
+                install.ident.into()
+            }
+            InstallSource::Ident(ident) => ident.into(),
         };
-        manager.run(svc)
-    }
+        msg.ident = Some(ident);
+        Some(msg)
+    } else {
+        None
+    };
+    manager.run(svc)
 }
 
 fn sub_sh() -> Result<()> {
@@ -535,7 +532,7 @@ fn valid_url(val: String) -> result::Result<(), String> {
 
 ////////////////////////////////////////////////////////////////////////
 fn enable_features_from_env() {
-    let features = vec![(feat::List, "LIST")];
+    let features = vec![(feat::List, "LIST"), (feat::TestExit, "TEST_EXIT")];
 
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.

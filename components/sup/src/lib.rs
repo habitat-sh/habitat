@@ -132,9 +132,13 @@ lazy_static! {
     };
 }
 
+/// List enables printing out the list features which can be dynamically enabled
+/// TestExit enables triggering an abrupt exit to simulate failures
+/// Search for feat::is_enabled(feat::FeatureName) to learn more
 features! {
     pub mod feat {
-        const List = 0b00000001
+        const List     = 0b00000001,
+        const TestExit = 0b00000010
     }
 }
 

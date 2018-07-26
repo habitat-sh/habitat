@@ -75,6 +75,7 @@ use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
+use super::feat;
 use census::CensusRing;
 use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
@@ -204,30 +205,6 @@ pub struct Manager {
 }
 
 impl Manager {
-    /// Determines if there is already a Habitat Supervisor running on the host system.
-    pub fn is_running(cfg: &ManagerConfig) -> Result<bool> {
-        let fs_cfg = FsCfg::new(cfg.sup_root());
-
-        match read_process_lock(&fs_cfg.proc_lock_file) {
-            Ok(pid) => Ok(process::is_alive(pid)),
-            Err(SupError {
-                err: Error::ProcessLockCorrupt,
-                ..
-            }) => Ok(false),
-            Err(SupError {
-                err: Error::ProcessLockIO(_, _),
-                ..
-            }) => {
-                // JW TODO: We need to check the raw OS error and translate it to a "file not found"
-                // case. This is an acceptable reason to assume that another manager is not running
-                // but other IO errors are an actual problem. For now, let's just assume an IO
-                // error here is a file not found.
-                Ok(false)
-            }
-            Err(err) => Err(err),
-        }
-    }
-
     /// Load a Manager with the given configuration.
     ///
     /// The returned Manager will be pre-populated with any cached data from disk from a previous
@@ -690,6 +667,22 @@ impl Manager {
             None => None,
         };
         loop {
+            if feat::is_enabled(feat::TestExit) {
+                if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
+                    if let Ok(mut exit_code_file) = File::open(&exit_file_path) {
+                        let mut buffer = String::new();
+                        exit_code_file
+                            .read_to_string(&mut buffer)
+                            .expect("couldn't read");
+                        if let Ok(exit_code) = buffer.lines().next().unwrap_or("").parse::<i32>() {
+                            fs::remove_file(&exit_file_path).expect("couldn't remove");
+                            outputln!("Simulating abrupt, unexpected exit with code {}", exit_code);
+                            std::process::exit(exit_code);
+                        }
+                    }
+                }
+            }
+
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
                 self.shutdown(ShutdownReason::LauncherStopping);
