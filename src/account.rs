@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
 use std::io::Error;
 use std::ptr::null_mut;
 
@@ -56,11 +57,12 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     // LookupAccountName will return the sid of the computer account
     // given the computer name. Windows forbids usernames to match the
     // computer name
-    let stripped_name = if name.ends_with("$") {
-        &name[..name.len() - 1]
-    } else {
-        name
-    };
+    let stripped_name =
+        if name.to_lowercase() == (env::var("COMPUTERNAME").unwrap().to_lowercase() + "$") {
+            &name[..name.len() - 1]
+        } else {
+            name
+        };
     let mut sid_size: u32 = 0;
     let mut domain_size: u32 = 0;
     let wide = WideCString::from_str(stripped_name).unwrap();
@@ -175,6 +177,14 @@ mod tests {
         assert_eq!(
             lower_sid.to_string().unwrap(),
             upper_sid.to_string().unwrap()
+        )
+    }
+
+    #[test]
+    fn machine_account_returns_some() {
+        assert_eq!(
+            Account::from_name((env::var("COMPUTERNAME").unwrap() + "$").as_str()).is_some(),
+            true
         )
     }
 }
