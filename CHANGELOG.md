@@ -7,6 +7,7 @@
 - Enable feature flags with any value except the empty string [#5375](https://github.com/habitat-sh/habitat/pull/5375) ([christophermaier](https://github.com/christophermaier))
 
 #### New Features & Enhancements
+- Add variants support to plan-build [#5345](https://github.com/habitat-sh/habitat/pull/5345) ([smacfarlane](https://github.com/smacfarlane))
 - Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
