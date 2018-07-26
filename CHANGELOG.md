@@ -11,6 +11,7 @@
 - Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Correct typographical issues in CODE_OF_CONDUCT.md [#5316](https://github.com/habitat-sh/habitat/pull/5316) ([jerryaldrichiii](https://github.com/jerryaldrichiii))
 - Print the values of the feature environment variables rather than &quot;true&quot; [#5383](https://github.com/habitat-sh/habitat/pull/5383) ([baumanj](https://github.com/baumanj))
 - add blog post covering windows cots development [#5376](https://github.com/habitat-sh/habitat/pull/5376) ([mwrock](https://github.com/mwrock))
 - Bump Sprockets to latest [#5378](https://github.com/habitat-sh/habitat/pull/5378) ([cnunciato](https://github.com/cnunciato))
