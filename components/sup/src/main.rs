@@ -153,7 +153,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         // this is the _full_ list of supervisor related cmds
-        // they are all enumerated here so that the _full_ help menu
+        // they are all enumerated here so that the entire help menu
         // can be displayed from `hab sup --help`
         (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
         (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
