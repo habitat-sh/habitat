@@ -73,24 +73,17 @@ static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 fn main() {
-    if let Err(err) = start() {
-        println!("{}", err);
-        match err {
-            SupError {
-                err: Error::ProcessLocked(_),
-                ..
-            }
-            | SupError {
-                err: Error::Departed,
-                ..
-            }
-            | SupError {
-                err: Error::ButterflyError(_),
-                ..
-            } => process::exit(ERR_NO_RETRY_EXCODE),
-            _ => process::exit(1),
+    let result = start();
+    let exit_code;
+    match result {
+        Err(ref err) => {
+            println!("{}", err);
+            exit_code = ERR_NO_RETRY_EXCODE;
         }
-    }
+        Ok(_) => exit_code = 0,
+    };
+    debug!("start() returned {:?}; Exiting {}", result, exit_code);
+    process::exit(exit_code);
 }
 
 fn boot() -> Option<LauncherCli> {
