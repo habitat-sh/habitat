@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+-  Allow a crashed supervisor to be restarted by the launcher [#5384](https://github.com/habitat-sh/habitat/pull/5384) ([baumanj](https://github.com/baumanj))
 - Enable feature flags with any value except the empty string [#5375](https://github.com/habitat-sh/habitat/pull/5375) ([christophermaier](https://github.com/christophermaier))
 
 #### New Features & Enhancements
