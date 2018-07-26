@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# A simple test that the launcher restarts a supervisor when it exits abruptly
+# The one optional argument set the exit code of the supervisor (default: 1).
+# By default this runs against the installed habitat binaries. To override and
+# test locally-built code, set overrides in the environment of the script.
+# See https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
+
 set -eou pipefail
 
 wait_for_sup_to_start() {
