@@ -2071,27 +2071,53 @@ if (-Not (Test-Path "$Context")) {
 }
 $script:PLAN_CONTEXT = (Get-Item $Context).FullName
 
-# Now to ensure a `plan.ps1` exists where we expect it. There are 2 possible
-# candidate locations relative to the `$PLAN_CONTEXT` directory: a `./plan.ps1`
-# or a `./habitat/plan.ps1`. Only one or the other location is allowed so that
-# a Plan author isn't confused if they edit one to have this program read
-# the other.
+# Now to ensure a `plan.ps1` exists where we expect it. There are 4 possible
+# candidate locations relative to the `$PLAN_CONTEXT` directory: 
+#   `./plan.ps1`
+#   `./habitat/plan.ps1`
+#   `./$pkg_target/plan.ps1`
+#   `./habitat/$pkg_target/plan.ps1`
+# In most cases, Plan authors should use the default location of `./plan.ps1`
+# or `./habitat/plan.ps1`.  The exception to this is when the $pkg_target 
+# requires variations to the default `plan.ps1`. Plan authors can create these 
+# variants by placing a plan file in the appropriate $pkg_target directory 
+# relative to the default plan.ps1.
+#
+# With plan variants, plans can exist in 4 places per $pkg_target relative to 
+# the `$PLAN_CONTEXT` directory. Only two combinations are allowed:
+#
+#   `./plan.ps1` AND `./$pkg_target/plan.ps1` 
+#   OR 
+#   `./habitat/plan.ps1` AND `./habitat/$pkg_target/plan.ps1`
+# Consider all other combination of two plans invalid and abort if found.
 
-# We'll make sure that both are not present, and if so abort.
-if ((Test-Path "$PLAN_CONTEXT\plan.ps1") -and (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1")) {
-    $places = "$PLAN_CONTEXT\plan.ps1 and $PLAN_CONTEXT\habitat\plan.ps1"
-    _Exit-With "A Plan file was found at $places. Only one is allowed at a time" 42
+# ** Internal ** Relative to the current plan context,  check for a variant
+#   that matches the current $pkg_target, and update $PLAN_CONTEXT if found.
+function _Check-For-Plan-Variant {
+  if (Test-Path "$PLAN_CONTEXT\$pkg_target\plan.ps1") {
+    Write-BuildLine "Detected Plan Variant!"
+    $script:PLAN_CONTEXT = "$PLAN_CONTEXT\$pkg_target"
+    Write-BuildLine "$PLAN_CONTEXT"
+  }
 }
-# We check if the provided path has a `plan.ps1` in it in either location. If
-# not, we'll quickly bail.
-if (-Not (Test-Path "$PLAN_CONTEXT\plan.ps1")) {
+
+# Look for a plan.ps1 relative to the $PLAN_CONTEXT. If we find an invalid 
+#   combination or are unable to find a plan.ps1,  abort with a message to the 
+#   user with the failure case. 
+if (Test-Path "$PLAN_CONTEXT\plan.ps1") {
     if (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
-        $PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
-    } else {
-        $places = "$PLAN_CONTEXT\plan.ps1 or $PLAN_CONTEXT\habitat\plan.ps1"
-        _Exit-With "Plan file not found at $places" 42
+        $places = "$PLAN_CONTEXT\plan.ps1 and $PLAN_CONTEXT\habitat\plan.ps1"
+        _Exit-With "A Plan file was found at $places. Only one is allowed at a time" 42
     }
+    _Check-For-Plan-Variant
+} elseif (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
+    $script:PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
+    _Check-For-Plan-Variant
+} else {
+    $places = "$PLAN_CONTEXT\plan.ps1 or $PLAN_CONTEXT\habitat\plan.ps1"
+    _Exit-With "Plan file not found at $places" 42
 }
+
 
 # We want to fail the build for both termionating and non terminating errors
 $ErrorActionPreference = "Stop"
