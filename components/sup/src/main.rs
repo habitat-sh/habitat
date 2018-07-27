@@ -74,13 +74,12 @@ static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 fn main() {
     let result = start();
-    let exit_code;
-    match result {
+    let exit_code = match result {
+        Ok(_) => 0,
         Err(ref err) => {
             println!("{}", err);
-            exit_code = ERR_NO_RETRY_EXCODE;
+            ERR_NO_RETRY_EXCODE
         }
-        Ok(_) => exit_code = 0,
     };
     debug!("start() returned {:?}; Exiting {}", result, exit_code);
     process::exit(exit_code);
