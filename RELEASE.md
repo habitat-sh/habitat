@@ -1,13 +1,13 @@
 # Releasing Habitat
 
 This document contains step-by-step details for how to release Habitat. All components are released
-from the master branch on a bi-weekly schedule occurring every other Thursday.
+from the master branch on a bi-weekly schedule occurring every other Monday.
 
-## Releasing launcher
+## Releasing Launcher
 
 The [`core/hab-launcher` package](https://bldr.habitat.sh/#/pkgs/core/hab-launcher), which contains
 the `hab-launch` binary has a separate release process. See
-[its README](components/launcher/README.md) for details.
+[its README](components/launcher/README.md) for details. The Buildkite pipeline does not build a `core/hab-launcher` package; that must currently be built out-of-band and uploaded to Builder. The Buildkite pipeline _will_ however take care of _promoting_ it for you. The pipeline will guide you as appropriate.
 
 ## Compiling Release Notes
 
@@ -89,20 +89,18 @@ Highlights:
     $ git push origin --tags
     ```
 
-Once the release tag is pushed, Travis and AppVeyor builds will be triggered on the release tag. AppVeyor builds are currently very prone to timing out,
+Once the release tag is pushed, Buildkite and AppVeyor builds will be triggered on the release tag. AppVeyor builds are currently very prone to timing out,
 so set a 1-hour timer to go and check on them. If they do time out, you just have to restart them and hope. You may also want to set up [email notifications](https://ci.appveyor.com/notifications).
 
-You can view/adminster Travis builds here https://travis-ci.org/habitat-sh/habitat/builds. See [*Troubleshooting Mac deployments*](#troubleshooting-mac-deployments) if there are issues with the [Mac release travis job](https://github.com/habitat-sh/habitat/blob/master/.travis.yml#L227-L255).
+You can view/adminster Buildkite builds [here](https://buildkite.com/chef/habitat-sh-habitat-master-release).
 
-There is currently a bug where if multiple mac builds are running concurrently, one build can possibly delete some hab keys needed by the other. Until this is properly addressed, **kill any travis builds running that are NOT part of the release tag build**.
-
-The release tag builds will upload all release binaries to a channel named `rc-[VERSION]` and the hab cli will be uploaded BUT not published to the `stable` bintray repository. These builds can take nearly an hour to fully complete. Keep an eye on them so we can validate the binaries when they finish.
+The release tag builds will upload all release binaries to a channel named `rc-[VERSION]` and the `hab` cli will be uploaded but _not_ published to the `stable` Bintray repository. These builds can take about 45 minutes to fully complete. Keep an eye on them so we can validate the binaries when they finish.
 
 ## Validate the Release
 
-For each platform ([darwin](https://bintray.com/habitat/stable/hab-x86_64-darwin), [linux](https://bintray.com/habitat/stable/hab-x86_64-linux), [windows](https://bintray.com/habitat/stable/hab-x86_64-windows)), download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable) (you will need to be signed into bintray and a member of the "Habitat" organization). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, run `hab studio enter` and make sure:
+For each platform ([darwin](https://bintray.com/habitat/stable/hab-x86_64-darwin), [linux](https://bintray.com/habitat/stable/hab-x86_64-linux), [windows](https://bintray.com/habitat/stable/hab-x86_64-windows)), download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable) (you will need to be signed into Bintray and a member of the "Habitat" organization). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, run `hab studio enter` and make sure:
 
-Due to historical contingincies, evaluating the release is currently a bit tricky.
+Due to historical contingencies, evaluating the release is currently a bit tricky.
 
 You need to set `HAB_INTERNAL_BLDR_CHANNEL` and `CI_OVERRIDE_CHANNEL` to the name of the release channel (you _may_ also need to set `HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL` and `HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL`). If a new Launcher is in the release channel, you should be fine; however, since that should be rare, you may have some additional work.
 
@@ -121,7 +119,7 @@ Then you can actually exercise the software as follows:
 
 When testing the linux studio, you will need to `export CI_OVERRIDE_CHANNEL` to the rc channel of the release. So if you are releasing 0.75.2, the channel would be `rc-0.75.2`.
 
-### Addressing issues with a release
+### Addressing issues with a Release
 
 If you find issues when validating the release binaries that must be fixed before promoting the release, you will need to fix those issues and then have Travis and Appveyor rerun the deployment. After you merge the necessary PRs to fix the release issues:
 
@@ -130,36 +128,8 @@ If you find issues when validating the release binaries that must be fixed befor
 3. Tag the release again: `make tag-release`
 4. Push that tag: git push origin --tags
 
-## Publish the release
-
-NOTE: These commands must be run from a Linux machine. If you are on a mac, you must either run these from within a Habitat studio or from a Linux VM.
-
-NOTE: Do this step during the day when there are others around, lots of services upgrading means unexpected things can go wrong and it helps to have many people around who can help.
-
-```
-$ export HAB_AUTH_TOKEN=<your-token>
-$ export BINTRAY_USER=<your-bintray-user>
-$ export BINTRAY_KEY=<your-bintray-api-key>
-$ make publish-release
-```
-
-NOTE: that to find your Bintray API key, you'll have to go to your [profile *edit* page](https://bintray.com/profile/edit), and select "API Key" from the menu.
-
-This should promote all RC packages to stable and publish the hab cli for each platform (linux, mac and windows).
-
-Note that if you end up re pushing a release to address issues with a release, you may receive the error:
-
-```
-There are multipe pages of releases. Consider deleting the channel and then rebuild.
-```
-
-Our bash promote script is not sophisticated enough to page through results. The best option here is to `destroy` the rc channel.
-
-```
-hab bldr channel destroy -o core rc-0.75.2
-```
-
-Then re push the release tag.
+# Post-Release Tasks
+The Buildkite release is fairly-well automated at this point, but once it is complete, there are still a few remaining manual tasks to perform. In time, these will be automated as well.
 
 ## Update Builder Bootstrap Bundle
 
@@ -265,18 +235,6 @@ Now that the release is stable, it is time to promote the workers.
 In the Builder Web UI, go to the builds page for `habitat/builder-worker` and check that the latest version is a successful recent build.
 
 Promote the release. Wait for a few minutes, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
-
-# Troubleshooting Mac deployments
-
-Travis runs the Mac deployment scripts via SSH to a headless Mac builder affectionately called `74.80.245.236`. You can SSH to this machine as `admin` using the `habitat-srv-admin` key available in 1password.
-
-If the mac build fails complaining it is out of space, the best course of action is to run:
-
-```
-rm -rf $HOME/code/*
-```
-
-This will clean up any orphaned working directories from previous failed and canceled builds.
 
 # If your Release is going to cause downtime
 
