@@ -17,14 +17,14 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fmt;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use toml;
 use toml::Value;
 
-use super::all_packages;
+use super::list::package_list_for_ident;
 use super::metadata::{parse_key_value, read_metafile, Bind, BindMapping, MetaFile, PackageType};
 use super::{Identifiable, PackageIdent};
 use error::{Error, Result};
@@ -94,7 +94,8 @@ impl PackageInstall {
         if !package_root_path.exists() {
             return Err(Error::PackageNotFound(ident.clone()));
         }
-        let pl = all_packages(&package_root_path)?;
+
+        let pl = package_list_for_ident(&package_root_path, ident)?;
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
@@ -159,7 +160,7 @@ impl PackageInstall {
             return Err(Error::PackageNotFound(original_ident.clone()));
         }
 
-        let pl = all_packages(&package_root_path)?;
+        let pl = package_list_for_ident(&package_root_path, &original_ident)?;
         let latest: Option<PackageIdent> = pl
             .iter()
             .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
