@@ -3,25 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-#### Bug Fixes
-- If the supervisor terminates with an error result, don&#39;t restart it [#5387](https://github.com/habitat-sh/habitat/pull/5387) ([baumanj](https://github.com/baumanj))
--  Allow a crashed supervisor to be restarted by the launcher [#5384](https://github.com/habitat-sh/habitat/pull/5384) ([baumanj](https://github.com/baumanj))
-- Enable feature flags with any value except the empty string [#5375](https://github.com/habitat-sh/habitat/pull/5375) ([christophermaier](https://github.com/christophermaier))
-
 #### New Features & Enhancements
 - Add variants support to plan-build [#5345](https://github.com/habitat-sh/habitat/pull/5345) ([smacfarlane](https://github.com/smacfarlane))
 - Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
-
-#### Merged Pull Requests
-- Send Expeditor notifications to a habitat specific channel  [#5314](https://github.com/habitat-sh/habitat/pull/5314) ([scotthain](https://github.com/scotthain))
-- Correct typographical issues in CODE_OF_CONDUCT.md [#5316](https://github.com/habitat-sh/habitat/pull/5316) ([jerryaldrichiii](https://github.com/jerryaldrichiii))
-- Print the values of the feature environment variables rather than &quot;true&quot; [#5383](https://github.com/habitat-sh/habitat/pull/5383) ([baumanj](https://github.com/baumanj))
-- add blog post covering windows cots development [#5376](https://github.com/habitat-sh/habitat/pull/5376) ([mwrock](https://github.com/mwrock))
-- Bump Sprockets to latest [#5378](https://github.com/habitat-sh/habitat/pull/5378) ([cnunciato](https://github.com/cnunciato))
--  Switch to `prost` from `protobuf` crate in Butterfly [#5179](https://github.com/habitat-sh/habitat/pull/5179) ([reset](https://github.com/reset))
-<!-- latest_release -->
-
-#### New Features & Enhancements
 - [core] Add new PackageTarget from habitat-sh/core#42. [#5355](https://github.com/habitat-sh/habitat/pull/5355) ([fnichol](https://github.com/fnichol))
 - [plan-build] Set `$pkg_target` at build time for build programs. [#5350](https://github.com/habitat-sh/habitat/pull/5350) ([fnichol](https://github.com/fnichol))
 - Add success and failure callbacks for plan builds [#5081](https://github.com/habitat-sh/habitat/pull/5081) ([christophermaier](https://github.com/christophermaier))
@@ -33,6 +17,9 @@
 - [common] Updates due to PackageTarget changes in habitat-sh/core#37. [#5311](https://github.com/habitat-sh/habitat/pull/5311) ([fnichol](https://github.com/fnichol))
 
 #### Bug Fixes
+- If the supervisor terminates with an error result, don&#39;t restart it [#5387](https://github.com/habitat-sh/habitat/pull/5387) ([baumanj](https://github.com/baumanj))
+- Allow a crashed supervisor to be restarted by the launcher [#5384](https://github.com/habitat-sh/habitat/pull/5384) ([baumanj](https://github.com/baumanj))
+- Enable feature flags with any value except the empty string [#5375](https://github.com/habitat-sh/habitat/pull/5375) ([christophermaier](https://github.com/christophermaier))
 - Remove rust-ipc-socket files when appropriate [#5365](https://github.com/habitat-sh/habitat/pull/5365) ([baumanj](https://github.com/baumanj))
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 - fixing default value for pid display in hab svc status [#5281](https://github.com/habitat-sh/habitat/pull/5281) ([jeremymv2](https://github.com/jeremymv2))
@@ -40,7 +27,6 @@
 - Deploy web site using the keys for the www user, not me [#5290](https://github.com/habitat-sh/habitat/pull/5290) ([raskchanky](https://github.com/raskchanky))
 
 #### Documentation Updates
-
 - some modernization updates to windows blogs [#5301](https://github.com/habitat-sh/habitat/pull/5301) ([mwrock](https://github.com/mwrock))
 - added habitat and other software doc [#5309](https://github.com/habitat-sh/habitat/pull/5309) ([echohack](https://github.com/echohack))
 - Update remaining `hab start` references [#5303](https://github.com/habitat-sh/habitat/pull/5303) ([cnunciato](https://github.com/cnunciato))
@@ -50,6 +36,12 @@
 - Update 2018-05-21-On-Prem-Builder.html.md [#5134](https://github.com/habitat-sh/habitat/pull/5134) ([emmakat](https://github.com/emmakat))
 
 #### Merged Pull Requests
+- Send Expeditor notifications to a habitat specific channel  [#5314](https://github.com/habitat-sh/habitat/pull/5314) ([scotthain](https://github.com/scotthain))
+- Correct typographical issues in CODE_OF_CONDUCT.md [#5316](https://github.com/habitat-sh/habitat/pull/5316) ([jerryaldrichiii](https://github.com/jerryaldrichiii))
+- Print the values of the feature environment variables rather than &quot;true&quot; [#5383](https://github.com/habitat-sh/habitat/pull/5383) ([baumanj](https://github.com/baumanj))
+- add blog post covering windows cots development [#5376](https://github.com/habitat-sh/habitat/pull/5376) ([mwrock](https://github.com/mwrock))
+- Bump Sprockets to latest [#5378](https://github.com/habitat-sh/habitat/pull/5378) ([cnunciato](https://github.com/cnunciato))
+- Switch to `prost` from `protobuf` crate in Butterfly [#5179](https://github.com/habitat-sh/habitat/pull/5179) ([reset](https://github.com/reset))
 - Decouple builder-depot-client from protobuf [#5372](https://github.com/habitat-sh/habitat/pull/5372) ([chefsalim](https://github.com/chefsalim))
 - Add blog post for GKE and GCR [#5352](https://github.com/habitat-sh/habitat/pull/5352) ([skpaterson](https://github.com/skpaterson))
 - Initial draft of &quot;bastion ring&quot; documentation [#5359](https://github.com/habitat-sh/habitat/pull/5359) ([christophermaier](https://github.com/christophermaier))
@@ -70,6 +62,8 @@
 - Fix doc generator, generate 0.59.0 docs [#5335](https://github.com/habitat-sh/habitat/pull/5335) ([cnunciato](https://github.com/cnunciato))
 - Replace &quot;blacklist&quot; and &quot;whitelist&quot; with less problematic terminology [#5296](https://github.com/habitat-sh/habitat/pull/5296) ([baumanj](https://github.com/baumanj))
 - Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
+
+<!-- latest_release -->
 
 ## [0.58.0](https://github.com/habitat-sh/habitat/tree/0.58.0) (07-02-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.57.0...0.58.0)
