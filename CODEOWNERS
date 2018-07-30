@@ -1,4 +1,5 @@
 * @reset @fnichol @christophermaier
+.buildkite @christophermaier @fnichol
 components/backline @fnichol @baumanj
 components/builder* @chefsalim @raskchanky
 components/butterfly* @christophermaier @reset @baumanj
@@ -11,5 +12,5 @@ components/plan-build @fnichol @christophermaier @elliott-davis
 components/studio @fnichol @baumanj @elliott-davis
 components/sup @christophermaier @reset @fnichol @baumanj
 support @fnichol @baumanj @elliott-davis @raskchanky
-tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky
+tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
 www @cnunciato @mgamini @raskchanky
