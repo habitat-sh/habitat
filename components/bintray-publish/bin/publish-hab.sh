@@ -255,6 +255,8 @@ _publish_slim_release() {
   bintray_path="$pkg_kernel/$pkg_arch"
 
   info "Checking to see if Bintray package $bintray_pkg already exists"
+
+  # Note: as coded, this first call can fail if the credentials are bad.
   if $_jfrog_cmd bt package-show \
     --user="$BINTRAY_USER" \
     --key="$BINTRAY_KEY" \
@@ -313,6 +315,7 @@ pkg_origin=$pkg_origin
 pkg_name=$pkg_name
 pkg_version=$pkg_version
 pkg_release=$pkg_release
+pkg_target=$pkg_target
 pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 pkg_artifact=$(basename "$pkg_artifact")
 EOF
@@ -394,7 +397,13 @@ fi
 target_hart="$1"
 
 tmp_root="$(mktemp -d -t "${program}-XXXX")"
-trap 'rm -rf $tmp_root; exit $?' INT TERM EXIT
+cleanup() {
+    original_exit=$?
+    rm -rf "${tmp_root}"
+    exit $original_exit
+}
+
+trap cleanup INT TERM EXIT
 
 _find_system_commands
 _main

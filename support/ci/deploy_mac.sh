@@ -1,10 +1,9 @@
 #!/bin/bash
-# 5 env vars are required for this script
+# 4 env vars are required for this script
 # HAB_ORIGIN_KEY
 # BINTRAY_USER
 # BINTRAY_PASSPHRASE
 # BINTRAY_KEY
-# BINTRAY_REPO
 # TRAVIS_BUILD_NUMBER
 
 set -eu
@@ -97,13 +96,9 @@ hash -r
 
 cd "${bootstrap_dir}"
 
-echo "Publishing hab to $BINTRAY_REPO"
+echo "Publishing hab to unstable"
 # shellcheck disable=2061
 release=$(find "$mac_dir"/results -name "core-hab-0*.hart" | sort -n | tail -n 1)
-if [ "$BINTRAY_REPO" == "stable" ]; then
-  $program -s -r "$BINTRAY_REPO" "$release"
-else
-  $program -r "$BINTRAY_REPO" "$release"
-fi
+$program -r unstable "$release"
 rm "$release"
 rm -rf "$bootstrap_dir"

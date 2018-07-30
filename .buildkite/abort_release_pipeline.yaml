@@ -1,0 +1,13 @@
+steps:
+  - label: ":crying_cat_face: :boom: Destroy release channel"
+    command: .buildkite/scripts/destroy_release_channel.sh
+    agents:
+      queue: habitat-release
+
+  - wait
+
+  # This effectively fails the pipeline
+  - label: ":skull_and_crossbones: :red_button: :skull_and_crossbones: Failure"
+    command: /bin/false
+    agents:
+      queue: habitat-release

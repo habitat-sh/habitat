@@ -169,11 +169,6 @@ docs: image ## build the docs
 tag-release:
 	sh -c 'git tag $(VERSION)'
 
-publish-release:
-	@$(run) sh -c 'hab pkg install core/jq-static && \
-		hab pkg binlink core/jq-static jq --force && \
-		./support/ci/promote_rc.sh'
-
 define BUILD
 build-$1: image ## builds the $1 component
 	$(run) sh -c 'cd components/$1 && cargo build $(CARGO_FLAGS)'

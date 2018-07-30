@@ -182,7 +182,7 @@ matrix:
           - /hab/studios/home--travis--build--habitat-sh
           - /root/.cargo
       before_install:
-        - ./support/ci/only_master_or_release.sh || exit 0
+        - ./support/ci/only_master.sh || exit 0
         - sudo ./support/ci/install_rq.sh
         - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
@@ -217,7 +217,7 @@ matrix:
           - /hab/studios/home--travis--build--habitat-sh
           - /root/.cargo
       before_install:
-        - ./support/ci/only_master_or_release.sh || exit 0
+        - ./support/ci/only_master.sh || exit 0
         - sudo ./support/ci/install_rq.sh
         - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
@@ -225,7 +225,7 @@ matrix:
         - sudo ./support/ci/deploy.sh
 
 #
-# Job for building and publishing Habitat Mac release packages
+# Job for building and publishing Habitat Mac packages
 #
     - env:
         - AFFECTED_FILES=".travis.yml .bldr.toml support/ci/deploy.sh Cargo.toml Cargo.lock VERSION"
@@ -248,7 +248,7 @@ matrix:
           - /root/travis_bootstrap
       before_install:
         - ./support/ci/fast_pass.sh || exit 0
-        - ./support/ci/only_master_or_release.sh || exit 0
+        - ./support/ci/only_master.sh || exit 0
         - if [[ ! -x ./support/ci/deploy_mac_launcher.sh ]]; then chmod +x ./support/ci/deploy_mac_launcher.sh; fi
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       script:
