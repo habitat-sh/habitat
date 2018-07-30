@@ -4,7 +4,7 @@ set -euo pipefail
 
 source .buildkite/scripts/shared.sh
 
-if [[ "${FAKE_RELEASE_TAG}" ]]; then
+if [[ "${FAKE_RELEASE_TAG:-}" ]]; then
     echo "--- :warning: FAKE_RELEASE_TAG was found in the environment! This isn't a \"real\" release!"
     fake_release=1
 fi

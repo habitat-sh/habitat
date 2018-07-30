@@ -5,7 +5,7 @@ set -euo pipefail
 channel=$(buildkite-agent meta-data get "release-channel")
 
 echo "--- :thinking_face: Determining which channel to promote to"
-if [[ "${FAKE_RELEASE_TAG}" ]]; then
+if [[ "${FAKE_RELEASE_TAG:-}" ]]; then
     echo "FAKE_RELEASE_TAG was found in the environment! This isn't a \"real\" release!"
     PROMOTE_CHANNEL="fakestable-${FAKE_RELEASE_TAG}"
 else
