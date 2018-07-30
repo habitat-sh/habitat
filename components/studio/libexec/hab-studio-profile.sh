@@ -21,14 +21,14 @@ alias la="ls -al"
 
 # Set a prompt which tells us what kind of Studio we're in
 if [ "${HAB_NOCOLORING:-}" = "true" ]; then
-  PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}[${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+  PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}'['${STUDIO_TYPE:-unknown}':\w:$(echo -n $?)]\$ '
 else
   case "${TERM:-}" in
   *term | xterm-* | rxvt | screen | screen-*)
     PS1='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]${HAB_STUDIO_BINARY+[\[\e[1;31m\]HAB_STUDIO_BINARY\[\e[0m\]]}['${STUDIO_TYPE:-unknown}':\[\e[0;35m\]\w\[\e[0;32m\]:\[\e[1;37m\]`echo -n $?`\[\e[0;32m\]]\$\[\e[0m\] '
     ;;
   *)
-    PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}[${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+    PS1='[\#]'${HAB_STUDIO_BINARY+[HAB_STUDIO_BINARY]}'['${STUDIO_TYPE:-unknown}':\w:$(echo -n $?)]\$ '
     ;;
   esac
 fi
