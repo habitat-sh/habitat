@@ -20,6 +20,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Fix shellcheck lints instead of just suppressing them [#5259](https://github.com/habitat-sh/habitat/pull/5259) ([baumanj](https://github.com/baumanj))
 - Send Expeditor notifications to a habitat specific channel  [#5314](https://github.com/habitat-sh/habitat/pull/5314) ([scotthain](https://github.com/scotthain))
 - Correct typographical issues in CODE_OF_CONDUCT.md [#5316](https://github.com/habitat-sh/habitat/pull/5316) ([jerryaldrichiii](https://github.com/jerryaldrichiii))
 - Print the values of the feature environment variables rather than &quot;true&quot; [#5383](https://github.com/habitat-sh/habitat/pull/5383) ([baumanj](https://github.com/baumanj))
@@ -44,7 +45,6 @@
 - Add back unintentionally-removed $ on variable [#5337](https://github.com/habitat-sh/habitat/pull/5337) ([baumanj](https://github.com/baumanj))
 - Add 0.59.0 Release blog post [#5336](https://github.com/habitat-sh/habitat/pull/5336) ([baumanj](https://github.com/baumanj))
 - Fix doc generator, generate 0.59.0 docs [#5335](https://github.com/habitat-sh/habitat/pull/5335) ([cnunciato](https://github.com/cnunciato))
-
 <!-- latest_release -->
 
 ## [0.59.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (07-12-2018)
