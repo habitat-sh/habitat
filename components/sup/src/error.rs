@@ -114,6 +114,7 @@ pub enum Error {
     BadSpecsPath(PathBuf, io::Error),
     BadStartStyle(String),
     BadEnvConfig(String),
+    BootFail,
     ButterflyError(butterfly::error::Error),
     CtlSecretIo(PathBuf, io::Error),
     DepotClient(depot_client::Error),
@@ -218,6 +219,7 @@ impl fmt::Display for SupError {
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
+            Error::BootFail => format!("Simulated boot failure"),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::CtlSecretIo(ref path, ref err) => format!(
                 "IoError while reading or writing ctl secret, {}, {}",
@@ -360,6 +362,7 @@ impl error::Error for SupError {
             Error::BadSpecsPath(_, _) => "Unable to create the specs directory",
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
+            Error::BootFail => "Simulated boot failure",
             Error::ButterflyError(ref err) => err.description(),
             Error::CtlSecretIo(_, _) => "IoError while reading ctl secret",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",

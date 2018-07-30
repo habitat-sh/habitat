@@ -19,6 +19,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
+use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use std::time::Duration;
 
@@ -41,6 +42,7 @@ use error::{Error, Result};
 use service::Service;
 use {SUP_CMD, SUP_PACKAGE_IDENT};
 
+const IPC_CONNECT_TIMEOUT_SECS: &'static str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 static LOGKEY: &'static str = "SV";
 
@@ -217,7 +219,9 @@ impl Server {
             Some(SignalEvent::WaitForChild) => {
                 // We only return Some if we ended up reaping our
                 // Supervisor; otherwise, we don't need to do anything
-                // special.
+                // special. If the supervisor exits but reap_zombie_orphans()
+                // doesn't catch the signal (such as on Windows), we will still
+                // handle that properly in handle_message().
                 if let Some(result) = self.reap_zombie_orphans() {
                     return result;
                 }
@@ -450,13 +454,52 @@ fn dispatch(tx: &Sender, bytes: &[u8], services: &mut ServiceTable) {
 }
 
 fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Sender)> {
-    let (rx, raw) = server.accept().map_err(|_| Error::AcceptConn)?;
-    let txn = protocol::NetTxn::from_bytes(&raw).map_err(Error::Deserialize)?;
-    let mut msg = txn.decode::<protocol::Register>()
-        .map_err(Error::Deserialize)?;
-    let tx = IpcSender::connect(msg.take_pipe()).map_err(Error::Connect)?;
-    send(&tx, &protocol::NetOk::new())?;
-    Ok((rx, tx))
+    let pair = Arc::new((Mutex::new(false), Condvar::new()));
+    let pair2 = pair.clone();
+
+    // Set up the connection in a separate thread because ipc-channel doesn't support timeouts
+    let handle = thread::spawn(move || {
+        {
+            let (ref lock, _) = *pair2;
+            let mut started = lock.lock().unwrap();
+            *started = true;
+            debug!("connect thread started");
+        }
+        let (rx, raw) = server.accept().map_err(|_| Error::AcceptConn)?;
+        let txn = protocol::NetTxn::from_bytes(&raw).map_err(Error::Deserialize)?;
+        let mut msg = txn.decode::<protocol::Register>()
+            .map_err(Error::Deserialize)?;
+        let tx = IpcSender::connect(msg.take_pipe()).map_err(Error::Connect)?;
+        send(&tx, &protocol::NetOk::new())?;
+        {
+            let (_, ref cvar) = *pair2;
+            debug!("Connect thread finished; notifying waiting thread");
+            cvar.notify_one();
+        }
+        Ok((rx, tx))
+    });
+
+    let (ref lock, ref cvar) = *pair;
+    let timeout_secs = core::env::var(IPC_CONNECT_TIMEOUT_SECS)
+        .unwrap_or("".to_string())
+        .parse()
+        .unwrap_or(5);
+
+    debug!("Waiting on connect thread for {} secs", timeout_secs);
+    let (started, wait_result) = cvar.wait_timeout(
+        lock.lock().expect("IPC connection startup lock poisoned"),
+        Duration::from_secs(timeout_secs),
+    ).expect("IPC connection startup lock poisoned");
+
+    if *started && !wait_result.timed_out() {
+        handle.join().unwrap()
+    } else {
+        debug!(
+            "Timeout exceeded waiting for IPC connection (started: {})",
+            *started
+        );
+        Err(Error::AcceptConn)
+    }
 }
 
 /// Start a Supervisor as a child process.

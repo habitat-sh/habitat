@@ -23,8 +23,9 @@ extern crate protobuf;
 mod client;
 pub mod error;
 
-pub use protocol::{ERR_NO_RETRY_EXCODE, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV,
-                   OK_NO_RETRY_EXCODE};
+pub use protocol::{
+    ERR_NO_RETRY_EXCODE, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, OK_NO_RETRY_EXCODE,
+};
 
 pub use client::LauncherCli;
 pub use error::Error;
