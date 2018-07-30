@@ -21,8 +21,6 @@
 -  Switch to `prost` from `protobuf` crate in Butterfly [#5179](https://github.com/habitat-sh/habitat/pull/5179) ([reset](https://github.com/reset))
 <!-- latest_release -->
 
-## [0.60.0-dev](https://github.com/habitat-sh/habitat/tree/0.60.0-dev) (2018-07-23)
-
 #### New Features & Enhancements
 - [core] Add new PackageTarget from habitat-sh/core#42. [#5355](https://github.com/habitat-sh/habitat/pull/5355) ([fnichol](https://github.com/fnichol))
 - [plan-build] Set `$pkg_target` at build time for build programs. [#5350](https://github.com/habitat-sh/habitat/pull/5350) ([fnichol](https://github.com/fnichol))
