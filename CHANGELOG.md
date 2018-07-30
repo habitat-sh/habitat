@@ -20,6 +20,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Release from Buildkite [#5391](https://github.com/habitat-sh/habitat/pull/5391) ([christophermaier](https://github.com/christophermaier))
 - Fix shellcheck lints instead of just suppressing them [#5259](https://github.com/habitat-sh/habitat/pull/5259) ([baumanj](https://github.com/baumanj))
 - Send Expeditor notifications to a habitat specific channel  [#5314](https://github.com/habitat-sh/habitat/pull/5314) ([scotthain](https://github.com/scotthain))
 - Correct typographical issues in CODE_OF_CONDUCT.md [#5316](https://github.com/habitat-sh/habitat/pull/5316) ([jerryaldrichiii](https://github.com/jerryaldrichiii))
