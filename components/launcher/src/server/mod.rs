@@ -43,6 +43,7 @@ use service::Service;
 use {SUP_CMD, SUP_PACKAGE_IDENT};
 
 const IPC_CONNECT_TIMEOUT_SECS: &'static str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
+const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 static LOGKEY: &'static str = "SV";
 
@@ -483,7 +484,7 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     let timeout_secs = core::env::var(IPC_CONNECT_TIMEOUT_SECS)
         .unwrap_or("".to_string())
         .parse()
-        .unwrap_or(5);
+        .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
 
     debug!("Waiting on connect thread for {} secs", timeout_secs);
     let (started, wait_result) = cvar.wait_timeout(
