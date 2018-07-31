@@ -13,7 +13,7 @@ case "${HAB_STUDIO_SUP:-}" in
     # If false, we don't run the Supervisor
     ;;
   *)
-    sup-run "${HAB_STUDIO_SUP:-}"
+    sup-run ${HAB_STUDIO_SUP:-}
     echo "--> To prevent a Supervisor from running automatically in your"
     echo "    Studio, export 'HAB_STUDIO_SUP=false' before running"
     echo "    'hab studio enter'."

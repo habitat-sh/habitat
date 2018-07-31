@@ -23,6 +23,6 @@ if [[ "${BUILDKITE_AGENT_META_DATA_QUEUE}" == "habitat-release" ]]; then
     # Remove any installed hab-studio that does not correspond to our
     # active `hab`. Wipe out the archived hart files for them, too,
     # for good measure.
-    sudo rm -Rfv /hab/pkgs/core/hab-studio/!("${current_hab_version}")
-    sudo rm -Rfv /hab/cache/artifacts/core-hab-studio-!("${current_hab_version}"-*)
+    sudo rm -Rfv /hab/pkgs/core/hab-studio/!(${current_hab_version})
+    sudo rm -Rfv /hab/cache/artifacts/core-hab-studio-!(${current_hab_version}-*)
 fi

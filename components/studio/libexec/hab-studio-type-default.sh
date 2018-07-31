@@ -139,8 +139,7 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
 # Set TERMINFO so hab can give us a delightful experience.
-export TERMINFO
-TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
+export TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
 
 emacs() {
   if command -v emacs > /dev/null; then
@@ -153,7 +152,7 @@ emacs() {
 if [[ -n "\${HAB_STUDIO_SUP}" ]]; then
   # This environment variable does not handle spaces well, so we'll re-add
   # them...
-  HAB_STUDIO_SUP="\$(echo "\$HAB_STUDIO_SUP" | sed 's/__sp__/ /g')"
+  HAB_STUDIO_SUP="\$(echo \$HAB_STUDIO_SUP | sed 's/__sp__/ /g')"
 fi
 
 sup-run() {
@@ -175,10 +174,10 @@ sup-run() {
 
 sup-term() {
   local pid_file="/hab/sup/default/LOCK "
-  if [ -f "\$pid_file" ]; then
+  if [ -f \$pid_file ]; then
     echo "--> Killing Habitat Supervisor running in the background..."
-    kill "\$(cat "\$pid_file")" \\
-      && (echo "    Supervisor killed." && rm -f "\$pid_file")\\
+    kill \$(cat \$pid_file) \\
+      && (echo "    Supervisor killed." && rm -f \$pid_file)\\
       || echo "--> Error killing Supervisor."
   else
     echo "--> No Launcher pid file found, Supervisor may not be running."
@@ -219,7 +218,7 @@ case "\${HAB_STUDIO_SUP:-}" in
     # If false, we don't run the Supervisor
     ;;
   *)
-    sup-run "\${HAB_STUDIO_SUP:-}"
+    sup-run \${HAB_STUDIO_SUP:-}
     echo "--> To prevent a Supervisor from running automatically in your"
     echo "    Studio, export 'HAB_STUDIO_SUP=false' before running"
     echo "    'hab studio enter'."
