@@ -113,7 +113,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
         domain.set_len(domain_size as usize);
         sid.set_len(sid_size as usize);
     }
-    let domain_str = WideCString::from_vec(domain).unwrap().to_string_lossy();
+    let domain_str = WideCString::new(domain).unwrap().to_string_lossy();
     Some(Account {
         name: name.to_string(),
         system_name: system_name,
