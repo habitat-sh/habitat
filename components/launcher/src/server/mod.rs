@@ -43,7 +43,10 @@ use service::Service;
 use {SUP_CMD, SUP_PACKAGE_IDENT};
 
 const IPC_CONNECT_TIMEOUT_SECS: &'static str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
+const SUP_RESTART_SLEEP_SECS: &'static str = "HAB_LAUNCH_SUP_RESTART_SLEEP_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
+const DEFAULT_SUP_RESTART_SLEEP_SECS: u64 = 5;
+
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 static LOGKEY: &'static str = "SV";
 
@@ -61,25 +64,29 @@ pub struct Server {
     rx: Receiver,
     pipe: String,
     supervisor: Child,
-    args: Vec<String>,
 }
 
 impl Drop for Server {
     fn drop(&mut self) {
-        self.remove_pipe();
+        if fs::remove_file(&self.pipe).is_err() {
+            error!("Could not remove old pipe to supervisor {}", self.pipe);
+        } else {
+            debug!("Removed old pipe to supervisor {}", self.pipe);
+        }
     }
 }
 
 impl Server {
-    pub fn new(args: Vec<String>) -> Result<Self> {
-        let ((rx, tx), supervisor, pipe) = Self::init(&args, false)?;
+    // TODO: After https://github.com/habitat-sh/habitat/issues/5382, the
+    // `restart` argument can be removed from here and called functions
+    pub fn new(args: &Vec<String>, restart: bool) -> Result<Self> {
+        let ((rx, tx), supervisor, pipe) = Self::init(args, restart)?;
         Ok(Server {
             services: ServiceTable::default(),
             tx: tx,
             rx: rx,
             pipe: pipe,
             supervisor: supervisor,
-            args: args,
         })
     }
 
@@ -93,29 +100,6 @@ impl Server {
         let supervisor = spawn_supervisor(&pipe, args, clean)?;
         let channel = setup_connection(server)?;
         Ok((channel, supervisor, pipe))
-    }
-
-    fn remove_pipe(&self) {
-        if fs::remove_file(&self.pipe).is_err() {
-            error!("Could not remove old pipe to supervisor {}", self.pipe);
-        } else {
-            debug!("Removed old pipe to supervisor {}", self.pipe);
-        }
-    }
-
-    #[allow(unused_must_use)]
-    fn reload(&mut self) -> Result<()> {
-        self.supervisor.kill();
-        self.supervisor.wait();
-        let ((rx, tx), supervisor, pipe) = Self::init(&self.args, true)?;
-        self.tx = tx;
-        self.rx = rx;
-        self.supervisor = supervisor;
-        // We're connecting to a new supervisor instance, so we need to remove
-        // the socket files for the old pipe to avoid https://github.com/habitat-sh/habitat/issues/4673
-        self.remove_pipe();
-        self.pipe = pipe;
-        Ok(())
     }
 
     fn forward_signal(&self, signal: Signal) {
@@ -403,18 +387,31 @@ where
 }
 
 pub fn run(args: Vec<String>) -> Result<i32> {
-    let mut server = Server::new(args)?;
+    let mut restart = false;
+    let restart_sleep_secs = core::env::var(SUP_RESTART_SLEEP_SECS)
+        .unwrap_or("".to_string())
+        .parse()
+        .unwrap_or(DEFAULT_SUP_RESTART_SLEEP_SECS);
+
     signals::init();
     loop {
-        match server.tick() {
-            Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
-            Ok(TickState::Exit(code)) => {
-                return Ok(code);
+        let mut server = Server::new(&args, restart)?;
+        restart = true;
+        loop {
+            match server.tick() {
+                Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
+                Ok(TickState::Exit(code)) => return Ok(code),
+                Err(e) => {
+                    debug!("tick() returned error {}. Attempting to restart server", e);
+                    break;
+                }
             }
-            Err(_) => while server.reload().is_err() {
-                thread::sleep(Duration::from_millis(1_000));
-            },
         }
+        error!(
+            "Supervised exited; will restart in {} secs...",
+            restart_sleep_secs
+        );
+        thread::sleep(Duration::from_secs(restart_sleep_secs));
     }
 }
 
