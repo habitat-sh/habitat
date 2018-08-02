@@ -72,12 +72,10 @@ impl Client {
         if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
             endpoint.set_path(DEFAULT_API_PATH);
         }
-        Ok(Client(ApiClient::new(
-            endpoint,
-            product,
-            version,
-            fs_root_path,
-        ).map_err(Error::HabitatHttpClient)?))
+        Ok(Client(
+            ApiClient::new(endpoint, product, version, fs_root_path)
+                .map_err(Error::HabitatHttpClient)?,
+        ))
     }
 
     /// Create a job.
@@ -96,7 +94,8 @@ impl Client {
 
         let sbody = serde_json::to_string(&body).unwrap();
 
-        let result = self.add_authz(self.0.post("jobs"), token)
+        let result = self
+            .add_authz(self.0.post("jobs"), token)
             .body(&sbody)
             .header(Accept::json())
             .header(ContentType::json())
@@ -166,7 +165,8 @@ impl Client {
             if promote { "promote" } else { "demote" },
             channel
         );
-        let res = self.add_authz(self.0.post(&url), token)
+        let res = self
+            .add_authz(self.0.post(&url), token)
             .body(&sbody)
             .header(Accept::json())
             .header(ContentType::json())
@@ -192,7 +192,8 @@ impl Client {
     /// * Remote API Server is not available
     pub fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
         let url = format!("jobs/group/{}/cancel", group_id);
-        let res = self.add_authz(self.0.post(&url), token)
+        let res = self
+            .add_authz(self.0.post(&url), token)
             .send()
             .map_err(Error::HyperError)?;
 

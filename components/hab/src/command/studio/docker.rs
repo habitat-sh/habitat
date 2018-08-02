@@ -150,7 +150,8 @@ fn pull_image(docker_cmd: &Path) -> Result<()> {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
     debug!("Running command: {:?}", cmd);
-    let result = cmd.spawn()
+    let result = cmd
+        .spawn()
         .expect("Docker command failed to spawn")
         .wait_with_output()
         .expect("Failed to wait on child process");

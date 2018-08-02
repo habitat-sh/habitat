@@ -115,7 +115,8 @@ impl Outbound {
 
             let long_wait = self.timing.next_protocol_period();
 
-            let check_list = self.server
+            let check_list = self
+                .server
                 .member_list
                 .check_list(&self.server.member.read().expect("Member is poisoned").id);
 

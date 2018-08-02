@@ -51,7 +51,8 @@ impl PartialOrd for Service {
 
 impl PartialEq for Service {
     fn eq(&self, other: &Service) -> bool {
-        self.member_id == other.member_id && self.service_group == other.service_group
+        self.member_id == other.member_id
+            && self.service_group == other.service_group
             && self.incarnation == other.incarnation
     }
 }
@@ -88,7 +89,8 @@ impl Service {
             sys: sys,
             // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
             // in this constructor?
-            cfg: cfg.map(|v| toml::ser::to_vec(v).expect("Struct should serialize to bytes"))
+            cfg: cfg
+                .map(|v| toml::ser::to_vec(v).expect("Struct should serialize to bytes"))
                 .unwrap_or_default(),
         }
     }

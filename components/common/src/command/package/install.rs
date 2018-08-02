@@ -50,9 +50,9 @@ use hcore::crypto::keys::parse_name_with_rev;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::fs::cache_key_path;
 use hcore::fs::pkg_install_path;
+use hcore::package::install::INSTALL_TMP_PREFIX;
 use hcore::package::metadata::PackageType;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
-use hcore::package::install::INSTALL_TMP_PREFIX;
 use hyper::status::StatusCode;
 
 use error::{Error, Result};
@@ -613,7 +613,8 @@ impl<'a> InstallTask<'a> {
                 // requires a conversion that could fail (i.e. returns a `Result<...>`). Should be
                 // possible though.
                 for dependency in dependencies.iter() {
-                    if self.installed_package(&FullyQualifiedPackageIdent::from(dependency)?)
+                    if self
+                        .installed_package(&FullyQualifiedPackageIdent::from(dependency)?)
                         .is_some()
                     {
                         ui.status(Status::Using, dependency)?;
@@ -707,11 +708,11 @@ impl<'a> InstallTask<'a> {
     {
         let ident = &artifact.ident()?;
         let real_install_path = &pkg_install_path(ident, Some(self.fs_root_path));
-        let real_install_base = real_install_path.parent().ok_or(
-            Error::PackageUnpackFailed(
-                "Could not determine parent directory for package unpack location".to_owned()
-            )
-        )?;
+        let real_install_base = real_install_path
+            .parent()
+            .ok_or(Error::PackageUnpackFailed(
+                "Could not determine parent directory for package unpack location".to_owned(),
+            ))?;
         let temp_dir = self.temporary_unpack_directory(real_install_base, real_install_path)?;
         let temp_install_path = &pkg_install_path(ident, Some(temp_dir.path()));
         artifact.unpack(Some(temp_dir.path()))?;
@@ -724,14 +725,13 @@ impl<'a> InstallTask<'a> {
 
     fn temporary_unpack_directory(&self, base: &Path, full_path: &Path) -> Result<TempDir> {
         fs::create_dir_all(base)?;
-        let temp_install_prefix = full_path.file_name()
-            .and_then(|f| f.to_str() )
+        let temp_install_prefix = full_path
+            .file_name()
+            .and_then(|f| f.to_str())
             .and_then(|dirname| Some(format!("{}-{}", INSTALL_TMP_PREFIX, dirname)))
-            .ok_or(
-                Error::PackageUnpackFailed(
-                    "Could not generate prefix for temporary unpack directory".to_owned()
-                )
-            )?;
+            .ok_or(Error::PackageUnpackFailed(
+                "Could not generate prefix for temporary unpack directory".to_owned(),
+            ))?;
         Ok(TempDir::new_in(base, &temp_install_prefix)?)
     }
 
@@ -821,11 +821,9 @@ impl<'a> InstallTask<'a> {
         if latest.is_empty() {
             Err(Error::PackageNotFound("".to_string()))
         } else {
-            Ok(FullyQualifiedPackageIdent::from(latest
-                .pop()
-                .unwrap()
-                .1
-                .ident()?)?)
+            Ok(FullyQualifiedPackageIdent::from(
+                latest.pop().unwrap().1.ident()?,
+            )?)
         }
     }
 
@@ -854,7 +852,8 @@ impl<'a> InstallTask<'a> {
         channel: &Channel,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent> {
-        let origin_package: PackageIdent = self.depot_client
+        let origin_package: PackageIdent = self
+            .depot_client
             .show_package(ident, Some(channel.0), token, None)?
             .ident
             .into();

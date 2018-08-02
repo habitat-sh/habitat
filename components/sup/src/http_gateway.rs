@@ -283,7 +283,8 @@ impl Into<status::Status> for HealthCheck {
 }
 
 fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
-    let app_env = match req.extensions
+    let app_env = match req
+        .extensions
         .get::<Router>()
         .unwrap()
         .find("application_environment")

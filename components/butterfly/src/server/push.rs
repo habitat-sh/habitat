@@ -201,7 +201,8 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           &member.id,
                     //           &send_rumor);
-                    match self.server
+                    match self
+                        .server
                         .service_store
                         .encode(&rumor_key.key, &rumor_key.id)
                     {
@@ -221,7 +222,8 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           &member.id,
                     //           &send_rumor);
-                    match self.server
+                    match self
+                        .server
                         .service_config_store
                         .encode(&rumor_key.key, &rumor_key.id)
                     {
@@ -241,7 +243,8 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           &member.id,
                     //           &send_rumor);
-                    match self.server
+                    match self
+                        .server
                         .service_file_store
                         .encode(&rumor_key.key, &rumor_key.id)
                     {
@@ -256,7 +259,8 @@ impl PushWorker {
                         }
                     }
                 }
-                RumorType::Departure => match self.server
+                RumorType::Departure => match self
+                    .server
                     .departure_store
                     .encode(&rumor_key.key, &rumor_key.id)
                 {
@@ -275,7 +279,8 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           &member.id,
                     //           &send_rumor);
-                    match self.server
+                    match self
+                        .server
                         .election_store
                         .encode(&rumor_key.key, &rumor_key.id)
                     {
@@ -290,7 +295,8 @@ impl PushWorker {
                         }
                     }
                 }
-                RumorType::ElectionUpdate => match self.server
+                RumorType::ElectionUpdate => match self
+                    .server
                     .update_store
                     .encode(&rumor_key.key, &rumor_key.id)
                 {
@@ -340,7 +346,8 @@ impl PushWorker {
         }
         let payload = Membership {
             member: member.unwrap(),
-            health: self.server
+            health: self
+                .server
                 .member_list
                 .health_of_by_id(&rumor_key.key())
                 .unwrap(),

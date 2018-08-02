@@ -68,7 +68,8 @@ impl LauncherCli {
     {
         let txn = protocol::NetTxn::from_bytes(bytes).map_err(Error::Deserialize)?;
         if txn.message_id() == "NetErr" {
-            let err = txn.decode::<protocol::NetErr>()
+            let err = txn
+                .decode::<protocol::NetErr>()
                 .map_err(Error::Deserialize)?;
             return Err(Error::Protocol(err));
         }

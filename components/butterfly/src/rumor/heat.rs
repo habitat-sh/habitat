@@ -79,7 +79,8 @@ impl RumorHeat {
     /// **NOTE**: The ordering of rumors within each of these "heat"
     /// cohorts is currently undefined.
     pub fn currently_hot_rumors(&self, id: &str) -> Vec<RumorKey> {
-        let mut rumor_heat: Vec<(RumorKey, usize)> = self.0
+        let mut rumor_heat: Vec<(RumorKey, usize)> = self
+            .0
             .read()
             .expect("RumorHeat lock poisoned")
             .iter()

@@ -248,7 +248,8 @@ impl Service {
     }
 
     fn start(&mut self, launcher: &LauncherCli) {
-        if let Some(err) = self.supervisor
+        if let Some(err) = self
+            .supervisor
             .start(
                 &self.pkg,
                 &self.service_group,
@@ -275,7 +276,8 @@ impl Service {
     fn reload(&mut self, launcher: &LauncherCli) {
         self.needs_reload = false;
         if self.process_down() || self.hooks.reload.is_none() {
-            if let Some(err) = self.supervisor
+            if let Some(err) = self
+                .supervisor
                 .restart(
                     &self.pkg,
                     &self.service_group,

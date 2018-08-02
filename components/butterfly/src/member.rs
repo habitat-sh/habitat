@@ -249,21 +249,24 @@ impl MemberList {
     }
 
     pub fn len_initial_members(&self) -> usize {
-        let im = self.initial_members
+        let im = self
+            .initial_members
             .read()
             .expect("Initial members lock is poisoned");
         im.len()
     }
 
     pub fn add_initial_member(&self, member: Member) {
-        let mut im = self.initial_members
+        let mut im = self
+            .initial_members
             .write()
             .expect("Initial members lock is poisoned");
         im.push(member);
     }
 
     pub fn set_initial_members(&self, members: Vec<Member>) {
-        let mut im = self.initial_members
+        let mut im = self
+            .initial_members
             .write()
             .expect("Initial members lock is poisoned");
         im.clear();
@@ -274,7 +277,8 @@ impl MemberList {
     where
         F: FnMut(&Member),
     {
-        let im = self.initial_members
+        let im = self
+            .initial_members
             .read()
             .expect("Initial members lock is poisoned");
         for member in im.iter() {
@@ -290,7 +294,8 @@ impl MemberList {
         let mut stop_departure: bool = false;
 
         // If we have an existing member record..
-        if let Some(current_member) = self.members
+        if let Some(current_member) = self
+            .members
             .read()
             .expect("Member List read lock poisoned")
             .get(&member.id)
@@ -393,7 +398,8 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of(&self, member: &Member) -> Option<Health> {
-        match self.health
+        match self
+            .health
             .read()
             .expect("Health lock is poisoned")
             .get(&member.id)
@@ -405,7 +411,8 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
-        match self.health
+        match self
+            .health
             .read()
             .expect("Health lock is poisoned")
             .get(member_id)
@@ -416,7 +423,8 @@ impl MemberList {
     }
 
     pub fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
-        match self.health
+        match self
+            .health
             .read()
             .expect("Health lock is poisoned")
             .get(member_id)
@@ -429,7 +437,8 @@ impl MemberList {
 
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of(&self, member: &Member, health: Health) -> bool {
-        match self.health
+        match self
+            .health
             .read()
             .expect("Health lock is poisoned")
             .get(&member.id)
@@ -442,7 +451,8 @@ impl MemberList {
 
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of_by_id(&self, member_id: &str, health: Health) -> bool {
-        match self.health
+        match self
+            .health
             .read()
             .expect("Health lock is poisoned")
             .get(member_id)
@@ -471,7 +481,8 @@ impl MemberList {
     /// Updates the health of a member without touching the member itself. Returns true if the
     /// health changed, false otherwise.
     pub fn insert_health_by_id(&self, member_id: &str, health: Health) -> bool {
-        if let Some(current_health) = self.health
+        if let Some(current_health) = self
+            .health
             .read()
             .expect("Health read lock is poisoned")
             .get(member_id)
@@ -499,7 +510,8 @@ impl MemberList {
 
     /// Returns a protobuf membership record for the given member id.
     pub fn membership_for(&self, member_id: &str) -> Option<Membership> {
-        let mhealth = match self.health
+        let mhealth = match self
+            .health
             .read()
             .expect("Health lock is poisoned")
             .get(member_id)
@@ -527,7 +539,8 @@ impl MemberList {
 
     /// A randomized list of members to check.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
-        let mut members: Vec<Member> = self.members
+        let mut members: Vec<Member> = self
+            .members
             .read()
             .expect("Member list lock is poisoned")
             .values()
@@ -611,7 +624,8 @@ impl MemberList {
     where
         F: FnMut(&Member) -> (),
     {
-        for member in self.members
+        for member in self
+            .members
             .read()
             .expect("Member list lock is poisoned")
             .values()
@@ -625,7 +639,8 @@ impl MemberList {
     where
         F: FnMut((&str, &SteadyTime)) -> (),
     {
-        for (id, suspect) in self.suspect
+        for (id, suspect) in self
+            .suspect
             .read()
             .expect("Suspect list lock is poisoned")
             .iter()
@@ -639,7 +654,8 @@ impl MemberList {
     where
         F: FnMut((&str, &SteadyTime)) -> (),
     {
-        for (id, departure_time) in self.depart
+        for (id, departure_time) in self
+            .depart
             .read()
             .expect("Departure list lock is poisoned")
             .iter()
@@ -656,7 +672,8 @@ impl MemberList {
 
     /// Sets a departure time for a member who has been confirmed
     pub fn depart(&self, member_id: &str) {
-        let mut depart = self.depart
+        let mut depart = self
+            .depart
             .write()
             .expect("Departure list lock is poisoned");
         depart.insert(member_id.to_string(), SteadyTime::now());
@@ -664,7 +681,8 @@ impl MemberList {
 
     /// Removes a member from the departure list
     pub fn depart_remove(&self, member_id: &str) {
-        let mut depart = self.depart
+        let mut depart = self
+            .depart
             .write()
             .expect("Departure list lock is poisoned");
         depart.remove(member_id);

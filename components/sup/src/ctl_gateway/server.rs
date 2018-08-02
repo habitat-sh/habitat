@@ -282,7 +282,8 @@ impl Future for SrvHandler {
                         trace!("OnMessage, {}", msg.message_id());
                         let cmd = match msg.message_id() {
                             "SvcGetDefaultCfg" => {
-                                let m = msg.parse::<protocol::ctl::SvcGetDefaultCfg>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcGetDefaultCfg>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -291,7 +292,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcFilePut" => {
-                                let m = msg.parse::<protocol::ctl::SvcFilePut>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcFilePut>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -302,7 +304,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcSetCfg" => {
-                                let m = msg.parse::<protocol::ctl::SvcSetCfg>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcSetCfg>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -313,7 +316,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcValidateCfg" => {
-                                let m = msg.parse::<protocol::ctl::SvcValidateCfg>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcValidateCfg>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -324,7 +328,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcLoad" => {
-                                let m = msg.parse::<protocol::ctl::SvcLoad>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcLoad>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -333,7 +338,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcUnload" => {
-                                let m = msg.parse::<protocol::ctl::SvcUnload>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcUnload>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -344,7 +350,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcStart" => {
-                                let m = msg.parse::<protocol::ctl::SvcStart>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcStart>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -353,7 +360,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcStop" => {
-                                let m = msg.parse::<protocol::ctl::SvcStop>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcStop>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -362,7 +370,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SvcStatus" => {
-                                let m = msg.parse::<protocol::ctl::SvcStatus>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcStatus>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
@@ -373,7 +382,8 @@ impl Future for SrvHandler {
                                 )
                             }
                             "SupDepart" => {
-                                let m = msg.parse::<protocol::ctl::SupDepart>()
+                                let m = msg
+                                    .parse::<protocol::ctl::SupDepart>()
                                     .map_err(HandlerError::from)?;
                                 CtlCommand::new(
                                     Some(self.tx.clone()),

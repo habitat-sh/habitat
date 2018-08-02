@@ -393,7 +393,8 @@ impl Client {
         });
 
         let sbody = serde_json::to_string(&body)?;
-        let res = self.add_authz(self.0.post(&path), token)
+        let res = self
+            .add_authz(self.0.post(&path), token)
             .body(&sbody)
             .header(Accept::json())
             .header(ContentType::json())
@@ -576,7 +577,8 @@ impl Client {
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
         let mut file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-        let file_size = file.metadata()
+        let file_size = file
+            .metadata()
             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
             .len();
 
@@ -647,7 +649,8 @@ impl Client {
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
         let mut file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-        let file_size = file.metadata()
+        let file_size = file
+            .metadata()
             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
             .len();
 
@@ -744,14 +747,15 @@ impl Client {
             url.push_str("/latest");
         }
 
-        let mut res = self.maybe_add_authz(
-            self.0.get_with_custom_url(&url, |u| {
-                if target.is_some() {
-                    u.set_query(Some(&format!("target={}", target.unwrap())))
-                }
-            }),
-            token,
-        ).send()?;
+        let mut res =
+            self.maybe_add_authz(
+                self.0.get_with_custom_url(&url, |u| {
+                    if target.is_some() {
+                        u.set_query(Some(&format!("target={}", target.unwrap())))
+                    }
+                }),
+                token,
+            ).send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -788,7 +792,8 @@ impl Client {
         let ident = pa.ident()?;
         let mut file =
             File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
-        let file_size = file.metadata()
+        let file_size = file
+            .metadata()
             .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
             .len();
         let path = package_path(&ident);
@@ -823,7 +828,8 @@ impl Client {
         let ident = pa.ident()?;
         let mut file =
             File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
-        let file_size = file.metadata()
+        let file_size = file
+            .metadata()
             .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
             .len();
         let path = package_path(&ident);
@@ -834,7 +840,8 @@ impl Client {
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let result = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+        let result = self
+            .add_authz(self.0.post_with_custom_url(&path, custom), token)
             .body(Body::SizedBody(&mut file, file_size))
             .send();
         match result {
@@ -955,7 +962,8 @@ impl Client {
         let mut res;
 
         if include_sandbox_channels {
-            res = self.0
+            res = self
+                .0
                 .get_with_custom_url(&path, |url| url.set_query(Some("sandbox=true")))
                 .send()?;
         } else {
@@ -985,7 +993,8 @@ impl Client {
         search_term: &str,
         token: Option<&str>,
     ) -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
-        let mut res = self.maybe_add_authz(self.0.get(&package_search(search_term)), token)
+        let mut res = self
+            .maybe_add_authz(self.0.get(&package_search(search_term)), token)
             .send()?;
         match res.status {
             StatusCode::Ok | StatusCode::PartialContent => {
@@ -1034,14 +1043,15 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let t = target.as_ref();
-        let mut res = self.maybe_add_authz(
-            self.0.get_with_custom_url(path, |u| {
-                if target.is_some() {
-                    u.set_query(Some(&format!("target={}", t.unwrap())))
-                }
-            }),
-            token,
-        ).send()?;
+        let mut res =
+            self.maybe_add_authz(
+                self.0.get_with_custom_url(path, |u| {
+                    if target.is_some() {
+                        u.set_query(Some(&format!("target={}", t.unwrap())))
+                    }
+                }),
+                token,
+            ).send()?;
 
         debug!("Response: {:?}", res);
 
@@ -1051,7 +1061,8 @@ impl Client {
 
         fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
 
-        let file_name = res.headers
+        let file_name = res
+            .headers
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();
@@ -1066,7 +1077,8 @@ impl Client {
             .map_err(|e| Error::DownloadWrite(tmp_file_path.clone(), e))?;
         match progress {
             Some(mut progress) => {
-                let size: u64 = res.headers
+                let size: u64 = res
+                    .headers
                     .get::<hyper::header::ContentLength>()
                     .map_or(0, |v| **v);
                 progress.size(size);
@@ -1098,7 +1110,8 @@ impl Client {
         }
         fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
 
-        let file_name = res.headers
+        let file_name = res
+            .headers
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();

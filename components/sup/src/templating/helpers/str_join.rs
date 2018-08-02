@@ -21,14 +21,16 @@ pub struct StrJoinHelper;
 
 impl HelperDef for StrJoinHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let list: Vec<String> = h.param(0)
+        let list: Vec<String> = h
+            .param(0)
             .and_then(|v| v.value().as_array())
             .ok_or_else(|| RenderError::new("Expected 2 parameters for \"strJoin\""))?
             .iter()
             .filter(|v| !v.is_object())
             .map(|v| v.to_string().replace("\"", ""))
             .collect();
-        let seperator = h.param(1)
+        let seperator = h
+            .param(1)
             .and_then(|v| v.value().as_str())
             .ok_or_else(|| RenderError::new("Expected 2 parameters for \"strJoin\""))?;
 

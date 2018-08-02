@@ -42,7 +42,8 @@ impl QuoteHelper {
 
 impl HelperDef for QuoteHelper {
     fn call(&self, h: &Helper, _r: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
-        let to_escape = h.param(0)
+        let to_escape = h
+            .param(0)
             .ok_or_else(|| {
                 RenderError::new(&format!("Expected exactly one parameter for {}", h.name()))
             })?

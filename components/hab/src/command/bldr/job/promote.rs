@@ -63,7 +63,8 @@ pub fn get_ident_list(
 
     idents = idents.iter().map(|s| format!("{}\n", s)).collect();
 
-    Ok(ui.edit(&idents)?
+    Ok(ui
+        .edit(&idents)?
         .split("\n")
         .filter(|s| is_ident(s))
         .map(|s: &str| s.to_string())

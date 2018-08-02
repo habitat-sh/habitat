@@ -195,7 +195,8 @@ impl<'a> Chart<'a> {
         self.ui
             .status(Status::Creating, format!("file `{}`", path.display()))?;
         let mut write = fs::File::create(path)?;
-        let out: String = self.manifest_template
+        let out: String = self
+            .manifest_template
             .take()
             .expect("generate_manifest_template() called more than once")
             .into();
