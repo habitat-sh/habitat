@@ -1,5 +1,5 @@
 * @reset @fnichol @christophermaier
-.buildkite @christophermaier @fnichol
+.buildkite @christophermaier @fnichol @scotthain
 components/backline @fnichol @baumanj
 components/builder* @chefsalim @raskchanky
 components/butterfly* @christophermaier @reset @baumanj
@@ -8,7 +8,7 @@ components/eventsrv* @reset @raskchanky
 components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @elliott-davis @raskchanky
 components/launcher* @christophermaier @reset @baumanj
 components/pkg-* @fnichol @christophermaier
-components/plan-build @fnichol @christophermaier @elliott-davis
+components/plan-build @fnichol @christophermaier @elliott-davis @scotthain
 components/studio @fnichol @baumanj @elliott-davis
 components/sup @christophermaier @reset @fnichol @baumanj
 support @fnichol @baumanj @elliott-davis @raskchanky
