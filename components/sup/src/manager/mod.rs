@@ -200,7 +200,7 @@ pub struct Manager {
     spec_watcher: SpecWatcher,
     user_config_watcher: UserConfigWatcher,
     organization: Option<String>,
-    self_updater: Option<SelfUpdater>,
+    self_updater: SelfUpdater,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
 }
@@ -335,17 +335,8 @@ impl Manager {
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
         debug!("current: {}", current);
         let cfg_static = cfg.clone();
-        let self_updater = if current.fully_qualified() {
-            Some(SelfUpdater::new(
-                current,
-                cfg.update_url,
-                cfg.update_channel,
-                cfg.auto_update,
-            ))
-        } else {
-            warn!("Supervisor version not fully qualified, unable to start self-updater");
-            None
-        };
+        let self_updater =
+            SelfUpdater::new(current, cfg.update_url, cfg.update_channel, cfg.auto_update);
         let mut sys = Sys::new(
             cfg.gossip_permanent,
             cfg.gossip_listen,
@@ -1280,11 +1271,10 @@ impl Manager {
     }
 
     fn check_for_updated_supervisor(&mut self, manual_update: bool) -> Option<PackageInstall> {
-        match self.self_updater {
-            Some(ref mut updater) if self.state.cfg.auto_update || manual_update => {
-                updater.updated()
-            }
-            _ => None,
+        if self.state.cfg.auto_update || manual_update {
+            self.self_updater.updated()
+        } else {
+            None
         }
     }
 
