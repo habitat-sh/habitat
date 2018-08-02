@@ -21,6 +21,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add auto-build info to docs [#5411](https://github.com/habitat-sh/habitat/pull/5411) ([chefsalim](https://github.com/chefsalim))
 - Add myself to some things [#5397](https://github.com/habitat-sh/habitat/pull/5397) ([scotthain](https://github.com/scotthain))
 - Fix a minor issue with finding the files to run shellcheck against [#5396](https://github.com/habitat-sh/habitat/pull/5396) ([baumanj](https://github.com/baumanj))
 - [ci] Add a `.buildkite` entry to `CODEOWNERS`. [#5395](https://github.com/habitat-sh/habitat/pull/5395) ([fnichol](https://github.com/fnichol))
