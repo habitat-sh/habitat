@@ -73,6 +73,8 @@ static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 fn main() {
+    env_logger::init();
+    enable_features_from_env();
     let result = start();
     let exit_code = match result {
         Ok(_) => 0,
@@ -86,8 +88,6 @@ fn main() {
 }
 
 fn boot() -> Option<LauncherCli> {
-    env_logger::init();
-    enable_features_from_env();
     if !crypto::init() {
         println!("Crypto initialization failed!");
         process::exit(1);
@@ -105,6 +105,10 @@ fn boot() -> Option<LauncherCli> {
 }
 
 fn start() -> Result<()> {
+    if feat::is_enabled(feat::TestBootFail) {
+        outputln!("Simulating boot failure");
+        return Err(sup_error!(Error::TestBootFail));
+    }
     let launcher = boot();
     let app_matches = match cli().get_matches_safe() {
         Ok(matches) => matches,
@@ -524,7 +528,11 @@ fn valid_url(val: String) -> result::Result<(), String> {
 
 ////////////////////////////////////////////////////////////////////////
 fn enable_features_from_env() {
-    let features = vec![(feat::List, "LIST"), (feat::TestExit, "TEST_EXIT")];
+    let features = vec![
+        (feat::List, "LIST"),
+        (feat::TestExit, "TEST_EXIT"),
+        (feat::TestBootFail, "BOOT_FAIL"),
+    ];
 
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.
