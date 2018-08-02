@@ -53,6 +53,7 @@ use hcore::crypto::SymKey;
 use hcore::env;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::os::process::{self, Pid, Signal};
+use hcore::os::signals::{self, SignalEvent};
 use hcore::package::metadata::PackageType;
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
@@ -330,20 +331,19 @@ impl Manager {
     }
 
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+        debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
+        debug!("current: {}", current);
         let cfg_static = cfg.clone();
-        let self_updater = if cfg.auto_update {
-            if current.fully_qualified() {
-                Some(SelfUpdater::new(
-                    current,
-                    cfg.update_url,
-                    cfg.update_channel,
-                ))
-            } else {
-                warn!("Supervisor version not fully qualified, unable to start self-updater");
-                None
-            }
+        let self_updater = if current.fully_qualified() {
+            Some(SelfUpdater::new(
+                current,
+                cfg.update_url,
+                cfg.update_channel,
+                cfg.auto_update,
+            ))
         } else {
+            warn!("Supervisor version not fully qualified, unable to start self-updater");
             None
         };
         let mut sys = Sys::new(
@@ -666,7 +666,15 @@ impl Manager {
             Some(ref evg) => Some(events::EventsMgr::start(evg.clone())),
             None => None,
         };
+
+        signals::init();
+
         loop {
+            let manual_update = match signals::check_for_signal() {
+                Some(SignalEvent::Passthrough(Signal::HUP)) => true,
+                _ => false,
+            };
+
             if feat::is_enabled(feat::TestExit) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
                     if let Ok(mut exit_code_file) = File::open(&exit_file_path) {
@@ -692,7 +700,7 @@ impl Manager {
                 self.shutdown(ShutdownReason::Departed);
                 return Err(sup_error!(Error::Departed));
             }
-            if let Some(package) = self.check_for_updated_supervisor() {
+            if let Some(package) = self.check_for_updated_supervisor(manual_update) {
                 outputln!(
                     "Supervisor shutting down for automatic update to {}",
                     package
@@ -1271,11 +1279,13 @@ impl Manager {
         }
     }
 
-    fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
-        if let Some(ref mut updater) = self.self_updater {
-            return updater.updated();
+    fn check_for_updated_supervisor(&mut self, manual_update: bool) -> Option<PackageInstall> {
+        match self.self_updater {
+            Some(ref mut updater) if self.state.cfg.auto_update || manual_update => {
+                updater.updated()
+            }
+            _ => None,
         }
-        None
     }
 
     /// Walk each service and check if it has an updated package installed via the Update Strategy.

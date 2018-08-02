@@ -32,7 +32,7 @@ const DEFAULT_FREQUENCY: i64 = 60_000;
 const FREQUENCY_ENVVAR: &'static str = "HAB_SUP_UPDATE_MS";
 
 pub struct SelfUpdater {
-    rx: Receiver<PackageInstall>,
+    rx: Option<Receiver<PackageInstall>>,
     current: PackageIdent,
     update_url: String,
     update_channel: String,
@@ -42,8 +42,21 @@ pub struct SelfUpdater {
 // how things are currently structured (The service updater had a worker)
 
 impl SelfUpdater {
-    pub fn new(current: PackageIdent, update_url: String, update_channel: String) -> Self {
-        let rx = Self::init(current.clone(), update_url.clone(), update_channel.clone());
+    pub fn new(
+        current: PackageIdent,
+        update_url: String,
+        update_channel: String,
+        auto_update: bool,
+    ) -> Self {
+        let rx = if auto_update {
+            Some(Self::spawn_updater_thread(
+                current.clone(),
+                update_url.clone(),
+                update_channel.clone(),
+            ))
+        } else {
+            None
+        };
         SelfUpdater {
             rx: rx,
             current: current,
@@ -52,8 +65,7 @@ impl SelfUpdater {
         }
     }
 
-    /// Spawn a new Supervisor updater thread.
-    fn init(
+    fn spawn_updater_thread(
         current: PackageIdent,
         update_url: String,
         update_channel: String,
@@ -75,32 +87,12 @@ impl SelfUpdater {
         debug!("Self updater current package, {}", current);
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
         // and thus a valid InstallSource
-        let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
         loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
 
-            match util::pkg::install(
-                // We don't want anything in here to print
-                &mut UI::with_sinks(),
-                &builder_url,
-                &install_source,
-                &channel,
-            ) {
-                Ok(package) => {
-                    if current < *package.ident() {
-                        debug!(
-                            "Self updater installing newer Supervisor, {}",
-                            package.ident()
-                        );
-                        sender.send(package).expect("Main thread has gone away!");
-                        break;
-                    } else {
-                        debug!("Supervisor package found is not newer than ours");
-                    }
-                }
-                Err(err) => {
-                    warn!("Self updater failed to get latest, {}", err);
-                }
+            if let Some(package) = Self::try_update(&current, &builder_url, &channel) {
+                sender.send(package).expect("Main thread has gone away!");
+                break; // the supervisor will shut down now, so no need to keep checking
             }
 
             let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
@@ -110,19 +102,54 @@ impl SelfUpdater {
         }
     }
 
-    pub fn updated(&mut self) -> Option<PackageInstall> {
-        match self.rx.try_recv() {
-            Ok(package) => Some(package),
-            Err(TryRecvError::Empty) => None,
-            Err(TryRecvError::Disconnected) => {
-                debug!("Self updater has died, restarting...");
-                self.rx = Self::init(
-                    self.current.clone(),
-                    self.update_url.clone(),
-                    self.update_channel.clone(),
-                );
-                None
+    fn try_update(
+        current: &PackageIdent,
+        builder_url: &String,
+        channel: &String,
+    ) -> Option<PackageInstall> {
+        let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
+        match util::pkg::install(
+            // We don't want anything in here to print
+            &mut UI::with_sinks(),
+            &builder_url,
+            &install_source,
+            &channel,
+        ) {
+            Ok(package) => {
+                if *current < *package.ident() {
+                    debug!(
+                        "Self updater installing newer Supervisor, {}",
+                        package.ident()
+                    );
+                    return Some(package);
+                } else {
+                    debug!("Supervisor package found is not newer than ours");
+                }
             }
+            Err(err) => {
+                warn!("Self updater failed to get latest, {}", err);
+            }
+        }
+        None
+    }
+
+    pub fn updated(&mut self) -> Option<PackageInstall> {
+        if let Some(ref mut rx) = self.rx {
+            match rx.try_recv() {
+                Ok(package) => Some(package),
+                Err(TryRecvError::Empty) => None,
+                Err(TryRecvError::Disconnected) => {
+                    debug!("Self updater has died, restarting...");
+                    *rx = Self::spawn_updater_thread(
+                        self.current.clone(),
+                        self.update_url.clone(),
+                        self.update_channel.clone(),
+                    );
+                    None
+                }
+            }
+        } else {
+            Self::try_update(&self.current, &self.update_url, &self.update_channel)
         }
     }
 }
