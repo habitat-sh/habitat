@@ -95,7 +95,8 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                                 self.proxy.port(),
                                 code
                             );
-                            return self.ssl_client
+                            return self
+                                .ssl_client
                                 .wrap_client(stream, host)
                                 .map(HttpsStream::Https);
                         } else {
