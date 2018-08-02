@@ -29,6 +29,7 @@ pub type SignalCode = libc::c_int;
 impl OsSignal for Signal {
     fn from_signal_code(code: SignalCode) -> Option<Signal> {
         match code {
+            libc::SIGHUP => Some(Signal::HUP),
             libc::SIGINT => Some(Signal::INT),
             libc::SIGILL => Some(Signal::ILL),
             libc::SIGABRT => Some(Signal::ABRT),

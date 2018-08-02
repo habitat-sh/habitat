@@ -13,6 +13,9 @@
 // limitations under the License.
 
 //! Contains the cross-platform signal behavior.
+// If signal handling ever becomes part of the rust stdlib, consider removing
+// our homespun implementation. Check for status of that here:
+// https://github.com/rust-lang/rfcs/issues/1368
 
 use os::process;
 
