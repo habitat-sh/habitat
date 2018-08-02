@@ -319,7 +319,8 @@ impl EventLogger {
     pub fn record_event(&self, event: Event) {
         if self.enabled {
             let envelope = Envelope::new(&event);
-            let file_path = self.log_dir
+            let file_path = self
+                .log_dir
                 .join(format!("event-{}.json", &envelope.timestamp));
             write_file(&self.log_dir, &file_path, &envelope);
         }

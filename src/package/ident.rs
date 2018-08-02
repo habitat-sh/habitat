@@ -271,7 +271,8 @@ impl PartialOrd for PackageIdent {
                     self.version.as_ref().unwrap(),
                     other.version.as_ref().unwrap()
                 );
-                match self.version
+                match self
+                    .version
                     .as_ref()
                     .unwrap()
                     .cmp(other.version.as_ref().unwrap())

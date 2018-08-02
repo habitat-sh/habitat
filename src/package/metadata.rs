@@ -141,7 +141,8 @@ impl PkgEnv {
         Self {
             inner: vec![EnvVar {
                 key: "PATH".to_string(),
-                value: p.into_string()
+                value: p
+                    .into_string()
                     .expect("Failed to convert path to utf8 string"),
                 separator: Some(ENV_PATH_SEPARATOR),
             }],

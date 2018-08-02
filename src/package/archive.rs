@@ -217,7 +217,8 @@ impl PackageArchive {
     pub fn exposes(&mut self) -> Result<Vec<u16>> {
         match self.read_metadata(MetaFile::Exposes) {
             Ok(Some(data)) => {
-                let ports: Vec<u16> = data.split(" ")
+                let ports: Vec<u16> = data
+                    .split(" ")
                     .filter_map(|port| port.parse::<u16>().ok())
                     .collect();
                 Ok(ports)

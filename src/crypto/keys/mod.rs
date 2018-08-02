@@ -883,7 +883,8 @@ mod test {
         symlink_file(&src, &dest).expect("Could not generate symlink");
 
         // For sanity, confirm that we are indeed dealing with a symlink
-        let sym_meta = dest.symlink_metadata()
+        let sym_meta = dest
+            .symlink_metadata()
             .expect("Could not get file metadata");
         assert!(sym_meta.file_type().is_symlink());
 

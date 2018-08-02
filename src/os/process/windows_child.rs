@@ -174,7 +174,8 @@ impl Child {
                 // Split the value and test each path to see if the
                 // program exists.
                 for path in env::split_paths(&v) {
-                    let path = path.join(program)
+                    let path = path
+                        .join(program)
                         .with_extension(env::consts::EXE_EXTENSION);
                     if fs::metadata(&path).is_ok() {
                         res = Some(path.into_os_string());

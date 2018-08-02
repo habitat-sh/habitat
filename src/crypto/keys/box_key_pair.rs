@@ -709,7 +709,8 @@ mod test {
         let user = BoxKeyPair::generate_pair_for_user("wecoyote").unwrap();
         user.to_pair_files(cache.path()).unwrap();
 
-        let ciphertext = user.encrypt("I wish to buy more rockets".as_bytes(), Some(&service))
+        let ciphertext = user
+            .encrypt("I wish to buy more rockets".as_bytes(), Some(&service))
             .unwrap();
         let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "I wish to buy more rockets".as_bytes());

@@ -156,7 +156,8 @@ impl PackageInstall {
         }
 
         let pl = Self::package_list(&package_root_path)?;
-        let latest: Option<PackageIdent> = pl.iter()
+        let latest: Option<PackageIdent> = pl
+            .iter()
             .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
             .fold(None, |winner, b| match winner {
                 Some(a) => match a.cmp(&b) {
@@ -358,7 +359,8 @@ impl PackageInstall {
     pub fn exposes(&self) -> Result<Vec<String>> {
         match self.read_metafile(MetaFile::Exposes) {
             Ok(body) => {
-                let v: Vec<String> = body.split(' ')
+                let v: Vec<String> = body
+                    .split(' ')
                     .map(|x| String::from(x.trim_right_matches('\n')))
                     .collect();
                 Ok(v)
@@ -507,7 +509,8 @@ impl PackageInstall {
             paths.push(p);
         }
 
-        let ordered_pkgs = self.load_deps()?
+        let ordered_pkgs = self
+            .load_deps()?
             .into_iter()
             .chain(self.load_tdeps()?.into_iter());
         for pkg in ordered_pkgs {
