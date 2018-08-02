@@ -10,6 +10,7 @@
 - [plan-build] Set `$pkg_target` at build time for build programs. [#5350](https://github.com/habitat-sh/habitat/pull/5350) ([fnichol](https://github.com/fnichol))
 
 #### Behavioral Changes
+- Add timeout for launcher waiting for IPC connection to supervisor [#5393](https://github.com/habitat-sh/habitat/pull/5393) ([baumanj](https://github.com/baumanj))
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
