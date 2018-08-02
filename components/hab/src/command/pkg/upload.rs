@@ -61,6 +61,7 @@ pub fn start<T, U>(
     additional_release_channel: Option<&str>,
     token: &str,
     archive_path: T,
+    force_upload: bool,
     key_path: U,
 ) -> Result<()>
 where
@@ -108,11 +109,11 @@ where
     let target = archive.target()?;
 
     match depot_client.show_package(&ident, None, Some(token), Some(&target.to_string())) {
-        Ok(_) => {
+        Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
-        Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
+        Err(depot_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
                 match depot_client.show_package(&dep, None, Some(token), Some(&target.to_string()))
                 {
@@ -133,6 +134,7 @@ where
                                     &dep,
                                     &target,
                                     additional_release_channel,
+                                    force_upload,
                                     &candidate_path,
                                 )
                             },
@@ -164,6 +166,7 @@ where
                         token,
                         &ident,
                         additional_release_channel,
+                        force_upload,
                         &mut archive,
                     )
                 },
@@ -192,37 +195,39 @@ fn upload_into_depot(
     token: &str,
     ident: &PackageIdent,
     additional_release_channel: Option<&str>,
+    force_upload: bool,
     mut archive: &mut PackageArchive,
 ) -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
-    let package_uploaded = match depot_client.put_package(&mut archive, token, ui.progress()) {
-        Ok(_) => true,
-        Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
-            println!("Package already exists on remote; skipping.");
-            true
-        }
-        Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
-            return Err(Error::PackageArchiveMalformed(format!(
-                "{}",
-                archive.path.display()
-            )));
-        }
-        Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
-            println!(
-                "Package platform or architecture not supported by the targeted \
-                 depot; skipping."
-            );
-            false
-        }
-        Err(depot_client::Error::APIError(StatusCode::FailedDependency, _)) => {
-            ui.fatal(
-                "Package upload introduces a circular dependency - please check \
-                 pkg_deps; skipping.",
-            )?;
-            false
-        }
-        Err(e) => return Err(Error::from(e)),
-    };
+    let package_uploaded =
+        match depot_client.put_package(&mut archive, token, force_upload, ui.progress()) {
+            Ok(_) => true,
+            Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
+                println!("Package already exists on remote; skipping.");
+                true
+            }
+            Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
+                return Err(Error::PackageArchiveMalformed(format!(
+                    "{}",
+                    archive.path.display()
+                )));
+            }
+            Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+                println!(
+                    "Package platform or architecture not supported by the targeted \
+                     depot; skipping."
+                );
+                false
+            }
+            Err(depot_client::Error::APIError(StatusCode::FailedDependency, _)) => {
+                ui.fatal(
+                    "Package upload introduces a circular dependency - please check \
+                     pkg_deps; skipping.",
+                )?;
+                false
+            }
+            Err(e) => return Err(Error::from(e)),
+        };
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified
@@ -255,6 +260,7 @@ fn attempt_upload_dep(
     ident: &PackageIdent,
     target: &PackageTarget,
     additional_release_channel: Option<&str>,
+    _force_upload: bool,
     archives_dir: &PathBuf,
 ) -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
@@ -267,6 +273,7 @@ fn attempt_upload_dep(
             token,
             &ident,
             additional_release_channel,
+            false,
             &mut archive,
         )
     } else {

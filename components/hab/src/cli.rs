@@ -440,6 +440,9 @@ pub fn get() -> App<'static, 'static> {
                     "Additional release channel to upload package to. \
                      Packages are always uploaded to `unstable`, regardless \
                      of the value of this option. (default: none)")
+                (@arg FORCE: --force "Skips checking availability of package and \
+                    force uploads, potentially overwriting a stored copy of a package. \
+                    (default: false)")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
