@@ -26,6 +26,10 @@ from this directory. To make a build for release, run the `build` command from w
 
 Since the Supervisor requires the Launcher to start and it always attempts to start the latest version of the Supervisor packaged and installed on the host you may find it difficult to start your dev version of the Supervisor. You can force the Supervisor to start a specific version of the Supervisor by setting the `HAB_SUP_BINARY` environment variable to the file path of the desired Supervisor binary to start.
 
+### Building Windows Release
+
+The launcher may optionaly start a Windows process under an alternate identity declared via `svc_user`. Windows requires a password for this identity. We encrypt the identity when loading services and decrypt the password when the launcher spawns the new process. We ["complexify" this encryption with a secret key](https://docs.microsoft.com/en-us/windows/desktop/api/dpapi/nf-dpapi-cryptprotectdata). This key is stored in 1password and must be set in the `HAB_CRYPTO_KEY` environment variable when building `hab` or `launcher`. The `hab` build gets this from a secret appveyor key but the key must be manually set wnenever the launcher is built manually.
+
 ### Releasing
 
 To release a new version of the supervisor, upload the new `.hart` file and then [promote it to stable in builder](https://bldr.habitat.sh/#/pkgs/core/hab-launcher). If a new release contains important features or bug fixes, it will have to be communicated to the community and installed manually. Because of the nature of the launcher, this will require downtime in production environments, but it should be an exceedingly rare occurrence.
