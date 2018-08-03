@@ -31,8 +31,13 @@ pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
 const DEFAULT_FREQUENCY: i64 = 60_000;
 const FREQUENCY_ENVVAR: &'static str = "HAB_SUP_UPDATE_MS";
 
+enum UpdateStrategy {
+    Auto(Receiver<PackageInstall>),
+    Manual,
+}
+
 pub struct SelfUpdater {
-    rx: Option<Receiver<PackageInstall>>,
+    strategy: UpdateStrategy,
     current: PackageIdent,
     update_url: String,
     update_channel: String,
@@ -48,17 +53,17 @@ impl SelfUpdater {
         update_channel: String,
         auto_update: bool,
     ) -> Self {
-        let rx = if auto_update {
-            Some(Self::spawn_updater_thread(
+        let strategy = if auto_update {
+            UpdateStrategy::Auto(Self::spawn_updater_thread(
                 current.clone(),
                 update_url.clone(),
                 update_channel.clone(),
             ))
         } else {
-            None
+            UpdateStrategy::Manual
         };
         SelfUpdater {
-            rx: rx,
+            strategy: strategy,
             current: current,
             update_url: update_url,
             update_channel: update_channel,
@@ -134,7 +139,7 @@ impl SelfUpdater {
     }
 
     pub fn updated(&mut self) -> Option<PackageInstall> {
-        if let Some(ref mut rx) = self.rx {
+        if let UpdateStrategy::Auto(ref mut rx) = self.strategy {
             match rx.try_recv() {
                 Ok(package) => Some(package),
                 Err(TryRecvError::Empty) => None,
