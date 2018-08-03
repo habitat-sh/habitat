@@ -68,6 +68,12 @@ pub struct Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
+        // We should never get here unless the supervisor process has exited, but
+        // since std::process::Child doesn't implement Drop, we should be sure
+        // See https://doc.rust-lang.org/std/process/struct.Child.html
+        self.supervisor.kill().ok();
+        self.supervisor.try_wait().ok();
+
         if fs::remove_file(&self.pipe).is_err() {
             error!("Could not remove old pipe to supervisor {}", self.pipe);
         } else {
@@ -408,7 +414,7 @@ pub fn run(args: Vec<String>) -> Result<i32> {
             }
         }
         error!(
-            "Supervised exited; will restart in {} secs...",
+            "Supervisor exited; will restart in {} seconds...",
             restart_sleep_secs
         );
         thread::sleep(Duration::from_secs(restart_sleep_secs));
