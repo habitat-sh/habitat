@@ -699,7 +699,7 @@ impl PackageInstall {
                          because it matches installation temporary directory prefix: {}",
                         path
                     );
-                    continue
+                    continue;
                 }
             }
 
