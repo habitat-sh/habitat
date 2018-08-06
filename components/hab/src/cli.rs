@@ -548,6 +548,7 @@ pub fn get() -> App<'static, 'static> {
             )
         )
         (@subcommand sup =>
+            (about: "The Habitat Supervisor")
             (@setting VersionlessSubcommands)
             (@setting SubcommandRequiredElseHelp)
             // these are the only sup cmds handled in `hab`, the remaining
