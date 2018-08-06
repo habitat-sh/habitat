@@ -21,6 +21,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add the mac-build.sh script back [#5417](https://github.com/habitat-sh/habitat/pull/5417) ([christophermaier](https://github.com/christophermaier))
 - [ci] Reimplement lint.sh program for better resilience. [#5414](https://github.com/habitat-sh/habitat/pull/5414) ([fnichol](https://github.com/fnichol))
 - Avoid incomplete package installs [#5369](https://github.com/habitat-sh/habitat/pull/5369) ([stevendanna](https://github.com/stevendanna))
 - More Codeowners Changes [#5405](https://github.com/habitat-sh/habitat/pull/5405) ([eeyun](https://github.com/eeyun))
