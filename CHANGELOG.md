@@ -21,6 +21,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- More Codeowners Changes [#5405](https://github.com/habitat-sh/habitat/pull/5405) ([eeyun](https://github.com/eeyun))
 - add instructions for building a windows launcher [#5400](https://github.com/habitat-sh/habitat/pull/5400) ([mwrock](https://github.com/mwrock))
 - Revert some reversions [#5410](https://github.com/habitat-sh/habitat/pull/5410) ([baumanj](https://github.com/baumanj))
 - Add auto-build info to docs [#5411](https://github.com/habitat-sh/habitat/pull/5411) ([chefsalim](https://github.com/chefsalim))
