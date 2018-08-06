@@ -51,6 +51,7 @@ pub enum Error {
     WireDecode(String),
     EditorEnv(env::VarError),
     PackageNotFound(String),
+    PackageUnpackFailed(String),
 }
 
 impl fmt::Display for Error {
@@ -96,6 +97,7 @@ impl fmt::Display for Error {
             Error::WireDecode(ref m) => format!("Failed to decode wire message: {}", m),
             Error::EditorEnv(ref e) => format!("Missing EDITOR environment variable: {}", e),
             Error::PackageNotFound(ref e) => format!("Package not found. {}", e),
+            Error::PackageUnpackFailed(ref e) => format!("Package could not be unpacked. {}", e),
         };
         write!(f, "{}", msg)
     }
@@ -133,6 +135,7 @@ impl error::Error for Error {
             Error::WireDecode(_) => "Failed to decode wire message",
             Error::EditorEnv(_) => "Missing EDITOR environment variable",
             Error::PackageNotFound(_) => "Package not found",
+            Error::PackageUnpackFailed(_) => "Package could not be unpacked",
         }
     }
 }
