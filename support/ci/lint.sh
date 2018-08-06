@@ -9,6 +9,12 @@ main() {
   if [ -n "${DEBUG:-}" ]; then set -x; fi
 
   need_cmd basename
+  need_cmd dirname
+  need_cmd find
+  need_cmd git
+  # need_cmd realpath
+  need_cmd rustfmt
+
   program="$(basename "$0")"
   author="The Habitat Maintainers <humans@habitat.sh>"
 
@@ -20,10 +26,7 @@ main() {
 }
 
 print_help() {
-  need_cmd cat
-
-  cat <<USAGE
-$program
+  echo "$program
 
 Authors: $author
 
@@ -34,7 +37,7 @@ USAGE:
 
 FLAGS:
     -a, --all         Lints all source files, ignoring status of Git repository
-    -c, --cached      Lints all currently staged files in Git repository
+    -s, --staged      Lints all currently staged files in Git repository
     -u, --unstaged    Lints all currently unstaged files in Git repository
     -h, --help        Prints help information
 
@@ -56,7 +59,7 @@ EXAMPLES:
     $program --all
 
     # Lint all staged Git files, ready to commit
-    $program --cached
+    $program --staged
 
     # Lint all unstaged Git files, not yet staged for commit
     $program --unstaged
@@ -74,21 +77,18 @@ EXAMPLES:
     # two Travis-specific environment variables)
     $program
 
-USAGE
+"
 }
 
 parse_cli_args() {
   if [[ -z "${1:-}" ]]; then
     info "No explicit mode, attempting to auto detect..."
 
-    need_cmd git
-    need_cmd wc
-
-    if [[ $(git diff --name-only | wc -l) -gt 0 ]]; then
+    if [[ $(git diff --name-only) ]]; then
       lint=unstaged
       info "Unstaged changes detected running in '$lint' lint mode"
-    elif [[ $(git diff --name-only --cached | wc -l) -gt 0 ]]; then
-      lint=cached
+    elif [[ $(git diff --name-only --cached) ]]; then
+      lint=staged
       info "Staged changes detected, running in '$lint' lint mode"
     else
       # Fix commit range in Travis, if set.
@@ -111,11 +111,11 @@ parse_cli_args() {
           exit_with "Invalid usage" 1
         fi
         ;;
-      -c|--cached)
-        lint=cached
+      -s|--staged)
+        lint=staged
         shift
         if [[ -n "${1:-}" ]]; then
-          warn "Cannot combine --cached with other flags or files"
+          warn "Cannot combine --staged with other flags or files"
           print_help
           exit_with "Invalid usage" 1
         fi
@@ -123,7 +123,9 @@ parse_cli_args() {
       -f|--files)
         lint=files
         shift
-        files="$*"
+        # Note: this is effectively a global variable, and is used
+        # later in lint_files
+        files=("$@")
         if [[ -z "$files" ]]; then
           warn "--files option requires one or more file values"
           print_help
@@ -154,7 +156,7 @@ parse_cli_args() {
         lint=unstaged
         shift
         if [[ -n "${1:-}" ]]; then
-          warn "Cannot combine --staged with other flags or files"
+          warn "Cannot combine --unstaged with other flags or files"
           print_help
           exit_with "Invalid usage" 1
         fi
@@ -177,42 +179,37 @@ setup() {
   fi
   workdir="$(mktemp -d -p "$_tmp" 2> /dev/null || mktemp -d "${_tmp}/lint.XXXX")"
   # shellcheck disable=2154
-  trap 'code=$?; rm -rf $workdir; exit $code' INT TERM EXIT
+  trap 'rm -rf $workdir' INT TERM EXIT
 
   # Prepare a file to track files which failed linting
   failed="$workdir/failed.log"
 
-  need_cmd rustfmt
   info "Running rustfmt version '$(rustfmt --version)'"
 }
 
 lint_files() {
-  local _input_files_cmd _file
+  local _file
 
   case "$lint" in
     all)
-      need_cmd find
-      _input_files_cmd="find . -type f -name '*.rs'"
-      info "Linting all files, selecting files via: '$_input_files_cmd'"
+      readarray -t files < <(find . -type f -name '*.rs')
+      info "Linting all files"
       ;;
-    cached)
-      need_cmd git
-      _input_files_cmd="git diff --name-only --cached"
-      info "Linting staged changes, selecting files via: '$_input_files_cmd'"
+    staged)
+      readarray -t files < <(git diff --name-only --cached)
+      info "Linting staged changes"
       ;;
     files)
-      _input_files_cmd="echo '$files'"
-      info "Linting specific files: $files"
+      # files was populated up in parse_cli_args
+      info "Linting files specified with --files"
       ;;
     git)
-      need_cmd git
-      _input_files_cmd="git diff-tree --no-commit-id --name-only -r $git"
-      info "Linting files from Git via: '$_input_files_cmd'"
+      readarray -t files < <(git diff-tree --no-commit-id --name-only -r $git)
+      info "Linting files from Git: $git"
       ;;
     unstaged)
-      need_cmd git
-      _input_files_cmd="git diff --name-only"
-      info "Linting Unstaged changes, selecting files via: '$_input_files_cmd'"
+      readarray -t files < <(git diff --name-only)
+      info "Linting unstaged changes"
       ;;
     *)
       exit_with "Invalid lint type: $lint" 5
@@ -221,7 +218,7 @@ lint_files() {
 
   echo
 
-  eval "$_input_files_cmd" | while read -r _file; do
+  for _file in "${files[@]}"; do
     case "${_file##*.}" in
       rs)
         lint_file "$_file"
@@ -253,6 +250,12 @@ lint_file() {
     return 0
   fi
   if echo "$_file" | grep -q '/target/' > /dev/null; then
+    # Would rather do this:
+    #
+    #     if [[ "$(realpath "$_file")" = */target/* ]]; then
+    #
+    # but it doesn't look like realpath is in Travis, and there
+    # appears to be an issue installing it :/
     # Skip files in a `target/` directory
     return 0
   fi
@@ -261,16 +264,14 @@ lint_file() {
     return 0
   fi
 
-  need_cmd dirname
-  need_cmd rustfmt
-
   info "Running rustfmt on $_file"
   mkdir -p "$(dirname "$workdir/$_file")"
 
-  set +e
-  _rf_out="$(rustfmt < "$_file" > "$workdir/$_file")"
-  _rf_exit="$?"
-  set -e
+  if rustfmt < "$_file" > "$workdir/$_file" 2> "$workdir/rustfmt_errors"; then
+    _rf_exit=0
+  else
+    _rf_exit="$?"
+  fi
 
   case $_rf_exit in
     0|3)
@@ -281,16 +282,18 @@ lint_file() {
       # All other exit codes are errors
       warn "File $_file exited from rustfmt with $_rf_exit"
       warn "Error output:"
-      echo "$_rf_out"
+      cat "$workdir/rustfmt_errors"
       echo "$_file" >> "$failed"
       return 0
       ;;
   esac
 
-  set +e
-  _diff_out="$(diff --color=always --unified "$_file" "$workdir/$_file" 2>&1)"
-  _diff_exit="$?"
-  set -e
+  # the diff on Travis doesn't seem to support --color=always :|
+  if diff --unified "$_file" "$workdir/$_file" > "$workdir/$_file".diff 2>&1; then
+     _diff_exit=0
+  else
+     _diff_exit="$?"
+  fi
 
   case $_diff_exit in
     0)
@@ -303,14 +306,14 @@ lint_file() {
       warn "File $_file generates a diff after running rustfmt"
       warn "Perhaps you forgot to run \`rustfmt' or \`cargo fmt'?"
       warn "Diff for $_file:"
-      echo "$_diff_out"
+      cat "$workdir/$_file".diff
       echo "$_file" >> "$failed"
       ;;
     *)
       # All other exit codes are errors, so we will report and track the file
       warn "Running diff on file $_file unexpectedly exited with $_diff_exit"
       warn "Error output:"
-      echo "$_diff_out"
+      cat "$workdir/$_file".diff
       echo "$_file" >> "$failed"
       ;;
   esac
