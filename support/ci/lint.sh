@@ -126,7 +126,7 @@ parse_cli_args() {
         # Note: this is effectively a global variable, and is used
         # later in lint_files
         files=("$@")
-        if [[ -z "$files" ]]; then
+        if [[ "${#files[@]}" == 0 ]]; then
           warn "--files option requires one or more file values"
           print_help
           exit_with "Invalid usage" 1
@@ -204,7 +204,7 @@ lint_files() {
       info "Linting files specified with --files"
       ;;
     git)
-      readarray -t files < <(git diff-tree --no-commit-id --name-only -r $git)
+      readarray -t files < <(git diff-tree --no-commit-id --name-only -r "$git")
       info "Linting files from Git: $git"
       ;;
     unstaged)
