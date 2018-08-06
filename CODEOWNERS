@@ -5,11 +5,12 @@ components/builder* @chefsalim @raskchanky
 components/butterfly* @christophermaier @reset @baumanj
 components/common @fnichol @baumanj @raskchanky
 components/eventsrv* @reset @raskchanky
-components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @elliott-davis @raskchanky
+components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @elliott-davis @raskchanky @eeyun
 components/launcher* @christophermaier @reset @baumanj
-components/pkg-* @fnichol @christophermaier
+components/pkg-* @fnichol @christophermaier @eeyun
 components/plan-build @fnichol @christophermaier @elliott-davis @scotthain
-components/studio @fnichol @baumanj @elliott-davis
+components/rootless_studio @elliott-davis
+components/studio @fnichol @baumanj @elliott-davis @eeyun
 components/sup @christophermaier @reset @fnichol @baumanj
 support @fnichol @baumanj @elliott-davis @raskchanky
 tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
