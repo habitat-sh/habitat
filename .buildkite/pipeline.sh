@@ -2,12 +2,15 @@
 
 set -euo pipefail
 
+source .buildkite/scripts/shared.sh
+
 if [[ "${FAKE_RELEASE_TAG:-}" || "${BUILDKITE_TAG}" ]]; then
     # Our releases are currently triggered by the existence of a tag
     echo -e "--- :sparkles: Preparing for a release! :sparkles:"
 
     if [[ "${FAKE_RELEASE_TAG:-}" ]]; then
         echo "Using fake release tag '${FAKE_RELEASE_TAG}'"
+        set_fake_release "${FAKE_RELEASE_TAG}"
         release="${FAKE_RELEASE_TAG}"
     elif [[ "${BUILDKITE_TAG}" ]]; then
         echo "Using release tag '${BUILDKITE_TAG}'"

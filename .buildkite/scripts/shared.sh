@@ -43,3 +43,19 @@ latest_from_builder() {
     ident=$(curl -s "${url}" | jq -r '.ident | .origin + "/" + .name + "/" + .version + "/" + .release')
     echo "${ident}"
 }
+
+# Abstracts the logic (such as it is) for whether we're doing a "fake"
+# release or not.
+
+set_fake_release() {
+    local release=${1}
+    buildkite-agent meta-data set fake-release "${release}"
+}
+
+is_fake_release() {
+    buildkite-agent meta-data exists fake-release
+}
+
+get_fake_release() {
+    buildkite-agent meta-data get fake-release
+}

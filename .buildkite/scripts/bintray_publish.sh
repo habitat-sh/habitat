@@ -4,17 +4,16 @@ set -euo pipefail
 
 source .buildkite/scripts/shared.sh
 
-if [[ "${FAKE_RELEASE_TAG:-}" ]]; then
-    echo "--- :warning: FAKE_RELEASE_TAG was found in the environment! This isn't a \"real\" release!"
-    fake_release=1
+if is_fake_release; then
+    echo "--- :warning: This isn't a \"real\" release!"
 fi
 
 publish(){
     url=${1}
-    if [ -z "${fake_release}" ]; then
-        curl -u "${BINTRAY_USER}:${BINTRAY_KEY}" -X POST "${url}"
-    else
+    if is_fake_release; then
         echo "--- :warning: If this were a real release, we would have hit ${url}"
+    else
+        curl -u "${BINTRAY_USER}:${BINTRAY_KEY}" -X POST "${url}"
     fi
 }
 
