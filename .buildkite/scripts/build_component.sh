@@ -30,12 +30,11 @@ set_hab_binary() {
         sudo hab pkg install "${hab_ident}"
         sudo hab pkg install "$(buildkite-agent meta-data get studio-version)"
         declare -g hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
-        declare -g new_studio="true"
+        declare -g new_studio=1
     else
         echo "Buildkite metadata NOT found; using previously-installed hab binary"
         hab_binary="$(which hab)"
         declare -g hab_binary
-        declare -g new_studio="false"
     fi
     echo "--- :habicat: Using $(${hab_binary} --version)"
 }
@@ -69,7 +68,7 @@ export HAB_ORIGIN=core
 #
 # CI_OVERRIDE_CHANNEL is basically used to tell the studio which
 # hab/backline to grab
-if [[ "${new_studio}" == "true" ]]; then
+if [[ "${new_studio:-}" ]]; then
     CI_OVERRIDE_CHANNEL="${channel}" HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 else
     HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
