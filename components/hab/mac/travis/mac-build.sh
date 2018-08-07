@@ -49,7 +49,7 @@ fi
 if [[ ! -f /usr/local/bin/hab ]]; then
   info "Habitat CLI missing, attempting to install latest release"
   mkdir -p /usr/local/bin
-  sh "$(dirname "$0")"/../install.sh
+  sh "$(dirname "$0")"/../../install.sh
 fi
 
 while true; do
@@ -116,7 +116,7 @@ gnu_path="$gnu_path:$(brew --prefix bash)/bin"
 export PATH="$gnu_path:$PATH"
 info "Setting PATH=$PATH"
 
-program="$(dirname "$0")/../../plan-build/bin/hab-plan-build.sh"
+program="$(dirname "$0")/../../../plan-build/bin/hab-plan-build.sh"
 info "Executing: $program $*"
 echo
 exec "$(brew --prefix bash)"/bin/bash "$program" "$@"
