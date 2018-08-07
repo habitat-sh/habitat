@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### New Features & Enhancements
+- Adds force upload flag to cli [#5407](https://github.com/habitat-sh/habitat/pull/5407) ([eeyun](https://github.com/eeyun))
 - Add variants support to plan-build [#5345](https://github.com/habitat-sh/habitat/pull/5345) ([smacfarlane](https://github.com/smacfarlane))
 - Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
 - [core] Add new PackageTarget from habitat-sh/core#42. [#5355](https://github.com/habitat-sh/habitat/pull/5355) ([fnichol](https://github.com/fnichol))
