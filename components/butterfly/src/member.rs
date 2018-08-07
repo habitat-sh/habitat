@@ -77,6 +77,11 @@ impl Default for Member {
         Member {
             id: Uuid::new_v4().simple().to_string(),
             incarnation: 0,
+            // TODO (CM): DANGER DANGER DANGER
+            // This is a lousy default, and suggests that the notion
+            // of a "default Member" doesn't make much sense.
+            //
+            // (Port numbers of 0 are also problematic.)
             address: String::default(),
             swim_port: 0,
             gossip_port: 0,
@@ -155,7 +160,46 @@ impl FromProto<proto::Member> for Member {
         Ok(Member {
             id: proto.id.ok_or(Error::ProtocolMismatch("id"))?,
             incarnation: proto.incarnation.unwrap_or(0),
-            address: proto.address.ok_or(Error::ProtocolMismatch("address"))?,
+
+            // This hurts so bad...
+            //
+            // Our "Member" protobuf is currently serving two
+            // purposes. One is here, serving as the return address of
+            // a Supervisor for a message. Another is serving as a
+            // record of a known member of the Supervisor ring; this
+            // data is piggy-backed on our core SWIM messages as a way
+            // of introducing new members to existing network members.
+            //
+            // The thing is, depending on which case the Member struct
+            // is being used for, it may or may not have an "address"
+            // field. If it's as the return address, it's actually
+            // getting the address from the networking layer; the
+            // sending Supervisor doesn't actually have that
+            // information.
+            //
+            // On the other hand, if it's an actual membership record,
+            // then it _will_ have an address, which will ultimately
+            // have been resolved at some point in the past by the
+            // aforementioned method of relying on the networking
+            // layer.
+            //
+            // The Prost migration introduced validation that wasn't
+            // taking this into account; it assumed that we would
+            // _always_ have a network address. This cause it to
+            // essentially reject any messages from 0.59.0 (and
+            // before) Supervisors, because they had no such
+            // validation, and never set any value for a return
+            // address.
+            //
+            // It was able to work with Supervisors _after_ the Prost
+            // migration because we default to setting an empty string
+            // for the address. This is arguably NOT the right thing
+            // to do, since a value of `Some("")` is more dangerous than
+            // a value of `None`. We ultimately need to either _not_
+            // generate meaningless default values, or tease apart the
+            // two uses of our Member protobuf, or both.
+            address: proto.address.unwrap_or("".to_string()),
+
             swim_port: proto.swim_port.ok_or(Error::ProtocolMismatch("swim-port"))?,
             gossip_port: proto
                 .gossip_port

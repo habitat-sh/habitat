@@ -18,17 +18,21 @@
 
 use std::cmp::Ordering;
 use std::mem;
+use std::result;
 use std::str::FromStr;
+
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
+use toml;
 
 use habitat_core::package::Identifiable;
 use habitat_core::service::ServiceGroup;
-use toml;
 
 use error::{Error, Result};
 use protocol::{self, newscast, FromProto};
 use rumor::{Rumor, RumorPayload, RumorType};
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub struct Service {
     pub member_id: String,
     pub service_group: ServiceGroup,
@@ -37,6 +41,25 @@ pub struct Service {
     pub pkg: String,
     pub cfg: Vec<u8>,
     pub sys: SysInfo,
+}
+
+// Ensures that `cfg` is rendered as a map, and not an array of bytes
+impl Serialize for Service {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("service", 7)?;
+        let cfg = toml::from_slice(&self.cfg).unwrap_or(toml::value::Table::default());
+        strukt.serialize_field("member_id", &self.member_id)?;
+        strukt.serialize_field("service_group", &self.service_group)?;
+        strukt.serialize_field("package", &self.pkg)?;
+        strukt.serialize_field("incarnation", &self.incarnation)?;
+        strukt.serialize_field("cfg", &cfg)?;
+        strukt.serialize_field("sys", &self.sys)?;
+        strukt.serialize_field("initialized", &self.initialized)?;
+        strukt.end()
+    }
 }
 
 impl PartialOrd for Service {
