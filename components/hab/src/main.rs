@@ -679,6 +679,10 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     // they can optionally get added to another channel, too.
     let additional_release_channel: Option<&str> = m.value_of("CHANNEL");
 
+    // When packages are uploaded we check if they exist in the db
+    // before allowing a write to the backend, this bypasses the check
+    let force_upload = m.is_present("FORCE");
+
     let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
@@ -688,6 +692,7 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             additional_release_channel,
             &token,
             &artifact_path,
+            force_upload,
             &key_path,
         )?;
     }

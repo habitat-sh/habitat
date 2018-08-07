@@ -783,6 +783,7 @@ impl Client {
         &self,
         pa: &mut PackageArchive,
         token: &str,
+        force_upload: bool,
         progress: Option<D>,
     ) -> Result<()>
     where
@@ -790,29 +791,33 @@ impl Client {
     {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
-        let mut file =
-            File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
+        let file = File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
         let file_size = file
             .metadata()
             .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
             .len();
+
         let path = package_path(&ident);
+
         let custom = |url: &mut Url| {
-            url.query_pairs_mut().append_pair("checksum", &checksum);
+            url.query_pairs_mut()
+                .append_pair("checksum", &checksum)
+                .append_pair("forced", &force_upload.to_string());
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let result = if let Some(mut progress) = progress {
+        let mut reader: Box<Read> = if let Some(mut progress) = progress {
             progress.size(file_size);
-            let mut reader = TeeReader::new(file, progress);
-            self.add_authz(self.0.post_with_custom_url(&path, custom), token)
-                .body(Body::SizedBody(&mut reader, file_size))
-                .send()
+            Box::new(TeeReader::new(file, progress))
         } else {
-            self.add_authz(self.0.post_with_custom_url(&path, custom), token)
-                .body(Body::SizedBody(&mut file, file_size))
-                .send()
+            Box::new(file)
         };
+
+        let result = self
+            .add_authz(self.0.post_with_custom_url(&path, custom), token)
+            .body(Body::SizedBody(&mut reader, file_size))
+            .send();
+
         match result {
             Ok(Response {
                 status: StatusCode::Created,
