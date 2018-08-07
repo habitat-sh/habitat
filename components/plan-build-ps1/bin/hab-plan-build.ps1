@@ -503,7 +503,7 @@ function _Assemble-RuntimePath() {
               foreach($entry in $varval[1].split(";")) {
                 # Filter out entries that are not related to the `$dep_prefix`
                 if ("$entry" -Like "$strippedPrefix\*") {
-                  $paths = @(_return_or_append_to_set (_Resolve-Path $entry) $paths)
+                  $paths = @(_return_or_append_to_set $entry $paths)
                 }
               }
               break;
