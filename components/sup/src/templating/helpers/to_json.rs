@@ -22,7 +22,8 @@ pub struct ToJsonHelper;
 
 impl HelperDef for ToJsonHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let param = h.param(0)
+        let param = h
+            .param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toJson\""))?
             .value();
         let json = serde_json::to_string_pretty(param)

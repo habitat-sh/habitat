@@ -21,7 +21,8 @@ pub struct ToUppercaseHelper;
 
 impl HelperDef for ToUppercaseHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let param = h.param(0)
+        let param = h
+            .param(0)
             .and_then(|v| v.value().as_str())
             .ok_or_else(|| RenderError::new("Expected a string parameter for \"toUppercase\""))?;
         rc.writer.write(param.to_uppercase().into_bytes().as_ref())?;

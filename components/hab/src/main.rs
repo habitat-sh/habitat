@@ -272,7 +272,8 @@ fn sub_cli_setup(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_cli_completers(m: &ArgMatches) -> Result<()> {
-    let shell = m.value_of("SHELL")
+    let shell = m
+        .value_of("SHELL")
         .expect("Missing Shell; A shell is required");
     cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
     Ok(())
@@ -457,7 +458,8 @@ fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let format = &m.value_of("FORMAT").unwrap();
     let url = bldr_url_from_matches(m);
-    let channel = m.value_of("CHANNEL")
+    let channel = m
+        .value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
         .unwrap_or(channel::default());
     let export_fmt = command::pkg::export::format_for(ui, &format)?;
@@ -546,7 +548,8 @@ fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let group_id = m.value_of("GROUP_ID");
     let origin = m.value_of("ORIGIN");
-    let limit = m.value_of("LIMIT")
+    let limit = m
+        .value_of("LIMIT")
         .unwrap_or("10")
         .parse::<usize>()
         .unwrap();

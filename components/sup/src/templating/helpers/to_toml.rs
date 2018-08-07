@@ -22,7 +22,8 @@ pub struct ToTomlHelper;
 
 impl HelperDef for ToTomlHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let param = h.param(0)
+        let param = h
+            .param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\""))?
             .value();
         let bytes = toml::ser::to_vec(&param)

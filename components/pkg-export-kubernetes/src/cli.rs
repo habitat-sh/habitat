@@ -54,7 +54,8 @@ impl<'a, 'b> Cli<'a, 'b> {
 
     pub fn add_docker_args(self) -> Self {
         let cli = docker::Cli { app: self.app };
-        let app = cli.add_base_packages_args()
+        let app = cli
+            .add_base_packages_args()
             .add_builder_args()
             .add_tagging_args()
             .add_publishing_args()
@@ -88,7 +89,8 @@ impl<'a, 'b> Cli<'a, 'b> {
     /// Add Habitat (operator) runtime arguments to the CLI.
     pub fn add_runtime_args(self) -> Self {
         Cli {
-            app: self.app
+            app: self
+                .app
                 .arg(
                     Arg::with_name("K8S_NAME")
                         .value_name("K8S_NAME")

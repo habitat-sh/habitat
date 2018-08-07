@@ -270,10 +270,12 @@ impl Server {
             *dat_file = Some(file);
         }
 
-        let socket = match UdpSocket::bind(*self.swim_addr
-            .read()
-            .expect("Swim address lock is poisoned"))
-        {
+        let socket = match UdpSocket::bind(
+            *self
+                .swim_addr
+                .read()
+                .expect("Swim address lock is poisoned"),
+        ) {
             Ok(socket) => socket,
             Err(e) => return Err(Error::CannotBind(e)),
         };
@@ -340,7 +342,8 @@ impl Server {
                 panic!("You should never, ever get here, liu");
             });
 
-        if self.dat_file
+        if self
+            .dat_file
             .read()
             .expect("DatFile lock poisoned")
             .is_some()
@@ -358,7 +361,8 @@ impl Server {
     }
 
     pub fn need_peer_seeding(&self) -> bool {
-        let m = self.member_list
+        let m = self
+            .member_list
             .members
             .read()
             .expect("Members lock is poisoned");
@@ -367,7 +371,8 @@ impl Server {
 
     /// Persistently block a given address, causing no traffic to be seen.
     pub fn add_to_block_list(&self, member_id: String) {
-        let mut block_list = self.block_list
+        let mut block_list = self
+            .block_list
             .write()
             .expect("Write lock for block_list is poisoned");
         block_list.insert(member_id);
@@ -375,7 +380,8 @@ impl Server {
 
     /// Remove a given address from the block_list.
     pub fn remove_from_block_list(&self, member_id: &str) {
-        let mut block_list = self.block_list
+        let mut block_list = self
+            .block_list
             .write()
             .expect("Write lock for block_list is poisoned");
         block_list.remove(member_id);
@@ -383,7 +389,8 @@ impl Server {
 
     /// Check if a given member ID is on the block_list.
     fn is_member_blocked(&self, member_id: &str) -> bool {
-        let block_list = self.block_list
+        let block_list = self
+            .block_list
             .write()
             .expect("Write lock for block_list is poisoned");
         block_list.contains(member_id)
@@ -415,7 +422,8 @@ impl Server {
 
     /// Return the gossip address we are bound to
     pub fn gossip_addr(&self) -> SocketAddr {
-        let ga = self.gossip_addr
+        let ga = self
+            .gossip_addr
             .read()
             .expect("Gossip Address lock poisoned");
         ga.clone()
@@ -559,7 +567,8 @@ impl Server {
         if !self.service_store.contains_rumor(&rk.key, &rk.id) {
             let mut service_entries: Vec<Service> = Vec::new();
             self.service_store.with_rumors(&rk.key, |service_rumor| {
-                if self.member_list
+                if self
+                    .member_list
                     .check_health_of_by_id(&service_rumor.member_id, Health::Confirmed)
                 {
                     service_entries.push(service_rumor.clone());
@@ -567,7 +576,8 @@ impl Server {
             });
             service_entries.sort_by_key(|k| k.member_id.clone());
             for service_rumor in service_entries.iter().take(1) {
-                if self.member_list
+                if self
+                    .member_list
                     .insert_health_by_id(&service_rumor.member_id, Health::Departed)
                 {
                     self.member_list.depart_remove(&service_rumor.member_id);
@@ -607,7 +617,8 @@ impl Server {
             self.departed
                 .compare_and_swap(false, true, Ordering::Relaxed);
         }
-        if self.member_list
+        if self
+            .member_list
             .insert_health_by_id(&departure.member_id, Health::Departed)
         {
             self.member_list.depart_remove(&departure.member_id);
@@ -627,7 +638,8 @@ impl Server {
     fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
         self.service_store.with_rumors(key, |s| {
-            if self.member_list
+            if self
+                .member_list
                 .check_health_of_by_id(&s.member_id, Health::Alive)
             {
                 electorate.push(s.member_id.clone());
@@ -640,7 +652,8 @@ impl Server {
     pub fn get_total_population(&self, key: &str) -> usize {
         let mut total_pop = 0;
         self.service_store.with_rumors(key, |s| {
-            if self.member_list
+            if self
+                .member_list
                 .check_in_voting_population_by_id(&s.member_id)
             {
                 total_pop += 1;
@@ -704,7 +717,8 @@ impl Server {
         let mut update_elections_to_restart: Vec<(String, u64)> = vec![];
 
         self.election_store.with_keys(|(service_group, rumors)| {
-            if self.service_store
+            if self
+                .service_store
                 .contains_rumor(&service_group, self.member_id())
             {
                 // This is safe; there is only one id for an election, and it is "election"
@@ -724,7 +738,8 @@ impl Server {
                             .push((String::from(&service_group[..]), election.term));
                     }
                 } else if election.is_finished() {
-                    if self.member_list
+                    if self
+                        .member_list
                         .check_health_of_by_id(&election.member_id, Health::Confirmed)
                     {
                         warn!(
@@ -740,7 +755,8 @@ impl Server {
         });
 
         self.update_store.with_keys(|(service_group, rumors)| {
-            if self.service_store
+            if self
+                .service_store
                 .contains_rumor(&service_group, self.member_id())
             {
                 // This is safe; there is only one id for an election, and it is "election"
@@ -760,7 +776,8 @@ impl Server {
                             .push((String::from(&service_group[..]), election.term));
                     }
                 } else if election.is_finished() {
-                    if self.member_list
+                    if self
+                        .member_list
                         .check_health_of_by_id(&election.member_id, Health::Confirmed)
                     {
                         warn!(
@@ -817,11 +834,13 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store
+        if self
+            .service_store
             .contains_rumor(&election.service_group, self.member_id())
         {
             // And the election store already has an election rumor for this election
-            if self.election_store
+            if self
+                .election_store
                 .contains_rumor(election.key(), election.id())
             {
                 let mut new_term = false;
@@ -896,11 +915,13 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store
+        if self
+            .service_store
             .contains_rumor(&election.service_group, self.member_id())
         {
             // And the election store already has an election rumor for this election
-            if self.update_store
+            if self
+                .update_store
                 .contains_rumor(election.key(), election.id())
             {
                 let mut new_term = false;

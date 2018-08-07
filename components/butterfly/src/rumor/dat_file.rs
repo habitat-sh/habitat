@@ -233,7 +233,8 @@ impl DatFile {
 
     pub fn write(&self, server: &Server) -> Result<usize> {
         let mut header = Header::default();
-        let tmp_path = self.path
+        let tmp_path = self
+            .path
             .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
         {
             let file = OpenOptions::new()

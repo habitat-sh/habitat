@@ -56,12 +56,13 @@ impl SpecWatcher {
     where
         T: AsRef<Path>,
     {
-        Ok(glob(&watch_path
-            .as_ref()
-            .join(SPEC_FILE_GLOB)
-            .display()
-            .to_string())?
-            .filter_map(|p| p.ok())
+        Ok(glob(
+            &watch_path
+                .as_ref()
+                .join(SPEC_FILE_GLOB)
+                .display()
+                .to_string(),
+        )?.filter_map(|p| p.ok())
             .filter(|p| p.is_file())
             .collect())
     }
@@ -590,7 +591,8 @@ mod test {
             path: P,
             _recursive_mode: notify::RecursiveMode,
         ) -> notify::Result<()> {
-            let behavior = path.as_ref()
+            let behavior = path
+                .as_ref()
                 .file_name()
                 .expect("file name is ..")
                 .to_str()

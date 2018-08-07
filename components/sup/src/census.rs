@@ -142,7 +142,8 @@ impl CensusRing {
         // is an indeterminate health anywhere.
         service_rumors.with_keys(|(service_group, rumors)| {
             if let Ok(sg) = service_group_from_str(service_group) {
-                let census_group = self.census_groups
+                let census_group = self
+                    .census_groups
                     .entry(sg.clone())
                     .or_insert(CensusGroup::new(sg, &self.local_member_id));
                 census_group.update_from_service_rumors(rumors);
@@ -203,7 +204,8 @@ impl CensusRing {
     fn update_from_service_files(&mut self, service_file_rumors: &RumorStore<ServiceFileRumor>) {
         service_file_rumors.with_keys(|(service_group, rumors)| {
             if let Ok(sg) = service_group_from_str(service_group) {
-                let census_group = self.census_groups
+                let census_group = self
+                    .census_groups
                     .entry(sg.clone())
                     .or_insert(CensusGroup::new(sg, &self.local_member_id));
                 census_group.update_from_service_file_rumors(rumors);
@@ -375,7 +377,8 @@ impl CensusGroup {
         for (member_id, service_rumor) in rumors.iter() {
             // Yeah - we are ourself - we're alive.
             let is_self = member_id == &self.local_member_id;
-            let member = self.population
+            let member = self
+                .population
                 .entry(member_id.to_string())
                 .or_insert_with(|| {
                     // Note: this is where CensusMembers are created
@@ -451,7 +454,8 @@ impl CensusGroup {
         self.changed_service_files.clear();
         for (_m_id, service_file_rumor) in service_file_rumors.iter() {
             let filename = service_file_rumor.filename.to_string();
-            let file = self.service_files
+            let file = self
+                .service_files
                 .entry(filename.clone())
                 .or_insert(ServiceFile::default());
 

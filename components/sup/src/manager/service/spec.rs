@@ -99,7 +99,7 @@ where
     let s: Option<String> = Option::deserialize(d)?;
     if let Some(s) = s {
         Ok(Some(
-            FromStr::from_str(&s).map_err(serde::de::Error::custom)?
+            FromStr::from_str(&s).map_err(serde::de::Error::custom)?,
         ))
     } else {
         Ok(None)
@@ -231,7 +231,8 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
             spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
         }
         if let Some(ref list) = self.binds {
-            let binds: Vec<ServiceBind> = list.binds
+            let binds: Vec<ServiceBind> = list
+                .binds
                 .iter()
                 .map(Clone::clone)
                 .map(Into::into)
@@ -304,10 +305,12 @@ impl ServiceSpec {
             path.as_ref().display(),
             &self
         );
-        let dst_path = path.as_ref()
+        let dst_path = path
+            .as_ref()
             .parent()
             .expect("Cannot determine parent directory for service spec");
-        let tmpfile = path.as_ref()
+        let tmpfile = path
+            .as_ref()
             .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
         fs::create_dir_all(dst_path)
             .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;

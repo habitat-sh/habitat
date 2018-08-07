@@ -62,10 +62,7 @@ pub fn start(
             Ok(())
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| {
-            res.is_ok()
-        }).is_err()
-        {
+        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
             return Err(Error::from(depot_client::Error::UploadFailed(format!(
                 "We tried \
                  {} times \
@@ -112,10 +109,7 @@ pub fn start(
             }
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| {
-            res.is_ok()
-        }).is_err()
-        {
+        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
             return Err(Error::from(depot_client::Error::UploadFailed(format!(
                 "We tried \
                  {} times \

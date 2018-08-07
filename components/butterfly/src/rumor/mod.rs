@@ -226,7 +226,8 @@ where
     /// mutated; if nothing changed, returns false.
     pub fn insert(&self, rumor: T) -> bool {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
-        let rumors = list.entry(String::from(rumor.key()))
+        let rumors = list
+            .entry(String::from(rumor.key()))
             .or_insert(HashMap::new());
         // Result reveals if there was a change so we can increment the counter if needed.
         let result = match rumors.entry(rumor.id().into()) {

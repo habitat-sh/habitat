@@ -70,7 +70,8 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 
     pub fn add_builder_args(self) -> Self {
-        let app = self.app
+        let app = self
+            .app
             .arg(
                 Arg::with_name("BLDR_URL")
                     .long("url")

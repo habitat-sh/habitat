@@ -133,7 +133,8 @@ impl Inbound {
     fn process_pingreq(&self, addr: SocketAddr, mut msg: PingReq) {
         trace_it!(SWIM: &self.server, TraceKind::RecvPingReq, &msg.from.id, addr, &msg);
         msg.from.address = addr.ip().to_string();
-        match self.server
+        match self
+            .server
             .member_list
             .members
             .read()

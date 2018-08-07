@@ -75,7 +75,8 @@ impl<'a> BuildSpec<'a> {
     ) -> Self {
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
-            hab_launcher: m.value_of("HAB_LAUNCHER_PKG")
+            hab_launcher: m
+                .value_of("HAB_LAUNCHER_PKG")
                 .unwrap_or(DEFAULT_LAUNCHER_IDENT),
             hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
             url: m.value_of("BLDR_URL").unwrap_or(&default_url),

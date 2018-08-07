@@ -240,7 +240,8 @@ impl<'a> DockerImage {
             format!("build report {}", report.display()),
         )?;
         fs::create_dir_all(&dst)?;
-        let name_tags: Vec<_> = self.tags
+        let name_tags: Vec<_> = self
+            .tags
             .iter()
             .map(|t| format!("{}:{}", &self.name, t))
             .collect();

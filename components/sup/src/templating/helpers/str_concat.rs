@@ -21,7 +21,8 @@ pub struct StrConcatHelper;
 
 impl HelperDef for StrConcatHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let list: Vec<String> = h.params()
+        let list: Vec<String> = h
+            .params()
             .iter()
             .map(|v| v.value())
             .filter(|v| !v.is_object())

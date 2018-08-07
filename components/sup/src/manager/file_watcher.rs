@@ -3285,7 +3285,8 @@ mod tests {
         }
 
         fn fixup_expected_dirs(&self, dirs: &HashMap<PathBuf, u32>) -> HashMap<PathBuf, u32> {
-            let mut expected_dirs = dirs.iter()
+            let mut expected_dirs = dirs
+                .iter()
                 .map(|(p, c)| (self.prepend_root(&p), *c))
                 .collect::<HashMap<_, _>>();
             let additional_dirs = self.get_additional_directories_from_root();

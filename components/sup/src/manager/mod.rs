@@ -724,7 +724,8 @@ impl Manager {
                     .as_ref()
                     .map(|events| events.try_connect(&self.census_ring));
 
-                for service in self.state
+                for service in self
+                    .state
                     .services
                     .read()
                     .expect("Services lock is poisoned!")
@@ -742,7 +743,8 @@ impl Manager {
                 }
             }
 
-            for service in self.state
+            for service in self
+                .state
                 .services
                 .write()
                 .expect("Services lock is poisoned!")
@@ -790,7 +792,8 @@ impl Manager {
         opts: protocol::ctl::SvcValidateCfg,
     ) -> NetResult<()> {
         let cfg = opts.cfg.ok_or(err_update_client())?;
-        let format = opts.format
+        let format = opts
+            .format
             .and_then(protocol::types::service_cfg::Format::from_i32)
             .unwrap_or_default();
         if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
@@ -928,10 +931,12 @@ impl Manager {
         opts: protocol::ctl::SvcLoad,
     ) -> NetResult<()> {
         let ident: PackageIdent = opts.ident.clone().ok_or(err_update_client())?.into();
-        let bldr_url = opts.bldr_url
+        let bldr_url = opts
+            .bldr_url
             .clone()
             .unwrap_or(protocol::DEFAULT_BLDR_URL.to_string());
-        let bldr_channel = opts.bldr_channel
+        let bldr_channel = opts
+            .bldr_channel
             .clone()
             .unwrap_or(protocol::DEFAULT_BLDR_CHANNEL.to_string());
         let force = opts.force.clone().unwrap_or(false);
@@ -1285,13 +1290,15 @@ impl Manager {
     /// The run loop's last updated census is a required parameter on this function to inform the
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
     fn check_for_updated_packages(&mut self) {
-        for service in self.state
+        for service in self
+            .state
             .services
             .write()
             .expect("Services lock is poisoned!")
             .iter_mut()
         {
-            if self.updater
+            if self
+                .updater
                 .check_for_updated_package(service, &self.census_ring, &self.launcher)
             {
                 self.gossip_latest_service_rumor(&service);
@@ -1303,12 +1310,14 @@ impl Manager {
     fn gossip_latest_service_rumor(&self, service: &Service) {
         let mut incarnation = 1;
         {
-            let list = self.butterfly
+            let list = self
+                .butterfly
                 .service_store
                 .list
                 .read()
                 .expect("Rumor store lock poisoned");
-            if let Some(rumor) = list.get(&*service.service_group)
+            if let Some(rumor) = list
+                .get(&*service.service_group)
                 .and_then(|r| r.get(&self.sys.member_id))
             {
                 incarnation = rumor.clone().incarnation + 1;
@@ -1324,7 +1333,8 @@ impl Manager {
     fn check_for_changed_services(&mut self) -> bool {
         let mut service_states = HashMap::new();
         let mut active_services = Vec::new();
-        for service in self.state
+        for service in self
+            .state
             .services
             .write()
             .expect("Services lock is poisoned!")
@@ -1334,7 +1344,8 @@ impl Manager {
             active_services.push(service.spec_ident.clone());
         }
 
-        for loaded in self.spec_watcher
+        for loaded in self
+            .spec_watcher
             .specs_from_watch_path()
             .unwrap()
             .values()
@@ -1425,14 +1436,16 @@ impl Manager {
         let mut is_first = true;
         let mut persisted_idents = Vec::new();
 
-        for service in self.state
+        for service in self
+            .state
             .services
             .read()
             .expect("Services lock is poisoned!")
             .iter()
         {
             persisted_idents.push(service.spec_ident.clone());
-            if let Some(err) = self.write_service(service, is_first, writer.get_mut())
+            if let Some(err) = self
+                .write_service(service, is_first, writer.get_mut())
                 .err()
             {
                 warn!("Couldn't write to service state file, {}", err);
@@ -1443,7 +1456,8 @@ impl Manager {
         // add services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
-        for down in self.spec_watcher
+        for down in self
+            .spec_watcher
             .specs_from_watch_path()
             .unwrap()
             .values()
@@ -1456,7 +1470,8 @@ impl Manager {
                 self.organization.as_ref().map(|org| &**org),
             ) {
                 Ok(service) => {
-                    if let Some(err) = self.write_service(&service, is_first, writer.get_mut())
+                    if let Some(err) = self
+                        .write_service(&service, is_first, writer.get_mut())
                         .err()
                     {
                         warn!("Couldn't write to service state file, {}", err);
@@ -1541,7 +1556,8 @@ impl Manager {
         // `self.remove_service`, and use `mem::swap` to move the services to a variable defined
         // outside the block while we have the lock.
         {
-            let mut services = self.state
+            let mut services = self
+                .state
                 .services
                 .write()
                 .expect("Services lock is poisoned!");
@@ -1571,7 +1587,8 @@ impl Manager {
 
     fn update_running_services_from_spec_watcher(&mut self) -> Result<()> {
         let mut active_specs = HashMap::new();
-        for service in self.state
+        for service in self
+            .state
             .services
             .read()
             .expect("Services lock is poisoned!")
@@ -1612,7 +1629,8 @@ impl Manager {
     }
 
     fn update_running_services_from_user_config_watcher(&mut self) {
-        let mut services = self.state
+        let mut services = self
+            .state
             .services
             .write()
             .expect("Services lock is poisoned");
@@ -1629,7 +1647,8 @@ impl Manager {
         let mut service: Service;
 
         {
-            let mut services = self.state
+            let mut services = self
+                .state
                 .services
                 .write()
                 .expect("Services lock is poisoned");

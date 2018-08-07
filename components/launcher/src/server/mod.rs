@@ -394,7 +394,8 @@ pub fn reply<T>(tx: &Sender, txn: &protocol::NetTxn, msg: &T) -> Result<()>
 where
     T: protobuf::MessageStatic,
 {
-    let bytes = txn.build_reply(msg)
+    let bytes = txn
+        .build_reply(msg)
         .map_err(Error::Serialize)?
         .to_bytes()
         .map_err(Error::Serialize)?;
@@ -468,7 +469,8 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
         }
         let (rx, raw) = server.accept().map_err(|_| Error::AcceptConn)?;
         let txn = protocol::NetTxn::from_bytes(&raw).map_err(Error::Deserialize)?;
-        let mut msg = txn.decode::<protocol::Register>()
+        let mut msg = txn
+            .decode::<protocol::Register>()
             .map_err(Error::Deserialize)?;
         let tx = IpcSender::connect(msg.take_pipe()).map_err(Error::Connect)?;
         send(&tx, &protocol::NetOk::new())?;
@@ -487,10 +489,11 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
         .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
 
     debug!("Waiting on connect thread for {} secs", timeout_secs);
-    let (started, wait_result) = cvar.wait_timeout(
-        lock.lock().expect("IPC connection startup lock poisoned"),
-        Duration::from_secs(timeout_secs),
-    ).expect("IPC connection startup lock poisoned");
+    let (started, wait_result) =
+        cvar.wait_timeout(
+            lock.lock().expect("IPC connection startup lock poisoned"),
+            Duration::from_secs(timeout_secs),
+        ).expect("IPC connection startup lock poisoned");
 
     if *started && !wait_result.timed_out() {
         handle.join().unwrap()

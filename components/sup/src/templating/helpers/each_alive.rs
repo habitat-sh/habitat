@@ -25,7 +25,8 @@ pub struct EachAliveHelper;
 
 impl HelperDef for EachAliveHelper {
     fn call(&self, h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let value = h.param(0)
+        let value = h
+            .param(0)
             .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\""))?;
         if let Some(template) = h.template() {
             rc.promote_local_vars();
@@ -34,7 +35,8 @@ impl HelperDef for EachAliveHelper {
                 .map(|p| format!("{}/{}", rc.get_path(), p));
             let rendered = match (value.value().is_truthy(), value.value()) {
                 (true, &Json::Array(ref list)) => {
-                    let alive_members: Vec<Json> = list.iter()
+                    let alive_members: Vec<Json> = list
+                        .iter()
                         .filter_map(|m| {
                             m.as_object().and_then(|m| {
                                 if m.contains_key("alive") && m["alive"].as_bool().unwrap() {

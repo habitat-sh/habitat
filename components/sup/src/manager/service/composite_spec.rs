@@ -121,10 +121,12 @@ impl CompositeSpec {
             path.as_ref().display(),
             &self
         );
-        let dst_path = path.as_ref()
+        let dst_path = path
+            .as_ref()
             .parent()
             .expect("Cannot determine parent directory for composite spec");
-        let tmpfile = path.as_ref()
+        let tmpfile = path
+            .as_ref()
             .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
         fs::create_dir_all(dst_path)
             .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;

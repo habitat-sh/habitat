@@ -88,7 +88,8 @@ impl<'a> BuildSpec<'a> {
     ) -> Self {
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
-            hab_launcher: m.value_of("HAB_LAUNCHER_PKG")
+            hab_launcher: m
+                .value_of("HAB_LAUNCHER_PKG")
                 .unwrap_or(DEFAULT_LAUNCHER_IDENT),
             hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
             url: m.value_of("BLDR_URL").unwrap_or(&default_url),
@@ -96,7 +97,8 @@ impl<'a> BuildSpec<'a> {
             base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
             base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL").unwrap_or(&default_channel),
             auth: m.value_of("BLDR_AUTH_TOKEN"),
-            idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
+            idents_or_archives: m
+                .values_of("PKG_IDENT_OR_ARTIFACT")
                 .expect("No package specified")
                 .collect(),
         }
@@ -523,7 +525,8 @@ impl BuildRootContext {
 
         let pkg = self.primary_svc()?;
         let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap();
-        let group_name = pkg.svc_group()
+        let group_name = pkg
+            .svc_group()
             .unwrap_or(Some(String::from("hab")))
             .unwrap();
 
