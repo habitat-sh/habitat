@@ -63,7 +63,7 @@ echo "--- :buildkite: Annotating build"
 
 # TODO (CM): Replace "MacOS" below with ${pkg_target:?} once that's in
 # hab-plan-build (see https://github.com/habitat-sh/habitat/pull/5373)
-echo -e "<br>* ${pkg_ident:?} (MacOS)" | buildkite-agent annotate --append --context "release-manifest"
+echo "<br>* ${pkg_ident:?} (MacOS)" | buildkite-agent annotate --append --context "release-manifest"
 
 # Since we can't store MacOS packages in Builder yet, we'll store it
 # in Buildkite until we grab it later for upload to Bintray
