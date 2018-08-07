@@ -22,6 +22,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- ensure RUNTIME_ENVIRONMENT does not include studio prefix [#5421](https://github.com/habitat-sh/habitat/pull/5421) ([mwrock](https://github.com/mwrock))
 - [ci,rustfmt] Formatting due to rustfmt 0.8.2 in Rust 1.28.0. [#5412](https://github.com/habitat-sh/habitat/pull/5412) ([fnichol](https://github.com/fnichol))
 - Add the mac-build.sh script back [#5417](https://github.com/habitat-sh/habitat/pull/5417) ([christophermaier](https://github.com/christophermaier))
 - [ci] Reimplement lint.sh program for better resilience. [#5414](https://github.com/habitat-sh/habitat/pull/5414) ([fnichol](https://github.com/fnichol))
