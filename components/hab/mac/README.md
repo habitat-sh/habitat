@@ -1,6 +1,6 @@
-# Building a `hab` MacOS Binary
+# Building a `hab` macOS Binary
 
-As Habitat currently does not have first class support for the Mac platform, a pragmatic approach has been taken to build a `hab` binary for MacOS. This details the steps to build a release on MacOS. It is also currently codified in [.buildkite/scripts/build_mac_release.sh](habitat-sh/habitat/.buildkite/scripts/build_mac_release.sh)
+As Habitat currently does not have first class support for the Mac platform, a pragmatic approach has been taken to build a `hab` binary for macOS. This details the steps to build a release on macOS. It is also currently codified in [.buildkite/scripts/build_mac_release.sh](habitat-sh/habitat/.buildkite/scripts/build_mac_release.sh)
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ xcode-select --install
 
 ### Install Omnibus Bootstrap Toolchain package
 
-Since there is not yet a complete Habitat build toolchain available for MacOS, we provide the minimal set of binaries and static libraries needed to compile a `hab` binary using Chef's Omnibus tooling platform. This effectively takes the place of the packages we would add to a `pkg_build_deps` entry in a Habitat plan file.
+Since there is not yet a complete Habitat build toolchain available for macOS, we provide the minimal set of binaries and static libraries needed to compile a `hab` binary using Chef's Omnibus tooling platform. This effectively takes the place of the packages we would add to a `pkg_build_deps` entry in a Habitat plan file.
 
 TODO: Where can this package be retrieved from?
 

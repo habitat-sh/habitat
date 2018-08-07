@@ -29,10 +29,10 @@ echo "--- :linux: Publishing Linux 'hab' ${version}-${release} on Bintray"
 publish "https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-linux/${version}-${release}/publish"
 
 ########################################################################
-# MacOS Publish
+# macOS Publish
 
 release=$(buildkite-agent meta-data get "hab-release-macos")
-echo "--- :mac: Publishing MacOS 'hab' ${version}-${release} to Bintray"
+echo "--- :mac: Publishing macOS 'hab' ${version}-${release} to Bintray"
 publish "https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-darwin/${version}-${release}/publish"
 
 ########################################################################

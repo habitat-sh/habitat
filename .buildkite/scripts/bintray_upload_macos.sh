@@ -15,11 +15,11 @@ sudo hab pkg install \
      --channel="${channel}" \
      core/hab-bintray-publish
 
-echo "--- :buildkite: Retrieving MacOS core/hab artifact"
+echo "--- :buildkite: Retrieving macOS core/hab artifact"
 hab_artifact=$(buildkite-agent meta-data get "hab-artifact-macos")
 buildkite-agent artifact download "${hab_artifact}" .
 
-echo "--- :habicat: Uploading MacOS core/hab to Bintray"
+echo "--- :habicat: Uploading macOS core/hab to Bintray"
 # We upload to the stable channel, but we don't *publish* until
 # later.
 #
