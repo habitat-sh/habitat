@@ -49,14 +49,14 @@ rm -Rf "${HOME}/.cargo/{git,registry}"
 
 echo "--- :habicat: :hammer_and_wrench: Building 'hab'"
 
-# Ensure that all our Omnibus toolchain binaries are available
-export PATH=/opt/hab-bundle/embedded/bin:${PATH}
-
 # NOTE: This does *not* need the CI_OVERRIDE_CHANNEL /
 # HAB_BLDR_CHANNEL variables that builds for other supported platforms
 # need, because we're not pulling anything from Builder. Once we do,
 # we'll need to make sure we pull from the right channels.
-sudo -E "$(brew --prefix bash)/bin/bash" components/plan-build/bin/hab-plan-build.sh components/hab/mac
+sudo PATH="/opt/hab-bundle/embedded/bin:${PATH}" \
+     "$(brew --prefix bash)/bin/bash" \
+     components/plan-build/bin/hab-plan-build.sh \
+     components/hab/mac
 source results/last_build.env
 
 echo "--- :buildkite: Annotating build"

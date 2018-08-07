@@ -40,12 +40,15 @@ hab_artifact=$(buildkite-agent meta-data get "hab-artifact")
 #
 # -s = skip publishing
 # -r = the repository to upload to
-sudo -E HAB_BLDR_CHANNEL="${channel}" \
-                hab pkg exec core/hab-bintray-publish \
-                publish-hab \
-                -s \
-                -r stable \
-                "/hab/cache/artifacts/${hab_artifact}"
+sudo HAB_BLDR_CHANNEL="${channel}" \
+     BINTRAY_USER="${BINTRAY_USER}" \
+     BINTRAY_KEY="${BINTRAY_KEY}" \
+     BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
+     hab pkg exec core/hab-bintray-publish \
+         publish-hab \
+         -s \
+         -r stable \
+         "/hab/cache/artifacts/${hab_artifact}"
 
 source results/last_build.env
 shasum=$(awk '{print $1}' "results/${pkg_artifact:?}.sha256sum")
@@ -58,11 +61,14 @@ EOF
 
 echo "--- :habicat: Uploading core/hab-studio to Bintray"
 # again, override just for backline
-sudo -E HAB_BLDR_CHANNEL="${channel}" \
-CI_OVERRIDE_CHANNEL="${channel}" \
-                hab pkg exec core/hab-bintray-publish \
-                publish-studio \
-                -r stable
+sudo HAB_BLDR_CHANNEL="${channel}" \
+     CI_OVERRIDE_CHANNEL="${channel}" \
+     BINTRAY_USER="${BINTRAY_USER}" \
+     BINTRAY_KEY="${BINTRAY_KEY}" \
+     BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
+     hab pkg exec core/hab-bintray-publish \
+         publish-studio \
+         -r stable
 
 # The logic for the creation of this image is spread out over soooo
 # many places :/

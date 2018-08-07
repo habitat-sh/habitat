@@ -27,12 +27,15 @@ echo "--- :habicat: Uploading macOS core/hab to Bintray"
 # -r = the repository to upload to
 
 # TODO (CM): why do we need the HAB_BLDR_CHANNEL here?
-sudo -E HAB_BLDR_CHANNEL="${channel}" \
-                hab pkg exec core/hab-bintray-publish \
-                publish-hab \
-                -s \
-                -r stable \
-                "${hab_artifact}"
+sudo HAB_BLDR_CHANNEL="${channel}" \
+     BINTRAY_USER="${BINTRAY_USER}" \
+     BINTRAY_KEY="${BINTRAY_KEY}" \
+     BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
+     hab pkg exec core/hab-bintray-publish \
+         publish-hab \
+         -s \
+         -r stable \
+         "${hab_artifact}"
 
 source results/last_build.env
 shasum=$(awk '{print $1}' "results/${pkg_artifact:?}.sha256sum")
