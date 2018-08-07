@@ -4,7 +4,16 @@
 
 set -euo pipefail
 
+source .buildkite/scripts/shared.sh
+
 # TODO: bintray user = chef-releng-ops!
+
+if is_fake_release; then
+    bintray_repository=unstable
+else
+    bintray_reposiory=stable
+fi
+echo "--- Preparing to push artifacts to the ${bintray_repository} Bintray repository"
 
 channel=$(buildkite-agent meta-data get "release-channel")
 
@@ -47,7 +56,7 @@ sudo HAB_BLDR_CHANNEL="${channel}" \
      hab pkg exec core/hab-bintray-publish \
          publish-hab \
          -s \
-         -r stable \
+         -r "${bintray_repository}" \
          "/hab/cache/artifacts/${hab_artifact}"
 
 source results/last_build.env
@@ -68,7 +77,7 @@ sudo HAB_BLDR_CHANNEL="${channel}" \
      BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
      hab pkg exec core/hab-bintray-publish \
          publish-studio \
-         -r stable
+         -r "${bintray_repository}"
 
 # The logic for the creation of this image is spread out over soooo
 # many places :/
