@@ -69,15 +69,26 @@ SHA256: <code>${shasum}</code>
 EOF
 
 echo "--- :habicat: Uploading core/hab-studio to Bintray"
+
+# Set the IMAGE_NAME environment variable which influences the name of
+# the image that gets generated. Anything we make in the course of
+# doing a "fake release" goes into the dev repository so we don't
+# pollute the stable repository.
+if is_fake_release; then
+    image_name="habitat-docker-registry.bintray.io/studio-dev"
+else
+    image_name="habitat-docker-registry.bintray.io/studio"
+fi
+
 # again, override just for backline
 sudo HAB_BLDR_CHANNEL="${channel}" \
      CI_OVERRIDE_CHANNEL="${channel}" \
      BINTRAY_USER="${BINTRAY_USER}" \
      BINTRAY_KEY="${BINTRAY_KEY}" \
      BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
+     IMAGE_NAME="${image_name}" \
      hab pkg exec core/hab-bintray-publish \
-         publish-studio \
-         -r "${bintray_repository}"
+         publish-studio
 
 # The logic for the creation of this image is spread out over soooo
 # many places :/
