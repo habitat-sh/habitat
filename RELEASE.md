@@ -148,7 +148,7 @@ NOTE: Do this step from either a Linux VM or in a studio.
 ## Update Homebrew Tap
 
 We have our own [Homebrew tap](https://github.com/habitat-sh/homebrew-habitat) that will need
-updating. You will need the following bits of information for the latest stable MacOS Bintray artifact:
+updating. You will need the following bits of information for the latest stable macOS Bintray artifact:
 
 * the new version number
 * the new release

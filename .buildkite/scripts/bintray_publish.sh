@@ -4,21 +4,23 @@ set -euo pipefail
 
 source .buildkite/scripts/shared.sh
 
-if [[ "${FAKE_RELEASE_TAG:-}" ]]; then
-    echo "--- :warning: FAKE_RELEASE_TAG was found in the environment! This isn't a \"real\" release!"
-    fake_release=1
+if is_fake_release; then
+    bintray_repository=unstable
+else
+    bintray_repository=stable
 fi
+
+echo "--- Preparing to publish artifacts to the ${bintray_repository} Bintray repository"
 
 publish(){
     url=${1}
-    if [ -z "${fake_release}" ]; then
-        curl -u "${BINTRAY_USER}:${BINTRAY_KEY}" -X POST "${url}"
-    else
+    if is_fake_release; then
         echo "--- :warning: If this were a real release, we would have hit ${url}"
+    else
+        curl -u "${BINTRAY_USER}:${BINTRAY_KEY}" -X POST "${url}"
     fi
 }
 
-PROMOTE_CHANNEL="stable"
 echo "--- :habicat: Publishing all Habitat CLI artifacts in Bintray"
 
 version=$(buildkite-agent meta-data get "version")
@@ -27,14 +29,14 @@ version=$(buildkite-agent meta-data get "version")
 # Linux Publish
 release=$(buildkite-agent meta-data get "hab-release-linux")
 echo "--- :linux: Publishing Linux 'hab' ${version}-${release} on Bintray"
-publish "https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-linux/${version}-${release}/publish"
+publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-linux/${version}-${release}/publish"
 
 ########################################################################
-# MacOS Publish
+# macOS Publish
 
 release=$(buildkite-agent meta-data get "hab-release-macos")
-echo "--- :mac: Publishing MacOS 'hab' ${version}-${release} to Bintray"
-publish "https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-darwin/${version}-${release}/publish"
+echo "--- :mac: Publishing macOS 'hab' ${version}-${release} to Bintray"
+publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-darwin/${version}-${release}/publish"
 
 ########################################################################
 # Windows Publish
@@ -46,4 +48,4 @@ channel=$(buildkite-agent meta-data get "release-channel")
 windows_ident=$(latest_from_builder x86_64-windows "${channel}" hab "${version}")
 release=$(echo "${windows_ident}" | awk 'BEGIN { FS = "/" } ; { print $4 }')
 echo "--- :windows: Publishing Windows 'hab' ${version}-${release}"
-publish "https://api.bintray.com/content/habitat/$PROMOTE_CHANNEL/hab-x86_64-windows/${version}-${release}/publish"
+publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${version}-${release}/publish"

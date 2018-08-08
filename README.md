@@ -69,7 +69,7 @@ You can download Habitat from the [Habitat downloads page](https://www.habitat.s
 
 Once you have downloaded it, follow the instructions on the page for your specific operating system.
 
-If you are running MacOS and use [Homebrew](https://brew.sh), you can use our official [Homebrew tap](https://github.com/habitat-sh/homebrew-habitat).
+If you are running macOS and use [Homebrew](https://brew.sh), you can use our official [Homebrew tap](https://github.com/habitat-sh/homebrew-habitat).
 ```
 $ brew tap habitat-sh/habitat
 $ brew install hab

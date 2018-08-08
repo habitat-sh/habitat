@@ -5,8 +5,8 @@ steps:
       the potential to cause instability in Builder. Please declare a
       maintenance window in Statuspage before proceeding any further.
 
-  - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release in Builder"
-    command: .buildkite/scripts/promote_release_channel.sh
+  - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release for consumption by Builder"
+    command: .buildkite/scripts/promote_release_channel.sh $(buildkite-agent meta-data get "release-channel") builder-live
     agents:
       queue: habitat-release
 
@@ -17,6 +17,13 @@ steps:
       promoted to the stable channel. This should be less of an issue
       as our operations and software mature, but until then, it is
       nice to explicitly factor that into our release process.
+
+  - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release to stable"
+    command: .buildkite/scripts/promote_release_channel.sh builder-live stable
+    agents:
+      queue: habitat-release
+
+  - wait
 
   - label: "Publish DockerHub Release"
     command: .buildkite/scripts/dockerhub_publish.sh
@@ -65,6 +72,8 @@ steps:
     skip: Not implemented yet
     agents:
       queue: habitat-release
+
+  - wait
 
   - label: ":habicat: :boom: Destroy release channel"
     command: .buildkite/scripts/destroy_release_channel.sh

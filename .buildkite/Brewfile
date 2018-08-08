@@ -1,5 +1,5 @@
 # This Brewfile is for setting up and managing the small amount of
-# Homebrew-related infrastructure we need. As our MacOS build process
+# Homebrew-related infrastructure we need. As our macOS build process
 # matures, we can whittle this down.
 
 # Though our builders will already have this installed, we can take
@@ -19,7 +19,7 @@ brew "hab"
 brew "bash"
 
 # Eventually we'll get wget in our Omnibus toolchain, but it's rather
-# finickly to get compiled for MacOS. Until that time, we'll pull it
+# finickly to get compiled for macOS. Until that time, we'll pull it
 # in from Homebrew.
 brew "wget"
 

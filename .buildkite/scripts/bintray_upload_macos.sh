@@ -2,7 +2,15 @@
 
 set -euo pipefail
 
+source .buildkite/scripts/shared.sh
+
 # TODO: bintray user = chef-releng-ops!
+if is_fake_release; then
+    bintray_repository=unstable
+else
+    bintray_reposiory=stable
+fi
+echo "--- Preparing to push artifacts to the ${bintray_repository} Bintray repository"
 
 # We need to upload (but not publish) artifacts to Bintray right now.
 channel=$(buildkite-agent meta-data get "release-channel")
@@ -15,11 +23,11 @@ sudo hab pkg install \
      --channel="${channel}" \
      core/hab-bintray-publish
 
-echo "--- :buildkite: Retrieving MacOS core/hab artifact"
+echo "--- :buildkite: Retrieving macOS core/hab artifact"
 hab_artifact=$(buildkite-agent meta-data get "hab-artifact-macos")
 buildkite-agent artifact download "${hab_artifact}" .
 
-echo "--- :habicat: Uploading MacOS core/hab to Bintray"
+echo "--- :habicat: Uploading macOS core/hab to Bintray"
 # We upload to the stable channel, but we don't *publish* until
 # later.
 #
@@ -27,12 +35,15 @@ echo "--- :habicat: Uploading MacOS core/hab to Bintray"
 # -r = the repository to upload to
 
 # TODO (CM): why do we need the HAB_BLDR_CHANNEL here?
-sudo -E HAB_BLDR_CHANNEL="${channel}" \
-                hab pkg exec core/hab-bintray-publish \
-                publish-hab \
-                -s \
-                -r stable \
-                "${hab_artifact}"
+sudo HAB_BLDR_CHANNEL="${channel}" \
+     BINTRAY_USER="${BINTRAY_USER}" \
+     BINTRAY_KEY="${BINTRAY_KEY}" \
+     BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
+     hab pkg exec core/hab-bintray-publish \
+         publish-hab \
+         -s \
+         -r "${bintray_repository}" \
+         "${hab_artifact}"
 
 source results/last_build.env
 shasum=$(awk '{print $1}' "results/${pkg_artifact:?}.sha256sum")

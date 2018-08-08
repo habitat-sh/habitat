@@ -15,11 +15,10 @@ resolve_launcher() {
     local target="${2}"
 
     if buildkite-agent meta-data exists "${metadata_key}"; then
-        launcher_ident=$(buildkite-agent meta-data get "${metadata_key}")
+        buildkite-agent meta-data get "${metadata_key}"
     else
-        launcher_ident=$(latest_from_builder "${target}" stable hab-launcher)
+        latest_from_builder "${target}" stable hab-launcher
     fi
-    echo "${launcher_ident}"
 }
 
 linux_launcher="$(resolve_launcher linux-launcher x86_64-linux)"
