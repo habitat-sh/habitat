@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### New Features & Enhancements
+- Allow Docker studio image name to be overridden [#5425](https://github.com/habitat-sh/habitat/pull/5425) ([christophermaier](https://github.com/christophermaier))
 - Adds force upload flag to cli [#5407](https://github.com/habitat-sh/habitat/pull/5407) ([eeyun](https://github.com/eeyun))
 - Add variants support to plan-build [#5345](https://github.com/habitat-sh/habitat/pull/5345) ([smacfarlane](https://github.com/smacfarlane))
 - Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
