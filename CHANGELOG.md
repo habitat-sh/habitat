@@ -23,6 +23,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Miscellaneous Buildkite Tweaks [#5420](https://github.com/habitat-sh/habitat/pull/5420) ([christophermaier](https://github.com/christophermaier))
 - Add rootless studio to release [#5401](https://github.com/habitat-sh/habitat/pull/5401) ([elliott-davis](https://github.com/elliott-davis))
 - Resurrect enough of the old macOS build to work in TravisCI [#5418](https://github.com/habitat-sh/habitat/pull/5418) ([christophermaier](https://github.com/christophermaier))
 - ensure RUNTIME_ENVIRONMENT does not include studio prefix [#5421](https://github.com/habitat-sh/habitat/pull/5421) ([mwrock](https://github.com/mwrock))
