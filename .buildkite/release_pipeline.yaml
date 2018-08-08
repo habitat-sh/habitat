@@ -158,6 +158,10 @@ steps:
 
   - wait
 
+  - label: ":docker: Upload (but don't promote!) containers to Docker Hub"
+    command: .buildkite/scripts/dockerhub_upload.sh
+    agents:
+      queue: habitat-release
   # TODO Create a JFrog emoji
   - label: ":linux: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh

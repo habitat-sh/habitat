@@ -18,6 +18,12 @@ steps:
       as our operations and software mature, but until then, it is
       nice to explicitly factor that into our release process.
 
+  - label: "Publish DockerHub Release"
+    command: .buildkite/scripts/dockerhub_publish.sh
+    agents:
+      # All artifacts can be published from a Linux machine
+      queue: habitat-release
+
   - label: "Publish Bintray Releases"
     command: .buildkite/scripts/bintray_publish.sh
     agents:
