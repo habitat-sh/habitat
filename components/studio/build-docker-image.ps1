@@ -11,7 +11,11 @@ if((Get-Command hab -ErrorAction SilentlyContinue) -eq $null) {
   Write-Error "   'hab' command must be present on PATH, aborting"
 }
 
-$imageName = "habitat-docker-registry.bintray.io/win-studio"
+If (-not (Test-Path env:IMAGE_NAME)) {
+   $imageName = "habitat-docker-registry.bintray.io/win-studio"
+} Else {
+   $imageName = $env:IMAGE_NAME
+}
 
 $startDir="$pwd"
 $tmpRoot = mkdir (Join-Path $env:TEMP ([System.IO.Path]::GetRandomFileName()))

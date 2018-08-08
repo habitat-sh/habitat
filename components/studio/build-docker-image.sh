@@ -56,7 +56,7 @@ if ! command -v hab >/dev/null; then
   exit 9
 fi
 
-IMAGE_NAME=habitat-docker-registry.bintray.io/studio
+: "${IMAGE_NAME:=habitat-docker-registry.bintray.io/studio}"
 
 start_dir="$(pwd)"
 tmp_root="$(mktemp -d -t "$(basename "$0")-XXXX")"
