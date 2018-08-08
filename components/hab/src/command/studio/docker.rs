@@ -19,7 +19,6 @@ use std::process::{Command, Stdio};
 
 use command::studio::enter::ARTIFACT_PATH_ENVVAR;
 use common::ui::UI;
-use feat;
 use hcore::crypto::default_cache_key_path;
 use hcore::env as henv;
 use hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
@@ -30,7 +29,7 @@ use VERSION;
 
 const DOCKER_CMD: &'static str = "docker";
 const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
-const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
+const DOCKER_IMAGE: &'static str = "habitat/default-studio";
 const DOCKER_WINDOWS_IMAGE: &'static str = "habitat-docker-registry.bintray.io/win-studio";
 const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 const DOCKER_OPTS_ENVVAR: &'static str = "HAB_DOCKER_OPTS";
@@ -197,10 +196,6 @@ where
     for vol in volumes {
         cmd_args.push("--volume".into());
         cmd_args.push(vol.as_ref().into());
-    }
-
-    if !feat::is_enabled(feat::RootlessStudio) {
-        cmd_args.push("--privileged".into());
     }
     cmd_args.push(image_identifier(docker_cmd).into());
     cmd_args.push("-V".into());
