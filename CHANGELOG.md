@@ -16,6 +16,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Provide a way to communicate with one&#39;s own Butterfly server [#5423](https://github.com/habitat-sh/habitat/pull/5423) ([christophermaier](https://github.com/christophermaier))
 - If the supervisor terminates with an error result, don&#39;t restart it [#5387](https://github.com/habitat-sh/habitat/pull/5387) ([baumanj](https://github.com/baumanj))
 - Allow a crashed supervisor to be restarted by the launcher [#5384](https://github.com/habitat-sh/habitat/pull/5384) ([baumanj](https://github.com/baumanj))
 - Enable feature flags with any value except the empty string [#5375](https://github.com/habitat-sh/habitat/pull/5375) ([christophermaier](https://github.com/christophermaier))
