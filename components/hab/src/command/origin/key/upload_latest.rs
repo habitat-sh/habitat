@@ -66,8 +66,7 @@ pub fn start(
         // check the SECRET_SIG_KEY_VERSION
         let name_with_rev = get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION)?;
         ui.status(Status::Uploading, secret_keyfile.display())?;
-        match api_client.put_origin_secret_key(&name, &rev, &secret_keyfile, token, ui.progress())
-        {
+        match api_client.put_origin_secret_key(&name, &rev, &secret_keyfile, token, ui.progress()) {
             Ok(()) => {
                 ui.status(Status::Uploaded, &name_with_rev)?;
                 ui.end(format!(

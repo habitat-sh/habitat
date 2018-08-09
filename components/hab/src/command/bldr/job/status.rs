@@ -14,8 +14,8 @@
 
 use std::io::Write;
 
-use common::ui::{Status, UIWriter, UI};
 use api_client;
+use common::ui::{Status, UIWriter, UI};
 use tabwriter::TabWriter;
 
 use error::{Error, Result};

@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use common::ui::{Status, UIWriter, UI};
 use api_client::Client;
+use common::ui::{Status, UIWriter, UI};
 
 use error::{Error, Result};
 use {PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, channel: &str) -> Result<()> {
-    let bldr_client =
-        Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
+    let bldr_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Deleting, format!("channel {}.", channel))?;
 

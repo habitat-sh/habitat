@@ -43,7 +43,7 @@ endif
 # launcher is intentionally omitted from the standard build process
 # see https://github.com/habitat-sh/habitat/blob/master/components/launcher/README.md
 BIN = hab pkg-export-docker pkg-export-kubernetes sup
-LIB = butterfly common builder-depot-client sup-protocol sup-client
+LIB = butterfly common builder-api-client sup-protocol sup-client
 ALL = $(BIN) $(LIB)
 VERSION := $(shell cat VERSION)
 

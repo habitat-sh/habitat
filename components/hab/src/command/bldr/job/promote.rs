@@ -178,8 +178,8 @@ mod test {
     use std::sync::{Arc, RwLock};
 
     use super::get_ident_list;
-    use common::ui::{Coloring, UI};
     use api_client::{Project, SchedulerResponse};
+    use common::ui::{Coloring, UI};
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {

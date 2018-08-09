@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use api_client::Client;
 use super::super::key::download::download_public_encryption_key;
+use api_client::Client;
 use common::ui::{Status, UIWriter, UI};
 
 use error::{Error, Result};
@@ -30,8 +30,7 @@ pub fn start(
     secret: &str,
     cache: &Path,
 ) -> Result<()> {
-    let api_client =
-        Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     let encryption_key = match BoxKeyPair::get_latest_pair_for(origin, cache) {
         Ok(key) => key,

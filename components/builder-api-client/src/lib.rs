@@ -47,9 +47,9 @@ use std::string::ToString;
 
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hab_core::package::{PackageIdent, Identifiable, PackageArchive};
-use hab_http::ApiClient;
+use hab_core::package::{Identifiable, PackageArchive, PackageIdent};
 use hab_http::util::decoded_response;
+use hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
@@ -62,7 +62,6 @@ header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
 
 const DEFAULT_API_PATH: &'static str = "/v1";
-
 
 #[derive(Clone, Deserialize)]
 #[serde(rename = "error")]
@@ -378,8 +377,12 @@ impl Client {
     ///
     /// * Key cannot be found
     /// * Remote Builder is not available
-    pub fn schedule_job(&self, ident: &PackageIdent, package_only: bool, token: &str) -> Result<(String)>
-    {
+    pub fn schedule_job(
+        &self,
+        ident: &PackageIdent,
+        package_only: bool,
+        token: &str,
+    ) -> Result<(String)> {
         // TODO (SA): This API needs to be extended to support a target param.
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
         let result = if package_only {
@@ -665,8 +668,11 @@ impl Client {
     ///
     /// * Remote Builder is not available
     /// * Package does not exist
-    pub fn package_channels(&self, ident: &PackageIdent, token: Option<&str>) -> Result<Vec<String>>
-    {
+    pub fn package_channels(
+        &self,
+        ident: &PackageIdent,
+        token: Option<&str>,
+    ) -> Result<Vec<String>> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -868,8 +874,7 @@ impl Client {
         channel: Option<&str>,
         token: Option<&str>,
         target: Option<&str>,
-    ) -> Result<PackageIdent>
-    {
+    ) -> Result<PackageIdent> {
         // TODO: When channels are fully rolled out, we may want to make
         //       the channel specifier mandatory instead of being an Option
         let mut url = if let Some(channel) = channel {
@@ -1004,8 +1009,7 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn promote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()>
-    {
+    pub fn promote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -1031,8 +1035,7 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn demote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()>
-    {
+    pub fn demote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -1137,9 +1140,7 @@ impl Client {
                 let mut encoded = String::new();
                 res.read_to_string(&mut encoded)
                     .map_err(Error::BadResponseBody)?;
-                let package_results: PackageResults<
-                    PackageIdent,
-                > = serde_json::from_str(&encoded)?;
+                let package_results: PackageResults<PackageIdent> = serde_json::from_str(&encoded)?;
                 let packages: Vec<PackageIdent> = package_results.data;
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
@@ -1167,7 +1168,7 @@ impl Client {
         }))
     }
 
-        fn download<D>(
+    fn download<D>(
         &self,
         path: &str,
         dst_path: &Path,
@@ -1301,13 +1302,11 @@ fn origin_secret_keys_latest(origin: &str) -> String {
     format!("depot/origins/{}/secret_keys/latest", origin)
 }
 
-fn package_download(package: &PackageIdent) -> String
-{
+fn package_download(package: &PackageIdent) -> String {
     format!("{}/download", package_path(package))
 }
 
-fn package_path(package: &PackageIdent) -> String
-{
+fn package_path(package: &PackageIdent) -> String {
     format!("depot/pkgs/{}", package)
 }
 
@@ -1316,8 +1315,7 @@ fn package_search(term: &str) -> String {
     format!("depot/pkgs/search/{}", encoded_term)
 }
 
-fn channel_package_path(channel: &str, package: &PackageIdent) -> String
-{
+fn channel_package_path(channel: &str, package: &PackageIdent) -> String {
     let mut path = format!(
         "depot/channels/{}/{}/pkgs/{}",
         package.origin(),
@@ -1335,8 +1333,7 @@ fn channel_package_path(channel: &str, package: &PackageIdent) -> String
     path
 }
 
-fn package_channels_path(package: &PackageIdent) -> String
-{
+fn package_channels_path(package: &PackageIdent) -> String {
     format!(
         "depot/pkgs/{}/{}/{}/{}/channels",
         package.origin(),
@@ -1346,8 +1343,7 @@ fn package_channels_path(package: &PackageIdent) -> String
     )
 }
 
-fn channel_package_promote(channel: &str, package: &PackageIdent) -> String
-{
+fn channel_package_promote(channel: &str, package: &PackageIdent) -> String {
     format!(
         "depot/channels/{}/{}/pkgs/{}/{}/{}/promote",
         package.origin(),
@@ -1358,8 +1354,7 @@ fn channel_package_promote(channel: &str, package: &PackageIdent) -> String
     )
 }
 
-fn channel_package_demote(channel: &str, package: &PackageIdent) -> String
-{
+fn channel_package_demote(channel: &str, package: &PackageIdent) -> String {
     format!(
         "depot/channels/{}/{}/pkgs/{}/{}/{}/demote",
         package.origin(),

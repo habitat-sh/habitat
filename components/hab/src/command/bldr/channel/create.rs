@@ -19,8 +19,7 @@ use error::{Error, Result};
 use {PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, channel: &str) -> Result<()> {
-    let api_client =
-        Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Creating, format!("channel {}.", channel))?;
 

@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
+use api_client::Client;
 use common;
 use common::command::package::install::{RETRIES, RETRY_WAIT};
 use common::ui::{Status, UIWriter, UI};
-use api_client::Client;
 use hcore::crypto::SigKeyPair;
 
 use error::{Error, Result};

@@ -48,9 +48,9 @@ use std::str;
 use std::string;
 use std::sync::mpsc;
 
+use api_client;
 use butterfly;
 use common;
-use api_client;
 use glob;
 use handlebars;
 use hcore;
