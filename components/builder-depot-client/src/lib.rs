@@ -46,7 +46,7 @@ use std::string::ToString;
 
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hab_core::package::{self, Identifiable, PackageArchive};
+use hab_core::package::{PackageIdent, Identifiable, PackageArchive};
 use hab_http::util::decoded_response;
 use hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
@@ -187,32 +187,34 @@ pub struct OriginPrivateSigningKey {
     pub owner_id: u64,
 }
 
-#[derive(Clone, Deserialize)]
-pub struct Package {
-    pub ident: PackageIdent,
-    pub checksum: String,
-    pub manifest: String,
-    pub deps: Vec<PackageIdent>,
-    pub tdeps: Vec<PackageIdent>,
-    pub exposes: Vec<u32>,
-    pub config: String,
-}
+mod json {
+    #[derive(Clone, Deserialize)]
+    pub struct Package {
+        pub ident: PackageIdent,
+        pub checksum: String,
+        pub manifest: String,
+        pub deps: Vec<PackageIdent>,
+        pub tdeps: Vec<PackageIdent>,
+        pub exposes: Vec<u32>,
+        pub config: String,
+    }
 
-#[derive(Clone, Deserialize)]
-pub struct PackageIdent {
-    pub origin: String,
-    pub name: String,
-    pub version: String,
-    pub release: String,
-}
+    #[derive(Clone, Deserialize)]
+    pub struct PackageIdent {
+        pub origin: String,
+        pub name: String,
+        pub version: String,
+        pub release: String,
+    }
 
-impl Into<package::PackageIdent> for PackageIdent {
-    fn into(self) -> package::PackageIdent {
-        package::PackageIdent {
-            origin: self.origin,
-            name: self.name,
-            version: Some(self.version),
-            release: Some(self.release),
+    impl From<PackageIdent> for super::PackageIdent {
+        fn from(ident: PackageIdent) -> Self {
+            super::PackageIdent {
+                origin: ident.origin,
+                name: ident.name,
+                version: Some(ident.version),
+                release: Some(ident.release),
+            }
         }
     }
 }
@@ -319,9 +321,7 @@ impl Client {
     ///
     /// * Key cannot be found
     /// * Remote Builder is not available
-    pub fn schedule_job<I>(&self, ident: &I, package_only: bool, token: &str) -> Result<(String)>
-    where
-        I: Identifiable,
+    pub fn schedule_job(&self, ident: &PackageIdent, package_only: bool, token: &str) -> Result<(String)>
     {
         // TODO (SA): This API needs to be extended to support a target param.
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
@@ -525,9 +525,7 @@ impl Client {
     ///
     /// * Remote Builder is not available
     /// * Package does not exist
-    pub fn package_channels<I>(&self, ident: &I, token: Option<&str>) -> Result<Vec<String>>
-    where
-        I: Identifiable,
+    pub fn package_channels(&self, ident: &PackageIdent, token: Option<&str>) -> Result<Vec<String>>
     {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
@@ -688,9 +686,9 @@ impl Client {
     /// * Package cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_package<D, I, P>(
+    pub fn fetch_package<D, P>(
         &self,
-        ident: &I,
+        ident: &PackageIdent,
         token: Option<&str>,
         dst_path: &P,
         progress: Option<D>,
@@ -698,7 +696,6 @@ impl Client {
     ) -> Result<PackageArchive>
     where
         P: AsRef<Path> + ?Sized,
-        I: Identifiable,
         D: DisplayProgress + Sized,
     {
         // Given that the download URL requires a fully qualified package, the channel is
@@ -725,15 +722,13 @@ impl Client {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    pub fn show_package<I>(
+    pub fn show_package(
         &self,
-        package: &I,
+        package: &PackageIdent,
         channel: Option<&str>,
         token: Option<&str>,
         target: Option<&str>,
-    ) -> Result<Package>
-    where
-        I: Identifiable,
+    ) -> Result<PackageIdent>
     {
         // TODO: When channels are fully rolled out, we may want to make
         //       the channel specifier mandatory instead of being an Option
@@ -765,8 +760,8 @@ impl Client {
         res.read_to_string(&mut encoded)
             .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
-        let package: Package = serde_json::from_str::<Package>(&encoded)?;
-        Ok(package)
+        let package: json::Package = serde_json::from_str::<json::Package>(&encoded)?;
+        Ok(package.ident.into())
     }
 
     /// Upload a package to a remote Builder.
@@ -869,9 +864,7 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn promote_package<I>(&self, ident: &I, channel: &str, token: &str) -> Result<()>
-    where
-        I: Identifiable,
+    pub fn promote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()>
     {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
@@ -898,9 +891,7 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn demote_package<I>(&self, ident: &I, channel: &str, token: &str) -> Result<()>
-    where
-        I: Identifiable,
+    pub fn demote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()>
     {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
@@ -997,7 +988,7 @@ impl Client {
         &self,
         search_term: &str,
         token: Option<&str>,
-    ) -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
+    ) -> Result<(Vec<PackageIdent>, bool)> {
         let mut res = self
             .maybe_add_authz(self.0.get(&package_search(search_term)), token)
             .send()?;
@@ -1007,9 +998,9 @@ impl Client {
                 res.read_to_string(&mut encoded)
                     .map_err(Error::BadResponseBody)?;
                 let package_results: PackageResults<
-                    hab_core::package::PackageIdent,
+                    PackageIdent,
                 > = serde_json::from_str(&encoded)?;
-                let packages: Vec<hab_core::package::PackageIdent> = package_results.data;
+                let packages: Vec<PackageIdent> = package_results.data;
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
             _ => Err(err_from_response(res)),
@@ -1170,16 +1161,12 @@ fn origin_secret_keys_latest(origin: &str) -> String {
     format!("depot/origins/{}/secret_keys/latest", origin)
 }
 
-fn package_download<I>(package: &I) -> String
-where
-    I: Identifiable,
+fn package_download(package: &PackageIdent) -> String
 {
     format!("{}/download", package_path(package))
 }
 
-fn package_path<I>(package: &I) -> String
-where
-    I: Identifiable,
+fn package_path(package: &PackageIdent) -> String
 {
     format!("depot/pkgs/{}", package)
 }
@@ -1189,9 +1176,7 @@ fn package_search(term: &str) -> String {
     format!("depot/pkgs/search/{}", encoded_term)
 }
 
-fn channel_package_path<I>(channel: &str, package: &I) -> String
-where
-    I: Identifiable,
+fn channel_package_path(channel: &str, package: &PackageIdent) -> String
 {
     let mut path = format!(
         "depot/channels/{}/{}/pkgs/{}",
@@ -1210,9 +1195,7 @@ where
     path
 }
 
-fn package_channels_path<I>(package: &I) -> String
-where
-    I: Identifiable,
+fn package_channels_path(package: &PackageIdent) -> String
 {
     format!(
         "depot/pkgs/{}/{}/{}/{}/channels",
@@ -1223,9 +1206,7 @@ where
     )
 }
 
-fn channel_package_promote<I>(channel: &str, package: &I) -> String
-where
-    I: Identifiable,
+fn channel_package_promote(channel: &str, package: &PackageIdent) -> String
 {
     format!(
         "depot/channels/{}/{}/pkgs/{}/{}/{}/promote",
@@ -1237,9 +1218,7 @@ where
     )
 }
 
-fn channel_package_demote<I>(channel: &str, package: &I) -> String
-where
-    I: Identifiable,
+fn channel_package_demote(channel: &str, package: &PackageIdent) -> String
 {
     format!(
         "depot/channels/{}/{}/pkgs/{}/{}/{}/demote",

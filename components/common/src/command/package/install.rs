@@ -852,11 +852,9 @@ impl<'a> InstallTask<'a> {
         channel: &Channel,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent> {
-        let origin_package: PackageIdent = self
+        let origin_package = self
             .depot_client
-            .show_package(ident, Some(channel.0), token, None)?
-            .ident
-            .into();
+            .show_package(ident, Some(channel.0), token, None)?;
         FullyQualifiedPackageIdent::from(origin_package)
     }
 
