@@ -869,7 +869,7 @@ impl Manager {
             service_group,
         );
         let mut client = match butterfly::client::Client::new(
-            format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+            mgr.cfg.gossip_listen.local_addr(),
             mgr.cfg.ring_key.clone(),
         ) {
             Ok(client) => client,
@@ -907,7 +907,7 @@ impl Manager {
             service_group,
         );
         let mut client = match butterfly::client::Client::new(
-            format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+            mgr.cfg.gossip_listen.local_addr(),
             mgr.cfg.ring_key.clone(),
         ) {
             Ok(client) => client,
@@ -1257,7 +1257,7 @@ impl Manager {
     ) -> NetResult<()> {
         let member_id = opts.member_id.ok_or(err_update_client())?;
         let mut client = match butterfly::client::Client::new(
-            format!("127.0.0.1:{}", mgr.cfg.gossip_listen.port()),
+            mgr.cfg.gossip_listen.local_addr(),
             mgr.cfg.ring_key.clone(),
         ) {
             Ok(client) => client,

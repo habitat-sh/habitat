@@ -37,6 +37,24 @@ static LOGKEY: &'static str = "CFG";
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
 
+impl GossipListenAddr {
+    /// Generate an address at which a server configured with this
+    /// GossipListenAddr can communicate with itself.
+    ///
+    /// In particular, a server configured to listen on `0.0.0.0` vs
+    /// `192.168.1.1` should be contacted via `127.0.0.1` in the
+    /// former case, but `192.168.1.1` in the latter.
+    pub fn local_addr(&self) -> Self {
+        let mut addr = self.clone();
+        if addr.0.ip().is_unspecified() {
+            // TODO (CM): Use Ipv4Addr::loopback() when it's no longer experimental
+            // TODO (CM): Support IPV6, once we do that more broadly
+            addr.0.set_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+        }
+        addr
+    }
+}
+
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
         GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
@@ -89,5 +107,31 @@ impl ToSocketAddrs for GossipListenAddr {
 impl fmt::Display for GossipListenAddr {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn local_addr_for_gossip_listen_addr_works_for_unspecified_address() {
+        let listen_addr = GossipListenAddr::default();
+        assert!(listen_addr.0.ip().is_unspecified());
+
+        let local_addr = listen_addr.local_addr();
+        assert!(local_addr.0.ip().is_loopback());
+    }
+
+    #[test]
+    fn local_addr_for_gossip_listen_addr_returns_same_ip_for_a_specified_address() {
+        let mut listen_addr = GossipListenAddr::default();
+        listen_addr
+            .0
+            .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
+        assert!(!listen_addr.0.ip().is_loopback());
+
+        let local_addr = listen_addr.local_addr();
+        assert_eq!(listen_addr, local_addr);
     }
 }
