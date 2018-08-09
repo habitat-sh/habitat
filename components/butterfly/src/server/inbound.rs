@@ -59,7 +59,7 @@ impl Inbound {
                         Err(e) => {
                             // NOTE: In the future, we might want to block people who send us
                             // garbage all the time.
-                            error!("Error decoding protocol message, {}", e);
+                            error!("Error unwrapping protocol message, {}", e);
                             continue;
                         }
                     };
