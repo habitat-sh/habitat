@@ -712,8 +712,23 @@ rm_studio() {
 
   cleanup_studio
 
-  # Remove remaining filesystem
-  $bb rm -rf $v "$HAB_STUDIO_ROOT"
+  if $bb mount | $bb grep -q "on ${HAB_STUDIO_ROOT}.* type"; then
+    # There are still mounted filesystems under the root. In the spirit of "do
+    # no further harm", we abort here with a message so the user can resolve
+    # and retry.
+    >&2 echo "After unmounting all known filesystems, there are still \
+remaining mounted filesystems under ${HAB_STUDIO_ROOT}:"
+    $bb mount \
+      | $bb grep "on ${HAB_STUDIO_ROOT}.* type" \
+      | $bb sed 's#^#    * #'
+    >&2 echo "Unmount these remaining filesystem using \`umount(8)'and retry \
+the last command."
+    exit_with "Remaining mounted filesystems found under $HAB_STUDIO_ROOT" \
+      "$ERR_REMAINING_MOUNTS"
+  else
+    # No remaining mounted filesystems, so remove remaining files and dirs
+    $bb rm -rf $v "$HAB_STUDIO_ROOT"
+  fi
 }
 
 
@@ -997,43 +1012,82 @@ chown_artifacts() {
   fi
 }
 
-# **Internal** Unmount mount point if mounted
-# Don't abort script on umount failure
+# **Internal** Unmount mount point if mounted and abort if an unmount is
+# unsuccessful.
+#
 # ARGS: [umount_options] <mount_point>
-try_umount() {
+umount_fs() {
   eval _mount_point=\$$# # getting the last arg is surprisingly hard
-  if $bb mount | $bb grep -q "on ${_mount_point:?} type"; then
-    try "$bb" umount "$@"
+
+  if is_fs_mounted "${_mount_point:?}"; then
+    # Filesystem is mounted, so attempt to unmount
+    if $bb umount "$@"; then
+      # `umount` command was successful
+      if ! is_fs_mounted "$_mount_point"; then
+        # Filesystem is confirmed umounted, return success
+        return 0
+      else
+        # Despite a successful umount, filesystem is still mounted
+        #
+        # TODO fn: there may a race condition here: if the `umount` is
+        # performed asynchronously then it might still be reported as mounted
+        # when the umounting is still queued up. We're erring on the side of
+        # catching any possible races here to determine if there's a problem or
+        # not. If this unduly impacts user experience then an alternate
+        # approach is to wait/poll until the filesystem is unmounted (with a
+        # deadline to abort).
+        >&2 echo "After unmounting filesystem '$_mount_point', the mount \
+persisted. Check that the filesystem is no longer in the mounted using \
+\`mount(8)'and retry the last command."
+        exit_with "Mount of $_mount_point persists" "$ERR_MOUNT_PERSISTS"
+      fi
+    else
+      # `umount` command reported a failure
+      >&2 echo "An error occurred when unmounting filesystem '$_mount_point'"
+      exit_with "Unmount of $_mount_point failed" "$ERR_UMOUNT_FAILED"
+    fi
+  else
+    # Filesystem is not mounted, return success
+    return 0
   fi
 }
 
-# **Internal** Unmounts file system mounts if mounted. The order of file system
-# unmounting is important as it is the opposite of the initial mount order
-unmount_filesystems() {
-  # Unmount file systems that were previously set up in, but only if they are
-  # currently mounted. You know, so you can run this all day long, like, for
-  # fun and stuff.
+# **Internal** Determines if a given filesystem is currently mounted. Returns 0
+# if true and non-zero otherwise.
+is_fs_mounted() {
+  _mount_point="${1:?}"
 
-  try_umount $v -l "$HAB_STUDIO_ROOT/src"
+  $bb mount | $bb grep -q "on $_mount_point type"
+}
+
+# **Internal** Unmounts file system mounts if mounted. The order of file system
+# unmounting is important as it is the opposite of the initial mount order.
+#
+# Any failures to successfully unmount a filesystem that is mounted will result
+# in the program aborting with an error message. As this function's behavior is
+# convergent on success and fast fail on failures, this can be safely run
+# multiple times across differnt program invocations.
+unmount_filesystems() {
+  umount_fs $v -l "$HAB_STUDIO_ROOT/src"
 
   studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
-  try_umount $v -l "$studio_artifact_path"
+  umount_fs $v -l "$studio_artifact_path"
 
-  try_umount $v "$HAB_STUDIO_ROOT/run"
+  umount_fs $v "$HAB_STUDIO_ROOT/run"
 
   if [ -z "${KRANGSCHNAK+x}" ]; then
-    try_umount $v "$HAB_STUDIO_ROOT/sys"
+    umount_fs $v "$HAB_STUDIO_ROOT/sys"
   else
-    try_umount $v -l "$HAB_STUDIO_ROOT/sys"
+    umount_fs $v -l "$HAB_STUDIO_ROOT/sys"
   fi
 
-  try_umount $v "$HAB_STUDIO_ROOT/proc"
+  umount_fs $v "$HAB_STUDIO_ROOT/proc"
 
-  try_umount $v "$HAB_STUDIO_ROOT/dev/pts"
+  umount_fs $v "$HAB_STUDIO_ROOT/dev/pts"
 
-  try_umount $v -l "$HAB_STUDIO_ROOT/dev"
+  umount_fs $v -l "$HAB_STUDIO_ROOT/dev"
 
-  try_umount $v -l "$HAB_STUDIO_ROOT/var/run/docker.sock"
+  umount_fs $v -l "$HAB_STUDIO_ROOT/var/run/docker.sock"
 }
 
 # **Internal** Sets the `$libexec_path` variable, which is the absolute path to
@@ -1102,6 +1156,14 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
+
+# The exit code if unmounting a filesystem fails
+ERR_UMOUNT_FAILED=80
+# The exit code if after a successful unmount, the filesystem is still mounted
+ERR_MOUNT_PERSISTS=81
+# The exit code if remaining mounted filesystem are found before final studio
+# cleanup
+ERR_REMAINING_MOUNTS=82
 
 #
 bb="$libexec_path/busybox"
