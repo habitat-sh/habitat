@@ -4,33 +4,41 @@ set -euo pipefail
 
 source .buildkite/scripts/shared.sh
 
-# Given a FROM channel and a TO channel, take the contents of FROM and
-# promote to TO
+# Promote the contents of the release channel into the channel
+# specified by the argument.
 #
-# "release-channel" -> builder-live
-# builder-live -> stable
+# This is to support the usecase of promoting packages from the
+# release channel to `builder-live`, and then from `builder-live` to
+# `stable`.
+#
+# In an ideal world, both channels would be arguments, but since we
+# don't yet have an API that allows us to ask for only the latest
+# packages for each target platform in a given channel, that second
+# promotion from `builder-live` to `stable` would get larger and
+# larger as time goes on.
+#
+# Instead, we'll always promote from the release channel, since the
+# release pipeline completely controls its lifecycle from creation to
+# destruction. We know that all packages in there should be promoted.
+#
+# In the future, though, we'll want to just promote from
+# `builder-live` into `stable`. (Ultimately, of course, we'll want to
+# dispense with this `builder-live` stuff altogether because we'll
+# have enough additional testing and usage that we *know* it'll be
+# perfectly safe to promote a set of release candidates directly to
+# `stable`... it'll happen!)
 #
 # Assumes that the only contents of the channel are going to be
 # Habitat Supervisor release artifacts
 #
 # TODO: It'd be nice to have this be an API function.
-
-from_channel=${1}
-to_channel=${2}
+to_channel=${1}
+from_channel=$(buildkite-agent meta-data get "release-channel")
 
 echo "--- :thinking_face: Determining which channel to promote to"
 if is_fake_release; then
     echo "This isn't a \"real\" release!"
     to_channel="fake-${to_channel}-$(get_fake_release)"
-
-    # Yeah, this is kinda gross, but it'll allow us to test the whole
-    # thing (otherwise we wouldn't get the behavior we're after when
-    # doing the "second stage" promotion, since the name wouldn't match).
-    #
-    # Other suggestions welcome!
-    if [[ "${from_channel}" == "builder-live" ]]; then
-        from_channel="fake-builder-live-$(get_fake_release)"
-    fi
 fi
 
 echo "--- Promoting packages from '${from_channel}' to '${to_channel}'"

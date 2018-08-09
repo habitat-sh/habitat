@@ -6,7 +6,7 @@ steps:
       maintenance window in Statuspage before proceeding any further.
 
   - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release for consumption by Builder"
-    command: .buildkite/scripts/promote_release_channel.sh $(buildkite-agent meta-data get "release-channel") builder-live
+    command: .buildkite/scripts/promote_release_channel.sh builder-live
     agents:
       queue: habitat-release
 
@@ -19,7 +19,7 @@ steps:
       nice to explicitly factor that into our release process.
 
   - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release to stable"
-    command: .buildkite/scripts/promote_release_channel.sh builder-live stable
+    command: .buildkite/scripts/promote_release_channel.sh stable
     agents:
       queue: habitat-release
 
