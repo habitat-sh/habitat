@@ -11,7 +11,7 @@ import_keys() {
     ${hab_binary:?} origin key download core
     echo "--- :closed_lock_with_key: Downloading latest 'core' secret key from Builder"
     ${hab_binary:?} origin key download \
-        --auth="${HAB_TEAM_AUTH_TOKEN}" \
+        --auth="${HAB_AUTH_TOKEN}" \
         --secret \
         core
     # TODO (CM): delete the secret key later?
