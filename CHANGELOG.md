@@ -25,6 +25,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add fnichol to CODEOWNERS for butterfly component. [#5435](https://github.com/habitat-sh/habitat/pull/5435) ([fnichol](https://github.com/fnichol))
 - Promote from the release channel for both promotions [#5428](https://github.com/habitat-sh/habitat/pull/5428) ([christophermaier](https://github.com/christophermaier))
 - Miscellaneous Buildkite Tweaks [#5420](https://github.com/habitat-sh/habitat/pull/5420) ([christophermaier](https://github.com/christophermaier))
 - Add rootless studio to release [#5401](https://github.com/habitat-sh/habitat/pull/5401) ([elliott-davis](https://github.com/elliott-davis))
