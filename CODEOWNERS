@@ -2,7 +2,7 @@
 .buildkite @christophermaier @fnichol @scotthain
 components/backline @fnichol @baumanj
 components/builder* @chefsalim @raskchanky
-components/butterfly* @christophermaier @reset @baumanj
+components/butterfly* @christophermaier @reset @baumanj @fnichol
 components/common @fnichol @baumanj @raskchanky
 components/eventsrv* @reset @raskchanky
 components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @elliott-davis @raskchanky @eeyun
