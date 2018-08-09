@@ -12,23 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use api_client::Client;
 use common::ui::{Status, UIWriter, UI};
-use depot_client::Client as DepotClient;
 
 use error::{Error, Result};
 use {PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, origin: &str) -> Result<()> {
-    let depot_client =
-        DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
+    let api_client =
+        Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Determining, format!("channels for {}.", origin))?;
 
-    match depot_client.list_channels(origin, false) {
+    match api_client.list_channels(origin, false) {
         Ok(channels) => {
             println!("{}", channels.join("\n"));
             Ok(())
         }
-        Err(e) => Err(Error::DepotClient(e)),
+        Err(e) => Err(Error::APIClient(e)),
     }
 }

@@ -21,7 +21,7 @@ use std::str;
 use std::string;
 use toml;
 
-use depot_client;
+use api_client;
 use hcore;
 use hcore::package::PackageIdent;
 
@@ -29,12 +29,12 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    APIClient(api_client::Error),
     ArtifactIdentMismatch((String, String, String)),
     CantUploadGossipToml,
     ChannelNotFound,
     CryptoKeyError(String),
     GossipFileRelativePath(String),
-    DepotClient(depot_client::Error),
     DownloadFailed(String),
     EditStatus,
     FileNameError,
@@ -57,6 +57,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::APIClient(ref err) => format!("{}", err),
             Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => format!(
                 "Artifact ident {} for `{}' does not match expected ident {}",
                 ai, a, i
@@ -70,7 +71,6 @@ impl fmt::Display for Error {
                 "Path for gossip file cannot have relative components (eg: ..): {}",
                 s
             ),
-            Error::DepotClient(ref err) => format!("{}", err),
             Error::DownloadFailed(ref msg) => format!("{}", msg),
             Error::EditStatus => format!("Failed edit text command"),
             Error::FileNameError => format!("Failed to extract a filename"),
@@ -106,6 +106,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::APIClient(ref err) => err.description(),
             Error::ArtifactIdentMismatch((_, _, _)) => {
                 "Artifact ident does not match expected ident"
             }
@@ -116,7 +117,6 @@ impl error::Error for Error {
             Error::GossipFileRelativePath(_) => {
                 "Path for gossip file cannot have relative components (eg: ..)"
             }
-            Error::DepotClient(ref err) => err.description(),
             Error::EditStatus => "Failed edit text command",
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
@@ -140,9 +140,9 @@ impl error::Error for Error {
     }
 }
 
-impl From<depot_client::Error> for Error {
-    fn from(err: depot_client::Error) -> Self {
-        Error::DepotClient(err)
+impl From<api_client::Error> for Error {
+    fn from(err: api_client::Error) -> Self {
+        Error::APIClient(err)
     }
 }
 

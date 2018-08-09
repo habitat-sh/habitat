@@ -26,8 +26,8 @@
 //!    If the specified channel does not exist, it will be created.
 //!
 
+use api_client::{self, Client};
 use common::ui::{Status, UIWriter, UI};
-use depot_client::{self, Client};
 use hcore::package::PackageIdent;
 use hyper::status::StatusCode;
 
@@ -41,19 +41,19 @@ use {PRODUCT, VERSION};
 /// * Fails if it cannot find the specified package in Builder
 pub fn start(
     ui: &mut UI,
-    url: &str,
+    bldr_url: &str,
     ident: &PackageIdent,
     channel: &str,
     token: &str,
 ) -> Result<()> {
-    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
     if channel != "stable" && channel != "unstable" {
-        match depot_client.create_channel(&ident.origin, channel, token) {
+        match api_client.create_channel(&ident.origin, channel, token) {
             Ok(_) => (),
-            Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => (),
+            Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),
             Err(e) => {
                 println!("Failed to create '{}' channel: {:?}", channel, e);
                 return Err(Error::from(e));
@@ -61,7 +61,7 @@ pub fn start(
         };
     }
 
-    match depot_client.promote_package(ident, channel, token) {
+    match api_client.promote_package(ident, channel, token) {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to promote '{}': {:?}", ident, e);

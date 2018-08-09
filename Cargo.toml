@@ -4,7 +4,6 @@ debug = true
 [workspace]
 members = [
   "components/builder-api-client",
-  "components/builder-depot-client",
   "components/butterfly",
   "components/butterfly-test",
   "components/common",

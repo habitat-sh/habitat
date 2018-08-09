@@ -24,8 +24,8 @@ uuid = { version = "*", features = ["v4"] }
 [dependencies.habitat_core]
 git = "https://github.com/habitat-sh/core.git"
 
-[dependencies.habitat_depot_client]
-path = "../builder-depot-client"
+[dependencies.habitat_api_client]
+path = "../builder-api-client"
 
 [target.'cfg(windows)'.dependencies]
 kernel32-sys = "*"

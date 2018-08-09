@@ -50,7 +50,7 @@ use std::sync::mpsc;
 
 use butterfly;
 use common;
-use depot_client;
+use api_client;
 use glob;
 use handlebars;
 use hcore;
@@ -117,7 +117,7 @@ pub enum Error {
     TestBootFail,
     ButterflyError(butterfly::error::Error),
     CtlSecretIo(PathBuf, io::Error),
-    DepotClient(depot_client::Error),
+    APIClient(api_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
     FileNotFound(String),
@@ -180,6 +180,7 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            Error::APIClient(ref err) => format!("{}", err),
             Error::BadCompositesPath(ref path, ref err) => format!(
                 "Unable to create the composites directory '{}' ({})",
                 path.display(),
@@ -234,7 +235,6 @@ impl fmt::Display for SupError {
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::TemplateFileError(ref err) => format!("{:?}", err),
             Error::TemplateRenderError(ref err) => format!("{}", err),
-            Error::DepotClient(ref err) => format!("{}", err),
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FileWatcherFileIsRoot => format!("Watched file is root"),
@@ -352,6 +352,7 @@ impl fmt::Display for SupError {
 impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
+            Error::APIClient(ref err) => err.description(),
             Error::BadCompositesPath(_, _) => "Unable to create the composites directory",
             Error::Departed => "Supervisor has been manually departed",
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
@@ -371,7 +372,6 @@ impl error::Error for SupError {
             Error::TemplateRenderError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
-            Error::DepotClient(ref err) => err.description(),
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
             Error::FileWatcherFileIsRoot => "Watched file is root",
@@ -435,6 +435,12 @@ impl error::Error for SupError {
     }
 }
 
+impl From<api_client::Error> for SupError {
+    fn from(err: api_client::Error) -> SupError {
+        sup_error!(Error::APIClient(err))
+    }
+}
+
 impl From<SupError> for protocol::net::NetErr {
     fn from(err: SupError) -> protocol::net::NetErr {
         protocol::net::err(protocol::net::ErrCode::Internal, err)
@@ -480,12 +486,6 @@ impl From<handlebars::TemplateFileError> for SupError {
 impl From<hcore::Error> for SupError {
     fn from(err: hcore::Error) -> SupError {
         sup_error!(Error::HabitatCore(err))
-    }
-}
-
-impl From<depot_client::Error> for SupError {
-    fn from(err: depot_client::Error) -> SupError {
-        sup_error!(Error::DepotClient(err))
     }
 }
 

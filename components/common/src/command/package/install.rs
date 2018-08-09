@@ -42,8 +42,8 @@ use std::path::{Path, PathBuf};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
-use depot_client::Error::APIError;
-use depot_client::{self, Client};
+use api_client::Error::APIError;
+use api_client::{self, Client};
 use glob;
 use hcore;
 use hcore::crypto::keys::parse_name_with_rev;
@@ -358,7 +358,7 @@ where
 struct InstallTask<'a> {
     install_mode: &'a InstallMode,
     local_package_usage: &'a LocalPackageUsage,
-    depot_client: Client,
+    api_client: Client,
     channel: Channel<'a>,
     fs_root_path: &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
@@ -370,7 +370,7 @@ impl<'a> InstallTask<'a> {
     fn new(
         install_mode: &'a InstallMode,
         local_package_usage: &'a LocalPackageUsage,
-        url: &str,
+        bldr_url: &str,
         channel: Channel<'a>,
         product: &str,
         version: &str,
@@ -381,7 +381,7 @@ impl<'a> InstallTask<'a> {
         Ok(InstallTask {
             install_mode: install_mode,
             local_package_usage: local_package_usage,
-            depot_client: Client::new(url, product, version, Some(fs_root_path))?,
+            api_client: Client::new(bldr_url, product, version, Some(fs_root_path))?,
             channel: channel,
             fs_root_path: fs_root_path,
             artifact_cache_path: artifact_cache_path,
@@ -514,7 +514,7 @@ impl<'a> InstallTask<'a> {
             )?;
             let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, token) {
                 Ok(latest_ident) => Some(latest_ident),
-                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => None,
+                Err(Error::APIClient(APIError(StatusCode::NotFound, _))) => None,
                 Err(e) => {
                     debug!("error fetching ident: {:?}", e);
                     return Err(e);
@@ -853,7 +853,7 @@ impl<'a> InstallTask<'a> {
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent> {
         let origin_package = self
-            .depot_client
+            .api_client
             .show_package(ident, Some(channel.0), token, None)?;
         FullyQualifiedPackageIdent::from(origin_package)
     }
@@ -870,7 +870,7 @@ impl<'a> InstallTask<'a> {
         T: UIWriter,
     {
         ui.status(Status::Downloading, ident)?;
-        match self.depot_client.fetch_package(
+        match self.api_client.fetch_package(
             ident.as_ref(),
             token,
             self.artifact_cache_path,
@@ -878,7 +878,7 @@ impl<'a> InstallTask<'a> {
             None,
         ) {
             Ok(_) => Ok(()),
-            Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+            Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
                 println!(
                     "Host platform or architecture not supported by the targeted depot; \
                      skipping."
@@ -901,7 +901,7 @@ impl<'a> InstallTask<'a> {
                 format!("{} public origin key", &name_with_rev),
             )?;
             let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-            self.depot_client
+            self.api_client
                 .fetch_origin_key(&name, &rev, self.key_cache_path, ui.progress())?;
             ui.status(
                 Status::Cached,
@@ -1054,7 +1054,7 @@ impl<'a> InstallTask<'a> {
     ) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
-        let channels = match self.depot_client.list_channels(ident.origin(), false) {
+        let channels = match self.api_client.list_channels(ident.origin(), false) {
             Ok(channels) => channels,
             Err(e) => {
                 debug!("Failed to get channel list: {:?}", e);

@@ -23,7 +23,6 @@ use std::result;
 
 use api_client;
 use common;
-use depot_client;
 use handlebars;
 use hcore;
 use protocol::net;
@@ -42,7 +41,6 @@ pub enum Error {
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     CtlClient(SrvClientError),
-    DepotClient(depot_client::Error),
     DockerDaemonDown,
     DockerFileSharingNotEnabled,
     DockerImageNotFound(String),
@@ -66,7 +64,7 @@ pub enum Error {
     ProvidesError(String),
     RemoteSupResolutionError(String, io::Error),
     RootRequired,
-    ScheduleStatus(depot_client::Error),
+    ScheduleStatus(api_client::Error),
     SubcommandNotSupported(String),
     UnsupportedExportFormat(String),
     TomlDeserializeError(toml::de::Error),
@@ -89,7 +87,6 @@ impl fmt::Display for Error {
             ),
             Error::CryptoCLI(ref e) => format!("{}", e),
             Error::CtlClient(ref e) => format!("{}", e),
-            Error::DepotClient(ref err) => format!("{}", err),
             Error::DockerDaemonDown => {
                 format!("Can not connect to Docker. Is the Docker daemon running?")
             }
@@ -183,7 +180,6 @@ impl error::Error for Error {
             }
             Error::CryptoCLI(_) => "A cryptographic error has occurred",
             Error::CtlClient(ref err) => err.description(),
-            Error::DepotClient(ref err) => err.description(),
             Error::DockerDaemonDown => "The Docker daemon could not be found.",
             Error::DockerFileSharingNotEnabled => "Docker file sharing is not enabled.",
             Error::DockerImageNotFound(_) => "The Docker image was not found.",
@@ -228,15 +224,15 @@ impl error::Error for Error {
     }
 }
 
-impl From<common::Error> for Error {
-    fn from(err: common::Error) -> Error {
-        Error::HabitatCommon(err)
+impl From<api_client::Error> for Error {
+    fn from(err: api_client::Error) -> Error {
+        Error::APIClient(err)
     }
 }
 
-impl From<depot_client::Error> for Error {
-    fn from(err: depot_client::Error) -> Error {
-        Error::DepotClient(err)
+impl From<common::Error> for Error {
+    fn from(err: common::Error) -> Error {
+        Error::HabitatCommon(err)
     }
 }
 

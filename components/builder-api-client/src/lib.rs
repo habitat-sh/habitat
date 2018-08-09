@@ -63,7 +63,6 @@ header! { (ETag, "ETag") => [String] }
 
 const DEFAULT_API_PATH: &'static str = "/v1";
 
-//pub struct Client(ApiClient);
 
 #[derive(Clone, Deserialize)]
 #[serde(rename = "error")]

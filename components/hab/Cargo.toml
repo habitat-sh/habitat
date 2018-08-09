@@ -50,9 +50,6 @@ git = "https://github.com/habitat-sh/core.git"
 [dependencies.habitat_common]
 path = "../common"
 
-[dependencies.habitat_depot_client]
-path = "../builder-depot-client"
-
 [dependencies.habitat_api_client]
 path = "../builder-api-client"
 

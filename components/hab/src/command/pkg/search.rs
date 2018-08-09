@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use depot_client::Client;
+use api_client::Client;
 use error::Result;
 use {PRODUCT, VERSION};
 
-pub fn start(st: &str, url: &str, token: Option<&str>) -> Result<()> {
-    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
-    let (packages, more) = depot_client.search_package(st, token)?;
+pub fn start(st: &str, bldr_url: &str, token: Option<&str>) -> Result<()> {
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
+    let (packages, more) = api_client.search_package(st, token)?;
     match packages.len() {
         0 => println!("No packages found that match '{}'", st),
         _ => {

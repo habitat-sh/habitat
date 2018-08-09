@@ -26,7 +26,7 @@ glob = "*"
 habitat_butterfly = { path = "../butterfly" }
 habitat_common = { path = "../common" }
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
-habitat_depot_client = { path = "../builder-depot-client" }
+habitat_api_client = { path = "../builder-api-client" }
 habitat-eventsrv-client = { path = "../eventsrv-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }

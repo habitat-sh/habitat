@@ -37,9 +37,9 @@ use hyper::status::StatusCode;
 use retry::retry;
 
 // Local Dependencies
+use api_client::{self, Client};
 use common::command::package::install::{RETRIES, RETRY_WAIT};
 use common::ui::{Status, UIWriter, UI};
-use depot_client::{self, Client};
 use error::{Error, Result};
 use hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use hcore::crypto::artifact::get_artifact_header;
@@ -57,7 +57,7 @@ use {PRODUCT, VERSION};
 /// * Fails if it cannot upload the file
 pub fn start<T, U>(
     ui: &mut UI,
-    url: &str,
+    bldr_url: &str,
     additional_release_channel: Option<&str>,
     token: &str,
     archive_path: T,
@@ -79,21 +79,21 @@ where
     )?;
 
     let (name, rev) = parse_name_with_rev(&hart_header.key_name)?;
-    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!(
         "Uploading public origin key {}",
         &public_keyfile_name
     ))?;
 
-    match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
+    match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
         Ok(()) => {
             ui.status(
                 Status::Uploaded,
                 format!("public origin key {}", &public_keyfile_name),
             )?;
         }
-        Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
+        Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
             ui.status(
                 Status::Using,
                 format!("existing public origin key {}", &public_keyfile_name),
@@ -108,17 +108,17 @@ where
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match depot_client.show_package(&ident, None, Some(token), Some(&target.to_string())) {
+    match api_client.show_package(&ident, None, Some(token), Some(&target.to_string())) {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
-        Err(depot_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
+        Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match depot_client.show_package(&dep, None, Some(token), Some(&target.to_string()))
+                match api_client.show_package(&dep, None, Some(token), Some(&target.to_string()))
                 {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
-                    Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
+                    Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
                         let candidate_path = match archive_path.as_ref().parent() {
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
@@ -129,7 +129,7 @@ where
                             || {
                                 attempt_upload_dep(
                                     ui,
-                                    &depot_client,
+                                    &api_client,
                                     token,
                                     &dep,
                                     &target,
@@ -141,7 +141,7 @@ where
                             |res| res.is_ok(),
                         ).is_err()
                         {
-                            return Err(Error::from(depot_client::Error::UploadFailed(format!(
+                            return Err(Error::from(api_client::Error::UploadFailed(format!(
                                 "We tried \
                                  {} times \
                                  but could \
@@ -162,7 +162,7 @@ where
                 || {
                     upload_into_depot(
                         ui,
-                        &depot_client,
+                        &api_client,
                         token,
                         &ident,
                         additional_release_channel,
@@ -173,7 +173,7 @@ where
                 |res| res.is_ok(),
             ).is_err()
             {
-                return Err(Error::from(depot_client::Error::UploadFailed(format!(
+                return Err(Error::from(api_client::Error::UploadFailed(format!(
                     "We tried {} times but could not upload {}. Giving up.",
                     RETRIES, &ident
                 ))));
@@ -191,7 +191,7 @@ where
 /// promoted to that channel as well.
 fn upload_into_depot(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     token: &str,
     ident: &PackageIdent,
     additional_release_channel: Option<&str>,
@@ -200,26 +200,26 @@ fn upload_into_depot(
 ) -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
     let package_uploaded =
-        match depot_client.put_package(&mut archive, token, force_upload, ui.progress()) {
+        match api_client.put_package(&mut archive, token, force_upload, ui.progress()) {
             Ok(_) => true,
-            Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
+            Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
                 println!("Package already exists on remote; skipping.");
                 true
             }
-            Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
+            Err(api_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
                 return Err(Error::PackageArchiveMalformed(format!(
                     "{}",
                     archive.path.display()
                 )));
             }
-            Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+            Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
                 println!(
                     "Package platform or architecture not supported by the targeted \
                      depot; skipping."
                 );
                 false
             }
-            Err(depot_client::Error::APIError(StatusCode::FailedDependency, _)) => {
+            Err(api_client::Error::APIError(StatusCode::FailedDependency, _)) => {
                 ui.fatal(
                     "Package upload introduces a circular dependency - please check \
                      pkg_deps; skipping.",
@@ -236,14 +236,14 @@ fn upload_into_depot(
         ui.begin(format!("Promoting {} to channel '{}'", ident, channel_str))?;
 
         if channel_str != STABLE_CHANNEL && channel_str != UNSTABLE_CHANNEL {
-            match depot_client.create_channel(&ident.origin, channel_str, token) {
+            match api_client.create_channel(&ident.origin, channel_str, token) {
                 Ok(_) => (),
-                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => (),
+                Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),
                 Err(e) => return Err(Error::from(e)),
             };
         }
 
-        match depot_client.promote_package(ident, channel_str, token) {
+        match api_client.promote_package(ident, channel_str, token) {
             Ok(_) => (),
             Err(e) => return Err(Error::from(e)),
         };
@@ -255,7 +255,7 @@ fn upload_into_depot(
 
 fn attempt_upload_dep(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     token: &str,
     ident: &PackageIdent,
     target: &PackageTarget,
@@ -269,7 +269,7 @@ fn attempt_upload_dep(
         let mut archive = PackageArchive::new(candidate_path);
         upload_into_depot(
             ui,
-            &depot_client,
+            &api_client,
             token,
             &ident,
             additional_release_channel,
