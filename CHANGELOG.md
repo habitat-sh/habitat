@@ -17,6 +17,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Provide consistency in supervisor clap cmds, correcting help menu problems [#5379](https://github.com/habitat-sh/habitat/pull/5379) ([jeremymv2](https://github.com/jeremymv2))
 - Allow Supervisor to receive messages from &lt;= 0.59.0 Supervisors [#5419](https://github.com/habitat-sh/habitat/pull/5419) ([christophermaier](https://github.com/christophermaier))
 - Provide a way to communicate with one&#39;s own Butterfly server [#5423](https://github.com/habitat-sh/habitat/pull/5423) ([christophermaier](https://github.com/christophermaier))
 - If the supervisor terminates with an error result, don&#39;t restart it [#5387](https://github.com/habitat-sh/habitat/pull/5387) ([baumanj](https://github.com/baumanj))
