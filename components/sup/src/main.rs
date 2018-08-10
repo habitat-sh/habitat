@@ -16,6 +16,7 @@ extern crate ansi_term;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
+extern crate hab;
 extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
@@ -34,9 +35,7 @@ extern crate url;
 use std::env;
 use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::path::Path;
 use std::process;
-use std::result;
 use std::str::{self, FromStr};
 
 use clap::{App, ArgMatches};
@@ -55,8 +54,11 @@ use protocol::{
         ApplicationEnvironment, BindingMode, ServiceBind, ServiceGroup, Topology, UpdateStrategy,
     },
 };
-use url::Url;
 
+use hab::cli::{
+    sub_sup_bash, sub_sup_depart, sub_sup_run, sub_sup_secret, sub_sup_sh, sub_sup_term,
+    sub_svc_status,
+};
 use sup::command;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result, SupError};
@@ -144,80 +146,22 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (about: "The Habitat Supervisor")
         (version: VERSION)
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
+        // set custom usage string, otherwise the binary
+        // is displayed confusingly as `hab-sup`
+        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+        (usage: "hab sup <SUBCOMMAND>")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
-        (@subcommand bash =>
-            (about: "Start an interactive Bash-like shell")
-            (aliases: &["b", "ba", "bas"])
-        )
-        (@subcommand run =>
-            (about: "Run the Habitat Supervisor")
-            (aliases: &["r", "ru"])
-            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
-                "The listen address for the gossip system [default: 0.0.0.0:9638]")
-            (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_socket_addr}
-                "The listen address for the HTTP Gateway [default: 0.0.0.0:9631]")
-            (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
-                "The listen address for the Control Gateway [default: 127.0.0.1:9632]")
-            (@arg NAME: --("override-name") +takes_value
-                "The name of the Supervisor if launching more than one [default: default]")
-            (@arg ORGANIZATION: --org +takes_value
-                "The organization that the Supervisor and its subsequent services are part of \
-                [default: default]")
-            (@arg PEER: --peer +takes_value +multiple
-                "The listen address of one or more initial peers (IP[:PORT])")
-            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
-                "Watch this file for connecting to the ring"
-            )
-            (@arg RING: --ring -r +takes_value "Ring key name")
-            (@arg CHANNEL: --channel +takes_value
-                "Receive Supervisor updates from the specified release channel [default: stable]")
-            (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                "Specify an alternate Builder endpoint. If not specified, the value will \
-                 be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                 https://bldr.habitat.sh)")
-
-            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-                "Use package config from this path, rather than the package itself")
-            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
-                itself")
-            (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-                group running a Habitat EventSrv to forward Supervisor and service event data to")
-            // === Optional arguments to additionally load an initial service for the Supervisor
-            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
-                the Supervisor startup specified by a package identifier \
-                (ex: core/redis) or filepath to a Habitat Artifact \
-                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
-            (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
-                "Application name; [default: not set].")
-            (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
-                "Environment name; [default: not set].")
-            (@arg GROUP: --group +takes_value
-                "The service group; shared config and topology [default: default].")
-            (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
-                "Service topology; [default: none]")
-            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-                "The update strategy; [default: none] [values: none, at-once, rolling]")
-            (@arg BIND: --bind +takes_value +multiple
-                "One or more service groups to bind to a configuration")
-            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-                "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-                 startup until all binds are present. [default: strict] [values: relaxed, strict]")
-            (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
-            (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
-            (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
-                Implies NO_COLOR")
-        )
-        (@subcommand sh =>
-            (about: "Start an interactive Bourne-like shell")
-            (aliases: &[])
-        )
-        (@subcommand term =>
-            (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
-            (@arg NAME: --("override-name") +takes_value
-                "The name of the Supervisor if more than one is running [default: default]")
-        )
+        // this is the _full_ list of supervisor related cmds
+        // they are all enumerated here so that the entire help menu
+        // can be displayed from `hab sup --help`
+        (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
+        (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
+        (subcommand: sub_sup_run().aliases(&["r", "ru"]))
+        (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
+        (subcommand: sub_sup_sh().aliases(&[]))
+        (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
+        (subcommand: sub_sup_term().aliases(&["ter"]))
     )
 }
 
@@ -471,62 +415,6 @@ fn get_password_from_input(_m: &ArgMatches) -> Result<Option<String>> {
     Ok(None)
 }
 
-// CLAP Validation Functions
-////////////////////////////////////////////////////////////////////////
-
-fn dir_exists(val: String) -> result::Result<(), String> {
-    if Path::new(&val).is_dir() {
-        Ok(())
-    } else {
-        Err(format!("Directory: '{}' cannot be found", &val))
-    }
-}
-
-fn valid_binding_mode(val: String) -> result::Result<(), String> {
-    match BindingMode::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Binding mode: '{}' is not valid", &val)),
-    }
-}
-
-fn valid_service_group(val: String) -> result::Result<(), String> {
-    match ServiceGroup::validate(&val) {
-        Ok(()) => Ok(()),
-        Err(err) => Err(err.to_string()),
-    }
-}
-
-fn valid_topology(val: String) -> result::Result<(), String> {
-    match Topology::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Service topology: '{}' is not valid", &val)),
-    }
-}
-
-fn valid_socket_addr(val: String) -> result::Result<(), String> {
-    match SocketAddr::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!(
-            "Socket address should include both IP and port, eg: '0.0.0.0:9700'"
-        )),
-    }
-}
-
-fn valid_update_strategy(val: String) -> result::Result<(), String> {
-    match UpdateStrategy::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
-    }
-}
-
-fn valid_url(val: String) -> result::Result<(), String> {
-    match Url::parse(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
 fn enable_features_from_env() {
     let features = vec![
         (feat::List, "LIST"),
