@@ -87,11 +87,16 @@ mod inner {
 
     const SUDO_CMD: &'static str = "sudo";
 
-    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, mut args: Vec<OsString>) -> Result<()> {
         rerun_with_sudo_if_needed(ui, &args)?;
-        if is_docker_studio(&args) {
-            docker::start_docker_studio(ui, args)
-        } else {
+
+        if is_legacy_studio(&args) {
+                // We need to strip out the -D if it exists to avoid
+            // it getting passed to the sup on entering the studio
+            let to_cull = OsString::from("-L");
+            if let Some(index) = args.iter().position(|x| *x == to_cull) {
+                args.remove(index);
+            }
             let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
                 Ok(command) => PathBuf::from(command),
                 Err(_) => {
@@ -117,21 +122,20 @@ mod inner {
             } else {
                 Err(Error::ExecCommandNotFound(command))
             }
+        } else {
+            docker::start_docker_studio(ui, args)
         }
     }
 
-    fn is_docker_studio(args: &Vec<OsString>) -> bool {
-        if cfg!(not(target_os = "linux")) {
-            return false;
-        }
-
-        for arg in args.iter() {
-            let str_arg = arg.to_string_lossy();
-            if str_arg == String::from("-D") {
-                return true;
+    fn is_legacy_studio(args: &Vec<OsString>) -> bool {
+        if cfg!(target_os = "linux") {
+            for arg in args.iter() {
+                let str_arg = arg.to_string_lossy();
+                if str_arg == String::from("-L") {
+                    return true;
+                }
             }
         }
-
         return false;
     }
 
@@ -146,7 +150,7 @@ mod inner {
         // and have the appropriate group - early return, we are done.
         if am_i_root() {
             return Ok(());
-        } else if is_docker_studio(&args) {
+        } else if !is_legacy_studio(&args) {
             if has_docker_group() {
                 return Ok(());
             }
