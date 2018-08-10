@@ -104,6 +104,7 @@ pub struct Service {
     pub pkg: Pkg,
     pub sys: Arc<Sys>,
     pub initialized: bool,
+    pub postrun: bool,
     pub user_config_updated: bool,
 
     #[serde(skip_serializing)]
@@ -188,6 +189,7 @@ impl Service {
                 fs::svc_hooks_path(&service_group.service()),
             ),
             initialized: false,
+            postrun: false,
             last_election_status: ElectionStatus::None,
             needs_reload: false,
             needs_reconfiguration: false,
@@ -262,6 +264,7 @@ impl Service {
         } else {
             self.needs_reload = false;
             self.needs_reconfiguration = false;
+            self.postrun = false;
         }
     }
 
@@ -684,7 +687,12 @@ impl Service {
     }
 
     fn post_run(&mut self) {
+        if self.postrun {
+            return;
+        }
+        self.postrun = true;
         if let Some(ref hook) = self.hooks.post_run {
+            outputln!(preamble self.service_group, "Execute Postrun hook");
             hook.run(
                 &self.service_group,
                 &self.pkg,
@@ -816,9 +824,11 @@ impl Service {
             self.initialize();
             if self.initialized {
                 self.start(launcher);
-                self.post_run();
             }
         } else {
+            if !self.postrun && self.health_check == HealthCheck::Ok {
+                self.post_run();
+            }
             self.check_process();
             match self.last_health_check {
                 Some(last_check) => {
@@ -906,6 +916,7 @@ impl Service {
             }
         };
         self.last_health_check = Some(Instant::now());
+        self.health_check=check_result;
         self.cache_health_check(check_result);
     }
 
