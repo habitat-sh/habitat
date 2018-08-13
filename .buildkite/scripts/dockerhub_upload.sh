@@ -5,7 +5,7 @@ set -euo pipefail
 source .buildkite/scripts/shared.sh
 version=$(buildkite-agent meta-data get "version")
 
-if [[ "${FAKE_RELEASE_TAG}" ]]; then
+if is_fake_release; then
   # This overrides IMAGE_NAME in docker-base.sh
   export IMAGE_NAME="habitat/fakey-mc-fake-face-studio"
 fi

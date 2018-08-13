@@ -11,7 +11,7 @@ source .buildkite/scripts/shared.sh
 if is_fake_release; then
     bintray_repository=unstable
 else
-    bintray_reposiory=stable
+    bintray_repository=stable
 fi
 echo "--- Preparing to push artifacts to the ${bintray_repository} Bintray repository"
 
