@@ -752,7 +752,7 @@ dependencies = [
 [[package]]
 name = "habitat_core"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#91238adaec5713db8838151bc8be002f8d68dd3c"
+source = "git+https://github.com/habitat-sh/core.git#63462d7c7974560170cf694dad059ab80006dd68"
 dependencies = [
  "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -787,7 +787,7 @@ dependencies = [
 [[package]]
 name = "habitat_http_client"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#91238adaec5713db8838151bc8be002f8d68dd3c"
+source = "git+https://github.com/habitat-sh/core.git#63462d7c7974560170cf694dad059ab80006dd68"
 dependencies = [
  "base64 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
@@ -947,7 +947,7 @@ dependencies = [
 [[package]]
 name = "habitat_win_users"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#91238adaec5713db8838151bc8be002f8d68dd3c"
+source = "git+https://github.com/habitat-sh/core.git#63462d7c7974560170cf694dad059ab80006dd68"
 dependencies = [
  "gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)",
  "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",

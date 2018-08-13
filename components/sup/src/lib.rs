@@ -152,5 +152,6 @@ pub enum ShutdownReason {
     Departed,
     LauncherStopping,
     PkgUpdating,
+    Signal,
     SvcStopCmd,
 }

@@ -53,6 +53,7 @@ use hcore::crypto::SymKey;
 use hcore::env;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::os::process::{self, Pid, Signal};
+use hcore::os::signals::{self, SignalEvent};
 use hcore::package::metadata::PackageType;
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
@@ -330,7 +331,9 @@ impl Manager {
     }
 
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+        debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
+        debug!("current: {}", current);
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
             if current.fully_qualified() {
@@ -666,6 +669,7 @@ impl Manager {
             Some(ref evg) => Some(events::EventsMgr::start(evg.clone())),
             None => None,
         };
+        signals::init();
         loop {
             if feat::is_enabled(feat::TestExit) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
@@ -691,6 +695,11 @@ impl Manager {
             if self.check_for_departure() {
                 self.shutdown(ShutdownReason::Departed);
                 return Err(sup_error!(Error::Departed));
+            }
+            if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal() {
+                outputln!("Supervisor shutting down for signal");
+                self.shutdown(ShutdownReason::Signal);
+                return Ok(());
             }
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!(
