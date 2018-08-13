@@ -87,6 +87,11 @@ authors:
     email: "edavis@chef.io"
     twitter: "@libsysguy"
     bio: "Elliott is a senior engineer on the core Habitat team. He loves disrupting standups with dad jokes."
+  joshblack:
+    name: "Josh Black"
+    email: "jblack@chef.io"
+    twitter: "@raskchanky"
+    bio: "Josh is a senior engineer on the core Habitat team. He loves shaving yaks."
   jamescasey:
     name: "James Casey"
     email: "james@chef.io"
