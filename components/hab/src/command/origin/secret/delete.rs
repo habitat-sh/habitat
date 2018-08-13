@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use api_client::Client;
 use common::ui::{Status, UIWriter, UI};
-use depot_client::Client as DepotClient;
 
 use error::{Error, Result};
 use {PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, key: &str) -> Result<()> {
-    let depot_client =
-        DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Deleting, format!("secret {}.", key))?;
 
-    depot_client
+    api_client
         .delete_origin_secret(origin, token, key)
-        .map_err(Error::DepotClient)?;
+        .map_err(Error::APIClient)?;
 
     ui.status(Status::Deleted, format!("secret {}.", key))?;
 

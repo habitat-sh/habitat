@@ -14,9 +14,9 @@
 
 use std::path::Path;
 
+use api_client::{self, Client};
 use common::command::package::install::{RETRIES, RETRY_WAIT};
 use common::ui::{Status, UIWriter, UI};
-use depot_client::{self, Client};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
 use hyper::status::StatusCode;
@@ -28,12 +28,12 @@ use {PRODUCT, VERSION};
 
 pub fn start(
     ui: &mut UI,
-    depot: &str,
+    bldr_url: &str,
     token: &str,
     public_keyfile: &Path,
     secret_keyfile: Option<&Path>,
 ) -> Result<()> {
-    let depot_client = Client::new(depot, PRODUCT, VERSION, None)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
     ui.begin(format!(
         "Uploading public origin key {}",
         public_keyfile.display()
@@ -45,9 +45,9 @@ pub fn start(
     {
         let upload_fn = || -> Result<()> {
             ui.status(Status::Uploading, public_keyfile.display())?;
-            match depot_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress()) {
+            match api_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress()) {
                 Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
-                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
+                Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
                     ui.status(
                         Status::Using,
                         format!(
@@ -63,7 +63,7 @@ pub fn start(
         };
 
         if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
-            return Err(Error::from(depot_client::Error::UploadFailed(format!(
+            return Err(Error::from(api_client::Error::UploadFailed(format!(
                 "We tried \
                  {} times \
                  but could \
@@ -88,7 +88,7 @@ pub fn start(
 
         let upload_fn = || -> Result<()> {
             ui.status(Status::Uploading, secret_keyfile.display())?;
-            match depot_client.put_origin_secret_key(
+            match api_client.put_origin_secret_key(
                 &name,
                 &rev,
                 secret_keyfile,
@@ -104,13 +104,13 @@ pub fn start(
                     Ok(())
                 }
                 Err(e) => {
-                    return Err(Error::DepotClient(e));
+                    return Err(Error::APIClient(e));
                 }
             }
         };
 
         if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
-            return Err(Error::from(depot_client::Error::UploadFailed(format!(
+            return Err(Error::from(api_client::Error::UploadFailed(format!(
                 "We tried \
                  {} times \
                  but could \

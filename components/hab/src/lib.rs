@@ -19,7 +19,6 @@
 extern crate habitat_api_client as api_client;
 extern crate habitat_common as common;
 extern crate habitat_core as hcore;
-extern crate habitat_depot_client as depot_client;
 extern crate habitat_http_client as http_client;
 extern crate habitat_sup_client as sup_client;
 extern crate habitat_sup_protocol as protocol;

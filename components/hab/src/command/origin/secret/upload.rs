@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use super::super::key::download::download_public_encryption_key;
+use api_client::Client;
 use common::ui::{Status, UIWriter, UI};
-use depot_client::Client as DepotClient;
 
 use error::{Error, Result};
 use hcore::crypto::BoxKeyPair;
@@ -30,14 +30,13 @@ pub fn start(
     secret: &str,
     cache: &Path,
 ) -> Result<()> {
-    let depot_client =
-        DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     let encryption_key = match BoxKeyPair::get_latest_pair_for(origin, cache) {
         Ok(key) => key,
         Err(_) => {
             debug!("Didn't find public encryption key in cache path");
-            download_public_encryption_key(ui, &depot_client, origin, token, cache)?;
+            download_public_encryption_key(ui, &api_client, origin, token, cache)?;
             BoxKeyPair::get_latest_pair_for(origin, cache)?
         }
     };
@@ -56,9 +55,9 @@ pub fn start(
 
     ui.status(Status::Uploading, format!("secret for key {}.", key))?;
 
-    depot_client
+    api_client
         .create_origin_secret(origin, token, key, &encrypted_secret_string)
-        .map_err(Error::DepotClient)?;
+        .map_err(Error::APIClient)?;
 
     ui.status(Status::Uploaded, format!("secret for {}.", key))?;
 

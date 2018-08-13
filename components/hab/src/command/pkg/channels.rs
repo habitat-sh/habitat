@@ -27,8 +27,8 @@
 //!    If the specified package does not exist, this will fail.
 //!
 
+use api_client::Client;
 use common::ui::{UIWriter, UI};
-use depot_client::Client;
 use hcore::package::PackageIdent;
 
 use error::Result;
@@ -39,11 +39,11 @@ use {PRODUCT, VERSION};
 /// # Failures
 ///
 /// * Fails if it cannot find the specified package in Builder.
-pub fn start(ui: &mut UI, url: &str, ident: &PackageIdent, token: Option<&str>) -> Result<()> {
-    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
+pub fn start(ui: &mut UI, bldr_url: &str, ident: &PackageIdent, token: Option<&str>) -> Result<()> {
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Retrieving channels for {}", ident))?;
-    let channels = depot_client.package_channels(ident, token)?;
+    let channels = api_client.package_channels(ident, token)?;
     for channel in &channels {
         println!("{}", channel);
     }

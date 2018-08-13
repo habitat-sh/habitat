@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
+use api_client::Client;
 use common;
 use common::command::package::install::{RETRIES, RETRY_WAIT};
 use common::ui::{Status, UIWriter, UI};
-use depot_client::Client;
 use hcore::crypto::SigKeyPair;
 
 use error::{Error, Result};
@@ -27,7 +27,7 @@ use retry::retry;
 
 pub fn start(
     ui: &mut UI,
-    depot: &str,
+    bldr_url: &str,
     origin: &str,
     revision: Option<&str>,
     secret: bool,
@@ -35,20 +35,20 @@ pub fn start(
     token: Option<&str>,
     cache: &Path,
 ) -> Result<()> {
-    let depot_client = Client::new(depot, PRODUCT, VERSION, None)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     if secret {
-        handle_secret(ui, &depot_client, origin, token, cache)
+        handle_secret(ui, &api_client, origin, token, cache)
     } else if encryption {
-        handle_encryption(ui, &depot_client, origin, token, cache)
+        handle_encryption(ui, &api_client, origin, token, cache)
     } else {
-        handle_public(ui, &depot_client, origin, revision, cache)
+        handle_public(ui, &api_client, origin, revision, cache)
     }
 }
 
 fn handle_public(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     origin: &str,
     revision: Option<&str>,
     cache: &Path,
@@ -57,7 +57,7 @@ fn handle_public(
         Some(revision) => {
             let nwr = format!("{}-{}", origin, revision);
             ui.begin(format!("Downloading public origin key {}", &nwr))?;
-            match download_key(ui, depot_client, &nwr, origin, revision, cache) {
+            match download_key(ui, api_client, &nwr, origin, revision, cache) {
                 Ok(()) => {
                     let msg = format!("Download of {} public origin key completed.", nwr);
                     ui.end(msg)?;
@@ -68,7 +68,7 @@ fn handle_public(
         }
         None => {
             ui.begin(format!("Downloading public origin keys for {}", origin))?;
-            match depot_client.show_origin_keys(origin) {
+            match api_client.show_origin_keys(origin) {
                 Ok(ref keys) if keys.len() == 0 => {
                     ui.end(format!("No public keys for {}.", origin))?;
                     Ok(())
@@ -76,7 +76,7 @@ fn handle_public(
                 Ok(keys) => {
                     for key in keys {
                         let nwr = format!("{}-{}", key.origin, key.revision);
-                        download_key(ui, depot_client, &nwr, &key.origin, &key.revision, cache)?;
+                        download_key(ui, api_client, &nwr, &key.origin, &key.revision, cache)?;
                     }
                     ui.end(format!(
                         "Download of {} public origin keys completed.",
@@ -92,7 +92,7 @@ fn handle_public(
 
 fn handle_secret(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     origin: &str,
     token: Option<&str>,
     cache: &Path,
@@ -105,7 +105,7 @@ fn handle_secret(
     }
 
     ui.begin(format!("Downloading secret origin keys for {}", origin))?;
-    download_secret_key(ui, &depot_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
+    download_secret_key(ui, &api_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
     ui.end(format!(
         "Download of {} public origin keys completed.",
         &origin
@@ -115,7 +115,7 @@ fn handle_secret(
 
 fn handle_encryption(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     origin: &str,
     token: Option<&str>,
     cache: &Path,
@@ -131,7 +131,7 @@ fn handle_encryption(
         "Downloading public encryption origin key for {}",
         origin
     ))?;
-    download_public_encryption_key(ui, &depot_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
+    download_public_encryption_key(ui, &api_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
     ui.end(format!(
         "Download of {} public encryption keys completed.",
         &origin
@@ -141,7 +141,7 @@ fn handle_encryption(
 
 pub fn download_public_encryption_key(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     name: &str,
     token: &str,
     cache: &Path,
@@ -149,7 +149,7 @@ pub fn download_public_encryption_key(
     let download_fn = || -> Result<()> {
         ui.status(Status::Downloading, "latest public encryption key")?;
         let key_path =
-            depot_client.fetch_origin_public_encryption_key(name, token, cache, ui.progress())?;
+            api_client.fetch_origin_public_encryption_key(name, token, cache, ui.progress())?;
         ui.status(
             Status::Cached,
             key_path.file_name().unwrap().to_str().unwrap(), // lol
@@ -174,14 +174,14 @@ pub fn download_public_encryption_key(
 
 fn download_secret_key(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     name: &str,
     token: &str,
     cache: &Path,
 ) -> Result<()> {
     let download_fn = || -> Result<()> {
         ui.status(Status::Downloading, "latest secret key")?;
-        let key_path = depot_client.fetch_secret_origin_key(name, token, cache, ui.progress())?;
+        let key_path = api_client.fetch_secret_origin_key(name, token, cache, ui.progress())?;
         ui.status(
             Status::Cached,
             key_path.file_name().unwrap().to_str().unwrap(), // lol
@@ -206,7 +206,7 @@ fn download_secret_key(
 
 fn download_key(
     ui: &mut UI,
-    depot_client: &Client,
+    api_client: &Client,
     nwr: &str,
     name: &str,
     rev: &str,
@@ -217,7 +217,7 @@ fn download_key(
         Err(_) => {
             let download_fn = || -> Result<()> {
                 ui.status(Status::Downloading, &nwr)?;
-                depot_client.fetch_origin_key(name, rev, cache, ui.progress())?;
+                api_client.fetch_origin_key(name, rev, cache, ui.progress())?;
                 ui.status(Status::Cached, &nwr)?;
                 Ok(())
             };

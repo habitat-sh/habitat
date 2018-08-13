@@ -30,8 +30,8 @@ use std::path::Path;
 
 use regex::Regex;
 
+use api_client::DisplayProgress;
 use common::ui::UIWriter;
-use depot_client::DisplayProgress;
 use futures::prelude::*;
 use hcore::output;
 use hcore::util::perm;

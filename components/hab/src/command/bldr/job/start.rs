@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use api_client::Client as ApiClient;
+use api_client::Client;
 use common::ui::{Status, UIReader, UIWriter, UI};
-use depot_client::Client as DepotClient;
 use hcore::package::PackageIdent;
 
 use error::{Error, Result};
@@ -27,10 +26,7 @@ pub fn start(
     token: &str,
     group: bool,
 ) -> Result<()> {
-    let api_client = ApiClient::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
-
-    let depot_client =
-        DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     if group {
         let rdeps = api_client.fetch_rdeps(ident).map_err(Error::APIClient)?;
@@ -53,9 +49,9 @@ pub fn start(
 
     ui.status(Status::Creating, format!("build job for {}", ident))?;
 
-    let id = depot_client
+    let id = api_client
         .schedule_job(ident, !group, token)
-        .map_err(Error::DepotClient)?;
+        .map_err(Error::APIClient)?;
 
     ui.status(Status::Created, format!("build job. The id is {}", id))?;
 

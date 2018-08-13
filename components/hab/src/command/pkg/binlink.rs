@@ -142,6 +142,7 @@ mod test {
 
     use super::{binlink_all_in_pkg, start};
 
+    #[cfg(target_os = "linux")]
     #[test]
     fn start_symlinks_binaries() {
         let rootfs = TempDir::new("rootfs").unwrap();
@@ -175,6 +176,7 @@ mod test {
         );
     }
 
+    #[cfg(target_os = "linux")]
     #[test]
     fn binlink_all_in_pkg_symlinks_all_binaries() {
         let rootfs = TempDir::new("rootfs").unwrap();
@@ -204,7 +206,7 @@ mod test {
             rootfs_bin_dir.join("securitize").read_link().unwrap()
         );
     }
-
+    #[cfg(target_os = "linux")]
     #[test]
     fn binlink_all_in_pkg_skips_invalid_sub_dirs() {
         let rootfs = TempDir::new("rootfs").unwrap();

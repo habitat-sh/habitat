@@ -5,14 +5,19 @@ authors = ["Josh Black <jblack@chef.io>"]
 workspace = "../../"
 
 [dependencies]
+broadcast = "*"
+chrono = "*"
 clippy = {version = "*", optional = true}
 hyper = "0.10"
 hyper-openssl = ""
 log = "*"
+pbr = "*"
+rand = "*"
 regex = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
+tee = "*"
 url = "*"
 
 [dependencies.habitat_core]

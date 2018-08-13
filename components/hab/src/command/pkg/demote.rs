@@ -26,8 +26,8 @@
 //!    If the specified channel does not exist, this will fail.
 //!
 
+use api_client::Client;
 use common::ui::{Status, UIWriter, UI};
-use depot_client::Client;
 use hcore::package::PackageIdent;
 
 use error::{Error, Result};
@@ -42,12 +42,12 @@ use {PRODUCT, VERSION};
 /// * Fails if "unstable" is the channel specified.
 pub fn start(
     ui: &mut UI,
-    url: &str,
+    bldr_url: &str,
     ident: &PackageIdent,
     channel: &str,
     token: &str,
 ) -> Result<()> {
-    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
+    let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Demoting {} from {}", ident, channel))?;
 
@@ -58,7 +58,7 @@ pub fn start(
         )));
     }
 
-    match depot_client.demote_package(ident, channel, token) {
+    match api_client.demote_package(ident, channel, token) {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to demote '{}': {:?}", ident, e);

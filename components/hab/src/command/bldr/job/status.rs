@@ -14,8 +14,8 @@
 
 use std::io::Write;
 
+use api_client;
 use common::ui::{Status, UIWriter, UI};
-use depot_client;
 use tabwriter::TabWriter;
 
 use error::{Error, Result};
@@ -29,13 +29,13 @@ pub fn start(
     limit: usize,
     show_jobs: bool,
 ) -> Result<()> {
-    let depot_client =
-        depot_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
+    let api_client =
+        api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     if origin.is_some() {
-        do_origin_status(ui, &depot_client, origin.unwrap(), limit)?;
+        do_origin_status(ui, &api_client, origin.unwrap(), limit)?;
     } else {
-        do_job_group_status(ui, &depot_client, group_id.unwrap(), show_jobs)?;
+        do_job_group_status(ui, &api_client, group_id.unwrap(), show_jobs)?;
     }
 
     Ok(())
@@ -43,7 +43,7 @@ pub fn start(
 
 fn do_job_group_status(
     ui: &mut UI,
-    depot_client: &depot_client::Client,
+    api_client: &api_client::Client,
     group_id: &str,
     show_jobs: bool,
 ) -> Result<()> {
@@ -60,7 +60,7 @@ fn do_job_group_status(
         format!("status of job group {}", group_id),
     )?;
 
-    match depot_client.get_schedule(gid, show_jobs) {
+    match api_client.get_schedule(gid, show_jobs) {
         Ok(sr) => {
             let mut tw = TabWriter::new(vec![]);
             write!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\n").unwrap();
@@ -94,7 +94,7 @@ fn do_job_group_status(
 
 fn do_origin_status(
     ui: &mut UI,
-    depot_client: &depot_client::Client,
+    api_client: &api_client::Client,
     origin: &str,
     limit: usize,
 ) -> Result<()> {
@@ -103,7 +103,7 @@ fn do_origin_status(
         format!("status of job groups in {} origin", origin),
     )?;
 
-    match depot_client.get_origin_schedule(origin, limit) {
+    match api_client.get_origin_schedule(origin, limit) {
         Ok(sr) => {
             let mut tw = TabWriter::new(vec![]);
             write!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\n").unwrap();

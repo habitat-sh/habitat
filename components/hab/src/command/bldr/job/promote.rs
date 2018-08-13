@@ -18,7 +18,6 @@ use std::str::FromStr;
 
 use api_client;
 use common::ui::{Status, UIReader, UIWriter, UI};
-use depot_client::{self, SchedulerResponse};
 
 use error::{Error, Result};
 use {PRODUCT, VERSION};
@@ -38,7 +37,7 @@ fn in_origin(ident: &str, origin: Option<&str>) -> bool {
 
 pub fn get_ident_list(
     ui: &mut UI,
-    group_status: &SchedulerResponse,
+    group_status: &api_client::SchedulerResponse,
     origin: Option<&str>,
     interactive: bool,
 ) -> Result<Vec<String>> {
@@ -71,11 +70,11 @@ pub fn get_ident_list(
         .collect())
 }
 
-fn get_group_status(bldr_url: &str, group_id: u64) -> Result<SchedulerResponse> {
-    let depot_client =
-        depot_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::DepotClient)?;
+fn get_group_status(bldr_url: &str, group_id: u64) -> Result<api_client::SchedulerResponse> {
+    let api_client =
+        api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
-    let group_status = depot_client
+    let group_status = api_client
         .get_schedule(group_id as i64, true)
         .map_err(|e| Error::ScheduleStatus(e))?;
 
@@ -179,8 +178,8 @@ mod test {
     use std::sync::{Arc, RwLock};
 
     use super::get_ident_list;
+    use api_client::{Project, SchedulerResponse};
     use common::ui::{Coloring, UI};
-    use depot_client::{Project, SchedulerResponse};
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {
