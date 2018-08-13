@@ -1305,7 +1305,6 @@ fn enable_features_from_env(ui: &mut UI) {
     let features = vec![
         (feat::List, "LIST"),
         (feat::OfflineInstall, "OFFLINE_INSTALL"),
-        (feat::RootlessStudio, "ROOTLESS_STUDIO"),
         (feat::IgnoreLocal, "IGNORE_LOCAL"),
     ];
 
