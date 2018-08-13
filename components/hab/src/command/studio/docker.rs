@@ -38,7 +38,19 @@ const HAB_STUDIO_SECRET: &'static str = "HAB_STUDIO_SECRET_";
 
 pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> {
     let docker_cmd = find_docker_cmd()?;
+    // We need to strip out the -D if it exists to avoid
+    // it getting passed to the sup on entering the studio
+    let to_cull = OsString::from("-D");
+    if let Some(index) = args.iter().position(|x| *x == to_cull) {
+        args.remove(index);
+    }
+    if args[0] == OsString::from("rm") {
+        return rm_container(&docker_cmd);
+    }
+    return enter(&docker_cmd, &args);
+}
 
+fn enter(docker_cmd: &Path, args: &Vec<OsString>) -> Result<()> {
     if is_image_present(&docker_cmd) {
         debug!("Found Studio Docker image locally.");
     } else {
@@ -98,19 +110,15 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         }
     }
 
-    // We need to strip out the -D if it exists to avoid
-    // it getting passed to the sup on entering the studio
-    let to_cull = OsString::from("-D");
-    if let Some(index) = args.iter().position(|x| *x == to_cull) {
-        args.remove(index);
-    }
-
     // Windows containers do not use filesystem sharing for
     // local mounts
     if !is_serving_windows_containers(&docker_cmd) {
         check_mounts(&docker_cmd, volumes.iter())?;
     }
-    run_container(docker_cmd, args, volumes.iter(), env_vars.iter())
+    if container_exists(&docker_cmd) {
+        return start_container(&docker_cmd);
+    }
+    run_container(&docker_cmd, args.to_vec(), volumes.iter(), env_vars.iter())
 }
 
 fn find_docker_cmd() -> Result<PathBuf> {
@@ -214,8 +222,44 @@ where
     Ok(())
 }
 
+fn container_exists(docker_cmd: &Path) -> bool {
+    let name = path_to_name().expect("Unable to load name from path");
+    let cmd_args: Vec<OsString> = vec!["container".into(), "inspect".into(), name.into()];
+    let output = Command::new(docker_cmd)
+        .args(&cmd_args)
+        .output()
+        .expect("docker failed to start");
+    if output.status.success() {
+        return true;
+    }
+    return false;
+}
+
+#[cfg(not(target_os = "windows"))]
+fn path_to_name() -> Result<String> {
+    let mut cwd = env::current_dir()?;
+    cwd = cwd.strip_prefix("/")?.to_path_buf();
+    let pathstr = cwd.to_str().expect("Path to be parseable");
+    return Ok(pathstr.replace("/", "--"));
+}
+
+#[cfg(target_os = "windows")]
+fn path_to_name() -> Result<String> {
+    let cwd = env::current_dir()?;
+    let pathstr = cwd.to_str().expect("Path to be parseable");
+    let stripped_path: String = pathstr.chars().skip(3).take(pathstr.len() - 3).collect();
+    return Ok(stripped_path.replace("\\", "--"));
+}
+
+fn rm_container(docker_cmd: &Path) -> Result<()> {
+    let mut cmd_args: Vec<OsString> = vec!["rm".into()];
+    let name = path_to_name()?;
+    cmd_args.push(name.into());
+    Ok(process::become_command(docker_cmd.to_path_buf(), cmd_args)?)
+}
+
 fn run_container<I, J, S, T>(
-    docker_cmd: PathBuf,
+    docker_cmd: &Path,
     args: Vec<OsString>,
     volumes: I,
     env_vars: J,
@@ -226,10 +270,13 @@ where
     S: AsRef<OsStr>,
     T: AsRef<str>,
 {
-    let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
+    let mut cmd_args: Vec<OsString> = vec!["run".into()];
     if !is_serving_windows_containers(&docker_cmd) {
         cmd_args.push("--privileged".into());
     }
+    let name = path_to_name()?;
+    cmd_args.push("--name".into());
+    cmd_args.push(name.into());
     match args.first().map(|f| f.to_str().unwrap_or_default()) {
         Some("build") => {}
         _ => {
@@ -271,7 +318,15 @@ where
         cmd_args.push("c:/".into());
     }
     unset_proxy_env_vars();
-    Ok(process::become_command(docker_cmd, cmd_args)?)
+    Ok(process::become_command(docker_cmd.to_path_buf(), cmd_args)?)
+}
+
+fn start_container(docker_cmd: &Path) -> Result<()> {
+    let mut cmd_args: Vec<OsString> = vec!["start".into()];
+    cmd_args.push("--interactive".into());
+    let name = path_to_name()?;
+    cmd_args.push(name.into());
+    Ok(process::become_command(docker_cmd.to_path_buf(), cmd_args)?)
 }
 
 fn unset_proxy_env_vars() {
