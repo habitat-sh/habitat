@@ -31,6 +31,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Fix some release issues [#5444](https://github.com/habitat-sh/habitat/pull/5444) ([christophermaier](https://github.com/christophermaier))
 - add launcher appveyor build and always publish to unstable [#5441](https://github.com/habitat-sh/habitat/pull/5441) ([mwrock](https://github.com/mwrock))
 - Add fnichol to CODEOWNERS for butterfly component. [#5435](https://github.com/habitat-sh/habitat/pull/5435) ([fnichol](https://github.com/fnichol))
 - Promote from the release channel for both promotions [#5428](https://github.com/habitat-sh/habitat/pull/5428) ([christophermaier](https://github.com/christophermaier))
