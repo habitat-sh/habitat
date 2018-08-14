@@ -31,6 +31,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Fix exit code for publish when pushing containers to dockerhub [#5449](https://github.com/habitat-sh/habitat/pull/5449) ([elliott-davis](https://github.com/elliott-davis))
 - Fix one more repository spelling [#5446](https://github.com/habitat-sh/habitat/pull/5446) ([raskchanky](https://github.com/raskchanky))
 - Fix some release issues [#5444](https://github.com/habitat-sh/habitat/pull/5444) ([christophermaier](https://github.com/christophermaier))
 - add launcher appveyor build and always publish to unstable [#5441](https://github.com/habitat-sh/habitat/pull/5441) ([mwrock](https://github.com/mwrock))
