@@ -5,7 +5,11 @@ In order to help us troubleshoot the issue, please be sure to include the follow
 - [ ] The OS (including version) where you are running any of the Habitat commands.
 - [ ] Debug/backtrace of the command you are trying to run. You can set the following environment variables before running the `hab` command to generate a trace:
 
+		# Linux/MacOS
 		RUST_LOG=debug RUST_BACKTRACE=1 hab ...
+		
+		# Windows (Powershell 5+)
+		$env:RUST_LOG="debug"; $env:RUST_BACKTRACE=1; hab ...
 		
 - [ ] Current Habitat environment variables where the `hab` command or supervisor is running.  These can be gathered using:
 
@@ -18,8 +22,9 @@ In order to help us troubleshoot the issue, please be sure to include the follow
 
 - [ ] If this is a key related issue, please include the list of files (including user/group permissions) in `/hab/cache/keys` and `$HOME/.hab/cache/keys` via `ls -la`.
 
+		# Linux/MacOS
 		ls -la /hab/cache/keys
 		ls -la $HOME/.hab/cache.keys
 
-
-
+		# Windows (Powershell 5+)
+		ls C:\hab\cache\keys
