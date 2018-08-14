@@ -13,7 +13,7 @@ if [[ -z $DOCKER_LOGIN_PASSWORD ]]; then
 fi
 
 docker login -u="$DOCKER_LOGIN_USER" -p="$DOCKER_LOGIN_PASSWORD"
-trap 'rm -f $HOME/.docker/config.json; exit $?' INT TERM EXIT
+trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
 
 # Always push the version
 docker push "${IMAGE_NAME}:${VERSION}"
