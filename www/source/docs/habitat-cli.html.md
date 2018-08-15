@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.59.0/20180712155441 (linux) | 13 Jul 2018 |
+| hab 0.61.0/20180815171844 (linux) | 15 Aug 2018 |
 
 ## hab
 
@@ -55,7 +55,7 @@ term       Alias for: 'sup term'
 | [hab plan](#hab-plan) | Commands relating to plans and other app-specific configuration. |
 | [hab ring](#hab-ring) | Commands relating to Habitat rings |
 | [hab studio](#hab-studio) | Commands relating to Habitat Studios |
-| [hab sup](#hab-sup) | Commands relating to the Habitat Supervisor |
+| [hab sup](#hab-sup) | The Habitat Supervisor |
 | [hab supportbundle](#hab-supportbundle) | Create a tarball of Habitat Supervisor data to send to support |
 | [hab svc](#hab-svc) | Commands relating to Habitat services |
 | [hab user](#hab-user) | Commands relating to Habitat users |
@@ -1607,12 +1607,13 @@ Uploads a local Habitat Artifact to Builder
 **USAGE**
 
 ```
-hab pkg upload [OPTIONS] <HART_FILE>...
+hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
 ```
 
 **FLAGS**
 
 ```
+--force      Skips checking availability of package and force uploads, potentially overwriting a stored copy of a package. (default: false)
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
@@ -2014,8 +2015,11 @@ hab sup <SUBCOMMAND>
 | Command | Description |
 | ------- | ----------- |
 | [hab sup bash](#hab-sup-bash) | Start an interactive Bash-like shell |
+| [hab sup depart](#hab-sup-depart) | Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id |
 | [hab sup run](#hab-sup-run) | Run the Habitat Supervisor |
+| [hab sup secret](#hab-sup-secret) | Commands relating to a Habitat Supervisor's Contorl Gateway secret |
 | [hab sup sh](#hab-sup-sh) | Start an interactive Bourne-like shell |
+| [hab sup status](#hab-sup-status) | Query the status of Habitat services. |
 | [hab sup term](#hab-sup-term) | Gracefully terminate the Habitat Supervisor and all of its running services |
 ---
 
@@ -2036,6 +2040,38 @@ hab sup bash
 ```
 
 
+
+
+
+---
+
+### hab sup depart
+
+Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id
+
+**USAGE**
+
+```
+hab sup depart [OPTIONS] <MEMBER_ID>
+```
+
+**FLAGS**
+
+```
+-h, --help    Prints help information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+```
+
+**ARGS**
+
+```
+<MEMBER_ID>    The member-id of the Supervisor to depart
+```
 
 
 
@@ -2096,6 +2132,55 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
 ---
 
+### hab sup secret
+
+Commands relating to a Habitat Supervisor's Contorl Gateway secret
+
+**USAGE**
+
+```
+hab sup secret [SUBCOMMAND]
+```
+
+**FLAGS**
+
+```
+-h, --help    Prints help information
+```
+
+
+
+
+**SUBCOMMANDS**
+
+| Command | Description |
+| ------- | ----------- |
+| [hab sup secret generate](#hab-sup-secret-generate) | Generate a secret key to use as a Supervisor's Control Gateway secret |
+---
+
+### hab sup secret generate
+
+Generate a secret key to use as a Supervisor's Control Gateway secret
+
+**USAGE**
+
+```
+hab sup secret generate
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+
+
+
+---
+
 ### hab sup sh
 
 Start an interactive Bourne-like shell
@@ -2113,6 +2198,38 @@ hab sup sh
 ```
 
 
+
+
+
+---
+
+### hab sup status
+
+Query the status of Habitat services.
+
+**USAGE**
+
+```
+hab sup status [OPTIONS] [PKG_IDENT]
+```
+
+**FLAGS**
+
+```
+-h, --help    Prints help information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+```
 
 
 
