@@ -21,4 +21,3 @@ case "${HAB_STUDIO_SUP:-}" in
     echo ""
     ;;
 esac
-

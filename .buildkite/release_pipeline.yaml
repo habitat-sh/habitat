@@ -158,7 +158,7 @@ steps:
 
   - wait
 
-  - label: ":docker: Upload (but don't promote!) containers to Docker Hub"
+  - label: ":docker: Upload containers to Docker Hub"
     command: .buildkite/scripts/dockerhub_upload.sh
     agents:
       queue: habitat-release
