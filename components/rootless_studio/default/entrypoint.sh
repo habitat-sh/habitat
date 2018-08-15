@@ -1,6 +1,6 @@
 #!/bin/bash
 
-hab pkg exec core/hab-backline mkdir -p /tmp
+hab pkg exec core/hab-backline mkdir -m 1777 -p /tmp
 
 source /etc/habitat-studio/import_keys.sh
 source /etc/habitat-studio/environment.sh
