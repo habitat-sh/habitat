@@ -378,8 +378,6 @@ function Invoke-StudioRun($cmd) {
   }
   New-Studio
   Write-HabInfo "Running '$cmd' in Studio at $HAB_STUDIO_ROOT"
-  New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $HAB_STUDIO_ROOT | Out-Null
-  Set-Location "Habitat:\src"
   Invoke-Expression $cmd
 }
 
