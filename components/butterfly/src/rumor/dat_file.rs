@@ -243,7 +243,7 @@ impl DatFile {
                 .truncate(true)
                 .open(&tmp_path)
                 .map_err(|err| Error::DatFileIO(tmp_path.clone(), err))?;
-            let mut writer = BufWriter::new(file);
+            let mut writer = BufWriter::new(&file);
             self.init(&mut writer)?;
             header.member_len = self.write_member_list(&mut writer, &server.member_list)?;
             header.service_len = self.write_rumor_store(&mut writer, &server.service_store)?;
@@ -261,9 +261,35 @@ impl DatFile {
             writer
                 .flush()
                 .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+
+            file.sync_all()
+                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         }
         fs::rename(&tmp_path, &self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        self.sync_parent_dir()?;
         Ok(0)
+    }
+
+    /// sync_parent_dir calls sync_all (fsync) on the parent directory
+    /// of the dat_file. The goal of this function is to ensure file
+    /// operations such as rename are persisted to disk.
+    ///
+    /// On windows this function does nothing.
+    #[cfg(unix)]
+    fn sync_parent_dir(&self) -> Result<()> {
+        let parent = self.path.parent().ok_or(Error::DatFileIO(
+            self.path.clone(),
+            io::Error::new(io::ErrorKind::Other, "Dat file has no parent directory"),
+        ))?;
+        fs::File::open(parent)
+            .and_then(|f| f.sync_all())
+            .map_err(|err| Error::DatFileIO(parent.to_path_buf(), err))?;
+        Ok(())
+    }
+
+    #[cfg(not(unix))]
+    fn sync_parent_dir(&self) -> Result<()> {
+        Ok(())
     }
 
     fn init<W>(&self, writer: &mut W) -> Result<usize>
