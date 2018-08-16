@@ -71,6 +71,7 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
         None => autodiscover_scaffolding(ui),
     }
 }
+
 fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
     // Determine if the current dir has an app that can use
     // one of our scaffoldings and use it by default
@@ -123,7 +124,7 @@ where
         || path.as_ref().join("Godeps/Godeps.json").is_file()
         || path.as_ref().join("vendor/vendor.json").is_file()
         || path.as_ref().join("glide.yaml").is_file()
-        || project_uses_gb(path.as_ref()).expect("Result<bool> not returned from .go file check")
+        || project_uses_gb(path.as_ref()).unwrap_or(false)
     {
         return true;
     }
