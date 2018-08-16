@@ -32,6 +32,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- [common] Remove a now unused dependency in `habitat-sh/builder`. [#5455](https://github.com/habitat-sh/habitat/pull/5455) ([fnichol](https://github.com/fnichol))
 - move launcher plans out of habitat dir to match other components [#5443](https://github.com/habitat-sh/habitat/pull/5443) ([mwrock](https://github.com/mwrock))
 - Bump to 0.62.0-dev [#5458](https://github.com/habitat-sh/habitat/pull/5458) ([raskchanky](https://github.com/raskchanky))
 - Add 0.61.0 blog post [#5456](https://github.com/habitat-sh/habitat/pull/5456) ([raskchanky](https://github.com/raskchanky))
