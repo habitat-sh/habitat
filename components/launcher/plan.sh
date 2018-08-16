@@ -1,4 +1,5 @@
-source "../../../support/ci/builder-base-plan.sh"
+# shellcheck disable=2154
+source "../../support/ci/builder-base-plan.sh"
 pkg_name=hab-launcher
 pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
@@ -24,4 +25,15 @@ do_prepare() {
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
   export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
+}
+
+do_build() {
+  pushd "$PLAN_CONTEXT" > /dev/null
+  cargo build "${builder_build_type#--debug}" --target="$rustc_target" --verbose
+  popd > /dev/null
+}
+
+do_install() {
+  install -v -D "$CARGO_TARGET_DIR"/"$rustc_target"/"${builder_build_type#--}"/$bin \
+    "$pkg_prefix"/bin/$bin
 }
