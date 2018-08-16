@@ -278,7 +278,9 @@ where
     cmd_args.push("--name".into());
     cmd_args.push(name.into());
     match args.first().map(|f| f.to_str().unwrap_or_default()) {
-        Some("build") => {}
+        Some("build") | Some("run") => {
+            cmd_args.push("--rm".into());
+        }
         _ => {
             cmd_args.push("--tty".into());
             cmd_args.push("--interactive".into());
