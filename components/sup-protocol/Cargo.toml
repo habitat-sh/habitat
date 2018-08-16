@@ -12,9 +12,9 @@ futures = "*"
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 lazy_static = "*"
 log = "*"
-prost = "*"
-prost-derive = "*"
-rand = "*"
+prost = "0.3.2"
+prost-derive = "0.3.2"
+rand = "0.4.2"
 serde = "*"
 serde_derive = "*"
 tokio = "*"
@@ -22,9 +22,9 @@ tokio-io = "*"
 
 [build-dependencies]
 heck = "*"
-prost = "*"
-prost-build = "*"
-prost-types = "*"
+prost = "0.3.2"
+prost-build = "0.3.2"
+prost-types = "0.3.2"
 tempdir = "*"
 
 [dev-dependencies]

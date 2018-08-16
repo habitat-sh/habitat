@@ -26,9 +26,9 @@ habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 handlebars = { version = "0.29.1", default-features = false }
 lazy_static = "*"
 log = "*"
-rusoto_core = "*"
-rusoto_credential = "*"
-rusoto_ecr = "*"
+rusoto_core = "0.31.0"
+rusoto_credential = "0.10.0"
+rusoto_ecr = "0.31.0"
 serde = { version = "*", features = ["rc"] }
 serde_json = "*"
 tempdir = "*"

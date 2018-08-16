@@ -10,7 +10,7 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
-protobuf = "*"
+protobuf = "1.5.1"
 serde = "*"
 serde_derive = "*"
 
