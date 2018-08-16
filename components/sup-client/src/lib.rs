@@ -100,7 +100,15 @@ impl fmt::Display for SrvClientError {
                 path.display()
             ),
             SrvClientError::Decode(ref err) => format!("{}", err),
-            SrvClientError::Io(ref err) => format!("{}", err),
+            SrvClientError::Io(ref err) => format!(
+                "Unable to contact the Supervisor.\n\n\
+                If the Supervisor you are contacting is local, this probably means it is not running. You can run a Supervisor in the foreground with:\n\n\
+                   hab sup run\n\n\
+                Or try restarting the Supervisor through your oerating systems init process.\n\n\
+                Original error is:\n\n\
+                   {}",
+                err
+            ),
             SrvClientError::NetErr(ref err) => format!("{}", err),
         };
         write!(f, "{}", content)
