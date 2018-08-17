@@ -468,27 +468,6 @@ impl Server {
         }
     }
 
-    /// Change the health of a `Member`, and update its `RumorKey`.
-    pub fn insert_health(&self, member: &Member, health: Health) {
-        let rk: RumorKey = RumorKey::from(&member);
-        // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-        // of just how the logic goes. The value of the trace is really high, though, so we suck it
-        // for now.
-        let trace_member_id = member.id.clone();
-        let trace_incarnation = member.incarnation;
-        let trace_health = health.clone();
-        if self.member_list.insert_health(member, health) {
-            trace_it!(
-                MEMBERSHIP: self,
-                TraceKind::MemberUpdate,
-                trace_member_id,
-                trace_incarnation,
-                trace_health
-            );
-            self.rumor_heat.start_hot_rumor(rk);
-        }
-    }
-
     /// Set our member to departed, then send up to 10 out of order ack messages to other
     /// members to seed our status.
     pub fn set_departed(&self) {

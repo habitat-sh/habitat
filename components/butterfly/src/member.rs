@@ -284,7 +284,7 @@ impl MemberList {
     ///
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
-    pub fn increment_update_counter(&self) {
+    fn increment_update_counter(&self) {
         self.update_counter.fetch_add(1, Ordering::Relaxed);
     }
 
@@ -547,11 +547,6 @@ impl MemberList {
         true
     }
 
-    /// The same as `insert_health_by_id`, but takes a member rather than an id.
-    pub fn insert_health(&self, member: &Member, health: Health) -> bool {
-        self.insert_health_by_id(&member.id, health)
-    }
-
     /// Returns a protobuf membership record for the given member id.
     pub fn membership_for(&self, member_id: &str) -> Option<Membership> {
         let mhealth = match self
@@ -637,19 +632,6 @@ impl MemberList {
                 .read()
                 .expect("Member list lock is poisoned")
                 .values(),
-        );
-    }
-
-    /// Takes a function whose argument is a reference to the member list hashmap.
-    pub fn with_member_list<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(&HashMap<String, Member>) -> (),
-    {
-        with_closure(
-            self.members
-                .read()
-                .expect("Member list lock is poisoned")
-                .deref(),
         );
     }
 
