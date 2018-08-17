@@ -921,6 +921,7 @@ fn sub_svc_status(m: &ArgMatches) -> Result<()> {
     if let Some(pkg) = m.value_of("PKG_IDENT") {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
+
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| {
             let mut out = TabWriter::new(io::stdout());
@@ -938,8 +939,15 @@ fn sub_svc_status(m: &ArgMatches) -> Result<()> {
                     }
                     Ok((out, rest))
                 })
-                .and_then(|(mut out, rest)| {
-                    rest.for_each(move |reply| print_svc_status(&mut out, reply, false))
+                .and_then(|(out, rest)| {
+                    rest.fold(out, move |mut out, reply| {
+                        print_svc_status(&mut out, reply, false)?;
+                        Ok::<_, SrvClientError>(out)
+                    })
+                })
+                .and_then(|mut out| {
+                    out.flush()?;
+                    Ok(())
                 })
         })
         .wait()?;
@@ -1418,7 +1426,6 @@ where
         svc_pid,
         status.service_group,
     )?;
-    out.flush()?;
     return Ok(());
 }
 
