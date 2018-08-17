@@ -33,6 +33,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Bring back column-aligned svc status [#5471](https://github.com/habitat-sh/habitat/pull/5471) ([stevendanna](https://github.com/stevendanna))
 - Don&#39;t segfault `plan init` on io::Error [#5463](https://github.com/habitat-sh/habitat/pull/5463) ([adamhjk](https://github.com/adamhjk))
 - [butterfly] Make DatFile write more durable [#5461](https://github.com/habitat-sh/habitat/pull/5461) ([stevendanna](https://github.com/stevendanna))
 - [common] Remove a now unused dependency in `habitat-sh/builder`. [#5455](https://github.com/habitat-sh/habitat/pull/5455) ([fnichol](https://github.com/fnichol))
