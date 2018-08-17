@@ -26,9 +26,7 @@ use common::command::package::install::{InstallMode, InstallSource, LocalPackage
 use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use hab;
-use hcore::error as hcoreerror;
 use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
-use hcore::package::metadata::MetaFile;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use hcore::PROGRAM_NAME;
 use tempdir::TempDir;
@@ -448,7 +446,7 @@ impl BuildRootContext {
                 PackageIdent::from_str(ident_or_archive)?
             };
             let pkg_install = PackageInstall::load(&ident, Some(&rootfs))?;
-            if pkg_install.is_runnable() {
+            if pkg_install.is_a_service() {
                 idents.push(PkgIdentType::Svc(SvcIdent {
                     ident: ident,
                     exposes: pkg_install.exposes()?,
@@ -526,20 +524,8 @@ impl BuildRootContext {
         let gid = DEFAULT_USER_AND_GROUP_ID;
 
         let pkg = self.primary_svc()?;
-        let user_name = match pkg.svc_user() {
-            Ok(Some(user)) => user,
-            Ok(None) => {
-                return Err(hcoreerror::Error::MetaFileNotFound(MetaFile::SvcUser).into());
-            }
-            Err(_) => String::from("hab"),
-        };
-        let group_name = match pkg.svc_group() {
-            Ok(Some(group)) => group,
-            Ok(None) => {
-                return Err(hcoreerror::Error::MetaFileNotFound(MetaFile::SvcGroup).into());
-            }
-            Err(_) => String::from("hab"),
-        };
+        let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap(); 
+        let group_name = pkg.svc_group().unwrap_or(Some(String::from("hab"))).unwrap();
 
         // TODO: In some cases, packages based on core/nginx and
         // core/httpd (and possibly others) will not work, because
