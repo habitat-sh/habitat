@@ -680,7 +680,6 @@ fn sub_cli_completers() -> App<'static, 'static> {
 fn sub_pkg_build() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand build =>
         (about: "Builds a Plan using a Studio")
-        (aliases: &["bu", "bui", "buil"])
         (@arg HAB_ORIGIN_KEYS: -k --keys +takes_value
             "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
         (@arg HAB_STUDIO_ROOT: -r --root +takes_value
