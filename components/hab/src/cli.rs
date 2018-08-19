@@ -51,7 +51,7 @@ pub fn get() -> App<'static, 'static> {
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
         (version: super::VERSION)
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
-        (@setting VersionlessSubcommands)
+        (@setting GlobalVersion)
         (@setting ArgRequiredElseHelp)
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
