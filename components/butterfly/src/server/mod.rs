@@ -559,7 +559,8 @@ impl Server {
                     .member_list
                     .insert_health_by_id(&service_rumor.member_id, Health::Departed)
                 {
-                    self.member_list.depart_remove(&service_rumor.member_id);
+                    // TODO (CM): Why are we inferring departure from
+                    // a service rumor?
                     self.rumor_heat.start_hot_rumor(RumorKey::new(
                         RumorType::Member,
                         service_rumor.member_id.clone(),
@@ -600,7 +601,6 @@ impl Server {
             .member_list
             .insert_health_by_id(&departure.member_id, Health::Departed)
         {
-            self.member_list.depart_remove(&departure.member_id);
             self.rumor_heat.start_hot_rumor(RumorKey::new(
                 RumorType::Member,
                 departure.member_id.clone(),
