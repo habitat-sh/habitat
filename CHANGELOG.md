@@ -33,6 +33,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add updating Cargo.lock to release procedure documentation [#5475](https://github.com/habitat-sh/habitat/pull/5475) ([baumanj](https://github.com/baumanj))
 -  studio run should not be interactive [#5469](https://github.com/habitat-sh/habitat/pull/5469) ([mwrock](https://github.com/mwrock))
 - Bring back column-aligned svc status [#5471](https://github.com/habitat-sh/habitat/pull/5471) ([stevendanna](https://github.com/stevendanna))
 - Don&#39;t segfault `plan init` on io::Error [#5463](https://github.com/habitat-sh/habitat/pull/5463) ([adamhjk](https://github.com/adamhjk))
