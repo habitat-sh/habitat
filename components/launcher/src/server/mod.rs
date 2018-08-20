@@ -36,6 +36,7 @@ use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use libc;
 use protobuf;
 use protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
+use semver::{Version, VersionReq};
 
 use self::handlers::Handler;
 use error::{Error, Result};
@@ -49,6 +50,9 @@ const DEFAULT_SUP_RESTART_SLEEP_SECS: u64 = 5;
 
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 static LOGKEY: &'static str = "SV";
+
+const SUP_VERSION_CHECK_DISABLE: &'static str = "HAB_LAUNCH_NO_SUP_VERSION_CHECK";
+const SUP_VERSION_REQ: &'static str = ">= 0.56";
 
 type Receiver = IpcReceiver<Vec<u8>>;
 type Sender = IpcSender<Vec<u8>>;
@@ -509,6 +513,42 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     }
 }
 
+/// Return whether the given version string matches SUP_VERSION_REQ parsed as
+/// a semver::VersionReq.
+///
+/// Example inputs (that is `hab-sup --version` outputs):
+/// hab-sup 0.59.0/20180712161546
+/// hab-sup 0.62.0-dev
+fn is_supported_supervisor_version(version_ouput: String) -> bool {
+    if let Some(version_str) = version_ouput
+        .split(' ')                      // ["hab-sup", <version-number>]
+        .last()                          // drop "hab-sup", keep <version-number>
+        .unwrap_or("")                   //
+        .split(|c| c == '/' || c == '-') // strip "-dev" or "/build"
+        .next()                          // set version_str to just the X.Y.Z
+    {
+        debug!(
+            "Checking Supervisor version '{}' against requirement '{}'",
+            version_str, SUP_VERSION_REQ
+        );
+        match Version::parse(version_str) {
+            Ok(version) => VersionReq::parse(SUP_VERSION_REQ)
+                .expect("invalid semantic version requirement")
+                .matches(&version),
+            Err(e) => {
+                error!("{}: {}", e, version_str);
+                false
+            }
+        }
+    } else {
+        error!(
+            "Expected 'hab-sup <semantic-version>', found '{}'",
+            version_ouput
+        );
+        false
+    }
+}
+
 /// Start a Supervisor as a child process.
 ///
 /// Passing a value of true to the `clean` argument will force the Supervisor to clean the
@@ -516,6 +556,18 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
 /// that terminated gracefully.
 fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
     let binary = supervisor_cmd()?;
+
+    if core::env::var(SUP_VERSION_CHECK_DISABLE).is_ok() {
+        warn!("Launching Supervisor {:?} without version checking", binary);
+    } else {
+        debug!("Checking Supervisor {:?} version", binary);
+        let version_check = Command::new(&binary).arg("--version").output()?;
+        let sup_version = String::from_utf8_lossy(&version_check.stdout);
+        if !is_supported_supervisor_version(sup_version.trim().to_string()) {
+            return Err(Error::SupBinaryVersion);
+        }
+    }
+
     let mut command = Command::new(&binary);
     if clean {
         command.env(protocol::LAUNCHER_LOCK_CLEAN_ENV, clean.to_string());

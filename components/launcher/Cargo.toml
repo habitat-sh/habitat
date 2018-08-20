@@ -20,6 +20,7 @@ ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt
 libc = "*"
 log = "*"
 protobuf = "1.5.1"
+semver = "*"
 time = "*"
 
 [target.'cfg(windows)'.dependencies]
