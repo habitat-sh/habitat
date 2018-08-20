@@ -65,11 +65,11 @@ pub mod message;
 pub mod net;
 pub mod types;
 
+use rand::RngCore;
+
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-
-use rand::Rng;
 
 use net::{ErrCode, NetResult};
 

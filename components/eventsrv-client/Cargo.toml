@@ -16,7 +16,7 @@ habitat-eventsrv-protocol = { path = "../eventsrv-protocol", default-features = 
 lazy_static = "*"
 log = "*"
 protobuf = "1.5.1"
-rand = "0.4.2"
+rand = "*"
 time = "*"
 
 [dependencies.zmq]
