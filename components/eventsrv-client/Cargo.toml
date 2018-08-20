@@ -15,8 +15,8 @@ byteorder = "*"
 habitat-eventsrv-protocol = { path = "../eventsrv-protocol", default-features = false }
 lazy_static = "*"
 log = "*"
-protobuf = "*"
-rand = "*"
+protobuf = "1.5.1"
+rand = "0.4.2"
 time = "*"
 
 [dependencies.zmq]

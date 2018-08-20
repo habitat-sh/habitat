@@ -47,9 +47,9 @@ libc = "*"
 log = "*"
 notify = "*"
 persistent = "*"
-prost = "*"
-protobuf = { version = "*", features = ["bytes"] }
-rand = "*"
+prost = "0.3.2"
+protobuf = { version = "1.5.1", features = ["bytes"] }
+rand = "0.4.2"
 regex = "*"
 router = "*"
 rust-crypto = "*"

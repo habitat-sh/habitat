@@ -18,16 +18,16 @@ env_logger = "*"
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 log = "*"
 lazy_static = "*"
-prost = "*"
-prost-derive = "*"
-rand = "*"
+prost = "0.3.2"
+prost-derive = "0.3.2"
+rand = "0.4.2"
 serde = "*"
 serde_derive = "*"
 tempdir = "*"
 time = "*"
 threadpool = "*"
 toml = { version = "*", default-features = false }
-uuid = { version = "*", features = ["v4"] }
+uuid = { version = "0.6.0", features = ["v4"] }
 zmq = { git = "https://github.com/erickt/rust-zmq", branch = "release/v0.8" }
 
 [dev-dependencies]
@@ -36,8 +36,8 @@ habitat_butterfly_test = { path = "../butterfly-test" }
 [build-dependencies]
 heck = "*"
 pkg-config = "0.3"
-prost = "*"
-prost-build = "*"
+prost = "0.3.2"
+prost-build = "0.3.2"
 tempdir = "*"
 
 [features]
