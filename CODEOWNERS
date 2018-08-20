@@ -11,7 +11,7 @@ components/pkg-* @fnichol @christophermaier @eeyun
 components/plan-build @fnichol @christophermaier @elliott-davis @scotthain
 components/rootless_studio @elliott-davis
 components/studio @fnichol @baumanj @elliott-davis @eeyun
-components/sup @christophermaier @reset @fnichol @baumanj
+components/sup* @christophermaier @reset @fnichol @baumanj
 support @fnichol @baumanj @elliott-davis @raskchanky
 tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
 www @cnunciato @mgamini @raskchanky
