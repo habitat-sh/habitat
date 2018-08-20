@@ -21,6 +21,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Revert &quot;Make docker studio behave like chroot studio&quot; [#5474](https://github.com/habitat-sh/habitat/pull/5474) ([elliott-davis](https://github.com/elliott-davis))
 - Don&#39;t quote HAB_STUDIO_SUP [#5451](https://github.com/habitat-sh/habitat/pull/5451) ([christophermaier](https://github.com/christophermaier))
 - [studio] Fast-fail when unmounting on Studio cleanup. [#5434](https://github.com/habitat-sh/habitat/pull/5434) ([fnichol](https://github.com/fnichol))
 - Provide consistency in supervisor clap cmds, correcting help menu problems [#5379](https://github.com/habitat-sh/habitat/pull/5379) ([jeremymv2](https://github.com/jeremymv2))
