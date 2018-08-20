@@ -37,6 +37,10 @@ const DOCKER_SOCKET: &'static str = "/var/run/docker.sock";
 const HAB_STUDIO_SECRET: &'static str = "HAB_STUDIO_SECRET_";
 
 pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> {
+    if args.get(0) == Some(&OsString::from("rm")) {
+        return Err(Error::CannotRemoveDockerStudio);
+    }
+
     let docker_cmd = find_docker_cmd()?;
 
     if is_image_present(&docker_cmd) {

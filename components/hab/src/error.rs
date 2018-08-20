@@ -37,6 +37,7 @@ pub enum Error {
     APIClient(api_client::Error),
     ArgumentError(&'static str),
     ButterflyError(String),
+    CannotRemoveDockerStudio,
     CannotRemoveFromChannel((String, String)),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
@@ -78,6 +79,9 @@ impl fmt::Display for Error {
             Error::APIClient(ref err) => format!("{}", err),
             Error::ArgumentError(ref e) => format!("{}", e),
             Error::ButterflyError(ref e) => format!("{}", e),
+            Error::CannotRemoveDockerStudio => {
+                format!("Docker Studios are not persistent and cannot be removed")
+            }
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
                 format!("{} cannot be removed from the {} channel.", p, c)
             }
@@ -174,6 +178,9 @@ impl error::Error for Error {
             Error::ButterflyError(_) => "Butterfly has had an error",
             Error::CannotRemoveFromChannel(_) => {
                 "Package cannot be removed from the specified channel"
+            }
+            Error::CannotRemoveDockerStudio => {
+                "Docker Studios are not persistent and cannot be removed"
             }
             Error::CommandNotFoundInPkg(_) => {
                 "Command was not found under any 'PATH' directories in the package"
