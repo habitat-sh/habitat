@@ -252,3 +252,10 @@ Promote the release. Wait for a few minutes, then perform a test build. Check th
 1. Tweet a link to the announcement @habitatsh
 1. Make sure the blog post PR with the release announcements is merged and published.
 1. Announce that the "Freeze" on merges to master is lifted in both the Chef internal slack team and in the Habitat slack team.
+
+# Update Cargo.lock
+
+1. In the [habitat](https://github.com/habitat-sh/habitat) repo, run `cargo update`, `make clean`, `make` and `cargo build -p habitat-launcher`.
+1. If there are warnings or errors that are simple, fix them. Otherwise, lock the appropriate versions in `Cargo.toml` files that lets the build succeed and file an issue to resolve the failure and relax the version lock.
+1. Open a PR for the `Cargo.lock` updates and any accompanying fixes which are necessary.
+1. Repeat with the [core](https://github.com/habitat-sh/core) and [builder](https://github.com/habitat-sh/builder) repos (omit the `habitat-launcher` build).
