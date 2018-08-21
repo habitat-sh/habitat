@@ -54,7 +54,7 @@ launcher_exits_with_error() {
 trap 'pgrep hab-launch &>/dev/null && pkill -9 hab-launch' INT TERM EXIT
 
 incompatible_version="0.55.0/20180321222338"
-if HAB_LAUNCH_NO_SUP_VERSION_CHECK= launcher_exits_with_error "$incompatible_version"; then
+if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$incompatible_version"; then
     echo "Success! Launcher exited with error"
     echo
 else
@@ -71,7 +71,7 @@ else
 fi
 
 compatible_version="0.56.0/20180530235935"
-if HAB_LAUNCH_NO_SUP_VERSION_CHECK= launcher_exits_with_error "$compatible_version"; then
+if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$compatible_version"; then
     echo "Failure! Expected launcher remain running"
     exit 1
 else
@@ -80,7 +80,7 @@ else
 fi
 
 dev_version="0.62.0-dev"
-if HAB_LAUNCH_NO_SUP_VERSION_CHECK= launcher_exits_with_error "$dev_version"; then
+if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$dev_version"; then
     echo "Failure! Expected launcher remain running"
     exit 1
 else
@@ -89,7 +89,7 @@ else
 fi
 
 invalid_version="one-point-twenty-one"
-if HAB_LAUNCH_NO_SUP_VERSION_CHECK= launcher_exits_with_error "$invalid_version"; then
+if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$invalid_version"; then
     echo "Success! Launcher exited with error"
     echo
 else

@@ -52,6 +52,9 @@ const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 static LOGKEY: &'static str = "SV";
 
 const SUP_VERSION_CHECK_DISABLE: &'static str = "HAB_LAUNCH_NO_SUP_VERSION_CHECK";
+// Version 0.56 is somewhat arbitrary. This functionality is for when we make
+// changes to the launcher that depend on supervisor behavior that hasn't
+// always existed such as https://github.com/habitat-sh/habitat/issues/5380
 const SUP_VERSION_REQ: &'static str = ">= 0.56";
 
 type Receiver = IpcReceiver<Vec<u8>>;
@@ -519,13 +522,13 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
 /// Example inputs (that is `hab-sup --version` outputs):
 /// hab-sup 0.59.0/20180712161546
 /// hab-sup 0.62.0-dev
-fn is_supported_supervisor_version(version_ouput: String) -> bool {
-    if let Some(version_str) = version_ouput
+fn is_supported_supervisor_version(version_output: String) -> bool {
+    if let Some(version_str) = version_output
         .split(' ')                      // ["hab-sup", <version-number>]
         .last()                          // drop "hab-sup", keep <version-number>
-        .unwrap_or("")                   //
+        .unwrap()                        // split() always returns an 1+ element iterator
         .split(|c| c == '/' || c == '-') // strip "-dev" or "/build"
-        .next()                          // set version_str to just the X.Y.Z
+        .next()
     {
         debug!(
             "Checking Supervisor version '{}' against requirement '{}'",
@@ -543,7 +546,7 @@ fn is_supported_supervisor_version(version_ouput: String) -> bool {
     } else {
         error!(
             "Expected 'hab-sup <semantic-version>', found '{}'",
-            version_ouput
+            version_output
         );
         false
     }
