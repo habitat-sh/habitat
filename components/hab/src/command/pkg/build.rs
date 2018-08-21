@@ -43,7 +43,7 @@ pub fn start(
         args.push(keys.into());
     }
     args.push("build".into());
-    if cfg!(not(target_os = "linux")) || reuse {
+    if cfg!(target_os = "linux") && reuse {
         args.push("-R".into());
     }
     args.push(plan_context.into());
