@@ -10,6 +10,6 @@ channel="$(buildkite-agent meta-data get release-channel)"
 echo "--- Destroying release channel '${channel}'"
 
 # TODO (CM): Once this command takes an --auth token, use that instead
-HAB_AUTH_TOKEN="${HAB_TEAM_AUTH_TOKEN}" hab bldr channel destroy \
+HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}" hab bldr channel destroy \
     --origin=core \
     "${channel}"

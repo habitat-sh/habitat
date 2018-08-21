@@ -100,5 +100,5 @@ echo "<br>* ${pkg_ident} (Linux)" | buildkite-agent annotate --append --context 
 echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
 ${hab_binary} pkg upload \
     --channel="${channel}" \
-    --auth="${HAB_TEAM_AUTH_TOKEN}" \
+    --auth="${HAB_AUTH_TOKEN}" \
     "results/${pkg_artifact}"

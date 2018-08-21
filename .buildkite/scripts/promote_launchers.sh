@@ -27,7 +27,7 @@ windows_launcher="$(resolve_launcher windows-launcher x86_64-windows)"
 channel=$(buildkite-agent meta-data get "release-channel")
 
 echo "--- :linux: :habicat: Promoting ${linux_launcher} for Linux to ${channel}"
-hab pkg promote --auth="${HAB_TEAM_AUTH_TOKEN}" "${linux_launcher}" "${channel}"
+hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${linux_launcher}" "${channel}"
 
 echo "--- :windows: :habicat: Promoting ${windows_launcher} for Windows to ${channel}"
-hab pkg promote --auth="${HAB_TEAM_AUTH_TOKEN}" "${windows_launcher}" "${channel}"
+hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${windows_launcher}" "${channel}"

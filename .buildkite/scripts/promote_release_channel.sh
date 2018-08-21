@@ -70,13 +70,13 @@ supervisor_packages=($(echo "${channel_pkgs_json}" | \
 
 for pkg in "${non_supervisor_packages[@]}"; do
     echo "--- :habicat: Promoting '$pkg' to '$to_channel'"
-    hab pkg promote --auth="${HAB_TEAM_AUTH_TOKEN}" "${pkg}" "${to_channel}"
+    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
 done
 
 echo "--- :warning: PROMOTING SUPERVISORS TO '$to_channel' :warning:"
 for pkg in "${supervisor_packages[@]}"; do
     echo "--- :habicat: Promoting $pkg to $to_channel"
-    hab pkg promote --auth="${HAB_TEAM_AUTH_TOKEN}" "${pkg}" "${to_channel}"
+    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
 done
 
 buildkite-agent annotate --style="success" --context="release-manifest"
