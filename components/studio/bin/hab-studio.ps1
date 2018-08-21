@@ -434,6 +434,7 @@ else {
   $script:HAB_STUDIO_ROOT = $env:HAB_STUDIO_ROOT
 }
 if($o) { $script:HAB_STUDIO_ROOT = $o }
+$HAB_STUDIO_ROOT = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($HAB_STUDIO_ROOT)
 
 if($k) {
   $env:HAB_ORIGIN_KEYS = $k
