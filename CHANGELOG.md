@@ -21,6 +21,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Relax the version pin for the `rand` crate [#5487](https://github.com/habitat-sh/habitat/pull/5487) ([baumanj](https://github.com/baumanj))
 - Update Cargo.lock to latest, locking versions of dependencies that break [#5468](https://github.com/habitat-sh/habitat/pull/5468) ([baumanj](https://github.com/baumanj))
 - Revert &quot;Make docker studio behave like chroot studio&quot; [#5474](https://github.com/habitat-sh/habitat/pull/5474) ([elliott-davis](https://github.com/elliott-davis))
 - Don&#39;t quote HAB_STUDIO_SUP [#5451](https://github.com/habitat-sh/habitat/pull/5451) ([christophermaier](https://github.com/christophermaier))
