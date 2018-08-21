@@ -23,6 +23,7 @@ extern crate libc;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
+extern crate semver;
 extern crate time;
 #[cfg(windows)]
 extern crate winapi;

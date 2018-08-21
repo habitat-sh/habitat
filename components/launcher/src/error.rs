@@ -34,6 +34,7 @@ pub enum Error {
     Send(ipc_channel::Error),
     Serialize(protobuf::ProtobufError),
     Spawn(io::Error),
+    SupBinaryVersion,
     SupBinaryNotFound,
     SupPackageNotFound,
     SupShutdown,
@@ -59,6 +60,7 @@ impl fmt::Display for Error {
             Error::Send(ref e) => format!("Unable to send to Launcher's comm channel, {}", e),
             Error::Serialize(ref e) => format!("Unable to serialize message to Supervisor, {}", e),
             Error::Spawn(ref e) => format!("Unable to spawn process, {}", e),
+            Error::SupBinaryVersion => format!("Unsupported Supervisor binary version"),
             Error::SupBinaryNotFound => {
                 format!("Supervisor package didn't contain '{}' binary", SUP_CMD)
             }
@@ -85,6 +87,7 @@ impl error::Error for Error {
             Error::Send(_) => "Unable to send to Launcher's pipe",
             Error::Serialize(_) => "Unable to serialize message to Supervisor",
             Error::Spawn(_) => "Unable to spawn process",
+            Error::SupBinaryVersion => "Unsupported Supervisor binary version",
             Error::SupBinaryNotFound => "Unable to locate Supervisor binary in package",
             Error::SupPackageNotFound => "Unable to locate Supervisor package on disk",
             Error::SupShutdown => "Error waiting for Supervisor to shutdown",
@@ -102,5 +105,11 @@ impl From<Error> for protocol::ErrCode {
             Error::UserNotFound(_) => protocol::ErrCode::UserNotFound,
             _ => protocol::ErrCode::Unknown,
         }
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::SupSpawn(err)
     }
 }
