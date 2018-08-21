@@ -27,7 +27,7 @@ tempdir = "*"
 time = "*"
 threadpool = "*"
 toml = { version = "*", default-features = false }
-uuid = { version = "0.6.0", features = ["v4"] }
+uuid = { version = "*", features = ["v4"] }
 zmq = { git = "https://github.com/erickt/rust-zmq", branch = "release/v0.8" }
 
 [dev-dependencies]

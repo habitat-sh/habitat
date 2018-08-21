@@ -57,7 +57,7 @@ path = "../builder-api-client"
 git = "https://github.com/habitat-sh/core.git"
 
 [dependencies.uuid]
-version = "0.6.0"
+version = "*"
 features = ["v4"]
 
 [dev-dependencies]
