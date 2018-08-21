@@ -492,7 +492,24 @@ impl Server {
                 Health::Departed
             );
 
+            // We need to mark this as "hot" in order to propagate it.
+            //
+            // TODO (CM): This exact code is present numerous places;
+            // factor it out to facilitate further code consolidation.
+            self.rumor_heat.start_hot_rumor(RumorKey::new(
+                RumorType::Member,
+                member.id.clone(),
+                "",
+            ));
+
             let check_list = self.member_list.check_list(&member.id);
+
+            // TODO (CM): Even though we marked the rumor as hot
+            // above, when we gossip, we send out the 5 "coolest but
+            // still warm" rumors. Sending to 10 members increases the
+            // chances that we'll get to this hot one now, but I don't
+            // think that we can strictly guarantee that this
+            // departure health update actually gets out in all cases.
             for member in check_list.iter().take(10) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
