@@ -22,6 +22,7 @@
 
 #### Bug Fixes
 - fix powershell pkg_svc_run when run outside of a studio [#5486](https://github.com/habitat-sh/habitat/pull/5486) ([mwrock](https://github.com/mwrock))
+- Resolve FS_ROOT to well formed windows absolute path in studio [#5488](https://github.com/habitat-sh/habitat/pull/5488) ([mwrock](https://github.com/mwrock))
 - [hab] Support -V (--version) flag on subcommands [#5476](https://github.com/habitat-sh/habitat/pull/5476) ([stevendanna](https://github.com/stevendanna))
 - Relax the version pin for the `rand` crate [#5487](https://github.com/habitat-sh/habitat/pull/5487) ([baumanj](https://github.com/baumanj))
 - Update Cargo.lock to latest, locking versions of dependencies that break [#5468](https://github.com/habitat-sh/habitat/pull/5468) ([baumanj](https://github.com/baumanj))
@@ -38,7 +39,6 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
-- Resolve FS_ROOT to well formed windows absolute path in studio [#5488](https://github.com/habitat-sh/habitat/pull/5488) ([mwrock](https://github.com/mwrock))
 - Use common configuration values in release pipeline [#5477](https://github.com/habitat-sh/habitat/pull/5477) ([christophermaier](https://github.com/christophermaier))
 - Add debug tips for Window users [#5450](https://github.com/habitat-sh/habitat/pull/5450) ([bdangit](https://github.com/bdangit))
 - explicitly error when attempting to remove a docker studio [#5485](https://github.com/habitat-sh/habitat/pull/5485) ([mwrock](https://github.com/mwrock))
