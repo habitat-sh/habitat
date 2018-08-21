@@ -14,6 +14,7 @@
 - [plan-build] Set `$pkg_target` at build time for build programs. [#5350](https://github.com/habitat-sh/habitat/pull/5350) ([fnichol](https://github.com/fnichol))
 
 #### Behavioral Changes
+- Add a supervisor version requirement checked by the launcher [#5484](https://github.com/habitat-sh/habitat/pull/5484) ([baumanj](https://github.com/baumanj))
 - Make docker studio behave like chroot studio [#5430](https://github.com/habitat-sh/habitat/pull/5430) ([elliott-davis](https://github.com/elliott-davis))
 - Make the rootless studio the default container studio [#5426](https://github.com/habitat-sh/habitat/pull/5426) ([elliott-davis](https://github.com/elliott-davis))
 - Merge builder-depot-client and builder-api-client crates into single crate [#5431](https://github.com/habitat-sh/habitat/pull/5431) ([eeyun](https://github.com/eeyun))
