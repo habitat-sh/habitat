@@ -36,6 +36,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Use common configuration values in release pipeline [#5477](https://github.com/habitat-sh/habitat/pull/5477) ([christophermaier](https://github.com/christophermaier))
 - Add debug tips for Window users [#5450](https://github.com/habitat-sh/habitat/pull/5450) ([bdangit](https://github.com/bdangit))
 - explicitly error when attempting to remove a docker studio [#5485](https://github.com/habitat-sh/habitat/pull/5485) ([mwrock](https://github.com/mwrock))
 - Add myself to supervisor related things [#5480](https://github.com/habitat-sh/habitat/pull/5480) ([raskchanky](https://github.com/raskchanky))
