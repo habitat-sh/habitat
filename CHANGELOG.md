@@ -21,6 +21,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- fix powershell pkg_svc_run when run outside of a studio [#5486](https://github.com/habitat-sh/habitat/pull/5486) ([mwrock](https://github.com/mwrock))
 - [hab] Support -V (--version) flag on subcommands [#5476](https://github.com/habitat-sh/habitat/pull/5476) ([stevendanna](https://github.com/stevendanna))
 - Relax the version pin for the `rand` crate [#5487](https://github.com/habitat-sh/habitat/pull/5487) ([baumanj](https://github.com/baumanj))
 - Update Cargo.lock to latest, locking versions of dependencies that break [#5468](https://github.com/habitat-sh/habitat/pull/5468) ([baumanj](https://github.com/baumanj))
