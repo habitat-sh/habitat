@@ -25,7 +25,7 @@ Table Setting can run with different backend databases.  Here, we will use SQLit
 
 ## Running Table Setting Locally
 
-Let's explore how to run Table Setting locally before getting started with Habitat.  As a prerequisite, Python 3.7 should be installed.  This quickly brings us to the downside of shipping anything other than a single, executable artifact as disparity can easily creep in!  For example, there are [two major versions](https://wiki.python.org/moin/Python2orPython3) of Python: `2.x` now seen as legacy, and `3.x` that we will use here.  Choosing Python 3.7 affects how we run Table Setting because we have the correct Python in our `PATH`.  Assuming that is the case, Table Setting can be run via:
+Let's explore how to run Table Setting locally before getting started with Habitat.  As a prerequisite, Python 3.7 should be installed.  This quickly brings us to the downside of shipping anything other than a single, executable artifact as disparity can easily creep in!  For example, there are [two major versions](https://wiki.python.org/moin/Python2orPython3) of Python: `2.x` now seen as legacy, and `3.x` that we will use here.  Choosing Python 3.7 affects how we run Table Setting because we require the correct `python` executable in our `PATH`.  Assuming that is the case, Table Setting can be run via:
 
 ````bash
 $ git clone https://github.com/skpaterson/table-setting
