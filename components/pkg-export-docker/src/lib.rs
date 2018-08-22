@@ -35,7 +35,6 @@ extern crate tempdir;
 extern crate url;
 
 extern crate failure;
-extern crate futures;
 #[macro_use]
 extern crate failure_derive;
 
@@ -59,7 +58,6 @@ use hcore::{channel, PROGRAM_NAME};
 
 use aws_creds::StaticProvider;
 use clap::App;
-use futures::future::Future;
 use rusoto_core::request::*;
 use rusoto_core::Region;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
@@ -177,6 +175,7 @@ impl Credentials {
                 let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
                 let token = client
                     .get_authorization_token(auth_token_req)
+                    .sync()
                     .map_err(|e| Error::TokenFetchFailed(e))
                     .and_then(|resp| {
                         resp.authorization_data
@@ -187,8 +186,7 @@ impl Credentials {
                                     .authorization_token
                                     .ok_or(Error::NoECRTokensReturned)
                             })
-                    })
-                    .wait()?;
+                    })?;
 
                 Ok(Credentials { token: token })
             }

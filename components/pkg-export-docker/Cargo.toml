@@ -19,7 +19,6 @@ clap = { version = "*", features = ["suggestions", "color", "unstable"] }
 clippy = { version = "*", optional = true }
 chrono = "*"
 env_logger = "*"
-futures = "*"
 hab = { path = "../hab" }
 habitat_common = { path = "../common" }
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
