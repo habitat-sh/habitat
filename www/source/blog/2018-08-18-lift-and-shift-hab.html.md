@@ -7,25 +7,25 @@ category: update
 classes: body-article
 ---
 
-The world of application packaging and deployment can be viewed as a spectrum where at one end we have hand-crafted installation/run scripts on physical infrastructure and on the other are fully containerized applications making the most out of on Cloud native services.  Since most organisations don't start out fully Cloud-native or containerized a commonly heard phrase for increasing Cloud adoption is 'lift and shift'.  This is where applications are not re-architected but taken straight to the Cloud from an in-house deployment scenario.  The main advantage of 'lift and shift' is speed of Cloud adoption and reduction in physical infrastructure costs.  However, worth mentioning that this pattern often results in more expensive application deployments than those purpose-built to be there.  
+The world of application packaging and deployment can be viewed as a spectrum where at one end we have hand-crafted installation/run scripts on physical infrastructure and on the other are fully containerized applications making the most of cloud-native services.  Since most organisations don't start out fully cloud-native or containerized, a commonly heard phrase for increasing cloud adoption is "lift and shift".  This is where applications are not re-architected, but taken straight to the cloud from an in-house deployment scenario.  The main advantage of "lift and shift" is speed of cloud adoption and reduction in physical infrastructure costs.  However, it is worth mentioning that this pattern often results in application deployments with a higher operational cost than those purpose-built to be there.  In the longer-term, this can be offset by making more use of cloud-native services. 
 
 In this post, the advantages of Habitat for application packaging will be explored by deploying the same application across several different contexts, including: 
 * Bare metal or standalone VM 
 * Running with docker-compose 
 * Deploying to a Habitat-enabled Kubernetes cluster
-* Deploying to a Habitat-enabled Kubernetes cluster using a Cloud-native database
+* Deploying to a Habitat-enabled Kubernetes cluster using a cloud-native database
 
-There is extra effort required in packaging applications with Habitat. However, what you get in return is the ability to deploy almost anywhere different with relative ease at a later stage.  From installing  your application on a new physical box or choosing an entirely new Cloud provider, the process becomes simpler with Habitat packaged applications.  
+There is extra effort required in packaging applications with Habitat. However, what you get in return is the ability to deploy almost anywhere with relative ease at a later stage.  From installing your application on a new physical box to choosing an entirely new cloud provider, the process becomes simpler with Habitat-packaged applications.  
 
-## Setting the scene (or table)
+## Setting the Scene (or Table)
 
-The application we will be using is [here](https://github.com/skpaterson/table-setting).  Table Setting is a single-file Python web application that exposes a REST API for managing forks.  A Swagger user interface is exposed at the root URL to provide some interactivity.  For those interested, the application makes use of: Flask; Flask-RESTPlus; SQLAlchemy; Marshmallow and more. 
+For this demonstration, we will be using [Table Setting](https://github.com/skpaterson/table-setting), a single-file Python web application that exposes a REST API for managing forks.  A Swagger user interface is exposed at the root URL to provide some interactivity.  For those interested, the application makes use of: [Flask](http://flask.pocoo.org/); [Flask-RESTPlus](https://flask-restplus.readthedocs.io/en/stable/); [SQLAlchemy](https://www.sqlalchemy.org/); [Flask Marshmallow](https://flask-marshmallow.readthedocs.io/en/latest/) and more.  These frameworks are used regularly by many real-world Python [applications and websites](http://flask.pocoo.org/community/poweredby/).
 
-Table Setting can run with different backend databases, here we will use SQLite for an in-memory or file-based database and MySQL for a more realistic production example.  Whilst clearly not being production ready, Table Setting provides a realistic application plus database deployment scenario that could apply in many real-world cases. Since we are looking at a 'lift and shift' example, environment variables are used to convey configuration changes for simplicity.  
+Table Setting can run with different backend databases.  Here, we will use SQLite for an in-memory or file-based database, and MySQL for a more realistic production example.  Whilst Table Setting is clearly not a production-ready application, it provides a realistic application-plus-database deployment scenario that could apply in many real-world cases. Since we are looking at a "lift and shift" example, we don't want to re-architect our application. Therefore, [following best practice](https://12factor.net/config), Table Setting uses environment variables to convey configuration changes.
 
-## Running Table Setting locally
+## Running Table Setting Locally
 
-Let's explore how to run Table Setting locally before getting started with Habitat.  As a prerequisite, Python 3.7 should be installed.  In fact Python 3.* should work but no promises!  This quickly brings us to the downside of shipping anything other than a single, executable artifact as disparity can easily creep in!  Quietly skipping over the potential trauma of ensuring we have the correct Python in our `PATH`, Table Setting can be run via:
+Let's explore how to run Table Setting locally before getting started with Habitat.  As a prerequisite, Python 3.7 should be installed.  This quickly brings us to the downside of shipping anything other than a single, executable artifact as disparity can easily creep in!  For example, there are [two major versions](https://wiki.python.org/moin/Python2orPython3) of Python: `2.x` now seen as legacy, and `3.x` that we will use here.  Choosing Python 3.7 affects how we run Table Setting because we have the correct Python in our `PATH`.  Assuming that is the case, Table Setting can be run via:
 
 ````bash
 $ git clone https://github.com/skpaterson/table-setting
@@ -36,11 +36,11 @@ $ pip install -r requirements.txt
 $ python run_app.py 
 ````
 
-Navigating to [http://localhost:5000](http://localhost:5000) you should see the Table Setting Swagger UI:
+Navigate to [http://localhost:5000](http://localhost:5000) to see the Table Setting Swagger UI:
 
 ![Running Local InMemory SQLite](media/2018-08-18-lift-and-shift-hab/local_in_memory.png)
 
-Feel free to try creating some forks!  By default this runs with a clean SQLite in-memory database that is wiped on restart and fork CRUD operations are available. 
+Feel free to try creating some forks!  Standard CRUD operations (create, read, update, delete) are all available. By default, the application runs with a clean SQLite in-memory database that is wiped on restart.
 
 A user running even this simple application locally is perhaps unnecessarily exposed to several things:
 * Source control with `git`
@@ -49,15 +49,15 @@ A user running even this simple application locally is perhaps unnecessarily exp
 * Python packaging with `pip` 
 * Internal application structure e.g. where to find the thing to run
 
-A similar list could likely be formulated for applications written in other languages.  In any case, this complicates life for performing any changes at a later stage e.g.
+A similar list could be formulated for applications written in other languages.  In any case, this complicates life for performing any changes at a later stage e.g.,
 * Switching to a MySQL database backend
 * Running on a new machine, or
-* Moving to a (new) Cloud provider or service
+* Moving to a (new) cloud provider or service
 
 
 ## Packaging Table Setting with Habitat
 
-The following directory structure within the Table Setting repository relates to Habitat packaging:
+In order to see what we need to add to this application to package it using Habitat, let's look in the habitat directory:
 
 ```bash
 $ tree habitat/
@@ -70,18 +70,20 @@ habitat/
 │   └── run
 └── plan.sh
 ```
-This incorporates a set of steps to install required dependencies, similar to those taken when running locally and also includes the MySQL library setup.  Table Setting explicitly depends on a known good Python version. Environment variables are used to convey runtime configuration to Table Setting, some are conditionally set when e.g. binding to a Habitat managed MySQL database.  
 
-Let's concentrate for now on creating deployment artifacts with Habitat.  Below we use the Studio to export different package formats:
+The `plan.sh` file defines how to build, and includes all runtime and buildtime dependencies, implementing similar steps to those taken when running locally.  `hooks` are scripts that control how an application is initialized on startup and run. `default.toml` can be used to define base configuration.  As previously mentioned, Table Setting explicitly depends on a known good Python version and environment variables are used to convey runtime configuration.  For example, an environment variable can be set to specify which backend database type to run Table Setting against.  
+
+Let's concentrate for now on creating deployment artifacts with Habitat.  The Habitat Studio is a clean-room for building applications.  Below we use the Studio to create and export different [package formats](https://www.habitat.sh/docs/developing-packages/#pkg-exports):
 ```bash
 $ cd table-setting
 $ hab studio enter
 [STUDIO] build
-[STUDIO] hab pkg export tar $(ls -1t results/*.hart | head -1)
-[STUDIO] hab pkg export docker $(ls -1t results/*.hart | head -1)
+[STUDIO] source results/last_build.env
+[STUDIO] hab pkg export tar "results/${pkg_artifact}"
+[STUDIO] hab pkg export docker "results/${pkg_artifact}"
 ```
 
-We also use the Habitat maintained `core/mysql` image for some deployments, let's install and export that locally also:
+We also use the Habitat-maintained `core/mysql` package for some deployments, so let's install and export that locally also:
 
 ```bash
 [STUDIO] hab pkg install core/mysql
@@ -92,19 +94,21 @@ We also use the Habitat maintained `core/mysql` image for some deployments, let'
 ★ Install of  core/mysql/5.7.21/20180609181124 complete with 25 new packages installed.
 ```
 
-Note the package version from the installation command, we will now use this to export a Docker image locally:
+We now use the package version from the installation command to export a Docker image locally:
 
 ```
 [STUDIO] hab pkg export docker core/mysql/5.7.21/20180609181124
 ```
 
+Note, however, that you can just `hab pkg export docker core/mysql` without previously installing, and you'll get the latest stable package automatically.
+
 For reference, all of the plans built and maintained by the Habitat Core Team are [available here](https://github.com/habitat-sh/core-plans).
 
 The resulting artifacts are all we need for the deployment scenarios below.
 
-## Bare metal or standalone VM deployment
+## Bare Metal or Standalone VM Deployment
 
-Let's assume we want to deploy Table Setting to an Ubuntu machine and use a file-based SQLite database backend.  In a real-world setup the versioned `tar` deployment file might be stored in a dedicated artifact repository but we will assume it is locally available on the target machine here.
+Let's assume we want to deploy Table Setting to an Ubuntu machine and use a file-based SQLite database backend.  In a real-world setup, the versioned `tar` deployment file might be stored in a dedicated artifact repository but we will assume it is locally available on the target machine here.
 
 Relying on the Habitat package naming convention, we can run the package as follows:
 
@@ -160,7 +164,7 @@ services:
           - mysql
 ```
 
-The `core/mysql` image previously exported is used 'as is' with some additional environment setup.  For this we use `HAB_MYSQL` and add the corresponding settings to the variables expected by the Table Setting application.  
+The `core/mysql` image previously exported is used "as is" with some additional environment setup.  For this we use `HAB_MYSQL` and add the corresponding settings to the variables expected by the Table Setting application.  
 
 Run this locally from the root of the repository via the following command:
 
@@ -174,7 +178,7 @@ We can now see the application running on port `8000` against a `mysql` database
 
 At first this might seem like another variant of running locally but having a working setup with `docker-compose` makes it easy to deploy to e.g. AWS ECS, see [this post](https://blog.chef.io/2016/11/07/habitat-amazon-elastic-container-service/) for more details. 
 
-## Prerequisites for Kubernetes cluster deployment 
+## Prerequisites for Kubernetes Cluster Deployment 
 
 Transitioning to a Kubernetes cluster at this point might seem like a big leap but to our advantage we have already exported the required Habitat package artifacts.
  
@@ -187,11 +191,11 @@ $ docker tag habskp/table-setting:latest eu.gcr.io/spaterson-project/table-setti
 $ docker push eu.gcr.io/spaterson-project/table-setting:latest
 ```
 
-Also worthwhile to comment that although GCP was chosen for this post, the same artifacts could be deployed in the same way to other Cloud provider container registries and Kubernetes clusters simply by supplying the appropriate deployment manifest files. 
+Also worthwhile to comment that although GCP was chosen for this post, the same artifacts could be deployed in the same way to other cloud provider container registries and Kubernetes clusters simply by supplying the appropriate deployment manifest files. 
 
-## Deploying to a Habitat-enabled Kubernetes cluster
+## Deploying to a Habitat-enabled Kubernetes Cluster
 
-The below manifest deploys the Habitat managed MySQL and Table Setting images uploaded to [Google Container Registry](https://cloud.google.com/container-registry/).  Similar environment variables as before are set to configure the database:
+The below manifest deploys the Habitat-managed MySQL and Table Setting images uploaded to [Google Container Registry](https://cloud.google.com/container-registry/).  Similar environment variables as before are set to configure the database:
 
 ```bash
 $ cat gke-gcr-hab-core-mysql-sample.yml
@@ -274,19 +278,19 @@ table-setting-lb   LoadBalancer   10.51.245.180   35.189.83.69   80:30871/TCP   
 
 Navigating to this external IP shows the expected UI:
 
-![Running with Docker Compose](media/2018-08-18-lift-and-shift-hab/hab_sql_gke_ip.png)
+![Running with Hab Enabled GKE](media/2018-08-18-lift-and-shift-hab/hab_sql_gke_ip.png)
 
-From here we could explore setting up a cluster of MySQL databases as described [here](https://blog.chef.io/2017/03/08/what-can-you-do-with-habitat-today/) or alternatively look to becoming more Cloud native.
+From here we could explore setting up a cluster of MySQL databases as described [here](https://blog.chef.io/2017/03/08/what-can-you-do-with-habitat-today/) or alternatively look to becoming more cloud native.
 
-## Deploying to a Habitat-enabled Kubernetes cluster using a Cloud-native database
+## Deploying to a Habitat-enabled Kubernetes Cluster Using a Cloud-native Database
 
 Here we will demonstrate using [Kubernetes Service Catalog](https://kubernetes.io/docs/concepts/service-catalog/)
-and a [Google Cloud Platform Service Broker](
+and a [Google cloud Platform Service Broker](
 https://cloud.google.com/kubernetes-engine/docs/concepts/add-on/service-broker),
 an implementation of the [Open Service Broker](
-https://www.openservicebrokerapi.org/) standard, to provision a Cloud SQL (MySQL) instance instead of relying on our own image from the last section.
+https://www.openservicebrokerapi.org/) standard, to provision a cloud SQL (MySQL) instance instead of relying on our own image from the last section.
 
-In addition to the previous Kubernetes prerequisites, more steps are required to use Cloud SQL.  Thankfully these are described in detail [here](https://github.com/GoogleCloudPlatform/kubernetes-engine-samples/tree/master/service-catalog/cloud-sql-mysql).  For those interested, stopping at the end of Step 3.2 and replacing the service account and web container image link details in the below manifest should allow you to reproduce.  The manifest itself now looks like this and honours the `cloud-mysql` namespace used in the Kubernetes Engine sample:
+In addition to the previous Kubernetes prerequisites, more steps are required to use cloud SQL.  Thankfully these are described in detail [here](https://github.com/GooglecloudPlatform/kubernetes-engine-samples/tree/master/service-catalog/cloud-sql-mysql).  For those interested, stopping at the end of Step 3.2 and replacing the service account and web container image link details in the below manifest should allow you to reproduce.  The manifest itself now looks like this and honours the `cloud-mysql` namespace used in the Kubernetes Engine sample:
 
 ```bash
 $ cat gke-gcr-cloud-sql-sample.yml
@@ -370,27 +374,27 @@ cloudsql-user-service   LoadBalancer   10.51.247.227   35.189.84.130   80:30712/
  
 Navigating to our very familiar UI, let's create a fork:
 
-![Cloud SQL create fork](media/2018-08-18-lift-and-shift-hab/cloud_sql_create_fork.png)
+![cloud SQL create fork](media/2018-08-18-lift-and-shift-hab/cloud_sql_create_fork.png)
 
 Finally, let's use the cloud shell in GCP UI to explore the database and confirm things are working as expected:
 
-![Cloud SQL fork in DB](media/2018-08-18-lift-and-shift-hab/cloud_sql_fork_in_db.png)
+![cloud SQL fork in DB](media/2018-08-18-lift-and-shift-hab/cloud_sql_fork_in_db.png)
 
-So we're now successfully making use of a Cloud SQL database with our Habitat managed application, congratulations if you made it this far!
+So we're now successfully making use of a cloud SQL database with our Habitat-managed application.  Congratulations if you made it this far!
 
 ## Other Habitat Features
 
 At this point it would be remiss not to mention the many complimentary Habitat features that were completely skipped over in the above e.g. we didn't touch upon Supervisor, Builder, Depot, Package updates, binds and exports ...  Thankfully there are plenty of [blog posts](https://www.habitat.sh/blog) and [other documentation](https://www.habitat.sh/docs) to remedy that!  
 
 ## Summary
-In this post we explored several different deployment scenarios for a Habitat packaged application, from bare metal to running on a Kubernetes cluster with Cloud based database.  Whether your organisation is staying on-premise, in the middle of lifting and shifting, or even expanding to new Cloud providers, hopefully this has shown how Habitat can make packaging and deployment easier. Thanks for reading! 
+In this post we explored several different deployment scenarios for a Habitat packaged application, from bare metal to running on a Kubernetes cluster with cloud based database.  Whether your organisation is staying on-premise, in the middle of lifting and shifting, or even expanding to new cloud providers, hopefully this has shown how Habitat can make packaging and deployment easier. Thanks for reading! 
 
-### Got questions?
+### Got Questions?
 * [Ask and answer questions on the Habitat forums](https://forums.habitat.sh/)
 * [Chat with the Habitat Community on Slack](http://slack.habitat.sh/)
 * [Learn more about Habitat](https://www.habitat.sh/)
 
-### Read more:
+### Read More:
 * [Blog Post - Habitat, GCR and GKE](https://www.habitat.sh/blog/2018/07/habitat-gcr-and-gke/)
 * [Best Practices for Habitat and GKE](https://www.habitat.sh/docs/best-practices/#gke-and-habitat)
 * [Sample Table Setting code on GitHub](https://github.com/skpaterson/table-setting)
