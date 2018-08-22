@@ -2,6 +2,8 @@
 
 source /etc/habitat-studio/logging.sh
 
+: "${HAB_ORIGIN_KEYS:=${HAB_ORIGIN:-}}"
+
 if [ -n "$HAB_ORIGIN_KEYS" ]; then
   # There's a method to this madness: `hab` is the raw path to `hab`
   # will use the outside cache key path, whereas the `hab` function has
