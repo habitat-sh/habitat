@@ -171,10 +171,11 @@ impl Credentials {
                 let provider =
                     StaticProvider::new_minimal(username.to_string(), password.to_string());
                 // TODO TED: Make the region configurable
-                let client = EcrClient::new(default_tls_client()?, provider, Region::UsWest2);
+                let client = EcrClient::new_with(HttpClient::new()?, provider, Region::UsWest2);
                 let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
                 let token = client
-                    .get_authorization_token(&auth_token_req)
+                    .get_authorization_token(auth_token_req)
+                    .sync()
                     .map_err(|e| Error::TokenFetchFailed(e))
                     .and_then(|resp| {
                         resp.authorization_data
