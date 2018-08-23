@@ -41,6 +41,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Adding Habitat lift and Shift blog post. [#5473](https://github.com/habitat-sh/habitat/pull/5473) ([skpaterson](https://github.com/skpaterson))
 - take a write lock when persisting rumors to disk [#5495](https://github.com/habitat-sh/habitat/pull/5495) ([mwrock](https://github.com/mwrock))
 - fix rootless studio issues with reuse and key exporting [#5494](https://github.com/habitat-sh/habitat/pull/5494) ([mwrock](https://github.com/mwrock))
 - Use common configuration values in release pipeline [#5477](https://github.com/habitat-sh/habitat/pull/5477) ([christophermaier](https://github.com/christophermaier))
