@@ -22,6 +22,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Relax rusoto version pins [#5493](https://github.com/habitat-sh/habitat/pull/5493) ([baumanj](https://github.com/baumanj))
 - Relax the version pin for the `uuid` crate [#5492](https://github.com/habitat-sh/habitat/pull/5492) ([baumanj](https://github.com/baumanj))
 - fix powershell pkg_svc_run when run outside of a studio [#5486](https://github.com/habitat-sh/habitat/pull/5486) ([mwrock](https://github.com/mwrock))
 - Resolve FS_ROOT to well formed windows absolute path in studio [#5488](https://github.com/habitat-sh/habitat/pull/5488) ([mwrock](https://github.com/mwrock))
