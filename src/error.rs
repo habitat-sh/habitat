@@ -431,7 +431,7 @@ impl error::Error for Error {
             }
             Error::InvalidPackageType(_) => "Unsupported package type supplied.",
             Error::InvalidServiceGroup(_) => {
-                "Service group strings must be in service.group format (example: redis.production)"
+                "Service group strings must be in service.group[@organization] format (example: redis.production or foo.default@bazcorp)"
             }
             Error::InvalidOrigin(_) => {
                 "Origins must begin with a lowercase letter or number.  \
