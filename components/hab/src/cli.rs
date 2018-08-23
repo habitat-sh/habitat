@@ -18,9 +18,8 @@ use std::result;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
-use hcore::crypto::keys::PairType;
+use hcore::{crypto::keys::PairType, service::ServiceGroup};
 use protocol;
-use regex::Regex;
 use url::Url;
 
 use feat;
@@ -82,7 +81,7 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Uploads a file to be shared between members of a Service Group")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-                    "Target service group (ex: redis.default)")
+                    "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
                 (@arg VERSION_NUMBER: +required
                     "A version number (positive integer) for this configuration (ex: 42)")
                 (@arg FILE: +required {file_exists} "Path to local file on disk")
@@ -572,7 +571,7 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Generates a Habitat service key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
                     (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-                        "Target service group (ex: redis.default)")
+                        "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
                     (@arg ORG: "The service organization")
                 )
             )
@@ -756,7 +755,7 @@ fn sub_config_apply() -> App<'static, 'static> {
     clap_app!(@subcommand apply =>
         (about: "Sets a configuration to be shared by members of a Service Group")
         (@arg SERVICE_GROUP: +required {valid_service_group}
-            "Target service group (ex: redis.default)")
+            "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
         (@arg VERSION_NUMBER: +required
             "A version number (positive integer) for this configuration (ex: 42)")
         (@arg FILE: {file_exists_or_stdin}
@@ -1027,12 +1026,7 @@ fn valid_pair_type(val: String) -> result::Result<(), String> {
 }
 
 fn valid_service_group(val: String) -> result::Result<(), String> {
-    let regex = Regex::new(r"([A-Za-z_0-9]+)\.([A-Za-z_0-9]+)").unwrap();
-    if regex.is_match(&val) {
-        Ok(())
-    } else {
-        Err(format!("SERVICE_GROUP: '{}' is invalid", &val))
-    }
+    ServiceGroup::validate(&val).map_err(|e| e.to_string())
 }
 
 fn dir_exists(val: String) -> result::Result<(), String> {

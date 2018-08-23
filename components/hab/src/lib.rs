@@ -38,7 +38,6 @@ extern crate hyper;
 #[macro_use]
 extern crate log;
 extern crate pbr;
-extern crate regex;
 extern crate retry;
 extern crate serde;
 #[macro_use]
