@@ -10,6 +10,7 @@ classes: body-article
 The world of application packaging and deployment can be viewed as a spectrum where at one end we have hand-crafted installation/run scripts on physical infrastructure and on the other are fully containerized applications making the most of cloud-native services.  Since most organisations don't start out fully cloud-native or containerized, a commonly heard phrase for increasing cloud adoption is "lift and shift".  This is where applications are not re-architected, but taken straight to the cloud from an in-house deployment scenario.  The main advantage of "lift and shift" is speed of cloud adoption and reduction in physical infrastructure costs.  However, it is worth mentioning that this pattern often results in application deployments with a higher operational cost than those purpose-built to be there.  In the longer-term, this can be offset by making more use of cloud-native services. 
 
 In this post, the advantages of Habitat for application packaging will be explored by deploying the same application across several different contexts, including: 
+
 * Bare metal or standalone VM 
 * Running with docker-compose 
 * Deploying to a Habitat-enabled Kubernetes cluster
@@ -43,6 +44,7 @@ Navigate to [http://localhost:5000](http://localhost:5000) to see the Table Sett
 Feel free to try creating some forks!  Standard CRUD operations (create, read, update, delete) are all available. By default, the application runs with a clean SQLite in-memory database that is wiped on restart.
 
 A user running even this simple application locally is perhaps unnecessarily exposed to several things:
+
 * Source control with `git`
 * Python language installation
 * Virtual environment setup
@@ -50,6 +52,7 @@ A user running even this simple application locally is perhaps unnecessarily exp
 * Internal application structure e.g. where to find the thing to run
 
 A similar list could be formulated for applications written in other languages.  In any case, this complicates life for performing any changes at a later stage e.g.,
+
 * Switching to a MySQL database backend
 * Running on a new machine, or
 * Moving to a (new) cloud provider or service
