@@ -1,5 +1,5 @@
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Election {
     #[prost(string, optional, tag="1")]
     pub member_id: ::std::option::Option<String>,
@@ -15,8 +15,8 @@ pub struct Election {
     pub votes: ::std::vec::Vec<String>,
 }
 pub mod election {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-    #[derive(Serialize, Deserialize, Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+    #[derive(Serialize, Deserialize)]
     pub enum Status {
         Running = 1,
         NoQuorum = 2,
@@ -24,7 +24,7 @@ pub mod election {
     }
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Service {
     #[prost(string, optional, tag="1")]
     pub member_id: ::std::option::Option<String>,
@@ -42,7 +42,7 @@ pub struct Service {
     pub sys: ::std::option::Option<SysInfo>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct ServiceConfig {
     #[prost(string, optional, tag="1")]
     pub service_group: ::std::option::Option<String>,
@@ -54,7 +54,7 @@ pub struct ServiceConfig {
     pub config: ::std::option::Option<Vec<u8>>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct ServiceFile {
     #[prost(string, optional, tag="1")]
     pub service_group: ::std::option::Option<String>,
@@ -68,7 +68,7 @@ pub struct ServiceFile {
     pub body: ::std::option::Option<Vec<u8>>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct SysInfo {
     #[prost(string, optional, tag="1", default="127.0.0.1")]
     pub ip: ::std::option::Option<String>,
@@ -88,13 +88,13 @@ pub struct SysInfo {
     pub ctl_gateway_port: ::std::option::Option<u32>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Departure {
     #[prost(string, optional, tag="1")]
     pub member_id: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Rumor {
     #[prost(enumeration="rumor::Type", required, tag="1")]
     pub type_: i32,
@@ -106,8 +106,8 @@ pub struct Rumor {
     pub payload: ::std::option::Option<rumor::Payload>,
 }
 pub mod rumor {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-    #[derive(Serialize, Deserialize, Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+    #[derive(Serialize, Deserialize)]
     pub enum Type {
         Member = 1,
         Service = 2,
@@ -120,7 +120,7 @@ pub mod rumor {
         Departure = 9,
     }
     #[derive(Clone, Oneof, PartialEq)]
-    #[derive(Serialize, Deserialize, Hash)]
+    #[derive(Serialize, Deserialize)]
     pub enum Payload {
         #[prost(message, tag="4")]
         Member(super::super::swim::Membership),

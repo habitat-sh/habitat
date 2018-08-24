@@ -1,5 +1,5 @@
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Wire {
     #[prost(bool, optional, tag="1", default="false")]
     pub encrypted: ::std::option::Option<bool>,

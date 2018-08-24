@@ -14,7 +14,7 @@ fn main() {
 
 fn generate_protocols() {
     let mut config = prost_build::Config::new();
-    config.type_attribute(".", "#[derive(Serialize, Deserialize, Hash)]");
+    config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
     config
         .compile_protos(&protocol_files(), &protocol_includes())
         .expect("Error compiling protobuf definitions");

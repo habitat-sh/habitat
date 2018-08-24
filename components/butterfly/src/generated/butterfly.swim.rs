@@ -1,5 +1,5 @@
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Member {
     #[prost(string, optional, tag="1")]
     pub id: ::std::option::Option<String>,
@@ -17,7 +17,7 @@ pub struct Member {
     pub departed: ::std::option::Option<bool>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Ping {
     #[prost(message, optional, tag="1")]
     pub from: ::std::option::Option<Member>,
@@ -25,7 +25,7 @@ pub struct Ping {
     pub forward_to: ::std::option::Option<Member>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Ack {
     #[prost(message, optional, tag="1")]
     pub from: ::std::option::Option<Member>,
@@ -33,7 +33,7 @@ pub struct Ack {
     pub forward_to: ::std::option::Option<Member>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct PingReq {
     #[prost(message, optional, tag="1")]
     pub from: ::std::option::Option<Member>,
@@ -41,7 +41,7 @@ pub struct PingReq {
     pub target: ::std::option::Option<Member>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Membership {
     #[prost(message, optional, tag="1")]
     pub member: ::std::option::Option<Member>,
@@ -49,8 +49,8 @@ pub struct Membership {
     pub health: ::std::option::Option<i32>,
 }
 pub mod membership {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-    #[derive(Serialize, Deserialize, Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+    #[derive(Serialize, Deserialize)]
     pub enum Health {
         Alive = 1,
         Suspect = 2,
@@ -59,7 +59,7 @@ pub mod membership {
     }
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Swim {
     /// Identifies which field is filled in.
     #[prost(enumeration="swim::Type", required, tag="1")]
@@ -70,15 +70,15 @@ pub struct Swim {
     pub payload: ::std::option::Option<swim::Payload>,
 }
 pub mod swim {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-    #[derive(Serialize, Deserialize, Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+    #[derive(Serialize, Deserialize)]
     pub enum Type {
         Ping = 1,
         Ack = 2,
         Pingreq = 3,
     }
     #[derive(Clone, Oneof, PartialEq)]
-    #[derive(Serialize, Deserialize, Hash)]
+    #[derive(Serialize, Deserialize)]
     pub enum Payload {
         #[prost(message, tag="2")]
         Ping(super::Ping),

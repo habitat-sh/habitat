@@ -47,7 +47,7 @@ libc = "*"
 log = "*"
 notify = "*"
 persistent = "*"
-prost = "0.3.2"
+prost = "*"
 protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
 regex = "*"
