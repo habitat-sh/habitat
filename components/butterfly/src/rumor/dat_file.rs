@@ -18,6 +18,7 @@ use std::mem;
 use std::path::{Path, PathBuf};
 
 use byteorder::{ByteOrder, LittleEndian};
+use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
 use error::{Error, Result};
@@ -233,9 +234,12 @@ impl DatFile {
 
     pub fn write(&self, server: &Server) -> Result<usize> {
         let mut header = Header::default();
-        let tmp_path = self
-            .path
-            .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
+        let tmp_path = self.path.with_extension(
+            thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(8)
+                .collect::<String>(),
+        );
         {
             let file = OpenOptions::new()
                 .create(true)
