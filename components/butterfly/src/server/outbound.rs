@@ -118,7 +118,7 @@ impl<N: Network> Outbound<N> {
             let check_list = self
                 .server
                 .member_list
-                .check_list(&self.server.member.read().expect("Member is poisoned").id);
+                .check_list(&self.server.read_member().id);
 
             for member in check_list {
                 if self.server.member_list.pingable(&member) {
@@ -294,7 +294,7 @@ pub fn pingreq<N: Network>(
 ) {
     let pingreq = PingReq {
         membership: vec![],
-        from: server.member.read().unwrap().clone(),
+        from: server.read_member().clone(),
         target: target.clone(),
     };
     let mut swim: Swim = pingreq.into();
@@ -355,7 +355,7 @@ pub fn ping<N: Network>(
     };
     let ping = Ping {
         membership: vec![],
-        from: server.member.read().unwrap().clone(),
+        from: server.read_member().clone(),
         forward_to: forward_to,
     };
     let mut swim: Swim = ping.into();
@@ -435,7 +435,7 @@ pub fn ack<N: Network>(
 ) {
     let ack = Ack {
         membership: vec![],
-        from: server.member.read().unwrap().clone(),
+        from: server.read_member().clone(),
         forward_to: forward_to.map(Into::into),
     };
     let member_id = ack.from.id.clone();

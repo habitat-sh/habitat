@@ -35,7 +35,7 @@ use std::result;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::{self, channel};
-use std::sync::{Arc, RwLock, RwLockReadGuard};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -432,7 +432,7 @@ impl<N: Network> Server<N> {
     pub fn set_departed(&self) {
         if self.swim_sender.is_some() {
             let member = {
-                let mut me = self.member.write().expect("Member lock is poisoned");
+                let mut me = self.write_member();
                 let mut incarnation = me.incarnation;
                 incarnation += 1;
                 me.incarnation = incarnation;
@@ -491,7 +491,7 @@ impl<N: Network> Server<N> {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() {
             if health != Health::Alive {
-                let mut me = self.member.write().expect("Member lock is poisoned");
+                let mut me = self.write_member();
                 let mut incarnation = me.incarnation;
                 incarnation += 1;
                 me.incarnation = incarnation;
@@ -970,6 +970,14 @@ impl<N: Network> Server<N> {
     #[allow(dead_code)]
     pub fn is_departed(&self) -> bool {
         self.departed.load(Ordering::Relaxed)
+    }
+
+    pub fn read_member(&self) -> RwLockReadGuard<Member> {
+        self.member.read().expect("Member lock is poisoned")
+    }
+
+    pub fn write_member(&self) -> RwLockWriteGuard<Member> {
+        self.member.write().expect("Member lock is poisoned")
     }
 }
 

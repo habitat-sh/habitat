@@ -105,7 +105,7 @@ fn localhost_ip() -> IpAddr {
 
 pub fn member_from_server(server: &Server<RealNetwork>) -> Member {
     let mut new_member = Member::default();
-    let server_member = server.member.read().expect("Member lock is poisoned");
+    let server_member = server.read_member();
     new_member.id = server_member.id.to_string();
     new_member.incarnation = server_member.incarnation;
     new_member.address = String::from("127.0.0.1");
@@ -244,13 +244,7 @@ impl SwimNet {
             .get(to_entry)
             .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Blocked {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
-        from.add_to_block_list(String::from(
-            to.member
-                .read()
-                .expect("Member lock is poisoned")
-                .id
-                .to_string(),
-        ));
+        from.add_to_block_list(to.read_member().id.to_string());
     }
 
     pub fn unblock(&self, from_entry: usize, to_entry: usize) {
@@ -276,7 +270,7 @@ impl SwimNet {
             .members
             .get(to_entry)
             .expect("Asked for a network member who is out of bounds");
-        let to_member = to.member.read().expect("Member lock is poisoned");
+        let to_member = to.read_member();
         from.member_list.health_of(&to_member)
     }
 
