@@ -26,7 +26,55 @@ fn main() {
 
 fn generate_protocols() {
     let mut config = prost_build::Config::new();
-    config.type_attribute(".", "#[derive(Serialize, Deserialize, Hash)]");
+
+    // As of version 0.4.0 or so, Prost automatically derives the
+    // `Hash` trait (along with `Ord`, `PartialOrd`, and
+    // `Enumeration`) for all Enum types.
+    //
+    // This means that our previous usage of
+    //
+    //     config.type_attribute(".", "#[derive(Serialize, Deserialize, Hash)]
+    //
+    // was no longer working, because the manually-added Hash was
+    // conflicting with the Prost-generated one.
+    //
+    // There does not seem to be away to negate the arguments for
+    // `config#type_attribute` (i.e. "don't add this attribute to this
+    // type"), or constrain the types to which it applies, so a
+    // work-around is to explicitly list the names of all non-Enum
+    // types here, so we can add the Hash derivation ourselves.
+    //
+    // This is functionally the same as it was before (_all_ our types
+    // still derive `Hash`)... it's just a little more verbose :/
+    for hash_type in [
+        "NetProgress",
+        "Handshake",
+        "ServiceBindList",
+        "SupDepart",
+        "SvcFilePut",
+        "SvcGetDefaultCfg",
+        "SvcValidateCfg",
+        "SvcSetCfg",
+        "SvcLoad",
+        "SvcUnload",
+        "SvcStart",
+        "SvcStop",
+        "SvcStatus",
+        "ConsoleLine",
+        "NetOk",
+        "NetErr",
+        "ApplicationEnvironment",
+        "PackageIdent",
+        "ProcessStatus",
+        "ServiceBind",
+        "ServiceCfg",
+        "ServiceGroup",
+        "ServiceStatus",
+    ].iter()
+    {
+        config.type_attribute(hash_type, "#[derive(Hash)]");
+    }
+    config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
     config.type_attribute(".", "#[serde(rename_all = \"kebab-case\")]");
     config
         .compile_protos(&protocol_files(), &protocol_includes())
