@@ -1,5 +1,5 @@
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ApplicationEnvironment {
     #[prost(string, required, tag="1")]
@@ -8,7 +8,7 @@ pub struct ApplicationEnvironment {
     pub environment: String,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct PackageIdent {
     #[prost(string, required, tag="1")]
@@ -21,7 +21,7 @@ pub struct PackageIdent {
     pub release: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ProcessStatus {
     #[prost(int64, optional, tag="1")]
@@ -32,7 +32,7 @@ pub struct ProcessStatus {
     pub state: i32,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceBind {
     #[prost(string, required, tag="1")]
@@ -43,7 +43,7 @@ pub struct ServiceBind {
     pub service_name: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceCfg {
     /// The self describing string format used in each configuration field. This
@@ -55,15 +55,15 @@ pub struct ServiceCfg {
     pub default: ::std::option::Option<String>,
 }
 pub mod service_cfg {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-    #[derive(Serialize, Deserialize, Hash)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+    #[derive(Serialize, Deserialize)]
     #[serde(rename_all = "kebab-case")]
     pub enum Format {
         Toml = 0,
     }
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceGroup {
     #[prost(string, required, tag="1")]
@@ -76,7 +76,7 @@ pub struct ServiceGroup {
     pub organization: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceStatus {
     #[prost(message, required, tag="1")]
@@ -91,8 +91,8 @@ pub struct ServiceStatus {
     pub desired_state: ::std::option::Option<i32>,
 }
 /// Encapsulate all possible sources we can install packages from.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum InstallSource {
     /// Install from a remote hosting the package
@@ -100,38 +100,38 @@ pub enum InstallSource {
     /// Install from a local archive file
     Archive = 1,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ProcessState {
     Down = 0,
     Up = 1,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum DesiredState {
     DesiredDown = 0,
     DesiredUp = 1,
 }
 /// The relationship of a service with peers in the same service group.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Topology {
     Standalone = 0,
     Leader = 1,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum UpdateStrategy {
     None = 0,
     AtOnce = 1,
     Rolling = 2,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Enumeration)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum BindingMode {
     /// Services may start whether binds are available or not

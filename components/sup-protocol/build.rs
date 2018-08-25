@@ -26,7 +26,7 @@ fn main() {
 
 fn generate_protocols() {
     let mut config = prost_build::Config::new();
-    config.type_attribute(".", "#[derive(Serialize, Deserialize, Hash)]");
+    config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
     config.type_attribute(".", "#[serde(rename_all = \"kebab-case\")]");
     config
         .compile_protos(&protocol_files(), &protocol_includes())
