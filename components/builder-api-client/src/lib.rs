@@ -24,8 +24,8 @@ extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
 extern crate log;
+extern crate mktemp;
 extern crate pbr;
-extern crate rand;
 extern crate regex;
 extern crate serde;
 #[macro_use]
@@ -54,7 +54,7 @@ use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
 use hyper::Url;
-use rand::{thread_rng, Rng};
+use mktemp::Temp;
 use tee::TeeReader;
 use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -1196,22 +1196,17 @@ impl Client {
             return Err(err_from_response(res));
         }
 
-        fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
+        fs::create_dir_all(&dst_path)?;
 
         let file_name = res
             .headers
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();
-        let tmp_file_path = dst_path.join(format!(
-            "{}.tmp-{}",
-            file_name,
-            thread_rng().gen_ascii_chars().take(8).collect::<String>()
-        ));
+        let tmp_file_path = Temp::new_file_in(dst_path)?.to_path_buf();
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = File::create(&tmp_file_path)
-            .map_err(|e| Error::DownloadWrite(tmp_file_path.clone(), e))?;
+        let mut f = File::create(&tmp_file_path)?;
         match progress {
             Some(mut progress) => {
                 let size: u64 = res
@@ -1229,8 +1224,7 @@ impl Client {
             &tmp_file_path.display(),
             &dst_file_path.display()
         );
-        fs::rename(&tmp_file_path, &dst_file_path)
-            .map_err(|e| Error::DownloadWrite(dst_file_path.clone(), e))?;
+        fs::rename(&tmp_file_path, &dst_file_path)?;
         Ok(dst_file_path)
     }
 
@@ -1245,30 +1239,24 @@ impl Client {
         if res.status != hyper::status::StatusCode::Ok {
             return Err(err_from_response(res));
         }
-        fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
+        fs::create_dir_all(&dst_path)?;
 
         let file_name = res
             .headers
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();
-        let tmp_file_path = dst_path.join(format!(
-            "{}.tmp-{}",
-            file_name,
-            thread_rng().gen_ascii_chars().take(8).collect::<String>()
-        ));
+        let tmp_file_path = Temp::new_file_in(dst_path)?.to_path_buf();
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = File::create(&tmp_file_path)
-            .map_err(|e| Error::DownloadWrite(tmp_file_path.clone(), e))?;
+        let mut f = File::create(&tmp_file_path)?;
         io::copy(&mut res, &mut f).map_err(Error::BadResponseBody)?;
         debug!(
             "Moving {} to {}",
             &tmp_file_path.display(),
             &dst_file_path.display()
         );
-        fs::rename(&tmp_file_path, &dst_file_path)
-            .map_err(|e| Error::DownloadWrite(dst_file_path.clone(), e))?;
+        fs::rename(&tmp_file_path, &dst_file_path)?;
         Ok(dst_file_path)
     }
 }
