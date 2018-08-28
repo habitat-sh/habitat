@@ -80,11 +80,14 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     match Error::last_os_error().raw_os_error().unwrap() as u32 {
         ERROR_INSUFFICIENT_BUFFER => {}
         ERROR_NONE_MAPPED => return None,
-        _ => panic!(
-            "Error while looking up account for {}: {}",
-            name,
-            Error::last_os_error()
-        ),
+        _ => {
+            info!(
+                "Error while looking up account for {}: {}",
+                name,
+                Error::last_os_error()
+            );
+            return None;
+        }
     }
 
     let mut sid: Vec<u8> = Vec::with_capacity(sid_size as usize);
@@ -103,11 +106,12 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
         )
     };
     if ret == 0 {
-        panic!(
+        info!(
             "Failed to retrieve SID for {}: {}",
             name,
             Error::last_os_error()
         );
+        return None;
     }
     unsafe {
         domain.set_len(domain_size as usize);
