@@ -1,6 +1,6 @@
 /// Networked progress bar for displaying a remote request's operation status over time.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct NetProgress {
     /// Number of total units until bar is complete.
@@ -16,7 +16,7 @@ pub struct NetProgress {
 /// If the `secret_key` provided matches with what the server has then the client may continue
 /// sending requests. Connections will be aborted by the server if there is no match.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Handshake {
     /// A shared secret between the destination server and the calling client.
@@ -25,21 +25,21 @@ pub struct Handshake {
 }
 /// Wrapper type for a list of ServiceBinds.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceBindList {
     #[prost(message, repeated, tag="1")]
     pub binds: ::std::vec::Vec<super::types::ServiceBind>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SupDepart {
     #[prost(string, optional, tag="1")]
     pub member_id: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcFilePut {
     #[prost(message, optional, tag="1")]
@@ -55,7 +55,7 @@ pub struct SvcFilePut {
 }
 /// Request for retrieving the default configuration for a given service.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcGetDefaultCfg {
     /// Package identifier to target running service.
@@ -63,7 +63,7 @@ pub struct SvcGetDefaultCfg {
     pub ident: ::std::option::Option<super::types::PackageIdent>,
 }
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcValidateCfg {
     /// Service group of a running service to validate a configuration change against.
@@ -78,7 +78,7 @@ pub struct SvcValidateCfg {
 }
 /// Request to set a running service's configuration to the given values.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcSetCfg {
     /// Service group of a running service to set a new configuration for.
@@ -96,7 +96,7 @@ pub struct SvcSetCfg {
 }
 /// Request to load a new service.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcLoad {
     /// Package identifier for the service to load. Using a more qualified identifier will load a
@@ -145,7 +145,7 @@ pub struct SvcLoad {
 }
 /// Request to unload a loaded service.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcUnload {
     #[prost(message, optional, tag="1")]
@@ -153,7 +153,7 @@ pub struct SvcUnload {
 }
 /// Request to start a loaded and stopped service.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcStart {
     #[prost(message, optional, tag="1")]
@@ -161,7 +161,7 @@ pub struct SvcStart {
 }
 /// Request to stop a loaded and started service.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcStop {
     #[prost(message, optional, tag="1")]
@@ -169,7 +169,7 @@ pub struct SvcStop {
 }
 /// Request to retrieve the service status of one or all services.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct SvcStatus {
     /// If specified, the reply will contain only the service status for the requested service. If
@@ -179,7 +179,7 @@ pub struct SvcStatus {
 }
 /// A reply to various requests which contains a pre-formatted console line.
 #[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ConsoleLine {
     #[prost(string, required, tag="1")]
