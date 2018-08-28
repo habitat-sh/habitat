@@ -22,6 +22,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Update sup-protocol protocol generation process [#5506](https://github.com/habitat-sh/habitat/pull/5506) ([christophermaier](https://github.com/christophermaier))
 - Relax the version pins for the various `prost` crates [#5501](https://github.com/habitat-sh/habitat/pull/5501) ([baumanj](https://github.com/baumanj))
 - Service group cleanup [#5500](https://github.com/habitat-sh/habitat/pull/5500) ([baumanj](https://github.com/baumanj))
 - Relax rusoto version pins [#5493](https://github.com/habitat-sh/habitat/pull/5493) ([baumanj](https://github.com/baumanj))
