@@ -459,11 +459,13 @@ impl FromStr for ServiceBind {
 
 impl fmt::Display for ServiceBind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(ref service_name) = self.service_name {
-            write!(f, "{}:{}:{}", service_name, self.name, self.service_group)
-        } else {
-            write!(f, "{}:{}", self.name, self.service_group)
-        }
+        // Even though we can have a service_name, that's only
+        // relevant when overriding a composite bind from the command
+        // line.
+        //
+        // Display is what governs how this is rendered in a spec
+        // file, so everything should look the same.
+        write!(f, "{}:{}", self.name, self.service_group)
     }
 }
 
