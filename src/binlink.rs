@@ -15,6 +15,9 @@
 use env;
 
 /// Default Binlink Dir
+#[cfg(target_os = "windows")]
+pub const DEFAULT_BINLINK_DIR: &'static str = "/hab/bin";
+#[cfg(not(target_os = "windows"))]
 pub const DEFAULT_BINLINK_DIR: &'static str = "/bin";
 
 /// Binlink Dir Environment variable
