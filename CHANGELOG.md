@@ -48,6 +48,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- fix windows studiobinlink regression [#5520](https://github.com/habitat-sh/habitat/pull/5520) ([mwrock](https://github.com/mwrock))
 - implement binlink for windows [#5513](https://github.com/habitat-sh/habitat/pull/5513) ([mwrock](https://github.com/mwrock))
 - add Liz as codeowner of CLI UX related files [#5504](https://github.com/habitat-sh/habitat/pull/5504) ([apriofrost](https://github.com/apriofrost))
 - Blog fix, adding newlines to render bulleted lists correctly. [#5499](https://github.com/habitat-sh/habitat/pull/5499) ([skpaterson](https://github.com/skpaterson))
