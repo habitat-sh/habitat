@@ -192,21 +192,25 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
         // per-service basis.
         base_spec.config_from = None;
 
-        let composite_binds = if let Some(ref list) = self.binds {
-            let binds: Vec<ServiceBind> = list.binds.clone().into_iter().map(Into::into).collect();
-            let (composite, _) = binds.into_iter().partition(|ref bind| bind.is_composite());
-            Some(composite)
-        } else {
-            None
+        // We permit the selective overriding of binds with CLI
+        // arguments; if any such overrides are present, this will
+        // pull them all out.
+        let composite_binds_from_cli = match self.binds {
+            Some(ref list) => {
+                let binds: Vec<ServiceBind> =
+                    list.binds.clone().into_iter().map(Into::into).collect();
+                let (composite_binds, _standard_binds) =
+                    binds.into_iter().partition(|ref bind| bind.is_composite());
+                composite_binds
+            }
+            None => vec![],
         };
         let mut specs: Vec<ServiceSpec> = Vec::with_capacity(services.len());
         for service in services {
             // Customize each service's spec as appropriate
             let mut spec = base_spec.clone();
             spec.ident = service;
-            if let Some(ref binds) = composite_binds {
-                set_composite_binds(&mut spec, &mut bind_map, &binds);
-            }
+            set_composite_binds(&mut spec, &mut bind_map, &composite_binds_from_cli);
             specs.push(spec);
         }
         specs
@@ -418,6 +422,7 @@ impl FromStr for ServiceSpec {
 pub struct ServiceBind {
     pub name: String,
     pub service_group: ServiceGroup,
+    /// Only set if this is a bind targeting a composite service
     pub service_name: Option<String>,
 }
 
@@ -454,11 +459,13 @@ impl FromStr for ServiceBind {
 
 impl fmt::Display for ServiceBind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(ref service_name) = self.service_name {
-            write!(f, "{}:{}:{}", service_name, self.name, self.service_group)
-        } else {
-            write!(f, "{}:{}", self.name, self.service_group)
-        }
+        // Even though we can have a service_name, that's only
+        // relevant when overriding a composite bind from the command
+        // line.
+        //
+        // Display is what governs how this is rendered in a spec
+        // file, so everything should look the same.
+        write!(f, "{}:{}", self.name, self.service_group)
     }
 }
 

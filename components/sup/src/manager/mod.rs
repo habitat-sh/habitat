@@ -1133,22 +1133,27 @@ impl Manager {
         opts: protocol::ctl::SvcUnload,
     ) -> NetResult<()> {
         let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
-        // Gather up the paths to all the spec files we care about. This
-        // includes all service specs as well as any composite spec.
-        let spec_paths = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
-            Some(Spec::Service(spec)) => vec![Self::spec_path_for(&mgr.cfg, &spec)],
+        // Gather up the paths to all the spec files we care about,
+        // along with their corresponding idents (we do this to ensure
+        // we emit a proper "unloading X" message for each member of a
+        // composite).
+        //
+        // This includes all service specs as well as any composite
+        // spec.
+        let path_ident_pairs = match Self::existing_specs_for_ident(&mgr.cfg, &ident)? {
+            Some(Spec::Service(spec)) => vec![(Self::spec_path_for(&mgr.cfg, &spec), ident)],
             Some(Spec::Composite(composite_spec, specs)) => {
                 let mut paths = Vec::with_capacity(specs.len() + 1);
                 for spec in specs.iter() {
-                    paths.push(Self::spec_path_for(&mgr.cfg, spec));
+                    paths.push((Self::spec_path_for(&mgr.cfg, spec), spec.ident.clone()));
                 }
-                paths.push(Self::composite_path_for(&mgr.cfg, &composite_spec));
+                paths.push((Self::composite_path_for(&mgr.cfg, &composite_spec), ident));
                 paths
             }
             None => vec![],
         };
 
-        for file in spec_paths {
+        for (file, ident) in path_ident_pairs {
             if let Err(err) = std::fs::remove_file(&file) {
                 return Err(net::err(
                     ErrCode::Internal,
