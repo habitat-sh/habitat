@@ -47,7 +47,7 @@ use std::string::ToString;
 
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hab_core::package::{Identifiable, PackageArchive, PackageIdent};
+use hab_core::package::{Identifiable, PackageArchive, PackageIdent, PackageTarget};
 use hab_http::util::decoded_response;
 use hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
@@ -509,11 +509,11 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         self.download(
-            &format!("depot/origins/{}/encryption_key", origin),
+            self.0
+                .get(&format!("depot/origins/{}/encryption_key", origin)),
             dst_path.as_ref(),
             Some(token),
             progress,
-            None,
         )
     }
 
@@ -611,11 +611,11 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         self.download(
-            &format!("depot/origins/{}/keys/{}", origin, revision),
+            self.0
+                .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
             dst_path.as_ref(),
             None,
             progress,
-            None,
         )
     }
 
@@ -638,11 +638,11 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         self.download(
-            &format!("depot/origins/{}/secret_keys/latest", origin),
+            self.0
+                .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
             dst_path.as_ref(),
             Some(token),
             progress,
-            None,
         )
     }
 
@@ -835,25 +835,28 @@ impl Client {
     pub fn fetch_package<D, P>(
         &self,
         ident: &PackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
         dst_path: &P,
         progress: Option<D>,
-        target: Option<String>,
     ) -> Result<PackageArchive>
     where
         P: AsRef<Path> + ?Sized,
         D: DisplayProgress + Sized,
     {
-        // Given that the download URL requires a fully qualified package, the channel is
-        // irrelevant, per https://github.com/habitat-sh/habitat/issues/2722. This function is fine
-        // as is.
-        match self.download(
-            &package_download(ident),
-            dst_path.as_ref(),
-            token,
-            progress,
-            target,
-        ) {
+        // Ensure ident is fully qualified.
+        //
+        // TODO fn: this will be removed when we can describe a fully qualified ident by type as a
+        // param to this function
+        if !ident.fully_qualified() {
+            return Err(Error::IdentNotFullyQualified);
+        }
+
+        let req_builder = self.0.get_with_custom_url(&package_download(ident), |u| {
+            u.set_query(Some(&format!("target={}", target)))
+        });
+
+        match self.download(req_builder, dst_path.as_ref(), token, progress) {
             Ok(file) => Ok(PackageArchive::new(PathBuf::from(file))),
             Err(e) => Err(e),
         }
@@ -871,9 +874,9 @@ impl Client {
     pub fn show_package(
         &self,
         package: &PackageIdent,
+        target: &PackageTarget,
         channel: Option<&str>,
         token: Option<&str>,
-        target: Option<&str>,
     ) -> Result<PackageIdent> {
         // TODO: When channels are fully rolled out, we may want to make
         //       the channel specifier mandatory instead of being an Option
@@ -890,9 +893,7 @@ impl Client {
         let mut res =
             self.maybe_add_authz(
                 self.0.get_with_custom_url(&url, |u| {
-                    if target.is_some() {
-                        u.set_query(Some(&format!("target={}", target.unwrap())))
-                    }
+                    u.set_query(Some(&format!("target={}", target)))
                 }),
                 token,
             ).send()?;
@@ -1168,27 +1169,17 @@ impl Client {
         }))
     }
 
-    fn download<D>(
-        &self,
-        path: &str,
+    fn download<'a, D>(
+        &'a self,
+        rb: RequestBuilder<'a>,
         dst_path: &Path,
         token: Option<&str>,
         progress: Option<D>,
-        target: Option<String>,
     ) -> Result<PathBuf>
     where
         D: DisplayProgress + Sized,
     {
-        let t = target.as_ref();
-        let mut res =
-            self.maybe_add_authz(
-                self.0.get_with_custom_url(path, |u| {
-                    if target.is_some() {
-                        u.set_query(Some(&format!("target={}", t.unwrap())))
-                    }
-                }),
-                token,
-            ).send()?;
+        let mut res = self.maybe_add_authz(rb, token).send()?;
 
         debug!("Response: {:?}", res);
 

@@ -19,7 +19,7 @@ use std::thread;
 use butterfly;
 use common::ui::UI;
 use env;
-use hcore::package::{PackageIdent, PackageInstall};
+use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
 use hcore::service::ServiceGroup;
 use launcher_client::LauncherCli;
 
@@ -389,7 +389,7 @@ impl Worker {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
-        let install_source = ident.into();
+        let install_source = (ident, *PackageTarget::active_target()).into();
         loop {
             let next_time = self.next_period_start();
 
@@ -415,7 +415,7 @@ impl Worker {
     /// Continually poll for a new version of a package, installing it
     /// when found.
     fn run_poll(&mut self, sender: SyncSender<PackageInstall>) {
-        let install_source = self.spec_ident.clone().into(); // UGH clone
+        let install_source = (self.spec_ident.clone(), *PackageTarget::active_target()).into();
         loop {
             let next_time = self.next_period_start();
 

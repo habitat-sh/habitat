@@ -200,7 +200,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                 )?;
                 install.ident.into()
             }
-            InstallSource::Ident(ident) => ident.into(),
+            InstallSource::Ident(ident, _) => ident.into(),
         };
         msg.ident = Some(ident);
         Some(msg)
