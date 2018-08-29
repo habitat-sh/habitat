@@ -37,6 +37,8 @@ pub enum Error {
     APIClient(api_client::Error),
     ArgumentError(&'static str),
     ButterflyError(String),
+    CannotParseBinlinkBinaryName(PathBuf),
+    CannotParseBinlinkSource(PathBuf),
     CannotRemoveDockerStudio,
     CannotRemoveFromChannel((String, String)),
     CommandNotFoundInPkg((String, String)),
@@ -79,6 +81,12 @@ impl fmt::Display for Error {
             Error::APIClient(ref err) => format!("{}", err),
             Error::ArgumentError(ref e) => format!("{}", e),
             Error::ButterflyError(ref e) => format!("{}", e),
+            Error::CannotParseBinlinkBinaryName(ref p) => {
+                format!("Cannot parse binlink binary name from {}.", p.display())
+            }
+            Error::CannotParseBinlinkSource(ref p) => {
+                format!("Cannot parse binlink source path from {}.", p.display())
+            }
             Error::CannotRemoveDockerStudio => {
                 format!("Docker Studios are not persistent and cannot be removed")
             }
@@ -176,6 +184,8 @@ impl error::Error for Error {
             Error::APIClient(ref err) => err.description(),
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::ButterflyError(_) => "Butterfly has had an error",
+            Error::CannotParseBinlinkBinaryName(_) => "Cannot parse binlink binary name",
+            Error::CannotParseBinlinkSource(_) => "Cannot parse binlink source path",
             Error::CannotRemoveFromChannel(_) => {
                 "Package cannot be removed from the specified channel"
             }

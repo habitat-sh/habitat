@@ -905,19 +905,32 @@ mod test {
                 .unwrap();
 
             assert_eq!(
-                hcore::fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(), None::<&Path>)
-                    .join("bin/busybox"),
+                rootfs.path().join(
+                    hcore::fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(), None::<&Path>)
+                        .join("bin/busybox")
+                        .strip_prefix("/")
+                        .unwrap()
+                ),
                 rootfs.path().join("bin/busybox").read_link().unwrap(),
                 "busybox program is symlinked into /bin"
             );
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
-                    .join("bin/sh"),
+                rootfs.path().join(
+                    hcore::fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
+                        .join("bin/sh")
+                        .strip_prefix("/")
+                        .unwrap()
+                ),
                 rootfs.path().join("bin/sh").read_link().unwrap(),
                 "busybox's sh program is symlinked into /bin"
             );
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
+                rootfs.path().join(
+                    hcore::fs::pkg_install_path(&base_pkgs.hab, None::<&Path>)
+                        .join("bin/hab")
+                        .strip_prefix("/")
+                        .unwrap()
+                ),
                 rootfs.path().join("bin/hab").read_link().unwrap(),
                 "hab program is symlinked into /bin"
             );

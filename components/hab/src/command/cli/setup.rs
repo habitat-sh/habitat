@@ -12,11 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
 use std::path::Path;
+
+#[cfg(windows)]
+use std::ptr;
+#[cfg(windows)]
+use user32;
+#[cfg(windows)]
+use widestring::WideCString;
+#[cfg(windows)]
+use winapi;
+#[cfg(windows)]
+use winreg::enums::{HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, KEY_READ};
+#[cfg(windows)]
+use winreg::RegKey;
 
 use common::ui::{UIReader, UIWriter, UI};
 use hcore::crypto::SigKeyPair;
-use hcore::env;
+use hcore::env as henv;
 use hcore::package::ident;
 use hcore::Error::InvalidOrigin;
 
@@ -26,7 +40,12 @@ use config;
 use error::Result;
 use {AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
 
-pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()> {
+pub fn start(
+    ui: &mut UI,
+    cache_path: &Path,
+    analytics_path: &Path,
+    binlink_path: &Path,
+) -> Result<()> {
     let mut generated_origin = false;
 
     ui.br()?;
@@ -146,6 +165,27 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     } else {
         ui.para("Okay, maybe another time.")?;
     }
+    if cfg!(windows) {
+        ui.heading("Habitat Binlink Path")?;
+        ui.para(
+            "The `hab` command-line tool can create binlinks for package binaries \
+             in the 'PATH' when using the 'pkg binlink' or 'pkg install --binlink' \
+             commands. By default, Habitat will create these binlinks in the '/hab/bin' \
+             directory. This directory will always be included in your 'PATH' when \
+             inside a Studio environment. However, you will want this directory on your \
+             machine's persistent 'PATH' in order to access binlinks outside of a Studio.",
+        )?;
+        if ui.prompt_yes_no("Add binlink directory to PATH?", Some(true))? {
+            set_binlink_path(&binlink_path)?;
+            ui.para(&format!(
+                "{} has been added to your path. You will need to open a \
+                 new console window for this added entry to take effect.",
+                binlink_path.display()
+            ))?;
+        } else {
+            ui.para("Okay, maybe another time.")?;
+        }
+    }
     ui.heading("Analytics")?;
     ui.para(
         "The `hab` command-line tool will optionally send anonymous usage data to \
@@ -237,7 +277,7 @@ fn prompt_origin(ui: &mut UI) -> Result<String> {
             ))?;
             Some(o)
         }
-        None => env::var(ORIGIN_ENVVAR).or(env::var("USER")).ok(),
+        None => henv::var(ORIGIN_ENVVAR).or(henv::var("USER")).ok(),
     };
     Ok(ui.prompt_ask("Default origin name", default.as_ref().map(|x| &**x))?)
 }
@@ -266,7 +306,7 @@ fn prompt_auth_token(ui: &mut UI) -> Result<String> {
             )?;
             Some(o)
         }
-        None => env::var(AUTH_TOKEN_ENVVAR).ok(),
+        None => henv::var(AUTH_TOKEN_ENVVAR).ok(),
     };
     Ok(ui.prompt_ask(
         "Habitat personal access token",
@@ -284,7 +324,7 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
             )?;
             Some(o)
         }
-        None => env::var(CTL_SECRET_ENVVAR).ok(),
+        None => henv::var(CTL_SECRET_ENVVAR).ok(),
     };
     Ok(ui.prompt_ask(
         "Habitat Supervisor CtlGateway secret",
@@ -310,4 +350,61 @@ fn opt_out_analytics(ui: &mut UI, analytics_path: &Path) -> Result<()> {
     let result = analytics::opt_out(ui, analytics_path);
     ui.br()?;
     result
+}
+
+#[cfg(windows)]
+fn binlink_is_on_path(binlink_path: &Path) -> bool {
+    match RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey_with_flags(
+        r"System\CurrentControlSet\Control\Session Manager\Environment",
+        KEY_READ,
+    ) {
+        Ok(env) => {
+            let path: String = env
+                .get_value("path")
+                .expect("could not find a machine PATH");
+            env::split_paths(&path).any(|p| p == binlink_path)
+        }
+        _ => false,
+    }
+}
+
+/// this sets the permanent machine PATH and not
+/// the path of this process. These are maintained
+/// in the Windows registry
+#[cfg(windows)]
+fn set_binlink_path(binlink_path: &Path) -> Result<()> {
+    if !binlink_is_on_path(binlink_path) {
+        let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+        let env = hklm.open_subkey_with_flags(
+            r"System\CurrentControlSet\Control\Session Manager\Environment",
+            KEY_ALL_ACCESS,
+        )?;
+        let path: String = env.get_value("path")?;
+        let new_paths = [binlink_path, Path::new(&path)];
+        env.set_value(
+            "path",
+            &env::join_paths(new_paths.iter())?.to_str().unwrap(),
+        )?;
+
+        // After altering the machine environment, we must broadcast
+        // a WM_SETTINGCHANGE message to all windows so the user
+        // will not need to sign out/in for the new path to take effect
+        unsafe {
+            user32::SendMessageTimeoutW(
+                winapi::HWND_BROADCAST,
+                winapi::WM_SETTINGCHANGE,
+                0,
+                WideCString::from_str("Environment").unwrap().as_ptr() as winapi::LPARAM,
+                winapi::SMTO_ABORTIFHUNG,
+                5000,
+                ptr::null_mut(),
+            );
+        }
+    }
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+fn set_binlink_path(binlink_path: &Path) -> Result<()> {
+    unreachable!()
 }
