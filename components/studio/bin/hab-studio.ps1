@@ -245,7 +245,7 @@ function New-Studio {
     "$PSScriptRoot",
     "$env:WINDIR\system32",
     "$env:WINDIR",
-    (Join-Path $env:FS_ROOT "hab\bin")
+    (Join-Path $HAB_STUDIO_ROOT "hab\bin")
   )
 
   $env:PATH = [String]::Join(";", $pathArray)
