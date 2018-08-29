@@ -446,7 +446,7 @@ impl BuildRootContext {
                 PackageIdent::from_str(ident_or_archive)?
             };
             let pkg_install = PackageInstall::load(&ident, Some(&rootfs))?;
-            if pkg_install.is_runnable() {
+            if pkg_install.is_a_service() {
                 idents.push(PkgIdentType::Svc(SvcIdent {
                     ident: ident,
                     exposes: pkg_install.exposes()?,
@@ -524,11 +524,8 @@ impl BuildRootContext {
         let gid = DEFAULT_USER_AND_GROUP_ID;
 
         let pkg = self.primary_svc()?;
-        let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap();
-        let group_name = pkg
-            .svc_group()
-            .unwrap_or(Some(String::from("hab")))
-            .unwrap();
+        let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap(); 
+        let group_name = pkg.svc_group().unwrap_or(Some(String::from("hab"))).unwrap();
 
         // TODO: In some cases, packages based on core/nginx and
         // core/httpd (and possibly others) will not work, because
@@ -773,8 +770,8 @@ mod test {
         bins: Vec<String>,
         is_svc: bool,
         rootfs: PathBuf,
-        svc_user: String,
-        svc_group: String,
+        svc_user: Option<String>,
+        svc_group: Option<String>,
     }
     impl FakePkg {
         pub fn new<I, P>(ident: I, rootfs: P) -> FakePkg
@@ -787,8 +784,8 @@ mod test {
                 bins: Vec::new(),
                 is_svc: false,
                 rootfs: rootfs.as_ref().to_path_buf(),
-                svc_user: "my_user".to_string(),
-                svc_group: "my_group".to_string(),
+                svc_user: None,
+                svc_group: None,
             }
         }
 
@@ -801,7 +798,14 @@ mod test {
         }
 
         pub fn set_svc(&mut self, is_svc: bool) -> &mut FakePkg {
-            self.is_svc = is_svc;
+            self.is_svc = is_svc; 
+            if self.is_svc == true {
+                self.set_svc_user("my_user");
+                self.set_svc_group("my_group");
+            } else {
+                self.svc_user = None;
+                self.svc_group = None;
+            }
             self
         }
 
@@ -809,7 +813,7 @@ mod test {
         where
             S: ToString,
         {
-            self.svc_user = svc_user.to_string();
+            self.svc_user = Some(svc_user.to_string());
             self
         }
 
@@ -817,7 +821,7 @@ mod test {
         where
             S: ToString,
         {
-            self.svc_group = svc_group.to_string();
+            self.svc_group = Some(svc_group.to_string());
             self
         }
 
@@ -833,8 +837,12 @@ mod test {
             util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
             util::write_file(prefix.join("TARGET"), PackageTarget::active_target()).unwrap();
 
-            util::write_file(prefix.join("SVC_USER"), &self.svc_user).unwrap();
-            util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();
+            if let Some(svc_user) = &self.svc_user {
+                util::write_file(prefix.join("SVC_USER"), svc_user).unwrap();
+            }
+            if let Some(svc_group) = &self.svc_group {
+                util::write_file(prefix.join("SVC_GROUP"), svc_group).unwrap();
+            }
 
             if !self.bins.is_empty() {
                 util::write_file(
