@@ -93,6 +93,7 @@ impl fmt::Display for DesiredState {
         let state = match *self {
             DesiredState::DesiredDown => "down",
             DesiredState::DesiredUp => "up",
+            DesiredState::DesiredNone => "<none>",
         };
         write!(f, "{}", state)
     }
@@ -107,7 +108,10 @@ impl FromStr for BindingMode {
             "strict" => Ok(BindingMode::Strict),
             _ => Err(net::err(
                 ErrCode::InvalidPayload,
-                format!("Invalid binding mode \"{}\"", value),
+                format!(
+                    "Invalid binding mode \"{}\", must be `relaxed` or `strict`.",
+                    value
+                ),
             )),
         }
     }
@@ -122,7 +126,10 @@ impl FromStr for ProcessState {
             "1" => Ok(ProcessState::Up),
             _ => Err(net::err(
                 ErrCode::InvalidPayload,
-                format!("Invalid process state \"{:?}\"", value),
+                format!(
+                    "Invalid process state \"{:?}\", must be `up` or `down`.",
+                    value
+                ),
             )),
         }
     }
@@ -135,9 +142,15 @@ impl FromStr for DesiredState {
         match value.to_lowercase().as_ref() {
             "0" => Ok(DesiredState::DesiredDown),
             "1" => Ok(DesiredState::DesiredUp),
+            // The DesiredNone variant allows for backwards compatibility with < 0.61 Supervisors,
+            // prior to when DesiredState was introduced.
+            "<none>" => Ok(DesiredState::DesiredNone),
             _ => Err(net::err(
                 ErrCode::InvalidPayload,
-                format!("Invalid desired state \"{:?}\"", value),
+                format!(
+                    "Invalid desired state \"{:?}\", must be `up`, `down` or `<none>`.",
+                    value
+                ),
             )),
         }
     }
