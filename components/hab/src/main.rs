@@ -1395,7 +1395,7 @@ where
     let svc_type = status.composite.unwrap_or("standalone".to_string());
     let svc_desired_state = status
         .desired_state
-        .map_or("unknown".to_string(), |s| s.to_string());
+        .map_or("<none>".to_string(), |s| s.to_string());
     let (svc_state, svc_pid, svc_elapsed) = {
         match status.process {
             Some(process) => (
