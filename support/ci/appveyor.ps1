@@ -42,6 +42,8 @@ function Test-SourceChanged {
     ).count -ge 1
 }
 
+$ErrorActionPreference="stop"
+
 pushd (Get-RepoRoot)
 Write-Host "Configuring build environment"
 ./build.ps1 -Configure -SkipBuild
