@@ -374,7 +374,7 @@ impl MemberList {
     /// than", given this ordering of Health states (this is governed
     /// by the `PartialOrd` and `Ord` trait implementations on `Health`):
     ///
-    ///     Alive < Suspect < Confirmed < Departed
+    /// Alive < Suspect < Confirmed < Departed
     ///
     /// For example, if we think that "Supervisor X (at incarnation 1)
     /// is Alive", but the rumor is telling us that "Supervisor X (at
@@ -396,12 +396,12 @@ impl MemberList {
     /// is down the left side, while "Incoming Health" is across the
     /// top. We only propagate when Incoming is "worse than" Current:
     ///
-    ///     |           | Alive | Suspect   | Confirmed | Departed  |
-    ///     |-----------+-------+-----------+-----------+-----------|
-    ///     | Alive     |       | propagate | propagate | propagate |
-    ///     | Suspect   |       |           | propagate | propagate |
-    ///     | Confirmed |       |           |           | propagate |
-    ///     | Departed  |       |           |           |           |
+    /// |           | Alive | Suspect   | Confirmed | Departed  |
+    /// |-----------+-------+-----------+-----------+-----------|
+    /// | Alive     |       | propagate | propagate | propagate |
+    /// | Suspect   |       |           | propagate | propagate |
+    /// | Confirmed |       |           |           | propagate |
+    /// | Departed  |       |           |           |           |
     ///
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
@@ -485,40 +485,28 @@ impl MemberList {
             // If we are transitioning away from Suspect or Confirmed,
             // we should stop timing how long we have been in that state.
             match *current_health {
-                Health::Suspect => {
-                    self.aging_suspects
-                        .write()
-                        .expect("aging_suspects lock is poisoned")
-                        .remove(member_id);
-                }
-                Health::Confirmed => {
-                    self.aging_confirmed
-                        .write()
-                        .expect("aging_confirmed lock is poisoned")
-                        .remove(member_id);
-                }
-                _ => {}
-            }
+                Health::Suspect => Some(&self.aging_suspects),
+                Health::Confirmed => Some(&self.aging_confirmed),
+                _ => None,
+            }.and_then(|map| {
+                map.write()
+                    .expect("aging lock is poisoned")
+                    .remove(member_id)
+            });
         }
 
         // Whether we have seen this member before or not, we now need
         // to record the time it entered into the Suspect or Confirmed
         // states.
         match health {
-            Health::Suspect => {
-                self.aging_suspects
-                    .write()
-                    .expect("aging_suspects lock is poisoned")
-                    .insert(member_id.to_string(), SteadyTime::now());
-            }
-            Health::Confirmed => {
-                self.aging_confirmed
-                    .write()
-                    .expect("aging_confirmed lock is poisoned")
-                    .insert(member_id.to_string(), SteadyTime::now());
-            }
-            _ => {}
-        }
+            Health::Suspect => Some(&self.aging_suspects),
+            Health::Confirmed => Some(&self.aging_confirmed),
+            _ => None,
+        }.and_then(|map| {
+            map.write()
+                .expect("aging lock is poisoned")
+                .insert(member_id.to_string(), SteadyTime::now())
+        });
 
         // Finally, we record the new health.
         self.health
