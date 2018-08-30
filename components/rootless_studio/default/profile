@@ -8,7 +8,7 @@
 umask 022
 
 export PATH=$PATH:/bin
-STUDIO_TYPE="default"
+export STUDIO_TYPE="default"
 # Colorize ls by default
 if command -v dircolors > /dev/null; then
   eval "$(dircolors -b)"
