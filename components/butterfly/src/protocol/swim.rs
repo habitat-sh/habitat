@@ -20,43 +20,17 @@ pub use self::{membership::Health, swim::Payload as SwimPayload, swim::Type as S
 mod tests {
     use super::*;
 
-    // These tests assure that we can properly compare Health values
+    // Theis test assures that we can properly compare Health values
     // along the spectrum of
     //
-    //   Alive -> Suspect -> Confirmed -> Departed
+    //   Alive < Suspect < Confirmed < Departed
     //
     // since that is important in our decision whether or not to
     // propagate membership rumors.
-
     #[test]
-    fn alive_is_less_than_everything() {
-        assert!(Health::Alive == Health::Alive);
+    fn health_is_properly_ordered() {
         assert!(Health::Alive < Health::Suspect);
-        assert!(Health::Alive < Health::Confirmed);
-        assert!(Health::Alive < Health::Departed);
-    }
-
-    #[test]
-    fn suspect_is_greater_than_alive_and_less_than_everything_else() {
-        assert!(Health::Suspect > Health::Alive);
-        assert!(Health::Suspect == Health::Suspect);
         assert!(Health::Suspect < Health::Confirmed);
-        assert!(Health::Suspect < Health::Departed);
-    }
-
-    #[test]
-    fn confirmed_is_greater_than_alive_and_suspect_but_less_than_departed() {
-        assert!(Health::Confirmed > Health::Alive);
-        assert!(Health::Confirmed > Health::Suspect);
-        assert!(Health::Confirmed == Health::Confirmed);
         assert!(Health::Confirmed < Health::Departed);
-    }
-
-    #[test]
-    fn departed_is_greater_than_everything() {
-        assert!(Health::Departed > Health::Alive);
-        assert!(Health::Departed > Health::Suspect);
-        assert!(Health::Departed > Health::Confirmed);
-        assert!(Health::Departed == Health::Departed);
     }
 }
