@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### New Features & Enhancements
+- [api-client] Always set package target when making package API calls. [#5518](https://github.com/habitat-sh/habitat/pull/5518) ([fnichol](https://github.com/fnichol))
 - Shut down the supervisor (but not services) when SIGHUP is received [#5445](https://github.com/habitat-sh/habitat/pull/5445) ([baumanj](https://github.com/baumanj))
 - Launcher simplify reload logic [#5404](https://github.com/habitat-sh/habitat/pull/5404) ([baumanj](https://github.com/baumanj))
 - Allow Docker studio image name to be overridden [#5425](https://github.com/habitat-sh/habitat/pull/5425) ([christophermaier](https://github.com/christophermaier))
