@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[cfg(windows)]
+use std::env;
 use std::path::Path;
 
 #[cfg(windows)]
