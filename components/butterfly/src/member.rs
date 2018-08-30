@@ -14,10 +14,10 @@
 
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
+use std::cmp;
 use std::collections::{hash_map, HashMap};
 use std::iter::IntoIterator;
 use std::net::SocketAddr;
-use std::ops::Deref;
 use std::result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
@@ -27,7 +27,7 @@ use prost::Message as ProstMessage;
 use rand::{thread_rng, Rng};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
-use time::SteadyTime;
+use time::{Duration, SteadyTime};
 use uuid::Uuid;
 
 use error::{Error, Result};
@@ -234,13 +234,20 @@ impl FromProto<newscast::Rumor> for Membership {
     }
 }
 
-/// Tracks lists of members, their health, and how long they have been suspect.
+/// Tracks lists of members, their health, and how long they have been
+/// suspect or confirmed.
 #[derive(Debug, Clone)]
 pub struct MemberList {
     pub members: Arc<RwLock<HashMap<UuidSimple, Member>>>,
     pub health: Arc<RwLock<HashMap<UuidSimple, Health>>>,
-    suspect: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
-    depart: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
+    /// Records timestamps of when Members are marked `Suspect`. This
+    /// supports automatically transitioning them to `Confirmed` after
+    /// an appropriate amount of time.
+    aging_suspects: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
+    /// Records timestamps of when Members are marked
+    /// `Confirmed`. This supports automatically transitioning them to
+    /// `Departed` after an appropriate amount of time.
+    aging_confirmed: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
     initial_members: Arc<RwLock<Vec<Member>>>,
     update_counter: Arc<AtomicUsize>,
 }
@@ -260,6 +267,8 @@ impl Serialize for MemberList {
             strukt.serialize_field("health", &*health_struct)?;
         }
         {
+            // TODO (CM): why does this use a different ordering than
+            // get_update_counter (and why doesn't it just use get_update_counter?)
             let update_number = self.update_counter.load(Ordering::SeqCst);
             strukt.serialize_field("update_counter", &update_number)?;
         }
@@ -273,8 +282,8 @@ impl MemberList {
         MemberList {
             members: Arc::new(RwLock::new(HashMap::new())),
             health: Arc::new(RwLock::new(HashMap::new())),
-            suspect: Arc::new(RwLock::new(HashMap::new())),
-            depart: Arc::new(RwLock::new(HashMap::new())),
+            aging_suspects: Arc::new(RwLock::new(HashMap::new())),
+            aging_confirmed: Arc::new(RwLock::new(HashMap::new())),
             initial_members: Arc::new(RwLock::new(Vec::new())),
             update_counter: Arc::new(AtomicUsize::new(0)),
         }
@@ -284,7 +293,7 @@ impl MemberList {
     ///
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
-    pub fn increment_update_counter(&self) {
+    fn increment_update_counter(&self) {
         self.update_counter.fetch_add(1, Ordering::Relaxed);
     }
 
@@ -330,114 +339,183 @@ impl MemberList {
         }
     }
 
-    /// Inserts a member into the member list with the given health.
-    pub fn insert(&self, member: Member, health: Health) -> bool {
-        let share_rumor: bool;
-        let mut start_suspicion: bool = false;
-        let mut stop_suspicion: bool = false;
-        let mut stop_departure: bool = false;
-
-        // If we have an existing member record..
-        if let Some(current_member) = self
+    /// Inserts a member into the member list with the given health,
+    /// but only if the criteria for insertion are met. Returns `true`
+    /// if the rumor information was actually accepted, and `false`
+    /// otherwise.
+    ///
+    /// There are a few rules governing how we choose to accept
+    /// Membership rumors.
+    ///
+    /// First, if we have absolutely no record of having seen
+    /// `incoming_member` before, we'll accept the rumor without
+    /// question.
+    ///
+    /// On the other hand, if we _have_ seen `incoming_member` we need
+    /// to compare the incoming information to what we currently have
+    /// before we decide whether to accept the new information.
+    ///
+    /// If the incarnation number of the `incoming_member` is lower
+    /// than that of the rumor we already have, then we reject
+    /// it. Incarnation numbers for Members are only ever incremented
+    /// by that Member itself, so the fact that we already have one
+    /// that is higher means that we have more up-to-date information.
+    ///
+    /// Similarly, if the incoming incarnation number is greater than
+    /// what we have, we'll accept it as more up-to-date information.
+    ///
+    /// If the incarnation numbers match, we need to look at the
+    /// health to determine if we accept the rumor.
+    ///
+    /// We only accept the incoming rumor if its health is strictly
+    /// "worse than" the health we currently have for the member.
+    ///
+    /// Alternatively, you can think of "worse than" as "greater
+    /// than", given this ordering of Health states (this is governed
+    /// by the `PartialOrd` and `Ord` trait implementations on `Health`):
+    ///
+    /// Alive < Suspect < Confirmed < Departed
+    ///
+    /// For example, if we think that "Supervisor X (at incarnation 1)
+    /// is Alive", but the rumor is telling us that "Supervisor X (at
+    /// incarnation 1) is Suspect", that means that whoever we've
+    /// received this rumor from is having trouble contacting
+    /// Supervisor X. We should accept this rumor and propagate it to
+    /// ensure that a) information about degraded connectivity makes
+    /// it around the network, and b) the odds that Supervisor X will
+    /// receive this rumor increase, allowing it to refute this (if
+    /// indeed Supervisor X is still around.)
+    ///
+    /// If we were to just accept the rumor regardless of what the
+    /// health was, we could basically start "arguing" across the
+    /// network; one Supervisor thinks X is Alive, another thinks it's
+    /// Suspect, and we just keep flip-flopping between the two
+    /// without any sort of resolution.
+    ///
+    /// Below is the truth table that illustrates this. "Current Health"
+    /// is down the left side, while "Incoming Health" is across the
+    /// top. We only propagate when Incoming is "worse than" Current:
+    ///
+    /// |           | Alive | Suspect   | Confirmed | Departed  |
+    /// |-----------+-------+-----------+-----------+-----------|
+    /// | Alive     |       | propagate | propagate | propagate |
+    /// | Suspect   |       |           | propagate | propagate |
+    /// | Confirmed |       |           |           | propagate |
+    /// | Departed  |       |           |           |           |
+    ///
+    // TODO (CM): why don't we just insert a membership record here?
+    pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
+        let accept_and_propagate_rumor = match self
             .members
             .read()
             .expect("Member List read lock poisoned")
-            .get(&member.id)
+            .get(&incoming_member.id)
         {
-            // If my incarnation is newer than the member we are being asked
-            // to insert, we want to prefer our member, health and all.
-            if current_member.incarnation > member.incarnation {
-                share_rumor = false;
-            // If the new rumor has a higher incarnation than our status, we want
-            // to prefer it.
-            } else if member.incarnation > current_member.incarnation {
-                share_rumor = true;
-                if health == Health::Confirmed {
-                    stop_suspicion = true;
-                }
-                if health == Health::Departed {
-                    stop_suspicion = true;
-                    stop_departure = true;
-                }
-            } else {
-                // We know we have a health if we have a record
-                let hl = self.health.read().expect("Health lock is poisoned");
-                let current_health = hl.get(&current_member.id).expect(
-                    "No health for a membership record should be impossible; did you use insert?",
-                );
-                // If currently healthy and the rumor is suspicion, then we are now suspicious.
-                if *current_health == Health::Alive && health == Health::Suspect {
-                    start_suspicion = true;
-                    share_rumor = true;
-                // If currently healthy and the rumor is confirmation, then we are now confirmed
-                } else if *current_health == Health::Alive && health == Health::Confirmed {
-                    share_rumor = true;
-                // If currently healthy and the rumor is departed, then we are now departed
-                } else if *current_health == Health::Alive && health == Health::Departed {
-                    share_rumor = true;
-                // If we are both alive, then nothing to see here.
-                } else if *current_health == Health::Alive && health == Health::Alive {
-                    share_rumor = false;
-                // If currently suspicious and the rumor is alive, then we are still suspicious
-                } else if *current_health == Health::Suspect && health == Health::Alive {
-                    share_rumor = false;
-                // If currently suspicious and the rumor is suspicion, then nothing to see here.
-                } else if *current_health == Health::Suspect && health == Health::Suspect {
-                    share_rumor = false;
-                // If currently suspicious and the rumor is confirmation, then we are now
-                // confirmed
-                } else if *current_health == Health::Suspect && health == Health::Confirmed {
-                    stop_suspicion = true;
-                    share_rumor = true;
-                // If currently suspicious and the rumor is departed, then we are now
-                // departed
-                } else if *current_health == Health::Suspect && health == Health::Departed {
-                    stop_suspicion = true;
-                    share_rumor = true;
-                // If we are confirmed, and the rumor is departed, we accept the departure
-                } else if *current_health == Health::Confirmed && health == Health::Departed {
-                    share_rumor = true;
-                    stop_departure = true;
-                // When we are currently confirmed or departed, we stay that way until something
-                // with a higher incarnation changes our mind. (except for the above case)
-                } else {
-                    share_rumor = false;
-                }
-            }
-        } else {
-            share_rumor = true;
-        }
+            None => true,
+            Some(existing_member) => {
+                match existing_member
+                    .incarnation
+                    .cmp(&incoming_member.incarnation)
+                {
+                    cmp::Ordering::Greater => false,
+                    cmp::Ordering::Less => true,
+                    cmp::Ordering::Equal => {
+                        // We know we have a health if we have a
+                        // record.
+                        //
+                        // (Doing this in two operations is necessary
+                        // due to the lock and lifetimes.)
+                        let health_lock = self.health.read().expect("Health lock is poisoned");
+                        let existing_health = health_lock.get(&existing_member.id).expect(
+                            "No health for a membership record should be impossible; did you use insert?",
+                        );
 
-        if share_rumor == true {
-            self.increment_update_counter();
-            self.health
-                .write()
-                .expect("Health lock is poisoned")
-                .insert(member.id.clone(), health);
-            if start_suspicion == true {
-                self.suspect
-                    .write()
-                    .expect("Suspect lock is poisoned")
-                    .insert(member.id.clone(), SteadyTime::now());
+                        incoming_health > *existing_health
+                    }
+                }
             }
-            if stop_suspicion == true {
-                self.suspect
-                    .write()
-                    .expect("Suspect lock is poisoned")
-                    .remove(&member.id);
-            }
-            if stop_departure == true {
-                self.depart
-                    .write()
-                    .expect("Departure lock is poisoned")
-                    .remove(&member.id);
-            }
+        };
+
+        if accept_and_propagate_rumor {
+            let member_id = incoming_member.id.clone();
             self.members
                 .write()
                 .expect("Member list lock is poisoned")
-                .insert(member.id.clone(), member);
+                .insert(incoming_member.id.clone(), incoming_member);
+            let updated = self.insert_health_by_id(&member_id, incoming_health);
+            if !updated {
+                // TODO (CM): clean this logic up better
+
+                // insert_health_by_id calls increment_update_counter,
+                // but depending on the current state and the incoming
+                // rumor, it may not actually change the health
+                // recorded. In that case, we need to ensure that we
+                // increment the update counter to reflect that this
+                // rumor was accepted and should be propagated
+                self.increment_update_counter();
+            }
         }
-        share_rumor
+
+        accept_and_propagate_rumor
+    }
+
+    // TODO (CM): Should there be an invariant that you must refer to
+    // an existing member in order to run this?
+
+    /// Updates the health of a member without touching the member itself. Returns true if the
+    /// health changed, false otherwise. As health transitions from
+    /// state to state, appropriate bookkeeping is done to ensure that
+    /// Suspect and Confirmed rumors can properly time out to
+    /// Confirmed and Departed rumors, respectively.
+    pub fn insert_health_by_id(&self, member_id: &str, health: Health) -> bool {
+        // If we already have a health record for this member, then we
+        // need to check what that health is.
+        if let Some(current_health) = self
+            .health
+            .read()
+            .expect("Health read lock is poisoned")
+            .get(member_id)
+        {
+            if *current_health == health {
+                // Health did not change; there's nothing else to do,
+                // so bail out.
+                return false;
+            }
+
+            // If we are transitioning away from Suspect or Confirmed,
+            // we should stop timing how long we have been in that state.
+            match *current_health {
+                Health::Suspect => Some(&self.aging_suspects),
+                Health::Confirmed => Some(&self.aging_confirmed),
+                _ => None,
+            }.and_then(|map| {
+                map.write()
+                    .expect("aging lock is poisoned")
+                    .remove(member_id)
+            });
+        }
+
+        // Whether we have seen this member before or not, we now need
+        // to record the time it entered into the Suspect or Confirmed
+        // states.
+        match health {
+            Health::Suspect => Some(&self.aging_suspects),
+            Health::Confirmed => Some(&self.aging_confirmed),
+            _ => None,
+        }.and_then(|map| {
+            map.write()
+                .expect("aging lock is poisoned")
+                .insert(member_id.to_string(), SteadyTime::now())
+        });
+
+        // Finally, we record the new health.
+        self.health
+            .write()
+            .expect("Health write lock is poisoned")
+            .insert(String::from(member_id), health);
+
+        self.increment_update_counter();
+        true
     }
 
     /// Returns the health of the member, if the member exists.
@@ -493,6 +571,10 @@ impl MemberList {
         }
     }
 
+    // TODO (CM): accept AsRef<MemberId> here (and implement that on
+    // Member, as well as creating a MemberId type)... this would
+    // allow us to consolidate check_health_of and check_health_of_by_id
+
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of_by_id(&self, member_id: &str, health: Health) -> bool {
         match self
@@ -520,36 +602,6 @@ impl MemberList {
     /// are gone.
     pub fn persistent_and_confirmed(&self, member: &Member) -> bool {
         member.persistent && self.check_health_of(member, Health::Confirmed)
-    }
-
-    /// Updates the health of a member without touching the member itself. Returns true if the
-    /// health changed, false otherwise.
-    pub fn insert_health_by_id(&self, member_id: &str, health: Health) -> bool {
-        if let Some(current_health) = self
-            .health
-            .read()
-            .expect("Health read lock is poisoned")
-            .get(member_id)
-        {
-            if *current_health == health {
-                return false;
-            }
-        }
-        if health == Health::Suspect {
-            let mut sl = self.suspect.write().expect("Suspect lock is poisoned");
-            sl.insert(String::from(member_id), SteadyTime::now());
-        }
-        self.health
-            .write()
-            .expect("Health write lock is poisoned")
-            .insert(String::from(member_id), health);
-        self.increment_update_counter();
-        true
-    }
-
-    /// The same as `insert_health_by_id`, but takes a member rather than an id.
-    pub fn insert_health(&self, member: &Member, health: Health) -> bool {
-        self.insert_health_by_id(&member.id, health)
     }
 
     /// Returns a protobuf membership record for the given member id.
@@ -640,19 +692,6 @@ impl MemberList {
         );
     }
 
-    /// Takes a function whose argument is a reference to the member list hashmap.
-    pub fn with_member_list<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(&HashMap<String, Member>) -> (),
-    {
-        with_closure(
-            self.members
-                .read()
-                .expect("Member list lock is poisoned")
-                .deref(),
-        );
-    }
-
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
     pub fn with_member<F>(&self, member_id: &str, mut with_closure: F) -> ()
     where
@@ -678,58 +717,61 @@ impl MemberList {
         }
     }
 
-    /// Iterates over every suspected membership entry, calling the given closure.
-    pub fn with_suspects<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut((&str, &SteadyTime)) -> (),
-    {
-        for (id, suspect) in self
-            .suspect
-            .read()
-            .expect("Suspect list lock is poisoned")
-            .iter()
-        {
-            with_closure((id, suspect));
+    /// Query the list of aging Suspect members to find those which
+    /// have now expired to Confirmed. Health is updated
+    /// appropriately, and a list of newly-Confirmed Member IDs is
+    /// returned.
+    pub fn members_expired_to_confirmed(&self, timeout: Duration) -> Vec<String> {
+        self.members_expired_to(Health::Confirmed, timeout)
+    }
+
+    /// Query the list of aging Confirmed members to find those which
+    /// have now expired to Departed. Health is updated appropriately,
+    /// and a list of newly-Departed Member IDs is returned.
+    pub fn members_expired_to_departed(&self, timeout: Duration) -> Vec<String> {
+        self.members_expired_to(Health::Departed, timeout)
+    }
+
+    /// Return the member IDs of all members that have "timed out" to
+    /// the `expiring_to` `Health`.
+    ///
+    /// For instance,
+    ///
+    ///   members_expired_to(Health::Departed, timeout)
+    ///
+    /// will return the IDs of those members that have been
+    /// `Confirmed` for longer than the given `timeout`.
+    ///
+    /// The newly-updated health status is recorded properly.
+    // TODO (CM): Better return type than Vec<String>
+    fn members_expired_to(&self, expiring_to: Health, timeout: Duration) -> Vec<String> {
+        let now = SteadyTime::now();
+        let mut expired = Vec::new();
+
+        let population = match expiring_to {
+            Health::Confirmed => &self.aging_suspects,
+            Health::Departed => &self.aging_confirmed,
+            _ => {
+                // Note: this shouldn't ever be called
+                return expired;
+            }
+        };
+
+        population.write().expect("aging lock is poisoned").retain(
+            |ref member_id, ref starting_timestamp| {
+                if now >= **starting_timestamp + timeout {
+                    expired.push(member_id.to_string());
+                    false
+                } else {
+                    true
+                }
+            },
+        );
+
+        for id in expired.iter() {
+            self.insert_health_by_id(id, expiring_to);
         }
-    }
-
-    /// Iterates over every suspected membership entry, calling the given closure.
-    pub fn with_departures<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut((&str, &SteadyTime)) -> (),
-    {
-        for (id, departure_time) in self
-            .depart
-            .read()
-            .expect("Departure list lock is poisoned")
-            .iter()
-        {
-            with_closure((id, departure_time));
-        }
-    }
-
-    /// Expires a member from the suspect list.
-    pub fn expire(&self, member_id: &str) {
-        let mut suspects = self.suspect.write().expect("Suspect list lock is poisoned");
-        suspects.remove(member_id);
-    }
-
-    /// Sets a departure time for a member who has been confirmed
-    pub fn depart(&self, member_id: &str) {
-        let mut depart = self
-            .depart
-            .write()
-            .expect("Departure list lock is poisoned");
-        depart.insert(member_id.to_string(), SteadyTime::now());
-    }
-
-    /// Removes a member from the departure list
-    pub fn depart_remove(&self, member_id: &str) {
-        let mut depart = self
-            .depart
-            .write()
-            .expect("Departure list lock is poisoned");
-        depart.remove(member_id);
+        expired
     }
 
     pub fn contains_member(&self, member_id: &str) -> bool {
@@ -773,7 +815,7 @@ mod tests {
         }
 
         #[test]
-        fn insert() {
+        fn insert_several_members() {
             let ml = populated_member_list(4);
             assert_eq!(ml.len(), 4);
         }
@@ -857,216 +899,729 @@ mod tests {
             assert!(ml.check_health_of(&mcheck, Health::Alive));
         }
 
-        #[test]
-        fn insert_existing_member_lower_incarnation() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let mut member_two = member_one.clone();
-            member_two.incarnation = 1;
-            let mcheck_two = member_two.clone();
+        /// Tests of MemberList::insert
+        mod insert {
+            use member::{Health, Member, MemberList};
 
-            assert_eq!(ml.insert(member_one, Health::Alive), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Alive));
+            fn assert_cannot_insert_member_rumor_of_lower_incarnation(
+                from_health: Health,
+                to_health: Health,
+            ) {
+                let ml = MemberList::new();
+                let initial_update_counter_value = ml.get_update_counter();
+                let initial_incarnation = 10; // just to pick a number
 
-            assert_eq!(ml.insert(member_two, Health::Alive), true);
-            ml.with_member(&mcheck_two.id, |m| assert_eq!(m.unwrap().incarnation, 1));
+                let member = {
+                    let mut m = Member::default();
+                    m.incarnation = initial_incarnation;
+                    m
+                };
+
+                assert!(
+                    ml.insert(member.clone(), from_health.clone()),
+                    "Could not insert member into list initially"
+                );
+
+                let update_counter_value_checkpoint_1 = ml.get_update_counter();
+                assert_eq!(
+                    update_counter_value_checkpoint_1,
+                    initial_update_counter_value + 1,
+                    "Update counter should have incremented by one"
+                );
+
+                assert!(
+                    ml.check_health_of(&member, from_health.clone()),
+                    "Member should have had health {:?}, but didn't",
+                    from_health
+                );
+
+                let member_with_lower_incarnation = {
+                    let mut m = member.clone();
+                    m.incarnation = m.incarnation - 1;
+                    m
+                };
+
+                assert!(
+                    !ml.insert(member_with_lower_incarnation, to_health),
+                    "Inserting with {:?}->{:?} should be a no-op with a lower incarnation number",
+                    from_health,
+                    to_health
+                );
+                assert_eq!(
+                ml.get_update_counter(),
+                update_counter_value_checkpoint_1,
+                "Update counter should not have been incremented after trying to insert a lower-incarnation-number rumor"
+            );
+                assert!(
+                ml.check_health_of(&member, from_health.clone()),
+                "Member should have still have health {:?} following attempt to insert lower-incarnation-number rumor, but didn't",
+                from_health
+            );
+            }
+
+            macro_rules! lower_incarnation {
+                // Unfortunately, Rust macros currently can't be used to generate
+                // the name of a function, so we have to provide one :(
+                ($fn_name:ident, $from:expr, $to:expr) => {
+                    #[test]
+                    fn $fn_name() {
+                        assert_cannot_insert_member_rumor_of_lower_incarnation($from, $to);
+                    }
+                };
+            }
+
+            lower_incarnation!(lower_a_to_a, Health::Alive, Health::Alive);
+            lower_incarnation!(lower_a_to_s, Health::Alive, Health::Suspect);
+            lower_incarnation!(lower_a_to_c, Health::Alive, Health::Confirmed);
+            lower_incarnation!(lower_a_to_d, Health::Alive, Health::Departed);
+
+            lower_incarnation!(lower_s_to_a, Health::Suspect, Health::Alive);
+            lower_incarnation!(lower_s_to_s, Health::Suspect, Health::Suspect);
+            lower_incarnation!(lower_s_to_c, Health::Suspect, Health::Confirmed);
+            lower_incarnation!(lower_s_to_d, Health::Suspect, Health::Departed);
+
+            lower_incarnation!(lower_c_to_a, Health::Confirmed, Health::Alive);
+            lower_incarnation!(lower_c_to_s, Health::Confirmed, Health::Suspect);
+            lower_incarnation!(lower_c_to_c, Health::Confirmed, Health::Confirmed);
+            lower_incarnation!(lower_c_to_d, Health::Confirmed, Health::Departed);
+
+            lower_incarnation!(lower_d_to_a, Health::Departed, Health::Alive);
+            lower_incarnation!(lower_d_to_s, Health::Departed, Health::Suspect);
+            lower_incarnation!(lower_d_to_c, Health::Departed, Health::Confirmed);
+            lower_incarnation!(lower_d_to_d, Health::Departed, Health::Departed);
+
+            fn assert_always_insert_member_rumor_of_higher_incarnation(
+                from_health: Health,
+                to_health: Health,
+            ) {
+                let ml = MemberList::new();
+                let initial_update_counter_value = ml.get_update_counter();
+                let initial_incarnation = 10; // just to pick a number
+
+                let member = {
+                    let mut m = Member::default();
+                    m.incarnation = initial_incarnation;
+                    m
+                };
+
+                assert!(
+                    ml.insert(member.clone(), from_health.clone()),
+                    "Could not insert member into list initially"
+                );
+
+                let update_counter_value_checkpoint_1 = ml.get_update_counter();
+                assert_eq!(
+                    update_counter_value_checkpoint_1,
+                    initial_update_counter_value + 1,
+                    "Update counter should have incremented by one"
+                );
+
+                assert!(
+                    ml.check_health_of(&member, from_health.clone()),
+                    "Member should have had health {:?}, but didn't",
+                    from_health
+                );
+
+                let member_with_higher_incarnation = {
+                    let mut m = member.clone();
+                    m.incarnation = m.incarnation + 1;
+                    m
+                };
+
+                assert!(
+                ml.insert(member_with_higher_incarnation, to_health),
+                "Inserting with {:?}->{:?} should be always work with a higher incarnation number",
+                from_health,
+                to_health
+            );
+                assert_eq!(
+                ml.get_update_counter(),
+                update_counter_value_checkpoint_1 + 1,
+                "Update counter should increment by 1 when inserting a higher-incarnation-number rumor"
+            );
+                assert!(
+                ml.check_health_of(&member, to_health.clone()),
+                "Member should have health {:?} following insertion of higher-incarnation-number rumor",
+                to_health
+            );
+            }
+
+            macro_rules! higher_incarnation {
+                // Unfortunately, Rust macros currently can't be used to generate
+                // the name of a function, so we have to provide one :(
+                ($fn_name:ident, $from:expr, $to:expr) => {
+                    #[test]
+                    fn $fn_name() {
+                        assert_always_insert_member_rumor_of_higher_incarnation($from, $to);
+                    }
+                };
+            }
+
+            higher_incarnation!(higher_a_to_a, Health::Alive, Health::Alive);
+            higher_incarnation!(higher_a_to_s, Health::Alive, Health::Suspect);
+            higher_incarnation!(higher_a_to_c, Health::Alive, Health::Confirmed);
+            higher_incarnation!(higher_a_to_d, Health::Alive, Health::Departed);
+
+            higher_incarnation!(higher_s_to_a, Health::Suspect, Health::Alive);
+            higher_incarnation!(higher_s_to_s, Health::Suspect, Health::Suspect);
+            higher_incarnation!(higher_s_to_c, Health::Suspect, Health::Confirmed);
+            higher_incarnation!(higher_s_to_d, Health::Suspect, Health::Departed);
+
+            higher_incarnation!(higher_c_to_a, Health::Confirmed, Health::Alive);
+            higher_incarnation!(higher_c_to_s, Health::Confirmed, Health::Suspect);
+            higher_incarnation!(higher_c_to_c, Health::Confirmed, Health::Confirmed);
+            higher_incarnation!(higher_c_to_d, Health::Confirmed, Health::Departed);
+
+            higher_incarnation!(higher_d_to_a, Health::Departed, Health::Alive);
+            higher_incarnation!(higher_d_to_s, Health::Departed, Health::Suspect);
+            higher_incarnation!(higher_d_to_c, Health::Departed, Health::Confirmed);
+            higher_incarnation!(higher_d_to_d, Health::Departed, Health::Departed);
+
+            fn assert_only_insert_member_rumor_of_same_incarnation_if_health_is_worse(
+                from_health: Health,
+                to_health: Health,
+            ) {
+                let ml = MemberList::new();
+                let initial_update_counter_value = ml.get_update_counter();
+                let initial_incarnation = 10; // just to pick a number
+
+                let member = {
+                    let mut m = Member::default();
+                    m.incarnation = initial_incarnation;
+                    m
+                };
+
+                assert!(
+                    ml.insert(member.clone(), from_health.clone()),
+                    "Could not insert member into list initially"
+                );
+
+                let update_counter_value_checkpoint_1 = ml.get_update_counter();
+                assert_eq!(
+                    update_counter_value_checkpoint_1,
+                    initial_update_counter_value + 1,
+                    "Update counter should have incremented by one"
+                );
+
+                assert!(
+                    ml.check_health_of(&member, from_health.clone()),
+                    "Member should have had health {:?}, but didn't",
+                    from_health
+                );
+
+                let member_with_same_incarnation = member.clone();
+
+                if to_health > from_health {
+                    assert!(
+                    ml.insert(member_with_same_incarnation, to_health),
+                    "Inserting with {:?}->{:?} should work with an identical incarnation number",
+                    from_health,
+                    to_health
+                );
+                    assert_eq!(
+                    ml.get_update_counter(),
+                    update_counter_value_checkpoint_1 + 1,
+                    "Update counter should increment by 1 when inserting a same-incarnation-number rumor with worse health"
+                );
+                    assert!(
+                    ml.check_health_of(&member, to_health.clone()),
+                    "Member should have health {:?} following insertion of same-incarnation-number rumor with worse health",
+                    to_health
+                );
+                } else {
+                    assert!(
+                    !ml.insert(member_with_same_incarnation, to_health),
+                    "Inserting with {from:?}->{to:?} should never work with an identical incarnation number, because {to:?} is not \"worse than\" {from:?}",
+                    from=from_health,
+                    to=to_health
+                );
+                    assert_eq!(
+                    ml.get_update_counter(),
+                    update_counter_value_checkpoint_1,
+                    "Update counter should not increment when inserting a same-incarnation-number rumor without worse health"
+                );
+                    assert!(
+                    ml.check_health_of(&member, from_health.clone()),
+                    "Member should still have health {:?} following insertion of same-incarnation-number rumor without worse health",
+                    from_health
+                );
+                }
+            }
+
+            macro_rules! same_incarnation {
+                // Unfortunately, Rust macros currently can't be used to generate
+                // the name of a function, so we have to provide one :(
+                ($fn_name:ident, $from:expr, $to:expr) => {
+                    #[test]
+                    fn $fn_name() {
+                        assert_only_insert_member_rumor_of_same_incarnation_if_health_is_worse(
+                            $from, $to,
+                        );
+                    }
+                };
+            }
+
+            same_incarnation!(same_a_to_a, Health::Alive, Health::Alive);
+            same_incarnation!(same_a_to_s, Health::Alive, Health::Suspect);
+            same_incarnation!(same_a_to_c, Health::Alive, Health::Confirmed);
+            same_incarnation!(same_a_to_d, Health::Alive, Health::Departed);
+
+            same_incarnation!(same_s_to_a, Health::Suspect, Health::Alive);
+            same_incarnation!(same_s_to_s, Health::Suspect, Health::Suspect);
+            same_incarnation!(same_s_to_c, Health::Suspect, Health::Confirmed);
+            same_incarnation!(same_s_to_d, Health::Suspect, Health::Departed);
+
+            same_incarnation!(same_c_to_a, Health::Confirmed, Health::Alive);
+            same_incarnation!(same_c_to_s, Health::Confirmed, Health::Suspect);
+            same_incarnation!(same_c_to_c, Health::Confirmed, Health::Confirmed);
+            same_incarnation!(same_c_to_d, Health::Confirmed, Health::Departed);
+
+            same_incarnation!(same_d_to_a, Health::Departed, Health::Alive);
+            same_incarnation!(same_d_to_s, Health::Departed, Health::Suspect);
+            same_incarnation!(same_d_to_c, Health::Departed, Health::Confirmed);
+            same_incarnation!(same_d_to_d, Health::Departed, Health::Departed);
         }
 
-        #[test]
-        fn insert_existing_member_higher_incarnation() {
-            let ml = MemberList::new();
-            let mut member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
+        /// Tests of MemberList::insert_health_by_id
+        mod insert_health_by_id {
+            use member::{Health, Member, MemberList};
 
-            member_one.incarnation = 1;
+            /// Tests that the transition from `from_health` to `to_health` for
+            /// `insert_health_by_id` works properly.
+            fn assert_insert_health_by_id_transition(from_health: Health, to_health: Health) {
+                let ml = MemberList::new();
+                let member_one = Member::default();
 
-            assert_eq!(ml.insert(member_one, Health::Alive), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Alive));
+                assert!(
+                    ml.insert_health_by_id(&member_one.id, from_health.clone()),
+                    "Should be able to insert initial health of {:?} into empty MemberList",
+                    from_health
+                );
+                assert_eq!(
+                    ml.health_of(&member_one).expect(
+                        "Expected member to exist in health after initial insert, but it didn't"
+                    ),
+                    from_health,
+                    "Member should have initial health {:?}",
+                    from_health
+                );
 
-            assert_eq!(ml.insert(member_two, Health::Alive), false);
-            ml.with_member(&mcheck_two.id, |m| assert_eq!(m.unwrap().incarnation, 1));
+                let update_counter_before = ml.get_update_counter();
+
+                {
+                    let aging_suspects = ml.aging_suspects.read().unwrap();
+                    match from_health {
+                        Health::Suspect => {
+                            assert!(
+                                aging_suspects.contains_key(&member_one.id),
+                                "{:?} member should be an aging Suspect initially",
+                                from_health
+                            );
+                        }
+                        _ => {
+                            assert!(
+                                !aging_suspects.contains_key(&member_one.id),
+                                "{:?} member should not be an aging Suspect initially",
+                                from_health
+                            );
+                        }
+                    }
+                }
+
+                {
+                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
+                    match from_health {
+                        Health::Confirmed => {
+                            assert!(
+                                aging_confirmed.contains_key(&member_one.id),
+                                "{:?} member should be an aging Confirmed initially",
+                                from_health
+                            );
+                        }
+                        _ => {
+                            assert!(
+                                !aging_confirmed.contains_key(&member_one.id),
+                                "{:?} member should not be an aging Confirmed initially",
+                                from_health
+                            );
+                        }
+                    }
+                }
+
+                if from_health == to_health {
+                    assert!(
+                        !ml.insert_health_by_id(&member_one.id, to_health.clone()),
+                        "Transitioning from {:?} to {:?} (i.e., no change) should be a no-op",
+                        from_health,
+                        to_health
+                    );
+                    assert_eq!(ml.get_update_counter(), update_counter_before,
+                           "Transitioning from {:?} to {:?} (i.e., no change) should not increment update counter",
+                           from_health,
+                           to_health);
+                    assert_eq!(
+                        ml.health_of(&member_one).expect(
+                            "Expected member to exist in health after update, but it didn't"
+                        ),
+                        from_health,
+                        "Member should have still have initial health {:?}",
+                        from_health
+                    );
+                } else {
+                    assert!(
+                    ml.insert_health_by_id(&member_one.id, to_health.clone()),
+                    "Transitioning from {:?} to {:?} (i.e., different health) should NOT be a no-op",
+                    from_health,
+                    to_health
+                );
+                    assert_eq!(ml.get_update_counter(), update_counter_before + 1,
+                           "Transitioning from {:?} to {:?} (i.e., different health) should increment update counter by one",
+                           from_health, to_health
+                );
+                    assert_eq!(
+                        ml.health_of(&member_one).expect(
+                            "Expected member to exist in health after update, but it didn't"
+                        ),
+                        to_health,
+                        "Member should have changed health from {:?} to {:?}",
+                        from_health,
+                        to_health
+                    );
+                }
+
+                {
+                    let aging_suspects = ml.aging_suspects.read().unwrap();
+                    match to_health {
+                        Health::Suspect => {
+                            assert!(
+                                aging_suspects.contains_key(&member_one.id),
+                                "{:?} member should be an aging Suspect after update to {:?}",
+                                from_health,
+                                to_health
+                            );
+                        }
+                        _ => {
+                            assert!(
+                                !aging_suspects.contains_key(&member_one.id),
+                                "{:?} member should not be an aging Suspect after update to {:?}",
+                                from_health,
+                                to_health
+                            );
+                        }
+                    }
+                }
+
+                {
+                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
+                    match to_health {
+                        Health::Confirmed => {
+                            assert!(
+                                aging_confirmed.contains_key(&member_one.id),
+                                "{:?} member should be an aging Confirmed after update to {:?}",
+                                from_health,
+                                to_health
+                            );
+                        }
+                        _ => {
+                            assert!(
+                                !aging_confirmed.contains_key(&member_one.id),
+                                "{:?} member should not be an aging Confirmed after update to {:?}",
+                                from_health,
+                                to_health
+                            );
+                        }
+                    }
+                }
+            }
+
+            macro_rules! transition {
+                // Unfortunately, Rust macros currently can't be used to generate
+                // the name of a function, so we have to provide one :(
+                ($fn_name:ident, $from:expr, $to:expr) => {
+                    #[test]
+                    fn $fn_name() {
+                        assert_insert_health_by_id_transition($from, $to);
+                    }
+                };
+            }
+
+            transition!(a_to_a, Health::Alive, Health::Alive);
+            transition!(a_to_s, Health::Alive, Health::Suspect);
+            transition!(a_to_c, Health::Alive, Health::Confirmed);
+            transition!(a_to_d, Health::Alive, Health::Departed);
+
+            transition!(s_to_a, Health::Suspect, Health::Alive);
+            transition!(s_to_s, Health::Suspect, Health::Suspect);
+            transition!(s_to_c, Health::Suspect, Health::Confirmed);
+            transition!(s_to_d, Health::Suspect, Health::Departed);
+
+            transition!(c_to_a, Health::Confirmed, Health::Alive);
+            transition!(c_to_s, Health::Confirmed, Health::Suspect);
+            transition!(c_to_c, Health::Confirmed, Health::Confirmed);
+            transition!(c_to_d, Health::Confirmed, Health::Departed);
+
+            transition!(d_to_a, Health::Departed, Health::Alive);
+            transition!(d_to_s, Health::Departed, Health::Suspect);
+            transition!(d_to_c, Health::Departed, Health::Confirmed);
+            transition!(d_to_d, Health::Departed, Health::Departed);
         }
 
-        #[test]
-        fn insert_equal_incarnation_current_alive_new_alive() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
+        /// Testing of
+        ///
+        /// - MemberList::members_expired_to_confirmed
+        /// - MemberList::members_expired_to_departed
+        mod timed_expiration {
+            use member::{Health, Member, MemberList};
+            use std::thread;
+            use std::time::Duration as StdDuration;
+            use time::Duration;
 
-            assert_eq!(ml.insert(member_one, Health::Alive), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Alive));
+            #[test]
+            fn timing_out_from_suspect_to_confirmed() {
+                let ml = MemberList::new();
+                let member_one = Member::default();
+                let small_seconds = 1;
+                let large_seconds = 100_000;
 
-            assert_eq!(ml.insert(member_two, Health::Alive), false);
+                // TODO (CM): OMG, use only one kind of Duration, pleeeeeeeease
+                let small_timeout =
+                    Duration::from_std(StdDuration::from_secs(small_seconds)).unwrap();
+                let large_timeout =
+                    Duration::from_std(StdDuration::from_secs(large_seconds)).unwrap();
+
+                assert!(ml.members_expired_to_confirmed(small_timeout).is_empty(),
+                        "An empty MemberList shouldn't have anything that's timing out to being Confirmed");
+
+                assert!(ml.insert(member_one.clone(), Health::Alive));
+
+                {
+                    let aging_suspects = ml.aging_suspects.read().unwrap();
+                    assert!(
+                        aging_suspects.is_empty(),
+                        "Member should not be considered an aging Suspect if it's Alive"
+                    );
+                }
+
+                assert!(
+                    ml.members_expired_to_confirmed(small_timeout).is_empty(),
+                    "Should be no newly Confirmed members when they're all Alive"
+                );
+
+                assert!(ml.insert_health_by_id(&member_one.id, Health::Suspect));
+
+                {
+                    let aging_suspects = ml.aging_suspects.read().unwrap();
+                    assert!(
+                        aging_suspects.contains_key(&member_one.id),
+                        "Member should be in aging_suspects after transitioning to Suspect"
+                    );
+                }
+
+                assert!(
+                    ml.members_expired_to_confirmed(large_timeout).is_empty(),
+                    "Nothing should have timed out to Confirmed with a large timeout"
+                );
+
+                // Allow the Suspect to age
+                thread::sleep(StdDuration::from_secs(small_seconds));
+
+                let newly_confirmed = ml.members_expired_to_confirmed(small_timeout);
+                assert!(
+                    newly_confirmed.contains(&member_one.id),
+                    "Member should be newly Confirmed after timing out"
+                );
+
+                assert!(
+                    ml.check_health_of(&member_one, Health::Confirmed),
+                    "Member should have a health of Confirmed after timing out"
+                );
+
+                {
+                    let aging_suspects = ml.aging_suspects.read().unwrap();
+                    assert!(
+                        !aging_suspects.contains_key(&member_one.id),
+                        "Member should no longer be considered an aging Suspect after timing out to Confirmed"
+                    );
+                }
+
+                {
+                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
+                    assert!(
+                        aging_confirmed.contains_key(&member_one.id),
+                        "Member should be considered an aging Confirmed after timing out to Confirmed"
+                    );
+                }
+            }
+
+            #[test]
+            fn timing_out_from_confirmed_to_departed() {
+                let ml = MemberList::new();
+                let member_one = Member::default();
+                let small_seconds = 1;
+                let large_seconds = 100_000;
+
+                // TODO (CM): OMG, use only one kind of Duration, pleeeeeeeease
+                let small_timeout =
+                    Duration::from_std(StdDuration::from_secs(small_seconds)).unwrap();
+                let large_timeout =
+                    Duration::from_std(StdDuration::from_secs(large_seconds)).unwrap();
+
+                assert!(ml.members_expired_to_departed(small_timeout).is_empty(),
+                        "An empty MemberList shouldn't have anything that's timing out to being Departed");
+
+                assert!(ml.insert(member_one.clone(), Health::Alive));
+                {
+                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
+                    assert!(
+                        aging_confirmed.is_empty(),
+                        "Member should not be considered an aging Confirmed if it's Alive"
+                    );
+                }
+                assert!(
+                    ml.members_expired_to_departed(small_timeout).is_empty(),
+                    "Should be no newly Departed members when they're all Alive"
+                );
+
+                assert!(ml.insert_health_by_id(&member_one.id, Health::Suspect));
+                {
+                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
+                    assert!(
+                        aging_confirmed.is_empty(),
+                        "Member should not be considered an aging Confirmed if it's Suspect"
+                    );
+                }
+                assert!(
+                    ml.members_expired_to_departed(small_timeout).is_empty(),
+                    "Should be no newly Departed members when they're all Confirmed"
+                );
+
+                assert!(ml.insert_health_by_id(&member_one.id, Health::Confirmed));
+                {
+                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
+                    assert!(
+                        aging_confirmed.contains_key(&member_one.id),
+                        "Member should be in aging_confirmed after transitioning to Confirmed"
+                    );
+                }
+
+                assert!(
+                    ml.members_expired_to_departed(small_timeout).is_empty(),
+                    "Should be no newly Departed members when they're all Confirmed"
+                );
+
+                assert!(
+                    ml.members_expired_to_departed(large_timeout).is_empty(),
+                    "Nothing should have timed out to Departed with a large timeout"
+                );
+
+                // Allow the Confirmed to age
+                thread::sleep(StdDuration::from_secs(small_seconds));
+
+                let newly_departed = ml.members_expired_to_departed(small_timeout);
+                assert!(
+                    newly_departed.contains(&member_one.id),
+                    "Member should be newly Departed after timing out"
+                );
+
+                assert!(
+                    ml.check_health_of(&member_one, Health::Departed),
+                    "Member should have a health of Departed after timing out"
+                );
+                {
+                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
+                    assert!(
+                        !aging_confirmed.contains_key(&member_one.id),
+                        "Member should no longer be considered an aging Confirmed after timing out to Departed"
+                    );
+                }
+            }
+
+            #[test]
+            fn suspect_timeout_is_appropriately_selective() {
+                let ml = MemberList::new();
+                let member_1 = Member::default();
+                let member_2 = Member::default();
+                let member_3 = Member::default();
+
+                assert!(ml.insert(member_1.clone(), Health::Suspect));
+                thread::sleep(StdDuration::from_secs(1));
+                assert!(ml.insert(member_2.clone(), Health::Suspect));
+                thread::sleep(StdDuration::from_secs(2)); // Give us a bit of padding
+                assert!(ml.insert(member_3.clone(), Health::Suspect));
+
+                let timeout = Duration::from_std(StdDuration::from_secs(2)).unwrap();
+
+                let newly_confirmed = ml.members_expired_to_confirmed(timeout);
+                assert!(
+                    newly_confirmed.contains(&member_1.id),
+                    "Member 1 should be newly Confirmed after timing out"
+                );
+                assert!(
+                    newly_confirmed.contains(&member_2.id),
+                    "Member 2 should be newly Confirmed after timing out"
+                );
+                assert!(
+                    !newly_confirmed.contains(&member_3.id),
+                    "Member 3 should NOT be newly Confirmed, because it hasn't timed out yet"
+                );
+
+                assert!(
+                    ml.check_health_of(&member_1, Health::Confirmed),
+                    "Member 1 should have a health of Confirmed after timing out"
+                );
+                assert!(
+                    ml.check_health_of(&member_2, Health::Confirmed),
+                    "Member 2 should have a health of Confirmed after timing out"
+                );
+                assert!(
+                    ml.check_health_of(&member_3, Health::Suspect),
+                    "Member 3 should still have a health of Suspect, because it hasn't timed out yet"
+                );
+            }
+
+            #[test]
+            fn confirmed_timeout_is_appropriately_selective() {
+                let ml = MemberList::new();
+                let member_1 = Member::default();
+                let member_2 = Member::default();
+                let member_3 = Member::default();
+
+                assert!(ml.insert(member_1.clone(), Health::Confirmed));
+                thread::sleep(StdDuration::from_secs(1));
+                assert!(ml.insert(member_2.clone(), Health::Confirmed));
+                thread::sleep(StdDuration::from_secs(2)); // Give us a bit of padding
+                assert!(ml.insert(member_3.clone(), Health::Confirmed));
+
+                let timeout = Duration::from_std(StdDuration::from_secs(2)).unwrap();
+
+                let newly_departed = ml.members_expired_to_departed(timeout);
+                assert!(
+                    newly_departed.contains(&member_1.id),
+                    "Member 1 should be newly Departed after timing out"
+                );
+                assert!(
+                    newly_departed.contains(&member_2.id),
+                    "Member 2 should be newly Departed after timing out"
+                );
+                assert!(
+                    !newly_departed.contains(&member_3.id),
+                    "Member 3 should NOT be newly Departed, because it hasn't timed out yet"
+                );
+
+                assert!(
+                    ml.check_health_of(&member_1, Health::Departed),
+                    "Member 1 should have a health of Departed after timing out"
+                );
+                assert!(
+                    ml.check_health_of(&member_2, Health::Departed),
+                    "Member 2 should have a health of Departed after timing out"
+                );
+                assert!(
+                    ml.check_health_of(&member_3, Health::Confirmed),
+                    "Member 3 should still have a health of Confirmed, because it hasn't timed out yet"
+                );
+            }
+
         }
-
-        #[test]
-        fn insert_equal_incarnation_current_alive_new_suspect() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Alive), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Alive));
-
-            assert_eq!(ml.insert(member_two, Health::Suspect), true);
-            assert!(ml.check_health_of(&mcheck_two, Health::Suspect));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_alive_new_confirmed() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Alive), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Alive));
-
-            assert_eq!(ml.insert(member_two, Health::Confirmed), true);
-            assert!(ml.check_health_of(&mcheck_two, Health::Confirmed));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_suspect_new_alive() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Suspect), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Suspect));
-
-            assert_eq!(ml.insert(member_two, Health::Alive), false);
-            assert!(ml.check_health_of(&mcheck_two, Health::Suspect));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_suspect_new_suspect() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Suspect), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Suspect));
-
-            assert_eq!(ml.insert(member_two, Health::Suspect), false);
-            assert!(ml.check_health_of(&mcheck_two, Health::Suspect));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_suspect_new_confirmed() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Suspect), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Suspect));
-
-            assert_eq!(ml.insert(member_two, Health::Confirmed), true);
-            assert!(ml.check_health_of(&mcheck_two, Health::Confirmed));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_confirmed_new_alive() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Confirmed), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Confirmed));
-
-            assert_eq!(ml.insert(member_two, Health::Alive), false);
-            assert!(ml.check_health_of(&mcheck_two, Health::Confirmed));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_confirmed_new_suspect() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Confirmed), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Confirmed));
-
-            assert_eq!(ml.insert(member_two, Health::Suspect), false);
-            assert!(ml.check_health_of(&mcheck_two, Health::Confirmed));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_confirmed_new_confirmed() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Confirmed), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Confirmed));
-
-            assert_eq!(ml.insert(member_two, Health::Confirmed), false);
-            assert!(ml.check_health_of(&mcheck_two, Health::Confirmed));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_alive_new_departed() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Alive), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Alive));
-
-            assert_eq!(ml.insert(member_two, Health::Departed), true);
-            assert!(ml.check_health_of(&mcheck_two, Health::Departed));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_suspect_new_departed() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Suspect), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Suspect));
-
-            assert_eq!(ml.insert(member_two, Health::Departed), true);
-            assert!(ml.check_health_of(&mcheck_two, Health::Departed));
-        }
-
-        #[test]
-        fn insert_equal_incarnation_current_confirmed_new_departed() {
-            let ml = MemberList::new();
-            let member_one = Member::default();
-            let mcheck_one = member_one.clone();
-            let member_two = member_one.clone();
-            let mcheck_two = member_two.clone();
-
-            assert_eq!(ml.insert(member_one, Health::Confirmed), true);
-            assert!(ml.check_health_of(&mcheck_one, Health::Confirmed));
-
-            assert_eq!(ml.insert(member_two, Health::Departed), true);
-            assert!(ml.check_health_of(&mcheck_two, Health::Departed));
-        }
-
     }
 }

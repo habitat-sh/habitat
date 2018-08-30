@@ -60,6 +60,10 @@ use rumor::{Rumor, RumorKey, RumorStore, RumorType};
 use swim::Ack;
 use trace::{Trace, TraceKind};
 
+/// The maximum number of other members we should notify when we shut
+/// down and leave the ring.
+const SELF_DEPARTURE_RUMOR_FANOUT: usize = 10;
+
 type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
 type AckSender = mpsc::Sender<(SocketAddr, Ack)>;
 
@@ -468,27 +472,6 @@ impl Server {
         }
     }
 
-    /// Change the health of a `Member`, and update its `RumorKey`.
-    pub fn insert_health(&self, member: &Member, health: Health) {
-        let rk: RumorKey = RumorKey::from(&member);
-        // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-        // of just how the logic goes. The value of the trace is really high, though, so we suck it
-        // for now.
-        let trace_member_id = member.id.clone();
-        let trace_incarnation = member.incarnation;
-        let trace_health = health.clone();
-        if self.member_list.insert_health(member, health) {
-            trace_it!(
-                MEMBERSHIP: self,
-                TraceKind::MemberUpdate,
-                trace_member_id,
-                trace_incarnation,
-                trace_health
-            );
-            self.rumor_heat.start_hot_rumor(rk);
-        }
-    }
-
     /// Set our member to departed, then send up to 10 out of order ack messages to other
     /// members to seed our status.
     pub fn set_departed(&self) {
@@ -513,8 +496,25 @@ impl Server {
                 Health::Departed
             );
 
+            // We need to mark this as "hot" in order to propagate it.
+            //
+            // TODO (CM): This exact code is present numerous places;
+            // factor it out to facilitate further code consolidation.
+            self.rumor_heat.start_hot_rumor(RumorKey::new(
+                RumorType::Member,
+                member.id.clone(),
+                "",
+            ));
+
             let check_list = self.member_list.check_list(&member.id);
-            for member in check_list.iter().take(10) {
+
+            // TODO (CM): Even though we marked the rumor as hot
+            // above, when we gossip, we send out the 5 "coolest but
+            // still warm" rumors. Sending to 10 members increases the
+            // chances that we'll get to this hot one now, but I don't
+            // think that we can strictly guarantee that this
+            // departure health update actually gets out in all cases.
+            for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
                 outbound::ack(&self, self.socket.as_ref().unwrap(), member, addr, None);
@@ -580,7 +580,8 @@ impl Server {
                     .member_list
                     .insert_health_by_id(&service_rumor.member_id, Health::Departed)
                 {
-                    self.member_list.depart_remove(&service_rumor.member_id);
+                    // TODO (CM): Why are we inferring departure from
+                    // a service rumor?
                     self.rumor_heat.start_hot_rumor(RumorKey::new(
                         RumorType::Member,
                         service_rumor.member_id.clone(),
@@ -621,7 +622,6 @@ impl Server {
             .member_list
             .insert_health_by_id(&departure.member_id, Health::Departed)
         {
-            self.member_list.depart_remove(&departure.member_id);
             self.rumor_heat.start_hot_rumor(RumorKey::new(
                 RumorType::Member,
                 departure.member_id.clone(),
@@ -1111,8 +1111,8 @@ mod tests {
             let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
             let gossip_listen = format!("127.0.0.1:{}", gossip_port);
             let mut member = Member::default();
-            member.swim_port = (swim_port as i32);
-            member.gossip_port = (gossip_port as i32);
+            member.swim_port = swim_port as i32;
+            member.gossip_port = gossip_port as i32;
             let rumor_name = format!("{}{}", member.id.to_string(), ".rst");
             let file_path = tmpdir.path().to_owned().join(rumor_name);
             let mut rumor_file = File::create(file_path).unwrap();
