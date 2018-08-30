@@ -23,6 +23,7 @@
 - Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Fix attach not working in docker studio [#5491](https://github.com/habitat-sh/habitat/pull/5491) ([elliott-davis](https://github.com/elliott-davis))
 - Miscellaneous Butterfly refactors [#5503](https://github.com/habitat-sh/habitat/pull/5503) ([christophermaier](https://github.com/christophermaier))
 - Fix composite bindings [#5517](https://github.com/habitat-sh/habitat/pull/5517) ([christophermaier](https://github.com/christophermaier))
 - Fix invalid desired state when using new hab with &lt; 0.61 sup [#5519](https://github.com/habitat-sh/habitat/pull/5519) ([jeremymv2](https://github.com/jeremymv2))
