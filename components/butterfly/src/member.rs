@@ -343,7 +343,7 @@ impl MemberList {
 
     /// Inserts a member into the member list with the given health.
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
-        let mut accept_and_propagate_rumor: bool = false;
+        let mut accept_and_propagate_rumor = false;
 
         match self
             .members
