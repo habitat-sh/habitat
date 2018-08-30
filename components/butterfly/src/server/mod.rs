@@ -60,6 +60,10 @@ use rumor::{Rumor, RumorKey, RumorStore, RumorType};
 use swim::Ack;
 use trace::{Trace, TraceKind};
 
+/// The maximum number of other members we should notify when we shut
+/// down and leave the ring.
+const SELF_DEPARTURE_RUMOR_FANOUT: usize = 10;
+
 type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
 type AckSender = mpsc::Sender<(SocketAddr, Ack)>;
 
@@ -510,7 +514,7 @@ impl Server {
             // chances that we'll get to this hot one now, but I don't
             // think that we can strictly guarantee that this
             // departure health update actually gets out in all cases.
-            for member in check_list.iter().take(10) {
+            for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
                 outbound::ack(&self, self.socket.as_ref().unwrap(), member, addr, None);
