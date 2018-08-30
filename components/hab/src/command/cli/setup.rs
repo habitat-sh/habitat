@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
 use std::path::Path;
 
 #[cfg(windows)]
@@ -404,7 +403,7 @@ fn set_binlink_path(binlink_path: &Path) -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(target_os = "windows"))]
-fn set_binlink_path(binlink_path: &Path) -> Result<()> {
+#[cfg(not(windows))]
+fn set_binlink_path(_binlink_path: &Path) -> Result<()> {
     unreachable!()
 }
