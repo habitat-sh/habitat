@@ -339,87 +339,87 @@ impl MemberList {
         }
     }
 
+    /// Inserts a member into the member list with the given health,
+    /// but only if the criteria for insertion are met. Returns `true`
+    /// if the rumor information was actually accepted, and `false`
+    /// otherwise.
+    ///
+    /// There are a few rules governing how we choose to accept
+    /// Membership rumors.
+    ///
+    /// First, if we have absolutely no record of having seen
+    /// `incoming_member` before, we'll accept the rumor without
+    /// question.
+    ///
+    /// On the other hand, if we _have_ seen `incoming_member` we need
+    /// to compare the incoming information to what we currently have
+    /// before we decide whether to accept the new information.
+    ///
+    /// If the incarnation number of the `incoming_member` is lower
+    /// than that of the rumor we already have, then we reject
+    /// it. Incarnation numbers for Members are only ever incremented
+    /// by that Member itself, so the fact that we already have one
+    /// that is higher means that we have more up-to-date information.
+    ///
+    /// Similarly, if the incoming incarnation number is greater than
+    /// what we have, we'll accept it as more up-to-date information.
+    ///
+    /// If the incarnation numbers match, we need to look at the
+    /// health to determine if we accept the rumor.
+    ///
+    /// We only accept the incoming rumor if its health is strictly
+    /// "worse than" the health we currently have for the member.
+    ///
+    /// Alternatively, you can think of "worse than" as "greater
+    /// than", given this ordering of Health states (this is governed
+    /// by the `PartialOrd` and `Ord` trait implementations on `Health`):
+    ///
+    ///     Alive < Suspect < Confirmed < Departed
+    ///
+    /// For example, if we think that "Supervisor X (at incarnation 1)
+    /// is Alive", but the rumor is telling us that "Supervisor X (at
+    /// incarnation 1) is Suspect", that means that whoever we've
+    /// received this rumor from is having trouble contacting
+    /// Supervisor X. We should accept this rumor and propagate it to
+    /// ensure that a) information about degraded connectivity makes
+    /// it around the network, and b) the odds that Supervisor X will
+    /// receive this rumor increase, allowing it to refute this (if
+    /// indeed Supervisor X is still around.)
+    ///
+    /// If we were to just accept the rumor regardless of what the
+    /// health was, we could basically start "arguing" across the
+    /// network; one Supervisor thinks X is Alive, another thinks it's
+    /// Suspect, and we just keep flip-flopping between the two
+    /// without any sort of resolution.
+    ///
+    /// Below is the truth table that illustrates this. "Current Health"
+    /// is down the left side, while "Incoming Health" is across the
+    /// top. We only propagate when Incoming is "worse than" Current:
+    ///
+    ///     |           | Alive | Suspect   | Confirmed | Departed  |
+    ///     |-----------+-------+-----------+-----------+-----------|
+    ///     | Alive     |       | propagate | propagate | propagate |
+    ///     | Suspect   |       |           | propagate | propagate |
+    ///     | Confirmed |       |           |           | propagate |
+    ///     | Departed  |       |           |           |           |
+    ///
     // TODO (CM): why don't we just insert a membership record here?
-
-    /// Inserts a member into the member list with the given health.
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
-        let mut accept_and_propagate_rumor = false;
-
-        match self
+        let accept_and_propagate_rumor = match self
             .members
             .read()
             .expect("Member List read lock poisoned")
             .get(&incoming_member.id)
         {
-            None => {
-                // We haven't seen this member before, so we always
-                // accept the rumor
-                accept_and_propagate_rumor = true;
-            }
+            None => true,
             Some(existing_member) => {
-                // We have seen this member before; we need to examine
-                // it a bit more before we decide whether we want to
-                // accept it.
                 match existing_member
                     .incarnation
                     .cmp(&incoming_member.incarnation)
                 {
-                    cmp::Ordering::Greater => {
-                        // If the incarnation number we have is
-                        // greater than what we're being given, it is
-                        // more recent, so we reject the incoming rumor.
-                        accept_and_propagate_rumor = false;
-                    }
-                    cmp::Ordering::Less => {
-                        // If the incarnation number we have is less
-                        // than that of the incoming rumor, then we
-                        // must accept the new rumor. That's how the
-                        // member itself is updating its status to the
-                        // rest of the network.
-                        accept_and_propagate_rumor = true;
-                    }
+                    cmp::Ordering::Greater => false,
+                    cmp::Ordering::Less => true,
                     cmp::Ordering::Equal => {
-                        // If the incarnation numbers match, we need
-                        // to look at the health to determine if we
-                        // accept the rumor.
-                        //
-                        // We only accept the incoming rumor if its
-                        // health is strictly "worse than" the health
-                        // we currently have for the member.
-                        //
-                        // For example, if we think that "Supervisor X
-                        // (at incarnation 1) is Alive", but the rumor
-                        // is telling us that "Supervisor X (at
-                        // incarnation 1) is Suspect", that means that
-                        // whoever we've received this rumor from is
-                        // having trouble contacting Supervisor X. We
-                        // should accept this rumor and propagate it
-                        // to ensure that a) information about
-                        // degraded connectivity makes it around the
-                        // network, and b) the odds that Supervisor X
-                        // will receive this rumor increase, allowing
-                        // it to refute this (if indeed Supervisor X
-                        // is still around.)
-                        //
-                        // If we were to just accept the rumor
-                        // regardless of what the health was, we could
-                        // basically start "arguing" across the
-                        // network; one Supervisor thinks X is Alive,
-                        // another thinks it's Suspect, and we just
-                        // keep flip-flopping between the two without
-                        // any sort of resolution.
-                        //
-                        // Current Health is down the left side, while
-                        // Incoming Health is across the top. We only
-                        // propagate when Incoming is "worse than" Current
-                        //
-                        // |           | Alive | Suspect   | Confirmed | Departed  |
-                        // |-----------+-------+-----------+-----------+-----------|
-                        // | Alive     |       | propagate | propagate | propagate |
-                        // | Suspect   |       |           | propagate | propagate |
-                        // | Confirmed |       |           |           | propagate |
-                        // | Departed  |       |           |           |           |
-
                         // We know we have a health if we have a
                         // record.
                         //
@@ -430,15 +430,13 @@ impl MemberList {
                             "No health for a membership record should be impossible; did you use insert?",
                         );
 
-                        if incoming_health > *existing_health {
-                            accept_and_propagate_rumor = true
-                        }
+                        incoming_health > *existing_health
                     }
                 }
             }
-        }
+        };
 
-        if accept_and_propagate_rumor == true {
+        if accept_and_propagate_rumor {
             let member_id = incoming_member.id.clone();
             self.members
                 .write()
