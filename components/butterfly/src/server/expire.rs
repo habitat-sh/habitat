@@ -23,7 +23,7 @@ use rumor::{RumorKey, RumorType};
 use server::timing::Timing;
 use server::Server;
 
-const LOOP_PERIOD_MS: u64 = 500;
+const LOOP_DELAY_MS: u64 = 500;
 
 pub struct Expire {
     pub server: Server,
@@ -62,7 +62,7 @@ impl Expire {
                     .start_hot_rumor(RumorKey::new(RumorType::Member, id, ""));
             }
 
-            thread::sleep(Duration::from_millis(LOOP_PERIOD_MS));
+            thread::sleep(Duration::from_millis(LOOP_DELAY_MS));
         }
     }
 }
