@@ -49,6 +49,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- A few clarifications [#5512](https://github.com/habitat-sh/habitat/pull/5512) ([raskchanky](https://github.com/raskchanky))
 - update habitat core to latest master [#5522](https://github.com/habitat-sh/habitat/pull/5522) ([mwrock](https://github.com/mwrock))
 - fix windows studiobinlink regression [#5520](https://github.com/habitat-sh/habitat/pull/5520) ([mwrock](https://github.com/mwrock))
 - implement binlink for windows [#5513](https://github.com/habitat-sh/habitat/pull/5513) ([mwrock](https://github.com/mwrock))
