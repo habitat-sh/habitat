@@ -717,67 +717,61 @@ impl MemberList {
         }
     }
 
-    // TODO (CM): Better return type than Vec<String>
-    /// Query the list of aging Suspect members to find those which have now
-    /// timed out to Confirmed. Health is updated appropriately, and a
-    /// list of newly-Confirmed Member IDs is returned.
-    pub fn get_newly_expired_confirmed(&self, timeout: Duration) -> Vec<String> {
-        let now = SteadyTime::now();
-        let mut newly_confirmed: Vec<String> = Vec::new();
-
-        {
-            let mut aging_suspects = self
-                .aging_suspects
-                .write()
-                .expect("aging_suspects lock is poisoned");
-
-            aging_suspects.retain(|ref member_id, ref suspect_time| {
-                let timed_out = now >= **suspect_time + timeout;
-                if timed_out {
-                    newly_confirmed.push(member_id.to_string());
-                }
-                !timed_out
-            });
-        }
-
-        // Since these have "graduated" from Suspect to Confirmed, we
-        // should record their new health.
-        for id in newly_confirmed.iter() {
-            self.insert_health_by_id(id, Health::Confirmed);
-        }
-
-        newly_confirmed
+    /// Query the list of aging Suspect members to find those which
+    /// have now expired to Confirmed. Health is updated
+    /// appropriately, and a list of newly-Confirmed Member IDs is
+    /// returned.
+    pub fn members_expired_to_confirmed(&self, timeout: Duration) -> Vec<String> {
+        self.members_expired_to(Health::Confirmed, timeout)
     }
 
-    /// Query the list of aging Confirmed members to find those which have now
-    /// timed out to Departed. Health is updated appropriately, and a
-    /// list of newly-Departed Member IDs is returned.
-    pub fn get_newly_expired_departed(&self, timeout: Duration) -> Vec<String> {
+    /// Query the list of aging Confirmed members to find those which
+    /// have now expired to Departed. Health is updated appropriately,
+    /// and a list of newly-Departed Member IDs is returned.
+    pub fn members_expired_to_departed(&self, timeout: Duration) -> Vec<String> {
+        self.members_expired_to(Health::Departed, timeout)
+    }
+
+    /// Return the member IDs of all members that have "timed out" to
+    /// the `expiring_to` `Health`.
+    ///
+    /// For instance,
+    ///
+    ///   members_expired_to(Health::Departed, timeout)
+    ///
+    /// will return the IDs of those members that have been
+    /// `Confirmed` for longer than the given `timeout`.
+    ///
+    /// The newly-updated health status is recorded properly.
+    // TODO (CM): Better return type than Vec<String>
+    fn members_expired_to(&self, expiring_to: Health, timeout: Duration) -> Vec<String> {
         let now = SteadyTime::now();
-        let mut newly_departed: Vec<String> = Vec::new();
+        let mut expired = Vec::new();
 
-        {
-            let mut aging_confirmed = self
-                .aging_confirmed
-                .write()
-                .expect("aging_confirmed lock is poisoned");
+        let population = match expiring_to {
+            Health::Confirmed => &self.aging_suspects,
+            Health::Departed => &self.aging_confirmed,
+            _ => {
+                // Note: this shouldn't ever be called
+                return expired;
+            }
+        };
 
-            aging_confirmed.retain(|ref member_id, ref confirmed_time| {
-                let timed_out = now >= **confirmed_time + timeout;
-                if timed_out {
-                    newly_departed.push(member_id.to_string());
+        population.write().expect("aging lock is poisoned").retain(
+            |ref member_id, ref starting_timestamp| {
+                if now >= **starting_timestamp + timeout {
+                    expired.push(member_id.to_string());
+                    false
+                } else {
+                    true
                 }
-                !timed_out
-            });
-        }
+            },
+        );
 
-        // Since these have "graduated" from Confirmed to Departed, we
-        // should record their new health.
-        for id in newly_departed.iter() {
-            self.insert_health_by_id(id, Health::Departed);
+        for id in expired.iter() {
+            self.insert_health_by_id(id, expiring_to);
         }
-
-        newly_departed
+        expired
     }
 
     pub fn contains_member(&self, member_id: &str) -> bool {
@@ -1374,8 +1368,8 @@ mod tests {
 
         /// Testing of
         ///
-        /// - MemberList::get_newly_expired_confirmed
-        /// - MemberList::get_newly_expired_departed
+        /// - MemberList::members_expired_to_confirmed
+        /// - MemberList::members_expired_to_departed
         mod timed_expiration {
             use member::{Health, Member, MemberList};
             use std::thread;
@@ -1395,7 +1389,7 @@ mod tests {
                 let large_timeout =
                     Duration::from_std(StdDuration::from_secs(large_seconds)).unwrap();
 
-                assert!(ml.get_newly_expired_confirmed(small_timeout).is_empty(),
+                assert!(ml.members_expired_to_confirmed(small_timeout).is_empty(),
                         "An empty MemberList shouldn't have anything that's timing out to being Confirmed");
 
                 assert!(ml.insert(member_one.clone(), Health::Alive));
@@ -1409,7 +1403,7 @@ mod tests {
                 }
 
                 assert!(
-                    ml.get_newly_expired_confirmed(small_timeout).is_empty(),
+                    ml.members_expired_to_confirmed(small_timeout).is_empty(),
                     "Should be no newly Confirmed members when they're all Alive"
                 );
 
@@ -1424,14 +1418,14 @@ mod tests {
                 }
 
                 assert!(
-                    ml.get_newly_expired_confirmed(large_timeout).is_empty(),
+                    ml.members_expired_to_confirmed(large_timeout).is_empty(),
                     "Nothing should have timed out to Confirmed with a large timeout"
                 );
 
                 // Allow the Suspect to age
                 thread::sleep(StdDuration::from_secs(small_seconds));
 
-                let newly_confirmed = ml.get_newly_expired_confirmed(small_timeout);
+                let newly_confirmed = ml.members_expired_to_confirmed(small_timeout);
                 assert!(
                     newly_confirmed.contains(&member_one.id),
                     "Member should be newly Confirmed after timing out"
@@ -1472,7 +1466,7 @@ mod tests {
                 let large_timeout =
                     Duration::from_std(StdDuration::from_secs(large_seconds)).unwrap();
 
-                assert!(ml.get_newly_expired_departed(small_timeout).is_empty(),
+                assert!(ml.members_expired_to_departed(small_timeout).is_empty(),
                         "An empty MemberList shouldn't have anything that's timing out to being Departed");
 
                 assert!(ml.insert(member_one.clone(), Health::Alive));
@@ -1484,7 +1478,7 @@ mod tests {
                     );
                 }
                 assert!(
-                    ml.get_newly_expired_departed(small_timeout).is_empty(),
+                    ml.members_expired_to_departed(small_timeout).is_empty(),
                     "Should be no newly Departed members when they're all Alive"
                 );
 
@@ -1497,7 +1491,7 @@ mod tests {
                     );
                 }
                 assert!(
-                    ml.get_newly_expired_departed(small_timeout).is_empty(),
+                    ml.members_expired_to_departed(small_timeout).is_empty(),
                     "Should be no newly Departed members when they're all Confirmed"
                 );
 
@@ -1511,19 +1505,19 @@ mod tests {
                 }
 
                 assert!(
-                    ml.get_newly_expired_departed(small_timeout).is_empty(),
+                    ml.members_expired_to_departed(small_timeout).is_empty(),
                     "Should be no newly Departed members when they're all Confirmed"
                 );
 
                 assert!(
-                    ml.get_newly_expired_departed(large_timeout).is_empty(),
+                    ml.members_expired_to_departed(large_timeout).is_empty(),
                     "Nothing should have timed out to Departed with a large timeout"
                 );
 
                 // Allow the Confirmed to age
                 thread::sleep(StdDuration::from_secs(small_seconds));
 
-                let newly_departed = ml.get_newly_expired_departed(small_timeout);
+                let newly_departed = ml.members_expired_to_departed(small_timeout);
                 assert!(
                     newly_departed.contains(&member_one.id),
                     "Member should be newly Departed after timing out"
@@ -1557,7 +1551,7 @@ mod tests {
 
                 let timeout = Duration::from_std(StdDuration::from_secs(2)).unwrap();
 
-                let newly_confirmed = ml.get_newly_expired_confirmed(timeout);
+                let newly_confirmed = ml.members_expired_to_confirmed(timeout);
                 assert!(
                     newly_confirmed.contains(&member_1.id),
                     "Member 1 should be newly Confirmed after timing out"
@@ -1600,7 +1594,7 @@ mod tests {
 
                 let timeout = Duration::from_std(StdDuration::from_secs(2)).unwrap();
 
-                let newly_departed = ml.get_newly_expired_departed(timeout);
+                let newly_departed = ml.members_expired_to_departed(timeout);
                 assert!(
                     newly_departed.contains(&member_1.id),
                     "Member 1 should be newly Departed after timing out"

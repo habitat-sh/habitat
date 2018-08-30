@@ -43,7 +43,7 @@ impl Expire {
             let newly_confirmed_members = self
                 .server
                 .member_list
-                .get_newly_expired_confirmed(self.timing.suspicion_timeout_duration());
+                .members_expired_to_confirmed(self.timing.suspicion_timeout_duration());
 
             for id in newly_confirmed_members {
                 self.server
@@ -54,7 +54,7 @@ impl Expire {
             let newly_departed_members = self
                 .server
                 .member_list
-                .get_newly_expired_departed(self.timing.departure_timeout_duration());
+                .members_expired_to_departed(self.timing.departure_timeout_duration());
 
             for id in newly_departed_members {
                 self.server
