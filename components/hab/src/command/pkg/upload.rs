@@ -108,14 +108,14 @@ where
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client.show_package(&ident, None, Some(token), Some(&target.to_string())) {
+    match api_client.show_package(&ident, &target, None, Some(token)) {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match api_client.show_package(&dep, None, Some(token), Some(&target.to_string())) {
+                match api_client.show_package(&dep, &target, None, Some(token)) {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
                         let candidate_path = match archive_path.as_ref().parent() {

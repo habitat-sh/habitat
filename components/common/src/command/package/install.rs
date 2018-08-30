@@ -95,6 +95,7 @@ pub struct LocalArchive {
     // creation of instances of the struct, and can thus ensure that
     // the ident and path are mutually consistent and valid.
     ident: PackageIdent,
+    target: PackageTarget,
     path: PathBuf,
 }
 
@@ -102,7 +103,7 @@ pub struct LocalArchive {
 #[derive(Clone, Debug)]
 pub enum InstallSource {
     /// We can install from a package identifier
-    Ident(PackageIdent),
+    Ident(PackageIdent, PackageTarget),
     /// We can install from a locally-available `.hart` file
     Archive(LocalArchive),
 }
@@ -121,9 +122,11 @@ impl FromStr for InstallSource {
             // Is it really an archive? If it can produce an
             // identifer, we'll say "yes".
             let mut archive = PackageArchive::new(path);
+            let target = archive.target()?;
             match archive.ident() {
                 Ok(ident) => Ok(InstallSource::Archive(LocalArchive {
                     ident: ident,
+                    target: target,
                     path: path.to_path_buf(),
                 })),
                 Err(e) => Err(e),
@@ -136,25 +139,39 @@ impl FromStr for InstallSource {
             }
 
             match s.parse::<PackageIdent>() {
-                Ok(ident) => Ok(InstallSource::Ident(ident)),
+                // TODO fn: I would have preferred to explicitly choose a `PackageTarget` here, but
+                // we're limited to the input string in this trait implementation. For the moment
+                // this will work when the appropriate and correct answer for the `PackageTarget`
+                // is the currently active one, but will be insufficient if used in a situation
+                // where the user needs to provide the target explicitly.
+                //
+                // To me, this implies that this trait impl isn't strictly true anymore--there
+                // would otherwise have to be a canonical way to express an ident **and** target in
+                // one string, such as `"x86_64-linux::core/redis"` (or similar). As there is
+                // currently no such representation, I'd argue that this `FromStr` is no longer
+                // reasonable. However, it's doing the job for now and we can proceed with caution.
+                Ok(ident) => Ok(InstallSource::Ident(
+                    ident,
+                    PackageTarget::active_target().clone(),
+                )),
                 Err(e) => Err(e),
             }
         }
     }
 }
 
-impl From<PackageIdent> for InstallSource {
+impl From<(PackageIdent, PackageTarget)> for InstallSource {
     /// Convenience function to generate an `InstallSource` from an
     /// existing `PackageIdent`.
-    fn from(ident: PackageIdent) -> Self {
-        InstallSource::Ident(ident)
+    fn from((ident, target): (PackageIdent, PackageTarget)) -> Self {
+        InstallSource::Ident(ident, target)
     }
 }
 
 impl Into<PackageIdent> for InstallSource {
     fn into(self) -> PackageIdent {
         match self {
-            InstallSource::Ident(ident) => ident,
+            InstallSource::Ident(ident, _) => ident,
             InstallSource::Archive(local_archive) => local_archive.ident,
         }
     }
@@ -163,7 +180,7 @@ impl Into<PackageIdent> for InstallSource {
 impl AsRef<PackageIdent> for InstallSource {
     fn as_ref(&self) -> &PackageIdent {
         match *self {
-            InstallSource::Ident(ref ident) => ident,
+            InstallSource::Ident(ref ident, _) => ident,
             InstallSource::Archive(ref local_archive) => &local_archive.ident,
         }
     }
@@ -350,7 +367,9 @@ where
     )?;
 
     match *install_source {
-        InstallSource::Ident(ref ident) => task.from_ident(ui, ident.clone(), token),
+        InstallSource::Ident(ref ident, ref target) => {
+            task.from_ident(ui, ident.clone(), target, token)
+        }
         InstallSource::Archive(ref local_archive) => task.from_archive(ui, local_archive, token),
     }
 }
@@ -406,13 +425,14 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: PackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageInstall>
     where
         T: UIWriter,
     {
         ui.begin(format!("Installing {}", &ident))?;
-        let target_ident = self.determine_latest_from_ident(ui, ident, token)?;
+        let target_ident = self.determine_latest_from_ident(ui, ident, target, token)?;
 
         match self.installed_package(&target_ident) {
             Some(package_install) => {
@@ -426,7 +446,7 @@ impl<'a> InstallTask<'a> {
             }
             None => {
                 // No installed package was found
-                self.install_package(ui, &target_ident, token)
+                self.install_package(ui, &target_ident, target, token)
             }
         }
     }
@@ -457,7 +477,7 @@ impl<'a> InstallTask<'a> {
             None => {
                 // No installed package was found
                 self.store_artifact_in_cache(&target_ident, &local_archive.path)?;
-                self.install_package(ui, &target_ident, token)
+                self.install_package(ui, &target_ident, &local_archive.target, token)
             }
         }
     }
@@ -466,6 +486,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: PackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent>
     where
@@ -512,7 +533,7 @@ impl<'a> InstallTask<'a> {
                     &ident, self.channel
                 ),
             )?;
-            let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, token) {
+            let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, target, token) {
                 Ok(latest_ident) => Some(latest_ident),
                 Err(Error::APIClient(APIError(StatusCode::NotFound, _))) => None,
                 Err(e) => {
@@ -544,7 +565,7 @@ impl<'a> InstallTask<'a> {
                     if self.ignore_locally_installed_packages() {
                         // This is the behavior that is currently
                         // governed by the IGNORE_LOCAL feature-flag
-                        self.recommend_channels(ui, &ident, token)?;
+                        self.recommend_channels(ui, &ident, target, token)?;
                         ui.warn(format!(
                             "Locally-installed package '{}' would satisfy '{}', \
                              but we are ignoring that as directed",
@@ -572,7 +593,7 @@ impl<'a> InstallTask<'a> {
                 }
                 (Err(_), Some(remote)) => Ok(remote),
                 (Err(_), None) => {
-                    self.recommend_channels(ui, &ident, token)?;
+                    self.recommend_channels(ui, &ident, target, token)?;
                     Err(Error::PackageNotFound(
                         "If you are attempting to install from a local depot with an upstream \
                          configured, try again in a few seconds."
@@ -595,13 +616,14 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &FullyQualifiedPackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageInstall>
     where
         T: UIWriter,
     {
         // TODO (CM): rename artifact to archive
-        let mut artifact = self.get_cached_artifact(ui, ident, token)?;
+        let mut artifact = self.get_cached_artifact(ui, ident, target, token)?;
 
         match artifact.package_type()? {
             PackageType::Standalone => {
@@ -622,6 +644,7 @@ impl<'a> InstallTask<'a> {
                         artifacts_to_install.push(self.get_cached_artifact(
                             ui,
                             &FullyQualifiedPackageIdent::from(dependency)?,
+                            target,
                             token,
                         )?);
                     }
@@ -650,7 +673,7 @@ impl<'a> InstallTask<'a> {
                     // each service itself does that. Thus, we need to
                     // install them just like we would if we weren't
                     // in a composite.
-                    self.from_ident(ui, service, token)?;
+                    self.from_ident(ui, service, target, token)?;
                 }
                 // All the services have been unpacked; let's do the
                 // same with the composite package itself.
@@ -668,6 +691,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &FullyQualifiedPackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageArchive>
     where
@@ -684,7 +708,7 @@ impl<'a> InstallTask<'a> {
             if retry(
                 RETRIES,
                 RETRY_WAIT,
-                || self.fetch_artifact(ui, ident, token),
+                || self.fetch_artifact(ui, ident, target, token),
                 |res| res.is_ok(),
             ).is_err()
             {
@@ -841,20 +865,22 @@ impl<'a> InstallTask<'a> {
     fn fetch_latest_pkg_ident_for(
         &self,
         ident: &PackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent> {
-        self.fetch_latest_pkg_ident_in_channel_for(ident, &self.channel, token)
+        self.fetch_latest_pkg_ident_in_channel_for(ident, target, &self.channel, token)
     }
 
     fn fetch_latest_pkg_ident_in_channel_for(
         &self,
         ident: &PackageIdent,
+        target: &PackageTarget,
         channel: &Channel,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent> {
         let origin_package = self
             .api_client
-            .show_package(ident, Some(channel.0), token, None)?;
+            .show_package(ident, target, Some(channel.0), token)?;
         FullyQualifiedPackageIdent::from(origin_package)
     }
 
@@ -864,6 +890,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &FullyQualifiedPackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<()>
     where
@@ -872,10 +899,10 @@ impl<'a> InstallTask<'a> {
         ui.status(Status::Downloading, ident)?;
         match self.api_client.fetch_package(
             ident.as_ref(),
+            target,
             token,
             self.artifact_cache_path,
             ui.progress(),
-            None,
         ) {
             Ok(_) => Ok(()),
             Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
@@ -1022,12 +1049,13 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &PackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<()>
     where
         T: UIWriter,
     {
-        if let Ok(recommendations) = self.get_channel_recommendations(&ident, token) {
+        if let Ok(recommendations) = self.get_channel_recommendations(&ident, target, token) {
             if !recommendations.is_empty() {
                 ui.warn(format!(
                     "No releases of {} exist in the '{}' channel",
@@ -1050,6 +1078,7 @@ impl<'a> InstallTask<'a> {
     fn get_channel_recommendations(
         &self,
         ident: &PackageIdent,
+        target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
@@ -1063,7 +1092,7 @@ impl<'a> InstallTask<'a> {
         };
 
         for channel in channels.iter().map(|c| Channel::new(c)) {
-            match self.fetch_latest_pkg_ident_in_channel_for(ident, &channel, token) {
+            match self.fetch_latest_pkg_ident_in_channel_for(ident, target, &channel, token) {
                 Ok(pkg) => res.push((channel.to_string(), format!("{}", pkg))),
                 Err(_) => (),
             };

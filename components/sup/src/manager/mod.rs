@@ -55,7 +55,7 @@ use hcore::fs::FS_ROOT_PATH;
 use hcore::os::process::{self, Pid, Signal};
 use hcore::os::signals::{self, SignalEvent};
 use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use hcore::package::{Identifiable, PackageIdent, PackageInstall, PackageTarget};
 use hcore::service::ServiceGroup;
 use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
@@ -949,7 +949,7 @@ impl Manager {
             .clone()
             .unwrap_or(protocol::DEFAULT_BLDR_CHANNEL.to_string());
         let force = opts.force.clone().unwrap_or(false);
-        let source = InstallSource::Ident(ident.clone());
+        let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());
         match Self::existing_specs_for_ident(&mgr.cfg, source.as_ref())? {
             None => {
                 // We don't have any record of this thing; let's set it up!

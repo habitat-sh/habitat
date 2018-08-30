@@ -19,7 +19,7 @@ use common::command::package::install::{InstallMode, LocalPackageUsage};
 use common::ui::{Status, UIWriter, UI};
 use hcore::env as henv;
 use hcore::fs::{self, cache_artifact_path};
-use hcore::package::{PackageIdent, PackageInstall};
+use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
 use hcore::url::default_bldr_url;
 use hcore::{self, channel};
 
@@ -91,7 +91,7 @@ where
                 ui,
                 &default_bldr_url(),
                 Some(&internal_tooling_channel()),
-                &ident.clone().into(),
+                &(ident.clone(), *PackageTarget::active_target()).into(),
                 PRODUCT,
                 VERSION,
                 fs_root_path,
