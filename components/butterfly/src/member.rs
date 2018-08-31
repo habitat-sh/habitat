@@ -22,6 +22,7 @@ use std::result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
+use cast;
 use rand::{thread_rng, Rng};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
@@ -46,8 +47,8 @@ pub struct Member {
     pub id: String,
     pub incarnation: u64,
     pub address: String,
-    pub swim_port: i32,
-    pub gossip_port: i32,
+    pub swim_port: u16,
+    pub gossip_port: u16,
     pub persistent: bool,
     pub departed: bool,
 }
@@ -113,8 +114,8 @@ impl From<Member> for proto::Member {
             id: Some(value.id),
             incarnation: Some(value.incarnation),
             address: Some(value.address),
-            swim_port: Some(value.swim_port),
-            gossip_port: Some(value.gossip_port),
+            swim_port: Some(cast::i32(value.swim_port)),
+            gossip_port: Some(cast::i32(value.gossip_port)),
             persistent: Some(value.persistent),
             departed: Some(value.departed),
         }
@@ -183,10 +184,13 @@ impl FromProto<proto::Member> for Member {
             // two uses of our Member protobuf, or both.
             address: proto.address.unwrap_or("".to_string()),
 
-            swim_port: proto.swim_port.ok_or(Error::ProtocolMismatch("swim-port"))?,
-            gossip_port: proto
-                .gossip_port
-                .ok_or(Error::ProtocolMismatch("gossip-port"))?,
+            swim_port: cast::u16(proto.swim_port.ok_or(Error::ProtocolMismatch("swim-port"))?)
+                .map_err(|e| Error::InvalidField("swim-port", e.to_string()))?,
+            gossip_port: cast::u16(
+                proto
+                    .gossip_port
+                    .ok_or(Error::ProtocolMismatch("gossip-port"))?,
+            ).map_err(|e| Error::InvalidField("gossip-port", e.to_string()))?,
             persistent: proto.persistent.unwrap_or(false),
             departed: proto.departed.unwrap_or(false),
         })

@@ -14,6 +14,7 @@ doc = false
 clippy = {version = "*", optional = true}
 byteorder = "*"
 bytes = "*"
+cast = "*"
 env_logger = "*"
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 log = "*"

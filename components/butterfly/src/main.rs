@@ -53,8 +53,8 @@ fn main() {
     gossip_bind_addr.set_port(gport);
 
     let mut member = member::Member::default();
-    member.swim_port = bind_port as i32;
-    member.gossip_port = gport as i32;
+    member.swim_port = bind_port;
+    member.gossip_port = gport;
 
     let mut server = server::Server::new(
         bind_to_addr,
@@ -73,8 +73,8 @@ fn main() {
         let addr: SocketAddr = target.parse().unwrap();
         let mut member = member::Member::default();
         member.address = format!("{}", addr.ip());
-        member.swim_port = addr.port() as i32;
-        member.gossip_port = addr.port() as i32;
+        member.swim_port = addr.port();
+        member.gossip_port = addr.port();
         server.member_list.add_initial_member(member);
     }
 

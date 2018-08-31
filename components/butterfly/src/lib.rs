@@ -45,6 +45,7 @@
 
 extern crate byteorder;
 extern crate bytes;
+extern crate cast;
 extern crate habitat_core;
 #[macro_use]
 extern crate lazy_static;

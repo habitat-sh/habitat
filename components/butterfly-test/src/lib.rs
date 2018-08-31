@@ -59,8 +59,8 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
     let listen_swim = format!("127.0.0.1:{}", swim_port);
     let listen_gossip = format!("127.0.0.1:{}", gossip_port);
     let mut member = Member::default();
-    member.swim_port = swim_port as i32;
-    member.gossip_port = gossip_port as i32;
+    member.swim_port = swim_port as u16;
+    member.gossip_port = gossip_port as u16;
     let mut server = Server::new(
         &listen_swim[..],
         &listen_gossip[..],
@@ -83,8 +83,8 @@ pub fn member_from_server(server: &Server) -> Member {
     new_member.id = server_member.id.to_string();
     new_member.incarnation = server_member.incarnation;
     new_member.address = String::from("127.0.0.1");
-    new_member.swim_port = server.swim_port() as i32;
-    new_member.gossip_port = server.gossip_port() as i32;
+    new_member.swim_port = server.swim_port();
+    new_member.gossip_port = server.gossip_port();
     new_member
 }
 

@@ -155,8 +155,8 @@ impl Server {
 
         match (maybe_swim_socket_addr, maybe_gossip_socket_addr) {
             (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => {
-                member.swim_port = swim_socket_addr.port() as i32;
-                member.gossip_port = gossip_socket_addr.port() as i32;
+                member.swim_port = swim_socket_addr.port();
+                member.gossip_port = gossip_socket_addr.port();
                 Ok(Server {
                     name: Arc::new(name.unwrap_or(member.id.clone())),
                     member_id: Arc::new(member.id.clone()),
@@ -1089,8 +1089,8 @@ mod tests {
             let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
             let gossip_listen = format!("127.0.0.1:{}", gossip_port);
             let mut member = Member::default();
-            member.swim_port = swim_port as i32;
-            member.gossip_port = gossip_port as i32;
+            member.swim_port = swim_port as u16;
+            member.gossip_port = gossip_port as u16;
             Server::new(
                 &swim_listen[..],
                 &gossip_listen[..],
@@ -1111,8 +1111,8 @@ mod tests {
             let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
             let gossip_listen = format!("127.0.0.1:{}", gossip_port);
             let mut member = Member::default();
-            member.swim_port = swim_port as i32;
-            member.gossip_port = gossip_port as i32;
+            member.swim_port = swim_port as u16;
+            member.gossip_port = gossip_port as u16;
             let rumor_name = format!("{}{}", member.id.to_string(), ".rst");
             let file_path = tmpdir.path().to_owned().join(rumor_name);
             let mut rumor_file = File::create(file_path).unwrap();

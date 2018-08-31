@@ -149,8 +149,8 @@ impl PeerWatcher {
                 let addr: SocketAddr = addrs[0];
                 let mut member = Member::default();
                 member.address = format!("{}", addr.ip());
-                member.swim_port = addr.port() as i32;
-                member.gossip_port = addr.port() as i32;
+                member.swim_port = addr.port();
+                member.gossip_port = addr.port();
                 members.push(member);
             }
         }
@@ -208,8 +208,8 @@ mod tests {
         let mut member2 = Member::default();
         member2.id = String::new();
         member2.address = String::from("4.3.2.1");
-        member2.swim_port = GOSSIP_DEFAULT_PORT as i32;
-        member2.gossip_port = GOSSIP_DEFAULT_PORT as i32;
+        member2.swim_port = GOSSIP_DEFAULT_PORT;
+        member2.gossip_port = GOSSIP_DEFAULT_PORT;
         let expected_members = vec![member1, member2];
         let mut members = watcher.get_members().unwrap();
         for mut member in &mut members {
