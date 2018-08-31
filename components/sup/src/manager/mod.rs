@@ -740,6 +740,7 @@ impl Manager {
                 &self.butterfly.member_list,
                 &self.butterfly.service_config_store,
                 &self.butterfly.service_file_store,
+                &self.butterfly.read_zone_list(),
             );
 
             if self.check_for_changed_services() {

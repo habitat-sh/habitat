@@ -1015,7 +1015,8 @@ mod tests {
     use std::process::{Command, Stdio};
     use std::string::ToString;
 
-    use butterfly::member::MemberList;
+    use butterfly::member::{Health, Member, MemberList};
+    use butterfly::message::BfUuid;
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
     use butterfly::rumor::service::Service as ServiceRumor;
@@ -1023,6 +1024,7 @@ mod tests {
     use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
     use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
     use butterfly::rumor::RumorStore;
+    use butterfly::zone::{Zone, ZoneList};
     use hcore::package::{PackageIdent, PackageInstall};
     use hcore::service::ServiceGroup;
     use protocol;
@@ -1327,6 +1329,15 @@ echo "The message is Hola Mundo"
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
 
         let member_list = MemberList::new();
+        let mut zone_list = ZoneList::new();
+        let zone_uuid = BfUuid::generate();
+        let zone = Zone::new(zone_uuid, "member-a".to_string());
+        let mut member_a = Member::default();
+
+        member_a.id = "member-a".to_string();
+        member_a.zone_id = zone_uuid;
+        member_list.insert(member_a, Health::Alive);
+        zone_list.insert(zone);
 
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
@@ -1339,6 +1350,7 @@ echo "The message is Hola Mundo"
             &member_list,
             &service_config_store,
             &service_file_store,
+            &zone_list,
         );
 
         let bindings = iter::empty::<&ServiceBind>();
@@ -1440,6 +1452,15 @@ echo "The message is Hello"
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
 
         let member_list = MemberList::new();
+        let mut zone_list = ZoneList::new();
+        let zone_uuid = BfUuid::generate();
+        let zone = Zone::new(zone_uuid, "member-a".to_string());
+        let mut member_a = Member::default();
+
+        member_a.id = "member-a".to_string();
+        member_a.zone_id = zone_uuid;
+        member_list.insert(member_a, Health::Alive);
+        zone_list.insert(zone);
 
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
@@ -1452,6 +1473,7 @@ echo "The message is Hello"
             &member_list,
             &service_config_store,
             &service_file_store,
+            &zone_list,
         );
 
         let bindings = iter::empty::<&ServiceBind>();
