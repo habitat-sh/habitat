@@ -828,6 +828,9 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
             "Watch this file for connecting to the ring"
         )
+        (@arg AA_WATCH_FILE: --("aa-watch-file") +takes_value
+            "Watch this file for exposing the supervisor and services"
+        )
         (@arg RING: --ring -r +takes_value "Ring key name")
         (@arg CHANNEL: --channel +takes_value
             "Receive Supervisor updates from the specified release channel [default: stable]")

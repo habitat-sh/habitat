@@ -16,6 +16,7 @@ pub mod service;
 #[macro_use]
 mod debug;
 mod events;
+mod extra_data;
 mod file_watcher;
 mod peer_watcher;
 mod periodic;
@@ -44,6 +45,7 @@ use std::time::Duration;
 use butterfly;
 use butterfly::member::Member;
 use butterfly::network::{Network, RealNetwork};
+use butterfly::rumor::service::TaggedPorts;
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
 use butterfly::trace::Trace;
@@ -68,6 +70,7 @@ use time::{self, Duration as TimeDuration, Timespec};
 use tokio_core::reactor;
 use toml;
 
+use self::extra_data::{AdditionalAddresses, AdditionalAddressesWatcher};
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
 pub use self::service::{
@@ -154,6 +157,7 @@ pub struct ManagerConfig {
     pub name: Option<String>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
+    pub additional_addresses_file: Option<String>,
 }
 
 impl ManagerConfig {
@@ -179,6 +183,7 @@ impl Default for ManagerConfig {
             name: None,
             organization: None,
             watch_peer_file: None,
+            additional_addresses_file: None,
         }
     }
 }
@@ -214,6 +219,8 @@ pub struct Manager {
     self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
+    additional_addresses: AdditionalAddresses,
+    additional_addresses_watcher: Option<AdditionalAddressesWatcher>,
 }
 
 impl Manager {
@@ -394,6 +401,11 @@ impl Manager {
         } else {
             None
         };
+        let additional_addresses_watcher = if let Some(path) = cfg.additional_addresses_file {
+            Some(AdditionalAddressesWatcher::run(path)?)
+        } else {
+            None
+        };
         Ok(Manager {
             state: Rc::new(ManagerState {
                 cfg: cfg_static,
@@ -412,6 +424,8 @@ impl Manager {
             organization: cfg.organization,
             service_states: HashMap::new(),
             sys: Arc::new(sys),
+            additional_addresses: AdditionalAddresses::new(),
+            additional_addresses_watcher: additional_addresses_watcher,
         })
     }
 
@@ -590,6 +604,14 @@ impl Manager {
         state_path.as_ref().join("composites")
     }
 
+    fn get_tagged_ports_for_service(&self, svc_name: &str) -> TaggedPorts {
+        self.additional_addresses
+            .svc
+            .get(svc_name)
+            .cloned()
+            .unwrap_or_else(|| HashMap::new())
+    }
+
     fn add_service(&mut self, spec: ServiceSpec) {
         outputln!("Starting {}", &spec.ident);
         // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
@@ -602,7 +624,7 @@ impl Manager {
             spec.clone(),
             self.fs_cfg.clone(),
             self.organization.as_ref().map(|org| &**org),
-            HashMap::new(),
+            self.get_tagged_ports_for_service(&spec.ident.name),
         ) {
             Ok(service) => service,
             Err(err) => {
@@ -733,6 +755,7 @@ impl Manager {
             self.update_running_services_from_spec_watcher()?;
             self.update_peers_from_watch_file()?;
             self.update_running_services_from_user_config_watcher();
+            self.update_additional_addresses_from_watcher();
             self.check_for_updated_packages();
             self.restart_elections();
             self.census_ring.update_from_rumors(
@@ -1466,7 +1489,7 @@ impl Manager {
                 down.clone(),
                 self.fs_cfg.clone(),
                 self.organization.as_ref().map(|org| &**org),
-                HashMap::new(),
+                self.get_tagged_ports_for_service(&down.ident.name),
             ) {
                 Ok(service) => {
                     if let Some(err) = self
@@ -1672,6 +1695,38 @@ impl Manager {
             if self.user_config_watcher.have_events_for(service) {
                 outputln!("Reloading service {}", &service.spec_ident);
                 service.user_config_updated = true;
+            }
+        }
+    }
+
+    fn update_additional_addresses_from_watcher(&mut self) {
+        if let Some(ref watcher) = self.additional_addresses_watcher {
+            if watcher.has_fs_events() {
+                match watcher.get_additional_addresses() {
+                    Ok(addresses) => {
+                        if self.additional_addresses.sup != addresses.sup {
+                            self.butterfly
+                                .merge_additional_addresses(addresses.sup.clone());
+                        }
+                        let empty_tagged_ports = HashMap::new();
+                        for service in self.state.write_services().iter_mut() {
+                            let tagged_ports_ref = addresses
+                                .svc
+                                .get(&service.spec_ident.name)
+                                .unwrap_or(&empty_tagged_ports);
+
+                            if service.tagged_ports != *tagged_ports_ref {
+                                mem::replace(&mut service.tagged_ports, tagged_ports_ref.clone());
+                                self.gossip_latest_service_rumor(&service);
+                            }
+                        }
+                        mem::replace(&mut self.additional_addresses, addresses);
+                    }
+                    Err(e) => {
+                        outputln!("Could not get additional addresses: {}", e,);
+                        return;
+                    }
+                }
             }
         }
     }
