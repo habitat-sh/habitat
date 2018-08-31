@@ -146,6 +146,7 @@ pub struct ManagerConfig {
     pub gossip_listen: GossipListenAddr,
     pub ctl_listen: SocketAddr,
     pub http_listen: http_gateway::ListenAddr,
+    pub http_disable: bool,
     pub gossip_peers: Vec<SocketAddr>,
     pub gossip_permanent: bool,
     pub ring_key: Option<SymKey>,
@@ -171,6 +172,7 @@ impl Default for ManagerConfig {
             gossip_listen: GossipListenAddr::default(),
             ctl_listen: protocol::ctl::default_addr(),
             http_listen: http_gateway::ListenAddr::default(),
+            http_disable: false,
             gossip_peers: vec![],
             gossip_permanent: false,
             ring_key: None,
@@ -189,7 +191,6 @@ pub struct ManagerState {
 
 pub struct Manager {
     pub state: Rc<ManagerState>,
-
     butterfly: butterfly::Server,
     census_ring: CensusRing,
     events_group: Option<ServiceGroup>,
@@ -203,6 +204,7 @@ pub struct Manager {
     self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
+    http_disable: bool,
 }
 
 impl Manager {
@@ -399,6 +401,7 @@ impl Manager {
             organization: cfg.organization,
             service_states: HashMap::new(),
             sys: Arc::new(sys),
+            http_disable: cfg.http_disable,
         })
     }
 
@@ -662,9 +665,15 @@ impl Manager {
         outputln!("Starting ctl-gateway on {}", &ctl_listen_addr);
         ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, ctl_tx);
         debug!("ctl-gateway started");
-        outputln!("Starting http-gateway on {}", &http_listen_addr);
-        http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr).start()?;
-        debug!("http-gateway started");
+
+        if self.http_disable {
+            info!("http-gateway disabled");
+        } else {
+            outputln!("Starting http-gateway on {}", &http_listen_addr);
+            http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr).start()?;
+            debug!("http-gateway started");
+        }
+
         let events = match self.events_group {
             Some(ref evg) => Some(events::EventsMgr::start(evg.clone())),
             None => None,

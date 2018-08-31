@@ -242,6 +242,7 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
     }
+    cfg.http_disable = m.is_present("HTTP_DISABLE");
     if let Some(addr_str) = m.value_of("LISTEN_CTL") {
         cfg.ctl_listen =
             SocketAddr::from_str(addr_str).unwrap_or_else(|_err| protocol::ctl::default_addr());
