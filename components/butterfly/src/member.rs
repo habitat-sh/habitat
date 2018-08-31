@@ -18,6 +18,7 @@ use std::cmp;
 use std::collections::{hash_map, HashMap};
 use std::iter::IntoIterator;
 use std::net::SocketAddr;
+use std::ops::Deref;
 use std::result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
@@ -676,6 +677,19 @@ impl MemberList {
                 .read()
                 .expect("Member list lock is poisoned")
                 .values(),
+        );
+    }
+
+    /// Takes a function whose argument is a reference to the member list hashmap.
+    pub fn with_member_list<F>(&self, mut with_closure: F) -> ()
+    where
+        F: FnMut(&HashMap<String, Member>) -> (),
+    {
+        with_closure(
+            self.members
+                .read()
+                .expect("Member list lock is poisoned")
+                .deref(),
         );
     }
 
