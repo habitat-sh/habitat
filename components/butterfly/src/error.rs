@@ -35,6 +35,7 @@ pub enum Error {
     DecodeError(prost::DecodeError),
     EncodeError(prost::EncodeError),
     HabitatCore(habitat_core::error::Error),
+    InvalidField(&'static str, String),
     NonExistentRumor(String, String),
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
@@ -68,6 +69,9 @@ impl fmt::Display for Error {
             Error::DecodeError(ref err) => format!("Failed to decode protocol message: {}", err),
             Error::EncodeError(ref err) => format!("Failed to encode protocol message: {}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
+            Error::InvalidField(ref field, ref err) => {
+                format!("Invalid field '{}' in protocol message: {}", field, err)
+            }
             Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
                 "Non existent rumor asked to be written to bytes: {} {}",
                 member_id, rumor_id
@@ -108,6 +112,7 @@ impl error::Error for Error {
             Error::DecodeError(ref err) => err.description(),
             Error::EncodeError(ref err) => err.description(),
             Error::HabitatCore(_) => "Habitat core error",
+            Error::InvalidField(_, _) => "Invalid field in protocol message",
             Error::NonExistentRumor(_, _) => {
                 "Cannot write rumor to bytes because it does not exist"
             }
