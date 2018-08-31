@@ -602,6 +602,7 @@ impl Manager {
             spec.clone(),
             self.fs_cfg.clone(),
             self.organization.as_ref().map(|org| &**org),
+            HashMap::new(),
         ) {
             Ok(service) => service,
             Err(err) => {
@@ -1465,6 +1466,7 @@ impl Manager {
                 down.clone(),
                 self.fs_cfg.clone(),
                 self.organization.as_ref().map(|org| &**org),
+                HashMap::new(),
             ) {
                 Ok(service) => {
                     if let Some(err) = self
