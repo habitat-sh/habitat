@@ -1,6 +1,15 @@
 syntax = "proto2";
 package butterfly.swim;
 
+message ZoneAddress {
+  optional string zone_id = 1;
+  // really optional
+  optional string address = 2;
+  optional int32 swim_port = 3;
+  optional int32 gossip_port = 4;
+  optional string tag = 5;
+}
+
 message Member {
   optional string id = 1;
   optional uint64 incarnation = 2;
@@ -9,21 +18,43 @@ message Member {
   optional int32 gossip_port = 5;
   optional bool persistent = 6 [default = false];
   optional bool departed = 7 [default = false];
+  optional string zone_id = 8;
+  repeated ZoneAddress additional_addresses = 9;
+}
+
+message Zone {
+  optional string id = 1;
+  optional uint64 incarnation = 2;
+  optional string maintainer_id = 3;
+  // really optional
+  optional string parent_zone_id = 4;
+  repeated string child_zone_ids = 5;
+  // really optional
+  optional string successor = 6;
+  repeated string predecessors = 7;
 }
 
 message Ping {
   optional Member from = 1;
   optional Member forward_to = 2;
+  optional Member to = 3;
 }
 
 message Ack {
   optional Member from = 1;
   optional Member forward_to = 2;
+  optional Member to = 3;
 }
 
 message PingReq {
   optional Member from = 1;
   optional Member target = 2;
+}
+
+message ZoneChange {
+  optional Member from = 1;
+  optional string zone_id = 2;
+  repeated Zone new_aliases = 3;
 }
 
 message Membership {
@@ -34,7 +65,7 @@ message Membership {
 }
 
 message Swim {
-  enum Type { PING = 1; ACK = 2; PINGREQ = 3; };
+  enum Type { PING = 1; ACK = 2; PINGREQ = 3; ZONE_CHANGE = 4; };
 
   // Identifies which field is filled in.
   required Type type = 1;
@@ -42,7 +73,9 @@ message Swim {
     Ping ping = 2;
     Ack ack = 3;
     PingReq pingreq = 4;
+    ZoneChange zone_change = 7;
   }
   repeated Membership membership = 5;
+  repeated Zone zones = 6;
 }
 

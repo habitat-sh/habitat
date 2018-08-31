@@ -74,5 +74,6 @@ pub mod protocol;
 pub mod rumor;
 pub mod server;
 pub mod swim;
+pub mod zone;
 
 pub use server::Server;

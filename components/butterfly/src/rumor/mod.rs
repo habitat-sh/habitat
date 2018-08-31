@@ -50,6 +50,7 @@ use error::{Error, Result};
 use member::Membership;
 pub use protocol::newscast::{Rumor as ProtoRumor, RumorPayload, RumorType};
 use protocol::{FromProto, Message};
+use zone::Zone;
 
 #[derive(Debug, Clone, Serialize)]
 pub enum RumorKind {
@@ -60,6 +61,7 @@ pub enum RumorKind {
     Service(Service),
     ServiceConfig(ServiceConfig),
     ServiceFile(ServiceFile),
+    Zone(Zone),
 }
 
 impl From<RumorKind> for RumorPayload {
@@ -74,6 +76,7 @@ impl From<RumorKind> for RumorPayload {
                 RumorPayload::ServiceConfig(service_config.into())
             }
             RumorKind::ServiceFile(service_file) => RumorPayload::ServiceFile(service_file.into()),
+            RumorKind::Zone(zone) => RumorPayload::Zone(zone.into()),
         }
     }
 }
@@ -321,6 +324,7 @@ impl RumorEnvelope {
             RumorType::ServiceConfig => RumorKind::ServiceConfig(ServiceConfig::from_proto(proto)?),
             RumorType::ServiceFile => RumorKind::ServiceFile(ServiceFile::from_proto(proto)?),
             RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),
+            RumorType::Zone => RumorKind::Zone(Zone::from_proto(proto)?),
         };
         Ok(RumorEnvelope {
             type_: type_,

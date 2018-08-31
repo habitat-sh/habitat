@@ -101,6 +101,9 @@ impl<N: Network> Pull<N> {
                 RumorKind::Departure(departure) => {
                     self.server.insert_departure(departure);
                 }
+                RumorKind::Zone(zone) => {
+                    self.server.insert_zone(zone);
+                }
             }
         }
     }

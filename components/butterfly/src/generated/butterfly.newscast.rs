@@ -102,7 +102,7 @@ pub struct Rumor {
     pub tag: ::std::vec::Vec<String>,
     #[prost(string, optional, tag="3")]
     pub from_id: ::std::option::Option<String>,
-    #[prost(oneof="rumor::Payload", tags="4, 5, 6, 7, 8, 9")]
+    #[prost(oneof="rumor::Payload", tags="4, 5, 6, 7, 8, 9, 10")]
     pub payload: ::std::option::Option<rumor::Payload>,
 }
 pub mod rumor {
@@ -118,6 +118,7 @@ pub mod rumor {
         Fake2 = 7,
         ElectionUpdate = 8,
         Departure = 9,
+        Zone = 10,
     }
     #[derive(Clone, Oneof, PartialEq)]
     #[derive(Serialize, Deserialize)]
@@ -134,5 +135,7 @@ pub mod rumor {
         Election(super::Election),
         #[prost(message, tag="9")]
         Departure(super::Departure),
+        #[prost(message, tag="10")]
+        Zone(super::super::swim::Zone),
     }
 }

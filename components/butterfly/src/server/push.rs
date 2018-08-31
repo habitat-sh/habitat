@@ -65,20 +65,24 @@ impl<N: Network> Push<N> {
             let long_wait = self.timing.gossip_timeout();
 
             'fanout: loop {
-                let mut thread_list = Vec::with_capacity(FANOUT);
                 if check_list.len() == 0 {
                     break 'fanout;
                 }
-                let drain_length = if check_list.len() >= FANOUT {
-                    FANOUT
-                } else {
-                    check_list.len()
-                };
+
+                let mut thread_list = Vec::with_capacity(FANOUT);
                 let next_gossip = self.timing.gossip_timeout();
-                for member in check_list.drain(0..drain_length) {
+                let mut pushes_to_make = FANOUT;
+                for member in check_list.drain(..) {
+                    if pushes_to_make == 0 {
+                        break;
+                    }
                     if self.server.is_member_blocked(&member.id) {
                         debug!("Not sending rumors to {} - it is blocked", member.id);
+                        continue;
+                    }
+                    let reachable_addresses = self.server.directly_reachable(&member);
 
+                    if reachable_addresses.is_none() {
                         continue;
                     }
                     // Unlike the SWIM mechanism, we don't actually want to send gossip traffic to
@@ -94,7 +98,11 @@ impl<N: Network> Push<N> {
                             let guard = match thread::Builder::new()
                                 .name(String::from("push-worker"))
                                 .spawn(move || {
-                                    PushWorker::new(sc).send_rumors(member, rumors);
+                                    PushWorker::new(sc).send_rumors(
+                                        member,
+                                        reachable_addresses.unwrap().1,
+                                        rumors,
+                                    );
                                 }) {
                                 Ok(guard) => guard,
                                 Err(e) => {
@@ -103,11 +111,11 @@ impl<N: Network> Push<N> {
                                 }
                             };
                             thread_list.push(guard);
+                            pushes_to_make -= 1;
                         }
                     }
                 }
-                let num_threads = thread_list.len();
-                for guard in thread_list.drain(0..num_threads) {
+                for guard in thread_list.drain(..) {
                     let _ = guard
                         .join()
                         .map_err(|e| error!("Push worker died: {:?}", e));
@@ -144,12 +152,8 @@ impl<N: Network> PushWorker<N> {
     /// closes the connection as soon as we are done sending rumors. ZeroMQ may choose to keep the
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
     /// method can loose messages.
-    fn send_rumors(&self, member: Member, rumors: Vec<RumorKey>) {
-        let sender = match self
-            .server
-            .read_network()
-            .create_gossip_sender(member.gossip_socket_address())
-        {
+    fn send_rumors(&self, member: Member, addr: N::AddressAndPort, rumors: Vec<RumorKey>) {
+        let sender = match self.server.read_network().create_gossip_sender(addr) {
             Ok(s) => s,
             Err(e) => {
                 println!("Failed to get the push socket to {:?}: {:?}", member, e);
@@ -297,6 +301,28 @@ impl<N: Network> PushWorker<N> {
                     debug!("You have fake rumors; how odd!");
                     continue 'rumorlist;
                 }
+                RumorType::Zone => {
+                    let send_rumor = match self.create_zone_rumor(&rumor_key) {
+                        Some(rumor) => rumor,
+                        None => continue 'rumorlist,
+                    };
+                    trace_it!(
+                        GOSSIP: &self.server,
+                        TraceKind::SendRumor,
+                        &member.id,
+                        &send_rumor);
+                    match send_rumor.encode() {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!(
+                                "Could not write our own rumor to bytes; abandoning \
+                                 sending rumor: {:?}",
+                                e
+                            );
+                            continue 'rumorlist;
+                        }
+                    }
+                }
             };
             let payload = match self.server.generate_wire(rumor_as_bytes) {
                 Ok(payload) => payload,
@@ -309,9 +335,7 @@ impl<N: Network> PushWorker<N> {
                 Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
                 Err(e) => println!(
                     "Could not send rumor to {:?} @ {:?}; {:?}",
-                    member.id,
-                    member.gossip_socket_address::<N::AddressAndPort>(),
-                    e
+                    member.id, addr, e
                 ),
             }
         }
@@ -341,6 +365,25 @@ impl<N: Network> PushWorker<N> {
             type_: RumorType::Member,
             from_id: self.server.member_id().to_string(),
             kind: RumorKind::Membership(payload),
+        };
+        Some(rumor)
+    }
+
+    /// Given a rumorkey, creates a protobuf rumor for sharing.
+    fn create_zone_rumor(&self, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
+        let zone_uuid = match rumor_key.id.parse() {
+            Ok(parsed_key_id) => parsed_key_id,
+            Err(_) => return None,
+        };
+        let zone = match self.server.read_zone_list().zones.get(&zone_uuid) {
+            Some(zone) => zone.clone(),
+            None => return None,
+        };
+
+        let rumor = RumorEnvelope {
+            type_: RumorType::Zone,
+            from_id: self.server.member_id().to_string(),
+            kind: RumorKind::Zone(zone),
         };
         Some(rumor)
     }

@@ -34,6 +34,7 @@ use time::SteadyTime;
 
 use habitat_butterfly::client::Client;
 use habitat_butterfly::member::{Health, Member};
+use habitat_butterfly::message::BfUuid;
 use habitat_butterfly::network::{GossipZmqSocket, Network, RealNetwork};
 use habitat_butterfly::rumor::departure::Departure;
 use habitat_butterfly::rumor::election::ElectionStatus;
@@ -43,6 +44,7 @@ use habitat_butterfly::rumor::service_file::ServiceFile;
 use habitat_butterfly::server::timing::Timing;
 use habitat_butterfly::server::{Server, Suitability};
 use habitat_butterfly::trace::Trace;
+use habitat_butterfly::zone::Zone;
 use habitat_core::crypto::keys::sym_key::SymKey;
 use habitat_core::package::{Identifiable, PackageIdent};
 use habitat_core::service::ServiceGroup;
@@ -111,7 +113,27 @@ pub fn member_from_server(server: &Server<RealNetwork>) -> Member {
     new_member.address = String::from("127.0.0.1");
     new_member.swim_port = server.swim_port();
     new_member.gossip_port = server.gossip_port();
+    new_member.zone_id = server_member.zone_id;
     new_member
+}
+
+fn generate_new_zone(server: &Server<RealNetwork>) -> Zone {
+    let new_uuid = BfUuid::generate();
+
+    Zone::new(new_uuid, server.read_member().id.clone())
+}
+
+fn setup_zone_in_server(zone: Zone, server: &Server<RealNetwork>) {
+    let zone_id = zone.id;
+
+    server.insert_zone(zone);
+    server.settle_zone();
+
+    let mut member = server.write_member();
+
+    member.incarnation += 1;
+    member.zone_id = zone_id;
+    server.insert_member(member.clone(), Health::Alive);
 }
 
 #[derive(Debug)]
@@ -203,7 +225,43 @@ impl SwimNet {
         Self { members }
     }
 
+    fn setup_common_zone(&self, from_entry: usize, to_entry: usize) {
+        let from_zone_uuid = self.members[from_entry].read_member().zone_id;
+        let to_zone_uuid = self.members[to_entry].read_member().zone_id;
+
+        match (from_zone_uuid.is_nil(), to_zone_uuid.is_nil()) {
+            (true, true) => {
+                let new_zone = generate_new_zone(&self.members[from_entry]);
+
+                setup_zone_in_server(new_zone.clone(), &self.members[from_entry]);
+                setup_zone_in_server(new_zone, &self.members[to_entry]);
+            }
+            (true, false) => {
+                let zone = self.members[to_entry]
+                    .read_zone_list()
+                    .zones
+                    .get(&to_zone_uuid)
+                    .unwrap()
+                    .clone();
+
+                setup_zone_in_server(zone, &self.members[from_entry]);
+            }
+            (false, true) => {
+                let zone = self.members[from_entry]
+                    .read_zone_list()
+                    .zones
+                    .get(&from_zone_uuid)
+                    .unwrap()
+                    .clone();
+
+                setup_zone_in_server(zone, &self.members[to_entry]);
+            }
+            (false, false) => {}
+        }
+    }
+
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {
+        self.setup_common_zone(from_entry, to_entry);
         let to = member_from_server(&self.members[to_entry]);
         trace_it!(TEST: &self.members[from_entry], format!("Connected {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         self.members[from_entry].insert_member(to, Health::Alive);
@@ -218,6 +276,32 @@ impl SwimNet {
     // Fully mesh the network
     pub fn mesh(&mut self) {
         trace_it!(TEST_NET: self, "Mesh");
+        {
+            let (zone, maybe_skip_pos) = match self
+                .members
+                .iter()
+                .enumerate()
+                .find(|(_, server)| !server.read_member().zone_id.is_nil())
+            {
+                Some((pos, server)) => {
+                    let zone_id = server.read_member().zone_id;
+
+                    (
+                        server.read_zone_list().zones.get(&zone_id).unwrap().clone(),
+                        Some(pos),
+                    )
+                }
+                None => (generate_new_zone(&self.members[0]), None),
+            };
+            for pos in 0..self.members.len() {
+                if let Some(skip_pos) = maybe_skip_pos {
+                    if skip_pos == pos {
+                        continue;
+                    }
+                }
+                setup_zone_in_server(zone.clone(), &self.members[pos]);
+            }
+        }
         for pos in 0..self.members.len() {
             let mut to_mesh: Vec<Member> = Vec::new();
             for x_pos in 0..self.members.len() {

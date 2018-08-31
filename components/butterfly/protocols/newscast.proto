@@ -65,6 +65,7 @@ message Rumor {
     Fake2 = 7;
     ElectionUpdate = 8;
     Departure = 9;
+    Zone = 10;
   }
 
   required Type type = 1;
@@ -77,6 +78,7 @@ message Rumor {
     ServiceFile service_file = 7;
     Election election = 8;
     Departure departure = 9;
+    butterfly.swim.Zone zone = 10;
   }
 }
 

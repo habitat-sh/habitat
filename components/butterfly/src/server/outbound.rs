@@ -16,6 +16,7 @@
 //!
 //! This module handles the implementation of the swim probe protocol.
 
+use std::collections::HashSet;
 use std::fmt;
 use std::sync::atomic::Ordering;
 use std::sync::mpsc;
@@ -26,12 +27,24 @@ use time::SteadyTime;
 
 use super::AckReceiver;
 use member::{Health, Member};
+use message::BfUuid;
 use network::{AddressAndPort, Network, SwimSender};
 use rumor::{RumorKey, RumorType};
 use server::timing::Timing;
 use server::Server;
-use swim::{Ack, Ping, PingReq, Swim};
+use swim::{Ack, Ping, PingReq, Swim, ZoneChange};
 use trace::TraceKind;
+use zone::Zone;
+
+#[derive(Debug, Default)]
+struct ReachableDbg {
+    our_member: Member,
+    their_member: Member,
+    our_zone: Option<Zone>,
+    their_zone: Option<Zone>,
+    our_ids: Option<HashSet<String>>,
+    their_ids: Option<HashSet<String>>,
+}
 
 /// How long to sleep between calls to `recv`.
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;
@@ -122,12 +135,17 @@ impl<N: Network> Outbound<N> {
 
             for member in check_list {
                 if self.server.member_list.pingable(&member) {
+                    let reachable_addresses = self.server.directly_reachable(&member);
+
+                    if reachable_addresses.is_none() {
+                        continue;
+                    }
                     // This is the timeout for the next protocol period - if we
                     // complete faster than this, we want to wait in the end
                     // until this timer expires.
                     let next_protocol_period = self.timing.next_protocol_period();
 
-                    self.probe(member);
+                    self.probe(member, reachable_addresses.unwrap().0);
 
                     if SteadyTime::now() <= next_protocol_period {
                         let wait_time =
@@ -164,9 +182,7 @@ impl<N: Network> Outbound<N> {
     /// PING_RECV_QUEUE_EMPTY_SLEEP_MS, and try again.
     ///
     /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
-    fn probe(&mut self, member: Member) {
-        let addr = member.swim_socket_address();
-
+    fn probe(&mut self, member: Member, addr: N::AddressAndPort) {
         trace_it!(PROBE: &self.server, TraceKind::ProbeBegin, &member.id, addr);
 
         // Ping the member, and wait for the ack.
@@ -248,12 +264,47 @@ impl<N: Network> Outbound<N> {
     }
 }
 
+pub fn create_to_member<AP: AddressAndPort>(addr: AP, target: &Member) -> Member {
+    let address_str = addr.get_address().to_string();
+    let port = addr.get_port();
+    let zone_id = if target.address == address_str && target.swim_port == port {
+        target.zone_id
+    } else {
+        let mut zone_id = BfUuid::nil();
+
+        for zone_address in target.additional_addresses.iter() {
+            if let Some(ref zone_address_str) = zone_address.address {
+                if *zone_address_str == address_str && zone_address.swim_port == port {
+                    zone_id = zone_address.zone_id;
+                    break;
+                }
+            }
+        }
+
+        zone_id
+    };
+
+    Member {
+        id: String::new(),
+        incarnation: 0,
+        address: address_str,
+        swim_port: port,
+        gossip_port: 0,
+        persistent: false,
+        departed: false,
+        zone_id: zone_id,
+        additional_addresses: Vec::new(),
+    }
+}
+
 /// Populate a SWIM message with rumors.
 pub fn populate_membership_rumors<N: Network>(
     server: &Server<N>,
     target: &Member,
     swim: &mut Swim,
 ) {
+    // TODO (CM): magic number!
+    let magic_number = 5;
     // If this isn't the first time we are communicating with this target, we want to include this
     // targets current status. This ensures that members always get a "Confirmed" rumor, before we
     // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
@@ -265,11 +316,12 @@ pub fn populate_membership_rumors<N: Network>(
 
     // NOTE: the way this is currently implemented, this is grabbing
     // the 5 coolest (but still warm!) Member rumors.
-    let rumors: Vec<RumorKey> = server.rumor_heat
+    let rumors: Vec<RumorKey> = server
+        .rumor_heat
         .currently_hot_rumors(&target.id)
         .into_iter()
         .filter(|ref r| r.kind == RumorType::Member)
-        .take(5) // TODO (CM): magic number!
+        .take(magic_number)
         .collect();
 
     for ref rkey in rumors.iter() {
@@ -277,11 +329,70 @@ pub fn populate_membership_rumors<N: Network>(
             swim.membership.push(member);
         }
     }
+
+    let our_zone_id = server.read_member().zone_id;
+    let maybe_maintained_zone_id = match server.read_zone_list().maintained_zone_id {
+        Some(ref zone_id) => {
+            if *zone_id == our_zone_id {
+                None
+            } else {
+                Some(zone_id.clone())
+            }
+        }
+        None => None,
+    };
+    let mut our_zone_gossiped = false;
+    let mut maintained_zone_gossiped = false;
+    let zone_rumors = server
+        .rumor_heat
+        .currently_hot_rumors(&target.id)
+        .into_iter()
+        .filter(|ref r| r.kind == RumorType::Zone)
+        .take(magic_number)
+        .collect::<Vec<_>>();
+
+    {
+        let zone_list = server.read_zone_list();
+
+        for ref rkey in zone_rumors.iter() {
+            if let Ok(gossiped_zone_uuid) = rkey.id.parse::<BfUuid>() {
+                if let Some(zone) = zone_list.zones.get(&gossiped_zone_uuid) {
+                    swim.zones.push(zone.clone());
+                    if gossiped_zone_uuid == our_zone_id {
+                        our_zone_gossiped = true;
+                    }
+                }
+                if let Some(ref maintained_zone_id) = maybe_maintained_zone_id {
+                    if gossiped_zone_uuid == *maintained_zone_id {
+                        maintained_zone_gossiped = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // Always include zone information of the sender
+    let zone_settled = *(server.read_zone_settled());
+    if zone_settled {
+        if !our_zone_gossiped {
+            if let Some(zone) = server.read_zone_list().zones.get(&our_zone_id) {
+                swim.zones.push(zone.clone());
+            }
+        }
+        if let Some(maintained_zone_id) = maybe_maintained_zone_id {
+            if !maintained_zone_gossiped {
+                if let Some(zone) = server.read_zone_list().zones.get(&maintained_zone_id) {
+                    swim.zones.push(zone.clone());
+                }
+            }
+        }
+    }
     // We don't want to update the heat for rumors that we know we are sending to a target that is
     // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with
     // rumors.
     if !server.member_list.persistent_and_confirmed(target) {
         server.rumor_heat.cool_rumors(&target.id, &rumors);
+        server.rumor_heat.cool_rumors(&target.id, &zone_rumors);
     }
 }
 
@@ -294,6 +405,7 @@ pub fn pingreq<N: Network>(
 ) {
     let pingreq = PingReq {
         membership: vec![],
+        zones: vec![],
         from: server.read_member().clone(),
         target: target.clone(),
     };
@@ -355,8 +467,10 @@ pub fn ping<N: Network>(
     };
     let ping = Ping {
         membership: vec![],
+        zones: vec![],
         from: server.read_member().clone(),
         forward_to: forward_to,
+        to: create_to_member(addr, &target),
     };
     let mut swim: Swim = ping.into();
     populate_membership_rumors(server, target, &mut swim);
@@ -435,8 +549,10 @@ pub fn ack<N: Network>(
 ) {
     let ack = Ack {
         membership: vec![],
+        zones: vec![],
         from: server.read_member().clone(),
         forward_to: forward_to.map(Into::into),
+        to: create_to_member(addr, &target),
     };
     let member_id = ack.from.id.clone();
     let mut swim: Swim = ack.into();
@@ -461,4 +577,41 @@ pub fn ack<N: Network>(
         Err(e) => error!("Failed ack to {}@{}: {}", member_id, addr, e),
     }
     trace_it!(SWIM: server, TraceKind::SendAck, &target.id, addr, &swim);
+}
+
+/// Send a ZoneChange.
+pub fn zone_change<N: Network>(
+    server: &Server<N>,
+    swim_sender: &N::SwimSender,
+    target: &Member,
+    zone_change: ZoneChange,
+) {
+    let swim: Swim = zone_change.into();
+    let bytes = match swim.clone().encode() {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            error!("Generating protocol message failed: {}", e);
+            return;
+        }
+    };
+    let payload = match server.generate_wire(bytes) {
+        Ok(payload) => payload,
+        Err(e) => {
+            error!("Generating protocol message failed: {}", e);
+            return;
+        }
+    };
+    let addr = target.swim_socket_address();
+
+    match swim_sender.send(&payload, addr) {
+        Ok(_s) => trace!("Sent zone change to {}@{}", target.id, addr),
+        Err(e) => error!("Failed zone change to {}@{}: {}", target.id, addr, e),
+    }
+    trace_it!(
+        SWIM: server,
+        TraceKind::SendZoneChange,
+        &target.id,
+        addr,
+        &swim
+    );
 }

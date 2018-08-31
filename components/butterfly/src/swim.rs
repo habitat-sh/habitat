@@ -20,14 +20,18 @@ use prost::Message as ProstMessage;
 
 use error::{Error, Result};
 use member::{Health, Member, Membership};
+use message::BfUuid;
 pub use protocol::swim::{SwimPayload, SwimType};
 use protocol::{self, swim as proto, FromProto};
+use zone::Zone;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Ack {
     pub membership: Vec<Membership>,
+    pub zones: Vec<Zone>,
     pub from: Member,
     pub forward_to: Option<Member>,
+    pub to: Member,
 }
 
 impl FromProto<proto::Swim> for Ack {
@@ -42,16 +46,25 @@ impl FromProto<proto::Swim> for Ack {
             None
         };
         let mut memberships = Vec::with_capacity(value.membership.len());
+        let mut zones = Vec::with_capacity(value.zones.len());
         for membership in value.membership {
             memberships.push(Membership::from_proto(membership)?);
         }
+        for zone in value.zones {
+            zones.push(Zone::from_proto(zone)?);
+        }
         Ok(Ack {
             membership: memberships,
+            zones: zones,
             from: payload
                 .from
                 .ok_or(Error::ProtocolMismatch("from"))
                 .and_then(Member::from_proto)?,
             forward_to: forward_to,
+            to: payload
+                .to
+                .ok_or(Error::ProtocolMismatch("to"))
+                .and_then(Member::from_proto)?,
         })
     }
 }
@@ -63,6 +76,7 @@ impl From<Ack> for proto::Ack {
         proto::Ack {
             from: Some(value.from.into()),
             forward_to: value.forward_to.map(Into::into),
+            to: Some(value.to.into()),
         }
     }
 }
@@ -77,6 +91,7 @@ impl From<Ack> for proto::Swim {
                 .into_iter()
                 .map(Into::into)
                 .collect(),
+            zones: value.zones.clone().into_iter().map(Into::into).collect(),
             payload: Some(SwimPayload::Ack(value.into())),
         }
     }
@@ -87,6 +102,7 @@ impl From<Ack> for Swim {
         Swim {
             type_: SwimType::Ack,
             membership: value.membership.clone(),
+            zones: value.zones.clone(),
             kind: SwimKind::Ack(value),
         }
     }
@@ -121,8 +137,10 @@ impl fmt::Display for Health {
 #[derive(Debug, Clone, Serialize)]
 pub struct Ping {
     pub membership: Vec<Membership>,
+    pub zones: Vec<Zone>,
     pub from: Member,
     pub forward_to: Option<Member>,
+    pub to: Member,
 }
 
 impl FromProto<proto::Swim> for Ping {
@@ -137,16 +155,25 @@ impl FromProto<proto::Swim> for Ping {
             None
         };
         let mut memberships = Vec::with_capacity(value.membership.len());
+        let mut zones = Vec::with_capacity(value.zones.len());
         for membership in value.membership {
             memberships.push(Membership::from_proto(membership)?);
         }
+        for zone in value.zones {
+            zones.push(Zone::from_proto(zone)?);
+        }
         Ok(Ping {
             membership: memberships,
+            zones: zones,
             from: payload
                 .from
                 .ok_or(Error::ProtocolMismatch("from"))
                 .and_then(Member::from_proto)?,
             forward_to: forward_to,
+            to: payload
+                .to
+                .ok_or(Error::ProtocolMismatch("to"))
+                .and_then(Member::from_proto)?,
         })
     }
 }
@@ -158,6 +185,7 @@ impl From<Ping> for proto::Ping {
         proto::Ping {
             from: Some(value.from.into()),
             forward_to: value.forward_to.map(Into::into),
+            to: Some(value.to.into()),
         }
     }
 }
@@ -172,6 +200,7 @@ impl From<Ping> for proto::Swim {
                 .into_iter()
                 .map(Into::into)
                 .collect(),
+            zones: value.zones.clone().into_iter().map(Into::into).collect(),
             payload: Some(SwimPayload::Ping(value.into())),
         }
     }
@@ -182,6 +211,7 @@ impl From<Ping> for Swim {
         Swim {
             type_: SwimType::Ping,
             membership: value.membership.clone(),
+            zones: value.zones.clone(),
             kind: SwimKind::Ping(value),
         }
     }
@@ -190,6 +220,7 @@ impl From<Ping> for Swim {
 #[derive(Debug, Clone, Serialize)]
 pub struct PingReq {
     pub membership: Vec<Membership>,
+    pub zones: Vec<Zone>,
     pub from: Member,
     pub target: Member,
 }
@@ -201,11 +232,16 @@ impl FromProto<proto::Swim> for PingReq {
             _ => panic!("try-from pingreq"),
         };
         let mut memberships = Vec::with_capacity(value.membership.len());
+        let mut zones = Vec::with_capacity(value.zones.len());
         for membership in value.membership {
             memberships.push(Membership::from_proto(membership)?);
         }
+        for zone in value.zones {
+            zones.push(Zone::from_proto(zone)?);
+        }
         Ok(PingReq {
             membership: memberships,
+            zones: zones,
             from: payload
                 .from
                 .ok_or(Error::ProtocolMismatch("from"))
@@ -239,6 +275,7 @@ impl From<PingReq> for proto::Swim {
                 .into_iter()
                 .map(Into::into)
                 .collect(),
+            zones: value.zones.clone().into_iter().map(Into::into).collect(),
             payload: Some(SwimPayload::Pingreq(value.into())),
         }
     }
@@ -249,7 +286,96 @@ impl From<PingReq> for Swim {
         Swim {
             type_: SwimType::Pingreq,
             membership: value.membership.clone(),
+            zones: value.zones.clone(),
             kind: SwimKind::PingReq(value),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ZoneChange {
+    pub membership: Vec<Membership>,
+    pub zones: Vec<Zone>,
+    pub from: Member,
+    pub zone_id: BfUuid,
+    pub new_aliases: Vec<Zone>,
+}
+
+impl FromProto<proto::Swim> for ZoneChange {
+    fn from_proto(value: proto::Swim) -> Result<Self> {
+        let payload = match value.payload.ok_or(Error::ProtocolMismatch("payload"))? {
+            SwimPayload::ZoneChange(zone_change) => zone_change,
+            _ => panic!("try-from zonechange"),
+        };
+        let mut memberships = Vec::with_capacity(value.membership.len());
+        let mut zones = Vec::with_capacity(value.zones.len());
+        let mut new_aliases = Vec::with_capacity(payload.new_aliases.len());
+        for membership in value.membership {
+            memberships.push(Membership::from_proto(membership)?);
+        }
+        for zone in value.zones {
+            zones.push(Zone::from_proto(zone)?);
+        }
+        for alias in payload.new_aliases {
+            new_aliases.push(Zone::from_proto(alias)?);
+        }
+        Ok(ZoneChange {
+            membership: memberships,
+            zones: zones,
+            from: payload
+                .from
+                .ok_or(Error::ProtocolMismatch("from"))
+                .and_then(Member::from_proto)?,
+            zone_id: payload
+                .zone_id
+                .ok_or(Error::ProtocolMismatch("zone_id"))?
+                .parse::<BfUuid>()
+                .map_err(|e| Error::InvalidField("zone_id", e.to_string()))?,
+            new_aliases: new_aliases,
+        })
+    }
+}
+
+impl protocol::Message<proto::Swim> for ZoneChange {}
+
+impl From<ZoneChange> for proto::ZoneChange {
+    fn from(value: ZoneChange) -> Self {
+        proto::ZoneChange {
+            from: Some(value.from.into()),
+            zone_id: Some(value.zone_id.to_string()),
+            new_aliases: value
+                .new_aliases
+                .clone()
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        }
+    }
+}
+
+impl From<ZoneChange> for proto::Swim {
+    fn from(value: ZoneChange) -> Self {
+        proto::Swim {
+            type_: SwimType::ZoneChange as i32,
+            membership: value
+                .membership
+                .clone()
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            zones: value.zones.clone().into_iter().map(Into::into).collect(),
+            payload: Some(SwimPayload::ZoneChange(value.into())),
+        }
+    }
+}
+
+impl From<ZoneChange> for Swim {
+    fn from(value: ZoneChange) -> Self {
+        Swim {
+            type_: SwimType::ZoneChange,
+            membership: value.membership.clone(),
+            zones: value.zones.clone(),
+            kind: SwimKind::ZoneChange(value),
         }
     }
 }
@@ -259,6 +385,7 @@ pub enum SwimKind {
     Ping(Ping),
     Ack(Ack),
     PingReq(PingReq),
+    ZoneChange(ZoneChange),
 }
 
 impl From<SwimKind> for SwimPayload {
@@ -267,6 +394,7 @@ impl From<SwimKind> for SwimPayload {
             SwimKind::Ping(ping) => SwimPayload::Ping(ping.into()),
             SwimKind::Ack(ack) => SwimPayload::Ack(ack.into()),
             SwimKind::PingReq(pingreq) => SwimPayload::Pingreq(pingreq.into()),
+            SwimKind::ZoneChange(zone_change) => SwimPayload::ZoneChange(zone_change.into()),
         }
     }
 }
@@ -275,6 +403,7 @@ impl From<SwimKind> for SwimPayload {
 pub struct Swim {
     pub type_: SwimType,
     pub membership: Vec<Membership>,
+    pub zones: Vec<Zone>,
     pub kind: SwimKind,
 }
 
@@ -286,14 +415,20 @@ impl Swim {
         for membership in proto.membership.clone() {
             memberships.push(Membership::from_proto(membership)?);
         }
+        let mut zones = Vec::with_capacity(proto.zones.len());
+        for zone in proto.zones.clone() {
+            zones.push(Zone::from_proto(zone)?);
+        }
         let kind = match type_ {
             SwimType::Ack => SwimKind::Ack(Ack::from_proto(proto)?),
             SwimType::Ping => SwimKind::Ping(Ping::from_proto(proto)?),
             SwimType::Pingreq => SwimKind::PingReq(PingReq::from_proto(proto)?),
+            SwimType::ZoneChange => SwimKind::ZoneChange(ZoneChange::from_proto(proto)?),
         };
         Ok(Swim {
             type_: type_,
             membership: memberships,
+            zones: zones,
             kind: kind,
         })
     }
@@ -311,6 +446,7 @@ impl From<Swim> for proto::Swim {
         proto::Swim {
             type_: value.type_ as i32,
             membership: value.membership.into_iter().map(Into::into).collect(),
+            zones: value.zones.into_iter().map(Into::into).collect(),
             payload: Some(value.kind.into()),
         }
     }

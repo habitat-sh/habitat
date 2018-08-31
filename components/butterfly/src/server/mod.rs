@@ -25,6 +25,7 @@ mod outbound;
 mod pull;
 mod push;
 pub mod timing;
+mod zones;
 
 use std::collections::HashSet;
 use std::ffi;
@@ -46,7 +47,7 @@ use serde::{Serialize, Serializer};
 
 use error::{Error, Result};
 use member::{Health, Member, MemberList};
-use message;
+use message::{self, BfUuid};
 use network::{AddressAndPort, AddressForNetwork, Network};
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
@@ -58,6 +59,7 @@ use rumor::service_file::ServiceFile;
 use rumor::{Rumor, RumorKey, RumorStore, RumorType};
 use swim::Ack;
 use trace::{Trace, TraceKind};
+use zone::{Reachable, Zone, ZoneList};
 
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
@@ -77,6 +79,8 @@ pub struct Server<N: Network> {
     member_id: Arc<String>,
     pub member: Arc<RwLock<Member>>,
     pub member_list: MemberList,
+    pub zone_settled: Arc<RwLock<bool>>,
+    pub zone_list: Arc<RwLock<ZoneList>>,
     pub host_address: AddressForNetwork<N>,
     ring_key: Arc<Option<SymKey>>,
     rumor_heat: RumorHeat,
@@ -107,6 +111,8 @@ impl<N: Network> Clone for Server<N> {
             member_id: self.member_id.clone(),
             member: self.member.clone(),
             member_list: self.member_list.clone(),
+            zone_settled: self.zone_settled.clone(),
+            zone_list: self.zone_list.clone(),
             host_address: self.host_address.clone(),
             ring_key: self.ring_key.clone(),
             rumor_heat: self.rumor_heat.clone(),
@@ -155,6 +161,8 @@ impl<N: Network> Server<N> {
             member_id: Arc::new(member.id.clone()),
             member: Arc::new(RwLock::new(member)),
             member_list: MemberList::new(),
+            zone_settled: Arc::new(RwLock::new(false)),
+            zone_list: Arc::new(RwLock::new(ZoneList::new())),
             host_address: host_address,
             ring_key: Arc::new(ring_key),
             rumor_heat: RumorHeat::default(),
@@ -396,6 +404,14 @@ impl<N: Network> Server<N> {
         self.network.read().expect("Network lock is poisoned")
     }
 
+    pub fn read_zone_list(&self) -> RwLockReadGuard<ZoneList> {
+        self.zone_list.read().expect("Zone list lock is poisoned")
+    }
+
+    pub fn write_zone_list(&self) -> RwLockWriteGuard<ZoneList> {
+        self.zone_list.write().expect("Zone list lock is poisoned")
+    }
+
     /// Return the member ID of this server.
     pub fn member_id(&self) -> &str {
         &self.member_id
@@ -404,6 +420,23 @@ impl<N: Network> Server<N> {
     /// Return the name of this server.
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn insert_zone(&self, zone: Zone) {
+        let trace_zone_uuid = zone.id;
+        let trace_incarnation = zone.incarnation;
+
+        for rk in self.write_zone_list().insert(zone) {
+            let trace_zone_id = trace_zone_uuid.to_string();
+
+            trace_it!(
+                ZONES: self,
+                TraceKind::ZoneUpdate,
+                trace_zone_id,
+                trace_incarnation
+            );
+            self.rumor_heat.start_hot_rumor(rk);
+        }
     }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
@@ -486,6 +519,34 @@ impl<N: Network> Server<N> {
     }
 
     /// Given a membership record and some health, insert it into the Member List.
+    fn insert_zone_from_rumor(&self, zone: Zone) {
+        self.insert_zone(zone);
+        /*
+        let rk: RumorKey = RumorKey::from(&zone);
+
+        // TODO(krnowak): if this is our zone and it has the
+        // dead_in_favor_of field set, then figure out the successor
+        // and update the member accordingly, see
+        // insert_member_from_rumor
+        // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
+        // of just how the logic goes. The value of the trace is really high, though, so we suck it
+        // for now.
+        let trace_zone_id = String::from(zone.get_id());
+        let trace_incarnation = zone.get_incarnation();
+
+        if self.write_zone_list().insert(zone) {
+            trace_it!(
+                ZONES: self,
+                TraceKind::ZoneUpdate,
+                trace_zone_id,
+                trace_incarnation
+            );
+            self.rumor_heat.start_hot_rumor(rk);
+        }
+*/
+    }
+
+    /// Given a membership record and some health, insert it into the Member List.
     fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
         let mut incremented_incarnation = false;
         let rk: RumorKey = RumorKey::from(&member);
@@ -515,6 +576,13 @@ impl<N: Network> Server<N> {
                 trace_health
             );
             self.rumor_heat.start_hot_rumor(rk);
+        }
+    }
+
+    /// Insert zones from a list of received rumors.
+    fn insert_zones_from_rumors(&self, zones: Vec<Zone>) {
+        for zone in zones {
+            self.insert_zone_from_rumor(zone);
         }
     }
 
@@ -967,6 +1035,45 @@ impl<N: Network> Server<N> {
         }
     }
 
+    pub fn write_zone_settled(&self) -> RwLockWriteGuard<bool> {
+        self.zone_settled
+            .write()
+            .expect("Zone settled lock is poisoned")
+    }
+
+    pub fn read_zone_settled(&self) -> RwLockReadGuard<bool> {
+        self.zone_settled
+            .read()
+            .expect("Zone settled lock is poisoned")
+    }
+
+    pub fn settle_zone(&self) -> bool {
+        if self.is_zone_settled() {
+            false
+        } else {
+            *(self
+                .zone_settled
+                .write()
+                .expect("Zone state lock is poisoned")) = true;
+            true
+        }
+    }
+
+    pub fn get_settled_zone_id(&self) -> BfUuid {
+        if self.is_zone_settled() {
+            self.read_member().zone_id
+        } else {
+            BfUuid::nil()
+        }
+    }
+
+    pub fn is_zone_settled(&self) -> bool {
+        *(self
+            .zone_settled
+            .read()
+            .expect("Zone settled lock is poisoned"))
+    }
+
     #[allow(dead_code)]
     pub fn is_departed(&self) -> bool {
         self.departed.load(Ordering::Relaxed)
@@ -979,6 +1086,44 @@ impl<N: Network> Server<N> {
     pub fn write_member(&self) -> RwLockWriteGuard<Member> {
         self.member.write().expect("Member lock is poisoned")
     }
+
+    pub fn directly_reachable(
+        &self,
+        their_member: &Member,
+    ) -> Option<(N::AddressAndPort, N::AddressAndPort)> {
+        let reachable = {
+            // Copy to avoid locking both member and zone list at the
+            // same time. We have no clear rules about lock ordering
+            // to avoid deadlocks.
+            let (our_zone_id, our_additional_addresses) = {
+                let our_member = self.read_member();
+
+                (our_member.zone_id, our_member.additional_addresses.clone())
+            };
+
+            self.read_zone_list().directly_reachable(
+                our_zone_id,
+                their_member.zone_id,
+                &our_additional_addresses,
+                &their_member.additional_addresses,
+            )
+        };
+
+        match reachable {
+            Reachable::Yes => Some((
+                their_member.swim_socket_address(),
+                their_member.gossip_socket_address(),
+            )),
+            Reachable::ThroughOtherZone(zone_id) => match (
+                their_member.swim_socket_address_for_zone(zone_id),
+                their_member.gossip_socket_address_for_zone(zone_id),
+            ) {
+                (Some(swim), Some(gossip)) => return Some((swim, gossip)),
+                _ => return None,
+            },
+            Reachable::No => None,
+        }
+    }
 }
 
 impl<N: Network> Serialize for Server<N> {
@@ -986,7 +1131,7 @@ impl<N: Network> Serialize for Server<N> {
     where
         S: Serializer,
     {
-        let mut strukt = serializer.serialize_struct("butterfly", 7)?;
+        let mut strukt = serializer.serialize_struct("butterfly", 8)?;
         strukt.serialize_field("member", &self.member_list)?;
         strukt.serialize_field("service", &self.service_store)?;
         strukt.serialize_field("service_config", &self.service_config_store)?;
@@ -994,6 +1139,10 @@ impl<N: Network> Serialize for Server<N> {
         strukt.serialize_field("election", &self.election_store)?;
         strukt.serialize_field("election_update", &self.update_store)?;
         strukt.serialize_field("departure", &self.departure_store)?;
+        {
+            let zone_list = self.read_zone_list();
+            strukt.serialize_field("zone_list", &*zone_list)?;
+        }
         strukt.end()
     }
 }

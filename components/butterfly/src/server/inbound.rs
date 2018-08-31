@@ -16,17 +16,23 @@
 //!
 //! This module handles all the inbound SWIM messages.
 
+use std::mem;
 use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
 use super::AckSender;
 use error::Error;
-use member::Health;
+use member::{Health, Member};
 use network::{AddressAndPort, AddressForNetwork, MyFromStr, Network, SwimReceiver};
-use server::{outbound, Server};
-use swim::{Ack, Ping, PingReq, Swim, SwimKind};
+use server::{
+    outbound,
+    zones::{self, ZoneChangeDbgData, ZoneChangeResultsMsgOrNothing},
+    Server,
+};
+use swim::{Ack, Ping, PingReq, Swim, SwimKind, SwimType, ZoneChange};
 use trace::TraceKind;
+use zone::Zone;
 
 /// Takes the Server and a channel to send received Acks to the outbound thread.
 pub struct Inbound<N: Network> {
@@ -114,6 +120,16 @@ impl<N: Network> Inbound<N> {
                             }
                             self.process_pingreq(addr, pingreq);
                         }
+                        SwimKind::ZoneChange(zone_change) => {
+                            if self.server.is_member_blocked(&zone_change.from.id) {
+                                debug!(
+                                    "Not processing message from {} - it is blocked",
+                                    zone_change.from.id
+                                );
+                                continue;
+                            }
+                            self.process_zone_change(addr, zone_change);
+                        }
                     }
                 }
                 Err(Error::SwimReceiveIOError(e)) => {
@@ -171,6 +187,33 @@ impl<N: Network> Inbound<N> {
 
     /// Process ack messages; forwards to the outbound thread.
     fn process_ack(&self, addr: N::AddressAndPort, mut msg: Ack) {
+        let simple_results = zones::handle_zone_simple(
+            &self.server,
+            &msg.zones,
+            SwimType::Ack,
+            &msg.from,
+            &msg.to,
+            addr,
+        );
+        if simple_results.bail_out {
+            return;
+        }
+        for (msg, target) in simple_results.msgs_and_targets_for_zone_change {
+            outbound::zone_change(&self.server, &self.swim_sender, &target, msg);
+        }
+        if simple_results.sender_has_nil_zone {
+            warn!("Supervisor {} sent an Ack with a nil zone ID", msg.from.id);
+        }
+        // TODO: do it after filling membership and zones
+        if simple_results.send_ack {
+            outbound::ack(
+                &self.server,
+                &self.swim_sender,
+                &msg.from.clone(),
+                addr,
+                None,
+            );
+        }
         trace_it!(SWIM: &self.server, TraceKind::RecvAck, &msg.from.id, addr, &msg);
         trace!("Ack from {}@{}", msg.from.id, addr);
         if msg.forward_to.is_some() {
@@ -207,12 +250,14 @@ impl<N: Network> Inbound<N> {
             }
         }
         let memberships = msg.membership.clone();
+        let zones = msg.zones.clone();
         match self.tx_outbound.send((addr, msg)) {
             Ok(()) => {
                 for membership in memberships {
                     self.server
                         .insert_member_from_rumor(membership.member, membership.health);
                 }
+                self.server.insert_zones_from_rumors(zones);
             }
             Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
         }
@@ -220,7 +265,22 @@ impl<N: Network> Inbound<N> {
 
     /// Process ping messages.
     fn process_ping(&self, addr: N::AddressAndPort, mut msg: Ping) {
+        let simple_results = zones::handle_zone_simple(
+            &self.server,
+            &msg.zones,
+            SwimType::Ping,
+            &msg.from,
+            &msg.to,
+            addr,
+        );
+        if simple_results.bail_out {
+            return;
+        }
+        for (msg, target) in simple_results.msgs_and_targets_for_zone_change {
+            outbound::zone_change(&self.server, &self.swim_sender, &target, msg);
+        }
         trace_it!(SWIM: &self.server, TraceKind::RecvPing, &msg.from.id, addr, &msg);
+        // TODO: do it after filling membership and zones
         outbound::ack(
             &self.server,
             &self.swim_sender,
@@ -231,14 +291,203 @@ impl<N: Network> Inbound<N> {
         // Populate the member for this sender with its remote address
         msg.from.address = addr.get_address().to_string();
         trace!("Ping from {}@{}", msg.from.id, addr);
-        if msg.from.departed {
-            self.server.insert_member(msg.from, Health::Departed);
+        if !simple_results.sender_has_nil_zone {
+            if msg.from.departed {
+                self.server.insert_member(msg.from, Health::Departed);
+            } else {
+                self.server.insert_member(msg.from, Health::Alive);
+            }
+            for membership in msg.membership {
+                self.server
+                    .insert_member_from_rumor(membership.member, membership.health);
+            }
+            self.server.insert_zones_from_rumors(msg.zones.clone());
+        }
+    }
+
+    fn process_zone_change(&self, addr: N::AddressAndPort, msg: ZoneChange) {
+        trace_it!(SWIM: &self.server,
+                  TraceKind::RecvZoneChange,
+                  &msg.from.id,
+                  addr,
+                  &msg);
+        trace!("Zone change from {}@{}", msg.from.id, addr);
+
+        let mut dbg_data = ZoneChangeDbgData::default();
+        let from = msg.from.clone();
+        let results_msg_or_nothing = self.process_zone_change_internal(msg, &mut dbg_data);
+
+        match results_msg_or_nothing {
+            ZoneChangeResultsMsgOrNothing::Nothing => (),
+            ZoneChangeResultsMsgOrNothing::Msg((zone_change, target)) => {
+                outbound::zone_change(&self.server, &self.swim_sender, &target, zone_change);
+            }
+            ZoneChangeResultsMsgOrNothing::Results(mut results) => {
+                let zone_changed = results.successor_for_maintained_zone.is_some()
+                    || !results.predecessors_to_add_to_maintained_zone.is_empty();
+                let mut maintained_zone = Zone::default();
+
+                mem::swap(&mut maintained_zone, &mut results.original_maintained_zone);
+
+                if let Some(successor_id) = results.successor_for_maintained_zone.take() {
+                    maintained_zone.successor = Some(successor_id);
+                }
+                for predecessor_id in results.predecessors_to_add_to_maintained_zone {
+                    maintained_zone.predecessors.push(predecessor_id);
+                }
+                if zone_changed {
+                    maintained_zone.incarnation += 1;
+                    self.server.insert_zone(maintained_zone.clone());
+                }
+                for zone in results.zones_to_insert.drain(..) {
+                    self.server.insert_zone(zone);
+                }
+                if let Some(zone_uuid) = results.zone_uuid_for_our_member {
+                    let our_member_clone = {
+                        let mut our_member = self.server.write_member();
+                        our_member.zone_id = zone_uuid;
+                        our_member.incarnation += 1;
+
+                        our_member.clone()
+                    };
+
+                    *self.server.write_zone_settled() = true;
+                    self.server.insert_member(our_member_clone, Health::Alive);
+                }
+
+                let mut dbg_sent_zone_change_with_alias_to = Vec::new();
+
+                if !results.aliases_to_inform.is_empty() {
+                    let mut zone_ids_and_maintainer_ids = {
+                        let zone_list = self.server.read_zone_list();
+
+                        results
+                            .aliases_to_inform
+                            .iter()
+                            .filter_map(|zone_id| {
+                                zone_list
+                                    .zones
+                                    .get(&zone_id)
+                                    .map(|zone| (zone_id, zone.maintainer_id.clone()))
+                            })
+                            .collect::<Vec<_>>()
+                    };
+
+                    let mut msgs_and_targets = Vec::new();
+
+                    {
+                        let mut msgs_and_targets = &mut msgs_and_targets;
+                        let mut zone_ids_and_maintainer_ids = &mut zone_ids_and_maintainer_ids;
+
+                        self.server.member_list.with_member_list(|members_map| {
+                            for (zone_id, maintainer_id) in zone_ids_and_maintainer_ids.drain(..) {
+                                if let Some(maintainer) = members_map.get(&maintainer_id) {
+                                    let zone_change = ZoneChange {
+                                        membership: Vec::new(),
+                                        zones: Vec::new(),
+                                        // TODO(krnowak): Ew.
+                                        from: Member::default(),
+                                        zone_id: *zone_id,
+                                        new_aliases: vec![maintained_zone.clone()],
+                                    };
+
+                                    msgs_and_targets.push((zone_change, maintainer.clone()));
+                                }
+                            }
+                        });
+                    }
+
+                    for (msg, target) in msgs_and_targets {
+                        outbound::zone_change(&self.server, &self.swim_sender, &target, msg);
+                    }
+                }
+                dbg_data.sent_zone_change_with_alias_to = Some(dbg_sent_zone_change_with_alias_to);
+            }
+        }
+        outbound::ack(&self.server, &self.swim_sender, &from, addr, None);
+        debug!(
+            "===========ZONE CHANGE=========\n\
+             dbg:\n\
+             \n\
+             {:#?}\n\
+             \n\
+             ===============================",
+            dbg_data,
+        );
+    }
+
+    fn process_zone_change_internal(
+        &self,
+        zone_change: ZoneChange,
+        dbg_data: &mut ZoneChangeDbgData,
+    ) -> ZoneChangeResultsMsgOrNothing {
+        // meh…
+        enum YaddaYadda {
+            MaintainedZone(Zone),
+            MaintainerID(String),
+        }
+
+        let yadda_yadda = {
+            let zone_list = self.server.read_zone_list();
+            let maybe_maintained_zone = zone_list.zones.get(&zone_change.zone_id);
+
+            dbg_data.zone_found = maybe_maintained_zone.is_some();
+
+            if let Some(maintained_zone) = maybe_maintained_zone {
+                let im_a_maintainer = maintained_zone.maintainer_id == self.server.member_id();
+
+                dbg_data.is_a_maintainer = Some(im_a_maintainer);
+
+                if im_a_maintainer {
+                    YaddaYadda::MaintainedZone(maintained_zone.clone())
+                } else {
+                    YaddaYadda::MaintainerID(maintained_zone.maintainer_id.clone())
+                }
+            } else {
+                return ZoneChangeResultsMsgOrNothing::Nothing;
+            }
+        };
+        let maintained_zone_clone = {
+            match yadda_yadda {
+                YaddaYadda::MaintainedZone(zone) => zone,
+                YaddaYadda::MaintainerID(id) => {
+                    let mut maybe_maintainer_clone = None;
+
+                    self.server
+                        .member_list
+                        .with_member(&id, |maybe_maintainer| {
+                            maybe_maintainer_clone = maybe_maintainer.cloned()
+                        });
+
+                    dbg_data.real_maintainer_found = Some(maybe_maintainer_clone.is_some());
+
+                    if let Some(maintainer_clone) = maybe_maintainer_clone {
+                        let addr: N::AddressAndPort = maintainer_clone.swim_socket_address();
+
+                        dbg_data.forwarded_to =
+                            Some((maintainer_clone.id.to_string(), addr.to_string()));
+
+                        return ZoneChangeResultsMsgOrNothing::Msg((zone_change, maintainer_clone));
+                    }
+
+                    return ZoneChangeResultsMsgOrNothing::Nothing;
+                }
+            }
+        };
+
+        let maybe_successor_clone = if let Some(uuid) = maintained_zone_clone.successor {
+            self.server.read_zone_list().zones.get(&uuid).cloned()
         } else {
-            self.server.insert_member(msg.from, Health::Alive);
-        }
-        for membership in msg.membership {
-            self.server
-                .insert_member_from_rumor(membership.member, membership.health);
-        }
+            None
+        };
+        let our_member_uuid = self.server.read_member().zone_id;
+
+        ZoneChangeResultsMsgOrNothing::Results(zones::process_zone_change_internal_state(
+            maintained_zone_clone,
+            maybe_successor_clone,
+            our_member_uuid,
+            zone_change,
+            dbg_data,
+        ))
     }
 }
