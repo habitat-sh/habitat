@@ -12,124 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::thread::Builder as ThreadBuilder;
+use std::path::PathBuf;
 
 use butterfly::member::Member;
 use config::GOSSIP_DEFAULT_PORT;
 use error::{Error, Result};
-use manager::file_watcher::{default_file_watcher, Callbacks};
+use manager::simple_file_watcher::SimpleFileWatcher;
 
 static LOGKEY: &'static str = "PW";
 
-pub struct PeerCallbacks {
-    have_events: Arc<AtomicBool>,
-}
-
-impl Callbacks for PeerCallbacks {
-    fn file_appeared(&mut self, _: &Path) {
-        self.have_events.store(true, Ordering::Relaxed);
-    }
-
-    fn file_modified(&mut self, _: &Path) {
-        self.have_events.store(true, Ordering::Relaxed)
-    }
-
-    fn file_disappeared(&mut self, _: &Path) {
-        self.have_events.store(true, Ordering::Relaxed)
-    }
-}
-
-pub struct PeerWatcher {
-    path: PathBuf,
-    have_events: Arc<AtomicBool>,
-}
+pub struct PeerWatcher(SimpleFileWatcher);
 
 impl PeerWatcher {
     pub fn run<P>(path: P) -> Result<Self>
     where
         P: Into<PathBuf>,
     {
-        let path = path.into();
-        let have_events = Self::setup_watcher(path.clone())?;
-
-        Ok(PeerWatcher {
-            path: path,
-            have_events: have_events,
-        })
-    }
-
-    fn setup_watcher(path: PathBuf) -> Result<Arc<AtomicBool>> {
-        let have_events = Arc::new(AtomicBool::new(false));
-        let have_events_for_thread = Arc::clone(&have_events);
-
-        ThreadBuilder::new()
-            .name(format!("peer-watcher-[{}]", path.display()))
-            .spawn(move || {
-                //debug!("PeerWatcher({}) thread starting", abs_path.display());
-                loop {
-                    let have_events_for_loop = Arc::clone(&have_events_for_thread);
-                    if Self::file_watcher_loop_body(&path, have_events_for_loop) {
-                        break;
-                    }
-                }
-            })?;
-        Ok(have_events)
-    }
-
-    fn file_watcher_loop_body(path: &PathBuf, have_events: Arc<AtomicBool>) -> bool {
-        let callbacks = PeerCallbacks {
-            have_events: have_events,
-        };
-        let mut file_watcher = match default_file_watcher(&path, callbacks) {
-            Ok(w) => w,
-            Err(sup_err) => match sup_err.err {
-                Error::NotifyError(err) => {
-                    outputln!(
-                        "PeerWatcher({}) failed to start watching the directories ({}), {}",
-                        path.display(),
-                        err,
-                        "will try again",
-                    );
-                    return false;
-                }
-                _ => {
-                    outputln!(
-                        "PeerWatcher({}) could not create file watcher, ending thread ({})",
-                        path.display(),
-                        sup_err
-                    );
-                    return true;
-                }
-            },
-        };
-        if let Err(err) = file_watcher.run() {
-            outputln!(
-                "PeerWatcher({}) error during watching ({}), restarting",
-                path.display(),
-                err
-            );
-        }
-        false
+        Ok(PeerWatcher(SimpleFileWatcher::run(
+            "peer-watcher".to_string(),
+            path,
+        )?))
     }
 
     pub fn has_fs_events(&self) -> bool {
-        self.have_events.load(Ordering::Relaxed)
+        self.0.has_fs_events()
     }
 
     pub fn get_members(&self) -> Result<Vec<Member>> {
-        if !self.path.is_file() {
-            self.have_events.store(false, Ordering::Relaxed);
-            return Ok(Vec::new());
-        }
-        let file = File::open(&self.path).map_err(|err| {
-            return sup_error!(Error::Io(err));
-        })?;
+        let file = match self.0.open_file()? {
+            Some(file) => file,
+            None => {
+                self.0.clear_events();
+                return Ok(Vec::new());
+            }
+        };
         let reader = BufReader::new(file);
         let mut members: Vec<Member> = Vec::new();
         for line in reader.lines() {
@@ -154,7 +72,7 @@ impl PeerWatcher {
                 members.push(member);
             }
         }
-        self.have_events.store(false, Ordering::Relaxed);
+        self.0.clear_events();
         Ok(members)
     }
 }
@@ -174,7 +92,6 @@ mod tests {
         let path = tmpdir.path().join("no_such_file");
         let watcher = PeerWatcher::run(path).unwrap();
 
-        assert_eq!(false, watcher.has_fs_events());
         assert_eq!(watcher.get_members().unwrap(), vec![]);
     }
 
