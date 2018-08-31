@@ -25,7 +25,7 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 
-use habitat_butterfly::network::RealNetwork;
+use habitat_butterfly::network::{Network, RealNetwork};
 use habitat_butterfly::server::Suitability;
 use habitat_butterfly::{member, server, trace};
 use habitat_core::service::ServiceGroup;
@@ -58,8 +58,12 @@ fn main() {
     member.gossip_port = gport;
 
     let network = RealNetwork::new_for_server(bind_to_addr, gossip_bind_addr);
+    let host_address = network
+        .get_host_address()
+        .expect("Cannot get the real host address");
     let mut server = server::Server::<RealNetwork>::new(
         network,
+        host_address,
         member,
         trace::Trace::default(),
         None,

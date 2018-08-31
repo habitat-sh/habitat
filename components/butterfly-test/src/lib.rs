@@ -77,8 +77,10 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
     member.swim_port = swim_port as u16;
     member.gossip_port = gossip_port as u16;
     let network = RealNetwork::new_for_server(listen_swim, listen_gossip);
+    let host_address = localhost_ip();
     let mut server = Server::new(
         network,
+        host_address,
         member,
         Trace::default(),
         ring_key,
@@ -93,8 +95,12 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
 }
 
 fn localhost_addr(port: u16) -> SocketAddr {
-    let ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+    let ip = localhost_ip();
     SocketAddr::new(ip, port)
+}
+
+fn localhost_ip() -> IpAddr {
+    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))
 }
 
 pub fn member_from_server(server: &Server<RealNetwork>) -> Member {

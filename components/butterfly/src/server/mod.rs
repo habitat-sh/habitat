@@ -47,7 +47,7 @@ use serde::{Serialize, Serializer};
 use error::{Error, Result};
 use member::{Health, Member, MemberList};
 use message;
-use network::{AddressAndPort, Network};
+use network::{AddressAndPort, AddressForNetwork, Network};
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
 use rumor::election::{Election, ElectionUpdate};
@@ -77,6 +77,7 @@ pub struct Server<N: Network> {
     member_id: Arc<String>,
     pub member: Arc<RwLock<Member>>,
     pub member_list: MemberList,
+    pub host_address: AddressForNetwork<N>,
     ring_key: Arc<Option<SymKey>>,
     rumor_heat: RumorHeat,
     pub service_store: RumorStore<Service>,
@@ -106,6 +107,7 @@ impl<N: Network> Clone for Server<N> {
             member_id: self.member_id.clone(),
             member: self.member.clone(),
             member_list: self.member_list.clone(),
+            host_address: self.host_address.clone(),
             ring_key: self.ring_key.clone(),
             rumor_heat: self.rumor_heat.clone(),
             service_store: self.service_store.clone(),
@@ -134,6 +136,7 @@ impl<N: Network> Server<N> {
     /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
     pub fn new<P>(
         network: N,
+        host_address: AddressForNetwork<N>,
         mut member: Member,
         trace: Trace,
         ring_key: Option<SymKey>,
@@ -144,6 +147,7 @@ impl<N: Network> Server<N> {
     where
         P: Into<PathBuf> + AsRef<ffi::OsStr>,
     {
+        member.address = host_address.to_string();
         member.swim_port = network.get_swim_addr().get_port();
         member.gossip_port = network.get_gossip_addr().get_port();
         Self {
@@ -151,6 +155,7 @@ impl<N: Network> Server<N> {
             member_id: Arc::new(member.id.clone()),
             member: Arc::new(RwLock::new(member)),
             member_list: MemberList::new(),
+            host_address: host_address,
             ring_key: Arc::new(ring_key),
             rumor_heat: RumorHeat::default(),
             service_store: RumorStore::default(),
@@ -1017,7 +1022,7 @@ mod tests {
     mod server {
         use habitat_core::service::ServiceGroup;
         use member::Member;
-        use network::RealNetwork;
+        use network::{Network, RealNetwork};
         use server::timing::Timing;
         use server::{Server, Suitability};
         use std::fs::File;
@@ -1050,8 +1055,12 @@ mod tests {
             member.swim_port = swim_port as u16;
             member.gossip_port = gossip_port as u16;
             let network = RealNetwork::new_for_server(swim_listen, gossip_listen);
+            let host_address = network
+                .get_host_address()
+                .expect("Cannot get real host address");
             Server::new(
                 network,
+                host_address,
                 member,
                 Trace::default(),
                 None,
@@ -1076,8 +1085,12 @@ mod tests {
             let mut rumor_file = File::create(file_path).unwrap();
             writeln!(rumor_file, "This is not a valid rumor file!").unwrap();
             let network = RealNetwork::new_for_server(swim_listen, gossip_listen);
+            let host_address = network
+                .get_host_address()
+                .expect("Cannot get real host address");
             Server::new(
                 network,
+                host_address,
                 member,
                 Trace::default(),
                 None,

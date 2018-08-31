@@ -358,8 +358,10 @@ impl Manager {
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::new(RwLock::new(Vec::new()));
         let network = RealNetwork::new_for_server(sys.gossip_listen(), sys.gossip_listen());
+        let host_address = network.get_host_address()?;
         let server = butterfly::Server::new(
             network,
+            host_address,
             member,
             Trace::default(),
             cfg.ring_key,
