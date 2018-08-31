@@ -986,7 +986,7 @@ impl<N: Network> Serialize for Server<N> {
     where
         S: Serializer,
     {
-        let mut strukt = serializer.serialize_struct("butterfly", 6)?;
+        let mut strukt = serializer.serialize_struct("butterfly", 7)?;
         strukt.serialize_field("member", &self.member_list)?;
         strukt.serialize_field("service", &self.service_store)?;
         strukt.serialize_field("service_config", &self.service_config_store)?;
