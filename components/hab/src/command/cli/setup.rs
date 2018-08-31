@@ -379,12 +379,10 @@ fn set_binlink_path(binlink_path: &Path) -> Result<()> {
             r"System\CurrentControlSet\Control\Session Manager\Environment",
             KEY_ALL_ACCESS,
         )?;
+        let mut paths = vec![binlink_path.to_path_buf()];
         let path: String = env.get_value("path")?;
-        let new_paths = [binlink_path, Path::new(&path)];
-        env.set_value(
-            "path",
-            &env::join_paths(new_paths.iter())?.to_str().unwrap(),
-        )?;
+        paths.append(&mut env::split_paths(&path).collect());
+        env.set_value("path", &env::join_paths(paths)?.to_str().unwrap())?;
 
         // After altering the machine environment, we must broadcast
         // a WM_SETTINGCHANGE message to all windows so the user
