@@ -350,9 +350,8 @@ impl From<RumorEnvelope> for ProtoRumor {
 
 #[cfg(test)]
 mod tests {
-    use uuid::Uuid;
-
     use error::Result;
+    use message::BfUuid;
     use protocol::{self, newscast};
     use rumor::{Rumor, RumorType};
 
@@ -365,7 +364,7 @@ mod tests {
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
             FakeRumor {
-                id: format!("{}", Uuid::new_v4().simple()),
+                id: BfUuid::generate().to_string(),
                 key: String::from("fakerton"),
             }
         }
@@ -420,7 +419,7 @@ mod tests {
     impl Default for TrumpRumor {
         fn default() -> TrumpRumor {
             TrumpRumor {
-                id: format!("{}", Uuid::new_v4().simple()),
+                id: BfUuid::generate().to_string(),
                 key: String::from("fakerton"),
             }
         }

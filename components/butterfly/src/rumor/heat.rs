@@ -137,9 +137,9 @@ impl Default for RumorHeat {
 mod tests {
     use super::*;
     use error::Result;
+    use message::BfUuid;
     use protocol::{self, newscast};
     use rumor::{Rumor, RumorKey, RumorType};
-    use uuid::Uuid;
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.
@@ -153,7 +153,7 @@ mod tests {
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
             FakeRumor {
-                id: format!("{}", Uuid::new_v4().simple()),
+                id: BfUuid::generate().to_string(),
                 key: String::from("fakerton"),
             }
         }

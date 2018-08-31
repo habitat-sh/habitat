@@ -27,9 +27,9 @@ use rand::{thread_rng, Rng};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use time::{Duration, SteadyTime};
-use uuid::Uuid;
 
 use error::{Error, Result};
+use message::BfUuid;
 use network::{AddressAndPort, MyFromStr};
 pub use protocol::swim::Health;
 use protocol::{self, newscast, swim as proto, FromProto};
@@ -91,7 +91,7 @@ impl Member {
 impl Default for Member {
     fn default() -> Self {
         Member {
-            id: Uuid::new_v4().simple().to_string(),
+            id: BfUuid::generate().to_string(),
             incarnation: 0,
             // TODO (CM): DANGER DANGER DANGER
             // This is a lousy default, and suggests that the notion
