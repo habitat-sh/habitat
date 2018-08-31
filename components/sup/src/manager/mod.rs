@@ -21,6 +21,7 @@ mod peer_watcher;
 mod periodic;
 mod self_updater;
 mod service_updater;
+mod simple_file_watcher;
 mod spec_watcher;
 mod sys;
 mod user_config_watcher;
