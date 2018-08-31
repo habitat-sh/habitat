@@ -41,8 +41,8 @@ pub fn start(
         dst_path.display()
     ))?;
     let pkg_install = PackageInstall::load(&ident, Some(fs_root_path))?;
-    let src = match hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)? {
-        Some(c) => fs_root_path.join(c.strip_prefix("/")?),
+    let mut src = match hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)? {
+        Some(c) => c,
         None => {
             return Err(Error::CommandNotFoundInPkg((
                 pkg_install.ident().to_string(),
@@ -50,6 +50,9 @@ pub fn start(
             )))
         }
     };
+    if cfg!(target_os = "windows") {
+        src = fs_root_path.join(src.strip_prefix("/")?);
+    }
     if !dst_path.is_dir() {
         ui.status(
             Status::Creating,
@@ -271,12 +274,12 @@ mod test {
         let ident = fake_bin_pkg_install("acme/cooltools", tools, rootfs.path());
         let dst_path = Path::new("/opt/bin");
 
-        let rootfs_src_dir = rootfs.path().join(
-            hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                .join("bin")
-                .strip_prefix("/")
-                .unwrap(),
-        );
+        let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>).join("bin");
+        if cfg!(target_os = "windows") {
+            rootfs_src_dir = rootfs
+                .path()
+                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+        }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
 
@@ -331,11 +334,12 @@ mod test {
         let ident = fake_bin_pkg_install("acme/securetools", tools, rootfs.path());
         let dst_path = Path::new("/opt/bin");
 
-        let rootfs_src_dir = rootfs.path().join(
-            hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                .strip_prefix("/")
-                .unwrap(),
-        );
+        let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
+        if cfg!(target_os = "windows") {
+            rootfs_src_dir = rootfs
+                .path()
+                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+        }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
 
@@ -413,11 +417,12 @@ mod test {
         let ident = fake_bin_pkg_install("acme/securetools", tools, rootfs.path());
         let dst_path = Path::new("/opt/bin");
 
-        let rootfs_src_dir = rootfs.path().join(
-            hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                .strip_prefix("/")
-                .unwrap(),
-        );
+        let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
+        if cfg!(target_os = "windows") {
+            rootfs_src_dir = rootfs
+                .path()
+                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+        }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
 
