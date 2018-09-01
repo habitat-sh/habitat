@@ -14,6 +14,7 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
+use std::result;
 use std::str::FromStr;
 
 use butterfly::member::{Health, Member, MemberList};
@@ -28,6 +29,8 @@ use butterfly::rumor::RumorStore;
 use hcore;
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use toml;
 
 use error::{Error, SupError};
@@ -39,7 +42,6 @@ pub type MemberId = String;
 #[derive(Debug, Serialize)]
 pub struct CensusRing {
     changed: bool,
-
     census_groups: HashMap<ServiceGroup, CensusGroup>,
     local_member_id: MemberId,
     last_service_counter: usize,
@@ -211,6 +213,46 @@ impl CensusRing {
                 census_group.update_from_service_file_rumors(rumors);
             }
         });
+    }
+}
+
+// This is a proxy struct to represent what information we're writing to the dat file, and
+// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
+// actual CensusRing struct, but this will give us something we can refactor against without
+// worrying about breaking the data returned to users.
+pub struct CensusRingProxy<'a>(&'a CensusRing);
+
+impl<'a> CensusRingProxy<'a> {
+    pub fn new(c: &'a CensusRing) -> Self {
+        CensusRingProxy(&c)
+    }
+}
+
+impl<'a> Serialize for CensusRingProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("census_ring", 9)?;
+        strukt.serialize_field("changed", &self.0.changed)?;
+        strukt.serialize_field("census_groups", &self.0.census_groups)?;
+        strukt.serialize_field("local_member_id", &self.0.local_member_id)?;
+        strukt.serialize_field("last_service_counter", &self.0.last_service_counter)?;
+        strukt.serialize_field("last_election_counter", &self.0.last_election_counter)?;
+        strukt.serialize_field(
+            "last_election_update_counter",
+            &self.0.last_election_update_counter,
+        )?;
+        strukt.serialize_field("last_membership_counter", &self.0.last_membership_counter)?;
+        strukt.serialize_field(
+            "last_service_config_counter",
+            &self.0.last_service_config_counter,
+        )?;
+        strukt.serialize_field(
+            "last_service_file_counter",
+            &self.0.last_service_file_counter,
+        )?;
+        strukt.end()
     }
 }
 

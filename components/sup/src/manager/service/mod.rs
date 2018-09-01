@@ -28,6 +28,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
+use std::result;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -41,6 +42,8 @@ use hcore::service::ServiceGroup;
 use hcore::util::perm::{set_owner, set_permissions};
 use launcher_client::LauncherCli;
 pub use protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use time::Timespec;
 
 pub use self::composite_spec::CompositeSpec;
@@ -997,5 +1000,73 @@ impl Service {
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} [{}]", self.service_group, self.pkg.ident)
+    }
+}
+
+// This is a proxy struct to represent what information we're writing to the dat file, and
+// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
+// actual Service struct, but this will give us something we can refactor against without
+// worrying about breaking the data returned to users.
+pub struct ServiceProxy<'a> {
+    service: &'a Service,
+    render_config: bool,
+}
+
+impl<'a> ServiceProxy<'a> {
+    pub fn new(s: &'a Service, c: bool) -> Self {
+        ServiceProxy {
+            service: &s,
+            render_config: c,
+        }
+    }
+
+    pub fn service(&self) -> &Service {
+        &self.service
+    }
+}
+
+impl<'a> Serialize for ServiceProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let num_fields: usize = if *&self.render_config { 27 } else { 26 };
+
+        let mut strukt = serializer.serialize_struct("service", num_fields)?;
+        strukt.serialize_field("all_pkg_binds", &self.service.all_pkg_binds)?;
+        strukt.serialize_field("binding_mode", &self.service.binding_mode)?;
+        strukt.serialize_field("binds", &self.service.binds)?;
+        strukt.serialize_field("bldr_url", &self.service.bldr_url)?;
+
+        if *&self.render_config {
+            strukt.serialize_field("cfg", &self.service.cfg)?;
+        }
+
+        strukt.serialize_field("channel", &self.service.channel)?;
+        strukt.serialize_field("composite", &self.service.composite)?;
+        strukt.serialize_field("config_from", &self.service.config_from)?;
+        strukt.serialize_field("desired_state", &self.service.desired_state)?;
+        strukt.serialize_field("health_check", &self.service.health_check)?;
+        strukt.serialize_field("hooks", &self.service.hooks)?;
+        strukt.serialize_field("initialized", &self.service.initialized)?;
+        strukt.serialize_field("last_election_status", &self.service.last_election_status)?;
+        strukt.serialize_field("manager_fs_cfg", &self.service.manager_fs_cfg)?;
+        strukt.serialize_field("needs_reconfiguration", &self.service.needs_reconfiguration)?;
+        strukt.serialize_field("needs_reload", &self.service.needs_reload)?;
+        strukt.serialize_field("pkg", &self.service.pkg)?;
+        strukt.serialize_field("process", &self.service.supervisor)?;
+        strukt.serialize_field("service_group", &self.service.service_group)?;
+        strukt.serialize_field("smoke_check", &self.service.smoke_check)?;
+        strukt.serialize_field("spec_file", &self.service.spec_file)?;
+        strukt.serialize_field("spec_ident", &self.service.spec_ident)?;
+        strukt.serialize_field(
+            "svc_encrypted_password",
+            &self.service.svc_encrypted_password,
+        )?;
+        strukt.serialize_field("sys", &self.service.sys)?;
+        strukt.serialize_field("topology", &self.service.topology)?;
+        strukt.serialize_field("update_strategy", &self.service.update_strategy)?;
+        strukt.serialize_field("user_config_updated", &self.service.user_config_updated)?;
+        strukt.end()
     }
 }

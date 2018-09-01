@@ -1179,7 +1179,7 @@ impl Serialize for Server {
     where
         S: Serializer,
     {
-        let mut strukt = serializer.serialize_struct("butterfly", 6)?;
+        let mut strukt = serializer.serialize_struct("butterfly", 7)?;
         strukt.serialize_field("member", &self.member_list)?;
         strukt.serialize_field("service", &self.service_store)?;
         strukt.serialize_field("service_config", &self.service_config_store)?;
@@ -1215,6 +1215,35 @@ fn persist_loop(server: Server) {
         server.persist_data();
         let time_to_wait = next_check - Instant::now();
         thread::sleep(time_to_wait);
+    }
+}
+
+// This is a proxy struct to represent what information we're writing to the dat file, and
+// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
+// actual Server struct, but this will give us something we can refactor against without
+// worrying about breaking the data returned to users.
+pub struct ServerProxy<'a>(&'a Server);
+
+impl<'a> ServerProxy<'a> {
+    pub fn new(s: &'a Server) -> Self {
+        ServerProxy(&s)
+    }
+}
+
+impl<'a> Serialize for ServerProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("butterfly_server", 7)?;
+        strukt.serialize_field("member", &self.0.member_list)?;
+        strukt.serialize_field("service", &self.0.service_store)?;
+        strukt.serialize_field("service_config", &self.0.service_config_store)?;
+        strukt.serialize_field("service_file", &self.0.service_file_store)?;
+        strukt.serialize_field("election", &self.0.election_store)?;
+        strukt.serialize_field("election_update", &self.0.update_store)?;
+        strukt.serialize_field("departure", &self.0.departure_store)?;
+        strukt.end()
     }
 }
 
