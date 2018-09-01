@@ -929,16 +929,16 @@ function _Resolve-Path($path) {
 
 function _Write-Pre-Build-File {
     New-Item "$pkg_output_path" -ItemType Directory -Force | Out-Null
-    $preBuild = "$pkg_output_path\pre_build.env"
+    $preBuild = "$pkg_output_path\pre_build.ps1"
     if (Test-Path $preBuild) { Remove-Item $preBuild -Force }
 
     @"
-pkg_origin=$pkg_origin
-pkg_name=$pkg_name
-pkg_version=$pkg_version
-pkg_release=$pkg_release
-pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
-"@ | Out-File "$pkg_output_path\pre_build.env" -Encoding ascii
+`$pkg_origin="$pkg_origin"
+`$pkg_name="$pkg_name"
+`$pkg_version="$pkg_version"
+`$pkg_release="$pkg_release"
+`$pkg_ident="$pkg_origin/$pkg_name/$pkg_version/$pkg_release"
+"@ | Out-File $preBuild -Encoding ascii
 }
 
 function _Get-SHA256Converter {
@@ -2013,7 +2013,7 @@ function _Save-Artifact {
 }
 
 # **Internal** Copy the final package artifact to the `$pkg_output_path`
-# directory as well as prepare a `last_build.env` report.
+# directory as well as prepare a `last_build.ps1` report.
 function _Copy-BuildOutputs {
     New-Item "$pkg_output_path" -ItemType Directory -Force | Out-Null
     Copy-Item "$pkg_artifact" "$pkg_output_path"
@@ -2022,20 +2022,20 @@ function _Copy-BuildOutputs {
     $_pkg_blake2bsum = $(& $HAB_BIN pkg hash "$pkg_artifact")
 
     # At this point, we know it built successfully, so delete the pre_build file
-    $preBuild = "$pkg_output_path\pre_build.env"
-    if (Test-Path $preBuild) { Remove-Item $preBuild -Force }
+    $lastBuild = "$pkg_output_path\last_build.ps1"
+    if (Test-Path $lastBuild) { Remove-Item $lastBuild -Force }
 
     @"
-pkg_origin=$pkg_origin
-pkg_name=$pkg_name
-pkg_version=$pkg_version
-pkg_release=$pkg_release
-pkg_target=$pkg_target
-pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
-pkg_artifact=$(Split-Path $pkg_artifact -Leaf)
-pkg_sha256sum=$_pkg_sha256sum
-pkg_blake2bsum=$_pkg_blake2bsum
-"@ | Out-File "$pkg_output_path\last_build.env" -Encoding ascii
+`$pkg_origin="$pkg_origin"
+`$pkg_name="$pkg_name"
+`$pkg_version="$pkg_version"
+`$pkg_release="$pkg_release"
+`$pkg_target="$pkg_target"
+`$pkg_ident="$pkg_origin/$pkg_name/$pkg_version/$pkg_release"
+`$pkg_artifact="$(Split-Path $pkg_artifact -Leaf)"
+`$pkg_sha256sum="$_pkg_sha256sum"
+`$pkg_blake2bsum="$_pkg_blake2bsum"
+"@ | Out-File $lastBuild -Encoding ascii
 }
 
 # A function for cleaning up after yourself. Delegates most of the
@@ -2334,7 +2334,7 @@ Write-BuildLine
 Write-BuildLine "Source Cache: $HAB_CACHE_SRC_PATH\$pkg_dirname"
 Write-BuildLine "Installed Path: $pkg_prefix"
 Write-BuildLine "Artifact: $pkg_output_path\$(Split-Path $pkg_artifact -Leaf)"
-Write-BuildLine "Build Report: $pkg_output_path\last_build.env"
+Write-BuildLine "Build Report: $pkg_output_path\last_build.ps1"
 Write-BuildLine "SHA256 Checksum: $_pkg_sha256sum"
 Write-BuildLine "Blake2b Checksum: $_pkg_blake2bsum"
 
