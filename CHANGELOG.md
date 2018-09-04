@@ -51,6 +51,7 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add 0.62.0 Release Notes Blog Post [#5521](https://github.com/habitat-sh/habitat/pull/5521) ([cnunciato](https://github.com/cnunciato))
 - do not root linux symlink target in fs_root to please chroot [#5533](https://github.com/habitat-sh/habitat/pull/5533) ([mwrock](https://github.com/mwrock))
 - fix linux resolution of FS_ROOT_ENVVAR in hab commands and the splitting and joining of PATH dirs in setup [#5531](https://github.com/habitat-sh/habitat/pull/5531) ([mwrock](https://github.com/mwrock))
 - A few clarifications [#5512](https://github.com/habitat-sh/habitat/pull/5512) ([raskchanky](https://github.com/raskchanky))
