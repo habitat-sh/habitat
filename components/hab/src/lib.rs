@@ -82,6 +82,6 @@ features! {
     pub mod feat {
         const List = 0b00000001,
         const OfflineInstall = 0b00000010,
-        const IgnoreLocal = 0b00001000
+        const IgnoreLocal = 0b00000100
     }
 }

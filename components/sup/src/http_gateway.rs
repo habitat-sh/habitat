@@ -37,6 +37,8 @@ use manager;
 use manager::service::hooks::{self, HealthCheckHook};
 use manager::service::HealthCheck;
 
+use feat;
+
 static LOGKEY: &'static str = "HG";
 const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
 
@@ -114,19 +116,42 @@ pub struct Server(Iron<Chain>, ListenAddr);
 
 impl Server {
     pub fn new(manager_state: Arc<manager::FsCfg>, listen_addr: ListenAddr) -> Self {
-        let router = router!(
-            doc: get "/" => doc,
-            butterfly: get "/butterfly" => butterfly,
-            census: get "/census" => census,
-            services: get "/services" => services,
-            service: get "/services/:svc/:group" => service,
-            service_org: get "/services/:svc/:group/:org" => service,
-            service_config: get "/services/:svc/:group/config" => config,
-            service_health: get "/services/:svc/:group/health" => health,
-            service_config_org: get "/services/:svc/:group/:org/config" => config,
-            service_health_org: get "/services/:svc/:group/:org/health" => health,
+        let mut r = Router::new();
+        if !feat::is_enabled(feat::RedactHTTP) {
+            r.get("/butterfly", butterfly, "butterfly");
+            r.get("/census", census, "census");
+        }
+
+        r.get("/", doc, "doc");
+        r.get("/services", services, "services");
+        r.get("/services/:svc/:group", service, "services_svc_group");
+        r.get(
+            "/services/:svc/:group/:org",
+            service,
+            "services_svc_group_org",
         );
-        let mut chain = Chain::new(router);
+        r.get(
+            "/services/:svc/:group/config",
+            config,
+            "services_svc_group_config",
+        );
+        r.get(
+            "/services/:svc/:group/health",
+            health,
+            "services_svc_group_health",
+        );
+        r.get(
+            "/services/:svc/:group/:org/config",
+            config,
+            "services_svc_group_org_config",
+        );
+        r.get(
+            "/services/:svc/:group/:org/health",
+            health,
+            "services_svc_group_org_health",
+        );
+
+        let mut chain = Chain::new(r);
         chain.link(persistent::Read::<ManagerFs>::both(manager_state));
         Server(Iron::new(chain), listen_addr)
     }

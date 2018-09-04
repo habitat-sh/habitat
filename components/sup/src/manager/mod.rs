@@ -1549,7 +1549,20 @@ impl Manager {
         if !is_first {
             writer.write(",".as_bytes())?;
         }
-        serde_json::to_writer(writer, service)
+
+        // TED: This is necessary to prevent us from potentially serializing
+        // secrets from the config to disk. This is sort of a hammer approach
+        // by nuking the cfg entry we ensure we don't leak any secrets that
+        // are present in bind data.
+        // TODO JB - touch this up with the serialization work
+        let mut value = serde_json::to_value(service).unwrap();
+        {
+            let service_value = value.as_object_mut().unwrap();
+            if feat::is_enabled(feat::RedactHTTP) {
+                service_value.remove("cfg");
+            }
+        }
+        serde_json::to_writer(writer, &value)
             .map_err(|e| sup_error!(Error::ServiceSerializationError(e)))
     }
 
