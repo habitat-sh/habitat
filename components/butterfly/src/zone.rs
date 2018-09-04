@@ -22,6 +22,7 @@ use cast;
 
 use error::{Error, Result};
 use message::BfUuid;
+use network::{Address, AddressAndPort, Network};
 use protocol::{newscast, swim as proto, FromProto};
 use rumor::{RumorKey, RumorPayload, RumorType};
 
@@ -682,3 +683,24 @@ impl ZoneList {
         }
     }
 }
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct AdditionalAddress<A: Address> {
+    pub address: Option<A>,
+    pub swim_port: u16,
+    pub gossip_port: u16,
+}
+
+impl<A: Address> AdditionalAddress<A> {
+    pub fn new(address: Option<A>, swim_port: u16, gossip_port: u16) -> Self {
+        Self {
+            address,
+            swim_port,
+            gossip_port,
+        }
+    }
+}
+
+pub type TaggedAddressesFromAddress<A> = HashMap<String, AdditionalAddress<A>>;
+pub type TaggedAddressesFromNetwork<N> =
+    TaggedAddressesFromAddress<<<N as Network>::AddressAndPort as AddressAndPort>::Address>;

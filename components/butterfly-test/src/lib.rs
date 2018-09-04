@@ -21,6 +21,7 @@ extern crate habitat_core;
 extern crate libc;
 extern crate time;
 
+use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::ops::{Deref, DerefMut, Range};
 use std::path::PathBuf;
@@ -628,6 +629,7 @@ impl SwimNet {
             sg,
             SysInfo::default(),
             None,
+            HashMap::new(),
         );
         self[member].insert_service(s);
     }

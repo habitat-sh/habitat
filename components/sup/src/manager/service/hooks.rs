@@ -1009,6 +1009,7 @@ impl<'a> HookOutput<'a> {
 #[cfg(test)]
 #[cfg(not(windows))]
 mod tests {
+    use std::collections::HashMap;
     use std::fs::{self, DirBuilder};
     use std::iter;
     use std::process::{Command, Stdio};
@@ -1307,10 +1308,15 @@ echo "The message is Hola Mundo"
         sys_info.http_gateway_port = 9631;
 
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
-
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one =
-            ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info.clone(), None);
+        let service_one = ServiceRumor::new(
+            "member-a",
+            &pg_id,
+            sg_one.clone(),
+            sys_info.clone(),
+            None,
+            HashMap::new(),
+        );
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
@@ -1415,9 +1421,15 @@ echo "The message is Hello"
         sys_info.http_gateway_port = 9631;
 
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
-
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one = ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info, None);
+        let service_one = ServiceRumor::new(
+            "member-a",
+            &pg_id,
+            sg_one.clone(),
+            sys_info,
+            None,
+            HashMap::new(),
+        );
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();

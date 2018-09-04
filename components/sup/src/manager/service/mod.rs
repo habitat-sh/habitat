@@ -22,7 +22,7 @@ pub mod spec;
 mod supervisor;
 
 use std;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
@@ -650,6 +650,7 @@ impl Service {
             self.service_group.clone(),
             self.sys.as_sys_info().clone(),
             exported.as_ref(),
+            HashMap::new(),
         );
         rumor.incarnation = incarnation;
         rumor

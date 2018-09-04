@@ -25,6 +25,22 @@ pub mod election {
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
+pub struct NamedPort {
+    #[prost(string, optional, tag="1")]
+    pub name: ::std::option::Option<String>,
+    #[prost(int32, optional, tag="2")]
+    pub port: ::std::option::Option<i32>,
+}
+#[derive(Clone, PartialEq, Message)]
+#[derive(Serialize, Deserialize)]
+pub struct Ports {
+    #[prost(string, optional, tag="1")]
+    pub tag: ::std::option::Option<String>,
+    #[prost(message, repeated, tag="2")]
+    pub named_ports: ::std::vec::Vec<NamedPort>,
+}
+#[derive(Clone, PartialEq, Message)]
+#[derive(Serialize, Deserialize)]
 pub struct Service {
     #[prost(string, optional, tag="1")]
     pub member_id: ::std::option::Option<String>,
@@ -40,6 +56,8 @@ pub struct Service {
     pub cfg: ::std::option::Option<Vec<u8>>,
     #[prost(message, optional, tag="12")]
     pub sys: ::std::option::Option<SysInfo>,
+    #[prost(message, repeated, tag="13")]
+    pub ports: ::std::vec::Vec<Ports>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]

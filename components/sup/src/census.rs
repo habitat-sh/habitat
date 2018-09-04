@@ -643,6 +643,8 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::*;
     use butterfly::member::{Health, MemberList};
     use butterfly::rumor::election::Election as ElectionRumor;
@@ -679,6 +681,7 @@ mod tests {
             sg_one.clone(),
             sys_info.clone(),
             None,
+            HashMap::new(),
         );
         let sg_two = ServiceGroup::new(None, "shield", "two", None).unwrap();
         let service_two = ServiceRumor::new(
@@ -687,6 +690,7 @@ mod tests {
             sg_two.clone(),
             sys_info.clone(),
             None,
+            HashMap::new(),
         );
         let service_three = ServiceRumor::new(
             "member-a".to_string(),
@@ -694,6 +698,7 @@ mod tests {
             sg_two.clone(),
             sys_info.clone(),
             None,
+            HashMap::new(),
         );
 
         service_store.insert(service_one);

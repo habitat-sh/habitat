@@ -17,10 +17,12 @@
 //! Service rumors declare that a given `Server` is running this Service.
 
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::mem;
 use std::result;
 use std::str::FromStr;
 
+use cast;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use toml;
@@ -32,6 +34,10 @@ use error::{Error, Result};
 use protocol::{self, newscast, FromProto};
 use rumor::{Rumor, RumorPayload, RumorType};
 
+pub type Tag = String;
+pub type PortName = String;
+pub type TaggedPorts = HashMap<Tag, HashMap<PortName, u16>>;
+
 #[derive(Debug, Clone)]
 pub struct Service {
     pub member_id: String,
@@ -41,6 +47,7 @@ pub struct Service {
     pub pkg: String,
     pub cfg: Vec<u8>,
     pub sys: SysInfo,
+    pub tagged_ports: TaggedPorts,
 }
 
 // Ensures that `cfg` is rendered as a map, and not an array of bytes
@@ -49,7 +56,7 @@ impl Serialize for Service {
     where
         S: Serializer,
     {
-        let mut strukt = serializer.serialize_struct("service", 7)?;
+        let mut strukt = serializer.serialize_struct("service", 8)?;
         let cfg = toml::from_slice(&self.cfg).unwrap_or(toml::value::Table::default());
         strukt.serialize_field("member_id", &self.member_id)?;
         strukt.serialize_field("service_group", &self.service_group)?;
@@ -58,6 +65,7 @@ impl Serialize for Service {
         strukt.serialize_field("cfg", &cfg)?;
         strukt.serialize_field("sys", &self.sys)?;
         strukt.serialize_field("initialized", &self.initialized)?;
+        strukt.serialize_field("tagged_ports", &self.tagged_ports)?;
         strukt.end()
     }
 }
@@ -88,6 +96,7 @@ impl Service {
         service_group: ServiceGroup,
         sys: SysInfo,
         cfg: Option<&toml::value::Table>,
+        tagged_ports: TaggedPorts,
     ) -> Self
     where
         T: Identifiable,
@@ -115,6 +124,7 @@ impl Service {
             cfg: cfg
                 .map(|v| toml::ser::to_vec(v).expect("Struct should serialize to bytes"))
                 .unwrap_or_default(),
+            tagged_ports: tagged_ports,
         }
     }
 }
@@ -123,10 +133,33 @@ impl protocol::Message<newscast::Rumor> for Service {}
 
 impl FromProto<newscast::Rumor> for Service {
     fn from_proto(rumor: newscast::Rumor) -> Result<Self> {
-        let payload = match rumor.payload.ok_or(Error::ProtocolMismatch("payload"))? {
+        let mut payload = match rumor.payload.ok_or(Error::ProtocolMismatch("payload"))? {
             RumorPayload::Service(payload) => payload,
             _ => panic!("from-bytes service"),
         };
+        let mut tagged_ports = HashMap::with_capacity(payload.ports.len());
+        for mut ports in payload.ports.drain(..) {
+            let mut named_ports: HashMap<String, u16> =
+                HashMap::with_capacity(ports.named_ports.len());
+
+            for named_port in ports.named_ports.drain(..) {
+                named_ports.insert(
+                    named_port
+                        .name
+                        .ok_or(Error::ProtocolMismatch("named-port.name"))?,
+                    cast::u16(
+                        named_port
+                            .port
+                            .ok_or(Error::ProtocolMismatch("named-port.port"))?,
+                    ).map_err(|e| Error::InvalidField("named-port.port", e.to_string()))?,
+                );
+            }
+
+            tagged_ports.insert(
+                ports.tag.ok_or(Error::ProtocolMismatch("ports.tag"))?,
+                named_ports,
+            );
+        }
         Ok(Service {
             member_id: payload
                 .member_id
@@ -143,12 +176,13 @@ impl FromProto<newscast::Rumor> for Service {
                 .sys
                 .ok_or(Error::ProtocolMismatch("sys"))
                 .and_then(SysInfo::from_proto)?,
+            tagged_ports: tagged_ports,
         })
     }
 }
 
 impl From<Service> for newscast::Service {
-    fn from(value: Service) -> Self {
+    fn from(mut value: Service) -> Self {
         newscast::Service {
             member_id: Some(value.member_id),
             service_group: Some(value.service_group.to_string()),
@@ -157,6 +191,20 @@ impl From<Service> for newscast::Service {
             pkg: Some(value.pkg),
             cfg: Some(value.cfg),
             sys: Some(value.sys.into()),
+            ports: value
+                .tagged_ports
+                .drain()
+                .map(|(tag, mut ports)| newscast::Ports {
+                    tag: Some(tag),
+                    named_ports: ports
+                        .drain()
+                        .map(|(name, port)| newscast::NamedPort {
+                            name: Some(name),
+                            port: Some(cast::i32(port)),
+                        })
+                        .collect(),
+                })
+                .collect(),
         }
     }
 }
@@ -246,6 +294,7 @@ impl From<SysInfo> for newscast::SysInfo {
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
+    use std::collections::HashMap;
     use std::str::FromStr;
 
     use habitat_core::package::{Identifiable, PackageIdent};
@@ -258,7 +307,14 @@ mod tests {
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new(None, pkg.name(), "production", None).unwrap();
-        Service::new(member_id.to_string(), &pkg, sg, SysInfo::default(), None)
+        Service::new(
+            member_id.to_string(),
+            &pkg,
+            sg,
+            SysInfo::default(),
+            None,
+            HashMap::new(),
+        )
     }
 
     #[test]
@@ -350,6 +406,7 @@ mod tests {
             sg,
             SysInfo::default(),
             None,
+            HashMap::new(),
         );
     }
 }

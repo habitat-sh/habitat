@@ -14,6 +14,16 @@ message Election {
   repeated string votes = 6;
 }
 
+message NamedPort {
+  optional string name = 1;
+  optional int32 port = 2;
+}
+
+message Ports {
+  optional string tag = 1;
+  repeated NamedPort named_ports = 2;
+}
+
 message Service {
   optional string member_id = 1;
   optional string service_group = 2;
@@ -22,6 +32,7 @@ message Service {
   optional string pkg = 9;
   optional bytes cfg = 10;
   optional SysInfo sys = 12;
+  repeated Ports ports = 13;
 }
 
 message ServiceConfig {
