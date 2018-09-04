@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.61.0/20180815171844 (linux) | 15 Aug 2018 |
+| hab 0.62.0/20180831210457 (linux) | 4 Sep 2018 |
 
 ## hab
 
@@ -74,7 +74,8 @@ hab bldr [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -442,7 +443,8 @@ hab cli [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -520,7 +522,8 @@ hab config [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -561,7 +564,7 @@ hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [FILE]
 **ARGS**
 
 ```
-<SERVICE_GROUP>     Target service group (ex: redis.default)
+<SERVICE_GROUP>     Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)
 <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
 <FILE>              Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)
 ```
@@ -616,7 +619,8 @@ hab file [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -656,7 +660,7 @@ hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE>
 **ARGS**
 
 ```
-<SERVICE_GROUP>     Target service group (ex: redis.default)
+<SERVICE_GROUP>     Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)
 <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
 <FILE>              Path to local file on disk
 ```
@@ -678,7 +682,8 @@ hab origin [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -1024,7 +1029,8 @@ hab pkg [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -1593,7 +1599,7 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 
 ```
 <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-<DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201 x86_64-linux.hart)
+<DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201- x86_64-linux.hart)
 ```
 
 
@@ -1629,7 +1635,7 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
 **ARGS**
 
 ```
-<HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64 linux.hart)
+<HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64- linux.hart)
 ```
 
 
@@ -1677,7 +1683,8 @@ hab plan [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -1741,7 +1748,8 @@ hab ring [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -2275,7 +2283,8 @@ hab supportbundle
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -2297,7 +2306,8 @@ hab svc [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
@@ -2363,7 +2373,7 @@ hab svc key generate <SERVICE_GROUP> [ORG]
 **ARGS**
 
 ```
-<SERVICE_GROUP>    Target service group (ex: redis.default)
+<SERVICE_GROUP>    Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)
 <ORG>              The service organization
 ```
 
@@ -2559,7 +2569,8 @@ hab user [SUBCOMMAND]
 **FLAGS**
 
 ```
--h, --help    Prints help information
+-h, --help       Prints help information
+-V, --version    Prints version information
 ```
 
 
