@@ -420,6 +420,7 @@ fn enable_features_from_env() {
         (feat::List, "LIST"),
         (feat::TestExit, "TEST_EXIT"),
         (feat::TestBootFail, "BOOT_FAIL"),
+        (feat::RedactHTTP, "REDACT_HTTP"),
     ];
 
     // If the environment variable for a flag is set to _anything_ but

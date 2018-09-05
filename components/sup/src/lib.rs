@@ -140,7 +140,8 @@ features! {
     pub mod feat {
         const List         = 0b00000001,
         const TestExit     = 0b00000010,
-        const TestBootFail = 0b00000100
+        const TestBootFail = 0b00000100,
+        const RedactHTTP   = 0b00001000
     }
 }
 

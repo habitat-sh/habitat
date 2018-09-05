@@ -18,7 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
-use hcore::{crypto::keys::PairType, service::ServiceGroup};
+use hcore::{crypto::keys::PairType, env, service::ServiceGroup};
 use protocol;
 use url::Url;
 
