@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Make logging looks same [#5532](https://github.com/habitat-sh/habitat/pull/5532) ([jsirex](https://github.com/jsirex))
 - Handle post-0.62.1 Release Tasks [#5555](https://github.com/habitat-sh/habitat/pull/5555) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 ## [0.62.1](https://github.com/habitat-sh/habitat/tree/0.62.1) (09-04-2018)
