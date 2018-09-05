@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Replace deprecated usage of rand crate with mktemp [#5562](https://github.com/habitat-sh/habitat/pull/5562) ([baumanj](https://github.com/baumanj))
 - Fix some rustc warnings due to platform-specific code [#5524](https://github.com/habitat-sh/habitat/pull/5524) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
