@@ -7,6 +7,7 @@
 - Fix some rustc warnings due to platform-specific code [#5524](https://github.com/habitat-sh/habitat/pull/5524) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Update common error with more details [#5525](https://github.com/habitat-sh/habitat/pull/5525) ([chefsalim](https://github.com/chefsalim))
 - Reuse build studio on Windows [#5539](https://github.com/habitat-sh/habitat/pull/5539) ([mwrock](https://github.com/mwrock))
 - Update Cargo Depencencies [#5561](https://github.com/habitat-sh/habitat/pull/5561) ([christophermaier](https://github.com/christophermaier))
 - submit blog entry describing `bixu/cacher` package [#5523](https://github.com/habitat-sh/habitat/pull/5523) ([bixu](https://github.com/bixu))
