@@ -133,6 +133,12 @@ impl From<hyper::error::Error> for Error {
     }
 }
 
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::IO(err)
+    }
+}
+
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Error {
         Error::Json(err)
