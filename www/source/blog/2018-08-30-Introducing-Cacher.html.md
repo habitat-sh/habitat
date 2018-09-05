@@ -75,6 +75,6 @@ With cacher, second run:
 With cacher, third run:
   api: Build time: 6m4s
 ```
-**Build performance improves in this case by ~25%. ❤**
+**Build performance improves in this case by ~25%.**
 
-Right now, `cacher` only the depdency managers discussed here, but any dependency manager who's behavior can be configured using environment variables could be  supported in future. Pull requests are most welcome!
+Right now, `cacher` supports only the dependency managers discussed above, but any dependency manager whose behavior can be configured using environment variables could be supported in future. Pull requests are most welcome!
