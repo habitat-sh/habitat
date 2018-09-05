@@ -3,28 +3,33 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+## [0.62.1](https://github.com/habitat-sh/habitat/tree/0.62.1) (09-04-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.0...0.62.1)
+
+#### New Features & Enhancements
+- Introduce alpha feature to hide cfg values in http gateway and dat files on disk [#5550](https://github.com/habitat-sh/habitat/pull/5550) ([elliott-davis](https://github.com/elliott-davis))
+
+#### Merged Pull Requests
+- Add 0.62.0 Release Notes Blog Post [#5521](https://github.com/habitat-sh/habitat/pull/5521) ([cnunciato](https://github.com/cnunciato))
+
+## [0.62.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (09-04-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.61.0...0.62.0)
+
 #### New Features & Enhancements
 - [api-client] Always set package target when making package API calls. [#5518](https://github.com/habitat-sh/habitat/pull/5518) ([fnichol](https://github.com/fnichol))
+- implement binlink for windows [#5513](https://github.com/habitat-sh/habitat/pull/5513) ([mwrock](https://github.com/mwrock))
 - Shut down the supervisor (but not services) when SIGHUP is received [#5445](https://github.com/habitat-sh/habitat/pull/5445) ([baumanj](https://github.com/baumanj))
-- Launcher simplify reload logic [#5404](https://github.com/habitat-sh/habitat/pull/5404) ([baumanj](https://github.com/baumanj))
-- Allow Docker studio image name to be overridden [#5425](https://github.com/habitat-sh/habitat/pull/5425) ([christophermaier](https://github.com/christophermaier))
-- Adds force upload flag to cli [#5407](https://github.com/habitat-sh/habitat/pull/5407) ([eeyun](https://github.com/eeyun))
-- Add variants support to plan-build [#5345](https://github.com/habitat-sh/habitat/pull/5345) ([smacfarlane](https://github.com/smacfarlane))
-- Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
-- [core] Add new PackageTarget from habitat-sh/core#42. [#5355](https://github.com/habitat-sh/habitat/pull/5355) ([fnichol](https://github.com/fnichol))
-- [plan-build] Set `$pkg_target` at build time for build programs. [#5350](https://github.com/habitat-sh/habitat/pull/5350) ([fnichol](https://github.com/fnichol))
 
 #### Behavioral Changes
 - Add a supervisor version requirement checked by the launcher [#5484](https://github.com/habitat-sh/habitat/pull/5484) ([baumanj](https://github.com/baumanj))
-- Make docker studio behave like chroot studio [#5430](https://github.com/habitat-sh/habitat/pull/5430) ([elliott-davis](https://github.com/elliott-davis))
-- Make the rootless studio the default container studio [#5426](https://github.com/habitat-sh/habitat/pull/5426) ([elliott-davis](https://github.com/elliott-davis))
-- Merge builder-depot-client and builder-api-client crates into single crate [#5431](https://github.com/habitat-sh/habitat/pull/5431) ([eeyun](https://github.com/eeyun))
-- Add timeout for launcher waiting for IPC connection to supervisor [#5393](https://github.com/habitat-sh/habitat/pull/5393) ([baumanj](https://github.com/baumanj))
-- Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- do not root linux symlink target in fs_root to please chroot [#5533](https://github.com/habitat-sh/habitat/pull/5533) ([mwrock](https://github.com/mwrock))
+- fix linux resolution of FS_ROOT_ENVVAR in hab commands and the splitting and joining of PATH dirs in setup [#5531](https://github.com/habitat-sh/habitat/pull/5531) ([mwrock](https://github.com/mwrock))
 - Fix attach not working in docker studio [#5491](https://github.com/habitat-sh/habitat/pull/5491) ([elliott-davis](https://github.com/elliott-davis))
 - Miscellaneous Butterfly refactors [#5503](https://github.com/habitat-sh/habitat/pull/5503) ([christophermaier](https://github.com/christophermaier))
+- fix windows studiobinlink regression [#5520](https://github.com/habitat-sh/habitat/pull/5520) ([mwrock](https://github.com/mwrock))
 - Fix composite bindings [#5517](https://github.com/habitat-sh/habitat/pull/5517) ([christophermaier](https://github.com/christophermaier))
 - Fix invalid desired state when using new hab with &lt; 0.61 sup [#5519](https://github.com/habitat-sh/habitat/pull/5519) ([jeremymv2](https://github.com/jeremymv2))
 - Don&#39;t require `protoc` in package builds [#5515](https://github.com/habitat-sh/habitat/pull/5515) ([christophermaier](https://github.com/christophermaier))
@@ -32,6 +37,8 @@
 - Relax the version pins for the various `prost` crates [#5501](https://github.com/habitat-sh/habitat/pull/5501) ([baumanj](https://github.com/baumanj))
 - Service group cleanup [#5500](https://github.com/habitat-sh/habitat/pull/5500) ([baumanj](https://github.com/baumanj))
 - Relax rusoto version pins [#5493](https://github.com/habitat-sh/habitat/pull/5493) ([baumanj](https://github.com/baumanj))
+- take a write lock when persisting rumors to disk [#5495](https://github.com/habitat-sh/habitat/pull/5495) ([mwrock](https://github.com/mwrock))
+- fix rootless studio issues with reuse and key exporting [#5494](https://github.com/habitat-sh/habitat/pull/5494) ([mwrock](https://github.com/mwrock))
 - Relax the version pin for the `uuid` crate [#5492](https://github.com/habitat-sh/habitat/pull/5492) ([baumanj](https://github.com/baumanj))
 - fix powershell pkg_svc_run when run outside of a studio [#5486](https://github.com/habitat-sh/habitat/pull/5486) ([mwrock](https://github.com/mwrock))
 - Resolve FS_ROOT to well formed windows absolute path in studio [#5488](https://github.com/habitat-sh/habitat/pull/5488) ([mwrock](https://github.com/mwrock))
@@ -39,11 +46,54 @@
 - Relax the version pin for the `rand` crate [#5487](https://github.com/habitat-sh/habitat/pull/5487) ([baumanj](https://github.com/baumanj))
 - Update Cargo.lock to latest, locking versions of dependencies that break [#5468](https://github.com/habitat-sh/habitat/pull/5468) ([baumanj](https://github.com/baumanj))
 - Revert &quot;Make docker studio behave like chroot studio&quot; [#5474](https://github.com/habitat-sh/habitat/pull/5474) ([elliott-davis](https://github.com/elliott-davis))
+- studio run should not be interactive [#5469](https://github.com/habitat-sh/habitat/pull/5469) ([mwrock](https://github.com/mwrock))
+- Bring back column-aligned svc status [#5471](https://github.com/habitat-sh/habitat/pull/5471) ([stevendanna](https://github.com/stevendanna))
+- [butterfly] Make DatFile write more durable [#5461](https://github.com/habitat-sh/habitat/pull/5461) ([stevendanna](https://github.com/stevendanna))
+
+#### Merged Pull Requests
+- A few clarifications [#5512](https://github.com/habitat-sh/habitat/pull/5512) ([raskchanky](https://github.com/raskchanky))
+- update habitat core to latest master [#5522](https://github.com/habitat-sh/habitat/pull/5522) ([mwrock](https://github.com/mwrock))
+- add Liz as codeowner of CLI UX related files [#5504](https://github.com/habitat-sh/habitat/pull/5504) ([apriofrost](https://github.com/apriofrost))
+- Blog fix, adding newlines to render bulleted lists correctly. [#5499](https://github.com/habitat-sh/habitat/pull/5499) ([skpaterson](https://github.com/skpaterson))
+- Adding Habitat lift and Shift blog post. [#5473](https://github.com/habitat-sh/habitat/pull/5473) ([skpaterson](https://github.com/skpaterson))
+- Use common configuration values in release pipeline [#5477](https://github.com/habitat-sh/habitat/pull/5477) ([christophermaier](https://github.com/christophermaier))
+- Add debug tips for Window users [#5450](https://github.com/habitat-sh/habitat/pull/5450) ([bdangit](https://github.com/bdangit))
+- explicitly error when attempting to remove a docker studio [#5485](https://github.com/habitat-sh/habitat/pull/5485) ([mwrock](https://github.com/mwrock))
+- Add myself to supervisor related things [#5480](https://github.com/habitat-sh/habitat/pull/5480) ([raskchanky](https://github.com/raskchanky))
+- Add updating Cargo.lock to release procedure documentation [#5475](https://github.com/habitat-sh/habitat/pull/5475) ([baumanj](https://github.com/baumanj))
+- Don&#39;t segfault `plan init` on io::Error [#5463](https://github.com/habitat-sh/habitat/pull/5463) ([adamhjk](https://github.com/adamhjk))
+- [common] Remove a now unused dependency in `habitat-sh/builder`. [#5455](https://github.com/habitat-sh/habitat/pull/5455) ([fnichol](https://github.com/fnichol))
+- move launcher plans out of habitat dir to match other components [#5443](https://github.com/habitat-sh/habitat/pull/5443) ([mwrock](https://github.com/mwrock))
+- Bump to 0.62.0-dev [#5458](https://github.com/habitat-sh/habitat/pull/5458) ([raskchanky](https://github.com/raskchanky))
+- Add 0.61.0 blog post [#5456](https://github.com/habitat-sh/habitat/pull/5456) ([raskchanky](https://github.com/raskchanky))
+
+## [0.61.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (08-15-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.59.0...0.61.0)
+
+#### New Features & Enhancements
+- Launcher simplify reload logic [#5404](https://github.com/habitat-sh/habitat/pull/5404) ([baumanj](https://github.com/baumanj))
+- Allow Docker studio image name to be overridden [#5425](https://github.com/habitat-sh/habitat/pull/5425) ([christophermaier](https://github.com/christophermaier))
+- Adds force upload flag to cli [#5407](https://github.com/habitat-sh/habitat/pull/5407) ([eeyun](https://github.com/eeyun))
+- Avoid incomplete package installs [#5369](https://github.com/habitat-sh/habitat/pull/5369) ([stevendanna](https://github.com/stevendanna))
+- Add variants support to plan-build [#5345](https://github.com/habitat-sh/habitat/pull/5345) ([smacfarlane](https://github.com/smacfarlane))
+- Expose pkg_target in post-build environment files [#5373](https://github.com/habitat-sh/habitat/pull/5373) ([christophermaier](https://github.com/christophermaier))
+- [plan-build] Set `$pkg_target` at build time for build programs. [#5350](https://github.com/habitat-sh/habitat/pull/5350) ([fnichol](https://github.com/fnichol))
+- [core] Add new PackageTarget from habitat-sh/core#42. [#5355](https://github.com/habitat-sh/habitat/pull/5355) ([fnichol](https://github.com/fnichol))
+
+#### Behavioral Changes
+- Make docker studio behave like chroot studio [#5430](https://github.com/habitat-sh/habitat/pull/5430) ([elliott-davis](https://github.com/elliott-davis))
+- Make the rootless studio the default container studio [#5426](https://github.com/habitat-sh/habitat/pull/5426) ([elliott-davis](https://github.com/elliott-davis))
+- Add timeout for launcher waiting for IPC connection to supervisor [#5393](https://github.com/habitat-sh/habitat/pull/5393) ([baumanj](https://github.com/baumanj))
+- Make butterfly output tunable with env_logger [#5371](https://github.com/habitat-sh/habitat/pull/5371) ([baumanj](https://github.com/baumanj))
+
+#### Bug Fixes
+- Update permissions in docker studio to 1777 [#5454](https://github.com/habitat-sh/habitat/pull/5454) ([elliott-davis](https://github.com/elliott-davis))
 - Don&#39;t quote HAB_STUDIO_SUP [#5451](https://github.com/habitat-sh/habitat/pull/5451) ([christophermaier](https://github.com/christophermaier))
 - [studio] Fast-fail when unmounting on Studio cleanup. [#5434](https://github.com/habitat-sh/habitat/pull/5434) ([fnichol](https://github.com/fnichol))
 - Provide consistency in supervisor clap cmds, correcting help menu problems [#5379](https://github.com/habitat-sh/habitat/pull/5379) ([jeremymv2](https://github.com/jeremymv2))
 - Allow Supervisor to receive messages from &lt;= 0.59.0 Supervisors [#5419](https://github.com/habitat-sh/habitat/pull/5419) ([christophermaier](https://github.com/christophermaier))
 - Provide a way to communicate with one&#39;s own Butterfly server [#5423](https://github.com/habitat-sh/habitat/pull/5423) ([christophermaier](https://github.com/christophermaier))
+- ensure RUNTIME_ENVIRONMENT does not include studio prefix [#5421](https://github.com/habitat-sh/habitat/pull/5421) ([mwrock](https://github.com/mwrock))
 - If the supervisor terminates with an error result, don&#39;t restart it [#5387](https://github.com/habitat-sh/habitat/pull/5387) ([baumanj](https://github.com/baumanj))
 - Allow a crashed supervisor to be restarted by the launcher [#5384](https://github.com/habitat-sh/habitat/pull/5384) ([baumanj](https://github.com/baumanj))
 - Enable feature flags with any value except the empty string [#5375](https://github.com/habitat-sh/habitat/pull/5375) ([christophermaier](https://github.com/christophermaier))
@@ -51,48 +101,20 @@
 - Make sup-run launch the supervisor in its own session, detached from the TTY [#5348](https://github.com/habitat-sh/habitat/pull/5348) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
-- Introduce alpha feature to hide cfg values in http gateway and dat files on disk [#5550](https://github.com/habitat-sh/habitat/pull/5550) ([elliott-davis](https://github.com/elliott-davis))
-- Add 0.62.0 Release Notes Blog Post [#5521](https://github.com/habitat-sh/habitat/pull/5521) ([cnunciato](https://github.com/cnunciato))
-- do not root linux symlink target in fs_root to please chroot [#5533](https://github.com/habitat-sh/habitat/pull/5533) ([mwrock](https://github.com/mwrock))
-- fix linux resolution of FS_ROOT_ENVVAR in hab commands and the splitting and joining of PATH dirs in setup [#5531](https://github.com/habitat-sh/habitat/pull/5531) ([mwrock](https://github.com/mwrock))
-- A few clarifications [#5512](https://github.com/habitat-sh/habitat/pull/5512) ([raskchanky](https://github.com/raskchanky))
-- update habitat core to latest master [#5522](https://github.com/habitat-sh/habitat/pull/5522) ([mwrock](https://github.com/mwrock))
-- fix windows studiobinlink regression [#5520](https://github.com/habitat-sh/habitat/pull/5520) ([mwrock](https://github.com/mwrock))
-- implement binlink for windows [#5513](https://github.com/habitat-sh/habitat/pull/5513) ([mwrock](https://github.com/mwrock))
-- add Liz as codeowner of CLI UX related files [#5504](https://github.com/habitat-sh/habitat/pull/5504) ([apriofrost](https://github.com/apriofrost))
-- Blog fix, adding newlines to render bulleted lists correctly. [#5499](https://github.com/habitat-sh/habitat/pull/5499) ([skpaterson](https://github.com/skpaterson))
-- Adding Habitat lift and Shift blog post. [#5473](https://github.com/habitat-sh/habitat/pull/5473) ([skpaterson](https://github.com/skpaterson))
-- take a write lock when persisting rumors to disk [#5495](https://github.com/habitat-sh/habitat/pull/5495) ([mwrock](https://github.com/mwrock))
-- fix rootless studio issues with reuse and key exporting [#5494](https://github.com/habitat-sh/habitat/pull/5494) ([mwrock](https://github.com/mwrock))
-- Use common configuration values in release pipeline [#5477](https://github.com/habitat-sh/habitat/pull/5477) ([christophermaier](https://github.com/christophermaier))
-- Add debug tips for Window users [#5450](https://github.com/habitat-sh/habitat/pull/5450) ([bdangit](https://github.com/bdangit))
-- explicitly error when attempting to remove a docker studio [#5485](https://github.com/habitat-sh/habitat/pull/5485) ([mwrock](https://github.com/mwrock))
-- Add myself to supervisor related things [#5480](https://github.com/habitat-sh/habitat/pull/5480) ([raskchanky](https://github.com/raskchanky))
-- Add updating Cargo.lock to release procedure documentation [#5475](https://github.com/habitat-sh/habitat/pull/5475) ([baumanj](https://github.com/baumanj))
--  studio run should not be interactive [#5469](https://github.com/habitat-sh/habitat/pull/5469) ([mwrock](https://github.com/mwrock))
-- Bring back column-aligned svc status [#5471](https://github.com/habitat-sh/habitat/pull/5471) ([stevendanna](https://github.com/stevendanna))
-- Don&#39;t segfault `plan init` on io::Error [#5463](https://github.com/habitat-sh/habitat/pull/5463) ([adamhjk](https://github.com/adamhjk))
-- [butterfly] Make DatFile write more durable [#5461](https://github.com/habitat-sh/habitat/pull/5461) ([stevendanna](https://github.com/stevendanna))
-- [common] Remove a now unused dependency in `habitat-sh/builder`. [#5455](https://github.com/habitat-sh/habitat/pull/5455) ([fnichol](https://github.com/fnichol))
-- move launcher plans out of habitat dir to match other components [#5443](https://github.com/habitat-sh/habitat/pull/5443) ([mwrock](https://github.com/mwrock))
-- Bump to 0.62.0-dev [#5458](https://github.com/habitat-sh/habitat/pull/5458) ([raskchanky](https://github.com/raskchanky))
-- Add 0.61.0 blog post [#5456](https://github.com/habitat-sh/habitat/pull/5456) ([raskchanky](https://github.com/raskchanky))
-- Update permissions in docker studio to 1777 [#5454](https://github.com/habitat-sh/habitat/pull/5454) ([elliott-davis](https://github.com/elliott-davis))
 - move build logic for rootless studio into buildkite [#5452](https://github.com/habitat-sh/habitat/pull/5452) ([elliott-davis](https://github.com/elliott-davis))
 - Fix exit code for publish when pushing containers to dockerhub [#5449](https://github.com/habitat-sh/habitat/pull/5449) ([elliott-davis](https://github.com/elliott-davis))
 - Fix one more repository spelling [#5446](https://github.com/habitat-sh/habitat/pull/5446) ([raskchanky](https://github.com/raskchanky))
 - Fix some release issues [#5444](https://github.com/habitat-sh/habitat/pull/5444) ([christophermaier](https://github.com/christophermaier))
 - add launcher appveyor build and always publish to unstable [#5441](https://github.com/habitat-sh/habitat/pull/5441) ([mwrock](https://github.com/mwrock))
+- Merge builder-depot-client and builder-api-client crates into single crate [#5431](https://github.com/habitat-sh/habitat/pull/5431) ([eeyun](https://github.com/eeyun))
 - Add fnichol to CODEOWNERS for butterfly component. [#5435](https://github.com/habitat-sh/habitat/pull/5435) ([fnichol](https://github.com/fnichol))
 - Promote from the release channel for both promotions [#5428](https://github.com/habitat-sh/habitat/pull/5428) ([christophermaier](https://github.com/christophermaier))
 - Miscellaneous Buildkite Tweaks [#5420](https://github.com/habitat-sh/habitat/pull/5420) ([christophermaier](https://github.com/christophermaier))
 - Add rootless studio to release [#5401](https://github.com/habitat-sh/habitat/pull/5401) ([elliott-davis](https://github.com/elliott-davis))
 - Resurrect enough of the old macOS build to work in TravisCI [#5418](https://github.com/habitat-sh/habitat/pull/5418) ([christophermaier](https://github.com/christophermaier))
-- ensure RUNTIME_ENVIRONMENT does not include studio prefix [#5421](https://github.com/habitat-sh/habitat/pull/5421) ([mwrock](https://github.com/mwrock))
 - [ci,rustfmt] Formatting due to rustfmt 0.8.2 in Rust 1.28.0. [#5412](https://github.com/habitat-sh/habitat/pull/5412) ([fnichol](https://github.com/fnichol))
 - Add the mac-build.sh script back [#5417](https://github.com/habitat-sh/habitat/pull/5417) ([christophermaier](https://github.com/christophermaier))
 - [ci] Reimplement lint.sh program for better resilience. [#5414](https://github.com/habitat-sh/habitat/pull/5414) ([fnichol](https://github.com/fnichol))
-- Avoid incomplete package installs [#5369](https://github.com/habitat-sh/habitat/pull/5369) ([stevendanna](https://github.com/stevendanna))
 - More Codeowners Changes [#5405](https://github.com/habitat-sh/habitat/pull/5405) ([eeyun](https://github.com/eeyun))
 - add instructions for building a windows launcher [#5400](https://github.com/habitat-sh/habitat/pull/5400) ([mwrock](https://github.com/mwrock))
 - Revert some reversions [#5410](https://github.com/habitat-sh/habitat/pull/5410) ([baumanj](https://github.com/baumanj))
@@ -126,7 +148,6 @@
 - Add back unintentionally-removed $ on variable [#5337](https://github.com/habitat-sh/habitat/pull/5337) ([baumanj](https://github.com/baumanj))
 - Add 0.59.0 Release blog post [#5336](https://github.com/habitat-sh/habitat/pull/5336) ([baumanj](https://github.com/baumanj))
 - Fix doc generator, generate 0.59.0 docs [#5335](https://github.com/habitat-sh/habitat/pull/5335) ([cnunciato](https://github.com/cnunciato))
-<!-- latest_release -->
 
 ## [0.59.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (07-12-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.58.0...0.59.0)
