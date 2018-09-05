@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Handle post-0.62.1 Release Tasks [#5555](https://github.com/habitat-sh/habitat/pull/5555) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 ## [0.62.1](https://github.com/habitat-sh/habitat/tree/0.62.1) (09-04-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.0...0.62.1)
