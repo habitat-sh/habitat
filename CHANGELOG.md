@@ -7,6 +7,7 @@
 - Fix some rustc warnings due to platform-specific code [#5524](https://github.com/habitat-sh/habitat/pull/5524) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Update Cargo Depencencies [#5561](https://github.com/habitat-sh/habitat/pull/5561) ([christophermaier](https://github.com/christophermaier))
 - submit blog entry describing `bixu/cacher` package [#5523](https://github.com/habitat-sh/habitat/pull/5523) ([bixu](https://github.com/bixu))
 - Make logging looks same [#5532](https://github.com/habitat-sh/habitat/pull/5532) ([jsirex](https://github.com/jsirex))
 - Handle post-0.62.1 Release Tasks [#5555](https://github.com/habitat-sh/habitat/pull/5555) ([christophermaier](https://github.com/christophermaier))
