@@ -13,7 +13,10 @@
 // limitations under the License.
 
 use std::env;
-use std::fs::{self, File};
+use std::fs;
+#[cfg(windows)]
+use std::fs::File;
+#[cfg(windows)]
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
@@ -23,6 +26,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 
 use error::{Error, Result};
 
+#[cfg(windows)]
 const BAT_COMMENT_MARKER: &'static str = "REM";
 
 pub fn start(
