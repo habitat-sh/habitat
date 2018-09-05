@@ -50,14 +50,14 @@ build_line() {
 # ```
 warn() {
   if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
-    >&2 echo "   ${pkg_name}: WARN $1"
+    >&2 echo "   ${pkg_name}: WARN: $1"
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        >&2 echo -e "   \033[1;36m${pkg_name}: \033[1;33mWARN \033[1;37m$1\033[0m"
+        >&2 echo -e "   \033[1;36m${pkg_name}: \033[1;33mWARN: \033[1;37m$1\033[0m"
         ;;
       *)
-        >&2 echo "   ${pkg_name}: WARN $1"
+        >&2 echo "   ${pkg_name}: WARN: $1"
         ;;
     esac
   fi
@@ -75,8 +75,21 @@ warn() {
 # ```
 #
 debug() {
-  if [[ -n "$DEBUG" ]]; then
-    echo "DEBUG: $1"
+  if [[ -z "$DEBUG" ]]; then
+    return 0
+  fi
+
+  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+    echo "   ${pkg_name}: DEBUG: $1"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        echo -e "   \033[1;36m${pkg_name}: \033[0mDEBUG: $1"
+        ;;
+      *)
+        echo "   ${pkg_name}: DEBUG: $1"
+        ;;
+    esac
   fi
   return 0
 }
@@ -88,14 +101,14 @@ debug() {
 # ```
 exit_with() {
   if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
-    echo "ERROR: $1"
+    echo "   ${pkg_name}: ERROR: $1"
   else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        echo -e "\033[1;31mERROR: \033[1;37m$1\033[0m"
+        echo -e "   \033[1;36m${pkg_name}: \033[1;31mERROR: \033[1;37m$1\033[0m"
         ;;
       *)
-        echo "ERROR: $1"
+        echo "   ${pkg_name}: ERROR: $1"
         ;;
     esac
   fi
