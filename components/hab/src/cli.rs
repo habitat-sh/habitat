@@ -781,7 +781,7 @@ pub fn sub_sup_depart() -> App<'static, 'static> {
 
 pub fn sub_sup_secret() -> App<'static, 'static> {
     clap_app!(@subcommand secret =>
-        (about: "Commands relating to a Habitat Supervisor's Contorl Gateway secret")
+        (about: "Commands relating to a Habitat Supervisor's Control Gateway secret")
         (@setting ArgRequiredElseHelp)
         (@subcommand generate =>
             (about: "Generate a secret key to use as a Supervisor's Control Gateway secret")
