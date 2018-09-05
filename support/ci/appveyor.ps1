@@ -107,7 +107,11 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
             foreach ($component in ($env:hab_components -split ';')) {
                 Write-Host "Building plan for $component"
                 Write-Host ""
-                & $habExe pkg build components/$component -w
+                if($(& $habExe --version) -lt "hab 0.63") {
+                    & $habExe pkg build components/$component -w
+                } else {
+                    & $habExe pkg build components/$component -w -R
+                }
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
                 $hart = (Get-Item "$(Get-RepoRoot)\components\$component\results\*.hart")[-1]
