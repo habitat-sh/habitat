@@ -281,7 +281,9 @@ fn attempt_upload_dep(
         ui.status(
             Status::Missing,
             format!(
-                "artifact {}. It was not found in {}",
+                "artifact {}. It was not found in {}. Please make sure that all the \
+                 dependent artifacts are present in the same directory as the original \
+                 artifact that you are attemping to upload.",
                 archive_name,
                 archives_dir.display()
             ),
