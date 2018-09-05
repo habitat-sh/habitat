@@ -58,7 +58,7 @@ use std::fmt;
 use std::io::{self, Cursor};
 use std::str;
 
-use bytes::{BigEndian, Buf, BufMut, Bytes, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use futures;
 use prost::{self, Message};
 use tokio::net::TcpStream;
@@ -378,14 +378,14 @@ impl Decoder for SrvCodec {
         }
         trace!("Decoding SrvMessage\n  -> Bytes: {:?}", bytes);
         let mut buf = Cursor::new(bytes);
-        let header = SrvHeader(buf.get_u32::<BigEndian>());
+        let header = SrvHeader(buf.get_u32_be());
         trace!("  -> SrvHeader: {:?}", header);
         let mut txn: Option<SrvTxn> = None;
         if header.is_transaction() {
             if buf.remaining() < TXN_LEN {
                 return Ok(None);
             }
-            let t = SrvTxn(buf.get_u32::<BigEndian>());
+            let t = SrvTxn(buf.get_u32_be());
             trace!("  -> SrvTxn: {:?}", t);
             txn = Some(t);
         }
@@ -416,9 +416,9 @@ impl Encoder for SrvCodec {
 
     fn encode(&mut self, msg: Self::Item, buf: &mut BytesMut) -> io::Result<()> {
         buf.reserve(msg.size());
-        buf.put_u32::<BigEndian>(msg.header().0);
+        buf.put_u32_be(msg.header().0);
         if let Some(txn) = msg.transaction {
-            buf.put_u32::<BigEndian>(txn.0);
+            buf.put_u32_be(txn.0);
         }
         buf.put_slice(msg.message_id().as_bytes());
         buf.put_slice(msg.body());
