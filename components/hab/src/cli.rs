@@ -783,10 +783,10 @@ pub fn sub_sup_depart() -> App<'static, 'static> {
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
 }
-
+ 
 pub fn sub_sup_secret() -> App<'static, 'static> {
     clap_app!(@subcommand secret =>
-        (about: "Commands relating to a Habitat Supervisor's Contorl Gateway secret")
+        (about: "Commands relating to a Habitat Supervisor's Control Gateway secret")
         (@setting ArgRequiredElseHelp)
         (@subcommand generate =>
             (about: "Generate a secret key to use as a Supervisor's Control Gateway secret")
