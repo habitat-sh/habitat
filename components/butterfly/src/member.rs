@@ -22,8 +22,6 @@ use std::result;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
-use bytes::BytesMut;
-use prost::Message as ProstMessage;
 use rand::{thread_rng, Rng};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
@@ -32,8 +30,8 @@ use uuid::Uuid;
 
 use error::{Error, Result};
 pub use protocol::swim::Health;
-use protocol::{newscast, swim as proto, FromProto};
-use rumor::{RumorEnvelope, RumorKey, RumorKind, RumorPayload, RumorType};
+use protocol::{self, newscast, swim as proto, FromProto};
+use rumor::{RumorKey, RumorPayload, RumorType};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -129,22 +127,7 @@ pub struct Membership {
     pub health: Health,
 }
 
-impl Membership {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let rumor = RumorEnvelope::decode(bytes)?;
-        match rumor.kind {
-            RumorKind::Membership(payload) => Ok(payload),
-            _ => panic!("from-bytes member"),
-        }
-    }
-
-    pub fn write_to_bytes(self) -> Result<Vec<u8>> {
-        let rumor: proto::Membership = self.into();
-        let mut buf = BytesMut::with_capacity(rumor.encoded_len());
-        rumor.encode(&mut buf)?;
-        Ok(buf.to_vec())
-    }
-}
+impl protocol::Message<proto::Membership> for Membership {}
 
 impl From<Membership> for proto::Membership {
     fn from(value: Membership) -> Self {
@@ -793,6 +776,29 @@ mod tests {
             let member = Member::default();
             assert_eq!(member.id.len(), 32);
             assert_eq!(member.incarnation, 0);
+        }
+    }
+
+    mod membership {
+        use member::{Health, Member, Membership};
+        use protocol::Message;
+        #[test]
+        fn encode_decode_roundtrip() {
+            let member = Member::default();
+            let membership = Membership {
+                member: member,
+                health: Health::Suspect,
+            };
+
+            let bytes = membership
+                .clone()
+                .write_to_bytes()
+                .expect("Could not write membership to bytes!");
+            let from_bytes =
+                Membership::from_bytes(&bytes).expect("Could not decode membership from bytes!");
+
+            assert_eq!(&membership.member, &from_bytes.member);
+            assert_eq!(&membership.health, &from_bytes.health);
         }
     }
 
