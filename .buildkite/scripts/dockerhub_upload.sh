@@ -27,3 +27,10 @@ docker build -t habitat:hab-base .
 docker build --build-arg BLDR_CHANNEL="${channel}" --no-cache --tag "${image_name}:${version}" ./default
 docker push "${image_name}:${version}"
 popd >/dev/null
+
+cat << EOF | buildkite-agent annotate --style=success --context=docker-studio	
+<h3>DockerHub Studio Image (Linux)</h3>	
+<ul>	
+  <li><code>${image_name:?}:${version:?}</code></li>	
+</ul>	
+EOF

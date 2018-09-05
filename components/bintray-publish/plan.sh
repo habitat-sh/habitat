@@ -15,40 +15,22 @@ pkg_deps=(core/coreutils/8.25/20170513213226
           core/grep/2.22/20170513213444
           core/findutils/4.4.2/20170513214305
           core/gawk/4.1.3/20170513213646
-          core/hab
-          core/docker/18.03.0/20180403182455)
+          core/hab)
 pkg_bin_dirs=(bin)
-programs=(publish-hab publish-studio)
 
 do_build() {
-  cp -v "$PLAN_CONTEXT"/../studio/build-docker-image.sh \
-    "$CACHE_PATH"/build-docker-image
-
-  local run_path=""
-  for dep in "${pkg_deps[@]}"; do
-    if [[ -z $run_path ]]; then
-      run_path="$(pkg_path_for "$dep")/bin"
-    else
-      run_path="$(pkg_path_for "$dep")/bin:$run_path"
-    fi
-  done
-
-  for program in "${programs[@]}"; do
-    cp -v "$PLAN_CONTEXT"/bin/"${program}".sh "$CACHE_PATH"/"${program}"
+    cp -v "${PLAN_CONTEXT}/bin/publish-hab.sh" "${CACHE_PATH}/publish-hab"
 
     # Use the bash from our dependency list as the shebang. Also, embed the
-    # release version of the program.
+    # release version of publish-hab.
     sed \
       -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
       -e "s,@author@,$pkg_maintainer,g" \
       -e "s,@path@,$pkg_prefix/bin:$run_path,g" \
       -e "s,@version@,$pkg_version/$pkg_release,g" \
-      -i "$CACHE_PATH"/"$program"
-  done
+      -i "${CACHE_PATH}/publish-hab"
 }
 
 do_install() {
-  for program in "${programs[@]}" build-docker-image; do
-    install -v -D "$CACHE_PATH"/"$program" "$pkg_prefix"/bin/"$program"
-  done
+    install -v -D "${CACHE_PATH}/publish-hab" "${pkg_prefix}/bin/publish-hab"
 }
