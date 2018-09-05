@@ -14,6 +14,6 @@ case "$1" in
     hab pkg exec core/hab-plan-build hab-plan-build "$@";;
   run)
     shift
-    hab pkg exec core/hab-backline bash --login "$@";;
+    hab pkg exec core/hab-backline bash --login -c "$@";;
   *) echo "Unknown Studio Command" && exit 1;;
 esac
