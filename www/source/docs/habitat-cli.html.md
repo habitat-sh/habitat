@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.62.0/20180831210457 (linux) | 4 Sep 2018 |
+| hab 0.62.1/20180905002037 (linux) | 4 Sep 2018 |
 
 ## hab
 
@@ -2637,4 +2637,3 @@ hab user key generate <USER>
 
 
 ---
-
