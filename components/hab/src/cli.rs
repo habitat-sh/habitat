@@ -22,6 +22,7 @@ use hcore::{crypto::keys::PairType, service::ServiceGroup};
 use protocol;
 use url::Url;
 
+use command::studio;
 use feat;
 
 pub fn get() -> App<'static, 'static> {
@@ -677,7 +678,7 @@ fn sub_cli_completers() -> App<'static, 'static> {
 }
 
 fn sub_pkg_build() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand build =>
+    let mut sub = clap_app!(@subcommand build =>
         (about: "Builds a Plan using a Studio")
         (@arg HAB_ORIGIN_KEYS: -k --keys +takes_value
             "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
@@ -691,13 +692,17 @@ fn sub_pkg_build() -> App<'static, 'static> {
     );
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
-    if cfg!(target_os = "linux") {
-        sub.arg(
+    if studio::native_studio_support() {
+        sub = sub.arg(
             Arg::with_name("REUSE")
                 .help("Reuses a previous Studio for the build (default: clean up before building)")
                 .short("R")
                 .long("reuse"),
-        ).arg(
+        );
+    }
+
+    if cfg!(target_os = "linux") {
+        sub.arg(
             Arg::with_name("DOCKER")
                 .help(
                     "Uses a Dockerized Studio for the build (default: Studio uses a chroot on \
