@@ -65,6 +65,8 @@ pub mod message;
 pub mod net;
 pub mod types;
 
+use ctl::CTL_GATEWAY_ADDRESS_FILENAME;
+
 use rand::RngCore;
 
 use std::fs::File;
@@ -73,7 +75,7 @@ use std::path::{Path, PathBuf};
 
 use net::{ErrCode, NetResult};
 
-// Nane of file containing the CtlGateway secret key.
+// Name of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
 /// Length of characters in CtlGateway secret key.
 const CTL_SECRET_LEN: usize = 64;
@@ -143,6 +145,50 @@ where
     T: AsRef<Path>,
 {
     sup_root.as_ref().join(CTL_SECRET_FILENAME)
+}
+
+/// Read the Address to use for connections to the local `CtlGateway` from disk and write
+/// it to the given out buffer. An `Ok` return value of `true` indicates a successful read while
+/// `false` indicates the file was not found.
+pub fn read_ctl_gateway_address<T>(sup_root: T, out: &mut String) -> NetResult<bool>
+where
+    T: AsRef<Path>,
+{
+    let file_path = ctl_gateway_address_path(sup_root);
+    if file_path.exists() {
+        if file_path.is_dir() {
+            return Err(net::err(
+                ErrCode::Io,
+                format!(
+                    "Expected file but found directory when reading ctl gateway address, {}",
+                    file_path.display()
+                ),
+            ));
+        }
+        File::open(&file_path)
+            .and_then(|mut f| f.read_to_string(out))
+            .map_err(move |e| {
+                net::err(
+                    ErrCode::Io,
+                    format!(
+                        "IoError while reading ctl gateway address, {}, {}",
+                        file_path.display(),
+                        e
+                    ),
+                )
+            })?;
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+/// Returns the location of the CtlGateway Address File on disk for the given Supervisor root.
+pub fn ctl_gateway_address_path<T>(sup_root: T) -> PathBuf
+where
+    T: AsRef<Path>,
+{
+    sup_root.as_ref().join(CTL_GATEWAY_ADDRESS_FILENAME)
 }
 
 pub fn sup_root<T, U>(name: Option<T>, custom_state_path: Option<U>) -> PathBuf

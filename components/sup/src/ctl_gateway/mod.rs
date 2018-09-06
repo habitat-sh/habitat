@@ -26,6 +26,7 @@ use std::borrow::Cow;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{self, Write};
+use std::net::SocketAddr;
 use std::path::Path;
 
 use regex::Regex;
@@ -56,6 +57,10 @@ static LOGKEY: &'static str = "AG";
 /// The control gateway secret should only be readable by the
 /// Supervisor process
 pub const CTL_SECRET_PERMISSIONS: u32 = 0o600;
+
+/// The control gateway's listening address is saved to file
+/// with the following permissions.
+pub const CTL_GATEWAY_ADDRESS_FILE_PERMISSIONS: u32 = 0o640;
 
 /// Used by modules outside of the CtlGateway for seamlessly replying to transactional messages.
 /// This type is used in functions which can be called by the CtlGateway such as
@@ -282,4 +287,21 @@ where
         perm::set_permissions(&secret_key_path, CTL_SECRET_PERMISSIONS)?;
         Ok(out)
     }
+}
+
+/// Save the `CtlGateway` listen address (parseable as SocketAddr::from_str()) to a file on disk
+/// under `sup_root`.
+pub fn save_ctl_gateway_listen_address_file<T>(sup_root: T, ctl_addr: SocketAddr) -> Result<()>
+where
+    T: AsRef<Path>,
+{
+    let ctl_gateway_address_file_path = protocol::ctl_gateway_address_path(sup_root);
+    let mut f = File::create(&ctl_gateway_address_file_path)?;
+    f.write_fmt(format_args!("{}:{}", ctl_addr.ip(), ctl_addr.port()))?;
+    f.sync_all()?;
+    perm::set_permissions(
+        &ctl_gateway_address_file_path,
+        CTL_GATEWAY_ADDRESS_FILE_PERMISSIONS,
+    )?;
+    Ok(())
 }

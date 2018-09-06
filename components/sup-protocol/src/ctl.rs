@@ -26,6 +26,9 @@ use std::net::{Ipv4Addr, SocketAddr};
 /// Default listening port for the CtlGateway listener.
 pub const DEFAULT_PORT: u16 = 9632;
 
+// Name of file containing the CtlGateway Address.
+pub const CTL_GATEWAY_ADDRESS_FILENAME: &'static str = "CTL_GATEWAY_ADDRESS";
+
 /// Return a SocketAddr with the default listening address and port.
 pub fn default_addr() -> SocketAddr {
     SocketAddr::from((Ipv4Addr::new(127, 0, 0, 1), DEFAULT_PORT))
