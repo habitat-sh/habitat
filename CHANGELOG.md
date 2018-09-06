@@ -8,6 +8,7 @@
 - Fix some rustc warnings due to platform-specific code [#5524](https://github.com/habitat-sh/habitat/pull/5524) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- powershell build should output .env files as powershell [#5541](https://github.com/habitat-sh/habitat/pull/5541) ([mwrock](https://github.com/mwrock))
 - Create root&#39;s $HOME, /root [#5573](https://github.com/habitat-sh/habitat/pull/5573) ([jtimberman](https://github.com/jtimberman))
 - fix typo in cli.rs [#5574](https://github.com/habitat-sh/habitat/pull/5574) ([AshleyMSherwood](https://github.com/AshleyMSherwood))
 - Add -c flag to studio run command for docker studios [#5559](https://github.com/habitat-sh/habitat/pull/5559) ([elliott-davis](https://github.com/elliott-davis))
