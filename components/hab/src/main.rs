@@ -1555,7 +1555,7 @@ fn sup_addr_from_input(m: &ArgMatches) -> Result<SocketAddr> {
                     );
                     return Ok(SocketAddr::from_str(&addr_str).unwrap_or_else(|err| {
                         debug!("could not parse address '{}' {}", addr_str, err);
-                        debug!(
+                        println!(
                             "falling back to default ctl-gateway address {}",
                             protocol::ctl::default_addr()
                         );
@@ -1571,10 +1571,11 @@ fn sup_addr_from_input(m: &ArgMatches) -> Result<SocketAddr> {
                     return Ok(protocol::ctl::default_addr());
                 }
                 Err(e) => {
-                    debug!(
-                        "IO error attempting to read ctl-gateway address from {} file on disk {}",
+                    println!(
+                        "IO error attempting to read ctl-gateway address from {} file on disk {}. Using default address {}",
                         protocol::ctl::CTL_GATEWAY_ADDRESS_FILENAME,
-                        e
+                        e,
+                        protocol::ctl::default_addr()
                     );
                     return Ok(protocol::ctl::default_addr());
                 }
