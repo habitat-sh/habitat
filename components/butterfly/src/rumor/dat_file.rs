@@ -22,6 +22,7 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
 use error::{Error, Result};
+use habitat_core::util::perm;
 use member::{MemberList, Membership};
 use protocol::{newscast, Message};
 use rumor::{
@@ -30,6 +31,10 @@ use rumor::{
 use server::Server;
 
 const HEADER_VERSION: u8 = 2;
+
+/// The rumor file should only be readable and writable by the user
+/// that creates it (i.e., the Supervisor).
+pub const DAT_FILE_PERMISSIONS: u32 = 0o600;
 
 /// A versioned binary file containing rumors exchanged by the butterfly server which have
 /// been periodically persisted to disk.
@@ -269,6 +274,9 @@ impl DatFile {
             file.sync_all()
                 .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         }
+
+        perm::set_permissions(&tmp_path, DAT_FILE_PERMISSIONS)?;
+
         fs::rename(&tmp_path, &self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         self.sync_parent_dir()?;
         Ok(0)

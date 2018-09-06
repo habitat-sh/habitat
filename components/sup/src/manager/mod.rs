@@ -57,6 +57,7 @@ use hcore::os::signals::{self, SignalEvent};
 use hcore::package::metadata::PackageType;
 use hcore::package::{Identifiable, PackageIdent, PackageInstall, PackageTarget};
 use hcore::service::ServiceGroup;
+use hcore::util::perm;
 use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
 use protocol::net::{self, ErrCode, NetResult};
@@ -91,6 +92,14 @@ const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
+
+/// The JSON dumps of internal state should only be readable and
+/// writable by the Supervisor user.
+const HTTP_GATEWAY_STATE_FILE_PERMISSIONS: u32 = 0o600;
+
+/// The Supervisor data directory should only be accessible by the
+/// Supervisor user.
+const DATA_DIR_PERMISSIONS: u32 = 0o700; // Don't forget execute!
 
 /// FileSystem paths that the Manager uses to persist data to disk.
 ///
@@ -535,6 +544,9 @@ impl Manager {
         if let Some(err) = fs::create_dir_all(&data_path).err() {
             return Err(sup_error!(Error::BadDataPath(data_path, err)));
         }
+
+        perm::set_permissions(&data_path, DATA_DIR_PERMISSIONS)?;
+
         let specs_path = Self::specs_path(&state_path);
         debug!("Creating specs directory: {}", specs_path.display());
         if let Some(err) = fs::create_dir_all(&specs_path).err() {
@@ -1404,6 +1416,11 @@ impl Manager {
         if let Some(err) = writer.flush().err() {
             warn!("Couldn't flush census state buffer to disk, {}", err);
         }
+        if let Some(err) =
+            perm::set_permissions(&tmp_file, HTTP_GATEWAY_STATE_FILE_PERMISSIONS).err()
+        {
+            warn!("Couldn't set permissions on census state file, {}", err);
+        };
         if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.census_data_path).err() {
             warn!("Couldn't finalize census state on disk, {}", err);
         }
@@ -1428,6 +1445,11 @@ impl Manager {
         if let Some(err) = writer.flush().err() {
             warn!("Couldn't flush butterfly state buffer to disk, {}", err);
         }
+        if let Some(err) =
+            perm::set_permissions(&tmp_file, HTTP_GATEWAY_STATE_FILE_PERMISSIONS).err()
+        {
+            warn!("Couldn't set permissions on butterfly state file, {}", err);
+        };
         if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.butterfly_data_path).err() {
             warn!("Couldn't finalize butterfly state on disk, {}", err);
         }
@@ -1502,6 +1524,11 @@ impl Manager {
         if let Some(err) = writer.flush().err() {
             warn!("Couldn't flush services state buffer to disk, {}", err);
         }
+        if let Some(err) =
+            perm::set_permissions(&tmp_file, HTTP_GATEWAY_STATE_FILE_PERMISSIONS).err()
+        {
+            warn!("Couldn't set permissions on services state file, {}", err);
+        };
         if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.services_data_path).err() {
             warn!("Couldn't finalize services state on disk, {}", err);
         }
