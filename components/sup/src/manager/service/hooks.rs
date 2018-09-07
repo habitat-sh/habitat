@@ -105,7 +105,10 @@ pub trait Hook: fmt::Debug + Sized {
         if write_hook(&content, self.path())? {
             outputln!(preamble service_group, "{}, compiled to {}", Self::file_name(),
                 self.path().display());
-            hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
+            if cfg!(linux) {
+                hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
+            }
+            // TODO: Implement permissions FFI for windows
             Ok(true)
         } else {
             debug!(

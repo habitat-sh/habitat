@@ -32,6 +32,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use butterfly::rumor::service::Service as ServiceRumor;
+use hcore;
 use hcore::crypto::hash;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::package::metadata::Bind;
@@ -788,14 +789,20 @@ impl Service {
         match self.hooks.run {
             Some(ref hook) => {
                 std::fs::copy(hook.path(), &svc_run)?;
-                set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS)?;
+                if cfg!(linux) {
+                    set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS)?;
+                }
+                // TODO: Implement permissions FFI for windows
             }
             None => {
                 let run = self.pkg.path.join(hooks::RunHook::file_name());
                 match std::fs::metadata(&run) {
                     Ok(_) => {
                         std::fs::copy(&run, &svc_run)?;
-                        set_permissions(&svc_run, HOOK_PERMISSIONS)?;
+                        if cfg!(linux) {
+                            set_permissions(&svc_run, HOOK_PERMISSIONS)?;
+                        }
+                        // TODO: Implement permissions FFI for windows
                     }
                     Err(err) => {
                         outputln!(preamble self.service_group, "Error finding run file: {}", err);
@@ -957,7 +964,21 @@ impl Service {
         }
 
         if abilities::can_run_services_as_svc_user() {
-            if let Err(e) = set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group) {
+            let result = if cfg!(linux) {
+                set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group)
+            } else if cfg!(windows) {
+                if file.as_ref().exists() {
+                    Ok(())
+                } else {
+                    Err(hcore::Error::PermissionFailed(format!(
+                        "Invalid path {:?}",
+                        file.as_ref().display()
+                    )))
+                }
+            } else {
+                unreachable!();
+            };
+            if let Err(e) = result {
                 outputln!(preamble self.service_group,
                           "Failed to set ownership of cache file {}, {}",
                           file.as_ref().display(), e);

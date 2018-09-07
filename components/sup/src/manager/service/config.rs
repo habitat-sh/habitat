@@ -527,10 +527,21 @@ impl CfgRenderer {
                 let mut config_file = File::create(&cfg_dest)?;
                 config_file.write_all(&compiled.into_bytes())?;
 
-                if abilities::can_run_services_as_svc_user() {
-                    util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                if cfg!(linux) {
+                    if abilities::can_run_services_as_svc_user() {
+                        util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                    }
+                    util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
+                } else if cfg!(windows) {
+                    if !Path::new(&cfg_dest).exists() {
+                        return Err(sup_error!(Error::FileNotFound(format!(
+                            "Invalid path {:?}",
+                            &cfg_dest
+                        ))));
+                    }
+                } else {
+                    unreachable!();
                 }
-                util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
 
                 changed = true
             } else {
@@ -552,10 +563,21 @@ impl CfgRenderer {
                     let mut config_file = File::create(&cfg_dest)?;
                     config_file.write_all(&compiled.into_bytes())?;
 
-                    if abilities::can_run_services_as_svc_user() {
-                        util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                    if cfg!(linux) {
+                        if abilities::can_run_services_as_svc_user() {
+                            util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
+                        }
+                        util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
+                    } else if cfg!(windows) {
+                        if !Path::new(&cfg_dest).exists() {
+                            return Err(sup_error!(Error::FileNotFound(format!(
+                                "Invalid path {:?}",
+                                &cfg_dest
+                            ))));
+                        }
+                    } else {
+                        unreachable!();
                     }
-                    util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
 
                     changed = true;
                 }
