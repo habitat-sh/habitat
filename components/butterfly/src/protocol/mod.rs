@@ -23,9 +23,7 @@ use error::Result;
 
 include!("../generated/butterfly.common.rs");
 
-pub trait Message<T: ProstMessage + Default>:
-    FromProto<T> + Clone + Into<T> + Serialize + Sized
-{
+pub trait Message<T: ProstMessage + Default>: FromProto<T> + Clone + Into<T> + Serialize {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
         let decoded = T::decode(bytes)?;
         Self::from_proto(decoded)

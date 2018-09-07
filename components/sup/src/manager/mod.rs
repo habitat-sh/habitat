@@ -1572,8 +1572,44 @@ impl Manager {
     }
 
     fn shutdown(&mut self, cause: ShutdownReason) {
-        outputln!("Gracefully departing from butterfly network.");
-        self.butterfly.set_departed();
+        match cause {
+            ShutdownReason::PkgUpdating | ShutdownReason::Signal => {
+                // Previously, we would unconditionally set our health
+                // to departed. However, given our current conflation
+                // of Supervisor reachability and Service health, I
+                // suspect this causes instability when simply
+                // shutting down the Supervisor for a Supervisor
+                // upgrade.
+                //
+                // In the future, we may want to notify the rest of
+                // the network more formally of our intent to update,
+                // but for now, NOT convincing everyone that our
+                // services are gone seems like a good intermediate
+                // step. (We should also, of course, stop conflating
+                // Supervisor reachability and Service health!) Our
+                // existing suspicion mechanism should serve us well
+                // here if it takes longer than expected for the new
+                // Supervisor to come back up.
+                //
+                // Thus, for these given ShutdownReasons, we just
+                // won't send any Membership rumors out.
+            }
+            ShutdownReason::SvcStopCmd => {
+                // Just to call it out specifically, we shouldn't ever
+                // be called with this ShutdownReason.
+                //
+                // This is all being refactored elsewhere right now,
+                // for what it's worth.
+            }
+            ShutdownReason::LauncherStopping | ShutdownReason::Departed => {
+                // On the other hand, if we legitimately are going
+                // away, tell people, even though sending something
+                // out when _we've already been manually departed_ is
+                // perhaps excessive.
+                outputln!("Gracefully departing from butterfly network.");
+                self.butterfly.set_departed();
+            }
+        }
 
         let mut svcs = Vec::new();
 

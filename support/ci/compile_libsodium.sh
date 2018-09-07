@@ -3,7 +3,7 @@ set -eu
 
 version=1.0.13
 nv=libsodium-$version
-source=https://download.libsodium.org/libsodium/releases/${nv}.tar.gz
+source=https://download.libsodium.org/libsodium/releases/old/${nv}.tar.gz
 prefix=$HOME/pkgs/libsodium/$version
 echo "LIBSODIUM PREFIX = ${prefix}"
 
