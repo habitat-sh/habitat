@@ -15,7 +15,7 @@
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
 use std::cmp;
-use std::collections::{hash_map, HashMap};
+use std::collections::{hash_map, HashMap, HashSet};
 use std::iter::IntoIterator;
 use std::mem;
 use std::ops::Deref;
@@ -753,6 +753,7 @@ impl MemberList {
         &self,
         sending_member_id: &str,
         target_member_id: &str,
+        filter_zones: &HashSet<BfUuid>,
         mut with_closure: F,
     ) -> ()
     where
@@ -771,6 +772,7 @@ impl MemberList {
                 m.id != sending_member_id
                     && m.id != target_member_id
                     && self.check_health_of_by_id(&m.id, Health::Alive)
+                    && filter_zones.contains(&m.zone_id)
             })
             .take(PINGREQ_TARGETS)
         {
@@ -933,7 +935,10 @@ mod tests {
     }
 
     mod member_list {
+        use std::collections::HashSet;
+
         use member::{Health, Member, MemberList, PINGREQ_TARGETS};
+        use message::BfUuid;
 
         fn populated_member_list(size: u64) -> MemberList {
             let ml = MemberList::new();
@@ -942,6 +947,14 @@ mod tests {
                 ml.insert(m, Health::Alive);
             }
             ml
+        }
+
+        fn nil_zone_filter() -> HashSet<BfUuid> {
+            let mut filter = HashSet::new();
+
+            filter.insert(BfUuid::nil());
+
+            filter
         }
 
         #[test]
@@ -973,11 +986,12 @@ mod tests {
         #[test]
         fn pingreq_targets() {
             let ml = populated_member_list(10);
+            let filter_zones = nil_zone_filter();
             ml.with_member_iter(|mut i| {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut counter: usize = 0;
-                ml.with_pingreq_targets(&from.id, &target.id, |_m| counter += 1);
+                ml.with_pingreq_targets(&from.id, &target.id, &filter_zones, |_m| counter += 1);
                 assert_eq!(counter, PINGREQ_TARGETS);
             });
         }
@@ -985,11 +999,12 @@ mod tests {
         #[test]
         fn pingreq_targets_excludes_pinging_member() {
             let ml = populated_member_list(3);
+            let filter_zones = nil_zone_filter();
             ml.with_member_iter(|mut i| {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut excluded_appears: bool = false;
-                ml.with_pingreq_targets(&from.id, &target.id, |m| {
+                ml.with_pingreq_targets(&from.id, &target.id, &filter_zones, |m| {
                     if m.id == from.id {
                         excluded_appears = true
                     }
@@ -1001,11 +1016,12 @@ mod tests {
         #[test]
         fn pingreq_targets_excludes_target_member() {
             let ml = populated_member_list(3);
+            let filter_zones = nil_zone_filter();
             ml.with_member_iter(|mut i| {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut excluded_appears: bool = false;
-                ml.with_pingreq_targets(&from.id, &target.id, |m| {
+                ml.with_pingreq_targets(&from.id, &target.id, &filter_zones, |m| {
                     if m.id == target.id {
                         excluded_appears = true
                     }
@@ -1017,13 +1033,45 @@ mod tests {
         #[test]
         fn pingreq_targets_minimum_viable_pingreq_size_is_three() {
             let ml = populated_member_list(3);
+            let filter_zones = nil_zone_filter();
             ml.with_member_iter(|mut i| {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut counter: isize = 0;
-                ml.with_pingreq_targets(&from.id, &target.id, |_m| counter += 1);
+                ml.with_pingreq_targets(&from.id, &target.id, &filter_zones, |_m| counter += 1);
                 assert_eq!(counter, 1);
             });
+        }
+
+        #[test]
+        fn pingreq_targets_filters_members() {
+            let ml = populated_member_list(3);
+            let filter_zones = nil_zone_filter();
+            let mut from = String::new();
+            let mut target = String::new();
+            let mut expected = String::new();
+
+            ml.with_member_iter(|mut i| {
+                from = i.next().unwrap().id.clone();
+                target = i.next().unwrap().id.clone();
+                expected = i.next().unwrap().id.clone();
+            });
+
+            for _ in 1..10 {
+                let mut other_member = Member::default();
+
+                other_member.zone_id = BfUuid::generate();
+                ml.insert(other_member, Health::Alive);
+            }
+
+            let mut counter: isize = 0;
+            let mut actual = String::new();
+            ml.with_pingreq_targets(&from, &target, &filter_zones, |m| {
+                counter += 1;
+                actual = m.id.clone();
+            });
+            assert_eq!(counter, 1);
+            assert_eq!(actual, expected);
         }
 
         #[test]

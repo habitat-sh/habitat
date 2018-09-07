@@ -193,9 +193,16 @@ impl<N: Network> Outbound<N> {
             return;
         }
 
+        let our_zone_id = self.server.get_settled_zone_id();
+        let filter_zones = self
+            .server
+            .read_zone_list()
+            .gather_all_aliases_of(our_zone_id);
+
         self.server.member_list.with_pingreq_targets(
             self.server.member_id(),
             &member.id,
+            &filter_zones,
             |pingreq_target| {
                 trace_it!(PROBE: &self.server,
                           TraceKind::ProbePingReq,
