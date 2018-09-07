@@ -789,7 +789,7 @@ impl Service {
         match self.hooks.run {
             Some(ref hook) => {
                 std::fs::copy(hook.path(), &svc_run)?;
-                if cfg!(linux) {
+                if cfg!(not(windows)) {
                     set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS)?;
                 }
                 // TODO: Implement permissions FFI for windows
@@ -799,7 +799,7 @@ impl Service {
                 match std::fs::metadata(&run) {
                     Ok(_) => {
                         std::fs::copy(&run, &svc_run)?;
-                        if cfg!(linux) {
+                        if cfg!(not(windows)) {
                             set_permissions(&svc_run, HOOK_PERMISSIONS)?;
                         }
                         // TODO: Implement permissions FFI for windows
@@ -964,7 +964,7 @@ impl Service {
         }
 
         if abilities::can_run_services_as_svc_user() {
-            let result = if cfg!(linux) {
+            let result = if cfg!(not(windows)) {
                 set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group)
             } else if cfg!(windows) {
                 if file.as_ref().exists() {

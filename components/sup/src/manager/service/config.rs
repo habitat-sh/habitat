@@ -527,7 +527,7 @@ impl CfgRenderer {
                 let mut config_file = File::create(&cfg_dest)?;
                 config_file.write_all(&compiled.into_bytes())?;
 
-                if cfg!(linux) {
+                if cfg!(not(windows)) {
                     if abilities::can_run_services_as_svc_user() {
                         util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
                     }
@@ -563,7 +563,7 @@ impl CfgRenderer {
                     let mut config_file = File::create(&cfg_dest)?;
                     config_file.write_all(&compiled.into_bytes())?;
 
-                    if cfg!(linux) {
+                    if cfg!(not(windows)) {
                         if abilities::can_run_services_as_svc_user() {
                             util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
                         }

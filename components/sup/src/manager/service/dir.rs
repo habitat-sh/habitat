@@ -117,7 +117,7 @@ impl<'a> SvcDir<'a> {
         P: AsRef<Path>,
     {
         Self::create_dir_all(&path)?;
-        if cfg!(linux) {
+        if cfg!(not(windows)) {
             if abilities::can_run_services_as_svc_user() {
                 perm::set_owner(&path, &self.svc_user, &self.svc_group)?;
             }
