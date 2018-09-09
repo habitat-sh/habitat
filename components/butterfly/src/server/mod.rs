@@ -71,12 +71,48 @@ pub trait Suitability: Debug + Send + Sync {
     fn get(&self, service_group: &ServiceGroup) -> u64;
 }
 
+/// Encapsulate a `Member` with the added understanding that this
+/// represents the identity of a particular Butterfly Server.
+#[derive(Clone, Debug)]
+pub struct Myself(Member);
+
+impl From<Member> for Myself {
+    fn from(m: Member) -> Myself {
+        Myself(m)
+    }
+}
+
+impl AsRef<Member> for Myself {
+    fn as_ref(&self) -> &Member {
+        &self.0
+    }
+}
+
+impl Myself {
+    /// Increments the incarnation by 1. A `Member`'s incarnation
+    /// number can *only* be incremented by itself.
+    pub fn increment_incarnation(&mut self) {
+        self.0.incarnation += 1;
+    }
+
+    /// Returns the current incarnation number.
+    pub fn incarnation(&self) -> u64 {
+        self.0.incarnation
+    }
+
+    pub fn mark_departed(&mut self) {
+        self.0.departed = true
+    }
+}
+
 /// The server struct. Is thread-safe.
 #[derive(Debug)]
 pub struct Server {
     name: Arc<String>,
     member_id: Arc<String>,
-    pub member: Arc<RwLock<Member>>,
+    // TODO (CM): This is currently public because butterfly-test
+    // depends on it being so. Refactor so it can be private
+    pub member: Arc<RwLock<Myself>>,
     pub member_list: MemberList,
     ring_key: Arc<Option<SymKey>>,
     rumor_heat: RumorHeat,
@@ -159,8 +195,10 @@ impl Server {
                 member.gossip_port = gossip_socket_addr.port() as i32;
                 Ok(Server {
                     name: Arc::new(name.unwrap_or(member.id.clone())),
+                    // TODO (CM): could replace this with an accessor
+                    // on member, if we have a better type
                     member_id: Arc::new(member.id.clone()),
-                    member: Arc::new(RwLock::new(member)),
+                    member: Arc::new(RwLock::new(member.into())),
                     member_list: MemberList::new(),
                     ring_key: Arc::new(ring_key),
                     rumor_heat: RumorHeat::default(),
@@ -476,37 +514,32 @@ impl Server {
     /// members to seed our status.
     pub fn set_departed(&self) {
         if self.socket.is_some() {
-            let member = {
+            {
                 let mut me = self.member.write().expect("Member lock is poisoned");
-                let mut incarnation = me.incarnation;
-                incarnation += 1;
-                me.incarnation = incarnation;
-                me.departed = true;
-                me.clone()
-            };
-            let trace_member_id = member.id.clone();
-            let trace_incarnation = member.incarnation;
-            self.member_list
-                .insert_health_by_id(&member.id, Health::Departed);
-            trace_it!(
-                MEMBERSHIP: self,
-                TraceKind::MemberUpdate,
-                trace_member_id,
-                trace_incarnation,
-                Health::Departed
-            );
+                me.increment_incarnation();
+                me.mark_departed();
 
+                self.member_list
+                    .insert_health_by_id(&self.member_id, Health::Departed);
+                trace_it!(
+                    MEMBERSHIP: self,
+                    TraceKind::MemberUpdate,
+                    self.member_id.clone(),
+                    me.incarnation(),
+                    Health::Departed
+                );
+            }
             // We need to mark this as "hot" in order to propagate it.
             //
             // TODO (CM): This exact code is present numerous places;
             // factor it out to facilitate further code consolidation.
             self.rumor_heat.start_hot_rumor(RumorKey::new(
                 RumorType::Member,
-                member.id.clone(),
+                self.member_id.clone(),
                 "",
             ));
 
-            let check_list = self.member_list.check_list(&member.id);
+            let check_list = self.member_list.check_list(&self.member_id);
 
             // TODO (CM): Even though we marked the rumor as hot
             // above, when we gossip, we send out the 5 "coolest but
@@ -530,10 +563,10 @@ impl Server {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() {
             if health != Health::Alive {
-                let mut me = self.member.write().expect("Member lock is poisoned");
-                let mut incarnation = me.incarnation;
-                incarnation += 1;
-                me.incarnation = incarnation;
+                self.member
+                    .write()
+                    .expect("Member lock is poisoned")
+                    .increment_incarnation();
                 health = Health::Alive;
                 incremented_incarnation = true;
             }
@@ -1058,6 +1091,26 @@ fn persist_loop(server: Server) {
 
 #[cfg(test)]
 mod tests {
+
+    mod myself {
+        use super::super::*;
+        use member::Member;
+
+        /// Helper function to create an instance of `Myself` for
+        /// tests.
+        fn myself() -> Myself {
+            Member::default().into()
+        }
+
+        #[test]
+        fn myself_can_increment_its_incarnation() {
+            let mut me = myself();
+            assert_eq!(me.incarnation(), 0, "Incarnation should start at 0");
+            me.increment_incarnation();
+            assert_eq!(me.incarnation(), 1, "Incarnation should have incremented");
+        }
+    }
+
     mod server {
         use habitat_core::service::ServiceGroup;
         use member::Member;

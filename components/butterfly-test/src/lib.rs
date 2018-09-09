@@ -80,8 +80,8 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
 pub fn member_from_server(server: &Server) -> Member {
     let mut new_member = Member::default();
     let server_member = server.member.read().expect("Member lock is poisoned");
-    new_member.id = server_member.id.to_string();
-    new_member.incarnation = server_member.incarnation;
+    new_member.id = server_member.as_ref().id.to_string();
+    new_member.incarnation = server_member.incarnation();
     new_member.address = String::from("127.0.0.1");
     new_member.swim_port = server.swim_port() as i32;
     new_member.gossip_port = server.gossip_port() as i32;
@@ -176,6 +176,7 @@ impl SwimNet {
             to.member
                 .read()
                 .expect("Member lock is poisoned")
+                .as_ref()
                 .id
                 .to_string(),
         ));
@@ -205,7 +206,7 @@ impl SwimNet {
             .get(to_entry)
             .expect("Asked for a network member who is out of bounds");
         let to_member = to.member.read().expect("Member lock is poisoned");
-        from.member_list.health_of(&to_member)
+        from.member_list.health_of(to_member.as_ref())
     }
 
     pub fn network_health_of(&self, to_check: usize) -> Vec<Option<Health>> {
