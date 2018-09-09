@@ -88,6 +88,19 @@ impl AsRef<Member> for Myself {
     }
 }
 
+// This is ONLY provided for some tests that depend on being able to
+// mutate the member. Ideally, the only think that should be mutable,
+// once you actually have a fully set-up Butterfly server, is the
+// incarnation number, which is accounted for in
+// `Myself::increment_incarnation`.
+//
+// Once the tests are refactored, this implementation should go away.
+impl AsMut<Member> for Myself {
+    fn as_mut(&mut self) -> &mut Member {
+        &mut self.0
+    }
+}
+
 impl Myself {
     /// Increments the incarnation by 1. A `Member`'s incarnation
     /// number can *only* be incremented by itself.

@@ -111,11 +111,13 @@ fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
         .member
         .write()
         .expect("Member lock is poisoned")
+        .as_mut()
         .persistent = true;
     net[4]
         .member
         .write()
         .expect("Member lock is poisoned")
+        .as_mut()
         .persistent = true;
     net.connect(0, 1);
     net.connect(1, 2);

@@ -144,11 +144,13 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
         .member
         .write()
         .expect("Member lock is poisoned")
+        .as_mut()
         .persistent = true;
     net[4]
         .member
         .write()
         .expect("Member lock is poisoned")
+        .as_mut()
         .persistent = true;
     net.add_service(0, "core/witcher/1.2.3/20161208121212");
     net.add_service(1, "core/witcher/1.2.3/20161208121212");
