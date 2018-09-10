@@ -16,7 +16,7 @@ mod handlers;
 
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
 use std::sync::{Arc, Condvar, Mutex};
@@ -29,6 +29,7 @@ use std::os::unix::process::ExitStatusExt;
 use std::process::ExitStatus;
 
 use core;
+use core::fs::FS_ROOT_PATH;
 use core::os::process::{self, Pid, Signal};
 use core::os::signals::{self, SignalEvent};
 use core::package::{PackageIdent, PackageInstall};
@@ -605,8 +606,9 @@ fn supervisor_cmd() -> Result<PathBuf> {
         return Ok(PathBuf::from(command));
     }
     let ident = PackageIdent::from_str(SUP_PACKAGE_IDENT).unwrap();
-    match PackageInstall::load_at_least(&ident, None) {
-        Ok(install) => match core::fs::find_command_in_pkg(SUP_CMD, &install, "/") {
+    let fs_root_path = FS_ROOT_PATH.as_path();
+    match PackageInstall::load_at_least(&ident, Some(fs_root_path)) {
+        Ok(install) => match core::fs::find_command_in_pkg(SUP_CMD, &install, fs_root_path) {
             Ok(Some(cmd)) => Ok(cmd),
             _ => Err(Error::SupBinaryNotFound),
         },

@@ -18,7 +18,7 @@ use common;
 use common::command::package::install::{InstallMode, LocalPackageUsage};
 use common::ui::{Status, UIWriter, UI};
 use hcore::env as henv;
-use hcore::fs::{self, cache_artifact_path};
+use hcore::fs::{self, cache_artifact_path, FS_ROOT_PATH};
 use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
 use hcore::url::default_bldr_url;
 use hcore::{self, channel};
@@ -77,8 +77,8 @@ where
         return Err(Error::ExecCommandNotFound(command));
     }
 
-    let fs_root_path = Path::new("/");
-    match PackageInstall::load_at_least(ident, None) {
+    let fs_root_path = FS_ROOT_PATH.as_path();
+    match PackageInstall::load_at_least(ident, Some(fs_root_path)) {
         Ok(pi) => match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
             Some(cmd) => Ok(cmd),
             None => Err(Error::ExecCommandNotFound(command)),
