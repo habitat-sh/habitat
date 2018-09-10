@@ -10,6 +10,7 @@
 - Fix some rustc warnings due to platform-specific code [#5524](https://github.com/habitat-sh/habitat/pull/5524) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- studio build and run should check for empty commands [#5593](https://github.com/habitat-sh/habitat/pull/5593) ([mwrock](https://github.com/mwrock))
 - Rearrange for correct precedence order [#5579](https://github.com/habitat-sh/habitat/pull/5579) ([raskchanky](https://github.com/raskchanky))
 - Improve error message when supervisor unavailable [#5465](https://github.com/habitat-sh/habitat/pull/5465) ([adamhjk](https://github.com/adamhjk))
 - powershell build should output .env files as powershell [#5541](https://github.com/habitat-sh/habitat/pull/5541) ([mwrock](https://github.com/mwrock))
