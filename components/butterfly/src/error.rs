@@ -39,9 +39,9 @@ pub enum Error {
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
     ServiceConfigNotUtf8(String, str::Utf8Error),
+    SocketCloneError,
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
-    SocketCloneError,
     ZmqConnectError(zmq::Error),
     ZmqSendError(zmq::Error),
 }
@@ -82,13 +82,13 @@ impl fmt::Display for Error {
             Error::ServiceConfigNotUtf8(ref sg, ref err) => {
                 format!("Cannot read service configuration: group={}, {}", sg, err)
             }
+            Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
             Error::SocketSetReadTimeout(ref err) => {
                 format!("Cannot set UDP socket read timeout: {}", err)
             }
             Error::SocketSetWriteTimeout(ref err) => {
                 format!("Cannot set UDP socket write timeout: {}", err)
             }
-            Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
             Error::ZmqConnectError(ref err) => format!("Cannot connect ZMQ socket: {}", err),
             Error::ZmqSendError(ref err) => {
                 format!("Cannot send message through ZMQ socket: {}", err)
@@ -116,9 +116,9 @@ impl error::Error for Error {
             }
             Error::ServiceConfigDecode(_, _) => "Cannot decode service config into TOML",
             Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",
+            Error::SocketCloneError => "Cannot clone the underlying UDP socket",
             Error::SocketSetReadTimeout(_) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(_) => "Cannot set UDP socket write timeout",
-            Error::SocketCloneError => "Cannot clone the underlying UDP socket",
             Error::ZmqConnectError(_) => "Cannot connect ZMQ socket",
             Error::ZmqSendError(_) => "Cannot send message through ZMQ socket",
         }
