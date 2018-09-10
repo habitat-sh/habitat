@@ -290,6 +290,7 @@ pub enum Reachable {
 pub struct ZoneList {
     pub zones: HashMap<BfUuid, Zone>,
     pub maintained_zone_id: Option<BfUuid>,
+    pub our_zone_id: BfUuid,
 
     update_counter: usize,
 }
@@ -299,6 +300,7 @@ impl ZoneList {
         Self {
             zones: HashMap::new(),
             maintained_zone_id: None,
+            our_zone_id: BfUuid::nil(),
             update_counter: 0,
         }
     }
@@ -529,6 +531,8 @@ impl ZoneList {
             Some(id) => *id,
             None => return vec![RumorKey::from(&zone)],
         };
+        let our_affected_zone =
+            self.check_if_our_zone_is_affected(successor, &aliases, &parents, &children);
         let predecessors = aliases
             .drain()
             .filter(|i| *i < successor)
@@ -643,7 +647,72 @@ impl ZoneList {
             }
         }
 
+        if let Some(our_zone) = our_affected_zone {
+            rumor_keys.extend(self.make_zones_consistent(our_zone));
+        }
+
         rumor_keys
+    }
+
+    fn check_if_our_zone_is_affected(
+        &self,
+        successor: BfUuid,
+        aliases: &HashSet<BfUuid>,
+        parents: &HashSet<BfUuid>,
+        children: &HashSet<BfUuid>,
+    ) -> Option<Zone> {
+        if aliases.contains(&self.our_zone_id) {
+            return None;
+        }
+
+        let our_zone = if let Some(zone) = self.zones.get(&self.our_zone_id) {
+            zone
+        } else {
+            return None;
+        };
+
+        if parents.contains(&self.our_zone_id) {
+            let mut found_at = None;
+
+            for (idx, child_id) in our_zone.child_zone_ids.iter().enumerate() {
+                if aliases.contains(child_id) {
+                    found_at = Some(idx);
+                    break;
+                }
+            }
+
+            if let Some(idx) = found_at {
+                if our_zone.child_zone_ids[idx] != successor {
+                    let mut zone_clone = our_zone.clone();
+
+                    zone_clone.child_zone_ids[idx] = successor;
+                    Some(zone_clone)
+                } else {
+                    None
+                }
+            } else {
+                let mut zone_clone = our_zone.clone();
+
+                zone_clone.child_zone_ids.push(successor);
+                Some(zone_clone)
+            }
+        } else if children.contains(&self.our_zone_id) {
+            let do_change = match our_zone.parent_zone_id {
+                Some(ref id) => aliases.contains(id) && *id != successor,
+                None => true,
+            };
+
+            if do_change {
+                let mut zone_clone = our_zone.clone();
+
+                zone_clone.parent_zone_id = Some(successor);
+                Some(zone_clone)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
     fn filter_aliases(&self, zone_uuids: HashSet<BfUuid>) -> HashSet<BfUuid> {

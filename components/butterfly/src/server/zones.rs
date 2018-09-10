@@ -364,6 +364,10 @@ pub fn handle_zone_simple<N: Network>(
                 let mut zone_list = server.write_zone_list();
                 zone_list.maintained_zone_id = Some(zone_id);
             }
+            if let Some(uuid) = stuff.zone_uuid_for_our_member {
+                let mut zone_list = server.write_zone_list();
+                zone_list.our_zone_id = uuid;
+            }
             if let Some((sender_uuid, relative)) = stuff.sender_relative {
                 // TODO: update our zone with parent/child stuff
                 // need to take aliases into account!
@@ -481,6 +485,10 @@ pub fn handle_zone_simple<N: Network>(
             }
             for predecessor_id in results.predecessors_to_add_to_maintained_zone {
                 maintained_zone.predecessors.push(predecessor_id);
+            }
+            if let Some(zone_id) = results.zone_uuid_for_our_member {
+                let mut zone_list = server.write_zone_list();
+                zone_list.our_zone_id = zone_id;
             }
             if zone_changed {
                 maintained_zone.incarnation += 1;
