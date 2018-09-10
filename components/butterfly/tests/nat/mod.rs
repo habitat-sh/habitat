@@ -1224,6 +1224,49 @@ struct TestMessage {
     bytes: Vec<u8>,
     dbg_key: Option<SymKey>,
     channel_type: ChannelType,
+    kill_the_messenger: bool,
+}
+
+impl TestMessage {
+    fn new(
+        source: TestAddrAndPort,
+        target: TestAddrAndPort,
+        bytes: Vec<u8>,
+        dbg_key: Option<SymKey>,
+        channel_type: ChannelType,
+    ) -> Self {
+        let kill_the_messenger = false;
+        Self {
+            source,
+            target,
+            bytes,
+            dbg_key,
+            channel_type,
+            kill_the_messenger,
+        }
+    }
+
+    fn kill() -> Self {
+        let addr = Self::bogus_test_addr_and_port();
+        Self {
+            source: addr,
+            target: addr,
+            bytes: Vec::new(),
+            dbg_key: None,
+            channel_type: ChannelType::SWIM,
+            kill_the_messenger: true,
+        }
+    }
+
+    fn bogus_test_addr_and_port() -> TestAddrAndPort {
+        TestAddrAndPort {
+            addr: TestAddr::Local(TestLocalAddr {
+                zone_id: ZoneID::new(42),
+                idx: 42,
+            }),
+            port: 42,
+        }
+    }
 }
 
 impl Debug for TestMessage {
@@ -1480,7 +1523,6 @@ impl SettledZones {
 
 // TestNetworkSwitchBoard implements the multizone setup for testing
 // the spanning ring.
-#[derive(Clone)]
 struct TestNetworkSwitchBoard {
     zones: Arc<RwLock<ZoneMap>>,
     servers: Arc<RwLock<Vec<TestServer>>>,
@@ -1488,6 +1530,7 @@ struct TestNetworkSwitchBoard {
     swim_channel_map: Arc<RwLock<ChannelMap>>,
     gossip_channel_map: Arc<RwLock<ChannelMap>>,
     nats: Arc<RwLock<NatsMap>>,
+    main: bool,
 }
 
 impl TestNetworkSwitchBoard {
@@ -1499,6 +1542,7 @@ impl TestNetworkSwitchBoard {
             swim_channel_map: Arc::new(RwLock::new(HashMap::new())),
             gossip_channel_map: Arc::new(RwLock::new(HashMap::new())),
             nats: Arc::new(RwLock::new(HashMap::new())),
+            main: true,
         }
     }
 
@@ -2013,7 +2057,12 @@ impl TestNetworkSwitchBoard {
         let self_for_thread = self.clone();
         thread::spawn(move || loop {
             match msg_mid_out.recv() {
-                Ok(msg) => self_for_thread.process_msg(msg, channel_type),
+                Ok(msg) => {
+                    if msg.kill_the_messenger {
+                        break;
+                    }
+                    self_for_thread.process_msg(msg, channel_type)
+                }
                 Err(_) => break,
             }
         });
@@ -2177,6 +2226,37 @@ impl TestNetworkSwitchBoard {
     }
 }
 
+impl Clone for TestNetworkSwitchBoard {
+    fn clone(&self) -> Self {
+        Self {
+            zones: Arc::clone(&self.zones),
+            servers: Arc::clone(&self.servers),
+            addresses: Arc::clone(&self.addresses),
+            swim_channel_map: Arc::clone(&self.swim_channel_map),
+            gossip_channel_map: Arc::clone(&self.gossip_channel_map),
+            nats: Arc::clone(&self.nats),
+            main: false,
+        }
+    }
+}
+
+impl Drop for TestNetworkSwitchBoard {
+    fn drop(&mut self) {
+        if self.main {
+            for server in self.write_servers().iter_mut() {
+                server.butterfly.pause();
+            }
+            for server in self.write_servers().iter_mut() {
+                let network = server.butterfly.read_network();
+
+                // ignore results
+                network.swim_in.send(TestMessage::kill()).ok();
+                network.gossip_in.send(TestMessage::kill()).ok();
+            }
+        }
+    }
+}
+
 // TestSwimSender is an implementation of a SwimSender trait based on
 // channels.
 #[derive(Debug)]
@@ -2188,13 +2268,13 @@ struct TestSwimSender {
 
 impl SwimSender<TestAddrAndPort> for TestSwimSender {
     fn send(&self, buf: &[u8], addr: TestAddrAndPort) -> Result<usize> {
-        let msg = TestMessage {
-            source: self.addr,
-            target: addr,
-            bytes: buf.to_owned(),
-            dbg_key: self.dbg_key.clone(),
-            channel_type: ChannelType::SWIM,
-        };
+        let msg = TestMessage::new(
+            self.addr,
+            addr,
+            buf.to_owned(),
+            self.dbg_key.clone(),
+            ChannelType::SWIM,
+        );
         self.sender.send(msg).map_err(|_| {
             Error::SwimSendError("Receiver part of the channel is disconnected".to_owned())
         })?;
@@ -2236,13 +2316,13 @@ struct TestGossipSender {
 
 impl GossipSender for TestGossipSender {
     fn send(&self, buf: &[u8]) -> Result<()> {
-        let msg = TestMessage {
-            source: self.source,
-            target: self.target,
-            bytes: buf.to_vec(),
-            dbg_key: self.dbg_key.clone(),
-            channel_type: ChannelType::Gossip,
-        };
+        let msg = TestMessage::new(
+            self.source,
+            self.target,
+            buf.to_vec(),
+            self.dbg_key.clone(),
+            ChannelType::Gossip,
+        );
         self.sender.send(msg).map_err(|_| {
             Error::GossipSendError("Receiver part of the channel is disconnected".to_owned())
         })?;
