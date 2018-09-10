@@ -373,7 +373,7 @@ function Enter-Studio {
 }
 
 function Invoke-StudioRun($cmd) {
-  if($printHelp -or ($cmd -eq $null)) {
+  if($printHelp -or ([String]::IsNullOrEmpty($cmd))) {
     Write-RunHelp
     return
   }
@@ -383,7 +383,7 @@ function Invoke-StudioRun($cmd) {
 }
 
 function Invoke-StudioBuild($location, $reuse) {
-  if($printHelp -or ($location -eq $null)) {
+  if($printHelp -or ([String]::IsNullOrEmpty($location))) {
     Write-BuildHelp
     return
   }
