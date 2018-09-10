@@ -305,10 +305,6 @@ impl ZoneList {
         }
     }
 
-    pub fn available_zone_ids(&self) -> Vec<BfUuid> {
-        self.zones.keys().cloned().collect()
-    }
-
     pub fn get_update_counter(&self) -> usize {
         self.update_counter
     }
