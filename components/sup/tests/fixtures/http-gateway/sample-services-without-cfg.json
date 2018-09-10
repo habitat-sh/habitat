@@ -1,0 +1,221 @@
+[
+  {
+    "all_pkg_binds": [
+      {
+        "exports": [
+          "port"
+        ],
+        "service": "router"
+      }
+    ],
+    "binding_mode": "strict",
+    "binds": [
+      "router:builder-router.default"
+    ],
+    "bldr_url": "https://bldr.habitat.sh",
+    "channel": "stable",
+    "composite": null,
+    "config_from": null,
+    "desired_state": "Up",
+    "health_check": "Unknown",
+    "hooks": {
+      "file_updated": null,
+      "health_check": null,
+      "init": null,
+      "post_run": null,
+      "post_stop": null,
+      "reconfigure": null,
+      "reload": null,
+      "run": {
+        "render_pair": "/hab/svc/builder-api/hooks/run",
+        "stderr_log_path": "/hab/svc/builder-api/logs/run.stderr.log",
+        "stdout_log_path": "/hab/svc/builder-api/logs/run.stdout.log"
+      },
+      "smoke_test": null,
+      "suitability": null
+    },
+    "initialized": true,
+    "last_election_status": "None",
+    "manager_fs_cfg": {
+      "butterfly_data_path": "/hab/sup/default/data/butterfly.dat",
+      "census_data_path": "/hab/sup/default/data/census.dat",
+      "composites_path": "/hab/sup/default/composites",
+      "data_path": "/hab/sup/default/data",
+      "member_id_file": "/hab/sup/default/MEMBER_ID",
+      "proc_lock_file": "/hab/sup/default/LOCK",
+      "services_data_path": "/hab/sup/default/data/services.dat",
+      "specs_path": "/hab/sup/default/specs",
+      "sup_root": "/hab/sup/default"
+    },
+    "needs_reconfiguration": false,
+    "needs_reload": false,
+    "pkg": {
+      "deps": [
+        {
+          "name": "acl",
+          "origin": "core",
+          "release": "20180608091922",
+          "version": "2.2.52"
+        },
+        {
+          "name": "attr",
+          "origin": "core",
+          "release": "20180608091914",
+          "version": "2.4.47"
+        },
+        {
+          "name": "bzip2",
+          "origin": "core",
+          "release": "20180608091727",
+          "version": "1.0.6"
+        },
+        {
+          "name": "cacerts",
+          "origin": "core",
+          "release": "20180608102212",
+          "version": "2018.03.07"
+        },
+        {
+          "name": "coreutils",
+          "origin": "core",
+          "release": "20180608092141",
+          "version": "8.29"
+        },
+        {
+          "name": "curl",
+          "origin": "core",
+          "release": "20180906202233",
+          "version": "7.54.1"
+        },
+        {
+          "name": "gcc-libs",
+          "origin": "core",
+          "release": "20180608091701",
+          "version": "7.3.0"
+        },
+        {
+          "name": "glibc",
+          "origin": "core",
+          "release": "20180608041157",
+          "version": "2.27"
+        },
+        {
+          "name": "gmp",
+          "origin": "core",
+          "release": "20180608051426",
+          "version": "6.1.2"
+        },
+        {
+          "name": "libarchive",
+          "origin": "core",
+          "release": "20180608163540",
+          "version": "3.3.2"
+        },
+        {
+          "name": "libcap",
+          "origin": "core",
+          "release": "20180608091936",
+          "version": "2.25"
+        },
+        {
+          "name": "libsodium",
+          "origin": "core",
+          "release": "20180703181056",
+          "version": "1.0.13"
+        },
+        {
+          "name": "linux-headers",
+          "origin": "core",
+          "release": "20180608041107",
+          "version": "4.15.9"
+        },
+        {
+          "name": "nghttp2",
+          "origin": "core",
+          "release": "20180906202133",
+          "version": "1.33.0"
+        },
+        {
+          "name": "openssl",
+          "origin": "core",
+          "release": "20180608102213",
+          "version": "1.0.2n"
+        },
+        {
+          "name": "xz",
+          "origin": "core",
+          "release": "20180608100110",
+          "version": "5.2.3"
+        },
+        {
+          "name": "zeromq",
+          "origin": "core",
+          "release": "20180703181357",
+          "version": "4.2.5"
+        },
+        {
+          "name": "zlib",
+          "origin": "core",
+          "release": "20180608050617",
+          "version": "1.2.11"
+        }
+      ],
+      "env": {
+        "PATH": "/hab/pkgs/habitat/builder-api/7602/20180906202535/bin:/hab/pkgs/core/glibc/2.27/20180608041157/bin:/hab/pkgs/core/openssl/1.0.2n/20180608102213/bin:/hab/pkgs/core/coreutils/8.29/20180608092141/bin:/hab/pkgs/core/curl/7.54.1/20180906202233/bin:/hab/pkgs/core/acl/2.2.52/20180608091922/bin:/hab/pkgs/core/attr/2.4.47/20180608091914/bin:/hab/pkgs/core/libcap/2.25/20180608091936/bin:/hab/pkgs/core/bzip2/1.0.6/20180608091727/bin:/hab/pkgs/core/xz/5.2.3/20180608100110/bin:/hab/pkgs/core/busybox-static/1.28.1/20180608102729/bin:/bin"
+      },
+      "exports": {
+        "port": "http.port"
+      },
+      "exposes": [
+        "9636"
+      ],
+      "ident": "habitat/builder-api/7602/20180906202535",
+      "name": "builder-api",
+      "origin": "habitat",
+      "path": "/hab/pkgs/habitat/builder-api/7602/20180906202535",
+      "release": "20180906202535",
+      "svc_config_path": "/hab/svc/builder-api/config",
+      "svc_data_path": "/hab/svc/builder-api/data",
+      "svc_files_path": "/hab/svc/builder-api/files",
+      "svc_group": "hab",
+      "svc_path": "/hab/svc/builder-api",
+      "svc_pid_file": "/hab/svc/builder-api/PID",
+      "svc_run": "/hab/svc/builder-api/run",
+      "svc_static_path": "/hab/svc/builder-api/static",
+      "svc_user": "hab",
+      "svc_var_path": "/hab/svc/builder-api/var",
+      "version": "7602"
+    },
+    "process": {
+      "pid": 221,
+      "state": "up",
+      "state_entered": 1536689926
+    },
+    "service_group": "builder-api.default",
+    "smoke_check": "Pending",
+    "spec_file": "/hab/sup/default/specs/builder-api.spec",
+    "spec_ident": {
+      "name": "builder-api",
+      "origin": "habitat",
+      "release": null,
+      "version": null
+    },
+    "svc_encrypted_password": null,
+    "sys": {
+      "ctl_gateway_ip": "0.0.0.0",
+      "ctl_gateway_port": 9632,
+      "gossip_ip": "0.0.0.0",
+      "gossip_port": 9638,
+      "hostname": "api.habitat.dev",
+      "http_gateway_ip": "0.0.0.0",
+      "http_gateway_port": 9631,
+      "ip": "172.25.0.3",
+      "member_id": "be57ce74c75d4b29a4d8602c28397364",
+      "permanent": false,
+      "version": "0.61.0/20180815173401"
+    },
+    "topology": "standalone",
+    "update_strategy": "at-once",
+    "user_config_updated": false
+  }
+]
