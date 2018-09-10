@@ -58,6 +58,8 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 #[cfg(test)]
+extern crate mktemp;
+#[cfg(test)]
 extern crate tempdir;
 extern crate time;
 extern crate toml;

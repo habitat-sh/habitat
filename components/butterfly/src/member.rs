@@ -36,6 +36,9 @@ use rumor::{RumorKey, RumorPayload, RumorType};
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
 
+// TODO (CM): Consider making Incarnation a real type.
+pub const DEFAULT_INCARNATION: u64 = 0;
+
 // This is a Uuid type turned to a string
 pub type UuidSimple = String;
 
@@ -74,7 +77,7 @@ impl Default for Member {
     fn default() -> Self {
         Member {
             id: Uuid::new_v4().to_simple_ref().to_string(),
-            incarnation: 0,
+            incarnation: DEFAULT_INCARNATION,
             // TODO (CM): DANGER DANGER DANGER
             // This is a lousy default, and suggests that the notion
             // of a "default Member" doesn't make much sense.

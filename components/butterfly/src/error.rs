@@ -15,6 +15,7 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::num;
 use std::path::PathBuf;
 use std::result;
 use std::str;
@@ -35,6 +36,8 @@ pub enum Error {
     DecodeError(prost::DecodeError),
     EncodeError(prost::EncodeError),
     HabitatCore(habitat_core::error::Error),
+    IncarnationIO(PathBuf, io::Error),
+    IncarnationParse(PathBuf, num::ParseIntError),
     NonExistentRumor(String, String),
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
@@ -68,6 +71,16 @@ impl fmt::Display for Error {
             Error::DecodeError(ref err) => format!("Failed to decode protocol message: {}", err),
             Error::EncodeError(ref err) => format!("Failed to encode protocol message: {}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
+            Error::IncarnationIO(ref path, ref err) => format!(
+                "Error reading or writing incarnation store file {}: {}",
+                path.display(),
+                err
+            ),
+            Error::IncarnationParse(ref path, ref err) => format!(
+                "Error parsing value from incarnation store file {}: {}",
+                path.display(),
+                err
+            ),
             Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
                 "Non existent rumor asked to be written to bytes: {} {}",
                 member_id, rumor_id
@@ -108,6 +121,8 @@ impl error::Error for Error {
             Error::DecodeError(ref err) => err.description(),
             Error::EncodeError(ref err) => err.description(),
             Error::HabitatCore(_) => "Habitat core error",
+            Error::IncarnationIO(_, _) => "Error reading or writing incarnation store file",
+            Error::IncarnationParse(_, _) => "Error parsing value from incarnation store file",
             Error::NonExistentRumor(_, _) => {
                 "Cannot write rumor to bytes because it does not exist"
             }

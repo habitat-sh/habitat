@@ -21,6 +21,7 @@
 
 mod expire;
 mod inbound;
+mod incarnation_store;
 mod outbound;
 mod pull;
 mod push;
@@ -32,7 +33,7 @@ use std::fmt::{self, Debug};
 use std::fs;
 use std::io;
 use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
@@ -47,7 +48,7 @@ use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
 use error::{Error, Result};
-use member::{Health, Member, MemberList};
+use member::{Health, Member, MemberList, DEFAULT_INCARNATION};
 use message;
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
@@ -72,19 +73,21 @@ pub trait Suitability: Debug + Send + Sync {
 }
 
 /// Encapsulate a `Member` with the added understanding that this
-/// represents the identity of a particular Butterfly Server.
+/// represents the identity of this Butterfly Server.
+///
+/// In particular, this localizes all incarnation increment and
+/// persistence logic.
 #[derive(Clone, Debug)]
-pub struct Myself(Member);
-
-impl From<Member> for Myself {
-    fn from(m: Member) -> Myself {
-        Myself(m)
-    }
+pub struct Myself {
+    member: Member,
+    // TODO (CM): This is only optional because the current
+    // implementation of Server requires it. See note there for more.
+    incarnation_store: Option<incarnation_store::IncarnationStore>,
 }
 
 impl AsRef<Member> for Myself {
     fn as_ref(&self) -> &Member {
-        &self.0
+        &self.member
     }
 }
 
@@ -97,24 +100,71 @@ impl AsRef<Member> for Myself {
 // Once the tests are refactored, this implementation should go away.
 impl AsMut<Member> for Myself {
     fn as_mut(&mut self) -> &mut Member {
-        &mut self.0
+        &mut self.member
     }
 }
 
 impl Myself {
+    /// Create a new `Myself` for the given `Member`. If `store_dir`
+    /// is provided, a file named `INCARNATION` will be created in
+    /// that directory and initialized as an `IncarnationStore`.
+    fn new<P>(member: Member, store_dir: Option<P>) -> Result<Myself>
+    where
+        P: AsRef<Path>,
+    {
+        let store = store_dir.map(|ref d| {
+            let path = d.as_ref().join("INCARNATION").to_path_buf();
+            incarnation_store::IncarnationStore::from(path)
+        });
+        Ok(Myself {
+            member: member,
+            incarnation_store: store,
+        })
+    }
+
+    /// Ensure that the underlying incarnation store is appropriately
+    /// initialized, and set the incarnation according to what (if
+    /// anything) has been previously stored.
+    fn initialize(&mut self) -> Result<()> {
+        // TODO (CM): This awkward construction is due to the current
+        // optionality of incarnation_store :(
+        if self.incarnation_store.is_some() {
+            let initial_value = self.incarnation_store.as_ref().unwrap().initialize()?;
+            if initial_value != DEFAULT_INCARNATION {
+                // If we have a non-default number, then we're
+                // restarting from a previous state. We'll increment
+                // to reflect that this is a new incarnation.
+                self.member.incarnation = initial_value;
+                self.increment_incarnation()?;
+            }
+        };
+        debug!(
+            "Initializing with incarnation number {}",
+            self.member.incarnation
+        );
+        Ok(())
+    }
+
     /// Increments the incarnation by 1. A `Member`'s incarnation
     /// number can *only* be incremented by itself.
-    pub fn increment_incarnation(&mut self) {
-        self.0.incarnation += 1;
+    ///
+    /// Returns an error if there was an issue persisting the
+    /// incarnation number.
+    fn increment_incarnation(&mut self) -> Result<()> {
+        self.member.incarnation += 1;
+        if let Some(ref s) = self.incarnation_store {
+            s.store(self.member.incarnation)?;
+        };
+        Ok(())
     }
 
     /// Returns the current incarnation number.
     pub fn incarnation(&self) -> u64 {
-        self.0.incarnation
+        self.member.incarnation
     }
 
     pub fn mark_departed(&mut self) {
-        self.0.departed = true
+        self.member.departed = true
     }
 }
 
@@ -124,7 +174,7 @@ pub struct Server {
     name: Arc<String>,
     member_id: Arc<String>,
     // TODO (CM): This is currently public because butterfly-test
-    // depends on it being so. Refactor so it can be private
+    // depends on it being so. Refactor so it can be private.
     pub member: Arc<RwLock<Myself>>,
     pub member_list: MemberList,
     ring_key: Arc<Option<SymKey>>,
@@ -191,6 +241,10 @@ impl Server {
         trace: Trace,
         ring_key: Option<SymKey>,
         name: Option<String>,
+        // TODO (CM): having data_path as optional is only something
+        // that's used in testing, but it cascades outward and
+        // complicates other parts of this code. We should find a way
+        // to remove the optionality.
         data_path: Option<P>,
         suitability_lookup: Box<Suitability>,
     ) -> Result<Server>
@@ -206,12 +260,22 @@ impl Server {
             (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => {
                 member.swim_port = swim_socket_addr.port() as i32;
                 member.gossip_port = gossip_socket_addr.port() as i32;
+
+                let member_id = member.id.clone();
+                let myself = match data_path {
+                    Some(ref p) => {
+                        let path: PathBuf = p.into();
+                        Myself::new(member, Some(path))?
+                    }
+                    None => Myself::new(member, None::<PathBuf>)?,
+                };
+
                 Ok(Server {
-                    name: Arc::new(name.unwrap_or(member.id.clone())),
+                    name: Arc::new(name.unwrap_or(member_id.clone())),
                     // TODO (CM): could replace this with an accessor
                     // on member, if we have a better type
-                    member_id: Arc::new(member.id.clone()),
-                    member: Arc::new(RwLock::new(member.into())),
+                    member_id: Arc::new(member_id),
+                    member: Arc::new(RwLock::new(myself)),
                     member_list: MemberList::new(),
                     ring_key: Arc::new(ring_key),
                     rumor_heat: RumorHeat::default(),
@@ -323,6 +387,11 @@ impl Server {
             }
             let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
             *dat_file = Some(file);
+
+            self.member
+                .write()
+                .expect("Member lock is poisoned")
+                .initialize()?;
         }
 
         let socket = match UdpSocket::bind(
@@ -529,7 +598,21 @@ impl Server {
         if self.socket.is_some() {
             {
                 let mut me = self.member.write().expect("Member lock is poisoned");
-                me.increment_incarnation();
+                if let Err(e) = me.increment_incarnation() {
+                    // This is technically an error, but shouldn't
+                    // block the rest of this shutdown logic. At
+                    // worst, it means we'd think the incarnation is
+                    // one less than the rest of the network when (if)
+                    // we restart. The user can fix by manual
+                    // intervention, or by letting the refutation
+                    // logic handle it on the next startup.
+                    warn!(
+                        "Could not persist incarnation file during departure: {:?}",
+                        e
+                    );
+                }
+                // TODO (CM): It's not clear that this operation is
+                // actually needed.
                 me.mark_departed();
 
                 self.member_list
@@ -576,10 +659,23 @@ impl Server {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() {
             if health != Health::Alive {
-                self.member
+                if let Err(e) = self
+                    .member
                     .write()
                     .expect("Member lock is poisoned")
-                    .increment_incarnation();
+                    .increment_incarnation()
+                {
+                    // It's not clear that we should return an error
+                    // and stop everything if we can't persist an
+                    // incremented incarnation.
+                    //
+                    // In the absence of that, we can log an error to
+                    // allow the operator to investigate.
+                    error!(
+                        "Could not persist incarnation file during refutation: {:?}",
+                        e
+                    );
+                }
                 health = Health::Alive;
                 incremented_incarnation = true;
             }
@@ -1112,15 +1208,25 @@ mod tests {
         /// Helper function to create an instance of `Myself` for
         /// tests.
         fn myself() -> Myself {
-            Member::default().into()
+            Myself::new(Member::default(), None::<PathBuf>)
+                .expect("couldn't create an instance of Myself")
         }
 
         #[test]
         fn myself_can_increment_its_incarnation() {
             let mut me = myself();
-            assert_eq!(me.incarnation(), 0, "Incarnation should start at 0");
-            me.increment_incarnation();
-            assert_eq!(me.incarnation(), 1, "Incarnation should have incremented");
+            assert_eq!(
+                me.incarnation(),
+                DEFAULT_INCARNATION,
+                "Incarnation should start at the default of {}",
+                DEFAULT_INCARNATION
+            );
+            assert!(me.increment_incarnation().is_ok());
+            assert_eq!(
+                me.incarnation(),
+                DEFAULT_INCARNATION + 1,
+                "Incarnation should have incremented by 1"
+            );
         }
     }
 
