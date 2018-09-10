@@ -1009,7 +1009,7 @@ impl<'a> InstallTask<'a> {
         if active_target != &artifact_target {
             return Err(Error::HabitatCore(hcore::Error::WrongActivePackageTarget(
                 active_target.clone(),
-                active_target.clone(),
+                artifact_target.clone(),
             )));
         }
 
