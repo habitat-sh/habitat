@@ -68,11 +68,11 @@ extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
+extern crate mktemp;
 extern crate notify;
 extern crate persistent;
 extern crate prost;
 extern crate protobuf;
-extern crate rand;
 extern crate regex;
 extern crate router;
 extern crate serde;

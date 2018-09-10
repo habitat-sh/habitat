@@ -27,8 +27,8 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use mktemp::Temp;
 use protocol;
-use rand::{thread_rng, Rng};
 use serde::{self, Deserialize};
 use toml;
 
@@ -313,9 +313,7 @@ impl ServiceSpec {
             .as_ref()
             .parent()
             .expect("Cannot determine parent directory for service spec");
-        let tmpfile = path
-            .as_ref()
-            .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
+        let tmpfile = Temp::new_file_in(path.as_ref())?.to_path_buf();
         fs::create_dir_all(dst_path)
             .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         // Release the write file handle before the end of the function since we're done

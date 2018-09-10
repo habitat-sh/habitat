@@ -28,7 +28,7 @@ use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 
 use error::{Error, Result, SupError};
-use rand::{thread_rng, Rng};
+use mktemp::Temp;
 use toml;
 
 const SPEC_FILE_EXT: &'static str = "spec";
@@ -125,9 +125,7 @@ impl CompositeSpec {
             .as_ref()
             .parent()
             .expect("Cannot determine parent directory for composite spec");
-        let tmpfile = path
-            .as_ref()
-            .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
+        let tmpfile = Temp::new_file_in(path.as_ref())?.to_path_buf();
         fs::create_dir_all(dst_path)
             .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
 
