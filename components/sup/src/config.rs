@@ -20,6 +20,7 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use hcore::env;
 use std::fmt;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
@@ -31,6 +32,9 @@ use std::str::FromStr;
 use error::{Error, Result, SupError};
 
 pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
+
+/// Default environment variable override for GossipListenAddr.
+pub const DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_GOSSIP";
 
 static LOGKEY: &'static str = "CFG";
 
@@ -55,12 +59,30 @@ impl GossipListenAddr {
     }
 }
 
+// Returns a GossipListen listener address value if set in the environment. Does *not*
+// return any default value if the value was not found in the environment!
+pub fn listen_gossip_from_env() -> Option<String> {
+    env::var(DEFAULT_ADDRESS_ENVVAR).ok()
+}
+
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
-            Ipv4Addr::new(0, 0, 0, 0),
-            GOSSIP_DEFAULT_PORT,
-        )))
+        match listen_gossip_from_env() {
+            Some(addr_str) => GossipListenAddr::from_str(&addr_str).unwrap_or_else(|err| {
+                debug!(
+                    "could not parse address '{}' from environment variable {}, {}",
+                    addr_str, DEFAULT_ADDRESS_ENVVAR, err
+                );
+                GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
+                    Ipv4Addr::new(0, 0, 0, 0),
+                    GOSSIP_DEFAULT_PORT,
+                )))
+            }),
+            None => GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
+                Ipv4Addr::new(0, 0, 0, 0),
+                GOSSIP_DEFAULT_PORT,
+            ))),
+        }
     }
 }
 

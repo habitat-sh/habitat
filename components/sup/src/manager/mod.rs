@@ -661,11 +661,6 @@ impl Manager {
         let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
         outputln!("Starting ctl-gateway on {}", &ctl_listen_addr);
         ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, ctl_tx);
-        debug!(
-            "saving the ctl-gateway listen address to {}",
-            protocol::ctl::CTL_GATEWAY_ADDRESS_FILENAME
-        );
-        ctl_gateway::save_ctl_gateway_listen_address_file(&self.fs_cfg.sup_root, ctl_listen_addr)?;
         debug!("ctl-gateway started");
         outputln!("Starting http-gateway on {}", &http_listen_addr);
         http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr).start()?;

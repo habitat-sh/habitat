@@ -1541,46 +1541,7 @@ fn sup_addr_from_input(m: &ArgMatches) -> Result<SocketAddr> {
             };
             Ok(addrs[0])
         }
-        None => {
-            let mut addr_str = String::new();
-            match protocol::read_ctl_gateway_address(
-                protocol::sup_root(None::<String>, None::<String>),
-                &mut addr_str,
-            ) {
-                Ok(true) => {
-                    debug!(
-                        "using ctl-gateway address {} from {} file on disk",
-                        addr_str,
-                        protocol::ctl::CTL_GATEWAY_ADDRESS_FILENAME
-                    );
-                    return Ok(SocketAddr::from_str(&addr_str).unwrap_or_else(|err| {
-                        debug!("could not parse address '{}' {}", addr_str, err);
-                        println!(
-                            "falling back to default ctl-gateway address {}",
-                            protocol::ctl::default_addr()
-                        );
-                        protocol::ctl::default_addr()
-                    }));
-                }
-                Ok(false) => {
-                    debug!(
-                        "could not find {} file, using default ctl-gateway address {}",
-                        protocol::ctl::CTL_GATEWAY_ADDRESS_FILENAME,
-                        protocol::ctl::default_addr()
-                    );
-                    return Ok(protocol::ctl::default_addr());
-                }
-                Err(e) => {
-                    println!(
-                        "IO error attempting to read ctl-gateway address from {} file on disk {}. Using default address {}",
-                        protocol::ctl::CTL_GATEWAY_ADDRESS_FILENAME,
-                        e,
-                        protocol::ctl::default_addr()
-                    );
-                    return Ok(protocol::ctl::default_addr());
-                }
-            };
-        }
+        None => Ok(protocol::ctl::default_addr()),
     }
 }
 
