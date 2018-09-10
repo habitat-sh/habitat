@@ -812,7 +812,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
         (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
         (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
-            "The listen address for the gossip system. If not specified, the value will \
+            "The listen address for the Gossip System Gateway. If not specified, the value will \
             be taken from the HAB_LISTEN_GOSSIP environment variable if defined. [default: 0.0.0.0:9638]")
         (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_socket_addr}
             "The listen address for the HTTP Gateway. If not specified, the value will \
