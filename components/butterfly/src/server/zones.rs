@@ -856,21 +856,20 @@ fn handle_zone<N: Network>(
     // - if message was ack then send another ack back to
     //   enlighten the sender about newer and better zone
     // - use process_zone_change_internal_state
-    let maybe_not_nil_sender_zone_and_id = {
+    let maybe_not_nil_sender_zone = {
         if let Some(zone) = hz_data
             .zones
             .iter()
             .find(|z| z.id == hz_data.from_member.zone_id)
             .cloned()
         {
-            let zone_id = zone.id;
-            if zone_id.is_nil() {
+            if zone.id.is_nil() {
                 dbg_data.sender_zone_warning =
                     Some("Got a zone with a nil UUID, ignoring it".to_string());
                 warn!("Got a zone with a nil UUID, ignoring it");
                 None
             } else {
-                Some((zone, zone_id))
+                Some(zone)
             }
         } else {
             let id = hz_data.from_member.zone_id;
@@ -939,7 +938,7 @@ fn handle_zone<N: Network>(
     dbg_data.our_old_zone_id = our_member_clone.zone_id.to_string();
 
     let results = match (
-        maybe_not_nil_sender_zone_and_id,
+        maybe_not_nil_sender_zone,
         zone_settled,
         same_private_network,
     ) {
@@ -1003,7 +1002,7 @@ fn handle_zone<N: Network>(
             HandleZoneResults::Stuff(stuff)
         }
         // 1aa.
-        (Some((sender_zone, _sender_zone_id)), false, true) => {
+        (Some(sender_zone), false, true) => {
             dbg_data.scenario = "1aa".to_string();
 
             let mut stuff = HandleZoneResultsStuff::default();
@@ -1013,7 +1012,7 @@ fn handle_zone<N: Network>(
             HandleZoneResults::Stuff(stuff)
         }
         // 1ab.
-        (Some((sender_zone, _sender_zone_id)), false, false) => {
+        (Some(sender_zone), false, false) => {
             dbg_data.scenario = "1ab".to_string();
 
             let mut stuff = HandleZoneResultsStuff::default();
@@ -1039,7 +1038,7 @@ fn handle_zone<N: Network>(
             HandleZoneResults::Stuff(stuff)
         }
         // 1ba.
-        (Some((sender_zone, _sender_zone_id)), true, true) => {
+        (Some(sender_zone), true, true) => {
             dbg_data.scenario = "1ba".to_string();
 
             process_zone(
@@ -1053,7 +1052,7 @@ fn handle_zone<N: Network>(
             )
         }
         // 1bb.
-        (Some((sender_zone, _sender_zone_id)), true, false) => {
+        (Some(sender_zone), true, false) => {
             dbg_data.scenario = "1bb".to_string();
 
             let mut stuff = HandleZoneResultsStuff::default();
