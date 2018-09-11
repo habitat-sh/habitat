@@ -140,7 +140,7 @@ pub struct MemberOrZoneChanges {
 }
 
 #[derive(Clone, Debug)]
-pub enum HandleZoneInternalResults {
+enum HandleZoneInternalResults {
     Nothing,
     UnknownSenderAddress,
     SendAck,
@@ -569,7 +569,7 @@ pub fn handle_zone<N: Network>(
     }
 }
 
-pub fn handle_zone_for_recipient<N: Network>(
+fn handle_zone_for_recipient<N: Network>(
     server: &Server<N>,
     zones: &[Zone],
     swim_type: SwimType,
