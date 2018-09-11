@@ -371,11 +371,11 @@ impl<N: Network> PushWorker<N> {
 
     /// Given a rumorkey, creates a protobuf rumor for sharing.
     fn create_zone_rumor(&self, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
-        let zone_uuid = match rumor_key.id.parse() {
+        let zone_id = match rumor_key.id.parse() {
             Ok(parsed_key_id) => parsed_key_id,
             Err(_) => return None,
         };
-        let zone = match self.server.read_zone_list().zones.get(&zone_uuid) {
+        let zone = match self.server.read_zone_list().zones.get(&zone_id) {
             Some(zone) => zone.clone(),
             None => return None,
         };

@@ -362,15 +362,15 @@ pub fn populate_membership_rumors<N: Network>(
         let zone_list = server.read_zone_list();
 
         for ref rkey in zone_rumors.iter() {
-            if let Ok(gossiped_zone_uuid) = rkey.id.parse::<BfUuid>() {
-                if let Some(zone) = zone_list.zones.get(&gossiped_zone_uuid) {
+            if let Ok(gossiped_zone_id) = rkey.id.parse::<BfUuid>() {
+                if let Some(zone) = zone_list.zones.get(&gossiped_zone_id) {
                     swim.zones.push(zone.clone());
-                    if gossiped_zone_uuid == our_zone_id {
+                    if gossiped_zone_id == our_zone_id {
                         our_zone_gossiped = true;
                     }
                 }
                 if let Some(ref maintained_zone_id) = maybe_maintained_zone_id {
-                    if gossiped_zone_uuid == *maintained_zone_id {
+                    if gossiped_zone_id == *maintained_zone_id {
                         maintained_zone_gossiped = true;
                     }
                 }

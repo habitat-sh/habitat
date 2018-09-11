@@ -135,18 +135,14 @@ impl From<Zone> for proto::Zone {
             id: Some(value.id.to_string()),
             incarnation: Some(value.incarnation),
             maintainer_id: Some(value.maintainer_id.to_string()),
-            parent_zone_id: value.parent_zone_id.map(|uuid| uuid.to_string()),
+            parent_zone_id: value.parent_zone_id.map(|id| id.to_string()),
             child_zone_ids: value
                 .child_zone_ids
                 .iter()
-                .map(|uuid| uuid.to_string())
+                .map(|id| id.to_string())
                 .collect(),
-            successor: value.successor.map(|uuid| uuid.to_string()),
-            predecessors: value
-                .predecessors
-                .iter()
-                .map(|uuid| uuid.to_string())
-                .collect(),
+            successor: value.successor.map(|id| id.to_string()),
+            predecessors: value.predecessors.iter().map(|id| id.to_string()).collect(),
         }
     }
 }
@@ -223,29 +219,29 @@ impl ZoneAliasList {
         }
     }
 
-    fn ensure_id(&mut self, uuid: BfUuid) -> usize {
-        match self.map.entry(uuid) {
+    fn ensure_id(&mut self, id: BfUuid) -> usize {
+        match self.map.entry(id) {
             Entry::Occupied(oe) => *(oe.get()),
             Entry::Vacant(ve) => {
                 let idx = self.vecs.len();
 
-                self.vecs.push(vec![uuid]);
+                self.vecs.push(vec![id]);
                 ve.insert(idx);
                 idx
             }
         }
     }
 
-    fn is_alias_of(&self, uuid1: BfUuid, uuid2: BfUuid) -> bool {
-        match (self.map.get(&uuid1), self.map.get(&uuid2)) {
+    fn is_alias_of(&self, id1: BfUuid, id2: BfUuid) -> bool {
+        match (self.map.get(&id1), self.map.get(&id2)) {
             (Some(idx1), Some(idx2)) => idx1 == idx2,
             (_, _) => false,
         }
     }
 
-    fn take_aliases_from(&mut self, uuid1: BfUuid, uuid2: BfUuid) {
-        let idx1 = self.ensure_id(uuid1);
-        match self.map.entry(uuid2) {
+    fn take_aliases_from(&mut self, id1: BfUuid, id2: BfUuid) {
+        let idx1 = self.ensure_id(id1);
+        match self.map.entry(id2) {
             Entry::Occupied(mut oe) => {
                 let idx2 = *oe.get();
                 if idx1 == idx2 {
@@ -256,7 +252,7 @@ impl ZoneAliasList {
                 self.vecs[idx1].extend(old_ids);
             }
             Entry::Vacant(ve) => {
-                self.vecs[idx1].push(uuid2);
+                self.vecs[idx1].push(id2);
                 ve.insert(idx1);
             }
         }
@@ -271,9 +267,9 @@ impl ZoneAliasList {
         let mut set = HashSet::with_capacity(indices.len());
 
         for idx in indices {
-            let max_uuid = self.vecs[*idx].iter().max().unwrap();
+            let max_id = self.vecs[*idx].iter().max().unwrap();
 
-            set.insert(*max_uuid);
+            set.insert(*max_id);
         }
 
         return set;
@@ -377,9 +373,9 @@ impl ZoneList {
     }
 
     fn insert_internal(&mut self, mut zone: Zone) -> Vec<RumorKey> {
-        let zone_uuid = zone.id;
+        let zone_id = zone.id;
 
-        if zone_uuid.is_nil() {
+        if zone_id.is_nil() {
             return Vec::new();
         }
 
@@ -404,21 +400,21 @@ impl ZoneList {
                 // merge the info from current and new zone, but
                 // do not increment the incarnation…
                 match (zone.successor, current_zone.successor) {
-                    (Some(successor_uuid), Some(current_successor_uuid)) => {
-                        match successor_uuid.cmp(&current_successor_uuid) {
+                    (Some(successor_id), Some(current_successor_id)) => {
+                        match successor_id.cmp(&current_successor_id) {
                             Ordering::Greater => {
-                                predecessors.insert(current_successor_uuid);
+                                predecessors.insert(current_successor_id);
                             }
                             Ordering::Equal => (),
                             Ordering::Less => {
-                                predecessors.insert(successor_uuid);
-                                zone.successor = Some(current_successor_uuid);
+                                predecessors.insert(successor_id);
+                                zone.successor = Some(current_successor_id);
                             }
                         }
                     }
                     (Some(_), None) => {}
-                    (None, Some(current_successor_uuid)) => {
-                        zone.successor = Some(current_successor_uuid);
+                    (None, Some(current_successor_id)) => {
+                        zone.successor = Some(current_successor_id);
                     }
                     (None, None) => {}
                 }
@@ -428,25 +424,25 @@ impl ZoneList {
                 zone.predecessors = predecessors.drain().collect();
 
                 match (zone.parent_zone_id, current_zone.parent_zone_id) {
-                    (Some(parent_uuid), Some(current_parent_uuid)) => {
-                        if self.is_alias_of(parent_uuid, current_parent_uuid) {
-                            if current_parent_uuid > parent_uuid {
-                                zone.parent_zone_id = Some(current_parent_uuid);
+                    (Some(parent_id), Some(current_parent_id)) => {
+                        if self.is_alias_of(parent_id, current_parent_id) {
+                            if current_parent_id > parent_id {
+                                zone.parent_zone_id = Some(current_parent_id);
                             }
                         } else {
                             debug!(
                                 "PARENTS: looks like a new parent ({}) for zone {} is not an alias of {}",
-                                parent_uuid,
+                                parent_id,
                                 zone.id,
-                                current_parent_uuid,
+                                current_parent_id,
                             );
-                            zone.parent_zone_id = Some(current_parent_uuid);
+                            zone.parent_zone_id = Some(current_parent_id);
                         }
                     }
                     (None, None) => (),
                     (Some(_), None) => (),
-                    (None, Some(current_parent_uuid)) => {
-                        zone.parent_zone_id = Some(current_parent_uuid);
+                    (None, Some(current_parent_id)) => {
+                        zone.parent_zone_id = Some(current_parent_id);
                     }
                 }
                 self.make_zones_consistent(zone)
@@ -460,8 +456,8 @@ impl ZoneList {
         }
 
         if let Some(zone) = self.zones.get(&id1) {
-            if let Some(successor_uuid) = zone.successor {
-                if successor_uuid == id2 {
+            if let Some(successor_id) = zone.successor {
+                if successor_id == id2 {
                     return true;
                 }
             }
@@ -470,8 +466,8 @@ impl ZoneList {
             }
         }
         if let Some(zone) = self.zones.get(&id2) {
-            if let Some(successor_uuid) = zone.successor {
-                if successor_uuid == id1 {
+            if let Some(successor_id) = zone.successor {
+                if successor_id == id1 {
                     return true;
                 }
             }
@@ -492,29 +488,29 @@ impl ZoneList {
         let mut children = HashSet::new();
 
         aliases.insert(zone.id);
-        if let Some(successor_uuid) = zone.successor {
-            aliases.insert(successor_uuid);
+        if let Some(successor_id) = zone.successor {
+            aliases.insert(successor_id);
         }
         aliases.extend(zone.predecessors.iter());
 
-        if let Some(parent_uuid) = zone.parent_zone_id {
-            parents.insert(parent_uuid);
-            original_parent = Some(parent_uuid);
+        if let Some(parent_id) = zone.parent_zone_id {
+            parents.insert(parent_id);
+            original_parent = Some(parent_id);
         }
         children.extend(zone.child_zone_ids.iter());
         queue.extend(aliases.iter().cloned());
 
         visited.insert(zone.id);
-        while let Some(uuid) = queue.pop_front() {
-            if visited.contains(&uuid) {
+        while let Some(id) = queue.pop_front() {
+            if visited.contains(&id) {
                 continue;
             }
-            visited.insert(uuid);
-            if let Some(other_zone) = self.zones.get(&uuid) {
-                aliases.insert(uuid);
-                if let Some(successor_uuid) = other_zone.successor {
-                    aliases.insert(successor_uuid);
-                    queue.push_back(successor_uuid);
+            visited.insert(id);
+            if let Some(other_zone) = self.zones.get(&id) {
+                aliases.insert(id);
+                if let Some(successor_id) = other_zone.successor {
+                    aliases.insert(successor_id);
+                    queue.push_back(successor_id);
                 }
 
                 aliases.extend(other_zone.predecessors.iter());
@@ -551,17 +547,17 @@ impl ZoneList {
         let final_children = self.filter_aliases(children);
         let mut rumor_keys = Vec::new();
 
-        for zone_uuid in visited.drain() {
+        for zone_id in visited.drain() {
             let mut changed = false;
-            let mut other_zone = match self.zones.get(&zone_uuid).cloned() {
+            let mut other_zone = match self.zones.get(&zone_id).cloned() {
                 Some(oz) => oz,
                 None => continue,
             };
             let mut new_parent = None;
 
-            let new_successor = if successor != zone_uuid {
-                if let Some(other_successor_uuid) = other_zone.successor {
-                    other_successor_uuid < successor
+            let new_successor = if successor != zone_id {
+                if let Some(other_successor_id) = other_zone.successor {
+                    other_successor_id < successor
                 } else {
                     true
                 }
@@ -573,9 +569,9 @@ impl ZoneList {
                 changed = true;
             }
             match (other_zone.parent_zone_id, parent) {
-                (Some(other_parent_uuid), Some(parent_uuid)) => {
-                    if other_parent_uuid < parent_uuid {
-                        new_parent = Some(parent_uuid);
+                (Some(other_parent_id), Some(parent_id)) => {
+                    if other_parent_id < parent_id {
+                        new_parent = Some(parent_id);
                     }
                 }
                 (Some(_), None) => {
@@ -585,19 +581,19 @@ impl ZoneList {
                     );
                     // eh?
                 }
-                (None, Some(parent_uuid)) => {
-                    new_parent = Some(parent_uuid);
+                (None, Some(parent_id)) => {
+                    new_parent = Some(parent_id);
                 }
                 (None, None) => {}
             }
-            if let Some(uuid) = new_parent {
-                other_zone.parent_zone_id = Some(uuid);
+            if let Some(id) = new_parent {
+                other_zone.parent_zone_id = Some(id);
                 changed = true;
             }
 
             let mut filtered_predecessors = predecessors
                 .iter()
-                .filter(|uuid| **uuid != zone_uuid)
+                .filter(|id| **id != zone_id)
                 .cloned()
                 .collect::<HashSet<_>>();
             let old_predecessors = other_zone
@@ -639,7 +635,7 @@ impl ZoneList {
                 }
 
                 rumor_keys.push(RumorKey::from(&other_zone));
-                self.zones.insert(zone_uuid, other_zone);
+                self.zones.insert(zone_id, other_zone);
             }
         }
 
@@ -711,11 +707,11 @@ impl ZoneList {
         }
     }
 
-    fn filter_aliases(&self, zone_uuids: HashSet<BfUuid>) -> HashSet<BfUuid> {
-        match zone_uuids.len() {
-            0 | 1 => zone_uuids,
+    fn filter_aliases(&self, zone_ids: HashSet<BfUuid>) -> HashSet<BfUuid> {
+        match zone_ids.len() {
+            0 | 1 => zone_ids,
             len => {
-                let ids = zone_uuids.iter().collect::<Vec<_>>();
+                let ids = zone_ids.iter().collect::<Vec<_>>();
                 let mut zone_alias_list = ZoneAliasList::new();
 
                 zone_alias_list.ensure_id(*ids[0]);

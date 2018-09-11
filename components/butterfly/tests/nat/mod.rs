@@ -1756,7 +1756,7 @@ impl TestNetworkSwitchBoard {
         &self,
         disjoint_servers: &[T],
     ) -> bool {
-        let mut zone_uuids = disjoint_servers
+        let mut zone_ids = disjoint_servers
             .iter()
             .filter_map(|v| {
                 v.as_ref()
@@ -1765,9 +1765,9 @@ impl TestNetworkSwitchBoard {
             })
             .collect::<Vec<_>>();
 
-        zone_uuids.sort_unstable();
-        zone_uuids.dedup();
-        zone_uuids.len() == disjoint_servers.len()
+        zone_ids.sort_unstable();
+        zone_ids.dedup();
+        zone_ids.len() == disjoint_servers.len()
     }
 
     fn dsz_check_relationships<'a, T: AsRef<[&'a TestServer]>>(

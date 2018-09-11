@@ -342,10 +342,10 @@ impl<N: Network> Inbound<N> {
                 for zone in results.zones_to_insert.drain(..) {
                     self.server.insert_zone(zone);
                 }
-                if let Some(zone_uuid) = results.zone_uuid_for_our_member {
+                if let Some(zone_id) = results.zone_id_for_our_member {
                     let our_member_clone = {
                         let mut our_member = self.server.write_member();
-                        our_member.zone_id = zone_uuid;
+                        our_member.zone_id = zone_id;
                         our_member.incarnation += 1;
 
                         our_member.clone()
@@ -475,17 +475,17 @@ impl<N: Network> Inbound<N> {
             }
         };
 
-        let maybe_successor_clone = if let Some(uuid) = maintained_zone_clone.successor {
-            self.server.read_zone_list().zones.get(&uuid).cloned()
+        let maybe_successor_clone = if let Some(id) = maintained_zone_clone.successor {
+            self.server.read_zone_list().zones.get(&id).cloned()
         } else {
             None
         };
-        let our_member_uuid = self.server.read_member().zone_id;
+        let our_member_id = self.server.read_member().zone_id;
 
         ZoneChangeResultsMsgOrNothing::Results(zones::process_zone_change_internal_state(
             maintained_zone_clone,
             maybe_successor_clone,
-            our_member_uuid,
+            our_member_id,
             zone_change,
             dbg_data,
         ))

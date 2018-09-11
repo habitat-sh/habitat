@@ -424,11 +424,11 @@ impl<N: Network> Server<N> {
     }
 
     pub fn insert_zone(&self, zone: Zone) {
-        let trace_zone_uuid = zone.id;
+        let trace_zone_id = zone.id;
         let trace_incarnation = zone.incarnation;
 
         for rk in self.write_zone_list().insert(zone) {
-            let trace_zone_id = trace_zone_uuid.to_string();
+            let trace_zone_id = trace_zone_id.to_string();
 
             trace_it!(
                 ZONES: self,

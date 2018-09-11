@@ -59,7 +59,7 @@ pub struct ZoneChangeResults {
     pub successor_for_maintained_zone: Option<BfUuid>,
     pub predecessors_to_add_to_maintained_zone: HashSet<BfUuid>,
     pub zones_to_insert: Vec<Zone>,
-    pub zone_uuid_for_our_member: Option<BfUuid>,
+    pub zone_id_for_our_member: Option<BfUuid>,
     pub aliases_to_inform: HashSet<BfUuid>,
 }
 
@@ -131,7 +131,7 @@ pub enum ZoneRelative {
 #[derive(Clone, Debug, Default)]
 pub struct HandleZoneResultsStuff {
     pub new_maintained_zone: Option<Zone>,
-    pub zone_uuid_for_our_member: Option<BfUuid>,
+    pub zone_id_for_our_member: Option<BfUuid>,
     pub additional_address_for_our_member: Option<(ZoneAddress, ZoneAddress)>,
     pub call_ack: bool,
     pub sender_has_nil_zone: bool,
@@ -158,12 +158,12 @@ impl Default for HandleZoneResults {
 pub fn process_zone_change_internal_state(
     mut maintained_zone_clone: Zone,
     mut maybe_successor_of_maintained_zone_clone: Option<Zone>,
-    mut our_zone_uuid: BfUuid,
+    mut our_zone_id: BfUuid,
     mut zone_change: ZoneChange,
     _dbg_data: &mut ZoneChangeDbgData,
 ) -> ZoneChangeResults {
     let mut results = ZoneChangeResults::default();
-    let maintained_zone_uuid = maintained_zone_clone.id;
+    let maintained_zone_id = maintained_zone_clone.id;
     let mut aliases_to_maybe_inform = HashMap::new();
 
     //let mut dbg_available_aliases = Vec::new();
@@ -191,23 +191,23 @@ pub fn process_zone_change_internal_state(
 
     //dbg_data.borked_successor_state = Some(false);
     //dbg_data.our_old_successor = Some(maintained_zone_clone.get_successor().to_string());
-    //dbg_data.our_old_member_zone_id = Some(our_zone_uuid.to_string());
+    //dbg_data.our_old_member_zone_id = Some(our_zone_id.to_string());
 
     results.zones_to_insert = zone_change.new_aliases.clone();
     for alias_zone in zone_change.new_aliases.drain(..) {
         //dbg_available_aliases.push(alias_zone.get_id().to_string());
 
-        let alias_uuid = alias_zone.id;
+        let alias_id = alias_zone.id;
         let mut possible_predecessor = None;
 
-        match alias_uuid.cmp(&maintained_zone_uuid) {
+        match alias_id.cmp(&maintained_zone_id) {
             CmpOrdering::Less => {
                 possible_predecessor = Some(alias_zone);
             }
             CmpOrdering::Equal => (),
             CmpOrdering::Greater => {
-                if let Some(ref successor_uuid) = maintained_zone_clone.successor {
-                    match alias_uuid.cmp(&successor_uuid) {
+                if let Some(ref successor_id) = maintained_zone_clone.successor {
+                    match alias_id.cmp(&successor_id) {
                         CmpOrdering::Less => {
                             possible_predecessor = Some(alias_zone);
                         }
@@ -225,17 +225,17 @@ pub fn process_zone_change_internal_state(
 
         if let Some(ref new_successor) = &maybe_successor_of_maintained_zone_clone {
             let has_new_successor = match maintained_zone_clone.successor {
-                Some(ref successor_uuid) => *successor_uuid != new_successor.id,
+                Some(ref successor_id) => *successor_id != new_successor.id,
                 None => true,
             };
             if has_new_successor {
                 maintained_zone_clone.successor = Some(new_successor.id);
                 results.successor_for_maintained_zone = Some(new_successor.id);
-                match aliases_to_maybe_inform.entry(alias_uuid) {
+                match aliases_to_maybe_inform.entry(alias_id) {
                     Entry::Occupied(_) => (),
                     Entry::Vacant(ve) => {
                         let abridged_successor = Zone {
-                            id: alias_uuid,
+                            id: alias_id,
                             incarnation: 0,
                             maintainer_id: String::new(),
                             parent_zone_id: None,
@@ -249,11 +249,11 @@ pub fn process_zone_change_internal_state(
                 }
             }
 
-            let successor_uuid = new_successor.id;
+            let successor_id = new_successor.id;
 
-            if our_zone_uuid < successor_uuid {
-                results.zone_uuid_for_our_member = Some(successor_uuid);
-                our_zone_uuid = successor_uuid;
+            if our_zone_id < successor_id {
+                results.zone_id_for_our_member = Some(successor_id);
+                our_zone_id = successor_id;
             }
         }
 
@@ -270,12 +270,12 @@ pub fn process_zone_change_internal_state(
             if !found {
                 //dbg_added_predecessors.push(predecessor.get_id().to_string());
 
-                let predecessor_uuid = predecessor.id;
+                let predecessor_id = predecessor.id;
 
                 results
                     .predecessors_to_add_to_maintained_zone
-                    .insert(predecessor_uuid);
-                match aliases_to_maybe_inform.entry(predecessor_uuid) {
+                    .insert(predecessor_id);
+                match aliases_to_maybe_inform.entry(predecessor_id) {
                     Entry::Occupied(_) => (),
                     Entry::Vacant(ve) => {
                         ve.insert(predecessor);
@@ -286,13 +286,13 @@ pub fn process_zone_change_internal_state(
     }
 
     //dbg_data.our_new_successor = Some(maintained_zone_clone.get_successor().to_string());
-    //dbg_data.our_new_member_zone_id = Some(our_zone_uuid.to_string());
+    //dbg_data.our_new_member_zone_id = Some(our_zone_id.to_string());
     //dbg_data.available_aliases = Some(dbg_available_aliases);
     //dbg_data.added_predecessors = Some(dbg_added_predecessors);
 
-    for (zone_uuid, zone) in aliases_to_maybe_inform {
-        if let Some(successor_uuid) = zone.successor {
-            if successor_uuid == maintained_zone_clone.id {
+    for (zone_id, zone) in aliases_to_maybe_inform {
+        if let Some(successor_id) = zone.successor {
+            if successor_id == maintained_zone_clone.id {
                 continue;
             }
         }
@@ -310,7 +310,7 @@ pub fn process_zone_change_internal_state(
             continue;
         }
 
-        results.aliases_to_inform.insert(zone_uuid);
+        results.aliases_to_inform.insert(zone_id);
     }
 
     results
@@ -364,16 +364,16 @@ pub fn handle_zone_simple<N: Network>(
                 let mut zone_list = server.write_zone_list();
                 zone_list.maintained_zone_id = Some(zone_id);
             }
-            if let Some(uuid) = stuff.zone_uuid_for_our_member {
+            if let Some(id) = stuff.zone_id_for_our_member {
                 let mut zone_list = server.write_zone_list();
-                zone_list.our_zone_id = uuid;
+                zone_list.our_zone_id = id;
             }
-            if let Some((sender_uuid, relative)) = stuff.sender_relative {
+            if let Some((sender_id, relative)) = stuff.sender_relative {
                 // TODO: update our zone with parent/child stuff
                 // need to take aliases into account!
                 let zone_id = {
-                    if let Some(uuid) = stuff.zone_uuid_for_our_member {
-                        uuid
+                    if let Some(id) = stuff.zone_id_for_our_member {
+                        id
                     } else {
                         server.read_member().zone_id
                     }
@@ -386,14 +386,14 @@ pub fn handle_zone_simple<N: Network>(
                         match relative {
                             ZoneRelative::Child => {
                                 let mut found =
-                                    zone.child_zone_ids.iter().any(|id| *id == sender_uuid);
+                                    zone.child_zone_ids.iter().any(|id| *id == sender_id);
 
                                 if !found {
                                     for child_zone_id in zone.child_zone_ids.iter() {
                                         if let Some(child_zone) = zone_list.zones.get(child_zone_id)
                                         {
                                             if let Some(ref successor) = child_zone.successor {
-                                                if *successor == sender_uuid {
+                                                if *successor == sender_id {
                                                     found = true;
                                                     break;
                                                 }
@@ -402,7 +402,7 @@ pub fn handle_zone_simple<N: Network>(
                                             if child_zone
                                                 .predecessors
                                                 .iter()
-                                                .any(|id| *id == sender_uuid)
+                                                .any(|id| *id == sender_id)
                                             {
                                                 found = true;
                                                 break;
@@ -413,7 +413,7 @@ pub fn handle_zone_simple<N: Network>(
                                 if !found {
                                     let mut zone_clone = zone.clone();
 
-                                    zone_clone.child_zone_ids.push(sender_uuid);
+                                    zone_clone.child_zone_ids.push(sender_id);
 
                                     zone_to_insert = Some(zone_clone);
                                 }
@@ -422,7 +422,7 @@ pub fn handle_zone_simple<N: Network>(
                                 if zone.parent_zone_id.is_none() {
                                     let mut zone_clone = zone.clone();
 
-                                    zone_clone.parent_zone_id = Some(sender_uuid);
+                                    zone_clone.parent_zone_id = Some(sender_id);
 
                                     zone_to_insert = Some(zone_clone);
                                 }
@@ -437,15 +437,15 @@ pub fn handle_zone_simple<N: Network>(
                     server.insert_zone(zone);
                 }
             }
-            let member_changed = stuff.zone_uuid_for_our_member.is_some()
+            let member_changed = stuff.zone_id_for_our_member.is_some()
                 || stuff.additional_address_for_our_member.is_some();
             if member_changed {
                 let our_member_clone = {
                     let mut our_member = server.write_member();
 
                     our_member.incarnation += 1;
-                    if let Some(zone_uuid) = stuff.zone_uuid_for_our_member {
-                        our_member.zone_id = zone_uuid;
+                    if let Some(zone_id) = stuff.zone_id_for_our_member {
+                        our_member.zone_id = zone_id;
                     }
                     if let Some((old, new)) = stuff.additional_address_for_our_member {
                         for zone_address in our_member.additional_addresses.iter_mut() {
@@ -486,7 +486,7 @@ pub fn handle_zone_simple<N: Network>(
             for predecessor_id in results.predecessors_to_add_to_maintained_zone {
                 maintained_zone.predecessors.push(predecessor_id);
             }
-            if let Some(zone_id) = results.zone_uuid_for_our_member {
+            if let Some(zone_id) = results.zone_id_for_our_member {
                 let mut zone_list = server.write_zone_list();
                 zone_list.our_zone_id = zone_id;
             }
@@ -498,11 +498,11 @@ pub fn handle_zone_simple<N: Network>(
             for zone in results.zones_to_insert.drain(..) {
                 server.insert_zone(zone);
             }
-            if let Some(zone_uuid) = results.zone_uuid_for_our_member {
+            if let Some(zone_id) = results.zone_id_for_our_member {
                 let our_member_clone = {
                     let mut our_member = server.write_member();
 
-                    our_member.zone_id = zone_uuid;
+                    our_member.zone_id = zone_id;
                     our_member.incarnation += 1;
 
                     our_member.clone()
@@ -820,7 +820,7 @@ fn handle_zone<N: Network>(
     // actions:
     // - settle zone
     // - generate my own zone
-    //   - new zone uuid for our member
+    //   - new zone id for our member
     //   - new maintained zone
     //   - send an ack
     // - add sender id as a child/parent of my zone
@@ -851,33 +851,33 @@ fn handle_zone<N: Network>(
     //           this one? or rather warn?
     //         - if found and zone id is something else - ignore? should not happen?
     // - assume sender's zone (means that we were not settled yet)
-    //   - new uuid for our member
+    //   - new id for our member
     // - store sender zone id? what did i mean by that?
     // - if message was ack then send another ack back to
     //   enlighten the sender about newer and better zone
     // - use process_zone_change_internal_state
-    let maybe_not_nil_sender_zone_and_uuid = {
+    let maybe_not_nil_sender_zone_and_id = {
         if let Some(zone) = hz_data
             .zones
             .iter()
             .find(|z| z.id == hz_data.from_member.zone_id)
             .cloned()
         {
-            let zone_uuid = zone.id;
-            if zone_uuid.is_nil() {
+            let zone_id = zone.id;
+            if zone_id.is_nil() {
                 dbg_data.sender_zone_warning =
                     Some("Got a zone with a nil UUID, ignoring it".to_string());
                 warn!("Got a zone with a nil UUID, ignoring it");
                 None
             } else {
-                Some((zone, zone_uuid))
+                Some((zone, zone_id))
             }
         } else {
-            let uuid = hz_data.from_member.zone_id;
+            let id = hz_data.from_member.zone_id;
 
-            if !uuid.is_nil() {
-                dbg_data.sender_zone_warning = Some(format!("Got no zone info for {}", uuid));
-                warn!("Got no zone info for {}", uuid,);
+            if !id.is_nil() {
+                dbg_data.sender_zone_warning = Some(format!("Got no zone info for {}", id));
+                warn!("Got no zone info for {}", id,);
             }
             None
         }
@@ -939,7 +939,7 @@ fn handle_zone<N: Network>(
     dbg_data.our_old_zone_id = our_member_clone.zone_id.to_string();
 
     let results = match (
-        maybe_not_nil_sender_zone_and_uuid,
+        maybe_not_nil_sender_zone_and_id,
         zone_settled,
         same_private_network,
     ) {
@@ -1003,7 +1003,7 @@ fn handle_zone<N: Network>(
             HandleZoneResults::Stuff(stuff)
         }
         // 1aa.
-        (Some((sender_zone, _sender_zone_uuid)), false, true) => {
+        (Some((sender_zone, _sender_zone_id)), false, true) => {
             dbg_data.scenario = "1aa".to_string();
 
             let mut stuff = HandleZoneResultsStuff::default();
@@ -1013,7 +1013,7 @@ fn handle_zone<N: Network>(
             HandleZoneResults::Stuff(stuff)
         }
         // 1ab.
-        (Some((sender_zone, _sender_zone_uuid)), false, false) => {
+        (Some((sender_zone, _sender_zone_id)), false, false) => {
             dbg_data.scenario = "1ab".to_string();
 
             let mut stuff = HandleZoneResultsStuff::default();
@@ -1039,7 +1039,7 @@ fn handle_zone<N: Network>(
             HandleZoneResults::Stuff(stuff)
         }
         // 1ba.
-        (Some((sender_zone, _sender_zone_uuid)), true, true) => {
+        (Some((sender_zone, _sender_zone_id)), true, true) => {
             dbg_data.scenario = "1ba".to_string();
 
             process_zone(
@@ -1053,7 +1053,7 @@ fn handle_zone<N: Network>(
             )
         }
         // 1bb.
-        (Some((sender_zone, _sender_zone_uuid)), true, false) => {
+        (Some((sender_zone, _sender_zone_id)), true, false) => {
             dbg_data.scenario = "1bb".to_string();
 
             let mut stuff = HandleZoneResultsStuff::default();
@@ -1149,13 +1149,13 @@ fn generate_my_own_zone(
     maintainer_id: String,
     dbg_data: &mut HandleZoneDbgData,
 ) {
-    let new_zone_uuid = BfUuid::generate();
+    let new_zone_id = BfUuid::generate();
 
-    stuff.new_maintained_zone = Some(Zone::new(new_zone_uuid, maintainer_id));
-    stuff.zone_uuid_for_our_member = Some(new_zone_uuid);
+    stuff.new_maintained_zone = Some(Zone::new(new_zone_id, maintainer_id));
+    stuff.zone_id_for_our_member = Some(new_zone_id);
     stuff.call_ack = true;
 
-    dbg_data.our_new_zone_id = new_zone_uuid.to_string();
+    dbg_data.our_new_zone_id = new_zone_id.to_string();
 }
 
 fn store_recipient_address_nil_sender_zone(
@@ -1185,9 +1185,9 @@ fn store_recipient_address_nil_sender_zone(
                 continue;
             }
 
-            let zone_address_uuid = zone_address.zone_id;
+            let zone_address_id = zone_address.zone_id;
 
-            if !zone_address_uuid.is_nil() {
+            if !zone_address_id.is_nil() {
                 dbg_data.additional_address_msgs.push(format!(
                     "zone address {:#?} has non-nil zone id, skipping",
                     zone_address
@@ -1217,28 +1217,28 @@ fn store_recipient_address_nil_sender_zone(
 
 fn assume_senders_zone(
     stuff: &mut HandleZoneResultsStuff,
-    sender_zone_uuid: BfUuid,
+    sender_zone_id: BfUuid,
     dbg_data: &mut HandleZoneDbgData,
 ) {
-    stuff.zone_uuid_for_our_member = Some(sender_zone_uuid);
+    stuff.zone_id_for_our_member = Some(sender_zone_id);
     stuff.call_ack = true;
 
-    dbg_data.our_new_zone_id = sender_zone_uuid.to_string();
+    dbg_data.our_new_zone_id = sender_zone_id.to_string();
 }
 
 fn add_sender_zone_id_as_relative(
     stuff: &mut HandleZoneResultsStuff,
     from_address_kind: AddressKind,
     to_address_kind: AddressKind,
-    sender_zone_uuid: BfUuid,
+    sender_zone_id: BfUuid,
     _dbg_data: &mut HandleZoneDbgData,
 ) {
     match (from_address_kind, to_address_kind) {
         (AddressKind::Additional, AddressKind::Real) => {
-            stuff.sender_relative = Some((sender_zone_uuid, ZoneRelative::Child));
+            stuff.sender_relative = Some((sender_zone_id, ZoneRelative::Child));
         }
         (AddressKind::Real, AddressKind::Additional) => {
-            stuff.sender_relative = Some((sender_zone_uuid, ZoneRelative::Parent));
+            stuff.sender_relative = Some((sender_zone_id, ZoneRelative::Parent));
         }
         (AddressKind::Real, AddressKind::Real) => {
             unreachable!(
@@ -1354,9 +1354,9 @@ fn store_recipient_address_valid_sender_zone(
                 continue;
             }
 
-            let zone_address_uuid = zone_address.zone_id;
+            let zone_address_id = zone_address.zone_id;
 
-            if zone_address_uuid == sender_zone.id {
+            if zone_address_id == sender_zone.id {
                 done = true;
                 dbg_data.additional_address_msgs.push(format!(
                     "zone address {:#?} has the same zone id as sender, done",
@@ -1365,8 +1365,8 @@ fn store_recipient_address_valid_sender_zone(
                 break;
             }
 
-            if let Some(sender_successor_uuid) = sender_zone.successor {
-                if sender_successor_uuid == zone_address_uuid {
+            if let Some(sender_successor_id) = sender_zone.successor {
+                if sender_successor_id == zone_address_id {
                     dbg_data.additional_address_msgs.push(format!(
                         "zone address {:#?} has the same zone id as sender's successor, done",
                         zone_address
@@ -1378,14 +1378,14 @@ fn store_recipient_address_valid_sender_zone(
 
             let mut maybe_new_zone_id = None;
 
-            for predecessor_uuid in sender_zone.predecessors.iter() {
-                if *predecessor_uuid == zone_address_uuid {
+            for predecessor_id in sender_zone.predecessors.iter() {
+                if *predecessor_id == zone_address_id {
                     dbg_data.additional_address_msgs.push(format!(
                         "zone address {:#?} has the same zone id as sender's predecessor, done",
                         zone_address
                     ));
-                    if let Some(sender_successor_uuid) = sender_zone.successor {
-                        maybe_new_zone_id = Some(sender_successor_uuid);
+                    if let Some(sender_successor_id) = sender_zone.successor {
+                        maybe_new_zone_id = Some(sender_successor_id);
                     } else {
                         maybe_new_zone_id = Some(sender_zone.id);
                     }
@@ -1457,9 +1457,9 @@ fn store_recipient_address_valid_sender_zone(
                 continue;
             }
 
-            let zone_address_uuid = zone_address.zone_id;
+            let zone_address_id = zone_address.zone_id;
 
-            if !zone_address_uuid.is_nil() {
+            if !zone_address_id.is_nil() {
                 dbg_data.additional_address_msgs.push(format!(
                     "zone address {:#?} has non-nil zone, skipping",
                     zone_address
@@ -1500,9 +1500,9 @@ fn store_recipient_address_valid_sender_zone(
                 continue;
             }
 
-            let zone_address_uuid = zone_address.zone_id;
+            let zone_address_id = zone_address.zone_id;
 
-            if !zone_address_uuid.is_nil() {
+            if !zone_address_id.is_nil() {
                 dbg_data.additional_address_msgs.push(format!(
                     "zone address {:#?} has non-nil zone, skipping",
                     zone_address
@@ -1590,22 +1590,22 @@ fn process_zone(
                         dbg_data
                             .parse_failures
                             .push(format!("our zone clone: {:#?}", our_zone));
-                        if let Some(successor_uuid) = our_zone.successor {
+                        if let Some(successor_id) = our_zone.successor {
                             dbg_data
                                 .parse_failures
                                 .push("our zone clone has successor".to_string());
 
-                            if successor_uuid < sender_zone.id {
+                            if successor_id < sender_zone.id {
                                 dbg_data.parse_failures.push(format!(
                                     "our zone clone successor {} is less \
                                      than sender zone {}, targetting {:#?}",
-                                    successor_uuid, sender_zone.id, maybe_our_zone_maintainer
+                                    successor_id, sender_zone.id, maybe_our_zone_maintainer
                                 ));
                                 maybe_our_zone_maintainer
                             } else {
                                 dbg_data.parse_failures.push(format!(
                                     "our zone clone successor {} is NOT less than sender zone {}",
-                                    successor_uuid, sender_zone.id
+                                    successor_id, sender_zone.id
                                 ));
                                 None
                             }
@@ -1639,7 +1639,7 @@ fn process_zone(
                     None
                 };
 
-                stuff.zone_uuid_for_our_member = Some(sender_zone_id);
+                stuff.zone_id_for_our_member = Some(sender_zone_id);
                 stuff.msg_and_target = maybe_msg_and_target;
 
                 dbg_data.our_new_zone_id = sender_zone_id.to_string();
