@@ -212,6 +212,9 @@ do_test_bats() {
 }
 
 do_default_test_bats() {
+  if [[ ! -f "${TEST_CONTEXT}/test.bats" ]]; then
+    exit_with "Failed to load test.bats file for plan. Should be at ${TEST_CONTEXT}/test.bats"
+  fi
   "${BATSPATH}/bin/bats" "${TEST_CONTEXT}/test.bats"
 }
 
