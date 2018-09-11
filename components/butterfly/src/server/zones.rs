@@ -369,8 +369,6 @@ pub fn handle_zone<N: Network>(
                 zone_list.our_zone_id = id;
             }
             if let Some((sender_id, relative)) = changes.sender_relative {
-                // TODO: update our zone with parent/child stuff
-                // need to take aliases into account!
                 let zone_id = {
                     if let Some(id) = changes.zone_id_for_our_member {
                         id
