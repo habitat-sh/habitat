@@ -151,6 +151,7 @@ _source_last_build() {
 }
 
 _install_artifact() {
+  # shellcheck disable=2154
   local _artifact_file="${PLAN_CONTEXT}/results/${pkg_artifact}"
   if [[ ! -f "${_artifact_file}" ]]; then
     exit_with "[TEST] Unable to find artifact at ${_artifact_file}" 42
@@ -172,6 +173,7 @@ do_test_service_load() {
 }
 
 do_default_test_service_load() {
+  # shellcheck disable=2154
   hab svc load "${pkg_ident}"
 }
 

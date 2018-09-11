@@ -27,5 +27,6 @@ do_build() {
 }
 
 do_install() {
+  # shellcheck disable=2154
   install -D "$CACHE_PATH/$pkg_name" "$pkg_prefix"/bin/$pkg_name
 }
