@@ -32,6 +32,9 @@ steps:
     # We only want to run one build at a time because these are long-lived VMs and the builds
     # are by definition not very isolated
     concurrency: 1
+    env:
+      # Temporary workaround for https://github.com/habitat-sh/habitat/issues/4871#issuecomment-419233861
+      SSL_CERT_FILE: "/usr/local/etc/openssl/cert.pem"
     agents:
       # This is the only queue that has Mac builders at the moment;
       # they're also not being used by anyone else.
