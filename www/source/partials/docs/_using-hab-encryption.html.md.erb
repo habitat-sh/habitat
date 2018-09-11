@@ -35,10 +35,6 @@ Supervisors running in a ring can be configured to encrypt all traffic between t
     $ hab svc load <ORIGIN>/<NAME>
     ```
 
-### Using a Ring Key When Applying Configuration Changes
-
-Users utilizing `hab config apply` or `hab file upload` will also need to supply the name of the ring key with the `-r` or `--ring` parameter, or supervisors will reject this communication.
-
 ## Service Group Encryption
 
 Supervisors in a service group can be configured to require key-based authorization prior to allowing configuration changes. In this scenario, the Supervisor in a named service group starts up with a key for that group bound to an _organization_. This allows for multiple service groups with the same name in different organizations.
