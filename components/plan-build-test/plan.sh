@@ -28,8 +28,4 @@ do_build() {
 
 do_install() {
   install -D "$CACHE_PATH/$pkg_name" "$pkg_prefix"/bin/$pkg_name
-  # install -D "$PLAN_CONTEXT"/bin/shared.bash "$pkg_prefix"/bin/
-  # install -D "$PLAN_CONTEXT"/bin/public.bash "$pkg_prefix"/bin/
-  # install -D "$PLAN_CONTEXT"/bin/composite_build_functions.bash "$pkg_prefix"/bin/
-  # install -D "$PLAN_CONTEXT"/bin/environment.bash "$pkg_prefix"/bin/
 }
