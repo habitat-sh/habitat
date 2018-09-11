@@ -421,6 +421,7 @@ fn enable_features_from_env() {
         (feat::TestExit, "TEST_EXIT"),
         (feat::TestBootFail, "BOOT_FAIL"),
         (feat::RedactHTTP, "REDACT_HTTP"),
+        (feat::IgnoreSignals, "IGNORE_SIGNALS"),
     ];
 
     // If the environment variable for a flag is set to _anything_ but
