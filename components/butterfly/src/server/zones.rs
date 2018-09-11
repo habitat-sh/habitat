@@ -30,7 +30,7 @@ use swim::{SwimType, ZoneChange};
 use zone::{Zone, ZoneAddress};
 
 #[derive(Debug)]
-pub struct SimpleHandleZoneResults {
+pub struct HandleZoneResults {
     pub bail_out: bool,
     pub sender_has_nil_zone: bool,
     pub send_ack: bool,
@@ -86,7 +86,7 @@ struct HandleZoneDbgData {
     pub our_old_zone_id: String,
     pub our_new_zone_id: String,
     pub sender_zone_warning: Option<String>,
-    pub handle_zone_results: HandleZoneResults,
+    pub handle_zone_results: HandleZoneInternalResults,
     pub sender_in_the_same_zone_as_us: bool,
     pub from_kind: AddressKind,
     pub to_kind: AddressKind,
@@ -129,7 +129,7 @@ pub enum ZoneRelative {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct HandleZoneResultsStuff {
+pub struct MemberOrZoneChanges {
     pub new_maintained_zone: Option<Zone>,
     pub zone_id_for_our_member: Option<BfUuid>,
     pub additional_address_for_our_member: Option<(ZoneAddress, ZoneAddress)>,
@@ -140,18 +140,18 @@ pub struct HandleZoneResultsStuff {
 }
 
 #[derive(Clone, Debug)]
-pub enum HandleZoneResults {
+pub enum HandleZoneInternalResults {
     Nothing,
     UnknownSenderAddress,
     SendAck,
     // naming is hard…
-    Stuff(HandleZoneResultsStuff),
+    Changes(MemberOrZoneChanges),
     ZoneProcessed(ZoneChangeResults),
 }
 
-impl Default for HandleZoneResults {
+impl Default for HandleZoneInternalResults {
     fn default() -> Self {
-        HandleZoneResults::Nothing
+        HandleZoneInternalResults::Nothing
     }
 }
 
@@ -316,22 +316,22 @@ pub fn process_zone_change_internal_state(
     results
 }
 
-pub fn handle_zone_simple<N: Network>(
+pub fn handle_zone<N: Network>(
     server: &Server<N>,
     zones: &[Zone],
     swim_type: SwimType,
     from: &Member,
     to: &Member,
     addr: N::AddressAndPort,
-) -> SimpleHandleZoneResults {
+) -> HandleZoneResults {
     let mut bail_out = false;
     let mut send_ack = false;
     let mut sender_has_nil_zone = false;
     let mut msgs_and_targets_for_zone_change = Vec::new();
 
     match handle_zone_for_recipient(server, zones, swim_type, from, to, addr) {
-        HandleZoneResults::Nothing => (),
-        HandleZoneResults::UnknownSenderAddress => {
+        HandleZoneInternalResults::Nothing => (),
+        HandleZoneInternalResults::UnknownSenderAddress => {
             if swim_type == SwimType::Ping {
                 warn!(
                     "Sender of the PING message does not know its address {}. \
@@ -350,29 +350,29 @@ pub fn handle_zone_simple<N: Network>(
             }
             bail_out = true;
         }
-        HandleZoneResults::SendAck => {
+        HandleZoneInternalResults::SendAck => {
             send_ack = true;
         }
-        HandleZoneResults::Stuff(stuff) => {
-            if stuff.sender_has_nil_zone {
+        HandleZoneInternalResults::Changes(changes) => {
+            if changes.sender_has_nil_zone {
                 sender_has_nil_zone = true;
             }
-            send_ack = stuff.call_ack;
-            if let Some(zone) = stuff.new_maintained_zone {
+            send_ack = changes.call_ack;
+            if let Some(zone) = changes.new_maintained_zone {
                 let zone_id = zone.id;
                 server.insert_zone(zone);
                 let mut zone_list = server.write_zone_list();
                 zone_list.maintained_zone_id = Some(zone_id);
             }
-            if let Some(id) = stuff.zone_id_for_our_member {
+            if let Some(id) = changes.zone_id_for_our_member {
                 let mut zone_list = server.write_zone_list();
                 zone_list.our_zone_id = id;
             }
-            if let Some((sender_id, relative)) = stuff.sender_relative {
+            if let Some((sender_id, relative)) = changes.sender_relative {
                 // TODO: update our zone with parent/child stuff
                 // need to take aliases into account!
                 let zone_id = {
-                    if let Some(id) = stuff.zone_id_for_our_member {
+                    if let Some(id) = changes.zone_id_for_our_member {
                         id
                     } else {
                         server.read_member().zone_id
@@ -437,17 +437,17 @@ pub fn handle_zone_simple<N: Network>(
                     server.insert_zone(zone);
                 }
             }
-            let member_changed = stuff.zone_id_for_our_member.is_some()
-                || stuff.additional_address_for_our_member.is_some();
+            let member_changed = changes.zone_id_for_our_member.is_some()
+                || changes.additional_address_for_our_member.is_some();
             if member_changed {
                 let our_member_clone = {
                     let mut our_member = server.write_member();
 
                     our_member.incarnation += 1;
-                    if let Some(zone_id) = stuff.zone_id_for_our_member {
+                    if let Some(zone_id) = changes.zone_id_for_our_member {
                         our_member.zone_id = zone_id;
                     }
-                    if let Some((old, new)) = stuff.additional_address_for_our_member {
+                    if let Some((old, new)) = changes.additional_address_for_our_member {
                         for zone_address in our_member.additional_addresses.iter_mut() {
                             if zone_address.address != old.address {
                                 continue;
@@ -469,11 +469,11 @@ pub fn handle_zone_simple<N: Network>(
                 *server.write_zone_settled() = true;
                 server.insert_member(our_member_clone, Health::Alive);
             }
-            if let Some(pair) = stuff.msg_and_target {
+            if let Some(pair) = changes.msg_and_target {
                 msgs_and_targets_for_zone_change.push(pair);
             }
         }
-        HandleZoneResults::ZoneProcessed(mut results) => {
+        HandleZoneInternalResults::ZoneProcessed(mut results) => {
             let zone_changed = results.successor_for_maintained_zone.is_some()
                 || !results.predecessors_to_add_to_maintained_zone.is_empty();
             let mut maintained_zone = Zone::default();
@@ -561,7 +561,7 @@ pub fn handle_zone_simple<N: Network>(
         }
     }
 
-    SimpleHandleZoneResults {
+    HandleZoneResults {
         bail_out,
         sender_has_nil_zone,
         send_ack,
@@ -576,7 +576,7 @@ pub fn handle_zone_for_recipient<N: Network>(
     from: &Member,
     to: &Member,
     mut addr: N::AddressAndPort,
-) -> HandleZoneResults {
+) -> HandleZoneInternalResults {
     let mut dbg_data = HandleZoneDbgData::default();
     let mut from_address_kind = address_kind(addr.get_address(), from, &mut dbg_data);
     let mut to_address_kind = address_kind_from_str::<AddressForNetwork<N>>(
@@ -695,7 +695,7 @@ pub fn handle_zone_for_recipient<N: Network>(
                 }
                 Err(e) => {
                     error!("Could not parse from address {}: {}", from.address, e);
-                    maybe_result = Some(HandleZoneResults::UnknownSenderAddress);
+                    maybe_result = Some(HandleZoneInternalResults::UnknownSenderAddress);
                 }
             }
         }
@@ -711,7 +711,7 @@ pub fn handle_zone_for_recipient<N: Network>(
                 }
                 Err(e) => {
                     error!("Could not parse from address {}: {}", from.address, e);
-                    maybe_result = Some(HandleZoneResults::UnknownSenderAddress);
+                    maybe_result = Some(HandleZoneInternalResults::UnknownSenderAddress);
                 }
             }
         }
@@ -751,7 +751,7 @@ pub fn handle_zone_for_recipient<N: Network>(
             to_address_kind: to_address_kind,
             sender_in_the_same_zone_as_us: sender_in_the_same_zone_as_us,
         };
-        handle_zone(server, handle_zone_data, &mut dbg_data)
+        handle_zone_internal(server, handle_zone_data, &mut dbg_data)
     };
     dbg_data.handle_zone_results = handle_zone_results.clone();
     debug!(
@@ -772,11 +772,11 @@ pub fn handle_zone_for_recipient<N: Network>(
     handle_zone_results
 }
 
-fn handle_zone<N: Network>(
+fn handle_zone_internal<N: Network>(
     server: &Server<N>,
     hz_data: HandleZoneData<N>,
     dbg_data: &mut HandleZoneDbgData,
-) -> HandleZoneResults {
+) -> HandleZoneInternalResults {
     // scenarios:
     // - 0 sender has nil zone id
     //   - 0a. i'm not settled
@@ -946,23 +946,23 @@ fn handle_zone<N: Network>(
         (None, false, true) => {
             dbg_data.scenario = "0aa".to_string();
 
-            let mut stuff = HandleZoneResultsStuff::default();
+            let mut changes = MemberOrZoneChanges::default();
 
-            stuff.sender_has_nil_zone = true;
-            generate_my_own_zone(&mut stuff, our_member_clone.id.clone(), dbg_data);
+            changes.sender_has_nil_zone = true;
+            generate_my_own_zone(&mut changes, our_member_clone.id.clone(), dbg_data);
 
-            HandleZoneResults::Stuff(stuff)
+            HandleZoneInternalResults::Changes(changes)
         }
         // 0ab.
         (None, false, false) => {
             dbg_data.scenario = "0ab".to_string();
 
-            let mut stuff = HandleZoneResultsStuff::default();
+            let mut changes = MemberOrZoneChanges::default();
 
-            stuff.sender_has_nil_zone = true;
-            generate_my_own_zone(&mut stuff, our_member_clone.id.clone(), dbg_data);
+            changes.sender_has_nil_zone = true;
+            generate_my_own_zone(&mut changes, our_member_clone.id.clone(), dbg_data);
             store_recipient_address_nil_sender_zone(
-                &mut stuff,
+                &mut changes,
                 hz_data.from_address_kind,
                 hz_data.to_address_kind,
                 &our_member_clone,
@@ -970,28 +970,28 @@ fn handle_zone<N: Network>(
                 dbg_data,
             );
 
-            HandleZoneResults::Stuff(stuff)
+            HandleZoneInternalResults::Changes(changes)
         }
         // 0ba.
         (None, true, true) => {
             dbg_data.scenario = "0ba".to_string();
 
-            let mut stuff = HandleZoneResultsStuff::default();
+            let mut changes = MemberOrZoneChanges::default();
 
-            stuff.sender_has_nil_zone = true;
-            stuff.call_ack = true;
+            changes.sender_has_nil_zone = true;
+            changes.call_ack = true;
 
-            HandleZoneResults::Stuff(stuff)
+            HandleZoneInternalResults::Changes(changes)
         }
         // 0bb.
         (None, true, false) => {
             dbg_data.scenario = "0bb".to_string();
 
-            let mut stuff = HandleZoneResultsStuff::default();
+            let mut changes = MemberOrZoneChanges::default();
 
-            stuff.sender_has_nil_zone = true;
+            changes.sender_has_nil_zone = true;
             store_recipient_address_nil_sender_zone(
-                &mut stuff,
+                &mut changes,
                 hz_data.from_address_kind,
                 hz_data.to_address_kind,
                 &our_member_clone,
@@ -999,34 +999,34 @@ fn handle_zone<N: Network>(
                 dbg_data,
             );
 
-            HandleZoneResults::Stuff(stuff)
+            HandleZoneInternalResults::Changes(changes)
         }
         // 1aa.
         (Some(sender_zone), false, true) => {
             dbg_data.scenario = "1aa".to_string();
 
-            let mut stuff = HandleZoneResultsStuff::default();
+            let mut changes = MemberOrZoneChanges::default();
 
-            assume_senders_zone(&mut stuff, sender_zone.id, dbg_data);
+            assume_senders_zone(&mut changes, sender_zone.id, dbg_data);
 
-            HandleZoneResults::Stuff(stuff)
+            HandleZoneInternalResults::Changes(changes)
         }
         // 1ab.
         (Some(sender_zone), false, false) => {
             dbg_data.scenario = "1ab".to_string();
 
-            let mut stuff = HandleZoneResultsStuff::default();
+            let mut changes = MemberOrZoneChanges::default();
 
-            generate_my_own_zone(&mut stuff, our_member_clone.id.clone(), dbg_data);
+            generate_my_own_zone(&mut changes, our_member_clone.id.clone(), dbg_data);
             add_sender_zone_id_as_relative(
-                &mut stuff,
+                &mut changes,
                 hz_data.from_address_kind,
                 hz_data.to_address_kind,
                 sender_zone.id,
                 dbg_data,
             );
             store_recipient_address_valid_sender_zone(
-                &mut stuff,
+                &mut changes,
                 hz_data.from_address_kind,
                 hz_data.to_address_kind,
                 &our_member_clone,
@@ -1035,7 +1035,7 @@ fn handle_zone<N: Network>(
                 dbg_data,
             );
 
-            HandleZoneResults::Stuff(stuff)
+            HandleZoneInternalResults::Changes(changes)
         }
         // 1ba.
         (Some(sender_zone), true, true) => {
@@ -1055,17 +1055,17 @@ fn handle_zone<N: Network>(
         (Some(sender_zone), true, false) => {
             dbg_data.scenario = "1bb".to_string();
 
-            let mut stuff = HandleZoneResultsStuff::default();
+            let mut changes = MemberOrZoneChanges::default();
 
             add_sender_zone_id_as_relative(
-                &mut stuff,
+                &mut changes,
                 hz_data.from_address_kind,
                 hz_data.to_address_kind,
                 sender_zone.id,
                 dbg_data,
             );
             store_recipient_address_valid_sender_zone(
-                &mut stuff,
+                &mut changes,
                 hz_data.from_address_kind,
                 hz_data.to_address_kind,
                 &our_member_clone,
@@ -1074,7 +1074,7 @@ fn handle_zone<N: Network>(
                 dbg_data,
             );
 
-            HandleZoneResults::Stuff(stuff)
+            HandleZoneInternalResults::Changes(changes)
         }
     };
 
@@ -1144,21 +1144,21 @@ fn address_kind_from_str<A: Address>(
 }
 
 fn generate_my_own_zone(
-    stuff: &mut HandleZoneResultsStuff,
+    changes: &mut MemberOrZoneChanges,
     maintainer_id: String,
     dbg_data: &mut HandleZoneDbgData,
 ) {
     let new_zone_id = BfUuid::generate();
 
-    stuff.new_maintained_zone = Some(Zone::new(new_zone_id, maintainer_id));
-    stuff.zone_id_for_our_member = Some(new_zone_id);
-    stuff.call_ack = true;
+    changes.new_maintained_zone = Some(Zone::new(new_zone_id, maintainer_id));
+    changes.zone_id_for_our_member = Some(new_zone_id);
+    changes.call_ack = true;
 
     dbg_data.our_new_zone_id = new_zone_id.to_string();
 }
 
 fn store_recipient_address_nil_sender_zone(
-    stuff: &mut HandleZoneResultsStuff,
+    changes: &mut MemberOrZoneChanges,
     from_address_kind: AddressKind,
     to_address_kind: AddressKind,
     our_member: &Member,
@@ -1166,7 +1166,7 @@ fn store_recipient_address_nil_sender_zone(
     dbg_data: &mut HandleZoneDbgData,
 ) {
     if from_address_kind == AddressKind::Additional && to_member.zone_id.is_nil() {
-        stuff.call_ack = true;
+        changes.call_ack = true;
         dbg_data
             .additional_address_msgs
             .push("will send an ack".to_string());
@@ -1204,10 +1204,10 @@ fn store_recipient_address_nil_sender_zone(
             let mut new_zone_address = zone_address.clone();
 
             new_zone_address.address = Some(to_member.address.clone());
-            stuff.additional_address_for_our_member =
+            changes.additional_address_for_our_member =
                 Some((zone_address.clone(), new_zone_address));
 
-            dbg_data.additional_address_update = stuff.additional_address_for_our_member.clone();
+            dbg_data.additional_address_update = changes.additional_address_for_our_member.clone();
 
             break;
         }
@@ -1215,18 +1215,18 @@ fn store_recipient_address_nil_sender_zone(
 }
 
 fn assume_senders_zone(
-    stuff: &mut HandleZoneResultsStuff,
+    changes: &mut MemberOrZoneChanges,
     sender_zone_id: BfUuid,
     dbg_data: &mut HandleZoneDbgData,
 ) {
-    stuff.zone_id_for_our_member = Some(sender_zone_id);
-    stuff.call_ack = true;
+    changes.zone_id_for_our_member = Some(sender_zone_id);
+    changes.call_ack = true;
 
     dbg_data.our_new_zone_id = sender_zone_id.to_string();
 }
 
 fn add_sender_zone_id_as_relative(
-    stuff: &mut HandleZoneResultsStuff,
+    changes: &mut MemberOrZoneChanges,
     from_address_kind: AddressKind,
     to_address_kind: AddressKind,
     sender_zone_id: BfUuid,
@@ -1234,10 +1234,10 @@ fn add_sender_zone_id_as_relative(
 ) {
     match (from_address_kind, to_address_kind) {
         (AddressKind::Additional, AddressKind::Real) => {
-            stuff.sender_relative = Some((sender_zone_id, ZoneRelative::Child));
+            changes.sender_relative = Some((sender_zone_id, ZoneRelative::Child));
         }
         (AddressKind::Real, AddressKind::Additional) => {
-            stuff.sender_relative = Some((sender_zone_id, ZoneRelative::Parent));
+            changes.sender_relative = Some((sender_zone_id, ZoneRelative::Parent));
         }
         (AddressKind::Real, AddressKind::Real) => {
             unreachable!(
@@ -1303,7 +1303,7 @@ fn add_sender_zone_id_as_relative(
 //     - not found
 //       - warn
 fn store_recipient_address_valid_sender_zone(
-    stuff: &mut HandleZoneResultsStuff,
+    changes: &mut MemberOrZoneChanges,
     from_address_kind: AddressKind,
     to_address_kind: AddressKind,
     our_member: &Member,
@@ -1312,7 +1312,7 @@ fn store_recipient_address_valid_sender_zone(
     dbg_data: &mut HandleZoneDbgData,
 ) {
     if from_address_kind == AddressKind::Additional && to_member.zone_id.is_nil() {
-        stuff.call_ack = true;
+        changes.call_ack = true;
         dbg_data
             .additional_address_msgs
             .push("will send an ack".to_string());
@@ -1396,11 +1396,11 @@ fn store_recipient_address_valid_sender_zone(
 
                     new_zone_address.zone_id = zone_id;
                     new_zone_address.address = Some(to_member.address.clone());
-                    stuff.additional_address_for_our_member =
+                    changes.additional_address_for_our_member =
                         Some((zone_address.clone(), new_zone_address));
 
                     dbg_data.additional_address_update =
-                        stuff.additional_address_for_our_member.clone();
+                        changes.additional_address_for_our_member.clone();
 
                     true
                 }
@@ -1469,10 +1469,10 @@ fn store_recipient_address_valid_sender_zone(
             let mut new_zone_address = zone_address.clone();
 
             new_zone_address.zone_id = sender_zone.id;
-            stuff.additional_address_for_our_member =
+            changes.additional_address_for_our_member =
                 Some((zone_address.clone(), new_zone_address));
 
-            dbg_data.additional_address_update = stuff.additional_address_for_our_member.clone();
+            dbg_data.additional_address_update = changes.additional_address_for_our_member.clone();
 
             done = true;
             break;
@@ -1513,10 +1513,10 @@ fn store_recipient_address_valid_sender_zone(
 
             new_zone_address.zone_id = sender_zone.id;
             new_zone_address.address = Some(to_member.address.clone());
-            stuff.additional_address_for_our_member =
+            changes.additional_address_for_our_member =
                 Some((zone_address.clone(), new_zone_address));
 
-            dbg_data.additional_address_update = stuff.additional_address_for_our_member.clone();
+            dbg_data.additional_address_update = changes.additional_address_for_our_member.clone();
 
             done = true;
             break;
@@ -1550,7 +1550,7 @@ fn process_zone(
     maybe_our_zone_maintainer: Option<Member>,
     sender_zone: Zone,
     dbg_data: &mut HandleZoneDbgData,
-) -> HandleZoneResults {
+) -> HandleZoneInternalResults {
     let our_member_zone_id = our_member.zone_id;
 
     if let Some(maintained_zone) = maybe_maintained_zone {
@@ -1576,13 +1576,13 @@ fn process_zone(
 
         dbg_data.zone_change_dbg_data = Some(zone_change_dbg_data);
 
-        HandleZoneResults::ZoneProcessed(zone_change_results)
+        HandleZoneInternalResults::ZoneProcessed(zone_change_results)
     } else {
         match sender_zone.id.cmp(&our_member_zone_id) {
-            CmpOrdering::Less => HandleZoneResults::SendAck,
-            CmpOrdering::Equal => HandleZoneResults::Nothing,
+            CmpOrdering::Less => HandleZoneInternalResults::SendAck,
+            CmpOrdering::Equal => HandleZoneInternalResults::Nothing,
             CmpOrdering::Greater => {
-                let mut stuff = HandleZoneResultsStuff::default();
+                let mut changes = MemberOrZoneChanges::default();
                 let sender_zone_id = sender_zone.id;
                 let maybe_msg_and_target = if let Some(our_zone) = maybe_our_zone {
                     let maybe_target = {
@@ -1638,13 +1638,13 @@ fn process_zone(
                     None
                 };
 
-                stuff.zone_id_for_our_member = Some(sender_zone_id);
-                stuff.msg_and_target = maybe_msg_and_target;
+                changes.zone_id_for_our_member = Some(sender_zone_id);
+                changes.msg_and_target = maybe_msg_and_target;
 
                 dbg_data.our_new_zone_id = sender_zone_id.to_string();
-                dbg_data.msg_and_target = stuff.msg_and_target.clone();
+                dbg_data.msg_and_target = changes.msg_and_target.clone();
 
-                HandleZoneResults::Stuff(stuff)
+                HandleZoneInternalResults::Changes(changes)
             }
         }
     }

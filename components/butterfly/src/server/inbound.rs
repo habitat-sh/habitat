@@ -187,7 +187,7 @@ impl<N: Network> Inbound<N> {
 
     /// Process ack messages; forwards to the outbound thread.
     fn process_ack(&self, addr: N::AddressAndPort, mut msg: Ack) {
-        let simple_results = zones::handle_zone_simple(
+        let results = zones::handle_zone(
             &self.server,
             &msg.zones,
             SwimType::Ack,
@@ -195,17 +195,17 @@ impl<N: Network> Inbound<N> {
             &msg.to,
             addr,
         );
-        if simple_results.bail_out {
+        if results.bail_out {
             return;
         }
-        for (msg, target) in simple_results.msgs_and_targets_for_zone_change {
+        for (msg, target) in results.msgs_and_targets_for_zone_change {
             outbound::zone_change(&self.server, &self.swim_sender, &target, msg);
         }
-        if simple_results.sender_has_nil_zone {
+        if results.sender_has_nil_zone {
             warn!("Supervisor {} sent an Ack with a nil zone ID", msg.from.id);
         }
         // TODO: do it after filling membership and zones
-        if simple_results.send_ack {
+        if results.send_ack {
             outbound::ack(
                 &self.server,
                 &self.swim_sender,
@@ -265,7 +265,7 @@ impl<N: Network> Inbound<N> {
 
     /// Process ping messages.
     fn process_ping(&self, addr: N::AddressAndPort, mut msg: Ping) {
-        let simple_results = zones::handle_zone_simple(
+        let results = zones::handle_zone(
             &self.server,
             &msg.zones,
             SwimType::Ping,
@@ -273,10 +273,10 @@ impl<N: Network> Inbound<N> {
             &msg.to,
             addr,
         );
-        if simple_results.bail_out {
+        if results.bail_out {
             return;
         }
-        for (msg, target) in simple_results.msgs_and_targets_for_zone_change {
+        for (msg, target) in results.msgs_and_targets_for_zone_change {
             outbound::zone_change(&self.server, &self.swim_sender, &target, msg);
         }
         trace_it!(SWIM: &self.server, TraceKind::RecvPing, &msg.from.id, addr, &msg);
@@ -291,7 +291,7 @@ impl<N: Network> Inbound<N> {
         // Populate the member for this sender with its remote address
         msg.from.address = addr.get_address().to_string();
         trace!("Ping from {}@{}", msg.from.id, addr);
-        if !simple_results.sender_has_nil_zone {
+        if !results.sender_has_nil_zone {
             if msg.from.departed {
                 self.server.insert_member(msg.from, Health::Departed);
             } else {
@@ -421,13 +421,12 @@ impl<N: Network> Inbound<N> {
         zone_change: ZoneChange,
         dbg_data: &mut ZoneChangeDbgData,
     ) -> ZoneChangeResultsMsgOrNothing {
-        // meh…
-        enum YaddaYadda {
-            MaintainedZone(Zone),
-            MaintainerID(String),
+        enum MaintainershipStatus {
+            ImTheMaintainerOf(Zone),
+            MaintainerIs(String),
         }
 
-        let yadda_yadda = {
+        let maintainership_status = {
             let zone_list = self.server.read_zone_list();
             let maybe_maintained_zone = zone_list.zones.get(&zone_change.zone_id);
 
@@ -439,18 +438,18 @@ impl<N: Network> Inbound<N> {
                 dbg_data.is_a_maintainer = Some(im_a_maintainer);
 
                 if im_a_maintainer {
-                    YaddaYadda::MaintainedZone(maintained_zone.clone())
+                    MaintainershipStatus::ImTheMaintainerOf(maintained_zone.clone())
                 } else {
-                    YaddaYadda::MaintainerID(maintained_zone.maintainer_id.clone())
+                    MaintainershipStatus::MaintainerIs(maintained_zone.maintainer_id.clone())
                 }
             } else {
                 return ZoneChangeResultsMsgOrNothing::Nothing;
             }
         };
         let maintained_zone_clone = {
-            match yadda_yadda {
-                YaddaYadda::MaintainedZone(zone) => zone,
-                YaddaYadda::MaintainerID(id) => {
+            match maintainership_status {
+                MaintainershipStatus::ImTheMaintainerOf(zone) => zone,
+                MaintainershipStatus::MaintainerIs(id) => {
                     let mut maybe_maintainer_clone = None;
 
                     self.server
