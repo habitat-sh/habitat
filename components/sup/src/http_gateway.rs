@@ -24,12 +24,12 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
-use hcore::env;
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::{headers, status, typemap};
 use persistent;
+use protocol::socket_addr_env_or_default;
 use router::Router;
 use serde_json::{self, Value as Json};
 
@@ -49,12 +49,6 @@ pub const DEFAULT_PORT: u16 = 9631;
 /// Default environment variable override for HTTPGateway listener address.
 pub const DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_HTTP";
 
-// Returns a HTTPGateway listener address value if set in the environment. Does *not*
-// return any default value if the value was not found in the environment!
-pub fn listen_http_from_env() -> Option<String> {
-    env::var(DEFAULT_ADDRESS_ENVVAR).ok()
-}
-
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ListenAddr(SocketAddr);
 
@@ -66,22 +60,10 @@ impl ListenAddr {
 
 impl Default for ListenAddr {
     fn default() -> ListenAddr {
-        match listen_http_from_env() {
-            Some(addr_str) => ListenAddr::from_str(&addr_str).unwrap_or_else(|err| {
-                debug!(
-                    "could not parse address '{}' from environment variable {}, {}",
-                    addr_str, DEFAULT_ADDRESS_ENVVAR, err
-                );
-                ListenAddr(SocketAddr::V4(SocketAddrV4::new(
-                    Ipv4Addr::new(0, 0, 0, 0),
-                    DEFAULT_PORT,
-                )))
-            }),
-            None => ListenAddr(SocketAddr::V4(SocketAddrV4::new(
-                Ipv4Addr::new(0, 0, 0, 0),
-                DEFAULT_PORT,
-            ))),
-        }
+        ListenAddr(socket_addr_env_or_default(
+            DEFAULT_ADDRESS_ENVVAR,
+            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), DEFAULT_PORT)),
+        ))
     }
 }
 
