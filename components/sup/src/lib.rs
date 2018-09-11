@@ -137,10 +137,11 @@ lazy_static! {
 /// Search for feat::is_enabled(feat::FeatureName) to learn more
 features! {
     pub mod feat {
-        const List         = 0b00000001,
-        const TestExit     = 0b00000010,
-        const TestBootFail = 0b00000100,
-        const RedactHTTP   = 0b00001000
+        const List          = 0b00000001,
+        const TestExit      = 0b00000010,
+        const TestBootFail  = 0b00000100,
+        const RedactHTTP    = 0b00001000,
+        const IgnoreSignals = 0b00010000
     }
 }
 

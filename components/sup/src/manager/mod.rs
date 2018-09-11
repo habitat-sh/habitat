@@ -669,7 +669,16 @@ impl Manager {
             Some(ref evg) => Some(events::EventsMgr::start(evg.clone())),
             None => None,
         };
-        signals::init();
+        // On Windows initializng the signal handler will create a ctrl+c handler for the
+        // process which will disable default windows ctrl+c behavior and allow us to
+        // handle via check_for_signal. However, if the supervsor is in a long running
+        // non-run hook, the below loop will not get to check_for_signal in a reasonable
+        // amount of time and the supervisor will not respond to ctrl+c. On Windows, we
+        // let the launcher catch ctrl+c and gracefully shut down services. ctrl+c should
+        // simply halt the supervisor
+        if !feat::is_enabled(feat::IgnoreSignals) {
+            signals::init();
+        }
         loop {
             if feat::is_enabled(feat::TestExit) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
@@ -696,10 +705,12 @@ impl Manager {
                 self.shutdown(ShutdownReason::Departed);
                 return Err(sup_error!(Error::Departed));
             }
-            if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal() {
-                outputln!("Supervisor shutting down for signal");
-                self.shutdown(ShutdownReason::Signal);
-                return Ok(());
+            if !feat::is_enabled(feat::IgnoreSignals) {
+                if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal() {
+                    outputln!("Supervisor shutting down for signal");
+                    self.shutdown(ShutdownReason::Signal);
+                    return Ok(());
+                }
             }
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!(
