@@ -349,8 +349,6 @@ impl<N: Network> Inbound<N> {
                     self.server.insert_member(our_member_clone, Health::Alive);
                 }
 
-                let mut dbg_sent_zone_change_with_alias_to = Vec::new();
-
                 if !results.aliases_to_inform.is_empty() {
                     let mut zone_ids_and_maintainer_ids = {
                         let zone_list = self.server.read_zone_list();
@@ -395,7 +393,6 @@ impl<N: Network> Inbound<N> {
                         outbound::zone_change(&self.server, &self.swim_sender, &target, msg);
                     }
                 }
-                dbg_data.sent_zone_change_with_alias_to = Some(dbg_sent_zone_change_with_alias_to);
             }
         }
         outbound::ack(&self.server, &self.swim_sender, &from, addr, None);

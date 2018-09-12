@@ -43,13 +43,12 @@ pub struct ZoneChangeDbgData {
     pub is_a_maintainer: Option<bool>,
     pub real_maintainer_found: Option<bool>,
     pub borked_successor_state: Option<bool>,
-    pub available_aliases: Option<Vec<String>>,
-    pub our_old_successor: Option<String>,
-    pub our_new_successor: Option<String>,
-    pub our_old_member_zone_id: Option<String>,
-    pub our_new_member_zone_id: Option<String>,
-    pub added_predecessors: Option<Vec<String>>,
-    pub sent_zone_change_with_alias_to: Option<Vec<(String, String)>>,
+    pub available_aliases: Option<Vec<BfUuid>>,
+    pub our_old_successor: Option<BfUuid>,
+    pub our_new_successor: Option<BfUuid>,
+    pub our_old_member_zone_id: Option<BfUuid>,
+    pub our_new_member_zone_id: Option<BfUuid>,
+    pub added_predecessors: Option<Vec<BfUuid>>,
     pub forwarded_to: Option<(String, String)>,
 }
 
@@ -83,8 +82,8 @@ struct HandleZoneDbgData {
     pub real_from_port: u16,
     pub scenario: String,
     pub was_settled: bool,
-    pub our_old_zone_id: String,
-    pub our_new_zone_id: String,
+    pub our_old_zone_id: BfUuid,
+    pub our_new_zone_id: BfUuid,
     pub sender_zone_warning: Option<String>,
     pub handle_zone_results: HandleZoneInternalResults,
     pub sender_in_the_same_zone_as_us: bool,
@@ -160,14 +159,14 @@ pub fn process_zone_change_internal_state(
     mut maybe_successor_of_maintained_zone_clone: Option<Zone>,
     mut our_zone_id: BfUuid,
     mut zone_change: ZoneChange,
-    _dbg_data: &mut ZoneChangeDbgData,
+    dbg_data: &mut ZoneChangeDbgData,
 ) -> ZoneChangeResults {
     let mut results = ZoneChangeResults::default();
     let maintained_zone_id = maintained_zone_clone.id;
     let mut aliases_to_maybe_inform = HashMap::new();
 
-    //let mut dbg_available_aliases = Vec::new();
-    //let mut dbg_added_predecessors = Vec::new();
+    let mut dbg_available_aliases = Vec::new();
+    let mut dbg_added_predecessors = Vec::new();
 
     results.original_maintained_zone = maintained_zone_clone.clone();
     match (
@@ -176,26 +175,26 @@ pub fn process_zone_change_internal_state(
     ) {
         (true, true) | (false, false) => (),
         (true, false) => {
-            //dbg_data.borked_successor_state = Some(true);
+            dbg_data.borked_successor_state = Some(true);
 
             error!("passed maintained zone has a successor, but the successor was not passed");
             return results;
         }
         (false, true) => {
-            //dbg_data.borked_successor_state = Some(true);
+            dbg_data.borked_successor_state = Some(true);
 
             error!("passed maintained zone has no successor, but some successor was passed");
             return results;
         }
     }
 
-    //dbg_data.borked_successor_state = Some(false);
-    //dbg_data.our_old_successor = Some(maintained_zone_clone.get_successor().to_string());
-    //dbg_data.our_old_member_zone_id = Some(our_zone_id.to_string());
+    dbg_data.borked_successor_state = Some(false);
+    dbg_data.our_old_successor = maintained_zone_clone.successor;
+    dbg_data.our_old_member_zone_id = Some(our_zone_id);
 
     results.zones_to_insert = zone_change.new_aliases.clone();
     for alias_zone in zone_change.new_aliases.drain(..) {
-        //dbg_available_aliases.push(alias_zone.get_id().to_string());
+        dbg_available_aliases.push(alias_zone.id);
 
         let alias_id = alias_zone.id;
         let mut possible_predecessor = None;
@@ -268,7 +267,7 @@ pub fn process_zone_change_internal_state(
             }
 
             if !found {
-                //dbg_added_predecessors.push(predecessor.get_id().to_string());
+                dbg_added_predecessors.push(predecessor.id);
 
                 let predecessor_id = predecessor.id;
 
@@ -285,10 +284,10 @@ pub fn process_zone_change_internal_state(
         }
     }
 
-    //dbg_data.our_new_successor = Some(maintained_zone_clone.get_successor().to_string());
-    //dbg_data.our_new_member_zone_id = Some(our_zone_id.to_string());
-    //dbg_data.available_aliases = Some(dbg_available_aliases);
-    //dbg_data.added_predecessors = Some(dbg_added_predecessors);
+    dbg_data.our_new_successor = maintained_zone_clone.successor;
+    dbg_data.our_new_member_zone_id = Some(our_zone_id);
+    dbg_data.available_aliases = Some(dbg_available_aliases);
+    dbg_data.added_predecessors = Some(dbg_added_predecessors);
 
     for (zone_id, zone) in aliases_to_maybe_inform {
         if let Some(successor_id) = zone.successor {
@@ -510,8 +509,6 @@ pub fn handle_zone<N: Network>(
                 send_ack = true;
             }
 
-            //let mut dbg_sent_zone_change_with_alias_to = Vec::new();
-
             if !results.aliases_to_inform.is_empty() {
                 send_ack = true;
                 let mut zone_ids_and_maintainer_ids = {
@@ -555,7 +552,6 @@ pub fn handle_zone<N: Network>(
 
                 msgs_and_targets_for_zone_change.extend(msgs_and_targets);
             }
-            //dbg_data.sent_zone_change_with_alias_to = dbg_sent_zone_change_with_alias_to;
         }
     }
 
@@ -933,7 +929,7 @@ fn handle_zone_internal<N: Network>(
     };
 
     dbg_data.was_settled = zone_settled;
-    dbg_data.our_old_zone_id = our_member_clone.zone_id.to_string();
+    dbg_data.our_old_zone_id = our_member_clone.zone_id;
 
     let results = match (
         maybe_not_nil_sender_zone,
@@ -1152,7 +1148,7 @@ fn generate_my_own_zone(
     changes.zone_id_for_our_member = Some(new_zone_id);
     changes.call_ack = true;
 
-    dbg_data.our_new_zone_id = new_zone_id.to_string();
+    dbg_data.our_new_zone_id = new_zone_id;
 }
 
 fn store_recipient_address_nil_sender_zone(
@@ -1220,7 +1216,7 @@ fn assume_senders_zone(
     changes.zone_id_for_our_member = Some(sender_zone_id);
     changes.call_ack = true;
 
-    dbg_data.our_new_zone_id = sender_zone_id.to_string();
+    dbg_data.our_new_zone_id = sender_zone_id;
 }
 
 fn add_sender_zone_id_as_relative(
@@ -1639,7 +1635,7 @@ fn process_zone(
                 changes.zone_id_for_our_member = Some(sender_zone_id);
                 changes.msg_and_target = maybe_msg_and_target;
 
-                dbg_data.our_new_zone_id = sender_zone_id.to_string();
+                dbg_data.our_new_zone_id = sender_zone_id;
                 dbg_data.msg_and_target = changes.msg_and_target.clone();
 
                 HandleZoneInternalResults::Changes(changes)
