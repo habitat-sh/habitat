@@ -99,6 +99,7 @@ tutorials and reference materials.
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 * [Robb Kidd](https://github.com/robbkidd)
 * [Tasha Drew](https://github.com/tashimi)
+* [Kimberly Garmoe](https://github.com/kagarmoe)
 
 ### Core Plans
 
