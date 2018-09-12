@@ -5,7 +5,20 @@ set -euo pipefail
 source .buildkite/env
 source .buildkite/scripts/shared.sh
 
-# TODO (CM): Ensure Omnibus toolchain is installed!
+echo "--- Installing Habitat Toolchain Omnibus package"
+# This is a temporary situation until we have a pipeline building the
+# toolchain packages and automatically installing them in our
+# workers. Until then, we'll do it ourselves
+bootstrap_package="habitat-bootstrap-1.0.0%2B20180813202835-1.pkg"
+curl --remote-name \
+     --location \
+     "https://s3-us-west-2.amazonaws.com/shain-bk-test/${bootstrap_package}"
+sudo installer \
+     -verbose \
+     -pkg "${bootstrap_package}" \
+     -target /
+rm "${bootstrap_package}"
+
 # TODO (CM): consider getting Bash updated on builders (likely via Homebrew)
 # TODO (CM): have a cleanup function
 #     Clear out /hab
