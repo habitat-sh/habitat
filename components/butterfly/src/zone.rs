@@ -241,20 +241,26 @@ impl ZoneAliasList {
 
     fn take_aliases_from(&mut self, id1: BfUuid, id2: BfUuid) {
         let idx1 = self.ensure_id(id1);
-        match self.map.entry(id2) {
-            Entry::Occupied(mut oe) => {
+        let fixup_ids_with_idx1 = match self.map.entry(id2) {
+            Entry::Occupied(oe) => {
                 let idx2 = *oe.get();
-                if idx1 == idx2 {
-                    return;
+                if idx1 != idx2 {
+                    mem::replace(&mut self.vecs[idx2], Vec::new())
+                } else {
+                    Vec::new()
                 }
-                *(oe.get_mut()) = idx1;
-                let old_ids = mem::replace(&mut self.vecs[idx2], Vec::new());
-                self.vecs[idx1].extend(old_ids);
             }
             Entry::Vacant(ve) => {
                 self.vecs[idx1].push(id2);
                 ve.insert(idx1);
+                Vec::new()
             }
+        };
+
+        self.vecs[idx1].reserve(fixup_ids_with_idx1.len());
+        for id in fixup_ids_with_idx1 {
+            self.vecs[idx1].push(id);
+            self.map.insert(id, idx1);
         }
     }
 
@@ -267,9 +273,9 @@ impl ZoneAliasList {
         let mut set = HashSet::with_capacity(indices.len());
 
         for idx in indices {
-            let max_id = self.vecs[*idx].iter().max().unwrap();
-
-            set.insert(*max_id);
+            if let Some(max_id) = self.vecs[*idx].iter().max() {
+                set.insert(*max_id);
+            }
         }
 
         return set;
