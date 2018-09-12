@@ -85,12 +85,6 @@ pub struct Myself {
     incarnation_store: Option<incarnation_store::IncarnationStore>,
 }
 
-impl AsRef<Member> for Myself {
-    fn as_ref(&self) -> &Member {
-        &self.member
-    }
-}
-
 // This is ONLY provided for some tests that depend on being able to
 // mutate the member. Ideally, the only think that should be mutable,
 // once you actually have a fully set-up Butterfly server, is the
@@ -165,6 +159,11 @@ impl Myself {
 
     pub fn mark_departed(&mut self) {
         self.member.departed = true
+    }
+
+    /// Return a copy of the underlying `Member`.
+    pub fn as_member(&self) -> Member {
+        self.member.clone()
     }
 }
 

@@ -115,15 +115,7 @@ impl Outbound {
 
             let long_wait = self.timing.next_protocol_period();
 
-            let check_list = self.server.member_list.check_list(
-                &self
-                    .server
-                    .member
-                    .read()
-                    .expect("Member is poisoned")
-                    .as_ref()
-                    .id,
-            );
+            let check_list = self.server.member_list.check_list(&self.server.member_id);
 
             for member in check_list {
                 if self.server.member_list.pingable(&member) {
@@ -290,7 +282,7 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
 pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, target: &Member) {
     let pingreq = PingReq {
         membership: vec![],
-        from: server.member.read().unwrap().as_ref().clone(),
+        from: server.member.read().unwrap().as_member(),
         target: target.clone(),
     };
     let mut swim: Swim = pingreq.into();
@@ -351,7 +343,7 @@ pub fn ping(
     };
     let ping = Ping {
         membership: vec![],
-        from: server.member.read().unwrap().as_ref().clone(),
+        from: server.member.read().unwrap().as_member(),
         forward_to: forward_to,
     };
     let mut swim: Swim = ping.into();
@@ -424,7 +416,7 @@ pub fn ack(
 ) {
     let ack = Ack {
         membership: vec![],
-        from: server.member.read().unwrap().as_ref().clone(),
+        from: server.member.read().unwrap().as_member(),
         forward_to: forward_to.map(Into::into),
     };
     let member_id = ack.from.id.clone();
