@@ -85,19 +85,6 @@ pub struct Myself {
     incarnation_store: Option<incarnation_store::IncarnationStore>,
 }
 
-// This is ONLY provided for some tests that depend on being able to
-// mutate the member. Ideally, the only think that should be mutable,
-// once you actually have a fully set-up Butterfly server, is the
-// incarnation number, which is accounted for in
-// `Myself::increment_incarnation`.
-//
-// Once the tests are refactored, this implementation should go away.
-impl AsMut<Member> for Myself {
-    fn as_mut(&mut self) -> &mut Member {
-        &mut self.member
-    }
-}
-
 impl Myself {
     /// Create a new `Myself` for the given `Member`. If `store_dir`
     /// is provided, a file named `INCARNATION` will be created in
@@ -164,6 +151,15 @@ impl Myself {
     /// Return a copy of the underlying `Member`.
     pub fn as_member(&self) -> Member {
         self.member.clone()
+    }
+
+    // This is ONLY provided for some tests that depend on being able to
+    // mutate the member. Ideally, the only think that should be mutable,
+    // once you actually have a fully set-up Butterfly server, is the
+    // incarnation number, which is accounted for in
+    // `Myself::increment_incarnation`.
+    pub fn set_persistent(&mut self) {
+        self.member.persistent = true;
     }
 }
 
