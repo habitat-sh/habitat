@@ -96,6 +96,7 @@ impl<N: Network> Outbound<N> {
     /// period to finish before starting the next probe.
     pub fn run(&mut self) {
         let mut have_members = false;
+        let mut first_time = true;
         loop {
             if !have_members {
                 let num_initial = self.server.member_list.len_initial_members();
@@ -103,7 +104,7 @@ impl<N: Network> Outbound<N> {
                     // The minimum that's strictly more than half
                     let min_to_start = num_initial / 2 + 1;
 
-                    if self.server.member_list.len() >= min_to_start {
+                    if !first_time && self.server.member_list.len() >= min_to_start {
                         have_members = true;
                     } else {
                         self.server.member_list.with_initial_members(|member| {
@@ -116,6 +117,7 @@ impl<N: Network> Outbound<N> {
                             );
                         });
                     }
+                    first_time = false;
                 }
             }
 
