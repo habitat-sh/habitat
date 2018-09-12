@@ -73,6 +73,7 @@ The web application for the Habitat builder and depot.
 * [Salim Alam](https://github.com/chefsalim)
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 * [Tasha Drew](https://github.com/tashimi)
+* [Mary Jinglewski](https://github.com/mjingle)
 
 ### Habitat Builder
 
