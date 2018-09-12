@@ -496,12 +496,6 @@ impl CensusGroup {
                         continue;
                     }
 
-                    if zone_address_for_zone.as_ref().unwrap().address.is_none() {
-                        self.population.remove(member_id);
-                        outputln!("Skippping updating census from a service rumor - no zone address for reachable zone");
-                        continue;
-                    }
-
                     zone_address_for_zone
                 }
                 Reachable::No => {
@@ -749,13 +743,9 @@ impl CensusMember {
     fn setup_sys(&mut self, rumor: &ServiceRumor, zone_address: &Option<&ZoneAddress>) {
         self.sys = rumor.sys.clone().into();
         if let Some(ref za) = zone_address {
-            // TODO(krnowak): We won't get here if zone address has no
-            // address, but it would certainly be better if we had a
-            // data structure with a String for address instead of
-            // Option<String>.
-            self.sys.ip = za.address.clone().unwrap();
+            self.sys.ip = za.address.clone();
             // TODO(krnowak): What about hostname? Clear it?
-            self.sys.gossip_ip = za.address.clone().unwrap();
+            self.sys.gossip_ip = za.address.clone();
             self.sys.gossip_port = za.gossip_port as u32;
             // TODO(krnowak): What about http/ctl gateway addresses and ports?
         }
@@ -1045,7 +1035,7 @@ mod tests {
         let mut member_inside = Member::default();
         let zone_address = ZoneAddress {
             zone_id: zone_uuid_outside,
-            address: Some("1.2.3.4".to_string()),
+            address: "1.2.3.4".to_string(),
             swim_port: 33333,
             gossip_port: 44444,
             tag: "tag".to_string(),

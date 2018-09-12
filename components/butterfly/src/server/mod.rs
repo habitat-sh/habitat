@@ -1121,6 +1121,7 @@ impl<N: Network> Server<N> {
             for (tag, additional_address) in new_tagged_additional_addresses {
                 let swim_port = additional_address.swim_port;
                 let gossip_port = additional_address.gossip_port;
+                let addr_str = additional_address.address.to_string();
 
                 if let Some(mut zone_address) = old_tagged_zone_addresses.remove(&tag) {
                     if zone_address.swim_port != swim_port {
@@ -1131,29 +1132,15 @@ impl<N: Network> Server<N> {
                         zone_address.gossip_port = gossip_port;
                         changed = true;
                     }
-                    if let Some(ref addr) = additional_address.address {
-                        let addr_str = addr.to_string();
-
-                        match zone_address.address.take() {
-                            Some(addr) => {
-                                if addr != addr_str {
-                                    zone_address.address = Some(addr_str);
-                                    changed = true;
-                                } else {
-                                    zone_address.address = Some(addr);
-                                }
-                            }
-                            None => {
-                                zone_address.address = Some(addr_str);
-                                changed = true;
-                            }
-                        }
+                    if zone_address.address != addr_str {
+                        zone_address.address = addr_str;
+                        changed = true;
                     }
                     new_addresses.push(zone_address);
                 } else {
                     let zone_address = ZoneAddress {
                         zone_id: BfUuid::nil(),
-                        address: additional_address.address.map(|addr| addr.to_string()),
+                        address: addr_str,
                         swim_port: swim_port,
                         gossip_port: gossip_port,
                         tag: tag.clone(),
@@ -1382,7 +1369,7 @@ mod tests {
         }
 
         fn additional_address(
-            address: Option<IpAddr>,
+            address: IpAddr,
             swim_port: u16,
             gossip_port: u16,
         ) -> AdditionalAddress<IpAddr> {
@@ -1410,15 +1397,7 @@ mod tests {
                     ),
                 );
 
-                if let Some(ref address_str) = zone_address.address {
-                    assert!(additional_address.address.is_some());
-                    assert_eq!(
-                        *address_str,
-                        additional_address.address.unwrap().to_string()
-                    );
-                } else {
-                    assert!(additional_address.address.is_none());
-                }
+                assert_eq!(zone_address.address, additional_address.address.to_string());
                 assert_eq!(zone_address.swim_port, additional_address.swim_port);
                 assert_eq!(zone_address.gossip_port, additional_address.gossip_port);
             }
@@ -1433,43 +1412,38 @@ mod tests {
             let server = start_server();
             let mut additional_addresses = HashMap::new();
             let mut incarnation = get_incarnation(&server);
+            let foo_addr = ipaddr(10, 20, 30, 40);
+            let bar_addr = ipaddr(1, 2, 3, 4);
 
-            additional_addresses.insert("foo".to_string(), additional_address(None, 10, 20));
             additional_addresses.insert(
-                "bar".to_string(),
-                additional_address(Some(ipaddr(1, 2, 3, 4)), 11, 21),
+                "foo".to_string(),
+                // that address will be overridden with foo_addr later
+                additional_address(ipaddr(15, 25, 35, 45), 10, 20),
             );
+            additional_addresses.insert("bar".to_string(), additional_address(bar_addr, 11, 21));
             incarnation += 1;
             server.merge_additional_addresses(additional_addresses.clone());
             verify_additional_addresses(&server, additional_addresses);
             assert_eq!(get_incarnation(&server), incarnation);
 
             additional_addresses = HashMap::new();
-            // set the previously unset ip address to something concrete
-            additional_addresses.insert(
-                "foo".to_string(),
-                additional_address(Some(ipaddr(10, 20, 30, 40)), 10, 20),
-            );
-            // this should leave the previous ip address untouched, part 1
-            additional_addresses.insert("bar".to_string(), additional_address(None, 12, 22));
+            // override the ip adresss
+            additional_addresses.insert("foo".to_string(), additional_address(foo_addr, 10, 20));
+            // override the ports
+            additional_addresses.insert("bar".to_string(), additional_address(bar_addr, 12, 22));
             // new additional address
             additional_addresses.insert(
                 "baz".to_string(),
-                additional_address(Some(ipaddr(11, 22, 33, 44)), 12, 22),
+                additional_address(ipaddr(11, 22, 33, 44), 12, 22),
             );
             incarnation += 1;
             server.merge_additional_addresses(additional_addresses.clone());
-            // this should leave the previous ip address untouched, part 2
-            additional_addresses.get_mut("bar").unwrap().address = Some(ipaddr(1, 2, 3, 4));
             verify_additional_addresses(&server, additional_addresses);
             assert_eq!(get_incarnation(&server), incarnation);
 
             // drop additional addresses
             additional_addresses = HashMap::new();
-            additional_addresses.insert(
-                "foo".to_string(),
-                additional_address(Some(ipaddr(10, 20, 30, 40)), 10, 20),
-            );
+            additional_addresses.insert("foo".to_string(), additional_address(foo_addr, 10, 20));
             incarnation += 1;
             server.merge_additional_addresses(additional_addresses.clone());
             verify_additional_addresses(&server, additional_addresses);
@@ -1477,10 +1451,7 @@ mod tests {
 
             // nothing should change, so incarnation should be left intact
             additional_addresses = HashMap::new();
-            additional_addresses.insert(
-                "foo".to_string(),
-                additional_address(Some(ipaddr(10, 20, 30, 40)), 10, 20),
-            );
+            additional_addresses.insert("foo".to_string(), additional_address(foo_addr, 10, 20));
             server.merge_additional_addresses(additional_addresses.clone());
             verify_additional_addresses(&server, additional_addresses);
             assert_eq!(get_incarnation(&server), incarnation);

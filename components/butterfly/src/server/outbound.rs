@@ -282,11 +282,9 @@ pub fn create_to_member<AP: AddressAndPort>(addr: AP, target: &Member) -> Member
         let mut zone_id = BfUuid::nil();
 
         for zone_address in target.additional_addresses.iter() {
-            if let Some(ref zone_address_str) = zone_address.address {
-                if *zone_address_str == address_str && zone_address.swim_port == port {
-                    zone_id = zone_address.zone_id;
-                    break;
-                }
+            if zone_address.address == address_str && zone_address.swim_port == port {
+                zone_id = zone_address.zone_id;
+                break;
             }
         }
 

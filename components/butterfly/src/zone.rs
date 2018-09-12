@@ -29,7 +29,7 @@ use rumor::{RumorKey, RumorPayload, RumorType};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ZoneAddress {
     pub zone_id: BfUuid,
-    pub address: Option<String>,
+    pub address: String,
     pub swim_port: u16,
     pub gossip_port: u16,
     pub tag: String,
@@ -39,7 +39,7 @@ impl From<ZoneAddress> for proto::ZoneAddress {
     fn from(value: ZoneAddress) -> Self {
         Self {
             zone_id: Some(value.zone_id.to_string()),
-            address: value.address,
+            address: Some(value.address),
             swim_port: Some(cast::i32(value.swim_port)),
             gossip_port: Some(cast::i32(value.gossip_port)),
             tag: Some(value.tag),
@@ -55,7 +55,7 @@ impl FromProto<proto::ZoneAddress> for ZoneAddress {
                 .ok_or(Error::ProtocolMismatch("zone_id"))?
                 .parse::<BfUuid>()
                 .map_err(|e| Error::InvalidField("zone_id", e.to_string()))?,
-            address: proto.address,
+            address: proto.address.ok_or(Error::ProtocolMismatch("address"))?,
             swim_port: cast::u16(proto.swim_port.ok_or(Error::ProtocolMismatch("swim_port"))?)
                 .map_err(|e| Error::InvalidField("swim_port", e.to_string()))?,
             gossip_port: cast::u16(
@@ -753,13 +753,13 @@ impl ZoneList {
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct AdditionalAddress<A: Address> {
-    pub address: Option<A>,
+    pub address: A,
     pub swim_port: u16,
     pub gossip_port: u16,
 }
 
 impl<A: Address> AdditionalAddress<A> {
-    pub fn new(address: Option<A>, swim_port: u16, gossip_port: u16) -> Self {
+    pub fn new(address: A, swim_port: u16, gossip_port: u16) -> Self {
         Self {
             address,
             swim_port,

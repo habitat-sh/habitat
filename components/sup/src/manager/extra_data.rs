@@ -168,6 +168,7 @@ mod tests {
                 gossip_port = 4321
 
                 [sup.tag2]
+                address = "2.3.4.5"
                 swim_port = 2345
                 gossip_port = 5432
 
@@ -183,8 +184,8 @@ mod tests {
 
             "##
         ).unwrap();
-        let suptag1 = SupAdditionalAddress::new(Some(ipaddr(1, 2, 3, 4)), 1234, 4321);
-        let suptag2 = SupAdditionalAddress::new(None, 2345, 5432);
+        let suptag1 = SupAdditionalAddress::new(ipaddr(1, 2, 3, 4), 1234, 4321);
+        let suptag2 = SupAdditionalAddress::new(ipaddr(2, 3, 4, 5), 2345, 5432);
         let mut sup = HashMap::new();
 
         sup.insert("tag1".to_string(), suptag1);

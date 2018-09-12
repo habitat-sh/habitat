@@ -27,7 +27,7 @@ use network::{
 };
 use server::Server;
 use swim::{SwimType, ZoneChange};
-use zone::{Zone, ZoneAddress};
+use zone::Zone;
 
 #[derive(Debug)]
 pub struct HandleZoneResults {
@@ -91,7 +91,7 @@ struct HandleZoneDbgData {
     pub to_kind: AddressKind,
     pub parse_failures: Vec<String>,
     pub zone_change_dbg_data: Option<ZoneChangeDbgData>,
-    pub additional_address_update: Option<(ZoneAddress, ZoneAddress)>,
+    pub additional_address_update: Option<(String, BfUuid)>,
     pub additional_address_msgs: Vec<String>,
     pub msg_and_target: Option<(ZoneChange, Member)>,
 }
@@ -131,7 +131,7 @@ pub enum ZoneRelative {
 pub struct MemberOrZoneChanges {
     pub new_maintained_zone: Option<Zone>,
     pub zone_id_for_our_member: Option<BfUuid>,
-    pub additional_address_for_our_member: Option<(ZoneAddress, ZoneAddress)>,
+    pub additional_address_for_our_member: Option<(String, BfUuid)>,
     pub call_ack: bool,
     pub sender_has_nil_zone: bool,
     pub msg_and_target: Option<(ZoneChange, Member)>,
@@ -444,19 +444,14 @@ pub fn handle_zone<N: Network>(
                     if let Some(zone_id) = changes.zone_id_for_our_member {
                         our_member.zone_id = zone_id;
                     }
-                    if let Some((old, new)) = changes.additional_address_for_our_member {
+                    if let Some((tag, new_zone_address_id)) =
+                        changes.additional_address_for_our_member
+                    {
                         for zone_address in our_member.additional_addresses.iter_mut() {
-                            if zone_address.address != old.address {
+                            if zone_address.tag != tag {
                                 continue;
                             }
-                            if zone_address.swim_port != old.swim_port {
-                                continue;
-                            }
-                            if zone_address.zone_id != old.zone_id {
-                                continue;
-                            }
-                            zone_address.address = new.address;
-                            zone_address.zone_id = new.zone_id;
+                            zone_address.zone_id = new_zone_address_id;
                             break;
                         }
                     }
@@ -620,13 +615,12 @@ fn handle_zone_for_recipient<N: Network>(
     // 6. from additional to unknown - probably message sent from
     // a zone to a sibling zone for the first time
     //
-    // 7. from unknown to real - probably message sent from child
-    // zone to parent zone, but the sender either does not know
-    // that it can be reached with the address the message came
-    // from or it knows it can be reached, but does not know the
-    // exact address (only ports). This likely should not happen -
-    // if the server in child zone is not exposed in the parent
-    // zone, the message should be routed through the gateway
+    // 7. from unknown to real - probably message sent from child zone
+    // to parent zone, but the sender either does not know that it can
+    // be reached with the address the message came from. This likely
+    // should not happen - if the server in child zone is not exposed
+    // in the parent zone, the message should be routed through the
+    // gateway
     //
     // 8. from unknown to additional - probably message sent from
     // zone to a sibling zone, but the sender either does not know
@@ -778,14 +772,12 @@ fn handle_zone_internal<N: Network>(
     //       - generate my own zone
     //     - 0ab. sender in a different private network than me
     //       - generate my own zone
-    //       - store the recipient address if not stored (ports
-    //         should already be available)
+    //       - update the zone id in additional address
     //   - 0b. i'm settled
     //     - 0ba. sender in the same private network as me
     //       - do nothing
     //     - 0bb. sender in a different private network than me
-    //       - store the recipient address if not stored (ports
-    //         should already be available)
+    //       - update the zone id in additional address
     // - 1 sender has non-nil zone id
     //   - 1a. i'm not settled
     //     - 1aa. sender in the same private network as me
@@ -793,9 +785,7 @@ fn handle_zone_internal<N: Network>(
     //     - 1ab. sender in a different private network than me
     //       - generate my own zone
     //       - add sender id as a child/parent of my zone
-    //       - store the recipient address if not stored (ports
-    //         should already be available)
-    //       - store sender zone id? what did i mean by that?
+    //       - update the zone id in additional address
     //   - 1b. i'm settled
     //     - 1ba. sender in the same private network as me
     //       - 1ba<. senders zone id is less than mine
@@ -807,9 +797,7 @@ fn handle_zone_internal<N: Network>(
     //         - use process_zone_change_internal_state
     //     - 1bb. sender in a different private network than me
     //       - add sender id as a child/parent of my zone
-    //       - store the recipient address if not stored (ports
-    //         should already be available)
-    //       - store sender zone id? what did i mean by that?
+    //       - update the zone id in additional address
     //
     // actions:
     // - settle zone
@@ -820,17 +808,12 @@ fn handle_zone_internal<N: Network>(
     // - add sender id as a child/parent of my zone
     //   - if from/to is real/additional then sender is a parent
     //   - if from/to is additional/real then sender is a child
-    // - store the additional address if not stored (ports should
-    //   already be available)
-    //   - if this is an ack and to zone id is nil and from is additional
-    //     - send ack
+    // - update the zone id in additional address
     //   - this should always be an update of an existing address
     //     entry, never an addition
     //   - scenarios:
     //     - 0. nil sender zone id
-    //       - search for fitting port number with no address and no zone
-    //       - if there is only one then update the address, zone is still nil
-    //       - otherwise ignore it
+    //       - not much to do, just send an ack
     //     - 1. non nil sender zone id
     //       - search for fitting port number with a specific zone
     //         - if found and address is the same, nothing to add
@@ -846,7 +829,6 @@ fn handle_zone_internal<N: Network>(
     //         - if found and zone id is something else - ignore? should not happen?
     // - assume sender's zone (means that we were not settled yet)
     //   - new id for our member
-    // - store sender zone id? what did i mean by that?
     // - if message was ack then send another ack back to
     //   enlighten the sender about newer and better zone
     // - use process_zone_change_internal_state
@@ -1098,23 +1080,21 @@ fn address_kind<A: Address>(
     }
 
     for zone_address in member.additional_addresses.iter() {
-        if let Some(ref zone_addr_str) = zone_address.address {
-            let member_additional_address = match A::create_from_str(zone_addr_str) {
-                Ok(zone_addr) => zone_addr,
-                Err(e) => {
-                    let msg = format!(
-                        "Error parsing member {:?} additional address {}: {}",
-                        member, zone_addr_str, e
-                    );
-                    error!("{}", msg);
-                    dbg_data.parse_failures.push(msg);
-                    continue;
-                }
-            };
-
-            if member_additional_address == addr {
-                return AddressKind::Additional;
+        let member_additional_address = match A::create_from_str(&zone_address.address) {
+            Ok(zone_addr) => zone_addr,
+            Err(e) => {
+                let msg = format!(
+                    "Error parsing member {:?} additional address {}: {}",
+                    member, zone_address.address, e
+                );
+                error!("{}", msg);
+                dbg_data.parse_failures.push(msg);
+                continue;
             }
+        };
+
+        if member_additional_address == addr {
+            return AddressKind::Additional;
         }
     }
 
@@ -1154,8 +1134,8 @@ fn generate_my_own_zone(
 fn store_recipient_address_nil_sender_zone(
     changes: &mut MemberOrZoneChanges,
     from_address_kind: AddressKind,
-    to_address_kind: AddressKind,
-    our_member: &Member,
+    _to_address_kind: AddressKind,
+    _our_member: &Member,
     to_member: &Member,
     dbg_data: &mut HandleZoneDbgData,
 ) {
@@ -1164,47 +1144,6 @@ fn store_recipient_address_nil_sender_zone(
         dbg_data
             .additional_address_msgs
             .push("will send an ack".to_string());
-    }
-    dbg_data
-        .additional_address_msgs
-        .push(format!("got message on {:?} address", to_address_kind));
-    if to_address_kind != AddressKind::Real {
-        for zone_address in our_member.additional_addresses.iter() {
-            if zone_address.swim_port != to_member.swim_port {
-                dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} has swim port different than {}, skipping",
-                    zone_address, to_member.swim_port
-                ));
-                continue;
-            }
-
-            let zone_address_id = zone_address.zone_id;
-
-            if !zone_address_id.is_nil() {
-                dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} has non-nil zone id, skipping",
-                    zone_address
-                ));
-                continue;
-            }
-            if zone_address.address.is_some() {
-                dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} already has an address, skipping",
-                    zone_address
-                ));
-                continue;
-            }
-
-            let mut new_zone_address = zone_address.clone();
-
-            new_zone_address.address = Some(to_member.address.clone());
-            changes.additional_address_for_our_member =
-                Some((zone_address.clone(), new_zone_address));
-
-            dbg_data.additional_address_update = changes.additional_address_for_our_member.clone();
-
-            break;
-        }
     }
 }
 
@@ -1270,6 +1209,7 @@ fn add_sender_zone_id_as_relative(
 //       - continue with the other approach
 //   - search for a zone address instance with a
 //     relation-fitting zone
+//     - not implemented yet
 //     - relation-fitting zone means a relative of a
 //       sender zone (child/parent/itself)
 //     - found and both address and port are the
@@ -1287,13 +1227,6 @@ fn add_sender_zone_id_as_relative(
 //     - found and both address and port are the
 //       same
 //       - update the zone to sender zone itself
-//     - not found
-//       - continue with the other approach
-//   - search for a zone address instance with a nil
-//     zone and an unset address
-//     - found and ports are the same
-//       - update the zone to sender zone itself
-//       - update the address
 //     - not found
 //       - warn
 fn store_recipient_address_valid_sender_zone(
@@ -1323,18 +1256,10 @@ fn store_recipient_address_valid_sender_zone(
             .additional_address_msgs
             .push("going with the variant-fitting scenario".to_string());
         for zone_address in our_member.additional_addresses.iter() {
-            if let Some(ref address_str) = zone_address.address {
-                if *address_str != to_member.address {
-                    dbg_data.additional_address_msgs.push(format!(
-                        "zone address {:#?} has different address than {}, skipping",
-                        zone_address, to_member.address
-                    ));
-                    continue;
-                }
-            } else {
+            if zone_address.address != to_member.address {
                 dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} has no address, skipping",
-                    zone_address
+                    "zone address {:#?} has different address than {}, skipping",
+                    zone_address, to_member.address
                 ));
                 continue;
             }
@@ -1386,12 +1311,8 @@ fn store_recipient_address_valid_sender_zone(
             }
             done = match maybe_new_zone_id {
                 Some(zone_id) => {
-                    let mut new_zone_address = zone_address.clone();
-
-                    new_zone_address.zone_id = zone_id;
-                    new_zone_address.address = Some(to_member.address.clone());
                     changes.additional_address_for_our_member =
-                        Some((zone_address.clone(), new_zone_address));
+                        Some((zone_address.tag.clone(), zone_id));
 
                     dbg_data.additional_address_update =
                         changes.additional_address_for_our_member.clone();
@@ -1426,18 +1347,10 @@ fn store_recipient_address_valid_sender_zone(
             .additional_address_msgs
             .push("going with the nil-zoned scenario".to_string());
         for zone_address in our_member.additional_addresses.iter() {
-            if let Some(ref address_str) = zone_address.address {
-                if *address_str != to_member.address {
-                    dbg_data.additional_address_msgs.push(format!(
-                        "zone address {:#?} has different address than {}, skipping",
-                        zone_address, to_member.address
-                    ));
-                    continue;
-                }
-            } else {
+            if zone_address.address != to_member.address {
                 dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} has no address, skipping",
-                    zone_address
+                    "zone address {:#?} has different address than {}, skipping",
+                    zone_address, to_member.address
                 ));
                 continue;
             }
@@ -1460,55 +1373,8 @@ fn store_recipient_address_valid_sender_zone(
                 continue;
             }
 
-            let mut new_zone_address = zone_address.clone();
-
-            new_zone_address.zone_id = sender_zone.id;
             changes.additional_address_for_our_member =
-                Some((zone_address.clone(), new_zone_address));
-
-            dbg_data.additional_address_update = changes.additional_address_for_our_member.clone();
-
-            done = true;
-            break;
-        }
-    }
-    if !done {
-        dbg_data
-            .additional_address_msgs
-            .push("going with the nil-zoned, address-guessing scenario".to_string());
-        for zone_address in our_member.additional_addresses.iter() {
-            if zone_address.address.is_some() {
-                dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} already has an address, skipping",
-                    zone_address
-                ));
-                continue;
-            }
-
-            if zone_address.swim_port != to_member.swim_port {
-                dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} has different swim port than {}, skipping",
-                    zone_address, to_member.swim_port
-                ));
-                continue;
-            }
-
-            let zone_address_id = zone_address.zone_id;
-
-            if !zone_address_id.is_nil() {
-                dbg_data.additional_address_msgs.push(format!(
-                    "zone address {:#?} has non-nil zone, skipping",
-                    zone_address
-                ));
-                continue;
-            }
-
-            let mut new_zone_address = zone_address.clone();
-
-            new_zone_address.zone_id = sender_zone.id;
-            new_zone_address.address = Some(to_member.address.clone());
-            changes.additional_address_for_our_member =
-                Some((zone_address.clone(), new_zone_address));
+                Some((zone_address.tag.clone(), sender_zone.id));
 
             dbg_data.additional_address_update = changes.additional_address_for_our_member.clone();
 

@@ -1393,7 +1393,7 @@ impl NatHole {
 
     pub fn into_additional_address(self) -> AdditionalAddress<TestAddr> {
         AdditionalAddress {
-            address: Some(self.addr.addr),
+            address: self.addr.addr,
             swim_port: self.addr.port,
             gossip_port: self.addr.port,
         }

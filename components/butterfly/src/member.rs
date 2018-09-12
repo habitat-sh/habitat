@@ -144,20 +144,17 @@ impl Member {
             if zone_address.zone_id != zone_id {
                 continue;
             }
-            match zone_address.address {
-                None => break,
-                Some(ref addr_str) => match T::Address::create_from_str(addr_str) {
-                    Ok(addr) => {
-                        return Some(T::new_from_address_and_port(
-                            addr,
-                            port_getter.get_port_from_zone_address(&zone_address),
-                        ))
-                    }
-                    Err(e) => {
-                        error!("Cannot parse member {:?} additional address: {}", self, e);
-                        break;
-                    }
-                },
+            match T::Address::create_from_str(&zone_address.address) {
+                Ok(addr) => {
+                    return Some(T::new_from_address_and_port(
+                        addr,
+                        port_getter.get_port_from_zone_address(&zone_address),
+                    ))
+                }
+                Err(e) => {
+                    error!("Cannot parse member {:?} additional address: {}", self, e);
+                    break;
+                }
             }
         }
 
