@@ -10,6 +10,7 @@
 - Fix some rustc warnings due to platform-specific code [#5524](https://github.com/habitat-sh/habitat/pull/5524) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Override SSL_CERT_FILE for macOS Buildkite build [#5613](https://github.com/habitat-sh/habitat/pull/5613) ([christophermaier](https://github.com/christophermaier))
 - supervisor should not init signals on windows [#5603](https://github.com/habitat-sh/habitat/pull/5603) ([mwrock](https://github.com/mwrock))
 - ensure pkg build and appveyor hard fails if any powershell error occurs [#5528](https://github.com/habitat-sh/habitat/pull/5528) ([mwrock](https://github.com/mwrock))
 - pkg export and hab-sup/hab-launcher commands should honor fs_root [#5592](https://github.com/habitat-sh/habitat/pull/5592) ([mwrock](https://github.com/mwrock))
