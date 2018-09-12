@@ -204,16 +204,6 @@ impl<N: Network> Inbound<N> {
         if results.sender_has_nil_zone {
             warn!("Supervisor {} sent an Ack with a nil zone ID", msg.from.id);
         }
-        // TODO: do it after filling membership and zones
-        if results.send_ack {
-            outbound::ack(
-                &self.server,
-                &self.swim_sender,
-                &msg.from.clone(),
-                addr,
-                None,
-            );
-        }
         trace_it!(SWIM: &self.server, TraceKind::RecvAck, &msg.from.id, addr, &msg);
         trace!("Ack from {}@{}", msg.from.id, addr);
         if msg.forward_to.is_some() {
@@ -251,6 +241,7 @@ impl<N: Network> Inbound<N> {
         }
         let memberships = msg.membership.clone();
         let zones = msg.zones.clone();
+        let from = msg.from.clone();
         match self.tx_outbound.send((addr, msg)) {
             Ok(()) => {
                 for membership in memberships {
@@ -260,6 +251,9 @@ impl<N: Network> Inbound<N> {
                 self.server.insert_zones_from_rumors(zones);
             }
             Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
+        }
+        if results.send_ack {
+            outbound::ack(&self.server, &self.swim_sender, &from, addr, None);
         }
     }
 
