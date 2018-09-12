@@ -71,29 +71,29 @@ pub enum ZoneChangeResultsMsgOrNothing {
 
 #[derive(Debug, Default)]
 struct HandleZoneDbgData {
-    pub to_address: String,
-    pub to_port: u16,
-    pub host_address: String,
-    pub host_port: u16,
-    pub from_zone_id: String,
-    pub from_address: String,
-    pub from_port: u16,
-    pub real_from_address: String,
-    pub real_from_port: u16,
-    pub scenario: String,
-    pub was_settled: bool,
-    pub our_old_zone_id: BfUuid,
-    pub our_new_zone_id: BfUuid,
-    pub sender_zone_warning: Option<String>,
-    pub handle_zone_results: HandleZoneInternalResults,
-    pub sender_in_the_same_zone_as_us: bool,
-    pub from_kind: AddressKind,
-    pub to_kind: AddressKind,
-    pub parse_failures: Vec<String>,
-    pub zone_change_dbg_data: Option<ZoneChangeDbgData>,
-    pub additional_address_update: Option<(String, BfUuid)>,
-    pub additional_address_msgs: Vec<String>,
-    pub msg_and_target: Option<(ZoneChange, Member)>,
+    to_address: String,
+    to_port: u16,
+    host_address: String,
+    host_port: u16,
+    from_zone_id: String,
+    from_address: String,
+    from_port: u16,
+    real_from_address: String,
+    real_from_port: u16,
+    scenario: String,
+    was_settled: bool,
+    our_old_zone_id: BfUuid,
+    our_new_zone_id: BfUuid,
+    sender_zone_warning: Option<String>,
+    handle_zone_results: HandleZoneInternalResults,
+    sender_in_the_same_zone_as_us: bool,
+    from_kind: AddressKind,
+    to_kind: AddressKind,
+    parse_failures: Vec<String>,
+    zone_change_dbg_data: Option<ZoneChangeDbgData>,
+    additional_address_update: Option<(String, BfUuid)>,
+    additional_address_msgs: Vec<String>,
+    msg_and_target: Option<(ZoneChange, Member)>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -111,14 +111,14 @@ impl Default for AddressKind {
 
 #[derive(Debug)]
 struct HandleZoneData<'a, N: Network> {
-    pub zones: &'a [Zone],
-    pub from_member: &'a Member,
-    pub to_member: &'a Member,
-    pub addr: AddressAndPortForNetwork<N>,
-    pub swim_type: SwimType,
-    pub from_address_kind: AddressKind,
-    pub to_address_kind: AddressKind,
-    pub sender_in_the_same_zone_as_us: bool,
+    zones: &'a [Zone],
+    from_member: &'a Member,
+    to_member: &'a Member,
+    addr: AddressAndPortForNetwork<N>,
+    swim_type: SwimType,
+    from_address_kind: AddressKind,
+    to_address_kind: AddressKind,
+    sender_in_the_same_zone_as_us: bool,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -128,14 +128,14 @@ pub enum ZoneRelative {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct MemberOrZoneChanges {
-    pub new_maintained_zone: Option<Zone>,
-    pub zone_id_for_our_member: Option<BfUuid>,
-    pub additional_address_for_our_member: Option<(String, BfUuid)>,
-    pub call_ack: bool,
-    pub sender_has_nil_zone: bool,
-    pub msg_and_target: Option<(ZoneChange, Member)>,
-    pub sender_relative: Option<(BfUuid, ZoneRelative)>,
+struct MemberOrZoneChanges {
+    new_maintained_zone: Option<Zone>,
+    zone_id_for_our_member: Option<BfUuid>,
+    additional_address_for_our_member: Option<(String, BfUuid)>,
+    call_ack: bool,
+    sender_has_nil_zone: bool,
+    msg_and_target: Option<(ZoneChange, Member)>,
+    sender_relative: Option<(BfUuid, ZoneRelative)>,
 }
 
 #[derive(Clone, Debug)]
