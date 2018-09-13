@@ -42,8 +42,7 @@ fn service_config_via_client() {
             0,
             payload,
             false,
-        )
-        .expect("Cannot send the service configuration");
+        ).expect("Cannot send the service configuration");
     net.wait_for_gossip_rounds(1);
     net[1]
         .service_config_store

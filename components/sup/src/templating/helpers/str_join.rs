@@ -34,7 +34,8 @@ impl HelperDef for StrJoinHelper {
             .and_then(|v| v.value().as_str())
             .ok_or_else(|| RenderError::new("Expected 2 parameters for \"strJoin\""))?;
 
-        rc.writer.write(list.join(seperator).into_bytes().as_ref())?;
+        rc.writer
+            .write(list.join(seperator).into_bytes().as_ref())?;
         Ok(())
     }
 }

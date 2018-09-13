@@ -668,8 +668,7 @@ fn sub_cli_completers() -> App<'static, 'static> {
             .help(
                 "The name of the shell you want to generate the command-completion. Supported \
                  Shells: bash, fish, zsh, powershell",
-            )
-            .short("s")
+            ).short("s")
             .long("shell")
             .required(true)
             .takes_value(true)
@@ -707,8 +706,7 @@ fn sub_pkg_build() -> App<'static, 'static> {
                 .help(
                     "Uses a Dockerized Studio for the build (default: Studio uses a chroot on \
                      linux)",
-                )
-                .short("D")
+                ).short("D")
                 .long("docker"),
         )
     } else if cfg!(target_os = "windows") {

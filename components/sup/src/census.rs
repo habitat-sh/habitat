@@ -498,8 +498,7 @@ impl CensusGroup {
             .or_else(|| self.active_members().first().map(|m| *m))
             .ok_or(sup_error!(Error::NoActiveMembers(
                 self.service_group.clone()
-            )))
-            .map(|m| m.cfg.keys().collect())
+            ))).map(|m| m.cfg.keys().collect())
     }
 }
 // NOTE: This is exposed to users in templates. Any public member is

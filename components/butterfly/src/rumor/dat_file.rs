@@ -68,7 +68,8 @@ impl DatFile {
         // won't be a performance issue for a long time anyway, if ever.
         let mut rumor_buf: Vec<u8> = vec![];
         let mut bytes_read = 0;
-        let file = File::open(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        let file =
+            File::open(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         let mut reader = BufReader::new(file);
         reader
             .read_exact(&mut version)
@@ -269,7 +270,8 @@ impl DatFile {
             file.sync_all()
                 .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         }
-        fs::rename(&tmp_path, &self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        fs::rename(&tmp_path, &self.path)
+            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         self.sync_parent_dir()?;
         Ok(0)
     }

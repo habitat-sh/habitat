@@ -294,12 +294,14 @@ impl ServiceSpec {
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file = File::open(&path)
-            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
+        let file = File::open(&path).map_err(|err| {
+            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
+        })?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
-        file.read_to_string(&mut buf)
-            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
+        file.read_to_string(&mut buf).map_err(|err| {
+            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
+        })?;
         Self::from_str(&buf)
     }
 
@@ -316,8 +318,9 @@ impl ServiceSpec {
         let tmpfile = path
             .as_ref()
             .with_extension(thread_rng().gen_ascii_chars().take(8).collect::<String>());
-        fs::create_dir_all(dst_path)
-            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
+        fs::create_dir_all(dst_path).map_err(|err| {
+            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
+        })?;
         // Release the write file handle before the end of the function since we're done
         {
             let mut file = File::create(&tmpfile)
@@ -326,8 +329,9 @@ impl ServiceSpec {
             file.write_all(toml.as_bytes())
                 .map_err(|err| sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err)))?;
         }
-        fs::rename(&tmpfile, path.as_ref())
-            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
+        fs::rename(&tmpfile, path.as_ref()).map_err(|err| {
+            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
+        })?;
 
         Ok(())
     }

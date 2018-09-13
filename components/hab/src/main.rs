@@ -153,8 +153,7 @@ fn start(ui: &mut UI) -> Result<()> {
                     analytics::instrument_clap_error(&e);
                     e.exit();
                 });
-        })
-        .unwrap();
+        }).unwrap();
     let app_matches = child.join().unwrap();
 
     match app_matches.subcommand() {
@@ -843,8 +842,7 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
                         io::ErrorKind::UnexpectedEof,
                     ))),
                 })
-        })
-        .wait()?;
+        }).wait()?;
     ui.status(Status::Applying, format!("via peer {}", sup_addr))?;
     // JW: We should not need to make two connections here. I need a way to return the
     // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
@@ -861,8 +859,7 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
                     io::ErrorKind::UnexpectedEof,
                 ))),
             })
-        })
-        .wait()?;
+        }).wait()?;
     ui.end("Applied configuration")?;
     Ok(())
 }
@@ -890,8 +887,7 @@ fn sub_svc_config(m: &ArgMatches) -> Result<()> {
                     io::ErrorKind::UnexpectedEof,
                 ))),
             })
-        })
-        .wait()?;
+        }).wait()?;
     Ok(())
 }
 
@@ -960,19 +956,16 @@ fn sub_svc_status(m: &ArgMatches) -> Result<()> {
                         Some(m) => print_svc_status(&mut out, m, true)?,
                     }
                     Ok((out, rest))
-                })
-                .and_then(|(out, rest)| {
+                }).and_then(|(out, rest)| {
                     rest.fold(out, move |mut out, reply| {
                         print_svc_status(&mut out, reply, false)?;
                         Ok::<_, SrvClientError>(out)
                     })
-                })
-                .and_then(|mut out| {
+                }).and_then(|mut out| {
                     out.flush()?;
                     Ok(())
                 })
-        })
-        .wait()?;
+        }).wait()?;
     Ok(())
 }
 
@@ -1060,8 +1053,7 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
                     io::ErrorKind::UnexpectedEof,
                 ))),
             })
-        })
-        .wait()?;
+        }).wait()?;
     ui.end("Uploaded file")?;
     Ok(())
 }
@@ -1094,8 +1086,7 @@ fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
                     io::ErrorKind::UnexpectedEof,
                 ))),
             })
-        })
-        .wait()?;
+        }).wait()?;
     ui.end("Departure recorded.")?;
     Ok(())
 }

@@ -82,15 +82,13 @@ impl<'a, 'b> Cli<'a, 'b> {
                         "Install packages from Builder at the specified URL \
                          (default: https://bldr.habitat.sh)",
                     ),
-            )
-            .arg(
+            ).arg(
                 Arg::with_name("CHANNEL")
                     .long("channel")
                     .short("c")
                     .value_name("CHANNEL")
                     .help("Install packages from the specified release channel (default: stable)"),
-            )
-            .arg(
+            ).arg(
                 Arg::with_name("BASE_PKGS_BLDR_URL")
                     .long("base-pkgs-url")
                     .value_name("BASE_PKGS_BLDR_URL")
@@ -99,8 +97,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                         "Install base packages from Builder at the specified URL \
                          (default: https://bldr.habitat.sh)",
                     ),
-            )
-            .arg(
+            ).arg(
                 Arg::with_name("BASE_PKGS_CHANNEL")
                     .long("base-pkgs-channel")
                     .value_name("BASE_PKGS_CHANNEL")

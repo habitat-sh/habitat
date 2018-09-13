@@ -25,7 +25,8 @@ impl HelperDef for ToUppercaseHelper {
             .param(0)
             .and_then(|v| v.value().as_str())
             .ok_or_else(|| RenderError::new("Expected a string parameter for \"toUppercase\""))?;
-        rc.writer.write(param.to_uppercase().into_bytes().as_ref())?;
+        rc.writer
+            .write(param.to_uppercase().into_bytes().as_ref())?;
         Ok(())
     }
 }

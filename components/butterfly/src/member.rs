@@ -183,7 +183,9 @@ impl FromProto<proto::Member> for Member {
             // two uses of our Member protobuf, or both.
             address: proto.address.unwrap_or("".to_string()),
 
-            swim_port: proto.swim_port.ok_or(Error::ProtocolMismatch("swim-port"))?,
+            swim_port: proto
+                .swim_port
+                .ok_or(Error::ProtocolMismatch("swim-port"))?,
             gossip_port: proto
                 .gossip_port
                 .ok_or(Error::ProtocolMismatch("gossip-port"))?,
@@ -654,8 +656,7 @@ impl MemberList {
                 m.id != sending_member_id
                     && m.id != target_member_id
                     && self.check_health_of_by_id(&m.id, Health::Alive)
-            })
-            .take(PINGREQ_TARGETS)
+            }).take(PINGREQ_TARGETS)
         {
             with_closure(member);
         }

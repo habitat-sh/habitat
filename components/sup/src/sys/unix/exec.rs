@@ -42,9 +42,10 @@ where
         // If we can SETUID/SETGID, then run the script as the service
         // user; otherwise, we'll just run it as ourselves.
 
-        let uid = os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(Error::Permissions(
-            format!("No uid for user '{}' could be found", &pkg.svc_user)
-        )))?;
+        let uid =
+            os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(Error::Permissions(
+                format!("No uid for user '{}' could be found", &pkg.svc_user)
+            )))?;
         let gid =
             os::users::get_gid_by_name(&pkg.svc_group).ok_or(sup_error!(Error::Permissions(
                 format!("No gid for group '{}' could be found", &pkg.svc_group)

@@ -28,7 +28,10 @@ pub enum Error {
     Base64DecodeError(DecodeError),
     #[fail(display = "Docker build failed with exit code: {}", _0)]
     BuildFailed(ExitStatus),
-    #[fail(display = "Could not determine Docker image ID for image: {}", _0)]
+    #[fail(
+        display = "Could not determine Docker image ID for image: {}",
+        _0
+    )]
     DockerImageIdNotFound(String),
     #[fail(
         display = "Switch to Windows containers to export Docker images on Windows. \
@@ -56,6 +59,9 @@ pub enum Error {
     PrimaryServicePackageNotFound(Vec<String>),
     #[fail(display = "Docker image push failed with exit code: {}", _0)]
     PushImageFailed(ExitStatus),
-    #[fail(display = "Removing Docker local images failed with exit code: {}", _0)]
+    #[fail(
+        display = "Removing Docker local images failed with exit code: {}",
+        _0
+    )]
     RemoveImageFailed(ExitStatus),
 }

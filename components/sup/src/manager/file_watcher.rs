@@ -1465,7 +1465,8 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
             None => (),
             Some(directories) => {
                 for directory in directories {
-                    self.watcher.watch(&directory, RecursiveMode::NonRecursive)?;
+                    self.watcher
+                        .watch(&directory, RecursiveMode::NonRecursive)?;
                 }
                 if let Some(ref path) = self.paths.real_file {
                     actions.push(PathsAction::NotifyFileAppeared(path.clone()));
@@ -3040,8 +3041,7 @@ mod tests {
                         err,
                         self.debug_info,
                     )
-                })
-                .map(|rde| {
+                }).map(|rde| {
                     rde.unwrap_or_else(|err| {
                         panic!(
                             "failed to get entry for {}: {}, debug info:\n{}",
@@ -3050,9 +3050,8 @@ mod tests {
                             self.debug_info,
                         )
                     }).path()
-                        .to_owned()
-                })
-                .collect()
+                    .to_owned()
+                }).collect()
         }
 
         fn parent_is_watched(&self, path: &PathBuf) -> bool {
@@ -3072,8 +3071,7 @@ mod tests {
                     "path {} has no parent, debug info:\n{}",
                     path.display(),
                     self.debug_info
-                ))
-                .to_owned()
+                )).to_owned()
         }
 
         fn prepend_root(&self, p: &PathBuf) -> PathBuf {
@@ -3410,8 +3408,7 @@ mod tests {
                             },
                         },
                     )
-                })
-                .collect()
+                }).collect()
         }
 
         fn get_real_first_expected_path(
