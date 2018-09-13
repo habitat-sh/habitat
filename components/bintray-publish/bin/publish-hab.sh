@@ -333,8 +333,6 @@ EOF
 
 BINTRAY_ORG=habitat
 BINTRAY_REPO=stable
-# shellcheck disable=2123
-PATH=@path@
 
 # The current version of this program
 version='@version@'
