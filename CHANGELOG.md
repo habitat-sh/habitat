@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Stop manually manipulating the PATH in bintray-publish package [#5624](https://github.com/habitat-sh/habitat/pull/5624) ([christophermaier](https://github.com/christophermaier))
 - Fix compile warning [#5595](https://github.com/habitat-sh/habitat/pull/5595) ([baumanj](https://github.com/baumanj))
 - Increase Network Stability across Supervisor Restarts [#5588](https://github.com/habitat-sh/habitat/pull/5588) ([christophermaier](https://github.com/christophermaier))
 - Replace deprecated usage of rand crate with mktemp [#5562](https://github.com/habitat-sh/habitat/pull/5562) ([baumanj](https://github.com/baumanj))
