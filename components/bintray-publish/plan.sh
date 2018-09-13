@@ -26,7 +26,6 @@ do_build() {
     sed \
       -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
       -e "s,@author@,$pkg_maintainer,g" \
-      -e "s,@path@,$pkg_prefix/bin:$run_path,g" \
       -e "s,@version@,$pkg_version/$pkg_release,g" \
       -i "${CACHE_PATH}/publish-hab"
 }
