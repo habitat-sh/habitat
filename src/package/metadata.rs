@@ -131,8 +131,7 @@ impl PkgEnv {
                             separator: None,
                         }
                     }
-                })
-                .collect(),
+                }).collect(),
         }
     }
 
@@ -311,7 +310,7 @@ port=front-end.port
             parse_key_value(&ENVIRONMENT).unwrap(),
             parse_key_value(&ENVIRONMENT_SEP).unwrap(),
         ).into_iter()
-            .collect::<Vec<_>>();
+        .collect::<Vec<_>>();
         // Sort the result by key, so we have a guarantee of order
         result.sort_by_key(|v| v.key.to_owned());
 

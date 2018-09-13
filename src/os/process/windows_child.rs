@@ -623,16 +623,19 @@ impl OpenOptions {
     }
 
     fn get_flags_and_attributes(&self) -> winapi::DWORD {
-        self.custom_flags | self.attributes | self.security_qos_flags
+        self.custom_flags
+            | self.attributes
+            | self.security_qos_flags
             | if self.security_qos_flags != 0 {
                 winapi::SECURITY_SQOS_PRESENT
             } else {
                 0
-            } | if self.create_new {
-            winapi::FILE_FLAG_OPEN_REPARSE_POINT
-        } else {
-            0
-        }
+            }
+            | if self.create_new {
+                winapi::FILE_FLAG_OPEN_REPARSE_POINT
+            } else {
+                0
+            }
     }
 }
 

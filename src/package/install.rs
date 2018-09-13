@@ -103,18 +103,18 @@ impl PackageInstall {
                 Err(Error::PackageNotFound(ident.clone()))
             }
         } else {
-            let latest: Option<PackageIdent> = pl.iter().filter(|&p| p.satisfies(ident)).fold(
-                None,
-                |winner, b| match winner {
-                    Some(a) => match a.partial_cmp(&b) {
-                        Some(Ordering::Greater) => Some(a),
-                        Some(Ordering::Equal) => Some(a),
-                        Some(Ordering::Less) => Some(b.clone()),
-                        None => Some(a),
-                    },
-                    None => Some(b.clone()),
-                },
-            );
+            let latest: Option<PackageIdent> =
+                pl.iter()
+                    .filter(|&p| p.satisfies(ident))
+                    .fold(None, |winner, b| match winner {
+                        Some(a) => match a.partial_cmp(&b) {
+                            Some(Ordering::Greater) => Some(a),
+                            Some(Ordering::Equal) => Some(a),
+                            Some(Ordering::Less) => Some(b.clone()),
+                            None => Some(a),
+                        },
+                        None => Some(b.clone()),
+                    });
             if let Some(id) = latest {
                 Ok(PackageInstall {
                     installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
@@ -347,7 +347,8 @@ impl PackageInstall {
         match self.read_metafile(MetaFile::Exports) {
             Ok(body) => {
                 let parsed_value = parse_key_value(&body);
-                let result = parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
+                let result =
+                    parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
                 Ok(result)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::new()),
@@ -1381,8 +1382,8 @@ core/bar=pub:core/publish sub:core/subscribe
                     pkg_prefix_for(&other_pkg_install).join("sbin"),
                 ].iter(),
             ).unwrap()
-                .to_string_lossy()
-                .as_ref(),
+            .to_string_lossy()
+            .as_ref(),
         );
 
         assert_eq!(
@@ -1623,8 +1624,8 @@ core/bar=pub:core/publish sub:core/subscribe
                 pkg_prefix_for(&pkg_install).join("bin"),
                 pkg_prefix_for(&other_pkg_install).join("sbin"),
             ]).unwrap()
-                .to_string_lossy()
-                .into_owned(),
+            .to_string_lossy()
+            .into_owned(),
         );
 
         assert_eq!(expected, pkg_install.environment_for_command().unwrap());
