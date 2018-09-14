@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- more troubleshooting: install the launcher [#5632](https://github.com/habitat-sh/habitat/pull/5632) ([mwrock](https://github.com/mwrock))
 - temporarily disable launcher install and upload [#5631](https://github.com/habitat-sh/habitat/pull/5631) ([mwrock](https://github.com/mwrock))
 - Add myself as codeowner on www/site/content [#5619](https://github.com/habitat-sh/habitat/pull/5619) ([kagarmoe](https://github.com/kagarmoe))
 - Blog post for Hab 0.63.0 [#5601](https://github.com/habitat-sh/habitat/pull/5601) ([chefsalim](https://github.com/chefsalim))
