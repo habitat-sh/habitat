@@ -94,7 +94,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
 
             # This will override plan's CARGO_TARGET_DIR so we do not have to build each clean
             $env:HAB_CARGO_TARGET_DIR = "$(Get-RepoRoot)\target"
-
+            $env:HAB_WINDOWS_STUDIO_REUSE = $true
             $env:HAB_ORIGIN="core"
             if($env:ORIGIN_KEY) {
                 "SIG-SEC-1`ncore-20170318210306`n`n$($env:ORIGIN_KEY)" | & $habExe origin key import
@@ -110,6 +110,11 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 Write-Host "Building plan for $component"
                 Write-Host ""
                 if($(& $habExe --version) -lt "hab 0.63") {
+                    # THIS SHOULD BE DELETED AFTER 0.63 RELEASE
+                    # We MUST build with the new studio so copy
+                    # master to the one we just got from stable
+                    & $habExe pkg install core/hab-studio
+                    Copy-Item "$(Get-RepoRoot)\components\studio\bin\hab-studio.ps1" (Resolve-Path /hab/pkgs/core/hab-studio/*/*/bin)[-1]
                     & $habExe pkg build components/$component -w
                 } else {
                     & $habExe pkg build components/$component -w -R
