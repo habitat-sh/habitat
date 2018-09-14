@@ -3,6 +3,10 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+## [0.63.0](https://github.com/habitat-sh/habitat/tree/0.63.0) (09-14-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.1...0.63.0)
+
 #### Bug Fixes
 - Stop manually manipulating the PATH in bintray-publish package [#5624](https://github.com/habitat-sh/habitat/pull/5624) ([christophermaier](https://github.com/christophermaier))
 - Fix compile warning [#5595](https://github.com/habitat-sh/habitat/pull/5595) ([baumanj](https://github.com/baumanj))
@@ -29,7 +33,7 @@
 - submit blog entry describing `bixu/cacher` package [#5523](https://github.com/habitat-sh/habitat/pull/5523) ([bixu](https://github.com/bixu))
 - Make logging looks same [#5532](https://github.com/habitat-sh/habitat/pull/5532) ([jsirex](https://github.com/jsirex))
 - Handle post-0.62.1 Release Tasks [#5555](https://github.com/habitat-sh/habitat/pull/5555) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
+
 ## [0.62.1](https://github.com/habitat-sh/habitat/tree/0.62.1) (09-04-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.0...0.62.1)
 

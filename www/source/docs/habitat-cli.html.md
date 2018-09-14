@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.62.1/20180905002037 (linux) | 4 Sep 2018 |
+| hab 0.63.0/20180914025124 (linux) | 14 Sep 2018 |
 
 ## hab
 
@@ -2025,7 +2025,7 @@ hab sup <SUBCOMMAND>
 | [hab sup bash](#hab-sup-bash) | Start an interactive Bash-like shell |
 | [hab sup depart](#hab-sup-depart) | Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id |
 | [hab sup run](#hab-sup-run) | Run the Habitat Supervisor |
-| [hab sup secret](#hab-sup-secret) | Commands relating to a Habitat Supervisor's Contorl Gateway secret |
+| [hab sup secret](#hab-sup-secret) | Commands relating to a Habitat Supervisor's Control Gateway secret |
 | [hab sup sh](#hab-sup-sh) | Start an interactive Bourne-like shell |
 | [hab sup status](#hab-sup-status) | Query the status of Habitat services. |
 | [hab sup term](#hab-sup-term) | Gracefully terminate the Habitat Supervisor and all of its running services |
@@ -2142,7 +2142,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
 ### hab sup secret
 
-Commands relating to a Habitat Supervisor's Contorl Gateway secret
+Commands relating to a Habitat Supervisor's Control Gateway secret
 
 **USAGE**
 
@@ -2637,3 +2637,4 @@ hab user key generate <USER>
 
 
 ---
+
