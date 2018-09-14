@@ -390,7 +390,7 @@ function Invoke-StudioBuild($location, $reuse) {
     Write-BuildHelp
     return
   }
-  if(!$reuse -and !$env:HAB_WINDOWS_STUDIO_REUSE) { Remove-Studio}
+  if(!$reuse) { Remove-Studio}
 
   New-Studio
   Write-HabInfo "Building '$location' in Studio at $HAB_STUDIO_ROOT"
