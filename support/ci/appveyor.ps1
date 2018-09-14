@@ -124,12 +124,14 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 $hart = (Get-Item "$(Get-RepoRoot)\components\$component\results\*.hart")[-1]
                 Write-Host "Copying $hart to artifacts directory..."
                 Copy-Item $hart.FullName results
-                & $habExe pkg install $hart.FullName
-                if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-
-                if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
-                    & $habExe pkg upload $hart --channel $channel
+                if($env:hab_components -ne "launcher") {
+                    & $habExe pkg install $hart.FullName
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+    
+                    if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
+                        & $habExe pkg upload $hart --channel $channel
+                        if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+                    }
                 }
 
                 # Install and extract hab cli bin files for zip
@@ -174,7 +176,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" (Split-Path $habExe -Parent) -Force
                 }
             }
-            if(!(Test-PullRequest)) {
+            if(!(Test-PullRequest) -and $env:hab_components -ne "launcher") {
                 $env:HAB_BLDR_CHANNEL = $channel
                 & $habExe pkg exec core/hab-bintray-publish publish-studio
                 $env:HAB_BLDR_CHANNEL = $null
