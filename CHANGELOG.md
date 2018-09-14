@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Post 0.63.0 tasks [#5628](https://github.com/habitat-sh/habitat/pull/5628) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 ## [0.63.0](https://github.com/habitat-sh/habitat/tree/0.63.0) (09-14-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.1...0.63.0)
