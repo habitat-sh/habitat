@@ -934,3 +934,334 @@ impl<A: Address> AdditionalAddress<A> {
 pub type TaggedAddressesFromAddress<A> = HashMap<String, AdditionalAddress<A>>;
 pub type TaggedAddressesFromNetwork<N> =
     TaggedAddressesFromAddress<<<N as Network>::AddressAndPort as AddressAndPort>::Address>;
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+
+    use message::BfUuid;
+    use zone::{Zone, ZoneList};
+
+    fn new_zone(id: BfUuid) -> Zone {
+        Zone::new(id, BfUuid::generate().to_string())
+    }
+
+    fn generate_sorted_zone_ids(count: usize) -> Vec<BfUuid> {
+        let mut ids = Vec::with_capacity(count);
+
+        for _ in 0..count {
+            ids.push(BfUuid::generate());
+        }
+
+        ids.sort_unstable();
+
+        ids
+    }
+
+    fn ensure_aliases_of_zone<I>(
+        zone: &Zone,
+        maybe_successor_id: Option<BfUuid>,
+        predecessor_ids: I,
+    ) where
+        I: Iterator<Item = BfUuid>,
+    {
+        let expected_predecessors = predecessor_ids.collect::<HashSet<_>>();
+        let actual_predecessors = zone.predecessors.iter().cloned().collect::<HashSet<_>>();
+
+        assert_eq!(
+            expected_predecessors, actual_predecessors,
+            "zone {:#?} was expected to have predecessors {:#?}, but has {:#?}",
+            zone, expected_predecessors, actual_predecessors
+        );
+        assert_eq!(
+            maybe_successor_id, zone.successor,
+            "zone {:#?} was expected to have a successor {:#?}, but has {:#?}",
+            zone, maybe_successor_id, zone.successor
+        );
+    }
+
+    fn ensure_aliases(zone_list: &ZoneList, successor_id: BfUuid, predecessor_ids: &[BfUuid]) {
+        assert!(
+            !predecessor_ids.contains(&successor_id),
+            "test writer failure"
+        );
+        let mut given_aliases = predecessor_ids.iter().cloned().collect::<HashSet<_>>();
+
+        given_aliases.insert(successor_id);
+
+        let aliases = zone_list.gather_all_aliases_of(successor_id);
+
+        assert_eq!(aliases, given_aliases);
+        assert_eq!(aliases.len(), predecessor_ids.len() + 1 /*successor*/);
+        let successor_zone = zone_list.zones.get(&successor_id).unwrap();
+
+        ensure_aliases_of_zone(&successor_zone, None, predecessor_ids.iter().cloned());
+
+        for id in predecessor_ids {
+            let predecessor_zone = zone_list.zones.get(id).unwrap();
+
+            ensure_aliases_of_zone(
+                &predecessor_zone,
+                Some(successor_id),
+                predecessor_ids
+                    .iter()
+                    .filter_map(|i| if *i != *id { Some(*i) } else { None }),
+            );
+        }
+    }
+
+    fn ensure_incarnation(zone_list: &ZoneList, zone_id: BfUuid, incarnation: u64) {
+        assert_eq!(
+            zone_list.zones.get(&zone_id).unwrap().incarnation,
+            incarnation
+        );
+    }
+
+    fn ensure_relationships_for_aliases(
+        zone_list: &ZoneList,
+        zone_id: BfUuid,
+        parent_id: Option<BfUuid>,
+        child_ids: &[BfUuid],
+    ) {
+        if let Some(parent_id) = parent_id {
+            assert!(!child_ids.contains(&parent_id), "test writer failure");
+        }
+
+        for alias_id in zone_list.gather_all_aliases_of(zone_id) {
+            let zone = zone_list.zones.get(&alias_id).unwrap();
+
+            assert_eq!(
+                zone.parent_zone_id, parent_id,
+                "zone {:#?} should have a parent {:#?}",
+                zone, parent_id
+            );
+            let actual_child_ids = zone.child_zone_ids.iter().cloned().collect::<HashSet<_>>();
+            let expected_child_ids = child_ids.iter().cloned().collect::<HashSet<_>>();
+            assert_eq!(
+                actual_child_ids, expected_child_ids,
+                "zone {:#?} should have children {:#?}",
+                zone, child_ids
+            );
+        }
+    }
+
+    #[test]
+    fn add_an_alias_foo() {
+        let mut zone_list = ZoneList::new();
+        let ids = generate_sorted_zone_ids(2);
+        let (min_zone_id, max_zone_id) = (ids[0], ids[1]);
+        let mut zone1 = new_zone(min_zone_id);
+
+        zone_list.insert(zone1.clone());
+        zone_list.insert(new_zone(max_zone_id));
+        zone1.successor = Some(max_zone_id);
+        zone1.incarnation += 1;
+        zone_list.insert(zone1);
+
+        ensure_aliases(&zone_list, max_zone_id, &[min_zone_id]);
+        ensure_incarnation(&zone_list, max_zone_id, 0);
+        ensure_incarnation(&zone_list, min_zone_id, 1);
+    }
+
+    #[test]
+    fn add_an_alias_to_maintained_zone() {
+        let mut zone_list = ZoneList::new();
+        let ids = generate_sorted_zone_ids(2);
+        let (min_zone_id, max_zone_id) = (ids[0], ids[1]);
+        let mut successor_zone = new_zone(max_zone_id);
+
+        zone_list.insert(new_zone(min_zone_id));
+        zone_list.maintained_zone_id = Some(min_zone_id);
+        successor_zone.predecessors.push(min_zone_id);
+        zone_list.insert(successor_zone);
+
+        ensure_aliases(&zone_list, max_zone_id, &[min_zone_id]);
+        ensure_incarnation(&zone_list, max_zone_id, 0);
+        // incarnation was raised, because it is our maintained zone
+        // and it has changed.
+        ensure_incarnation(&zone_list, min_zone_id, 1);
+    }
+
+    #[test]
+    fn no_rumors_to_send_if_zone_did_not_change() {
+        let mut zone_list = ZoneList::new();
+        let ids = generate_sorted_zone_ids(3);
+        let (low_id, medium_id, high_id) = (ids[0], ids[1], ids[2]);
+        let mut low_zone = new_zone(low_id);
+        let mut medium_zone = new_zone(medium_id);
+        let mut high_zone = new_zone(high_id);
+
+        medium_zone.predecessors.push(low_id);
+        medium_zone.incarnation = 3;
+        high_zone.predecessors.push(medium_id);
+        high_zone.incarnation = 7;
+
+        zone_list.maintained_zone_id = Some(low_id);
+        assert_eq!(zone_list.insert(low_zone.clone()).len(), 1);
+        ensure_incarnation(&zone_list, low_id, 0);
+        assert_eq!(zone_list.insert(medium_zone.clone()).len(), 2);
+        ensure_incarnation(&zone_list, low_id, 1);
+        ensure_incarnation(&zone_list, medium_id, 3);
+        assert_eq!(zone_list.insert(high_zone.clone()).len(), 3);
+        ensure_incarnation(&zone_list, low_id, 2);
+        ensure_incarnation(&zone_list, medium_id, 3);
+        ensure_incarnation(&zone_list, high_id, 7);
+        ensure_aliases(&zone_list, high_id, &[low_id, medium_id]);
+
+        low_zone.incarnation = 2;
+        low_zone.successor = Some(high_id);
+        assert_eq!(zone_list.insert(low_zone.clone()).len(), 0);
+        ensure_incarnation(&zone_list, low_id, 2);
+
+        high_zone.predecessors.push(low_id);
+        medium_zone.successor = Some(high_id);
+        assert_eq!(zone_list.insert(high_zone).len(), 0);
+        assert_eq!(zone_list.insert(medium_zone).len(), 0);
+
+        low_zone.incarnation = 1;
+        low_zone.successor = Some(medium_id);
+        assert_eq!(zone_list.insert(low_zone.clone()).len(), 0);
+        ensure_incarnation(&zone_list, low_id, 2);
+    }
+
+    #[test]
+    fn update_our_zone_if_parent_gets_successor() {
+        let mut zone_list = ZoneList::new();
+        let ids = generate_sorted_zone_ids(3);
+        let parent_ids = generate_sorted_zone_ids(2);
+        let (low_id, medium_id, high_id) = (ids[0], ids[1], ids[2]);
+        let (parent_low_id, parent_high_id) = (parent_ids[0], parent_ids[1]);
+        let low_zone = new_zone(low_id);
+        let mut medium_zone = new_zone(medium_id);
+        let mut high_zone = new_zone(high_id);
+        let mut parent_low_zone = new_zone(parent_low_id);
+        let mut parent_high_zone = new_zone(parent_high_id);
+
+        medium_zone.predecessors.push(low_id);
+        high_zone.predecessors.push(medium_id);
+        parent_low_zone.child_zone_ids.push(low_id);
+        parent_high_zone.predecessors.push(parent_low_id);
+
+        zone_list.maintained_zone_id = Some(low_id);
+        zone_list.our_zone_id = medium_id;
+        zone_list.insert(low_zone);
+        zone_list.insert(medium_zone);
+        zone_list.insert(parent_low_zone);
+        zone_list.insert(parent_high_zone);
+
+        ensure_aliases(&zone_list, medium_id, &[low_id]);
+        ensure_aliases(&zone_list, parent_high_id, &[parent_low_id]);
+        ensure_relationships_for_aliases(&zone_list, low_id, Some(parent_high_id), &[]);
+        ensure_relationships_for_aliases(&zone_list, parent_low_id, None, &[medium_id]);
+
+        zone_list.our_zone_id = high_id;
+        zone_list.insert(high_zone);
+
+        ensure_aliases(&zone_list, high_id, &[low_id, medium_id]);
+        ensure_aliases(&zone_list, parent_high_id, &[parent_low_id]);
+        ensure_relationships_for_aliases(&zone_list, low_id, Some(parent_high_id), &[]);
+        ensure_relationships_for_aliases(&zone_list, parent_low_id, None, &[high_id]);
+    }
+
+    #[test]
+    fn update_our_zone_if_children_get_successors() {
+        let mut zone_list = ZoneList::new();
+        let ids = generate_sorted_zone_ids(3);
+        let child1_ids = generate_sorted_zone_ids(2);
+        let child2_ids = generate_sorted_zone_ids(2);
+        let (low_id, medium_id, high_id) = (ids[0], ids[1], ids[2]);
+        let (child1_low_id, child1_high_id) = (child1_ids[0], child1_ids[1]);
+        let (child2_low_id, child2_high_id) = (child2_ids[0], child2_ids[1]);
+        let low_zone = new_zone(low_id);
+        let mut medium_zone = new_zone(medium_id);
+        let mut high_zone = new_zone(high_id);
+        let mut child1_low_zone = new_zone(child1_low_id);
+        let mut child1_high_zone = new_zone(child1_high_id);
+        let mut child2_low_zone = new_zone(child2_low_id);
+        let mut child2_high_zone = new_zone(child2_high_id);
+
+        medium_zone.predecessors.push(low_id);
+        high_zone.predecessors.push(medium_id);
+        child1_low_zone.parent_zone_id = Some(low_id);
+        child2_low_zone.parent_zone_id = Some(low_id);
+        child1_high_zone.parent_zone_id = Some(low_id);
+        child2_high_zone.parent_zone_id = Some(low_id);
+        child1_high_zone.predecessors.push(child1_low_id);
+        child2_high_zone.predecessors.push(child2_low_id);
+
+        zone_list.maintained_zone_id = Some(low_id);
+        zone_list.our_zone_id = medium_id;
+        zone_list.insert(low_zone);
+        zone_list.insert(medium_zone);
+        zone_list.insert(child1_low_zone);
+        zone_list.insert(child1_high_zone);
+        zone_list.insert(child2_low_zone);
+        zone_list.insert(child2_high_zone);
+
+        ensure_aliases(&zone_list, medium_id, &[low_id]);
+        ensure_aliases(&zone_list, child1_high_id, &[child1_low_id]);
+        ensure_aliases(&zone_list, child2_high_id, &[child2_low_id]);
+        ensure_relationships_for_aliases(
+            &zone_list,
+            low_id,
+            None,
+            &[child1_high_id, child2_high_id],
+        );
+        ensure_relationships_for_aliases(&zone_list, child1_low_id, Some(medium_id), &[]);
+        ensure_relationships_for_aliases(&zone_list, child2_low_id, Some(medium_id), &[]);
+
+        zone_list.our_zone_id = high_id;
+        zone_list.insert(high_zone);
+
+        ensure_aliases(&zone_list, high_id, &[low_id, medium_id]);
+        ensure_aliases(&zone_list, child1_high_id, &[child1_low_id]);
+        ensure_aliases(&zone_list, child2_high_id, &[child2_low_id]);
+        ensure_relationships_for_aliases(
+            &zone_list,
+            low_id,
+            None,
+            &[child1_high_id, child2_high_id],
+        );
+        ensure_relationships_for_aliases(&zone_list, child1_low_id, Some(high_id), &[]);
+        ensure_relationships_for_aliases(&zone_list, child2_low_id, Some(high_id), &[]);
+    }
+
+    #[test]
+    fn zone_gets_children_merged() {
+        let mut zone_list = ZoneList::new();
+        let ids = generate_sorted_zone_ids(1);
+        let child_ids = generate_sorted_zone_ids(3);
+        let id = ids[0];
+        let (child1_id, child2_id, child_merge_id) = (child_ids[0], child_ids[1], child_ids[2]);
+        let zone = new_zone(id);
+        let mut child1_zone = new_zone(child1_id);
+        let mut child2_zone = new_zone(child2_id);
+        let mut child_merge_zone = new_zone(child_merge_id);
+
+        child1_zone.parent_zone_id = Some(id);
+        child2_zone.parent_zone_id = Some(id);
+        child_merge_zone
+            .predecessors
+            .extend(&[child1_id, child2_id]);
+
+        zone_list.maintained_zone_id = Some(id);
+        zone_list.our_zone_id = id;
+        zone_list.insert(zone);
+        zone_list.insert(child1_zone);
+        zone_list.insert(child2_zone);
+
+        ensure_aliases(&zone_list, id, &[]);
+        ensure_aliases(&zone_list, child1_id, &[]);
+        ensure_aliases(&zone_list, child2_id, &[]);
+        ensure_relationships_for_aliases(&zone_list, id, None, &[child1_id, child2_id]);
+        ensure_relationships_for_aliases(&zone_list, child1_id, Some(id), &[]);
+        ensure_relationships_for_aliases(&zone_list, child2_id, Some(id), &[]);
+
+        zone_list.insert(child_merge_zone);
+
+        ensure_aliases(&zone_list, id, &[]);
+        ensure_aliases(&zone_list, child_merge_id, &[child1_id, child2_id]);
+        ensure_relationships_for_aliases(&zone_list, id, None, &[child_merge_id]);
+        ensure_relationships_for_aliases(&zone_list, child1_id, Some(id), &[]);
+    }
+}
