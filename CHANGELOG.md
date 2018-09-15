@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- revert launcher deploy troubleshooting code [#5633](https://github.com/habitat-sh/habitat/pull/5633) ([mwrock](https://github.com/mwrock))
 - more troubleshooting: install the launcher [#5632](https://github.com/habitat-sh/habitat/pull/5632) ([mwrock](https://github.com/mwrock))
 - temporarily disable launcher install and upload [#5631](https://github.com/habitat-sh/habitat/pull/5631) ([mwrock](https://github.com/mwrock))
 - Add myself as codeowner on www/site/content [#5619](https://github.com/habitat-sh/habitat/pull/5619) ([kagarmoe](https://github.com/kagarmoe))
