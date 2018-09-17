@@ -100,6 +100,7 @@ tutorials and reference materials.
 * [Robb Kidd](https://github.com/robbkidd)
 * [Tasha Drew](https://github.com/tashimi)
 * [Kimberly Garmoe](https://github.com/kagarmoe)
+* [Mary Jinglewski](https://github.com/mjingle)
 
 ### Core Plans
 
