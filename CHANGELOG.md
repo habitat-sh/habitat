@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Behavioral Changes
+- allow ENV overrides for `--listen-{ctl,gossip,http}` [#5576](https://github.com/habitat-sh/habitat/pull/5576) ([jeremymv2](https://github.com/jeremymv2))
+
 #### Bug Fixes
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
