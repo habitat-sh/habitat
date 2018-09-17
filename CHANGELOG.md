@@ -10,6 +10,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Update &#39;wrong&#39; value passed to WrongActivePackageTarget to be the artifacts target [#5596](https://github.com/habitat-sh/habitat/pull/5596) ([smacfarlane](https://github.com/smacfarlane))
 - Remove incorrect documentation for applying config with a ring key [#5606](https://github.com/habitat-sh/habitat/pull/5606) ([smacfarlane](https://github.com/smacfarlane))
 - Added myself to CODEOWNERS [#5635](https://github.com/habitat-sh/habitat/pull/5635) ([mjingle](https://github.com/mjingle))
 - Ensure Habitat Toolchain Omnibus package is installed [#5622](https://github.com/habitat-sh/habitat/pull/5622) ([christophermaier](https://github.com/christophermaier))
