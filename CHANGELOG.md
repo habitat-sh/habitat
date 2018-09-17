@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Behavioral Changes
+- Remove/replace set_{permissions,owner} calls which aren&#39;t supported on windows [#5591](https://github.com/habitat-sh/habitat/pull/5591) ([baumanj](https://github.com/baumanj))
 - allow ENV overrides for `--listen-{ctl,gossip,http}` [#5576](https://github.com/habitat-sh/habitat/pull/5576) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Bug Fixes
