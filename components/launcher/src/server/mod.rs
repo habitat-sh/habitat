@@ -568,6 +568,10 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
         let version_check = Command::new(&binary).arg("--version").output()?;
         let sup_version = String::from_utf8_lossy(&version_check.stdout);
         if !is_supported_supervisor_version(sup_version.trim().to_string()) {
+            error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
+            error!("This check can be disabled by setting the {} environment variable to a non-empty string when starting the supervisor", SUP_VERSION_CHECK_DISABLE);
+            error!("Disabling this check may result in undefined behavior; please update to a newer Habitat version");
+            error!("For more information see https://github.com/habitat-sh/habitat/pull/5484");
             return Err(Error::SupBinaryVersion);
         }
     }
