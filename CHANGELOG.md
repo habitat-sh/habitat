@@ -10,6 +10,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Added myself to CODEOWNERS [#5635](https://github.com/habitat-sh/habitat/pull/5635) ([mjingle](https://github.com/mjingle))
 - Ensure Habitat Toolchain Omnibus package is installed [#5622](https://github.com/habitat-sh/habitat/pull/5622) ([christophermaier](https://github.com/christophermaier))
 - this removes the studio hack needed to get 0.63 out [#5630](https://github.com/habitat-sh/habitat/pull/5630) ([mwrock](https://github.com/mwrock))
 - revert launcher deploy troubleshooting code [#5633](https://github.com/habitat-sh/habitat/pull/5633) ([mwrock](https://github.com/mwrock))
