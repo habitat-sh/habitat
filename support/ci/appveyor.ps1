@@ -114,12 +114,14 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 $hart = (Get-Item "$(Get-RepoRoot)\components\$component\results\*.hart")[-1]
                 Write-Host "Copying $hart to artifacts directory..."
                 Copy-Item $hart.FullName results
-                & $habExe pkg install $hart.FullName
-                if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-
-                if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
-                    & $habExe pkg upload $hart --channel $channel
+                if(!(Test-ReleaseBuild -and $env:hab_components -eq "launcher")) {
+                    & $habExe pkg install $hart.FullName
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+    
+                    if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
+                        & $habExe pkg upload $hart --channel $channel
+                        if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+                    }
                 }
 
                 # Install and extract hab cli bin files for zip
