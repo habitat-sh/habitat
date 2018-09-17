@@ -38,6 +38,7 @@ pub enum Error {
     HabitatCore(habitat_core::error::Error),
     IncarnationIO(PathBuf, io::Error),
     IncarnationParse(PathBuf, num::ParseIntError),
+    InvalidIncarnationSynchronization,
     NonExistentRumor(String, String),
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
@@ -81,6 +82,9 @@ impl fmt::Display for Error {
                 path.display(),
                 err
             ),
+            Error::InvalidIncarnationSynchronization => format!(
+                "Tried to synchronize own member incarnation from non-existent incarnation store"
+            ),
             Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
                 "Non existent rumor asked to be written to bytes: {} {}",
                 member_id, rumor_id
@@ -123,6 +127,9 @@ impl error::Error for Error {
             Error::HabitatCore(_) => "Habitat core error",
             Error::IncarnationIO(_, _) => "Error reading or writing incarnation store file",
             Error::IncarnationParse(_, _) => "Error parsing value from incarnation store file",
+            Error::InvalidIncarnationSynchronization => {
+                "Tried to synchronize own member incarnation from non-existent incarnation store"
+            }
             Error::NonExistentRumor(_, _) => {
                 "Cannot write rumor to bytes because it does not exist"
             }

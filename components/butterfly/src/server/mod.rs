@@ -33,7 +33,7 @@ use std::fmt::{self, Debug};
 use std::fs;
 use std::io;
 use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
@@ -47,8 +47,9 @@ use habitat_core::service::ServiceGroup;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
+use self::incarnation_store::IncarnationStore;
 use error::{Error, Result};
-use member::{Health, Member, MemberList, DEFAULT_INCARNATION};
+use member::{Health, Incarnation, Member, MemberList};
 use message;
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
@@ -86,61 +87,74 @@ pub struct Myself {
 }
 
 impl Myself {
-    /// Create a new `Myself` for the given `Member`. If `store_dir`
-    /// is provided, a file named `INCARNATION` will be created in
-    /// that directory and initialized as an `IncarnationStore`.
-    fn new<P>(member: Member, store_dir: Option<P>) -> Result<Myself>
-    where
-        P: AsRef<Path>,
-    {
-        let store = store_dir.map(|ref d| {
-            let path = d.as_ref().join("INCARNATION").to_path_buf();
-            incarnation_store::IncarnationStore::from(path)
-        });
-        Ok(Myself {
+    /// Create a new `Myself` for the given `Member`, whose
+    /// incarnation number is backed by `store`
+    ///
+    /// Currently, `store` should only be `None` when the Butterfly
+    /// Server is being initially set up; it will add one in the
+    /// course of starting up. This is not ideal.
+    ///
+    /// It may also be `None` in the context of our current Butterfly
+    /// integration tests. This also needs to be fixed, since that
+    /// signals a difference between testing and "real life".
+    fn new(member: Member, store: Option<IncarnationStore>) -> Myself {
+        Myself {
             member: member,
             incarnation_store: store,
-        })
+        }
     }
 
-    /// Ensure that the underlying incarnation store is appropriately
-    /// initialized, and set the incarnation according to what (if
-    /// anything) has been previously stored.
-    fn initialize(&mut self) -> Result<()> {
-        // TODO (CM): This awkward construction is due to the current
-        // optionality of incarnation_store :(
-        if self.incarnation_store.is_some() {
-            let initial_value = self.incarnation_store.as_ref().unwrap().initialize()?;
-            if initial_value != DEFAULT_INCARNATION {
-                // If we have a non-default number, then we're
-                // restarting from a previous state. We'll increment
-                // to reflect that this is a new incarnation.
-                self.member.incarnation = initial_value;
-                self.increment_incarnation()?;
+    /// Read the incarnation number stored in the `IncarnationStore`
+    /// and set it as our own.
+    ///
+    /// Fails if `IncarnationStore` has not been set (i.e., is `None).
+    fn sync_incarnation(&mut self) -> Result<()> {
+        match self.incarnation_store {
+            Some(ref mut s) => {
+                let value = s.load()?;
+                self.member.incarnation = value;
+            }
+            None => {
+                // Can't sync unless you've got a store!
+                //
+                // Note: This shouldn't be able to happen, and will
+                // hopefully go away once we refactor things such that
+                // `Myself` just gets created with an IncarnationStore directly.
+                return Err(Error::InvalidIncarnationSynchronization);
             }
         };
-        debug!(
-            "Initializing with incarnation number {}",
-            self.member.incarnation
-        );
+        debug!("Setting incarnation number to {}", self.member.incarnation);
         Ok(())
     }
 
     /// Increments the incarnation by 1. A `Member`'s incarnation
     /// number can *only* be incremented by itself.
     ///
-    /// Returns an error if there was an issue persisting the
-    /// incarnation number.
-    fn increment_incarnation(&mut self) -> Result<()> {
+    /// Note that if there was an error while persisting the
+    /// incarnation number, we _still continue_. The error will be
+    /// logged, but the _in-memory_ incarnation number will still be
+    /// incremented. If the file is not writable over a long period of
+    /// time, it may be possible for the in-memory incarnation to
+    /// diverge from the persisted version.
+    ///
+    /// Not incrementing the in-memory incarnation number in the face
+    /// of a persistence error could cause errors in refutation in the
+    /// network, and it is not yet clear that we would want to do
+    /// that.
+    fn increment_incarnation(&mut self) {
         self.member.incarnation += 1;
-        if let Some(ref s) = self.incarnation_store {
-            s.store(self.member.incarnation)?;
-        };
-        Ok(())
+        if let Some(ref mut s) = self.incarnation_store {
+            if let Err(e) = s.store(self.member.incarnation) {
+                error!(
+                    "Error persisting incarnation '{}' to disk: {:?}",
+                    self.member.incarnation, e
+                );
+            }
+        }
     }
 
     /// Returns the current incarnation number.
-    pub fn incarnation(&self) -> u64 {
+    pub fn incarnation(&self) -> Incarnation {
         self.member.incarnation
     }
 
@@ -153,11 +167,11 @@ impl Myself {
         self.member.clone()
     }
 
-    // This is ONLY provided for some tests that depend on being able to
-    // mutate the member. Ideally, the only think that should be mutable,
-    // once you actually have a fully set-up Butterfly server, is the
-    // incarnation number, which is accounted for in
-    // `Myself::increment_incarnation`.
+    // This is ONLY provided for some integration tests that currently
+    // depend on being able to mutate the member. Ideally, the only
+    // thing that should be mutable, once you actually have a fully
+    // set-up Butterfly server, is the incarnation number, which is
+    // accounted for in `Myself::increment_incarnation`.
     pub fn set_persistent(&mut self) {
         self.member.persistent = true;
     }
@@ -257,13 +271,13 @@ impl Server {
                 member.gossip_port = gossip_socket_addr.port() as i32;
 
                 let member_id = member.id.clone();
-                let myself = match data_path {
-                    Some(ref p) => {
-                        let path: PathBuf = p.into();
-                        Myself::new(member, Some(path))?
-                    }
-                    None => Myself::new(member, None::<PathBuf>)?,
-                };
+
+                // TODO (CM): This None really wants to go away. Not
+                // currently setting a IncarnationStore, because it
+                // depends on whether or not a data_path was actually
+                // passed. That, in turn, is currently deeply rooted
+                // in the testing framework.
+                let myself = Myself::new(member, None);
 
                 Ok(Server {
                     name: Arc::new(name.unwrap_or(member_id.clone())),
@@ -383,10 +397,17 @@ impl Server {
             let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
             *dat_file = Some(file);
 
-            self.member
-                .write()
-                .expect("Member lock is poisoned")
-                .initialize()?;
+            {
+                // Set up the incarnation persistence and ensure that
+                // our Member is synced with whatever has been
+                // persisted previously.
+                let mut store = incarnation_store::IncarnationStore::new(path.join("INCARNATION"));
+                store.initialize()?;
+
+                let mut me = self.member.write().expect("Member lock is poisoned");
+                me.incarnation_store = Some(store);
+                me.sync_incarnation()?;
+            }
         }
 
         let socket = match UdpSocket::bind(
@@ -593,19 +614,7 @@ impl Server {
         if self.socket.is_some() {
             {
                 let mut me = self.member.write().expect("Member lock is poisoned");
-                if let Err(e) = me.increment_incarnation() {
-                    // This is technically an error, but shouldn't
-                    // block the rest of this shutdown logic. At
-                    // worst, it means we'd think the incarnation is
-                    // one less than the rest of the network when (if)
-                    // we restart. The user can fix by manual
-                    // intervention, or by letting the refutation
-                    // logic handle it on the next startup.
-                    warn!(
-                        "Could not persist incarnation file during departure: {:?}",
-                        e
-                    );
-                }
+                me.increment_incarnation();
                 // TODO (CM): It's not clear that this operation is
                 // actually needed.
                 me.mark_departed();
@@ -654,23 +663,10 @@ impl Server {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() {
             if health != Health::Alive {
-                if let Err(e) = self
-                    .member
+                self.member
                     .write()
                     .expect("Member lock is poisoned")
-                    .increment_incarnation()
-                {
-                    // It's not clear that we should return an error
-                    // and stop everything if we can't persist an
-                    // incremented incarnation.
-                    //
-                    // In the absence of that, we can log an error to
-                    // allow the operator to investigate.
-                    error!(
-                        "Could not persist incarnation file during refutation: {:?}",
-                        e
-                    );
-                }
+                    .increment_incarnation();
                 health = Health::Alive;
                 incremented_incarnation = true;
             }
@@ -1199,30 +1195,40 @@ mod tests {
     mod myself {
         use super::super::*;
         use member::Member;
+        use mktemp::Temp;
+        use std::path::Path;
 
         /// Helper function to create an instance of `Myself` for
         /// tests.
-        fn myself() -> Myself {
-            Myself::new(Member::default(), None::<PathBuf>)
-                .expect("couldn't create an instance of Myself")
+        fn myself<P>(path: P) -> Myself
+        where
+            P: AsRef<Path>,
+        {
+            let mut i = IncarnationStore::new(path.as_ref());
+            i.initialize()
+                .expect("Couldn't initialize incarnation store");
+            Myself::new(Member::default(), Some(i))
         }
 
         #[test]
         fn myself_can_increment_its_incarnation() {
-            let mut me = myself();
+            let path = Temp::new_dir().expect("Could not create temp file");
+            let mut me = myself(path.as_ref().join("INCARNATION"));
+
             assert_eq!(
                 me.incarnation(),
-                DEFAULT_INCARNATION,
+                Incarnation::default(),
                 "Incarnation should start at the default of {}",
-                DEFAULT_INCARNATION
+                Incarnation::default()
             );
-            assert!(me.increment_incarnation().is_ok());
+            me.increment_incarnation();
             assert_eq!(
                 me.incarnation(),
-                DEFAULT_INCARNATION + 1,
+                Incarnation::from(1),
                 "Incarnation should have incremented by 1"
             );
         }
+
     }
 
     mod server {
