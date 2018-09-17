@@ -279,7 +279,10 @@ where
             f.write_all(out.as_bytes())?;
             f.sync_all()?;
         }
-        perm::set_permissions(&secret_key_path, CTL_SECRET_PERMISSIONS)?;
+        if cfg!(not(windows)) {
+            perm::set_permissions(&secret_key_path, CTL_SECRET_PERMISSIONS)?;
+        }
+        // TODO: Implement permissions FFI for windows
         Ok(out)
     }
 }

@@ -117,10 +117,23 @@ impl<'a> SvcDir<'a> {
         P: AsRef<Path>,
     {
         Self::create_dir_all(&path)?;
-        if abilities::can_run_services_as_svc_user() {
-            perm::set_owner(&path, &self.svc_user, &self.svc_group)?;
+        if cfg!(not(windows)) {
+            if abilities::can_run_services_as_svc_user() {
+                perm::set_owner(&path, &self.svc_user, &self.svc_group)?;
+            }
+            perm::set_permissions(&path, SVC_DIR_PERMISSIONS).map_err(From::from)
+        } else if cfg!(windows) {
+            if path.as_ref().exists() {
+                Ok(())
+            } else {
+                Err(sup_error!(Error::FileNotFound(format!(
+                    "Invalid path {:?}",
+                    path.as_ref().display()
+                ))))
+            }
+        } else {
+            unreachable!();
         }
-        perm::set_permissions(&path, SVC_DIR_PERMISSIONS).map_err(From::from)
     }
 
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
