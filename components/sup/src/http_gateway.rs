@@ -29,6 +29,7 @@ use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::{headers, status, typemap};
 use persistent;
+use protocol::socket_addr_env_or_default;
 use router::Router;
 use serde_json::{self, Value as Json};
 
@@ -42,6 +43,12 @@ use feat;
 static LOGKEY: &'static str = "HG";
 const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
 
+/// Default listening port for the HTTPGateway listener.
+pub const DEFAULT_PORT: u16 = 9631;
+
+/// Default environment variable override for HTTPGateway listener address.
+pub const DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_HTTP";
+
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ListenAddr(SocketAddr);
 
@@ -53,10 +60,10 @@ impl ListenAddr {
 
 impl Default for ListenAddr {
     fn default() -> ListenAddr {
-        ListenAddr(SocketAddr::V4(SocketAddrV4::new(
-            Ipv4Addr::new(0, 0, 0, 0),
-            9631,
-        )))
+        ListenAddr(socket_addr_env_or_default(
+            DEFAULT_ADDRESS_ENVVAR,
+            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), DEFAULT_PORT)),
+        ))
     }
 }
 

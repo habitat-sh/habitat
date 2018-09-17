@@ -30,7 +30,12 @@ use std::str::FromStr;
 
 use error::{Error, Result, SupError};
 
+use protocol::socket_addr_env_or_default;
+
 pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
+
+/// Default environment variable override for GossipListenAddr.
+pub const DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_GOSSIP";
 
 static LOGKEY: &'static str = "CFG";
 
@@ -57,10 +62,13 @@ impl GossipListenAddr {
 
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
-            Ipv4Addr::new(0, 0, 0, 0),
-            GOSSIP_DEFAULT_PORT,
-        )))
+        GossipListenAddr(socket_addr_env_or_default(
+            DEFAULT_ADDRESS_ENVVAR,
+            SocketAddr::V4(SocketAddrV4::new(
+                Ipv4Addr::new(0, 0, 0, 0),
+                GOSSIP_DEFAULT_PORT,
+            )),
+        ))
     }
 }
 

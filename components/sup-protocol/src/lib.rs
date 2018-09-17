@@ -65,15 +65,15 @@ pub mod message;
 pub mod net;
 pub mod types;
 
+use core::env as henv;
+use net::{ErrCode, NetResult};
 use rand::RngCore;
-
 use std::fs::File;
 use std::io::Read;
+use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
-use net::{ErrCode, NetResult};
-
-// Nane of file containing the CtlGateway secret key.
+// Name of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
 /// Length of characters in CtlGateway secret key.
 const CTL_SECRET_LEN: usize = 64;
@@ -157,4 +157,13 @@ where
             None => STATE_PATH_PREFIX.join("default"),
         },
     }
+}
+
+/// Given an Environment variable name, attempts to parse a SocketAddr from it.
+/// If the Environment variable is empty or unparseable, returns the default as passed in.
+pub fn socket_addr_env_or_default(env_var: &str, default: SocketAddr) -> SocketAddr {
+    henv::var(env_var)
+        .unwrap_or("".into())
+        .parse()
+        .unwrap_or(default)
 }
