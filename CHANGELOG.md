@@ -10,6 +10,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Remove incorrect documentation for applying config with a ring key [#5606](https://github.com/habitat-sh/habitat/pull/5606) ([smacfarlane](https://github.com/smacfarlane))
 - Added myself to CODEOWNERS [#5635](https://github.com/habitat-sh/habitat/pull/5635) ([mjingle](https://github.com/mjingle))
 - Ensure Habitat Toolchain Omnibus package is installed [#5622](https://github.com/habitat-sh/habitat/pull/5622) ([christophermaier](https://github.com/christophermaier))
 - this removes the studio hack needed to get 0.63 out [#5630](https://github.com/habitat-sh/habitat/pull/5630) ([mwrock](https://github.com/mwrock))
