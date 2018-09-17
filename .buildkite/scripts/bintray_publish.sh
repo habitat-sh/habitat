@@ -45,19 +45,12 @@ publish "hab-x86_64-linux-kernel2" "${version}" "${release}" "${bintray_reposito
 
 ########################################################################
 # macOS Publish
-
 release=$(get_hab_release x86_64-darwin)
 echo "--- :mac: Publishing x86-64-darwin 'hab' ${version}-${release} to Bintray"
 publish "hab-x86_64-darwin" "${version}" "${release}" "${bintray_repository}"
 
 ########################################################################
 # Windows Publish
-#
-# NOTE: Windows releases aren't yet built in Buildkite, so we have to
-# ask Builder what the release actually is... Appveyor puts this here
-# for us.
-channel=$(get_release_channel)
-windows_ident=$(latest_from_builder x86_64-windows "${channel}" hab "${version}")
-release=$(echo "${windows_ident}" | awk 'BEGIN { FS = "/" } ; { print $4 }')
-echo "--- :windows: Publishing x86-64-windows 'hab' ${version}-${release}"
+release=$(get_hab_release x86_64-windows)
+echo "--- :windows: Publishing x86-64-windows 'hab' ${version}-${release} to Bintray"
 publish "hab-x86_64-windows" "${version}" "${release}" "${bintray_repository}"

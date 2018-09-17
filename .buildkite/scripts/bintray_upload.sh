@@ -33,18 +33,20 @@ sudo "${hab_binary:?}" pkg install \
 
 echo "--- :habicat: Uploading core/hab to Bintray"
 
-# TODO (CM): Continue with this approach, or just grab the artifact
-# that we built out of BK?
-#
-# If we use `hab pkg install` we know we'll get the artifact for our
-# platform.
-#
-# If we use Buildkite, we can potentially upload many different
-# platform artifacts to Bintray from a single platform (e.g., upload
-# Windows artifacts from Linux machines.)
-sudo "${hab_binary:?}" pkg install core/hab --channel="${channel}"
-
 hab_artifact=$(get_hab_artifact "${BUILD_PKG_TARGET}")
+
+# For this section we will manually pull down the windows hart from bldr
+# rather than rewrite the bintray publish plugin for windows. The existing
+# implementation doesn't support the upload, so we'll stage the windows
+# file in the artifact cache on linux and utilize the existing code.
+if [ "$BUILD_PKG_TARGET" = "x86_64-windows" ]; then
+    version=$(get_version)
+    windows_ident=$(latest_from_builder x86_64-windows "${channel}" hab "${version}")
+    echo "--- Downloading Windows version directly from bldr: $windows_ident"
+    curl "https://bldr.habitat.sh/v1/depot/pkgs/$windows_ident/download?target=$BUILD_PKG_TARGET" -o "/hab/cache/artifacts/$hab_artifact"
+else
+    sudo "${hab_binary:?}" pkg install core/hab --channel="${channel}"
+fi
 
 # We upload to the stable channel, but we don't *publish* until
 # later.
