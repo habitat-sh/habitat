@@ -11,6 +11,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add a command line flag for disabling the HTTP gateway [#5535](https://github.com/habitat-sh/habitat/pull/5535) ([raskchanky](https://github.com/raskchanky))
 - clarifies what is available in on premises option and what is not [#5552](https://github.com/habitat-sh/habitat/pull/5552) ([nellshamrell](https://github.com/nellshamrell))
 - Update &#39;wrong&#39; value passed to WrongActivePackageTarget to be the artifacts target [#5596](https://github.com/habitat-sh/habitat/pull/5596) ([smacfarlane](https://github.com/smacfarlane))
 - Remove incorrect documentation for applying config with a ring key [#5606](https://github.com/habitat-sh/habitat/pull/5606) ([smacfarlane](https://github.com/smacfarlane))
