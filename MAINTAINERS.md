@@ -55,6 +55,7 @@ Lieutenant and may have many maintainers.
 * [Tasha Drew](https://github.com/tashimi)
 * [Jon Bauman](https://github.com/baumanj)
 * [Scott Hain](https://github.com/scotthain)
+* [Matthew Peck](https://github.com/mpeck)
 
 ### Habitat Builder Web Application
 
