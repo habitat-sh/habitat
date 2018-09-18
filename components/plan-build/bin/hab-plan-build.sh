@@ -1764,6 +1764,19 @@ _verify_vars() {
   _verify_vars=true
 }
 
+# **Internal** Verifies that hook files do not contain invalid (CR+LF) line endings
+# and fails the build if any are found.
+_verify_hook_line_endings() {
+  find "$PLAN_CONTEXT/hooks" -type f | while read -r file; do
+    if file "$file" | grep -q CRLF; then
+      local e
+      e="Incorrect CR+LF line ending(s) in $file"
+      e="$e Please convert to Unix LF. https://en.wikipedia.org/wiki/Newline#Conversion_between_newline_formats"
+      exit_with "$e" 1
+    fi
+  done
+}
+
 # This function simply makes sure that the working directory for the prepare
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
@@ -2568,6 +2581,9 @@ case "${pkg_type}" in
 
         # Make sure all required variables are set
         _verify_vars
+
+        # Check for invalid (CRLF) line endings in hooks
+        _verify_hook_line_endings
 
         # Prepare the source
         do_prepare_wrapper
