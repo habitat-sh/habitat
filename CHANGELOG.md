@@ -11,6 +11,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- add myself to project maintainers [#5650](https://github.com/habitat-sh/habitat/pull/5650) ([mpeck](https://github.com/mpeck))
 - Adding myself to Maintainers file [#5647](https://github.com/habitat-sh/habitat/pull/5647) ([mjingle](https://github.com/mjingle))
 - do not install and upload launcher in release builds [#5637](https://github.com/habitat-sh/habitat/pull/5637) ([mwrock](https://github.com/mwrock))
 - Add a command line flag for disabling the HTTP gateway [#5535](https://github.com/habitat-sh/habitat/pull/5535) ([raskchanky](https://github.com/raskchanky))
