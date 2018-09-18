@@ -2582,7 +2582,7 @@ case "${pkg_type}" in
         # Make sure all required variables are set
         _verify_vars
 
-        # Check for invalid (CRLF) line endings in hooks
+        # Check for invalid (CR+LF) line endings in hooks
         _verify_hook_line_endings
 
         # Prepare the source
