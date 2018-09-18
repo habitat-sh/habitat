@@ -2,6 +2,7 @@
 
 hab pkg exec core/hab-backline mkdir -m 1777 -p /tmp
 hab pkg exec core/hab-backline mkdir -m 0750 -p /root
+hab pkg exec core/hab-backline mkdir -m 0755 -p /usr/bin
 
 source /etc/habitat-studio/import_keys.sh
 source /etc/habitat-studio/environment.sh
