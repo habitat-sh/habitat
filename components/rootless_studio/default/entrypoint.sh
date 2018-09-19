@@ -16,6 +16,7 @@ case "$1" in
     hab pkg exec core/hab-plan-build hab-plan-build "$@";;
   run)
     shift
-    hab pkg exec core/hab-backline bash --login -c "$@";;
+    # shellcheck disable=SC2046
+    hab pkg exec core/hab-backline env $(load_secrets) bash --login -c "$@";;
   *) echo "Unknown Studio Command" && exit 1;;
 esac
