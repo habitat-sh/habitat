@@ -900,6 +900,10 @@ chroot_env() {
   if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
     env="$env HAB_STUDIO_BINARY=$HAB_STUDIO_BINARY"
   fi
+  # If DO_CHECK is set, then propagate it into the Studio's environment.
+  if [ -n "${DO_CHECK:-}" ]; then
+    env="$env DO_CHECK=$DO_CHECK"
+  fi
 
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
