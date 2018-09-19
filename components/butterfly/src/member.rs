@@ -73,7 +73,7 @@ impl Member {
 impl Default for Member {
     fn default() -> Self {
         Member {
-            id: Uuid::new_v4().simple().to_string(),
+            id: Uuid::new_v4().to_simple_ref().to_string(),
             incarnation: 0,
             // TODO (CM): DANGER DANGER DANGER
             // This is a lousy default, and suggests that the notion

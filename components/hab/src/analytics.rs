@@ -645,7 +645,7 @@ fn client_id() -> String {
         read_file(&metafile)
     } else {
         // Generate a new, random UUID for the Client ID.
-        let uuid = Uuid::new_v4().hyphenated().to_string();
+        let uuid = Uuid::new_v4().to_hyphenated_ref().to_string();
         write_file(&metadir, &metafile, &uuid);
         // Finally, return the Client ID String
         uuid
