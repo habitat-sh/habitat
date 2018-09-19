@@ -1767,14 +1767,12 @@ _verify_vars() {
 # **Internal** Verifies that hook files do not contain invalid (CR+LF) line endings
 # and fails the build if any are found.
 _verify_hook_line_endings() {
-  find "$PLAN_CONTEXT/hooks" -type f | while read -r file; do
-    if file "$file" | grep -q CRLF; then
-      local e
-      e="Incorrect CR+LF line ending(s) in $file"
-      e="$e Please convert to Unix LF. https://en.wikipedia.org/wiki/Newline#Conversion_between_newline_formats"
-      exit_with "$e" 1
-    fi
-  done
+  if grep --files-with-matches $'\r' "$PLAN_CONTEXT"/hooks/*; then
+    local e
+    e="Incorrect CR+LF line ending detected in the above file(s)."
+    e="$e For the Plan to build, you must first convert these to Unix LF. https://en.wikipedia.org/wiki/Newline#Conversion_between_newline_formats"
+    exit_with "$e" 1
+  fi
 }
 
 # This function simply makes sure that the working directory for the prepare
