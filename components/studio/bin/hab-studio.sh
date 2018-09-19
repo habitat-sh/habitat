@@ -566,6 +566,27 @@ users:x:999:
 EOF
   fi
 
+  # If `/etc/inputrc` is not present, create a minimal version to provide
+  # some standard key mappings in shell
+  if [ ! -f "$HAB_STUDIO_ROOT/etc/inputrc" ]; then
+    if [ -n "$VERBOSE" ]; then
+      echo "> Creating minimal /etc/inputrc"
+    fi
+    $bb cat > "$HAB_STUDIO_ROOT/etc/inputrc" << "EOF"
+# allow the use of the Home/End keys
+"\e[1~": beginning-of-line
+"\e[4~": end-of-line
+
+# mappings for Ctrl-left-arrow and Ctrl-right-arrow for word moving
+"\e[1;5C": forward-word
+"\e[1;5D": backward-word
+"\e[5C": forward-word
+"\e[5D": backward-word
+"\e\e[C": forward-word
+"\e\e[D": backward-word
+EOF
+  fi
+
   # Copy minimal networking and DNS resolution configuration files into the
   # Studio filesystem so that commands such as `wget(1)` will work
   for f in /etc/hosts /etc/resolv.conf /etc/nsswitch.conf; do
