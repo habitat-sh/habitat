@@ -25,6 +25,7 @@ use url::Url;
 use command::studio;
 use feat;
 
+// Testing CODEOWNERS
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
         .about("Alias for 'config apply'")
