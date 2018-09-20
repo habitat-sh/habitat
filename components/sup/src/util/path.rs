@@ -19,7 +19,7 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use hcore::fs::find_command;
+use hcore::fs::{find_command, FS_ROOT_PATH};
 use hcore::package::{PackageIdent, PackageInstall};
 
 use error::{Error, Result};
@@ -87,14 +87,14 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
         // We've found the specific release that our Supervisor was built with. Get its path
         // metadata.
         Some(ident) => {
-            let pkg_install = PackageInstall::load(&ident, None)?;
+            let pkg_install = PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref()))?;
             pkg_install.paths()?
         }
         // If we're not running out of a package, then see if any package of the interpreter is
         // installed.
         None => {
             let ident = PackageIdent::from_str(INTERPRETER_IDENT)?;
-            match PackageInstall::load(&ident, None) {
+            match PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref())) {
                 // We found a version of the interpreter. Get its path metadata.
                 Ok(pkg_install) => pkg_install.paths()?,
                 // Nope, no packages of the interpreter installed. Now we're going to see if the
