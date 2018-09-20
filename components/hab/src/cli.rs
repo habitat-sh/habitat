@@ -686,8 +686,8 @@ fn sub_pkg_build() -> App<'static, 'static> {
         (@arg SRC_PATH: -s --src +takes_value
             "Sets the source path (default: $PWD)")
         (@arg PLAN_CONTEXT: +required +takes_value
-            "A directory containing a `plan.sh` file \
-            or a `habitat/` directory which contains the `plan.sh` file")
+            "A directory containing a plan file \
+            or a `habitat/` directory which contains the plan file")
     );
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
@@ -697,22 +697,18 @@ fn sub_pkg_build() -> App<'static, 'static> {
                 .help("Reuses a previous Studio for the build (default: clean up before building)")
                 .short("R")
                 .long("reuse"),
+        ).arg(
+            Arg::with_name("DOCKER")
+                .help("Uses a Dockerized Studio for the build")
+                .short("D")
+                .long("docker"),
         );
     }
 
-    if cfg!(target_os = "linux") {
-        sub.arg(
-            Arg::with_name("DOCKER")
-                .help(
-                    "Uses a Dockerized Studio for the build (default: Studio uses a chroot on \
-                     linux)",
-                ).short("D")
-                .long("docker"),
-        )
-    } else if cfg!(target_os = "windows") {
+    if cfg!(target_os = "windows") {
         sub.arg(
             Arg::with_name("WINDOWS")
-                .help("Use a Windows Studio instead of a Docker Studio")
+                .help("Use a local Windows Studio instead of a Docker Studio")
                 .short("w")
                 .long("windows"),
         )

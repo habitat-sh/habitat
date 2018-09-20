@@ -84,8 +84,7 @@ COMMON FLAGS:
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -V  Prints version information
-    -D  Use a Docker Studio instead of a chroot Studio (only available on Linux)
-    -w  Use a Windows Studio instead of a Docker Studio (only available on Windows)
+    -D  Use a Docker Studio instead of a chroot Studio
 
 COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)

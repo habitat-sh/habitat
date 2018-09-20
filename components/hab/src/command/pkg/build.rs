@@ -50,7 +50,7 @@ pub fn start(
     if cfg!(target_os = "windows") && windows {
         args.push("-w".into());
     }
-    if cfg!(target_os = "linux") && docker {
+    if studio::native_studio_support() && docker {
         args.push("-D".into());
     }
     studio::enter::start(ui, args)
