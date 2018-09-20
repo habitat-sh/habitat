@@ -114,7 +114,9 @@ impl FromProto<ProtoRumor> for ServiceFile {
                 .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
             incarnation: payload.incarnation.unwrap_or(0),
             encrypted: payload.encrypted.unwrap_or(false),
-            filename: payload.filename.ok_or(Error::ProtocolMismatch("filename"))?,
+            filename: payload
+                .filename
+                .ok_or(Error::ProtocolMismatch("filename"))?,
             body: payload.body.unwrap_or_default(),
         })
     }

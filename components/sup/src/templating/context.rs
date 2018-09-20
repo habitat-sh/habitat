@@ -727,8 +727,7 @@ baz = "boo"
 one = 1
 two = 2
 "#.as_bytes(),
-            )
-            .expect("Couldn't write default.toml");
+            ).expect("Couldn't write default.toml");
         (tmp, pkg)
     }
 

@@ -63,8 +63,8 @@ impl SpecWatcher {
                 .display()
                 .to_string(),
         )?.filter_map(|p| p.ok())
-            .filter(|p| p.is_file())
-            .collect())
+        .filter(|p| p.is_file())
+        .collect())
     }
 
     pub fn initial_events(&mut self) -> Result<Vec<SpecWatcherEvent>> {
@@ -517,7 +517,8 @@ mod test {
                 .expect("can't create file");
             bad.write_all(
                 r#"ident = "acme/beta"
-                          I am a bad bad file."#.as_bytes(),
+                          I am a bad bad file."#
+                    .as_bytes(),
             ).expect("can't write file content");
         }
 
@@ -558,8 +559,7 @@ mod test {
             self.tx
                 .send(notify::DebouncedEvent::Write(
                     path.as_ref().join("newbie.spec"),
-                ))
-                .expect("couldn't send event");
+                )).expect("couldn't send event");
         }
 
         fn behavior_removed_spec<P: AsRef<Path>>(&mut self, path: P) {

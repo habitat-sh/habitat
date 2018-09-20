@@ -416,8 +416,9 @@ impl Manager {
         match File::open(&fs_cfg.member_id_file) {
             Ok(mut file) => {
                 let mut member_id = String::new();
-                file.read_to_string(&mut member_id)
-                    .map_err(|e| sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e)))?;
+                file.read_to_string(&mut member_id).map_err(|e| {
+                    sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
+                })?;
                 member.id = member_id;
             }
             Err(_) => match File::create(&fs_cfg.member_id_file) {
@@ -1758,7 +1759,10 @@ impl Manager {
 
 #[derive(Deserialize)]
 pub struct ProcessStatus {
-    #[serde(deserialize_with = "deserialize_time", rename = "state_entered")]
+    #[serde(
+        deserialize_with = "deserialize_time",
+        rename = "state_entered"
+    )]
     pub elapsed: TimeDuration,
     pub pid: Option<u32>,
     pub state: ProcessState,

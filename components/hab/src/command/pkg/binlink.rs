@@ -130,11 +130,10 @@ where
                     Some(executable_extensions) => match env::var_os("PATHEXT") {
                         Some(val) => {
                             if !env::split_paths(&val.to_string_lossy().to_uppercase()).any(|e| {
-                                e.to_string_lossy()
-                                    == format!(
-                                        ".{}",
-                                        executable_extensions.to_string_lossy().to_uppercase()
-                                    )
+                                e.to_string_lossy() == format!(
+                                    ".{}",
+                                    executable_extensions.to_string_lossy().to_uppercase()
+                                )
                             }) {
                                 continue;
                             }

@@ -31,9 +31,9 @@ impl HelperDef for PkgPathForHelper {
             .and_then(|v| v.value().as_str())
             .and_then(|v| PackageIdent::from_str(v).ok())
             .ok_or_else(|| RenderError::new("Invalid package identifier for \"pkgPathFor\""))?;
-        let deps = serde_json::from_value::<Vec<PackageIdent>>(
-            rc.context().data()["pkg"]["deps"].clone(),
-        ).unwrap();
+        let deps =
+            serde_json::from_value::<Vec<PackageIdent>>(rc.context().data()["pkg"]["deps"].clone())
+                .unwrap();
         let target_pkg = deps
             .iter()
             .find(|ident| ident.satisfies(&param))
@@ -43,8 +43,7 @@ impl HelperDef for PkgPathForHelper {
                         .to_string_lossy()
                         .into_owned(),
                 )
-            })
-            .unwrap_or("".to_string());
+            }).unwrap_or("".to_string());
         rc.writer.write(target_pkg.into_bytes().as_ref())?;
         Ok(())
     }

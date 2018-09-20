@@ -355,7 +355,8 @@ impl Client {
                     let mut encoded = String::new();
                     response.read_to_string(&mut encoded).map_err(Error::IO)?;
                     debug!("Body: {:?}", encoded);
-                    let v: serde_json::Value = serde_json::from_str(&encoded).map_err(Error::Json)?;
+                    let v: serde_json::Value =
+                        serde_json::from_str(&encoded).map_err(Error::Json)?;
                     let id = v["id"].as_str().unwrap();
                     Ok(id.to_string())
                 }
@@ -890,8 +891,8 @@ impl Client {
             url.push_str("/latest");
         }
 
-        let mut res =
-            self.maybe_add_authz(
+        let mut res = self
+            .maybe_add_authz(
                 self.0.get_with_custom_url(&url, |u| {
                     u.set_query(Some(&format!("target={}", target)))
                 }),

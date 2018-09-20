@@ -500,8 +500,8 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
         .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
 
     debug!("Waiting on connect thread for {} secs", timeout_secs);
-    let (started, wait_result) =
-        cvar.wait_timeout(
+    let (started, wait_result) = cvar
+        .wait_timeout(
             lock.lock().expect("IPC connection startup lock poisoned"),
             Duration::from_secs(timeout_secs),
         ).expect("IPC connection startup lock poisoned");
@@ -594,8 +594,7 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
         .env(
             protocol::LAUNCHER_PID_ENV,
             process::current_pid().to_string(),
-        )
-        .args(args)
+        ).args(args)
         .spawn()
         .map_err(Error::SupSpawn)?;
     Ok(child)

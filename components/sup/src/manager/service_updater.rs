@@ -357,8 +357,7 @@ impl Worker {
             .spawn(move || match ident {
                 Some(latest) => self.run_once(tx, latest),
                 None => self.run_poll(tx),
-            })
-            .expect("unable to start service-updater thread");
+            }).expect("unable to start service-updater thread");
         rx
     }
 

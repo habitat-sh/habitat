@@ -476,8 +476,7 @@ impl BuildRootContext {
             .filter_map(|t| match *t {
                 PkgIdentType::Svc(ref svc) => Some(svc.ident.as_ref()),
                 _ => None,
-            })
-            .collect()
+            }).collect()
     }
 
     /// Returns the first service package from the provided Habitat packages.

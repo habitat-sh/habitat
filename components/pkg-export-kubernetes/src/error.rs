@@ -18,7 +18,10 @@ use hcore;
 pub enum Error {
     #[fail(display = "Invalid bind specification '{}'", _0)]
     InvalidBindSpec(String),
-    #[fail(display = "Invalid topology '{}'. Possible values: standalone, leader", _0)]
+    #[fail(
+        display = "Invalid topology '{}'. Possible values: standalone, leader",
+        _0
+    )]
     InvalidTopology(String),
     #[fail(
         display = "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
@@ -27,7 +30,8 @@ pub enum Error {
     )]
     InvalidBinding(String),
     #[fail(
-        display = "Invalid environment variable \"{}\", must be in the form <NAME>=<VALUE>", _0
+        display = "Invalid environment variable \"{}\", must be in the form <NAME>=<VALUE>",
+        _0
     )]
     InvalidEnvironmentVariable(String),
     #[fail(
