@@ -1,10 +1,10 @@
 # Setting up the environment
 
-## Officially supported environment: Ubuntu Latest (17.10/Artful)
+## Officially supported environment: Ubuntu Latest (18.04/Bionic)
 
 ([Other environments](#Unsupported-environments) work, but are not officially supported)
 
-You can run this environment natively or in VM. [ISOs for both server and desktop versions are available here](http://releases.ubuntu.com/17.10/).
+You can run this environment natively or in VM. [ISOs for both server and desktop versions are available here](http://releases.ubuntu.com/18.04/).
 This installation method uses as many packages from Ubuntu as possible.
 If you don't have it, you'll first need to install `git`:
 ```
@@ -26,17 +26,10 @@ sh support/linux/install_dev_0_ubuntu_latest.sh
 sh support/linux/install_dev_9_linux.sh
 ```
 
-Ubuntu-Server 17.10 has an issue that prevents update from working because it
-tries to read from a CD-ROM that's almost certainly not there. If you get an
-error like this:
-```
-E: The repository 'cdrom://Ubuntu-Server 17.10 _Artful Aardvark_ - Release amd64 (20171017.1) artful Release' does not have a Release file.
-N: Updating from such a repository can't be done securely, and is therefore disabled by default.
-N: See apt-secure(8) manpage for repository creation and user configuration details.
-```
-You can run this command to comment out the problematic line in the sources list:
-```
-sudo sed -i.bak '/deb cdrom/s/^/#/g' /etc/apt/sources.list
+If you want to run the BATS based integration tests you also need docker installed:
+
+``` sh
+sh support/linux/install_dev_8_docker.sh
 ```
 
 Then, make sure rust's `cargo` command is working. You'll need to add `$HOME/.cargo/bin` to your `$PATH`.
@@ -106,7 +99,7 @@ Changes to the exporters can be tested once the exporter package has been built 
 ```
 ➤ hab studio enter
 …
-[1][default:/src:0]# build components/pkg-cfize 
+[1][default:/src:0]# build components/pkg-cfize
 …
    hab-pkg-cfize: Installed Path: /hab/pkgs/jbauman/hab-pkg-cfize/0.56.0-dev/20180410205025
 ```
