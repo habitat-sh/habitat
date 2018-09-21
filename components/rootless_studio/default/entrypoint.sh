@@ -15,7 +15,7 @@ case "$1" in
     hab pkg exec core/hab-backline env STUDIO_ENTER=true "${secrets[@]}" bash --login +h;;
   build)
     shift
-    hab pkg exec core/hab-plan-build hab-plan-build "$@";;
+    hab pkg exec core/hab-backline env "${secrets[@]}" /bin/build "$@";;
   run)
     shift
     hab pkg exec core/hab-backline env "${secrets[@]}" bash --login -c "$@";;
