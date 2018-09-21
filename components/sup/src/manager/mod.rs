@@ -335,7 +335,7 @@ impl Manager {
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
-        debug!("current: {}", current);
+        outputln!("version {}", current);
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
             if current.fully_qualified() {
@@ -594,7 +594,26 @@ impl Manager {
             self.fs_cfg.clone(),
             self.organization.as_ref().map(|org| &**org),
         ) {
-            Ok(service) => service,
+            Ok(service) => {
+                outputln!(
+                    "pkg version {}/{}/{}/{}",
+                    service.pkg.ident.origin,
+                    service.pkg.ident.name,
+                    service
+                        .pkg
+                        .ident
+                        .version
+                        .clone()
+                        .unwrap_or("UNKNOWN".to_string()),
+                    service
+                        .pkg
+                        .ident
+                        .release
+                        .clone()
+                        .unwrap_or("UNKNOWN".to_string())
+                );
+                service
+            }
             Err(err) => {
                 outputln!("Unable to start {}, {}", &spec.ident, err);
                 return;
