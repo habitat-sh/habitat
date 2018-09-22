@@ -1773,7 +1773,8 @@ _verify_hook_line_endings() {
     e="Incorrect CR+LF line ending detected in package hook file(s)."
     e="$e For the Plan to build, you must first convert these to Unix LF."
     e="$e See https://en.wikipedia.org/wiki/Newline#Conversion_between_newline_formats"
-    e="$e\n$files"
+    e="$e
+$files"
     exit_with "$e" 1
   fi
 }
