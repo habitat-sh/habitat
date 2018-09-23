@@ -603,14 +603,14 @@ impl Manager {
                         .pkg
                         .ident
                         .version
-                        .clone()
-                        .unwrap_or("UNKNOWN".to_string()),
+                        .as_ref()
+                        .unwrap_or(&"UNKNOWN".to_string()),
                     service
                         .pkg
                         .ident
                         .release
-                        .clone()
-                        .unwrap_or("UNKNOWN".to_string())
+                        .as_ref()
+                        .unwrap_or(&"UNKNOWN".to_string())
                 );
                 service
             }
