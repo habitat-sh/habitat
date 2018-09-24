@@ -11,6 +11,7 @@
 - allow ENV overrides for `--listen-{ctl,gossip,http}` [#5576](https://github.com/habitat-sh/habitat/pull/5576) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Bug Fixes
+- Persist Incarnation Numbers [#5616](https://github.com/habitat-sh/habitat/pull/5616) ([christophermaier](https://github.com/christophermaier))
 - Replace deprecated gen_ascii_chars() with sample_iter(&amp;Alphanumeric) [#5655](https://github.com/habitat-sh/habitat/pull/5655) ([baumanj](https://github.com/baumanj))
 - Honor secrets in `hab studio run` and `hab pkg build` in rootless studio image [#5659](https://github.com/habitat-sh/habitat/pull/5659) ([elliott-davis](https://github.com/elliott-davis))
 - Update Cargo.lock, replace mktemp with rand and fix deprecations [#5656](https://github.com/habitat-sh/habitat/pull/5656) ([baumanj](https://github.com/baumanj))
