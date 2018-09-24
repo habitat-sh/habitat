@@ -14,6 +14,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Update Vagrant dev env to 18.04 and cleanup dev steps [#5667](https://github.com/habitat-sh/habitat/pull/5667) ([jamesc](https://github.com/jamesc))
 - windows defaults to local studio [#5652](https://github.com/habitat-sh/habitat/pull/5652) ([mwrock](https://github.com/mwrock))
 - Added a `hab pkg dependencies &lt;PKG_IDENT&gt;` command [#5668](https://github.com/habitat-sh/habitat/pull/5668) ([jamesc](https://github.com/jamesc))
 - fix local windows studio regressions [#5660](https://github.com/habitat-sh/habitat/pull/5660) ([mwrock](https://github.com/mwrock))
