@@ -335,7 +335,7 @@ impl Manager {
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
-        debug!("current: {}", current);
+        outputln!("{} ({})", SUP_PKG_IDENT, current);
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
             if current.fully_qualified() {
@@ -582,7 +582,6 @@ impl Manager {
     }
 
     fn add_service(&mut self, spec: ServiceSpec) {
-        outputln!("Starting {}", &spec.ident);
         // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
         // want is the service to hold the spec and, on failure, return an error with the spec
         // back to us. Since we consume and deconstruct the spec in `Service::new()` which
@@ -594,7 +593,10 @@ impl Manager {
             self.fs_cfg.clone(),
             self.organization.as_ref().map(|org| &**org),
         ) {
-            Ok(service) => service,
+            Ok(service) => {
+                outputln!("Starting {} ({})", &spec.ident, service.pkg.ident);
+                service
+            }
             Err(err) => {
                 outputln!("Unable to start {}, {}", &spec.ident, err);
                 return;
