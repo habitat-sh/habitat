@@ -500,6 +500,12 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
+            (@subcommand dependencies =>
+                (about: "Returns the Habitat Artifact dependencies")
+                (aliases: &["dep", "deps"])
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+            )
         )
         (@subcommand plan =>
             (about: "Commands relating to plans and other app-specific configuration.")

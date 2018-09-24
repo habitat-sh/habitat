@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod binlink;
-pub mod build;
-pub mod channels;
-pub mod demote;
-pub mod dependencies;
-pub mod env;
-pub mod exec;
-pub mod export;
-pub mod hash;
-pub mod header;
-pub mod info;
-pub mod path;
-pub mod promote;
-pub mod provides;
-pub mod search;
-pub mod sign;
-pub mod upload;
-pub mod verify;
+use std::path::Path;
+
+use hcore::package::{PackageIdent, PackageInstall};
+
+use error::Result;
+
+pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
+    let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
+
+    let deps = pkg_install.tdeps()?;
+
+    for dep in &deps {
+        println!("{}", dep);
+    }
+
+    Ok(())
+}
