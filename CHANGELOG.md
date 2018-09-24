@@ -11,6 +11,7 @@
 - allow ENV overrides for `--listen-{ctl,gossip,http}` [#5576](https://github.com/habitat-sh/habitat/pull/5576) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Bug Fixes
+- Update Cargo.lock, replace mktemp with rand and fix deprecations [#5656](https://github.com/habitat-sh/habitat/pull/5656) ([baumanj](https://github.com/baumanj))
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
