@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-17.10"
+  config.vm.box = "bento/ubuntu-18.04"
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "4096"
@@ -15,5 +15,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "file", source: "components/hab/install.sh", destination: "/tmp/install.sh"
   config.vm.provision "shell", path: "support/linux/install_dev_0_ubuntu_latest.sh"
+  config.vm.provision "shell", path: "support/linux/install_dev_8_docker.sh"
   config.vm.provision "shell", path: "support/linux/install_dev_9_linux.sh"
 end

@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:18.04
 
 # Minimal Docker container for running Habitat's BATS integration
 #  tests.
