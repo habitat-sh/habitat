@@ -15,6 +15,7 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::num;
 use std::path::PathBuf;
 use std::result;
 use std::str;
@@ -35,13 +36,16 @@ pub enum Error {
     DecodeError(prost::DecodeError),
     EncodeError(prost::EncodeError),
     HabitatCore(habitat_core::error::Error),
+    IncarnationIO(PathBuf, io::Error),
+    IncarnationParse(PathBuf, num::ParseIntError),
+    InvalidIncarnationSynchronization,
     NonExistentRumor(String, String),
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
     ServiceConfigNotUtf8(String, str::Utf8Error),
+    SocketCloneError,
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
-    SocketCloneError,
     ZmqConnectError(zmq::Error),
     ZmqSendError(zmq::Error),
 }
@@ -68,6 +72,19 @@ impl fmt::Display for Error {
             Error::DecodeError(ref err) => format!("Failed to decode protocol message: {}", err),
             Error::EncodeError(ref err) => format!("Failed to encode protocol message: {}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
+            Error::IncarnationIO(ref path, ref err) => format!(
+                "Error reading or writing incarnation store file {}: {}",
+                path.display(),
+                err
+            ),
+            Error::IncarnationParse(ref path, ref err) => format!(
+                "Error parsing value from incarnation store file {}: {}",
+                path.display(),
+                err
+            ),
+            Error::InvalidIncarnationSynchronization => format!(
+                "Tried to synchronize own member incarnation from non-existent incarnation store"
+            ),
             Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
                 "Non existent rumor asked to be written to bytes: {} {}",
                 member_id, rumor_id
@@ -82,13 +99,13 @@ impl fmt::Display for Error {
             Error::ServiceConfigNotUtf8(ref sg, ref err) => {
                 format!("Cannot read service configuration: group={}, {}", sg, err)
             }
+            Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
             Error::SocketSetReadTimeout(ref err) => {
                 format!("Cannot set UDP socket read timeout: {}", err)
             }
             Error::SocketSetWriteTimeout(ref err) => {
                 format!("Cannot set UDP socket write timeout: {}", err)
             }
-            Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
             Error::ZmqConnectError(ref err) => format!("Cannot connect ZMQ socket: {}", err),
             Error::ZmqSendError(ref err) => {
                 format!("Cannot send message through ZMQ socket: {}", err)
@@ -108,6 +125,11 @@ impl error::Error for Error {
             Error::DecodeError(ref err) => err.description(),
             Error::EncodeError(ref err) => err.description(),
             Error::HabitatCore(_) => "Habitat core error",
+            Error::IncarnationIO(_, _) => "Error reading or writing incarnation store file",
+            Error::IncarnationParse(_, _) => "Error parsing value from incarnation store file",
+            Error::InvalidIncarnationSynchronization => {
+                "Tried to synchronize own member incarnation from non-existent incarnation store"
+            }
             Error::NonExistentRumor(_, _) => {
                 "Cannot write rumor to bytes because it does not exist"
             }
@@ -116,9 +138,9 @@ impl error::Error for Error {
             }
             Error::ServiceConfigDecode(_, _) => "Cannot decode service config into TOML",
             Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",
+            Error::SocketCloneError => "Cannot clone the underlying UDP socket",
             Error::SocketSetReadTimeout(_) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(_) => "Cannot set UDP socket write timeout",
-            Error::SocketCloneError => "Cannot clone the underlying UDP socket",
             Error::ZmqConnectError(_) => "Cannot connect ZMQ socket",
             Error::ZmqSendError(_) => "Cannot send message through ZMQ socket",
         }

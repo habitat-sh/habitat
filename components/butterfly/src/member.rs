@@ -16,14 +16,21 @@
 
 use std::cmp;
 use std::collections::{hash_map, HashMap};
+use std::fmt;
 use std::iter::IntoIterator;
 use std::net::SocketAddr;
+use std::num::ParseIntError;
+use std::ops::AddAssign;
 use std::result;
+use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
 use rand::{thread_rng, Rng};
+use serde::de;
 use serde::ser::SerializeStruct;
+use serde::Deserialize;
+use serde::Deserializer;
 use serde::{Serialize, Serializer};
 use time::{Duration, SteadyTime};
 use uuid::Uuid;
@@ -36,6 +43,85 @@ use rumor::{RumorKey, RumorPayload, RumorType};
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
 
+/// Wraps a `u64` to represent the "incarnation number" of a
+/// `Member`. Incarnation numbers can only ever be incremented.
+#[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy)]
+pub struct Incarnation(u64);
+
+impl Default for Incarnation {
+    fn default() -> Self {
+        Incarnation(0)
+    }
+}
+
+impl From<u64> for Incarnation {
+    fn from(num: u64) -> Self {
+        Incarnation(num)
+    }
+}
+
+impl Incarnation {
+    pub fn to_u64(&self) -> u64 {
+        self.0
+    }
+}
+
+impl fmt::Display for Incarnation {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl AddAssign<u64> for Incarnation {
+    fn add_assign(&mut self, other: u64) {
+        *self = Incarnation(self.0 + other)
+    }
+}
+
+impl Serialize for Incarnation {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u64(self.0)
+    }
+}
+
+impl FromStr for Incarnation {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        let raw = s.parse::<u64>()?;
+        Ok(Incarnation(raw))
+    }
+}
+
+struct IncarnationVisitor;
+
+impl<'de> de::Visitor<'de> for IncarnationVisitor {
+    type Value = Incarnation;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "a u64")
+    }
+
+    fn visit_u64<E>(self, v: u64) -> result::Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(Incarnation::from(v))
+    }
+}
+
+impl<'de> Deserialize<'de> for Incarnation {
+    fn deserialize<D>(deserializer: D) -> result::Result<Incarnation, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_u64(IncarnationVisitor)
+    }
+}
+
 // This is a Uuid type turned to a string
 pub type UuidSimple = String;
 
@@ -44,7 +130,7 @@ pub type UuidSimple = String;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Member {
     pub id: String,
-    pub incarnation: u64,
+    pub incarnation: Incarnation,
     pub address: String,
     pub swim_port: i32,
     pub gossip_port: i32,
@@ -74,7 +160,7 @@ impl Default for Member {
     fn default() -> Self {
         Member {
             id: Uuid::new_v4().to_simple_ref().to_string(),
-            incarnation: 0,
+            incarnation: Incarnation::default(),
             // TODO (CM): DANGER DANGER DANGER
             // This is a lousy default, and suggests that the notion
             // of a "default Member" doesn't make much sense.
@@ -111,7 +197,7 @@ impl From<Member> for proto::Member {
     fn from(value: Member) -> Self {
         proto::Member {
             id: Some(value.id),
-            incarnation: Some(value.incarnation),
+            incarnation: Some(value.incarnation.to_u64()),
             address: Some(value.address),
             swim_port: Some(value.swim_port),
             gossip_port: Some(value.gossip_port),
@@ -142,7 +228,9 @@ impl FromProto<proto::Member> for Member {
     fn from_proto(proto: proto::Member) -> Result<Self> {
         Ok(Member {
             id: proto.id.ok_or(Error::ProtocolMismatch("id"))?,
-            incarnation: proto.incarnation.unwrap_or(0),
+            incarnation: proto
+                .incarnation
+                .map_or_else(Incarnation::default, Incarnation::from),
 
             // This hurts so bad...
             //
@@ -769,14 +857,14 @@ impl MemberList {
 #[cfg(test)]
 mod tests {
     mod member {
-        use member::Member;
+        use member::{Incarnation, Member};
 
-        // Sets the uuid to simple, and the incarnation to zero.
+        // Sets the uuid to simple, and the incarnation to the default.
         #[test]
         fn new() {
             let member = Member::default();
             assert_eq!(member.id.len(), 32);
-            assert_eq!(member.incarnation, 0);
+            assert_eq!(member.incarnation, Incarnation::default());
         }
     }
 
@@ -908,7 +996,7 @@ mod tests {
 
         /// Tests of MemberList::insert
         mod insert {
-            use member::{Health, Member, MemberList};
+            use member::{Health, Incarnation, Member, MemberList};
 
             fn assert_cannot_insert_member_rumor_of_lower_incarnation(
                 from_health: Health,
@@ -916,7 +1004,7 @@ mod tests {
             ) {
                 let ml = MemberList::new();
                 let initial_update_counter_value = ml.get_update_counter();
-                let initial_incarnation = 10; // just to pick a number
+                let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
                     let mut m = Member::default();
@@ -944,7 +1032,7 @@ mod tests {
 
                 let member_with_lower_incarnation = {
                     let mut m = member.clone();
-                    m.incarnation = m.incarnation - 1;
+                    m.incarnation = Incarnation::from(m.incarnation.to_u64() - 1);
                     m
                 };
 
@@ -1003,7 +1091,7 @@ mod tests {
             ) {
                 let ml = MemberList::new();
                 let initial_update_counter_value = ml.get_update_counter();
-                let initial_incarnation = 10; // just to pick a number
+                let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
                     let mut m = Member::default();
@@ -1031,7 +1119,7 @@ mod tests {
 
                 let member_with_higher_incarnation = {
                     let mut m = member.clone();
-                    m.incarnation = m.incarnation + 1;
+                    m.incarnation += 1;
                     m
                 };
 
@@ -1090,7 +1178,7 @@ mod tests {
             ) {
                 let ml = MemberList::new();
                 let initial_update_counter_value = ml.get_update_counter();
-                let initial_incarnation = 10; // just to pick a number
+                let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
                     let mut m = Member::default();

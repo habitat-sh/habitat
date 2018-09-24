@@ -32,6 +32,7 @@ zmq = { git = "https://github.com/erickt/rust-zmq", branch = "release/v0.8" }
 
 [dev-dependencies]
 habitat_butterfly_test = { path = "../butterfly-test" }
+mktemp = "*"
 
 [build-dependencies]
 heck = "*"

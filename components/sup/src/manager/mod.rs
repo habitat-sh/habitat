@@ -411,6 +411,11 @@ impl Manager {
     ///
     /// The mutable ref to `Sys` will be configured with Butterfly Member details and will also
     /// populate the initial Member.
+    // TODO (CM): This functionality can / should be pulled into
+    // Butterfly itself; we're already setting the incarnation number
+    // in there, so splitting the initialization is needlessly
+    // confusing. It's also blurs the lines between the manager and
+    // Butterfly.
     fn load_member(sys: &mut Sys, fs_cfg: &FsCfg) -> Result<Member> {
         let mut member = Member::default();
         match File::open(&fs_cfg.member_id_file) {
