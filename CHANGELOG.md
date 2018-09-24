@@ -11,6 +11,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Added a `hab pkg dependencies &lt;PKG_IDENT&gt;` command [#5668](https://github.com/habitat-sh/habitat/pull/5668) ([jamesc](https://github.com/jamesc))
 - fix local windows studio regressions [#5660](https://github.com/habitat-sh/habitat/pull/5660) ([mwrock](https://github.com/mwrock))
 - [ci,rustfmt] Formatting due to rustfmt 0.99.1-stable in Rust 1.29.0. [#5643](https://github.com/habitat-sh/habitat/pull/5643) ([fnichol](https://github.com/fnichol))
 - Create /usr/bin when running the studio [#5651](https://github.com/habitat-sh/habitat/pull/5651) ([smacfarlane](https://github.com/smacfarlane))
