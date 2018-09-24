@@ -37,6 +37,7 @@ param (
     [switch]$q,
     [switch]$v,
     [switch]$R,
+    [switch]$D,
     [switch]$w,
     [string]$command,
     [string]$commandVal,
@@ -66,7 +67,9 @@ COMMON FLAGS:
     -n  Do not mount the source path into the Studio (default: mount the path)
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
-    -w  Use a Windows studio instead of a Docker Studio (only available on windows)
+    -D  Use a Docker Studio instead of a native Studio
+DEPRECATED FLAG:
+    -w  Use a local Windows studio instead of a Docker Studio
 
 COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
@@ -307,7 +310,7 @@ function Enter-Studio {
       # new windows but thats ok because docker run launched the studio directly
       # from powershell so the ctrl+c issue is not a problem so we can do
       # a simple tail
-      if ((Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -eq $null) {
+      if (!(Test-InContainer)) {
         Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\pwsh.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
       }
       else {
@@ -411,6 +414,10 @@ function Remove-Studio {
   if(Test-Path $HAB_STUDIO_ROOT) { Remove-Item $HAB_STUDIO_ROOT -Recurse -Force }
 }
 
+function Test-InContainer {
+  (Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -ne $null
+}
+
 $ErrorActionPreference="stop"
 
 # The current version of Habitat Studio
@@ -458,6 +465,16 @@ if($q) { $script:quiet = $true }
 
 $currentVerbose = $VerbosePreference
 if($v) { $VerbosePreference = "Continue" }
+
+if($w) {
+  Write-Warning "The -w argument has been deprecated."
+  Write-Warning "A local Studio is now the default on Windows."
+  Write-Warning "Alternatively you may use the -D argument to use a Docker Studio."
+}
+
+if(!$w -and !(Test-InContainer)) {
+  Write-Warning "Using a local Studio. To use a Docker studio, use the -D argument."
+}
 
 try {
   switch ($command) {
