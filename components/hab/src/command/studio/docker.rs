@@ -85,6 +85,7 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         String::from("HAB_AUTH_TOKEN"),
         String::from("HAB_BLDR_URL"),
         String::from("HAB_BLDR_CHANNEL"),
+        String::from("HAB_NOCOLORING"),
         String::from("HAB_ORIGIN"),
         String::from("HAB_ORIGIN_KEYS"),
         String::from("HAB_STUDIO_BACKLINE_PKG"),

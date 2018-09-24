@@ -1,0 +1,6 @@
+# Packages built during tests get dropped here.
+results/
+
+# DejaGNU output
+tests/dejagnu/*.log
+tests/dejagnu/*.sum
