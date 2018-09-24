@@ -295,6 +295,9 @@ function Enter-Studio {
     function build {
       & "$env:STUDIO_SCRIPT_ROOT\hab-plan-build.ps1" @args
     }
+    function Test-InContainer {
+      (Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -ne $null
+    }
 
     function Get-SupervisorLog {
       # If we are not running in a container then the powershell studio was
