@@ -24,8 +24,8 @@ extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
 extern crate log;
-extern crate mktemp;
 extern crate pbr;
+extern crate rand;
 extern crate regex;
 extern crate serde;
 #[macro_use]
@@ -54,7 +54,8 @@ use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
 use hyper::Url;
-use mktemp::Temp;
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use tee::TeeReader;
 use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -1195,7 +1196,14 @@ impl Client {
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();
-        let tmp_file_path = Temp::new_file_in(dst_path)?.to_path_buf();
+        let tmp_file_path = dst_path.join(format!(
+            "{}.tmp-{}",
+            file_name,
+            thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(8)
+                .collect::<String>()
+        ));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
         let mut f = File::create(&tmp_file_path)?;
@@ -1238,7 +1246,14 @@ impl Client {
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();
-        let tmp_file_path = Temp::new_file_in(dst_path)?.to_path_buf();
+        let tmp_file_path = dst_path.join(format!(
+            "{}.tmp-{}",
+            file_name,
+            thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(8)
+                .collect::<String>()
+        ));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
         let mut f = File::create(&tmp_file_path)?;
