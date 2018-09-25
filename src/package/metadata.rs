@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std;
 use std::collections::HashMap;
 use std::env;
 use std::fmt;
+use std::fs::File;
+use std::io::Read;
 use std::iter::{FromIterator, IntoIterator};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::vec::IntoIter;
 
@@ -219,6 +222,33 @@ impl fmt::Display for MetaFile {
             MetaFile::Type => "TYPE",
         };
         write!(f, "{}", id)
+    }
+}
+
+pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Result<String> {
+    match exisiting_metafile(installed_path, file) {
+        Some(filepath) => match File::open(&filepath) {
+            Ok(mut f) => {
+                let mut data = String::new();
+                if f.read_to_string(&mut data).is_err() {
+                    return Err(Error::MetaFileMalformed(file.clone()));
+                }
+                Ok(data.trim().to_string())
+            }
+            Err(e) => Err(Error::MetaFileIO(e)),
+        },
+        None => Err(Error::MetaFileNotFound(file.clone())),
+    }
+}
+
+/// Returns the path to a specified MetaFile in an installed path if it exists.
+///
+/// Useful for fallback logic for dealing with older Habitat packages.
+fn exisiting_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Option<PathBuf> {
+    let filepath = installed_path.as_ref().join(file.to_string());
+    match std::fs::metadata(&filepath) {
+        Ok(_) => Some(filepath),
+        Err(_) => None,
     }
 }
 
