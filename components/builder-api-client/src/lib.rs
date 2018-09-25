@@ -877,16 +877,10 @@ impl Client {
         &self,
         package: &PackageIdent,
         target: &PackageTarget,
-        channel: Option<&str>,
+        channel: &str,
         token: Option<&str>,
     ) -> Result<PackageIdent> {
-        // TODO: When channels are fully rolled out, we may want to make
-        //       the channel specifier mandatory instead of being an Option
-        let mut url = if let Some(channel) = channel {
-            channel_package_path(channel, package)
-        } else {
-            package_path(package)
-        };
+        let mut url = channel_package_path(channel, package);
 
         if !package.fully_qualified() {
             url.push_str("/latest");

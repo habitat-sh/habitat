@@ -880,7 +880,7 @@ impl<'a> InstallTask<'a> {
     ) -> Result<FullyQualifiedPackageIdent> {
         let origin_package = self
             .api_client
-            .show_package(ident, target, Some(channel.0), token)?;
+            .show_package(ident, target, channel.0, token)?;
         FullyQualifiedPackageIdent::from(origin_package)
     }
 
