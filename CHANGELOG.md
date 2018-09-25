@@ -7,6 +7,7 @@
 - Fail build if CR+LF endings exist in hooks [#5648](https://github.com/habitat-sh/habitat/pull/5648) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Behavioral Changes
+- Refuting an incarnation immediately increments to one-greater [#5673](https://github.com/habitat-sh/habitat/pull/5673) ([christophermaier](https://github.com/christophermaier))
 - Remove/replace set_{permissions,owner} calls which aren&#39;t supported on windows [#5591](https://github.com/habitat-sh/habitat/pull/5591) ([baumanj](https://github.com/baumanj))
 - allow ENV overrides for `--listen-{ctl,gossip,http}` [#5576](https://github.com/habitat-sh/habitat/pull/5576) ([jeremymv2](https://github.com/jeremymv2))
 
