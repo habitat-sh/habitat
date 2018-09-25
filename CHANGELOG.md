@@ -18,6 +18,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add myself to maintainers [#5672](https://github.com/habitat-sh/habitat/pull/5672) ([smacfarlane](https://github.com/smacfarlane))
 - Fix a typo [#5671](https://github.com/habitat-sh/habitat/pull/5671) ([raskchanky](https://github.com/raskchanky))
 - supervisor and svc pkg versions in sup log output [#5666](https://github.com/habitat-sh/habitat/pull/5666) ([jeremymv2](https://github.com/jeremymv2))
 - Update Vagrant dev env to 18.04 and cleanup dev steps [#5667](https://github.com/habitat-sh/habitat/pull/5667) ([jamesc](https://github.com/jamesc))
