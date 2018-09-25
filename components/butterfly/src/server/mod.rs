@@ -692,12 +692,12 @@ impl Server {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() {
             if health != Health::Alive {
-                self.member
-                    .write()
-                    .expect("Member lock is poisoned")
-                    .refute_incarnation(member.incarnation);
-                health = Health::Alive;
-                incremented_incarnation = true;
+                let mut me = self.member.write().expect("Member lock is poisoned");
+                if member.incarnation >= me.incarnation() {
+                    me.refute_incarnation(member.incarnation);
+                    health = Health::Alive;
+                    incremented_incarnation = true;
+                }
             }
         }
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
