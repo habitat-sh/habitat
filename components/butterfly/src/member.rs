@@ -20,7 +20,7 @@ use std::fmt;
 use std::iter::IntoIterator;
 use std::net::SocketAddr;
 use std::num::ParseIntError;
-use std::ops::AddAssign;
+use std::ops::Add;
 use std::result;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -45,6 +45,9 @@ const PINGREQ_TARGETS: usize = 5;
 
 /// Wraps a `u64` to represent the "incarnation number" of a
 /// `Member`. Incarnation numbers can only ever be incremented.
+///
+/// Note: we're intentionally deriving `Copy` to be able to treat this
+/// like a "normal" numeric type.
 #[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy)]
 pub struct Incarnation(u64);
 
@@ -72,9 +75,11 @@ impl fmt::Display for Incarnation {
     }
 }
 
-impl AddAssign<u64> for Incarnation {
-    fn add_assign(&mut self, other: u64) {
-        *self = Incarnation(self.0 + other)
+impl Add<u64> for Incarnation {
+    type Output = Incarnation;
+
+    fn add(self, other: u64) -> Incarnation {
+        Incarnation(self.0 + other)
     }
 }
 
@@ -1119,7 +1124,7 @@ mod tests {
 
                 let member_with_higher_incarnation = {
                     let mut m = member.clone();
-                    m.incarnation += 1;
+                    m.incarnation = m.incarnation + 1;
                     m
                 };
 

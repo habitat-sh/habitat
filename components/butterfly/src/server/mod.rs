@@ -130,6 +130,35 @@ impl Myself {
     /// Increments the incarnation by 1. A `Member`'s incarnation
     /// number can *only* be incremented by itself.
     ///
+    /// This is a facade over `refute_incarnation` (you can think of
+    /// it as "refuting yourself"; see its documentation for further
+    /// details.
+    fn increment_incarnation(&mut self) {
+        let i = self.member.incarnation;
+        self.refute_incarnation(i);
+    }
+
+    /// Increments our incarnation to be one greater than that of the
+    /// rumor we're refuting. A `Member`'s incarnation number can
+    /// *only* be incremented by itself.
+    ///
+    /// Ideally, the incoming incarnation *should* be strictly equal
+    /// to our own. However, due to historical behavior of the
+    /// Butterfly server, in some cases, it is possible for a server
+    /// to have a much lower idea of its own incarnation than the rest
+    /// of the network (in particular, it is possible in the
+    /// transition from a server that doesn't persist its incarnation
+    /// to one that does, as well as in the case where a persisting
+    /// server cannot write out its number to disk for some reason;
+    /// see below for more on that). In this case, to prevent having
+    /// to constantly refute the same rumor over and over,
+    /// incrementing one-at-a-time until our incarnation number is
+    /// greater, we'll just cut to the chase and become one-greater
+    /// immediately.
+    ///
+    /// This should also cut down on network traffic overall, as we'll
+    /// be sending out fewer rumors.
+    ///
     /// Note that if there was an error while persisting the
     /// incarnation number, we _still continue_. The error will be
     /// logged, but the _in-memory_ incarnation number will still be
@@ -141,8 +170,8 @@ impl Myself {
     /// of a persistence error could cause errors in refutation in the
     /// network, and it is not yet clear that we would want to do
     /// that.
-    fn increment_incarnation(&mut self) {
-        self.member.incarnation += 1;
+    fn refute_incarnation(&mut self, incoming: Incarnation) {
+        self.member.incarnation = incoming + 1;
         if let Some(ref mut s) = self.incarnation_store {
             if let Err(e) = s.store(self.member.incarnation) {
                 error!(
@@ -666,7 +695,7 @@ impl Server {
                 self.member
                     .write()
                     .expect("Member lock is poisoned")
-                    .increment_incarnation();
+                    .refute_incarnation(member.incarnation);
                 health = Health::Alive;
                 incremented_incarnation = true;
             }
@@ -1226,6 +1255,27 @@ mod tests {
                 me.incarnation(),
                 Incarnation::from(1),
                 "Incarnation should have incremented by 1"
+            );
+        }
+
+        #[test]
+        fn refute_an_incarnation() {
+            let path = Temp::new_dir().expect("Could not create temp file");
+            let mut me = myself(path.as_ref().join("INCARNATION"));
+
+            assert_eq!(
+                me.incarnation(),
+                Incarnation::default(),
+                "Incarnation should start at the default of {}",
+                Incarnation::default()
+            );
+
+            let incarnation_to_refute = Incarnation::from(25);
+            me.refute_incarnation(incarnation_to_refute);
+            assert_eq!(
+                me.incarnation(),
+                incarnation_to_refute + 1,
+                "Incarnation should be one greater than the refuted incarnation"
             );
         }
 
