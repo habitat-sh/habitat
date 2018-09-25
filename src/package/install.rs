@@ -24,7 +24,7 @@ use std::str::FromStr;
 use toml;
 use toml::Value;
 
-use super::list;
+use super::all_packages;
 use super::metadata::{parse_key_value, read_metafile, Bind, BindMapping, MetaFile, PackageType};
 use super::{Identifiable, PackageIdent};
 use error::{Error, Result};
@@ -94,7 +94,7 @@ impl PackageInstall {
         if !package_root_path.exists() {
             return Err(Error::PackageNotFound(ident.clone()));
         }
-        let pl = list(&package_root_path)?;
+        let pl = all_packages(&package_root_path)?;
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
@@ -159,7 +159,7 @@ impl PackageInstall {
             return Err(Error::PackageNotFound(original_ident.clone()));
         }
 
-        let pl = list(&package_root_path)?;
+        let pl = all_packages(&package_root_path)?;
         let latest: Option<PackageIdent> = pl
             .iter()
             .filter(|ref p| p.origin == ident.origin && p.name == ident.name)

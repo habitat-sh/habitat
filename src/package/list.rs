@@ -25,7 +25,7 @@ use error::Result;
 pub const INSTALL_TMP_PREFIX: &'static str = ".hab-pkg-install";
 
 /// Returns a list of package structs built from the contents of the given directory.
-pub fn list(path: &Path) -> Result<Vec<PackageIdent>> {
+pub fn all_packages(path: &Path) -> Result<Vec<PackageIdent>> {
     let mut package_list: Vec<PackageIdent> = vec![];
     if fs::metadata(path)?.is_dir() {
         walk_origins(&path, &mut package_list)?;
@@ -33,7 +33,7 @@ pub fn list(path: &Path) -> Result<Vec<PackageIdent>> {
     Ok(package_list)
 }
 
-/// Helper function for package_list. Walks the given path for origin directories
+/// Helper function for all_packages. Walks the given path for origin directories
 /// and builds on the given package list by recursing into name, version, and release
 /// directories.
 fn walk_origins(path: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {

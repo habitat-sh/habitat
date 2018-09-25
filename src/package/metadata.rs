@@ -226,7 +226,7 @@ impl fmt::Display for MetaFile {
 }
 
 pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Result<String> {
-    match exisiting_metafile(installed_path, file) {
+    match existing_metafile(installed_path, file) {
         Some(filepath) => match File::open(&filepath) {
             Ok(mut f) => {
                 let mut data = String::new();
@@ -244,7 +244,7 @@ pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Resu
 /// Returns the path to a specified MetaFile in an installed path if it exists.
 ///
 /// Useful for fallback logic for dealing with older Habitat packages.
-fn exisiting_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Option<PathBuf> {
+fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Option<PathBuf> {
     let filepath = installed_path.as_ref().join(file.to_string());
     match std::fs::metadata(&filepath) {
         Ok(_) => Some(filepath),
