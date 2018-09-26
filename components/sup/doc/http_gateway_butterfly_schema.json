@@ -1,5 +1,4 @@
 {
-  "definitions": {},
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "description": "Schema for all the data the Habitat supervisor makes available at the /butterfly HTTP API endpoint",

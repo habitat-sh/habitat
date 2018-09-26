@@ -1,0 +1,521 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "description": "Schema for all the data the Habitat supervisor makes available at the /services HTTP API endpoint",
+  "definitions": {
+    "hook": {
+      "type": "object",
+      "description": "A hook",
+      "properties": {
+        "render_pair": {
+          "type": "string",
+          "description": "The path to the hook"
+        },
+        "stdout_log_path": {
+          "type": "string",
+          "description": "The path to the stdout log"
+        },
+        "stderr_log_path": {
+          "type": "string",
+          "description": "The path to the stderr log"
+        }
+      }
+    },
+    "package_identifier": {
+      "type": "object",
+      "description": "A Habitat package",
+      "required": [
+        "name",
+        "origin",
+        "release",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The package name"
+        },
+        "origin": {
+          "type": "string",
+          "description": "The package origin"
+        },
+        "release": {
+          "type": "string",
+          "description": "The package release"
+        },
+        "version": {
+          "type": "string",
+          "description": "The package version"
+        }
+      }
+    }
+  },
+  "items": {
+    "type": "object",
+    "description": "The services that the Habitat supervisor has loaded",
+    "required": [
+      "all_pkg_binds",
+      "binding_mode",
+      "binds",
+      "bldr_url",
+      "cfg",
+      "channel",
+      "config_from",
+      "desired_state",
+      "health_check",
+      "hooks",
+      "initialized",
+      "last_election_status",
+      "manager_fs_cfg",
+      "needs_reconfiguration",
+      "needs_reload",
+      "pkg",
+      "process",
+      "service_group",
+      "smoke_check",
+      "spec_file",
+      "spec_ident",
+      "sys",
+      "topology",
+      "update_strategy",
+      "user_config_updated"
+    ],
+    "properties": {
+      "all_pkg_binds": {
+        "type": "array",
+        "description": "All of the package bind information",
+        "items": {
+          "type": "object",
+          "description": "A package bind",
+          "required": [
+            "exports",
+            "service"
+          ],
+          "properties": {
+            "exports": {
+              "type": "array",
+              "description": "The binds that the service exports",
+              "items": {
+                "type": "string",
+                "description": "The bind value"
+              }
+            },
+            "service": {
+              "type": "string",
+              "description": "The bind name"
+            }
+          }
+        }
+      },
+      "binding_mode": {
+        "type": "string",
+        "description": "What type of bind this is, either strict or relaxed"
+      },
+      "binds": {
+        "type": "array",
+        "description": "Mapping of bind name to service group",
+        "items": {
+          "type": "string",
+          "description": "A colon separated list of two items: the bind name, and service group",
+          "examples": [
+            "router:builder-router.default"
+          ]
+        }
+      },
+      "bldr_url": {
+        "type": "string",
+        "description": "The URL for the Habitat Builder service"
+      },
+      "cfg": {
+        "type": "object",
+        "description": "The current configuration of this service",
+        "additionalProperties": {
+          "type": ["boolean", "string", "integer", "array", "object"]
+        }
+      },
+      "channel": {
+        "type": "string",
+        "description": "The channel this service updates itself from"
+      },
+      "composite": {
+        "type": ["null", "string"],
+        "description": "The name of the composite this service is a part of"
+      },
+      "config_from": {
+        "type": ["null", "string"],
+        "description": "The path where the config is loaded from"
+      },
+      "desired_state": {
+        "type": "string",
+        "description": "The desired state for this service, either Up or Down"
+      },
+      "health_check": {
+        "type": "string",
+        "description": "The results of the last health check, either Ok, Warning, Critical or Unknown"
+      },
+      "hooks": {
+        "type": "object",
+        "description": "A description of the hooks for this service",
+        "properties": {
+          "file_updated": {
+            "description": "The FileUpdated Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "health_check": {
+            "description": "The HealthCheck Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "init": {
+            "description": "The Init Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "post_run": {
+            "description": "The PostRun Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "post_stop": {
+            "description": "The PostStop Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "reconfigure": {
+            "description": "The Reconfigure Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "reload": {
+            "description": "The Reload Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "run": {
+            "description": "The Run Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "smoke_test": {
+            "description": "The SmokeTest Hook",
+            "$ref": "#/definitions/hook"
+          },
+          "suitability": {
+            "description": "The Suitability Hook",
+            "$ref": "#/definitions/hook"
+          }
+        }
+      },
+      "initialized": {
+        "type": "boolean",
+        "description": "Whether this service has been initialized or not"
+      },
+      "last_election_status": {
+        "type": "string",
+        "description": "The status of the last election"
+      },
+      "manager_fs_cfg": {
+        "type": "object",
+        "description": "The filesystem paths the supervisor uses to persist data to disk",
+        "required": [
+          "butterfly_data_path",
+          "census_data_path",
+          "composites_path",
+          "data_path",
+          "member_id_file",
+          "proc_lock_file",
+          "services_data_path",
+          "specs_path",
+          "sup_root"
+        ],
+        "properties": {
+          "butterfly_data_path": {
+            "type": "string",
+            "description": "The path for butterfly.dat"
+          },
+          "census_data_path": {
+            "type": "string",
+            "description": "The path for census.dat"
+          },
+          "composites_path": {
+            "type": "string",
+            "description": "The path for composites"
+          },
+          "data_path": {
+            "type": "string",
+            "description": "The path for data"
+          },
+          "member_id_file": {
+            "type": "string",
+            "description": "The path to the MEMBER_ID file"
+          },
+          "proc_lock_file": {
+            "type": "string",
+            "description": "The path to the LOCK file"
+          },
+          "services_data_path": {
+            "type": "string",
+            "description": "The path for services.dat"
+          },
+          "specs_path": {
+            "type": "string",
+            "description": "The path to the supervisor spec files"
+          },
+          "sup_root": {
+            "type": "string",
+            "description": "The supervisor's root directory"
+          }
+        }
+      },
+      "needs_reconfiguration": {
+        "type": "boolean",
+        "description": "Does this service need to be reconfigured"
+      },
+      "needs_reload": {
+        "type": "boolean",
+        "description": "Does this service need to be reloaded"
+      },
+      "pkg": {
+        "type": "object",
+        "description": "The habitat package that this service was spawned from",
+        "required": [
+          "deps",
+          "env",
+          "exports",
+          "exposes",
+          "ident",
+          "name",
+          "origin",
+          "path",
+          "release",
+          "svc_config_path",
+          "svc_data_path",
+          "svc_files_path",
+          "svc_group",
+          "svc_path",
+          "svc_pid_file",
+          "svc_run",
+          "svc_static_path",
+          "svc_user",
+          "svc_var_path",
+          "version"
+        ],
+        "properties": {
+          "deps": {
+            "type": "array",
+            "description": "This package's dependencies",
+            "items": {
+              "description": "Package identifier for a dependency",
+              "$ref": "#/definitions/package_identifier"
+            }
+          },
+          "env": {
+            "type": "object",
+            "description": "The environment for this package",
+            "additionalProperties": {
+              "type": ["null", "boolean", "string", "integer", "array", "object"]
+            }
+          },
+          "exports": {
+            "type": "object",
+            "description": "The exports for this package",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "exposes": {
+            "type": "array",
+            "description": "The configuration that this package exposes to others",
+            "items": {
+              "type": "string",
+              "description": "Piece of data to expose"
+            }
+          },
+          "ident": {
+            "type": "string",
+            "description": "The ident of this package"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of this package"
+          },
+          "origin": {
+            "type": "string",
+            "description": "The origin of this package"
+          },
+          "path": {
+            "type": "string",
+            "description": "The path to the exploded version of this package on disk"
+          },
+          "release": {
+            "type": "string",
+            "description": "The release of this package"
+          },
+          "svc_config_path": {
+            "type": "string",
+            "description": "The path to this package's configuration",
+          },
+          "svc_data_path": {
+            "type": "string",
+            "description": "The path to this package's data",
+          },
+          "svc_files_path": {
+            "type": "string",
+            "description": "The path to this package's files",
+          },
+          "svc_group": {
+            "type": "string",
+            "description": "The group this package will run as",
+          },
+          "svc_path": {
+            "type": "string",
+            "description": "The root of this package's run time data",
+          },
+          "svc_pid_file": {
+            "type": "string",
+            "description": "The PID file for this package when it's running",
+          },
+          "svc_run": {
+            "type": "string",
+            "description": "The run hook",
+          },
+          "svc_static_path": {
+            "type": "string",
+            "description": "The path to this package's static files",
+          },
+          "svc_user": {
+            "type": "string",
+            "description": "The user this package will run as",
+          },
+          "svc_var_path": {
+            "type": "string",
+            "description": "The path to this package's var directory",
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of this package",
+          }
+        }
+      },
+      "process": {
+        "type": "object",
+        "description": "Run time data about this service",
+        "required": [
+          "pid",
+          "state",
+          "state_entered"
+        ],
+        "properties": {
+          "pid": {
+            "type": "integer",
+            "description": "The PID of this process while it's running"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state of this process, either Up or Down"
+          },
+          "state_entered": {
+            "type": "integer",
+            "description": "The time the process entered its current state"
+          }
+        }
+      },
+      "service_group": {
+        "type": "string",
+        "description": "The service group of this service"
+      },
+      "smoke_check": {
+        "type": "string",
+        "description": "The status of this service's smoke check, either Ok, Failed, or Pending"
+      },
+      "spec_file": {
+        "type": "string",
+        "description": "The path to this service's spec file"
+      },
+      "spec_ident": {
+        "description": "The package identifier for this service spec",
+        "$ref": "#/definitions/package_identifier"
+      },
+      "svc_encrypted_password": {
+        "description": "The encrypted password for this service",
+        "oneOf": [
+          { "type": "string" },
+          { "type": "null" }
+        ]
+      },
+      "sys": {
+        "type": "object",
+        "description": "System information",
+        "required": [
+          "ctl_gateway_ip",
+          "ctl_gateway_port",
+          "gossip_ip",
+          "gossip_port",
+          "hostname",
+          "http_gateway_ip",
+          "http_gateway_port",
+          "ip",
+          "member_id",
+          "permanent",
+          "version"
+        ],
+        "properties": {
+          "ctl_gateway_ip": {
+            "type": "string",
+            "description": "The control gateway IP address"
+          },
+          "ctl_gateway_port": {
+            "type": "integer",
+            "description": "The control gateway port",
+            "default": 9632
+          },
+          "gossip_ip": {
+            "type": "string",
+            "description": "The IP address to listen on for gossip traffic",
+            "default": "0.0.0.0"
+          },
+          "gossip_port": {
+            "type": "integer",
+            "description": "The port to listen on for gossip traffic",
+            "default": 9638
+          },
+          "hostname": {
+            "type": "string",
+            "description": "The hostname of the member"
+          },
+          "http_gateway_ip": {
+            "type": "string",
+            "description": "The IP address for the HTTP gateway to listen on",
+            "default": "0.0.0.0"
+          },
+          "http_gateway_port": {
+            "type": "integer",
+            "description": "The port for the HTTP gateway to listen on",
+            "default": 9631
+          },
+          "ip": {
+            "type": "string",
+            "description": "The member's IP address"
+          },
+          "member_id": {
+            "type": "string",
+            "description": "The member ID"
+          },
+          "permanent": {
+            "type": "boolean",
+            "description": "Is this a permanent peer"
+          },
+          "version": {
+            "type": "string",
+            "description": "The fully qualified version of Habitat running this service"
+          }
+        }
+      },
+      "topology": {
+        "type": "string",
+        "description": "The topology this service runs as, either Standalone or Leader"
+      },
+      "update_strategy": {
+        "type": "string",
+        "description": "The strategy used to update this service, either None, AtOnce, or Rolling"
+      },
+      "user_config_updated": {
+        "type": "boolean",
+        "description": "Did a user update the config"
+      }
+    }
+  }
+}
