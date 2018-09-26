@@ -19,6 +19,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- install package in appveyor except for launcher [#5677](https://github.com/habitat-sh/habitat/pull/5677) ([mwrock](https://github.com/mwrock))
 - Update show_package to always use a channel [#5674](https://github.com/habitat-sh/habitat/pull/5674) ([chefsalim](https://github.com/chefsalim))
 - Add myself to maintainers [#5672](https://github.com/habitat-sh/habitat/pull/5672) ([smacfarlane](https://github.com/smacfarlane))
 - Fix a typo [#5671](https://github.com/habitat-sh/habitat/pull/5671) ([raskchanky](https://github.com/raskchanky))
