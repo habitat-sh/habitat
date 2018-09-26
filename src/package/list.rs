@@ -154,3 +154,61 @@ fn walk_releases(
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use package::test_support::testing_package_install;
+
+    use fs;
+    use std::fs::File;
+    use tempdir::TempDir;
+
+    #[test]
+    fn empty_dir_gives_empty_list() {
+        let package_root = TempDir::new("fs-root").unwrap();
+        let packages = all_packages(&package_root.path()).unwrap();
+
+        assert_eq!(0, packages.len());
+    }
+
+    #[test]
+    fn not_a_dir_gives_empty_list() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let file_path = fs_root.path().join("not-a-dir");
+        let _tmp_file = File::create(&file_path).unwrap();
+
+        let packages = all_packages(&file_path).unwrap();
+
+        assert_eq!(0, packages.len());
+    }
+    #[test]
+    fn can_read_single_package() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let package_root = fs::pkg_root_path(Some(fs_root.path()));
+        let package_install = testing_package_install("core/redis", fs_root.path());
+
+        let packages = all_packages(&package_root).unwrap();
+
+        assert_eq!(1, packages.len());
+        assert_eq!(package_install.ident, packages[0]);
+    }
+
+    #[test]
+    fn can_read_multiple_packages() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let package_root = fs::pkg_root_path(Some(fs_root.path()));
+        let expected = vec![
+            testing_package_install("core/redis/1.0.0", fs_root.path()),
+            testing_package_install("test/foobar", fs_root.path()),
+            testing_package_install("core/redis/1.1.0", fs_root.path()),
+        ];
+
+        let packages = all_packages(&package_root).unwrap();
+
+        assert_eq!(3, packages.len());
+        for p in &expected {
+            assert!(packages.contains(&p.ident));
+        }
+    }
+}

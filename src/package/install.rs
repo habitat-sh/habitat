@@ -651,51 +651,10 @@ mod test {
     use std::io::Write;
 
     use tempdir::TempDir;
-    use time;
     use toml;
 
     use super::*;
-    use package::test_support::fixture_path;
-
-    /// Creates a minimal installed package under an fs_root and return a corresponding loaded
-    /// `PackageInstall` suitable for testing against. The `IDENT` and `TARGET` metafiles are
-    /// created and for the target system the tests are running on. Further subdirectories, files,
-    /// and metafile can be created under this path.
-    fn testing_package_install(ident: &str, fs_root: &Path) -> PackageInstall {
-        fn write_file(path: &Path, content: &str) {
-            let mut f = File::create(path).unwrap();
-            f.write_all(content.as_bytes()).unwrap()
-        }
-
-        let mut pkg_ident = PackageIdent::from_str(ident).unwrap();
-        if !pkg_ident.fully_qualified() {
-            if let None = pkg_ident.version {
-                pkg_ident.version = Some(String::from("1.0.0"));
-            }
-            if let None = pkg_ident.release {
-                pkg_ident.release = Some(
-                    time::now_utc()
-                        .strftime("%Y%m%d%H%M%S")
-                        .unwrap()
-                        .to_string(),
-                );
-            }
-        }
-        let pkg_install_path = fs::pkg_install_path(&pkg_ident, Some(fs_root));
-
-        std::fs::create_dir_all(&pkg_install_path).unwrap();
-        write_file(
-            &pkg_install_path.join(MetaFile::Ident.to_string()),
-            &pkg_ident.to_string(),
-        );
-        write_file(
-            &pkg_install_path.join(MetaFile::Target.to_string()),
-            PackageTarget::active_target(),
-        );
-
-        PackageInstall::load(&pkg_ident, Some(fs_root))
-            .expect(&format!("PackageInstall should load for {}", &pkg_ident))
-    }
+    use package::test_support::{fixture_path, testing_package_install};
 
     /// Write the given contents into the specified metadata file for
     /// the package.
