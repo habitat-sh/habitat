@@ -77,10 +77,13 @@ fn do_job_group_status(
                 tw = TabWriter::new(vec![]);
                 write!(&mut tw, "NAME\tSTATUS\tJOB ID\tIDENT\n").unwrap();
                 for p in sr.projects {
+                    // Don't show ident if the build did not succeed
+                    // TODO: This will be fixed at the API level eventually
+                    let ident = if p.state == "Success" { &p.ident } else { "" };
                     write!(
                         &mut tw,
                         "{}\t{}\t{}\t{}\n",
-                        p.name, p.state, p.job_id, p.ident,
+                        p.name, p.state, p.job_id, ident,
                     ).unwrap();
                 }
                 written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
