@@ -29,7 +29,7 @@ use std;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::mem;
 use std::net::SocketAddr;
 use std::ops::DerefMut;
@@ -1413,7 +1413,7 @@ impl Manager {
     }
 
     fn persist_census_state(&self) {
-        let mcr = CensusRingProxy::new(&self.census_ring);
+        let crp = CensusRingProxy::new(&self.census_ring);
         let tmp_file = self.fs_cfg.census_data_path.with_extension("dat.tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
@@ -1424,7 +1424,7 @@ impl Manager {
         };
         let mut writer = BufWriter::new(file);
         if let Some(err) = writer
-            .write(serde_json::to_string(&mcr).unwrap().as_bytes())
+            .write(serde_json::to_string(&crp).unwrap().as_bytes())
             .err()
         {
             warn!("Couldn't write to census state file, {}", err);
@@ -1497,8 +1497,7 @@ impl Manager {
                     self.fs_cfg.clone(),
                     self.organization.as_ref().map(|org| &**org),
                 ).into_iter()
-            })
-            .collect();
+            }).collect();
         let watched_service_proxies: Vec<ServiceProxy> = watched_services
             .iter()
             .map(|s| ServiceProxy::new(s, !feat::is_enabled(feat::RedactHTTP)))
@@ -1515,8 +1514,7 @@ impl Manager {
                 serde_json::to_string(&services_to_render)
                     .unwrap()
                     .as_bytes(),
-            )
-            .err()
+            ).err()
         {
             warn!("Couldn't write to butterfly state file, {}", err);
         }

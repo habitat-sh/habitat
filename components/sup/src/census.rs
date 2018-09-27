@@ -685,6 +685,9 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use serde_json;
+
     use butterfly::member::{Health, MemberList};
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
@@ -695,9 +698,40 @@ mod tests {
     use butterfly::rumor::RumorStore;
     use hcore::package::ident::PackageIdent;
     use hcore::service::ServiceGroup;
+    use test_helpers::*;
 
     #[test]
     fn update_from_rumors() {
+        let (ring, sg_one, sg_two) = test_census_ring();
+        let census_group_one = ring.census_group_for(&sg_one).unwrap();
+        assert!(census_group_one.me().is_none());
+        assert_eq!(census_group_one.leader().unwrap().member_id, "member-a");
+        assert!(census_group_one.update_leader().is_none());
+
+        let census_group_two = ring.census_group_for(&sg_two).unwrap();
+        assert_eq!(
+            census_group_two.me().unwrap().member_id,
+            "member-b".to_string()
+        );
+        assert_eq!(
+            census_group_two.update_leader().unwrap().member_id,
+            "member-b".to_string()
+        );
+
+        let members = census_group_two.members();
+        assert_eq!(members[0].member_id, "member-a");
+        assert_eq!(members[1].member_id, "member-b");
+    }
+
+    #[test]
+    fn census_ring_proxy_conforms_to_the_schema() {
+        let (ring, _, _) = test_census_ring();
+        let crp = CensusRingProxy::new(&ring);
+        let json = serde_json::to_string(&crp).unwrap();
+        assert_valid(&json, "http_gateway_census_schema.json");
+    }
+
+    fn test_census_ring() -> (CensusRing, ServiceGroup, ServiceGroup) {
         let mut sys_info = SysInfo::default();
         sys_info.ip = "1.2.3.4".to_string();
         sys_info.hostname = "hostname".to_string();
@@ -764,24 +798,8 @@ mod tests {
             &service_config_store,
             &service_file_store,
         );
-        let census_group_one = ring.census_group_for(&sg_one).unwrap();
-        assert!(census_group_one.me().is_none());
-        assert_eq!(census_group_one.leader().unwrap().member_id, "member-a");
-        assert!(census_group_one.update_leader().is_none());
 
-        let census_group_two = ring.census_group_for(&sg_two).unwrap();
-        assert_eq!(
-            census_group_two.me().unwrap().member_id,
-            "member-b".to_string()
-        );
-        assert_eq!(
-            census_group_two.update_leader().unwrap().member_id,
-            "member-b".to_string()
-        );
-
-        let members = census_group_two.members();
-        assert_eq!(members[0].member_id, "member-a");
-        assert_eq!(members[1].member_id, "member-b");
+        (ring, sg_one, sg_two)
     }
 
     /// Create a bare-minimum CensusMember with the given Health

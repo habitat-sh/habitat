@@ -1,215 +1,266 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "array",
-  "description": "Schema for all the data the Habitat supervisor makes available at the /services HTTP API endpoint",
   "definitions": {
     "hook": {
-      "type": "object",
       "description": "A hook",
       "properties": {
         "render_pair": {
-          "type": "string",
-          "description": "The path to the hook"
-        },
-        "stdout_log_path": {
-          "type": "string",
-          "description": "The path to the stdout log"
+          "description": "The path to the hook",
+          "type": "string"
         },
         "stderr_log_path": {
-          "type": "string",
-          "description": "The path to the stderr log"
+          "description": "The path to the stderr log",
+          "type": "string"
+        },
+        "stdout_log_path": {
+          "description": "The path to the stdout log",
+          "type": "string"
         }
-      }
+      },
+      "type": "object"
     },
     "package_identifier": {
-      "type": "object",
       "description": "A Habitat package",
+      "properties": {
+        "name": {
+          "description": "The package name",
+          "type": "string"
+        },
+        "origin": {
+          "description": "The package origin",
+          "type": "string"
+        },
+        "release": {
+          "description": "The package release",
+          "type": ["null", "string"]
+        },
+        "version": {
+          "description": "The package version",
+          "type": ["null", "string"]
+        }
+      },
       "required": [
         "name",
         "origin",
         "release",
         "version"
       ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The package name"
-        },
-        "origin": {
-          "type": "string",
-          "description": "The package origin"
-        },
-        "release": {
-          "type": "string",
-          "description": "The package release"
-        },
-        "version": {
-          "type": "string",
-          "description": "The package version"
-        }
-      }
+      "type": "object"
     }
   },
+  "description": "Schema for all the data the Habitat supervisor makes available at the /services HTTP API endpoint",
   "items": {
-    "type": "object",
     "description": "The services that the Habitat supervisor has loaded",
-    "required": [
-      "all_pkg_binds",
-      "binding_mode",
-      "binds",
-      "bldr_url",
-      "cfg",
-      "channel",
-      "config_from",
-      "desired_state",
-      "health_check",
-      "hooks",
-      "initialized",
-      "last_election_status",
-      "manager_fs_cfg",
-      "needs_reconfiguration",
-      "needs_reload",
-      "pkg",
-      "process",
-      "service_group",
-      "smoke_check",
-      "spec_file",
-      "spec_ident",
-      "sys",
-      "topology",
-      "update_strategy",
-      "user_config_updated"
-    ],
     "properties": {
       "all_pkg_binds": {
-        "type": "array",
         "description": "All of the package bind information",
         "items": {
-          "type": "object",
           "description": "A package bind",
+          "properties": {
+            "exports": {
+              "description": "The binds that the service exports",
+              "items": {
+                "description": "The bind value",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "service": {
+              "description": "The bind name",
+              "type": "string"
+            }
+          },
           "required": [
             "exports",
             "service"
           ],
-          "properties": {
-            "exports": {
-              "type": "array",
-              "description": "The binds that the service exports",
-              "items": {
-                "type": "string",
-                "description": "The bind value"
-              }
-            },
-            "service": {
-              "type": "string",
-              "description": "The bind name"
-            }
-          }
-        }
+          "type": "object"
+        },
+        "type": "array"
       },
       "binding_mode": {
-        "type": "string",
-        "description": "What type of bind this is, either strict or relaxed"
+        "description": "What type of bind this is, either strict or relaxed",
+        "type": "string"
       },
       "binds": {
-        "type": "array",
         "description": "Mapping of bind name to service group",
         "items": {
-          "type": "string",
           "description": "A colon separated list of two items: the bind name, and service group",
           "examples": [
             "router:builder-router.default"
-          ]
-        }
+          ],
+          "type": "string"
+        },
+        "type": "array"
       },
       "bldr_url": {
-        "type": "string",
-        "description": "The URL for the Habitat Builder service"
+        "description": "The URL for the Habitat Builder service",
+        "type": "string"
       },
       "cfg": {
-        "type": "object",
-        "description": "The current configuration of this service",
         "additionalProperties": {
-          "type": ["boolean", "string", "integer", "array", "object"]
-        }
+          "type": [
+            "null",
+            "boolean",
+            "string",
+            "integer",
+            "array",
+            "object"
+          ]
+        },
+        "description": "The current configuration of this service",
+        "type": ["null", "object"]
       },
       "channel": {
-        "type": "string",
-        "description": "The channel this service updates itself from"
+        "description": "The channel this service updates itself from",
+        "type": "string"
       },
       "composite": {
-        "type": ["null", "string"],
-        "description": "The name of the composite this service is a part of"
+        "description": "The name of the composite this service is a part of",
+        "type": [
+          "null",
+          "string"
+        ]
       },
       "config_from": {
-        "type": ["null", "string"],
-        "description": "The path where the config is loaded from"
+        "description": "The path where the config is loaded from",
+        "type": [
+          "null",
+          "string"
+        ]
       },
       "desired_state": {
-        "type": "string",
-        "description": "The desired state for this service, either Up or Down"
+        "description": "The desired state for this service, either Up or Down",
+        "type": "string"
       },
       "health_check": {
-        "type": "string",
-        "description": "The results of the last health check, either Ok, Warning, Critical or Unknown"
+        "description": "The results of the last health check, either Ok, Warning, Critical or Unknown",
+        "type": "string"
       },
       "hooks": {
-        "type": "object",
         "description": "A description of the hooks for this service",
         "properties": {
           "file_updated": {
             "description": "The FileUpdated Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "health_check": {
             "description": "The HealthCheck Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "init": {
             "description": "The Init Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "post_run": {
             "description": "The PostRun Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "post_stop": {
             "description": "The PostStop Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "reconfigure": {
             "description": "The Reconfigure Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "reload": {
             "description": "The Reload Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "run": {
             "description": "The Run Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "smoke_test": {
             "description": "The SmokeTest Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           },
           "suitability": {
             "description": "The Suitability Hook",
-            "$ref": "#/definitions/hook"
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/definitions/hook" }
+            ]
           }
-        }
+        },
+        "type": "object"
       },
       "initialized": {
-        "type": "boolean",
-        "description": "Whether this service has been initialized or not"
+        "description": "Whether this service has been initialized or not",
+        "type": "boolean"
       },
       "last_election_status": {
-        "type": "string",
-        "description": "The status of the last election"
+        "description": "The status of the last election",
+        "type": "string"
       },
       "manager_fs_cfg": {
-        "type": "object",
         "description": "The filesystem paths the supervisor uses to persist data to disk",
+        "properties": {
+          "butterfly_data_path": {
+            "description": "The path for butterfly.dat",
+            "type": "string"
+          },
+          "census_data_path": {
+            "description": "The path for census.dat",
+            "type": "string"
+          },
+          "composites_path": {
+            "description": "The path for composites",
+            "type": "string"
+          },
+          "data_path": {
+            "description": "The path for data",
+            "type": "string"
+          },
+          "member_id_file": {
+            "description": "The path to the MEMBER_ID file",
+            "type": "string"
+          },
+          "proc_lock_file": {
+            "description": "The path to the LOCK file",
+            "type": "string"
+          },
+          "services_data_path": {
+            "description": "The path for services.dat",
+            "type": "string"
+          },
+          "specs_path": {
+            "description": "The path to the supervisor spec files",
+            "type": "string"
+          },
+          "sup_root": {
+            "description": "The supervisor's root directory",
+            "type": "string"
+          }
+        },
         "required": [
           "butterfly_data_path",
           "census_data_path",
@@ -221,56 +272,121 @@
           "specs_path",
           "sup_root"
         ],
-        "properties": {
-          "butterfly_data_path": {
-            "type": "string",
-            "description": "The path for butterfly.dat"
-          },
-          "census_data_path": {
-            "type": "string",
-            "description": "The path for census.dat"
-          },
-          "composites_path": {
-            "type": "string",
-            "description": "The path for composites"
-          },
-          "data_path": {
-            "type": "string",
-            "description": "The path for data"
-          },
-          "member_id_file": {
-            "type": "string",
-            "description": "The path to the MEMBER_ID file"
-          },
-          "proc_lock_file": {
-            "type": "string",
-            "description": "The path to the LOCK file"
-          },
-          "services_data_path": {
-            "type": "string",
-            "description": "The path for services.dat"
-          },
-          "specs_path": {
-            "type": "string",
-            "description": "The path to the supervisor spec files"
-          },
-          "sup_root": {
-            "type": "string",
-            "description": "The supervisor's root directory"
-          }
-        }
+        "type": "object"
       },
       "needs_reconfiguration": {
-        "type": "boolean",
-        "description": "Does this service need to be reconfigured"
+        "description": "Does this service need to be reconfigured",
+        "type": "boolean"
       },
       "needs_reload": {
-        "type": "boolean",
-        "description": "Does this service need to be reloaded"
+        "description": "Does this service need to be reloaded",
+        "type": "boolean"
       },
       "pkg": {
-        "type": "object",
         "description": "The habitat package that this service was spawned from",
+        "properties": {
+          "deps": {
+            "description": "This package's dependencies",
+            "items": {
+              "$ref": "#/definitions/package_identifier",
+              "description": "Package identifier for a dependency"
+            },
+            "type": "array"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": [
+                "null",
+                "boolean",
+                "string",
+                "integer",
+                "array",
+                "object"
+              ]
+            },
+            "description": "The environment for this package",
+            "type": "object"
+          },
+          "exports": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The exports for this package",
+            "type": "object"
+          },
+          "exposes": {
+            "description": "The configuration that this package exposes to others",
+            "items": {
+              "description": "Piece of data to expose",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ident": {
+            "description": "The ident of this package",
+            "type": "string"
+          },
+          "name": {
+            "description": "The name of this package",
+            "type": "string"
+          },
+          "origin": {
+            "description": "The origin of this package",
+            "type": "string"
+          },
+          "path": {
+            "description": "The path to the exploded version of this package on disk",
+            "type": "string"
+          },
+          "release": {
+            "description": "The release of this package",
+            "type": "string"
+          },
+          "svc_config_path": {
+            "description": "The path to this package's configuration",
+            "type": "string"
+          },
+          "svc_data_path": {
+            "description": "The path to this package's data",
+            "type": "string"
+          },
+          "svc_files_path": {
+            "description": "The path to this package's files",
+            "type": "string"
+          },
+          "svc_group": {
+            "description": "The group this package will run as",
+            "type": "string"
+          },
+          "svc_path": {
+            "description": "The root of this package's run time data",
+            "type": "string"
+          },
+          "svc_pid_file": {
+            "description": "The PID file for this package when it's running",
+            "type": "string"
+          },
+          "svc_run": {
+            "description": "The run hook",
+            "type": "string"
+          },
+          "svc_static_path": {
+            "description": "The path to this package's static files",
+            "type": "string"
+          },
+          "svc_user": {
+            "description": "The user this package will run as",
+            "type": "string"
+          },
+          "svc_var_path": {
+            "description": "The path to this package's var directory",
+            "type": "string"
+          },
+          "version": {
+            "description": "The version of this package",
+            "type": "string"
+          }
+        },
         "required": [
           "deps",
           "env",
@@ -293,152 +409,104 @@
           "svc_var_path",
           "version"
         ],
-        "properties": {
-          "deps": {
-            "type": "array",
-            "description": "This package's dependencies",
-            "items": {
-              "description": "Package identifier for a dependency",
-              "$ref": "#/definitions/package_identifier"
-            }
-          },
-          "env": {
-            "type": "object",
-            "description": "The environment for this package",
-            "additionalProperties": {
-              "type": ["null", "boolean", "string", "integer", "array", "object"]
-            }
-          },
-          "exports": {
-            "type": "object",
-            "description": "The exports for this package",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "exposes": {
-            "type": "array",
-            "description": "The configuration that this package exposes to others",
-            "items": {
-              "type": "string",
-              "description": "Piece of data to expose"
-            }
-          },
-          "ident": {
-            "type": "string",
-            "description": "The ident of this package"
-          },
-          "name": {
-            "type": "string",
-            "description": "The name of this package"
-          },
-          "origin": {
-            "type": "string",
-            "description": "The origin of this package"
-          },
-          "path": {
-            "type": "string",
-            "description": "The path to the exploded version of this package on disk"
-          },
-          "release": {
-            "type": "string",
-            "description": "The release of this package"
-          },
-          "svc_config_path": {
-            "type": "string",
-            "description": "The path to this package's configuration",
-          },
-          "svc_data_path": {
-            "type": "string",
-            "description": "The path to this package's data",
-          },
-          "svc_files_path": {
-            "type": "string",
-            "description": "The path to this package's files",
-          },
-          "svc_group": {
-            "type": "string",
-            "description": "The group this package will run as",
-          },
-          "svc_path": {
-            "type": "string",
-            "description": "The root of this package's run time data",
-          },
-          "svc_pid_file": {
-            "type": "string",
-            "description": "The PID file for this package when it's running",
-          },
-          "svc_run": {
-            "type": "string",
-            "description": "The run hook",
-          },
-          "svc_static_path": {
-            "type": "string",
-            "description": "The path to this package's static files",
-          },
-          "svc_user": {
-            "type": "string",
-            "description": "The user this package will run as",
-          },
-          "svc_var_path": {
-            "type": "string",
-            "description": "The path to this package's var directory",
-          },
-          "version": {
-            "type": "string",
-            "description": "The version of this package",
-          }
-        }
+        "type": "object"
       },
       "process": {
-        "type": "object",
         "description": "Run time data about this service",
+        "properties": {
+          "pid": {
+            "description": "The PID of this process while it's running",
+            "type": ["null", "integer"]
+          },
+          "state": {
+            "description": "The state of this process, either Up or Down",
+            "type": "string"
+          },
+          "state_entered": {
+            "description": "The time the process entered its current state",
+            "type": "integer"
+          }
+        },
         "required": [
           "pid",
           "state",
           "state_entered"
         ],
-        "properties": {
-          "pid": {
-            "type": "integer",
-            "description": "The PID of this process while it's running"
-          },
-          "state": {
-            "type": "string",
-            "description": "The state of this process, either Up or Down"
-          },
-          "state_entered": {
-            "type": "integer",
-            "description": "The time the process entered its current state"
-          }
-        }
+        "type": "object"
       },
       "service_group": {
-        "type": "string",
-        "description": "The service group of this service"
+        "description": "The service group of this service",
+        "type": "string"
       },
       "smoke_check": {
-        "type": "string",
-        "description": "The status of this service's smoke check, either Ok, Failed, or Pending"
+        "description": "The status of this service's smoke check, either Ok, Failed, or Pending",
+        "type": "string"
       },
       "spec_file": {
-        "type": "string",
-        "description": "The path to this service's spec file"
+        "description": "The path to this service's spec file",
+        "type": "string"
       },
       "spec_ident": {
-        "description": "The package identifier for this service spec",
-        "$ref": "#/definitions/package_identifier"
+        "$ref": "#/definitions/package_identifier",
+        "description": "The package identifier for this service spec"
       },
       "svc_encrypted_password": {
         "description": "The encrypted password for this service",
-        "oneOf": [
-          { "type": "string" },
-          { "type": "null" }
-        ]
+        "type": ["null", "string"]
       },
       "sys": {
-        "type": "object",
         "description": "System information",
+        "properties": {
+          "ctl_gateway_ip": {
+            "description": "The control gateway IP address",
+            "type": "string"
+          },
+          "ctl_gateway_port": {
+            "default": 9632,
+            "description": "The control gateway port",
+            "type": "integer"
+          },
+          "gossip_ip": {
+            "default": "0.0.0.0",
+            "description": "The IP address to listen on for gossip traffic",
+            "type": "string"
+          },
+          "gossip_port": {
+            "default": 9638,
+            "description": "The port to listen on for gossip traffic",
+            "type": "integer"
+          },
+          "hostname": {
+            "description": "The hostname of the member",
+            "type": "string"
+          },
+          "http_gateway_ip": {
+            "default": "0.0.0.0",
+            "description": "The IP address for the HTTP gateway to listen on",
+            "type": "string"
+          },
+          "http_gateway_port": {
+            "default": 9631,
+            "description": "The port for the HTTP gateway to listen on",
+            "type": "integer"
+          },
+          "ip": {
+            "description": "The member's IP address",
+            "type": "string"
+          },
+          "member_id": {
+            "description": "The member ID",
+            "type": "string"
+          },
+          "permanent": {
+            "description": "Is this a permanent peer",
+            "type": "boolean"
+          },
+          "version": {
+            "description": "The fully qualified version of Habitat running this service",
+            "type": "string"
+          }
+        },
         "required": [
           "ctl_gateway_ip",
           "ctl_gateway_port",
@@ -452,70 +520,48 @@
           "permanent",
           "version"
         ],
-        "properties": {
-          "ctl_gateway_ip": {
-            "type": "string",
-            "description": "The control gateway IP address"
-          },
-          "ctl_gateway_port": {
-            "type": "integer",
-            "description": "The control gateway port",
-            "default": 9632
-          },
-          "gossip_ip": {
-            "type": "string",
-            "description": "The IP address to listen on for gossip traffic",
-            "default": "0.0.0.0"
-          },
-          "gossip_port": {
-            "type": "integer",
-            "description": "The port to listen on for gossip traffic",
-            "default": 9638
-          },
-          "hostname": {
-            "type": "string",
-            "description": "The hostname of the member"
-          },
-          "http_gateway_ip": {
-            "type": "string",
-            "description": "The IP address for the HTTP gateway to listen on",
-            "default": "0.0.0.0"
-          },
-          "http_gateway_port": {
-            "type": "integer",
-            "description": "The port for the HTTP gateway to listen on",
-            "default": 9631
-          },
-          "ip": {
-            "type": "string",
-            "description": "The member's IP address"
-          },
-          "member_id": {
-            "type": "string",
-            "description": "The member ID"
-          },
-          "permanent": {
-            "type": "boolean",
-            "description": "Is this a permanent peer"
-          },
-          "version": {
-            "type": "string",
-            "description": "The fully qualified version of Habitat running this service"
-          }
-        }
+        "type": "object"
       },
       "topology": {
-        "type": "string",
-        "description": "The topology this service runs as, either Standalone or Leader"
+        "description": "The topology this service runs as, either Standalone or Leader",
+        "type": "string"
       },
       "update_strategy": {
-        "type": "string",
-        "description": "The strategy used to update this service, either None, AtOnce, or Rolling"
+        "description": "The strategy used to update this service, either None, AtOnce, or Rolling",
+        "type": "string"
       },
       "user_config_updated": {
-        "type": "boolean",
-        "description": "Did a user update the config"
+        "description": "Did a user update the config",
+        "type": "boolean"
       }
-    }
-  }
+    },
+    "required": [
+      "all_pkg_binds",
+      "binding_mode",
+      "binds",
+      "bldr_url",
+      "channel",
+      "config_from",
+      "desired_state",
+      "health_check",
+      "hooks",
+      "initialized",
+      "last_election_status",
+      "manager_fs_cfg",
+      "needs_reconfiguration",
+      "needs_reload",
+      "pkg",
+      "process",
+      "service_group",
+      "smoke_check",
+      "spec_file",
+      "spec_ident",
+      "sys",
+      "topology",
+      "update_strategy",
+      "user_config_updated"
+    ],
+    "type": "object"
+  },
+  "type": "array"
 }

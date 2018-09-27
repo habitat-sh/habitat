@@ -363,3 +363,141 @@ where
         Err(err) => Err(err),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        fs::File,
+        io::Read,
+        path::PathBuf,
+        sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT},
+    };
+
+    use butterfly::{
+        member::Member,
+        server::{Server, ServerProxy, Suitability},
+        trace::Trace,
+    };
+    use hcore::service::ServiceGroup;
+    use serde_json;
+
+    use test_helpers::*;
+
+    fn validate_sample_file_against_schema(name: &str, schema: &str) {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("http-gateway")
+            .join(name);
+
+        let mut f = File::open(path).expect(&format!("could not open {}", &name));
+        let mut json = String::new();
+        f.read_to_string(&mut json)
+            .expect(&format!("could not read {}", &name));
+
+        assert_valid(&json, schema);
+    }
+
+    #[test]
+    fn sample_census_file_is_valid() {
+        validate_sample_file_against_schema(
+            "sample-census-output.json",
+            "http_gateway_census_schema.json",
+        );
+    }
+
+    #[test]
+    fn trivial_census_failure() {
+        let failure = validate_string(
+            r#"{"census_groups": {}, "changed": false, "last_election_counter": "narf"}"#,
+            "http_gateway_census_schema.json",
+        );
+        assert!(
+            !failure.is_valid(),
+            "Expected schema validation to fail, but it succeeded"
+        );
+    }
+
+    #[test]
+    fn sample_butterfly_file_is_valid() {
+        validate_sample_file_against_schema(
+            "sample-butterfly-output.json",
+            "http_gateway_butterfly_schema.json",
+        );
+    }
+
+    #[test]
+    fn trivial_butterfly_failure() {
+        let failure = validate_string(r#"{"departure": {}, "election": {}, "member": {}, "service": false, "service_file": []}"#, "http_gateway_butterfly_schema.json");
+        assert!(
+            !failure.is_valid(),
+            "Expected schema validation to fail, but it succeeded"
+        );
+    }
+
+    #[test]
+    fn butterfly_server_proxy_is_valid() {
+        static SWIM_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
+        static GOSSIP_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
+
+        #[derive(Debug)]
+        struct ZeroSuitability;
+        impl Suitability for ZeroSuitability {
+            fn get(&self, _service_group: &ServiceGroup) -> u64 {
+                0
+            }
+        }
+
+        fn start_server() -> Server {
+            SWIM_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
+            GOSSIP_PORT.compare_and_swap(0, 7777, Ordering::Relaxed);
+            let swim_port = SWIM_PORT.fetch_add(1, Ordering::Relaxed);
+            let swim_listen = format!("127.0.0.1:{}", swim_port);
+            let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
+            let gossip_listen = format!("127.0.0.1:{}", gossip_port);
+            let mut member = Member::default();
+            member.swim_port = swim_port as i32;
+            member.gossip_port = gossip_port as i32;
+            Server::new(
+                &swim_listen[..],
+                &gossip_listen[..],
+                member,
+                Trace::default(),
+                None,
+                None,
+                None::<PathBuf>,
+                Box::new(ZeroSuitability),
+            ).unwrap()
+        }
+
+        let server = start_server();
+        let proxy = ServerProxy::new(&server);
+        let json = serde_json::to_string(&proxy).unwrap();
+        assert_valid(&json, "http_gateway_butterfly_schema.json");
+    }
+
+    #[test]
+    fn sample_services_with_cfg_file_is_valid() {
+        validate_sample_file_against_schema(
+            "sample-services-with-cfg-output.json",
+            "http_gateway_services_schema.json",
+        );
+    }
+
+    #[test]
+    fn sample_services_without_cfg_file_is_valid() {
+        validate_sample_file_against_schema(
+            "sample-services-without-cfg-output.json",
+            "http_gateway_services_schema.json",
+        );
+    }
+
+    #[test]
+    fn trivial_services_failure() {
+        let failure = validate_string(r#"[{"lulz": true}]"#, "http_gateway_services_schema.json");
+        assert!(
+            !failure.is_valid(),
+            "Expected schema validation to fail, but it succeeded"
+        );
+    }
+}

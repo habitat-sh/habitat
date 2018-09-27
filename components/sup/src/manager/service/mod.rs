@@ -1070,3 +1070,56 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.end()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::net::SocketAddr;
+    use std::path::PathBuf;
+    use std::str::FromStr;
+
+    use hcore::package::{ident::PackageIdent, PackageInstall};
+    use serde_json;
+
+    use self::{
+        manager::{sys::Sys, FsCfg},
+        ServiceSpec,
+    };
+    use config::GossipListenAddr;
+    use http_gateway;
+    use test_helpers::*;
+
+    #[test]
+    fn service_proxy_conforms_to_the_schema() {
+        let socket_addr = SocketAddr::from_str("127.0.0.1:1234").unwrap();
+        let http_addr = http_gateway::ListenAddr::default();
+        let sys = Sys::new(false, GossipListenAddr::default(), socket_addr, http_addr);
+
+        let ident = PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"));
+        let spec = ServiceSpec::default_for(ident);
+
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("pkgs");
+        let install = PackageInstall::load(&spec.ident, Some(&path)).unwrap();
+        let asys = Arc::new(sys);
+        let fscfg = FsCfg::new(&path);
+        let afs = Arc::new(fscfg);
+        let service = Service::new(asys, install, spec, afs, Some("haha"))
+            .expect("I wanted a service to load, but it didn't");
+
+        // With config
+        let proxy_with_config = ServiceProxy::new(&service, true);
+        let proxies_with_config = vec![proxy_with_config];
+        let json_with_config = serde_json::to_string(&proxies_with_config).unwrap();
+        assert_valid(&json_with_config, "http_gateway_services_schema.json");
+
+        // Without config
+        let proxy_without_config = ServiceProxy::new(&service, false);
+        let proxies_without_config = vec![proxy_without_config];
+        let json_without_config = serde_json::to_string(&proxies_without_config).unwrap();
+        assert_valid(&json_without_config, "http_gateway_services_schema.json");
+    }
+}
