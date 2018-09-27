@@ -111,4 +111,7 @@ authors:
     email: "blake.irvin@gmail.com"
     twitter: "@blakeirvin"
     bio: "A reader, writer, trekker and full-time dog-dad to his rescued greyhound, Angus, Blake slings bits as Senior Devops Engineer at smartB, GmbH in Berlin, Germany."
-    
+  scottmacfarlane:
+    name: "Scott Macfarlane"
+    email: "smacfarlane@chef.io"
+    bio: "Scott is a software engineer on the core Habitat team at Chef Software"
