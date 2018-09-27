@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.63.0/20180914025124 (linux) | 14 Sep 2018 |
+| hab 0.64.0/20180926211433 (linux) | 27 Sep 2018 |
 
 ## hab
 
@@ -1046,6 +1046,7 @@ hab pkg [SUBCOMMAND]
 | [hab pkg channels](#hab-pkg-channels) | Find out what channels a package belongs to |
 | [hab pkg config](#hab-pkg-config) | Displays the default configuration options for a service |
 | [hab pkg demote](#hab-pkg-demote) | Demote a package from a specified channel |
+| [hab pkg dependencies](#hab-pkg-dependencies) | Returns the Habitat Artifact dependencies |
 | [hab pkg env](#hab-pkg-env) | Prints the runtime environment of a specific installed package |
 | [hab pkg exec](#hab-pkg-exec) | Executes a command using the 'PATH' context of an installed package |
 | [hab pkg export](#hab-pkg-export) | Exports the package to the specified format |
@@ -1137,7 +1138,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 **FLAGS**
 
 ```
--D, --docker     Uses a Dockerized Studio for the build (default: Studio uses a chroot on linux)
+-D, --docker     Uses a Dockerized Studio for the build
 -R, --reuse      Reuses a previous Studio for the build (default: clean up before building)
 -h, --help       Prints help information
 -V, --version    Prints version information
@@ -1154,7 +1155,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 **ARGS**
 
 ```
-<PLAN_CONTEXT>    A directory containing a plan.sh file or a habitat/ directory which contains the plan.sh file
+<PLAN_CONTEXT>    A directory containing a plan file or a habitat/ directory which contains the plan file
 ```
 
 
@@ -1252,6 +1253,34 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL>
 ```
 <PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
 <CHANNEL>      Demote from the specified release channel
+```
+
+
+
+---
+
+### hab pkg dependencies
+
+Returns the Habitat Artifact dependencies
+
+**USAGE**
+
+```
+hab pkg dependencies <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+**ARGS**
+
+```
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
 
@@ -2099,6 +2128,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
 ```
 -A, --auto-update       Enable automatic updates for the Supervisor itself
+-D, --http-disable      Disable the HTTP Gateway completely [default: false]
     --json-logging      Use structured JSON logging for the Supervisor. Implies NO_COLOR
     --no-color          Turn ANSI color off
 -I, --permanent-peer    If this Supervisor is a permanent peer
@@ -2118,9 +2148,9 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 -e, --environment <ENVIRONMENT>            Environment name; [default: not set].
 -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward Supervisor and service event data to
     --group <GROUP>                        The service group; shared config and topology [default: default].
-    --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway [default: 127.0.0.1:9632]
-    --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
-    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway [default: 0.0.0.0:9631]
+    --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. default: 127.0.0.1:9632]
+    --listen-gossip <LISTEN_GOSSIP>        The listen address for the Gossip System Gateway. If not specified, the value will be taken from the HAB_LISTEN_GOSSIP environment variable if defined. [default: 0.0.0.0:9638]
+    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway. If not specified, the value will be taken from the HAB_LISTEN_HTTP environment variable if defined. default: 0.0.0.0:9631]
     --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
     --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of [default: default]
     --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
