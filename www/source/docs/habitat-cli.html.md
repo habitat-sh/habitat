@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.63.0/20180914025124 (linux) | 14 Sep 2018 |
+| hab 0.63.0/20180914025124 (linux) | 27 Sep 2018 |
 
 ## hab
 
@@ -2099,6 +2099,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
 ```
 -A, --auto-update       Enable automatic updates for the Supervisor itself
+-D, --http-disable      Disable the HTTP Gateway completely [default: false]
     --json-logging      Use structured JSON logging for the Supervisor. Implies NO_COLOR
     --no-color          Turn ANSI color off
 -I, --permanent-peer    If this Supervisor is a permanent peer
@@ -2118,9 +2119,9 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 -e, --environment <ENVIRONMENT>            Environment name; [default: not set].
 -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward Supervisor and service event data to
     --group <GROUP>                        The service group; shared config and topology [default: default].
-    --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway [default: 127.0.0.1:9632]
-    --listen-gossip <LISTEN_GOSSIP>        The listen address for the gossip system [default: 0.0.0.0:9638]
-    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway [default: 0.0.0.0:9631]
+    --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. default: 127.0.0.1:9632]
+    --listen-gossip <LISTEN_GOSSIP>        The listen address for the Gossip System Gateway. If not specified, the value will be taken from the HAB_LISTEN_GOSSIP environment variable if defined. [default: 0.0.0.0:9638]
+    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway. If not specified, the value will be taken from the HAB_LISTEN_HTTP environment variable if defined. default: 0.0.0.0:9631]
     --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
     --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of [default: default]
     --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
