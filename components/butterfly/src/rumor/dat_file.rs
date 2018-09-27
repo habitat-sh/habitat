@@ -368,8 +368,20 @@ impl DatFile {
             .read()
             .expect("Member list lock poisoned");
         for member in members.values() {
-            if let Some(membership) = member_list.membership_for(&member.id) {
-                total += self.write_member(writer, &membership)?;
+            // we do not call membership_for here since that would recursively enter
+            // the members read locj that we are currently in now. One would assume that
+            // is acceptable but this has proven to potentially deadlock Windows threads
+            // in some scenarios. Windows uses a Slim Reader/Writer lock (SRW) and
+            // recursively aquiring locks may result ini "undefined behavior" (see
+            // https://blogs.msdn.microsoft.com/oldnewthing/20160819-00/?p=94125)
+            if let Some(health) = member_list.health_of(member) {
+                total += self.write_member(
+                    writer,
+                    &Membership {
+                        health: health,
+                        member: member.clone(),
+                    },
+                )?;
             }
         }
         Ok(total)
