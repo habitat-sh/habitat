@@ -19,6 +19,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 - 0.64.0 post release tasks [#5680](https://github.com/habitat-sh/habitat/pull/5680) ([smacfarlane](https://github.com/smacfarlane))
 - install package in appveyor except for launcher [#5677](https://github.com/habitat-sh/habitat/pull/5677) ([mwrock](https://github.com/mwrock))
 - Update show_package to always use a channel [#5674](https://github.com/habitat-sh/habitat/pull/5674) ([chefsalim](https://github.com/chefsalim))
