@@ -3,8 +3,25 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+## [0.64.1](https://github.com/habitat-sh/habitat/tree/0.64.1) (09-28-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.0...0.64.1)
+
+#### Bug Fixes
+- remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
+
+#### Merged Pull Requests
+- fix regex for allowable appveyor branches [#5683](https://github.com/habitat-sh/habitat/pull/5683) ([mwrock](https://github.com/mwrock))
+- add release versions as allowable branch to build [#5682](https://github.com/habitat-sh/habitat/pull/5682) ([mwrock](https://github.com/mwrock))
+- prep 0.64.1 release [#5681](https://github.com/habitat-sh/habitat/pull/5681) ([mwrock](https://github.com/mwrock))
+- 0.64.0 post release tasks [#5680](https://github.com/habitat-sh/habitat/pull/5680) ([smacfarlane](https://github.com/smacfarlane))
+
+## [0.64.0](https://github.com/habitat-sh/habitat/tree/0.64.0) (09-27-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.63.0...0.64.0)
+
 #### New Features & Enhancements
 - Fail build if CR+LF endings exist in hooks [#5648](https://github.com/habitat-sh/habitat/pull/5648) ([jeremymv2](https://github.com/jeremymv2))
+- Added a `hab pkg dependencies <PKG_IDENT>` command [#5668](https://github.com/habitat-sh/habitat/pull/5668) ([jamesc](https://github.com/jamesc))
 
 #### Behavioral Changes
 - Refuting an incarnation immediately increments to one-greater [#5673](https://github.com/habitat-sh/habitat/pull/5673) ([christophermaier](https://github.com/christophermaier))
@@ -19,11 +36,6 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
-- fix regex for allowable appveyor branches [#5683](https://github.com/habitat-sh/habitat/pull/5683) ([mwrock](https://github.com/mwrock))
-- add release versions as allowable branch to build [#5682](https://github.com/habitat-sh/habitat/pull/5682) ([mwrock](https://github.com/mwrock))
-- prep 0.64.1 release [#5681](https://github.com/habitat-sh/habitat/pull/5681) ([mwrock](https://github.com/mwrock))
-- remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
-- 0.64.0 post release tasks [#5680](https://github.com/habitat-sh/habitat/pull/5680) ([smacfarlane](https://github.com/smacfarlane))
 - install package in appveyor except for launcher [#5677](https://github.com/habitat-sh/habitat/pull/5677) ([mwrock](https://github.com/mwrock))
 - Update show_package to always use a channel [#5674](https://github.com/habitat-sh/habitat/pull/5674) ([chefsalim](https://github.com/chefsalim))
 - Add myself to maintainers [#5672](https://github.com/habitat-sh/habitat/pull/5672) ([smacfarlane](https://github.com/smacfarlane))
@@ -31,7 +43,6 @@
 - supervisor and svc pkg versions in sup log output [#5666](https://github.com/habitat-sh/habitat/pull/5666) ([jeremymv2](https://github.com/jeremymv2))
 - Update Vagrant dev env to 18.04 and cleanup dev steps [#5667](https://github.com/habitat-sh/habitat/pull/5667) ([jamesc](https://github.com/jamesc))
 - windows defaults to local studio [#5652](https://github.com/habitat-sh/habitat/pull/5652) ([mwrock](https://github.com/mwrock))
-- Added a `hab pkg dependencies &lt;PKG_IDENT&gt;` command [#5668](https://github.com/habitat-sh/habitat/pull/5668) ([jamesc](https://github.com/jamesc))
 - fix local windows studio regressions [#5660](https://github.com/habitat-sh/habitat/pull/5660) ([mwrock](https://github.com/mwrock))
 - [ci,rustfmt] Formatting due to rustfmt 0.99.1-stable in Rust 1.29.0. [#5643](https://github.com/habitat-sh/habitat/pull/5643) ([fnichol](https://github.com/fnichol))
 - Create /usr/bin when running the studio [#5651](https://github.com/habitat-sh/habitat/pull/5651) ([smacfarlane](https://github.com/smacfarlane))
