@@ -19,6 +19,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- add release versions as allowable branch to build [#5682](https://github.com/habitat-sh/habitat/pull/5682) ([mwrock](https://github.com/mwrock))
 - prep 0.64.1 release [#5681](https://github.com/habitat-sh/habitat/pull/5681) ([mwrock](https://github.com/mwrock))
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 - 0.64.0 post release tasks [#5680](https://github.com/habitat-sh/habitat/pull/5680) ([smacfarlane](https://github.com/smacfarlane))
