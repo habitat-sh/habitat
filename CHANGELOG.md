@@ -11,6 +11,7 @@
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Don&#39;t show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 - Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
 - Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
@@ -39,6 +40,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Don&#39;t show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 - Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
 - Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
