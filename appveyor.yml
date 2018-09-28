@@ -9,6 +9,7 @@ cache:
 branches:
   only:
     - master
+    - ^(\d+\.)?(\d+\.)?(\d+)$
 
 init:
   - git config --global core.eol lf
