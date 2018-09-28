@@ -11,6 +11,7 @@
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 - fix regex for allowable appveyor branches [#5683](https://github.com/habitat-sh/habitat/pull/5683) ([mwrock](https://github.com/mwrock))
 - add release versions as allowable branch to build [#5682](https://github.com/habitat-sh/habitat/pull/5682) ([mwrock](https://github.com/mwrock))
@@ -37,6 +38,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 - install package in appveyor except for launcher [#5677](https://github.com/habitat-sh/habitat/pull/5677) ([mwrock](https://github.com/mwrock))
 - Update show_package to always use a channel [#5674](https://github.com/habitat-sh/habitat/pull/5674) ([chefsalim](https://github.com/chefsalim))
