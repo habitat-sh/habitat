@@ -14,11 +14,17 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
+#[cfg(windows)]
 extern crate kernel32;
+#[cfg(windows)]
 #[macro_use]
 extern crate log;
+#[cfg(windows)]
 extern crate widestring;
+#[cfg(windows)]
 extern crate winapi;
 
+#[cfg(windows)]
 pub mod account;
+#[cfg(windows)]
 pub mod sid;
