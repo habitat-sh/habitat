@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
+
+use dirs;
 
 use hcore::config::ConfigFile;
 use hcore::fs::{am_i_root, FS_ROOT_PATH};
@@ -77,7 +78,7 @@ pub fn save(config: &Config) -> Result<()> {
 
 fn cli_config_path() -> PathBuf {
     if !am_i_root() {
-        if let Some(home) = env::home_dir() {
+        if let Some(home) = dirs::home_dir() {
             return home.join(format!(".{}", CLI_CONFIG_PATH));
         }
     }
