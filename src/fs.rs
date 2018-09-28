@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use dirs;
 use std::env;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -64,7 +65,7 @@ lazy_static! {
         if am_i_root() {
             PathBuf::from(CACHE_ANALYTICS_PATH)
         } else {
-            match env::home_dir() {
+            match dirs::home_dir() {
                 Some(home) => home.join(format!(".{}", CACHE_ANALYTICS_PATH)),
                 None => PathBuf::from(CACHE_ANALYTICS_PATH),
             }
@@ -75,7 +76,7 @@ lazy_static! {
         if am_i_root() {
             PathBuf::from(CACHE_ARTIFACT_PATH)
         } else {
-            match env::home_dir() {
+            match dirs::home_dir() {
                 Some(home) => home.join(format!(".{}", CACHE_ARTIFACT_PATH)),
                 None => PathBuf::from(CACHE_ARTIFACT_PATH),
             }
@@ -86,7 +87,7 @@ lazy_static! {
         if am_i_root() {
             PathBuf::from(CACHE_KEY_PATH)
         } else {
-            match env::home_dir() {
+            match dirs::home_dir() {
                 Some(home) => home.join(format!(".{}", CACHE_KEY_PATH)),
                 None => PathBuf::from(CACHE_KEY_PATH),
             }
@@ -97,7 +98,7 @@ lazy_static! {
         if am_i_root() {
             PathBuf::from(CACHE_SRC_PATH)
         } else {
-            match env::home_dir() {
+            match dirs::home_dir() {
                 Some(home) => home.join(format!(".{}", CACHE_SRC_PATH)),
                 None => PathBuf::from(CACHE_SRC_PATH),
             }
@@ -108,7 +109,7 @@ lazy_static! {
         if am_i_root() {
             PathBuf::from(CACHE_SSL_PATH)
         } else {
-            match env::home_dir() {
+            match dirs::home_dir() {
                 Some(home) => home.join(format!(".{}", CACHE_SSL_PATH)),
                 None => PathBuf::from(CACHE_SSL_PATH),
             }

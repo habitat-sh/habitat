@@ -19,6 +19,7 @@ extern crate ansi_term;
 extern crate base64;
 #[cfg(windows)]
 extern crate ctrlc;
+extern crate dirs;
 extern crate errno;
 extern crate hex;
 #[cfg(test)]
