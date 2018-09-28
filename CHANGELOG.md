@@ -11,6 +11,7 @@
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
 - Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 - fix regex for allowable appveyor branches [#5683](https://github.com/habitat-sh/habitat/pull/5683) ([mwrock](https://github.com/mwrock))
@@ -38,6 +39,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
 - Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 - install package in appveyor except for launcher [#5677](https://github.com/habitat-sh/habitat/pull/5677) ([mwrock](https://github.com/mwrock))
