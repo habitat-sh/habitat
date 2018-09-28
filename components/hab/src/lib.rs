@@ -31,6 +31,7 @@ extern crate bitflags;
 extern crate chrono;
 #[macro_use]
 extern crate clap;
+extern crate dirs;
 #[macro_use]
 extern crate features;
 extern crate flate2;
