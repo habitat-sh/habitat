@@ -4,19 +4,20 @@
 ## Unreleased
 
 <!-- latest_release -->
-## [0.64.1](https://github.com/habitat-sh/habitat/tree/0.64.1) (09-28-2018)
+## Unreleased
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.0...0.64.1)
 
 #### Bug Fixes
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 - fix regex for allowable appveyor branches [#5683](https://github.com/habitat-sh/habitat/pull/5683) ([mwrock](https://github.com/mwrock))
 - add release versions as allowable branch to build [#5682](https://github.com/habitat-sh/habitat/pull/5682) ([mwrock](https://github.com/mwrock))
 - prep 0.64.1 release [#5681](https://github.com/habitat-sh/habitat/pull/5681) ([mwrock](https://github.com/mwrock))
 - 0.64.0 post release tasks [#5680](https://github.com/habitat-sh/habitat/pull/5680) ([smacfarlane](https://github.com/smacfarlane))
 
-## [0.64.0](https://github.com/habitat-sh/habitat/tree/0.64.0) (09-27-2018)
+## Unreleased
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.63.0...0.64.0)
 
 #### New Features & Enhancements
@@ -36,6 +37,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 - install package in appveyor except for launcher [#5677](https://github.com/habitat-sh/habitat/pull/5677) ([mwrock](https://github.com/mwrock))
 - Update show_package to always use a channel [#5674](https://github.com/habitat-sh/habitat/pull/5674) ([chefsalim](https://github.com/chefsalim))
 - Add myself to maintainers [#5672](https://github.com/habitat-sh/habitat/pull/5672) ([smacfarlane](https://github.com/smacfarlane))
