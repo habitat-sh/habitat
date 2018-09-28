@@ -15,4 +15,4 @@ log = "*"
 [target.'cfg(windows)'.dependencies]
 kernel32-sys = "*"
 widestring = "*"
-winapi = "0.2"
+winapi = "*"
