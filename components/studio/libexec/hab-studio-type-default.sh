@@ -98,7 +98,7 @@ finish_setup() {
       _hab install "$pkg"
     fi
   done
-  
+
   bash_path=$(_pkgpath_for core/bash)
   coreutils_path=$(_pkgpath_for core/coreutils)
 
@@ -174,7 +174,7 @@ sup-run() {
 }
 
 sup-term() {
-  local pid_file="/hab/sup/default/LOCK "
+  local pid_file="/hab/sup/default/LOCK"
   if [ -f "\$pid_file" ]; then
     echo "--> Killing Habitat Supervisor running in the background..."
     kill "\$(cat "\$pid_file")" \\
