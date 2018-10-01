@@ -1115,13 +1115,13 @@ mod tests {
             .expect("I wanted a service to load, but it didn't");
 
         // With config
-        let proxy_with_config = ServiceProxy::new(&service, true);
+        let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);
         let proxies_with_config = vec![proxy_with_config];
         let json_with_config = serde_json::to_string(&proxies_with_config).unwrap();
         assert_valid(&json_with_config, "http_gateway_services_schema.json");
 
         // Without config
-        let proxy_without_config = ServiceProxy::new(&service, false);
+        let proxy_without_config = ServiceProxy::new(&service, ConfigRendering::Redacted);
         let proxies_without_config = vec![proxy_without_config];
         let json_without_config = serde_json::to_string(&proxies_without_config).unwrap();
         assert_valid(&json_without_config, "http_gateway_services_schema.json");
