@@ -1218,10 +1218,10 @@ fn persist_loop(server: Server) {
     }
 }
 
-// This is a proxy struct to represent what information we're writing to the dat file, and
-// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
-// actual Server struct, but this will give us something we can refactor against without
-// worrying about breaking the data returned to users.
+/// This is a proxy struct to represent what information we're writing to the dat file, and
+/// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
+/// actual Server struct, but this will give us something we can refactor against without
+/// worrying about breaking the data returned to users.
 pub struct ServerProxy<'a>(&'a Server);
 
 impl<'a> ServerProxy<'a> {

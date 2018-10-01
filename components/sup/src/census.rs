@@ -216,10 +216,10 @@ impl CensusRing {
     }
 }
 
-// This is a proxy struct to represent what information we're writing to the dat file, and
-// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
-// actual CensusRing struct, but this will give us something we can refactor against without
-// worrying about breaking the data returned to users.
+/// This is a proxy struct to represent what information we're writing to the dat file, and
+/// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
+/// actual CensusRing struct, but this will give us something we can refactor against without
+/// worrying about breaking the data returned to users.
 pub struct CensusRingProxy<'a>(&'a CensusRing);
 
 impl<'a> CensusRingProxy<'a> {
