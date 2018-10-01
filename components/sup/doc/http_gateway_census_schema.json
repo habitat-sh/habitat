@@ -38,7 +38,7 @@
                 },
                 "application": {
                   "description": "The application portion of a service group specification",
-                  "type": "null"
+                  "type": ["null", "string"]
                 },
                 "cfg": {
                   "additionalProperties": {
@@ -74,18 +74,8 @@
                   "type": "boolean"
                 },
                 "environment": {
-                  "additionalProperties": {
-                    "type": [
-                      "null",
-                      "boolean",
-                      "string",
-                      "integer",
-                      "array",
-                      "object"
-                    ]
-                  },
                   "description": "The environment portion of a service group specification",
-                  "type": "null"
+                  "type": ["null", "string"]
                 },
                 "follower": {
                   "description": "Whether this member is a follower",
@@ -105,42 +95,14 @@
                 },
                 "org": {
                   "description": "The organization of a service group specification",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
+                  "type": ["null", "string"]
                 },
                 "persistent": {
                   "description": "Is this member a permanent peer",
                   "type": "boolean"
                 },
                 "pkg": {
-                  "description": "The package identifier this member is running",
-                  "properties": {
-                    "name": {
-                      "description": "The package name",
-                      "type": "string"
-                    },
-                    "origin": {
-                      "description": "The package origin",
-                      "type": "string"
-                    },
-                    "release": {
-                      "description": "The package release",
-                      "type": "string"
-                    },
-                    "version": {
-                      "description": "The package version",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "origin",
-                    "release",
-                    "version"
-                  ],
-                  "type": "object"
+                  "$ref": "render_context_schema.json#/definitions/package_identifier"
                 },
                 "service": {
                   "description": "The name of the service",
@@ -151,57 +113,7 @@
                   "type": "boolean"
                 },
                 "sys": {
-                  "description": "System information",
-                  "properties": {
-                    "ctl_gateway_ip": {
-                      "description": "The control gateway IP address",
-                      "type": "string"
-                    },
-                    "ctl_gateway_port": {
-                      "default": 9632,
-                      "description": "The control gateway port",
-                      "type": "integer"
-                    },
-                    "gossip_ip": {
-                      "default": "0.0.0.0",
-                      "description": "The IP address to listen on for gossip traffic",
-                      "type": "string"
-                    },
-                    "gossip_port": {
-                      "default": 9638,
-                      "description": "The port to listen on for gossip traffic",
-                      "type": "integer"
-                    },
-                    "hostname": {
-                      "description": "The hostname of the member",
-                      "type": "string"
-                    },
-                    "http_gateway_ip": {
-                      "default": "0.0.0.0",
-                      "description": "The IP address for the HTTP gateway to listen on",
-                      "type": "string"
-                    },
-                    "http_gateway_port": {
-                      "default": 9631,
-                      "description": "The port for the HTTP gateway to listen on",
-                      "type": "integer"
-                    },
-                    "ip": {
-                      "description": "The member's IP address",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "ctl_gateway_ip",
-                    "ctl_gateway_port",
-                    "gossip_ip",
-                    "gossip_port",
-                    "hostname",
-                    "http_gateway_ip",
-                    "http_gateway_port",
-                    "ip"
-                  ],
-                  "type": "object"
+                  "$ref": "http_gateway_butterfly_schema.json#/definitions/sys_basic"
                 },
                 "update_election_is_finished": {
                   "description": "Whether the update leader election has finished",

@@ -1,5 +1,60 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "sys_basic": {
+      "description": "System information",
+      "properties": {
+        "ctl_gateway_ip": {
+          "description": "The control gateway IP address",
+          "type": "string"
+        },
+        "ctl_gateway_port": {
+          "default": 9632,
+          "description": "The control gateway port",
+          "type": "integer"
+        },
+        "gossip_ip": {
+          "default": "0.0.0.0",
+          "description": "The IP address to listen on for gossip traffic",
+          "type": "string"
+        },
+        "gossip_port": {
+          "default": 9638,
+          "description": "The port to listen on for gossip traffic",
+          "type": "integer"
+        },
+        "hostname": {
+          "description": "The hostname of the member",
+          "type": "string"
+        },
+        "http_gateway_ip": {
+          "default": "0.0.0.0",
+          "description": "The IP address for the HTTP gateway to listen on",
+          "type": "string"
+        },
+        "http_gateway_port": {
+          "default": 9631,
+          "description": "The port for the HTTP gateway to listen on",
+          "type": "integer"
+        },
+        "ip": {
+          "description": "The member's IP address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ctl_gateway_ip",
+        "ctl_gateway_port",
+        "gossip_ip",
+        "gossip_port",
+        "hostname",
+        "http_gateway_ip",
+        "http_gateway_port",
+        "ip"
+      ],
+      "type": "object"
+    }
+  },
   "description": "Schema for all the data the Habitat supervisor makes available at the /butterfly HTTP API endpoint",
   "properties": {
     "departure": {
@@ -59,7 +114,7 @@
                   },
                   "status": {
                     "description": "The status of the election",
-                    "type": "string"
+                    "enum": ["Running", "NoQuorum", "Finished"]
                   },
                   "suitability": {
                     "description": "How suitable this member is for election",
@@ -160,8 +215,8 @@
       "properties": {
         "health": {
           "additionalProperties": {
-            "description": "The health of the member, e.g. Alive, Suspect, Confirmed, Departed",
-            "type": "string"
+            "description": "The health of the member",
+            "enum": ["Alive", "Suspect", "Confirmed", "Departed"]
           },
           "description": "The health of the members",
           "type": "object"
@@ -270,57 +325,7 @@
                   "type": "string"
                 },
                 "sys": {
-                  "description": "System information",
-                  "properties": {
-                    "ctl_gateway_ip": {
-                      "description": "The control gateway IP address",
-                      "type": "string"
-                    },
-                    "ctl_gateway_port": {
-                      "default": 9632,
-                      "description": "The control gateway port",
-                      "type": "integer"
-                    },
-                    "gossip_ip": {
-                      "default": "0.0.0.0",
-                      "description": "The IP address to listen on for gossip traffic",
-                      "type": "string"
-                    },
-                    "gossip_port": {
-                      "default": 9638,
-                      "description": "The port to listen on for gossip traffic",
-                      "type": "integer"
-                    },
-                    "hostname": {
-                      "description": "The hostname of the member",
-                      "type": "string"
-                    },
-                    "http_gateway_ip": {
-                      "default": "0.0.0.0",
-                      "description": "The IP address for the HTTP gateway to listen on",
-                      "type": "string"
-                    },
-                    "http_gateway_port": {
-                      "default": 9631,
-                      "description": "The port for the HTTP gateway to listen on",
-                      "type": "integer"
-                    },
-                    "ip": {
-                      "description": "The member's IP address",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "ctl_gateway_ip",
-                    "ctl_gateway_port",
-                    "gossip_ip",
-                    "gossip_port",
-                    "hostname",
-                    "http_gateway_ip",
-                    "http_gateway_port",
-                    "ip"
-                  ],
-                  "type": "object"
+                  "$ref": "#/definitions/sys_basic"
                 }
               },
               "required": [

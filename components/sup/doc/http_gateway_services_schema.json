@@ -19,30 +19,71 @@
       },
       "type": "object"
     },
-    "package_identifier": {
-      "description": "A Habitat package",
+    "sys_extended": {
+      "description": "System information",
       "properties": {
-        "name": {
-          "description": "The package name",
+        "ctl_gateway_ip": {
+          "description": "Listening address for Supervisor's Control Gateway.",
           "type": "string"
         },
-        "origin": {
-          "description": "The package origin",
+        "ctl_gateway_port": {
+          "default": 9632,
+          "description": "Listening port for Supervisor's Control Gateway.",
+          "type": "integer"
+        },
+        "gossip_ip": {
+          "default": "0.0.0.0",
+          "description": "Listening address for Supervisor's gossip connection.",
           "type": "string"
         },
-        "release": {
-          "description": "The package release",
-          "type": ["null", "string"]
+        "gossip_port": {
+          "default": 9638,
+          "description": "Listening port for Supervisor's gossip connection.",
+          "type": "integer"
+        },
+        "hostname": {
+          "default": "localhost",
+          "description": "The hostname of the running service.",
+          "type": "string"
+        },
+        "http_gateway_ip": {
+          "default": "0.0.0.0",
+          "description": "Listening address for Supervisor's HTTP gateway.",
+          "type": "string"
+        },
+        "http_gateway_port": {
+          "default": 9631,
+          "description": "Listening port for Supervisor's HTTP gateway.",
+          "type": "integer"
+        },
+        "ip": {
+          "description": "The IP address of the running service.",
+          "type": "string"
+        },
+        "member_id": {
+          "description": "The member's Supervisor ID, e.g., `3d1e73ff19464a27aea3cdc5c2243f74`",
+          "type": "string"
+        },
+        "permanent": {
+          "description": "Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability.",
+          "type": "boolean"
         },
         "version": {
-          "description": "The package version",
-          "type": ["null", "string"]
+          "description": "Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448`",
+          "type": "string"
         }
       },
       "required": [
-        "name",
-        "origin",
-        "release",
+        "ctl_gateway_ip",
+        "ctl_gateway_port",
+        "gossip_ip",
+        "gossip_port",
+        "hostname",
+        "http_gateway_ip",
+        "http_gateway_port",
+        "ip",
+        "member_id",
+        "permanent",
         "version"
       ],
       "type": "object"
@@ -80,7 +121,7 @@
       },
       "binding_mode": {
         "description": "What type of bind this is, either strict or relaxed",
-        "type": "string"
+        "enum": ["strict", "relaxed"]
       },
       "binds": {
         "description": "Mapping of bind name to service group",
@@ -130,12 +171,12 @@
         ]
       },
       "desired_state": {
-        "description": "The desired state for this service, either Up or Down",
-        "type": "string"
+        "description": "The desired state for this service",
+        "enum": ["up", "down"]
       },
       "health_check": {
-        "description": "The results of the last health check, either Ok, Warning, Critical or Unknown",
-        "type": "string"
+        "description": "The results of the last health check",
+        "enum": ["ok", "warning", "critical", "unknown"]
       },
       "hooks": {
         "description": "A description of the hooks for this service",
@@ -288,21 +329,14 @@
           "deps": {
             "description": "This package's dependencies",
             "items": {
-              "$ref": "#/definitions/package_identifier",
+              "$ref": "render_context_schema.json#/definitions/package_identifier",
               "description": "Package identifier for a dependency"
             },
             "type": "array"
           },
           "env": {
             "additionalProperties": {
-              "type": [
-                "null",
-                "boolean",
-                "string",
-                "integer",
-                "array",
-                "object"
-              ]
+              "type": "string"
             },
             "description": "The environment for this package",
             "type": "object"
@@ -419,11 +453,11 @@
             "type": ["null", "integer"]
           },
           "state": {
-            "description": "The state of this process, either Up or Down",
-            "type": "string"
+            "description": "The state of this process",
+            "enum": ["up", "down"]
           },
           "state_entered": {
-            "description": "The time the process entered its current state",
+            "description": "The time the process entered its current state, expressed as seconds since epoch",
             "type": "integer"
           }
         },
@@ -439,8 +473,8 @@
         "type": "string"
       },
       "smoke_check": {
-        "description": "The status of this service's smoke check, either Ok, Failed, or Pending",
-        "type": "string"
+        "description": "The status of this service's smoke check. Not currently used.",
+        "enum": ["ok", "failed", "pending"]
       },
       "spec_file": {
         "description": "The path to this service's spec file",
@@ -455,80 +489,15 @@
         "type": ["null", "string"]
       },
       "sys": {
-        "description": "System information",
-        "properties": {
-          "ctl_gateway_ip": {
-            "description": "The control gateway IP address",
-            "type": "string"
-          },
-          "ctl_gateway_port": {
-            "default": 9632,
-            "description": "The control gateway port",
-            "type": "integer"
-          },
-          "gossip_ip": {
-            "default": "0.0.0.0",
-            "description": "The IP address to listen on for gossip traffic",
-            "type": "string"
-          },
-          "gossip_port": {
-            "default": 9638,
-            "description": "The port to listen on for gossip traffic",
-            "type": "integer"
-          },
-          "hostname": {
-            "description": "The hostname of the member",
-            "type": "string"
-          },
-          "http_gateway_ip": {
-            "default": "0.0.0.0",
-            "description": "The IP address for the HTTP gateway to listen on",
-            "type": "string"
-          },
-          "http_gateway_port": {
-            "default": 9631,
-            "description": "The port for the HTTP gateway to listen on",
-            "type": "integer"
-          },
-          "ip": {
-            "description": "The member's IP address",
-            "type": "string"
-          },
-          "member_id": {
-            "description": "The member ID",
-            "type": "string"
-          },
-          "permanent": {
-            "description": "Is this a permanent peer",
-            "type": "boolean"
-          },
-          "version": {
-            "description": "The fully qualified version of Habitat running this service",
-            "type": "string"
-          }
-        },
-        "required": [
-          "ctl_gateway_ip",
-          "ctl_gateway_port",
-          "gossip_ip",
-          "gossip_port",
-          "hostname",
-          "http_gateway_ip",
-          "http_gateway_port",
-          "ip",
-          "member_id",
-          "permanent",
-          "version"
-        ],
-        "type": "object"
+        "$ref": "#/definitions/sys_extended"
       },
       "topology": {
-        "description": "The topology this service runs as, either Standalone or Leader",
-        "type": "string"
+        "description": "The topology this service runs as",
+        "enum": ["standalone", "leader"]
       },
       "update_strategy": {
-        "description": "The strategy used to update this service, either None, AtOnce, or Rolling",
-        "type": "string"
+        "description": "The strategy used to update this service",
+        "enum": ["none", "at-once", "rolling"]
       },
       "user_config_updated": {
         "description": "Did a user update the config",
