@@ -1,7 +1,7 @@
 # shellcheck disable=2034
 pkg_name=hab-plan-build
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$SRC_PATH/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
@@ -27,7 +27,7 @@ pkg_build_deps=(core/bats/0.4.0/20170514013659)
 program=$pkg_name
 
 do_build() {
-  cp -v "$PLAN_CONTEXT"/bin/${program}.sh "$CACHE_PATH/$program"
+  cp -v "$SRC_PATH"/bin/${program}.sh "$CACHE_PATH/$program"
 
   # Use the bash from our dependency list as the shebang. Also, embed the
   # release version of the program.
@@ -46,8 +46,8 @@ do_check() {
 do_install() {
   # shellcheck disable=2154
   install -D "$CACHE_PATH/$program" "$pkg_prefix"/bin/$program
-  install -D "$PLAN_CONTEXT"/bin/shared.bash "$pkg_prefix"/bin/
-  install -D "$PLAN_CONTEXT"/bin/public.bash "$pkg_prefix"/bin/
-  install -D "$PLAN_CONTEXT"/bin/composite_build_functions.bash "$pkg_prefix"/bin/
-  install -D "$PLAN_CONTEXT"/bin/environment.bash "$pkg_prefix"/bin/
+  install -D "$SRC_PATH"/bin/shared.bash "$pkg_prefix"/bin/
+  install -D "$SRC_PATH"/bin/public.bash "$pkg_prefix"/bin/
+  install -D "$SRC_PATH"/bin/composite_build_functions.bash "$pkg_prefix"/bin/
+  install -D "$SRC_PATH"/bin/environment.bash "$pkg_prefix"/bin/
 }

@@ -1,16 +1,11 @@
 # shellcheck disable=2154
-PLAN_CONTEXT=$(dirname "$PLAN_CONTEXT") source ../plan.sh
+source ../plan.sh
 
 pkg_name=hab
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 # There is no true equivalent here (yet), so dependency arrays will be empty.
 pkg_deps=()
 pkg_build_deps=()
-
-do_begin() {
-  # Set the parent directory as the "root" of this plan.
-  PLAN_CONTEXT="$(abspath ..)"
-}
 
 # shellcheck disable=2155
 do_prepare() {
