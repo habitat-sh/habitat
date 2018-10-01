@@ -68,7 +68,8 @@ use toml;
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
 pub use self::service::{
-    CompositeSpec, Service, ServiceBind, ServiceProxy, ServiceSpec, Spec, Topology, UpdateStrategy,
+    CompositeSpec, ConfigRendering, Service, ServiceBind, ServiceProxy, ServiceSpec, Spec,
+    Topology, UpdateStrategy,
 };
 use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
@@ -1472,6 +1473,12 @@ impl Manager {
             }
         };
 
+        let config_rendering = if feat::is_enabled(feat::RedactHTTP) {
+            ConfigRendering::Redacted
+        } else {
+            ConfigRendering::Full
+        };
+
         let mut writer = BufWriter::new(file);
         let services = self
             .state
@@ -1500,11 +1507,11 @@ impl Manager {
             }).collect();
         let watched_service_proxies: Vec<ServiceProxy> = watched_services
             .iter()
-            .map(|s| ServiceProxy::new(s, !feat::is_enabled(feat::RedactHTTP)))
+            .map(|s| ServiceProxy::new(s, config_rendering.clone()))
             .collect();
         let mut services_to_render: Vec<ServiceProxy> = services
             .iter()
-            .map(|s| ServiceProxy::new(s, !feat::is_enabled(feat::RedactHTTP)))
+            .map(|s| ServiceProxy::new(s, config_rendering.clone()))
             .collect();
 
         services_to_render.extend(watched_service_proxies);

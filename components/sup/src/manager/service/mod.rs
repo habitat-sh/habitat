@@ -1003,20 +1003,26 @@ impl fmt::Display for Service {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ConfigRendering {
+    Full,
+    Redacted,
+}
+
 /// This is a proxy struct to represent what information we're writing to the dat file, and
 /// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
 /// actual Service struct, but this will give us something we can refactor against without
 /// worrying about breaking the data returned to users.
 pub struct ServiceProxy<'a> {
     service: &'a Service,
-    render_config: bool,
+    config_rendering: ConfigRendering,
 }
 
 impl<'a> ServiceProxy<'a> {
-    pub fn new(s: &'a Service, c: bool) -> Self {
+    pub fn new(s: &'a Service, c: ConfigRendering) -> Self {
         ServiceProxy {
             service: &s,
-            render_config: c,
+            config_rendering: c,
         }
     }
 
@@ -1030,7 +1036,11 @@ impl<'a> Serialize for ServiceProxy<'a> {
     where
         S: Serializer,
     {
-        let num_fields: usize = if *&self.render_config { 27 } else { 26 };
+        let num_fields: usize = if *&self.config_rendering == ConfigRendering::Full {
+            27
+        } else {
+            26
+        };
 
         let mut strukt = serializer.serialize_struct("service", num_fields)?;
         strukt.serialize_field("all_pkg_binds", &self.service.all_pkg_binds)?;
@@ -1038,8 +1048,8 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("binds", &self.service.binds)?;
         strukt.serialize_field("bldr_url", &self.service.bldr_url)?;
 
-        if *&self.render_config {
-            strukt.serialize_field("cfg", &self.service.cfg)?;
+        if *&self.config_rendering == ConfigRendering::Full {
+            strukt.serialize_field("cfg", &s.cfg)?;
         }
 
         strukt.serialize_field("channel", &self.service.channel)?;
