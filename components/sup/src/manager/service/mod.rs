@@ -1025,10 +1025,6 @@ impl<'a> ServiceProxy<'a> {
             config_rendering: c,
         }
     }
-
-    pub fn service(&self) -> &Service {
-        &self.service
-    }
 }
 
 impl<'a> Serialize for ServiceProxy<'a> {
@@ -1042,41 +1038,39 @@ impl<'a> Serialize for ServiceProxy<'a> {
             26
         };
 
+        let s = &self.service;
         let mut strukt = serializer.serialize_struct("service", num_fields)?;
-        strukt.serialize_field("all_pkg_binds", &self.service.all_pkg_binds)?;
-        strukt.serialize_field("binding_mode", &self.service.binding_mode)?;
-        strukt.serialize_field("binds", &self.service.binds)?;
-        strukt.serialize_field("bldr_url", &self.service.bldr_url)?;
+        strukt.serialize_field("all_pkg_binds", &s.all_pkg_binds)?;
+        strukt.serialize_field("binding_mode", &s.binding_mode)?;
+        strukt.serialize_field("binds", &s.binds)?;
+        strukt.serialize_field("bldr_url", &s.bldr_url)?;
 
         if *&self.config_rendering == ConfigRendering::Full {
             strukt.serialize_field("cfg", &s.cfg)?;
         }
 
-        strukt.serialize_field("channel", &self.service.channel)?;
-        strukt.serialize_field("composite", &self.service.composite)?;
-        strukt.serialize_field("config_from", &self.service.config_from)?;
-        strukt.serialize_field("desired_state", &self.service.desired_state)?;
-        strukt.serialize_field("health_check", &self.service.health_check)?;
-        strukt.serialize_field("hooks", &self.service.hooks)?;
-        strukt.serialize_field("initialized", &self.service.initialized)?;
-        strukt.serialize_field("last_election_status", &self.service.last_election_status)?;
-        strukt.serialize_field("manager_fs_cfg", &self.service.manager_fs_cfg)?;
-        strukt.serialize_field("needs_reconfiguration", &self.service.needs_reconfiguration)?;
-        strukt.serialize_field("needs_reload", &self.service.needs_reload)?;
-        strukt.serialize_field("pkg", &self.service.pkg)?;
-        strukt.serialize_field("process", &self.service.supervisor)?;
-        strukt.serialize_field("service_group", &self.service.service_group)?;
-        strukt.serialize_field("smoke_check", &self.service.smoke_check)?;
-        strukt.serialize_field("spec_file", &self.service.spec_file)?;
-        strukt.serialize_field("spec_ident", &self.service.spec_ident)?;
-        strukt.serialize_field(
-            "svc_encrypted_password",
-            &self.service.svc_encrypted_password,
-        )?;
-        strukt.serialize_field("sys", &self.service.sys)?;
-        strukt.serialize_field("topology", &self.service.topology)?;
-        strukt.serialize_field("update_strategy", &self.service.update_strategy)?;
-        strukt.serialize_field("user_config_updated", &self.service.user_config_updated)?;
+        strukt.serialize_field("channel", &s.channel)?;
+        strukt.serialize_field("composite", &s.composite)?;
+        strukt.serialize_field("config_from", &s.config_from)?;
+        strukt.serialize_field("desired_state", &s.desired_state)?;
+        strukt.serialize_field("health_check", &s.health_check)?;
+        strukt.serialize_field("hooks", &s.hooks)?;
+        strukt.serialize_field("initialized", &s.initialized)?;
+        strukt.serialize_field("last_election_status", &s.last_election_status)?;
+        strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
+        strukt.serialize_field("needs_reconfiguration", &s.needs_reconfiguration)?;
+        strukt.serialize_field("needs_reload", &s.needs_reload)?;
+        strukt.serialize_field("pkg", &s.pkg)?;
+        strukt.serialize_field("process", &s.supervisor)?;
+        strukt.serialize_field("service_group", &s.service_group)?;
+        strukt.serialize_field("smoke_check", &s.smoke_check)?;
+        strukt.serialize_field("spec_file", &s.spec_file)?;
+        strukt.serialize_field("spec_ident", &s.spec_ident)?;
+        strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
+        strukt.serialize_field("sys", &s.sys)?;
+        strukt.serialize_field("topology", &s.topology)?;
+        strukt.serialize_field("update_strategy", &s.update_strategy)?;
+        strukt.serialize_field("user_config_updated", &s.user_config_updated)?;
         strukt.end()
     }
 }
