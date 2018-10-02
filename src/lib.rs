@@ -15,8 +15,6 @@
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
 #[cfg(windows)]
-extern crate kernel32;
-#[cfg(windows)]
 #[macro_use]
 extern crate log;
 #[cfg(windows)]

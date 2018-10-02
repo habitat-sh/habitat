@@ -13,6 +13,5 @@ gcc = "0.3"
 log = "*"
 
 [target.'cfg(windows)'.dependencies]
-kernel32-sys = "*"
 widestring = "*"
 winapi = "*"

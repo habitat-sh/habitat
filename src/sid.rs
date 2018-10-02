@@ -18,13 +18,15 @@ use std::io;
 use std::mem;
 use std::ptr::{copy, null_mut};
 
-use kernel32::{self, LocalFree};
 use widestring::WideCString;
 use winapi::shared::minwindef::{
     BOOL, BYTE, DWORD, FALSE, HLOCAL, LPBOOL, LPDWORD, LPVOID, TRUE, WORD,
 };
 use winapi::shared::ntdef::HANDLE;
 use winapi::shared::winerror;
+use winapi::um::handleapi;
+use winapi::um::processthreadsapi;
+use winapi::um::winbase;
 use winapi::um::winnt::{
     ACCESS_MASK, ACL, DACL_SECURITY_INFORMATION, LPCWSTR, MAXDWORD, PACL, PHANDLE,
     PSECURITY_DESCRIPTOR, PSECURITY_INFORMATION, PSID, TOKEN_READ,
@@ -146,12 +148,12 @@ pub struct Sid {
 impl Sid {
     pub fn from_current_user() -> io::Result<Self> {
         unsafe {
-            let handle = kernel32::GetCurrentProcess();
+            let handle = processthreadsapi::GetCurrentProcess();
             let mut token = null_mut();
             cvt(OpenProcessToken(handle, TOKEN_READ, &mut token))?;
             let sid = Self::from_token(token);
-            kernel32::CloseHandle(token);
-            kernel32::CloseHandle(handle);
+            handleapi::CloseHandle(token);
+            handleapi::CloseHandle(handle);
             Ok(sid?)
         }
     }
@@ -178,7 +180,7 @@ impl Sid {
         };
 
         let widestr = unsafe { WideCString::from_ptr_str(buffer) };
-        unsafe { LocalFree(buffer as HLOCAL) };
+        unsafe { winbase::LocalFree(buffer as HLOCAL) };
         Ok(widestr.to_string_lossy())
     }
 
