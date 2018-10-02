@@ -1003,7 +1003,16 @@ impl fmt::Display for Service {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// This enum represents whether or not we want to render config information when we serialize this
+/// service via the ServiceProxy struct below. Choosing ConfigRendering::Full will render the
+/// config, and choosing ConfigRendering::Redacted will not render it. This matches up to the
+/// feature flag we have in place to redact config information from a service's serialized output,
+/// which shows up in the supervisor's HTTP API responses.
+///
+/// Please note that this enum derives the Copy trait, so that it behaves more like the boolean
+/// that it is, and so that we don't have to clone() it everywhere. Adding anything to this enum
+/// that consumes a large amount of memory would be a bad idea (without removing Copy first)
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ConfigRendering {
     Full,
     Redacted,

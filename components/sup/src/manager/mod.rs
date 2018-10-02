@@ -1507,11 +1507,11 @@ impl Manager {
             }).collect();
         let watched_service_proxies: Vec<ServiceProxy> = watched_services
             .iter()
-            .map(|s| ServiceProxy::new(s, config_rendering.clone()))
+            .map(|s| ServiceProxy::new(s, config_rendering))
             .collect();
         let mut services_to_render: Vec<ServiceProxy> = services
             .iter()
-            .map(|s| ServiceProxy::new(s, config_rendering.clone()))
+            .map(|s| ServiceProxy::new(s, config_rendering))
             .collect();
 
         services_to_render.extend(watched_service_proxies);
