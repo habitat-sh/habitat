@@ -18,6 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
+use hcore::package::PackageIdent;
 use hcore::{crypto::keys::PairType, service::ServiceGroup};
 use protocol;
 use url::Url;
@@ -66,10 +67,12 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_config_apply().aliases(&["ap", "app", "appl"]))
             (@subcommand show =>
-                (about: "Displays the default configuration options for a service")
+                (about: "Displays configuration of a loaded service [default: display the merged, active configuration]")
                 (aliases: &["sh", "sho"])
-                (@arg PKG_IDENT: +required +takes_value
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg SERVICE_GROUP: +required +takes_value {valid_service_group_not_ident}
+                    "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
+                (@arg CFG_TYPE: -t --type +takes_value {valid_cfg_type}
+                    "The configuration layer to display [values: default, environment, user, gossip, merged]")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
@@ -1033,6 +1036,31 @@ fn valid_pair_type(val: String) -> result::Result<(), String> {
 
 fn valid_service_group(val: String) -> result::Result<(), String> {
     ServiceGroup::validate(&val).map_err(|e| e.to_string())
+}
+
+fn valid_service_group_not_ident(val: String) -> result::Result<(), String> {
+    match valid_service_group(val.clone()) {
+        Ok(_) => Ok(()),
+        Err(sge) => match PackageIdent::from_str(&val) {
+            Ok(pi) => Err(format!(
+                "\n\nThis method for retrieving a package's default configuration\n\
+                 options has been deprecated. Please run either of the following commands:\n\
+                 [ hab pkg config {} , hab config show <SERVICE_GROUP> -t default ]",
+                pi
+            )),
+            Err(_) => Err(sge.to_string()),
+        },
+    }
+}
+
+fn valid_cfg_type(val: String) -> result::Result<(), String> {
+    match protocol::types::ServiceCfgType::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!(
+            "CFG_TYPE: {} is invalid, must be one of (default, environment, user, gossip, merged)",
+            &val
+        )),
+    }
 }
 
 fn dir_exists(val: String) -> result::Result<(), String> {

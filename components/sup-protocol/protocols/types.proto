@@ -41,6 +41,14 @@ enum BindingMode {
   Strict = 1;
 }
 
+enum ServiceCfgType {
+  Merged = 0;
+  Default = 1;
+  Environment = 2;
+  User = 3;
+  Gossip = 4;
+}
+
 message ApplicationEnvironment {
   required string application = 1;
   required string environment = 2;

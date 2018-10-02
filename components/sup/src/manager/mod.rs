@@ -25,6 +25,7 @@ mod spec_watcher;
 mod sys;
 mod user_config_watcher;
 
+use protocol::types::ServiceCfgType;
 use std;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
@@ -873,6 +874,50 @@ impl Manager {
         Err(net::err(
             ErrCode::NotFound,
             format!("Service not loaded, {}", ident),
+        ))
+    }
+
+    pub fn service_group_cfg(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        opts: protocol::ctl::SvcGetCfg,
+    ) -> NetResult<()> {
+        let service_group: ServiceGroup = opts.service_group.ok_or(err_update_client())?.into();
+        let cfg_type = opts
+            .cfg_type
+            .and_then(protocol::types::ServiceCfgType::from_i32)
+            .unwrap_or_default();
+        let mut msg = protocol::types::ServiceCfg {
+            format: Some(protocol::types::service_cfg::Format::Toml as i32),
+            default: None,
+        };
+        for service in mgr.services.read().unwrap().iter() {
+            if service.service_group == service_group {
+                let tomlcfg = match cfg_type {
+                    ServiceCfgType::Gossip => toml::to_string_pretty(&toml::value::Value::Table(
+                        service.cfg.gossip.clone().unwrap_or_default(),
+                    )),
+                    ServiceCfgType::Default => toml::to_string_pretty(&toml::value::Value::Table(
+                        service.cfg.default.clone().unwrap_or_default(),
+                    )),
+                    ServiceCfgType::User => toml::to_string_pretty(&toml::value::Value::Table(
+                        service.cfg.user.clone().unwrap_or_default(),
+                    )),
+                    ServiceCfgType::Environment => {
+                        toml::to_string_pretty(&toml::value::Value::Table(
+                            service.cfg.environment.clone().unwrap_or_default(),
+                        ))
+                    }
+                    ServiceCfgType::Merged => toml::to_string_pretty(&service.cfg),
+                };
+                msg.default = Some(tomlcfg.unwrap_or("".to_string()));
+                req.reply_complete(msg);
+                return Ok(());
+            }
+        }
+        Err(net::err(
+            ErrCode::NotFound,
+            format!("Service Group not found, {}", service_group),
         ))
     }
 

@@ -142,3 +142,13 @@ pub enum BindingMode {
     /// Service start-up is blocked until all binds are available
     Strict = 1,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ServiceCfgType {
+    Merged = 0,
+    Default = 1,
+    Environment = 2,
+    User = 3,
+    Gossip = 4,
+}

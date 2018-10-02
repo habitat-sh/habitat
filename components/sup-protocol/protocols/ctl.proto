@@ -44,6 +44,13 @@ message SvcGetDefaultCfg {
   optional sup.types.PackageIdent ident = 1;
 }
 
+// Request for retrieving the various configuration layers for a given service.
+message SvcGetCfg {
+  // Service group of a loaded service to target.
+  optional sup.types.ServiceGroup service_group = 1;
+  optional sup.types.ServiceCfgType cfg_type = 2 [default = Merged];
+}
+
 message SvcValidateCfg {
   // Service group of a running service to validate a configuration change against.
   optional sup.types.ServiceGroup service_group = 1;
