@@ -37,7 +37,7 @@ matrix:
         - COMPONENTS=bin
         - AFFECTED_FILES="Cargo.lock"
         - AFFECTED_DIRS="$_RUST_HAB_BIN_COMPONENTS $_RUST_HAB_LIB_COMPONENTS"
-      rust: 1.29.0
+      rust: 1.29.1
       sudo: false
       services:
         - docker
@@ -80,7 +80,7 @@ matrix:
         - COMPONENTS=lib
         - AFFECTED_FILES="Cargo.lock"
         - AFFECTED_DIRS="$_RUST_HAB_LIB_COMPONENTS"
-      rust: 1.29.0
+      rust: 1.29.1
       sudo: required
       addons:
         apt:
