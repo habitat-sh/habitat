@@ -36,13 +36,10 @@ url = "*"
 users = "*"
 
 [target.'cfg(windows)'.dependencies]
-crypt32-sys = "*"
 ctrlc = "*"
 habitat_win_users = { path = "../win-users" }
-kernel32-sys = "*"
-userenv-sys = "*"
 widestring = "*"
-winapi = "0.2"
+winapi = { version = "*", features = ["dpapi", "ioapiset", "namedpipeapi", "userenv", "winbase", "wincrypt", "winerror"] }
 
 [dev-dependencies]
 hyper = "0.10"

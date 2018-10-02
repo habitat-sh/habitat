@@ -18,16 +18,18 @@ use std::path::PathBuf;
 use std::process::{self, Command};
 use std::ptr;
 
-use kernel32;
-use winapi;
+use winapi::shared::minwindef::{DWORD, FALSE, LPDWORD};
+use winapi::um::handleapi;
+use winapi::um::processthreadsapi;
+use winapi::um::winnt::{HANDLE, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_TERMINATE};
 
 use super::{OsSignal, Signal};
 use error::{Error, Result};
 
 const STILL_ACTIVE: u32 = 259;
 
-pub type Pid = winapi::DWORD;
-pub type SignalCode = winapi::DWORD;
+pub type Pid = DWORD;
+pub type SignalCode = DWORD;
 
 impl OsSignal for Signal {
     fn from_signal_code(code: SignalCode) -> Option<Signal> {
@@ -45,14 +47,14 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 
 /// Get process identifier of calling process.
 pub fn current_pid() -> u32 {
-    unsafe { kernel32::GetCurrentProcessId() as u32 }
+    unsafe { processthreadsapi::GetCurrentProcessId() as u32 }
 }
 
-pub fn handle_from_pid(pid: Pid) -> Option<winapi::HANDLE> {
+pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
     unsafe {
-        let proc_handle = kernel32::OpenProcess(
-            winapi::PROCESS_QUERY_LIMITED_INFORMATION | winapi::PROCESS_TERMINATE,
-            winapi::FALSE,
+        let proc_handle = processthreadsapi::OpenProcess(
+            PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_TERMINATE,
+            FALSE,
             pid,
         );
 
@@ -72,7 +74,7 @@ pub fn is_alive(pid: Pid) -> bool {
         Some(handle) => {
             let exit_status = exit_status(handle).expect("Failed to get exit status");
             unsafe {
-                let _ = kernel32::CloseHandle(handle);
+                let _ = handleapi::CloseHandle(handle);
             }
             exit_status == STILL_ACTIVE
         }
@@ -107,11 +109,11 @@ fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     process::exit(status.code().unwrap())
 }
 
-fn exit_status(handle: winapi::HANDLE) -> Result<u32> {
+fn exit_status(handle: HANDLE) -> Result<u32> {
     let mut exit_status: u32 = 0;
 
     unsafe {
-        let ret = kernel32::GetExitCodeProcess(handle, &mut exit_status as winapi::LPDWORD);
+        let ret = processthreadsapi::GetExitCodeProcess(handle, &mut exit_status as LPDWORD);
         if ret == 0 {
             return Err(Error::GetExitCodeProcessFailed(format!(
                 "Failed to retrieve Exit Code: {}",

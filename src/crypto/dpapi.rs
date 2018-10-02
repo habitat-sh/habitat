@@ -17,8 +17,9 @@ use std::mem;
 use std::ptr;
 
 use base64;
-use crypt32;
-use winapi;
+use winapi::shared::minwindef::DWORD;
+use winapi::um::dpapi;
+use winapi::um::wincrypt::CRYPTOAPI_BLOB;
 
 use error::{Error, Result};
 
@@ -27,23 +28,23 @@ const COMPLEXITY: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/hab-
 pub fn decrypt(secret: String) -> Result<String> {
     unsafe {
         let mut bytes = base64::decode(secret.as_str()).unwrap();
-        let mut in_blob = winapi::CRYPTOAPI_BLOB {
-            cbData: bytes.len() as winapi::DWORD,
+        let mut in_blob = CRYPTOAPI_BLOB {
+            cbData: bytes.len() as DWORD,
             pbData: bytes.as_mut_ptr(),
         };
-        let mut out_blob = winapi::CRYPTOAPI_BLOB {
+        let mut out_blob = CRYPTOAPI_BLOB {
             cbData: 0,
             pbData: ptr::null_mut(),
         };
         let mut entropy = ptr::null_mut();
-        let mut blob: winapi::CRYPTOAPI_BLOB = mem::zeroed::<winapi::CRYPTOAPI_BLOB>();
+        let mut blob: CRYPTOAPI_BLOB = mem::zeroed::<CRYPTOAPI_BLOB>();
         let mut complexity_vec = COMPLEXITY.to_vec();
         if complexity_vec.len() > 0 {
-            blob.cbData = complexity_vec.len() as winapi::DWORD;
+            blob.cbData = complexity_vec.len() as DWORD;
             blob.pbData = complexity_vec.as_mut_ptr();
             entropy = &mut blob;
         }
-        let ret = crypt32::CryptUnprotectData(
+        let ret = dpapi::CryptUnprotectData(
             &mut in_blob,
             ptr::null_mut(),
             entropy,
@@ -69,23 +70,23 @@ pub fn decrypt(secret: String) -> Result<String> {
 pub fn encrypt(secret: String) -> Result<String> {
     unsafe {
         let mut secret_bytes = secret.into_bytes();
-        let mut in_blob = winapi::CRYPTOAPI_BLOB {
-            cbData: secret_bytes.len() as winapi::DWORD,
+        let mut in_blob = CRYPTOAPI_BLOB {
+            cbData: secret_bytes.len() as DWORD,
             pbData: secret_bytes.as_mut_ptr(),
         };
-        let mut out_blob = winapi::CRYPTOAPI_BLOB {
+        let mut out_blob = CRYPTOAPI_BLOB {
             cbData: 0,
             pbData: ptr::null_mut(),
         };
         let mut entropy = ptr::null_mut();
-        let mut blob: winapi::CRYPTOAPI_BLOB = mem::zeroed::<winapi::CRYPTOAPI_BLOB>();
+        let mut blob: CRYPTOAPI_BLOB = mem::zeroed::<CRYPTOAPI_BLOB>();
         let mut complexity_vec = COMPLEXITY.to_vec();
         if complexity_vec.len() > 0 {
-            blob.cbData = complexity_vec.len() as winapi::DWORD;
+            blob.cbData = complexity_vec.len() as DWORD;
             blob.pbData = complexity_vec.as_mut_ptr();
             entropy = &mut blob;
         }
-        let ret = crypt32::CryptProtectData(
+        let ret = dpapi::CryptProtectData(
             &mut in_blob,
             ptr::null(),
             entropy,
