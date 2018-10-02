@@ -20,6 +20,7 @@
       "type": "object"
     },
     "sys_extended": {
+      "$comment": "In http_gateway_butterfly_schema.json#/definitions/sys_basic, we lay out basic system information. This structure is a duplication of that, but it includes member_id, permanent, and version, as well.",
       "description": "System information",
       "properties": {
         "ctl_gateway_ip": {
@@ -172,11 +173,11 @@
       },
       "desired_state": {
         "description": "The desired state for this service",
-        "enum": ["up", "down"]
+        "enum": ["Up", "Down"]
       },
       "health_check": {
         "description": "The results of the last health check",
-        "enum": ["ok", "warning", "critical", "unknown"]
+        "enum": ["Ok", "Warning", "Critical", "Unknown"]
       },
       "hooks": {
         "description": "A description of the hooks for this service",
@@ -474,7 +475,7 @@
       },
       "smoke_check": {
         "description": "The status of this service's smoke check. Not currently used.",
-        "enum": ["ok", "failed", "pending"]
+        "enum": ["Ok", "Failed", "Pending"]
       },
       "spec_file": {
         "description": "The path to this service's spec file",
