@@ -1,0 +1,140 @@
+#!/usr/bin/env expect
+
+# Run a Supervisor locally and verify that HUPping the Supervisor does
+# not result in the Launcher losing track of services, manifested by
+# leaving services running after stopping the Supervisor
+#
+# Run under sudo (for now, at least)
+#
+# TODO: This currently depends on a bit of state
+#
+# - Which launcher version is used
+# - Which sup version is used
+# - Having write access to the filesystem
+# - There are no other services running
+#
+# We might be able to concoct a Docker container that things could run
+# in, but we'd need to start the container with something other than
+# the Launcher as PID 1, because otherwise, there's no way to verify
+# that the services are actually cleaned up properly.
+
+# TODO: make this work on Windows
+
+# TODO: Find a real test assertion library for TCL
+proc assert {cond {msg "assertion failed"}} {
+    if {![uplevel 1 expr $cond]} {error $msg}
+}
+
+# Find the parent PID of the given PID.
+proc parent_pid {my_pid} {
+    set ppid [exec ps --format=ppid --no-headers -p $my_pid]
+    return [string trim $ppid]
+}
+
+# Determine if the given PID is still around.
+proc is_alive {my_pid} {
+    set exit_code [catch { exec kill -0 $my_pid } ]
+    return [expr $exit_code == 0]
+}
+
+# TODO: This is gross, but it seems that negating a procedure result is more gross
+proc is_not_alive {my_pid} {
+    set exit_code [catch { exec kill -0 $my_pid } ]
+    return [expr $exit_code == 1]
+}
+
+# Print out some helpful tracing messages in the test output.
+proc log {message} {
+    puts "LOG >>> $message"
+}
+
+# Cleanup after the test
+exit -onexit {
+    exec hab sup term
+    exec rm -Rf /hab/sup/default/specs/redis.spec
+    exec pkill redis-server ;# Just in case the test fails
+}
+
+# Begin the test!
+
+# Start up a Supervisor
+set launcher_pid [spawn hab sup run]
+set launcher_spawn_id $spawn_id
+expect {
+    "Starting http-gateway on 0.0.0.0:9631" {
+        log "Supervisor started normally"
+    }
+    "Unable to start Habitat Supervisor because another instance is already running" {
+        error "Another Supervisor is running; leftover state?"
+    }
+    timeout {
+        error "Supervisor appears not to have started, correctly"
+    }
+}
+
+# Load up Redis on that Supervisor
+spawn hab svc load core/redis
+expect {
+    "The core/redis service was successfully loaded" {}
+    "Service already loaded, unload 'core/redis' and try again" {
+        error "Service was already loaded; leftover state?"
+    }
+    timeout {
+        error "Timed out waiting for core/redis to load";
+    }
+}
+expect eof wait
+
+# Wait until Redis is running
+set spawn_id $launcher_spawn_id
+expect {
+    "Ready to accept connections" {
+        log "Redis is accepting connections"
+    }
+    timeout {
+        error "Redis not ready to accept connections!"
+    }
+}
+set redis_pid [exec pgrep redis-server]
+assert { [is_alive $redis_pid] } "Redis PID isn't alive!"
+
+set redis_parent [parent_pid $redis_pid]
+assert { $redis_parent == $launcher_pid } "Didn't do that right!"
+
+# HUP the Supervisor (through the Launcher). This will restart the
+# Supervisor, but should leave the Redis service untouched. More
+# importantly, we shouldn't "lose track" of the service process when
+# we shut down.
+exec kill -HUP $launcher_pid
+expect {
+    "Supervisor shutting down for signal" {
+        log "Supervisor got HUPped"
+    }
+    timeout {
+        error "Didn't see the Supervisor go away when the Launcher was HUPped!"
+    }
+}
+expect {
+    "Reattached to redis.default" {
+        log "Supervisor reattached"
+    }
+    timeout {
+        error "Should have reattached to redis process!"
+    }
+}
+
+assert { [is_alive $redis_pid] } "Redis PID isn't alive!"
+assert { [is_alive $launcher_pid] } "Launcher PID isn't alive!"
+
+exec hab sup term
+expect {
+    eof {
+        wait
+    }
+    timeout {
+        error "Supervisor should have shut down!"
+    }
+}
+
+assert { [is_not_alive $launcher_pid] } "Launcher PID is still alive!"
+assert { [is_not_alive $redis_pid] } "Redis PID is still alive!"
