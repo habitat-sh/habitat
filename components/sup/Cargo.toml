@@ -14,6 +14,8 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+actix = "*"
+actix-web = { version = "*", default-features = false }
 clippy = { version = "*", optional = true }
 ansi_term = "*"
 bitflags = "*"
@@ -41,17 +43,14 @@ habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 #   "foo.[0]"
 #   See https://github.com/sunng87/handlebars-rust/commit/707f05442ef6f441a1cfc6b13ac180b78cb296db
 handlebars = { version = "= 0.28.3", default-features = false }
-iron = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
 notify = "*"
-persistent = "*"
 prost = "*"
 protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
 regex = "*"
-router = "*"
 rust-crypto = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"

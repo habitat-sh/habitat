@@ -18,19 +18,19 @@ use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
 use std::ops::{Deref, DerefMut};
 use std::option;
-use std::path::Path;
+use std::path;
 use std::result;
 use std::str::FromStr;
 use std::sync::Arc;
-use std::thread::{self, JoinHandle};
+use std::thread;
 
-use hcore::service::{ApplicationEnvironment, ServiceGroup};
-use iron::modifiers::Header;
-use iron::prelude::*;
-use iron::{headers, status, typemap};
-use persistent;
+use actix;
+use actix_web::{
+    http::StatusCode, pred::Predicate, server, App, FromRequest, HttpRequest, HttpResponse, Path,
+    Request,
+};
+use hcore::service::ServiceGroup;
 use protocol::socket_addr_env_or_default;
-use router::Router;
 use serde_json::{self, Value as Json};
 
 use error::{Error, Result, SupError};
@@ -113,68 +113,6 @@ impl fmt::Display for ListenAddr {
     }
 }
 
-struct ManagerFs;
-
-impl typemap::Key for ManagerFs {
-    type Value = manager::FsCfg;
-}
-
-pub struct Server(Iron<Chain>, ListenAddr);
-
-impl Server {
-    pub fn new(manager_state: Arc<manager::FsCfg>, listen_addr: ListenAddr) -> Self {
-        let mut r = Router::new();
-        if !feat::is_enabled(feat::RedactHTTP) {
-            r.get("/butterfly", butterfly, "butterfly");
-            r.get("/census", census, "census");
-        }
-
-        r.get("/", doc, "doc");
-        r.get("/services", services, "services");
-        r.get("/services/:svc/:group", service, "services_svc_group");
-        r.get(
-            "/services/:svc/:group/:org",
-            service,
-            "services_svc_group_org",
-        );
-        r.get(
-            "/services/:svc/:group/config",
-            config,
-            "services_svc_group_config",
-        );
-        r.get(
-            "/services/:svc/:group/health",
-            health,
-            "services_svc_group_health",
-        );
-        r.get(
-            "/services/:svc/:group/:org/config",
-            config,
-            "services_svc_group_org_config",
-        );
-        r.get(
-            "/services/:svc/:group/:org/health",
-            health,
-            "services_svc_group_org_health",
-        );
-
-        let mut chain = Chain::new(r);
-        chain.link(persistent::Read::<ManagerFs>::both(manager_state));
-        Server(Iron::new(chain), listen_addr)
-    }
-
-    pub fn start(self) -> Result<JoinHandle<()>> {
-        let handle = thread::Builder::new()
-            .name("http-gateway".to_string())
-            .spawn(move || {
-                self.0
-                    .http(*self.1)
-                    .expect("unable to start http-gateway thread");
-            })?;
-        Ok(handle)
-    }
-}
-
 #[derive(Default, Serialize)]
 struct HealthCheckBody {
     status: String,
@@ -182,58 +120,184 @@ struct HealthCheckBody {
     stderr: String,
 }
 
+impl Into<StatusCode> for HealthCheck {
+    fn into(self) -> StatusCode {
+        match self {
+            HealthCheck::Ok | HealthCheck::Warning => StatusCode::OK,
+            HealthCheck::Critical => StatusCode::SERVICE_UNAVAILABLE,
+            HealthCheck::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+struct AppState {
+    fs_cfg: Arc<manager::FsCfg>,
+}
+
+impl AppState {
+    fn new(fs_cfg: Arc<manager::FsCfg>) -> Self {
+        AppState { fs_cfg: fs_cfg }
+    }
+}
+
+pub struct Server;
+
+impl Server {
+    pub fn run(fs_cfg: Arc<manager::FsCfg>, listen_addr: ListenAddr) {
+        thread::spawn(move || {
+            let sys = actix::System::new("sup-http-gateway");
+
+            server::new(move || {
+                let app_state = AppState::new(fs_cfg.clone());
+                App::with_state(app_state).configure(routes)
+            }).bind(listen_addr.to_string())
+            .unwrap()
+            .start();
+
+            let _ = sys.run();
+        });
+    }
+}
+
+struct RedactHTTP;
+
+impl<S: 'static> Predicate<S> for RedactHTTP {
+    fn check(&self, _req: &Request, _state: &S) -> bool {
+        !feat::is_enabled(feat::RedactHTTP)
+    }
+}
+
+fn routes(app: App<AppState>) -> App<AppState> {
+    app.resource("/", |r| r.get().f(doc))
+        .resource("/services", |r| r.get().f(services))
+        .resource("/services/{svc}/{group}", |r| {
+            r.get().f(service_without_org)
+        }).resource("/services/{svc}/{group}/config", |r| {
+            r.get().f(config_without_org)
+        }).resource("/services/{svc}/{group}/health", |r| {
+            r.get().f(health_without_org)
+        }).resource("/services/{svc}/{group}/{org}", |r| {
+            r.get().f(service_with_org)
+        }).resource("/services/{svc}/{group}/{org}/config", |r| {
+            r.get().f(config_with_org)
+        }).resource("/services/{svc}/{group}/{org}/health", |r| {
+            r.get().f(health_with_org)
+        }).resource("/butterfly", |r| r.get().filter(RedactHTTP).f(butterfly))
+        .resource("/census", |r| r.get().filter(RedactHTTP).f(census))
+}
+
 // Begin route handlers
-fn butterfly(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
-    match File::open(&state.butterfly_data_path) {
-        Ok(file) => Ok(Response::with((
-            status::Ok,
-            Header(headers::ContentType::json()),
-            file,
-        ))),
-        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+fn butterfly(req: &HttpRequest<AppState>) -> HttpResponse {
+    let path = &req.state().fs_cfg.butterfly_data_path;
+
+    match File::open(&path) {
+        Ok(mut file) => {
+            let mut contents = String::new();
+            if file.read_to_string(&mut contents).is_err() {
+                return HttpResponse::InternalServerError().finish();
+            }
+            HttpResponse::Ok().body(contents)
+        }
+        Err(_) => HttpResponse::ServiceUnavailable().finish(),
     }
 }
 
-fn census(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
-    match File::open(&state.census_data_path) {
-        Ok(file) => Ok(Response::with((
-            status::Ok,
-            Header(headers::ContentType::json()),
-            file,
-        ))),
-        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+fn census(req: &HttpRequest<AppState>) -> HttpResponse {
+    let path = &req.state().fs_cfg.census_data_path;
+
+    match File::open(&path) {
+        Ok(mut file) => {
+            let mut contents = String::new();
+            if file.read_to_string(&mut contents).is_err() {
+                return HttpResponse::InternalServerError().finish();
+            }
+            HttpResponse::Ok().body(contents)
+        }
+        Err(_) => HttpResponse::ServiceUnavailable().finish(),
     }
 }
 
-fn config(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
-    let service_group = match build_service_group(req) {
+fn services(req: &HttpRequest<AppState>) -> HttpResponse {
+    let path = &req.state().fs_cfg.services_data_path;
+
+    match File::open(&path) {
+        Ok(mut file) => {
+            let mut contents = String::new();
+            if file.read_to_string(&mut contents).is_err() {
+                return HttpResponse::InternalServerError().finish();
+            }
+            HttpResponse::Ok().body(contents)
+        }
+        Err(_) => HttpResponse::ServiceUnavailable().finish(),
+    }
+}
+
+// Honestly, this doesn't feel great, but it's the pattern builder-api uses, and at the
+// moment, I don't have a better way of doing it.
+fn config_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
+    let (svc, group, org) = Path::<(String, String, String)>::extract(&req)
+        .unwrap()
+        .into_inner();
+    config(req, svc, group, Some(&org))
+}
+
+fn config_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
+    let (svc, group) = Path::<(String, String)>::extract(&req)
+        .unwrap()
+        .into_inner();
+    config(req, svc, group, None)
+}
+
+fn config(
+    req: &HttpRequest<AppState>,
+    svc: String,
+    group: String,
+    org: Option<&str>,
+) -> HttpResponse {
+    let path = &req.state().fs_cfg.services_data_path;
+    let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
-        Err(_) => return Ok(Response::with(status::BadRequest)),
+        Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    match service_from_file(&service_group, &state.services_data_path) {
-        Ok(Some(service)) => Ok(Response::with((
-            status::Ok,
-            Header(headers::ContentType::json()),
-            service["cfg"].to_string(),
-        ))),
-        Ok(None) => Ok(Response::with(status::NotFound)),
-        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+    match service_from_file(&service_group, &path) {
+        Ok(Some(mut s)) => HttpResponse::Ok().json(s["cfg"].take()),
+        Ok(None) => HttpResponse::NotFound().finish(),
+        Err(e) => {
+            error!("Error retrieving the config. e = {:?}", e);
+            HttpResponse::ServiceUnavailable().finish()
+        }
     }
 }
 
-fn health(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
-    let (health_file, stdout_path, stderr_path) = match build_service_group(req) {
-        Ok(sg) => (
-            state.health_check_cache(&sg),
-            hooks::stdout_log_path::<HealthCheckHook>(&sg),
-            hooks::stderr_log_path::<HealthCheckHook>(&sg),
-        ),
-        Err(_) => return Ok(Response::with(status::BadRequest)),
+fn health_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
+    let (svc, group, org) = Path::<(String, String, String)>::extract(&req)
+        .unwrap()
+        .into_inner();
+    health(req, svc, group, Some(&org))
+}
+
+fn health_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
+    let (svc, group) = Path::<(String, String)>::extract(&req)
+        .unwrap()
+        .into_inner();
+    health(req, svc, group, None)
+}
+
+fn health(
+    req: &HttpRequest<AppState>,
+    svc: String,
+    group: String,
+    org: Option<&str>,
+) -> HttpResponse {
+    let state = &req.state();
+    let service_group = match ServiceGroup::new(None, svc, group, org) {
+        Ok(sg) => sg,
+        Err(_) => return HttpResponse::BadRequest().finish(),
     };
+    let health_file = &state.fs_cfg.health_check_cache(&service_group);
+    let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(&service_group);
+    let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(&service_group);
+
     match File::open(&health_file) {
         Ok(mut file) => {
             let mut buf = String::new();
@@ -241,7 +305,7 @@ fn health(req: &mut Request) -> IronResult<Response> {
             file.read_to_string(&mut buf).unwrap();
             let code = i8::from_str(buf.trim()).unwrap();
             let health_check = HealthCheck::from(code);
-            let http_status: status::Status = HealthCheck::from(code).into();
+            let http_status: StatusCode = HealthCheck::from(code).into();
 
             body.status = health_check.to_string();
             if let Ok(mut file) = File::open(&stdout_path) {
@@ -251,107 +315,62 @@ fn health(req: &mut Request) -> IronResult<Response> {
                 let _ = file.read_to_string(&mut body.stderr);
             }
 
-            Ok(Response::with((
-                http_status,
-                Header(headers::ContentType::json()),
-                serde_json::to_string(&body).unwrap(),
-            )))
+            HttpResponse::build(http_status).json(&body)
         }
-        Err(_) => Ok(Response::with(status::NotFound)),
+        Err(e) => {
+            error!("Error opening health file. e = {:?}", e);
+            HttpResponse::NotFound().finish()
+        }
     }
 }
 
-fn service(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
-    let service_group = match build_service_group(req) {
+fn service_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
+    let (svc, group, org) = Path::<(String, String, String)>::extract(&req)
+        .unwrap()
+        .into_inner();
+    service(req, svc, group, Some(&org))
+}
+
+fn service_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
+    let (svc, group) = Path::<(String, String)>::extract(&req)
+        .unwrap()
+        .into_inner();
+    service(req, svc, group, None)
+}
+
+fn service(
+    req: &HttpRequest<AppState>,
+    svc: String,
+    group: String,
+    org: Option<&str>,
+) -> HttpResponse {
+    let path = &req.state().fs_cfg.services_data_path;
+    let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
-        Err(_) => return Ok(Response::with(status::BadRequest)),
+        Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    match service_from_file(&service_group, &state.services_data_path) {
-        Ok(Some(service)) => Ok(Response::with((
-            status::Ok,
-            Header(headers::ContentType::json()),
-            service.to_string(),
-        ))),
-        Ok(None) => Ok(Response::with(status::NotFound)),
-        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+    match service_from_file(&service_group, &path) {
+        Ok(Some(s)) => HttpResponse::Ok().json(s),
+        Ok(None) => HttpResponse::NotFound().finish(),
+        Err(e) => {
+            error!("Error retrieving the service. e = {:?}", e);
+            HttpResponse::ServiceUnavailable().finish()
+        }
     }
 }
 
-fn services(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
-    match File::open(&state.services_data_path) {
-        Ok(file) => Ok(Response::with((
-            status::Ok,
-            Header(headers::ContentType::json()),
-            file,
-        ))),
-        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
-    }
-}
-
-fn doc(_req: &mut Request) -> IronResult<Response> {
-    Ok(Response::with((
-        status::Ok,
-        Header(headers::ContentType::html()),
-        APIDOCS,
-    )))
+fn doc(_req: &HttpRequest<AppState>) -> HttpResponse {
+    HttpResponse::Ok().content_type("text/html").body(APIDOCS)
 }
 // End route handlers
 
-impl Into<Response> for HealthCheck {
-    fn into(self) -> Response {
-        let status: status::Status = self.into();
-        Response::with(status)
-    }
-}
-
-impl Into<status::Status> for HealthCheck {
-    fn into(self) -> status::Status {
-        match self {
-            HealthCheck::Ok | HealthCheck::Warning => status::Ok,
-            HealthCheck::Critical => status::ServiceUnavailable,
-            HealthCheck::Unknown => status::InternalServerError,
-        }
-    }
-}
-
-fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
-    let app_env = match req
-        .extensions
-        .get::<Router>()
-        .unwrap()
-        .find("application_environment")
-    {
-        Some(s) => match ApplicationEnvironment::from_str(s) {
-            Ok(app_env) => Some(app_env),
-            Err(_) => None,
-        },
-        None => None,
-    };
-    let sg = ServiceGroup::new(
-        app_env.as_ref(),
-        req.extensions
-            .get::<Router>()
-            .unwrap()
-            .find("svc")
-            .unwrap_or(""),
-        req.extensions
-            .get::<Router>()
-            .unwrap()
-            .find("group")
-            .unwrap_or(""),
-        req.extensions.get::<Router>().unwrap().find("org"),
-    )?;
-    Ok(sg)
-}
-
+// JB TODO: this should get deleted after we switch to a channel
 fn service_from_file<T>(
     service_group: &ServiceGroup,
     services_data_path: T,
 ) -> result::Result<Option<Json>, io::Error>
 where
-    T: AsRef<Path>,
+    T: AsRef<path::Path>,
 {
     match File::open(services_data_path) {
         Ok(file) => match serde_json::from_reader(file) {

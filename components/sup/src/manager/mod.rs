@@ -676,7 +676,7 @@ impl Manager {
             info!("http-gateway disabled");
         } else {
             outputln!("Starting http-gateway on {}", &http_listen_addr);
-            http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr).start()?;
+            http_gateway::Server::run(self.fs_cfg.clone(), http_listen_addr);
             debug!("http-gateway started");
         }
 
