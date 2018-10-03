@@ -1105,6 +1105,7 @@ mod tests {
     use http_gateway;
     use test_helpers::*;
 
+    #[cfg(target_os = "linux")]
     #[test]
     fn service_proxy_conforms_to_the_schema() {
         let socket_addr =
