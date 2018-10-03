@@ -334,10 +334,12 @@ impl PackageInstall {
         }
     }
 
-    fn deps(&self) -> Result<Vec<PackageIdent>> {
+    /// Return the direct dependencies of the package
+    pub fn deps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::Deps)
     }
 
+    /// Return all transitive dependencies of the package
     pub fn tdeps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::TDeps)
     }
