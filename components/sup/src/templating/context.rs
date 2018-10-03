@@ -603,10 +603,8 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr};
     use std::path::PathBuf;
 
-    use json;
     use serde_json;
     use tempdir::TempDir;
-    use valico::json_schema;
 
     use butterfly::rumor::service::SysInfo;
     use hcore::package::PackageIdent;
@@ -614,61 +612,7 @@ mod tests {
     use manager::service::config::PackageConfigPaths;
     use manager::service::Cfg;
     use templating::TemplateRenderer;
-
-    /// Asserts that `json_string` is valid according to our render
-    /// context JSON schema.
-    ///
-    /// In the case of invalid input, all validation errors are neatly
-    /// rendered, along with a pretty-printed formatting of the
-    /// offending JSON.
-    fn assert_valid(json_string: &str) {
-        let result = validate_string(json_string);
-        if !result.is_valid() {
-            let error_string = result
-                .errors
-                .into_iter()
-                .map(|x| format!("  {:?}", x))
-                .collect::<Vec<String>>()
-                .join("\n");
-            let pretty_json = json::stringify_pretty(
-                json::parse(json_string).expect("JSON should parse if we get this far"),
-                2,
-            );
-            assert!(
-                false,
-                r#"
-JSON does not validate!
-Errors:
-{}
-
-JSON:
-{}
-"#,
-                error_string, pretty_json
-            );
-        }
-    }
-
-    /// Compares the incoming JSON string against the render context
-    /// JSON schema and returns the resulting `ValidationState`.
-    ///
-    /// In general, you should prefer using `assert_valid` directly.
-    fn validate_string(input: &str) -> json_schema::ValidationState {
-        let raw_schema = include_str!("../../doc/render_context_schema.json");
-        let parsed_schema: serde_json::Value =
-            serde_json::from_str(&raw_schema).expect("Could not parse schema as JSON");
-        let mut scope = json_schema::scope::Scope::new();
-        // NOTE: using `false` instead of `true` allows us to use
-        // `$comment` keyword, as well as our own `$deprecated` and
-        // `$since` keywords.
-        let schema = scope
-            .compile_and_return(parsed_schema, false)
-            .expect("Could not compile the schema");
-
-        let input_json: serde_json::Value =
-            serde_json::from_str(input).expect("Could not parse input as JSON");
-        schema.validate(&input_json)
-    }
+    use test_helpers::*;
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -901,12 +845,15 @@ two = 2
         f.read_to_string(&mut json)
             .expect("could not read sample_render_context.json");
 
-        assert_valid(&json);
+        assert_valid(&json, "render_context_schema.json");
     }
 
     #[test]
     fn trivial_failure() {
-        let state = validate_string(r#"{"svc":{},"pkg":{},"cfg":{},"svc":{},"bind":{}}"#);
+        let state = validate_string(
+            r#"{"svc":{},"pkg":{},"cfg":{},"svc":{},"bind":{}}"#,
+            "render_context_schema.json",
+        );
         assert!(
             !state.is_valid(),
             "Expected schema validation to fail, but it succeeded!"
@@ -917,7 +864,7 @@ two = 2
     fn default_render_context_is_valid() {
         let render_context = default_render_context();
         let j = serde_json::to_string(&render_context).expect("can't serialize to JSON");
-        assert_valid(&j);
+        assert_valid(&j, "render_context_schema.json");
     }
 
     // This mainly exists to show how you could modify the default
@@ -927,7 +874,7 @@ two = 2
         let mut render_context = default_render_context();
         render_context.bind = Binds(HashMap::new());
         let j = serde_json::to_string(&render_context).expect("can't serialize to JSON");
-        assert_valid(&j);
+        assert_valid(&j, "render_context_schema.json");
     }
 
     #[test]
@@ -999,6 +946,6 @@ two = 2
 
         render_context.bind = Binds(new_binds);
         let j = serde_json::to_string(&render_context).expect("can't serialize to JSON");
-        assert_valid(&j);
+        assert_valid(&j, "render_context_schema.json");
     }
 }

@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Schema for all the data the Habitat supervisor makes available at the /census HTTP API endpoint",
+  "properties": {
+    "census_groups": {
+      "additionalProperties": {
+        "description": "A census group, keyed by service group",
+        "properties": {
+          "changed_service_files": {
+            "description": "The names of the service files that have changed",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "election_status": {
+            "description": "The status of the current election, if any",
+            "type": "string"
+          },
+          "leader_id": {
+            "description": "The member ID of the election leader, if there is one",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "local_member_id": {
+            "description": "The local member ID",
+            "type": "string"
+          },
+          "population": {
+            "additionalProperties": {
+              "description": "The census member",
+              "properties": {
+                "alive": {
+                  "description": "Whether the member is alive",
+                  "type": "boolean"
+                },
+                "application": {
+                  "description": "The application portion of a service group specification",
+                  "type": ["null", "string"]
+                },
+                "cfg": {
+                  "additionalProperties": {
+                    "type": [
+                      "boolean",
+                      "string",
+                      "integer",
+                      "array",
+                      "object"
+                    ]
+                  },
+                  "description": "The configuration this member is currently exporting",
+                  "type": "object"
+                },
+                "confirmed": {
+                  "description": "Whether this member is confirmed dead/unreachable, from a network perspective",
+                  "type": "boolean"
+                },
+                "departed": {
+                  "description": "Whether this member has been departed from the ring",
+                  "type": "boolean"
+                },
+                "election_is_finished": {
+                  "description": "Whether a leader election for this service has finished",
+                  "type": "boolean"
+                },
+                "election_is_no_quorum": {
+                  "description": "Whether there is quorum for a leader electio for this service",
+                  "type": "boolean"
+                },
+                "election_is_running": {
+                  "description": "Whether there is a leader election running for this service",
+                  "type": "boolean"
+                },
+                "environment": {
+                  "description": "The environment portion of a service group specification",
+                  "type": ["null", "string"]
+                },
+                "follower": {
+                  "description": "Whether this member is a follower",
+                  "type": "boolean"
+                },
+                "group": {
+                  "description": "The group portion of a service's complete group name",
+                  "type": "string"
+                },
+                "leader": {
+                  "description": "Whether this member is a leader",
+                  "type": "boolean"
+                },
+                "member_id": {
+                  "description": "This member's ID",
+                  "type": "string"
+                },
+                "org": {
+                  "description": "The organization of a service group specification",
+                  "type": ["null", "string"]
+                },
+                "persistent": {
+                  "description": "Is this member a permanent peer",
+                  "type": "boolean"
+                },
+                "pkg": {
+                  "$ref": "render_context_schema.json#/definitions/package_identifier"
+                },
+                "service": {
+                  "description": "The name of the service",
+                  "type": "string"
+                },
+                "suspect": {
+                  "description": "Whether this member is considered possibly unreachable, from a network perspective",
+                  "type": "boolean"
+                },
+                "sys": {
+                  "$ref": "http_gateway_butterfly_schema.json#/definitions/sys_basic"
+                },
+                "update_election_is_finished": {
+                  "description": "Whether the update leader election has finished",
+                  "type": "boolean"
+                },
+                "update_election_is_no_quorum": {
+                  "description": "Whether there is a quorum for an update leader election",
+                  "type": "boolean"
+                },
+                "update_election_is_running": {
+                  "description": "Whether an update leader election is running",
+                  "type": "boolean"
+                },
+                "update_follower": {
+                  "description": "Whether this member is an update follower",
+                  "type": "boolean"
+                },
+                "update_leader": {
+                  "description": "Whether this member is an update leader",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "description": "The census population, keyed by member ID",
+            "type": "object"
+          },
+          "service_config": {
+            "description": "The service config for this member",
+            "properties": {
+              "incarnation": {
+                "description": "The incarnation number for this config",
+                "type": "integer"
+              },
+              "value": {
+                "additionalProperties": {
+                  "type": [
+                    "boolean",
+                    "string",
+                    "integer",
+                    "array",
+                    "object"
+                  ]
+                },
+                "description": "The config value",
+                "type": "object"
+              }
+            },
+            "required": [
+              "incarnation",
+              "value"
+            ],
+            "type": ["null", "object"]
+        },
+        "service_files": {
+          "additionalProperties": {
+            "type": [
+              "boolean",
+              "string",
+              "integer",
+              "array",
+              "object"
+            ]
+          },
+          "description": "The service files for this member",
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "service_group": {
+          "description": "The service group",
+          "type": "string"
+        },
+        "update_election_status": {
+          "description": "The status of an update election, if one is running",
+          "type": "string"
+        },
+        "update_leader_id": {
+          "description": "The member ID of the update leader, if present",
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "changed_service_files",
+        "election_status",
+        "leader_id",
+        "local_member_id",
+        "population",
+        "service_config",
+        "service_files",
+        "service_group",
+        "update_election_status",
+        "update_leader_id"
+      ],
+      "type": "object"
+    },
+    "description": "A description of the various service groups present in the census",
+    "type": "object"
+  },
+  "changed": {
+    "description": "Whether the census has changed",
+    "type": "boolean"
+  },
+  "last_election_counter": {
+    "description": "The counter for the last time an election rumor was updated",
+    "type": "integer"
+  },
+  "last_election_update_counter": {
+    "description": "The counter for the last time an election update rumor was updated",
+    "type": "integer"
+  },
+  "last_membership_counter": {
+    "description": "The counter for the last time a membership rumor was updated",
+    "type": "integer"
+  },
+  "last_service_config_counter": {
+    "description": "The counter for the last time a service config rumor was updated",
+    "type": "integer"
+  },
+  "last_service_counter": {
+    "description": "The counter for thet last time a service rumor was updated",
+    "type": "integer"
+  },
+  "last_service_file_counter": {
+    "description": "The counter for the last time a service file rumor was updated",
+    "type": "integer"
+  },
+  "local_member_id": {
+    "description": "The local member ID",
+    "type": "string"
+  }
+},
+"required": [
+  "census_groups",
+  "changed",
+  "last_election_counter",
+  "last_election_update_counter",
+  "last_membership_counter",
+  "last_service_config_counter",
+  "last_service_counter",
+  "last_service_file_counter",
+  "local_member_id"
+],
+"type": "object"
+}

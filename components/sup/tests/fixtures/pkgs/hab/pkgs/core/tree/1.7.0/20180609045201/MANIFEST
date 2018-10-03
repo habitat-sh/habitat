@@ -1,0 +1,55 @@
+# core / tree
+
+
+* __Maintainer__: The Habitat Maintainers <humans@habitat.sh>
+* __Version__: 1.7.0
+* __Release__: 20180609045201
+* __Architecture__: x86_64
+* __System__: linux
+* __Target__: x86_64-linux
+* __Upstream URL__: upstream project's website or home page is not defined
+* __License__: gplv2+ 
+* __Source__: [http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz](http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz)
+* __SHA__: `6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12`
+* __Path__: `/hab/pkgs/core/tree/1.7.0/20180609045201`
+* __Build Dependencies__: `core/make core/gcc `
+* __Dependencies__: `core/glibc `
+* __Interpreters__: no interpreters or undefined
+
+# Plan
+
+## Build Flags
+
+```bash
+CFLAGS: -I/hab/pkgs/core/glibc/2.27/20180608041157/include -I/hab/pkgs/core/make/4.2.1/20180608100733/include -I/hab/pkgs/core/gcc/7.3.0/20180608051919/include
+CPPFLAGS: -I/hab/pkgs/core/glibc/2.27/20180608041157/include -I/hab/pkgs/core/make/4.2.1/20180608100733/include -I/hab/pkgs/core/gcc/7.3.0/20180608051919/include
+CXXFLAGS: -I/hab/pkgs/core/glibc/2.27/20180608041157/include -I/hab/pkgs/core/make/4.2.1/20180608100733/include -I/hab/pkgs/core/gcc/7.3.0/20180608051919/include
+LDFLAGS: -L/hab/pkgs/core/glibc/2.27/20180608041157/lib -L/hab/pkgs/core/gcc/7.3.0/20180608051919/lib
+LD_RUN_PATH: /hab/pkgs/core/tree/1.7.0/20180609045201/lib:/hab/pkgs/core/glibc/2.27/20180608041157/lib
+```
+
+## Plan Source
+
+```bash
+pkg_name=tree
+pkg_origin=core
+pkg_version=1.7.0
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_license=('gplv2+')
+pkg_source=http://mama.indstate.edu/users/ice/tree/src/tree-${pkg_version}.tgz
+pkg_shasum=6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12
+pkg_deps=(core/glibc)
+pkg_build_deps=(core/make core/gcc)
+pkg_bin_dirs=(bin)
+pkg_include_dirs=(include)
+pkg_lib_dirs=(lib)
+
+do_build() {
+  make
+}
+
+do_install() {
+  sed -i "s#prefix = /usr#prefix = ${pkg_prefix}#" Makefile
+  make install
+}
+```

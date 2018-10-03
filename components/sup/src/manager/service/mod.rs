@@ -28,6 +28,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
+use std::result;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -41,6 +42,8 @@ use hcore::service::ServiceGroup;
 use hcore::util::perm::{set_owner, set_permissions};
 use launcher_client::LauncherCli;
 pub use protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use time::Timespec;
 
 pub use self::composite_spec::CompositeSpec;
@@ -997,5 +1000,146 @@ impl Service {
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} [{}]", self.service_group, self.pkg.ident)
+    }
+}
+
+/// This enum represents whether or not we want to render config information when we serialize this
+/// service via the ServiceProxy struct below. Choosing ConfigRendering::Full will render the
+/// config, and choosing ConfigRendering::Redacted will not render it. This matches up to the
+/// feature flag we have in place to redact config information from a service's serialized output,
+/// which shows up in the supervisor's HTTP API responses.
+///
+/// Please note that this enum derives the Copy trait, so that it behaves more like the boolean
+/// that it is, and so that we don't have to clone() it everywhere. Adding anything to this enum
+/// that consumes a large amount of memory would be a bad idea (without removing Copy first)
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ConfigRendering {
+    Full,
+    Redacted,
+}
+
+/// This is a proxy struct to represent what information we're writing to the dat file, and
+/// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
+/// actual Service struct, but this will give us something we can refactor against without
+/// worrying about breaking the data returned to users.
+pub struct ServiceProxy<'a> {
+    service: &'a Service,
+    config_rendering: ConfigRendering,
+}
+
+impl<'a> ServiceProxy<'a> {
+    pub fn new(s: &'a Service, c: ConfigRendering) -> Self {
+        ServiceProxy {
+            service: &s,
+            config_rendering: c,
+        }
+    }
+}
+
+impl<'a> Serialize for ServiceProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let num_fields: usize = if *&self.config_rendering == ConfigRendering::Full {
+            27
+        } else {
+            26
+        };
+
+        let s = &self.service;
+        let mut strukt = serializer.serialize_struct("service", num_fields)?;
+        strukt.serialize_field("all_pkg_binds", &s.all_pkg_binds)?;
+        strukt.serialize_field("binding_mode", &s.binding_mode)?;
+        strukt.serialize_field("binds", &s.binds)?;
+        strukt.serialize_field("bldr_url", &s.bldr_url)?;
+
+        if *&self.config_rendering == ConfigRendering::Full {
+            strukt.serialize_field("cfg", &s.cfg)?;
+        }
+
+        strukt.serialize_field("channel", &s.channel)?;
+        strukt.serialize_field("composite", &s.composite)?;
+        strukt.serialize_field("config_from", &s.config_from)?;
+        strukt.serialize_field("desired_state", &s.desired_state)?;
+        strukt.serialize_field("health_check", &s.health_check)?;
+        strukt.serialize_field("hooks", &s.hooks)?;
+        strukt.serialize_field("initialized", &s.initialized)?;
+        strukt.serialize_field("last_election_status", &s.last_election_status)?;
+        strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
+        strukt.serialize_field("needs_reconfiguration", &s.needs_reconfiguration)?;
+        strukt.serialize_field("needs_reload", &s.needs_reload)?;
+        strukt.serialize_field("pkg", &s.pkg)?;
+        strukt.serialize_field("process", &s.supervisor)?;
+        strukt.serialize_field("service_group", &s.service_group)?;
+        strukt.serialize_field("smoke_check", &s.smoke_check)?;
+        strukt.serialize_field("spec_file", &s.spec_file)?;
+        strukt.serialize_field("spec_ident", &s.spec_ident)?;
+        strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
+        strukt.serialize_field("sys", &s.sys)?;
+        strukt.serialize_field("topology", &s.topology)?;
+        strukt.serialize_field("update_strategy", &s.update_strategy)?;
+        strukt.serialize_field("user_config_updated", &s.user_config_updated)?;
+        strukt.end()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::net::SocketAddr;
+    use std::path::PathBuf;
+    use std::str::FromStr;
+
+    use std::process::Command;
+
+    use hcore::package::{ident::PackageIdent, PackageInstall};
+    use serde_json;
+
+    use self::{
+        manager::{sys::Sys, FsCfg},
+        ServiceSpec,
+    };
+    use config::GossipListenAddr;
+    use http_gateway;
+    use test_helpers::*;
+
+    #[test]
+    fn service_proxy_conforms_to_the_schema() {
+        let socket_addr =
+            SocketAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
+        let http_addr = http_gateway::ListenAddr::default();
+        let sys = Sys::new(false, GossipListenAddr::default(), socket_addr, http_addr);
+
+        let ident = PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"));
+        let spec = ServiceSpec::default_for(ident);
+
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("pkgs");
+
+        let install = PackageInstall::load(&spec.ident, Some(&path))
+            .expect("PackageInstall should've loaded my spec, but it didn't");
+        let asys = Arc::new(sys);
+        let fscfg = FsCfg::new("/tmp");
+        let afs = Arc::new(fscfg);
+        let service = Service::new(asys, install, spec, afs, Some("haha"))
+            .expect("I wanted a service to load, but it didn't");
+
+        // With config
+        let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);
+        let proxies_with_config = vec![proxy_with_config];
+        let json_with_config = serde_json::to_string(&proxies_with_config)
+            .expect("Expected to convert proxies_with_config to JSON but failed");
+        assert_valid(&json_with_config, "http_gateway_services_schema.json");
+
+        // Without config
+        let proxy_without_config = ServiceProxy::new(&service, ConfigRendering::Redacted);
+        let proxies_without_config = vec![proxy_without_config];
+        let json_without_config = serde_json::to_string(&proxies_without_config)
+            .expect("Expected to convert proxies_without_config to JSON but failed");
+        assert_valid(&json_without_config, "http_gateway_services_schema.json");
     }
 }

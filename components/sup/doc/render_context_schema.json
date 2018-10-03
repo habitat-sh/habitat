@@ -217,66 +217,7 @@
     },
     "properties": {
         "sys": {
-            "description": "Describes the details of how this specific Supervisor was started",
-            "type": "object",
-            "properties": {
-                "version": {
-                    "description": "Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448`",
-                    "type": "string"
-                },
-                "member_id": {
-                    "description": "The member's Supervisor ID, e.g., `3d1e73ff19464a27aea3cdc5c2243f74`",
-                    "type": "string"
-                },
-                "ip": {
-                    "description": "The IP address of the running service.",
-                    "type": "string"
-                },
-                "hostname": {
-                    "description": "The hostname of the running service. Defaults to `localhost`",
-                    "type": "string"
-                },
-                "gossip_ip": {
-                    "description": "Listening address for Supervisor's gossip connection.",
-                    "type": "string"
-                },
-                "gossip_port": {
-                    "description": "Listening port for Supervisor's gossip connection.",
-                    "type": "integer"
-                },
-                "http_gateway_ip": {
-                    "description": "Listening address for Supervisor's HTTP gateway.",
-                    "type": "string"
-                },
-                "http_gateway_port": {
-                    "description": "Listening port for Supervisor's HTTP gateway.",
-                    "type": "integer"
-                },
-                "ctl_gateway_ip": {
-                    "description": "Listening address for Supervisor's Control Gateway.",
-                    "type": "string"
-                },
-                "ctl_gateway_port": {
-                    "description": "Listening port for Supervisor's Control Gateway.",
-                    "type": "integer"
-                },
-                "permanent": {
-                    "description": "Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability.",
-                    "type": "boolean"
-                }
-            },
-            "required": ["version",
-                         "member_id",
-                         "ip",
-                         "hostname",
-                         "gossip_ip",
-                         "gossip_port",
-                         "http_gateway_ip",
-                         "http_gateway_port",
-                         "ctl_gateway_ip",
-                         "ctl_gateway_port",
-                         "permanent"],
-            "additionalProperties": false
+            "$ref": "http_gateway_services_schema.json#/definitions/sys_extended"
         },
         "pkg": {
             "description": "Details about the package currently running the service",

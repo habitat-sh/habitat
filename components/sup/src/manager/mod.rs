@@ -29,7 +29,7 @@ use std;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::mem;
 use std::net::SocketAddr;
 use std::ops::DerefMut;
@@ -42,8 +42,7 @@ use std::time::Duration;
 
 use butterfly;
 use butterfly::member::Member;
-use butterfly::server::timing::Timing;
-use butterfly::server::Suitability;
+use butterfly::server::{timing::Timing, ServerProxy, Suitability};
 use butterfly::trace::Trace;
 use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
@@ -69,7 +68,8 @@ use toml;
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
 pub use self::service::{
-    CompositeSpec, Service, ServiceBind, ServiceSpec, Spec, Topology, UpdateStrategy,
+    CompositeSpec, ConfigRendering, Service, ServiceBind, ServiceProxy, ServiceSpec, Spec,
+    Topology, UpdateStrategy,
 };
 use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
@@ -77,7 +77,7 @@ use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
-use census::CensusRing;
+use census::{CensusRing, CensusRingProxy};
 use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
@@ -1414,6 +1414,7 @@ impl Manager {
     }
 
     fn persist_census_state(&self) {
+        let crp = CensusRingProxy::new(&self.census_ring);
         let tmp_file = self.fs_cfg.census_data_path.with_extension("dat.tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
@@ -1424,7 +1425,7 @@ impl Manager {
         };
         let mut writer = BufWriter::new(file);
         if let Some(err) = writer
-            .write(serde_json::to_string(&self.census_ring).unwrap().as_bytes())
+            .write(serde_json::to_string(&crp).unwrap().as_bytes())
             .err()
         {
             warn!("Couldn't write to census state file, {}", err);
@@ -1438,6 +1439,7 @@ impl Manager {
     }
 
     fn persist_butterfly_state(&self) {
+        let bs = ServerProxy::new(&self.butterfly);
         let tmp_file = self.fs_cfg.butterfly_data_path.with_extension("dat.tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
@@ -1448,7 +1450,7 @@ impl Manager {
         };
         let mut writer = BufWriter::new(file);
         if let Some(err) = writer
-            .write(serde_json::to_string(&self.butterfly).unwrap().as_bytes())
+            .write(serde_json::to_string(&bs).unwrap().as_bytes())
             .err()
         {
             warn!("Couldn't write to butterfly state file, {}", err);
@@ -1470,62 +1472,58 @@ impl Manager {
                 return;
             }
         };
+
+        let config_rendering = if feat::is_enabled(feat::RedactHTTP) {
+            ConfigRendering::Redacted
+        } else {
+            ConfigRendering::Full
+        };
+
         let mut writer = BufWriter::new(file);
-        if let Some(err) = writer.get_mut().write("[".as_bytes()).err() {
-            warn!("Couldn't write to service state file, {}", err);
-        }
-
-        let mut is_first = true;
-        let mut persisted_idents = Vec::new();
-
-        for service in self
+        let services = self
             .state
             .services
             .read()
-            .expect("Services lock is poisoned!")
-            .iter()
-        {
-            persisted_idents.push(service.spec_ident.clone());
-            if let Some(err) = self
-                .write_service(service, is_first, writer.get_mut())
-                .err()
-            {
-                warn!("Couldn't write to service state file, {}", err);
-            }
-            is_first = false;
-        }
+            .expect("Services lock is poisoned!");
+        let existing_idents: Vec<PackageIdent> =
+            services.iter().map(|s| s.spec_ident.clone()).collect();
 
-        // add services that are not active but are being watched for changes
+        // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
-        for down in self
+        let watched_services: Vec<Service> = self
             .spec_watcher
             .specs_from_watch_path()
             .unwrap()
             .values()
-            .filter(|s| !persisted_idents.contains(&s.ident))
-        {
-            match Service::load(
-                self.sys.clone(),
-                down.clone(),
-                self.fs_cfg.clone(),
-                self.organization.as_ref().map(|org| &**org),
-            ) {
-                Ok(service) => {
-                    if let Some(err) = self
-                        .write_service(&service, is_first, writer.get_mut())
-                        .err()
-                    {
-                        warn!("Couldn't write to service state file, {}", err);
-                    }
-                    is_first = false;
-                }
-                Err(e) => debug!("Error loading inactive service struct: {}", e),
-            }
-        }
+            .filter(|spec| !existing_idents.contains(&spec.ident))
+            .flat_map(|spec| {
+                Service::load(
+                    self.sys.clone(),
+                    spec.clone(),
+                    self.fs_cfg.clone(),
+                    self.organization.as_ref().map(|org| &**org),
+                ).into_iter()
+            }).collect();
+        let watched_service_proxies: Vec<ServiceProxy> = watched_services
+            .iter()
+            .map(|s| ServiceProxy::new(s, config_rendering))
+            .collect();
+        let mut services_to_render: Vec<ServiceProxy> = services
+            .iter()
+            .map(|s| ServiceProxy::new(s, config_rendering))
+            .collect();
 
-        if let Some(err) = writer.get_mut().write("]".as_bytes()).err() {
-            warn!("Couldn't write to service state file, {}", err);
+        services_to_render.extend(watched_service_proxies);
+
+        if let Some(err) = writer
+            .write(
+                serde_json::to_string(&services_to_render)
+                    .unwrap()
+                    .as_bytes(),
+            ).err()
+        {
+            warn!("Couldn't write to butterfly state file, {}", err);
         }
         if let Some(err) = writer.flush().err() {
             warn!("Couldn't flush services state buffer to disk, {}", err);
@@ -1563,35 +1561,6 @@ impl Manager {
                 service
             );
         }
-    }
-
-    fn write_service<W: ?Sized>(
-        &self,
-        service: &Service,
-        is_first: bool,
-        writer: &mut W,
-    ) -> Result<()>
-    where
-        W: io::Write,
-    {
-        if !is_first {
-            writer.write(",".as_bytes())?;
-        }
-
-        // TED: This is necessary to prevent us from potentially serializing
-        // secrets from the config to disk. This is sort of a hammer approach
-        // by nuking the cfg entry we ensure we don't leak any secrets that
-        // are present in bind data.
-        // TODO JB - touch this up with the serialization work
-        let mut value = serde_json::to_value(service).unwrap();
-        {
-            let service_value = value.as_object_mut().unwrap();
-            if feat::is_enabled(feat::RedactHTTP) {
-                service_value.remove("cfg");
-            }
-        }
-        serde_json::to_writer(writer, &value)
-            .map_err(|e| sup_error!(Error::ServiceSerializationError(e)))
     }
 
     /// Check if any elections need restarting.

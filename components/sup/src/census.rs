@@ -14,6 +14,7 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
+use std::result;
 use std::str::FromStr;
 
 use butterfly::member::{Health, Member, MemberList};
@@ -28,6 +29,8 @@ use butterfly::rumor::RumorStore;
 use hcore;
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use toml;
 
 use error::{Error, SupError};
@@ -39,7 +42,6 @@ pub type MemberId = String;
 #[derive(Debug, Serialize)]
 pub struct CensusRing {
     changed: bool,
-
     census_groups: HashMap<ServiceGroup, CensusGroup>,
     local_member_id: MemberId,
     last_service_counter: usize,
@@ -211,6 +213,46 @@ impl CensusRing {
                 census_group.update_from_service_file_rumors(rumors);
             }
         });
+    }
+}
+
+/// This is a proxy struct to represent what information we're writing to the dat file, and
+/// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
+/// actual CensusRing struct, but this will give us something we can refactor against without
+/// worrying about breaking the data returned to users.
+pub struct CensusRingProxy<'a>(&'a CensusRing);
+
+impl<'a> CensusRingProxy<'a> {
+    pub fn new(c: &'a CensusRing) -> Self {
+        CensusRingProxy(&c)
+    }
+}
+
+impl<'a> Serialize for CensusRingProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("census_ring", 9)?;
+        strukt.serialize_field("changed", &self.0.changed)?;
+        strukt.serialize_field("census_groups", &self.0.census_groups)?;
+        strukt.serialize_field("local_member_id", &self.0.local_member_id)?;
+        strukt.serialize_field("last_service_counter", &self.0.last_service_counter)?;
+        strukt.serialize_field("last_election_counter", &self.0.last_election_counter)?;
+        strukt.serialize_field(
+            "last_election_update_counter",
+            &self.0.last_election_update_counter,
+        )?;
+        strukt.serialize_field("last_membership_counter", &self.0.last_membership_counter)?;
+        strukt.serialize_field(
+            "last_service_config_counter",
+            &self.0.last_service_config_counter,
+        )?;
+        strukt.serialize_field(
+            "last_service_file_counter",
+            &self.0.last_service_file_counter,
+        )?;
+        strukt.end()
     }
 }
 
@@ -643,6 +685,9 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use serde_json;
+
     use butterfly::member::{Health, MemberList};
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
@@ -653,9 +698,40 @@ mod tests {
     use butterfly::rumor::RumorStore;
     use hcore::package::ident::PackageIdent;
     use hcore::service::ServiceGroup;
+    use test_helpers::*;
 
     #[test]
     fn update_from_rumors() {
+        let (ring, sg_one, sg_two) = test_census_ring();
+        let census_group_one = ring.census_group_for(&sg_one).unwrap();
+        assert!(census_group_one.me().is_none());
+        assert_eq!(census_group_one.leader().unwrap().member_id, "member-a");
+        assert!(census_group_one.update_leader().is_none());
+
+        let census_group_two = ring.census_group_for(&sg_two).unwrap();
+        assert_eq!(
+            census_group_two.me().unwrap().member_id,
+            "member-b".to_string()
+        );
+        assert_eq!(
+            census_group_two.update_leader().unwrap().member_id,
+            "member-b".to_string()
+        );
+
+        let members = census_group_two.members();
+        assert_eq!(members[0].member_id, "member-a");
+        assert_eq!(members[1].member_id, "member-b");
+    }
+
+    #[test]
+    fn census_ring_proxy_conforms_to_the_schema() {
+        let (ring, _, _) = test_census_ring();
+        let crp = CensusRingProxy::new(&ring);
+        let json = serde_json::to_string(&crp).unwrap();
+        assert_valid(&json, "http_gateway_census_schema.json");
+    }
+
+    fn test_census_ring() -> (CensusRing, ServiceGroup, ServiceGroup) {
         let mut sys_info = SysInfo::default();
         sys_info.ip = "1.2.3.4".to_string();
         sys_info.hostname = "hostname".to_string();
@@ -722,24 +798,8 @@ mod tests {
             &service_config_store,
             &service_file_store,
         );
-        let census_group_one = ring.census_group_for(&sg_one).unwrap();
-        assert!(census_group_one.me().is_none());
-        assert_eq!(census_group_one.leader().unwrap().member_id, "member-a");
-        assert!(census_group_one.update_leader().is_none());
 
-        let census_group_two = ring.census_group_for(&sg_two).unwrap();
-        assert_eq!(
-            census_group_two.me().unwrap().member_id,
-            "member-b".to_string()
-        );
-        assert_eq!(
-            census_group_two.update_leader().unwrap().member_id,
-            "member-b".to_string()
-        );
-
-        let members = census_group_two.members();
-        assert_eq!(members[0].member_id, "member-a");
-        assert_eq!(members[1].member_id, "member-b");
+        (ring, sg_one, sg_two)
     }
 
     /// Create a bare-minimum CensusMember with the given Health

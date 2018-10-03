@@ -1,0 +1,565 @@
+{
+  "census_groups": {
+    "builder-api-proxy.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "0d262679fc604664825ad916de6a399c": {
+          "alive": true,
+          "application": null,
+          "cfg": {
+            "port": 80,
+            "ssl-port": 443,
+            "url": "https://bldr.habitat.sh"
+          },
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "0d262679fc604664825ad916de6a399c",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-api-proxy",
+            "origin": "habitat",
+            "release": "20180828215018",
+            "version": "7590"
+          },
+          "service": "builder-api-proxy",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.9",
+            "gossip_port": 9638,
+            "hostname": "api-proxy.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.6"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-api-proxy.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-api.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "be57ce74c75d4b29a4d8602c28397364": {
+          "alive": true,
+          "application": null,
+          "cfg": {
+            "port": 9636
+          },
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "be57ce74c75d4b29a4d8602c28397364",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-api",
+            "origin": "habitat",
+            "release": "20180906202535",
+            "version": "7602"
+          },
+          "service": "builder-api",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.8",
+            "gossip_port": 9638,
+            "hostname": "api.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.26.0.8"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": {
+        "incarnation": 1534943508,
+        "value": {
+          "api": {
+            "features_enabled": "jobsrv"
+          },
+          "depot": {
+            "builds_enabled": true
+          },
+          "github": {
+            "app_id": 123456,
+            "client_id": "hahano",
+            "client_secret": "justkidding",
+            "enabled": true,
+            "redirect_url": "https://bldr.habitat.sh/",
+            "webhook_secret": "nowayjose"
+          },
+          "log_level": "info",
+          "oauth": {
+            "client_id": "fakeclientidyo",
+            "client_secret": "topsekret",
+            "provider": "github",
+            "redirect_url": "https://bldr.habitat.sh/",
+            "token_url": "https://github.com/login/oauth/access_token",
+            "userinfo_url": "https://api.github.com/user"
+          },
+          "s3": {
+            "backend": "aws",
+            "bucket_name": "habitat-builder-artifact-store.live",
+            "endpoint": "us-west-2",
+            "key_id": "justkidding",
+            "secret_key": "password123"
+          },
+          "segment": {
+            "write_key": "goodtimes"
+          }
+        }
+      },
+      "service_files": {
+        "bldr-20170927023714.box.key": {
+          "body": [
+            66,
+            61
+          ],
+          "filename": "bldr-20170927023714.box.key",
+          "incarnation": 1534943508
+        },
+        "bldr-20170927023714.pub": {
+          "body": [
+            66,
+            61
+          ],
+          "filename": "bldr-20170927023714.pub",
+          "incarnation": 1534943508
+        },
+        "builder-github-app.pem": {
+          "body": [
+            45,
+            10
+          ],
+          "filename": "builder-github-app.pem",
+          "incarnation": 1534943508
+        }
+      },
+      "service_group": "builder-api.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-datastore.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "b2c535a80ba5463a8e43672801fd803b": {
+          "alive": true,
+          "application": null,
+          "cfg": {
+            "port": 5432
+          },
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "b2c535a80ba5463a8e43672801fd803b",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-datastore",
+            "origin": "habitat",
+            "release": "20180828215240",
+            "version": "7590"
+          },
+          "service": "builder-datastore",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.3",
+            "gossip_port": 9638,
+            "hostname": "datastore.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.4"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-datastore.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-jobsrv.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "c2ca91559a1f4114a819a1ca283cf10a": {
+          "alive": true,
+          "application": null,
+          "cfg": {
+            "log_port": 5568,
+            "worker_heartbeat": 5567,
+            "worker_port": 5566
+          },
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "c2ca91559a1f4114a819a1ca283cf10a",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-jobsrv",
+            "origin": "habitat",
+            "release": "20180906201133",
+            "version": "7602"
+          },
+          "service": "builder-jobsrv",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.7",
+            "gossip_port": 9638,
+            "hostname": "jobsrv.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.9"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-jobsrv.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-minio.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "f723be0d353e45c7bfa097aa586b8795": {
+          "alive": true,
+          "application": null,
+          "cfg": {},
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "f723be0d353e45c7bfa097aa586b8795",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-minio",
+            "origin": "habitat",
+            "release": "20180828222034",
+            "version": "0.1.0"
+          },
+          "service": "builder-minio",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.12",
+            "gossip_port": 9638,
+            "hostname": "minio.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.12"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-minio.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-originsrv.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "96a40a37ce2549b59d1190fd4574f6c8": {
+          "alive": true,
+          "application": null,
+          "cfg": {},
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "96a40a37ce2549b59d1190fd4574f6c8",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-originsrv",
+            "origin": "habitat",
+            "release": "20180906201133",
+            "version": "7602"
+          },
+          "service": "builder-originsrv",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.11",
+            "gossip_port": 9638,
+            "hostname": "originsrv.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.5"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-originsrv.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-router.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "1154ec64a1714cdca5c885a181e41737": {
+          "alive": true,
+          "application": null,
+          "cfg": {
+            "port": 5562
+          },
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "1154ec64a1714cdca5c885a181e41737",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-router",
+            "origin": "habitat",
+            "release": "20180828220555",
+            "version": "7590"
+          },
+          "service": "builder-router",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.4",
+            "gossip_port": 9638,
+            "hostname": "router.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.26.0.4"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-router.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-sessionsrv.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "08e6fd8bcf094ddb88a95f7a008f9215": {
+          "alive": true,
+          "application": null,
+          "cfg": {},
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "08e6fd8bcf094ddb88a95f7a008f9215",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-sessionsrv",
+            "origin": "habitat",
+            "release": "20180906201133",
+            "version": "7602"
+          },
+          "service": "builder-sessionsrv",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.2",
+            "gossip_port": 9638,
+            "hostname": "sessionsrv.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.8"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-sessionsrv.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    },
+    "builder-worker.default": {
+      "changed_service_files": [],
+      "election_status": "None",
+      "leader_id": null,
+      "local_member_id": "1154ec64a1714cdca5c885a181e41737",
+      "population": {
+        "2b017714c38a430f89516e9b2b90d067": {
+          "alive": true,
+          "application": null,
+          "cfg": {},
+          "confirmed": false,
+          "departed": false,
+          "election_is_finished": false,
+          "election_is_no_quorum": false,
+          "election_is_running": false,
+          "environment": null,
+          "follower": false,
+          "group": "default",
+          "leader": false,
+          "member_id": "2b017714c38a430f89516e9b2b90d067",
+          "org": null,
+          "persistent": true,
+          "pkg": {
+            "name": "builder-worker",
+            "origin": "habitat",
+            "release": "20180905020415",
+            "version": "7598"
+          },
+          "service": "builder-worker",
+          "suspect": false,
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "172.26.0.6",
+            "gossip_port": 9638,
+            "hostname": "worker.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.26.0.6"
+          },
+          "update_election_is_finished": false,
+          "update_election_is_no_quorum": false,
+          "update_election_is_running": false,
+          "update_follower": false,
+          "update_leader": false
+        }
+      },
+      "service_config": null,
+      "service_files": {},
+      "service_group": "builder-worker.default",
+      "update_election_status": "None",
+      "update_leader_id": null
+    }
+  },
+  "changed": true,
+  "last_election_counter": 0,
+  "last_election_update_counter": 0,
+  "last_membership_counter": 10,
+  "last_service_config_counter": 0,
+  "last_service_counter": 11,
+  "last_service_file_counter": 0,
+  "local_member_id": "1154ec64a1714cdca5c885a181e41737"
+}

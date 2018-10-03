@@ -1,0 +1,490 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "sys_basic": {
+      "description": "System information",
+      "properties": {
+        "ctl_gateway_ip": {
+          "description": "The control gateway IP address",
+          "type": "string"
+        },
+        "ctl_gateway_port": {
+          "default": 9632,
+          "description": "The control gateway port",
+          "type": "integer"
+        },
+        "gossip_ip": {
+          "default": "0.0.0.0",
+          "description": "The IP address to listen on for gossip traffic",
+          "type": "string"
+        },
+        "gossip_port": {
+          "default": 9638,
+          "description": "The port to listen on for gossip traffic",
+          "type": "integer"
+        },
+        "hostname": {
+          "description": "The hostname of the member",
+          "type": "string"
+        },
+        "http_gateway_ip": {
+          "default": "0.0.0.0",
+          "description": "The IP address for the HTTP gateway to listen on",
+          "type": "string"
+        },
+        "http_gateway_port": {
+          "default": 9631,
+          "description": "The port for the HTTP gateway to listen on",
+          "type": "integer"
+        },
+        "ip": {
+          "description": "The member's IP address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ctl_gateway_ip",
+        "ctl_gateway_port",
+        "gossip_ip",
+        "gossip_port",
+        "hostname",
+        "http_gateway_ip",
+        "http_gateway_port",
+        "ip"
+      ],
+      "type": "object"
+    }
+  },
+  "description": "Schema for all the data the Habitat supervisor makes available at the /butterfly HTTP API endpoint",
+  "properties": {
+    "departure": {
+      "description": "A list of departure rumors",
+      "properties": {
+        "list": {
+          "description": "The departure list",
+          "properties": {
+            "departure": {
+              "additionalProperties": {
+                "properties": {
+                  "member_id": {
+                    "description": "The member ID of the member that departed",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "description": "Yet another list of departure rumors",
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "update_counter": {
+          "description": "A count of how many times the departure rumors have been updated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "update_counter"
+      ],
+      "type": "object"
+    },
+    "election": {
+      "description": "A list of election rumors",
+      "properties": {
+        "list": {
+          "additionalProperties": {
+            "description": "The name of a service group",
+            "properties": {
+              "election": {
+                "description": "The election",
+                "properties": {
+                  "from_id": {
+                    "description": "The member ID being voted for",
+                    "type": "string"
+                  },
+                  "member_id": {
+                    "description": "The member ID being voted for",
+                    "type": "string"
+                  },
+                  "service_group": {
+                    "description": "The service group this election is running in",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "The status of the election",
+                    "enum": ["Running", "NoQuorum", "Finished"]
+                  },
+                  "suitability": {
+                    "description": "How suitable this member is for election",
+                    "type": "integer"
+                  },
+                  "term": {
+                    "description": "The election term",
+                    "type": "integer"
+                  },
+                  "votes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "description": "The election list",
+          "type": "object"
+        },
+        "update_counter": {
+          "description": "A count of how many times the election rumors have been updated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "update_counter"
+      ],
+      "type": "object"
+    },
+    "election_update": {
+      "description": "A list of election update rumors",
+      "properties": {
+        "list": {
+          "additionalProperties": {
+            "description": "The name of a service group",
+            "properties": {
+              "election": {
+                "description": "The election",
+                "properties": {
+                  "from_id": {
+                    "description": "The member ID being voted for",
+                    "type": "string"
+                  },
+                  "member_id": {
+                    "description": "The member ID being voted for",
+                    "type": "string"
+                  },
+                  "service_group": {
+                    "description": "The service group this election is running in",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "The status of the election",
+                    "type": "string"
+                  },
+                  "suitability": {
+                    "description": "How suitable this member is for election",
+                    "type": "integer"
+                  },
+                  "term": {
+                    "description": "The election term",
+                    "type": "integer"
+                  },
+                  "votes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "description": "The election list",
+          "type": "object"
+        },
+        "update_counter": {
+          "description": "A count of how many times the election rumors have been updated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "update_counter"
+      ],
+      "type": "object"
+    },
+    "member": {
+      "description": "The members of the butterfly network",
+      "properties": {
+        "health": {
+          "additionalProperties": {
+            "description": "The health of the member",
+            "enum": ["Alive", "Suspect", "Confirmed", "Departed"]
+          },
+          "description": "The health of the members",
+          "type": "object"
+        },
+        "members": {
+          "additionalProperties": {
+            "description": "Network details on the member",
+            "properties": {
+              "address": {
+                "description": "IP Address of the member",
+                "type": "string"
+              },
+              "departed": {
+                "description": "Whether the member has departed or not",
+                "type": "boolean"
+              },
+              "gossip_port": {
+                "default": 9638,
+                "description": "The port for gossip traffic",
+                "type": "integer"
+              },
+              "id": {
+                "description": "The member ID",
+                "type": "string"
+              },
+              "incarnation": {
+                "description": "The incarnation number of the member",
+                "type": "integer"
+              },
+              "persistent": {
+                "default": false,
+                "description": "Whether this is a persistent/permanent peer",
+                "type": "boolean"
+              },
+              "swim_port": {
+                "default": 9638,
+                "description": "The port for SWIM traffic",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "address",
+              "departed",
+              "gossip_port",
+              "id",
+              "incarnation",
+              "persistent",
+              "swim_port"
+            ],
+            "type": "object"
+          },
+          "description": "Details on each member of the network",
+          "type": "object"
+        },
+        "update_counter": {
+          "description": "How many times the membership list has been updated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "health",
+        "members",
+        "update_counter"
+      ],
+      "type": "object"
+    },
+    "service": {
+      "description": "A list of service rumors",
+      "properties": {
+        "list": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "description": "A representation of the service, named for the member ID",
+              "properties": {
+                "cfg": {
+                  "additionalProperties": {
+                    "type": [
+                      "boolean",
+                      "string",
+                      "integer",
+                      "array",
+                      "object"
+                    ]
+                  },
+                  "description": "Service configuration",
+                  "type": "object"
+                },
+                "incarnation": {
+                  "description": "The incarnation number of a member",
+                  "type": "integer"
+                },
+                "initialized": {
+                  "description": "Whether the service has been initialized",
+                  "type": "boolean"
+                },
+                "member_id": {
+                  "description": "The member ID",
+                  "type": "string"
+                },
+                "package": {
+                  "description": "The package identifier",
+                  "type": "string"
+                },
+                "service_group": {
+                  "description": "The service group",
+                  "type": "string"
+                },
+                "sys": {
+                  "$ref": "#/definitions/sys_basic"
+                }
+              },
+              "required": [
+                "cfg",
+                "incarnation",
+                "initialized",
+                "member_id",
+                "package",
+                "service_group",
+                "sys"
+              ],
+              "type": "object"
+            },
+            "description": "A representation of the service, named for the service group",
+            "type": "object"
+          },
+          "description": "The list of service rumors",
+          "type": "object"
+        },
+        "update_counter": {
+          "description": "How many times the service rumors have been updated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "update_counter"
+      ],
+      "type": "object"
+    },
+    "service_config": {
+      "description": "A list of service config rumors",
+      "properties": {
+        "list": {
+          "additionalProperties": {
+            "description": "A description of each service config, named by service group",
+            "properties": {
+              "service_config": {
+                "description": "A description of the various service parameters",
+                "properties": {
+                  "config": {
+                    "description": "The bytes of the config value",
+                    "type": "array"
+                  },
+                  "encrypted": {
+                    "description": "Is the config encrypted",
+                    "type": "boolean"
+                  },
+                  "from_id": {
+                    "description": "Where did this config come from",
+                    "type": "string"
+                  },
+                  "incarnation": {
+                    "description": "The incarnation number associated with this config",
+                    "type": "integer"
+                  },
+                  "service_group": {
+                    "description": "The service group",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "config",
+                  "encrypted",
+                  "from_id",
+                  "incarnation",
+                  "service_group"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "description": "The list of service config rumors",
+          "type": "object"
+        },
+        "update_counter": {
+          "description": "How many times the service config rumors have been updated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "update_counter"
+      ],
+      "type": "object"
+    },
+    "service_file": {
+      "description": "A list of service file rumors",
+      "properties": {
+        "list": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "description": "A description of each file, named by file name",
+              "properties": {
+                "body": {
+                  "description": "The body of the file in bytes",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                "encrypted": {
+                  "description": "Is this file encrypted",
+                  "type": "boolean"
+                },
+                "filename": {
+                  "description": "The file name",
+                  "type": "string"
+                },
+                "from_id": {
+                  "description": "Member ID of who sent the file",
+                  "type": "string"
+                },
+                "incarnation": {
+                  "description": "The incarnation number associated with this file",
+                  "type": "integer"
+                },
+                "service_group": {
+                  "description": "The service group this file was sent to",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "body",
+                "encrypted",
+                "filename",
+                "from_id",
+                "incarnation",
+                "service_group"
+              ],
+              "type": "object"
+            },
+            "description": "A description of each service file, named by service group",
+            "type": "object"
+          },
+          "description": "The list of service file rumors",
+          "type": "object"
+        },
+        "update_counter": {
+          "description": "How many times the service files have been updated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "update_counter"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "departure",
+    "election",
+    "election_update",
+    "member",
+    "service",
+    "service_config",
+    "service_file"
+  ],
+  "type": "object"
+}

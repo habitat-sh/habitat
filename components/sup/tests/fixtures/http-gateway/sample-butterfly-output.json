@@ -1,0 +1,553 @@
+{
+  "departure": {
+    "list": {
+      "departure": {
+        "f67348b80eaa49cfaef08d12795a3bd3ubuntu": {
+          "member_id": "f67348b80eaa49cfaef08d12795a3bd3ubuntu"
+        }
+      }
+    },
+    "update_counter": 1
+  },
+  "election": {
+    "list": {
+      "witcher.prod": {
+        "election": {
+          "from_id": "d0cde5615a11461fa35fe4cbb1ab2644",
+          "member_id": "d0cde5615a11461fa35fe4cbb1ab2644",
+          "service_group": "witcher.prod",
+          "status": "Finished",
+          "suitability": 0,
+          "term": 0,
+          "votes": [
+            "d0cde5615a11461fa35fe4cbb1ab2644",
+            "6633e2f631e2479aad0dee8c981d0093",
+            "3667dacc43154cda86650167981bc79f"
+          ]
+        }
+      }
+    },
+    "update_counter": 6
+  },
+  "election_update": {
+    "list": {
+      "witcher.prod": {
+        "election": {
+          "from_id": "d0cde5615a11461fa35fe4cbb1ab2644",
+          "member_id": "d0cde5615a11461fa35fe4cbb1ab2644",
+          "service_group": "witcher.prod",
+          "status": "Finished",
+          "suitability": 0,
+          "term": 0,
+          "votes": [
+            "d0cde5615a11461fa35fe4cbb1ab2644",
+            "6633e2f631e2479aad0dee8c981d0093",
+            "3667dacc43154cda86650167981bc79f"
+          ]
+        }
+      }
+    },
+    "update_counter": 6
+  },
+  "member": {
+    "health": {
+      "08e6fd8bcf094ddb88a95f7a008f9215": "Alive",
+      "0d262679fc604664825ad916de6a399c": "Alive",
+      "1154ec64a1714cdca5c885a181e41737": "Alive",
+      "2b017714c38a430f89516e9b2b90d067": "Alive",
+      "96a40a37ce2549b59d1190fd4574f6c8": "Alive",
+      "b2c535a80ba5463a8e43672801fd803b": "Alive",
+      "b8f013535b3d4c85822e442f0c12801e": "Alive",
+      "be57ce74c75d4b29a4d8602c28397364": "Alive",
+      "c2ca91559a1f4114a819a1ca283cf10a": "Alive",
+      "f723be0d353e45c7bfa097aa586b8795": "Alive"
+    },
+    "members": {
+      "08e6fd8bcf094ddb88a95f7a008f9215": {
+        "address": "172.26.0.2",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "08e6fd8bcf094ddb88a95f7a008f9215",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "0d262679fc604664825ad916de6a399c": {
+        "address": "172.26.0.9",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "0d262679fc604664825ad916de6a399c",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "1154ec64a1714cdca5c885a181e41737": {
+        "address": "172.26.0.4",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "1154ec64a1714cdca5c885a181e41737",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "2b017714c38a430f89516e9b2b90d067": {
+        "address": "172.26.0.6",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "2b017714c38a430f89516e9b2b90d067",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "96a40a37ce2549b59d1190fd4574f6c8": {
+        "address": "172.26.0.11",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "96a40a37ce2549b59d1190fd4574f6c8",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "b2c535a80ba5463a8e43672801fd803b": {
+        "address": "172.26.0.3",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "b2c535a80ba5463a8e43672801fd803b",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "b8f013535b3d4c85822e442f0c12801e": {
+        "address": "172.26.0.5",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "b8f013535b3d4c85822e442f0c12801e",
+        "incarnation": 0,
+        "persistent": true,
+        "swim_port": 9638
+      },
+      "be57ce74c75d4b29a4d8602c28397364": {
+        "address": "172.26.0.8",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "be57ce74c75d4b29a4d8602c28397364",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "c2ca91559a1f4114a819a1ca283cf10a": {
+        "address": "172.26.0.7",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "c2ca91559a1f4114a819a1ca283cf10a",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      },
+      "f723be0d353e45c7bfa097aa586b8795": {
+        "address": "172.26.0.12",
+        "departed": false,
+        "gossip_port": 9638,
+        "id": "f723be0d353e45c7bfa097aa586b8795",
+        "incarnation": 0,
+        "persistent": false,
+        "swim_port": 9638
+      }
+    },
+    "update_counter": 10
+  },
+  "service": {
+    "list": {
+      "builder-api-proxy.default": {
+        "0d262679fc604664825ad916de6a399c": {
+          "cfg": {
+            "port": 80,
+            "ssl-port": 443,
+            "url": "https://bldr.habitat.sh"
+          },
+          "incarnation": 1,
+          "initialized": false,
+          "member_id": "0d262679fc604664825ad916de6a399c",
+          "package": "habitat/builder-api-proxy/7590/20180828215018",
+          "service_group": "builder-api-proxy.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "api-proxy.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.6"
+          }
+        }
+      },
+      "builder-api.default": {
+        "be57ce74c75d4b29a4d8602c28397364": {
+          "cfg": {
+            "port": 9636
+          },
+          "incarnation": 3,
+          "initialized": false,
+          "member_id": "be57ce74c75d4b29a4d8602c28397364",
+          "package": "habitat/builder-api/7602/20180906202535",
+          "service_group": "builder-api.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "api.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.26.0.8"
+          }
+        }
+      },
+      "builder-datastore.default": {
+        "b2c535a80ba5463a8e43672801fd803b": {
+          "cfg": {
+            "port": 5432
+          },
+          "incarnation": 1,
+          "initialized": false,
+          "member_id": "b2c535a80ba5463a8e43672801fd803b",
+          "package": "habitat/builder-datastore/7590/20180828215240",
+          "service_group": "builder-datastore.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "datastore.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.4"
+          }
+        }
+      },
+      "builder-jobsrv.default": {
+        "c2ca91559a1f4114a819a1ca283cf10a": {
+          "cfg": {
+            "log_port": 5568,
+            "worker_heartbeat": 5567,
+            "worker_port": 5566
+          },
+          "incarnation": 3,
+          "initialized": false,
+          "member_id": "c2ca91559a1f4114a819a1ca283cf10a",
+          "package": "habitat/builder-jobsrv/7602/20180906201133",
+          "service_group": "builder-jobsrv.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "jobsrv.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.9"
+          }
+        }
+      },
+      "builder-minio.default": {
+        "f723be0d353e45c7bfa097aa586b8795": {
+          "cfg": {},
+          "incarnation": 1,
+          "initialized": false,
+          "member_id": "f723be0d353e45c7bfa097aa586b8795",
+          "package": "habitat/builder-minio/0.1.0/20180828222034",
+          "service_group": "builder-minio.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "minio.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.12"
+          }
+        }
+      },
+      "builder-originsrv.default": {
+        "96a40a37ce2549b59d1190fd4574f6c8": {
+          "cfg": {},
+          "incarnation": 3,
+          "initialized": false,
+          "member_id": "96a40a37ce2549b59d1190fd4574f6c8",
+          "package": "habitat/builder-originsrv/7602/20180906201133",
+          "service_group": "builder-originsrv.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "originsrv.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.5"
+          }
+        }
+      },
+      "builder-router.default": {
+        "1154ec64a1714cdca5c885a181e41737": {
+          "cfg": {
+            "port": 5562
+          },
+          "incarnation": 1,
+          "initialized": false,
+          "member_id": "1154ec64a1714cdca5c885a181e41737",
+          "package": "habitat/builder-router/7590/20180828220555",
+          "service_group": "builder-router.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "router.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.26.0.4"
+          }
+        }
+      },
+      "builder-sessionsrv.default": {
+        "08e6fd8bcf094ddb88a95f7a008f9215": {
+          "cfg": {},
+          "incarnation": 3,
+          "initialized": false,
+          "member_id": "08e6fd8bcf094ddb88a95f7a008f9215",
+          "package": "habitat/builder-sessionsrv/7602/20180906201133",
+          "service_group": "builder-sessionsrv.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "sessionsrv.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.25.0.8"
+          }
+        }
+      },
+      "builder-worker.default": {
+        "2b017714c38a430f89516e9b2b90d067": {
+          "cfg": {},
+          "incarnation": 3,
+          "initialized": false,
+          "member_id": "2b017714c38a430f89516e9b2b90d067",
+          "package": "habitat/builder-worker/7598/20180905020415",
+          "service_group": "builder-worker.default",
+          "sys": {
+            "ctl_gateway_ip": "0.0.0.0",
+            "ctl_gateway_port": 9632,
+            "gossip_ip": "0.0.0.0",
+            "gossip_port": 9638,
+            "hostname": "worker.habitat.dev",
+            "http_gateway_ip": "0.0.0.0",
+            "http_gateway_port": 9631,
+            "ip": "172.26.0.6"
+          }
+        }
+      }
+    },
+    "update_counter": 11
+  },
+  "service_config": {
+    "list": {
+      "builder-admin.live": {
+        "service_config": {
+          "config": [],
+          "encrypted": false,
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-admin.live"
+        }
+      },
+      "builder-api-proxy.live": {
+        "service_config": {
+          "config": [
+            101,
+            10
+          ],
+          "encrypted": false,
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-api-proxy.live"
+        }
+      },
+      "builder-api.live": {
+        "service_config": {
+          "config": [
+            108,
+            10
+          ],
+          "encrypted": false,
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-api.live"
+        }
+      },
+      "builder-jobsrv.live": {
+        "service_config": {
+          "config": [
+            108,
+            10
+          ],
+          "encrypted": false,
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-scheduler.live"
+        }
+      },
+      "builder-sessionsrv.live": {
+        "service_config": {
+          "config": [
+            108,
+            10
+          ],
+          "encrypted": false,
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-sessionsrv.live"
+        }
+      },
+      "builder-worker.live": {
+        "service_config": {
+          "config": [
+            97,
+            10
+          ],
+          "encrypted": false,
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "sumologic.live"
+        }
+      }
+    },
+    "update_counter": 10
+  },
+  "service_file": {
+    "list": {
+      "builder-api.live": {
+        "bldr-20170927023714.box.key": {
+          "body": [
+            66,
+            61
+          ],
+          "encrypted": false,
+          "filename": "bldr-20170927023714.box.key",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-api.live"
+        },
+        "bldr-20170927023714.pub": {
+          "body": [
+            66,
+            61
+          ],
+          "encrypted": false,
+          "filename": "bldr-20170927023714.pub",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-jobsrv.live"
+        },
+        "builder-github-app.pem": {
+          "body": [
+            45,
+            61
+          ],
+          "encrypted": false,
+          "filename": "bldr-20170927023714.box.key",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-jobsrv.live"
+        }
+      },
+      "builder-worker.live": {
+        "bldr-20170927023714.box.key": {
+          "body": [
+            66,
+            61
+          ],
+          "encrypted": false,
+          "filename": "bldr-20170927023714.box.key",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-worker.live"
+        },
+        "bldr-20170927023714.pub": {
+          "body": [
+            66,
+            61
+          ],
+          "encrypted": false,
+          "filename": "bldr-20170927023714.pub",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-worker.live"
+        },
+        "builder-github-app.pem": {
+          "body": [
+            45,
+            10
+          ],
+          "encrypted": false,
+          "filename": "builder-github-app.pem",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "builder-worker.live"
+        }
+      },
+      "sumologic.live": {
+        "sumo_sources_api_access.json": {
+          "body": [
+            123,
+            10
+          ],
+          "encrypted": false,
+          "filename": "sumo_sources_api_access.json",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "sumologic.live"
+        },
+        "sumo_sources_api_errors.json": {
+          "body": [
+            123,
+            10
+          ],
+          "encrypted": false,
+          "filename": "sumo_sources_api_errors.json",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "sumologic.live"
+        },
+        "sumo_sources_syslog.json": {
+          "body": [
+            123,
+            10
+          ],
+          "encrypted": false,
+          "filename": "sumo_sources_syslog.json",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "sumologic.live"
+        },
+        "sumo_sources_worker.json": {
+          "body": [
+            123,
+            10
+          ],
+          "encrypted": false,
+          "filename": "sumo_sources_worker.json",
+          "from_id": "butterflyclient",
+          "incarnation": 1534943508,
+          "service_group": "sumologic.live"
+        }
+      }
+    },
+    "update_counter": 12
+  }
+}
