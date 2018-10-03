@@ -242,18 +242,6 @@ types:
                     description: Service not loaded
                 503:
                     description: Supervisor hasn't fully started. Try again later.
-    /{name}/{group}/{org}:
-        get:
-            description: Show information of a single loaded service
-            responses:
-                200:
-                    body:
-                        application/json:
-                            type: service
-                404:
-                    description: Service not loaded
-                503:
-                    description: Supervisor hasn't fully started. Try again later.
     /{name}/{group}/config:
         get:
             description: Get last configuration for the given service group
@@ -281,6 +269,18 @@ types:
                     description: Health Check - Unknown
                 503:
                     description: Health Check - Critical
+    /{name}/{group}/{organization}:
+        get:
+            description: Show information of a single loaded service scoped to an organization
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: service
+                404:
+                    description: Service not loaded
+                503:
+                    description: Supervisor hasn't fully started. Try again later.
     /{name}/{group}/{organization}/config:
         get:
             description: Get last configuration for the given service group
