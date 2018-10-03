@@ -11,6 +11,7 @@
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Rearrange lines again, because I&#39;m dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 - Don&#39;t show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 - Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
@@ -41,6 +42,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Rearrange lines again, because I&#39;m dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 - Don&#39;t show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 - Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
