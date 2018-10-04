@@ -50,7 +50,13 @@ You can create a Docker container image for any package by performing the follow
     $ hab pkg export tar <ORIGIN>/<NAME>
     ```
 
-4. Your package in a tar file exists locally on your computer in the format `<ORIGIN>-<NAME>-<VERSION>-<TIMESTAMP>.tar.gz` and can be deployed and run on a target machine.
+    If you receive an error, try running
+
+    ```shell
+    $ hab pkg export tar /results/<your_package>.hart
+    ```
+
+4. Your package is now in a tar file that exists locally on your computer in the format `<ORIGIN>-<NAME>-<VERSION>-<TIMESTAMP>.tar.gz` and can be deployed and run on a target machine.
 
 5. If you wish to run this tar file on a remote machine (i.e. a virtual machine in a cloud environment), scp (or whatever transfer protocol you prefer) the file to whatever you wish to run it.
 
@@ -67,6 +73,7 @@ You can create a Docker container image for any package by performing the follow
 
     ```shell
     $ sudo tar xf your-origin-package-version-timestamp.tar.gz
+    $ sudo cp -R hab /hab 
     ```
 
 9. Now, start the Supervisor and load your service package using the `hab` binary, which is included in the tar archive:
