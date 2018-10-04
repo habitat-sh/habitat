@@ -11,6 +11,7 @@
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- [hab-sup] Copy binding_mode when transforming Service to ServiceSpec [#5706](https://github.com/habitat-sh/habitat/pull/5706) ([stevendanna](https://github.com/stevendanna))
 - Only run the service proxy test on linux. [#5700](https://github.com/habitat-sh/habitat/pull/5700) ([raskchanky](https://github.com/raskchanky))
 - Formalize the Supervisor&#39;s HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
 - Rearrange lines again, because I&#39;m dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
@@ -44,6 +45,7 @@
 - Add more detail to error output when supervisor version is too old [#5611](https://github.com/habitat-sh/habitat/pull/5611) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- [hab-sup] Copy binding_mode when transforming Service to ServiceSpec [#5706](https://github.com/habitat-sh/habitat/pull/5706) ([stevendanna](https://github.com/stevendanna))
 - Only run the service proxy test on linux. [#5700](https://github.com/habitat-sh/habitat/pull/5700) ([raskchanky](https://github.com/raskchanky))
 - Formalize the Supervisor&#39;s HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
 - Rearrange lines again, because I&#39;m dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
