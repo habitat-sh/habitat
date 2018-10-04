@@ -3,29 +3,37 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### New Features & Enhancements
+- Formalize the Supervisor's HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
+
+#### Behavioral Changes
+- Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
+
+#### Bug Fixes
+- [hab-sup] Copy binding_mode when transforming Service to ServiceSpec [#5706](https://github.com/habitat-sh/habitat/pull/5706) ([stevendanna](https://github.com/stevendanna))
+- [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
+
+#### Merged Pull Requests
+- Only run the service proxy test on linux. [#5700](https://github.com/habitat-sh/habitat/pull/5700) ([raskchanky](https://github.com/raskchanky))
+- Rearrange lines again, because I'm dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
+- Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
+- Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
+- Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
+
 <!-- latest_release -->
-## Unreleased
+## [0.64.1](https://github.com/habitat-sh/habitat/tree/0.64.1) (09-27-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.0...0.64.1)
 
 #### Bug Fixes
 - remove recursive read lock on members from dat file writing [#5679](https://github.com/habitat-sh/habitat/pull/5679) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
-- [hab-sup] Copy binding_mode when transforming Service to ServiceSpec [#5706](https://github.com/habitat-sh/habitat/pull/5706) ([stevendanna](https://github.com/stevendanna))
-- Only run the service proxy test on linux. [#5700](https://github.com/habitat-sh/habitat/pull/5700) ([raskchanky](https://github.com/raskchanky))
-- Formalize the Supervisor&#39;s HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
-- Rearrange lines again, because I&#39;m dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
-- [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
-- Don&#39;t show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
-- Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
-- Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
-- Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 - fix regex for allowable appveyor branches [#5683](https://github.com/habitat-sh/habitat/pull/5683) ([mwrock](https://github.com/mwrock))
 - add release versions as allowable branch to build [#5682](https://github.com/habitat-sh/habitat/pull/5682) ([mwrock](https://github.com/mwrock))
 - prep 0.64.1 release [#5681](https://github.com/habitat-sh/habitat/pull/5681) ([mwrock](https://github.com/mwrock))
 - 0.64.0 post release tasks [#5680](https://github.com/habitat-sh/habitat/pull/5680) ([smacfarlane](https://github.com/smacfarlane))
 
-## Unreleased
+## [0.64.0](https://github.com/habitat-sh/habitat/tree/0.64.0) (09-26-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.63.0...0.64.0)
 
 #### New Features & Enhancements
@@ -81,7 +89,7 @@
 - Add myself as codeowner on www/site/content [#5619](https://github.com/habitat-sh/habitat/pull/5619) ([kagarmoe](https://github.com/kagarmoe))
 - Blog post for Hab 0.63.0 [#5601](https://github.com/habitat-sh/habitat/pull/5601) ([chefsalim](https://github.com/chefsalim))
 - Post 0.63.0 tasks [#5628](https://github.com/habitat-sh/habitat/pull/5628) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
+
 ## [0.63.0](https://github.com/habitat-sh/habitat/tree/0.63.0) (09-14-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.1...0.63.0)
 
