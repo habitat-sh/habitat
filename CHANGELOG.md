@@ -14,6 +14,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- patching another recursive member RWLock access [#5701](https://github.com/habitat-sh/habitat/pull/5701) ([mwrock](https://github.com/mwrock))
 - correct RAML doc for the organization routes [#5699](https://github.com/habitat-sh/habitat/pull/5699) ([robbkidd](https://github.com/robbkidd))
 - Only run the service proxy test on linux. [#5700](https://github.com/habitat-sh/habitat/pull/5700) ([raskchanky](https://github.com/raskchanky))
 - Rearrange lines again, because I'm dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
