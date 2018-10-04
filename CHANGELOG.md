@@ -10,6 +10,7 @@
 - Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 
 #### Bug Fixes
+- Don&#39;t abandon service processes after a Supervisor restart [#5697](https://github.com/habitat-sh/habitat/pull/5697) ([christophermaier](https://github.com/christophermaier))
 - [hab-sup] Copy binding_mode when transforming Service to ServiceSpec [#5706](https://github.com/habitat-sh/habitat/pull/5706) ([stevendanna](https://github.com/stevendanna))
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
