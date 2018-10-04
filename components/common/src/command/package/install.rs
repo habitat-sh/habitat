@@ -50,7 +50,7 @@ use hcore::crypto::keys::parse_name_with_rev;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::fs::cache_key_path;
 use hcore::fs::pkg_install_path;
-use hcore::package::install::INSTALL_TMP_PREFIX;
+use hcore::package::list::INSTALL_TMP_PREFIX;
 use hcore::package::metadata::PackageType;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
 use hyper::status::StatusCode;

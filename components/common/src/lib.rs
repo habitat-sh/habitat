@@ -30,6 +30,8 @@ extern crate term;
 extern crate time;
 extern crate toml;
 extern crate uuid;
+#[cfg(windows)]
+extern crate winapi;
 
 pub use self::error::{Error, Result};
 

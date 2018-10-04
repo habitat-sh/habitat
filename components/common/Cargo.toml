@@ -27,8 +27,7 @@ git = "https://github.com/habitat-sh/core.git"
 path = "../builder-api-client"
 
 [target.'cfg(windows)'.dependencies]
-kernel32-sys = "*"
-winapi = "0.2"
+winapi = { version = "*", features = ["consoleapi", "processenv"] }
 
 [features]
 default = []

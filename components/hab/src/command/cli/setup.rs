@@ -19,11 +19,11 @@ use std::path::Path;
 #[cfg(windows)]
 use std::ptr;
 #[cfg(windows)]
-use user32;
-#[cfg(windows)]
 use widestring::WideCString;
 #[cfg(windows)]
-use winapi;
+use winapi::shared::minwindef::LPARAM;
+#[cfg(windows)]
+use winapi::um::winuser::{self, HWND_BROADCAST, SMTO_ABORTIFHUNG, WM_SETTINGCHANGE};
 #[cfg(windows)]
 use winreg::enums::{HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, KEY_READ};
 #[cfg(windows)]
@@ -389,12 +389,12 @@ fn set_binlink_path(binlink_path: &Path) -> Result<()> {
         // a WM_SETTINGCHANGE message to all windows so the user
         // will not need to sign out/in for the new path to take effect
         unsafe {
-            user32::SendMessageTimeoutW(
-                winapi::HWND_BROADCAST,
-                winapi::WM_SETTINGCHANGE,
+            winuser::SendMessageTimeoutW(
+                HWND_BROADCAST,
+                WM_SETTINGCHANGE,
                 0,
-                WideCString::from_str("Environment").unwrap().as_ptr() as winapi::LPARAM,
-                winapi::SMTO_ABORTIFHUNG,
+                WideCString::from_str("Environment").unwrap().as_ptr() as LPARAM,
+                SMTO_ABORTIFHUNG,
                 5000,
                 ptr::null_mut(),
             );

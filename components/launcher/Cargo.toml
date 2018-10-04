@@ -24,5 +24,4 @@ semver = "*"
 time = "*"
 
 [target.'cfg(windows)'.dependencies]
-kernel32-sys = "*"
-winapi = "0.2"
+winapi =  { version = "*", features = ["tlhelp32"] }

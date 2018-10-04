@@ -54,10 +54,6 @@ extern crate uuid;
 extern crate walkdir;
 
 #[cfg(windows)]
-extern crate kernel32;
-#[cfg(windows)]
-extern crate user32;
-#[cfg(windows)]
 extern crate widestring;
 #[cfg(windows)]
 extern crate winapi;

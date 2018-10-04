@@ -17,8 +17,6 @@ extern crate ansi_term;
 extern crate habitat_core as core;
 extern crate habitat_launcher_protocol as protocol;
 extern crate ipc_channel;
-#[cfg(windows)]
-extern crate kernel32;
 extern crate libc;
 #[macro_use]
 extern crate log;

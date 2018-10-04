@@ -819,19 +819,20 @@ mod tty {
     }
     #[cfg(windows)]
     pub fn isatty(output: StdStream) -> bool {
-        extern crate kernel32;
-        extern crate winapi;
+        use winapi::um::consoleapi;
+        use winapi::um::processenv;
+        use winapi::um::winbase;
 
         let handle = match output {
-            StdStream::Stdin => winapi::winbase::STD_INPUT_HANDLE,
-            StdStream::Stdout => winapi::winbase::STD_OUTPUT_HANDLE,
-            StdStream::Stderr => winapi::winbase::STD_ERROR_HANDLE,
+            StdStream::Stdin => winbase::STD_INPUT_HANDLE,
+            StdStream::Stdout => winbase::STD_OUTPUT_HANDLE,
+            StdStream::Stderr => winbase::STD_ERROR_HANDLE,
         };
 
         unsafe {
-            let handle = kernel32::GetStdHandle(handle);
+            let handle = processenv::GetStdHandle(handle);
             let mut out = 0;
-            kernel32::GetConsoleMode(handle, &mut out) != 0
+            consoleapi::GetConsoleMode(handle, &mut out) != 0
         }
     }
 }
