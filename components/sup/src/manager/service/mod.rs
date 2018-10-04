@@ -1092,8 +1092,6 @@ mod tests {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use std::process::Command;
-
     use hcore::package::{ident::PackageIdent, PackageInstall};
     use serde_json;
 
@@ -1105,7 +1103,6 @@ mod tests {
     use http_gateway;
     use test_helpers::*;
 
-    #[cfg(target_os = "linux")]
     #[test]
     fn service_proxy_conforms_to_the_schema() {
         let socket_addr =
@@ -1113,7 +1110,14 @@ mod tests {
         let http_addr = http_gateway::ListenAddr::default();
         let sys = Sys::new(false, GossipListenAddr::default(), socket_addr, http_addr);
 
-        let ident = PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"));
+        let ident = if cfg!(target_os = "linux") {
+            PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"))
+        } else if cfg!(target_os = "windows") {
+            PackageIdent::new("core", "7zip", Some("16.04"), Some("20170131110814"))
+        } else {
+            panic!("This is being run on a platform that's not currently supported");
+        };
+
         let spec = ServiceSpec::default_for(ident);
 
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
