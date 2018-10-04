@@ -15,11 +15,10 @@
 pub mod archive;
 pub mod ident;
 pub mod install;
+pub mod list;
 pub mod metadata;
 pub mod plan;
 pub mod target;
-
-mod list;
 
 pub use self::archive::{FromArchive, PackageArchive};
 pub use self::ident::{Identifiable, PackageIdent};
