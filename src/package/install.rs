@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std;
 use std::cmp::{Ordering, PartialOrd};
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fmt;
-use std::fs::{DirEntry, File};
+use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -25,13 +24,18 @@ use std::str::FromStr;
 use toml;
 use toml::Value;
 
-use super::metadata::{parse_key_value, Bind, BindMapping, MetaFile, PackageType};
-use super::{Identifiable, PackageIdent, PackageTarget};
+use super::all_packages;
+use super::metadata::{parse_key_value, read_metafile, Bind, BindMapping, MetaFile, PackageType};
+use super::{Identifiable, PackageIdent};
 use error::{Error, Result};
 use fs;
 
+#[cfg(test)]
+use super::PackageTarget;
+#[cfg(test)]
+use std;
+
 pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
-pub const INSTALL_TMP_PREFIX: &'static str = ".hab-pkg-install";
 const PATH_KEY: &'static str = "PATH";
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -90,7 +94,7 @@ impl PackageInstall {
         if !package_root_path.exists() {
             return Err(Error::PackageNotFound(ident.clone()));
         }
-        let pl = Self::package_list(&package_root_path)?;
+        let pl = all_packages(&package_root_path)?;
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
@@ -155,7 +159,7 @@ impl PackageInstall {
             return Err(Error::PackageNotFound(original_ident.clone()));
         }
 
-        let pl = Self::package_list(&package_root_path)?;
+        let pl = all_packages(&package_root_path)?;
         let latest: Option<PackageIdent> = pl
             .iter()
             .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
@@ -330,10 +334,12 @@ impl PackageInstall {
         }
     }
 
-    fn deps(&self) -> Result<Vec<PackageIdent>> {
+    /// Return the direct dependencies of the package
+    pub fn deps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::Deps)
     }
 
+    /// Return all transitive dependencies of the package
     pub fn tdeps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::TDeps)
     }
@@ -626,141 +632,6 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a list of package structs built from the contents of the given directory.
-    fn package_list(path: &Path) -> Result<Vec<PackageIdent>> {
-        let mut package_list: Vec<PackageIdent> = vec![];
-        if std::fs::metadata(path)?.is_dir() {
-            Self::walk_origins(&path, &mut package_list)?;
-        }
-        Ok(package_list)
-    }
-
-    /// Helper function for package_list. Walks the given path for origin directories
-    /// and builds on the given package list by recursing into name, version, and release
-    /// directories.
-    fn walk_origins(path: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
-        for entry in std::fs::read_dir(path)? {
-            let origin = entry?;
-            if std::fs::metadata(origin.path())?.is_dir() {
-                Self::walk_names(&origin, packages)?;
-            }
-        }
-        Ok(())
-    }
-
-    /// Helper function for walk_origins. Walks the given origin DirEntry for name
-    /// directories and recurses into them to find version and release directories.
-    fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
-        for name in std::fs::read_dir(origin.path())? {
-            let name = name?;
-            let origin = origin
-                .file_name()
-                .to_string_lossy()
-                .into_owned()
-                .to_string();
-            if std::fs::metadata(name.path())?.is_dir() {
-                Self::walk_versions(&origin, &name, packages)?;
-            }
-        }
-        Ok(())
-    }
-
-    /// Helper function for walk_names. Walks the given name DirEntry for directories and recurses
-    /// into them to find release directories.
-    fn walk_versions(
-        origin: &String,
-        name: &DirEntry,
-        packages: &mut Vec<PackageIdent>,
-    ) -> Result<()> {
-        for version in std::fs::read_dir(name.path())? {
-            let version = version?;
-            let name = name.file_name().to_string_lossy().into_owned().to_string();
-            if std::fs::metadata(version.path())?.is_dir() {
-                Self::walk_releases(origin, &name, &version, packages)?;
-            }
-        }
-        Ok(())
-    }
-
-    /// Helper function for walk_versions. Walks the given release DirEntry for directories and
-    /// recurses into them to find version directories. Finally, a Package struct is built and
-    /// concatenated onto the given packages vector with the origin, name, version, and release of
-    /// each.
-    fn walk_releases(
-        origin: &String,
-        name: &String,
-        version: &DirEntry,
-        packages: &mut Vec<PackageIdent>,
-    ) -> Result<()> {
-        let active_target = PackageTarget::active_target();
-
-        for entry in std::fs::read_dir(version.path())? {
-            let entry = entry?;
-            if let Some(path) = entry.path().file_name().and_then(|f| f.to_str()) {
-                if path.starts_with(INSTALL_TMP_PREFIX) {
-                    debug!(
-                        "PackageInstall::walk_releases(): rejected PackageInstall candidate \
-                         because it matches installation temporary directory prefix: {}",
-                        path
-                    );
-                    continue;
-                }
-            }
-
-            let metafile_content = read_metafile(entry.path(), &MetaFile::Target);
-            // If there is an error reading the target metafile, then skip the candidate
-            if let Err(e) = metafile_content {
-                debug!(
-                    "PackageInstall::walk_releases(): rejected PackageInstall candidate \
-                     due to error reading TARGET metafile, found={}, reason={:?}",
-                    entry.path().display(),
-                    e,
-                );
-                continue;
-            }
-            // Any errors have been cleared, so unwrap is safe
-            let metafile_content = metafile_content.unwrap();
-            let install_target = PackageTarget::from_str(&metafile_content);
-            // If there is an error parsing the target as a valid PackageTarget, then skip the
-            // candidate
-            if let Err(e) = install_target {
-                debug!(
-                    "PackageInstall::walk_releases(): rejected PackageInstall candidate \
-                     due to error parsing TARGET metafile as a valid PackageTarget, \
-                     found={}, reason={:?}",
-                    entry.path().display(),
-                    e,
-                );
-                continue;
-            }
-            // Any errors have been cleared, so unwrap is safe
-            let install_target = install_target.unwrap();
-
-            // Ensure that the installed package's target matches the active `PackageTarget`,
-            // otherwise skip the candidate
-            if active_target == &install_target {
-                let release = entry.file_name().to_string_lossy().into_owned().to_string();
-                let version = version
-                    .file_name()
-                    .to_string_lossy()
-                    .into_owned()
-                    .to_string();
-                let ident =
-                    PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
-                packages.push(ident)
-            } else {
-                debug!(
-                    "PackageInstall::walk_releases(): rejected PackageInstall candidate, \
-                     found={}, installed_target={}, active_target={}",
-                    entry.path().display(),
-                    install_target,
-                    active_target,
-                );
-            }
-        }
-        Ok(())
-    }
-
     #[cfg(test)]
     fn target(&self) -> Result<PackageTarget> {
         match self.read_metafile(MetaFile::Target) {
@@ -776,84 +647,16 @@ impl fmt::Display for PackageInstall {
     }
 }
 
-fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Result<String> {
-    match exisiting_metafile(installed_path, file) {
-        Some(filepath) => match File::open(&filepath) {
-            Ok(mut f) => {
-                let mut data = String::new();
-                if f.read_to_string(&mut data).is_err() {
-                    return Err(Error::MetaFileMalformed(file.clone()));
-                }
-                Ok(data.trim().to_string())
-            }
-            Err(e) => Err(Error::MetaFileIO(e)),
-        },
-        None => Err(Error::MetaFileNotFound(file.clone())),
-    }
-}
-
-/// Returns the path to a specified MetaFile in an installed path if it exists.
-///
-/// Useful for fallback logic for dealing with older Habitat packages.
-fn exisiting_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Option<PathBuf> {
-    let filepath = installed_path.as_ref().join(file.to_string());
-    match std::fs::metadata(&filepath) {
-        Ok(_) => Some(filepath),
-        Err(_) => None,
-    }
-}
-
 #[cfg(test)]
 mod test {
     use std::fs::File;
     use std::io::Write;
 
     use tempdir::TempDir;
-    use time;
     use toml;
 
     use super::*;
-    use package::test_support::fixture_path;
-
-    /// Creates a minimal installed package under an fs_root and return a corresponding loaded
-    /// `PackageInstall` suitable for testing against. The `IDENT` and `TARGET` metafiles are
-    /// created and for the target system the tests are running on. Further subdirectories, files,
-    /// and metafile can be created under this path.
-    fn testing_package_install(ident: &str, fs_root: &Path) -> PackageInstall {
-        fn write_file(path: &Path, content: &str) {
-            let mut f = File::create(path).unwrap();
-            f.write_all(content.as_bytes()).unwrap()
-        }
-
-        let mut pkg_ident = PackageIdent::from_str(ident).unwrap();
-        if !pkg_ident.fully_qualified() {
-            if let None = pkg_ident.version {
-                pkg_ident.version = Some(String::from("1.0.0"));
-            }
-            if let None = pkg_ident.release {
-                pkg_ident.release = Some(
-                    time::now_utc()
-                        .strftime("%Y%m%d%H%M%S")
-                        .unwrap()
-                        .to_string(),
-                );
-            }
-        }
-        let pkg_install_path = fs::pkg_install_path(&pkg_ident, Some(fs_root));
-
-        std::fs::create_dir_all(&pkg_install_path).unwrap();
-        write_file(
-            &pkg_install_path.join(MetaFile::Ident.to_string()),
-            &pkg_ident.to_string(),
-        );
-        write_file(
-            &pkg_install_path.join(MetaFile::Target.to_string()),
-            PackageTarget::active_target(),
-        );
-
-        PackageInstall::load(&pkg_ident, Some(fs_root))
-            .expect(&format!("PackageInstall should load for {}", &pkg_ident))
-    }
+    use package::test_support::{fixture_path, testing_package_install};
 
     /// Write the given contents into the specified metadata file for
     /// the package.

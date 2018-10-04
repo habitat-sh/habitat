@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std;
 use std::collections::HashMap;
 use std::env;
 use std::fmt;
+use std::fs::File;
+use std::io::Read;
 use std::iter::{FromIterator, IntoIterator};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::vec::IntoIter;
 
@@ -222,6 +225,36 @@ impl fmt::Display for MetaFile {
     }
 }
 
+/// Read a metadata file from within a package directory if it exists
+///
+/// Returns the contents of the file
+pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Result<String> {
+    match existing_metafile(installed_path, file) {
+        Some(filepath) => match File::open(&filepath) {
+            Ok(mut f) => {
+                let mut data = String::new();
+                if f.read_to_string(&mut data).is_err() {
+                    return Err(Error::MetaFileMalformed(file.clone()));
+                }
+                Ok(data.trim().to_string())
+            }
+            Err(e) => Err(Error::MetaFileIO(e)),
+        },
+        None => Err(Error::MetaFileNotFound(file.clone())),
+    }
+}
+
+/// Returns the path to a specified MetaFile in an installed path if it exists.
+///
+/// Useful for fallback logic for dealing with older Habitat packages.
+fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Option<PathBuf> {
+    let filepath = installed_path.as_ref().join(file.to_string());
+    match std::fs::metadata(&filepath) {
+        Ok(_) => Some(filepath),
+        Err(_) => None,
+    }
+}
+
 pub enum PackageType {
     Standalone,
     Composite,
@@ -252,6 +285,8 @@ impl FromStr for PackageType {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::io::Write;
+    use tempdir::TempDir;
 
     static ENVIRONMENT: &str = r#"PATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin
 PYTHONPATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages
@@ -263,6 +298,15 @@ PYTHONPATH=:
 port=front-end.port
 "#;
     static PATH: &str = "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin";
+
+    /// Write the given contents into the specified metadata file for
+    /// the package.
+    fn write_metafile(install_dir: &Path, metafile: MetaFile, content: &str) {
+        let path = install_dir.join(metafile.to_string());
+        let mut f = File::create(path).expect("Could not create metafile");
+        f.write_all(content.as_bytes())
+            .expect("Could not write metafile contents");
+    }
 
     #[test]
     #[should_panic]
@@ -372,4 +416,30 @@ port=front-end.port
         let output = input.parse::<BindMapping>();
         assert!(output.is_err());
     }
+
+    #[test]
+    fn can_read_metafile() {
+        let pkg_root = TempDir::new("pkg-root").unwrap();
+        let install_dir = pkg_root.path();
+
+        let expected = "core/foo=db:core/database";
+        write_metafile(install_dir, MetaFile::Binds, expected);
+
+        let bind = MetaFile::Binds;
+        let bind_map = read_metafile(install_dir, &bind).unwrap();
+
+        assert_eq!(expected, bind_map);
+    }
+
+    #[test]
+    fn reading_a_non_existing_metafile_is_an_error() {
+        let pkg_root = TempDir::new("pkg-root").unwrap();
+        let install_dir = pkg_root.path();
+
+        let bind = MetaFile::Binds;
+        let bind_map = read_metafile(install_dir, &bind);
+
+        assert!(bind_map.is_err());
+    }
+
 }
