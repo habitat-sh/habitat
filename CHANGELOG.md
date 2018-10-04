@@ -14,12 +14,12 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- correct RAML doc for the organization routes [#5699](https://github.com/habitat-sh/habitat/pull/5699) ([robbkidd](https://github.com/robbkidd))
 - Only run the service proxy test on linux. [#5700](https://github.com/habitat-sh/habitat/pull/5700) ([raskchanky](https://github.com/raskchanky))
 - Rearrange lines again, because I'm dumb [#5691](https://github.com/habitat-sh/habitat/pull/5691) ([raskchanky](https://github.com/raskchanky))
 - Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
 - Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
-
 <!-- latest_release -->
 ## [0.64.1](https://github.com/habitat-sh/habitat/tree/0.64.1) (09-27-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.0...0.64.1)
