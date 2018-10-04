@@ -133,7 +133,7 @@ impl Inbound {
     fn process_pingreq(&self, addr: SocketAddr, mut msg: PingReq) {
         trace_it!(SWIM: &self.server, TraceKind::RecvPingReq, &msg.from.id, addr, &msg);
         msg.from.address = addr.ip().to_string();
-        match self
+        let target = match self
             .server
             .member_list
             .members
@@ -141,21 +141,21 @@ impl Inbound {
             .expect("Member list lock poisoned")
             .get(&msg.target.id)
         {
-            Some(target) => {
-                // Set the route-back address to the one we received the pingreq from
-                outbound::ping(
-                    &self.server,
-                    &self.socket,
-                    target,
-                    target.swim_socket_address(),
-                    Some(msg.from),
-                );
-            }
+            Some(t) => t.clone(),
             None => {
                 error!("PingReq request {:?} for invalid target", msg);
                 return;
             }
-        }
+        };
+
+        // Set the route-back address to the one we received the pingreq from
+        outbound::ping(
+            &self.server,
+            &self.socket,
+            &target,
+            target.swim_socket_address(),
+            Some(msg.from),
+        );
     }
 
     /// Process ack messages; forwards to the outbound thread.
