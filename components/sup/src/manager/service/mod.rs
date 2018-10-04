@@ -400,6 +400,7 @@ impl Service {
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;
         spec.binds = self.binds.clone();
+        spec.binding_mode = self.binding_mode;
         spec.config_from = self.config_from.clone();
         if let Some(ref password) = self.svc_encrypted_password {
             spec.svc_encrypted_password = Some(password.clone())
