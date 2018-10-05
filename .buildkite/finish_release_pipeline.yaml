@@ -1,22 +1,18 @@
 steps:
-  - block: ":raised_hand: Set Maintenance Window"
-    prompt: |
-      Until we sort through a suspected Supervisor bug, releases have
-      the potential to cause instability in Builder. Please declare a
-      maintenance window in Statuspage before proceeding any further.
-
   - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release for consumption by Builder"
     command: .buildkite/scripts/promote_release_channel.sh builder-live
     agents:
       queue: habitat-release
 
-  - block: ":habicat: Wait until Builder is stabilized"
+  - block: ":habicat: Ensure that Builder is stable on the new release"
     prompt: |
-      Until we sort through a suspected Supervisor bug, it is possible
-      that Builder can get destabilized once the Supervisor has been
-      promoted to the stable channel. This should be less of an issue
-      as our operations and software mature, but until then, it is
-      nice to explicitly factor that into our release process.
+      We do not anticipate any issues updating the Supervisors in
+      Builder, but on the off chance that we discover some terrible
+      bug at the last minute, this allows us one last opportunity to
+      halt the release.
+
+      After this step is unblocked, the new artifacts become available
+      to the world.
 
   - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release to stable"
     command: .buildkite/scripts/promote_release_channel.sh stable
