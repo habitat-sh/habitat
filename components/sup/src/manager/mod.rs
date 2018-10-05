@@ -186,7 +186,7 @@ impl Default for ManagerConfig {
 pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
     pub cfg: ManagerConfig,
-    pub services: Arc<RwLock<Vec<Service>>>,
+    pub services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
 }
 
 pub struct Manager {
@@ -358,7 +358,7 @@ impl Manager {
             cfg.http_listen,
         );
         let member = Self::load_member(&mut sys, &fs_cfg)?;
-        let services = Arc::new(RwLock::new(Vec::new()));
+        let services = Arc::new(RwLock::new(HashMap::new()));
         let server = butterfly::Server::new(
             sys.gossip_listen(),
             sys.gossip_listen(),
@@ -643,7 +643,7 @@ impl Manager {
             .services
             .write()
             .expect("Services lock is poisoned!")
-            .push(service);
+            .insert(service.spec_ident.clone(), service);
     }
 
     pub fn run(mut self, svc: Option<protocol::ctl::SvcLoad>) -> Result<()> {
@@ -766,7 +766,7 @@ impl Manager {
                     .services
                     .read()
                     .expect("Services lock is poisoned!")
-                    .iter()
+                    .values()
                 {
                     if let Some(census_group) =
                         self.census_ring.census_group_for(&service.service_group)
@@ -785,7 +785,7 @@ impl Manager {
                 .services
                 .write()
                 .expect("Services lock is poisoned!")
-                .iter_mut()
+                .values_mut()
             {
                 if service.tick(&self.census_ring, &self.launcher) {
                     self.gossip_latest_service_rumor(&service);
@@ -806,7 +806,12 @@ impl Manager {
             format: Some(protocol::types::service_cfg::Format::Toml as i32),
             default: None,
         };
-        for service in mgr.services.read().unwrap().iter() {
+        for service in mgr
+            .services
+            .read()
+            .expect("Services lock is poisoned")
+            .values()
+        {
             if service.pkg.ident.satisfies(&ident) {
                 if let Some(ref cfg) = service.cfg.default {
                     msg.default = Some(
@@ -1337,7 +1342,7 @@ impl Manager {
             .services
             .write()
             .expect("Services lock is poisoned!")
-            .iter_mut()
+            .values_mut()
         {
             if self
                 .updater
@@ -1380,7 +1385,7 @@ impl Manager {
             .services
             .write()
             .expect("Services lock is poisoned!")
-            .iter_mut()
+            .values_mut()
         {
             service_states.insert(service.spec_ident.clone(), service.last_state_change());
             active_services.push(service.spec_ident.clone());
@@ -1486,7 +1491,7 @@ impl Manager {
             .read()
             .expect("Services lock is poisoned!");
         let existing_idents: Vec<PackageIdent> =
-            services.iter().map(|s| s.spec_ident.clone()).collect();
+            services.values().map(|s| s.spec_ident.clone()).collect();
 
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
@@ -1510,7 +1515,7 @@ impl Manager {
             .map(|s| ServiceProxy::new(s, config_rendering))
             .collect();
         let mut services_to_render: Vec<ServiceProxy> = services
-            .iter()
+            .values()
             .map(|s| ServiceProxy::new(s, config_rendering))
             .collect();
 
@@ -1608,7 +1613,7 @@ impl Manager {
             }
         }
 
-        let mut svcs = Vec::new();
+        let mut svcs = HashMap::new();
 
         // The problem we're trying to work around here by adding this block is that `write`
         // creates an immutable borrow on `self`, and `self.remove_service` needs `&mut self`.
@@ -1624,7 +1629,7 @@ impl Manager {
             mem::swap(services.deref_mut(), &mut svcs);
         }
 
-        for mut service in svcs.drain(..) {
+        for mut service in svcs.drain().map(|(_ident, service)| service) {
             self.remove_service(&mut service, cause);
         }
         release_process_lock(&self.fs_cfg);
@@ -1652,7 +1657,7 @@ impl Manager {
             .services
             .read()
             .expect("Services lock is poisoned!")
-            .iter()
+            .values()
         {
             let spec = service.to_spec();
             active_specs.insert(spec.ident.name.clone(), spec);
@@ -1695,7 +1700,7 @@ impl Manager {
             .write()
             .expect("Services lock is poisoned");
 
-        for service in services.iter_mut() {
+        for service in services.values_mut() {
             if self.user_config_watcher.have_events_for(service) {
                 outputln!("Reloading service {}", &service.spec_ident);
                 service.user_config_updated = true;
@@ -1704,31 +1709,23 @@ impl Manager {
     }
 
     fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
-        let mut service: Service;
-
-        {
-            let mut services = self
-                .state
-                .services
-                .write()
-                .expect("Services lock is poisoned");
-            // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
-            // shenanigans--maybe we want to consider changing the data structure in the future?
-            let services_idx = match services.iter().position(|ref s| s.spec_ident == spec.ident) {
-                Some(i) => i,
-                None => {
-                    outputln!(
-                        "Tried to remove service for {} but could not find it running, skipping",
-                        &spec.ident
-                    );
-                    return Ok(());
-                }
-            };
-
-            service = services.remove(services_idx);
+        let svc = self
+            .state
+            .services
+            .write()
+            .expect("Services lock is poisoned")
+            .remove(&spec.ident);
+        match svc {
+            Some(mut service) => {
+                self.remove_service(&mut service, ShutdownReason::SvcStopCmd);
+            }
+            None => {
+                outputln!(
+                    "Tried to remove service for {} but could not find it running, skipping",
+                    &spec.ident
+                );
+            }
         }
-
-        self.remove_service(&mut service, ShutdownReason::SvcStopCmd);
         Ok(())
     }
 }
@@ -1780,14 +1777,14 @@ impl fmt::Display for ServiceStatus {
 }
 
 #[derive(Debug)]
-struct SuitabilityLookup(Arc<RwLock<Vec<Service>>>);
+struct SuitabilityLookup(Arc<RwLock<HashMap<PackageIdent, Service>>>);
 
 impl Suitability for SuitabilityLookup {
     fn get(&self, service_group: &ServiceGroup) -> u64 {
         self.0
             .read()
             .expect("Services lock is poisoned!")
-            .iter()
+            .values()
             .find(|s| s.service_group == *service_group)
             .and_then(|s| s.suitability())
             .unwrap_or(u64::min_value())
