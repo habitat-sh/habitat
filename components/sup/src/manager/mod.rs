@@ -1699,10 +1699,9 @@ impl Manager {
             .services
             .write()
             .expect("Services lock is poisoned");
-
         for service in services.values_mut() {
             if self.user_config_watcher.have_events_for(service) {
-                outputln!("Reloading service {}", &service.spec_ident);
+                outputln!("user.toml changes detected for {}", &service.spec_ident);
                 service.user_config_updated = true;
             }
         }
