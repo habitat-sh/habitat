@@ -504,6 +504,9 @@ impl CfgRenderer {
         // error resulting in the end-user not knowing what the fuck happned at all. We need to go
         // through this and pipe the service group through to let people know which service is
         // having issues and be more descriptive about what happened.
+
+        let service_group_name = ctx.service_group_name();
+
         let mut changed = false;
         for (template, _) in self.0.get_templates() {
             let compiled = self.0.render(&template, ctx)?;
@@ -521,11 +524,14 @@ impl CfgRenderer {
                     "Configuration {} does not exist; restarting",
                     cfg_dest.display()
                 );
-                outputln!(preamble ctx.group_name(), "Updated {} {}",
-                          template.as_str(),
-                          compiled_hash);
+
                 let mut config_file = File::create(&cfg_dest)?;
                 config_file.write_all(&compiled.into_bytes())?;
+                outputln!(
+                    preamble service_group_name,
+                    "Created configuration file {}",
+                    cfg_dest.display()
+                );
 
                 if cfg!(not(windows)) {
                     if abilities::can_run_services_as_svc_user() {
@@ -557,9 +563,12 @@ impl CfgRenderer {
                         "Configuration {} has changed; restarting",
                         cfg_dest.display()
                     );
-                    outputln!(preamble ctx.group_name(),"Updated {} {}",
-                              template.as_str(),
-                              compiled_hash);
+                    outputln!(
+                        preamble service_group_name,
+                        "Modified configuration content in {}",
+                        cfg_dest.display()
+                    );
+
                     let mut config_file = File::create(&cfg_dest)?;
                     config_file.write_all(&compiled.into_bytes())?;
 

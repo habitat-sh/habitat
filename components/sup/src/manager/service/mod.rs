@@ -445,11 +445,12 @@ impl Service {
                                   unsatisfied);
                 }
                 BindStatus::Satisfied => {
-                    outputln!(preamble self.service_group,
-                                  "The group '{}' satisfies the `{}` bind",
-                                  bind.service_group,
-                                  bind.name);
-
+                    // Since this function is currently called any
+                    // time the census changes, and this is the
+                    // expected steady-state of a properly running
+                    // service, we won't log anything here. Otherwise
+                    // we'd just spam the logs. Instead, log only on a
+                    // state change (see below).
                     bind_is_unsatisfied = false;
                 }
                 BindStatus::Unknown(ref e) => {
@@ -465,7 +466,17 @@ impl Service {
                 // TODO (CM): use Entry API to clone only when necessary
                 self.unsatisfied_binds.insert((*bind).clone())
             } else {
-                self.unsatisfied_binds.remove(*bind)
+                if self.unsatisfied_binds.remove(*bind) {
+                    // We'll log if the bind was previously
+                    // unsatisfied, but now it is satisfied.
+                    outputln!(preamble self.service_group,
+                              "The group '{}' satisfies the `{}` bind",
+                              bind.service_group,
+                              bind.name);
+                    true
+                } else {
+                    false
+                }
             };
         }
     }
@@ -755,10 +766,7 @@ impl Service {
     /// Returns `true` if the configuration has changed.
     fn compile_configuration(&self, ctx: &RenderContext) -> bool {
         match self.config_renderer.compile(&self.pkg, ctx) {
-            Ok(true) => {
-                outputln!(preamble self.service_group, "Configuration recompiled");
-                true
-            }
+            Ok(true) => true,
             Ok(false) => false,
             Err(e) => {
                 outputln!(preamble self.service_group,
