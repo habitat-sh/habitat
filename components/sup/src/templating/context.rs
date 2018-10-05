@@ -120,8 +120,8 @@ impl<'a> RenderContext<'a> {
     }
 
     // Exposed only for logging... can probably do this another way.
-    pub fn group_name(&self) -> &str {
-        self.svc.service_group.group()
+    pub fn service_group_name(&self) -> String {
+        format!("{}", self.svc.service_group)
     }
 }
 

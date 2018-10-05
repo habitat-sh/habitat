@@ -755,10 +755,7 @@ impl Service {
     /// Returns `true` if the configuration has changed.
     fn compile_configuration(&self, ctx: &RenderContext) -> bool {
         match self.config_renderer.compile(&self.pkg, ctx) {
-            Ok(true) => {
-                outputln!(preamble self.service_group, "Configuration recompiled");
-                true
-            }
+            Ok(true) => true,
             Ok(false) => false,
             Err(e) => {
                 outputln!(preamble self.service_group,
