@@ -4,11 +4,12 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- update winapi crate and pull in latest core [#5711](https://github.com/habitat-sh/habitat/pull/5711) ([mwrock](https://github.com/mwrock))
 - Store services in a HashMap instead of a Vec [#5712](https://github.com/habitat-sh/habitat/pull/5712) ([christophermaier](https://github.com/christophermaier))
 - bumping dev version [#5715](https://github.com/habitat-sh/habitat/pull/5715) ([mwrock](https://github.com/mwrock))
 
 <!-- latest_release -->
-## [0.65.0](https://github.com/habitat-sh/habitat/tree/0.65.0) (10-05-2018)
+## Unreleased
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.1...0.65.0)
 
 #### New Features & Enhancements
@@ -23,6 +24,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- update winapi crate and pull in latest core [#5711](https://github.com/habitat-sh/habitat/pull/5711) ([mwrock](https://github.com/mwrock))
 - prep 0.65.0 release [#5709](https://github.com/habitat-sh/habitat/pull/5709) ([mwrock](https://github.com/mwrock))
 - corrects tar exporter docs [#5710](https://github.com/habitat-sh/habitat/pull/5710) ([nellshamrell](https://github.com/nellshamrell))
 - Make the service proxy test work on windows as well as linux [#5704](https://github.com/habitat-sh/habitat/pull/5704) ([raskchanky](https://github.com/raskchanky))
