@@ -103,8 +103,9 @@ pub trait Hook: fmt::Debug + Sized {
     fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
         let content = self.renderer().render(Self::file_name(), ctx)?;
         if write_hook(&content, self.path())? {
-            outputln!(preamble service_group, "{}, compiled to {}", Self::file_name(),
-                self.path().display());
+            outputln!(preamble service_group,
+                      "Modified hook content in {}",
+                      self.path().display());
             if cfg!(not(windows)) {
                 hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
             }
@@ -887,7 +888,6 @@ impl HookTable {
         if let Some(ref hook) = self.post_stop {
             changed = self.compile_one(hook, service_group, ctx) || changed;
         }
-        outputln!(preamble service_group, "Hooks compiled");
         changed
     }
 
