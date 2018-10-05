@@ -61,10 +61,8 @@ version = "*"
 features = ["v4"]
 
 [target.'cfg(windows)'.dependencies]
-kernel32-sys = "*"
-user32-sys = "*"
 widestring = "*"
-winapi = "0.2"
+winapi = { version = "*", features = ["winuser", "windef"] }
 winreg = "*"
 
 [dev-dependencies]

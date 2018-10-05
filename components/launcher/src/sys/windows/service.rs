@@ -18,16 +18,22 @@ use std::mem;
 
 use core::os::process::handle_from_pid;
 use core::os::process::windows_child::{Child, ExitStatus, Handle};
-use kernel32;
 use protocol::{self, ShutdownMethod};
 use time::{Duration, SteadyTime};
-use winapi;
+use winapi::shared::minwindef::{DWORD, LPDWORD, MAX_PATH};
+use winapi::shared::winerror::{ERROR_FILE_NOT_FOUND, WAIT_TIMEOUT};
+use winapi::um::handleapi::{self, INVALID_HANDLE_VALUE};
+use winapi::um::processthreadsapi;
+use winapi::um::synchapi;
+use winapi::um::tlhelp32::{self, LPPROCESSENTRY32W, PROCESSENTRY32W, TH32CS_SNAPPROCESS};
+use winapi::um::winbase::{INFINITE, WAIT_OBJECT_0};
+use winapi::um::wincon;
 
 use error::{Error, Result};
 use service::Service;
 
 const PROCESS_ACTIVE: u32 = 259;
-type ProcessTable = HashMap<winapi::DWORD, Vec<winapi::DWORD>>;
+type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
 
 pub struct Process {
     handle: Handle,
@@ -43,14 +49,14 @@ impl Process {
     }
 
     pub fn id(&self) -> u32 {
-        unsafe { kernel32::GetProcessId(self.handle.raw()) as u32 }
+        unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 }
     }
 
     pub fn kill(&mut self) -> ShutdownMethod {
         if self.status().is_some() {
             return ShutdownMethod::AlreadyExited;
         }
-        let ret = unsafe { kernel32::GenerateConsoleCtrlEvent(1, self.id()) };
+        let ret = unsafe { wincon::GenerateConsoleCtrlEvent(1, self.id()) };
         if ret == 0 {
             debug!(
                 "Failed to send ctrl-break to pid {}: {}",
@@ -75,27 +81,31 @@ impl Process {
 
     pub fn wait(&mut self) -> Result<ExitStatus> {
         unsafe {
-            let res = kernel32::WaitForSingleObject(self.handle.raw(), winapi::INFINITE);
-            if res != winapi::WAIT_OBJECT_0 {
+            let res = synchapi::WaitForSingleObject(self.handle.raw(), INFINITE);
+            if res != WAIT_OBJECT_0 {
                 return Err(Error::ExecWait(io::Error::last_os_error()));
             }
             let mut status = 0;
-            cvt(kernel32::GetExitCodeProcess(self.handle.raw(), &mut status))
-                .map_err(Error::ExecWait)?;
+            cvt(processthreadsapi::GetExitCodeProcess(
+                self.handle.raw(),
+                &mut status,
+            )).map_err(Error::ExecWait)?;
             Ok(ExitStatus::from(status))
         }
     }
 
     pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
         unsafe {
-            match kernel32::WaitForSingleObject(self.handle.raw(), 0) {
-                winapi::WAIT_OBJECT_0 => {}
-                winapi::WAIT_TIMEOUT => return Ok(None),
+            match synchapi::WaitForSingleObject(self.handle.raw(), 0) {
+                WAIT_OBJECT_0 => {}
+                WAIT_TIMEOUT => return Ok(None),
                 _ => return Err(Error::ExecWait(io::Error::last_os_error())),
             }
             let mut status = 0;
-            cvt(kernel32::GetExitCodeProcess(self.handle.raw(), &mut status))
-                .map_err(Error::ExecWait)?;
+            cvt(processthreadsapi::GetExitCodeProcess(
+                self.handle.raw(),
+                &mut status,
+            )).map_err(Error::ExecWait)?;
             Ok(Some(ExitStatus::from(status)))
         }
     }
@@ -124,7 +134,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     match spawn_pwsh("pwsh.exe", msg.clone()) {
         Ok(service) => Ok(service),
         Err(err) => {
-            if err.raw_os_error() == Some(winapi::ERROR_FILE_NOT_FOUND as i32) {
+            if err.raw_os_error() == Some(ERROR_FILE_NOT_FOUND as i32) {
                 spawn_pwsh("powershell.exe", msg).map_err(Error::Spawn)
             } else {
                 Err(Error::Spawn(err))
@@ -158,9 +168,9 @@ fn spawn_pwsh(ps_binary_name: &str, mut msg: protocol::Spawn) -> io::Result<Serv
 
 fn build_proc_table() -> ProcessTable {
     let processes_snap_handle =
-        unsafe { kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPPROCESS, 0) };
+        unsafe { tlhelp32::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
 
-    if processes_snap_handle == winapi::INVALID_HANDLE_VALUE {
+    if processes_snap_handle == INVALID_HANDLE_VALUE {
         error!(
             "Failed to call CreateToolhelp32Snapshot: {}",
             io::Error::last_os_error()
@@ -168,8 +178,8 @@ fn build_proc_table() -> ProcessTable {
         return ProcessTable::new();
     }
     let mut table = ProcessTable::new();
-    let mut process_entry = winapi::PROCESSENTRY32W {
-        dwSize: mem::size_of::<winapi::PROCESSENTRY32W>() as u32,
+    let mut process_entry = PROCESSENTRY32W {
+        dwSize: mem::size_of::<PROCESSENTRY32W>() as u32,
         cntUsage: 0,
         th32ProcessID: 0,
         th32DefaultHeapID: 0,
@@ -178,10 +188,15 @@ fn build_proc_table() -> ProcessTable {
         th32ParentProcessID: 0,
         pcPriClassBase: 0,
         dwFlags: 0,
-        szExeFile: [0; winapi::MAX_PATH],
+        szExeFile: [0; MAX_PATH],
     };
     // Get the first process from the snapshot.
-    match unsafe { kernel32::Process32FirstW(processes_snap_handle, &mut process_entry) } {
+    match unsafe {
+        tlhelp32::Process32FirstW(
+            processes_snap_handle,
+            &mut process_entry as LPPROCESSENTRY32W,
+        )
+    } {
         1 => {
             // First process worked, loop to find the process with the correct name.
             let mut process_success: i32 = 1;
@@ -192,12 +207,12 @@ fn build_proc_table() -> ProcessTable {
                     .or_insert(Vec::new());
                 (*children).push(process_entry.th32ProcessID);
                 process_success =
-                    unsafe { kernel32::Process32NextW(processes_snap_handle, &mut process_entry) };
+                    unsafe { tlhelp32::Process32NextW(processes_snap_handle, &mut process_entry) };
             }
-            unsafe { kernel32::CloseHandle(processes_snap_handle) };
+            unsafe { handleapi::CloseHandle(processes_snap_handle) };
         }
         0 | _ => unsafe {
-            kernel32::CloseHandle(processes_snap_handle);
+            handleapi::CloseHandle(processes_snap_handle);
         },
     }
     table
@@ -214,7 +229,7 @@ fn cvt(i: i32) -> io::Result<i32> {
 fn exit_code(handle: &Handle) -> Option<u32> {
     let mut exit_code: u32 = 0;
     unsafe {
-        let ret = kernel32::GetExitCodeProcess(handle.raw(), &mut exit_code as winapi::LPDWORD);
+        let ret = processthreadsapi::GetExitCodeProcess(handle.raw(), &mut exit_code as LPDWORD);
         if ret == 0 {
             error!(
                 "Failed to retrieve Exit Code: {}",
@@ -226,7 +241,7 @@ fn exit_code(handle: &Handle) -> Option<u32> {
     Some(exit_code)
 }
 
-fn terminate_process_descendants(table: &ProcessTable, pid: winapi::DWORD) {
+fn terminate_process_descendants(table: &ProcessTable, pid: DWORD) {
     if let Some(children) = table.get(&pid) {
         for child in children {
             terminate_process_descendants(table, child.clone());
@@ -235,7 +250,7 @@ fn terminate_process_descendants(table: &ProcessTable, pid: winapi::DWORD) {
     unsafe {
         match handle_from_pid(pid) {
             Some(h) => {
-                if kernel32::TerminateProcess(h, 1) == 0 {
+                if processthreadsapi::TerminateProcess(h, 1) == 0 {
                     error!(
                         "Failed to call TerminateProcess on pid {}: {}",
                         pid,
