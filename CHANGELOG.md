@@ -15,6 +15,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- bumping dev version [#5715](https://github.com/habitat-sh/habitat/pull/5715) ([mwrock](https://github.com/mwrock))
 - prep 0.65.0 release [#5709](https://github.com/habitat-sh/habitat/pull/5709) ([mwrock](https://github.com/mwrock))
 - corrects tar exporter docs [#5710](https://github.com/habitat-sh/habitat/pull/5710) ([nellshamrell](https://github.com/nellshamrell))
 - Make the service proxy test work on windows as well as linux [#5704](https://github.com/habitat-sh/habitat/pull/5704) ([raskchanky](https://github.com/raskchanky))
