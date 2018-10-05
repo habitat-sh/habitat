@@ -16,6 +16,7 @@
 - Formalize the Supervisor's HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
 
 #### Behavioral Changes
+- Make logging around user.toml changes more specific [#5713](https://github.com/habitat-sh/habitat/pull/5713) ([christophermaier](https://github.com/christophermaier))
 - Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 
 #### Bug Fixes
