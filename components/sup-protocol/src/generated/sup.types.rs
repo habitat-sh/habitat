@@ -52,7 +52,9 @@ pub struct ServiceCfg {
     #[prost(enumeration="service_cfg::Format", optional, tag="1", default="Toml")]
     pub format: ::std::option::Option<i32>,
     #[prost(string, optional, tag="2")]
-    pub default: ::std::option::Option<String>,
+    pub config: ::std::option::Option<String>,
+    #[prost(enumeration="ServiceCfgType", optional, tag="3")]
+    pub config_type: ::std::option::Option<i32>,
 }
 pub mod service_cfg {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
