@@ -27,12 +27,11 @@ use regex::Regex;
 use time;
 
 use error::{Error, Result};
-use util::perm;
 
 use super::{
-    PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION,
-    SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION, SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX,
-    SECRET_SIG_KEY_VERSION, SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION,
+    PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_BOX_KEY_SUFFIX,
+    SECRET_BOX_KEY_VERSION, SECRET_SIG_KEY_SUFFIX, SECRET_SIG_KEY_VERSION, SECRET_SYM_KEY_SUFFIX,
+    SECRET_SYM_KEY_VERSION,
 };
 
 lazy_static! {
@@ -539,7 +538,7 @@ fn write_keypair_files(
         let public_file = File::create(public_keyfile)?;
         let mut public_writer = BufWriter::new(&public_file);
         public_writer.write_all(public_content.as_bytes())?;
-        perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS)?;
+        set_permissions(public_keyfile)?;
     }
 
     if let Some(secret_keyfile) = secret_keyfile {
@@ -565,9 +564,25 @@ fn write_keypair_files(
         let secret_file = File::create(secret_keyfile)?;
         let mut secret_writer = BufWriter::new(&secret_file);
         secret_writer.write_all(secret_content.as_bytes())?;
-        perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS)?;
+        set_permissions(secret_keyfile)?;
     }
     Ok(())
+}
+
+#[cfg(not(windows))]
+fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
+    use util::posix_perm;
+
+    use super::KEY_PERMISSIONS;
+
+    posix_perm::set_permissions(path.as_ref(), KEY_PERMISSIONS)
+}
+
+#[cfg(windows)]
+fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
+    use util::win_perm;
+
+    win_perm::harden_path(path.as_ref())
 }
 
 #[cfg(test)]

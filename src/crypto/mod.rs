@@ -252,8 +252,8 @@ pub static HART_FORMAT_VERSION: &'static str = "HART-1";
 pub static BOX_FORMAT_VERSION: &'static str = "BOX-1";
 pub static ANONYMOUS_BOX_FORMAT_VERSION: &'static str = "ANONYMOUS-BOX-1";
 /// Create secret key files with these permissions
-static PUBLIC_KEY_PERMISSIONS: u32 = 0o400;
-static SECRET_KEY_PERMISSIONS: u32 = 0o400;
+#[cfg(not(windows))]
+static KEY_PERMISSIONS: u32 = 0o400;
 
 pub const PUBLIC_SIG_KEY_VERSION: &'static str = "SIG-PUB-1";
 pub const SECRET_SIG_KEY_VERSION: &'static str = "SIG-SEC-1";

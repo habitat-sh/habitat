@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use libc::{self, c_char, c_int, mode_t};
+use std::ffi::CString;
 use std::path::Path;
 
-use filesystem;
 use users;
 
 use error::{Error, Result};
@@ -62,7 +63,7 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
             )))
         }
     };
-    let result = filesystem::chown(s_path, uid, gid);
+    let result = chown(s_path, uid, gid);
 
     match result {
         Err(err) => Err(err),
@@ -87,7 +88,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
         }
     };
 
-    let result = filesystem::chmod(s_path, mode);
+    let result = chmod(s_path, mode);
     match result {
         Err(err) => Err(err),
         Ok(0) => Ok(()),
@@ -96,6 +97,51 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
             &path.as_ref(),
             &mode
         ))),
+    }
+}
+
+fn validate_raw_path(path: &str) -> Result<*mut c_char> {
+    let c_path = match CString::new(path) {
+        Ok(c) => c,
+        Err(e) => {
+            return Err(Error::PermissionFailed(format!(
+                "Can't create string from path {:?}: {}",
+                path, e
+            )))
+        }
+    };
+    Ok(c_path.into_raw())
+}
+
+fn chown(path: &str, uid: u32, gid: u32) -> Result<c_int> {
+    let r_path = match validate_raw_path(path) {
+        Ok(r) => r,
+        Err(e) => return Err(e),
+    };
+
+    unsafe {
+        let res = libc::chown(r_path, uid, gid);
+        CString::from_raw(r_path); // necessary to prevent leaks
+        Ok(res)
+    }
+}
+
+fn chmod(path: &str, mode: u32) -> Result<c_int> {
+    let c_path = match CString::new(path) {
+        Ok(c) => c,
+        Err(e) => {
+            return Err(Error::PermissionFailed(format!(
+                "Can't create string from path {:?}: {}",
+                path, e
+            )))
+        }
+    };
+    let r_path = c_path.into_raw();
+
+    unsafe {
+        let res = libc::chmod(r_path, mode as mode_t);
+        CString::from_raw(r_path); // necessary to prevent leaks
+        Ok(res)
     }
 }
 

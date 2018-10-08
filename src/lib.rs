@@ -62,6 +62,8 @@ extern crate habitat_win_users;
 extern crate widestring;
 #[cfg(windows)]
 extern crate winapi;
+#[cfg(windows)]
+extern crate windows_acl;
 
 pub use self::error::{Error, Result};
 

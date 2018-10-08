@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod perm;
+#[cfg(not(windows))]
+pub mod posix_perm;
 pub mod sys;
+#[cfg(windows)]
+pub mod win_perm;
 
 use std::error;
 use std::fmt;

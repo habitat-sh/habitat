@@ -40,6 +40,7 @@ ctrlc = "*"
 habitat_win_users = { path = "../win-users" }
 widestring = "*"
 winapi = { version = "*", features = ["dpapi", "ioapiset", "namedpipeapi", "userenv", "winbase", "wincrypt", "winerror"] }
+windows-acl = "*"
 
 [dev-dependencies]
 hyper = "0.10"
