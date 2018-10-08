@@ -23,6 +23,7 @@ extern crate hyper;
 #[macro_use]
 extern crate log;
 extern crate pbr;
+extern crate petgraph;
 extern crate regex;
 extern crate retry;
 extern crate tempdir;
@@ -37,4 +38,5 @@ pub use self::error::{Error, Result};
 
 pub mod command;
 pub mod error;
+pub mod package_graph;
 pub mod ui;
