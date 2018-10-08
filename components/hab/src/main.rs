@@ -76,7 +76,7 @@ use hab::config::{self, Config};
 use hab::error::{Error, Result};
 use hab::feat;
 use hab::scaffolding;
-use hab::{AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
+use hab::{AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
@@ -307,7 +307,7 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let with_secret = m.is_present("WITH_SECRET");
     let with_encryption = m.is_present("WITH_ENCRYPTION");
     let token = maybe_auth_token(&m);
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
 
     command::origin::key::download::start(
         ui,
@@ -350,7 +350,7 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
 
     init();
@@ -375,7 +375,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
@@ -392,7 +392,7 @@ fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
@@ -400,7 +400,7 @@ fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_secret_list(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     command::origin::secret::list::start(ui, &url, &token, &origin)
@@ -484,7 +484,7 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
 fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let format = &m.value_of("FORMAT").unwrap();
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let channel = m
         .value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
@@ -513,7 +513,7 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
@@ -521,7 +521,7 @@ fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
@@ -529,21 +529,21 @@ fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_bldr_channel_list(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     command::bldr::channel::list::start(ui, &url, &origin)
 }
 
 fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
     command::bldr::job::start::start(ui, &url, &ident, &token, group)
 }
 
 fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
     let force = m.is_present("FORCE");
@@ -551,7 +551,7 @@ fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches, promote: bool) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let origin = m.value_of("ORIGIN");
@@ -572,7 +572,7 @@ fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches, promote: bool) ->
 }
 
 fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID");
     let origin = m.value_of("ORIGIN");
     let limit = m
@@ -614,7 +614,7 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let channel = channel_from_matches(m);
     let install_sources = install_sources_from_matches(m)?;
     let token = maybe_auth_token(&m);
@@ -679,7 +679,7 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
     let token = maybe_auth_token(&m);
     command::pkg::search::start(&search_term, &url, token.as_ref().map(String::as_str))
@@ -700,7 +700,7 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let key_path = cache_key_path(Some(&*FS_ROOT));
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
 
     // When packages are uploaded, they *always* go to `unstable`;
     // they can optionally get added to another channel, too.
@@ -749,7 +749,7 @@ fn sub_pkg_info(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let channel = m.value_of("CHANNEL").unwrap();
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
@@ -757,7 +757,7 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let channel = m.value_of("CHANNEL").unwrap();
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
@@ -765,7 +765,7 @@ fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let url = bldr_url_from_matches(m);
+    let url = bldr_url_from_matches(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let token = maybe_auth_token(&m);
 
@@ -1298,12 +1298,22 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
     }
 }
 
-/// Resolve a Builder URL. Taken from the environment or from CLI args,
-/// if given.
-fn bldr_url_from_matches(matches: &ArgMatches) -> String {
+/// Check to see if the user has passed in a Builder URL param.  If not, check the HAB_BLDR_URL env
+/// var. If not, check the CLI config to see if there is a default url set. If that's empty too,
+/// then we'll use the default (https://bldr.habitat.sh).
+fn bldr_url_from_matches(matches: &ArgMatches) -> Result<String> {
     match matches.value_of("BLDR_URL") {
-        Some(url) => url.to_string(),
-        None => default_bldr_url(),
+        Some(url) => Ok(url.to_string()),
+        None => match henv::var(BLDR_URL_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                let config = config::load()?;
+                match config.bldr_url {
+                    Some(v) => Ok(v),
+                    None => Ok(default_bldr_url()),
+                }
+            }
+        },
     }
 }
 

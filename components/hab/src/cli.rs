@@ -106,8 +106,8 @@ pub fn get() -> App<'static, 'static> {
                         "The origin and name of the package to schedule a job for (eg: core/redis)")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
+                         be taken from the cli.toml or HAB_BLDR_URL environment variable if defined. \
+                         (default: https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                     (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \
                         dependencies")
