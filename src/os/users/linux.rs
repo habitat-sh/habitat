@@ -22,23 +22,30 @@ pub fn get_uid_by_name(owner: &str) -> Option<u32> {
 }
 
 pub fn get_gid_by_name(group: &str) -> Option<u32> {
-    linux_users::get_group_by_name(&group.as_ref()).map(|g| g.gid())
+    linux_users::get_group_by_name(group).map(|g| g.gid())
 }
 
+/// Any members that fail conversion from OsString to string will be omitted
 pub fn get_members_by_groupname(group: &str) -> Option<Vec<String>> {
-    linux_users::get_group_by_name(&group.as_ref()).map(|g| g.members().to_vec())
+    linux_users::get_group_by_name(group).map(|g| {
+        g.members()
+            .to_vec()
+            .into_iter()
+            .filter_map(|os_string| os_string.into_string().ok())
+            .collect()
+    })
 }
 
 pub fn get_current_username() -> Option<String> {
-    linux_users::get_current_username()
+    linux_users::get_current_username().and_then(|os_string| os_string.into_string().ok())
 }
 
 pub fn get_current_groupname() -> Option<String> {
-    linux_users::get_current_groupname()
+    linux_users::get_current_groupname().and_then(|os_string| os_string.into_string().ok())
 }
 
 pub fn get_effective_username() -> Option<String> {
-    linux_users::get_effective_username()
+    linux_users::get_effective_username().and_then(|os_string| os_string.into_string().ok())
 }
 
 pub fn get_effective_uid() -> u32 {
@@ -50,7 +57,7 @@ pub fn get_effective_gid() -> u32 {
 }
 
 pub fn get_effective_groupname() -> Option<String> {
-    linux_users::get_effective_groupname()
+    linux_users::get_effective_groupname().and_then(|os_string| os_string.into_string().ok())
 }
 
 pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
