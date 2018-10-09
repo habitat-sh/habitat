@@ -18,22 +18,8 @@ use hcore::package::PackageInstall;
 use petgraph;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
+use petgraph::visit::Bfs;
 use std::collections::HashMap;
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PackageDeps {
-    ident: PackageIdent,
-    deps: Vec<PackageIdent>,
-}
-
-impl From<PackageInstall> for PackageDeps {
-    fn from(install: PackageInstall) -> Self {
-        PackageDeps {
-            ident: install.ident().clone(),
-            deps: install.deps().unwrap(),
-        }
-    }
-}
 
 pub struct PackageGraph {
     nodes: HashMap<PackageIdent, NodeIndex>,
@@ -48,17 +34,16 @@ impl PackageGraph {
         }
     }
 
-    // Given a list of packages and their dependencies, build
-    // a directed package graph
-    pub fn build<T>(&mut self, packages: T) -> Result<(usize, usize)>
-    where
-        T: Iterator<Item = PackageDeps>,
-    {
+    // Given a list of packages build a directed package graph
+    // using the package dependencies
+    pub fn build(&mut self, packages: &Vec<PackageInstall>) -> Result<(usize, usize)> {
         for p in packages {
-            self.extend(&p.ident, &p.deps);
+            let ident = p.ident();
+            let deps = p.deps()?;
+            self.extend(&ident, &deps);
         }
 
-        Ok((self.graph.node_count(), self.graph.edge_count()))
+        Ok((self.node_count(), self.edge_count()))
     }
 
     /// Return (and possibly create) a NodeIndex for a given PackageIdent.
@@ -88,29 +73,60 @@ impl PackageGraph {
         (self.graph.node_count(), self.graph.edge_count())
     }
 
+    /// Return the dependencies in a topological order (ie. packages will appear before their dependencies)
+    pub fn ordered_deps(&self, package: &PackageIdent) -> Vec<PackageIdent> {
+        let mut result = Vec::<PackageIdent>::new();
+        match self.nodes.get(package) {
+            Some(&idx) => {
+                let mut bfs = Bfs::new(&self.graph, idx);
+
+                // BFS returns the original node on first call to next()
+                // consume it here so it's not in the result Vec
+                match bfs.next(&self.graph) {
+                    Some(n) => assert_eq!(&n, &idx),
+                    None => unreachable!("package is always in BFS from itself"),
+                }
+
+                while let Some(child) = bfs.next(&self.graph) {
+                    if let Some(child_pkg) = self.graph.node_weight(child) {
+                        result.push(child_pkg.clone());
+                    }
+                }
+            }
+            None => (),
+        }
+        result
+    }
+
     /// Remove a package from a graph
     ///
     /// This will not remove the package if it is a dependency of any package
     ///
-    /// Returns None if package is not in graph
-    ///
+    /// Returns None if package was not in graph
     /// Returns Some(true) if package is removed
-    /// Return  Some(false) if package is a dependendency
+    /// Return  Some(false) if package is a dependency
     pub fn remove(&mut self, package: &PackageIdent) -> Option<bool> {
         match self.count_rdeps(package) {
             Some(0) => self.do_remove(package),
             Some(_) => Some(false),
-            None => None
+            None => None,
         }
     }
 
+    /// Cleanly remove the node from both the node list and the graph
+    ///
+    /// Returns None if package was not in graph
+    /// Returns Some(true) if package is removed
     fn do_remove(&mut self, package: &PackageIdent) -> Option<bool> {
         match self.nodes.remove(&package) {
             Some(idx) => {
                 // And remove from graph
                 match self.graph.remove_node(idx) {
                     Some(ident) => assert_eq!(&ident, package),
-                    None => panic!("removed node from map but it wasn't in the graph: {}", package)
+                    None => panic!(
+                        "removed node from map but it wasn't in the graph: {}",
+                        package
+                    ),
                 }
                 Some(true)
             }
@@ -149,8 +165,13 @@ impl PackageGraph {
     }
 
     /// Returns the number of packages in the package graph
-    pub fn count_packages(&self) -> usize {
+    fn node_count(&self) -> usize {
         self.graph.node_count()
+    }
+
+    /// Returns the number of edges (dependencies) in the package graph
+    fn edge_count(&self) -> usize {
+        self.graph.edge_count()
     }
 }
 
@@ -158,6 +179,19 @@ impl PackageGraph {
 mod test {
     use super::*;
     use std::str::FromStr;
+
+    struct PackageDeps {
+        ident: PackageIdent,
+        deps: Vec<PackageIdent>,
+    }
+
+    fn build(packages: Vec<PackageDeps>) -> PackageGraph {
+        let mut graph = PackageGraph::new();
+        for p in &packages {
+            graph.extend(&p.ident, &p.deps);
+        }
+        graph
+    }
 
     fn empty_package_deps(ident: PackageIdent) -> PackageDeps {
         PackageDeps {
@@ -175,32 +209,27 @@ mod test {
 
     #[test]
     fn empty_graph() {
-        let mut graph = PackageGraph::new();
         let packages = Vec::new();
 
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
-        assert_eq!(ncount, 0);
-        assert_eq!(ecount, 0);
+        let graph = build(packages);
+        assert_eq!(graph.node_count(), 0);
+        assert_eq!(graph.edge_count(), 0);
     }
 
     #[test]
     fn no_deps_graph() {
-        let mut graph = PackageGraph::new();
-
         let packages = vec![
             empty_package_deps(PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap()),
             empty_package_deps(PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap()),
         ];
 
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
-        assert_eq!(ncount, 2);
-        assert_eq!(ecount, 0);
+        let graph = build(packages);
+        assert_eq!(graph.node_count(), 2);
+        assert_eq!(graph.edge_count(), 0);
     }
 
     #[test]
     fn simplest_graph() {
-        let mut graph = PackageGraph::new();
-
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let packages = vec![
@@ -208,20 +237,16 @@ mod test {
             package_deps(b.clone(), &vec![a.clone()]),
         ];
 
-        assert_eq!(false, graph.has_package(&a));
-        assert_eq!(false, graph.has_package(&b));
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
+        let graph = build(packages);
         assert!(graph.has_package(&a));
         assert!(graph.has_package(&b));
 
-        assert_eq!(ncount, 2);
-        assert_eq!(ecount, 1);
+        assert_eq!(graph.node_count(), 2);
+        assert_eq!(graph.edge_count(), 1);
     }
 
     #[test]
     fn count_deps_non_existent_package() {
-        let mut graph = PackageGraph::new();
-
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
@@ -233,9 +258,9 @@ mod test {
             package_deps(d.clone(), &vec![b.clone(), c.clone()]),
         ];
 
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
-        assert_eq!(ncount, 4);
-        assert_eq!(ecount, 4);
+        let graph = build(packages);
+        assert_eq!(graph.node_count(), 4);
+        assert_eq!(graph.edge_count(), 4);
 
         let does_not_exist = PackageIdent::from_str("core/baz").unwrap();
         assert!(graph.count_deps(&does_not_exist).is_none());
@@ -244,8 +269,6 @@ mod test {
 
     #[test]
     fn count_deps() {
-        let mut graph = PackageGraph::new();
-
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
@@ -257,9 +280,9 @@ mod test {
             package_deps(d.clone(), &vec![b.clone(), c.clone()]),
         ];
 
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
-        assert_eq!(ncount, 4);
-        assert_eq!(ecount, 4);
+        let graph = build(packages);
+        assert_eq!(graph.node_count(), 4);
+        assert_eq!(graph.edge_count(), 4);
 
         assert_eq!(graph.count_deps(&a).unwrap(), 0);
         assert_eq!(graph.count_deps(&b).unwrap(), 1);
@@ -269,8 +292,6 @@ mod test {
 
     #[test]
     fn count_rdeps() {
-        let mut graph = PackageGraph::new();
-
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
@@ -282,9 +303,9 @@ mod test {
             package_deps(d.clone(), &vec![b.clone(), c.clone()]),
         ];
 
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
-        assert_eq!(ncount, 4);
-        assert_eq!(ecount, 4);
+        let graph = build(packages);
+        assert_eq!(graph.node_count(), 4);
+        assert_eq!(graph.edge_count(), 4);
 
         assert_eq!(graph.count_rdeps(&a).unwrap(), 2);
         assert_eq!(graph.count_rdeps(&b).unwrap(), 1);
@@ -294,8 +315,6 @@ mod test {
 
     #[test]
     fn remove_package_no_rdeps() {
-        let mut graph = PackageGraph::new();
-
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
@@ -307,16 +326,16 @@ mod test {
             package_deps(d.clone(), &vec![b.clone(), c.clone()]),
         ];
 
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
-        assert_eq!(ncount, 4);
-        assert_eq!(ecount, 4);
+        let mut graph = build(packages);
+        assert_eq!(graph.node_count(), 4);
+        assert_eq!(graph.edge_count(), 4);
 
         assert_eq!(graph.count_rdeps(&d).unwrap(), 0);
 
         assert!(graph.remove(&d).unwrap());
         // package count decremented on remove
         assert_eq!(graph.has_package(&d), false);
-        assert_eq!(graph.count_packages(), 3);
+        assert_eq!(graph.node_count(), 3);
 
         // rdeps of dependencies should have decreased too
         assert_eq!(graph.count_rdeps(&b).unwrap(), 0);
@@ -325,8 +344,6 @@ mod test {
 
     #[test]
     fn cant_remove_package_with_rdeps() {
-        let mut graph = PackageGraph::new();
-
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let packages = vec![
@@ -334,13 +351,48 @@ mod test {
             package_deps(b.clone(), &vec![a.clone()]),
         ];
 
-        let (ncount, ecount) = graph.build(packages.into_iter()).unwrap();
-        assert_eq!(ncount, 2);
-        assert_eq!(ecount, 1);
+        let mut graph = build(packages);
+        assert_eq!(graph.node_count(), 2);
+        assert_eq!(graph.edge_count(), 1);
 
         assert_eq!(graph.count_rdeps(&a).unwrap(), 1);
 
         assert_eq!(graph.remove(&a).unwrap(), false);
-        assert_eq!(graph.count_packages(), 2);
+        assert_eq!(graph.node_count(), 2);
+    }
+
+    #[test]
+    fn ordered_deps_of_empty_deps() {
+        let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
+        let packages = vec![empty_package_deps(a.clone())];
+
+        let graph = build(packages);
+        assert_eq!(graph.node_count(), 1);
+        assert_eq!(graph.edge_count(), 0);
+
+        let odeps = graph.ordered_deps(&a);
+        assert_eq!(&Vec::<PackageIdent>::new(), &odeps);
+    }
+
+    #[test]
+    fn ordered_deps_are_in_order() {
+        let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
+        let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
+        let c = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
+        let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
+        let packages = vec![
+            empty_package_deps(a.clone()),
+            package_deps(b.clone(), &vec![a.clone()]),
+            package_deps(c.clone(), &vec![b.clone()]),
+            package_deps(d.clone(), &vec![c.clone()]),
+        ];
+
+        let graph = build(packages);
+        assert_eq!(graph.node_count(), 4);
+        assert_eq!(graph.edge_count(), 3);
+
+        let odeps = graph.ordered_deps(&d);
+        let expected = vec![c, b, a];
+        assert_eq!(expected, odeps);
     }
 }

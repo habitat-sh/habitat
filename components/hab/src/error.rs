@@ -41,6 +41,7 @@ pub enum Error {
     CannotParseBinlinkSource(PathBuf),
     CannotRemoveDockerStudio,
     CannotRemoveFromChannel((String, String)),
+    CannotRemovePackage(hcore::package::PackageIdent, usize),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     CtlClient(SrvClientError),
@@ -93,6 +94,10 @@ impl fmt::Display for Error {
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
                 format!("{} cannot be removed from the {} channel.", p, c)
             }
+            Error::CannotRemovePackage(ref p, ref c) => format!(
+                "Can't remove package: {}. It is a dependency of {} packages",
+                p, c
+            ),
             Error::CommandNotFoundInPkg((ref p, ref c)) => format!(
                 "`{}' was not found under any 'PATH' directories in the {} package",
                 c, p
@@ -191,6 +196,9 @@ impl error::Error for Error {
             }
             Error::CannotRemoveDockerStudio => {
                 "Docker Studios are not persistent and cannot be removed"
+            }
+            Error::CannotRemovePackage(_, _) => {
+                "A package can only be removed if it is not a dependency of any other package"
             }
             Error::CommandNotFoundInPkg(_) => {
                 "Command was not found under any 'PATH' directories in the package"

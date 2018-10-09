@@ -50,7 +50,7 @@ use hcore::crypto::keys::parse_name_with_rev;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::fs::cache_key_path;
 use hcore::fs::pkg_install_path;
-use hcore::package::list::INSTALL_TMP_PREFIX;
+use hcore::package::list::temp_package_directory;
 use hcore::package::metadata::PackageType;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
 use hyper::status::StatusCode;
@@ -59,7 +59,6 @@ use error::{Error, Result};
 use ui::{Status, UIWriter};
 
 use retry::retry;
-use tempdir::TempDir;
 
 pub const RETRIES: u64 = 5;
 pub const RETRY_WAIT: u64 = 3000;
@@ -732,31 +731,22 @@ impl<'a> InstallTask<'a> {
     {
         let ident = &artifact.ident()?;
         let real_install_path = &pkg_install_path(ident, Some(self.fs_root_path));
-        let real_install_base = real_install_path
-            .parent()
-            .ok_or(Error::PackageUnpackFailed(
-                "Could not determine parent directory for package unpack location".to_owned(),
-            ))?;
-        let temp_dir = self.temporary_unpack_directory(real_install_base, real_install_path)?;
-        let temp_install_path = &pkg_install_path(ident, Some(temp_dir.path()));
-        artifact.unpack(Some(temp_dir.path()))?;
-        fs::rename(temp_install_path, real_install_path)?;
-        #[cfg(unix)]
-        fs::File::open(real_install_base).and_then(|f| f.sync_all())?;
-        ui.status(Status::Installed, ident)?;
-        Ok(())
-    }
 
-    fn temporary_unpack_directory(&self, base: &Path, full_path: &Path) -> Result<TempDir> {
-        fs::create_dir_all(base)?;
-        let temp_install_prefix = full_path
-            .file_name()
-            .and_then(|f| f.to_str())
-            .and_then(|dirname| Some(format!("{}-{}", INSTALL_TMP_PREFIX, dirname)))
-            .ok_or(Error::PackageUnpackFailed(
-                "Could not generate prefix for temporary unpack directory".to_owned(),
-            ))?;
-        Ok(TempDir::new_in(base, &temp_install_prefix)?)
+        // This match will always return Ok(Path) as the install path is at least 2 levels
+        // below the fs_root_path
+        match real_install_path.parent() {
+            Some(real_install_base) => {
+                let temp_dir = temp_package_directory(real_install_path)?;
+                let temp_install_path = &pkg_install_path(ident, Some(temp_dir.path()));
+                artifact.unpack(Some(temp_dir.path()))?;
+                fs::rename(temp_install_path, real_install_path)?;
+                #[cfg(unix)]
+                fs::File::open(real_install_base).and_then(|f| f.sync_all())?;
+                ui.status(Status::Installed, ident)?;
+                Ok(())
+            }
+            None => unreachable!("Install path doesn't have a parent"),
+        }
     }
 
     /// Adapter function to retrieve an installed package given an

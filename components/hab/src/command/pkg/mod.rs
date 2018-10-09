@@ -28,5 +28,22 @@ pub mod promote;
 pub mod provides;
 pub mod search;
 pub mod sign;
+pub mod uninstall;
 pub mod upload;
 pub mod verify;
+
+/// Used in commands like uninstall which provide a --dry-run option
+pub enum ExecutionStrategy {
+    /// Don't actually run commands that mutate the state of the system,
+    /// simply print their output
+    DryRun,
+    /// Run commands which mutuate state
+    Run,
+}
+
+/// Used in `hab pkg uninstall` to choose where to iterate over just a package
+/// or the package and it's dependencies
+pub enum Scope {
+    Package,
+    PackageAndDependencies,
+}
