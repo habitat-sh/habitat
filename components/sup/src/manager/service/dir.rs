@@ -116,6 +116,13 @@ impl<'a> SvcDir<'a> {
     where
         P: AsRef<Path>,
     {
+        // We do not want to change the permissions of an already
+        // existing directory
+        // See https://github.com/habitat-sh/habitat/issues/4475
+        if path.as_ref().exists() {
+            return Ok(());
+        }
+
         Self::create_dir_all(&path)?;
         if cfg!(not(windows)) {
             if abilities::can_run_services_as_svc_user() {
