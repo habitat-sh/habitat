@@ -18,6 +18,7 @@ dirs = "*"
 env_logger = "*"
 features = "*"
 futures = "*"
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
 habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
@@ -32,7 +33,7 @@ retry = "*"
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
-tabwriter = "1"
+tabwriter = "*"
 toml = { version = "*", default-features = false }
 url = "*"
 walkdir = "*"

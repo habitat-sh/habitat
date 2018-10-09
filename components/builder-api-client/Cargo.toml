@@ -8,8 +8,9 @@ workspace = "../../"
 broadcast = "*"
 chrono = "*"
 clippy = {version = "*", optional = true}
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
-hyper-openssl = ""
+hyper-openssl = "*"
 log = "*"
 pbr = "*"
 rand = "*"
