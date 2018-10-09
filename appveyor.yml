@@ -19,6 +19,12 @@ init:
 
 clone_folder: c:\projects\habitat
 
+# Avoid running tests if only the docs are modofied
+skip_commits:
+  files:
+    - '*.md'
+    - docs/*.md
+
 environment:
   CI: true
   CARGO_HOME: "c:\\cargo"
