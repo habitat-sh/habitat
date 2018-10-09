@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Skip Appveyor if only the docs are updated [#5722](https://github.com/habitat-sh/habitat/pull/5722) ([btm](https://github.com/btm))
 - fixed typo [#5721](https://github.com/habitat-sh/habitat/pull/5721) ([davidkazuhiro](https://github.com/davidkazuhiro))
 - update crates [#5719](https://github.com/habitat-sh/habitat/pull/5719) ([mwrock](https://github.com/mwrock))
 - Remove &quot;maintenance window&quot; step from release pipeline [#5718](https://github.com/habitat-sh/habitat/pull/5718) ([christophermaier](https://github.com/christophermaier))
@@ -29,6 +30,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- Skip Appveyor if only the docs are updated [#5722](https://github.com/habitat-sh/habitat/pull/5722) ([btm](https://github.com/btm))
 - fixed typo [#5721](https://github.com/habitat-sh/habitat/pull/5721) ([davidkazuhiro](https://github.com/davidkazuhiro))
 - update crates [#5719](https://github.com/habitat-sh/habitat/pull/5719) ([mwrock](https://github.com/mwrock))
 - Remove &quot;maintenance window&quot; step from release pipeline [#5718](https://github.com/habitat-sh/habitat/pull/5718) ([christophermaier](https://github.com/christophermaier))
