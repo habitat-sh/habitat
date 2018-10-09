@@ -62,7 +62,7 @@ use bytes::{Buf, BufMut, Bytes, BytesMut};
 use futures;
 use prost::{self, Message};
 use tokio::net::TcpStream;
-use tokio_io::codec::{Decoder, Encoder, Framed};
+use tokio_codec::{Decoder, Encoder, Framed};
 
 use message::MessageStatic;
 use net::{NetErr, NetResult};

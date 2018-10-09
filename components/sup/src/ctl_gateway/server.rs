@@ -40,8 +40,8 @@ use protocol;
 use protocol::codec::*;
 use protocol::net::{self, ErrCode, NetErr, NetResult};
 use tokio::net::TcpListener;
+use tokio_codec::Framed;
 use tokio_core::reactor;
-use tokio_io::AsyncRead;
 
 use super::{CtlRequest, REQ_TIMEOUT};
 use manager::{Manager, ManagerState};
@@ -468,7 +468,7 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_tx: MgrSender) {
             let state = Rc::new(RefCell::new(state));
             let clients = listener.incoming().map(|socket| {
                 let addr = socket.peer_addr().unwrap();
-                let io = socket.framed(SrvCodec::new());
+                let io = Framed::new(socket, SrvCodec::new());
                 (
                     Client {
                         handle: handle.clone(),
