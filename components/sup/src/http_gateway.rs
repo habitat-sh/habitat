@@ -161,7 +161,7 @@ impl Server {
             .unwrap()
             .start();
 
-            let _ = sys.run();
+            sys.run();
         });
     }
 }
