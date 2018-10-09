@@ -29,7 +29,7 @@ use std;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::mem;
 use std::net::SocketAddr;
 use std::ops::DerefMut;
@@ -187,6 +187,13 @@ pub struct ManagerState {
     pub services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
 }
 
+#[derive(Default)]
+pub struct GatewayState {
+    pub census_data: String,
+    pub butterfly_data: String,
+    pub services_data: String,
+}
+
 pub struct Manager {
     pub state: Rc<ManagerState>,
     butterfly: butterfly::Server,
@@ -203,6 +210,7 @@ pub struct Manager {
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
     http_disable: bool,
+    gateway_state: Arc<RwLock<GatewayState>>,
 }
 
 impl Manager {
@@ -400,6 +408,7 @@ impl Manager {
             service_states: HashMap::new(),
             sys: Arc::new(sys),
             http_disable: cfg.http_disable,
+            gateway_state: Arc::new(RwLock::new(GatewayState::default())),
         })
     }
 
@@ -676,7 +685,11 @@ impl Manager {
             info!("http-gateway disabled");
         } else {
             outputln!("Starting http-gateway on {}", &http_listen_addr);
-            http_gateway::Server::run(self.fs_cfg.clone(), http_listen_addr);
+            http_gateway::Server::run(
+                http_listen_addr,
+                self.fs_cfg.clone(),
+                self.gateway_state.clone(),
+            );
             debug!("http-gateway started");
         }
 
@@ -1418,71 +1431,29 @@ impl Manager {
 
     fn persist_census_state(&self) {
         let crp = CensusRingProxy::new(&self.census_ring);
-        let tmp_file = self.fs_cfg.census_data_path.with_extension("dat.tmp");
-        let file = match File::create(&tmp_file) {
-            Ok(file) => file,
-            Err(err) => {
-                warn!("Couldn't open temporary census state file, {}", err);
-                return;
-            }
-        };
-        let mut writer = BufWriter::new(file);
-        if let Some(err) = writer
-            .write(serde_json::to_string(&crp).unwrap().as_bytes())
-            .err()
-        {
-            warn!("Couldn't write to census state file, {}", err);
-        }
-        if let Some(err) = writer.flush().err() {
-            warn!("Couldn't flush census state buffer to disk, {}", err);
-        }
-        if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.census_data_path).err() {
-            warn!("Couldn't finalize census state on disk, {}", err);
-        }
+        let json = serde_json::to_string(&crp).unwrap();
+        self.gateway_state
+            .write()
+            .expect("Gateway State lock is poisoned")
+            .census_data = json;
     }
 
     fn persist_butterfly_state(&self) {
         let bs = ServerProxy::new(&self.butterfly);
-        let tmp_file = self.fs_cfg.butterfly_data_path.with_extension("dat.tmp");
-        let file = match File::create(&tmp_file) {
-            Ok(file) => file,
-            Err(err) => {
-                warn!("Couldn't open temporary butterfly state file, {}", err);
-                return;
-            }
-        };
-        let mut writer = BufWriter::new(file);
-        if let Some(err) = writer
-            .write(serde_json::to_string(&bs).unwrap().as_bytes())
-            .err()
-        {
-            warn!("Couldn't write to butterfly state file, {}", err);
-        }
-        if let Some(err) = writer.flush().err() {
-            warn!("Couldn't flush butterfly state buffer to disk, {}", err);
-        }
-        if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.butterfly_data_path).err() {
-            warn!("Couldn't finalize butterfly state on disk, {}", err);
-        }
+        let json = serde_json::to_string(&bs).unwrap();
+        self.gateway_state
+            .write()
+            .expect("Gateway State lock is poisoned")
+            .butterfly_data = json;
     }
 
     fn persist_services_state(&self) {
-        let tmp_file = self.fs_cfg.services_data_path.with_extension("dat.tmp");
-        let file = match File::create(&tmp_file) {
-            Ok(file) => file,
-            Err(err) => {
-                warn!("Couldn't open temporary services state file, {}", err);
-                return;
-            }
-        };
-
         let config_rendering = if feat::is_enabled(feat::RedactHTTP) {
             ConfigRendering::Redacted
         } else {
             ConfigRendering::Full
         };
 
-        let mut writer = BufWriter::new(file);
         let services = self
             .state
             .services
@@ -1519,21 +1490,11 @@ impl Manager {
 
         services_to_render.extend(watched_service_proxies);
 
-        if let Some(err) = writer
-            .write(
-                serde_json::to_string(&services_to_render)
-                    .unwrap()
-                    .as_bytes(),
-            ).err()
-        {
-            warn!("Couldn't write to butterfly state file, {}", err);
-        }
-        if let Some(err) = writer.flush().err() {
-            warn!("Couldn't flush services state buffer to disk, {}", err);
-        }
-        if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.services_data_path).err() {
-            warn!("Couldn't finalize services state on disk, {}", err);
-        }
+        let json = serde_json::to_string(&services_to_render).unwrap();
+        self.gateway_state
+            .write()
+            .expect("Gateway State lock is poisoned")
+            .services_data = json;
     }
 
     /// Remove the given service from the manager.

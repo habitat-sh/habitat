@@ -18,10 +18,9 @@ use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
 use std::ops::{Deref, DerefMut};
 use std::option;
-use std::path;
 use std::result;
 use std::str::FromStr;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::thread;
 
 use actix;
@@ -132,23 +131,31 @@ impl Into<StatusCode> for HealthCheck {
 
 struct AppState {
     fs_cfg: Arc<manager::FsCfg>,
+    gateway_state: Arc<RwLock<manager::GatewayState>>,
 }
 
 impl AppState {
-    fn new(fs_cfg: Arc<manager::FsCfg>) -> Self {
-        AppState { fs_cfg: fs_cfg }
+    fn new(fs_cfg: Arc<manager::FsCfg>, gs: Arc<RwLock<manager::GatewayState>>) -> Self {
+        AppState {
+            fs_cfg: fs_cfg,
+            gateway_state: gs,
+        }
     }
 }
 
 pub struct Server;
 
 impl Server {
-    pub fn run(fs_cfg: Arc<manager::FsCfg>, listen_addr: ListenAddr) {
+    pub fn run(
+        listen_addr: ListenAddr,
+        fs_cfg: Arc<manager::FsCfg>,
+        gateway_state: Arc<RwLock<manager::GatewayState>>,
+    ) {
         thread::spawn(move || {
             let sys = actix::System::new("sup-http-gateway");
 
             server::new(move || {
-                let app_state = AppState::new(fs_cfg.clone());
+                let app_state = AppState::new(fs_cfg.clone(), gateway_state.clone());
                 App::with_state(app_state).configure(routes)
             }).bind(listen_addr.to_string())
             .unwrap()
@@ -188,48 +195,33 @@ fn routes(app: App<AppState>) -> App<AppState> {
 
 // Begin route handlers
 fn butterfly(req: &HttpRequest<AppState>) -> HttpResponse {
-    let path = &req.state().fs_cfg.butterfly_data_path;
-
-    match File::open(&path) {
-        Ok(mut file) => {
-            let mut contents = String::new();
-            if file.read_to_string(&mut contents).is_err() {
-                return HttpResponse::InternalServerError().finish();
-            }
-            HttpResponse::Ok().body(contents)
-        }
-        Err(_) => HttpResponse::ServiceUnavailable().finish(),
-    }
+    let data = &req
+        .state()
+        .gateway_state
+        .read()
+        .expect("Gateway State lock is poisoned")
+        .butterfly_data;
+    HttpResponse::Ok().body(data)
 }
 
 fn census(req: &HttpRequest<AppState>) -> HttpResponse {
-    let path = &req.state().fs_cfg.census_data_path;
-
-    match File::open(&path) {
-        Ok(mut file) => {
-            let mut contents = String::new();
-            if file.read_to_string(&mut contents).is_err() {
-                return HttpResponse::InternalServerError().finish();
-            }
-            HttpResponse::Ok().body(contents)
-        }
-        Err(_) => HttpResponse::ServiceUnavailable().finish(),
-    }
+    let data = &req
+        .state()
+        .gateway_state
+        .read()
+        .expect("Gateway State lock is poisoned")
+        .census_data;
+    HttpResponse::Ok().body(data)
 }
 
 fn services(req: &HttpRequest<AppState>) -> HttpResponse {
-    let path = &req.state().fs_cfg.services_data_path;
-
-    match File::open(&path) {
-        Ok(mut file) => {
-            let mut contents = String::new();
-            if file.read_to_string(&mut contents).is_err() {
-                return HttpResponse::InternalServerError().finish();
-            }
-            HttpResponse::Ok().body(contents)
-        }
-        Err(_) => HttpResponse::ServiceUnavailable().finish(),
-    }
+    let data = &req
+        .state()
+        .gateway_state
+        .read()
+        .expect("Gateway State lock is poisoned")
+        .services_data;
+    HttpResponse::Ok().body(data)
 }
 
 // Honestly, this doesn't feel great, but it's the pattern builder-api uses, and at the
@@ -254,18 +246,19 @@ fn config(
     group: String,
     org: Option<&str>,
 ) -> HttpResponse {
-    let path = &req.state().fs_cfg.services_data_path;
+    let data = &req
+        .state()
+        .gateway_state
+        .read()
+        .expect("Gateway State lock is poisoned")
+        .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    match service_from_file(&service_group, &path) {
-        Ok(Some(mut s)) => HttpResponse::Ok().json(s["cfg"].take()),
-        Ok(None) => HttpResponse::NotFound().finish(),
-        Err(e) => {
-            error!("Error retrieving the config. e = {:?}", e);
-            HttpResponse::ServiceUnavailable().finish()
-        }
+    match service_from_services(&service_group, &data) {
+        Some(mut s) => HttpResponse::Ok().json(s["cfg"].take()),
+        None => HttpResponse::NotFound().finish(),
     }
 }
 
@@ -344,18 +337,19 @@ fn service(
     group: String,
     org: Option<&str>,
 ) -> HttpResponse {
-    let path = &req.state().fs_cfg.services_data_path;
+    let data = &req
+        .state()
+        .gateway_state
+        .read()
+        .expect("Gateway State lock is poisoned")
+        .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    match service_from_file(&service_group, &path) {
-        Ok(Some(s)) => HttpResponse::Ok().json(s),
-        Ok(None) => HttpResponse::NotFound().finish(),
-        Err(e) => {
-            error!("Error retrieving the service. e = {:?}", e);
-            HttpResponse::ServiceUnavailable().finish()
-        }
+    match service_from_services(&service_group, &data) {
+        Some(s) => HttpResponse::Ok().json(s),
+        None => HttpResponse::NotFound().finish(),
     }
 }
 
@@ -364,22 +358,12 @@ fn doc(_req: &HttpRequest<AppState>) -> HttpResponse {
 }
 // End route handlers
 
-// JB TODO: this should get deleted after we switch to a channel
-fn service_from_file<T>(
-    service_group: &ServiceGroup,
-    services_data_path: T,
-) -> result::Result<Option<Json>, io::Error>
-where
-    T: AsRef<path::Path>,
-{
-    match File::open(services_data_path) {
-        Ok(file) => match serde_json::from_reader(file) {
-            Ok(Json::Array(services)) => Ok(services
-                .into_iter()
-                .find(|s| s["service_group"] == service_group.as_ref())),
-            _ => Ok(None),
-        },
-        Err(err) => Err(err),
+fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> Option<Json> {
+    match serde_json::from_str(services_json) {
+        Ok(Json::Array(services)) => services
+            .into_iter()
+            .find(|s| s["service_group"] == service_group.as_ref()),
+        _ => None,
     }
 }
 
