@@ -25,6 +25,7 @@
 - Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 
 #### Bug Fixes
+- Remove unnecessary crate version pins, fix typo and add comments for hyper pins [#5729](https://github.com/habitat-sh/habitat/pull/5729) ([baumanj](https://github.com/baumanj))
 - Tokio deprecation fixes [#5727](https://github.com/habitat-sh/habitat/pull/5727) ([baumanj](https://github.com/baumanj))
 - Don&#39;t abandon service processes after a Supervisor restart [#5697](https://github.com/habitat-sh/habitat/pull/5697) ([christophermaier](https://github.com/christophermaier))
 - [hab-sup] Copy binding_mode when transforming Service to ServiceSpec [#5706](https://github.com/habitat-sh/habitat/pull/5706) ([stevendanna](https://github.com/stevendanna))
