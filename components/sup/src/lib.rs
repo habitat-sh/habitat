@@ -86,9 +86,9 @@ extern crate serde_yaml;
 extern crate tempdir;
 extern crate time;
 extern crate tokio;
+extern crate tokio_codec;
 #[macro_use]
 extern crate tokio_core;
-extern crate tokio_io;
 extern crate toml;
 extern crate url;
 extern crate valico;

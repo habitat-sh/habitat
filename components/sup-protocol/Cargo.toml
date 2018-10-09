@@ -18,7 +18,7 @@ rand = "*"
 serde = "*"
 serde_derive = "*"
 tokio = "*"
-tokio-io = "*"
+tokio-codec = "*"
 
 [build-dependencies]
 heck = "*"

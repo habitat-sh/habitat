@@ -45,7 +45,7 @@ extern crate habitat_sup_protocol as protocol;
 extern crate log;
 extern crate prost;
 extern crate tokio;
-extern crate tokio_io;
+extern crate tokio_codec;
 
 use std::error;
 use std::fmt;
@@ -58,7 +58,7 @@ use futures::sink;
 use protocol::codec::*;
 use protocol::net::NetErr;
 use tokio::net::TcpStream;
-use tokio_io::AsyncRead;
+use tokio_codec::Framed;
 
 pub type SrvSend = sink::Send<SrvStream>;
 
@@ -190,7 +190,7 @@ impl SrvClient {
 
     fn new(socket: TcpStream, current_txn: Option<SrvTxn>) -> Self {
         SrvClient {
-            socket: socket.framed(SrvCodec::new()),
+            socket: Framed::new(socket, SrvCodec::new()),
             current_txn: current_txn.unwrap_or_default(),
         }
     }
