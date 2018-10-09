@@ -75,6 +75,7 @@ ctrlc = "*"
 winapi = "*"
 
 [dev-dependencies]
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
 json = "*"
 

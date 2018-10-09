@@ -36,7 +36,7 @@ mktemp = "*"
 
 [build-dependencies]
 heck = "*"
-pkg-config = "0.3"
+pkg-config = "*"
 prost = "*"
 prost-build = "*"
 tempdir = "*"

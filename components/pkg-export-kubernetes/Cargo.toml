@@ -24,8 +24,8 @@ habitat_pkg_export_docker = { path = "../pkg-export-docker" }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "0.29.1", default-features = false }
 log = "*"
-serde = "1.0.2"
-serde_json = "1.0.0"
+serde = "*"
+serde_json = "*"
 failure = "*"
 failure_derive = "*"
 

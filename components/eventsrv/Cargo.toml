@@ -28,7 +28,7 @@ git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
 
 [build-dependencies]
-pkg-config = "0.3"
+pkg-config = "*"
 
 [features]
 default = []

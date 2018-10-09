@@ -10,7 +10,7 @@ serde = "*"
 serde_derive = "*"
 
 [build-dependencies]
-pkg-config = "0.3"
+pkg-config = "*"
 
 [features]
 protocols = []
