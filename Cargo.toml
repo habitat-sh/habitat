@@ -10,9 +10,11 @@ workspace = "../../"
 base64 = "*"
 log = "*"
 httparse = "*"
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper-openssl = "0.2"
-# JB: pinning this for now to avoid a ton of breaking changes
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 openssl = "0.9.23"
 serde = "*"
 serde_json = "*"
