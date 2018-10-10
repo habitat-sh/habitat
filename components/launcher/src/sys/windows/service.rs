@@ -81,7 +81,7 @@ impl Process {
         }
     }
 
-    pub fn wait(&mut self) -> Result<ExitStatus> {
+    pub fn wait(&mut self) -> io::Result<ExitStatus> {
         unsafe {
             let res = synchapi::WaitForSingleObject(self.handle.raw(), INFINITE);
             if res != WAIT_OBJECT_0 {
@@ -96,7 +96,7 @@ impl Process {
         }
     }
 
-    pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
+    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
         unsafe {
             match synchapi::WaitForSingleObject(self.handle.raw(), 0) {
                 WAIT_OBJECT_0 => {}
