@@ -52,6 +52,8 @@ impl Process {
         unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 }
     }
 
+    /// Attempt to gracefully terminate a process and then forcefully kill it after
+    /// 8 seconds if it has not terminated.
     pub fn kill(&mut self) -> ShutdownMethod {
         if self.status().is_some() {
             return ShutdownMethod::AlreadyExited;

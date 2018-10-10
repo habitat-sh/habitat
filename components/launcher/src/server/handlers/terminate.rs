@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use core::os::process::Pid;
 use protocol;
 
 use super::{HandleResult, Handler};
@@ -24,7 +23,7 @@ impl Handler for TerminateHandler {
     type Reply = protocol::TerminateOk;
 
     fn handle(msg: Self::Message, services: &mut ServiceTable) -> HandleResult<Self::Reply> {
-        match services.get_mut(msg.get_pid() as Pid) {
+        match services.get_mut(msg.get_pid() as u32) {
             Some(service) => {
                 debug!("Terminating: {}", service.id());
                 let shutdown_method = service.kill();
@@ -35,7 +34,11 @@ impl Handler for TerminateHandler {
                         reply.set_shutdown_method(shutdown_method);
                         Ok(reply)
                     }
-                    Err(err) => Err(protocol::error(err)),
+                    Err(_) => {
+                        let mut reply = protocol::NetErr::new();
+                        reply.set_code(protocol::ErrCode::ExecWait);
+                        Err(reply)
+                    }
                 }
             }
             None => {

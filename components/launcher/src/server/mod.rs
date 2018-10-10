@@ -341,14 +341,14 @@ impl Server {
 }
 
 #[derive(Debug, Default)]
-pub struct ServiceTable(HashMap<Pid, Service>);
+pub struct ServiceTable(HashMap<u32, Service>);
 
 impl ServiceTable {
-    pub fn get(&self, pid: Pid) -> Option<&Service> {
+    pub fn get(&self, pid: u32) -> Option<&Service> {
         self.0.get(&pid)
     }
 
-    pub fn get_mut(&mut self, pid: Pid) -> Option<&mut Service> {
+    pub fn get_mut(&mut self, pid: u32) -> Option<&mut Service> {
         self.0.get_mut(&pid)
     }
 
@@ -356,7 +356,7 @@ impl ServiceTable {
         self.0.insert(service.id(), service);
     }
 
-    pub fn remove(&mut self, pid: Pid) -> Option<Service> {
+    pub fn remove(&mut self, pid: u32) -> Option<Service> {
         self.0.remove(&pid)
     }
 
@@ -369,7 +369,7 @@ impl ServiceTable {
     }
 
     fn reap_services(&mut self) {
-        let mut dead: Vec<Pid> = vec![];
+        let mut dead: Vec<u32> = vec![];
         for service in self.0.values_mut() {
             match service.try_wait() {
                 Ok(None) => (),
