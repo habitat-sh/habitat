@@ -398,7 +398,7 @@ impl Client {
         };
         match result {
             Ok(response) => {
-                if response.status == StatusCode::Ok {
+                if response.status == StatusCode::Created || response.status == StatusCode::Ok {
                     let sr: SchedulerResponse = decoded_response(response)?;
                     Ok(sr.id)
                 } else {
