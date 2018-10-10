@@ -91,7 +91,7 @@ impl Process {
             cvt(processthreadsapi::GetExitCodeProcess(
                 self.handle.raw(),
                 &mut status,
-            )?;
+            ))?;
             Ok(ExitStatus::from(status))
         }
     }
@@ -107,7 +107,7 @@ impl Process {
             cvt(processthreadsapi::GetExitCodeProcess(
                 self.handle.raw(),
                 &mut status,
-            )?;
+            ))?;
             Ok(Some(ExitStatus::from(status)))
         }
     }
