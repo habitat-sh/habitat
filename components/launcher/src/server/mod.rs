@@ -16,7 +16,8 @@ mod handlers;
 
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
 use std::sync::{Arc, Condvar, Mutex};
@@ -64,6 +65,7 @@ enum TickState {
 }
 
 pub struct Server {
+    pid_file_path: PathBuf,
     services: ServiceTable,
     tx: Sender,
     rx: Receiver,
@@ -74,14 +76,22 @@ pub struct Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
+        fs::remove_file(&self.pid_file_path).ok();
         self.remove_pipe();
     }
 }
 
 impl Server {
     pub fn new(args: Vec<String>) -> Result<Self> {
+        let launcher_root = Path::new(&*core::fs::FS_ROOT_PATH).join("hab/launcher");
+        fs::create_dir_all(&launcher_root)?;
+        let pid_file_path = launcher_root.join("PID");
+        let mut pid_file = fs::File::create(&pid_file_path)?;
+        write!(&mut pid_file, "{}", process::current_pid())?;
+
         let ((rx, tx), supervisor, pipe) = Self::init(&args, false)?;
         Ok(Server {
+            pid_file_path: pid_file_path,
             services: ServiceTable::default(),
             tx: tx,
             rx: rx,
