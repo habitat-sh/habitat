@@ -34,6 +34,7 @@ use core::os::process::{self, Pid, Signal};
 use core::os::signals::{self, SignalEvent};
 use core::package::{PackageIdent, PackageInstall};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
+#[cfg(unix)]
 use libc;
 use protobuf;
 use protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};

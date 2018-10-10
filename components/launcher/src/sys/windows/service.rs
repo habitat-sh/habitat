@@ -85,13 +85,13 @@ impl Process {
         unsafe {
             let res = synchapi::WaitForSingleObject(self.handle.raw(), INFINITE);
             if res != WAIT_OBJECT_0 {
-                return Err(Error::ExecWait(io::Error::last_os_error()));
+                return Err(io::Error::last_os_error());
             }
             let mut status = 0;
             cvt(processthreadsapi::GetExitCodeProcess(
                 self.handle.raw(),
                 &mut status,
-            )).map_err(Error::ExecWait)?;
+            )?;
             Ok(ExitStatus::from(status))
         }
     }
@@ -101,13 +101,13 @@ impl Process {
             match synchapi::WaitForSingleObject(self.handle.raw(), 0) {
                 WAIT_OBJECT_0 => {}
                 WAIT_TIMEOUT => return Ok(None),
-                _ => return Err(Error::ExecWait(io::Error::last_os_error())),
+                _ => return Err(io::Error::last_os_error()),
             }
             let mut status = 0;
             cvt(processthreadsapi::GetExitCodeProcess(
                 self.handle.raw(),
                 &mut status,
-            )).map_err(Error::ExecWait)?;
+            )?;
             Ok(Some(ExitStatus::from(status)))
         }
     }
