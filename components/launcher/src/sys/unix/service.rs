@@ -14,53 +14,43 @@
 
 use std::io;
 use std::ops::Neg;
-use std::os::unix::process::{CommandExt, ExitStatusExt};
-use std::process::{Command, ExitStatus, Stdio};
+use std::os::unix::process::CommandExt;
+use std::process::{Child, Command, ExitStatus, Stdio};
 use std::result;
 
 use core::os;
-use core::os::process::{signal, Pid, Signal};
-use libc::{self, c_int, pid_t};
+use core::os::process::{signal, Signal};
+use libc;
 use protocol::{self, ShutdownMethod};
 use time::{Duration, SteadyTime};
 
 use error::{Error, Result};
 use service::Service;
 
-pub struct Process {
-    pid: pid_t,
-    status: Option<ExitStatus>,
-}
+pub struct Process(Child);
 
 impl Process {
-    fn new(pid: u32) -> Self {
-        Process {
-            pid: pid as pid_t,
-            status: None,
-        }
+    pub fn id(&self) -> u32 {
+        self.0.id()
     }
 
-    pub fn id(&self) -> Pid {
-        self.pid
-    }
-
-    /// Attempt to gracefully terminate a proccess and then forcefully kill it after
+    /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
     pub fn kill(&mut self) -> ShutdownMethod {
-        let mut pid_to_kill = self.pid;
+        let mut pid_to_kill = self.0.id() as i32;
         // check the group of the process being killed
         // if it is the root process of the process group
         // we send our signals to the entire process group
         // to prevent orphaned processes.
-        let pgid = unsafe { libc::getpgid(self.pid) };
-        if self.pid == pgid {
+        let pgid = unsafe { libc::getpgid(pid_to_kill) };
+        if pid_to_kill == pgid {
             debug!(
                 "pid to kill {} is the process group root. Sending signal to process group.",
-                self.pid
+                pid_to_kill
             );
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
-            pid_to_kill = self.pid.neg();
+            pid_to_kill = pid_to_kill.neg();
         }
 
         // JW TODO: Determine if the error represents a case where the process was already
@@ -85,33 +75,12 @@ impl Process {
         }
     }
 
-    pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
-        if let Some(status) = self.status {
-            return Ok(Some(status));
-        }
-        let mut status = 0 as c_int;
-        match unsafe { libc::waitpid(self.pid, &mut status, libc::WNOHANG) } {
-            0 => Ok(None),
-            -1 => Err(Error::ExecWait(io::Error::last_os_error())),
-            _ => {
-                self.status = Some(ExitStatus::from_raw(status));
-                Ok(Some(ExitStatus::from_raw(status)))
-            }
-        }
+    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
+        self.0.try_wait()
     }
 
-    pub fn wait(&mut self) -> Result<ExitStatus> {
-        if let Some(status) = self.status {
-            return Ok(status);
-        }
-        let mut status = 0 as c_int;
-        match unsafe { libc::waitpid(self.pid, &mut status, 0) } {
-            -1 => Err(Error::ExecWait(io::Error::last_os_error())),
-            _ => {
-                self.status = Some(ExitStatus::from_raw(status));
-                Ok(ExitStatus::from_raw(status))
-            }
-        }
+    pub fn wait(&mut self) -> io::Result<ExitStatus> {
+        self.0.wait()
     }
 }
 
@@ -142,9 +111,11 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     for (key, val) in msg.get_env().iter() {
         cmd.env(key, val);
     }
-    let child = cmd.spawn().map_err(Error::Spawn)?;
-    let process = Process::new(child.id());
-    Ok(Service::new(msg, process, child.stdout, child.stderr))
+    let mut child = cmd.spawn().map_err(Error::Spawn)?;
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+    let process = Process(child);
+    Ok(Service::new(msg, process, stdout, stderr))
 }
 
 // we want the command to spawn processes in their own process group
