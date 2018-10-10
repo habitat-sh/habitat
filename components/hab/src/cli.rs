@@ -72,7 +72,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group_not_ident}
                     "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
                 (@arg CFG_TYPE: -t --type +takes_value {valid_cfg_type}
-                    "The configuration layer to display [values: default, environment, user, gossip, merged]")
+                    "The configuration layer to display (values: default, environment, user, gossip, merged) [default: merged]")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
