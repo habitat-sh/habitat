@@ -210,7 +210,8 @@ impl Binlink {
             "\
 #!/bin/sh 
 if ! [ -x \"$(command -v hab)\" ]; then 
-    echo 'ERROR: The core/hab package needs to be binlinked' 
+    echo 'ERROR: The core/hab package needs to be on the path'
+    echo 'This can be achieved by binlinking core/hab'
     echo
     exit 1 
 fi 
@@ -220,25 +221,24 @@ hab pkg exec {0} {1} \"$@\"",
         );
 
         // Need to treat core/hab differently otherwise we get into a link loop
-        match format!("{}/{}", pkg_ident.origin, pkg_ident.name).as_ref() {
-            "core/hab" => Ok(Self {
+        if pkg_ident.origin == "core" && pkg_ident.name == "hab" {
+            Ok(Self {
                 dest: dest_dir.as_ref().join(bin_name),
                 src: src.as_ref().to_path_buf(),
-            }),
-            _ => {
-                fs::OpenOptions::new()
-                    .create(true)
-                    .write(true)
-                    .truncate(true)
-                    .mode(0o770)
-                    .open(&stub)?
-                    .write_all(template.as_bytes())?;
+            })
+        } else {
+            fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .mode(0o770)
+                .open(&stub)?
+                .write_all(template.as_bytes())?;
 
-                Ok(Self {
-                    dest: dest_dir.as_ref().join(bin_name),
-                    src: stub.as_ref().to_path_buf(),
-                })
-            }
+            Ok(Self {
+                dest: dest_dir.as_ref().join(bin_name),
+                src: stub.as_ref().to_path_buf(),
+            })
         }
     }
 
