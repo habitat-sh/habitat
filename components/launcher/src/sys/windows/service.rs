@@ -52,6 +52,8 @@ impl Process {
         unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 }
     }
 
+    /// Attempt to gracefully terminate a process and then forcefully kill it after
+    /// 8 seconds if it has not terminated.
     pub fn kill(&mut self) -> ShutdownMethod {
         if self.status().is_some() {
             return ShutdownMethod::AlreadyExited;
@@ -79,33 +81,33 @@ impl Process {
         }
     }
 
-    pub fn wait(&mut self) -> Result<ExitStatus> {
+    pub fn wait(&mut self) -> io::Result<ExitStatus> {
         unsafe {
             let res = synchapi::WaitForSingleObject(self.handle.raw(), INFINITE);
             if res != WAIT_OBJECT_0 {
-                return Err(Error::ExecWait(io::Error::last_os_error()));
+                return Err(io::Error::last_os_error());
             }
             let mut status = 0;
             cvt(processthreadsapi::GetExitCodeProcess(
                 self.handle.raw(),
                 &mut status,
-            )).map_err(Error::ExecWait)?;
+            ))?;
             Ok(ExitStatus::from(status))
         }
     }
 
-    pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
+    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
         unsafe {
             match synchapi::WaitForSingleObject(self.handle.raw(), 0) {
                 WAIT_OBJECT_0 => {}
                 WAIT_TIMEOUT => return Ok(None),
-                _ => return Err(Error::ExecWait(io::Error::last_os_error())),
+                _ => return Err(io::Error::last_os_error()),
             }
             let mut status = 0;
             cvt(processthreadsapi::GetExitCodeProcess(
                 self.handle.raw(),
                 &mut status,
-            )).map_err(Error::ExecWait)?;
+            ))?;
             Ok(Some(ExitStatus::from(status)))
         }
     }

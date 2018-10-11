@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use core::os::process::Pid;
 use protocol;
 
 use super::{HandleResult, Handler};
@@ -25,7 +24,7 @@ impl Handler for RestartHandler {
     type Reply = protocol::SpawnOk;
 
     fn handle(msg: Self::Message, services: &mut ServiceTable) -> HandleResult<Self::Reply> {
-        let mut service = match services.remove(msg.get_pid() as Pid) {
+        let mut service = match services.remove(msg.get_pid() as u32) {
             Some(service) => service,
             None => {
                 let mut reply = protocol::NetErr::new();
@@ -44,7 +43,11 @@ impl Handler for RestartHandler {
                 }
                 Err(err) => Err(protocol::error(err)),
             },
-            Err(err) => Err(protocol::error(err)),
+            Err(_) => {
+                let mut reply = protocol::NetErr::new();
+                reply.set_code(protocol::ErrCode::ExecWait);
+                Err(reply)
+            }
         }
     }
 }

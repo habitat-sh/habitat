@@ -20,16 +20,13 @@ use std::thread;
 
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
-use core::os::process::Pid;
 use protocol;
 
-use error::Result;
 pub use sys::service::*;
 
 pub struct Service {
     args: protocol::Spawn,
     process: Process,
-    status: Option<ExitStatus>,
 }
 
 impl Service {
@@ -56,7 +53,6 @@ impl Service {
         Service {
             args: spawn,
             process: process,
-            status: None,
         }
     }
 
@@ -64,7 +60,7 @@ impl Service {
         &self.args
     }
 
-    pub fn id(&self) -> Pid {
+    pub fn id(&self) -> u32 {
         self.process.id()
     }
 
@@ -82,23 +78,18 @@ impl Service {
         self.args
     }
 
-    pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
+    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
         self.process.try_wait()
     }
 
-    pub fn wait(&mut self) -> Result<ExitStatus> {
+    pub fn wait(&mut self) -> io::Result<ExitStatus> {
         self.process.wait()
     }
 }
 
 impl fmt::Debug for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Service {{ status: {:?}, pid: {:?} }}",
-            self.status,
-            self.process.id()
-        )
+        write!(f, "Service {{ pid: {:?} }}", self.process.id())
     }
 }
 
