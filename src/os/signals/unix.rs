@@ -14,18 +14,18 @@
 
 //! Traps and notifies UNIX signals.
 
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_BOOL_INIT, ATOMIC_USIZE_INIT};
-use std::sync::{Once, ONCE_INIT};
+use std::collections::VecDeque;
+use std::sync::{Mutex, Once, ONCE_INIT};
 
 use os::process::{OsSignal, Signal, SignalCode};
 
 use super::SignalEvent;
 
 static INIT: Once = ONCE_INIT;
-// True when we have caught a signal
-static CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
-// Stores the value of the signal we caught
-static SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
+
+lazy_static! {
+    static ref CAUGHT_SIGNALS: Mutex<VecDeque<SignalCode>> = Mutex::new(VecDeque::new());
+}
 
 // Functions from POSIX libc.
 extern "C" {
@@ -36,22 +36,27 @@ extern "C" {
 }
 
 unsafe extern "C" fn handle_signal(signal: SignalCode) {
-    CAUGHT.store(true, Ordering::SeqCst);
-    SIGNAL.store(signal as usize, Ordering::SeqCst);
+    CAUGHT_SIGNALS
+        .lock()
+        .expect("Signal mutex poisoned")
+        .push_back(signal);
 }
 
 pub fn init() {
     INIT.call_once(|| {
         self::set_signal_handlers();
-        CAUGHT.store(false, Ordering::SeqCst);
-        SIGNAL.store(0 as usize, Ordering::SeqCst);
     });
 }
 
+/// Consumers should call this function fairly frequently and since the vast
+/// majority of the time there is at most one signal event waiting, we return
+/// at most one. If multiple signals have been received since the last call,
+/// they will be returned, one per call in the order they were received.
 pub fn check_for_signal() -> Option<SignalEvent> {
-    if CAUGHT.load(Ordering::SeqCst) {
-        let code = SIGNAL.load(Ordering::SeqCst) as SignalCode;
-        let event = match Signal::from_signal_code(code) {
+    let mut signals = CAUGHT_SIGNALS.lock().expect("Signal mutex poisoned");
+
+    if let Some(code) = signals.pop_front() {
+        match Signal::from_signal_code(code) {
             Some(Signal::INT) | Some(Signal::TERM) => Some(SignalEvent::Shutdown),
             Some(Signal::CHLD) => Some(SignalEvent::WaitForChild),
             Some(signal) => Some(SignalEvent::Passthrough(signal)),
@@ -59,12 +64,7 @@ pub fn check_for_signal() -> Option<SignalEvent> {
                 println!("Received invalid signal: #{}", code);
                 None
             }
-        };
-        // Clear out a signal that has been caught so we don't end up
-        // processing it again.
-        CAUGHT.store(false, Ordering::SeqCst);
-        SIGNAL.store(0 as usize, Ordering::SeqCst);
-        event
+        }
     } else {
         None
     }
