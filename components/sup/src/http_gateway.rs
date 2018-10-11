@@ -130,32 +130,24 @@ impl Into<StatusCode> for HealthCheck {
 }
 
 struct AppState {
-    fs_cfg: Arc<manager::FsCfg>,
     gateway_state: Arc<RwLock<manager::GatewayState>>,
 }
 
 impl AppState {
-    fn new(fs_cfg: Arc<manager::FsCfg>, gs: Arc<RwLock<manager::GatewayState>>) -> Self {
-        AppState {
-            fs_cfg: fs_cfg,
-            gateway_state: gs,
-        }
+    fn new(gs: Arc<RwLock<manager::GatewayState>>) -> Self {
+        AppState { gateway_state: gs }
     }
 }
 
 pub struct Server;
 
 impl Server {
-    pub fn run(
-        listen_addr: ListenAddr,
-        fs_cfg: Arc<manager::FsCfg>,
-        gateway_state: Arc<RwLock<manager::GatewayState>>,
-    ) {
+    pub fn run(listen_addr: ListenAddr, gateway_state: Arc<RwLock<manager::GatewayState>>) {
         thread::spawn(move || {
             let sys = actix::System::new("sup-http-gateway");
 
             server::new(move || {
-                let app_state = AppState::new(fs_cfg.clone(), gateway_state.clone());
+                let app_state = AppState::new(gateway_state.clone());
                 App::with_state(app_state).configure(routes)
             }).bind(listen_addr.to_string())
             .unwrap()
@@ -199,7 +191,7 @@ fn butterfly(req: &HttpRequest<AppState>) -> HttpResponse {
         .state()
         .gateway_state
         .read()
-        .expect("Gateway State lock is poisoned")
+        .expect("GatewayState lock is poisoned")
         .butterfly_data;
     HttpResponse::Ok().body(data)
 }
@@ -209,7 +201,7 @@ fn census(req: &HttpRequest<AppState>) -> HttpResponse {
         .state()
         .gateway_state
         .read()
-        .expect("Gateway State lock is poisoned")
+        .expect("GatewayState lock is poisoned")
         .census_data;
     HttpResponse::Ok().body(data)
 }
@@ -219,7 +211,7 @@ fn services(req: &HttpRequest<AppState>) -> HttpResponse {
         .state()
         .gateway_state
         .read()
-        .expect("Gateway State lock is poisoned")
+        .expect("GatewayState lock is poisoned")
         .services_data;
     HttpResponse::Ok().body(data)
 }
@@ -250,7 +242,7 @@ fn config(
         .state()
         .gateway_state
         .read()
-        .expect("Gateway State lock is poisoned")
+        .expect("GatewayState lock is poisoned")
         .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
@@ -282,38 +274,38 @@ fn health(
     group: String,
     org: Option<&str>,
 ) -> HttpResponse {
-    let state = &req.state();
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    let health_file = &state.fs_cfg.health_check_cache(&service_group);
-    let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(&service_group);
-    let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(&service_group);
+    let gateway_state = &req
+        .state()
+        .gateway_state
+        .read()
+        .expect("GatewayState lock is poisoned");
+    let health_check = gateway_state.health_check_data.get(&service_group);
 
-    match File::open(&health_file) {
-        Ok(mut file) => {
-            let mut buf = String::new();
-            let mut body = HealthCheckBody::default();
-            file.read_to_string(&mut buf).unwrap();
-            let code = i8::from_str(buf.trim()).unwrap();
-            let health_check = HealthCheck::from(code);
-            let http_status: StatusCode = HealthCheck::from(code).into();
+    if health_check.is_some() {
+        let mut body = HealthCheckBody::default();
+        let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(&service_group);
+        let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(&service_group);
+        let http_status: StatusCode = health_check.unwrap().clone().into();
 
-            body.status = health_check.to_string();
-            if let Ok(mut file) = File::open(&stdout_path) {
-                let _ = file.read_to_string(&mut body.stdout);
-            }
-            if let Ok(mut file) = File::open(&stderr_path) {
-                let _ = file.read_to_string(&mut body.stderr);
-            }
-
-            HttpResponse::build(http_status).json(&body)
+        body.status = health_check.unwrap().to_string();
+        if let Ok(mut file) = File::open(&stdout_path) {
+            let _ = file.read_to_string(&mut body.stdout);
         }
-        Err(e) => {
-            error!("Error opening health file. e = {:?}", e);
-            HttpResponse::NotFound().finish()
+        if let Ok(mut file) = File::open(&stderr_path) {
+            let _ = file.read_to_string(&mut body.stderr);
         }
+
+        HttpResponse::build(http_status).json(&body)
+    } else {
+        debug!(
+            "Didn't find any health data for service group {:?}",
+            &service_group
+        );
+        HttpResponse::NotFound().finish()
     }
 }
 
@@ -341,7 +333,7 @@ fn service(
         .state()
         .gateway_state
         .read()
-        .expect("Gateway State lock is poisoned")
+        .expect("GatewayState lock is poisoned")
         .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,

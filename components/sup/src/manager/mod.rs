@@ -67,11 +67,11 @@ use toml;
 
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
+use self::service::{health::HealthCheck, DesiredState, IntoServiceSpec, Pkg, ProcessState};
 pub use self::service::{
     CompositeSpec, ConfigRendering, Service, ServiceBind, ServiceProxy, ServiceSpec, Spec,
     Topology, UpdateStrategy,
 };
-use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
@@ -98,9 +98,6 @@ static LOGKEY: &'static str = "MR";
 /// persistence data.
 #[derive(Debug, Serialize)]
 pub struct FsCfg {
-    pub butterfly_data_path: PathBuf,
-    pub census_data_path: PathBuf,
-    pub services_data_path: PathBuf,
     pub sup_root: PathBuf,
 
     data_path: PathBuf,
@@ -118,9 +115,6 @@ impl FsCfg {
         let sup_root = sup_root.into();
         let data_path = sup_root.join("data");
         FsCfg {
-            butterfly_data_path: data_path.join("butterfly.dat"),
-            census_data_path: data_path.join("census.dat"),
-            services_data_path: data_path.join("services.dat"),
             specs_path: sup_root.join("specs"),
             composites_path: sup_root.join("composites"),
             data_path: data_path,
@@ -128,11 +122,6 @@ impl FsCfg {
             proc_lock_file: sup_root.join(PROC_LOCK_FILE),
             sup_root: sup_root,
         }
-    }
-
-    pub fn health_check_cache(&self, service_group: &ServiceGroup) -> PathBuf {
-        self.data_path
-            .join(format!("{}.health", service_group.service()))
     }
 }
 
@@ -181,6 +170,9 @@ impl Default for ManagerConfig {
     }
 }
 
+/// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
+/// something you want the CtlGateway to be able to operate on, it needs to be put in here. This
+/// state gets shared with all the CtlGateway handlers.
 pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
     pub cfg: ManagerConfig,
@@ -188,11 +180,12 @@ pub struct ManagerState {
     pub gateway_state: Arc<RwLock<GatewayState>>,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct GatewayState {
     pub census_data: String,
     pub butterfly_data: String,
     pub services_data: String,
+    pub health_check_data: HashMap<ServiceGroup, HealthCheck>,
 }
 
 pub struct Manager {
@@ -261,7 +254,7 @@ impl Manager {
         let services_data = &mgr
             .gateway_state
             .read()
-            .expect("Gateway State lock is poisoned")
+            .expect("GatewayState lock is poisoned")
             .services_data;
         let statuses: Vec<ServiceStatus> = serde_json::from_str(&services_data)
             .map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))?;
@@ -605,6 +598,7 @@ impl Manager {
             spec.clone(),
             self.fs_cfg.clone(),
             self.organization.as_ref().map(|org| &**org),
+            self.state.gateway_state.clone(),
         ) {
             Ok(service) => {
                 outputln!("Starting {} ({})", &spec.ident, service.pkg.ident);
@@ -686,11 +680,7 @@ impl Manager {
             info!("http-gateway disabled");
         } else {
             outputln!("Starting http-gateway on {}", &http_listen_addr);
-            http_gateway::Server::run(
-                http_listen_addr,
-                self.fs_cfg.clone(),
-                self.state.gateway_state.clone(),
-            );
+            http_gateway::Server::run(http_listen_addr, self.state.gateway_state.clone());
             debug!("http-gateway started");
         }
 
@@ -1423,11 +1413,11 @@ impl Manager {
     }
 
     fn persist_state(&self) {
-        debug!("Writing census state to disk");
+        debug!("Updating census state");
         self.persist_census_state();
-        debug!("Writing butterfly state to disk");
+        debug!("Updating butterfly state");
         self.persist_butterfly_state();
-        debug!("Writing services state to disk");
+        debug!("Updating services state");
         self.persist_services_state();
     }
 
@@ -1437,7 +1427,7 @@ impl Manager {
         self.state
             .gateway_state
             .write()
-            .expect("Gateway State lock is poisoned")
+            .expect("GatewayState lock is poisoned")
             .census_data = json;
     }
 
@@ -1447,7 +1437,7 @@ impl Manager {
         self.state
             .gateway_state
             .write()
-            .expect("Gateway State lock is poisoned")
+            .expect("GatewayState lock is poisoned")
             .butterfly_data = json;
     }
 
@@ -1481,6 +1471,7 @@ impl Manager {
                     spec.clone(),
                     self.fs_cfg.clone(),
                     self.organization.as_ref().map(|org| &**org),
+                    self.state.gateway_state.clone(),
                 ).into_iter()
             }).collect();
         let watched_service_proxies: Vec<ServiceProxy> = watched_services
@@ -1498,7 +1489,7 @@ impl Manager {
         self.state
             .gateway_state
             .write()
-            .expect("Gateway State lock is poisoned")
+            .expect("GatewayState lock is poisoned")
             .services_data = json;
     }
 
@@ -1517,13 +1508,13 @@ impl Manager {
         if term {
             service.stop(&self.launcher, cause);
         }
-        if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
-            outputln!(
-                "Unable to cleanup service health cache, {}, {}",
-                service,
-                err
-            );
-        }
+        // if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
+        //     outputln!(
+        //         "Unable to cleanup service health cache, {}, {}",
+        //         service,
+        //         err
+        //     );
+        // }
         if let Err(_) = self.user_config_watcher.remove(service) {
             debug!(
                 "Error stopping user-config watcher thread for service {}",
