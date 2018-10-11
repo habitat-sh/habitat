@@ -26,6 +26,7 @@
 - Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 
 #### Bug Fixes
+- Replace launcher&#39;s Process struct&#39;s unsafe implementations with rust stdlib [#5733](https://github.com/habitat-sh/habitat/pull/5733) ([baumanj](https://github.com/baumanj))
 - Don&#39;t change svc directory permissions except when the directory is created [#5720](https://github.com/habitat-sh/habitat/pull/5720) ([jaym](https://github.com/jaym))
 - Remove unnecessary crate version pins, fix typo and add comments for hyper pins [#5729](https://github.com/habitat-sh/habitat/pull/5729) ([baumanj](https://github.com/baumanj))
 - Tokio deprecation fixes [#5727](https://github.com/habitat-sh/habitat/pull/5727) ([baumanj](https://github.com/baumanj))
