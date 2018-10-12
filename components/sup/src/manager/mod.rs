@@ -31,13 +31,13 @@ use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::mem;
-use std::net::{SocketAddr, TcpStream};
+use std::net::SocketAddr;
 use std::ops::DerefMut;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::result;
 use std::str::FromStr;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::time::Duration;
 
 use butterfly;
@@ -679,17 +679,35 @@ impl Manager {
         if self.http_disable {
             info!("http-gateway disabled");
         } else {
-            // Before starting up the HTTP server, let's double check that the listen address we
-            // have is available for binding. We want to check this up front before trying to bind
-            // because the binding happens in a background thread, and if it fails, the supervisor
-            // will continue running but the user may not notice that the HTTP server is dead in
-            // the water.
-            if TcpStream::connect(&http_listen_addr.to_string()).is_ok() {
+            // Here we use a Condvar to wait on the HTTP gateway server to start up and inspect its
+            // return value. Specifically, we're looking for errors when it tries to bind to the
+            // listening TCP socket, so we can alert the user.
+            let pair = Arc::new((
+                Mutex::new(http_gateway::ServerStartup::NotStarted),
+                Condvar::new(),
+            ));
+
+            outputln!("Starting http-gateway on {}", &http_listen_addr);
+            http_gateway::Server::run(
+                http_listen_addr.clone(),
+                self.state.gateway_state.clone(),
+                pair.clone(),
+            );
+
+            let &(ref lock, ref cvar) = &*pair;
+            let mut started = lock.lock().expect("Control mutex is poisoned");
+
+            // This will block the current thread until the HTTP gateway thread either starts
+            // successfully or fails to bind. In practice, the wait here is so short as to not be
+            // noticeable.
+            while *started == http_gateway::ServerStartup::NotStarted {
+                started = cvar.wait(started).unwrap();
+            }
+
+            if *started == http_gateway::ServerStartup::BindFailed {
                 return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
             }
 
-            outputln!("Starting http-gateway on {}", &http_listen_addr);
-            http_gateway::Server::run(http_listen_addr, self.state.gateway_state.clone());
             debug!("http-gateway started");
         }
 

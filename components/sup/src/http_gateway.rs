@@ -20,7 +20,7 @@ use std::ops::{Deref, DerefMut};
 use std::option;
 use std::result;
 use std::str::FromStr;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::thread;
 
 use actix;
@@ -139,20 +139,44 @@ impl AppState {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum ServerStartup {
+    NotStarted,
+    Started,
+    BindFailed,
+}
+
 pub struct Server;
 
 impl Server {
-    pub fn run(listen_addr: ListenAddr, gateway_state: Arc<RwLock<manager::GatewayState>>) {
+    pub fn run(
+        listen_addr: ListenAddr,
+        gateway_state: Arc<RwLock<manager::GatewayState>>,
+        control: Arc<(Mutex<ServerStartup>, Condvar)>,
+    ) {
         thread::spawn(move || {
+            let &(ref lock, ref cvar) = &*control;
             let sys = actix::System::new("sup-http-gateway");
 
-            server::new(move || {
+            let bind = server::new(move || {
                 let app_state = AppState::new(gateway_state.clone());
                 App::with_state(app_state).configure(routes)
-            }).bind(listen_addr.to_string())
-            .unwrap()
-            .start();
+            }).bind(listen_addr.to_string());
 
+            match bind {
+                Ok(b) => {
+                    let mut started = lock.lock().expect("Control mutex is poisoned");
+                    *started = ServerStartup::Started;
+                    b.start();
+                }
+                Err(e) => {
+                    error!("HTTP gateway failed to bind: {:?}", e);
+                    let mut started = lock.lock().expect("Control mutex is poisoned");
+                    *started = ServerStartup::BindFailed;
+                }
+            }
+
+            cvar.notify_one();
             sys.run();
         });
     }

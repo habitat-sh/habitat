@@ -182,9 +182,7 @@ impl fmt::Display for SupError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             Error::APIClient(ref err) => format!("{}", err),
-            Error::BadAddress(ref err) => {
-                format!("Unable to bind to address {}. It's already in use.", err)
-            }
+            Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
             Error::BadCompositesPath(ref path, ref err) => format!(
                 "Unable to create the composites directory '{}' ({})",
                 path.display(),
