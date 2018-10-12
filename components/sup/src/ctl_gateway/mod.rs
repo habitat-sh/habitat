@@ -39,8 +39,6 @@ use protocol;
 use error::{Error, Result};
 
 lazy_static! {
-    /// Regular expression to strip ANSI color codes out of a string.
-    ///
     /// Shamelessly stolen from https://github.com/chalk/ansi-regex/blob/master/index.js
     static ref STRIP_ANSI_CODES: Regex = Regex::new(
         r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]")
