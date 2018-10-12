@@ -105,6 +105,7 @@ impl SupError {
 #[derive(Debug)]
 pub enum Error {
     Departed,
+    BadAddress(String),
     BadCompositesPath(PathBuf, io::Error),
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
@@ -181,6 +182,9 @@ impl fmt::Display for SupError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             Error::APIClient(ref err) => format!("{}", err),
+            Error::BadAddress(ref err) => {
+                format!("Unable to bind to address {}. It's already in use.", err)
+            }
             Error::BadCompositesPath(ref path, ref err) => format!(
                 "Unable to create the composites directory '{}' ({})",
                 path.display(),
@@ -351,6 +355,7 @@ impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
             Error::APIClient(ref err) => err.description(),
+            Error::BadAddress(_) => "Unable to bind to address",
             Error::BadCompositesPath(_, _) => "Unable to create the composites directory",
             Error::Departed => "Supervisor has been manually departed",
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",

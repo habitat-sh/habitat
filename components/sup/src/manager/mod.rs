@@ -31,7 +31,7 @@ use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::mem;
-use std::net::SocketAddr;
+use std::net::{SocketAddr, TcpStream};
 use std::ops::DerefMut;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -679,6 +679,15 @@ impl Manager {
         if self.http_disable {
             info!("http-gateway disabled");
         } else {
+            // Before starting up the HTTP server, let's double check that the listen address we
+            // have is available for binding. We want to check this up front before trying to bind
+            // because the binding happens in a background thread, and if it fails, the supervisor
+            // will continue running but the user may not notice that the HTTP server is dead in
+            // the water.
+            if TcpStream::connect(&http_listen_addr.to_string()).is_ok() {
+                return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
+            }
+
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(http_listen_addr, self.state.gateway_state.clone());
             debug!("http-gateway started");
