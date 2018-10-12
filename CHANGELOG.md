@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- [ci] Update Buildkite to Rust 1.29.1 [#5735](https://github.com/habitat-sh/habitat/pull/5735) ([fnichol](https://github.com/fnichol))
 - Corrects api_client response on hab bldr job start [#5728](https://github.com/habitat-sh/habitat/pull/5728) ([eeyun](https://github.com/eeyun))
 - Skip Appveyor if only the docs are updated [#5722](https://github.com/habitat-sh/habitat/pull/5722) ([btm](https://github.com/btm))
 - fixed typo [#5721](https://github.com/habitat-sh/habitat/pull/5721) ([davidkazuhiro](https://github.com/davidkazuhiro))
@@ -35,6 +36,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- [ci] Update Buildkite to Rust 1.29.1 [#5735](https://github.com/habitat-sh/habitat/pull/5735) ([fnichol](https://github.com/fnichol))
 - Corrects api_client response on hab bldr job start [#5728](https://github.com/habitat-sh/habitat/pull/5728) ([eeyun](https://github.com/eeyun))
 - Skip Appveyor if only the docs are updated [#5722](https://github.com/habitat-sh/habitat/pull/5722) ([btm](https://github.com/btm))
 - fixed typo [#5721](https://github.com/habitat-sh/habitat/pull/5721) ([davidkazuhiro](https://github.com/davidkazuhiro))
