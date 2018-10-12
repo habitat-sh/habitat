@@ -69,40 +69,10 @@ where
     U: AsRef<Path>,
 {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
-    let hart_header = get_artifact_header(&archive_path.as_ref())?;
-    let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
-    let public_keyfile = key_path.as_ref().join(&public_keyfile_name);
 
-    ui.status(
-        Status::Signed,
-        format!("artifact with {}", &public_keyfile_name),
-    )?;
-
-    let (name, rev) = parse_name_with_rev(&hart_header.key_name)?;
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
-    ui.begin(format!(
-        "Uploading public origin key {}",
-        &public_keyfile_name
-    ))?;
-
-    match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
-        Ok(()) => {
-            ui.status(
-                Status::Uploaded,
-                format!("public origin key {}", &public_keyfile_name),
-            )?;
-        }
-        Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
-            ui.status(
-                Status::Using,
-                format!("existing public origin key {}", &public_keyfile_name),
-            )?;
-        }
-        Err(err) => return Err(Error::from(err)),
-    };
-
-    ui.begin(format!("Uploading {}", archive_path.as_ref().display()))?;
+    upload_public_key(ui, token, &api_client, &mut archive, &key_path)?;
 
     let tdeps = archive.tdeps()?;
     let ident = archive.ident()?;
@@ -135,6 +105,7 @@ where
                                     additional_release_channel,
                                     force_upload,
                                     &candidate_path,
+                                    &key_path,
                                 )
                             },
                             |res| res.is_ok(),
@@ -252,7 +223,7 @@ fn upload_into_depot(
     Ok(())
 }
 
-fn attempt_upload_dep(
+fn attempt_upload_dep<T>(
     ui: &mut UI,
     api_client: &Client,
     token: &str,
@@ -261,11 +232,16 @@ fn attempt_upload_dep(
     additional_release_channel: Option<&str>,
     _force_upload: bool,
     archives_dir: &PathBuf,
-) -> Result<()> {
+    key_path: T,
+) -> Result<()>
+where
+    T: AsRef<Path>,
+{
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
+        upload_public_key(ui, &token, &api_client, &mut archive, key_path)?;
         upload_into_depot(
             ui,
             &api_client,
@@ -291,5 +267,45 @@ fn attempt_upload_dep(
         Err(Error::FileNotFound(
             archives_dir.to_string_lossy().into_owned(),
         ))
+    }
+}
+
+fn upload_public_key<T>(
+    ui: &mut UI,
+    token: &str,
+    api_client: &Client,
+    archive: &mut PackageArchive,
+    key_path: T,
+) -> Result<()>
+where
+    T: AsRef<Path>,
+{
+    let hart_header = get_artifact_header(&archive.path)?;
+    let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
+    let public_keyfile = key_path.as_ref().join(&public_keyfile_name);
+
+    let (name, rev) = parse_name_with_rev(&hart_header.key_name)?;
+
+    match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
+        Ok(()) => {
+            ui.begin(format!(
+                "Uploading public origin key {}",
+                &public_keyfile_name
+            ))?;
+
+            ui.status(
+                Status::Uploaded,
+                format!("public origin key {}", &public_keyfile_name),
+            )?;
+            Ok(())
+        }
+        Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
+            ui.status(
+                Status::Using,
+                format!("existing public origin key {}", &public_keyfile_name),
+            )?;
+            Ok(())
+        }
+        Err(err) => return Err(Error::from(err)),
     }
 }
