@@ -37,13 +37,10 @@
     "initialized": true,
     "last_election_status": "None",
     "manager_fs_cfg": {
-      "butterfly_data_path": "/hab/sup/default/data/butterfly.dat",
-      "census_data_path": "/hab/sup/default/data/census.dat",
       "composites_path": "/hab/sup/default/composites",
       "data_path": "/hab/sup/default/data",
       "member_id_file": "/hab/sup/default/MEMBER_ID",
       "proc_lock_file": "/hab/sup/default/LOCK",
-      "services_data_path": "/hab/sup/default/data/services.dat",
       "specs_path": "/hab/sup/default/specs",
       "sup_root": "/hab/sup/default"
     },

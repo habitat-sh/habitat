@@ -1145,7 +1145,8 @@ mod tests {
         let asys = Arc::new(sys);
         let fscfg = FsCfg::new("/tmp");
         let afs = Arc::new(fscfg);
-        let service = Service::new(asys, install, spec, afs, Some("haha"))
+        let gs = Arc::new(RwLock::new(manager::GatewayState::default()));
+        let service = Service::new(asys, install, spec, afs, Some("haha"), gs)
             .expect("I wanted a service to load, but it didn't");
 
         // With config
