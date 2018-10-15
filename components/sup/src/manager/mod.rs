@@ -700,12 +700,30 @@ impl Manager {
             // This will block the current thread until the HTTP gateway thread either starts
             // successfully or fails to bind. In practice, the wait here is so short as to not be
             // noticeable.
-            while *started == http_gateway::ServerStartup::NotStarted {
-                started = cvar.wait(started).unwrap();
-            }
-
-            if *started == http_gateway::ServerStartup::BindFailed {
-                return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
+            loop {
+                match *started {
+                    http_gateway::ServerStartup::NotStarted => {
+                        started = match cvar.wait_timeout(started, Duration::from_millis(10)) {
+                            Ok((mutex, timeout_result)) => {
+                                if timeout_result.timed_out() {
+                                    return Err(sup_error!(Error::BindTimeout(
+                                        http_listen_addr.to_string()
+                                    )));
+                                } else {
+                                    mutex
+                                }
+                            }
+                            Err(e) => {
+                                error!("Mutex for the HTTP gateway was poisoned. e = {:?}", e);
+                                return Err(sup_error!(Error::LockPoisoned));
+                            }
+                        };
+                    }
+                    http_gateway::ServerStartup::BindFailed => {
+                        return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())))
+                    }
+                    http_gateway::ServerStartup::Started => break,
+                }
             }
 
             debug!("http-gateway started");

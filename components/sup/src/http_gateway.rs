@@ -163,17 +163,22 @@ impl Server {
                 App::with_state(app_state).configure(routes)
             }).bind(listen_addr.to_string());
 
-            match bind {
-                Ok(b) => {
-                    let mut started = lock.lock().expect("Control mutex is poisoned");
-                    *started = ServerStartup::Started;
-                    b.start();
-                }
-                Err(e) => {
-                    error!("HTTP gateway failed to bind: {:?}", e);
-                    let mut started = lock.lock().expect("Control mutex is poisoned");
-                    *started = ServerStartup::BindFailed;
-                }
+            // We need to create this scope on purpose here because if we don't, the lock never
+            // releases, and the supervisor will wait forever on cvar. Creating this artifical
+            // scope forces the lock to release, and things work as expected.
+            {
+                let mut started = lock.lock().expect("Control mutex is poisoned");
+
+                *started = match bind {
+                    Ok(b) => {
+                        b.start();
+                        ServerStartup::Started
+                    }
+                    Err(e) => {
+                        error!("HTTP gateway failed to bind: {:?}", e);
+                        ServerStartup::BindFailed
+                    }
+                };
             }
 
             cvar.notify_one();
