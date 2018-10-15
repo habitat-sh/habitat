@@ -22,6 +22,7 @@
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.1...0.65.0)
 
 #### New Features & Enhancements
+- Launcher creates its own PID file at /hab/launcher/PID [#5738](https://github.com/habitat-sh/habitat/pull/5738) ([baumanj](https://github.com/baumanj))
 - Formalize the Supervisor's HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
 
 #### Behavioral Changes
