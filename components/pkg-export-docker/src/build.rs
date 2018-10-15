@@ -13,9 +13,9 @@
 // limitations under the License.
 
 use std::fs as stdfs;
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 use std::os::unix::fs::symlink;
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -24,7 +24,9 @@ use clap;
 use common;
 use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
 use common::ui::{Status, UIWriter, UI};
+#[cfg(unix)]
 use failure::SyncFailure;
+#[cfg(unix)]
 use hab;
 use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
@@ -33,8 +35,8 @@ use tempdir::TempDir;
 
 use super::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION};
 use accounts::{EtcGroupEntry, EtcPasswdEntry};
-use chmod;
 use error::{Error, Result};
+#[cfg(unix)]
 use rootfs;
 use util;
 
@@ -128,21 +130,31 @@ impl<'a> BuildSpec<'a> {
         })
     }
 
+    #[cfg(unix)]
     fn prepare_rootfs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
         ui.status(Status::Creating, "root filesystem")?;
-        if cfg!(target_os = "linux") {
-            rootfs::create(&rootfs)?;
-        }
+        rootfs::create(&rootfs)?;
         self.create_symlink_to_artifact_cache(ui, &rootfs)?;
         self.create_symlink_to_key_cache(ui, &rootfs)?;
         let base_pkgs = self.install_base_pkgs(ui, &rootfs)?;
         let user_pkgs = self.install_user_pkgs(ui, &rootfs)?;
-        if cfg!(target_os = "linux") {
-            self.chmod_hab_directory(ui, &rootfs)?;
-            self.link_binaries(ui, &rootfs, &base_pkgs)?;
-            self.link_cacerts(ui, &rootfs, &base_pkgs)?;
-            self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
-        }
+        self.chmod_hab_directory(ui, &rootfs)?;
+        self.link_binaries(ui, &rootfs, &base_pkgs)?;
+        self.link_cacerts(ui, &rootfs, &base_pkgs)?;
+        self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
+        self.remove_symlink_to_key_cache(ui, &rootfs)?;
+        self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
+
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    fn prepare_rootfs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+        ui.status(Status::Creating, "root filesystem")?;
+        self.create_symlink_to_artifact_cache(ui, &rootfs)?;
+        self.create_symlink_to_key_cache(ui, &rootfs)?;
+        self.install_base_pkgs(ui, &rootfs)?;
+        self.install_user_pkgs(ui, &rootfs)?;
         self.remove_symlink_to_key_cache(ui, &rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
 
@@ -214,6 +226,7 @@ impl<'a> BuildSpec<'a> {
         Ok(idents)
     }
 
+    #[cfg(unix)]
     fn link_user_pkgs<P: AsRef<Path>>(
         &self,
         ui: &mut UI,
@@ -228,6 +241,7 @@ impl<'a> BuildSpec<'a> {
         Ok(())
     }
 
+    #[cfg(unix)]
     fn link_binaries<P: AsRef<Path>>(
         &self,
         ui: &mut UI,
@@ -247,6 +261,7 @@ impl<'a> BuildSpec<'a> {
         Ok(())
     }
 
+    #[cfg(unix)]
     fn link_cacerts<P: AsRef<Path>>(
         &self,
         ui: &mut UI,
@@ -275,10 +290,13 @@ impl<'a> BuildSpec<'a> {
     /// why we do this.
     ///
     /// [`chmod`]: chmod/index.html
+    #[cfg(unix)]
     fn chmod_hab_directory<P>(&self, ui: &mut UI, rootfs: P) -> Result<()>
     where
         P: AsRef<Path>,
     {
+        use chmod;
+
         let target = rootfs.as_ref().join("hab");
         ui.status(
             Status::Custom('✓', "Changing permissions on".into()),
@@ -893,7 +911,7 @@ mod test {
             assert_eq!(cache_key_path(None::<&Path>), link.read_link().unwrap());
         }
 
-        #[cfg(target_os = "linux")]
+        #[cfg(unix)]
         #[test]
         fn link_binaries() {
             let rootfs = TempDir::new("rootfs").unwrap();
@@ -922,6 +940,7 @@ mod test {
             );
         }
 
+        #[cfg(unix)]
         #[test]
         fn link_cacerts() {
             let rootfs = TempDir::new("rootfs").unwrap();

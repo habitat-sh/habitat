@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::{self, OpenOptions};
-use std::io::Write;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
@@ -22,7 +21,6 @@ use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use handlebars::Handlebars;
 use hcore::fs as hfs;
-use hcore::os::filesystem;
 use hcore::package::PackageIdent;
 
 use super::{Credentials, Naming};
@@ -32,12 +30,10 @@ use serde_json;
 use util;
 
 /// The `Dockerfile` template.
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 const DOCKERFILE: &'static str = include_str!("../defaults/Dockerfile.hbs");
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 const DOCKERFILE: &'static str = include_str!("../defaults/Dockerfile_win.hbs");
-/// The entrypoint script template.
-const INIT_SH: &'static str = include_str!("../defaults/init.sh.hbs");
 /// The build report template.
 const BUILD_REPORT: &'static str = include_str!("../defaults/last_docker_export.env.hbs");
 
@@ -334,12 +330,19 @@ impl DockerBuildRoot {
     /// # Errors
     ///
     /// * If any remaining tasks cannot be performed in the build root
+    #[cfg(unix)]
     pub fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
         let root = DockerBuildRoot(build_root);
-        if cfg!(target_os = "linux") {
-            root.add_users_and_groups(ui)?;
-            root.create_entrypoint(ui)?;
-        }
+        root.add_users_and_groups(ui)?;
+        root.create_entrypoint(ui)?;
+        root.create_dockerfile(ui)?;
+
+        Ok(root)
+    }
+
+    #[cfg(windows)]
+    pub fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
+        let root = DockerBuildRoot(build_root);
         root.create_dockerfile(ui)?;
 
         Ok(root)
@@ -363,12 +366,12 @@ impl DockerBuildRoot {
     /// # Errors
     ///
     /// * If the Docker image cannot be created successfully
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     pub fn export(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
         self.build_docker_image(ui, naming)
     }
 
-    #[cfg(target_os = "windows")]
+    #[cfg(windows)]
     pub fn export(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
         let mut cmd = docker_cmd();
         cmd.arg("version").arg("--format='{{.Server.Os}}'");
@@ -382,7 +385,11 @@ impl DockerBuildRoot {
         self.build_docker_image(ui, naming)
     }
 
+    #[cfg(unix)]
     fn add_users_and_groups(&self, ui: &mut UI) -> Result<()> {
+        use std::fs::OpenOptions;
+        use std::io::Write;
+
         let ctx = self.0.ctx();
         let (users, groups) = ctx.svc_users_and_groups()?;
         {
@@ -414,7 +421,13 @@ impl DockerBuildRoot {
         Ok(())
     }
 
+    #[cfg(unix)]
     fn create_entrypoint(&self, ui: &mut UI) -> Result<()> {
+        use hcore::util::posix_perm;
+
+        /// The entrypoint script template.
+        const INIT_SH: &'static str = include_str!("../defaults/init.sh.hbs");
+
         ui.status(Status::Creating, "entrypoint script")?;
         let ctx = self.0.ctx();
         let busybox_shell =
@@ -432,7 +445,7 @@ impl DockerBuildRoot {
                 .template_render(INIT_SH, &json)
                 .map_err(SyncFailure::new)?,
         )?;
-        filesystem::chmod(init.to_string_lossy().as_ref(), 0o0755)?;
+        posix_perm::set_permissions(init.to_string_lossy().as_ref(), 0o0755)?;
         Ok(())
     }
 

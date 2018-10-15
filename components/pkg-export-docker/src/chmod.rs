@@ -35,15 +35,11 @@
 //! non-root Habitat supervisors there either.
 
 use std::fs;
-#[cfg(windows)]
-use std::fs::Permissions;
-#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
 use error::Result;
-#[cfg(unix)]
-use hcore::util::perm;
+use hcore::util::posix_perm;
 
 /// Perform the equivalent of `chmod -R g=u path`.
 pub fn recursive_g_equal_u<P>(path: P) -> Result<()>
@@ -70,7 +66,6 @@ where
 }
 
 /// Set the group permissions of `path` equal to the user permissions.
-#[cfg(unix)]
 fn set_g_equal_u<P, Q>(path: P, permissions: Q) -> Result<()>
 where
     P: AsRef<Path>,
@@ -78,13 +73,7 @@ where
 {
     let current = permissions.mode();
     let new_permissions = g_equals_u(current);
-    perm::set_permissions(&path, new_permissions).map_err(From::from)
-}
-
-#[cfg(windows)]
-fn set_g_equal_u<P>(path: P, permissions: Permissions) -> Result<()> {
-    // This is a meaningless operation on Windows
-    Ok(())
+    posix_perm::set_permissions(&path, new_permissions).map_err(From::from)
 }
 
 /// Given a u32 representing Linux file permissions, set the group

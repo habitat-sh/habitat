@@ -15,7 +15,7 @@
 use std::fs;
 use std::path::Path;
 
-use hcore::os::filesystem;
+use hcore::util;
 
 use error::Result;
 use util::write_file;
@@ -35,6 +35,7 @@ const ETC_NSSWITCH_CONF: &'static str = include_str!("../defaults/etc/nsswitch.c
 ///
 /// * If files and/or directories cannot be created
 /// * If permissions for files and/or directories cannot be set
+#[cfg(unix)]
 pub fn create<T>(root: T) -> Result<()>
 where
     T: AsRef<Path>,
@@ -44,11 +45,11 @@ where
     fs::create_dir_all(root.join("etc"))?;
 
     fs::create_dir_all(root.join("root"))?;
-    filesystem::chmod(root.join("root").to_string_lossy().as_ref(), 0o0750)?;
+    util::posix_perm::set_permissions(root.join("root").to_string_lossy().as_ref(), 0o0750)?;
     fs::create_dir_all(root.join("tmp"))?;
-    filesystem::chmod(root.join("tmp").to_string_lossy().as_ref(), 0o1777)?;
+    util::posix_perm::set_permissions(root.join("tmp").to_string_lossy().as_ref(), 0o1777)?;
     fs::create_dir_all(root.join("var/tmp"))?;
-    filesystem::chmod(root.join("var/tmp").to_string_lossy().as_ref(), 0o1777)?;
+    util::posix_perm::set_permissions(root.join("var/tmp").to_string_lossy().as_ref(), 0o1777)?;
 
     write_file(root.join("etc/passwd"), ETC_PASSWD)?;
     write_file(root.join("etc/group"), ETC_GROUP)?;
@@ -58,7 +59,7 @@ where
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 #[cfg(test)]
 mod test {
     use std::fs::File;

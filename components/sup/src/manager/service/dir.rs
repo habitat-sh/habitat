@@ -21,13 +21,13 @@ use std::path::Path;
 
 use error::{Error, Result};
 use fs;
-use hcore::util::perm;
 use manager::service::package::Pkg;
 use sys::abilities;
 use sys::users::assert_pkg_user_and_group;
 
 /// Permissions that service-owned service directories should
 /// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
+#[cfg(not(windows))]
 const SVC_DIR_PERMISSIONS: u32 = 0o770;
 
 // NOTE: This is the same log key from the manager, from which this
@@ -124,23 +124,7 @@ impl<'a> SvcDir<'a> {
         }
 
         Self::create_dir_all(&path)?;
-        if cfg!(not(windows)) {
-            if abilities::can_run_services_as_svc_user() {
-                perm::set_owner(&path, &self.svc_user, &self.svc_group)?;
-            }
-            perm::set_permissions(&path, SVC_DIR_PERMISSIONS).map_err(From::from)
-        } else if cfg!(windows) {
-            if path.as_ref().exists() {
-                Ok(())
-            } else {
-                Err(sup_error!(Error::FileNotFound(format!(
-                    "Invalid path {:?}",
-                    path.as_ref().display()
-                ))))
-            }
-        } else {
-            unreachable!();
-        }
+        self.set_permissions(&path)
     }
 
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
@@ -154,5 +138,22 @@ impl<'a> SvcDir<'a> {
         } else {
             Ok(())
         }
+    }
+
+    #[cfg(not(windows))]
+    fn set_permissions<T: AsRef<Path>>(&self, path: T) -> Result<()> {
+        use hcore::util::posix_perm;
+
+        if abilities::can_run_services_as_svc_user() {
+            posix_perm::set_owner(path.as_ref(), &self.svc_user, &self.svc_group)?;
+        }
+        posix_perm::set_permissions(path.as_ref(), SVC_DIR_PERMISSIONS).map_err(From::from)
+    }
+
+    #[cfg(windows)]
+    fn set_permissions<T: AsRef<Path>>(&self, path: T) -> Result<()> {
+        use hcore::util::win_perm;
+
+        win_perm::harden_path(path.as_ref()).map_err(From::from)
     }
 }
