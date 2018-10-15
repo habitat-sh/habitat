@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
 - rework permissions into separate APIs for linux and windows [#5724](https://github.com/habitat-sh/habitat/pull/5724) ([mwrock](https://github.com/mwrock))
 - Adds upload of public keys for deps as well as target package [#5730](https://github.com/habitat-sh/habitat/pull/5730) ([eeyun](https://github.com/eeyun))
 - [ci] Update Buildkite to Rust 1.29.1 [#5735](https://github.com/habitat-sh/habitat/pull/5735) ([fnichol](https://github.com/fnichol))
@@ -38,6 +39,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
 - rework permissions into separate APIs for linux and windows [#5724](https://github.com/habitat-sh/habitat/pull/5724) ([mwrock](https://github.com/mwrock))
 - Adds upload of public keys for deps as well as target package [#5730](https://github.com/habitat-sh/habitat/pull/5730) ([eeyun](https://github.com/eeyun))
 - [ci] Update Buildkite to Rust 1.29.1 [#5735](https://github.com/habitat-sh/habitat/pull/5735) ([fnichol](https://github.com/fnichol))
