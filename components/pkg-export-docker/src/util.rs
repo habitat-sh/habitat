@@ -15,11 +15,9 @@
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
 use hcore::package::{PackageIdent, PackageInstall};
 
-use super::BUSYBOX_IDENT;
 use error::Result;
 
 const BIN_PATH: &'static str = "/bin";
@@ -30,7 +28,11 @@ pub fn bin_path() -> &'static Path {
 }
 
 /// Returns the Package Identifier for a Busybox package.
+#[cfg(unix)]
 pub fn busybox_ident() -> Result<PackageIdent> {
+    use super::BUSYBOX_IDENT;
+    use std::str::FromStr;
+
     Ok(PackageIdent::from_str(BUSYBOX_IDENT)?)
 }
 

@@ -21,9 +21,9 @@ use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_
 use hcore::package::PackageIdent;
 use hcore::PROGRAM_NAME;
 use std::fs as stdfs;
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 use std::os::unix::fs::symlink;
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
 use std::path::Path;
 use tempdir::TempDir;
@@ -110,9 +110,7 @@ impl<'a> BuildSpec<'a> {
 
     fn prepare_rootfs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<(PackageIdent)> {
         ui.status(Status::Creating, "root filesystem")?;
-        if cfg!(target_os = "linux") {
-            rootfs::create(&rootfs)?;
-        }
+        rootfs::create(&rootfs)?;
         self.create_symlink_to_artifact_cache(ui, &rootfs)?;
         self.create_symlink_to_key_cache(ui, &rootfs)?;
         self.install_base_pkgs(ui, &rootfs)?;

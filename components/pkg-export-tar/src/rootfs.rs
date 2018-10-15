@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs;
 use std::path::Path;
-
-use hcore::os::filesystem;
 
 use error::Result;
 
@@ -25,12 +22,25 @@ use error::Result;
 ///
 /// * If files and/or directories cannot be created
 /// * If permissions for files and/or directories cannot be set
+#[cfg(unix)]
 pub fn create<T>(root: T) -> Result<()>
 where
     T: AsRef<Path>,
 {
+    use std::fs;
+
+    use hcore::util;
+
     let root = root.as_ref();
     fs::create_dir_all(root)?;
-    filesystem::chmod(root.to_str().unwrap(), 0o0750)?;
+    util::posix_perm::set_permissions(root.to_str().unwrap(), 0o0750)?;
     Ok(())
+}
+
+#[cfg(windows)]
+pub fn create<T>(_root: T) -> Result<()>
+where
+    T: AsRef<Path>,
+{
+    unimplemented!()
 }

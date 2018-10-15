@@ -24,9 +24,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, ExitStatus};
 use std::result;
 
-use hcore;
-use hcore::crypto;
 use hcore::service::ServiceGroup;
+use hcore::{self, crypto};
 use serde::{Serialize, Serializer};
 
 use super::{health, Pkg};
@@ -35,6 +34,7 @@ use fs;
 use templating::{RenderContext, TemplateRenderer};
 use util::exec;
 
+#[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
 
@@ -106,10 +106,7 @@ pub trait Hook: fmt::Debug + Sized {
             outputln!(preamble service_group,
                       "Modified hook content in {}",
                       self.path().display());
-            if cfg!(not(windows)) {
-                hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
-            }
-            // TODO: Implement permissions FFI for windows
+            Self::set_permissions(self.path())?;
             Ok(true)
         } else {
             debug!(
@@ -119,6 +116,20 @@ pub trait Hook: fmt::Debug + Sized {
             );
             Ok(false)
         }
+    }
+
+    #[cfg(not(windows))]
+    fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
+        use hcore::util::posix_perm;
+
+        posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
+    }
+
+    #[cfg(windows)]
+    fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
+        use hcore::util::win_perm;
+
+        win_perm::harden_path(path.as_ref())
     }
 
     /// Run a compiled hook.

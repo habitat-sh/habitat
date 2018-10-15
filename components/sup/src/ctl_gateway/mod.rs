@@ -33,8 +33,7 @@ use regex::Regex;
 use api_client::DisplayProgress;
 use common::ui::UIWriter;
 use futures::prelude::*;
-use hcore::output;
-use hcore::util::perm;
+use hcore::{self, output};
 use protocol;
 
 use error::{Error, Result};
@@ -55,6 +54,7 @@ static LOGKEY: &'static str = "AG";
 
 /// The control gateway secret should only be readable by the
 /// Supervisor process
+#[cfg(not(windows))]
 pub const CTL_SECRET_PERMISSIONS: u32 = 0o600;
 
 /// Used by modules outside of the CtlGateway for seamlessly replying to transactional messages.
@@ -279,10 +279,21 @@ where
             f.write_all(out.as_bytes())?;
             f.sync_all()?;
         }
-        if cfg!(not(windows)) {
-            perm::set_permissions(&secret_key_path, CTL_SECRET_PERMISSIONS)?;
-        }
-        // TODO: Implement permissions FFI for windows
+        set_permissions(&secret_key_path)?;
         Ok(out)
     }
+}
+
+#[cfg(not(windows))]
+fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
+    use hcore::util::posix_perm;
+
+    posix_perm::set_permissions(path.as_ref(), CTL_SECRET_PERMISSIONS)
+}
+
+#[cfg(windows)]
+fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
+    use hcore::util::win_perm;
+
+    win_perm::harden_path(path.as_ref())
 }

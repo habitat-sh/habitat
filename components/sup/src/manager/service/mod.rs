@@ -39,7 +39,6 @@ use hcore::fs::FS_ROOT_PATH;
 use hcore::package::metadata::Bind;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
-use hcore::util::perm::{set_owner, set_permissions};
 use launcher_client::LauncherCli;
 pub use protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
 use serde::ser::SerializeStruct;
@@ -51,7 +50,7 @@ use self::config::CfgRenderer;
 pub use self::config::{Cfg, UserConfigPath};
 use self::dir::SvcDir;
 pub use self::health::{HealthCheck, SmokeCheck};
-use self::hooks::{Hook, HookTable, HOOK_PERMISSIONS};
+use self::hooks::{Hook, HookTable};
 pub use self::package::{Env, Pkg};
 pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
 use self::supervisor::Supervisor;
@@ -61,11 +60,11 @@ use census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
 use error::{Error, Result, SupError};
 use fs;
 use manager;
-use sys::abilities;
 use templating::RenderContext;
 
 static LOGKEY: &'static str = "SR";
 
+#[cfg(not(windows))]
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
 
 lazy_static! {
@@ -799,20 +798,14 @@ impl Service {
         match self.hooks.run {
             Some(ref hook) => {
                 std::fs::copy(hook.path(), &svc_run)?;
-                if cfg!(not(windows)) {
-                    set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS)?;
-                }
-                // TODO: Implement permissions FFI for windows
+                Self::set_hook_permissions(&svc_run.to_str().unwrap())?;
             }
             None => {
                 let run = self.pkg.path.join(hooks::RunHook::file_name());
                 match std::fs::metadata(&run) {
                     Ok(_) => {
                         std::fs::copy(&run, &svc_run)?;
-                        if cfg!(not(windows)) {
-                            set_permissions(&svc_run, HOOK_PERMISSIONS)?;
-                        }
-                        // TODO: Implement permissions FFI for windows
+                        Self::set_hook_permissions(&svc_run)?;
                     }
                     Err(err) => {
                         outputln!(preamble self.service_group, "Error finding run file: {}", err);
@@ -821,6 +814,21 @@ impl Service {
             }
         }
         Ok(())
+    }
+
+    #[cfg(not(windows))]
+    fn set_hook_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
+        use self::hooks::HOOK_PERMISSIONS;
+        use hcore::util::posix_perm;
+
+        posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
+    }
+
+    #[cfg(windows)]
+    fn set_hook_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
+        use hcore::util::win_perm;
+
+        win_perm::harden_path(path.as_ref())
     }
 
     fn execute_hooks(&mut self, launcher: &LauncherCli) {
@@ -973,33 +981,42 @@ impl Service {
             return false;
         }
 
+        self.set_gossip_permissions(&file)
+    }
+
+    #[cfg(not(windows))]
+    fn set_gossip_permissions<T: AsRef<Path>>(&self, path: T) -> bool {
+        use hcore::util::posix_perm;
+        use sys::abilities;
+
         if abilities::can_run_services_as_svc_user() {
-            let result = if cfg!(not(windows)) {
-                set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group)
-            } else if cfg!(windows) {
-                if file.as_ref().exists() {
-                    Ok(())
-                } else {
-                    Err(hcore::Error::PermissionFailed(format!(
-                        "Invalid path {:?}",
-                        file.as_ref().display()
-                    )))
-                }
-            } else {
-                unreachable!();
-            };
+            let result =
+                posix_perm::set_owner(path.as_ref(), &self.pkg.svc_user, &self.pkg.svc_group);
             if let Err(e) = result {
                 outputln!(preamble self.service_group,
                           "Failed to set ownership of cache file {}, {}",
-                          file.as_ref().display(), e);
+                          path.as_ref().display(), e);
                 return false;
             }
         }
 
-        if let Err(e) = set_permissions(&file, GOSSIP_FILE_PERMISSIONS) {
+        if let Err(e) = posix_perm::set_permissions(path.as_ref(), GOSSIP_FILE_PERMISSIONS) {
             outputln!(preamble self.service_group,
                       "Failed to set permissions on cache file {}, {}",
-                      file.as_ref().display(), e);
+                      path.as_ref().display(), e);
+            return false;
+        }
+        true
+    }
+
+    #[cfg(windows)]
+    fn set_gossip_permissions<T: AsRef<Path>>(&self, path: T) -> bool {
+        use hcore::util::win_perm;
+
+        if let Err(e) = win_perm::harden_path(path.as_ref()) {
+            outputln!(preamble self.service_group,
+                      "Failed to set permissions on cache file {}, {}",
+                      path.as_ref().display(), e);
             return false;
         }
         true

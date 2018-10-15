@@ -23,7 +23,7 @@ use std::result;
 
 use fs;
 use hcore::fs::USER_CONFIG_FILE;
-use hcore::{crypto, util};
+use hcore::{self, crypto};
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use serde_json;
@@ -33,7 +33,6 @@ use toml;
 use super::Pkg;
 use census::CensusGroup;
 use error::{Error, Result};
-use sys::abilities;
 use templating::{RenderContext, TemplateRenderer};
 
 static LOGKEY: &'static str = "CF";
@@ -44,6 +43,7 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// is deeper than this value crosses into overly complex territory when describing configuration
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
+#[cfg(not(windows))]
 pub const CONFIG_PERMISSIONS: u32 = 0o740;
 
 /// Describes the path to user configuration that is used by the
@@ -533,21 +533,7 @@ impl CfgRenderer {
                     cfg_dest.display()
                 );
 
-                if cfg!(not(windows)) {
-                    if abilities::can_run_services_as_svc_user() {
-                        util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
-                    }
-                    util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
-                } else if cfg!(windows) {
-                    if !Path::new(&cfg_dest).exists() {
-                        return Err(sup_error!(Error::FileNotFound(format!(
-                            "Invalid path {:?}",
-                            &cfg_dest
-                        ))));
-                    }
-                } else {
-                    unreachable!();
-                }
+                set_permissions(&cfg_dest, pkg)?;
 
                 changed = true
             } else {
@@ -571,22 +557,7 @@ impl CfgRenderer {
 
                     let mut config_file = File::create(&cfg_dest)?;
                     config_file.write_all(&compiled.into_bytes())?;
-
-                    if cfg!(not(windows)) {
-                        if abilities::can_run_services_as_svc_user() {
-                            util::perm::set_owner(&cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
-                        }
-                        util::perm::set_permissions(&cfg_dest, CONFIG_PERMISSIONS)?;
-                    } else if cfg!(windows) {
-                        if !Path::new(&cfg_dest).exists() {
-                            return Err(sup_error!(Error::FileNotFound(format!(
-                                "Invalid path {:?}",
-                                &cfg_dest
-                            ))));
-                        }
-                    } else {
-                        unreachable!();
-                    }
+                    set_permissions(&cfg_dest, pkg)?;
 
                     changed = true;
                 }
@@ -646,6 +617,24 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
             None => return false,
         },
     }
+}
+
+#[cfg(not(windows))]
+fn set_permissions<T: AsRef<Path>>(path: T, pkg: &Pkg) -> hcore::error::Result<()> {
+    use hcore::util::posix_perm;
+    use sys::abilities;
+
+    if abilities::can_run_services_as_svc_user() {
+        posix_perm::set_owner(path.as_ref(), &pkg.svc_user, &pkg.svc_group)?;
+    }
+    posix_perm::set_permissions(path.as_ref(), CONFIG_PERMISSIONS)
+}
+
+#[cfg(windows)]
+fn set_permissions<T: AsRef<Path>>(path: T, _pkg: &Pkg) -> hcore::error::Result<()> {
+    use hcore::util::win_perm;
+
+    win_perm::harden_path(path.as_ref())
 }
 
 #[cfg(test)]
