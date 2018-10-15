@@ -31,6 +31,7 @@ pub struct Config {
     pub auth_token: Option<String>,
     pub origin: Option<String>,
     pub ctl_secret: Option<String>,
+    pub bldr_url: Option<String>,
 }
 
 impl ConfigFile for Config {
@@ -43,6 +44,7 @@ impl Default for Config {
             auth_token: None,
             origin: None,
             ctl_secret: None,
+            bldr_url: None,
         }
     }
 }

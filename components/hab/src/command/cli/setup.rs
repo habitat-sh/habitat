@@ -15,6 +15,7 @@
 #[cfg(windows)]
 use std::env;
 use std::path::Path;
+use std::result;
 
 #[cfg(windows)]
 use std::ptr;
@@ -34,12 +35,13 @@ use hcore::crypto::SigKeyPair;
 use hcore::env as henv;
 use hcore::package::ident;
 use hcore::Error::InvalidOrigin;
+use url::Url;
 
 use analytics;
 use command;
 use config;
 use error::Result;
-use {AUTH_TOKEN_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
+use {AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
 
 pub fn start(
     ui: &mut UI,
@@ -52,6 +54,39 @@ pub fn start(
     ui.br()?;
     ui.title("Habitat CLI Setup")?;
     ui.para("Welcome to hab setup. Let's get started.")?;
+
+    ui.heading("Habitat Builder Instance")?;
+    ui.para(
+        "Habitat packages can be stored in either the public builder instance \
+         https://bldr.habitat.sh or in an on-premises builder depot instance. If \
+         you do not set a builder URL now, the `hab` CLI will default to using \
+         the public builder instance. This can be overridden at any time after setup.",
+    )?;
+    if ask_default_builder_instance(ui)? {
+        ui.br()?;
+        ui.para(
+            "Enter the url of your builder instance. The default is https://bldr.habitat.sh. \
+             The configured endpoint can be overridden any time with a `HAB_BLDR_URL` envvar \
+             or a --url flag on the cli.",
+        )?;
+        let mut url = prompt_url(ui)?;
+
+        while valid_url(&url).is_err() {
+            ui.br()?;
+            ui.fatal(&format!("{}: is invalid, please provide a valid url", url))?;
+            ui.br()?;
+
+            url = prompt_url(ui)?;
+        }
+
+        write_cli_config_bldr_url(&url)?;
+    } else {
+        ui.br()?;
+        ui.para(
+            "No worries, should you need to use a different bldr instance you can set \
+             a `HAB_BLDR_URL` envvar or pass the `--url` flag to the cli!",
+        )?;
+    }
 
     ui.heading("Set up a default origin")?;
     ui.para(
@@ -217,6 +252,10 @@ fn ask_default_origin(ui: &mut UI) -> Result<bool> {
     Ok(ui.prompt_yes_no("Set up a default origin?", Some(true))?)
 }
 
+fn ask_default_builder_instance(ui: &mut UI) -> Result<bool> {
+    Ok(ui.prompt_yes_no("Connect to an on-premises bldr instance?", Some(true))?)
+}
+
 fn ask_create_origin(ui: &mut UI, origin: &str) -> Result<bool> {
     Ok(ui.prompt_yes_no(
         &format!("Create an origin key for `{}'?", origin),
@@ -230,6 +269,15 @@ where
 {
     let mut config = config::load()?;
     config.origin = Some(origin.to_string());
+    config::save(&config)
+}
+
+fn write_cli_config_bldr_url<T>(url: T) -> Result<()>
+where
+    T: ToString,
+{
+    let mut config = config::load()?;
+    config.bldr_url = Some(url.to_string());
     config::save(&config)
 }
 
@@ -297,6 +345,21 @@ fn ask_default_ctl_secret(ui: &mut UI) -> Result<bool> {
     )?)
 }
 
+fn prompt_url(ui: &mut UI) -> Result<String> {
+    let config = config::load()?;
+    let default = match config.bldr_url {
+        Some(u) => {
+            ui.para(
+                "You already have a default builder url set up, but feel free to change it \
+                 if you wish.",
+            )?;
+            Some(u)
+        }
+        None => henv::var(BLDR_URL_ENVVAR).ok(),
+    };
+    Ok(ui.prompt_ask("Private builder url", default.as_ref().map(|x| &**x))?)
+}
+
 fn prompt_auth_token(ui: &mut UI) -> Result<String> {
     let config = config::load()?;
     let default = match config.auth_token {
@@ -351,6 +414,13 @@ fn opt_out_analytics(ui: &mut UI, analytics_path: &Path) -> Result<()> {
     let result = analytics::opt_out(ui, analytics_path);
     ui.br()?;
     result
+}
+
+fn valid_url(val: &str) -> result::Result<(), String> {
+    match Url::parse(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
 }
 
 #[cfg(windows)]
