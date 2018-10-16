@@ -622,17 +622,26 @@ impl Server {
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
         // of just how the logic goes. The value of the trace is really high, though, so we suck it
         // for now.
-        let trace_member_id = member.id.clone();
+        let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
         let trace_health = health.clone();
         if self.member_list.insert(member, health) {
             trace_it!(
                 MEMBERSHIP: self,
                 TraceKind::MemberUpdate,
-                trace_member_id,
+                member_id,
                 trace_incarnation,
                 trace_health
             );
+
+            // Purge "heat" information for a member that's
+            // gone. Purging doesn't remove Member rumor information,
+            // though, since that's how we let others know this member
+            // has departed; that's why we subsequently start a "hot"
+            // rumor.
+            if health == Health::Departed {
+                self.rumor_heat.purge(&member_id);
+            }
             self.rumor_heat.start_hot_rumor(rk);
         }
     }
@@ -662,6 +671,9 @@ impl Server {
             //
             // TODO (CM): This exact code is present numerous places;
             // factor it out to facilitate further code consolidation.
+
+            // NOT calling RumorHeat::purge here because we'll be
+            // shutting down soon anyway.
             self.rumor_heat.start_hot_rumor(RumorKey::new(
                 RumorType::Member,
                 self.member_id.clone(),
@@ -703,7 +715,7 @@ impl Server {
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
         // of just how the logic goes. The value of the trace is really high, though, so we suck it
         // for now.
-        let trace_member_id = member.id.clone();
+        let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
         let trace_health = health.clone();
 
@@ -711,10 +723,14 @@ impl Server {
             trace_it!(
                 MEMBERSHIP: self,
                 TraceKind::MemberUpdate,
-                trace_member_id,
+                member_id,
                 trace_incarnation,
                 trace_health
             );
+
+            if member_id != self.member_id() && health == Health::Departed {
+                self.rumor_heat.purge(&member_id);
+            }
             self.rumor_heat.start_hot_rumor(rk);
         }
     }
@@ -744,6 +760,8 @@ impl Server {
                 {
                     // TODO (CM): Why are we inferring departure from
                     // a service rumor?
+
+                    self.rumor_heat.purge(&service_rumor.member_id);
                     self.rumor_heat.start_hot_rumor(RumorKey::new(
                         RumorType::Member,
                         service_rumor.member_id.clone(),
@@ -784,6 +802,7 @@ impl Server {
             .member_list
             .insert_health_by_id(&departure.member_id, Health::Departed)
         {
+            self.rumor_heat.purge(&departure.member_id);
             self.rumor_heat.start_hot_rumor(RumorKey::new(
                 RumorType::Member,
                 departure.member_id.clone(),

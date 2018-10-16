@@ -57,6 +57,7 @@ impl Expire {
                 .members_expired_to_departed(self.timing.departure_timeout_duration());
 
             for id in newly_departed_members {
+                self.server.rumor_heat.purge(&id);
                 self.server
                     .rumor_heat
                     .start_hot_rumor(RumorKey::new(RumorType::Member, id, ""));

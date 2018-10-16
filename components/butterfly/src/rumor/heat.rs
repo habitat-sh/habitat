@@ -27,7 +27,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 // Internal Modules
-use rumor::RumorKey;
+use rumor::{RumorKey, RumorType};
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
 // TODO (CM): Might want to type the member ID explicitly
@@ -125,6 +125,43 @@ impl RumorHeat {
             }
         }
     }
+
+    /// When a member is considered "gone" (e.g., once it is
+    /// considered Departed), we can get rid of all the "cooling"
+    /// information, since we're not going to be sending anything
+    /// their way again.
+    ///
+    /// Without this, we would continue carrying around this
+    /// information for Supervisors that we're never going to see
+    /// again. The larger the network of Supervisors is, the more
+    /// memory this consumes. If that member should ever come back
+    /// again, all rumors would be considered "hot" for them, so they
+    /// will get a bit more network traffic initially.
+    pub fn purge(&self, id: &str) {
+        let mut heat_map = self.0.write().expect("RumorHeat lock poisoned");
+
+        // Remove any information about Service rumors for this
+        // particular member... it's leaving, so none of its services
+        // will be around either.
+        let count_before = heat_map.len();
+        heat_map.retain(|k, _| !(k.kind == RumorType::Service && k.id == id));
+        let count_after = heat_map.len();
+        debug!(
+            "Purged {} service rumor mappings for {:?}",
+            count_before - count_after,
+            id
+        );
+
+        // Remove any "cooling" information for this member, across
+        // all types of rumors.
+        let mut count = 0;
+        for heat in heat_map.values_mut() {
+            if heat.remove(id).is_some() {
+                count += 1;
+            }
+        }
+        debug!("Purged {} heat count entries for {:?}", count, id);
+    }
 }
 
 impl Default for RumorHeat {
@@ -140,6 +177,11 @@ mod tests {
     use protocol::{self, newscast};
     use rumor::{Rumor, RumorKey, RumorType};
     use uuid::Uuid;
+
+    use habitat_core::package::PackageIdent;
+    use habitat_core::service::ServiceGroup;
+    use member::Member;
+    use rumor::service::{Service, SysInfo};
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.
@@ -358,5 +400,158 @@ mod tests {
         let rumors = heat.currently_hot_rumors(&member);
         let expected_hot_rumors = &[warm_key.clone(), hot_key.clone()];
         assert_eq!(rumors, expected_hot_rumors);
+    }
+
+    fn test_service(member_id: &str) -> Service {
+        let package: PackageIdent = "core/foo/1.0.0/20180701125610".parse().unwrap();
+        let sg = ServiceGroup::new(None, "foo", "default", None).unwrap();
+        Service::new(member_id, &package, sg, SysInfo::default(), None)
+    }
+
+    fn test_member(member_id: &str) -> Member {
+        let mut m = Member::default();
+        m.id = member_id.to_string();
+        m
+    }
+
+    #[test]
+    fn purging_removes_heat_information_for_a_given_member() {
+        // Here's our world... we've got 3 members. We'll have a
+        // Service rumor and a Member rumor for each of them. Then,
+        // we'll ensure that all rumors have cooled for all members,
+        // which will totally fill the RumorHeat structure.
+        //
+        // Then we'll purge member 2.
+        //
+        // We'll expect the entry for rumor for the service running on
+        // member 2 to be completely gone, while only the "heat"
+        // information for member 2 is removed from all other entries.
+
+        let heat = RumorHeat::default();
+
+        let member_1_id = "test_member_1";
+        let member_2_id = "test_member_2";
+        let member_3_id = "test_member_3";
+
+        let member_1 = test_member(&member_1_id);
+        let member_2 = test_member(&member_2_id);
+        let member_3 = test_member(&member_3_id);
+
+        let service_1 = test_service(&member_1_id);
+        let service_2 = test_service(&member_2_id);
+        let service_3 = test_service(&member_3_id);
+
+        // We're going to add a bunch of rumors, and then ensure
+        // they're completely "cooled" for every member. This should
+        // approximate a long-standing, stable network, where all
+        // rumors have been disseminated to all members.
+        heat.start_hot_rumor(&member_1);
+        heat.start_hot_rumor(&member_2);
+        heat.start_hot_rumor(&member_3);
+        heat.start_hot_rumor(&service_1);
+        heat.start_hot_rumor(&service_2);
+        heat.start_hot_rumor(&service_3);
+
+        for m in &[member_1_id, member_2_id, member_3_id] {
+            cool_rumor_completely(&heat, m, &service_1);
+            cool_rumor_completely(&heat, m, &service_2);
+            cool_rumor_completely(&heat, m, &service_3);
+            cool_rumor_completely(&heat, m, &member_1);
+            cool_rumor_completely(&heat, m, &member_2);
+            cool_rumor_completely(&heat, m, &member_3);
+        }
+
+        // Peek at the internals; the purge method is basically about
+        // reclaiming memory.
+        //
+        // This just asserts our baseline.
+        {
+            let inner = heat.0.read().unwrap();
+            assert_eq!(inner.len(), 6);
+
+            // Check the Member rumors
+            for m in &[&member_1, &member_2, &member_3] {
+                let heat_map = inner
+                    .get(&RumorKey::from(*m))
+                    .expect("Should have had a member rumor present");
+                for m in &[member_1_id, member_2_id, member_3_id] {
+                    assert_eq!(
+                        heat_map
+                            .get(*m)
+                            .expect("Should have had an entry for the member"),
+                        &RUMOR_COOL_DOWN_LIMIT
+                    );
+                }
+            }
+
+            // Check the Service rumors
+            for s in &[&service_1, &service_2, &service_3] {
+                let heat_map = inner
+                    .get(&RumorKey::from(*s))
+                    .expect("Should have had a service rumor present");
+                for m in &[member_1_id, member_2_id, member_3_id] {
+                    assert_eq!(
+                        heat_map
+                            .get(*m)
+                            .expect("Should have had an entry for the member"),
+                        &RUMOR_COOL_DOWN_LIMIT
+                    );
+                }
+            }
+        }
+
+        // This is the meat of the test
+        heat.purge(&member_2_id);
+
+        // Now we peek at the internals again, verifying that only the
+        // information pertaining to member 2 is gone.
+        {
+            let inner = heat.0.read().unwrap();
+            assert_eq!(inner.len(), 5);
+
+            // Check the Member rumors... all these should be present
+            for m in &[&member_1, &member_2, &member_3] {
+                let heat_map = inner
+                    .get(&RumorKey::from(*m))
+                    .expect("Should have had a member rumor present");
+                assert_eq!(
+                    heat_map.get(member_1_id).expect("lulz"),
+                    &RUMOR_COOL_DOWN_LIMIT
+                );
+                assert!(
+                    heat_map.get(member_2_id).is_none(),
+                    "Heat information for a purged member should be removed"
+                );
+                assert_eq!(
+                    heat_map.get(member_3_id).expect("lulz"),
+                    &RUMOR_COOL_DOWN_LIMIT
+                );
+            }
+
+            // Check the Service rumors
+            assert!(
+                inner.get(&RumorKey::from(&service_2)).is_none(),
+                "Service keys from the purged member should be removed"
+            );
+            for s in &[&service_1, &service_3] {
+                let heat_map = inner
+                    .get(&RumorKey::from(*s))
+                    .expect("Should have had a service rumor present");
+                for m in &[member_1_id, member_2_id, member_3_id] {
+                    assert_eq!(
+                        heat_map.get(member_1_id).expect("lulz"),
+                        &RUMOR_COOL_DOWN_LIMIT
+                    );
+                    assert!(
+                        heat_map.get(member_2_id).is_none(),
+                        "Heat information for a purged member should be removed"
+                    );
+                    assert_eq!(
+                        heat_map.get(member_3_id).expect("lulz"),
+                        &RUMOR_COOL_DOWN_LIMIT
+                    );
+                }
+            }
+        }
     }
 }
