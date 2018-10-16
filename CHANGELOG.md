@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
 - Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
 - Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
 - rework permissions into separate APIs for linux and windows [#5724](https://github.com/habitat-sh/habitat/pull/5724) ([mwrock](https://github.com/mwrock))
@@ -43,6 +44,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
 - Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
 - Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
 - rework permissions into separate APIs for linux and windows [#5724](https://github.com/habitat-sh/habitat/pull/5724) ([mwrock](https://github.com/mwrock))
