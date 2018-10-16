@@ -8,7 +8,7 @@ $pkg_deps=@("core/powershell", "core/docker", "core/hab", "core/docker-credentia
 $pkg_bin_dirs = @("bin")
 
 function Invoke-Build {
-    Get-Content "$PLAN_CONTEXT/bin/publish-studio.ps1" | % {
+    Get-Content "$PLAN_CONTEXT/../bin/publish-studio.ps1" | % {
         $_.Replace("@author@", $pkg_maintainer).Replace("@version@", "$pkg_version/$pkg_release")
       } | Add-Content -Path publish-studio.ps1
 }
@@ -16,7 +16,7 @@ function Invoke-Build {
 function Invoke-Install {
     Copy-Item "$PLAN_CONTEXT/../../studio/build-docker-image.ps1" "$pkg_prefix/bin"
     Copy-Item publish-studio.ps1 "$pkg_prefix/bin"
-    Copy-Item $PLAN_CONTEXT/bin/publish-studio.bat "$pkg_prefix/bin"
+    Copy-Item $PLAN_CONTEXT/../bin/publish-studio.bat "$pkg_prefix/bin"
 }
 
 function Invoke-Download {}

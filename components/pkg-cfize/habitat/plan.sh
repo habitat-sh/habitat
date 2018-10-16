@@ -28,7 +28,7 @@ pkg_bin_dirs=(bin)
 _bins=($pkg_name)
 
 # TODO fn: use `pkg_version()` form
-pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
+pkg_version=$(cat "$SRC_PATH/../../VERSION")
 
 do_prepare() {
   do_default_prepare
@@ -48,7 +48,7 @@ do_prepare() {
 do_build() {
   local bin
   for bin in "${_bins[@]}"; do
-    cp -v "$PLAN_CONTEXT/bin/${bin}.sh" "$CACHE_PATH/${bin}"
+    cp -v "$SRC_PATH/bin/${bin}.sh" "$CACHE_PATH/${bin}"
 
     # Use the Bash from our dependency list as the shebang. Also, embed the
     # release version of the program.
