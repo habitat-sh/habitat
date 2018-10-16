@@ -634,7 +634,11 @@ impl Server {
                 trace_health
             );
 
-            // Purge "heat" information for a member that's gone
+            // Purge "heat" information for a member that's
+            // gone. Purging doesn't remove Member rumor information,
+            // though, since that's how we let others know this member
+            // has departed; that's why we subsequently start a "hot"
+            // rumor.
             if health == Health::Departed {
                 self.rumor_heat.purge(&member_id);
             }
@@ -724,7 +728,6 @@ impl Server {
                 trace_health
             );
 
-            // Purge "heat" information for a member that's gone
             if member_id != self.member_id() && health == Health::Departed {
                 self.rumor_heat.purge(&member_id);
             }
@@ -758,7 +761,6 @@ impl Server {
                     // TODO (CM): Why are we inferring departure from
                     // a service rumor?
 
-                    // Purge "heat" information for a member that's gone
                     self.rumor_heat.purge(&service_rumor.member_id);
                     self.rumor_heat.start_hot_rumor(RumorKey::new(
                         RumorType::Member,
@@ -800,7 +802,6 @@ impl Server {
             .member_list
             .insert_health_by_id(&departure.member_id, Health::Departed)
         {
-            // Purge "heat" information for a member that's gone
             self.rumor_heat.purge(&departure.member_id);
             self.rumor_heat.start_hot_rumor(RumorKey::new(
                 RumorType::Member,

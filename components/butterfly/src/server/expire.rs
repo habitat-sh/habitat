@@ -57,7 +57,6 @@ impl Expire {
                 .members_expired_to_departed(self.timing.departure_timeout_duration());
 
             for id in newly_departed_members {
-                // Purge "heat" information for a member that's gone
                 self.server.rumor_heat.purge(&id);
                 self.server
                     .rumor_heat

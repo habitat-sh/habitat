@@ -143,13 +143,24 @@ impl RumorHeat {
         // Remove any information about Service rumors for this
         // particular member... it's leaving, so none of its services
         // will be around either.
+        let count_before = heat_map.len();
         heat_map.retain(|k, _| !(k.kind == RumorType::Service && k.id == id));
+        let count_after = heat_map.len();
+        debug!(
+            "Purged {} service rumor mappings for {:?}",
+            count_before - count_after,
+            id
+        );
 
         // Remove any "cooling" information for this member, across
         // all types of rumors.
+        let mut count = 0;
         for heat in heat_map.values_mut() {
-            heat.remove(id);
+            if heat.remove(id).is_some() {
+                count += 1;
+            }
         }
+        debug!("Purged {} heat count entries for {:?}", count, id);
     }
 }
 
