@@ -26,7 +26,7 @@ use std::time::Duration;
 
 use hcore::url::BLDR_URL_ENVVAR;
 use rand;
-use rand::distributions::{IndependentSample, Range};
+use rand::distributions::{Distribution, Uniform};
 
 use super::test_butterfly;
 
@@ -100,9 +100,9 @@ fn unclaimed_port(tries: u16) -> u16 {
 /// Return a random unprivileged, unregistered TCP port number.
 fn random_port() -> u16 {
     // IANA port registrations go to 49151
-    let between = Range::new(49152, ::std::u16::MAX);
+    let between = Uniform::new_inclusive(49152, ::std::u16::MAX);
     let mut rng = rand::thread_rng();
-    between.ind_sample(&mut rng)
+    between.sample(&mut rng)
 }
 
 /// Find an executable relative to the current integration testing
