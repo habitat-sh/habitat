@@ -19,11 +19,6 @@ set_hab_binary() {
     # `x86_64-linux-kernel2` package with the `hab` on our path, it
     # would result in an error and fail the build.
     if [[ "$BUILD_PKG_TARGET" == "x86_64-linux-kernel2" ]]; do
-        # This installation step is a temporary shim until we have done at
-        # least one release. Once we have a release, we can update ci-studio-common
-        # to fetch this binary from bintray using the install.sh script and the install
-        # step is no longer needed. Until then, we need to fetch it from our 
-        # bootstrap pipeline. 
         install_hab_kernel2_binary
         hab_binary="$(which hab-x86_64-linux-kernel2)"
     else 
@@ -53,13 +48,18 @@ set_hab_binary() {
     echo "--- :habicat: Using $(${hab_binary} --version)"
 }
 
+# This installation step is a temporary shim until we have done at
+# least one release. Once we have a release, we can update ci-studio-common
+# to fetch this binary from bintray using the install.sh script and the install
+# step is no longer needed. Until then, we need to fetch it from our 
+# bootstrap pipeline. 
 install_hab_kernel2_binary() {
     local hab_src_url tempdir
     hab_src_url="http://habitat-boostrap-artifacts.s3.amazonaws.com/x86_64-linux-kernel2/stage2/habitat-stage2-x86_64-linux-kernel2-latest"
     tempdir=$(mktemp -d hab-kernel2-XXXX)
 
     pushd $tmpdir >/dev/null
-    wget "$hab_src_url" hab-x86_64-linux-kernel2
+    curl "$hab_src_url" -o hab-x86_64-linux-kernel2
     sudo mv hab-x86_64-linux-kernel2 /bin/hab-x86_64-linux-kernel2
     sudo chmod +x /bin/hab-x86_64-linux-kernel2
     popd 

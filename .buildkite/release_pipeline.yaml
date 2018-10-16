@@ -77,6 +77,14 @@ steps:
     command: .buildkite/scripts/build_component.sh bintray-publish
     agents:
       queue: habitat-release
+  
+  - label: ":linux: :habicat: core/hab-bintray-publish"
+    command: .buildkite/scripts/build_component.sh bintray-publish
+    concurrency_group: "habitat/release/x86_64-linux-kernel2"
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET="x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-bintray-publish"
     command: /bin/true
