@@ -2040,18 +2040,6 @@ mod test {
     }
 
     #[test]
-    fn manager_state_path_with_name() {
-        let mut cfg = ManagerConfig::default();
-        cfg.name = Some(String::from("peanuts"));
-        let path = cfg.sup_root();
-
-        assert_eq!(
-            PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX.to_string_lossy())),
-            path
-        );
-    }
-
-    #[test]
     fn manager_state_path_custom() {
         let mut cfg = ManagerConfig::default();
         cfg.custom_state_path = Some(PathBuf::from("/tmp/peanuts-and-cake"));
@@ -2064,7 +2052,6 @@ mod test {
     fn manager_state_path_custom_beats_name() {
         let mut cfg = ManagerConfig::default();
         cfg.custom_state_path = Some(PathBuf::from("/tmp/partay"));
-        cfg.name = Some(String::from("nope"));
         let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/partay"), path);
