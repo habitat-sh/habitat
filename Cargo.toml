@@ -27,6 +27,7 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 sodiumoxide = "0.0.16"
+tempdir = "*"
 time = "*"
 toml = { version = "*", default-features = false }
 typemap = "*"
@@ -44,7 +45,6 @@ windows-acl = "*"
 
 [dev-dependencies]
 hyper = "0.10"
-tempdir = "*"
 
 [features]
 default = []

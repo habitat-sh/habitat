@@ -34,6 +34,7 @@ extern crate log;
 extern crate rand;
 extern crate regex;
 extern crate serde;
+extern crate tempdir;
 #[macro_use]
 extern crate serde_derive;
 
@@ -46,8 +47,6 @@ extern crate serde_json;
 extern crate serde_json;
 
 extern crate sodiumoxide;
-#[cfg(test)]
-extern crate tempdir;
 extern crate time;
 extern crate toml;
 extern crate typemap;

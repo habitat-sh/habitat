@@ -20,9 +20,31 @@ use std::str::FromStr;
 use super::metadata::{read_metafile, MetaFile};
 use super::{PackageIdent, PackageTarget};
 
-use error::Result;
+use error::{Error, Result};
 
-pub const INSTALL_TMP_PREFIX: &'static str = ".hab-pkg-install";
+use tempdir::TempDir;
+
+const INSTALL_TMP_PREFIX: &'static str = ".hab-pkg-install";
+
+/// Return a directory which can be used as a temp dir during package install/
+/// uninstall
+///
+/// It returns a path which is in the same parent directory as `path`
+/// but with TempDir style randomization
+pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
+    let base = path.parent().ok_or(Error::PackageUnpackFailed(
+        "Could not determine parent directory for temporary package directory".to_owned(),
+    ))?;
+    fs::create_dir_all(base)?;
+    let temp_install_prefix = path
+        .file_name()
+        .and_then(|f| f.to_str())
+        .and_then(|dirname| Some(format!("{}-{}", INSTALL_TMP_PREFIX, dirname)))
+        .ok_or(Error::PackageUnpackFailed(
+            "Could not generate prefix for temporary package directory".to_owned(),
+        ))?;
+    Ok(TempDir::new_in(base, &temp_install_prefix)?)
+}
 
 /// Returns a list of package structs built from the contents of the given directory.
 pub fn all_packages(path: &Path) -> Result<Vec<PackageIdent>> {
@@ -210,5 +232,32 @@ mod test {
         for p in &expected {
             assert!(packages.contains(&p.ident));
         }
+    }
+
+    #[test]
+    fn create_temp_package_directory_in_same_parentdir() {
+        let p = Path::new("/tmp/foo");
+        let temp_dir = temp_package_directory(&p).unwrap();
+        let temp_path = temp_dir.path();
+
+        assert_eq!(&p.parent(), &temp_path.parent());
+    }
+
+    #[test]
+    fn temp_package_directory_starts_with_prefix() {
+        let p = Path::new("/tmp/foo");
+        let temp_dir = temp_package_directory(&p).unwrap();
+        let temp_filename = temp_dir.path().file_name().unwrap().to_str().unwrap();
+
+        assert!(&temp_filename.starts_with(INSTALL_TMP_PREFIX));
+    }
+
+    #[test]
+    fn temp_package_directory_changes() {
+        let p = Path::new("/tmp/foo");
+        let temp_dir1 = temp_package_directory(&p).unwrap();
+        let temp_dir2 = temp_package_directory(&p).unwrap();
+
+        assert_ne!(&temp_dir1.path(), &temp_dir2.path());
     }
 }

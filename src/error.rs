@@ -131,6 +131,8 @@ pub enum Error {
     OpenDesktopFailed(String),
     /// Occurs when a suitable installed package cannot be found.
     PackageNotFound(package::PackageIdent),
+    /// Occurs where trying to unpack a package
+    PackageUnpackFailed(String),
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
     /// Occurs when setting ownership or permissions on a file or directory fails.
@@ -314,6 +316,7 @@ impl fmt::Display for Error {
                     format!("Cannot find a release of package: {}", pkg)
                 }
             }
+            Error::PackageUnpackFailed(ref e) => format!("Package could not be unpacked. {}", e),
             Error::ParseIntError(ref e) => format!("{}", e),
             Error::PlanMalformed => format!("Failed to read or parse contents of Plan file"),
             Error::PermissionFailed(ref e) => format!("{}", e),
@@ -453,6 +456,7 @@ impl error::Error for Error {
             Error::NoOutboundAddr => "Failed to discover the outbound IP address",
             Error::OpenDesktopFailed(_) => "OpenDesktopW failed",
             Error::PackageNotFound(_) => "Cannot find a package",
+            Error::PackageUnpackFailed(_) => "Package could not be unpacked",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
             Error::PermissionFailed(_) => "Failed to set permissions",
             Error::PlanMalformed => "Failed to read or parse contents of Plan file",
