@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Refactor Plans for hab components [#5698](https://github.com/habitat-sh/habitat/pull/5698) ([smacfarlane](https://github.com/smacfarlane))
 - Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
 - Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
 - Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
@@ -44,6 +45,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- Refactor Plans for hab components [#5698](https://github.com/habitat-sh/habitat/pull/5698) ([smacfarlane](https://github.com/smacfarlane))
 - Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
 - Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
 - Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
