@@ -287,9 +287,7 @@ impl fmt::Display for SupError {
             Error::ProcessLockCorrupt => format!("Unable to decode contents of process lock"),
             Error::ProcessLocked(ref pid) => format!(
                 "Unable to start Habitat Supervisor because another instance is already \
-                 running with the pid {}. If your intention was to run multiple Supervisors - \
-                 that can be done by setting a value for `--override-name` at startup - but \
-                 it is not recommended.",
+                 running with the pid {}.",
                 pid
             ),
             Error::ProcessLockIO(ref path, ref err) => format!(

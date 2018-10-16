@@ -150,14 +150,13 @@ pub struct ManagerConfig {
     pub gossip_peers: Vec<SocketAddr>,
     pub gossip_permanent: bool,
     pub ring_key: Option<SymKey>,
-    pub name: Option<String>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
 }
 
 impl ManagerConfig {
     pub fn sup_root(&self) -> PathBuf {
-        protocol::sup_root(self.name.as_ref(), self.custom_state_path.as_ref())
+        protocol::sup_root(self.custom_state_path.as_ref())
     }
 }
 
@@ -176,7 +175,6 @@ impl Default for ManagerConfig {
             gossip_peers: vec![],
             gossip_permanent: false,
             ring_key: None,
-            name: None,
             organization: None,
             watch_peer_file: None,
         }

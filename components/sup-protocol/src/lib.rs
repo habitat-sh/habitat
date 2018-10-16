@@ -145,17 +145,18 @@ where
     sup_root.as_ref().join(CTL_SECRET_FILENAME)
 }
 
-pub fn sup_root<T, U>(name: Option<T>, custom_state_path: Option<U>) -> PathBuf
+pub fn sup_root<U>(custom_state_path: Option<U>) -> PathBuf
 where
-    T: AsRef<Path>,
     U: AsRef<Path>,
 {
     match custom_state_path {
         Some(ref custom) => custom.as_ref().to_path_buf(),
-        None => match name {
-            Some(ref name) => STATE_PATH_PREFIX.join(name),
-            None => STATE_PATH_PREFIX.join("default"),
-        },
+        // TODO: /hab/sup/default is legacy from when we allowed multiple
+        // supervisors on the same host with --override-name. The sup dir
+        // should really be /hab/sup now, but it would be an awkward change
+        // since the assumption of /hab/sup/default is pervasive.
+        // See https://github.com/habitat-sh/habitat/issues/5266
+        None => STATE_PATH_PREFIX.join("default"),
     }
 }
 

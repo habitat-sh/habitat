@@ -822,8 +822,6 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
             "The listen address for the Control Gateway. If not specified, the value will \
             be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
-        (@arg NAME: --("override-name") +takes_value
-            "The name of the Supervisor if launching more than one [default: default]")
         (@arg ORGANIZATION: --org +takes_value
             "The organization that the Supervisor and its subsequent services are part of \
              [default: default]")
@@ -891,8 +889,6 @@ pub fn sub_sup_term() -> App<'static, 'static> {
         // is displayed confusingly as `hab-sup`
         // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
         (usage: "hab sup term [OPTIONS]")
-        (@arg NAME: --("override-name") +takes_value
-            "The name of the Supervisor if more than one is running [default: default]")
     )
 }
 

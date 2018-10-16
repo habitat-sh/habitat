@@ -183,7 +183,7 @@ impl SrvClient {
 
     pub fn read_secret_key() -> Result<String, SrvClientError> {
         let mut buf = String::new();
-        protocol::read_secret_key(protocol::sup_root(None::<String>, None::<String>), &mut buf)
+        protocol::read_secret_key(protocol::sup_root(None::<String>), &mut buf)
             .map_err(SrvClientError::from)?;
         Ok(buf)
     }
