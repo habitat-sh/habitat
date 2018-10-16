@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use std::fs;
-use std::fs::DirEntry;
-use std::path::Path;
+use std::io;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use super::metadata::{read_metafile, MetaFile};
@@ -55,126 +55,239 @@ pub fn all_packages(path: &Path) -> Result<Vec<PackageIdent>> {
     Ok(package_list)
 }
 
-/// Helper function for all_packages. Walks the given path for origin directories
-/// and builds on the given package list by recursing into name, version, and release
-/// directories.
+/// Returns a vector of package structs built from the contents of
+/// the given directory, using the given ident to restrict the
+/// search.
+///
+/// The search is restricted by assuming the package directory
+/// structure is:
+///
+///    /base/ORIGIN/NAME/VERSION/RELEASE/
+///
+pub fn package_list_for_ident(
+    base_pkg_path: &Path,
+    ident: &PackageIdent,
+) -> Result<Vec<PackageIdent>> {
+    let mut package_list: Vec<PackageIdent> = vec![];
+    let mut package_path = PathBuf::from(base_pkg_path);
+    package_path.push(&ident.origin);
+    package_path.push(&ident.name);
+
+    if !is_existing_dir(&package_path)? {
+        return Ok(package_list);
+    }
+
+    match (&ident.version, &ident.release) {
+        // origin/name
+        (None, _) => walk_versions(&ident.origin, &ident.name, &package_path, &mut package_list)?,
+        // origin/name/version
+        (Some(version), None) => {
+            package_path.push(version);
+            if !is_existing_dir(&package_path)? {
+                return Ok(package_list);
+            }
+            walk_releases(
+                &ident.origin,
+                &ident.name,
+                &version,
+                &package_path,
+                &mut package_list,
+            )?
+        }
+        // origin/name/version/release
+        (Some(version), Some(release)) => {
+            package_path.push(version);
+            package_path.push(release);
+            if !is_existing_dir(&package_path)? {
+                return Ok(package_list);
+            }
+
+            let active_target = PackageTarget::active_target();
+            if let Some(new_ident) = package_ident_from_dir(
+                &ident.origin,
+                &ident.name,
+                &version,
+                active_target,
+                &package_path,
+            ) {
+                package_list.push(new_ident.clone())
+            }
+        }
+    }
+    Ok(package_list)
+}
+
+/// Helper function for all_packages. Walks the directory at the given
+/// Path for origin directories and builds on the given package list
+/// by recursing into name, version, and release directories.
 fn walk_origins(path: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
     for entry in fs::read_dir(path)? {
-        let origin = entry?;
-        if fs::metadata(origin.path())?.is_dir() {
-            walk_names(&origin, packages)?;
+        let origin_dir = entry?;
+        let origin_path = origin_dir.path();
+        if fs::metadata(&origin_path)?.is_dir() {
+            let origin = filename_from_entry(origin_dir);
+            walk_names(&origin, &origin_path, packages)?;
         }
     }
     Ok(())
 }
 
-/// Helper function for walk_origins. Walks the given origin DirEntry for name
-/// directories and recurses into them to find version and release directories.
-fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
-    for name in fs::read_dir(origin.path())? {
-        let name = name?;
-        let origin = origin
-            .file_name()
-            .to_string_lossy()
-            .into_owned()
-            .to_string();
-        if fs::metadata(name.path())?.is_dir() {
-            walk_versions(&origin, &name, packages)?;
+/// Helper function for walk_origins. Walks the direcotry at the given
+/// Path for name directories and recurses into them to find version
+/// and release directories.
+fn walk_names(origin: &String, dir: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
+    for entry in fs::read_dir(dir)? {
+        let name_dir = entry?;
+        let name_path = name_dir.path();
+        if fs::metadata(&name_path)?.is_dir() {
+            let name = filename_from_entry(name_dir);
+            walk_versions(&origin, &name, &name_path, packages)?;
         }
     }
     Ok(())
 }
 
-/// Helper function for walk_names. Walks the given name DirEntry for directories and recurses
-/// into them to find release directories.
-fn walk_versions(origin: &String, name: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
-    for version in fs::read_dir(name.path())? {
-        let version = version?;
-        let name = name.file_name().to_string_lossy().into_owned().to_string();
-        if fs::metadata(version.path())?.is_dir() {
-            walk_releases(origin, &name, &version, packages)?;
+/// Helper function for walk_names. Walks the directory at the given
+/// Path and recurses into them to find release directories.
+fn walk_versions(
+    origin: &String,
+    name: &String,
+    dir: &Path,
+    packages: &mut Vec<PackageIdent>,
+) -> Result<()> {
+    for entry in fs::read_dir(dir)? {
+        let version_dir = entry?;
+        let version_path = version_dir.path();
+        if fs::metadata(&version_path)?.is_dir() {
+            let version = filename_from_entry(version_dir);
+            walk_releases(origin, name, &version, &version_path, packages)?;
         }
     }
     Ok(())
 }
 
-/// Helper function for walk_versions. Walks the given release DirEntry for directories and
-/// recurses into them to find version directories. Finally, a Package struct is built and
-/// concatenated onto the given packages vector with the origin, name, version, and release of
-/// each.
+/// Helper function for walk_versions. Walks the directory at the
+/// given Path and constructs a Package struct if the directory is a
+/// valid package directory. Any resulting packages are pushed onto
+/// the given packages vector, assuming the given origin, name, and
+/// version.
 fn walk_releases(
     origin: &String,
     name: &String,
-    version: &DirEntry,
+    version: &String,
+    dir: &Path,
     packages: &mut Vec<PackageIdent>,
 ) -> Result<()> {
     let active_target = PackageTarget::active_target();
-
-    for entry in fs::read_dir(version.path())? {
-        let entry = entry?;
-        if let Some(path) = entry.path().file_name().and_then(|f| f.to_str()) {
-            if path.starts_with(INSTALL_TMP_PREFIX) {
-                debug!(
-                    "PackageInstall::walk_releases(): rejected PackageInstall candidate \
-                     because it matches installation temporary directory prefix: {}",
-                    path
-                );
-                continue;
+    for entry in fs::read_dir(dir)? {
+        let release_dir = entry?;
+        let release_path = release_dir.path();
+        if fs::metadata(&release_path)?.is_dir() {
+            if let Some(ident) =
+                package_ident_from_dir(origin, name, version, active_target, &release_path)
+            {
+                packages.push(ident)
             }
-        }
-
-        let metafile_content = read_metafile(entry.path(), &MetaFile::Target);
-        // If there is an error reading the target metafile, then skip the candidate
-        if let Err(e) = metafile_content {
-            debug!(
-                "PackageInstall::walk_releases(): rejected PackageInstall candidate \
-                 due to error reading TARGET metafile, found={}, reason={:?}",
-                entry.path().display(),
-                e,
-            );
-            continue;
-        }
-        // Any errors have been cleared, so unwrap is safe
-        let metafile_content = metafile_content.unwrap();
-        let install_target = PackageTarget::from_str(&metafile_content);
-        // If there is an error parsing the target as a valid PackageTarget, then skip the
-        // candidate
-        if let Err(e) = install_target {
-            debug!(
-                "PackageInstall::walk_releases(): rejected PackageInstall candidate \
-                 due to error parsing TARGET metafile as a valid PackageTarget, \
-                 found={}, reason={:?}",
-                entry.path().display(),
-                e,
-            );
-            continue;
-        }
-        // Any errors have been cleared, so unwrap is safe
-        let install_target = install_target.unwrap();
-
-        // Ensure that the installed package's target matches the active `PackageTarget`,
-        // otherwise skip the candidate
-        if active_target == &install_target {
-            let release = entry.file_name().to_string_lossy().into_owned().to_string();
-            let version = version
-                .file_name()
-                .to_string_lossy()
-                .into_owned()
-                .to_string();
-            let ident =
-                PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
-            packages.push(ident)
-        } else {
-            debug!(
-                "PackageInstall::walk_releases(): rejected PackageInstall candidate, \
-                 found={}, installed_target={}, active_target={}",
-                entry.path().display(),
-                install_target,
-                active_target,
-            );
         }
     }
     Ok(())
+}
+
+/// package_ident_from_dir returns a PackageIdent if the given
+/// path contains a valid package for the given active_target.
+///
+/// Returns None when
+///    - The directory is a temporary install directroy
+///    - An error occurs reading the package metadata
+///    - An error occurs reading the package target
+///    - The package target doesn't match the given active target
+fn package_ident_from_dir(
+    origin: &String,
+    name: &String,
+    version: &String,
+    active_target: &PackageTarget,
+    dir: &Path,
+) -> Option<PackageIdent> {
+    let release = if let Some(rel) = dir.file_name().and_then(|f| f.to_str()) {
+        rel
+    } else {
+        return None;
+    };
+
+    if release.starts_with(INSTALL_TMP_PREFIX) {
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate \
+             because it matches installation temporary directory prefix: {}",
+            dir.display()
+        );
+        return None;
+    }
+
+    let metafile_content = read_metafile(dir, &MetaFile::Target);
+    // If there is an error reading the target metafile, then skip the candidate
+    if let Err(e) = metafile_content {
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate \
+             due to error reading TARGET metafile, found={}, reason={:?}",
+            dir.display(),
+            e,
+        );
+        return None;
+    }
+
+    // Any errors have been cleared, so unwrap is safe
+    let metafile_content = metafile_content.unwrap();
+    let install_target = PackageTarget::from_str(&metafile_content);
+    // If there is an error parsing the target as a valid PackageTarget, then skip the
+    // candidate
+    if let Err(e) = install_target {
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate \
+             due to error parsing TARGET metafile as a valid PackageTarget, \
+             found={}, reason={:?}",
+            dir.display(),
+            e,
+        );
+        return None;
+    }
+    // Any errors have been cleared, so unwrap is safe
+    let install_target = install_target.unwrap();
+
+    // Ensure that the installed package's target matches the active `PackageTarget`,
+    // otherwise skip the candidate
+    if active_target == &install_target {
+        return Some(PackageIdent::new(
+            origin.clone(),
+            name.clone(),
+            Some(version.clone()),
+            Some(release.to_owned()),
+        ));
+    } else {
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate, \
+             found={}, installed_target={}, active_target={}",
+            dir.display(),
+            install_target,
+            active_target,
+        );
+        return None;
+    }
+}
+
+fn filename_from_entry(entry: fs::DirEntry) -> String {
+    return entry.file_name().to_string_lossy().into_owned().to_string();
+}
+
+fn is_existing_dir(path: &Path) -> Result<bool> {
+    match fs::metadata(&path) {
+        Err(err) => {
+            if err.kind() == io::ErrorKind::NotFound {
+                return Ok(false);
+            }
+            return Err(Error::from(err));
+        }
+        Ok(metadata) => return Ok(metadata.is_dir()),
+    }
 }
 
 #[cfg(test)]
