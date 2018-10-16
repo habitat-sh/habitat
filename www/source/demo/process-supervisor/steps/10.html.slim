@@ -36,7 +36,7 @@ classes: demo_step
           | $ hab studio enter
         = code(:shell) do
           |
-            [1][default:/src:0]# hab sup run
+            [1][default:/src:0]# sup-run
             [2][default:/src:0]# hab svc load yourorigin/sample-node-app --strategy at-once
         p
           ' The first command starts the Habitat Supervisor, and the second instructs it to download, install
