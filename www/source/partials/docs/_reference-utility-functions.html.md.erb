@@ -14,6 +14,10 @@ The following helper functions can be useful in your plan to help you build your
 : Downloads a file from a source URL to a local file and uses an optional
 shasum to determine if an existing file can be used.
 
+```bash
+download_file <source_url> <local_file> [<shasum>]
+```
+
   If an existing file is present and the third argument is set with a shasum
 digest, the file will be checked to see if it's valid. If so, the function
 ends early and returns 0. Otherwise, the shasums do not match so the
@@ -31,19 +35,19 @@ download_file http://example.com/file.tar.gz file.tar.gz
 Downloads if no local file is found:
 
 ```bash
-download_file http://example.com/file.tar.gz file.tar.gz abc123...
+download_file http://example.com/file.tar.gz file.tar.gz expected_shasum
 ```
 
 File matches checksum: download is skipped, local file is used:
 
 ```bash
-download_file http://example.com/file.tar.gz file.tar.gz abc123...
+download_file http://example.com/file.tar.gz file.tar.gz expected_shasum
 ```
 
 File doesn't match checksum: local file removed, download attempted:
 
 ```bash
-download_file http://example.com/file.tar.gz file.tar.gz ohnoes...
+download_file http://example.com/file.tar.gz file.tar.gz mismatching_shasum
 ```
 
 Will return 0 if a file was downloaded or if a valid cached file was found.
