@@ -5,7 +5,7 @@ ul.no-bullet
       li.main-sidebar--list--item
         - if current_page.url != '/blog'
           a.icon-back href="/blog" All articles
-      - blog.tags.each do |tag, articles|
+      - blog.tags.sort_by {|tag, articles| tag.downcase }.each do |tag, articles|
         li.main-sidebar--list--item.tag
           - if current_page.url == tag_path(tag)
             = link_to "#{tag}", tag_path(tag), :class => 'active'
