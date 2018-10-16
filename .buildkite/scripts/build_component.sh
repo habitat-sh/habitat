@@ -14,6 +14,21 @@ source .buildkite/scripts/shared.sh
 # new studio.
 set_hab_binary() {
     echo "--- :thinking_face: Determining which 'hab' binary to use"
+    # This ensure the hab cli we use going forward has the correct
+    # ActiveTarget. Otherwise, if we were to attempt to install an
+    # `x86_64-linux-kernel2` package with the `hab` on our path, it
+    # would result in an error and fail the build.
+    if [[ "$BUILD_PKG_TARGET" == "x86_64-linux-kernel2" ]]; do
+        # This installation step is a temporary shim until we have done at
+        # least one release. Once we have a release, we can update ci-studio-common
+        # to fetch this binary from bintray using the install.sh script and the install
+        # step is no longer needed. Until then, we need to fetch it from our 
+        # bootstrap pipeline. 
+        install_hab_kernel2_binary
+        hab_binary="$(which hab-x86_64-linux-kernel2)"
+    else 
+        hab_binary="$(which hab)"
+    fi 
 
     if buildkite-agent meta-data exists hab-version &&
             buildkite-agent meta-data exists studio-version; then
@@ -29,14 +44,26 @@ set_hab_binary() {
         # runs that may take place on it.
         sudo hab pkg install "${hab_ident}"
         sudo hab pkg install "$(buildkite-agent meta-data get studio-version)"
-        declare -g hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
+        hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else
-        echo "Buildkite metadata NOT found; using previously-installed hab binary"
-        hab_binary="$(which hab)"
-        declare -g hab_binary
+        echo "Buildkite metadata NOT found; using previously-installed hab binary: $hab_binary"
     fi
+    declare -g hab_binary
     echo "--- :habicat: Using $(${hab_binary} --version)"
+}
+
+install_hab_kernel2_binary() {
+    local hab_src_url tempdir
+    hab_src_url="http://habitat-boostrap-artifacts.s3.amazonaws.com/x86_64-linux-kernel2/stage2/habitat-stage2-x86_64-linux-kernel2-latest"
+    tempdir=$(mktemp -d hab-kernel2-XXXX)
+
+    pushd $tmpdir >/dev/null
+    wget "$hab_src_url" hab-x86_64-linux-kernel2
+    sudo mv hab-x86_64-linux-kernel2 /bin/hab-x86_64-linux-kernel2
+    sudo chmod +x /bin/hab-x86_64-linux-kernel2
+    popd 
+    rm -rf "$tmpdir"
 }
 
 ########################################################################
@@ -93,9 +120,7 @@ case "${component}" in
         ;;
 esac
 
-# TODO (CM): Replace "Linux" below with ${pkg_target:?} once that's in
-# hab-plan-build (see https://github.com/habitat-sh/habitat/pull/5373)
-echo "<br>* ${pkg_ident} (Linux)" | buildkite-agent annotate --append --context "release-manifest"
+echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"
 
 echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
 ${hab_binary} pkg upload \
