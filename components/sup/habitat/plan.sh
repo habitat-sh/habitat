@@ -1,23 +1,22 @@
-# shellcheck disable=2154
-pkg_name=hab
+# shellcheck disable=2034,2154
+pkg_name=hab-sup
 _pkg_distname=$pkg_name
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$SRC_PATH/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_source=nosuchfile.tar.gz
-# The result is a portable, static binary in a zero-dependency package.
-pkg_deps=()
-pkg_build_deps=(core/musl
-                core/zlib-musl
-                core/xz-musl
-                core/bzip2-musl
-                core/libarchive-musl
-                core/openssl-musl
-                core/libsodium-musl
-                core/coreutils
+pkg_deps=(core/busybox-static/1.24.2/20170513215502
+          core/glibc/2.22/20170513201042
+          core/gcc-libs/5.2.0/20170513212920
+          core/libarchive/3.3.2/20171018164107
+          core/libsodium/1.0.13/20170905223149
+          core/openssl/1.0.2l/20171014213633
+          core/zeromq/4.2.5/20180407102804)
+pkg_build_deps=(core/coreutils/8.25/20170513213226
+                core/cacerts/2017.09.20/20171014212239
                 core/rust
-                core/gcc)
+                core/gcc/5.2.0/20170513202244
+                core/raml2html/6.3.0/20180409195740)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname
@@ -50,24 +49,25 @@ _common_prepare() {
 do_prepare() {
   _common_prepare
 
-  export rustc_target="x86_64-unknown-linux-musl"
+  export rustc_target="x86_64-unknown-linux-gnu"
   build_line "Setting rustc_target=$rustc_target"
 
-  la_ldflags="-L$(pkg_path_for zlib-musl)/lib -lz"
-  la_ldflags="$la_ldflags -L$(pkg_path_for xz-musl)/lib -llzma"
-  la_ldflags="$la_ldflags -L$(pkg_path_for bzip2-musl)/lib -lbz2"
-  la_ldflags="$la_ldflags -L$(pkg_path_for openssl-musl)/lib -lssl -lcrypto"
+  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
+  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
+  export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
+  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
+  export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
+  export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
 
-  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive-musl)/lib
-  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive-musl)/include
-  export LIBARCHIVE_LDFLAGS="$la_ldflags"
-  export LIBARCHIVE_STATIC=true
-  export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
-  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl-musl)/include
-  export OPENSSL_STATIC=true
-  export SODIUM_LIB_DIR=$(pkg_path_for libsodium-musl)/lib
-  export SODIUM_STATIC=true
-
+  # TODO (CM, FN): This is not needed to build the supervisor,
+  # strictly speaking, but is instead a work-around for how we are
+  # currently building packages in Travis; we hypothesize that the
+  # build.rs program for habitat_http_client, built during a static
+  # hab package build, is being inadvertently used here. Without gcc
+  # libs on the LD_LIBRARY_PATH, the program can't find
+  # libgcc_s.so.1. This is merely a bandaid until we can overhaul our
+  # CI pipeline properly.
+  #
   # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
   # this used only at build time, we will use the version found in the gcc
   # package proper--it won't find its way into the final binaries.
@@ -76,9 +76,12 @@ do_prepare() {
 }
 
 do_build() {
-  pushd "$PLAN_CONTEXT" > /dev/null
-  cargo build ${build_type#--debug} --target=$rustc_target --verbose
-  popd > /dev/null
+  export LIBRARY_PATH=$LIBZMQ_PREFIX/lib
+  
+  pushd "$SRC_PATH" > /dev/null || exit
+  cargo build ${build_type#--debug} --target=$rustc_target --verbose --no-default-features \
+    --features apidocs
+  popd > /dev/null || exit
 }
 
 do_install() {
@@ -90,17 +93,4 @@ do_strip() {
   if [[ "$build_type" != "--debug" ]]; then
     do_default_strip
   fi
-}
-
-# Turn the remaining default phases into no-ops
-do_download() {
-  return 0
-}
-
-do_verify() {
-  return 0
-}
-
-do_unpack() {
-  return 0
 }

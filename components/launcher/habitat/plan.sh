@@ -1,5 +1,5 @@
 # shellcheck disable=2154
-source "../../support/ci/builder-base-plan.sh"
+source "$SRC_PATH/../../support/ci/builder-base-plan.sh"
 pkg_name=hab-launcher
 pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
@@ -28,9 +28,9 @@ do_prepare() {
 }
 
 do_build() {
-  pushd "$PLAN_CONTEXT" > /dev/null
+  pushd "$SRC_PATH" > /dev/null || exit
   cargo build "${builder_build_type#--debug}" --target="$rustc_target" --verbose
-  popd > /dev/null
+  popd > /dev/null || exit
 }
 
 do_install() {

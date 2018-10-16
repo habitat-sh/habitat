@@ -69,7 +69,7 @@ echo "--- :habicat: :hammer_and_wrench: Building 'hab'"
 sudo PATH="/opt/hab-bundle/embedded/bin:${PATH}" \
      "$(brew --prefix bash)/bin/bash" \
      components/plan-build/bin/hab-plan-build.sh \
-     components/hab/mac
+     components/hab
 source results/last_build.env
 
 echo "--- :buildkite: Annotating build"
