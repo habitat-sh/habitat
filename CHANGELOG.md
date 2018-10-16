@@ -31,6 +31,7 @@
 - Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 
 #### Bug Fixes
+- Purge &quot;rumor heat&quot; information for departed members [#5744](https://github.com/habitat-sh/habitat/pull/5744) ([christophermaier](https://github.com/christophermaier))
 - Update Cargo.lock to include https://github.com/habitat-sh/core/pull/75 [#5741](https://github.com/habitat-sh/habitat/pull/5741) ([baumanj](https://github.com/baumanj))
 - Replace launcher&#39;s Process struct&#39;s unsafe implementations with rust stdlib [#5733](https://github.com/habitat-sh/habitat/pull/5733) ([baumanj](https://github.com/baumanj))
 - Don&#39;t change svc directory permissions except when the directory is created [#5720](https://github.com/habitat-sh/habitat/pull/5720) ([jaym](https://github.com/jaym))
