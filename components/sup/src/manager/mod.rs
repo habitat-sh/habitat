@@ -1553,13 +1553,6 @@ impl Manager {
         if term {
             service.stop(&self.launcher, cause);
         }
-        // if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
-        //     outputln!(
-        //         "Unable to cleanup service health cache, {}, {}",
-        //         service,
-        //         err
-        //     );
-        // }
         if let Err(_) = self.user_config_watcher.remove(service) {
             debug!(
                 "Error stopping user-config watcher thread for service {}",
