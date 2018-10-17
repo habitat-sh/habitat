@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Optimize the supervisor&#39;s HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
 - Refactor Plans for hab components [#5698](https://github.com/habitat-sh/habitat/pull/5698) ([smacfarlane](https://github.com/smacfarlane))
 - Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
 - Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
@@ -46,6 +47,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- Optimize the supervisor&#39;s HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
 - Refactor Plans for hab components [#5698](https://github.com/habitat-sh/habitat/pull/5698) ([smacfarlane](https://github.com/smacfarlane))
 - Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
 - Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
