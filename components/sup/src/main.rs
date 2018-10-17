@@ -247,16 +247,6 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         cfg.ctl_listen =
             SocketAddr::from_str(addr_str).unwrap_or_else(|_err| protocol::ctl::default_addr());
     }
-    if let Some(name_str) = m.value_of("NAME") {
-        cfg.name = Some(String::from(name_str));
-        outputln!("");
-        outputln!("CAUTION: Running more than one Habitat Supervisor is not recommended for most");
-        outputln!("CAUTION: users in most use cases. Using one Supervisor per host for multiple");
-        outputln!("CAUTION: services in one ring will yield much better performance.");
-        outputln!("");
-        outputln!("CAUTION: If you know what you're doing, carry on!");
-        outputln!("");
-    }
     cfg.organization = m.value_of("ORGANIZATION").map(|org| org.to_string());
     cfg.gossip_permanent = m.is_present("PERMANENT_PEER");
     // TODO fn: Clean this up--using a for loop doesn't feel good however an iterator was

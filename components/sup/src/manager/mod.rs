@@ -150,14 +150,13 @@ pub struct ManagerConfig {
     pub gossip_peers: Vec<SocketAddr>,
     pub gossip_permanent: bool,
     pub ring_key: Option<SymKey>,
-    pub name: Option<String>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
 }
 
 impl ManagerConfig {
     pub fn sup_root(&self) -> PathBuf {
-        protocol::sup_root(self.name.as_ref(), self.custom_state_path.as_ref())
+        protocol::sup_root(self.custom_state_path.as_ref())
     }
 }
 
@@ -176,7 +175,6 @@ impl Default for ManagerConfig {
             gossip_peers: vec![],
             gossip_permanent: false,
             ring_key: None,
-            name: None,
             organization: None,
             watch_peer_file: None,
         }
@@ -2042,18 +2040,6 @@ mod test {
     }
 
     #[test]
-    fn manager_state_path_with_name() {
-        let mut cfg = ManagerConfig::default();
-        cfg.name = Some(String::from("peanuts"));
-        let path = cfg.sup_root();
-
-        assert_eq!(
-            PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX.to_string_lossy())),
-            path
-        );
-    }
-
-    #[test]
     fn manager_state_path_custom() {
         let mut cfg = ManagerConfig::default();
         cfg.custom_state_path = Some(PathBuf::from("/tmp/peanuts-and-cake"));
@@ -2066,7 +2052,6 @@ mod test {
     fn manager_state_path_custom_beats_name() {
         let mut cfg = ManagerConfig::default();
         cfg.custom_state_path = Some(PathBuf::from("/tmp/partay"));
-        cfg.name = Some(String::from("nope"));
         let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/partay"), path);
