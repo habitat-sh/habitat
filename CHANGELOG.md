@@ -29,6 +29,7 @@
 - Formalize the Supervisor's HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
 
 #### Behavioral Changes
+- Remove multiple supervisors on single host support (--override-name option) [#5750](https://github.com/habitat-sh/habitat/pull/5750) ([baumanj](https://github.com/baumanj))
 - Don&#39;t spam the Supervisor logs quite so much [#5716](https://github.com/habitat-sh/habitat/pull/5716) ([christophermaier](https://github.com/christophermaier))
 - Make logging around user.toml changes more specific [#5713](https://github.com/habitat-sh/habitat/pull/5713) ([christophermaier](https://github.com/christophermaier))
 - Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
