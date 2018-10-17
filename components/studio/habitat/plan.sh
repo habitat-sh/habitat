@@ -1,7 +1,7 @@
 # shellcheck disable=2034
 pkg_name=hab-studio
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz

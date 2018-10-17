@@ -1,7 +1,7 @@
 # shellcheck disable=2154
 pkg_name=hab-bintray-publish
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_deps=(core/coreutils/8.25/20170513213226

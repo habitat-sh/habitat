@@ -1,6 +1,6 @@
 $pkg_name = "hab-bintray-publish"
 $pkg_origin = "core"
-$pkg_version = "$(Get-Content $PLAN_CONTEXT/../../VERSION)"
+$pkg_version = "$(Get-Content $PLAN_CONTEXT/../../../VERSION)"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_source = "nosuchfile.tar.gz"
@@ -14,7 +14,7 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
-    Copy-Item "$PLAN_CONTEXT/../studio/build-docker-image.ps1" "$pkg_prefix/bin"
+    Copy-Item "$PLAN_CONTEXT/../../studio/build-docker-image.ps1" "$pkg_prefix/bin"
     Copy-Item publish-studio.ps1 "$pkg_prefix/bin"
     Copy-Item $PLAN_CONTEXT/bin/publish-studio.bat "$pkg_prefix/bin"
 }

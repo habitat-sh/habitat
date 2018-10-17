@@ -2,7 +2,7 @@
 pkg_name=hab-pkg-export-docker
 _pkg_distname=$pkg_name
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 # The result is a portable, static binary. However, we shell out to the

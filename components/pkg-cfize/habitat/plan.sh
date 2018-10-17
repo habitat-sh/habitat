@@ -28,7 +28,7 @@ pkg_bin_dirs=(bin)
 _bins=($pkg_name)
 
 # TODO fn: use `pkg_version()` form
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 
 do_prepare() {
   do_default_prepare

@@ -111,13 +111,13 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 & $habExe pkg build components/$component -w -R
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-                $hart = (Get-Item "$(Get-RepoRoot)\components\$component\results\*.hart")[-1]
+                $hart = (Get-Item "$(Get-RepoRoot)\components\$component\habitat\results\*.hart")[-1]
                 Write-Host "Copying $hart to artifacts directory..."
                 Copy-Item $hart.FullName results
                 if($env:hab_components -ne "launcher") {
                     & $habExe pkg install $hart.FullName
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-    
+
                     if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
                         & $habExe pkg upload $hart --channel $channel
                         if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
@@ -148,7 +148,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                         $choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
 
                         (Get-Content $choco_install) |
-                            % {$_.Replace('$version$', $versionStamp) } | 
+                            % {$_.Replace('$version$', $versionStamp) } |
                             Set-Content $choco_install
 
                         (Get-Content $choco_install) |
