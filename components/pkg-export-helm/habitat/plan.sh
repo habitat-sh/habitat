@@ -1,11 +1,12 @@
 # shellcheck disable=2154
-pkg_name=hab-pkg-export-kubernetes
+pkg_name=hab-pkg-export-helm
 _pkg_distname=$pkg_name
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=(core/docker)
+pkg_deps=(core/docker
+          core/helm)
 pkg_build_deps=(core/musl
                 core/zlib-musl
                 core/xz-musl

@@ -15,7 +15,7 @@
 mod composite_spec;
 pub mod config;
 mod dir;
-mod health;
+pub mod health;
 pub mod hooks;
 mod package;
 pub mod spec;
@@ -26,10 +26,9 @@ use std::collections::HashSet;
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::result;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
 use butterfly::rumor::service::Service as ServiceRumor;
@@ -155,6 +154,8 @@ pub struct Service {
     /// Whether a service's default configuration changed on a package
     /// update. Used to control when templates are re-rendered.
     defaults_updated: bool,
+    #[serde(skip_serializing)]
+    gateway_state: Arc<RwLock<manager::GatewayState>>,
 }
 
 impl Service {
@@ -164,6 +165,7 @@ impl Service {
         spec: ServiceSpec,
         manager_fs_cfg: Arc<manager::FsCfg>,
         organization: Option<&str>,
+        gateway_state: Arc<RwLock<manager::GatewayState>>,
     ) -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = (&package).all_binds()?;
@@ -213,6 +215,7 @@ impl Service {
             svc_encrypted_password: spec.svc_encrypted_password,
             composite: spec.composite,
             defaults_updated: false,
+            gateway_state: gateway_state,
         })
     }
 
@@ -237,11 +240,19 @@ impl Service {
         spec: ServiceSpec,
         manager_fs_cfg: Arc<manager::FsCfg>,
         organization: Option<&str>,
+        gateway_state: Arc<RwLock<manager::GatewayState>>,
     ) -> Result<Service> {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
         let package = PackageInstall::load(&spec.ident, Some(fs_root_path))?;
-        Ok(Self::new(sys, package, spec, manager_fs_cfg, organization)?)
+        Ok(Self::new(
+            sys,
+            package,
+            spec,
+            manager_fs_cfg,
+            organization,
+            gateway_state,
+        )?)
     }
 
     /// Create the service path for this package.
@@ -730,34 +741,12 @@ impl Service {
     }
 
     fn cache_health_check(&self, check_result: HealthCheck) {
-        let state_file = self.manager_fs_cfg.health_check_cache(&self.service_group);
-        let tmp_file = state_file.with_extension("tmp");
-        let file = match File::create(&tmp_file) {
-            Ok(file) => file,
-            Err(err) => {
-                warn!(
-                    "Couldn't open temporary health check file, {}, {}",
-                    self.service_group, err
-                );
-                return;
-            }
-        };
-        let mut writer = BufWriter::new(file);
-        if let Some(err) = writer
-            .write_all((check_result as i8).to_string().as_bytes())
-            .err()
-        {
-            warn!(
-                "Couldn't write to temporary health check state file, {}, {}",
-                self.service_group, err
-            );
-        }
-        if let Some(err) = std::fs::rename(&tmp_file, &state_file).err() {
-            warn!(
-                "Couldn't finalize health check state file, {}, {}",
-                self.service_group, err
-            );
-        }
+        &self
+            .gateway_state
+            .write()
+            .expect("GatewayState lock is poisoned")
+            .health_check_data
+            .insert(self.service_group.clone(), check_result);
     }
 
     /// Helper for compiling configuration templates into configuration files.
@@ -1156,7 +1145,8 @@ mod tests {
         let asys = Arc::new(sys);
         let fscfg = FsCfg::new("/tmp");
         let afs = Arc::new(fscfg);
-        let service = Service::new(asys, install, spec, afs, Some("haha"))
+        let gs = Arc::new(RwLock::new(manager::GatewayState::default()));
+        let service = Service::new(asys, install, spec, afs, Some("haha"), gs)
             .expect("I wanted a service to load, but it didn't");
 
         // With config

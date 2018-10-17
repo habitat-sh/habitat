@@ -1,11 +1,11 @@
 # shellcheck disable=2154
-pkg_name=hab-pkg-export-tar
+pkg_name=hab-pkg-export-kubernetes
 _pkg_distname=$pkg_name
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=()
+pkg_deps=(core/docker)
 pkg_build_deps=(core/musl
                 core/zlib-musl
                 core/xz-musl
@@ -72,10 +72,6 @@ do_prepare() {
   # package proper--it won't find its way into the final binaries.
   export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
   build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-
-  PLAN_TAR_PKG_IDENT=$(pkg_path_for tar | sed "s,^$HAB_PKG_PATH/,,")
-  export PLAN_TAR_PKG_IDENT
-  build_line "Setting PLAN_TAR_PKG_IDENT=$PLAN_TAR_PKG_IDENT"
 }
 
 do_build() {
@@ -87,4 +83,10 @@ do_build() {
 do_install() {
   install -v -D "$CARGO_TARGET_DIR"/$rustc_target/${build_type#--}/$bin \
     "$pkg_prefix"/bin/$bin
+}
+
+do_strip() {
+  if [[ "$build_type" != "--debug" ]]; then
+    do_default_strip
+  fi
 }

@@ -1,6 +1,6 @@
 $pkg_name="hab-studio"
 $pkg_origin="core"
-$pkg_version=Get-Content "$PLAN_CONTEXT/../../VERSION"
+$pkg_version=Get-Content "$PLAN_CONTEXT/../../../VERSION"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_source="nosuchfile.tar.gz"
@@ -25,7 +25,7 @@ function Invoke-Install {
   Copy-Item "$(Get-HabPackagePath powershell)/bin/*" "$pkg_prefix/bin/powershell" -Recurse
   Copy-Item "$(Get-HabPackagePath hab)/bin/*" "$pkg_prefix/bin/hab"
   Copy-Item "$(Get-HabPackagePath 7zip)/bin/*" "$pkg_prefix/bin/7zip"
-  Copy-Item "$(Get-HabPackagePath hab-plan-build-ps1)/bin/*" "$pkg_prefix/bin"  
+  Copy-Item "$(Get-HabPackagePath hab-plan-build-ps1)/bin/*" "$pkg_prefix/bin"
 }
 
 function Invoke-Download {}

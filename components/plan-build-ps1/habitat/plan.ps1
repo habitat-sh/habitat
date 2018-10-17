@@ -1,6 +1,6 @@
 $pkg_name = "hab-plan-build-ps1"
 $pkg_origin = "core"
-$pkg_version = "$(Get-Content $PLAN_CONTEXT/../../VERSION)"
+$pkg_version = "$(Get-Content $PLAN_CONTEXT/../../../VERSION)"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_source = "nosuchfile.tar.gz"

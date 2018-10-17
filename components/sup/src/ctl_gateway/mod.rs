@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! CltGateway, short for Control Gateway, is a TCP based client and server connection for
+//! CtlGateway, short for Control Gateway, is a TCP based client and server connection for
 //! sending and receiving command and control requests to a running Supervisor. Operational tasks
 //! such as starting, stopping, loading, and unloading services are exposed through the
 //! CtlGateway.
@@ -39,10 +39,7 @@ use protocol;
 use error::{Error, Result};
 
 lazy_static! {
-    /// Regular expression to, um, strip ANSI color codes out of a
-    /// string.
-    ///
-    /// Shamelessly stolen from https://github.com/chalk/ansi-regex/blob/master/index.js.
+    /// Shamelessly stolen from https://github.com/chalk/ansi-regex/blob/master/index.js
     static ref STRIP_ANSI_CODES: Regex = Regex::new(
         r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]")
         .unwrap();

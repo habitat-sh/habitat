@@ -266,14 +266,6 @@
       "manager_fs_cfg": {
         "description": "The filesystem paths the supervisor uses to persist data to disk",
         "properties": {
-          "butterfly_data_path": {
-            "description": "The path for butterfly.dat",
-            "type": "string"
-          },
-          "census_data_path": {
-            "description": "The path for census.dat",
-            "type": "string"
-          },
           "composites_path": {
             "description": "The path for composites",
             "type": "string"
@@ -290,10 +282,6 @@
             "description": "The path to the LOCK file",
             "type": "string"
           },
-          "services_data_path": {
-            "description": "The path for services.dat",
-            "type": "string"
-          },
           "specs_path": {
             "description": "The path to the supervisor spec files",
             "type": "string"
@@ -304,13 +292,10 @@
           }
         },
         "required": [
-          "butterfly_data_path",
-          "census_data_path",
           "composites_path",
           "data_path",
           "member_id_file",
           "proc_lock_file",
-          "services_data_path",
           "specs_path",
           "sup_root"
         ],

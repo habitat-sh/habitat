@@ -105,6 +105,7 @@ impl SupError {
 #[derive(Debug)]
 pub enum Error {
     Departed,
+    BadAddress(String),
     BadCompositesPath(PathBuf, io::Error),
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
@@ -114,6 +115,8 @@ pub enum Error {
     BadSpecsPath(PathBuf, io::Error),
     BadStartStyle(String),
     BadEnvConfig(String),
+    BindTimeout(String),
+    LockPoisoned,
     TestBootFail,
     ButterflyError(butterfly::error::Error),
     CtlSecretIo(PathBuf, io::Error),
@@ -181,6 +184,7 @@ impl fmt::Display for SupError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             Error::APIClient(ref err) => format!("{}", err),
+            Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
             Error::BadCompositesPath(ref path, ref err) => format!(
                 "Unable to create the composites directory '{}' ({})",
                 path.display(),
@@ -220,6 +224,8 @@ impl fmt::Display for SupError {
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
+            Error::BindTimeout(ref err) => format!("Timeout waiting to bind to {}", err),
+            Error::LockPoisoned => format!("A mutex or read/write lock has failed."),
             Error::TestBootFail => format!("Simulated boot failure"),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::CtlSecretIo(ref path, ref err) => format!(
@@ -351,6 +357,7 @@ impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
             Error::APIClient(ref err) => err.description(),
+            Error::BadAddress(_) => "Unable to bind to address",
             Error::BadCompositesPath(_, _) => "Unable to create the composites directory",
             Error::Departed => "Supervisor has been manually departed",
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
@@ -361,6 +368,8 @@ impl error::Error for SupError {
             Error::BadSpecsPath(_, _) => "Unable to create the specs directory",
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
+            Error::BindTimeout(_) => "Timeout waiting to bind to an address",
+            Error::LockPoisoned => "A mutex or read/write lock has failed",
             Error::TestBootFail => "Simulated boot failure",
             Error::ButterflyError(ref err) => err.description(),
             Error::CtlSecretIo(_, _) => "IoError while reading ctl secret",

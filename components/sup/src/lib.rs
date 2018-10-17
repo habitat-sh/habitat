@@ -39,6 +39,8 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
+extern crate actix;
+extern crate actix_web;
 extern crate ansi_term;
 #[macro_use]
 extern crate bitflags;
@@ -62,19 +64,16 @@ extern crate habitat_eventsrv_client as eventsrv_client;
 extern crate habitat_launcher_client as launcher_client;
 extern crate habitat_sup_protocol as protocol;
 extern crate handlebars;
-extern crate iron;
 #[macro_use]
 extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
 extern crate notify;
-extern crate persistent;
 extern crate prost;
 extern crate protobuf;
 extern crate rand;
 extern crate regex;
-extern crate router;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

@@ -29,7 +29,7 @@ use std;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::mem;
 use std::net::SocketAddr;
 use std::ops::DerefMut;
@@ -37,7 +37,7 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::result;
 use std::str::FromStr;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::time::Duration;
 
 use butterfly;
@@ -67,11 +67,11 @@ use toml;
 
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
+use self::service::{health::HealthCheck, DesiredState, IntoServiceSpec, Pkg, ProcessState};
 pub use self::service::{
     CompositeSpec, ConfigRendering, Service, ServiceBind, ServiceProxy, ServiceSpec, Spec,
     Topology, UpdateStrategy,
 };
-use self::service::{DesiredState, IntoServiceSpec, Pkg, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
@@ -98,9 +98,6 @@ static LOGKEY: &'static str = "MR";
 /// persistence data.
 #[derive(Debug, Serialize)]
 pub struct FsCfg {
-    pub butterfly_data_path: PathBuf,
-    pub census_data_path: PathBuf,
-    pub services_data_path: PathBuf,
     pub sup_root: PathBuf,
 
     data_path: PathBuf,
@@ -118,9 +115,6 @@ impl FsCfg {
         let sup_root = sup_root.into();
         let data_path = sup_root.join("data");
         FsCfg {
-            butterfly_data_path: data_path.join("butterfly.dat"),
-            census_data_path: data_path.join("census.dat"),
-            services_data_path: data_path.join("services.dat"),
             specs_path: sup_root.join("specs"),
             composites_path: sup_root.join("composites"),
             data_path: data_path,
@@ -128,11 +122,6 @@ impl FsCfg {
             proc_lock_file: sup_root.join(PROC_LOCK_FILE),
             sup_root: sup_root,
         }
-    }
-
-    pub fn health_check_cache(&self, service_group: &ServiceGroup) -> PathBuf {
-        self.data_path
-            .join(format!("{}.health", service_group.service()))
     }
 }
 
@@ -181,10 +170,22 @@ impl Default for ManagerConfig {
     }
 }
 
+/// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
+/// something you want the CtlGateway to be able to operate on, it needs to be put in here. This
+/// state gets shared with all the CtlGateway handlers.
 pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
     pub cfg: ManagerConfig,
     pub services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
+    pub gateway_state: Arc<RwLock<GatewayState>>,
+}
+
+#[derive(Debug, Default)]
+pub struct GatewayState {
+    pub census_data: String,
+    pub butterfly_data: String,
+    pub services_data: String,
+    pub health_check_data: HashMap<ServiceGroup, HealthCheck>,
 }
 
 pub struct Manager {
@@ -250,7 +251,14 @@ impl Manager {
         req: &mut CtlRequest,
         opts: protocol::ctl::SvcStatus,
     ) -> NetResult<()> {
-        let statuses = Self::status(&mgr.cfg)?;
+        let services_data = &mgr
+            .gateway_state
+            .read()
+            .expect("GatewayState lock is poisoned")
+            .services_data;
+        let statuses: Vec<ServiceStatus> = serde_json::from_str(&services_data)
+            .map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))?;
+
         if let Some(ident) = opts.ident {
             for status in statuses {
                 if status.pkg.ident.satisfies(&ident) {
@@ -277,13 +285,6 @@ impl Manager {
             }
         }
         Ok(())
-    }
-
-    pub fn status(cfg: &ManagerConfig) -> Result<Vec<ServiceStatus>> {
-        let fs_cfg = FsCfg::new(cfg.sup_root());
-
-        let dat = File::open(&fs_cfg.services_data_path)?;
-        serde_json::from_reader(&dat).map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))
     }
 
     pub fn term(cfg: &ManagerConfig) -> Result<()> {
@@ -357,6 +358,7 @@ impl Manager {
         );
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::new(RwLock::new(HashMap::new()));
+        let gateway_state = Arc::new(RwLock::new(GatewayState::default()));
         let server = butterfly::Server::new(
             sys.gossip_listen(),
             sys.gossip_listen(),
@@ -385,6 +387,7 @@ impl Manager {
             state: Rc::new(ManagerState {
                 cfg: cfg_static,
                 services: services,
+                gateway_state: gateway_state,
             }),
             self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
@@ -595,6 +598,7 @@ impl Manager {
             spec.clone(),
             self.fs_cfg.clone(),
             self.organization.as_ref().map(|org| &**org),
+            self.state.gateway_state.clone(),
         ) {
             Ok(service) => {
                 outputln!("Starting {} ({})", &spec.ident, service.pkg.ident);
@@ -675,8 +679,53 @@ impl Manager {
         if self.http_disable {
             info!("http-gateway disabled");
         } else {
+            // Here we use a Condvar to wait on the HTTP gateway server to start up and inspect its
+            // return value. Specifically, we're looking for errors when it tries to bind to the
+            // listening TCP socket, so we can alert the user.
+            let pair = Arc::new((
+                Mutex::new(http_gateway::ServerStartup::NotStarted),
+                Condvar::new(),
+            ));
+
             outputln!("Starting http-gateway on {}", &http_listen_addr);
-            http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr).start()?;
+            http_gateway::Server::run(
+                http_listen_addr.clone(),
+                self.state.gateway_state.clone(),
+                pair.clone(),
+            );
+
+            let &(ref lock, ref cvar) = &*pair;
+            let mut started = lock.lock().expect("Control mutex is poisoned");
+
+            // This will block the current thread until the HTTP gateway thread either starts
+            // successfully or fails to bind. In practice, the wait here is so short as to not be
+            // noticeable.
+            loop {
+                match *started {
+                    http_gateway::ServerStartup::NotStarted => {
+                        started = match cvar.wait_timeout(started, Duration::from_millis(100)) {
+                            Ok((mutex, timeout_result)) => {
+                                if timeout_result.timed_out() {
+                                    return Err(sup_error!(Error::BindTimeout(
+                                        http_listen_addr.to_string()
+                                    )));
+                                } else {
+                                    mutex
+                                }
+                            }
+                            Err(e) => {
+                                error!("Mutex for the HTTP gateway was poisoned. e = {:?}", e);
+                                return Err(sup_error!(Error::LockPoisoned));
+                            }
+                        };
+                    }
+                    http_gateway::ServerStartup::BindFailed => {
+                        return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())))
+                    }
+                    http_gateway::ServerStartup::Started => break,
+                }
+            }
+
             debug!("http-gateway started");
         }
 
@@ -694,6 +743,7 @@ impl Manager {
         if !feat::is_enabled(feat::IgnoreSignals) {
             signals::init();
         }
+
         loop {
             if feat::is_enabled(feat::TestExit) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
@@ -1408,81 +1458,41 @@ impl Manager {
     }
 
     fn persist_state(&self) {
-        debug!("Writing census state to disk");
+        debug!("Updating census state");
         self.persist_census_state();
-        debug!("Writing butterfly state to disk");
+        debug!("Updating butterfly state");
         self.persist_butterfly_state();
-        debug!("Writing services state to disk");
+        debug!("Updating services state");
         self.persist_services_state();
     }
 
     fn persist_census_state(&self) {
         let crp = CensusRingProxy::new(&self.census_ring);
-        let tmp_file = self.fs_cfg.census_data_path.with_extension("dat.tmp");
-        let file = match File::create(&tmp_file) {
-            Ok(file) => file,
-            Err(err) => {
-                warn!("Couldn't open temporary census state file, {}", err);
-                return;
-            }
-        };
-        let mut writer = BufWriter::new(file);
-        if let Some(err) = writer
-            .write(serde_json::to_string(&crp).unwrap().as_bytes())
-            .err()
-        {
-            warn!("Couldn't write to census state file, {}", err);
-        }
-        if let Some(err) = writer.flush().err() {
-            warn!("Couldn't flush census state buffer to disk, {}", err);
-        }
-        if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.census_data_path).err() {
-            warn!("Couldn't finalize census state on disk, {}", err);
-        }
+        let json = serde_json::to_string(&crp).unwrap();
+        self.state
+            .gateway_state
+            .write()
+            .expect("GatewayState lock is poisoned")
+            .census_data = json;
     }
 
     fn persist_butterfly_state(&self) {
         let bs = ServerProxy::new(&self.butterfly);
-        let tmp_file = self.fs_cfg.butterfly_data_path.with_extension("dat.tmp");
-        let file = match File::create(&tmp_file) {
-            Ok(file) => file,
-            Err(err) => {
-                warn!("Couldn't open temporary butterfly state file, {}", err);
-                return;
-            }
-        };
-        let mut writer = BufWriter::new(file);
-        if let Some(err) = writer
-            .write(serde_json::to_string(&bs).unwrap().as_bytes())
-            .err()
-        {
-            warn!("Couldn't write to butterfly state file, {}", err);
-        }
-        if let Some(err) = writer.flush().err() {
-            warn!("Couldn't flush butterfly state buffer to disk, {}", err);
-        }
-        if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.butterfly_data_path).err() {
-            warn!("Couldn't finalize butterfly state on disk, {}", err);
-        }
+        let json = serde_json::to_string(&bs).unwrap();
+        self.state
+            .gateway_state
+            .write()
+            .expect("GatewayState lock is poisoned")
+            .butterfly_data = json;
     }
 
     fn persist_services_state(&self) {
-        let tmp_file = self.fs_cfg.services_data_path.with_extension("dat.tmp");
-        let file = match File::create(&tmp_file) {
-            Ok(file) => file,
-            Err(err) => {
-                warn!("Couldn't open temporary services state file, {}", err);
-                return;
-            }
-        };
-
         let config_rendering = if feat::is_enabled(feat::RedactHTTP) {
             ConfigRendering::Redacted
         } else {
             ConfigRendering::Full
         };
 
-        let mut writer = BufWriter::new(file);
         let services = self
             .state
             .services
@@ -1506,6 +1516,7 @@ impl Manager {
                     spec.clone(),
                     self.fs_cfg.clone(),
                     self.organization.as_ref().map(|org| &**org),
+                    self.state.gateway_state.clone(),
                 ).into_iter()
             }).collect();
         let watched_service_proxies: Vec<ServiceProxy> = watched_services
@@ -1519,21 +1530,12 @@ impl Manager {
 
         services_to_render.extend(watched_service_proxies);
 
-        if let Some(err) = writer
-            .write(
-                serde_json::to_string(&services_to_render)
-                    .unwrap()
-                    .as_bytes(),
-            ).err()
-        {
-            warn!("Couldn't write to butterfly state file, {}", err);
-        }
-        if let Some(err) = writer.flush().err() {
-            warn!("Couldn't flush services state buffer to disk, {}", err);
-        }
-        if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.services_data_path).err() {
-            warn!("Couldn't finalize services state on disk, {}", err);
-        }
+        let json = serde_json::to_string(&services_to_render).unwrap();
+        self.state
+            .gateway_state
+            .write()
+            .expect("GatewayState lock is poisoned")
+            .services_data = json;
     }
 
     /// Remove the given service from the manager.
@@ -1550,13 +1552,6 @@ impl Manager {
         };
         if term {
             service.stop(&self.launcher, cause);
-        }
-        if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
-            outputln!(
-                "Unable to cleanup service health cache, {}, {}",
-                service,
-                err
-            );
         }
         if let Err(_) = self.user_config_watcher.remove(service) {
             debug!(

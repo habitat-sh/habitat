@@ -620,8 +620,8 @@ impl Server {
     pub fn insert_member(&self, member: Member, health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-        // of just how the logic goes. The value of the trace is really high, though, so we suck it
-        // for now.
+        // of just how the logic goes. The value of the trace is really high, though, so we deal
+        // with it as best we can, with our head held high.
         let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
         let trace_health = health.clone();
@@ -713,8 +713,8 @@ impl Server {
             }
         }
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-        // of just how the logic goes. The value of the trace is really high, though, so we suck it
-        // for now.
+        // of just how the logic goes. The value of the trace is really high, though, so we carry
+        // on, knowing life is still worth living.
         let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
         let trace_health = health.clone();
