@@ -338,43 +338,50 @@ function Enter-Studio {
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
     
-    $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
-    if(!$habSvc -or ($habSvc.Status -eq "Stopped")) {
-      $pr = New-Object System.Diagnostics.Process
-      $pr.StartInfo.UseShellExecute = $false
-      $pr.StartInfo.CreateNoWindow = $true
-      $pr.StartInfo.RedirectStandardOutput = $true
-      $pr.StartInfo.RedirectStandardError = $true
-      $pr.StartInfo.FileName = "hab.exe"
-      $pr.StartInfo.Arguments = "sup run"
-      Register-ObjectEvent -InputObject $pr -EventName OutputDataReceived -action {
-        $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
-      } | Out-Null
-      Register-ObjectEvent -InputObject $pr -EventName ErrorDataReceived -action {
-        $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
-      } | Out-Null
-      $pr.start() | Out-Null
-      $pr.BeginErrorReadLine()
-      
-      # As an industry, this should make us all feel bad
-      # without this stdin never seems to come back and the PS prompt
-      # fails to appear and things look like they are hung
-      Start-Sleep -Milliseconds 100
-  
-      $pr.BeginOutputReadLine()
-    }
+    if(Get-Process -Name hab-sup -ErrorAction SilentlyContinue) {
+      Write-Warning "A Habitat Supervisor is already running on this machine."
+      Write-Warning "Only one Supervisor can run at a time."
+      Write-Warning "A Supervisor will not be started in this Studio."
+    } else {
+      $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
+      if(!$habSvc -or ($habSvc.Status -eq "Stopped")) {
+        $pr = New-Object System.Diagnostics.Process
+        $pr.StartInfo.UseShellExecute = $false
+        $pr.StartInfo.CreateNoWindow = $true
+        $pr.StartInfo.RedirectStandardOutput = $true
+        $pr.StartInfo.RedirectStandardError = $true
+        $pr.StartInfo.FileName = "hab.exe"
+        $pr.StartInfo.Arguments = "sup run"
+        Register-ObjectEvent -InputObject $pr -EventName OutputDataReceived -action {
+          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+        } | Out-Null
+        Register-ObjectEvent -InputObject $pr -EventName ErrorDataReceived -action {
+          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+        } | Out-Null
+        $pr.start() | Out-Null
+        $pr.BeginErrorReadLine()
+        
+        # As an industry, this should make us all feel bad
+        # without this stdin never seems to come back and the PS prompt
+        # fails to appear and things look like they are hung
+        Start-Sleep -Milliseconds 100
     
-    Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
-    Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
-    Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
-    Write-Host  "** Use the 'Stop-Supervisor' to terminate the Supervisor." -ForegroundColor Cyan
-    Write-Host  ""
+        $pr.BeginOutputReadLine()
+      }
+      
+      Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
+      Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
+      Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
+      Write-Host  "** Use the 'Stop-Supervisor' to terminate the Supervisor." -ForegroundColor Cyan
+      Write-Host  ""
+    }
 
     Set-Location "Habitat:\src"
   }
 
   if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
-    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") -Force
+    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") -Force -ErrorAction SilentlyContinue
+    Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK"
   }
 }
 
