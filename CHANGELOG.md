@@ -25,6 +25,7 @@
 - Tokio deprecation fixes [#5727](https://github.com/habitat-sh/habitat/pull/5727) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add plan-variant for bintray-publish [#5751](https://github.com/habitat-sh/habitat/pull/5751) ([smacfarlane](https://github.com/smacfarlane))
 - correct windows requirement docs [#5757](https://github.com/habitat-sh/habitat/pull/5757) ([mwrock](https://github.com/mwrock))
 - [ci] Update to Rust 1.29.2. [#5742](https://github.com/habitat-sh/habitat/pull/5742) ([fnichol](https://github.com/fnichol))
 - Add example for how to install older version of `hab` to documentation [#5747](https://github.com/habitat-sh/habitat/pull/5747) ([rsertelon](https://github.com/rsertelon))
@@ -40,7 +41,6 @@
 - update winapi crate and pull in latest core [#5711](https://github.com/habitat-sh/habitat/pull/5711) ([mwrock](https://github.com/mwrock))
 - Store services in a HashMap instead of a Vec [#5712](https://github.com/habitat-sh/habitat/pull/5712) ([christophermaier](https://github.com/christophermaier))
 - bumping dev version [#5715](https://github.com/habitat-sh/habitat/pull/5715) ([mwrock](https://github.com/mwrock))
-
 <!-- latest_release -->
 ## [0.65.0](https://github.com/habitat-sh/habitat/tree/0.65.0) (10-05-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.1...0.65.0)
