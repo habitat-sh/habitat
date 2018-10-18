@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- correct windows requirement docs [#5757](https://github.com/habitat-sh/habitat/pull/5757) ([mwrock](https://github.com/mwrock))
 - [ci] Update to Rust 1.29.2. [#5742](https://github.com/habitat-sh/habitat/pull/5742) ([fnichol](https://github.com/fnichol))
 - Add example for how to install older version of `hab` to documentation [#5747](https://github.com/habitat-sh/habitat/pull/5747) ([rsertelon](https://github.com/rsertelon))
 - Optimize the supervisor&#39;s HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
@@ -49,6 +50,7 @@
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- correct windows requirement docs [#5757](https://github.com/habitat-sh/habitat/pull/5757) ([mwrock](https://github.com/mwrock))
 - [ci] Update to Rust 1.29.2. [#5742](https://github.com/habitat-sh/habitat/pull/5742) ([fnichol](https://github.com/fnichol))
 - Add example for how to install older version of `hab` to documentation [#5747](https://github.com/habitat-sh/habitat/pull/5747) ([rsertelon](https://github.com/rsertelon))
 - Optimize the supervisor&#39;s HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
