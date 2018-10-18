@@ -537,7 +537,7 @@ mod tests {
                 let heat_map = inner
                     .get(&RumorKey::from(*s))
                     .expect("Should have had a service rumor present");
-                for m in &[member_1_id, member_2_id, member_3_id] {
+                for _m in &[member_1_id, member_2_id, member_3_id] {
                     assert_eq!(
                         heat_map.get(member_1_id).expect("lulz"),
                         &RUMOR_COOL_DOWN_LIMIT
