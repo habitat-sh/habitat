@@ -8,10 +8,10 @@ $pkg_build_deps=@("core/powershell", "core/hab", "core/hab-plan-build-ps1", "cor
 $pkg_bin_dirs=@("bin")
 
 function Invoke-Build {
-  Get-Content "$PLAN_CONTEXT/bin/hab-studio.ps1" | % {
+  Get-Content "$PLAN_CONTEXT/../bin/hab-studio.ps1" | % {
     $_.Replace("@author@", $pkg_maintainer).Replace("@version@", $pkg_version)
   } | Add-Content -Path hab-studio.ps1
-  Copy-Item $PLAN_CONTEXT/bin/hab-studio.bat hab-studio.bat
+  Copy-Item $PLAN_CONTEXT/../bin/hab-studio.bat hab-studio.bat
 }
 
 function Invoke-Install {

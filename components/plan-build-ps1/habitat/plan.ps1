@@ -14,7 +14,7 @@ $bin = "hab-plan-build.ps1"
 
 function Invoke-Build {
     # Embed the release version of the program.
-    (Get-Content "$PLAN_CONTEXT\bin\${bin}" -Encoding Ascii) | ForEach-Object {
+    (Get-Content "$PLAN_CONTEXT\..\bin\${bin}" -Encoding Ascii) | ForEach-Object {
       $_.replace(
         "@VERSION@",
         "$pkg_version/$pkg_release"

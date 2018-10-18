@@ -19,7 +19,7 @@ pkg_deps=(core/coreutils/8.25/20170513213226
 pkg_bin_dirs=(bin)
 
 do_build() {
-    cp -v "${PLAN_CONTEXT}/bin/publish-hab.sh" "${CACHE_PATH}/publish-hab"
+    cp -v "${SRC_PATH}/bin/publish-hab.sh" "${CACHE_PATH}/publish-hab"
 
     # Use the bash from our dependency list as the shebang. Also, embed the
     # release version of publish-hab.
