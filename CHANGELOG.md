@@ -3,72 +3,60 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### New Features & Enhancements
+- Optimize the supervisor's HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
+- Launcher creates its own PID file at /hab/launcher/PID [#5738](https://github.com/habitat-sh/habitat/pull/5738) ([baumanj](https://github.com/baumanj))
+- Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
+
+#### Behavioral Changes
+- Remove multiple supervisors on single host support (--override-name option) [#5750](https://github.com/habitat-sh/habitat/pull/5750) ([baumanj](https://github.com/baumanj))
+- Adds upload of public keys for deps as well as target package [#5730](https://github.com/habitat-sh/habitat/pull/5730) ([eeyun](https://github.com/eeyun))
+- Corrects api_client response on hab bldr job start [#5728](https://github.com/habitat-sh/habitat/pull/5728) ([eeyun](https://github.com/eeyun))
+- Don't spam the Supervisor logs quite so much [#5716](https://github.com/habitat-sh/habitat/pull/5716) ([christophermaier](https://github.com/christophermaier))
+- Make logging around user.toml changes more specific [#5713](https://github.com/habitat-sh/habitat/pull/5713) ([christophermaier](https://github.com/christophermaier))
+
+#### Bug Fixes
+- Cleanup Supervisor startup and termination in a local Windows studio [#5756](https://github.com/habitat-sh/habitat/pull/5756) ([mwrock](https://github.com/mwrock))
+- Purge "rumor heat" information for departed members [#5744](https://github.com/habitat-sh/habitat/pull/5744) ([christophermaier](https://github.com/christophermaier))
+- Update Cargo.lock to include https://github.com/habitat-sh/core/pull/75 [#5741](https://github.com/habitat-sh/habitat/pull/5741) ([baumanj](https://github.com/baumanj))
+- Replace launcher's Process struct's unsafe implementations with rust stdlib [#5733](https://github.com/habitat-sh/habitat/pull/5733) ([baumanj](https://github.com/baumanj))
+- Don't change svc directory permissions except when the directory is created [#5720](https://github.com/habitat-sh/habitat/pull/5720) ([jaym](https://github.com/jaym))
+- Remove unnecessary crate version pins, fix typo and add comments for hyper pins [#5729](https://github.com/habitat-sh/habitat/pull/5729) ([baumanj](https://github.com/baumanj))
+- Tokio deprecation fixes [#5727](https://github.com/habitat-sh/habitat/pull/5727) ([baumanj](https://github.com/baumanj))
+
 #### Merged Pull Requests
-- cleanup supervisor startup and termination in a local windows studio [#5756](https://github.com/habitat-sh/habitat/pull/5756) ([mwrock](https://github.com/mwrock))
 - correct windows requirement docs [#5757](https://github.com/habitat-sh/habitat/pull/5757) ([mwrock](https://github.com/mwrock))
 - [ci] Update to Rust 1.29.2. [#5742](https://github.com/habitat-sh/habitat/pull/5742) ([fnichol](https://github.com/fnichol))
 - Add example for how to install older version of `hab` to documentation [#5747](https://github.com/habitat-sh/habitat/pull/5747) ([rsertelon](https://github.com/rsertelon))
-- Optimize the supervisor&#39;s HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
 - Refactor Plans for hab components [#5698](https://github.com/habitat-sh/habitat/pull/5698) ([smacfarlane](https://github.com/smacfarlane))
 - Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
 - Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
-- Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
 - rework permissions into separate APIs for linux and windows [#5724](https://github.com/habitat-sh/habitat/pull/5724) ([mwrock](https://github.com/mwrock))
-- Adds upload of public keys for deps as well as target package [#5730](https://github.com/habitat-sh/habitat/pull/5730) ([eeyun](https://github.com/eeyun))
 - [ci] Update Buildkite to Rust 1.29.1 [#5735](https://github.com/habitat-sh/habitat/pull/5735) ([fnichol](https://github.com/fnichol))
-- Corrects api_client response on hab bldr job start [#5728](https://github.com/habitat-sh/habitat/pull/5728) ([eeyun](https://github.com/eeyun))
 - Skip Appveyor if only the docs are updated [#5722](https://github.com/habitat-sh/habitat/pull/5722) ([btm](https://github.com/btm))
 - fixed typo [#5721](https://github.com/habitat-sh/habitat/pull/5721) ([davidkazuhiro](https://github.com/davidkazuhiro))
 - update crates [#5719](https://github.com/habitat-sh/habitat/pull/5719) ([mwrock](https://github.com/mwrock))
-- Remove &quot;maintenance window&quot; step from release pipeline [#5718](https://github.com/habitat-sh/habitat/pull/5718) ([christophermaier](https://github.com/christophermaier))
+- Remove "maintenance window" step from release pipeline [#5718](https://github.com/habitat-sh/habitat/pull/5718) ([christophermaier](https://github.com/christophermaier))
 - update winapi crate and pull in latest core [#5711](https://github.com/habitat-sh/habitat/pull/5711) ([mwrock](https://github.com/mwrock))
 - Store services in a HashMap instead of a Vec [#5712](https://github.com/habitat-sh/habitat/pull/5712) ([christophermaier](https://github.com/christophermaier))
 - bumping dev version [#5715](https://github.com/habitat-sh/habitat/pull/5715) ([mwrock](https://github.com/mwrock))
 
 <!-- latest_release -->
-## Unreleased
+## [0.65.0](https://github.com/habitat-sh/habitat/tree/0.65.0) (10-05-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.1...0.65.0)
 
 #### New Features & Enhancements
-- Launcher creates its own PID file at /hab/launcher/PID [#5738](https://github.com/habitat-sh/habitat/pull/5738) ([baumanj](https://github.com/baumanj))
 - Formalize the Supervisor's HTTP API [#5689](https://github.com/habitat-sh/habitat/pull/5689) ([raskchanky](https://github.com/raskchanky))
 
 #### Behavioral Changes
-- Remove multiple supervisors on single host support (--override-name option) [#5750](https://github.com/habitat-sh/habitat/pull/5750) ([baumanj](https://github.com/baumanj))
-- Don&#39;t spam the Supervisor logs quite so much [#5716](https://github.com/habitat-sh/habitat/pull/5716) ([christophermaier](https://github.com/christophermaier))
-- Make logging around user.toml changes more specific [#5713](https://github.com/habitat-sh/habitat/pull/5713) ([christophermaier](https://github.com/christophermaier))
 - Don't show ident for incomplete jobs [#5676](https://github.com/habitat-sh/habitat/pull/5676) ([chefsalim](https://github.com/chefsalim))
 
 #### Bug Fixes
-- Purge &quot;rumor heat&quot; information for departed members [#5744](https://github.com/habitat-sh/habitat/pull/5744) ([christophermaier](https://github.com/christophermaier))
-- Update Cargo.lock to include https://github.com/habitat-sh/core/pull/75 [#5741](https://github.com/habitat-sh/habitat/pull/5741) ([baumanj](https://github.com/baumanj))
-- Replace launcher&#39;s Process struct&#39;s unsafe implementations with rust stdlib [#5733](https://github.com/habitat-sh/habitat/pull/5733) ([baumanj](https://github.com/baumanj))
-- Don&#39;t change svc directory permissions except when the directory is created [#5720](https://github.com/habitat-sh/habitat/pull/5720) ([jaym](https://github.com/jaym))
-- Remove unnecessary crate version pins, fix typo and add comments for hyper pins [#5729](https://github.com/habitat-sh/habitat/pull/5729) ([baumanj](https://github.com/baumanj))
-- Tokio deprecation fixes [#5727](https://github.com/habitat-sh/habitat/pull/5727) ([baumanj](https://github.com/baumanj))
-- Don&#39;t abandon service processes after a Supervisor restart [#5697](https://github.com/habitat-sh/habitat/pull/5697) ([christophermaier](https://github.com/christophermaier))
+- Don't abandon service processes after a Supervisor restart [#5697](https://github.com/habitat-sh/habitat/pull/5697) ([christophermaier](https://github.com/christophermaier))
 - [hab-sup] Copy binding_mode when transforming Service to ServiceSpec [#5706](https://github.com/habitat-sh/habitat/pull/5706) ([stevendanna](https://github.com/stevendanna))
 - [studio] Fix errant path in sup-term command [#5688](https://github.com/habitat-sh/habitat/pull/5688) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
-- cleanup supervisor startup and termination in a local windows studio [#5756](https://github.com/habitat-sh/habitat/pull/5756) ([mwrock](https://github.com/mwrock))
-- correct windows requirement docs [#5757](https://github.com/habitat-sh/habitat/pull/5757) ([mwrock](https://github.com/mwrock))
-- [ci] Update to Rust 1.29.2. [#5742](https://github.com/habitat-sh/habitat/pull/5742) ([fnichol](https://github.com/fnichol))
-- Add example for how to install older version of `hab` to documentation [#5747](https://github.com/habitat-sh/habitat/pull/5747) ([rsertelon](https://github.com/rsertelon))
-- Optimize the supervisor&#39;s HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
-- Refactor Plans for hab components [#5698](https://github.com/habitat-sh/habitat/pull/5698) ([smacfarlane](https://github.com/smacfarlane))
-- Help understand the download_file args [#5749](https://github.com/habitat-sh/habitat/pull/5749) ([rsertelon](https://github.com/rsertelon))
-- Sort blog tags alphabetically [#5748](https://github.com/habitat-sh/habitat/pull/5748) ([rsertelon](https://github.com/rsertelon))
-- Adds configurable bldr_url to cli.toml including `hab setup` subcommand [#5723](https://github.com/habitat-sh/habitat/pull/5723) ([eeyun](https://github.com/eeyun))
-- rework permissions into separate APIs for linux and windows [#5724](https://github.com/habitat-sh/habitat/pull/5724) ([mwrock](https://github.com/mwrock))
-- Adds upload of public keys for deps as well as target package [#5730](https://github.com/habitat-sh/habitat/pull/5730) ([eeyun](https://github.com/eeyun))
-- [ci] Update Buildkite to Rust 1.29.1 [#5735](https://github.com/habitat-sh/habitat/pull/5735) ([fnichol](https://github.com/fnichol))
-- Corrects api_client response on hab bldr job start [#5728](https://github.com/habitat-sh/habitat/pull/5728) ([eeyun](https://github.com/eeyun))
-- Skip Appveyor if only the docs are updated [#5722](https://github.com/habitat-sh/habitat/pull/5722) ([btm](https://github.com/btm))
-- fixed typo [#5721](https://github.com/habitat-sh/habitat/pull/5721) ([davidkazuhiro](https://github.com/davidkazuhiro))
-- update crates [#5719](https://github.com/habitat-sh/habitat/pull/5719) ([mwrock](https://github.com/mwrock))
-- Remove &quot;maintenance window&quot; step from release pipeline [#5718](https://github.com/habitat-sh/habitat/pull/5718) ([christophermaier](https://github.com/christophermaier))
-- update winapi crate and pull in latest core [#5711](https://github.com/habitat-sh/habitat/pull/5711) ([mwrock](https://github.com/mwrock))
 - prep 0.65.0 release [#5709](https://github.com/habitat-sh/habitat/pull/5709) ([mwrock](https://github.com/mwrock))
 - corrects tar exporter docs [#5710](https://github.com/habitat-sh/habitat/pull/5710) ([nellshamrell](https://github.com/nellshamrell))
 - Make the service proxy test work on windows as well as linux [#5704](https://github.com/habitat-sh/habitat/pull/5704) ([raskchanky](https://github.com/raskchanky))
@@ -79,7 +67,7 @@
 - Update dependencies and replace deprecated calls [#5685](https://github.com/habitat-sh/habitat/pull/5685) ([christophermaier](https://github.com/christophermaier))
 - Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
+
 ## [0.64.1](https://github.com/habitat-sh/habitat/tree/0.64.1) (09-27-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.0...0.64.1)
 
