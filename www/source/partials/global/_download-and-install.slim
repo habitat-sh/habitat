@@ -36,11 +36,12 @@ hr
   .row
     .description.small-12.columns
       h3: a name="hab-for-win" id="hab-for-win" data-magellan-target="hab-for-win" Habitat for Windows
-      blockquote Requires 64-bit Windows 10 Pro, Enterprise, or Education editions (1511 November update, build 10586 or later) with Hyper-V enabled
+      blockquote Minimum Windows version supported: Windows Server 2008 R2 or Windows 7
       p Once you have downloaded the <code>hab</code> CLI, unzip it onto your machine. We suggest unzipping to <code>C:\habitat</code> and then adding that folder to your <code>PATH</code> variable. Here’s how to do that with Powershell:
       = code(:powershell) do
         | $ $env:PATH += ";C:\habitat"
-      p In order to use the Habitat Studio, you'll also need to install Docker for Windows.
+      p In order to use a Docker Habitat Studio, you'll also need to install Docker for Windows.
+      blockquote Docker for Windows requires 64-bit Windows 10 Pro, Enterprise, or Education editions  (1607 Anniversary Update, Build 14393 or later) with Hyper-V enabled
       = link_to 'Download Habitat for Windows', 'https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows', class: 'button cta'
       = link_to 'Download Docker for Windows', 'https://store.docker.com/editions/community/docker-ce-desktop-windows', class: 'button outline contrast', target: '_blank'
 
