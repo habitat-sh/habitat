@@ -62,8 +62,8 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
     {
         let mut port_guard = SERVER_PORT.lock().expect("SERVER_PORT mutex poisoned");
         swim_port = *port_guard;
-        gossip_port = *port_guard;
         *port_guard += 1;
+        gossip_port = *port_guard;
         *port_guard += 1;
     }
     let listen_swim = format!("127.0.0.1:{}", swim_port);
