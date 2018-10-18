@@ -6,6 +6,7 @@ workspace = "../../"
 
 [dependencies]
 clippy = {version = "*", optional = true}
+lazy_static = "*"
 time = "*"
 
 [dependencies.habitat_butterfly]

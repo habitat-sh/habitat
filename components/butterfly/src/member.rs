@@ -137,8 +137,8 @@ pub struct Member {
     pub id: String,
     pub incarnation: Incarnation,
     pub address: String,
-    pub swim_port: i32,
-    pub gossip_port: i32,
+    pub swim_port: u16,
+    pub gossip_port: u16,
     pub persistent: bool,
     pub departed: bool,
 }
@@ -204,8 +204,8 @@ impl From<Member> for proto::Member {
             id: Some(value.id),
             incarnation: Some(value.incarnation.to_u64()),
             address: Some(value.address),
-            swim_port: Some(value.swim_port),
-            gossip_port: Some(value.gossip_port),
+            swim_port: Some(value.swim_port.into()),
+            gossip_port: Some(value.gossip_port.into()),
             persistent: Some(value.persistent),
             departed: Some(value.departed),
         }
@@ -226,6 +226,18 @@ impl From<Membership> for proto::Membership {
             member: Some(value.member.into()),
             health: Some(value.health as i32),
         }
+    }
+}
+
+/// Since protobuf doesn't have support for 16-bit ints, we need to check that
+/// we haven't received something illegal
+fn as_port(x: i32) -> Option<u16> {
+    const PORT_MIN: i32 = ::std::u16::MIN as i32;
+    const PORT_MAX: i32 = ::std::u16::MAX as i32;
+
+    match x {
+        PORT_MIN..=PORT_MAX => Some(x as u16),
+        _ => None,
     }
 }
 
@@ -278,9 +290,11 @@ impl FromProto<proto::Member> for Member {
 
             swim_port: proto
                 .swim_port
+                .and_then(as_port)
                 .ok_or(Error::ProtocolMismatch("swim-port"))?,
             gossip_port: proto
                 .gossip_port
+                .and_then(as_port)
                 .ok_or(Error::ProtocolMismatch("gossip-port"))?,
             persistent: proto.persistent.unwrap_or(false),
             departed: proto.departed.unwrap_or(false),

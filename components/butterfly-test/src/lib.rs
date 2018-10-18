@@ -18,12 +18,14 @@
 #[macro_use]
 extern crate habitat_butterfly;
 extern crate habitat_core;
+#[macro_use]
+extern crate lazy_static;
 extern crate time;
 
 use std::ops::{Deref, DerefMut, Range};
 use std::path::PathBuf;
 use std::str::FromStr;
-use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
@@ -42,7 +44,9 @@ use habitat_core::crypto::keys::sym_key::SymKey;
 use habitat_core::package::{Identifiable, PackageIdent};
 use habitat_core::service::ServiceGroup;
 
-static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
+lazy_static! {
+    static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
+}
 
 #[derive(Debug)]
 struct NSuitability(u64);
@@ -53,14 +57,20 @@ impl Suitability for NSuitability {
 }
 
 pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
-    SERVER_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
-    let swim_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
-    let gossip_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
+    let swim_port;
+    let gossip_port;
+    {
+        let mut port_guard = SERVER_PORT.lock().expect("SERVER_PORT mutex poisoned");
+        swim_port = *port_guard;
+        gossip_port = *port_guard;
+        *port_guard += 1;
+        *port_guard += 1;
+    }
     let listen_swim = format!("127.0.0.1:{}", swim_port);
     let listen_gossip = format!("127.0.0.1:{}", gossip_port);
     let mut member = Member::default();
-    member.swim_port = swim_port as i32;
-    member.gossip_port = gossip_port as i32;
+    member.swim_port = swim_port;
+    member.gossip_port = gossip_port;
     let mut server = Server::new(
         &listen_swim[..],
         &listen_gossip[..],

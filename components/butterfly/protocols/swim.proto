@@ -5,6 +5,7 @@ message Member {
   optional string id = 1;
   optional uint64 incarnation = 2;
   optional string address = 3;
+  // protobuf has no 16-bit ints; see habitat_butterfly::member::as_port
   optional int32 swim_port = 4;
   optional int32 gossip_port = 5;
   optional bool persistent = 6 [default = false];
