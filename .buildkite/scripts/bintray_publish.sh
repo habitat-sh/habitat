@@ -26,16 +26,22 @@ echo "--- :habicat: Publishing all Habitat CLI artifacts in Bintray"
 version=$(buildkite-agent meta-data get "version")
 
 ########################################################################
-# Linux Publish
-release=$(buildkite-agent meta-data get "hab-release-linux")
-echo "--- :linux: Publishing Linux 'hab' ${version}-${release} on Bintray"
+# Linux x86-64-linux Publish
+release=$(buildkite-agent meta-data get "hab-release-x86-64-inux")
+echo "--- :linux: Publishing x86-64-linux 'hab' ${version}-${release} on Bintray"
 publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-linux/${version}-${release}/publish"
+
+########################################################################
+# Linux x86-64-linux-kernel2 Publish
+release=$(buildkite-agent meta-data get "hab-release-x86-64-linux-kernel2")
+echo "--- :linux: :two: Publishing x86-64-linux-kernel2 'hab' ${version}-${release} on Bintray"
+publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-linux-kernel2/${version}-${release}/publish"
 
 ########################################################################
 # macOS Publish
 
-release=$(buildkite-agent meta-data get "hab-release-macos")
-echo "--- :mac: Publishing macOS 'hab' ${version}-${release} to Bintray"
+release=$(buildkite-agent meta-data get "hab-release-x86_64-darwin")
+echo "--- :mac: Publishing x86-64-darwin 'hab' ${version}-${release} to Bintray"
 publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-darwin/${version}-${release}/publish"
 
 ########################################################################
@@ -47,5 +53,5 @@ publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_6
 channel=$(buildkite-agent meta-data get "release-channel")
 windows_ident=$(latest_from_builder x86_64-windows "${channel}" hab "${version}")
 release=$(echo "${windows_ident}" | awk 'BEGIN { FS = "/" } ; { print $4 }')
-echo "--- :windows: Publishing Windows 'hab' ${version}-${release}"
+echo "--- :windows: Publishing x86-64-windows 'hab' ${version}-${release}"
 publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${version}-${release}/publish"
