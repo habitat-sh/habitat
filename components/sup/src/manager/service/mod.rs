@@ -1064,9 +1064,9 @@ impl<'a> Serialize for ServiceProxy<'a> {
         S: Serializer,
     {
         let num_fields: usize = if *&self.config_rendering == ConfigRendering::Full {
-            27
+            28
         } else {
-            26
+            27
         };
 
         let s = &self.service;
@@ -1097,6 +1097,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("smoke_check", &s.smoke_check)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
         strukt.serialize_field("spec_ident", &s.spec_ident)?;
+        strukt.serialize_field("spec_identifier", &s.spec_ident.to_string())?;
         strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
         strukt.serialize_field("sys", &s.sys)?;
         strukt.serialize_field("topology", &s.topology)?;

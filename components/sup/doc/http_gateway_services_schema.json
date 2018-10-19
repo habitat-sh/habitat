@@ -314,9 +314,18 @@
         "properties": {
           "deps": {
             "description": "This package's dependencies",
+            "$deprecated": "Since 0.66.0; please use 'dependencies' instead."
             "items": {
               "$ref": "render_context_schema.json#/definitions/package_identifier",
               "description": "Package identifier for a dependency"
+            },
+            "type": "array"
+          },
+          "dependencies": {
+            "description": "This package's dependencies",
+            "items": {
+              "description": "Package identifier for a dependency",
+              "type": "string"
             },
             "type": "array"
           },
@@ -468,7 +477,12 @@
       },
       "spec_ident": {
         "$ref": "#/definitions/package_identifier",
+        "$deprecated": "Since 0.66.0; please use 'spec_identifier' instead",
         "description": "The package identifier for this service spec"
+      },
+      "spec_identifier": {
+        "description": "The package identifier for this service spec",
+        "type": "string"
       },
       "svc_encrypted_password": {
         "description": "The encrypted password for this service",
