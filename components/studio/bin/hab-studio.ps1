@@ -338,7 +338,7 @@ function Enter-Studio {
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
     
-    if(Get-Process -Name hab-sup -ErrorAction SilentlyContinue) {
+    if(!(Test-InContainer) -and (Get-Process -Name hab-sup -ErrorAction SilentlyContinue)) {
       Write-Warning "A Habitat Supervisor is already running on this machine."
       Write-Warning "Only one Supervisor can run at a time."
       Write-Warning "A Supervisor will not be started in this Studio."
