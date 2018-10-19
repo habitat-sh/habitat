@@ -274,6 +274,9 @@ function New-Studio {
     $env:HAB_CACHE_KEY_PATH = Join-Path $env:FS_ROOT "hab\cache\keys"
   }
 
+
+  Set-Secrets
+
   New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $HAB_STUDIO_ROOT -Scope Script | Out-Null
   Set-Location "Habitat:\src"
 }
@@ -423,6 +426,22 @@ function Remove-Studio {
 
 function Test-InContainer {
   (Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -ne $null
+}
+
+function Remove-UnsafeSecrets {
+  @('HAB_ORIGIN', 'PATH') | ForEach-Object {
+    if(Test-Path "env:\HAB_STUDIO_SECRET_$_") {
+      Remove-Item "env:\HAB_STUDIO_SECRET_$_"
+    }
+  }
+}
+
+function Set-Secrets {
+  Remove-UnsafeSecrets
+  Get-ChildItem env: | ? { $_.Name.StartsWith('HAB_STUDIO_SECRET_') } | % {
+    New-Item -Name $_.Name.Replace('HAB_STUDIO_SECRET_', '') -Value $_.Value -Path Env: -Force | Out-Null
+    Remove-Item -Path "Env:\$($_.Name)" -Force
+  }
 }
 
 $ErrorActionPreference="stop"
