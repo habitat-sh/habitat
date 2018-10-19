@@ -3,6 +3,7 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Monday.
 
+
 ## Releasing Launcher
 
 The [`core/hab-launcher` package](https://bldr.habitat.sh/#/pkgs/core/hab-launcher), which contains
