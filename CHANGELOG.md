@@ -25,6 +25,7 @@
 - Tokio deprecation fixes [#5727](https://github.com/habitat-sh/habitat/pull/5727) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- do not check for running supervisor in windows container studio [#5771](https://github.com/habitat-sh/habitat/pull/5771) ([mwrock](https://github.com/mwrock))
 - prepare for release 0.66.0 [#5762](https://github.com/habitat-sh/habitat/pull/5762) ([mpeck](https://github.com/mpeck))
 - Add plan-variant for bintray-publish [#5751](https://github.com/habitat-sh/habitat/pull/5751) ([smacfarlane](https://github.com/smacfarlane))
 - correct windows requirement docs [#5757](https://github.com/habitat-sh/habitat/pull/5757) ([mwrock](https://github.com/mwrock))
