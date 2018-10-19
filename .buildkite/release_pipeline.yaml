@@ -22,7 +22,6 @@ steps:
   
   - label: ":linux: :two: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
@@ -59,7 +58,6 @@ steps:
   
   - label: ":linux: :two: :habicat: :hammer_and_wrench: core/hab-plan-build"
     command: .buildkite/scripts/build_component.sh plan-build
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
