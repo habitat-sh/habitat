@@ -59,7 +59,9 @@ use hcore::crypto::keys::PairType;
 use hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
 use hcore::env as henv;
 use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path};
+use hcore::package::ident;
 use hcore::package::PackageIdent;
+
 use hcore::service::ServiceGroup;
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use protocol::codec::*;
@@ -72,6 +74,7 @@ use tabwriter::TabWriter;
 use hab::analytics;
 use hab::cli;
 use hab::command;
+use hab::command::pkg::list::ListingType;
 use hab::config::{self, Config};
 use hab::error::{Error, Result};
 use hab::feat;
@@ -219,6 +222,7 @@ fn start(ui: &mut UI) -> Result<()> {
             ("export", Some(m)) => sub_pkg_export(ui, m)?,
             ("hash", Some(m)) => sub_pkg_hash(m)?,
             ("install", Some(m)) => sub_pkg_install(ui, m)?,
+            ("list", Some(m)) => sub_pkg_list(m)?,
             ("path", Some(m)) => sub_pkg_path(m)?,
             ("provides", Some(m)) => sub_pkg_provides(m)?,
             ("search", Some(m)) => sub_pkg_search(m)?,
@@ -681,6 +685,12 @@ fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
     command::pkg::path::start(&ident, &*FS_ROOT)
+}
+
+fn sub_pkg_list(m: &ArgMatches) -> Result<()> {
+    let listing_type = ident_or_origin(&m);
+
+    command::pkg::list::start(&listing_type, &*FS_ROOT)
 }
 
 fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
@@ -1309,6 +1319,26 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
             Ok(v) => Ok(v),
             Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
         },
+    }
+}
+
+/// Check to see if a package idenifier or
+///
+fn ident_or_origin(m: &ArgMatches) -> ListingType {
+    if m.is_present("ALL") {
+        return ListingType::AllPackages;
+    }
+    if m.is_present("ORIGIN") {
+        let origin = m.value_of("ORIGIN").unwrap(); // Required by clap
+        if ident::is_valid_origin_name(&origin) {
+            return ListingType::Origin(origin.to_string());
+        }
+    }
+
+    let p = m.value_of("PKG_IDENT").unwrap(); // Required by clap
+    match PackageIdent::from_str(&p) {
+        Ok(ident) => ListingType::Ident(ident),
+        Err(_) => unreachable!("We've already validated PackageIdent {}", &p),
     }
 }
 

@@ -23,6 +23,7 @@ pub mod export;
 pub mod hash;
 pub mod header;
 pub mod info;
+pub mod list;
 pub mod path;
 pub mod promote;
 pub mod provides;
