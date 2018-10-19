@@ -20,7 +20,7 @@ steps:
     agents:
       queue: habitat-release
   
-  - label: ":linux: :see_no_evil: :habicat: core/hab/kernel2"
+  - label: ":linux: :two: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
@@ -57,7 +57,7 @@ steps:
     agents:
       queue: habitat-release
   
-  - label: ":linux: :habicat: :hammer_and_wrench: core/hab-plan-build"
+  - label: ":linux: :two: :habicat: :hammer_and_wrench: core/hab-plan-build"
     command: .buildkite/scripts/build_component.sh plan-build
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
@@ -78,7 +78,7 @@ steps:
     agents:
       queue: habitat-release
   
-  - label: ":linux: :habicat: core/hab-bintray-publish"
+  - label: ":linux: :two: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.sh bintray-publish
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
@@ -100,7 +100,7 @@ steps:
     agents:
       queue: habitat-release
   
-  - label: ":drum_with_drumsticks: :habicat: :drum_with_drumsticks: core/hab-backline"
+  - label: ":drum_with_drumsticks: :habicat: :two: :drum_with_drumsticks: core/hab-backline"
     command: .buildkite/scripts/build_component.sh backline
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
@@ -116,7 +116,7 @@ steps:
     agents:
       queue: habitat-release
 
-  - label: ":linux: :habicat: core/hab-studio"
+  - label: ":linux: :two: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.sh studio
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
@@ -137,7 +137,7 @@ steps:
     agents:
       queue: habitat-release
   
-  - label: ":linux: :habicat: core/hab-sup"
+  - label: ":linux: :two: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.sh sup
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
@@ -187,7 +187,7 @@ steps:
     agents:
       queue: habitat-release
   
-  - label: ":linux: :package: core/hab-pkg-export-tar"
+  - label: ":linux: :two: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
@@ -228,7 +228,7 @@ steps:
     agents:
       queue: habitat-release
   
-  - label: ":linux: Upload (but don't publish!) artifacts to Bintray"
+  - label: ":linux: :two: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
     concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
