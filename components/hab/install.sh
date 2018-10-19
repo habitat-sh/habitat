@@ -29,9 +29,11 @@ main() {
   channel="stable"
   # Set an empty version variable, signaling we want the latest release
   version=""
+  # Set an empty target variable, signaling we want our current "${arch}-${sys}"
+  target=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:" opt; do
+  while getopts "c:hv:t:" opt; do
     case "${opt}" in
       c)
         channel="${OPTARG}"
@@ -42,6 +44,9 @@ main() {
         ;;
       v)
         version="${OPTARG}"
+        ;;
+      t)
+        target="${OPTARG}"
         ;;
       \?)
         echo "" >&2
@@ -54,6 +59,7 @@ main() {
   info "Installing Habitat 'hab' program"
   create_workdir
   get_platform
+  get_target
   get_version
   download_archive
   verify_archive
@@ -83,6 +89,9 @@ FLAGS:
     -c    Specifies a channel [values: stable, unstable] [default: stable]
     -h    Prints help information
     -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
+    -t    Specifies the ActiveTarget of the 'hab' program to download.
+            [values: x86_64-linux, x86_64-linux-kernel2] [default: x86_64-linux]
+            This option is only valid on Linux platforms
 
 ENVIRONMENT VARIABLES:
      SSL_CERT_FILE   allows you to verify against a custom cert such as one
@@ -161,7 +170,7 @@ get_version() {
     btv=$_btv
   else
     info "Determining fully qualified version of package for \`$version'"
-    dl_file "${BT_SEARCH}/${channel}/hab-${arch}-${sys}" "${_j}"
+    dl_file "${BT_SEARCH}/${channel}/hab-${target}" "${_j}"
     # This is nasty and we know it. Clap your hands. If the install.sh stops
     # work its likely related to this here sed command. We have to pull
     # versions out of minified json. So if this ever stops working its likely
@@ -182,12 +191,27 @@ get_version() {
   fi
 }
 
+get_target() {
+  if [ -z "${target}" ]; then
+    target="${arch}-${sys}"
+  else
+    if [ "${sys}" != "linux" ]; then 
+      _e="--target is only valid on Linux systems"
+      exit_with "$_e" 7
+    elif [ "${target%-kernel2}" != "x86_64-linux" ]; then
+      _e="${target} is not a valid target. Please specify one of: "
+      _e="${_e} ['x86_64-linux', 'x86_64-linux-kernel2']"
+      exit_with "$_e" 8
+    fi
+  fi
+}
+
 download_archive() {
   need_cmd cut
   need_cmd mv
 
-  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${btv}-${arch}-${sys}.${ext}"
-  query="?bt_package=hab-${arch}-${sys}"
+  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${btv}-${target}.${ext}"
+  query="?bt_package=hab-${target}"
 
   local _hab_url="${url}${query}"
   local _sha_url="${url}.sha256sum${query}"
