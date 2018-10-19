@@ -6,6 +6,8 @@ set -euo pipefail
 
 source .buildkite/scripts/shared.sh
 
+set_hab_binary
+
 # TODO: bintray user = chef-releng-ops!
 
 if is_fake_release; then
@@ -21,7 +23,7 @@ channel=$(buildkite-agent meta-data get "release-channel")
 # use it here
 
 echo "--- :habicat: Installing core/hab-bintray-publish from '${channel}' channel"
-sudo hab pkg install \
+sudo ${hab_binary} pkg install \
      --channel="${channel}" \
      core/hab-bintray-publish
 
@@ -40,7 +42,7 @@ echo "--- :habicat: Uploading core/hab to Bintray"
 # If we use Buildkite, we can potentially upload many different
 # platform artifacts to Bintray from a single platform (e.g., upload
 # Windows artifacts from Linux machines.)
-sudo hab pkg install core/hab --channel="${channel}"
+sudo ${hab_binary} pkg install core/hab --channel="${channel}"
 
 hab_artifact=$(buildkite-agent meta-data get "hab-artifact")
 
@@ -53,7 +55,7 @@ sudo HAB_BLDR_CHANNEL="${channel}" \
      BINTRAY_USER="${BINTRAY_USER}" \
      BINTRAY_KEY="${BINTRAY_KEY}" \
      BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
-     hab pkg exec core/hab-bintray-publish \
+     ${hab_binary} pkg exec core/hab-bintray-publish \
          publish-hab \
          -s \
          -r "${bintray_repository}" \
