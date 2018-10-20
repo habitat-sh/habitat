@@ -270,7 +270,6 @@ where
     cmd_args.push(image_identifier(&docker_cmd).into());
     cmd_args.extend_from_slice(args.as_slice());
     if is_serving_windows_containers(&docker_cmd) {
-        cmd_args.push("-w".into());
         cmd_args.push("-n".into());
         cmd_args.push("-o".into());
         cmd_args.push("c:/".into());
