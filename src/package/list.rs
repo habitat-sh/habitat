@@ -55,6 +55,28 @@ pub fn all_packages(path: &Path) -> Result<Vec<PackageIdent>> {
     Ok(package_list)
 }
 
+/// Returns a vector of package idents built from the contents of
+/// the given directory, using the given origin to restrict the
+/// search.
+///
+/// The search is restricted by assuming the package directory
+/// structure is:
+///
+///    /base/ORIGIN/NAME/VERSION/RELEASE/
+///
+pub fn package_list_for_origin(base_pkg_path: &Path, origin: &String) -> Result<Vec<PackageIdent>> {
+    let mut package_list: Vec<PackageIdent> = vec![];
+    let mut package_path = PathBuf::from(base_pkg_path);
+    package_path.push(&origin);
+
+    if !is_existing_dir(&package_path)? {
+        return Ok(package_list);
+    };
+
+    walk_names(&origin, &package_path, &mut package_list)?;
+    Ok(package_list)
+}
+
 /// Returns a vector of package structs built from the contents of
 /// the given directory, using the given ident to restrict the
 /// search.
@@ -372,5 +394,37 @@ mod test {
         let temp_dir2 = temp_package_directory(&p).unwrap();
 
         assert_ne!(&temp_dir1.path(), &temp_dir2.path());
+    }
+
+    #[test]
+    fn list_for_origin_skips_non_origin_packages() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let package_root = fs::pkg_root_path(Some(fs_root.path()));
+        let test_origin = vec![testing_package_install("test/foobar", fs_root.path())];
+        let core_origin = vec![
+            testing_package_install("core/redis/1.0.0", fs_root.path()),
+            testing_package_install("core/redis/1.1.0", fs_root.path()),
+        ];
+
+        let packages = package_list_for_origin(&package_root, &String::from("core")).unwrap();
+
+        assert_eq!(2, packages.len());
+        for p in &core_origin {
+            assert!(packages.contains(&p.ident));
+        }
+
+        for p in &test_origin {
+            assert!(!packages.contains(&p.ident));
+        }
+    }
+
+    #[test]
+    fn list_for_origin_no_packages() {
+        let fs_root = TempDir::new("fs-root").unwrap();
+        let package_root = fs::pkg_root_path(Some(fs_root.path()));
+
+        let packages = package_list_for_origin(&package_root, &String::from("core")).unwrap();
+
+        assert_eq!(0, packages.len());
     }
 }
