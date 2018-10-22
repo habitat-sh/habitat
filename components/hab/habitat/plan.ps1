@@ -5,8 +5,18 @@ $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_source = "https://s3-us-west-2.amazonaws.com/habitat-win-deps/hab-win-deps.zip"
 $pkg_shasum="00b34fb983ebc43bfff9e8e2220d23db200cb45494a4971a5e2e733f1d73d04b"
+$pkg_deps=@(
+    "core/openssl",
+    "core/libarchive",
+    "core/libsodium"
+)
 $pkg_bin_dirs = @("bin")
-$pkg_build_deps = @("core/visual-cpp-redist-2013", "core/rust", "core/cacerts")
+$pkg_build_deps = @(
+    "core/visual-cpp-redist-2013",
+    "core/visual-cpp-build-tools-2015",
+    "core/rust",
+    "core/cacerts"
+)
 
 function Invoke-Prepare {
     if($env:HAB_CARGO_TARGET_DIR) {
@@ -19,12 +29,12 @@ function Invoke-Prepare {
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
-    $env:SODIUM_LIB_DIR             = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
-    $env:LIBARCHIVE_INCLUDE_DIR     = "$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
-    $env:LIBARCHIVE_LIB_DIR         = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
+    $env:SODIUM_LIB_DIR             = "$(Get-HabPackagePath "libsodium")/lib"
+    $env:LIBARCHIVE_INCLUDE_DIR     = "$(Get-HabPackagePath "libarchive")/include"
+    $env:LIBARCHIVE_LIB_DIR         = "$(Get-HabPackagePath "libarchive")/lib"
     $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
-    $env:OPENSSL_LIB_DIR            = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
-    $env:OPENSSL_INCLUDE_DIR        = "$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
+    $env:OPENSSL_LIB_DIR            = "$(Get-HabPackagePath "openssl")/lib"
+    $env:OPENSSL_INCLUDE_DIR        = "$(Get-HabPackagePath "openssl")/include"
 
     # Used by the `build.rs` program to set the version of the binaries
     $env:PLAN_VERSION = "$pkg_version/$pkg_release"
