@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.64.1/20180928004259 (linux) | 28 Sep 2018 |
+| hab 0.66.0/20181019234118 (linux) | 22 Oct 2018 |
 
 ## hab
 
@@ -381,7 +381,7 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT>
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the cli.toml or HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
 
 **ARGS**
@@ -2151,7 +2151,6 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. default: 127.0.0.1:9632]
     --listen-gossip <LISTEN_GOSSIP>        The listen address for the Gossip System Gateway. If not specified, the value will be taken from the HAB_LISTEN_GOSSIP environment variable if defined. [default: 0.0.0.0:9638]
     --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway. If not specified, the value will be taken from the HAB_LISTEN_HTTP environment variable if defined. default: 0.0.0.0:9631]
-    --override-name <NAME>                 The name of the Supervisor if launching more than one [default: default]
     --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of [default: default]
     --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
     --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
@@ -2289,11 +2288,6 @@ hab sup term [OPTIONS]
 -h, --help    Prints help information
 ```
 
-**OPTIONS**
-
-```
---override-name <NAME>    The name of the Supervisor if more than one is running [default: default]
-```
 
 
 
