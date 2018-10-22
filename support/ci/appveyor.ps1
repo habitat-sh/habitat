@@ -114,7 +114,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (tes
                 $hart = (Get-Item "$(Get-RepoRoot)\components\$component\habitat\results\*.hart")[-1]
                 Write-Host "Copying $hart to artifacts directory..."
                 Copy-Item $hart.FullName results
-                if($env:hab_components -ne "launcher") {
+                if(!($env:hab_components -eq "launcher" -and (Test-ReleaseBuild))) {
                     & $habExe pkg install $hart.FullName
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
