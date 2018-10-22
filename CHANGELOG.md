@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- 0.66.0 post release [#5775](https://github.com/habitat-sh/habitat/pull/5775) ([mpeck](https://github.com/mpeck))
 <!-- latest_release -->
 ## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (10-22-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.65.0...0.66.0)
