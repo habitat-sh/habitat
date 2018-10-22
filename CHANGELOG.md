@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- install and upload launcher builds if not a release [#5769](https://github.com/habitat-sh/habitat/pull/5769) ([mwrock](https://github.com/mwrock))
 - 0.66.0 post release [#5775](https://github.com/habitat-sh/habitat/pull/5775) ([mpeck](https://github.com/mpeck))
 <!-- latest_release -->
 ## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (10-22-2018)
