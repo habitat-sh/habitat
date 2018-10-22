@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Remove Liz from CLI related code owners [#5776](https://github.com/habitat-sh/habitat/pull/5776) ([apriofrost](https://github.com/apriofrost))
 - Fix unused variable in rumor test [#5763](https://github.com/habitat-sh/habitat/pull/5763) ([jamesc](https://github.com/jamesc))
 - implement HAB_STUDIO_SECRET var passing for windows studios [#5765](https://github.com/habitat-sh/habitat/pull/5765) ([mwrock](https://github.com/mwrock))
 - install and upload launcher builds if not a release [#5769](https://github.com/habitat-sh/habitat/pull/5769) ([mwrock](https://github.com/mwrock))
