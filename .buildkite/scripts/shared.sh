@@ -74,27 +74,35 @@ set_hab_binary() {
     # ActiveTarget. Otherwise, if we were to attempt to install an
     # `x86_64-linux-kernel2` package with the `hab` on our path, it
     # would result in an error and fail the build.
+    # 
+    # TODO (SM): We also need to set the pkg_target so that we pull 
+    # the correct meta-data from BK for hab-version and hab-studio
+    # It might be better to expect BUILD_PKG_TARGET to always be 
+    # explicitly set. 
+    local pkg_target
     if [[ "${BUILD_PKG_TARGET:-}" == "x86_64-linux-kernel2" ]]; then
         install_hab_kernel2_binary
         hab_binary="$(which hab-x86_64-linux-kernel2)"
+        pkg_target="x86_64-linux-kernel2"
     else 
         hab_binary="$(which hab)"
+        pkg_target="x86_64-linux"
     fi 
 
-    if buildkite-agent meta-data exists hab-version &&
-            buildkite-agent meta-data exists studio-version; then
+    if buildkite-agent meta-data exists hab-version-${pkg_target} &&
+            buildkite-agent meta-data exists studio-version-${pkg_target}; then
         echo "Buildkite metadata found; installing new versions of 'core/hab' and 'core/hab-studio'"
         # By definition, these will be fully-qualified identifiers,
         # and thus do not require a `--channel` option. However, they
         # should be coming from the release channel, and should be the
         # same packages built previously in this same release pipeline.
-        hab_ident=$(buildkite-agent meta-data get hab-version)
+        hab_ident=$(buildkite-agent meta-data get hab-version-${pkg_target})
 
         # Note that we are explicitly not binlinking here; this is to
         # prevent accidentally polluting the builder for any future
         # runs that may take place on it.
-        sudo hab pkg install "${hab_ident}"
-        sudo hab pkg install "$(buildkite-agent meta-data get studio-version)"
+        sudo ${hab_binary} pkg install "${hab_ident}"
+        sudo ${hab_binary} pkg install "$(buildkite-agent meta-data get studio-version-${pkg_target})"
         hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else
