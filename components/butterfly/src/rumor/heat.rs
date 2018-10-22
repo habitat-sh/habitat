@@ -537,20 +537,18 @@ mod tests {
                 let heat_map = inner
                     .get(&RumorKey::from(*s))
                     .expect("Should have had a service rumor present");
-                for m in &[member_1_id, member_2_id, member_3_id] {
-                    assert_eq!(
-                        heat_map.get(member_1_id).expect("lulz"),
-                        &RUMOR_COOL_DOWN_LIMIT
-                    );
-                    assert!(
-                        heat_map.get(member_2_id).is_none(),
-                        "Heat information for a purged member should be removed"
-                    );
-                    assert_eq!(
-                        heat_map.get(member_3_id).expect("lulz"),
-                        &RUMOR_COOL_DOWN_LIMIT
-                    );
-                }
+                assert_eq!(
+                    heat_map.get(member_1_id).expect("lulz"),
+                    &RUMOR_COOL_DOWN_LIMIT
+                );
+                assert!(
+                    heat_map.get(member_2_id).is_none(),
+                    "Heat information for a purged member should be removed"
+                );
+                assert_eq!(
+                    heat_map.get(member_3_id).expect("lulz"),
+                    &RUMOR_COOL_DOWN_LIMIT
+                );
             }
         }
     }
