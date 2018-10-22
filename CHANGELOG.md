@@ -3,6 +3,10 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (10-22-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.65.0...0.66.0)
+
 #### New Features & Enhancements
 - Optimize the supervisor's HTTP gateway [#5725](https://github.com/habitat-sh/habitat/pull/5725) ([raskchanky](https://github.com/raskchanky))
 - Launcher creates its own PID file at /hab/launcher/PID [#5738](https://github.com/habitat-sh/habitat/pull/5738) ([baumanj](https://github.com/baumanj))
@@ -43,7 +47,7 @@
 - update winapi crate and pull in latest core [#5711](https://github.com/habitat-sh/habitat/pull/5711) ([mwrock](https://github.com/mwrock))
 - Store services in a HashMap instead of a Vec [#5712](https://github.com/habitat-sh/habitat/pull/5712) ([christophermaier](https://github.com/christophermaier))
 - bumping dev version [#5715](https://github.com/habitat-sh/habitat/pull/5715) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
+
 ## [0.65.0](https://github.com/habitat-sh/habitat/tree/0.65.0) (10-05-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.1...0.65.0)
 

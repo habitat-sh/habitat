@@ -115,3 +115,7 @@ authors:
     name: "Scott Macfarlane"
     email: "smacfarlane@chef.io"
     bio: "Scott is a software engineer on the core Habitat team at Chef Software"
+  matthewpeck:
+    name: "Matthew Peck"
+    email: "mpeck@chef.io"
+    bio: "Matthew is a software engineer on the core Habitat team at Chef Software."
