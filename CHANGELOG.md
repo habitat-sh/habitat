@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Fix unused variable in rumor test [#5763](https://github.com/habitat-sh/habitat/pull/5763) ([jamesc](https://github.com/jamesc))
 - implement HAB_STUDIO_SECRET var passing for windows studios [#5765](https://github.com/habitat-sh/habitat/pull/5765) ([mwrock](https://github.com/mwrock))
 - install and upload launcher builds if not a release [#5769](https://github.com/habitat-sh/habitat/pull/5769) ([mwrock](https://github.com/mwrock))
 - 0.66.0 post release [#5775](https://github.com/habitat-sh/habitat/pull/5775) ([mpeck](https://github.com/mpeck))
