@@ -25,7 +25,7 @@ steps:
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab"
     command: /bin/true
@@ -61,7 +61,7 @@ steps:
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
 
   - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
@@ -78,11 +78,10 @@ steps:
   
   - label: ":linux: :two: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.sh bintray-publish
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-bintray-publish"
     command: /bin/true
@@ -100,11 +99,10 @@ steps:
   
   - label: ":drum_with_drumsticks: :habicat: :two: :drum_with_drumsticks: core/hab-backline"
     command: .buildkite/scripts/build_component.sh backline
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - wait
 
@@ -116,11 +114,10 @@ steps:
 
   - label: ":linux: :two: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.sh studio
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-studio"
     command: /bin/true
@@ -137,11 +134,10 @@ steps:
   
   - label: ":linux: :two: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.sh sup
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-sup"
     command: /bin/true
@@ -187,11 +183,10 @@ steps:
   
   - label: ":linux: :two: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :package: core/hab-pkg-export-tar"
     command: /bin/true
@@ -228,11 +223,10 @@ steps:
   
   - label: ":linux: :two: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
-    concurrency_group: "habitat/release/x86_64-linux-kernel2"
     agents:
       queue: habitat-release
     env:
-      BUILD_PKG_TARGET="x86_64-linux-kernel2"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: Upload (but don't publish!) artifacts to Bintray"
     command: /bin/true

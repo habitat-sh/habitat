@@ -24,7 +24,7 @@ sudo hab pkg install \
      core/hab-bintray-publish
 
 echo "--- :buildkite: Retrieving macOS core/hab artifact"
-hab_artifact=$(buildkite-agent meta-data get "hab-artifact-macos")
+hab_artifact=$(buildkite-agent meta-data get "hab-artifact-x86_64-darwin")
 buildkite-agent artifact download "${hab_artifact}" .
 
 echo "--- :habicat: Uploading macOS core/hab to Bintray"

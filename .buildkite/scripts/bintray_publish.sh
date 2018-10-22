@@ -27,7 +27,7 @@ version=$(buildkite-agent meta-data get "version")
 
 ########################################################################
 # Linux x86-64-linux Publish
-release=$(buildkite-agent meta-data get "hab-release-x86-64-inux")
+release=$(buildkite-agent meta-data get "hab-release-x86-64-linux")
 echo "--- :linux: Publishing x86-64-linux 'hab' ${version}-${release} on Bintray"
 publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-linux/${version}-${release}/publish"
 
