@@ -4,44 +4,14 @@ components/backline @fnichol @baumanj
 components/builder* @chefsalim @raskchanky
 components/butterfly* @christophermaier @reset @baumanj @fnichol @raskchanky
 components/common @fnichol @baumanj @raskchanky
-components/common/src/command @apriofrost
 components/eventsrv* @reset @raskchanky
-components/eventsrv/src/main.rs @apriofrost
 components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @elliott-davis @raskchanky @eeyun
-components/hab/src/analytics.rs @apriofrost
-components/hab/src/cli.rs @apriofrost
-components/hab/src/main.rs @apriofrost
-components/hab/src/command @apriofrost
 components/launcher* @christophermaier @reset @baumanj @raskchanky
-components/launcher/src/main.rs @apriofrost
 components/pkg-* @fnichol @christophermaier @eeyun
-components/pkg-export-docker/src/cli.rs @apriofrost
-components/pkg-export-docker/src/lib.rs @apriofrost
-components/pkg-export-helm/src/chart.rs @apriofrost
-components/pkg-export-helm/src/chartfile.rs @apriofrost
-components/pkg-export-helm/src/deps.rs @apriofrost
-components/pkg-export-helm/src/main.rs @apriofrost
-components/pkg-export-helm/src/maintainer.rs @apriofrost
-components/pkg-export-kubernetes/src/cli.rs @apriofrost
-components/pkg-export-kubernetes/src/env.rs @apriofrost
-components/pkg-export-kubernetes/src/lib.rs @apriofrost
-components/pkg-export-kubernetes/src/main.rs @apriofrost
-components/pkg-export-kubernetes/src/manifest.rs @apriofrost
-components/pkg-export-kubernetes/src/service_bind.rs @apriofrost
-components/pkg-export-kubernetes/src/storage.rs @apriofrost
-components/pkg-export-tar/src/build.rs @apriofrost
-components/pkg-export-tar/src/cli.rs @apriofrost
-components/pkg-export-tar/src/lib.rs @apriofrost
-components/pkg-export-tar/src/main.rs @apriofrost
 components/plan-build @fnichol @christophermaier @elliott-davis @scotthain
-components/plan-build/bin/hab-plan-build.sh @apriofrost
-components/plan-build-ps1/bin/hab-plan-build.ps1 @apriofrost
 components/rootless_studio @elliott-davis
 components/studio @fnichol @baumanj @elliott-davis @eeyun
-components/studio/bin/hab-studio.sh @apriofrost
 components/sup* @christophermaier @reset @fnichol @baumanj @raskchanky
-components/sup/src/main.rs @apriofrost
-components/sup/src/command @apriofrost
 support @fnichol @baumanj @elliott-davis @raskchanky
 tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
 www @cnunciato @mgamini @raskchanky
