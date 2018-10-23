@@ -57,7 +57,15 @@
   },
   "description": "Schema for all the data the Habitat supervisor makes available at the /butterfly HTTP API endpoint",
   "properties": {
+    "departed_members": {
+      "description": "A list of member IDs that are departed",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
     "departure": {
+      "$deprecated": "Since 0.66.0; a more concise version of this information is now available under the 'departed_members' key.",
       "description": "A list of departure rumors",
       "properties": {
         "list": {
@@ -83,16 +91,52 @@
           "description": "A count of how many times the departure rumors have been updated",
           "type": "integer"
         }
-      },
-      "required": [
-        "list",
-        "update_counter"
-      ],
-      "type": "object"
+      }
     },
     "election": {
+      "$deprecated": "Since 0.66.0; a more concise version of this information is now available under the 'latest_election' key.",
       "description": "A list of election rumors",
       "properties": {
+        "additionalProperties": {
+          "description": "The name of a service group",
+          "properties": {
+            "from_id": {
+              "description": "The member ID being voted for",
+              "type": "string"
+            },
+            "member_id": {
+              "description": "The member ID being voted for",
+              "type": "string"
+            },
+            "service_group": {
+              "description": "The service group this election is running in",
+              "type": "string"
+            },
+            "status": {
+              "description": "The status of the election",
+              "enum": [
+                "Running",
+                "NoQuorum",
+                "Finished"
+              ]
+            },
+            "suitability": {
+              "description": "How suitable this member is for election",
+              "type": "integer"
+            },
+            "term": {
+              "description": "The election term",
+              "type": "integer"
+            },
+            "votes": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
         "list": {
           "additionalProperties": {
             "description": "The name of a service group",
@@ -114,7 +158,11 @@
                   },
                   "status": {
                     "description": "The status of the election",
-                    "enum": ["Running", "NoQuorum", "Finished"]
+                    "enum": [
+                      "Running",
+                      "NoQuorum",
+                      "Finished"
+                    ]
                   },
                   "suitability": {
                     "description": "How suitable this member is for election",
@@ -145,12 +193,12 @@
         }
       },
       "required": [
-        "list",
-        "update_counter"
+        "list"
       ],
       "type": "object"
     },
     "election_update": {
+      "$deprecated": "Since 0.66.0; a more concise version of this information is now available under the 'latest_election_update' key.",
       "description": "A list of election update rumors",
       "properties": {
         "list": {
@@ -200,23 +248,156 @@
           "type": "object"
         },
         "update_counter": {
+          "$deprecated": "Since 0.66.0",
           "description": "A count of how many times the election rumors have been updated",
           "type": "integer"
         }
       },
       "required": [
-        "list",
-        "update_counter"
+        "list"
       ],
       "type": "object"
     },
+    "latest_election": {
+      "additionalProperties": {
+        "properties": {
+          "from_id": {
+            "description": "The member ID being voted for",
+            "type": "string"
+          },
+          "member_id": {
+            "description": "The member ID being voted for",
+            "type": "string"
+          },
+          "service_group": {
+            "description": "The service group this election is running in",
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of the election",
+            "enum": [
+              "Running",
+              "NoQuorum",
+              "Finished"
+            ]
+          },
+          "suitability": {
+            "description": "How suitable this member is for election",
+            "type": "integer"
+          },
+          "term": {
+            "description": "The election term",
+            "type": "integer"
+          },
+          "votes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "description": "A description of the latest election (there can be only one), keyed by service group"
+    },
+    "latest_election_update": {
+      "additionalProperties": {
+        "properties": {
+          "from_id": {
+            "description": "The member ID being voted for",
+            "type": "string"
+          },
+          "member_id": {
+            "description": "The member ID being voted for",
+            "type": "string"
+          },
+          "service_group": {
+            "description": "The service group this election is running in",
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of the election",
+            "enum": [
+              "Running",
+              "NoQuorum",
+              "Finished"
+            ]
+          },
+          "suitability": {
+            "description": "How suitable this member is for election",
+            "type": "integer"
+          },
+          "term": {
+            "description": "The election term",
+            "type": "integer"
+          },
+          "votes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "description": "A description of the latest election update (there can be only one), keyed by service group"
+    },
+    "latest_service_config": {
+      "additionalProperties": {
+        "description": "A description of each service config, named by service group",
+        "properties": {
+          "service_config": {
+            "description": "A description of the various service parameters",
+            "properties": {
+              "config": {
+                "description": "The bytes of the config value",
+                "type": "array"
+              },
+              "encrypted": {
+                "description": "Is the config encrypted",
+                "type": "boolean"
+              },
+              "from_id": {
+                "description": "Where did this config come from",
+                "type": "string"
+              },
+              "incarnation": {
+                "description": "The incarnation number associated with this config",
+                "type": "integer"
+              },
+              "service_group": {
+                "description": "The service group",
+                "type": "string"
+              }
+            },
+            "required": [
+              "config",
+              "encrypted",
+              "from_id",
+              "incarnation",
+              "service_group"
+            ],
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "description": "The latest service config for each service group",
+      "type": "object"
+    },
     "member": {
+      "$deprecated": "Since 0.66.0; a more concise version of this information is now available under the 'membership' key.",
       "description": "The members of the butterfly network",
       "properties": {
         "health": {
           "additionalProperties": {
             "description": "The health of the member",
-            "enum": ["Alive", "Suspect", "Confirmed", "Departed"]
+            "enum": [
+              "Alive",
+              "Suspect",
+              "Confirmed",
+              "Departed"
+            ]
           },
           "description": "The health of the members",
           "type": "object"
@@ -272,18 +453,59 @@
           "type": "object"
         },
         "update_counter": {
+          "$deprecated": "Since 0.66.0",
           "description": "How many times the membership list has been updated",
           "type": "integer"
         }
       },
       "required": [
         "health",
-        "members",
-        "update_counter"
+        "members"
       ],
       "type": "object"
     },
+    "membership": {
+      "additionalProperties": {
+        "properties": {
+          "address": {
+            "description": "IP Address of the member",
+            "type": "string"
+          },
+          "gossip_port": {
+            "default": 9638,
+            "description": "The port for gossip traffic",
+            "type": "integer"
+          },
+          "health": {
+            "description": "The health of the member",
+            "enum": [
+              "Alive",
+              "Suspect",
+              "Confirmed",
+              "Departed"
+            ]
+          },
+          "incarnation": {
+            "description": "The incarnation number of the member",
+            "type": "integer"
+          },
+          "persistent": {
+            "default": false,
+            "description": "Whether this is a persistent/permanent peer",
+            "type": "boolean"
+          },
+          "swim_port": {
+            "default": 9638,
+            "description": "The port for SWIM traffic",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "description": "A map of membership information, including health"
+    },
     "service": {
+      "$deprecated": "Since 0.66.0; a more concise version of this information is now available under the 'services' key.",
       "description": "A list of service rumors",
       "properties": {
         "list": {
@@ -346,17 +568,18 @@
           "type": "object"
         },
         "update_counter": {
+          "$deprecated": "Since 0.66.0",
           "description": "How many times the service rumors have been updated",
           "type": "integer"
         }
       },
       "required": [
-        "list",
-        "update_counter"
+        "list"
       ],
       "type": "object"
     },
     "service_config": {
+      "$deprecated": "Since 0.66.0; a more concise version of this information is now available under the 'latest_service_config' key.",
       "description": "A list of service config rumors",
       "properties": {
         "list": {
@@ -403,17 +626,18 @@
           "type": "object"
         },
         "update_counter": {
+          "$deprecated": "Since 0.66.0",
           "description": "How many times the service config rumors have been updated",
           "type": "integer"
         }
       },
       "required": [
-        "list",
-        "update_counter"
+        "list"
       ],
       "type": "object"
     },
     "service_file": {
+      "$deprecated": "Since 0.66.0; a more concise version of this information is now available under the 'service_files' key.",
       "description": "A list of service file rumors",
       "properties": {
         "list": {
@@ -422,6 +646,7 @@
               "description": "A description of each file, named by file name",
               "properties": {
                 "body": {
+                  "$deprecated": "Since 0.66.0",
                   "description": "The body of the file in bytes",
                   "items": {
                     "type": "integer"
@@ -450,7 +675,6 @@
                 }
               },
               "required": [
-                "body",
                 "encrypted",
                 "filename",
                 "from_id",
@@ -466,25 +690,121 @@
           "type": "object"
         },
         "update_counter": {
+          "$deprecated": "Since 0.66.0",
           "description": "How many times the service files have been updated",
           "type": "integer"
         }
       },
       "required": [
-        "list",
-        "update_counter"
+        "list"
       ],
       "type": "object"
+    },
+    "service_files": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "description": "A description of each file, named by file name",
+          "properties": {
+            "body": {
+              "$deprecated": "Since 0.66.0",
+              "description": "The body of the file in bytes",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "encrypted": {
+              "description": "Is this file encrypted",
+              "type": "boolean"
+            },
+            "filename": {
+              "description": "The file name",
+              "type": "string"
+            },
+            "from_id": {
+              "description": "Member ID of who sent the file",
+              "type": "string"
+            },
+            "incarnation": {
+              "description": "The incarnation number associated with this file",
+              "type": "integer"
+            },
+            "service_group": {
+              "description": "The service group this file was sent to",
+              "type": "string"
+            }
+          },
+          "required": [
+            "encrypted",
+            "filename",
+            "from_id",
+            "incarnation",
+            "service_group"
+          ],
+          "type": "object"
+        },
+        "description": "A description of each service file, named by service group",
+        "type": "object"
+      },
+      "description": "A list of service file rumors"
+    },
+    "services": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "description": "A representation of the service, named for the member ID",
+          "properties": {
+            "cfg": {
+              "additionalProperties": {
+                "type": [
+                  "boolean",
+                  "string",
+                  "integer",
+                  "array",
+                  "object"
+                ]
+              },
+              "description": "Service configuration",
+              "type": "object"
+            },
+            "incarnation": {
+              "description": "The incarnation number of a member",
+              "type": "integer"
+            },
+            "initialized": {
+              "description": "Whether the service has been initialized",
+              "type": "boolean"
+            },
+            "member_id": {
+              "description": "The member ID",
+              "type": "string"
+            },
+            "package": {
+              "description": "The package identifier",
+              "type": "string"
+            },
+            "service_group": {
+              "description": "The service group",
+              "type": "string"
+            },
+            "sys": {
+              "$ref": "#/definitions/sys_basic"
+            }
+          },
+          "required": [
+            "cfg",
+            "incarnation",
+            "initialized",
+            "member_id",
+            "package",
+            "service_group",
+            "sys"
+          ],
+          "type": "object"
+        },
+        "description": "A representation of the service, named for the service group",
+        "type": "object"
+      }
     }
   },
-  "required": [
-    "departure",
-    "election",
-    "election_update",
-    "member",
-    "service",
-    "service_config",
-    "service_file"
-  ],
   "type": "object"
 }

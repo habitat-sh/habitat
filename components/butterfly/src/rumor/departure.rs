@@ -107,10 +107,29 @@ mod tests {
     use std::cmp::Ordering;
 
     use super::Departure;
-    use rumor::Rumor;
+    use rumor::{Rumor, RumorStore};
 
     fn create_departure(member_id: &str) -> Departure {
         Departure::new(member_id)
+    }
+
+    fn create_rumor_store() -> RumorStore<Departure> {
+        RumorStore::default()
+    }
+
+    #[test]
+    fn multiple_departures_are_all_under_the_same_key() {
+        let rs = create_rumor_store();
+        let d1 = Departure::new("member_1");
+        let d2 = Departure::new("member_2");
+        rs.insert(d1);
+        rs.insert(d2);
+
+        let list = rs.list.read().expect("Rumor store lock poisoned");
+        assert_eq!(list.len(), 1); // for the "departure" key
+
+        let sub_list = list.get("departure").unwrap();
+        assert_eq!(sub_list.len(), 2); // for each of the members we inserted
     }
 
     #[test]

@@ -27,11 +27,11 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
 use rand::{thread_rng, Rng};
-use serde::de;
-use serde::ser::SerializeStruct;
-use serde::Deserialize;
-use serde::Deserializer;
-use serde::{Serialize, Serializer};
+use serde::{
+    de,
+    ser::{SerializeMap, SerializeStruct},
+    Deserialize, Deserializer, {Serialize, Serializer},
+};
 use time::{Duration, SteadyTime};
 use uuid::Uuid;
 
@@ -870,6 +870,64 @@ impl MemberList {
             .read()
             .expect("Member list lock is poisoned")
             .contains_key(member_id)
+    }
+}
+
+pub struct MemberListProxy<'a>(&'a MemberList);
+
+impl<'a> MemberListProxy<'a> {
+    pub fn new(m: &'a MemberList) -> Self {
+        MemberListProxy(&m)
+    }
+}
+
+impl<'a> Serialize for MemberListProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let members = self.0.members.read().expect("Member lock is poisoned");
+        let health = self.0.health.read().expect("Health lock is poisoned");
+
+        let mut map = HashMap::new();
+
+        for (id, member) in members.iter() {
+            let h = health.get(id).unwrap();
+            let mp = MemberProxy::new(member, h);
+            map.insert(id, mp);
+        }
+
+        let mut m = serializer.serialize_map(Some(map.len()))?;
+
+        for (key, val) in map {
+            m.serialize_entry(key, &val)?;
+        }
+
+        m.end()
+    }
+}
+
+pub struct MemberProxy<'a>(&'a Member, &'a Health);
+
+impl<'a> MemberProxy<'a> {
+    pub fn new(m: &'a Member, h: &'a Health) -> Self {
+        MemberProxy(&m, &h)
+    }
+}
+
+impl<'a> Serialize for MemberProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("member", 6)?;
+        strukt.serialize_field("address", &self.0.address)?;
+        strukt.serialize_field("gossip_port", &self.0.gossip_port)?;
+        strukt.serialize_field("incarnation", &self.0.incarnation)?;
+        strukt.serialize_field("persistent", &self.0.persistent)?;
+        strukt.serialize_field("swim_port", &self.0.swim_port)?;
+        strukt.serialize_field("health", &self.1)?;
+        strukt.end()
     }
 }
 

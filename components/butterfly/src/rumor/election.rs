@@ -287,8 +287,18 @@ impl Rumor for ElectionUpdate {
 #[cfg(test)]
 mod tests {
     use habitat_core::service::ServiceGroup;
-    use rumor::election::Election;
-    use rumor::Rumor;
+    use rumor::{
+        election::{Election, ElectionUpdate},
+        Rumor, RumorStore,
+    };
+
+    fn create_election_rumor_store() -> RumorStore<Election> {
+        RumorStore::default()
+    }
+
+    fn create_election_update_rumor_store() -> RumorStore<ElectionUpdate> {
+        RumorStore::default()
+    }
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(
@@ -296,6 +306,46 @@ mod tests {
             ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
             suitability,
         )
+    }
+
+    fn create_election_update(member_id: &str, suitability: u64) -> ElectionUpdate {
+        ElectionUpdate::new(
+            member_id,
+            ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
+            suitability,
+        )
+    }
+
+    #[test]
+    fn only_the_latest_election_is_kept() {
+        let rs = create_election_rumor_store();
+        let e1 = create_election("member_1", 1);
+        let e2 = create_election("member_2", 2);
+        rs.insert(e1);
+        rs.insert(e2);
+
+        let list = rs.list.read().expect("Rumor store lock poisoned");
+        assert_eq!(list.len(), 1); // because we only have 1 service group
+
+        let sub_list = list.get("tdep.prod").unwrap();
+        assert_eq!(sub_list.len(), 1); // because only the latest election is kept
+        assert!(sub_list.get("election").is_some());
+    }
+
+    #[test]
+    fn only_the_latest_election_update_is_kept() {
+        let rs = create_election_update_rumor_store();
+        let e1 = create_election_update("member_1", 1);
+        let e2 = create_election_update("member_2", 2);
+        rs.insert(e1);
+        rs.insert(e2);
+
+        let list = rs.list.read().expect("Rumor store lock poisoned");
+        assert_eq!(list.len(), 1); // because we only have 1 service group
+
+        let sub_list = list.get("tdep.prod").unwrap();
+        assert_eq!(sub_list.len(), 1); // because only the latest election is kept
+        assert!(sub_list.get("election").is_some());
     }
 
     #[test]

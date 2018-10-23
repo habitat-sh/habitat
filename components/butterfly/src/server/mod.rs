@@ -49,7 +49,7 @@ use serde::{Serialize, Serializer};
 
 use self::incarnation_store::IncarnationStore;
 use error::{Error, Result};
-use member::{Health, Incarnation, Member, MemberList};
+use member::{Health, Incarnation, Member, MemberList, MemberListProxy};
 use message;
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
@@ -58,7 +58,7 @@ use rumor::heat::RumorHeat;
 use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
-use rumor::{Rumor, RumorKey, RumorStore, RumorType};
+use rumor::{Rumor, RumorKey, RumorStore, RumorStoreProxy, RumorType};
 use swim::Ack;
 use trace::{Trace, TraceKind};
 
@@ -1254,14 +1254,29 @@ impl<'a> Serialize for ServerProxy<'a> {
     where
         S: Serializer,
     {
+        let dsp = RumorStoreProxy::new(&self.0.departure_store);
+        let esp = RumorStoreProxy::new(&self.0.election_store);
+        let ssp = RumorStoreProxy::new(&self.0.service_store);
+        let eusp = RumorStoreProxy::new(&self.0.update_store);
+        let scsp = RumorStoreProxy::new(&self.0.service_config_store);
+        let sfsp = RumorStoreProxy::new(&self.0.service_file_store);
+        let mlp = MemberListProxy::new(&self.0.member_list);
+
         let mut strukt = serializer.serialize_struct("butterfly_server", 7)?;
         strukt.serialize_field("member", &self.0.member_list)?;
+        strukt.serialize_field("membership", &mlp)?;
         strukt.serialize_field("service", &self.0.service_store)?;
+        strukt.serialize_field("services", &ssp)?;
         strukt.serialize_field("service_config", &self.0.service_config_store)?;
+        strukt.serialize_field("latest_service_config", &scsp)?;
         strukt.serialize_field("service_file", &self.0.service_file_store)?;
+        strukt.serialize_field("service_files", &sfsp)?;
         strukt.serialize_field("election", &self.0.election_store)?;
+        strukt.serialize_field("latest_election", &esp)?;
         strukt.serialize_field("election_update", &self.0.update_store)?;
+        strukt.serialize_field("latest_election_update", &eusp)?;
         strukt.serialize_field("departure", &self.0.departure_store)?;
+        strukt.serialize_field("departed_members", &dsp)?;
         strukt.end()
     }
 }
