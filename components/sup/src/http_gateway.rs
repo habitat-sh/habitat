@@ -214,6 +214,12 @@ fn routes(app: App<AppState>) -> App<AppState> {
         .resource("/census", |r| r.get().filter(RedactHTTP).f(census))
 }
 
+fn json_response(data: String) -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(data)
+}
+
 // Begin route handlers
 fn butterfly(req: &HttpRequest<AppState>) -> HttpResponse {
     let data = &req
@@ -222,7 +228,7 @@ fn butterfly(req: &HttpRequest<AppState>) -> HttpResponse {
         .read()
         .expect("GatewayState lock is poisoned")
         .butterfly_data;
-    HttpResponse::Ok().body(data)
+    json_response(data.to_string())
 }
 
 fn census(req: &HttpRequest<AppState>) -> HttpResponse {
@@ -232,7 +238,7 @@ fn census(req: &HttpRequest<AppState>) -> HttpResponse {
         .read()
         .expect("GatewayState lock is poisoned")
         .census_data;
-    HttpResponse::Ok().body(data)
+    json_response(data.to_string())
 }
 
 fn services(req: &HttpRequest<AppState>) -> HttpResponse {
@@ -242,7 +248,7 @@ fn services(req: &HttpRequest<AppState>) -> HttpResponse {
         .read()
         .expect("GatewayState lock is poisoned")
         .services_data;
-    HttpResponse::Ok().body(data)
+    json_response(data.to_string())
 }
 
 // Honestly, this doesn't feel great, but it's the pattern builder-api uses, and at the
