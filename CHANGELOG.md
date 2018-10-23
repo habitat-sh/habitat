@@ -7,6 +7,7 @@
 - Store port values as u16 in Member struct [#5759](https://github.com/habitat-sh/habitat/pull/5759) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- remove -w parameter for invoking a local studio in internal calls [#5773](https://github.com/habitat-sh/habitat/pull/5773) ([mwrock](https://github.com/mwrock))
 - Remove unused function and update error message [#5764](https://github.com/habitat-sh/habitat/pull/5764) ([chefsalim](https://github.com/chefsalim))
 - Add myself to MAINTAINERS.md [#5755](https://github.com/habitat-sh/habitat/pull/5755) ([jamesc](https://github.com/jamesc))
 - Remove Liz from CLI related code owners [#5776](https://github.com/habitat-sh/habitat/pull/5776) ([apriofrost](https://github.com/apriofrost))
