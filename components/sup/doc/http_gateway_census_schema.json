@@ -187,13 +187,26 @@
           },
           "service_files": {
             "additionalProperties": {
-              "type": [
-                "boolean",
-                "string",
-                "integer",
-                "array",
-                "object"
-              ]
+              "type": "object",
+              "description": "Each file, keyed by file name",
+              "properties": {
+                "filename": {
+                  "type": "string",
+                  "description": "The name of the file"
+                },
+                "incarnation": {
+                  "type": "integer",
+                  "description": "The incarnation number of this file"
+                },
+                "body": {
+                  "type": "array",
+                  "description": "Each of the bytes in the file",
+                  "$deprecated": "Since 0.66.0",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
             },
             "description": "The service files for this member",
             "type": [

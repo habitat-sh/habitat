@@ -310,7 +310,6 @@ impl From<ElectionStatusRumor> for ElectionStatus {
 pub struct ServiceFile {
     pub filename: String,
     pub incarnation: u64,
-    #[serde(skip_serializing)]
     pub body: Vec<u8>,
 }
 
