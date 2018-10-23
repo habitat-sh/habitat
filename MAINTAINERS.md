@@ -57,6 +57,7 @@ Lieutenant and may have many maintainers.
 * [Scott Hain](https://github.com/scotthain)
 * [Matthew Peck](https://github.com/mpeck)
 * [Scott Macfarlane](https://github.com/smacfarlane)
+* [James Casey](https://github.com/jamesc)
 
 ### Habitat Builder Web Application
 
