@@ -122,7 +122,10 @@
       },
       "binding_mode": {
         "description": "What type of bind this is, either strict or relaxed",
-        "enum": ["strict", "relaxed"]
+        "enum": [
+          "strict",
+          "relaxed"
+        ]
       },
       "binds": {
         "description": "Mapping of bind name to service group",
@@ -151,7 +154,10 @@
           ]
         },
         "description": "The current configuration of this service",
-        "type": ["null", "object"]
+        "type": [
+          "null",
+          "object"
+        ]
       },
       "channel": {
         "description": "The channel this service updates itself from",
@@ -173,11 +179,19 @@
       },
       "desired_state": {
         "description": "The desired state for this service",
-        "enum": ["Up", "Down"]
+        "enum": [
+          "Up",
+          "Down"
+        ]
       },
       "health_check": {
         "description": "The results of the last health check",
-        "enum": ["Ok", "Warning", "Critical", "Unknown"]
+        "enum": [
+          "Ok",
+          "Warning",
+          "Critical",
+          "Unknown"
+        ]
       },
       "hooks": {
         "description": "A description of the hooks for this service",
@@ -185,71 +199,111 @@
           "file_updated": {
             "description": "The FileUpdated Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "health_check": {
             "description": "The HealthCheck Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "init": {
             "description": "The Init Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "post_run": {
             "description": "The PostRun Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "post_stop": {
             "description": "The PostStop Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "reconfigure": {
             "description": "The Reconfigure Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "reload": {
             "description": "The Reload Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "run": {
             "description": "The Run Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "smoke_test": {
             "description": "The SmokeTest Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           },
           "suitability": {
             "description": "The Suitability Hook",
             "oneOf": [
-              { "type": "null" },
-              { "$ref": "#/definitions/hook" }
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/definitions/hook"
+              }
             ]
           }
         },
@@ -312,20 +366,20 @@
       "pkg": {
         "description": "The habitat package that this service was spawned from",
         "properties": {
-          "deps": {
-            "description": "This package's dependencies",
-            "$deprecated": "Since 0.66.0; please use 'dependencies' instead."
-            "items": {
-              "$ref": "render_context_schema.json#/definitions/package_identifier",
-              "description": "Package identifier for a dependency"
-            },
-            "type": "array"
-          },
           "dependencies": {
             "description": "This package's dependencies",
             "items": {
               "description": "Package identifier for a dependency",
               "type": "string"
+            },
+            "type": "array"
+          },
+          "deps": {
+            "$deprecated": "Since 0.66.0; please use 'dependencies' instead.",
+            "description": "This package's dependencies",
+            "items": {
+              "$ref": "render_context_schema.json#/definitions/package_identifier",
+              "description": "Package identifier for a dependency"
             },
             "type": "array"
           },
@@ -445,11 +499,17 @@
         "properties": {
           "pid": {
             "description": "The PID of this process while it's running",
-            "type": ["null", "integer"]
+            "type": [
+              "null",
+              "integer"
+            ]
           },
           "state": {
             "description": "The state of this process",
-            "enum": ["up", "down"]
+            "enum": [
+              "up",
+              "down"
+            ]
           },
           "state_entered": {
             "description": "The time the process entered its current state, expressed as seconds since epoch",
@@ -469,15 +529,19 @@
       },
       "smoke_check": {
         "description": "The status of this service's smoke check. Not currently used.",
-        "enum": ["Ok", "Failed", "Pending"]
+        "enum": [
+          "Ok",
+          "Failed",
+          "Pending"
+        ]
       },
       "spec_file": {
         "description": "The path to this service's spec file",
         "type": "string"
       },
       "spec_ident": {
-        "$ref": "#/definitions/package_identifier",
         "$deprecated": "Since 0.66.0; please use 'spec_identifier' instead",
+        "$ref": "#/definitions/package_identifier",
         "description": "The package identifier for this service spec"
       },
       "spec_identifier": {
@@ -486,18 +550,28 @@
       },
       "svc_encrypted_password": {
         "description": "The encrypted password for this service",
-        "type": ["null", "string"]
+        "type": [
+          "null",
+          "string"
+        ]
       },
       "sys": {
         "$ref": "#/definitions/sys_extended"
       },
       "topology": {
         "description": "The topology this service runs as",
-        "enum": ["standalone", "leader"]
+        "enum": [
+          "standalone",
+          "leader"
+        ]
       },
       "update_strategy": {
         "description": "The strategy used to update this service",
-        "enum": ["none", "at-once", "rolling"]
+        "enum": [
+          "none",
+          "at-once",
+          "rolling"
+        ]
       },
       "user_config_updated": {
         "description": "Did a user update the config",

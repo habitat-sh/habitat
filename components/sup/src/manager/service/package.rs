@@ -183,7 +183,7 @@ impl<'a> Serialize for PkgProxy<'a> {
     {
         let p = &self.pkg;
         let mut strukt = serializer.serialize_struct("pkg", 21)?;
-        strukt.serialize_field("ident", &p.ident)?;
+        strukt.serialize_field("ident", &p.ident.to_string())?;
         strukt.serialize_field("origin", &p.origin)?;
         strukt.serialize_field("name", &p.name)?;
         strukt.serialize_field("version", &p.version)?;
