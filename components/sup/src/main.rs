@@ -13,10 +13,8 @@
 // limitations under the License.
 
 extern crate ansi_term;
-#[macro_use]
 extern crate clap;
 extern crate env_logger;
-extern crate hab;
 extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
@@ -38,7 +36,7 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::process;
 use std::str::{self, FromStr};
 
-use clap::{App, ArgMatches};
+use clap::ArgMatches;
 use common::command::package::install::InstallSource;
 use common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
 use hcore::channel;
@@ -55,10 +53,7 @@ use protocol::{
     },
 };
 
-use hab::cli::{
-    sub_sup_bash, sub_sup_depart, sub_sup_run, sub_sup_secret, sub_sup_sh, sub_sup_term,
-    sub_svc_status,
-};
+use sup::cli::cli;
 use sup::command;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result, SupError};
@@ -66,7 +61,6 @@ use sup::feat;
 use sup::http_gateway;
 use sup::manager::{Manager, ManagerConfig};
 use sup::util;
-use sup::VERSION;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -139,30 +133,6 @@ fn start() -> Result<()> {
         ("term", Some(m)) => sub_term(m),
         _ => unreachable!(),
     }
-}
-
-fn cli<'a, 'b>() -> App<'a, 'b> {
-    clap_app!(("hab-sup") =>
-        (about: "The Habitat Supervisor")
-        (version: VERSION)
-        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
-        // set custom usage string, otherwise the binary
-        // is displayed confusingly as `hab-sup`
-        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-        (usage: "hab sup <SUBCOMMAND>")
-        (@setting VersionlessSubcommands)
-        (@setting SubcommandRequiredElseHelp)
-        // this is the _full_ list of supervisor related cmds
-        // they are all enumerated here so that the entire help menu
-        // can be displayed from `hab sup --help`
-        (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
-        (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
-        (subcommand: sub_sup_run().aliases(&["r", "ru"]))
-        (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
-        (subcommand: sub_sup_sh().aliases(&[]))
-        (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
-        (subcommand: sub_sup_term().aliases(&["ter"]))
-    )
 }
 
 fn sub_bash() -> Result<()> {

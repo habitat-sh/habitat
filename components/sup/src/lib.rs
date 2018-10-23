@@ -47,6 +47,8 @@ extern crate bitflags;
 extern crate byteorder;
 #[cfg(target_os = "linux")]
 extern crate caps;
+#[macro_use]
+extern crate clap;
 extern crate crypto;
 #[cfg(windows)]
 extern crate ctrlc;
@@ -55,6 +57,7 @@ extern crate features;
 #[macro_use]
 extern crate futures;
 extern crate glob;
+extern crate hab;
 extern crate habitat_butterfly as butterfly;
 extern crate habitat_common as common;
 #[macro_use]
@@ -104,7 +107,11 @@ macro_rules! sup_error {
     }};
 }
 
+#[cfg(test)]
+#[macro_use]
+pub mod cli_test_helpers;
 pub mod census;
+pub mod cli;
 pub mod command;
 pub mod config;
 pub mod ctl_gateway;
