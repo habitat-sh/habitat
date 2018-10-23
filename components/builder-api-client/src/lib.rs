@@ -328,51 +328,6 @@ impl Client {
         Ok(sr)
     }
 
-    /// Create a job.
-    ///
-    /// # Failures
-    ///
-    /// * Remote API Server is not available
-    ///
-    /// # Panics
-    ///
-    /// * Authorization token was not set on client
-    pub fn create_job(&self, ident: &PackageIdent, token: &str) -> Result<(String)> {
-        debug!("Creating a job for {}", ident);
-
-        let body = json!({ "project_id": format!("{}", ident) });
-
-        let sbody = serde_json::to_string(&body).unwrap();
-
-        let result = self
-            .add_authz(self.0.post("jobs"), token)
-            .body(&sbody)
-            .header(Accept::json())
-            .header(ContentType::json())
-            .send();
-        match result {
-            Ok(mut response) => match response.status {
-                StatusCode::Created => {
-                    let mut encoded = String::new();
-                    response.read_to_string(&mut encoded).map_err(Error::IO)?;
-                    debug!("Body: {:?}", encoded);
-                    let v: serde_json::Value =
-                        serde_json::from_str(&encoded).map_err(Error::Json)?;
-                    let id = v["id"].as_str().unwrap();
-                    Ok(id.to_string())
-                }
-                StatusCode::Unauthorized => Err(Error::APIError(
-                    response.status,
-                    "Your GitHub token requires both user:email and read:org \
-                     permissions."
-                        .to_string(),
-                )),
-                _ => Err(err_from_response(response)),
-            },
-            Err(e) => Err(Error::HyperError(e)),
-        }
-    }
-
     /// Schedules a job for a package ident
     ///
     /// # Failures
@@ -1266,7 +1221,7 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
     if response.status == StatusCode::Unauthorized {
         return Error::APIError(
             response.status,
-            "Your GitHub token requires both user:email and read:org permissions.".to_string(),
+            "Please check that you have specified a valid Personal Access Token.".to_string(),
         );
     }
 
