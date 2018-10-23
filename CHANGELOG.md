@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- Store port values as u16 in Member struct [#5759](https://github.com/habitat-sh/habitat/pull/5759) ([baumanj](https://github.com/baumanj))
+
 #### Merged Pull Requests
 - Remove unused function and update error message [#5764](https://github.com/habitat-sh/habitat/pull/5764) ([chefsalim](https://github.com/chefsalim))
 - Add myself to MAINTAINERS.md [#5755](https://github.com/habitat-sh/habitat/pull/5755) ([jamesc](https://github.com/jamesc))
