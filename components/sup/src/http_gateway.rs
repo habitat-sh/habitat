@@ -390,12 +390,7 @@ fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> O
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        fs::File,
-        io::Read,
-        path::PathBuf,
-        sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT},
-    };
+    use std::{fs::File, io::Read, path::PathBuf, sync::Mutex};
 
     use butterfly::{
         member::Member,
@@ -461,8 +456,10 @@ mod tests {
 
     #[test]
     fn butterfly_server_proxy_is_valid() {
-        static SWIM_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
-        static GOSSIP_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
+        lazy_static! {
+            static ref SWIM_PORT: Mutex<u16> = Mutex::new(6666);
+            static ref GOSSIP_PORT: Mutex<u16> = Mutex::new(7777);
+        }
 
         #[derive(Debug)]
         struct ZeroSuitability;
@@ -473,15 +470,23 @@ mod tests {
         }
 
         fn start_server() -> Server {
-            SWIM_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
-            GOSSIP_PORT.compare_and_swap(0, 7777, Ordering::Relaxed);
-            let swim_port = SWIM_PORT.fetch_add(1, Ordering::Relaxed);
+            let swim_port;
+            {
+                let mut swim_port_guard = SWIM_PORT.lock().expect("SWIM_PORT poisoned");
+                swim_port = *swim_port_guard;
+                *swim_port_guard += 1;
+            }
             let swim_listen = format!("127.0.0.1:{}", swim_port);
-            let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
+            let gossip_port;
+            {
+                let mut gossip_port_guard = GOSSIP_PORT.lock().expect("GOSSIP_PORT poisoned");
+                gossip_port = *gossip_port_guard;
+                *gossip_port_guard += 1;
+            }
             let gossip_listen = format!("127.0.0.1:{}", gossip_port);
             let mut member = Member::default();
-            member.swim_port = swim_port as i32;
-            member.gossip_port = gossip_port as i32;
+            member.swim_port = swim_port;
+            member.gossip_port = gossip_port;
             Server::new(
                 &swim_listen[..],
                 &gossip_listen[..],

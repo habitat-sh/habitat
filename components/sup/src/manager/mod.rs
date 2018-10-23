@@ -373,8 +373,8 @@ impl Manager {
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
             peer.address = format!("{}", peer_addr.ip());
-            peer.swim_port = peer_addr.port() as i32;
-            peer.gossip_port = peer_addr.port() as i32;
+            peer.swim_port = peer_addr.port();
+            peer.gossip_port = peer_addr.port();
             server.member_list.add_initial_member(peer);
         }
         Self::migrate_specs(&fs_cfg);

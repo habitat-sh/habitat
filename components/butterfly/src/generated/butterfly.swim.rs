@@ -7,6 +7,7 @@ pub struct Member {
     pub incarnation: ::std::option::Option<u64>,
     #[prost(string, optional, tag="3")]
     pub address: ::std::option::Option<String>,
+    /// protobuf has no 16-bit ints; see habitat_butterfly::member::as_port
     #[prost(int32, optional, tag="4")]
     pub swim_port: ::std::option::Option<i32>,
     #[prost(int32, optional, tag="5")]
