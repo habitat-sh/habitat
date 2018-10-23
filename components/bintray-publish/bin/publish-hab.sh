@@ -225,7 +225,7 @@ _build_slim_release() {
   info "Compressing \`hab' binary"
   pushd "$build_dir" >/dev/null
   case "$pkg_target" in
-    *-linux)
+    *-linux | *-linux-kernel2)
       pkg_artifact="$start_dir/results/${archive_name}.tar.gz"
       local tarball
       tarball="$build_dir/$(basename "${pkg_artifact%.gz}")"
