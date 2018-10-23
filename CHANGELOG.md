@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Remove unused function and update error message [#5764](https://github.com/habitat-sh/habitat/pull/5764) ([chefsalim](https://github.com/chefsalim))
 - Add myself to MAINTAINERS.md [#5755](https://github.com/habitat-sh/habitat/pull/5755) ([jamesc](https://github.com/jamesc))
 - Remove Liz from CLI related code owners [#5776](https://github.com/habitat-sh/habitat/pull/5776) ([apriofrost](https://github.com/apriofrost))
 - Fix unused variable in rumor test [#5763](https://github.com/habitat-sh/habitat/pull/5763) ([jamesc](https://github.com/jamesc))
