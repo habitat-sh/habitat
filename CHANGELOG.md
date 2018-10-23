@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Add myself to MAINTAINERS.md [#5755](https://github.com/habitat-sh/habitat/pull/5755) ([jamesc](https://github.com/jamesc))
 - Remove Liz from CLI related code owners [#5776](https://github.com/habitat-sh/habitat/pull/5776) ([apriofrost](https://github.com/apriofrost))
 - Fix unused variable in rumor test [#5763](https://github.com/habitat-sh/habitat/pull/5763) ([jamesc](https://github.com/jamesc))
 - implement HAB_STUDIO_SECRET var passing for windows studios [#5765](https://github.com/habitat-sh/habitat/pull/5765) ([mwrock](https://github.com/mwrock))
