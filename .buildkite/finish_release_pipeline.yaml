@@ -28,8 +28,7 @@ steps:
       queue: habitat-release
 
   - label: ":mac: Promote Homebrew Release"
-    command: /bin/true
-    skip: Not implemented yet
+    command: .buildkite/scripts/bump_homebrew_release.sh
     agents:
       queue: habitat-release
 

@@ -53,3 +53,4 @@ Artifact: <code>${pkg_artifact}</code>
 <br/>
 SHA256: <code>${shasum}</code>
 EOF
+buildkite-agent meta-data set hab-macos-bintray-sha256 "${shasum}"
