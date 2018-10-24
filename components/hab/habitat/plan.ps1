@@ -7,7 +7,8 @@ $pkg_deps=@(
     "core/openssl",
     "core/zlib",
     "core/libarchive",
-    "core/libsodium"
+    "core/libsodium",
+    "core/xz"
 )
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(
@@ -61,4 +62,5 @@ function Invoke-Install {
     Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "libarchive")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "libsodium")/bin/*.dll" "$pkg_prefix/bin"
+    Copy-Item "$(Get-HabPackagePath "xz")/bin/*.dll" "$pkg_prefix/bin"
 }
