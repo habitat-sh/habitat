@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Behavioral Changes
+- `hab config show` now shows active service group configuration and individual config layers [#5695](https://github.com/habitat-sh/habitat/pull/5695) ([jeremymv2](https://github.com/jeremymv2))
+
 #### New Features & Enhancements
 - Add &#39;hab pkg uninstall&#39; command [#5737](https://github.com/habitat-sh/habitat/pull/5737) ([jamesc](https://github.com/jamesc))
 
