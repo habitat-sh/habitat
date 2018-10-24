@@ -21,8 +21,8 @@ function Test-SentinelBuild() {
     $env:APPVEYOR_REPO_BRANCH -like 'sentinel*'
 }
 
-function Test-SourceChanged {
-    $files = if (Test-PullRequest -or Test-SentinelBuild) {
+function Get-ChangedFiles {
+    if (Test-PullRequest -or Test-SentinelBuild) {
         # for pull requests or sentinel builds diff
         # against master
         git diff master --name-only
@@ -30,16 +30,26 @@ function Test-SourceChanged {
         # for master builds, check against the last merge
         git show :/^Merge --pretty=format:%H -m --name-only
     }
+}
 
+function Test-SourceChanged {
     $BuildFiles = "appveyor.yml", "build.ps1", "support/ci/appveyor.ps1", "support/ci/appveyor.bat",
                   "Cargo.toml", "Cargo.lock"
-    ($files |
+    (Get-ChangedFiles |
         where-object {
             ($BuildFiles -contains $_ ) -or
             (($_ -like 'components/*') -and
                 (Test-ComponentChanged $_))
         }
     ).count -ge 1
+}
+
+function Test-DocsOnlyChanged {
+    (Get-ChangedFiles | 
+        Where-Object {
+            !($_ -like '*.md') -and !($_ -like 'docs\*.md')
+        }
+    ).count -eq 0
 }
 
 $ErrorActionPreference="stop"
@@ -51,7 +61,10 @@ $version = $(Get-Content VERSION)
 
 write-host "TAG: $env:APPVEYOR_REPO_TAG_NAME"
 Write-Host "VERSION: $version"
-if (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (test-path env:HAB_FORCE_TEST)) {
+
+if(Test-DocsOnlyChanged -and !(Test-ReleaseBuild)) {
+    Write-Host "This is a DOCS only change. Exiting build."
+} elseif (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (test-path env:HAB_FORCE_TEST)) {
     if(Test-ReleaseBuild -and $env:hab_components -ne "launcher") {
         $channel = "rc-$version"
     }
