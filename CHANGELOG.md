@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### New Features & Enhancements
+- Add &#39;hab pkg uninstall&#39; command [#5737](https://github.com/habitat-sh/habitat/pull/5737) ([jamesc](https://github.com/jamesc))
+
 #### Bug Fixes
 - Ensure we have the correct ContentType on our responses [#5782](https://github.com/habitat-sh/habitat/pull/5782) ([raskchanky](https://github.com/raskchanky))
 - Store port values as u16 in Member struct [#5759](https://github.com/habitat-sh/habitat/pull/5759) ([baumanj](https://github.com/baumanj))
