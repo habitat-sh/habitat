@@ -223,6 +223,7 @@ fn start(ui: &mut UI) -> Result<()> {
             ("provides", Some(m)) => sub_pkg_provides(m)?,
             ("search", Some(m)) => sub_pkg_search(m)?,
             ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
+            ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m)?,
             ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
             ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
             ("header", Some(m)) => sub_pkg_header(ui, m)?,
@@ -512,6 +513,18 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
     }
 }
 
+fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let execute_strategy = match m.is_present("DRYRUN") {
+        true => command::pkg::ExecutionStrategy::DryRun,
+        false => command::pkg::ExecutionStrategy::Run,
+    };
+    let scope = match m.is_present("NO_DEPS") {
+        true => command::pkg::Scope::Package,
+        false => command::pkg::Scope::PackageAndDependencies,
+    };
+    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope)
+}
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
