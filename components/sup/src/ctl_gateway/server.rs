@@ -290,6 +290,18 @@ impl Future for SrvHandler {
                                     move |state, req| Manager::service_cfg(state, req, m.clone()),
                                 )
                             }
+                            "SvcGetCfg" => {
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcGetCfg>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| {
+                                        Manager::service_group_cfg(state, req, m.clone())
+                                    },
+                                )
+                            }
                             "SvcFilePut" => {
                                 let m = msg
                                     .parse::<protocol::ctl::SvcFilePut>()

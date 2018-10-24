@@ -884,18 +884,21 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_svc_config(m: &ArgMatches) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
+    let cfg_type =
+        ServiceCfgType::from_str(m.value_of("CFG_TYPE").unwrap_or_default()).unwrap_or_default();
     let cfg = config::load()?;
     let sup_addr = sup_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
-    msg.ident = Some(ident.into());
+    let mut msg = protocol::ctl::SvcGetCfg::default();
+    msg.service_group = Some(service_group.into());
+    msg.cfg_type = Some(cfg_type.into());
     SrvClient::connect(&sup_addr, secret_key)
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceCfg" => {
                     let m = reply.parse::<protocol::types::ServiceCfg>().unwrap();
-                    println!("{}", m.default.unwrap_or_default());
+                    println!("{}", m.config.unwrap_or_default());
                     Ok(())
                 }
                 "NetErr" => {

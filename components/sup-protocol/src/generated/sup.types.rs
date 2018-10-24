@@ -52,7 +52,9 @@ pub struct ServiceCfg {
     #[prost(enumeration="service_cfg::Format", optional, tag="1", default="Toml")]
     pub format: ::std::option::Option<i32>,
     #[prost(string, optional, tag="2")]
-    pub default: ::std::option::Option<String>,
+    pub config: ::std::option::Option<String>,
+    #[prost(enumeration="ServiceCfgType", optional, tag="3")]
+    pub config_type: ::std::option::Option<i32>,
 }
 pub mod service_cfg {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
@@ -141,4 +143,14 @@ pub enum BindingMode {
     Relaxed = 0,
     /// Service start-up is blocked until all binds are available
     Strict = 1,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ServiceCfgType {
+    Merged = 0,
+    Default = 1,
+    Environment = 2,
+    User = 3,
+    Gossip = 4,
 }
