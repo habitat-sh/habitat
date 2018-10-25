@@ -171,6 +171,11 @@ where
     }
 }
 
+/// This proxy wraps a RumorStore so that we can control its serialization at a more granular
+/// level. Note that we don't implement a generic version of this, on purpose. Rather, due to the
+/// interaction between the 'key()' and 'id()' functions on the Rumor trait, each rumor type needs
+/// to be custom serialized if we want to avoid irrelevant implementation details leaking into the
+/// JSON output.
 pub struct RumorStoreProxy<'a, T: Rumor + 'a>(&'a RumorStore<T>);
 
 impl<'a, T> RumorStoreProxy<'a, T>

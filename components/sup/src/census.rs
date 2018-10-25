@@ -698,6 +698,7 @@ impl CensusMember {
     }
 }
 
+/// This data structure just wraps the CensusMember and allows us to tweak the serialization logic.
 pub struct CensusMemberProxy<'a>(&'a CensusMember);
 
 impl<'a> CensusMemberProxy<'a> {

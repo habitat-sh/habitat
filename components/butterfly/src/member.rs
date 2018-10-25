@@ -873,6 +873,7 @@ impl MemberList {
     }
 }
 
+/// This proxy wraps a MemberList so that we can customize its serialization logic.
 pub struct MemberListProxy<'a>(&'a MemberList);
 
 impl<'a> MemberListProxy<'a> {
@@ -907,6 +908,8 @@ impl<'a> Serialize for MemberListProxy<'a> {
     }
 }
 
+/// This proxy wraps both a Member and Health, and presents them together, for use in the
+/// supervisor's /butterfly HTTP API endpoint.
 pub struct MemberProxy<'a>(&'a Member, &'a Health);
 
 impl<'a> MemberProxy<'a> {
