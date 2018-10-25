@@ -16,7 +16,7 @@
           "from_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "member_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "service_group": "witcher.prod",
-          "status": "Finished",
+          "status": "finished",
           "suitability": 0,
           "term": 0,
           "votes": [
@@ -36,7 +36,7 @@
           "from_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "member_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "service_group": "witcher.prod",
-          "status": "Finished",
+          "status": "finished",
           "suitability": 0,
           "term": 0,
           "votes": [
@@ -51,16 +51,16 @@
   },
   "member": {
     "health": {
-      "08e6fd8bcf094ddb88a95f7a008f9215": "Alive",
-      "0d262679fc604664825ad916de6a399c": "Alive",
-      "1154ec64a1714cdca5c885a181e41737": "Alive",
-      "2b017714c38a430f89516e9b2b90d067": "Alive",
-      "96a40a37ce2549b59d1190fd4574f6c8": "Alive",
-      "b2c535a80ba5463a8e43672801fd803b": "Alive",
-      "b8f013535b3d4c85822e442f0c12801e": "Alive",
-      "be57ce74c75d4b29a4d8602c28397364": "Alive",
-      "c2ca91559a1f4114a819a1ca283cf10a": "Alive",
-      "f723be0d353e45c7bfa097aa586b8795": "Alive"
+      "08e6fd8bcf094ddb88a95f7a008f9215": "alive",
+      "0d262679fc604664825ad916de6a399c": "alive",
+      "1154ec64a1714cdca5c885a181e41737": "alive",
+      "2b017714c38a430f89516e9b2b90d067": "alive",
+      "96a40a37ce2549b59d1190fd4574f6c8": "alive",
+      "b2c535a80ba5463a8e43672801fd803b": "alive",
+      "b8f013535b3d4c85822e442f0c12801e": "alive",
+      "be57ce74c75d4b29a4d8602c28397364": "alive",
+      "c2ca91559a1f4114a819a1ca283cf10a": "alive",
+      "f723be0d353e45c7bfa097aa586b8795": "alive"
     },
     "members": {
       "08e6fd8bcf094ddb88a95f7a008f9215": {

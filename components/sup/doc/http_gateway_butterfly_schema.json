@@ -115,9 +115,9 @@
             "status": {
               "description": "The status of the election",
               "enum": [
-                "Running",
-                "NoQuorum",
-                "Finished"
+                "running",
+                "no-quorum",
+                "finished"
               ]
             },
             "suitability": {
@@ -159,9 +159,9 @@
                   "status": {
                     "description": "The status of the election",
                     "enum": [
-                      "Running",
-                      "NoQuorum",
-                      "Finished"
+                      "running",
+                      "no-quorum",
+                      "finished"
                     ]
                   },
                   "suitability": {
@@ -276,9 +276,9 @@
           "status": {
             "description": "The status of the election",
             "enum": [
-              "Running",
-              "NoQuorum",
-              "Finished"
+              "running",
+              "no-quorum",
+              "finished"
             ]
           },
           "suitability": {
@@ -318,9 +318,9 @@
           "status": {
             "description": "The status of the election",
             "enum": [
-              "Running",
-              "NoQuorum",
-              "Finished"
+              "running",
+              "no-quorum",
+              "finished"
             ]
           },
           "suitability": {
@@ -393,10 +393,10 @@
           "additionalProperties": {
             "description": "The health of the member",
             "enum": [
-              "Alive",
-              "Suspect",
-              "Confirmed",
-              "Departed"
+              "alive",
+              "suspect",
+              "confirmed",
+              "departed"
             ]
           },
           "description": "The health of the members",
@@ -479,10 +479,10 @@
           "health": {
             "description": "The health of the member",
             "enum": [
-              "Alive",
-              "Suspect",
-              "Confirmed",
-              "Departed"
+              "alive",
+              "suspect",
+              "confirmed",
+              "departed"
             ]
           },
           "incarnation": {
