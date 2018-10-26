@@ -161,7 +161,8 @@ impl Server {
             let bind = server::new(move || {
                 let app_state = AppState::new(gateway_state.clone());
                 App::with_state(app_state).configure(routes)
-            }).bind(listen_addr.to_string());
+            }).workers(2)
+            .bind(listen_addr.to_string());
 
             // We need to create this scope on purpose here because if we don't, the lock never
             // releases, and the supervisor will wait forever on cvar. Creating this artifical
