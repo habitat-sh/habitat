@@ -29,8 +29,6 @@ main() {
   channel="stable"
   # Set an empty version variable, signaling we want the latest release
   version=""
-  # Set an empty target variable, signaling we want our current "${arch}-${sys}"
-  target=""
 
   # Parse command line flags and options.
   while getopts "c:hv:t:" opt; do
@@ -59,7 +57,7 @@ main() {
   info "Installing Habitat 'hab' program"
   create_workdir
   get_platform
-  get_target
+  validate_target
   get_version
   download_archive
   verify_archive
@@ -153,6 +151,10 @@ get_platform() {
       exit_with "Unrecognized sys type when determining platform: ${sys}" 3
       ;;
   esac
+
+  if [ -z "${target:-}" ]; then 
+    target="${arch}-${sys}"
+  fi
 }
 
 get_version() {
@@ -191,18 +193,25 @@ get_version() {
   fi
 }
 
-get_target() {
-  if [ -z "${target}" ]; then
-    target="${arch}-${sys}"
-  else
-    if [ "${sys}" != "linux" ]; then 
-      _e="--target is only valid on Linux systems"
-      exit_with "$_e" 7
-    elif [ "${target%-kernel2}" != "x86_64-linux" ]; then
-      _e="${target} is not a valid target. Please specify one of: "
-      _e="${_e} ['x86_64-linux', 'x86_64-linux-kernel2']"
-      exit_with "$_e" 8
-    fi
+# Validate the CLI Target requested.  In most cases ${arch}-${sys}
+# for the current system is the only valid Target.  In the case of 
+# x86_64-linux systems we also need to support the x86_64-linux-kernel2
+# Target. Creates an array of valid Targets for the current system,
+# adding any valid alternate Targets, and checks if the requested 
+# Target is present in the array.
+validate_target() {
+  local valid_targets=("${arch}-${sys}")
+  case "${sys}" in
+   linux)
+    valid_targets+=("x86_64-linux-kernel2")
+    ;;
+  esac
+
+  if ! (_array_contains "${target}" "${valid_targets[@]}") ; then
+    local _vts
+    printf -v _vts "%s, " "${valid_targets[@]}"
+    _e="${target} is not a valid target for this system. Please specify one of: [${_vts%, }]"
+    exit_with "$_e" 7
   fi
 }
 
@@ -326,6 +335,16 @@ warn() {
 exit_with() {
   warn "$1"
   exit "${2:-10}"
+}
+
+_array_contains() {
+  local e
+  for e in "${@:2}"; do
+    if [[ "$e" == "$1" ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 dl_file() {
