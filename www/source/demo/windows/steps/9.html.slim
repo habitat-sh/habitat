@@ -84,12 +84,28 @@ section
       <add name="SchoolContext" connectionString="Data Source={{bind.database.first.sys.ip}},{{bind.database.first.cfg.port}};Initial Catalog=ContosoUniversity2;User ID={{bind.database.first.cfg.username}};Password={{bind.database.first.cfg.password}};" providerName="System.Data.SqlClient" />
     </connectionStrings>
 
- p One last thing to be done in order for our templatized <code>web.config</code> to be seen by the ASP.NET runtime is to link the Supervisor rendered file to the root of our application which is where ASP.NET expects it to be. We can do this by adding the following to our <code>init</code> hook:
+ p In order for our templatized <code>web.config</code> to be seen by the ASP.NET runtime, we need to link the Supervisor rendered file to the root of our application which is where ASP.NET expects it to be. We can do this by adding the following to our <code>init</code> hook:
 
  = code(:bash) do
    |
     Set-Location {{pkg.svc_path}}\var
     New-Item -Name Web.config -ItemType SymbolicLink -target "{{pkg.svc_config_path}}/Web.config" -Force | Out-Null
+
+ p Lastly we need to edit the permissions of the Habitat rendered <code>web.config</code> template so that the IIS app pool user has the rights to access it. When Habitat renders the template files in out plan's <code>config</code> and <code>hooks</code> directories, the permissions granted to the rendered files include <code>Full Control</code> access for <code>Administrators</code>, <code>SYSTEM</code>, and the user running the Supervisor process. Because these rendered files could possibly include sensitive values, we do not want to grant access to all users. By default, IIS will run our application using a user named after its application pool and this user will not have rightrs to view the rendered <code>web.config</code> which will cause our application to fail. So lets edit our <code>run</code> hook after we apply the <code>DSC</code> configuration that creates and starts our application pool:
+
+ = code(:bash) do
+   |
+    Import-Module "{{pkgPathFor "core/dsc-core"}}/Modules/DscCore"
+    Start-DscCore (Join-Path {{pkg.svc_config_path}} website.ps1) NewWebsite
+
+    $pool = "{{cfg.app_pool}}"
+    $access = New-Object System.Security.AccessControl.FileSystemAccessRule "IIS APPPOOL\$pool", "ReadAndExecute", "Allow"
+    $acl = Get-Acl "{{pkg.svc_config_path}}/Web.config"
+    $acl.SetAccessRule($access)
+    $acl | Set-Acl "{{pkg.svc_config_path}}/Web.config"
+
+    try {
+    ...
 
  h2 <a name="connect-studio">Connecting to a database running inside the studio</a>
 

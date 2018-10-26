@@ -22,7 +22,7 @@ section
  = code(:shell) do
    | 
      PS C:\contosouniversity> $env:HAB_DOCKER_OPTS="--memory 2gb -p 80:8099"
-     PS C:\contosouniversity> hab studio enter
+     PS C:\contosouniversity> hab studio enter -D
 
  p Assuming you are on a Windows host with Docker for Windows running in Windows container mode, this will enter a Powershell based Studio inside of a Windows container. We also set the <code>HAB_DOCKER_OPTS</code> variable which is forwarded to <code>docker run</code> when the Studio spawns its container. This will forward port 8099 which is what our application listens to in the container to port 80 locally. It also ensures that the Container is given 2 GB of ram. This is only important on a Windows 10 host which will run containers in #{link_to 'Hyper-V Isolation mode', 'https://docs.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container'} where containers are spawned in their own minimal VM and allocated 1GB of memory by default. For many scenarios, including ours, 1 GB is simply not enough and can lead to odd and surprising results - not the good kind of surprise!
 
