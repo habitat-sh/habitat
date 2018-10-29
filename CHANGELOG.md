@@ -15,6 +15,7 @@
 - Store port values as u16 in Member struct [#5759](https://github.com/habitat-sh/habitat/pull/5759) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Revert &quot;Merge pull request #5695 from jeremymv2/jeremymv2/hab_config_… [#5794](https://github.com/habitat-sh/habitat/pull/5794) ([jeremymv2](https://github.com/jeremymv2))
 - Remove health check data when a service is unloaded [#5792](https://github.com/habitat-sh/habitat/pull/5792) ([raskchanky](https://github.com/raskchanky))
 - Shelving composites post [#5740](https://github.com/habitat-sh/habitat/pull/5740) ([mgamini](https://github.com/mgamini))
 - fix asp.net tutorial based on recent changes [#5788](https://github.com/habitat-sh/habitat/pull/5788) ([mwrock](https://github.com/mwrock))
