@@ -41,14 +41,6 @@ enum BindingMode {
   Strict = 1;
 }
 
-enum ServiceCfgType {
-  Merged = 0;
-  Default = 1;
-  Environment = 2;
-  User = 3;
-  Gossip = 4;
-}
-
 message ApplicationEnvironment {
   required string application = 1;
   required string environment = 2;
@@ -81,8 +73,7 @@ message ServiceCfg {
   // is present if we ever change from using TOML to represent service configurations
   // to another self describing type.
   optional Format format = 1 [default = Toml];
-  optional string config = 2;
-  optional ServiceCfgType config_type = 3;
+  optional string default = 2;
 }
 
 message ServiceGroup {

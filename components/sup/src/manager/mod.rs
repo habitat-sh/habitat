@@ -25,7 +25,6 @@ mod spec_watcher;
 mod sys;
 mod user_config_watcher;
 
-use protocol::types::ServiceCfgType;
 use std;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
@@ -853,8 +852,7 @@ impl Manager {
         let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
         let mut msg = protocol::types::ServiceCfg {
             format: Some(protocol::types::service_cfg::Format::Toml as i32),
-            config: None,
-            config_type: None,
+            default: None,
         };
         for service in mgr
             .services
@@ -864,10 +862,9 @@ impl Manager {
         {
             if service.pkg.ident.satisfies(&ident) {
                 if let Some(ref cfg) = service.cfg.default {
-                    msg.config = Some(
+                    msg.default = Some(
                         toml::to_string_pretty(&toml::value::Value::Table(cfg.clone())).unwrap(),
                     );
-                    msg.config_type = Some(protocol::types::ServiceCfgType::Default as i32);
                     req.reply_complete(msg);
                 }
                 return Ok(());
@@ -877,64 +874,6 @@ impl Manager {
             ErrCode::NotFound,
             format!("Service not loaded, {}", ident),
         ))
-    }
-
-    pub fn service_group_cfg(
-        mgr: &ManagerState,
-        req: &mut CtlRequest,
-        opts: protocol::ctl::SvcGetCfg,
-    ) -> NetResult<()> {
-        let service_group: ServiceGroup = opts.service_group.ok_or(err_update_client())?.into();
-        let cfg_type = opts
-            .cfg_type
-            .and_then(protocol::types::ServiceCfgType::from_i32)
-            .unwrap_or_default();
-        let mut msg = protocol::types::ServiceCfg {
-            format: Some(protocol::types::service_cfg::Format::Toml as i32),
-            config: None,
-            config_type: None,
-        };
-        match mgr
-            .services
-            .read()
-            .expect("Services lock is poisoned")
-            .values()
-            .find(|ref s| s.service_group == service_group)
-        {
-            Some(ref service) => {
-                let tomlcfg = match cfg_type {
-                    ServiceCfgType::Gossip => {
-                        cfg_to_toml(service.cfg.gossip.clone().unwrap_or_default())
-                    }
-                    ServiceCfgType::Default => {
-                        cfg_to_toml(service.cfg.default.clone().unwrap_or_default())
-                    }
-                    ServiceCfgType::User => {
-                        cfg_to_toml(service.cfg.user.clone().unwrap_or_default())
-                    }
-                    ServiceCfgType::Environment => {
-                        cfg_to_toml(service.cfg.environment.clone().unwrap_or_default())
-                    }
-                    ServiceCfgType::Merged => toml::to_string_pretty(&service.cfg),
-                };
-                match tomlcfg {
-                    Ok(content) => {
-                        msg.config = Some(content);
-                        msg.config_type = Some(cfg_type as i32);
-                        req.reply_complete(msg);
-                        return Ok(());
-                    }
-                    Err(err) => Err(net::err(
-                        ErrCode::Internal,
-                        format!("TOML Serialization error, {}", err),
-                    )),
-                }
-            }
-            None => Err(net::err(
-                ErrCode::NotFound,
-                format!("Service Group not found, {}", service_group),
-            )),
-        }
     }
 
     pub fn service_cfg_validate(
@@ -1846,12 +1785,6 @@ impl Suitability for SuitabilityLookup {
 
 fn err_update_client() -> net::NetErr {
     net::err(ErrCode::UpdateClient, "client out of date")
-}
-
-fn cfg_to_toml(
-    cfg: toml::value::Table,
-) -> std::result::Result<std::string::String, toml::ser::Error> {
-    toml::to_string_pretty(&toml::value::Value::Table(cfg))
 }
 
 fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>

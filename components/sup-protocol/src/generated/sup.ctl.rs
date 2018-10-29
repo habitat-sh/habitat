@@ -62,17 +62,6 @@ pub struct SvcGetDefaultCfg {
     #[prost(message, optional, tag="1")]
     pub ident: ::std::option::Option<super::types::PackageIdent>,
 }
-/// Request for retrieving the various configuration layers for a given service.
-#[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct SvcGetCfg {
-    /// Service group of a loaded service to target.
-    #[prost(message, optional, tag="1")]
-    pub service_group: ::std::option::Option<super::types::ServiceGroup>,
-    #[prost(enumeration="super::types::ServiceCfgType", optional, tag="2", default="Merged")]
-    pub cfg_type: ::std::option::Option<i32>,
-}
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]

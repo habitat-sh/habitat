@@ -99,19 +99,6 @@ impl fmt::Display for DesiredState {
     }
 }
 
-impl fmt::Display for ServiceCfgType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let value = match *self {
-            ServiceCfgType::Merged => "merged",
-            ServiceCfgType::Default => "default",
-            ServiceCfgType::Environment => "environment",
-            ServiceCfgType::User => "user",
-            ServiceCfgType::Gossip => "gossip",
-        };
-        write!(f, "{}", value)
-    }
-}
-
 impl FromStr for BindingMode {
     type Err = NetErr;
 
@@ -196,27 +183,6 @@ impl FromStr for ServiceBind {
             bind.service_group = ServiceGroup::from_str(values[1])?;
         }
         Ok(bind)
-    }
-}
-
-impl FromStr for ServiceCfgType {
-    type Err = NetErr;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        match value.to_lowercase().as_ref() {
-            "merged" => Ok(ServiceCfgType::Merged),
-            "default" => Ok(ServiceCfgType::Default),
-            "environment" => Ok(ServiceCfgType::Environment),
-            "user" => Ok(ServiceCfgType::User),
-            "gossip" => Ok(ServiceCfgType::Gossip),
-            _ => Err(net::err(
-                ErrCode::InvalidPayload,
-                format!(
-                    "Invalid service cfg type \"{:?}\", must be one of: `default`, `environment`, `user`, `gossip` or `merged`.",
-                    value
-                ),
-            )),
-        }
     }
 }
 
