@@ -3,20 +3,17 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-#### Behavioral Changes
-- `hab config show` now shows active service group configuration and individual config layers [#5695](https://github.com/habitat-sh/habitat/pull/5695) ([jeremymv2](https://github.com/jeremymv2))
-
 #### New Features & Enhancements
-- Add &#39;hab pkg uninstall&#39; command [#5737](https://github.com/habitat-sh/habitat/pull/5737) ([jamesc](https://github.com/jamesc))
+- Add `hab pkg uninstall` command [#5737](https://github.com/habitat-sh/habitat/pull/5737) ([jamesc](https://github.com/jamesc))
 
 #### Bug Fixes
+- Remove health check data when a service is unloaded [#5792](https://github.com/habitat-sh/habitat/pull/5792) ([raskchanky](https://github.com/raskchanky))
 - Add the possible values for --topology into the online help [#5789](https://github.com/habitat-sh/habitat/pull/5789) ([baumanj](https://github.com/baumanj))
 - Ensure we have the correct ContentType on our responses [#5782](https://github.com/habitat-sh/habitat/pull/5782) ([raskchanky](https://github.com/raskchanky))
 - Store port values as u16 in Member struct [#5759](https://github.com/habitat-sh/habitat/pull/5759) ([baumanj](https://github.com/baumanj))
+- implement HAB_STUDIO_SECRET var passing for windows studios [#5765](https://github.com/habitat-sh/habitat/pull/5765) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
-- Revert &quot;Merge pull request #5695 from jeremymv2/jeremymv2/hab_config_… [#5794](https://github.com/habitat-sh/habitat/pull/5794) ([jeremymv2](https://github.com/jeremymv2))
-- Remove health check data when a service is unloaded [#5792](https://github.com/habitat-sh/habitat/pull/5792) ([raskchanky](https://github.com/raskchanky))
 - Shelving composites post [#5740](https://github.com/habitat-sh/habitat/pull/5740) ([mgamini](https://github.com/mgamini))
 - fix asp.net tutorial based on recent changes [#5788](https://github.com/habitat-sh/habitat/pull/5788) ([mwrock](https://github.com/mwrock))
 - move doc commit filtering to ci script [#5785](https://github.com/habitat-sh/habitat/pull/5785) ([mwrock](https://github.com/mwrock))
@@ -26,9 +23,9 @@
 - Add myself to MAINTAINERS.md [#5755](https://github.com/habitat-sh/habitat/pull/5755) ([jamesc](https://github.com/jamesc))
 - Remove Liz from CLI related code owners [#5776](https://github.com/habitat-sh/habitat/pull/5776) ([apriofrost](https://github.com/apriofrost))
 - Fix unused variable in rumor test [#5763](https://github.com/habitat-sh/habitat/pull/5763) ([jamesc](https://github.com/jamesc))
-- implement HAB_STUDIO_SECRET var passing for windows studios [#5765](https://github.com/habitat-sh/habitat/pull/5765) ([mwrock](https://github.com/mwrock))
 - install and upload launcher builds if not a release [#5769](https://github.com/habitat-sh/habitat/pull/5769) ([mwrock](https://github.com/mwrock))
 - 0.66.0 post release [#5775](https://github.com/habitat-sh/habitat/pull/5775) ([mpeck](https://github.com/mpeck))
+
 <!-- latest_release -->
 ## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (10-22-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.65.0...0.66.0)
