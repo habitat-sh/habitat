@@ -18,9 +18,6 @@ impl message::MessageStatic for SvcFilePut {
 impl message::MessageStatic for SvcGetDefaultCfg {
     const MESSAGE_ID: &'static str = "SvcGetDefaultCfg";
 }
-impl message::MessageStatic for SvcGetCfg {
-    const MESSAGE_ID: &'static str = "SvcGetCfg";
-}
 impl message::MessageStatic for SvcValidateCfg {
     const MESSAGE_ID: &'static str = "SvcValidateCfg";
 }
