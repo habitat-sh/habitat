@@ -193,7 +193,7 @@ Finally, to help set up environment variables for the Studio, we're going to use
 
 ```shell
 # Install only stage1 packages when setting up this Studio--that's why we're
-# calling `new` explicitly before using
+# calling \`new\` explicitly before using
 $ env HAB_STUDIO_BACKLINE_PKG=core/hab-backline/0.56.0/20180322160653 ./core-plans/bin/bootstrap/stage2-studio.sh new
 # Enter the stage2 Studio
 $ ./core-plans/bin/bootstrap/stage2-studio.sh enter
@@ -203,7 +203,7 @@ Now that we're in a Studio, it's been set up with an empty artifact cache. We're
 
 ```studio
 # Copy all stage1 packages into the artifact cache
-$ cp ./results-stage1/*.hart /hab/cache/artifacts/
+$ cp ./results-stage1/\*.hart /hab/cache/artifacts/
 # Install all stage1 packages directly from the artifact cache
 $ ls -1 /hab/cache/artifacts/*.hart | while read hart; do hab pkg install $hart; done
 ```
