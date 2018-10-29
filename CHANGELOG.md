@@ -15,6 +15,7 @@
 - Store port values as u16 in Member struct [#5759](https://github.com/habitat-sh/habitat/pull/5759) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Shelving composites post [#5740](https://github.com/habitat-sh/habitat/pull/5740) ([mgamini](https://github.com/mgamini))
 - fix asp.net tutorial based on recent changes [#5788](https://github.com/habitat-sh/habitat/pull/5788) ([mwrock](https://github.com/mwrock))
 - move doc commit filtering to ci script [#5785](https://github.com/habitat-sh/habitat/pull/5785) ([mwrock](https://github.com/mwrock))
 - Add macro for cli testing [#5754](https://github.com/habitat-sh/habitat/pull/5754) ([mpeck](https://github.com/mpeck))
