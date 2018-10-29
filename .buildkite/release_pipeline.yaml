@@ -267,7 +267,7 @@ steps:
         required: false
       - text: Linux (x86_64-linux-kernel2) Launcher
         key: linux-kernel2-launcher
-        hint: What is the fully-qualified identifier for the desired Linux Launcher?
+        hint: What is the fully-qualified identifier for the desired Linux (kernel2) Launcher?
         required: false
       - text: Windows Launcher
         key: windows-launcher

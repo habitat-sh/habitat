@@ -101,8 +101,8 @@ set_hab_binary() {
         # Note that we are explicitly not binlinking here; this is to
         # prevent accidentally polluting the builder for any future
         # runs that may take place on it.
-        sudo ${hab_binary} pkg install "${hab_ident}"
-        sudo ${hab_binary} pkg install "$(buildkite-agent meta-data get studio-version-${pkg_target})"
+        sudo "${hab_binary:?}" pkg install "${hab_ident}"
+        sudo "${hab_binary:?}" pkg install "$(buildkite-agent meta-data get studio-version-${pkg_target})"
         hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else
@@ -122,7 +122,7 @@ install_hab_kernel2_binary() {
     hab_src_url="http://s3-us-west-2.amazonaws.com/habitat-bootstrap-artifacts/x86_64-linux-kernel2/stage2/hab-stage2-x86_64-linux-kernel2-latest"
     tempdir=$(mktemp -d hab-kernel2-XXXX)
 
-    pushd $tempdir >/dev/null
+    pushd "$tempdir" >/dev/null
     curl "$hab_src_url" -o hab-x86_64-linux-kernel2
     sudo mv hab-x86_64-linux-kernel2 /bin/hab-x86_64-linux-kernel2
     sudo chmod +x /bin/hab-x86_64-linux-kernel2
