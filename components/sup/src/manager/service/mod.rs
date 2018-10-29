@@ -725,6 +725,13 @@ impl Service {
                 self.svc_encrypted_password.as_ref(),
             );
         }
+
+        &self
+            .gateway_state
+            .write()
+            .expect("GatewayState lock is poisoned")
+            .health_check_data
+            .remove(&self.service_group);
     }
 
     pub fn suitability(&self) -> Option<u64> {

@@ -313,6 +313,7 @@ fn health(
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
+
     let gateway_state = &req
         .state()
         .gateway_state
