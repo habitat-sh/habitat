@@ -18,7 +18,7 @@ use std::env;
 use std::ffi::OsString;
 use std::mem::swap;
 use std::path::{Component, Path, PathBuf};
-use std::sync::mpsc::{channel, Receiver};
+use std::sync::mpsc::{channel, Receiver, TryRecvError};
 use std::time::Duration;
 
 use error::{Error, Result};
@@ -1348,11 +1348,14 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         if let Some(ref real_file) = self.initial_real_file {
             self.callbacks.file_appeared(real_file);
         }
+
         self.initial_real_file = None;
-        self.rx
-            .recv()
-            .map_err(|e| sup_error!(Error::RecvError(e)))
-            .and_then(|event| self.handle_event(event))
+
+        match self.rx.try_recv() {
+            Ok(e) => self.handle_event(e),
+            Err(TryRecvError::Empty) => Ok(()),
+            Err(e) => Err(sup_error!(Error::TryRecvError(e))),
+        }
     }
 
     fn handle_event(&mut self, event: DebouncedEvent) -> Result<()> {
