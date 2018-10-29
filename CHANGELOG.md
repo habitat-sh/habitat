@@ -14,6 +14,7 @@
 - implement HAB_STUDIO_SECRET var passing for windows studios [#5765](https://github.com/habitat-sh/habitat/pull/5765) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Prepare for 0.67.0 Release [#5795](https://github.com/habitat-sh/habitat/pull/5795) ([christophermaier](https://github.com/christophermaier))
 - Shelving composites post [#5740](https://github.com/habitat-sh/habitat/pull/5740) ([mgamini](https://github.com/mgamini))
 - fix asp.net tutorial based on recent changes [#5788](https://github.com/habitat-sh/habitat/pull/5788) ([mwrock](https://github.com/mwrock))
 - move doc commit filtering to ci script [#5785](https://github.com/habitat-sh/habitat/pull/5785) ([mwrock](https://github.com/mwrock))
@@ -25,7 +26,6 @@
 - Fix unused variable in rumor test [#5763](https://github.com/habitat-sh/habitat/pull/5763) ([jamesc](https://github.com/jamesc))
 - install and upload launcher builds if not a release [#5769](https://github.com/habitat-sh/habitat/pull/5769) ([mwrock](https://github.com/mwrock))
 - 0.66.0 post release [#5775](https://github.com/habitat-sh/habitat/pull/5775) ([mpeck](https://github.com/mpeck))
-
 <!-- latest_release -->
 ## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (10-22-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.65.0...0.66.0)
