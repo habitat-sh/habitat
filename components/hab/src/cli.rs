@@ -867,7 +867,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
             "Environment name; [default: not set].")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default].")
-        (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+        (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
             "Service topology; [default: none]")
         (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
             "The update strategy; [default: none] [values: none, at-once, rolling]")
@@ -954,7 +954,7 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Specify an alternate Builder endpoint. If not specified, the value will \
              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
              https://bldr.habitat.sh)")
-        (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+        (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
             "Service topology; [default: none]")
         (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
             "The update strategy; [default: none] [values: none, at-once, rolling]")
@@ -990,7 +990,7 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Specify an alternate Builder endpoint. If not specified, the value will \
              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
              https://bldr.habitat.sh)")
-        (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+        (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
             "Service topology; [default: none]")
         (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
             "The update strategy; [default: none] [values: none, at-once, rolling]")
@@ -1099,13 +1099,6 @@ fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
     match val.parse::<T>() {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("'{}' is not a valid number", &val)),
-    }
-}
-
-fn valid_topology(val: String) -> result::Result<(), String> {
-    match protocol::types::Topology::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Service topology: '{}' is not valid", &val)),
     }
 }
 
