@@ -1,5 +1,4 @@
-#!/bin/sh
-# shellcheck disable=SC2039
+#!/bin/bash
 #
 # Copyright (c) 2010-2016 Chef Software, Inc. and/or applicable contributors
 #
