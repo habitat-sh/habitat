@@ -265,13 +265,13 @@ extract_archive() {
       need_cmd tar
 
       zcat "${archive}" | tar x -C "${workdir}"
-      archive_dir="$(echo "${archive}" | sed 's/.tar.gz$//')"
+      archive_dir="${archive%.tar.gz}"
       ;;
     zip)
       need_cmd unzip
 
       unzip "${archive}" -d "${workdir}"
-      archive_dir="$(echo "${archive}" | sed 's/.zip$//')"
+      archive_dir="${archive%.zip}"
       ;;
     *)
       exit_with "Unrecognized file extension when extracting: ${ext}" 4
