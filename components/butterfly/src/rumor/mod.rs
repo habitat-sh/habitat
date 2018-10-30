@@ -284,8 +284,8 @@ impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
         let mut new_map = HashMap::new();
 
         for (k, v) in map.iter() {
-            let election = v.get("service_config").clone();
-            let _service_group = new_map.entry(k).or_insert(election);
+            let service_config = v.get("service_config").clone();
+            let _service_group = new_map.entry(k).or_insert(service_config);
         }
 
         let mut m = serializer.serialize_map(Some(new_map.len()))?;

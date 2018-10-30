@@ -30,7 +30,7 @@ use rand::{thread_rng, Rng};
 use serde::{
     de,
     ser::{SerializeMap, SerializeStruct},
-    Deserialize, Deserializer, {Serialize, Serializer},
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use time::{Duration, SteadyTime};
 use uuid::Uuid;

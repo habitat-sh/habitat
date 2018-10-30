@@ -393,10 +393,10 @@
           "additionalProperties": {
             "description": "The health of the member",
             "enum": [
-              "alive",
-              "suspect",
-              "confirmed",
-              "departed"
+              "Alive",
+              "Suspect",
+              "Confirmed",
+              "Departed"
             ]
           },
           "description": "The health of the members",
@@ -479,10 +479,10 @@
           "health": {
             "description": "The health of the member",
             "enum": [
-              "alive",
-              "suspect",
-              "confirmed",
-              "departed"
+              "Alive",
+              "Suspect",
+              "Confirmed",
+              "Departed"
             ]
           },
           "incarnation": {
