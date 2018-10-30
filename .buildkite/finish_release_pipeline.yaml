@@ -28,10 +28,14 @@ steps:
       queue: habitat-release
 
   - label: ":mac: Promote Homebrew Release"
-    command: /bin/true
-    skip: Not implemented yet
+    command: .buildkite/scripts/bump_homebrew_release.sh
     agents:
       queue: habitat-release
+    plugins:
+      docker#v1.1.1:
+        image: "chefes/buildkite"
+        environment:
+          - CHEF_CI_GITHUB_TOKEN
 
   - label: "Build Bootstrap Bundle and push to :s3:"
     command: /bin/true
