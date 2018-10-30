@@ -1,6 +1,17 @@
 #!/bin/bash
 
+# This script automates the modification of our Homebrew tap for the
+# `hab` binary.
+#
+# For now, it lives here in the Habitat repository, but in time, it
+# should move over to https://github.com/habitat-sh/homebrew-habitat,
+# once our pipelines are set up such that Expeditor is triggering them
+# and responding to events.
+
 set -euo pipefail
+
+configure-github-account chef-ci
+
 source .buildkite/scripts/shared.sh
 
 ensure_files_changed() {
@@ -50,7 +61,7 @@ git commit --signoff --message "Bump version to ${new_version}"
 if is_fake_release; then
     echo "FAKE RELEASE: Not pushing commit to Github"
 else
-    # Push directly to master... or make a PR and automatically close
-    # it?
+    # Push directly to master; alternatively, we could create a pull
+    # request using the Github API and have a human merge it.
     git push origin master
 fi
