@@ -3,6 +3,10 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+## [0.67.0](https://github.com/habitat-sh/habitat/tree/0.67.0) (10-30-2018)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.66.0...0.67.0)
+
 #### New Features & Enhancements
 - Add `hab pkg uninstall` command [#5737](https://github.com/habitat-sh/habitat/pull/5737) ([jamesc](https://github.com/jamesc))
 
@@ -26,7 +30,7 @@
 - Fix unused variable in rumor test [#5763](https://github.com/habitat-sh/habitat/pull/5763) ([jamesc](https://github.com/jamesc))
 - install and upload launcher builds if not a release [#5769](https://github.com/habitat-sh/habitat/pull/5769) ([mwrock](https://github.com/mwrock))
 - 0.66.0 post release [#5775](https://github.com/habitat-sh/habitat/pull/5775) ([mpeck](https://github.com/mpeck))
-<!-- latest_release -->
+
 ## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (10-22-2018)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.65.0...0.66.0)
 
