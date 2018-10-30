@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.66.0/20181019234118 (linux) | 22 Oct 2018 |
+| hab 0.67.0/20181029215023 (linux) | 30 Oct 2018 |
 
 ## hab
 
@@ -1058,6 +1058,7 @@ hab pkg [SUBCOMMAND]
 | [hab pkg provides](#hab-pkg-provides) | Search installed Habitat packages for a given file |
 | [hab pkg search](#hab-pkg-search) | Search for a package in Builder |
 | [hab pkg sign](#hab-pkg-sign) | Signs an archive with an origin key, generating a Habitat Artifact |
+| [hab pkg uninstall](#hab-pkg-uninstall) | Uninstall a package and dependencies from the local filesystem |
 | [hab pkg upload](#hab-pkg-upload) | Uploads a local Habitat Artifact to Builder |
 | [hab pkg verify](#hab-pkg-verify) | Verifies a Habitat Artifact with an origin key |
 ---
@@ -1635,6 +1636,36 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 
 ---
 
+### hab pkg uninstall
+
+Uninstall a package and dependencies from the local filesystem
+
+**USAGE**
+
+```
+hab pkg uninstall [FLAGS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-d, --dryrun     Just show what would be uninstalled, don't actually do it
+    --no-deps    Don't uninstall dependencies
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+**ARGS**
+
+```
+<PKG_IDENT>    A package identifier (ex: core/busybox-static/1.42.2/21120102031201)
+```
+
+
+
+---
+
 ### hab pkg upload
 
 Uploads a local Habitat Artifact to Builder
@@ -2156,7 +2187,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
 -r, --ring <RING>                          Ring key name
 -s, --strategy <STRATEGY>                  The update strategy; [default: none] [values: none, at-once, rolling]
--t, --topology <TOPOLOGY>                  Service topology; [default: none]
+-t, --topology <TOPOLOGY>                  Service topology; [default: none] [possible values: standalone, leader]
 ```
 
 **ARGS**
@@ -2435,7 +2466,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
     --group <GROUP>                  The service group; shared config and topology [default: default].
 -r, --remote-sup <REMOTE_SUP>        Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 -s, --strategy <STRATEGY>            The update strategy; [default: none] [values: none, at-once, rolling]
--t, --topology <TOPOLOGY>            Service topology; [default: none]
+-t, --topology <TOPOLOGY>            Service topology; [default: none] [possible values: standalone, leader]
 ```
 
 **ARGS**
