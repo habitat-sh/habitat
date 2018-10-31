@@ -21,7 +21,7 @@ use common::ui::{Status, UIWriter, UI};
 use error::{Error, Result};
 use hcore::error as herror;
 use hcore::fs as hfs;
-use hcore::package::{all_packages, PackageIdent, PackageInstall};
+use hcore::package::{all_packages, Identifiable, PackageIdent, PackageInstall};
 
 use hcore::package::list::temp_package_directory;
 
@@ -48,6 +48,7 @@ pub fn start(
     fs_root_path: &Path,
     execution_strategy: ExecutionStrategy,
     scope: Scope,
+    excludes: Vec<PackageIdent>,
 ) -> Result<()> {
     // 1.
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
@@ -71,7 +72,13 @@ pub fn start(
             ui.warn(format!("Tried to find dependant packages of {} but it wasn't in graph.  Maybe another uninstall command was run at the same time?", &ident))?;
         }
         Some(0) => {
-            maybe_delete(ui, &fs_root_path, &pkg_install, &execution_strategy)?;
+            maybe_delete(
+                ui,
+                &fs_root_path,
+                &pkg_install,
+                &execution_strategy,
+                &excludes,
+            )?;
             graph.remove(&ident);
         }
         Some(c) => {
@@ -96,7 +103,7 @@ pub fn start(
                     }
                     Some(0) => {
                         let install = packages.iter().find(|&i| i.ident() == p).unwrap();
-                        maybe_delete(ui, &fs_root_path, &install, &execution_strategy)?;
+                        maybe_delete(ui, &fs_root_path, &install, &execution_strategy, &excludes)?;
 
                         graph.remove(&p);
                         count = count + 1;
@@ -140,20 +147,40 @@ fn maybe_delete(
     fs_root_path: &Path,
     install: &PackageInstall,
     strategy: &ExecutionStrategy,
+    excludes: &Vec<PackageIdent>,
 ) -> Result<bool> {
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
 
-    match strategy {
-        ExecutionStrategy::DryRun => {
-            ui.status(Status::DryRunDeleting, &ident)?;
+    // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on the
+    // exclude list then we should exclude core/redis/1.1.0/20180608091936.  We use the `Identifiable`
+    // trait which supplies this logic for PackageIdents
+    let should_exclude = excludes
+        .iter()
+        .filter(|i| i.satisfies(ident))
+        .cloned()
+        .count()
+        > 0;
+
+    match should_exclude {
+        true => {
+            ui.status(
+                Status::Skipping,
+                format!("{}. It is on the exclusion list", &ident),
+            )?;
             Ok(false)
         }
-        ExecutionStrategy::Run => {
-            ui.status(Status::Deleting, &ident)?;
-            let pkg_dir = install.installed_path();
-            do_clean_delete(&pkg_root_path, &pkg_dir)
-        }
+        false => match strategy {
+            ExecutionStrategy::DryRun => {
+                ui.status(Status::DryRunDeleting, &ident)?;
+                Ok(false)
+            }
+            ExecutionStrategy::Run => {
+                ui.status(Status::Deleting, &ident)?;
+                let pkg_dir = install.installed_path();
+                do_clean_delete(&pkg_root_path, &pkg_dir)
+            }
+        },
     }
 }
 

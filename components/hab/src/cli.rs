@@ -431,11 +431,14 @@ pub fn get() -> App<'static, 'static> {
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand uninstall =>
-                (about: "Uninstall a package and dependencies from the local filesystem")
+                (about: "Safely uninstall a package and dependencies from the local filesystem")
                 (aliases: &["un", "unin"])
                 (@arg PKG_IDENT: +required +takes_value
-                    "A package identifier (ex: core/busybox-static/1.42.2/21120102031201)")
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
                 (@arg DRYRUN: -d --dryrun "Just show what would be uninstalled, don't actually do it")
+                (@arg EXCLUDE: --exclude +takes_value +multiple
+                    "Identifier of one or more packages that should not be uninstalled. \
+                    (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
                 (@arg NO_DEPS: --("no-deps") "Don't uninstall dependencies")
             )
             (@subcommand upload =>
