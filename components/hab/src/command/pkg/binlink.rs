@@ -253,6 +253,7 @@ impl Binlink {
 }
 
 #[cfg(test)]
+#[cfg(any(linux, windows))]
 mod test {
     use std::collections::HashMap;
     use std::env;

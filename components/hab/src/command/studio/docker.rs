@@ -23,12 +23,14 @@ use hcore::crypto::default_cache_key_path;
 use hcore::env as henv;
 use hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::os::process;
+use hcore::package::target;
 
 use error::{Error, Result};
 use VERSION;
 
 const DOCKER_CMD: &'static str = "docker";
 const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
+
 const DOCKER_IMAGE: &'static str = "habitat/default-studio";
 const DOCKER_WINDOWS_IMAGE: &'static str = "habitat-docker-registry.bintray.io/win-studio";
 const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
@@ -129,9 +131,13 @@ fn find_docker_cmd() -> Result<PathBuf> {
 
 fn is_image_present(docker_cmd: &Path) -> bool {
     let mut cmd = Command::new(docker_cmd);
-    cmd.arg("images")
-        .arg(&image_identifier(docker_cmd))
-        .arg("-q");
+    let using_windows_containers = is_serving_windows_containers(&docker_cmd);
+    let image = image_identifier(
+        using_windows_containers,
+        target::PackageTarget::active_target(),
+    );
+
+    cmd.arg("images").arg(&image).arg("-q");
     debug!("Running command: {:?}", cmd);
     let result = cmd.output().expect("Docker command failed to spawn");
 
@@ -147,7 +153,11 @@ fn is_serving_windows_containers(docker_cmd: &Path) -> bool {
 }
 
 fn pull_image(docker_cmd: &Path) -> Result<()> {
-    let image = image_identifier(docker_cmd);
+    let using_windows_containers = is_serving_windows_containers(&docker_cmd);
+    let image = image_identifier(
+        using_windows_containers,
+        target::PackageTarget::active_target(),
+    );
     let mut cmd = Command::new(docker_cmd);
     cmd.arg("pull")
         .arg(&image)
@@ -171,15 +181,11 @@ fn pull_image(docker_cmd: &Path) -> Result<()> {
         let err_output = String::from_utf8_lossy(&result.stderr);
 
         if err_output.contains("image") && err_output.contains("not found") {
-            return Err(Error::DockerImageNotFound(
-                image_identifier(docker_cmd).to_string(),
-            ));
+            return Err(Error::DockerImageNotFound(image.to_string()));
         } else if err_output.contains("Cannot connect to the Docker daemon") {
             return Err(Error::DockerDaemonDown);
         } else {
-            return Err(Error::DockerNetworkDown(
-                image_identifier(docker_cmd).to_string(),
-            ));
+            return Err(Error::DockerNetworkDown(image.to_string()));
         }
     }
 
@@ -198,11 +204,17 @@ where
     S: AsRef<OsStr>,
 {
     let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
+    let using_windows_containers = is_serving_windows_containers(&docker_cmd);
+    let image = image_identifier(
+        using_windows_containers,
+        target::PackageTarget::active_target(),
+    );
+
     for vol in volumes {
         cmd_args.push("--volume".into());
         cmd_args.push(vol.as_ref().into());
     }
-    cmd_args.push(image_identifier(docker_cmd).into());
+    cmd_args.push(image.into());
     cmd_args.push("-V".into());
     let version_output = Command::new(docker_cmd)
         .args(&cmd_args)
@@ -231,8 +243,13 @@ where
     S: AsRef<OsStr>,
     T: AsRef<str>,
 {
+    let using_windows_containers = is_serving_windows_containers(&docker_cmd);
+    let image = image_identifier(
+        using_windows_containers,
+        target::PackageTarget::active_target(),
+    );
     let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
-    if !is_serving_windows_containers(&docker_cmd) {
+    if !using_windows_containers {
         cmd_args.push("--privileged".into());
     }
     match args.first().map(|f| f.to_str().unwrap_or_default()) {
@@ -243,11 +260,12 @@ where
         }
     }
     if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
-        let opts = opts.split(" ")
-                .map(|v| v.into())
-                // Ensure we're not passing something like `--tty` again here.
-                .filter(|v| !cmd_args.contains(v))
-                .collect::<Vec<_>>();
+        let opts = opts
+            .split(" ")
+            .map(|v| v.into())
+            // Ensure we're not passing something like `--tty` again here.
+            .filter(|v| !cmd_args.contains(v))
+            .collect::<Vec<_>>();
         if !opts.is_empty() {
             debug!(
                 "Adding extra Docker options from {} = {:?}",
@@ -267,9 +285,9 @@ where
         cmd_args.push("--volume".into());
         cmd_args.push(vol.as_ref().into());
     }
-    cmd_args.push(image_identifier(&docker_cmd).into());
+    cmd_args.push(image.into());
     cmd_args.extend_from_slice(args.as_slice());
-    if is_serving_windows_containers(&docker_cmd) {
+    if using_windows_containers {
         cmd_args.push("-n".into());
         cmd_args.push("-o".into());
         cmd_args.push("c:/".into());
@@ -289,27 +307,55 @@ fn unset_proxy_env_vars() {
 
 /// Returns the Docker Studio image with tag for the desired version which corresponds to the
 /// same version (minus release) as this program.
-fn image_identifier(docker_cmd: &Path) -> String {
+fn image_identifier(using_windows_containers: bool, target: &target::PackageTarget) -> String {
     let version: Vec<&str> = VERSION.split("/").collect();
-    let img = match is_serving_windows_containers(docker_cmd) {
-        true => DOCKER_WINDOWS_IMAGE,
-        false => DOCKER_IMAGE,
+    let (img, studio_target) = match using_windows_containers {
+        true => (DOCKER_WINDOWS_IMAGE, target::X86_64_WINDOWS.as_ref()),
+        false => {
+            let t = match *target {
+                target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2.as_ref(),
+                _ => target::X86_64_LINUX.as_ref(),
+            };
+            (DOCKER_IMAGE, t)
+        }
     };
-    henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}:{}", img, version[0]))
+
+    henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}-{}:{}", img, studio_target, version[0]))
 }
 
 #[cfg(test)]
-#[cfg(target_os = "linux")]
 mod tests {
-    use super::{find_docker_cmd, image_identifier, DOCKER_IMAGE};
+    use super::{image_identifier, DOCKER_IMAGE, DOCKER_WINDOWS_IMAGE};
     use VERSION;
+
+    use hcore::package::target;
 
     #[test]
     fn retrieve_image_identifier() {
-        let docker_cmd = find_docker_cmd().unwrap();
+        let windows_container = true;
         assert_eq!(
-            image_identifier(&docker_cmd),
-            format!("{}:{}", DOCKER_IMAGE, VERSION)
+            image_identifier(!windows_container, &target::X86_64_DARWIN),
+            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
+        );
+        assert_eq!(
+            image_identifier(!windows_container, &target::X86_64_LINUX),
+            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
+        );
+        assert_eq!(
+            image_identifier(!windows_container, &target::X86_64_LINUX_KERNEL2),
+            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux-kernel2", VERSION)
+        );
+        assert_eq!(
+            image_identifier(!windows_container, &target::X86_64_WINDOWS),
+            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
+        );
+        assert_eq!(
+            image_identifier(windows_container, &target::X86_64_WINDOWS),
+            format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION)
+        );
+        assert_eq!(
+            image_identifier(windows_container, &target::X86_64_LINUX),
+            format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION)
         );
     }
 }
