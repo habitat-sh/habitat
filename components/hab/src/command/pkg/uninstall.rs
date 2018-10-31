@@ -14,6 +14,7 @@
 
 use std::fs;
 use std::path::Path;
+use std::str::FromStr;
 
 use super::{ExecutionStrategy, Scope};
 use common::package_graph::PackageGraph;
@@ -151,6 +152,15 @@ fn maybe_delete(
 ) -> Result<bool> {
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
+    let hab = PackageIdent::from_str("core/hab")?;
+
+    if ident.satisfies(&hab) {
+        ui.status(
+            Status::Skipping,
+            format!("{}. You can't uninstall core/hab", &ident),
+        )?;
+        return Ok(false);
+    }
 
     // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on the
     // exclude list then we should exclude core/redis/1.1.0/20180608091936.  We use the `Identifiable`
