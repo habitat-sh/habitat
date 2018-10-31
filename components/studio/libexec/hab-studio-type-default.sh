@@ -167,7 +167,6 @@ sup-run() {
   setsid hab sup run "\$@" > \$SUP_LOG_FILE 2>&1 &
   disown \$!
   echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
-  echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
   echo "    * Use 'sup-term' to terminate the Supervisor"
   if [[ -z "\${HAB_STUDIO_SUP:-}" ]]; then
     echo "    * To pass custom arguments to run the Supervisor, export"

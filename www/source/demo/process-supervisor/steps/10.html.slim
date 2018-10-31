@@ -59,7 +59,7 @@ classes: demo_step
         p
           ' Next, tail the Supervisor log for the running application using the following command:
         = code(:shell) do
-          | [1][default:/src:0]# sup-log
+          | [1][default:/src:0]# tail $SUP_LOG_FILE
         p
           ' Keep the log open as we'll be using it in the next step.
         img alt="CLI screenshot after running build" src="/images/demo/sup-step-10.png"
