@@ -115,7 +115,7 @@ Then you can actually exercise the software as follows:
 
 1. It pulls down the correct studio image
 1. That studio's `hab` is at the correct version
-1. A `sup-log` shows a running supervisor (if `sup-log` does not show a supervisor running, run `hab install core/hab-sup --channel release_channel` then `hab sup run`)
+1. A `hab sup status` shows a running supervisor (if it does not show a supervisor running, run `hab install core/hab-sup --channel release_channel` then `hab sup run`)
 1. Verify that the supervisor is the correct version by running `ls /hab/pkgs/core/hab-sup`
 
 When testing the linux studio, you will need to `export CI_OVERRIDE_CHANNEL` to the rc channel of the release. So if you are releasing 0.75.2, the channel would be `rc-0.75.2`.

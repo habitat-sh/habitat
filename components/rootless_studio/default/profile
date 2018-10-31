@@ -55,11 +55,15 @@ if [[ -n "${HAB_STUDIO_SUP}" ]]; then
   HAB_STUDIO_SUP="$(echo "$HAB_STUDIO_SUP" | sed 's/__sp__/ /g')"
 fi
 
+export SUP_LOG_FILE=/hab/sup/default/sup.log
+
 sup-run() {
   mkdir -p /hab/sup/default
+  touch $SUP_LOG_FILE
   echo "--> Launching the Habitat Supervisor in the background..."
   echo "    Running: hab sup run $*"
-  setsid hab sup run "$@" > /hab/sup/default/sup.log 2>&1 &
+  echo "    Logging to $SUP_LOG_FILE"
+  setsid hab sup run "$@" > $SUP_LOG_FILE 2>&1 &
   disown $!
   echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
   echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
@@ -85,10 +89,7 @@ sup-term() {
 }
 
 sup-log() {
-  mkdir -p /hab/sup/default
-  touch /hab/sup/default/sup.log
-  echo "--> Tailing the Habitat Supervisor's output (use 'Ctrl+c' to stop)"
-  tail -f /hab/sup/default/sup.log
+  echo "This command is deprecated. View Supervisor logs directly at \$SUP_LOG_FILE ($SUP_LOG_FILE)"
 }
 
 alias sr='sup-run'
