@@ -16,11 +16,14 @@ use std::collections::HashMap;
 use std::env;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
+use std::result;
 
 use hcore::fs::FS_ROOT_PATH;
 use hcore::os::users;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 
 use error::{Error, Result};
 use fs;
@@ -154,6 +157,54 @@ impl Pkg {
                 .expect("No package release in PackageInstall"),
         };
         Ok(pkg)
+    }
+}
+
+/// This is a proxy struct to represent the data about a Pkg that we actually want to be
+/// serialized, similar to ServiceProxy
+pub struct PkgProxy<'a> {
+    pkg: &'a Pkg,
+}
+
+impl<'a> PkgProxy<'a> {
+    pub fn new(p: &'a Pkg) -> Self {
+        PkgProxy { pkg: &p }
+    }
+
+    pub fn dependencies(&self) -> Vec<String> {
+        self.pkg.deps.iter().map(|m| m.to_string()).collect()
+    }
+}
+
+impl<'a> Serialize for PkgProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let p = &self.pkg;
+        let mut strukt = serializer.serialize_struct("pkg", 21)?;
+        strukt.serialize_field("ident", &p.ident.to_string())?;
+        strukt.serialize_field("origin", &p.origin)?;
+        strukt.serialize_field("name", &p.name)?;
+        strukt.serialize_field("version", &p.version)?;
+        strukt.serialize_field("release", &p.release)?;
+        strukt.serialize_field("deps", &p.deps)?;
+        strukt.serialize_field("dependencies", &self.dependencies())?;
+        strukt.serialize_field("env", &p.env)?;
+        strukt.serialize_field("exposes", &p.exposes)?;
+        strukt.serialize_field("exports", &p.exports)?;
+        strukt.serialize_field("path", &p.path)?;
+        strukt.serialize_field("svc_path", &p.svc_path)?;
+        strukt.serialize_field("svc_config_path", &p.svc_config_path)?;
+        strukt.serialize_field("svc_data_path", &p.svc_data_path)?;
+        strukt.serialize_field("svc_files_path", &p.svc_files_path)?;
+        strukt.serialize_field("svc_static_path", &p.svc_static_path)?;
+        strukt.serialize_field("svc_var_path", &p.svc_var_path)?;
+        strukt.serialize_field("svc_pid_file", &p.svc_pid_file)?;
+        strukt.serialize_field("svc_run", &p.svc_run)?;
+        strukt.serialize_field("svc_user", &p.svc_user)?;
+        strukt.serialize_field("svc_group", &p.svc_group)?;
+        strukt.end()
     }
 }
 

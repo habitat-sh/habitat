@@ -38,7 +38,7 @@ use std::sync::{Arc, RwLock};
 
 use bytes::BytesMut;
 use prost::Message as ProstMessage;
-use serde::ser::SerializeStruct;
+use serde::ser::{SerializeMap, SerializeSeq, SerializeStruct};
 use serde::{Serialize, Serializer};
 
 pub use self::departure::Departure;
@@ -168,6 +168,149 @@ where
         strukt.serialize_field("list", &*(self.list.read().unwrap()))?;
         strukt.serialize_field("update_counter", &self.get_update_counter())?;
         strukt.end()
+    }
+}
+
+/// This proxy wraps a RumorStore so that we can control its serialization at a more granular
+/// level. Note that we don't implement a generic version of this, on purpose. Rather, due to the
+/// interaction between the 'key()' and 'id()' functions on the Rumor trait, each rumor type needs
+/// to be custom serialized if we want to avoid irrelevant implementation details leaking into the
+/// JSON output.
+pub struct RumorStoreProxy<'a, T: Rumor + 'a>(&'a RumorStore<T>);
+
+impl<'a, T> RumorStoreProxy<'a, T>
+where
+    T: Rumor,
+{
+    pub fn new(r: &'a RumorStore<T>) -> Self {
+        RumorStoreProxy(r)
+    }
+}
+
+impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let inner_map = map.get("departure");
+        let len = if inner_map.is_some() {
+            inner_map.unwrap().len()
+        } else {
+            0
+        };
+
+        let mut s = serializer.serialize_seq(Some(len))?;
+
+        if inner_map.is_some() {
+            for k in inner_map.unwrap().keys() {
+                s.serialize_element(k)?;
+            }
+        }
+
+        s.end()
+    }
+}
+
+impl<'a> Serialize for RumorStoreProxy<'a, Election> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let mut new_map = HashMap::new();
+
+        for (k, v) in map.iter() {
+            let election = v.get("election").clone();
+            let _service_group = new_map.entry(k).or_insert(election);
+        }
+
+        let mut m = serializer.serialize_map(Some(new_map.len()))?;
+
+        for (key, val) in new_map {
+            m.serialize_entry(key, &val)?;
+        }
+
+        m.end()
+    }
+}
+
+// This is the same as Election =/
+impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let mut new_map = HashMap::new();
+
+        for (k, v) in map.iter() {
+            let election = v.get("election").clone();
+            let _service_group = new_map.entry(k).or_insert(election);
+        }
+
+        let mut m = serializer.serialize_map(Some(new_map.len()))?;
+
+        for (key, val) in new_map {
+            m.serialize_entry(key, &val)?;
+        }
+
+        m.end()
+    }
+}
+
+impl<'a> Serialize for RumorStoreProxy<'a, Service> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let mut m = serializer.serialize_map(Some(map.len()))?;
+
+        for (key, val) in map.iter() {
+            m.serialize_entry(key, &val)?;
+        }
+
+        m.end()
+    }
+}
+
+impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let mut new_map = HashMap::new();
+
+        for (k, v) in map.iter() {
+            let service_config = v.get("service_config").clone();
+            let _service_group = new_map.entry(k).or_insert(service_config);
+        }
+
+        let mut m = serializer.serialize_map(Some(new_map.len()))?;
+
+        for (key, val) in new_map {
+            m.serialize_entry(key, &val)?;
+        }
+
+        m.end()
+    }
+}
+
+impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let mut m = serializer.serialize_map(Some(map.len()))?;
+
+        for (key, val) in map.iter() {
+            m.serialize_entry(key, &val)?;
+        }
+
+        m.end()
     }
 }
 

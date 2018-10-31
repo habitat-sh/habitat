@@ -163,7 +163,11 @@ mod tests {
     use toml;
 
     use super::ServiceConfig;
-    use rumor::Rumor;
+    use rumor::{Rumor, RumorStore};
+
+    fn create_rumor_store() -> RumorStore<ServiceConfig> {
+        RumorStore::default()
+    }
 
     fn create_service_config(member_id: &str, config: &str) -> ServiceConfig {
         let config_bytes: Vec<u8> = Vec::from(config);
@@ -172,6 +176,25 @@ mod tests {
             ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
             config_bytes,
         )
+    }
+
+    #[test]
+    fn only_the_latest_service_config_is_kept() {
+        let rs = create_rumor_store();
+        let s1 = create_service_config("timmeh", "lol");
+        let mut s2 = create_service_config("timmeh", "awesome");
+        s2.incarnation = 1; // 0 is the default, which means this rumor will win
+        rs.insert(s1);
+        rs.insert(s2);
+
+        let list = rs.list.read().expect("Rumor store lock poisoned");
+        assert_eq!(list.len(), 1); // because we only have 1 service group
+
+        let sub_list = list.get("neurosis.production").unwrap();
+        assert_eq!(sub_list.len(), 1); // because only the latest service config is kept
+
+        let sc = sub_list.get("service_config").unwrap();
+        assert_eq!(sc.config, Vec::<u8>::from("awesome"));
     }
 
     #[test]

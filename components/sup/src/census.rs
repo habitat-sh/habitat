@@ -319,7 +319,7 @@ pub struct ServiceConfig {
     pub value: toml::value::Table,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct CensusGroup {
     pub service_group: ServiceGroup,
     pub election_status: ElectionStatus,
@@ -543,6 +543,33 @@ impl CensusGroup {
             ))).map(|m| m.cfg.keys().collect())
     }
 }
+
+impl Serialize for CensusGroup {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("census_group", 10)?;
+        strukt.serialize_field("service_group", &self.service_group)?;
+        strukt.serialize_field("election_status", &self.election_status)?;
+        strukt.serialize_field("update_election_status", &self.update_election_status)?;
+        strukt.serialize_field("leader_id", &self.leader_id)?;
+        strukt.serialize_field("service_config", &self.service_config)?;
+        strukt.serialize_field("local_member_id", &self.local_member_id)?;
+
+        let new_pop: BTreeMap<MemberId, CensusMemberProxy> = self
+            .population
+            .iter()
+            .map(|(k, v)| (k.clone(), CensusMemberProxy::new(v)))
+            .collect();
+
+        strukt.serialize_field("population", &new_pop)?;
+        strukt.serialize_field("update_leader_id", &self.update_leader_id)?;
+        strukt.serialize_field("changed_service_files", &self.changed_service_files)?;
+        strukt.serialize_field("service_files", &self.service_files)?;
+        strukt.end()
+    }
+}
 // NOTE: This is exposed to users in templates. Any public member is
 // accessible to users, so change this interface with care.
 //
@@ -668,6 +695,65 @@ impl CensusMember {
 
     pub fn departed(&self) -> bool {
         self.departed
+    }
+}
+
+/// This data structure just wraps the CensusMember and allows us to tweak the serialization logic.
+pub struct CensusMemberProxy<'a>(&'a CensusMember);
+
+impl<'a> CensusMemberProxy<'a> {
+    pub fn new(c: &'a CensusMember) -> Self {
+        CensusMemberProxy(&c)
+    }
+}
+
+impl<'a> Serialize for CensusMemberProxy<'a> {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("census_member", 24)?;
+        strukt.serialize_field("member_id", &self.0.member_id)?;
+        strukt.serialize_field("pkg", &self.0.pkg)?;
+
+        if let Some(ref p) = self.0.pkg {
+            strukt.serialize_field("package", &p.to_string())?;
+        } else {
+            strukt.serialize_field("package", &None::<String>)?;
+        }
+
+        strukt.serialize_field("application", &self.0.application)?;
+        strukt.serialize_field("environment", &self.0.environment)?;
+        strukt.serialize_field("service", &self.0.service)?;
+        strukt.serialize_field("group", &self.0.group)?;
+        strukt.serialize_field("org", &self.0.org)?;
+        strukt.serialize_field("persistent", &self.0.persistent)?;
+        strukt.serialize_field("leader", &self.0.leader)?;
+        strukt.serialize_field("follower", &self.0.follower)?;
+        strukt.serialize_field("update_leader", &self.0.update_leader)?;
+        strukt.serialize_field("update_follower", &self.0.update_follower)?;
+        strukt.serialize_field("election_is_running", &self.0.election_is_running)?;
+        strukt.serialize_field("election_is_no_quorum", &self.0.election_is_no_quorum)?;
+        strukt.serialize_field("election_is_finished", &self.0.election_is_finished)?;
+        strukt.serialize_field(
+            "update_election_is_running",
+            &self.0.update_election_is_running,
+        )?;
+        strukt.serialize_field(
+            "update_election_is_no_quorum",
+            &self.0.update_election_is_no_quorum,
+        )?;
+        strukt.serialize_field(
+            "update_election_is_finished",
+            &self.0.update_election_is_finished,
+        )?;
+        strukt.serialize_field("sys", &self.0.sys)?;
+        strukt.serialize_field("alive", &self.0.alive)?;
+        strukt.serialize_field("suspect", &self.0.suspect)?;
+        strukt.serialize_field("confirmed", &self.0.confirmed)?;
+        strukt.serialize_field("departed", &self.0.departed)?;
+        strukt.serialize_field("cfg", &self.0.cfg)?;
+        strukt.end()
     }
 }
 

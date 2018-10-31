@@ -59,6 +59,7 @@ extern crate serde;
 extern crate serde_derive;
 #[cfg(test)]
 extern crate mktemp;
+extern crate serde_json;
 #[cfg(test)]
 extern crate tempdir;
 extern crate time;

@@ -50,7 +50,7 @@ pub use self::config::{Cfg, UserConfigPath};
 use self::dir::SvcDir;
 pub use self::health::{HealthCheck, SmokeCheck};
 use self::hooks::{Hook, HookTable};
-pub use self::package::{Env, Pkg};
+pub use self::package::{Env, Pkg, PkgProxy};
 pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
 use self::supervisor::Supervisor;
 use super::ShutdownReason;
@@ -1064,9 +1064,9 @@ impl<'a> Serialize for ServiceProxy<'a> {
         S: Serializer,
     {
         let num_fields: usize = if *&self.config_rendering == ConfigRendering::Full {
-            27
+            28
         } else {
-            26
+            27
         };
 
         let s = &self.service;
@@ -1091,12 +1091,16 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
         strukt.serialize_field("needs_reconfiguration", &s.needs_reconfiguration)?;
         strukt.serialize_field("needs_reload", &s.needs_reload)?;
-        strukt.serialize_field("pkg", &s.pkg)?;
+
+        let pkg_proxy = PkgProxy::new(&s.pkg);
+        strukt.serialize_field("pkg", &pkg_proxy)?;
+
         strukt.serialize_field("process", &s.supervisor)?;
         strukt.serialize_field("service_group", &s.service_group)?;
         strukt.serialize_field("smoke_check", &s.smoke_check)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
         strukt.serialize_field("spec_ident", &s.spec_ident)?;
+        strukt.serialize_field("spec_identifier", &s.spec_ident.to_string())?;
         strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
         strukt.serialize_field("sys", &s.sys)?;
         strukt.serialize_field("topology", &s.topology)?;
