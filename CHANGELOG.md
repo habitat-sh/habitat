@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Evolve the supervisor&#39;s HTTP API [#5787](https://github.com/habitat-sh/habitat/pull/5787) ([raskchanky](https://github.com/raskchanky))
 - Automate bumping Homebrew version information after a release [#5799](https://github.com/habitat-sh/habitat/pull/5799) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 ## [0.67.0](https://github.com/habitat-sh/habitat/tree/0.67.0) (10-30-2018)
