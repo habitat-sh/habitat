@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-
 use rumor::departure::Departure as CDeparture;
 use rumor::election::{Election as CElection, ElectionUpdate as CElectionUpdate};
 use rumor::service::Service as CService;
@@ -23,17 +21,6 @@ use rumor::service_file::ServiceFile as CServiceFile;
 include!("../generated/butterfly.newscast.rs");
 
 pub use self::{rumor::Payload as RumorPayload, rumor::Type as RumorType};
-
-impl fmt::Display for election::Status {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let value = match *self {
-            election::Status::Running => "running",
-            election::Status::NoQuorum => "no-quorum",
-            election::Status::Finished => "finished",
-        };
-        write!(f, "{}", value)
-    }
-}
 
 impl From<CDeparture> for Rumor {
     fn from(value: CDeparture) -> Self {

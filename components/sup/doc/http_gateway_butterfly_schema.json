@@ -115,9 +115,9 @@
             "status": {
               "description": "The status of the election",
               "enum": [
-                "running",
-                "no-quorum",
-                "finished"
+                "Running",
+                "NoQuorum",
+                "Finished"
               ]
             },
             "suitability": {
@@ -159,9 +159,9 @@
                   "status": {
                     "description": "The status of the election",
                     "enum": [
-                      "running",
-                      "no-quorum",
-                      "finished"
+                      "Running",
+                      "NoQuorum",
+                      "Finished"
                     ]
                   },
                   "suitability": {
@@ -276,9 +276,9 @@
           "status": {
             "description": "The status of the election",
             "enum": [
-              "running",
-              "no-quorum",
-              "finished"
+              "Running",
+              "NoQuorum",
+              "Finished"
             ]
           },
           "suitability": {
@@ -318,9 +318,9 @@
           "status": {
             "description": "The status of the election",
             "enum": [
-              "running",
-              "no-quorum",
-              "finished"
+              "Running",
+              "NoQuorum",
+              "Finished"
             ]
           },
           "suitability": {

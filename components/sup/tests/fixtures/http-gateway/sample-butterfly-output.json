@@ -16,7 +16,7 @@
           "from_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "member_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "service_group": "witcher.prod",
-          "status": "finished",
+          "status": "Finished",
           "suitability": 0,
           "term": 0,
           "votes": [
@@ -36,7 +36,7 @@
           "from_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "member_id": "d0cde5615a11461fa35fe4cbb1ab2644",
           "service_group": "witcher.prod",
-          "status": "finished",
+          "status": "Finished",
           "suitability": 0,
           "term": 0,
           "votes": [
