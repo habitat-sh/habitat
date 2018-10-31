@@ -152,8 +152,8 @@ fn maybe_delete(
 ) -> Result<bool> {
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
-    let hab = PackageIdent::from_str("core/hab")?;
 
+    let hab = PackageIdent::from_str("core/hab")?;
     if ident.satisfies(&hab) {
         ui.status(
             Status::Skipping,
@@ -165,22 +165,15 @@ fn maybe_delete(
     // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on the
     // exclude list then we should exclude core/redis/1.1.0/20180608091936.  We use the `Identifiable`
     // trait which supplies this logic for PackageIdents
-    let should_exclude = excludes
-        .iter()
-        .filter(|i| i.satisfies(ident))
-        .cloned()
-        .count()
-        > 0;
-
-    match should_exclude {
-        true => {
-            ui.status(
-                Status::Skipping,
-                format!("{}. It is on the exclusion list", &ident),
-            )?;
-            Ok(false)
-        }
-        false => match strategy {
+    let should_exclude = excludes.iter().any(|i| i.satisfies(ident));
+    if should_exclude {
+        ui.status(
+            Status::Skipping,
+            format!("{}. It is on the exclusion list", &ident),
+        )?;
+        Ok(false)
+    } else {
+        match strategy {
             ExecutionStrategy::DryRun => {
                 ui.status(Status::DryRunDeleting, &ident)?;
                 Ok(false)
@@ -190,7 +183,7 @@ fn maybe_delete(
                 let pkg_dir = install.installed_path();
                 do_clean_delete(&pkg_root_path, &pkg_dir)
             }
-        },
+        }
     }
 }
 
