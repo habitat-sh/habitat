@@ -523,7 +523,7 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         true => command::pkg::Scope::Package,
         false => command::pkg::Scope::PackageAndDependencies,
     };
-    let excludes = excludes_from_matches(&m)?;
+    let excludes = excludes_from_matches(&m);
     command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope, excludes)
 }
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -1353,17 +1353,12 @@ fn install_sources_from_matches(matches: &ArgMatches) -> Result<Vec<InstallSourc
         .collect()
 }
 
-fn excludes_from_matches(matches: &ArgMatches) -> Result<Vec<PackageIdent>> {
-    match matches.values_of("EXCLUDE") {
-        Some(idents) => {
-            let mut list = Vec::with_capacity(idents.len());
-            for ident in idents {
-                list.push(PackageIdent::from_str(ident)?);
-            }
-            Ok(list)
-        }
-        None => Ok(vec![]),
-    }
+fn excludes_from_matches(matches: &ArgMatches) -> Vec<PackageIdent> {
+    matches
+        .values_of("EXCLUDE")
+        .unwrap() // Required via clap
+        .map(|i| PackageIdent::from_str(i).unwrap()) // unwrap safe as we've validated the input
+        .collect()
 }
 
 fn enable_features_from_env(ui: &mut UI) {

@@ -18,6 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
+use hcore::package::PackageIdent;
 use hcore::{crypto::keys::PairType, service::ServiceGroup};
 use protocol;
 use url::Url;
@@ -436,7 +437,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
                 (@arg DRYRUN: -d --dryrun "Just show what would be uninstalled, don't actually do it")
-                (@arg EXCLUDE: --exclude +takes_value +multiple
+                (@arg EXCLUDE: --exclude +takes_value +multiple {valid_ident}
                     "Identifier of one or more packages that should not be uninstalled. \
                     (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
                 (@arg NO_DEPS: --("no-deps") "Don't uninstall dependencies")
@@ -1081,6 +1082,16 @@ fn valid_update_strategy(val: String) -> result::Result<(), String> {
     match protocol::types::UpdateStrategy::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_ident(val: String) -> result::Result<(), String> {
+    match PackageIdent::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!(
+            "'{}' is not valid. Package identifiers have the form origin/name[/version[/release]]",
+            &val
+        )),
     }
 }
 ////////////////////////////////////////////////////////////////////////
