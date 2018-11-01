@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Add validation for all CLI args which accept package identifiers [#5807](https://github.com/habitat-sh/habitat/pull/5807) ([baumanj](https://github.com/baumanj))
 - Reduce excessive disk I/O when persisting rumors [#5804](https://github.com/habitat-sh/habitat/pull/5804) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
