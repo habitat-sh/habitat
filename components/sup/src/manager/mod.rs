@@ -1626,6 +1626,8 @@ impl Manager {
             self.remove_service(&mut service, cause);
         }
         release_process_lock(&self.fs_cfg);
+
+        self.butterfly.persist_data();
     }
 
     fn start_initial_services_from_spec_watcher(&mut self) -> Result<()> {

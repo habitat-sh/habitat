@@ -1174,15 +1174,12 @@ impl Server {
         message::unwrap_wire(payload, (*self.ring_key).as_ref())
     }
 
-    fn persist_data(&self) {
+    pub fn persist_data(&self) {
         if let Some(ref dat_file) = *self.dat_file.write().expect("DatFile lock poisoned") {
             if let Some(err) = dat_file.write(self).err() {
                 error!("Error persisting rumors to disk, {}", err);
             } else {
-                debug!(
-                    "Successfully persisted rumors to disk: {}",
-                    dat_file.path().display()
-                );
+                info!("Rumors persisted to disk: {}", dat_file.path().display());
             }
         }
     }
@@ -1219,12 +1216,6 @@ impl fmt::Display for Server {
             self.swim_port(),
             self.gossip_port()
         )
-    }
-}
-
-impl Drop for Server {
-    fn drop(&mut self) {
-        self.persist_data();
     }
 }
 
