@@ -137,6 +137,31 @@ impl PackageIdent {
         }
     }
 
+    /// Compare two `PackageIdent`s component by component:
+    /// i.e. start with origin, then name, then version, then
+    /// release. The first component to be not equal, then return
+    /// the greater/lesser
+    ///
+    /// TODO: This should probably be the natural implementation of `Ord::cmp`.
+    /// To be investigated why we have a different implementation
+    pub fn by_parts_cmp(self: &PackageIdent, other: &PackageIdent) -> Ordering {
+        if self.origin != other.origin {
+            return self.origin.cmp(&other.origin);
+        }
+
+        if self.name != other.name {
+            return self.name.cmp(&other.name);
+        }
+        match version_sort(
+            self.version.as_ref().unwrap(),
+            other.version.as_ref().unwrap(),
+        ) {
+            Ok(Ordering::Equal) => self.release.cmp(&other.release),
+            Ok(ordering) => ordering,
+            Err(_) => Ordering::Less,
+        }
+    }
+
     fn archive_name_impl(&self, ref target: &PackageTarget) -> Result<String> {
         if self.fully_qualified() {
             Ok(format!(
@@ -303,8 +328,8 @@ impl Ord for PackageIdent {
             self.version.as_ref().unwrap(),
             other.version.as_ref().unwrap(),
         ) {
-            ord @ Ok(Ordering::Greater) | ord @ Ok(Ordering::Less) => ord.unwrap(),
             Ok(Ordering::Equal) => self.release.cmp(&other.release),
+            Ok(ordering) => ordering,
             Err(_) => Ordering::Less,
         }
     }
