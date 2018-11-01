@@ -33,6 +33,6 @@ popd >/dev/null
 cat << EOF | buildkite-agent annotate --style=success --context=docker-studio	
 <h3>DockerHub Studio Image (Linux)</h3>	
 <ul>	
-  <li><code>${image_name_with_tag:?}</code></li>	
+  <li><code>${image_name_with_tag}</code></li>	
 </ul>	
 EOF
