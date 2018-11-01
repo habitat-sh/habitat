@@ -18,6 +18,7 @@ use std::fs as stdfs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use tempfile;
 
 use crate::env as henv;
 use crate::error::{Error, Result};
@@ -654,6 +655,85 @@ fn fs_root_path() -> PathBuf {
     }
 }
 
+/// parent returns the parent directory of the given path, accounting
+/// for the fact that a relative path with no directory separator
+/// returns an empty parent. This function transforms it to return "."
+/// so that it can more easily be used in functions that expect to
+/// take a directory.
+fn parent(p: &Path) -> io::Result<&Path> {
+    match p.parent() {
+        Some(parent_path) if parent_path.as_os_str().is_empty() => Ok(&Path::new(".")),
+        Some(nonempty_parent_path) => Ok(nonempty_parent_path),
+        None => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "path has no parent",
+        )),
+    }
+}
+
+/// An AtomicWriter atomically writes content to a file at the
+/// specified path using a tempfile+rename strategy to achieve
+/// atomicity.
+///
+/// The goal of this function is to ensure that other observers can
+/// only ever see:
+///
+/// - Any previous file at that location
+/// - The new file with your content
+///
+/// without seeing any possible intermediate state.
+///
+/// Assumes that the parent directory of dest_path exists.
+///
+pub struct AtomicWriter {
+    dest: PathBuf,
+    tempfile: tempfile::NamedTempFile,
+}
+
+impl AtomicWriter {
+    pub fn new(dest_path: &Path) -> io::Result<Self> {
+        let parent = parent(dest_path)?;
+        let tempfile = tempfile::NamedTempFile::new_in(parent)?;
+        Ok(Self {
+            dest: dest_path.to_path_buf(),
+            tempfile: tempfile,
+        })
+    }
+
+    pub fn with_writer<F, T, E>(mut self, op: F) -> std::result::Result<T, E>
+    where
+        F: FnOnce(&mut std::fs::File) -> std::result::Result<T, E>,
+        E: From<std::io::Error>,
+    {
+        let r = op(&mut self.tempfile.as_file_mut())?;
+        self.finish()?;
+        Ok(r)
+    }
+
+    /// finish completes the atomic write by calling sync on the
+    /// temporary file to ensure all data is flushed to disk and then
+    /// renaming the file into place.
+    fn finish(self) -> io::Result<()> {
+        self.tempfile.as_file().sync_all()?;
+        debug!(
+            "Renaming {} to {}",
+            self.tempfile.path().to_string_lossy(),
+            &self.dest.to_string_lossy()
+        );
+        stdfs::rename(self.tempfile.path(), &self.dest)
+        // NOTE(ssd) 2018-11-01: On some filesystems we should fsync
+        // the parent directory here if we wanted this file to also
+        // provide a durability guarantee.
+    }
+}
+
+/// atomic_write is a helper function for the most common use of
+/// AtomicWriter.
+pub fn atomic_write(dest_path: &Path, data: impl AsRef<[u8]>) -> io::Result<()> {
+    let w = AtomicWriter::new(dest_path)?;
+    w.with_writer(|f| f.write_all(data.as_ref()))
+}
+
 #[cfg(test)]
 mod test_find_command {
 
@@ -834,5 +914,53 @@ mod test_find_command {
                 assert_eq!(found_path, target_path);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod test_atomic_writer {
+    use super::{atomic_write, AtomicWriter};
+    use std::fs::{remove_file, File};
+    use std::io::{Read, Seek, SeekFrom, Write};
+    use std::panic;
+    use tempfile;
+
+    const EXPECTED_CONTENT: &str = "A very good file format";
+
+    #[test]
+    fn atomic_write_writes_file() {
+        let dest_file = tempfile::NamedTempFile::new().expect("could not create temp file");
+        let dest_file_path = dest_file.path();
+        remove_file(dest_file_path).expect("could not delete temp file");
+
+        let res = atomic_write(dest_file_path, EXPECTED_CONTENT);
+        assert!(res.is_ok());
+        let mut f = File::open(dest_file_path).expect("file not found");
+        let mut actual_content = String::new();
+        f.read_to_string(&mut actual_content)
+            .expect("failed to read file");
+        assert_eq!(EXPECTED_CONTENT, actual_content);
+    }
+
+    #[test]
+    fn with_atomic_writer_writes_file() {
+        let dest_file = tempfile::NamedTempFile::new().expect("could not create temp file");
+        let dest_file_path = dest_file.path();
+        remove_file(dest_file_path).expect("could not delete temp file");
+
+        let w = AtomicWriter::new(dest_file_path).expect("could not create AtomicWriter");
+        let res = w.with_writer(|writer| {
+            writer.write_all(b"not the right content")?;
+            writer.seek(SeekFrom::Start(0))?;
+            writer.write_all(EXPECTED_CONTENT.as_bytes())?;
+            writer.flush() // not needed, just making sure we can call it
+        });
+        assert!(res.is_ok());
+
+        let mut f = File::open(dest_file_path).expect("file not found");
+        let mut actual_content = String::new();
+        f.read_to_string(&mut actual_content)
+            .expect("failed to read file");
+        assert_eq!(EXPECTED_CONTENT, actual_content);
     }
 }
