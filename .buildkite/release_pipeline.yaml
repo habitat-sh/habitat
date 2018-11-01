@@ -247,6 +247,12 @@ steps:
       Appveyor has generated the necessary artifacts and uploaded them
       to Builder and Bintray. Please ensure those artifacts have been
       uploaded before continuing with the release.
+  
+  - block: ":dango: :linux: :two: Build x86_64-linux-kernel2 Launcher"
+    prompt: |
+      x86_64-linux-kernel2 launcher will need to be built by hand.  If 
+      you are promoting launchers in the following step, please build 
+      and upload and x86_64-linux-kernel2 launcher before continuing.
 
   - block: ":thumbsup: Select Launcher Versions to Promote to Release Channel"
     prompt: |
