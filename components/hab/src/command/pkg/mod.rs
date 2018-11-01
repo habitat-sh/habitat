@@ -37,7 +37,7 @@ pub enum ExecutionStrategy {
     /// Don't actually run commands that mutate the state of the system,
     /// simply print their output
     DryRun,
-    /// Run commands which mutuate state
+    /// Run commands which mutate state
     Run,
 }
 

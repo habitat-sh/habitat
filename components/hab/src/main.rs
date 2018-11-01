@@ -523,7 +523,8 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         true => command::pkg::Scope::Package,
         false => command::pkg::Scope::PackageAndDependencies,
     };
-    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope)
+    let excludes = excludes_from_matches(&m);
+    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope, excludes)
 }
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
@@ -1345,9 +1346,18 @@ fn binlink_dest_dir_from_matches(matches: &ArgMatches) -> PathBuf {
 }
 
 fn install_sources_from_matches(matches: &ArgMatches) -> Result<Vec<InstallSource>> {
-    matches.values_of("PKG_IDENT_OR_ARTIFACT")
+    matches
+        .values_of("PKG_IDENT_OR_ARTIFACT")
         .unwrap() // Required via clap
         .map(|t| t.parse().map_err(Error::from))
+        .collect()
+}
+
+fn excludes_from_matches(matches: &ArgMatches) -> Vec<PackageIdent> {
+    matches
+        .values_of("EXCLUDE")
+        .unwrap() // Required via clap
+        .map(|i| PackageIdent::from_str(i).unwrap()) // unwrap safe as we've validated the input
         .collect()
 }
 
