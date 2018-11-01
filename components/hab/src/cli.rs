@@ -18,7 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
-use hcore::package::PackageIdent;
+use hcore::package::{Identifiable, PackageIdent};
 use hcore::{crypto::keys::PairType, service::ServiceGroup};
 use protocol;
 use url::Url;
@@ -69,7 +69,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand show =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["sh", "sho"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
@@ -103,7 +103,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand start =>
                     (about: "Schedule a build job or group of jobs")
                     (aliases: &["s", "st", "sta", "star"])
-                    (@arg PKG_IDENT: +required +takes_value
+                    (@arg PKG_IDENT: +required +takes_value {valid_ident}
                         "The origin and name of the package to schedule a job for (eg: core/redis)")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -337,13 +337,13 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (@subcommand binds =>
                 (about: "Displays the binds for a service")
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-statis/1.42.2)")
             )
             (@subcommand binlink =>
                 (about: "Creates a binlink for a package binary in a common 'PATH' location")
                 (aliases: &["bi", "bin", "binl", "binli", "binlin"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg BINARY: +takes_value
                     "The command to binlink (ex: bash)")
@@ -354,19 +354,19 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand config =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["conf", "cfg"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
             (subcommand: sub_pkg_build())
             (@subcommand env =>
                 (about: "Prints the runtime environment of a specific installed package")
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
             (@subcommand exec =>
                 (about: "Executes a command using the 'PATH' context of an installed package")
                 (aliases: &["exe"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg CMD: +required +takes_value
                     "The command to execute (ex: ls)")
@@ -378,7 +378,7 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["exp"])
                 (@arg FORMAT: +required +takes_value
                     "The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)")
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
                     filepath to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
@@ -400,7 +400,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand path =>
                 (about: "Prints the path to a specific installed release of a package")
                 (aliases: &["p", "pa", "pat"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
             (@subcommand provides =>
@@ -434,7 +434,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand uninstall =>
                 (about: "Safely uninstall a package and dependencies from the local filesystem")
                 (aliases: &["un", "unin"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
                 (@arg DRYRUN: -d --dryrun "Just show what would be uninstalled, don't actually do it")
                 (@arg EXCLUDE: --exclude +takes_value +multiple {valid_ident}
@@ -466,7 +466,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
                     endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
                     environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value "A fully qualifed package identifier \
+                (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg CHANNEL: +required +takes_value "Promote to the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
@@ -477,7 +477,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
                     endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
                     environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value "A fully qualified package identifier \
+                (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg CHANNEL: +required +takes_value "Demote from the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
@@ -488,7 +488,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
                     endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
                     environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value "A fully qualified package identifier \
+                (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
@@ -515,7 +515,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand dependencies =>
                 (about: "Returns the Habitat Artifact dependencies")
                 (aliases: &["dep", "deps"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
         )
@@ -602,7 +602,7 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Unload a service loaded by the Habitat Supervisor. If the service is \
                     running it will additionally be stopped.")
                 (aliases: &["u", "un", "unl", "unlo", "unloa"])
-                (@arg PKG_IDENT: +required +takes_value
+                (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A Habitat package identifier (ex: core/redis)")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
@@ -907,7 +907,7 @@ pub fn sub_sup_term() -> App<'static, 'static> {
 fn sub_svc_start() -> App<'static, 'static> {
     clap_app!(@subcommand start =>
         (about: "Start a loaded, but stopped, Habitat service.")
-        (@arg PKG_IDENT: +required +takes_value
+        (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A Habitat package identifier (ex: core/redis)")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
@@ -919,7 +919,7 @@ fn sub_svc_start() -> App<'static, 'static> {
 pub fn sub_svc_status() -> App<'static, 'static> {
     clap_app!(@subcommand status =>
         (about: "Query the status of Habitat services.")
-        (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
+        (@arg PKG_IDENT: +takes_value {valid_ident} "A Habitat package identifier (ex: core/redis)")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
         "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
@@ -928,7 +928,7 @@ pub fn sub_svc_status() -> App<'static, 'static> {
 fn sub_svc_stop() -> App<'static, 'static> {
     clap_app!(@subcommand stop =>
         (about: "Stop a running Habitat service.")
-        (@arg PKG_IDENT: +required +takes_value
+        (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A Habitat package identifier (ex: core/redis)")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
@@ -941,7 +941,7 @@ fn sub_svc_load() -> App<'static, 'static> {
         (about: "Load a service to be started and supervised by Habitat from a package \
             identifier. If an installed package doesn't satisfy the given package \
             identifier, a suitable package will be installed from Builder.")
-        (@arg PKG_IDENT: +required +takes_value
+        (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A Habitat package identifier (ex: core/redis)")
         (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
             "Application name; [default: not set].")
@@ -977,7 +977,7 @@ fn sub_svc_load() -> App<'static, 'static> {
         (about: "Load a service to be started and supervised by Habitat from a package \
             identifier. If an installed package doesn't satisfy the given package \
             identifier, a suitable package will be installed from Builder.")
-        (@arg PKG_IDENT: +required +takes_value
+        (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A Habitat package identifier (ex: core/redis)")
         (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
             "Application name; [default: not set].")
@@ -1094,4 +1094,17 @@ fn valid_ident(val: String) -> result::Result<(), String> {
         )),
     }
 }
+
+fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
+    match PackageIdent::from_str(&val) {
+        Ok(ref ident) if ident.fully_qualified() => {
+            Ok(())
+        }
+        _ => Err(format!(
+            "'{}' is not valid. Fully qualified package identifiers have the form origin/name/version/release",
+            &val
+        )),
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////
