@@ -134,14 +134,14 @@ impl SymKey {
     ///
     /// ```
     /// extern crate habitat_core;
-    /// extern crate tempdir;
+    /// extern crate tempfile;
     ///
     /// use habitat_core::crypto::SymKey;
     /// use std::fs::File;
-    /// use tempdir::TempDir;
+    /// use tempfile::Builder;
     ///
     /// fn main() {
-    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
     ///     let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
     ///     let _ = File::create(&secret_file).unwrap();
     ///
@@ -178,13 +178,13 @@ impl SymKey {
     ///
     /// ```
     /// extern crate habitat_core;
-    /// extern crate tempdir;
+    /// extern crate tempfile;
     ///
     /// use habitat_core::crypto::SymKey;
-    /// use tempdir::TempDir;
+    /// use tempfile::Builder;
     ///
     /// fn main() {
-    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
     ///     let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
     ///
     ///     let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
@@ -210,13 +210,13 @@ impl SymKey {
     ///
     /// ```
     /// extern crate habitat_core;
-    /// extern crate tempdir;
+    /// extern crate tempfile;
     ///
     /// use habitat_core::crypto::SymKey;
-    /// use tempdir::TempDir;
+    /// use tempfile::Builder;
     ///
     /// fn main() {
-    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
     ///     let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
     ///     let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
     ///
@@ -303,14 +303,14 @@ impl SymKey {
     ///
     /// ```
     /// extern crate habitat_core;
-    /// extern crate tempdir;
+    /// extern crate tempfile;
     ///
     /// use habitat_core::crypto::SymKey;
     /// use habitat_core::crypto::keys::PairType;
-    /// use tempdir::TempDir;
+    /// use tempfile::Builder;
     ///
     /// fn main() {
-    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
     ///     let content = "SYM-SEC-1
     /// beyonce-20160504220722
     ///
@@ -436,7 +436,7 @@ mod test {
     use std::fs::{self, File};
     use std::io::Read;
 
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     use super::super::super::test_support::*;
     use super::super::PairType;
@@ -467,7 +467,7 @@ mod test {
 
     #[test]
     fn generated_ring_pair() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
@@ -490,7 +490,7 @@ mod test {
 
     #[test]
     fn get_pairs_for() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 0);
 
@@ -523,7 +523,7 @@ mod test {
 
     #[test]
     fn get_pair_for() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let p1 = SymKey::generate_pair_for_ring("beyonce").unwrap();
         p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
@@ -546,13 +546,13 @@ mod test {
     #[test]
     #[should_panic(expected = "No public or secret keys found for")]
     fn get_pair_for_nonexistent() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SymKey::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
     }
 
     #[test]
     fn get_latest_pair_for_single() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
@@ -563,7 +563,7 @@ mod test {
 
     #[test]
     fn get_latest_pair_for_multiple() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SymKey::generate_pair_for_ring("beyonce")
             .unwrap()
             .to_pair_files(cache.path())
@@ -585,20 +585,20 @@ mod test {
     #[test]
     #[should_panic(expected = "No revisions found for")]
     fn get_latest_pair_for_nonexistent() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SymKey::get_latest_pair_for("nope-nope", cache.path()).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "No public key exists for sym keys")]
     fn get_public_key_path() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SymKey::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
     fn get_secret_key_path() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         fs::copy(
             fixture(&format!("keys/{}", VALID_KEY)),
             cache.path().join(VALID_KEY),
@@ -611,13 +611,13 @@ mod test {
     #[test]
     #[should_panic(expected = "No secret key found at")]
     fn get_secret_key_path_nonexistent() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SymKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
     fn encrypt_and_decrypt() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
@@ -637,7 +637,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn decrypt_missing_secret_key() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let (nonce, ciphertext) = pair.encrypt("Ringonit".as_bytes()).unwrap();
@@ -649,7 +649,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Invalid size of nonce")]
     fn decrypt_invalid_nonce_length() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
@@ -660,7 +660,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Secret key and nonce could not decrypt ciphertext")]
     fn decrypt_invalid_ciphertext() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
@@ -670,7 +670,7 @@ mod test {
 
     #[test]
     fn write_file_from_str() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
         let new_key_file = cache.path().join(VALID_KEY);
 
@@ -692,7 +692,7 @@ mod test {
 
     #[test]
     fn write_file_from_str_with_existing_identical() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
         let new_key_file = cache.path().join(VALID_KEY);
 
@@ -708,7 +708,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Unsupported key version")]
     fn write_file_from_str_unsupported_version() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string("keys/ring-key-invalid-version-20160504221247.sym.key");
 
         SymKey::write_file_from_str(&content, cache.path()).unwrap();
@@ -717,7 +717,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_sym_key_from_str:1 Malformed sym key string")]
     fn write_file_from_str_missing_version() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SymKey::write_file_from_str("", cache.path()).unwrap();
     }
@@ -725,7 +725,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_sym_key_from_str:2 Malformed sym key string")]
     fn write_file_from_str_missing_name() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SymKey::write_file_from_str("SYM-SEC-1\n", cache.path()).unwrap();
     }
@@ -733,7 +733,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_sym_key_from_str:3 Malformed sym key string")]
     fn write_file_from_str_missing_key() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SymKey::write_file_from_str("SYM-SEC-1\nim-in-trouble-123\n", cache.path()).unwrap();
     }
@@ -741,7 +741,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Existing key file")]
     fn write_file_from_str_key_exists_but_hashes_differ() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = fixture("keys/ring-key-valid-20160504220722.sym.key");
         fs::copy(
             key,

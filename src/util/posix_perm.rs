@@ -151,14 +151,17 @@ mod tests {
     use std::io::Write;
     use std::path::Path;
 
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     use super::*;
     use error::Error;
 
     #[test]
     fn chmod_ok_test() {
-        let tmp_dir = TempDir::new("foo").expect("create temp dir");
+        let tmp_dir = Builder::new()
+            .prefix("foo")
+            .tempdir()
+            .expect("create temp dir");
         let file_path = tmp_dir.path().join("test.txt");
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");

@@ -286,7 +286,7 @@ impl FromStr for PackageType {
 mod test {
     use super::*;
     use std::io::Write;
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     static ENVIRONMENT: &str = r#"PATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin
 PYTHONPATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages
@@ -419,7 +419,7 @@ port=front-end.port
 
     #[test]
     fn can_read_metafile() {
-        let pkg_root = TempDir::new("pkg-root").unwrap();
+        let pkg_root = Builder::new().prefix("pkg-root").tempdir().unwrap();
         let install_dir = pkg_root.path();
 
         let expected = "core/foo=db:core/database";
@@ -433,7 +433,7 @@ port=front-end.port
 
     #[test]
     fn reading_a_non_existing_metafile_is_an_error() {
-        let pkg_root = TempDir::new("pkg-root").unwrap();
+        let pkg_root = Builder::new().prefix("pkg-root").tempdir().unwrap();
         let install_dir = pkg_root.path();
 
         let bind = MetaFile::Binds;

@@ -151,16 +151,16 @@ impl SigKeyPair {
     ///
     /// ```
     /// extern crate habitat_core;
-    /// extern crate tempdir;
+    /// extern crate tempfile;
     ///
     /// use std::fs::File;
     /// use std::io::Read;
     /// use habitat_core::crypto::SigKeyPair;
     /// use habitat_core::crypto::keys::PairType;
-    /// use tempdir::TempDir;
+    /// use tempfile::Builder;
     ///
     /// fn main() {
-    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
     ///     let content = "SIG-PUB-1
     /// unicorn-20160517220007
     ///
@@ -182,16 +182,16 @@ impl SigKeyPair {
     ///
     /// ```
     /// extern crate habitat_core;
-    /// extern crate tempdir;
+    /// extern crate tempfile;
     ///
     /// use std::fs::File;
     /// use std::io::Read;
     /// use habitat_core::crypto::SigKeyPair;
     /// use habitat_core::crypto::keys::PairType;
-    /// use tempdir::TempDir;
+    /// use tempfile::Builder;
     ///
     /// fn main() {
-    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
     ///     let content = "SIG-SEC-1
     /// unicorn-20160517220007
     ///
@@ -363,7 +363,7 @@ mod test {
     use std::fs::{self, File};
     use std::io::Read;
 
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     use super::super::super::test_support::*;
     use super::super::PairType;
@@ -395,7 +395,7 @@ mod test {
 
     #[test]
     fn generated_origin_pair() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
@@ -424,7 +424,7 @@ mod test {
 
     #[test]
     fn get_pairs_for() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 0);
 
@@ -466,7 +466,7 @@ mod test {
 
     #[test]
     fn get_pair_for() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let p1 = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
@@ -489,13 +489,13 @@ mod test {
     #[test]
     #[should_panic(expected = "No public or secret keys found for")]
     fn get_pair_for_nonexistent() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
     }
 
     #[test]
     fn get_latest_pair_for_single() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
@@ -506,7 +506,7 @@ mod test {
 
     #[test]
     fn get_latest_pair_for_multiple() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::generate_pair_for_origin("unicorn")
             .unwrap()
             .to_pair_files(cache.path())
@@ -527,7 +527,7 @@ mod test {
 
     #[test]
     fn get_latest_pair_for_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         p.to_pair_files(cache.path()).unwrap();
         let latest =
@@ -539,7 +539,7 @@ mod test {
 
     #[test]
     fn get_latest_pair_for_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         p.to_pair_files(cache.path()).unwrap();
         let latest =
@@ -552,13 +552,13 @@ mod test {
     #[test]
     #[should_panic(expected = "No revisions found for")]
     fn get_latest_pair_for_nonexistent() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::get_latest_pair_for("nope-nope", cache.path(), None).unwrap();
     }
 
     #[test]
     fn get_public_key_path() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         fs::copy(
             fixture(&format!("keys/{}", VALID_PUB)),
             cache.path().join(VALID_PUB),
@@ -571,13 +571,13 @@ mod test {
     #[test]
     #[should_panic(expected = "No public key found at")]
     fn get_public_key_path_nonexistent() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
     fn get_secret_key_path() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         fs::copy(
             fixture(&format!("keys/{}", VALID_KEY)),
             cache.path().join(VALID_KEY),
@@ -590,13 +590,13 @@ mod test {
     #[test]
     #[should_panic(expected = "No secret key found at")]
     fn get_secret_key_path_nonexistent() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
     fn write_file_from_str_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
         let new_key_file = cache.path().join(VALID_KEY);
 
@@ -618,7 +618,7 @@ mod test {
 
     #[test]
     fn write_file_from_str_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_PUB));
         let new_key_file = cache.path().join(VALID_PUB);
 
@@ -640,7 +640,7 @@ mod test {
 
     #[test]
     fn write_file_from_str_with_existing_identical_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
         let new_key_file = cache.path().join(VALID_KEY);
 
@@ -655,7 +655,7 @@ mod test {
 
     #[test]
     fn write_file_from_str_with_existing_identical_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_PUB));
         let new_key_file = cache.path().join(VALID_PUB);
 
@@ -671,7 +671,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Unsupported key version")]
     fn write_file_from_str_unsupported_version_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string("keys/origin-key-invalid-version-20160518021451.sig.key");
 
         SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
@@ -680,7 +680,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Unsupported key version")]
     fn write_file_from_str_unsupported_version_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string("keys/origin-key-invalid-version-20160518021451.pub");
 
         SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
@@ -689,7 +689,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_key_from_str:1 Malformed key string")]
     fn write_file_from_str_missing_version() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SigKeyPair::write_file_from_str("", cache.path()).unwrap();
     }
@@ -697,7 +697,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_key_from_str:2 Malformed key string")]
     fn write_file_from_str_missing_name_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SigKeyPair::write_file_from_str("SIG-SEC-1\n", cache.path()).unwrap();
     }
@@ -705,7 +705,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_key_from_str:2 Malformed key string")]
     fn write_file_from_str_missing_name_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SigKeyPair::write_file_from_str("SIG-PUB-1\n", cache.path()).unwrap();
     }
@@ -713,7 +713,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_missing_key_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SigKeyPair::write_file_from_str("SIG-SEC-1\nim-in-trouble-123\n", cache.path()).unwrap();
     }
@@ -721,7 +721,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_missing_key_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SigKeyPair::write_file_from_str("SIG-PUB-1\nim-in-trouble-123\n", cache.path()).unwrap();
     }
@@ -729,7 +729,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_invalid_key_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SigKeyPair::write_file_from_str(
             "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n%",
@@ -740,7 +740,7 @@ mod test {
     #[test]
     #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
     fn write_file_from_str_invalid_key_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         SigKeyPair::write_file_from_str(
             "SIG-PUB-1\nim-in-trouble-123\n\nc29tZXRoaW5n%",
@@ -751,7 +751,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Existing key file")]
     fn write_file_from_str_key_exists_but_hashes_differ_secret() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = fixture("keys/origin-key-valid-20160509190508.sig.key");
         fs::copy(
             key,
@@ -767,7 +767,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Existing key file")]
     fn write_file_from_str_key_exists_but_hashes_differ_public() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = fixture("keys/origin-key-valid-20160509190508.pub");
         fs::copy(
             key,
