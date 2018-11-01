@@ -179,6 +179,7 @@ pub struct ManagerState {
     pub cfg: ManagerConfig,
     pub services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
     pub gateway_state: Arc<RwLock<GatewayState>>,
+    pub census_ring: Arc<RwLock<CensusRing>>,
 }
 
 #[derive(Debug, Default)]
@@ -192,7 +193,6 @@ pub struct GatewayState {
 pub struct Manager {
     pub state: Rc<ManagerState>,
     butterfly: butterfly::Server,
-    census_ring: CensusRing,
     events_group: Option<ServiceGroup>,
     fs_cfg: Arc<FsCfg>,
     launcher: LauncherCli,
@@ -244,6 +244,18 @@ impl Manager {
                 package.bind_map()?,
             ),
         };
+        Ok(specs)
+    }
+
+    /// Given an installed package, generate a spec (or specs, in the case
+    /// of composite packages!) from it and the arguments passed in on the
+    /// command line.
+    pub fn generate_new_specs_from_render(
+        opts: &protocol::ctl::SvcRender,
+    ) -> Result<Vec<ServiceSpec>> {
+        let mut spec = ServiceSpec::default();
+        opts.into_spec(&mut spec);
+        let specs = vec![spec];
         Ok(specs)
     }
 
@@ -389,10 +401,10 @@ impl Manager {
                 cfg: cfg_static,
                 services: services,
                 gateway_state: gateway_state,
+                census_ring: Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone()))),
             }),
             self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
-            census_ring: CensusRing::new(sys.member_id.clone()),
             butterfly: server,
             events_group: cfg.eventsrv_group,
             launcher: launcher,
@@ -791,7 +803,7 @@ impl Manager {
             self.update_running_services_from_user_config_watcher();
             self.check_for_updated_packages();
             self.restart_elections();
-            self.census_ring.update_from_rumors(
+            self.state.census_ring.write().expect("CensusRing lock is poisoned!").update_from_rumors(
                 &self.butterfly.service_store,
                 &self.butterfly.election_store,
                 &self.butterfly.update_store,
@@ -804,11 +816,11 @@ impl Manager {
                 self.persist_state();
             }
 
-            if self.census_ring.changed() {
+            if self.state.census_ring.read().expect("CensusRing lock is poisoned!").changed() {
                 self.persist_state();
                 events
                     .as_ref()
-                    .map(|events| events.try_connect(&self.census_ring));
+                    .map(|events| events.try_connect(&self.state.census_ring.read().expect("CensusRing lock is poisoned!")));
 
                 for service in self
                     .state
@@ -818,7 +830,7 @@ impl Manager {
                     .values()
                 {
                     if let Some(census_group) =
-                        self.census_ring.census_group_for(&service.service_group)
+                        self.state.census_ring.read().expect("CensusRing lock is poisoned!").census_group_for(&service.service_group)
                     {
                         if let Some(member) = census_group.me() {
                             events
@@ -836,7 +848,7 @@ impl Manager {
                 .expect("Services lock is poisoned!")
                 .values_mut()
             {
-                if service.tick(&self.census_ring, &self.launcher) {
+                if service.tick(&self.state.census_ring.read().expect("CensusRing lock is poisoned!"), &self.launcher) {
                     self.gossip_latest_service_rumor(&service);
                 }
             }
@@ -1406,6 +1418,68 @@ impl Manager {
         Ok(())
     }
 
+    pub fn service_render(
+        mgr: &ManagerState,
+        req: &mut CtlRequest,
+        opts: protocol::ctl::SvcRender,
+    ) -> NetResult<()> {
+        let ident: PackageIdent = opts.ident.clone().ok_or(err_update_client())?.into();
+        let bldr_url = opts
+            .bldr_url
+            .clone()
+            .unwrap_or(protocol::DEFAULT_BLDR_URL.to_string());
+        let bldr_channel = opts
+            .bldr_channel
+            .clone()
+            .unwrap_or(protocol::DEFAULT_BLDR_CHANNEL.to_string());
+        let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());
+        util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
+
+        let mut specs = Self::generate_new_specs_from_render(&opts)?;
+
+        let sys = Sys::new(
+            mgr.cfg.gossip_permanent,
+            mgr.cfg.gossip_listen.clone(),
+            mgr.cfg.ctl_listen,
+            mgr.cfg.http_listen.clone(),
+        );
+
+        for spec in specs.iter_mut() {
+            let mut service = Service::load(
+                Arc::new(sys.clone()),
+                spec.clone(),
+                Arc::new(FsCfg::new(mgr.cfg.sup_root())),
+                mgr.cfg.organization.as_ref().map(|org| &**org),
+                mgr.gateway_state.clone(),
+            )?;
+
+            if let Err(e) = service.create_svc_path() {
+                outputln!(
+                    "Can't create directory {}: {}",
+                    service.pkg.svc_path.display(),
+                    e
+                );
+                outputln!(
+                    "If this service is running as non-root, you'll need to create \
+                    {} and give the current user write access to it",
+                    service.pkg.svc_path.display()
+                );
+                outputln!("{} failed to start", &spec.ident);
+                return Err(net::err(ErrCode::Internal, e.to_string()));
+            }
+
+            service.write_templates(&mgr.census_ring.read().expect("CensusRing lock is poisoned!"));
+
+            req.info(format!(
+                "The {} service was successfully rendered",
+                spec.ident
+            ))?;
+        }
+        
+        req.reply_complete(net::ok());
+        Ok(())
+    }
+
     pub fn supervisor_depart(
         mgr: &ManagerState,
         req: &mut CtlRequest,
@@ -1455,7 +1529,7 @@ impl Manager {
         {
             if self
                 .updater
-                .check_for_updated_package(service, &self.census_ring, &self.launcher)
+                .check_for_updated_package(service, &self.state.census_ring.read().expect("CensusRing lock is poisoned!"), &self.launcher)
             {
                 self.gossip_latest_service_rumor(&service);
             }
@@ -1528,7 +1602,8 @@ impl Manager {
     }
 
     fn persist_census_state(&self) {
-        let crp = CensusRingProxy::new(&self.census_ring);
+        let census = self.state.census_ring.read().expect("CensusRing lock is poisoned!");
+        let crp = CensusRingProxy::new(&census);
         let json = serde_json::to_string(&crp).unwrap();
         self.state
             .gateway_state

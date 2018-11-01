@@ -252,6 +252,7 @@ fn start(ui: &mut UI) -> Result<()> {
             },
             ("load", Some(m)) => sub_svc_load(m)?,
             ("unload", Some(m)) => sub_svc_unload(m)?,
+            ("render", Some(m)) => sub_svc_render(m)?,
             ("start", Some(m)) => sub_svc_start(m)?,
             ("stop", Some(m)) => sub_svc_stop(m)?,
             ("status", Some(m)) => sub_svc_status(m)?,
@@ -940,6 +941,20 @@ fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn sub_svc_render(m: &ArgMatches) -> Result<()> {
+    let cfg = config::load()?;
+    let sup_addr = sup_addr_from_input(m)?;
+    let secret_key = ctl_secret_key(&cfg)?;
+    let mut msg = protocol::ctl::SvcRender::default();
+    update_svc_render_from_input(m, &mut msg)?;
+    let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
+    msg.ident = Some(ident.into());
+    SrvClient::connect(&sup_addr, secret_key)
+        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+        .wait()?;
+    Ok(())
+}
+
 fn sub_svc_start(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
@@ -1619,5 +1634,17 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
     msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
+    Ok(())
+}
+
+/// Set all fields for an `SvcRender` message that we can from the given opts. This function
+/// populates all *shared* options between `run` and `loooad`.
+fn update_svc_render_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcRender) -> Result<()> {
+    msg.bldr_url = bldr_url_from_input(m);
+    msg.bldr_channel = channel_from_input(m);
+    msg.application_environment = get_app_env_from_input(m)?;
+    msg.binds = get_binds_from_input(m)?;
+    msg.group = get_group_from_input(m);
+    msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     Ok(())
 }

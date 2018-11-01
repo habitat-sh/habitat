@@ -82,7 +82,7 @@ pub struct RenderContext<'a> {
     sys: SystemInfo<'a>,
     pkg: Package<'a>,
     cfg: Cow<'a, Cfg>,
-    svc: Svc<'a>,
+    svc: Option<Svc<'a>>,
     bind: Binds<'a>,
 }
 
@@ -101,27 +101,31 @@ impl<'a> RenderContext<'a> {
         sys: &'a Sys,
         pkg: &'a Pkg,
         cfg: &'a Cfg,
-        census: &'a CensusRing,
+        census:&'a CensusRing,
         bindings: T,
     ) -> RenderContext<'a>
     where
         T: Iterator<Item = &'a ServiceBind>,
     {
-        let census_group = census
-            .census_group_for(&service_group)
-            .expect("Census Group missing from list!");
+        let svc = match census.census_group_for(&service_group) {
+            Some(group) => Some(Svc::new(group)),
+            None => None,
+        };
         RenderContext {
             sys: SystemInfo::from_sys(sys),
             pkg: Package::from_pkg(pkg),
             cfg: Cow::Borrowed(cfg),
-            svc: Svc::new(census_group),
+            svc: svc,
             bind: Binds::new(bindings, census),
         }
     }
 
     // Exposed only for logging... can probably do this another way.
     pub fn service_group_name(&self) -> String {
-        format!("{}", self.svc.service_group)
+        match self.svc {
+            Some(ref s) => format!("{}", s.service_group),
+            None => format!("{}", self.pkg.name)
+        }
     }
 }
 

@@ -162,6 +162,42 @@ pub struct SvcUnload {
     #[prost(message, optional, tag="1")]
     pub ident: ::std::option::Option<super::types::PackageIdent>,
 }
+/// Request to render the templates of a service.
+#[derive(Clone, PartialEq, Message)]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct SvcRender {
+    /// Package identifier for the service to load. Using a more qualified identifier will load a
+    /// more specific package.
+    #[prost(message, optional, tag="1")]
+    pub ident: ::std::option::Option<super::types::PackageIdent>,
+    /// An application environment to place the service in.
+    #[prost(message, optional, tag="2")]
+    pub application_environment: ::std::option::Option<super::types::ApplicationEnvironment>,
+    /// List of service binds to use when configuring the service.
+    #[prost(message, optional, tag="3")]
+    pub binds: ::std::option::Option<ServiceBindList>,
+    /// Set to true if any binds were set by the caller. This field is needed because a blank list
+    /// and map will be present in a case when no binds were set *and* when binds are removed.
+    #[prost(bool, optional, tag="4")]
+    pub specified_binds: ::std::option::Option<bool>,
+    /// Indicate how bind availability affects service start-up
+    #[prost(enumeration="super::types::BindingMode", optional, tag="5")]
+    pub binding_mode: ::std::option::Option<i32>,
+    /// Remote http URL for the Builder service to receive package updates from.
+    #[prost(string, optional, tag="6")]
+    pub bldr_url: ::std::option::Option<String>,
+    /// Remote channel on the Builder service to receive package updates from.
+    #[prost(string, optional, tag="7")]
+    pub bldr_channel: ::std::option::Option<String>,
+    /// A filepath on disk which can be specified to override the package's configuration and hooks.
+    /// This is useful when testing services on a local Supervisor before packaging them.
+    #[prost(string, optional, tag="8")]
+    pub config_from: ::std::option::Option<String>,
+    /// Service group name for the service.
+    #[prost(string, optional, tag="9", default="default")]
+    pub group: ::std::option::Option<String>,
+}
 /// Request to start a loaded and stopped service.
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]

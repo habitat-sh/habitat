@@ -360,6 +360,16 @@ impl Future for SrvHandler {
                                     },
                                 )
                             }
+                            "SvcRender" => {
+                                let m = msg
+                                    .parse::<protocol::ctl::SvcRender>()
+                                    .map_err(HandlerError::from)?;
+                                CtlCommand::new(
+                                    Some(self.tx.clone()),
+                                    msg.transaction(),
+                                    move |state, req| Manager::service_render(state, req, m.clone()),
+                                )
+                            }
                             "SvcStart" => {
                                 let m = msg
                                     .parse::<protocol::ctl::SvcStart>()

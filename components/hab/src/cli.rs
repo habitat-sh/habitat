@@ -594,6 +594,7 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
             (subcommand: sub_svc_load().aliases(&["l", "lo", "loa"]))
+            (subcommand: sub_svc_render())
             (subcommand: sub_svc_start().aliases(&["star"]))
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
             (subcommand: sub_svc_stop().aliases(&["sto"]))
@@ -1002,6 +1003,35 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
         (@arg PASSWORD: --password +takes_value "Password of the service user")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
+            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    )
+}
+
+fn sub_svc_render() -> App<'static, 'static> {
+    clap_app!(@subcommand render =>
+        (about: "Render templates from a package identifier. If an installed package \
+            doesn't satisfy the given package identifier, a suitable package will be \
+            installed from Builder.")
+        (@arg PKG_IDENT: +required +takes_value
+            "A Habitat package identifier (ex: core/redis)")
+        (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+            "Application name; [default: not set].")
+        (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+            "Environment name; [default: not set].")
+        (@arg CHANNEL: --channel +takes_value
+            "Receive package updates from the specified release channel [default: stable]")
+        (@arg GROUP: --group +takes_value
+            "The service group; shared config and topology [default: default].")
+        (@arg BLDR_URL: -u --url +takes_value {valid_url}
+            "Specify an alternate Builder endpoint. If not specified, the value will \
+             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+             https://bldr.habitat.sh)")
+        (@arg BIND: --bind +takes_value +multiple
+            "One or more service groups to bind to a configuration")
+        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+              startup until all binds are present. [default: strict] [values: relaxed, strict]")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )

@@ -249,6 +249,45 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
     }
 }
 
+impl IntoServiceSpec for protocol::ctl::SvcRender {
+    fn into_spec(&self, spec: &mut ServiceSpec) {
+        spec.ident = self.ident.clone().unwrap().into();
+        spec.group = self.group.clone().unwrap_or(DEFAULT_GROUP.to_string());
+        if let Some(ref app_env) = self.application_environment {
+            spec.application_environment = Some(app_env.clone().into());
+        }
+        if let Some(ref bldr_url) = self.bldr_url {
+            spec.bldr_url = bldr_url.to_string();
+        }
+        if let Some(ref channel) = self.bldr_channel {
+            spec.channel = channel.to_string();
+        }
+        if let Some(ref list) = self.binds {
+            let binds: Vec<ServiceBind> = list.binds.clone().into_iter().map(Into::into).collect();
+            let (_, standard) = binds.into_iter().partition(|ref bind| bind.is_composite());
+            spec.binds = standard;
+        }
+        if let Some(binding_mode) = self.binding_mode {
+            spec.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
+        }
+        if let Some(ref config_from) = self.config_from {
+            spec.config_from = Some(PathBuf::from(config_from));
+        }
+        spec.composite = None;
+    }
+
+    fn into_composite_spec(
+        &self,
+        _composite_name: String,
+        _services: Vec<PackageIdent>,
+        _bind_map: BindMap,
+    ) -> Vec<ServiceSpec> {
+        vec![]
+    }
+
+    fn update_composite(&self, _bind_map: &mut BindMap, _spec: &mut ServiceSpec) { }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {

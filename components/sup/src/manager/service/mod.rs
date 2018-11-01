@@ -613,6 +613,19 @@ impl Service {
         cfg_changed
     }
 
+    pub fn write_templates(&mut self, census_ring: &CensusRing) {
+        let ctx = self.render_context(census_ring);
+
+        // If any hooks have changed, execute the `reload` hook (if present) or restart the
+        // service.
+        self.compile_hooks(&ctx);
+
+        // If the configuration has changed, execute the `reload` and `reconfigure` hooks.
+        // Note that the configuration does not necessarily change every time the user
+        // config has (e.g. when only a comment has been added to the latter)
+        self.compile_configuration(&ctx);
+    }
+
     /// Replace the package of the running service and restart its system process.
     pub fn update_package(&mut self, package: PackageInstall, launcher: &LauncherCli) {
         match Pkg::from_install(package) {
