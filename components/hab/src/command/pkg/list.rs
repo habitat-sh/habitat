@@ -16,7 +16,11 @@ use error::Result;
 use hcore::fs as hfs;
 use hcore::package::list;
 use hcore::package::PackageIdent;
+
 use std::path::Path;
+use std::str::FromStr;
+
+use clap::ArgMatches;
 
 /// There are three options for what we can list:
 ///   - All packages (no prefix supplied)
@@ -27,6 +31,30 @@ pub enum ListingType {
     AllPackages,
     Origin(String),
     Ident(PackageIdent),
+}
+
+/// Convert a set of command line options into a ListingType
+impl<'a> From<&'a ArgMatches<'a>> for ListingType {
+    /// Convert clap options into a listing type.
+    ///
+    /// We assume that the arguments have been validated during CLI parsing i.e.
+    /// ORIGIN and PKG_IDENT are a valid origin and package identifier
+    fn from(m: &ArgMatches) -> Self {
+        if m.is_present("ALL") {
+            return ListingType::AllPackages;
+        }
+
+        if m.is_present("ORIGIN") {
+            let origin = m.value_of("ORIGIN").unwrap(); // Required by clap
+            return ListingType::Origin(origin.to_string());
+        }
+
+        let p = m.value_of("PKG_IDENT").unwrap(); // Required by clap
+        match PackageIdent::from_str(&p) {
+            Ok(ident) => ListingType::Ident(ident),
+            Err(_) => unreachable!("We've already validated PackageIdent {}", &p),
+        }
+    }
 }
 
 pub fn start(listing: &ListingType, fs_root_path: &Path) -> Result<()> {

@@ -18,6 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use clap::{App, AppSettings, Arg};
+use hcore::package::ident;
 use hcore::package::{Identifiable, PackageIdent};
 use hcore::{crypto::keys::PairType, service::ServiceGroup};
 use protocol;
@@ -410,7 +411,7 @@ pub fn get() -> App<'static, 'static> {
                     (@attributes +required)
                     (@arg ALL: -a --all
                             "List all installed packages")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                             "An origin to list")
                     (@arg PKG_IDENT: +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2).")
@@ -1118,6 +1119,14 @@ fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
             "'{}' is not valid. Fully qualified package identifiers have the form origin/name/version/release",
             &val
         )),
+    }
+}
+
+fn valid_origin(val: String) -> result::Result<(), String> {
+    if ident::is_valid_origin_name(&val) {
+        Ok(())
+    } else {
+        Err(format!("'{}' is not valid. A valid origin contains a-z, 0-9, and _ or - after the first character", &val))
     }
 }
 
