@@ -135,7 +135,7 @@ pub fn get() -> App<'static, 'static> {
                         "The job id that was returned from \"hab bldr job start\" \
                         (ex: 771100000000000000)")
                     (@arg CHANNEL: +takes_value +required "The target channel name")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "Limit the promotable packages to the specified origin")
                     (@arg INTERACTIVE: -i --interactive
                         "Allow editing the list of promotable packages")
@@ -152,7 +152,7 @@ pub fn get() -> App<'static, 'static> {
                         "The job id that was returned from \"hab bldr start\" \
                         (ex: 771100000000000000)")
                     (@arg CHANNEL: +takes_value +required "The target channel name")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "Limit the demotable packages to the specified origin")
                     (@arg INTERACTIVE: -i --interactive
                         "Allow editing the list of demotable packages")
@@ -170,7 +170,7 @@ pub fn get() -> App<'static, 'static> {
                         (@arg GROUP_ID: +takes_value
                             "The group id that was returned from \"hab bldr job start\" \
                             (ex: 771100000000000000)")
-                        (@arg ORIGIN: -o --origin +takes_value
+                        (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                             "Show the status of recent job groups created in this origin \
                             (default: 10 most recent)")
                     )
@@ -197,7 +197,7 @@ pub fn get() -> App<'static, 'static> {
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg CHANNEL: +required + takes_value "The channel name")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "Sets the origin to which the channel will belong. Default is from \
                         'HAB_ORIGIN' or cli.toml")
                 )
@@ -209,7 +209,7 @@ pub fn get() -> App<'static, 'static> {
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg CHANNEL: +required + takes_value "The channel name")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN'\
                         or cli.toml")
                 )
@@ -220,7 +220,7 @@ pub fn get() -> App<'static, 'static> {
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
-                    (@arg ORIGIN: +takes_value
+                    (@arg ORIGIN: +takes_value {valid_origin}
                         "The origin for which channels will be listed. Default is from 'HAB_ORIGIN'\
                         or cli.toml")
                 )
@@ -237,7 +237,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand download =>
                     (about: "Download origin key(s) to HAB_CACHE_KEY_PATH")
                     (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
-                    (@arg ORIGIN: +required "The origin name")
+                    (@arg ORIGIN: +required {valid_origin} "The origin name" )
                     (@arg REVISION: "The key revision")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -253,14 +253,14 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
-                    (@arg ORIGIN: +required +takes_value)
+                    (@arg ORIGIN: +required +takes_value {valid_origin})
                     (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
                     "Export either the 'public' or 'secret' key")
                 )
                 (@subcommand generate =>
                     (about: "Generates a Habitat origin key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg ORIGIN: "The origin name")
+                    (@arg ORIGIN: {valid_origin} "The origin name")
                 )
                 (@subcommand import =>
                     (about: "Reads a stdin stream containing a public or secret origin key \
@@ -270,7 +270,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand upload =>
                     (@group upload =>
                         (@attributes +required)
-                        (@arg ORIGIN: "The origin name")
+                        (@arg ORIGIN: {valid_origin} "The origin name")
                         (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
                             "Path to a local public origin key file on disk")
                     )
@@ -302,7 +302,7 @@ pub fn get() -> App<'static, 'static> {
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "The origin for which the secret will be uploaded. Default is from \
                         'HAB_ORIGIN' or cli.toml")
                 )
@@ -315,7 +315,7 @@ pub fn get() -> App<'static, 'static> {
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "The origin for which the secret will be deleted. Default is from \
                         'HAB_ORIGIN' or cli.toml")
                 )
@@ -326,7 +326,7 @@ pub fn get() -> App<'static, 'static> {
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                    (@arg ORIGIN: -o --origin +takes_value
+                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' \
                         or cli.toml")
                 )
@@ -439,7 +439,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand sign =>
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")
                 (aliases: &["s", "si", "sig"])
-                (@arg ORIGIN: --origin +takes_value "Origin key used to create signature")
+                (@arg ORIGIN: --origin +takes_value {valid_origin} "Origin key used to create signature")
                 (@arg SOURCE: +required {file_exists}
                     "A path to a source archive file \
                     (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
@@ -547,7 +547,7 @@ pub fn get() -> App<'static, 'static> {
                     in the generated plan")
                 (aliases: &["i", "in", "ini"])
                 (@arg PKG_NAME: +takes_value "Name for the new app")
-                (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
+                (@arg ORIGIN: --origin -o +takes_value {valid_origin} "Origin for the new app")
                 (@arg WITH_DOCS: --("with-docs") "Include plan options documentation")
                 (@arg WITH_CALLBACKS: --("with-callbacks")
                     "Include callback functions in template")
