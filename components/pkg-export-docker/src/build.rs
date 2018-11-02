@@ -31,7 +31,7 @@ use hab;
 use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use hcore::PROGRAM_NAME;
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 use super::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION};
 use accounts::{EtcGroupEntry, EtcPasswdEntry};
@@ -115,7 +115,7 @@ impl<'a> BuildSpec<'a> {
     /// * If the `BuildRootContext` cannot be created
     pub fn create(self, ui: &mut UI) -> Result<BuildRoot> {
         debug!("Creating BuildRoot from {:?}", &self);
-        let workdir = TempDir::new(&*PROGRAM_NAME)?;
+        let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
         ui.status(
             Status::Creating,
@@ -879,14 +879,14 @@ mod test {
         use common::ui::{Coloring, UI};
         use hcore;
 
-        use tempdir::TempDir;
+        use tempfile::TempDir;
 
         use super::super::*;
         use super::*;
 
         #[test]
         fn artifact_cache_symlink() {
-            let rootfs = TempDir::new("rootfs").unwrap();
+            let rootfs = TempDir::new().unwrap();
             let (mut ui, _, _) = ui();
             build_spec()
                 .create_symlink_to_artifact_cache(&mut ui, rootfs.path())
@@ -901,7 +901,7 @@ mod test {
 
         #[test]
         fn key_cache_symlink() {
-            let rootfs = TempDir::new("rootfs").unwrap();
+            let rootfs = TempDir::new().unwrap();
             let (mut ui, _, _) = ui();
             build_spec()
                 .create_symlink_to_key_cache(&mut ui, rootfs.path())
@@ -914,7 +914,7 @@ mod test {
         #[cfg(unix)]
         #[test]
         fn link_binaries() {
-            let rootfs = TempDir::new("rootfs").unwrap();
+            let rootfs = TempDir::new().unwrap();
             let (mut ui, _, _) = ui();
             let base_pkgs = base_pkgs(rootfs.path());
             build_spec()
@@ -943,7 +943,7 @@ mod test {
         #[cfg(unix)]
         #[test]
         fn link_cacerts() {
-            let rootfs = TempDir::new("rootfs").unwrap();
+            let rootfs = TempDir::new().unwrap();
             let (mut ui, _, _) = ui();
             let base_pkgs = base_pkgs(rootfs.path());
             build_spec()
@@ -1055,7 +1055,7 @@ mod test {
 
         #[test]
         fn build_context_from_a_spec() {
-            let rootfs = TempDir::new("rootfs").unwrap();
+            let rootfs = TempDir::new().unwrap();
             let _ = FakePkg::new("acme/libby", rootfs.path()).install();
 
             // A couple service packages
@@ -1102,7 +1102,7 @@ mod test {
 
         #[test]
         fn hab_user_and_group_are_created_even_if_not_explicitly_called_for() {
-            let rootfs = TempDir::new("rootfs").unwrap();
+            let rootfs = TempDir::new().unwrap();
 
             let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
                 .set_svc(true)
@@ -1125,7 +1125,7 @@ mod test {
 
         #[test]
         fn hab_user_and_group_are_created_along_with_non_root_users() {
-            let rootfs = TempDir::new("rootfs").unwrap();
+            let rootfs = TempDir::new().unwrap();
 
             let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
                 .set_svc(true)

@@ -573,7 +573,7 @@ mod test {
     use hcore::error::Error as HError;
     use hcore::package::PackageIdent;
     use hcore::service::{ApplicationEnvironment, ServiceGroup};
-    use tempdir::TempDir;
+    use tempfile::TempDir;
     use toml;
 
     use super::*;
@@ -741,7 +741,7 @@ mod test {
 
     #[test]
     fn service_spec_from_file() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("name.spec");
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
@@ -792,7 +792,7 @@ mod test {
 
     #[test]
     fn service_spec_from_file_missing() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("nope.spec");
 
         match ServiceSpec::from_file(&path) {
@@ -806,7 +806,7 @@ mod test {
 
     #[test]
     fn service_spec_from_file_empty() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("empty.spec");
         file_from_str(&path, "");
 
@@ -821,7 +821,7 @@ mod test {
 
     #[test]
     fn service_spec_from_file_bad_contents() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("bad.spec");
         file_from_str(&path, "You're gonna have a bad time");
 
@@ -836,7 +836,7 @@ mod test {
 
     #[test]
     fn service_spec_to_file() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("name.spec");
         let spec = ServiceSpec {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
@@ -877,7 +877,7 @@ mod test {
 
     #[test]
     fn service_spec_to_file_invalid_ident() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("name.spec");
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here

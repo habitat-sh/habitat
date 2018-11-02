@@ -1039,7 +1039,7 @@ mod tests {
     use hcore::package::{PackageIdent, PackageInstall};
     use hcore::service::ServiceGroup;
     use protocol;
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use super::fs as supfs;
     use super::*;
@@ -1091,7 +1091,7 @@ mod tests {
     }
 
     fn rendered_hooks_path() -> TempDir {
-        TempDir::new("habitat_hooks_test").expect("create temp dir")
+        TempDir::new().expect("create temp dir")
     }
 
     fn service_group() -> ServiceGroup {
@@ -1500,7 +1500,7 @@ echo "The message is Hello"
 
     #[test]
     fn hook_output() {
-        let tmp_dir = TempDir::new("habitat_hooks_test").expect("create temp dir");
+        let tmp_dir = TempDir::new().expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");
         DirBuilder::new()
             .recursive(true)

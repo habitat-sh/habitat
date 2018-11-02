@@ -265,13 +265,13 @@ mod test {
     use common::ui::{Coloring, UI};
     use hcore;
     use hcore::package::{PackageIdent, PackageTarget};
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use super::{binlink_all_in_pkg, start, Binlink};
 
     #[test]
     fn start_symlinks_binaries() {
-        let rootfs = TempDir::new("rootfs").unwrap();
+        let rootfs = TempDir::new().unwrap();
         let mut tools = HashMap::new();
         tools.insert("bin", vec!["magicate.exe", "hypnoanalyze.exe"]);
         let ident = fake_bin_pkg_install("acme/cooltools", tools, rootfs.path());
@@ -330,7 +330,7 @@ mod test {
 
     #[test]
     fn binlink_all_in_pkg_symlinks_all_binaries() {
-        let rootfs = TempDir::new("rootfs").unwrap();
+        let rootfs = TempDir::new().unwrap();
         let mut tools = HashMap::new();
         tools.insert("bin", vec!["magicate.exe", "hypnoanalyze.exe"]);
         tools.insert("sbin", vec!["securitize.exe", "conceal.exe"]);
@@ -385,7 +385,7 @@ mod test {
     #[test]
     #[cfg(target_os = "windows")]
     fn binlink_all_in_pkg_symlinks_only_executables() {
-        let rootfs = TempDir::new("rootfs").unwrap();
+        let rootfs = TempDir::new().unwrap();
         let mut tools = HashMap::new();
         tools.insert("bin", vec!["magicate.exe", "hypnoanalyze.dll"]);
         let ident = fake_bin_pkg_install("acme/securetools", tools, rootfs.path());
@@ -413,7 +413,7 @@ mod test {
 
     #[test]
     fn binlink_all_in_pkg_skips_invalid_sub_dirs() {
-        let rootfs = TempDir::new("rootfs").unwrap();
+        let rootfs = TempDir::new().unwrap();
         let mut tools = HashMap::new();
         tools.insert("bin", vec!["magicate.exe"]);
         tools.insert("bin/moar", vec!["bonus-round.exe"]);

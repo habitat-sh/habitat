@@ -643,7 +643,7 @@ mod test {
     use std::fs;
     use std::fs::OpenOptions;
 
-    use tempdir::TempDir;
+    use tempfile::TempDir;
     use toml;
 
     use super::*;
@@ -876,7 +876,7 @@ mod test {
 
     impl CfgTestData {
         fn new() -> Self {
-            let tmp = TempDir::new("habitat_config_test").expect("create temp dir");
+            let tmp = TempDir::new().expect("create temp dir");
             let pkg = TestPkg::new(&tmp);
             let rucp = pkg.recommended_user_config_dir().join(USER_CONFIG_FILE);
             let ducp = pkg.deprecated_user_config_dir().join(USER_CONFIG_FILE);
@@ -983,7 +983,7 @@ mod test {
 
     #[test]
     fn serialize_config() {
-        let concrete_path = TempDir::new("habitat_config_test").expect("create temp dir");
+        let concrete_path = TempDir::new().expect("create temp dir");
         let pkg = TestPkg::new(&concrete_path);
         let mut cfg = Cfg::new(&pkg, None).expect("Could not create config");
         let default_toml = "shards = []\n\n\

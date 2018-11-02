@@ -31,7 +31,7 @@ extern crate rusoto_credential as aws_creds;
 extern crate rusoto_ecr;
 #[macro_use]
 extern crate serde_json;
-extern crate tempdir;
+extern crate tempfile;
 extern crate url;
 
 extern crate failure;

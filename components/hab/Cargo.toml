@@ -67,7 +67,7 @@ winapi = { version = "*", features = ["winuser", "windef"] }
 winreg = "*"
 
 [dev-dependencies]
-tempdir = "*"
+tempfile = "*"
 
 [features]
 default = []

@@ -26,7 +26,7 @@ extern crate pbr;
 extern crate petgraph;
 extern crate regex;
 extern crate retry;
-extern crate tempdir;
+extern crate tempfile;
 extern crate term;
 extern crate time;
 extern crate toml;

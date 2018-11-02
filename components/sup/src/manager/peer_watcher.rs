@@ -166,11 +166,11 @@ mod tests {
     use config::GOSSIP_DEFAULT_PORT;
     use std::fs::{File, OpenOptions};
     use std::io::Write;
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     #[test]
     fn no_file() {
-        let tmpdir = TempDir::new("peerwatchertest").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("no_such_file");
         let watcher = PeerWatcher::run(path).unwrap();
 
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn empty_file() {
-        let tmpdir = TempDir::new("peerwatchertest").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("empty_file");
         File::create(&path).unwrap();
         let watcher = PeerWatcher::run(path).unwrap();
@@ -190,7 +190,7 @@ mod tests {
 
     #[test]
     fn with_file() {
-        let tmpdir = TempDir::new("peerwatchertest").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("some_file");
         let mut file = OpenOptions::new()
             .append(true)

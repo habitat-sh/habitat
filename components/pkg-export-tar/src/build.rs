@@ -26,7 +26,7 @@ use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
 use std::path::Path;
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 use super::{BUSYBOX_IDENT, VERSION};
 
@@ -95,7 +95,7 @@ impl<'a> BuildSpec<'a> {
     /// * If the root file system cannot be created
     /// * If the `BuildRootContext` cannot be created
     pub fn create(self, ui: &mut UI) -> Result<(TempDir, PackageIdent)> {
-        let workdir = TempDir::new(&*PROGRAM_NAME)?;
+        let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
 
         ui.status(

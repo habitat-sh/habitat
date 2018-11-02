@@ -47,7 +47,7 @@ extern crate serde_json;
 extern crate tabwriter;
 extern crate tar;
 #[cfg(test)]
-extern crate tempdir;
+extern crate tempfile;
 extern crate toml;
 extern crate url;
 extern crate uuid;
