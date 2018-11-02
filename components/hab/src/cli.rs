@@ -835,8 +835,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
             "The listen address for the Control Gateway. If not specified, the value will \
             be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
         (@arg ORGANIZATION: --org +takes_value
-            "The organization that the Supervisor and its subsequent services are part of \
-             [default: default]")
+            "The organization that the Supervisor and its subsequent services are part of.")
         (@arg PEER: --peer +takes_value +multiple
             "The listen address of one or more initial peers (IP[:PORT])")
         (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
