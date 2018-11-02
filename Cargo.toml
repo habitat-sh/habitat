@@ -22,3 +22,10 @@ members = [
   "components/sup-client",
   "components/sup-protocol",
 ]
+
+# To test local changes to the core crate, uncomment the following and then
+# run `cargo update`. If the core repo isn't in the same directory as the
+# habitat repo, you may need to adjust the paths.
+# [patch."https://github.com/habitat-sh/core.git"]
+# habitat_core = {path = "../core/components/core"}
+# habitat_win_users = {path = "../core/components/win-users"}
