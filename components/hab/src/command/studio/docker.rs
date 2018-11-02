@@ -82,6 +82,7 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
 
     let mut env_vars = vec![
         String::from("DEBUG"),
+        String::from("DO_CHECK"),
         String::from("HAB_AUTH_TOKEN"),
         String::from("HAB_BLDR_URL"),
         String::from("HAB_BLDR_CHANNEL"),
