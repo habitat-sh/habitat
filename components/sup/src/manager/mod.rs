@@ -1123,14 +1123,7 @@ impl Manager {
 
                 for spec in specs.iter_mut() {
                     match opts.render_only {
-                        None => {
-                            Self::save_spec_for(&mgr.cfg, spec)?;
-                            req.info(format!(
-                                "The {} service was successfully loaded",
-                                spec.ident
-                            ))?;
-                        }
-                        Some(_) => {
+                        Some(true) => {
                             let mut service = Service::load(
                                 Arc::new(Sys::new(
                                     mgr.cfg.gossip_permanent,
@@ -1153,6 +1146,13 @@ impl Manager {
                             );
                             req.info(format!(
                                 "The {} service was successfully rendered",
+                                spec.ident
+                            ))?;
+                        }
+                        _ => {
+                            Self::save_spec_for(&mgr.cfg, spec)?;
+                            req.info(format!(
+                                "The {} service was successfully loaded",
                                 spec.ident
                             ))?;
                         }

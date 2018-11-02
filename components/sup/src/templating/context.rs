@@ -813,7 +813,7 @@ two = 2
             sys: system_info,
             pkg: pkg,
             cfg: Cow::Owned(cfg),
-            svc: svc,
+            svc: Some(svc),
             bind: binds,
         }
     }
