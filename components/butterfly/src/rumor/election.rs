@@ -23,9 +23,6 @@
 //! the election finishing. There can, in the end, be only one.
 
 use std::ops::{Deref, DerefMut};
-use std::str::FromStr;
-
-use habitat_core::service::ServiceGroup;
 
 use error::{Error, Result};
 use protocol::newscast::Rumor as ProtoRumor;
@@ -37,7 +34,7 @@ use rumor::{Rumor, RumorPayload, RumorType};
 pub struct Election {
     pub from_id: String,
     pub member_id: String,
-    pub service_group: ServiceGroup,
+    pub service_group: String,
     pub term: u64,
     pub suitability: u64,
     pub status: ElectionStatus,
@@ -47,7 +44,7 @@ pub struct Election {
 impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
-    pub fn new<S1>(member_id: S1, service_group: ServiceGroup, suitability: u64) -> Election
+    pub fn new<S1>(member_id: S1, service_group: &str, suitability: u64) -> Election
     where
         S1: Into<String>,
     {
@@ -55,7 +52,7 @@ impl Election {
         Election {
             from_id: from_id.clone(),
             member_id: from_id.clone(),
-            service_group: service_group,
+            service_group: service_group.into(),
             term: 0,
             suitability: suitability,
             status: ElectionStatus::Running,
@@ -124,8 +121,7 @@ impl FromProto<ProtoRumor> for Election {
             member_id: from_id.clone(),
             service_group: payload
                 .service_group
-                .ok_or(Error::ProtocolMismatch("service-group"))
-                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+                .ok_or(Error::ProtocolMismatch("service-group"))?,
             term: payload.term.unwrap_or(0),
             suitability: payload.suitability.unwrap_or(0),
             status: payload
@@ -223,7 +219,7 @@ impl Rumor for Election {
 pub struct ElectionUpdate(Election);
 
 impl ElectionUpdate {
-    pub fn new<S1>(member_id: S1, service_group: ServiceGroup, suitability: u64) -> ElectionUpdate
+    pub fn new<S1>(member_id: S1, service_group: &str, suitability: u64) -> ElectionUpdate
     where
         S1: Into<String>,
     {
@@ -303,7 +299,7 @@ mod tests {
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(
             member_id,
-            ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
+            &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
             suitability,
         )
     }
@@ -311,7 +307,7 @@ mod tests {
     fn create_election_update(member_id: &str, suitability: u64) -> ElectionUpdate {
         ElectionUpdate::new(
             member_id,
-            ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
+            &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
             suitability,
         )
     }

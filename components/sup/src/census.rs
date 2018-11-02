@@ -862,12 +862,12 @@ mod tests {
         service_store.insert(service_three);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a", sg_one.clone(), 10);
+        let mut election = ElectionRumor::new("member-a", &sg_one, 10);
         election.finish();
         election_store.insert(election);
 
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
-        let mut election_update = ElectionUpdateRumor::new("member-b", sg_two.clone(), 10);
+        let mut election_update = ElectionUpdateRumor::new("member-b", &sg_two, 10);
         election_update.finish();
         election_update_store.insert(election_update);
 

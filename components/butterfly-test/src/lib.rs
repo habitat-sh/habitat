@@ -51,7 +51,7 @@ lazy_static! {
 #[derive(Debug)]
 struct NSuitability(u64);
 impl Suitability for NSuitability {
-    fn get(&self, _service_group: &ServiceGroup) -> u64 {
+    fn get(&self, _service_group: &str) -> u64 {
         self.0
     }
 }
@@ -518,7 +518,7 @@ impl SwimNet {
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election(ServiceGroup::new(None, service, "prod", None).unwrap(), 0);
+        self[member].start_election(&ServiceGroup::new(None, service, "prod", None).unwrap(), 0);
     }
 }
 

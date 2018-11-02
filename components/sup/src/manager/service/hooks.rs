@@ -1328,7 +1328,7 @@ echo "The message is Hola Mundo"
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a", sg_one, 10);
+        let mut election = ElectionRumor::new("member-a", &sg_one, 10);
         election.finish();
         election_store.insert(election);
 
@@ -1435,7 +1435,7 @@ echo "The message is Hello"
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a", sg_one, 10);
+        let mut election = ElectionRumor::new("member-a", &sg_one, 10);
         election.finish();
         election_store.insert(election);
 

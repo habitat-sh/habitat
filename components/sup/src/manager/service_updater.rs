@@ -143,7 +143,7 @@ impl ServiceUpdater {
                                     u64::max_value()
                                 };
                                 self.butterfly.start_update_election(
-                                    service.service_group.clone(),
+                                    &service.service_group,
                                     suitability,
                                     0,
                                 );
@@ -154,7 +154,7 @@ impl ServiceUpdater {
                     } else {
                         debug!("Rolling update, using default suitability");
                         self.butterfly
-                            .start_update_election(service.service_group.clone(), 0, 0);
+                            .start_update_election(&service.service_group, 0, 0);
                         *st = RollingState::InElection;
                     }
                 }
