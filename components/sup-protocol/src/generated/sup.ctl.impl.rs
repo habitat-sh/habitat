@@ -33,9 +33,6 @@ impl message::MessageStatic for SvcLoad {
 impl message::MessageStatic for SvcUnload {
     const MESSAGE_ID: &'static str = "SvcUnload";
 }
-impl message::MessageStatic for SvcRender {
-    const MESSAGE_ID: &'static str = "SvcRender";
-}
 impl message::MessageStatic for SvcStart {
     const MESSAGE_ID: &'static str = "SvcStart";
 }

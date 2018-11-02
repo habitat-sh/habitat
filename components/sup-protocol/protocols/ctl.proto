@@ -104,31 +104,8 @@ message SvcLoad {
   optional sup.types.Topology topology = 12;
   // Update strategy for the service.
   optional sup.types.UpdateStrategy update_strategy = 13;
-}
-
-// Request to render templates of a service.
-message SvcRender {
-  // Package identifier for the service to load. Using a more qualified identifier will load a
-  // more specific package.
-  optional sup.types.PackageIdent ident = 1;
-  // An application environment to place the service in.
-  optional sup.types.ApplicationEnvironment application_environment = 2;
-  // List of service binds to use when configuring the service.
-  optional ServiceBindList binds = 3;
-  // Set to true if any binds were set by the caller. This field is needed because a blank list
-  // and map will be present in a case when no binds were set *and* when binds are removed.
-  optional bool specified_binds = 4;
-  // Indicate how bind availability affects service start-up
-  optional sup.types.BindingMode binding_mode = 5;
-  // Remote http URL for the Builder service to receive package updates from.
-  optional string bldr_url = 6;
-  // Remote channel on the Builder service to receive package updates from.
-  optional string bldr_channel = 7;
-  // A filepath on disk which can be specified to override the package's configuration and hooks.
-  // This is useful when testing services on a local Supervisor before packaging them.
-  optional string config_from = 8;
-  // Service group name for the service.
-  optional string group = 9 [default = "default"];
+  // only render package templates
+  optional bool render_only = 15 [default = false];
 }
 
 // Request to unload a loaded service.

@@ -101,7 +101,7 @@ impl<'a> RenderContext<'a> {
         sys: &'a Sys,
         pkg: &'a Pkg,
         cfg: &'a Cfg,
-        census:&'a CensusRing,
+        census: &'a CensusRing,
         bindings: T,
     ) -> RenderContext<'a>
     where
@@ -124,7 +124,7 @@ impl<'a> RenderContext<'a> {
     pub fn service_group_name(&self) -> String {
         match self.svc {
             Some(ref s) => format!("{}", s.service_group),
-            None => format!("{}", self.pkg.name)
+            None => format!("{}", self.pkg.name),
         }
     }
 }

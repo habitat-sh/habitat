@@ -591,20 +591,7 @@ impl Service {
         self.defaults_updated = false;
 
         if cfg_changed || census_ring.changed() {
-            let (reload, reconfigure) = {
-                let ctx = self.render_context(census_ring);
-
-                // If any hooks have changed, execute the `reload` hook (if present) or restart the
-                // service.
-                let reload = self.compile_hooks(&ctx);
-
-                // If the configuration has changed, execute the `reload` and `reconfigure` hooks.
-                // Note that the configuration does not necessarily change every time the user
-                // config has (e.g. when only a comment has been added to the latter)
-                let reconfigure = self.compile_configuration(&ctx);
-
-                (reload, reconfigure)
-            };
+            let (reload, reconfigure) = self.write_templates(census_ring);
 
             self.needs_reload = reload;
             self.needs_reconfiguration = reconfigure;
@@ -613,17 +600,19 @@ impl Service {
         cfg_changed
     }
 
-    pub fn write_templates(&mut self, census_ring: &CensusRing) {
+    pub fn write_templates(&mut self, census_ring: &CensusRing) -> (bool, bool) {
         let ctx = self.render_context(census_ring);
 
         // If any hooks have changed, execute the `reload` hook (if present) or restart the
         // service.
-        self.compile_hooks(&ctx);
+        let reload = self.compile_hooks(&ctx);
 
         // If the configuration has changed, execute the `reload` and `reconfigure` hooks.
         // Note that the configuration does not necessarily change every time the user
         // config has (e.g. when only a comment has been added to the latter)
-        self.compile_configuration(&ctx);
+        let reconfigure = self.compile_configuration(&ctx);
+
+        (reload, reconfigure)
     }
 
     /// Replace the package of the running service and restart its system process.
