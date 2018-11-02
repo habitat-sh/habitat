@@ -8,6 +8,7 @@
 - Reduce excessive disk I/O when persisting rumors [#5804](https://github.com/habitat-sh/habitat/pull/5804) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Refactor ManagerConfig generation from ArgMatches [#5793](https://github.com/habitat-sh/habitat/pull/5793) ([mpeck](https://github.com/mpeck))
 - Put some guard rails around hab pkg uninstall [#5801](https://github.com/habitat-sh/habitat/pull/5801) ([jamesc](https://github.com/jamesc))
 - Evolve the supervisor&#39;s HTTP API [#5787](https://github.com/habitat-sh/habitat/pull/5787) ([raskchanky](https://github.com/raskchanky))
 - Automate bumping Homebrew version information after a release [#5799](https://github.com/habitat-sh/habitat/pull/5799) ([christophermaier](https://github.com/christophermaier))
