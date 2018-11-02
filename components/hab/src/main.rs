@@ -60,6 +60,7 @@ use hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
 use hcore::env as henv;
 use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path};
 use hcore::package::PackageIdent;
+
 use hcore::service::ServiceGroup;
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use protocol::codec::*;
@@ -72,6 +73,7 @@ use tabwriter::TabWriter;
 use hab::analytics;
 use hab::cli;
 use hab::command;
+use hab::command::pkg::list::ListingType;
 use hab::config::{self, Config};
 use hab::error::{Error, Result};
 use hab::feat;
@@ -219,6 +221,7 @@ fn start(ui: &mut UI) -> Result<()> {
             ("export", Some(m)) => sub_pkg_export(ui, m)?,
             ("hash", Some(m)) => sub_pkg_hash(m)?,
             ("install", Some(m)) => sub_pkg_install(ui, m)?,
+            ("list", Some(m)) => sub_pkg_list(m)?,
             ("path", Some(m)) => sub_pkg_path(m)?,
             ("provides", Some(m)) => sub_pkg_provides(m)?,
             ("search", Some(m)) => sub_pkg_search(m)?,
@@ -681,6 +684,12 @@ fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
     command::pkg::path::start(&ident, &*FS_ROOT)
+}
+
+fn sub_pkg_list(m: &ArgMatches) -> Result<()> {
+    let listing_type = ListingType::from(m);
+
+    command::pkg::list::start(&listing_type, &*FS_ROOT)
 }
 
 fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
