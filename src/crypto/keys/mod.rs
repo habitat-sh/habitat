@@ -594,7 +594,7 @@ mod test {
     use std::{thread, time};
 
     use hex;
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     use super::box_key_pair::BoxKeyPair;
     use super::sig_key_pair::SigKeyPair;
@@ -612,7 +612,7 @@ mod test {
 
     #[test]
     fn tmp_keyfile_delete_on_drop() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let path = cache.path().join("mykey");
 
         {
@@ -625,7 +625,7 @@ mod test {
 
     #[test]
     fn tmp_keyfile_no_file_on_drop() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let path = cache.path().join("mykey");
 
         {
@@ -656,7 +656,7 @@ mod test {
 
     #[test]
     fn read_key_bytes() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join(VALID_KEY);
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &keyfile).unwrap();
         println!("keyfile {:?}", keyfile);
@@ -667,7 +667,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Can\\'t read key bytes")]
     fn read_key_bytes_empty_file() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("not-much-here");
         let _ = File::create(&keyfile).unwrap();
 
@@ -677,7 +677,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Malformed key contents")]
     fn read_key_bytes_missing_newlines() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("missing-newlines");
         let mut f = File::create(&keyfile).unwrap();
         f.write_all("SOMETHING\nELSE\n".as_bytes()).unwrap();
@@ -688,7 +688,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Can\\'t read raw key")]
     fn read_key_bytes_malformed_base64() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("missing-newlines");
         let mut f = File::create(&keyfile).unwrap();
         f.write_all("header\nsomething\n\nI am not base64 content".as_bytes())
@@ -699,7 +699,7 @@ mod test {
 
     #[test]
     fn get_key_revisions_can_return_everything() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::generate_pair_for_origin("foo")
             .unwrap()
             .to_pair_files(cache.path())
@@ -716,7 +716,7 @@ mod test {
 
     #[test]
     fn get_key_revisions_can_only_return_keys_of_specified_type() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::generate_pair_for_origin("foo")
             .unwrap()
             .to_pair_files(cache.path())
@@ -733,7 +733,7 @@ mod test {
 
     #[test]
     fn get_key_revisions_can_return_secret_keys() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::generate_pair_for_origin("foo")
             .unwrap()
             .to_pair_files(cache.path())
@@ -752,7 +752,7 @@ mod test {
 
     #[test]
     fn get_key_revisions_can_return_public_keys() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::generate_pair_for_origin("foo")
             .unwrap()
             .to_pair_files(cache.path())
@@ -771,7 +771,7 @@ mod test {
 
     #[test]
     fn get_user_key_revisions() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         for _ in 0..3 {
             wait_until_ok(|| {
                 let pair = BoxKeyPair::generate_pair_for_user("wecoyote")?;
@@ -796,7 +796,7 @@ mod test {
 
     #[test]
     fn get_service_key_revisions() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         for _ in 0..3 {
             wait_until_ok(|| {
@@ -824,7 +824,7 @@ mod test {
 
     #[test]
     fn get_ring_key_revisions() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         for _ in 0..3 {
             wait_until_ok(|| {
@@ -850,7 +850,7 @@ mod test {
 
     #[test]
     fn get_origin_key_revisions() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
         for _ in 0..3 {
             wait_until_ok(|| {
@@ -881,7 +881,7 @@ mod test {
     /// See https://github.com/habitat-sh/habitat/issues/2939
     #[test]
     fn keys_that_are_symlinks_can_still_be_found() {
-        let temp_dir = TempDir::new("symlinks_are_ok").unwrap();
+        let temp_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
         let key =
             SymKey::generate_pair_for_ring("symlinks_are_ok").expect("Could not generate ring key");
         key.to_pair_files(temp_dir.path()).unwrap();

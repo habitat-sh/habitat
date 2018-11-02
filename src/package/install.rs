@@ -653,7 +653,7 @@ mod test {
     use std::fs::File;
     use std::io::Write;
 
-    use tempdir::TempDir;
+    use tempfile::Builder;
     use toml;
 
     use super::*;
@@ -755,7 +755,7 @@ mod test {
 
     #[test]
     fn reading_a_valid_bind_map_file_works() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_install = testing_package_install("core/composite", fs_root.path());
 
         // Create a BIND_MAP file for that package
@@ -791,7 +791,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn reading_a_bad_bind_map_file_results_in_an_error() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_install = testing_package_install("core/dud", fs_root.path());
 
         // Create a BIND_MAP directory for that package
@@ -807,7 +807,7 @@ core/bar=pub:core/publish sub:core/subscribe
     /// standalone packages will never have them. This is OK.
     #[test]
     fn missing_bind_map_files_are_ok() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_install = testing_package_install("core/no-binds", fs_root.path());
 
         // Grab the bind map from that package
@@ -817,7 +817,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_with_fully_qualified_ident_matching_target() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
@@ -833,7 +833,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_with_fully_qualified_ident_with_wrong_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
@@ -858,7 +858,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_with_fuzzy_ident_matching_target() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
@@ -874,7 +874,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_with_fuzzy_ident_with_wrong_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
@@ -899,7 +899,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_with_fuzzy_ident_with_multiple_packages_only_one_matching_target() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
 
@@ -923,7 +923,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_with_missing_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         std::fs::remove_file(
@@ -948,7 +948,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_with_malformed_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, "NOT_A_TARGET_EVER");
@@ -969,7 +969,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_at_least_with_fully_qualified_ident_matching_target() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
@@ -985,7 +985,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_at_least_with_fully_qualified_ident_with_wrong_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
@@ -1010,7 +1010,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_at_least_with_fuzzy_ident_matching_target() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
@@ -1026,7 +1026,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_at_least_with_fuzzy_ident_with_wrong_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
@@ -1051,7 +1051,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_at_least_with_fuzzy_ident_with_multiple_packages_only_one_matching_target() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
 
@@ -1075,7 +1075,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_at_least_with_missing_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         std::fs::remove_file(
@@ -1100,7 +1100,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn load_at_least_with_malformed_target_returns_package_not_found_err() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, "NOT_A_TARGET_EVER");
@@ -1121,7 +1121,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn paths_metafile_single() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         set_path_for(&pkg_install, vec!["bin"]);
 
@@ -1133,7 +1133,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn paths_metafile_multiple() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         set_path_for(&pkg_install, vec!["bin", "sbin", ".gem/bin"]);
 
@@ -1151,7 +1151,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn paths_metafile_missing() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
         assert_eq!(Vec::<PathBuf>::new(), pkg_install.paths().unwrap());
@@ -1159,7 +1159,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn paths_metafile_empty() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
         // Create a zero-sizd `PATH` metafile
@@ -1170,7 +1170,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn paths_metafile_drop_extra_entries() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         let other_pkg_install = testing_package_install("acme/prophets-of-rage", fs_root.path());
 
@@ -1199,7 +1199,7 @@ core/bar=pub:core/publish sub:core/subscribe
     #[cfg(windows)]
     #[test]
     fn win_legacy_paths_metafile_missing_with_runtime_metafile() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         let other_pkg_install = testing_package_install("acme/prophets-of-rage", fs_root.path());
 
@@ -1226,7 +1226,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn runtime_paths_single_package_single_path() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         set_path_for(&pkg_install, vec!["bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install]);
@@ -1239,7 +1239,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn runtime_paths_single_package_multiple_paths() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         set_path_for(&pkg_install, vec!["sbin", ".gem/bin", "bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install]);
@@ -1258,7 +1258,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn runtime_paths_multiple_packages() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
         set_path_for(&other_pkg_install, vec!["sbin"]);
@@ -1279,7 +1279,7 @@ core/bar=pub:core/publish sub:core/subscribe
     // This test uses the legacy/fallback implementation of determining the runtime path
     #[test]
     fn runtime_paths_metafile_missing_with_path_metafiles() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
         set_path_for(&other_pkg_install, vec!["sbin"]);
@@ -1300,7 +1300,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn runtime_paths_metafile_empty() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         // A `PATH` metafile should *not* influence this test
         set_path_for(&pkg_install, vec!["nope"]);
@@ -1323,7 +1323,7 @@ core/bar=pub:core/publish sub:core/subscribe
             pkg_install.paths().unwrap()
         }
 
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let hotel = testing_package_install("acme/hotel", fs_root.path());
         set_path_for(&hotel, vec!["bin"]);
@@ -1373,7 +1373,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn environment_for_command_missing_all_metafiles() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
         assert_eq!(
@@ -1384,7 +1384,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn environment_for_command_with_runtime_environment_with_no_path() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
         // Create a `RUNTIME_ENVIRONMENT` metafile including a `PATH` key which should be ignored
@@ -1403,7 +1403,7 @@ core/bar=pub:core/publish sub:core/subscribe
 
     #[test]
     fn environment_for_command_with_runtime_environment_with_path() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
         set_path_for(&other_pkg_install, vec!["sbin"]);

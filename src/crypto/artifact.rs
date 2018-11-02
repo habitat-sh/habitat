@@ -277,7 +277,7 @@ mod test {
     use std::fs::{self, File};
     use std::io::{BufRead, BufReader, Read, Write};
 
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     use super::super::keys::parse_name_with_rev;
     use super::super::test_support::*;
@@ -286,7 +286,7 @@ mod test {
 
     #[test]
     fn sign_and_verify() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -299,7 +299,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn sign_missing_private_key() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -317,7 +317,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Public key is required but not present for")]
     fn verify_missing_public_key() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -336,7 +336,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read format version")]
     fn verify_empty_format_version() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all("".as_bytes()).unwrap();
@@ -347,7 +347,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Unsupported format version: SOME-VERSION")]
     fn verify_invalid_format_version() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all("SOME-VERSION\nuhoh".as_bytes()).unwrap();
@@ -358,7 +358,7 @@ mod test {
     #[test]
     #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
     fn verify_empty_key_name() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all("HART-1\n\nuhoh".as_bytes()).unwrap();
@@ -369,7 +369,7 @@ mod test {
     #[test]
     #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
     fn verify_invalid_key_name() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all("HART-1\nnope-nope\nuhoh".as_bytes()).unwrap();
@@ -380,7 +380,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read hash type")]
     fn verify_empty_hash_type() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -394,7 +394,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Unsupported signature type: BESTEST")]
     fn verify_invalid_hash_type() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -408,7 +408,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read signature")]
     fn verify_empty_signature() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -422,7 +422,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Can\\'t decode signature")]
     fn verify_invalid_signature_decode() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -440,7 +440,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t find end of header")]
     fn verify_missing_end_of_header() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -454,7 +454,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Habitat artifact is invalid")]
     fn verify_corrupted_archive() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
@@ -490,7 +490,7 @@ mod test {
 
     #[test]
     fn get_archive_reader_working() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let src = cache.path().join("src.in");
@@ -507,7 +507,7 @@ mod test {
 
     #[test]
     fn verify_get_artifact_header() {
-        let cache = TempDir::new("key_cache").unwrap();
+        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
         let src = cache.path().join("src.in");

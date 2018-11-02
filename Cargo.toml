@@ -27,7 +27,7 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 sodiumoxide = "0.0.16"
-tempdir = "*"
+tempfile = "*"
 time = "*"
 toml = { version = "*", default-features = false }
 typemap = "*"

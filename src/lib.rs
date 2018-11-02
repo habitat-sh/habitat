@@ -34,7 +34,7 @@ extern crate log;
 extern crate rand;
 extern crate regex;
 extern crate serde;
-extern crate tempdir;
+extern crate tempfile;
 #[macro_use]
 extern crate serde_derive;
 

@@ -22,7 +22,8 @@ use super::{PackageIdent, PackageTarget};
 
 use error::{Error, Result};
 
-use tempdir::TempDir;
+use tempfile::Builder;
+use tempfile::TempDir;
 
 pub const INSTALL_TMP_PREFIX: &'static str = ".hab-pkg-install";
 
@@ -43,7 +44,9 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
         .ok_or(Error::PackageUnpackFailed(
             "Could not generate prefix for temporary package directory".to_owned(),
         ))?;
-    Ok(TempDir::new_in(base, &temp_install_prefix)?)
+    Ok(Builder::new()
+        .prefix(&temp_install_prefix)
+        .tempdir_in(base)?)
 }
 
 /// Returns a list of package structs built from the contents of the given directory.
@@ -319,11 +322,11 @@ mod test {
 
     use fs;
     use std::fs::File;
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     #[test]
     fn empty_dir_gives_empty_list() {
-        let package_root = TempDir::new("fs-root").unwrap();
+        let package_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let packages = all_packages(&package_root.path()).unwrap();
 
         assert_eq!(0, packages.len());
@@ -331,7 +334,7 @@ mod test {
 
     #[test]
     fn not_a_dir_gives_empty_list() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let file_path = fs_root.path().join("not-a-dir");
         let _tmp_file = File::create(&file_path).unwrap();
 
@@ -341,7 +344,7 @@ mod test {
     }
     #[test]
     fn can_read_single_package() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_root = fs::pkg_root_path(Some(fs_root.path()));
         let package_install = testing_package_install("core/redis", fs_root.path());
 
@@ -353,7 +356,7 @@ mod test {
 
     #[test]
     fn can_read_multiple_packages() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_root = fs::pkg_root_path(Some(fs_root.path()));
         let expected = vec![
             testing_package_install("core/redis/1.0.0", fs_root.path()),
@@ -398,7 +401,7 @@ mod test {
 
     #[test]
     fn list_for_origin_skips_non_origin_packages() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_root = fs::pkg_root_path(Some(fs_root.path()));
         let test_origin = vec![testing_package_install("test/foobar", fs_root.path())];
         let core_origin = vec![
@@ -420,7 +423,7 @@ mod test {
 
     #[test]
     fn list_for_origin_no_packages() {
-        let fs_root = TempDir::new("fs-root").unwrap();
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_root = fs::pkg_root_path(Some(fs_root.path()));
 
         let packages = package_list_for_origin(&package_root, &String::from("core")).unwrap();
