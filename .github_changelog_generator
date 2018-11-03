@@ -1,7 +1,0 @@
-header=# Habitat CHANGELOG
-date-format=%m-%d-%Y
-include-labels=C-feature,C-bug,C-chore,A-documentation
-enhancement-labels=C-feature,C-chore,A-documentation
-bug-labels=C-bug
-bug-prefix=## Bug fixes
-enhancement-prefix=## Features & Enhancements
