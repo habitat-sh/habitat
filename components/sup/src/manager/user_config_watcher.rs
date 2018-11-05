@@ -270,7 +270,7 @@ mod tests {
 
     use manager::file_watcher::WATCHER_DELAY_MS;
 
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     #[test]
     fn no_events_at_first() {
@@ -386,7 +386,7 @@ mod tests {
 
     impl Default for TestService {
         fn default() -> Self {
-            let tmp = TempDir::new("user-config-watcher").expect("creating temp dir");
+            let tmp = TempDir::new().expect("creating temp dir");
             let path = UserConfigPath::Recommended(tmp.path().to_path_buf());
             Self {
                 tmp: tmp,

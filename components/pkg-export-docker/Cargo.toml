@@ -31,7 +31,7 @@ rusoto_credential = "*"
 rusoto_ecr = "*"
 serde = { version = "*", features = ["rc"] }
 serde_json = "*"
-tempdir = "*"
+tempfile = "*"
 url = "*"
 failure = "*"
 failure_derive = "*"

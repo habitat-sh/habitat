@@ -66,7 +66,7 @@ mod test {
     use std::io::Read;
     use std::os::unix::fs::MetadataExt;
 
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use super::*;
 
@@ -79,7 +79,7 @@ mod test {
 
     #[test]
     fn creates_files_and_dirs() {
-        let root = TempDir::new("root").unwrap();
+        let root = TempDir::new().unwrap();
         create(&root).unwrap();
 
         assert!(root.path().join("bin").is_dir());

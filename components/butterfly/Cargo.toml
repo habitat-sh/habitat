@@ -24,7 +24,7 @@ rand = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
-tempdir = "*"
+tempfile = "*"
 time = "*"
 threadpool = "*"
 toml = { version = "*", default-features = false }
@@ -40,7 +40,7 @@ heck = "*"
 pkg-config = "*"
 prost = "*"
 prost-build = "*"
-tempdir = "*"
+tempfile = "*"
 
 [features]
 default = ["protocols"]

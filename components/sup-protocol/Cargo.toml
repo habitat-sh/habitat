@@ -25,7 +25,7 @@ heck = "*"
 prost = "*"
 prost-build = "*"
 prost-types = "*"
-tempdir = "*"
+tempfile = "*"
 
 [dev-dependencies]
 toml = "*"

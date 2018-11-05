@@ -18,7 +18,7 @@ extern crate log;
 extern crate mktemp;
 extern crate serde_json;
 extern crate tar;
-extern crate tempdir;
+extern crate tempfile;
 
 mod build;
 pub mod cli;

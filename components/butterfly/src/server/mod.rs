@@ -1344,7 +1344,7 @@ mod tests {
         use std::io::prelude::*;
         use std::path::PathBuf;
         use std::sync::Mutex;
-        use tempdir::TempDir;
+        use tempfile::TempDir;
         use trace::Trace;
 
         lazy_static! {
@@ -1431,7 +1431,7 @@ mod tests {
 
         #[test]
         fn new_with_corrupt_rumor_file() {
-            let tmpdir = TempDir::new("data").unwrap();
+            let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
             server
                 .start(Timing::default())

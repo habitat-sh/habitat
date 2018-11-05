@@ -21,7 +21,7 @@ extern crate habitat_sup as sup;
 #[macro_use]
 extern crate lazy_static;
 extern crate rand;
-extern crate tempdir;
+extern crate tempfile;
 
 mod utils;
 

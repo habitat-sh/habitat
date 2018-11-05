@@ -290,7 +290,7 @@ mod test {
 
     use hcore::package::PackageIdent;
     use notify;
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use super::{SpecWatcher, SpecWatcherEvent};
     use error::Error::*;
@@ -298,7 +298,7 @@ mod test {
 
     #[test]
     fn run_watch_dir_not_created() {
-        let tmpdir = TempDir::new("somedir").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let not_a_dir = tmpdir.path().join("i-dont-exist");
 
         match SpecWatcher::run(&not_a_dir) {
@@ -312,7 +312,7 @@ mod test {
 
     #[test]
     fn run_with_notify_error() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("throw_error");
         fs::create_dir(&path).unwrap();
 
@@ -324,7 +324,7 @@ mod test {
 
     #[test]
     fn inital_events() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         let beta = new_saved_spec(tmpdir.path(), "acme/beta");
         let mut watcher = SpecWatcher::run(tmpdir.path()).unwrap();
@@ -338,7 +338,7 @@ mod test {
 
     #[test]
     fn inital_events_no_specs() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let mut watcher = SpecWatcher::run(tmpdir.path()).unwrap();
 
         let events = watcher.initial_events().unwrap();
@@ -348,7 +348,7 @@ mod test {
 
     #[test]
     fn new_events_no_change_with_no_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("no_events");
         fs::create_dir(&path).unwrap();
 
@@ -361,7 +361,7 @@ mod test {
 
     #[test]
     fn new_events_no_change_with_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("no_events");
         fs::create_dir(&path).unwrap();
         new_saved_spec(&path, "acme/alpha");
@@ -376,7 +376,7 @@ mod test {
 
     #[test]
     fn new_events_new_spec_with_no_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("new_spec");
         fs::create_dir(&path).unwrap();
         let newbie = new_spec("acme/newbie");
@@ -391,7 +391,7 @@ mod test {
 
     #[test]
     fn new_events_new_spec_with_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("new_spec");
         fs::create_dir(&path).unwrap();
         new_saved_spec(&path, "acme/alpha");
@@ -408,7 +408,7 @@ mod test {
 
     #[test]
     fn new_events_removed_spec_with_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("removed_spec");
         fs::create_dir(&path).unwrap();
         new_saved_spec(&path, "acme/alpha");
@@ -425,7 +425,7 @@ mod test {
 
     #[test]
     fn new_events_add_and_removed_spec_with_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("new_and_removed_spec");
         fs::create_dir(&path).unwrap();
         new_saved_spec(&path, "acme/alpha");
@@ -444,7 +444,7 @@ mod test {
 
     #[test]
     fn new_events_changed_spec_with_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("changed_spec");
         fs::create_dir(&path).unwrap();
         new_saved_spec(&path, "acme/alpha");
@@ -467,7 +467,7 @@ mod test {
 
     #[test]
     fn new_events_crazytown_with_active_specs() {
-        let tmpdir = TempDir::new("fixture").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("crazytown");
         fs::create_dir(&path).unwrap();
         new_saved_spec(&path, "acme/alpha");
@@ -496,7 +496,7 @@ mod test {
 
     #[test]
     fn loading_spec_missing_ident_doesnt_impact_others() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         fs::File::create(tmpdir.path().join(format!("beta.spec"))).expect("can't create file");
 
@@ -510,7 +510,7 @@ mod test {
 
     #[test]
     fn loading_spec_bad_content_doesnt_impact_others() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         {
             let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec")))
@@ -532,7 +532,7 @@ mod test {
 
     #[test]
     fn loading_spec_ident_name_mismatch_doesnt_impact_others() {
-        let tmpdir = TempDir::new("specs").unwrap();
+        let tmpdir = TempDir::new().unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         {
             let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec")))

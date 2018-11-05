@@ -31,7 +31,8 @@ use std::string::ToString;
 
 use hcore::fs::PKG_PATH;
 use hcore::package::metadata::MetaFile;
-use tempdir::TempDir;
+use tempfile::Builder;
+use tempfile::TempDir;
 
 #[derive(Debug)]
 pub struct HabRoot(TempDir);
@@ -42,8 +43,10 @@ impl HabRoot {
         S: ToString,
     {
         let s = name.to_string();
-        let t =
-            TempDir::new(&s).expect(format!("Could not create temporary directory {}", s).as_str());
+        let t = Builder::new()
+            .prefix(&s)
+            .tempdir()
+            .expect(format!("Could not create temporary directory {}", s).as_str());
         HabRoot(t)
     }
 

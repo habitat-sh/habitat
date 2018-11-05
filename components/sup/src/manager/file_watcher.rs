@@ -1682,7 +1682,7 @@ mod tests {
     use notify;
     use notify::{DebouncedEvent, RawEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use super::{Callbacks, FileWatcher, IndentedStructFormatter, IndentedToString, WatchedFile};
 
@@ -3090,8 +3090,7 @@ mod tests {
 
     impl TestCaseRunner {
         fn new() -> Self {
-            let tmp_dir = TempDir::new("file-watcher")
-                .expect(&format!("couldn't create temporary directory",));
+            let tmp_dir = TempDir::new().expect(&format!("couldn't create temporary directory",));
             let root = tmp_dir.path().to_owned();
             Self {
                 debug_info: DebugInfo::new(),

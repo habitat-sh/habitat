@@ -31,7 +31,7 @@ extern crate tokio_core;
 extern crate url;
 
 #[cfg(test)]
-extern crate tempdir;
+extern crate tempfile;
 
 use std::env;
 use std::io::{self, Write};

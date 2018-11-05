@@ -604,7 +604,7 @@ mod tests {
     use std::path::PathBuf;
 
     use serde_json;
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     use butterfly::rumor::service::SysInfo;
     use hcore::package::PackageIdent;
@@ -656,7 +656,7 @@ mod tests {
     }
 
     fn new_test_pkg() -> (TempDir, TestPkg) {
-        let tmp = TempDir::new("habitat_config_test").expect("create temp dir");
+        let tmp = TempDir::new().expect("create temp dir");
         let pkg = TestPkg::new(&tmp);
 
         let default_toml = pkg.default_config_dir().join("default.toml");

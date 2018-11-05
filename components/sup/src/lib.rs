@@ -85,7 +85,7 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate serde_transcode;
 extern crate serde_yaml;
-extern crate tempdir;
+extern crate tempfile;
 extern crate time;
 extern crate tokio;
 extern crate tokio_codec;

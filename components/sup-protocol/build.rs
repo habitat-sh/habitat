@@ -2,7 +2,7 @@ extern crate heck;
 extern crate prost;
 extern crate prost_build;
 extern crate prost_types;
-extern crate tempdir;
+extern crate tempfile;
 
 use std::collections::HashMap;
 use std::env;
@@ -83,7 +83,7 @@ where
         .ok_or_else(|| Error::new(ErrorKind::Other, "OUT_DIR environment variable is not set"))?
         .into();
 
-    let tmp = tempdir::TempDir::new("prost-build")?;
+    let tmp = tempfile::TempDir::new()?;
     let descriptor_set = tmp.path().join("prost-descriptor-set");
 
     let mut cmd = Command::new(protoc());
