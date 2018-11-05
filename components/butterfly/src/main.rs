@@ -27,12 +27,11 @@ use std::time::Duration;
 
 use habitat_butterfly::server::Suitability;
 use habitat_butterfly::{member, server, trace};
-use habitat_core::service::ServiceGroup;
 
 #[derive(Debug)]
 struct ZeroSuitability;
 impl Suitability for ZeroSuitability {
-    fn get(&self, _service_group: &ServiceGroup) -> u64 {
+    fn get(&self, _service_group: &str) -> u64 {
         0
     }
 }

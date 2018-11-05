@@ -35,7 +35,6 @@ use std::io;
 use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
 use std::path::PathBuf;
 use std::result;
-use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::{self, channel};
 use std::sync::{Arc, RwLock};
@@ -43,7 +42,6 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use habitat_core::crypto::SymKey;
-use habitat_core::service::ServiceGroup;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
@@ -70,7 +68,7 @@ type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
 type AckSender = mpsc::Sender<(SocketAddr, Ack)>;
 
 pub trait Suitability: Debug + Send + Sync {
-    fn get(&self, service_group: &ServiceGroup) -> u64;
+    fn get(&self, service_group: &str) -> u64;
 }
 
 /// Encapsulate a `Member` with the added understanding that this
@@ -866,9 +864,9 @@ impl Server {
 
     /// Start an election for the given service group, declaring this members suitability and the
     /// term for the election.
-    pub fn start_election(&self, sg: ServiceGroup, term: u64) {
-        let suitability = self.suitability_lookup.get(&sg);
-        let mut e = Election::new(self.member_id(), sg, suitability);
+    pub fn start_election(&self, service_group: &str, term: u64) {
+        let suitability = self.suitability_lookup.get(&service_group);
+        let mut e = Election::new(self.member_id(), service_group, suitability);
         e.term = term;
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
@@ -878,8 +876,8 @@ impl Server {
         self.rumor_heat.start_hot_rumor(ek);
     }
 
-    pub fn start_update_election(&self, sg: ServiceGroup, suitability: u64, term: u64) {
-        let mut e = ElectionUpdate::new(self.member_id(), sg, suitability);
+    pub fn start_update_election(&self, service_group: &str, suitability: u64, term: u64) {
+        let mut e = ElectionUpdate::new(self.member_id(), service_group, suitability);
         e.term = term;
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
@@ -974,37 +972,17 @@ impl Server {
         });
 
         for (service_group, old_term) in elections_to_restart {
-            let sg = match ServiceGroup::from_str(&service_group) {
-                Ok(sg) => sg,
-                Err(e) => {
-                    error!(
-                        "Failed to process service group from string '{}': {}",
-                        service_group, e
-                    );
-                    return;
-                }
-            };
             let term = old_term + 1;
-            warn!("Starting a new election for {} {}", sg, term);
+            warn!("Starting a new election for {} {}", service_group, term);
             self.election_store.remove(&service_group, "election");
-            self.start_election(sg, term);
+            self.start_election(&service_group, term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
-            let sg = match ServiceGroup::from_str(&service_group) {
-                Ok(sg) => sg,
-                Err(e) => {
-                    error!(
-                        "Failed to process service group from string '{}': {}",
-                        service_group, e
-                    );
-                    return;
-                }
-            };
             let term = old_term + 1;
-            warn!("Starting a new election for {} {}", sg, term);
+            warn!("Starting a new election for {} {}", service_group, term);
             self.update_store.remove(&service_group, "election");
-            self.start_update_election(sg, 0, term);
+            self.start_update_election(&service_group, 0, term);
         }
     }
 
@@ -1031,14 +1009,7 @@ impl Server {
                     });
                 if new_term {
                     self.election_store.remove(election.key(), election.id());
-                    let sg = match ServiceGroup::from_str(&election.service_group) {
-                        Ok(sg) => sg,
-                        Err(e) => {
-                            error!("Election malformed; cannot parse service group: {}", e);
-                            return;
-                        }
-                    };
-                    self.start_election(sg, election.term);
+                    self.start_election(&election.service_group, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -1069,14 +1040,7 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                let sg = match ServiceGroup::from_str(&election.service_group) {
-                    Ok(sg) => sg,
-                    Err(e) => {
-                        error!("Election malformed; cannot parse service group: {}", e);
-                        return;
-                    }
-                };
-                self.start_election(sg, election.term);
+                self.start_election(&election.service_group, election.term);
             }
             if !election.is_finished() {
                 let has_quorum = self.check_quorum(election.key());
@@ -1112,7 +1076,7 @@ impl Server {
                     });
                 if new_term {
                     self.update_store.remove(election.key(), election.id());
-                    self.start_update_election(election.service_group.clone(), 0, election.term);
+                    self.start_update_election(&election.service_group, 0, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -1143,14 +1107,7 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                let sg = match ServiceGroup::from_str(&election.service_group) {
-                    Ok(sg) => sg,
-                    Err(e) => {
-                        error!("Election malformed; cannot parse service group: {}", e);
-                        return;
-                    }
-                };
-                self.start_update_election(sg, 0, election.term);
+                self.start_update_election(&election.service_group, 0, election.term);
             }
             if !election.is_finished() {
                 let has_quorum = self.check_quorum(election.key());
@@ -1336,7 +1293,6 @@ mod tests {
     }
 
     mod server {
-        use habitat_core::service::ServiceGroup;
         use member::Member;
         use server::timing::Timing;
         use server::{Server, Suitability};
@@ -1355,7 +1311,7 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn get(&self, _service_group: &ServiceGroup) -> u64 {
+            fn get(&self, _service_group: &str) -> u64 {
                 0
             }
         }

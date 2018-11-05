@@ -404,7 +404,6 @@ mod tests {
         server::{Server, ServerProxy, Suitability},
         trace::Trace,
     };
-    use hcore::service::ServiceGroup;
     use serde_json;
 
     use test_helpers::*;
@@ -471,7 +470,7 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn get(&self, _service_group: &ServiceGroup) -> u64 {
+            fn get(&self, _service_group: &str) -> u64 {
                 0
             }
         }

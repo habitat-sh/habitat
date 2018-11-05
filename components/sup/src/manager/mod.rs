@@ -627,8 +627,7 @@ impl Manager {
 
         self.gossip_latest_service_rumor(&service);
         if service.topology == Topology::Leader {
-            self.butterfly
-                .start_election(service.service_group.clone(), 0);
+            self.butterfly.start_election(&service.service_group, 0);
         }
 
         if let Err(e) = self.user_config_watcher.add(&service) {
@@ -1774,12 +1773,12 @@ impl fmt::Display for ServiceStatus {
 struct SuitabilityLookup(Arc<RwLock<HashMap<PackageIdent, Service>>>);
 
 impl Suitability for SuitabilityLookup {
-    fn get(&self, service_group: &ServiceGroup) -> u64 {
+    fn get(&self, service_group: &str) -> u64 {
         self.0
             .read()
             .expect("Services lock is poisoned!")
             .values()
-            .find(|s| s.service_group == *service_group)
+            .find(|s| *s.service_group == service_group)
             .and_then(|s| s.suitability())
             .unwrap_or(u64::min_value())
     }
