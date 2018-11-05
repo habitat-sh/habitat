@@ -220,6 +220,8 @@ steps:
     command: .buildkite/scripts/bintray_upload.sh
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":linux: :two: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
