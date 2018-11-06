@@ -702,7 +702,7 @@ impl Manager {
             loop {
                 match *started {
                     http_gateway::ServerStartup::NotStarted => {
-                        started = match cvar.wait_timeout(started, Duration::from_millis(100)) {
+                        started = match cvar.wait_timeout(started, Duration::from_millis(10000)) {
                             Ok((mutex, timeout_result)) => {
                                 if timeout_result.timed_out() {
                                     return Err(sup_error!(Error::BindTimeout(
