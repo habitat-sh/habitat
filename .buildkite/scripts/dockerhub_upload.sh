@@ -25,7 +25,7 @@ docker login \
 trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
 
 pushd ./components/rootless_studio >/dev/null
-docker build --build-arg PACKAGE_TARGET="${target}" -t habitat-${target}:hab-base .
+docker build --build-arg PACKAGE_TARGET="${target}" -t "habitat-${target}:hab-base" .
 docker build --build-arg BLDR_CHANNEL="${channel}" --no-cache --tag "${image_name_with_tag}" ./default
 docker push "${image_name_with_tag}"
 popd >/dev/null
