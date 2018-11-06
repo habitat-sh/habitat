@@ -17,7 +17,7 @@
 - Evolve the supervisor&#39;s HTTP API [#5787](https://github.com/habitat-sh/habitat/pull/5787) ([raskchanky](https://github.com/raskchanky))
 - Automate bumping Homebrew version information after a release [#5799](https://github.com/habitat-sh/habitat/pull/5799) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
-## [0.67.0](https://github.com/habitat-sh/habitat/tree/0.67.0) (10-30-2018)
+## [0.67.0](https://github.com/habitat-sh/habitat/tree/0.67.0) (2018-10-30)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.66.0...0.67.0)
 
 #### New Features & Enhancements
@@ -44,7 +44,7 @@
 - install and upload launcher builds if not a release [#5769](https://github.com/habitat-sh/habitat/pull/5769) ([mwrock](https://github.com/mwrock))
 - 0.66.0 post release [#5775](https://github.com/habitat-sh/habitat/pull/5775) ([mpeck](https://github.com/mpeck))
 
-## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (10-22-2018)
+## [0.66.0](https://github.com/habitat-sh/habitat/tree/0.66.0) (2018-10-22)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.65.0...0.66.0)
 
 #### New Features & Enhancements
@@ -88,7 +88,7 @@
 - Store services in a HashMap instead of a Vec [#5712](https://github.com/habitat-sh/habitat/pull/5712) ([christophermaier](https://github.com/christophermaier))
 - bumping dev version [#5715](https://github.com/habitat-sh/habitat/pull/5715) ([mwrock](https://github.com/mwrock))
 
-## [0.65.0](https://github.com/habitat-sh/habitat/tree/0.65.0) (10-05-2018)
+## [0.65.0](https://github.com/habitat-sh/habitat/tree/0.65.0) (2018-10-05)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.1...0.65.0)
 
 #### New Features & Enhancements
@@ -114,7 +114,7 @@
 - Fail if we have more release candidate packages than we should [#5686](https://github.com/habitat-sh/habitat/pull/5686) ([christophermaier](https://github.com/christophermaier))
 - Take care of post-0.64.1 tasks [#5684](https://github.com/habitat-sh/habitat/pull/5684) ([christophermaier](https://github.com/christophermaier))
 
-## [0.64.1](https://github.com/habitat-sh/habitat/tree/0.64.1) (09-27-2018)
+## [0.64.1](https://github.com/habitat-sh/habitat/tree/0.64.1) (2018-09-27)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.64.0...0.64.1)
 
 #### Bug Fixes
@@ -126,7 +126,7 @@
 - prep 0.64.1 release [#5681](https://github.com/habitat-sh/habitat/pull/5681) ([mwrock](https://github.com/mwrock))
 - 0.64.0 post release tasks [#5680](https://github.com/habitat-sh/habitat/pull/5680) ([smacfarlane](https://github.com/smacfarlane))
 
-## [0.64.0](https://github.com/habitat-sh/habitat/tree/0.64.0) (09-26-2018)
+## [0.64.0](https://github.com/habitat-sh/habitat/tree/0.64.0) (2018-09-26)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.63.0...0.64.0)
 
 #### New Features & Enhancements
@@ -183,7 +183,7 @@
 - Blog post for Hab 0.63.0 [#5601](https://github.com/habitat-sh/habitat/pull/5601) ([chefsalim](https://github.com/chefsalim))
 - Post 0.63.0 tasks [#5628](https://github.com/habitat-sh/habitat/pull/5628) ([christophermaier](https://github.com/christophermaier))
 
-## [0.63.0](https://github.com/habitat-sh/habitat/tree/0.63.0) (09-14-2018)
+## [0.63.0](https://github.com/habitat-sh/habitat/tree/0.63.0) (2018-09-14)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.1...0.63.0)
 
 #### Bug Fixes
@@ -213,7 +213,7 @@
 - Make logging looks same [#5532](https://github.com/habitat-sh/habitat/pull/5532) ([jsirex](https://github.com/jsirex))
 - Handle post-0.62.1 Release Tasks [#5555](https://github.com/habitat-sh/habitat/pull/5555) ([christophermaier](https://github.com/christophermaier))
 
-## [0.62.1](https://github.com/habitat-sh/habitat/tree/0.62.1) (09-04-2018)
+## [0.62.1](https://github.com/habitat-sh/habitat/tree/0.62.1) (2018-09-04)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.62.0...0.62.1)
 
 #### New Features & Enhancements
@@ -222,7 +222,7 @@
 #### Merged Pull Requests
 - Add 0.62.0 Release Notes Blog Post [#5521](https://github.com/habitat-sh/habitat/pull/5521) ([cnunciato](https://github.com/cnunciato))
 
-## [0.62.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (09-04-2018)
+## [0.62.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (2018-09-04)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.61.0...0.62.0)
 
 #### New Features & Enhancements
@@ -276,7 +276,7 @@
 - Bump to 0.62.0-dev [#5458](https://github.com/habitat-sh/habitat/pull/5458) ([raskchanky](https://github.com/raskchanky))
 - Add 0.61.0 blog post [#5456](https://github.com/habitat-sh/habitat/pull/5456) ([raskchanky](https://github.com/raskchanky))
 
-## [0.61.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (08-15-2018)
+## [0.61.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (2018-08-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.59.0...0.61.0)
 
 #### New Features & Enhancements
@@ -358,7 +358,7 @@
 - Add 0.59.0 Release blog post [#5336](https://github.com/habitat-sh/habitat/pull/5336) ([baumanj](https://github.com/baumanj))
 - Fix doc generator, generate 0.59.0 docs [#5335](https://github.com/habitat-sh/habitat/pull/5335) ([cnunciato](https://github.com/cnunciato))
 
-## [0.59.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (07-12-2018)
+## [0.59.0](https://github.com/habitat-sh/habitat/tree/0.59.0) (2018-07-12)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.58.0...0.59.0)
 
 #### New Features & Enhancements
@@ -387,7 +387,7 @@
 - Loosen Rust build dependency pin [#5294](https://github.com/habitat-sh/habitat/pull/5294) ([christophermaier](https://github.com/christophermaier))
 - Deploy web site using the keys for the www user, not me [#5290](https://github.com/habitat-sh/habitat/pull/5290) ([raskchanky](https://github.com/raskchanky))
 
-## [0.58.0](https://github.com/habitat-sh/habitat/tree/0.58.0) (07-02-2018)
+## [0.58.0](https://github.com/habitat-sh/habitat/tree/0.58.0) (2018-07-02)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.57.0...0.58.0)
 
 #### New Features & Enhancements
@@ -433,7 +433,7 @@
 - documents the $CACHE_PATH environmental variable [#5204](https://github.com/habitat-sh/habitat/pull/5204) ([nellshamrell](https://github.com/nellshamrell))
 
 
-## [0.57.0](https://github.com/habitat-sh/habitat/tree/0.57.0) (06-15-2018)
+## [0.57.0](https://github.com/habitat-sh/habitat/tree/0.57.0) (2018-06-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.56.0...0.57.0)
 
 - updates version for new release [#5208](https://github.com/habitat-sh/habitat/pull/5208) ([nellshamrell](https://github.com/nellshamrell))
@@ -457,7 +457,7 @@
 - Add baumanj back to CODEOWNERS [#5158](https://github.com/habitat-sh/habitat/pull/5158) ([baumanj](https://github.com/baumanj))
 - add instructions for rerunning choco tests after publishing release [#5142](https://github.com/habitat-sh/habitat/pull/5142) ([mwrock](https://github.com/mwrock))
 
-## [0.56.0](https://github.com/habitat-sh/habitat/tree/0.56.0) (05-10-2018)
+## [0.56.0](https://github.com/habitat-sh/habitat/tree/0.56.0) (2018-05-10)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.55.0...0.56.0)
 
 ## Features & Enhancements
@@ -666,7 +666,7 @@
 - document docker requirement for linux [\#4782](https://github.com/habitat-sh/habitat/pull/4782) ([brewn](https://github.com/brewn))
 - pkg-export-k8s: Add status reporting [\#4781](https://github.com/habitat-sh/habitat/pull/4781) ([zeenix](https://github.com/zeenix))
 
-## [0.55.0](https://github.com/habitat-sh/habitat/tree/0.55.0) (03-20-2018)
+## [0.55.0](https://github.com/habitat-sh/habitat/tree/0.55.0) (2018-03-20)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.54.0...0.55.0)
 
 ## Features & Enhancements
@@ -790,7 +790,7 @@
 - Make HAB\_STUDIO\_BINARY env var override work to run alternate studio … [\#4641](https://github.com/habitat-sh/habitat/pull/4641) ([baumanj](https://github.com/baumanj))
 - Adds patching source blog post [\#4633](https://github.com/habitat-sh/habitat/pull/4633) ([burtlo](https://github.com/burtlo))
 
-## [0.54.0](https://github.com/habitat-sh/habitat/tree/0.54.0) (02-21-2018)
+## [0.54.0](https://github.com/habitat-sh/habitat/tree/0.54.0) (2018-02-21)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.53.0...0.54.0)
 
 ## Features & Enhancements
@@ -866,7 +866,7 @@
 - Swiftype config tweaks [\#4530](https://github.com/habitat-sh/habitat/pull/4530) ([ryankeairns](https://github.com/ryankeairns))
 - Allow configurable compression level during build [\#4512](https://github.com/habitat-sh/habitat/pull/4512) ([jaym](https://github.com/jaym))
 
-## [0.53.0](https://github.com/habitat-sh/habitat/tree/0.53.0) (02-05-2018)
+## [0.53.0](https://github.com/habitat-sh/habitat/tree/0.53.0) (2018-02-05)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.52.0...0.53.0)
 
 ## Features & Enhancements
@@ -974,7 +974,7 @@
 - Docs/test additions to k8s exporter & various fixes [\#4448](https://github.com/habitat-sh/habitat/pull/4448) ([zeenix](https://github.com/zeenix))
 - Adding node getting started guide [\#4424](https://github.com/habitat-sh/habitat/pull/4424) ([mgamini](https://github.com/mgamini))
 
-## [0.52.0](https://github.com/habitat-sh/habitat/tree/0.52.0) (01-19-2018)
+## [0.52.0](https://github.com/habitat-sh/habitat/tree/0.52.0) (2018-01-19)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.51.0...0.52.0)
 
 ## Features & Enhancements
@@ -1101,7 +1101,7 @@
 - git must be binlinked to use github\_changelog\_generator [\#4103](https://github.com/habitat-sh/habitat/pull/4103) ([echohack](https://github.com/echohack))
 - User-config Watcher [\#3898](https://github.com/habitat-sh/habitat/pull/3898) ([asymmetric](https://github.com/asymmetric))
 
-## [0.51.0](https://github.com/habitat-sh/habitat/tree/0.51.0) (12-19-2017)
+## [0.51.0](https://github.com/habitat-sh/habitat/tree/0.51.0) (2017-12-19)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.3...0.51.0)
 
 ## Features & Enhancements
@@ -1261,7 +1261,7 @@
 - Fixes wrongly listed conflicting versions [\#4118](https://github.com/habitat-sh/habitat/pull/4118) ([rsertelon](https://github.com/rsertelon))
 - Makefile: add bldr-kill target to kill all remaining bldr processes [\#4115](https://github.com/habitat-sh/habitat/pull/4115) ([dongsupark](https://github.com/dongsupark))
 
-## [0.50.3](https://github.com/habitat-sh/habitat/tree/0.50.3) (12-02-2017)
+## [0.50.3](https://github.com/habitat-sh/habitat/tree/0.50.3) (2017-12-02)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.2...0.50.3)
 
 ## Bug fixes
@@ -1279,7 +1279,7 @@
 - add blog post on exporting windows containers [\#4159](https://github.com/habitat-sh/habitat/pull/4159) ([mwrock](https://github.com/mwrock))
 - k8s exporter: Add docker image generation [\#4041](https://github.com/habitat-sh/habitat/pull/4041) ([zeenix](https://github.com/zeenix))
 
-## [0.50.2](https://github.com/habitat-sh/habitat/tree/0.50.2) (12-01-2017)
+## [0.50.2](https://github.com/habitat-sh/habitat/tree/0.50.2) (2017-12-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.1...0.50.2)
 
 **Merged pull requests:**
@@ -1287,14 +1287,14 @@
 - release 0.50.2 [\#4176](https://github.com/habitat-sh/habitat/pull/4176) ([mwrock](https://github.com/mwrock))
 - build the studio before backline [\#4175](https://github.com/habitat-sh/habitat/pull/4175) ([mwrock](https://github.com/mwrock))
 
-## [0.50.1](https://github.com/habitat-sh/habitat/tree/0.50.1) (12-01-2017)
+## [0.50.1](https://github.com/habitat-sh/habitat/tree/0.50.1) (2017-12-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.50.0...0.50.1)
 
 **Merged pull requests:**
 
 - updates rails db blog post with current commands [\#4171](https://github.com/habitat-sh/habitat/pull/4171) ([nellshamrell](https://github.com/nellshamrell))
 
-## [0.50.0](https://github.com/habitat-sh/habitat/tree/0.50.0) (11-30-2017)
+## [0.50.0](https://github.com/habitat-sh/habitat/tree/0.50.0) (2017-11-30)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.40.0...0.50.0)
 
 ## Features & Enhancements
@@ -1332,7 +1332,7 @@
 - Some very minor copy updates. [\#4135](https://github.com/habitat-sh/habitat/pull/4135) ([nathenharvey](https://github.com/nathenharvey))
 - Make setup scripts safer by adding `set -euo pipefail` [\#4093](https://github.com/habitat-sh/habitat/pull/4093) ([baumanj](https://github.com/baumanj))
 
-## [0.40.0](https://github.com/habitat-sh/habitat/tree/0.40.0) (11-28-2017)
+## [0.40.0](https://github.com/habitat-sh/habitat/tree/0.40.0) (2017-11-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.39.1...0.40.0)
 
 ## Features & Enhancements
@@ -1379,7 +1379,7 @@
 - Added README generation for hab plan init [\#4077](https://github.com/habitat-sh/habitat/pull/4077) ([predominant](https://github.com/predominant))
 - Uses tabwriter to format hab svc status output [\#4005](https://github.com/habitat-sh/habitat/pull/4005) ([rsertelon](https://github.com/rsertelon))
 
-## [0.39.1](https://github.com/habitat-sh/habitat/tree/0.39.1) (11-17-2017)
+## [0.39.1](https://github.com/habitat-sh/habitat/tree/0.39.1) (2017-11-17)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.39.0...0.39.1)
 
 ## Features & Enhancements
@@ -1402,7 +1402,7 @@
 - BLDR-Dockerfile: Add missing worker bootstrap [\#4050](https://github.com/habitat-sh/habitat/pull/4050) ([indradhanush](https://github.com/indradhanush))
 - Add registry type and url to worker payload for ECR dispatching [\#3967](https://github.com/habitat-sh/habitat/pull/3967) ([elliott-davis](https://github.com/elliott-davis))
 
-## [0.39.0](https://github.com/habitat-sh/habitat/tree/0.39.0) (11-16-2017)
+## [0.39.0](https://github.com/habitat-sh/habitat/tree/0.39.0) (2017-11-16)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.38.0...0.39.0)
 
 ## Features & Enhancements
@@ -1564,7 +1564,7 @@
 - Add an alternative path for user.toml [\#3814](https://github.com/habitat-sh/habitat/pull/3814) ([krnowak](https://github.com/krnowak))
 - Add a kubernetes exporter [\#3771](https://github.com/habitat-sh/habitat/pull/3771) ([krnowak](https://github.com/krnowak))
 
-## [0.38.0](https://github.com/habitat-sh/habitat/tree/0.38.0) (10-26-2017)
+## [0.38.0](https://github.com/habitat-sh/habitat/tree/0.38.0) (2017-10-26)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.37.0...0.38.0)
 
 ## Features & Enhancements
@@ -1657,7 +1657,7 @@
 - Add new `/origins/:origin/integrations endpoint [\#3808](https://github.com/habitat-sh/habitat/pull/3808) ([elliott-davis](https://github.com/elliott-davis))
 - Adds OpenSearch provider [\#3686](https://github.com/habitat-sh/habitat/pull/3686) ([rsertelon](https://github.com/rsertelon))
 
-## [0.37.0](https://github.com/habitat-sh/habitat/tree/0.37.0) (10-17-2017)
+## [0.37.0](https://github.com/habitat-sh/habitat/tree/0.37.0) (2017-10-17)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.36.0...0.37.0)
 
 ## Features & Enhancements
@@ -1804,7 +1804,7 @@
 - quick fix to main cta [\#3647](https://github.com/habitat-sh/habitat/pull/3647) ([mgamini](https://github.com/mgamini))
 - Update demo instructions to match current UI [\#3646](https://github.com/habitat-sh/habitat/pull/3646) ([ryankeairns](https://github.com/ryankeairns))
 
-## [0.36.0](https://github.com/habitat-sh/habitat/tree/0.36.0) (10-09-2017)
+## [0.36.0](https://github.com/habitat-sh/habitat/tree/0.36.0) (2017-10-09)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.35.0...0.36.0)
 
 ## Features & Enhancements
@@ -1863,7 +1863,7 @@
 - Add hook to update folder permissions [\#3595](https://github.com/habitat-sh/habitat/pull/3595) ([chefsalim](https://github.com/chefsalim))
 - Tests for FileWatcher [\#3575](https://github.com/habitat-sh/habitat/pull/3575) ([krnowak](https://github.com/krnowak))
 
-## [0.35.0](https://github.com/habitat-sh/habitat/tree/0.35.0) (10-07-2017)
+## [0.35.0](https://github.com/habitat-sh/habitat/tree/0.35.0) (2017-10-07)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.34.1...0.35.0)
 
 ## Features & Enhancements
@@ -2014,7 +2014,7 @@
 - Bump 0.35.0-dev [\#3440](https://github.com/habitat-sh/habitat/pull/3440) ([reset](https://github.com/reset))
 - persist github installation id for private repos and clone with its auth token [\#3428](https://github.com/habitat-sh/habitat/pull/3428) ([mwrock](https://github.com/mwrock))
 
-## [0.34.1](https://github.com/habitat-sh/habitat/tree/0.34.1) (10-01-2017)
+## [0.34.1](https://github.com/habitat-sh/habitat/tree/0.34.1) (2017-10-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.34.0...0.34.1)
 
 ## Features & Enhancements
@@ -2054,7 +2054,7 @@
 - Add key generation to Builder UI [\#3413](https://github.com/habitat-sh/habitat/pull/3413) ([cnunciato](https://github.com/cnunciato))
 - Add optional auth to job logs [\#3408](https://github.com/habitat-sh/habitat/pull/3408) ([raskchanky](https://github.com/raskchanky))
 
-## [0.34.0](https://github.com/habitat-sh/habitat/tree/0.34.0) (09-30-2017)
+## [0.34.0](https://github.com/habitat-sh/habitat/tree/0.34.0) (2017-09-30)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.33.2...0.34.0)
 
 ## Features & Enhancements
@@ -2160,14 +2160,14 @@
 - Adding clarity to the fact a callback is a way to override a build phase [\#3250](https://github.com/habitat-sh/habitat/pull/3250) ([tashimi](https://github.com/tashimi))
 - Add --force option to hab pkg binlink [\#3248](https://github.com/habitat-sh/habitat/pull/3248) ([echohack](https://github.com/echohack))
 
-## [0.33.2](https://github.com/habitat-sh/habitat/tree/0.33.2) (09-25-2017)
+## [0.33.2](https://github.com/habitat-sh/habitat/tree/0.33.2) (2017-09-25)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.33.1...0.33.2)
 
 ## Bug fixes
 
 - Revert \#3232 & related fix in \#3306 [\#3308](https://github.com/habitat-sh/habitat/pull/3308) ([fnichol](https://github.com/fnichol))
 
-## [0.33.1](https://github.com/habitat-sh/habitat/tree/0.33.1) (09-25-2017)
+## [0.33.1](https://github.com/habitat-sh/habitat/tree/0.33.1) (2017-09-25)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.33.0...0.33.1)
 
 ## Features & Enhancements
@@ -2213,7 +2213,7 @@
 - Add application lifecycle to hooks to increase clarity about what they are [\#3251](https://github.com/habitat-sh/habitat/pull/3251) ([tashimi](https://github.com/tashimi))
 - Give just enough info at init time [\#3184](https://github.com/habitat-sh/habitat/pull/3184) ([echohack](https://github.com/echohack))
 
-## [0.33.0](https://github.com/habitat-sh/habitat/tree/0.33.0) (09-22-2017)
+## [0.33.0](https://github.com/habitat-sh/habitat/tree/0.33.0) (2017-09-22)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.32.0...0.33.0)
 
 ## Features & Enhancements
@@ -2276,7 +2276,7 @@
 - Fixed broken formatting, cleaned up tables, lists, etc. [\#3202](https://github.com/habitat-sh/habitat/pull/3202) ([davidwrede](https://github.com/davidwrede))
 - add a vcs\_auth\_token to project data for interacting with private repos [\#3178](https://github.com/habitat-sh/habitat/pull/3178) ([mwrock](https://github.com/mwrock))
 
-## [0.32.0](https://github.com/habitat-sh/habitat/tree/0.32.0) (09-18-2017)
+## [0.32.0](https://github.com/habitat-sh/habitat/tree/0.32.0) (2017-09-18)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.31.0...0.32.0)
 
 ## Features & Enhancements
@@ -2387,7 +2387,7 @@
 - Add an API to allow updating an origin [\#3102](https://github.com/habitat-sh/habitat/pull/3102) ([raskchanky](https://github.com/raskchanky))
 - General styling improvements for the origins/origin page [\#3087](https://github.com/habitat-sh/habitat/pull/3087) ([elliott-davis](https://github.com/elliott-davis))
 
-## [0.31.0](https://github.com/habitat-sh/habitat/tree/0.31.0) (09-07-2017)
+## [0.31.0](https://github.com/habitat-sh/habitat/tree/0.31.0) (2017-09-07)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.2...0.31.0)
 
 ## Features & Enhancements
@@ -2471,7 +2471,7 @@
 - Announce the Community Summits [\#2997](https://github.com/habitat-sh/habitat/pull/2997) ([nathenharvey](https://github.com/nathenharvey))
 - bump dev version 0-31-0-dev [\#2996](https://github.com/habitat-sh/habitat/pull/2996) ([reset](https://github.com/reset))
 
-## [0.30.2](https://github.com/habitat-sh/habitat/tree/0.30.2) (08-22-2017)
+## [0.30.2](https://github.com/habitat-sh/habitat/tree/0.30.2) (2017-08-22)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.1...0.30.2)
 
 ## Features & Enhancements
@@ -2499,7 +2499,7 @@
 - Convert to Angular Material icons [\#2990](https://github.com/habitat-sh/habitat/pull/2990) ([cnunciato](https://github.com/cnunciato))
 - Bump version [\#2987](https://github.com/habitat-sh/habitat/pull/2987) ([chefsalim](https://github.com/chefsalim))
 
-## [0.30.1](https://github.com/habitat-sh/habitat/tree/0.30.1) (08-22-2017)
+## [0.30.1](https://github.com/habitat-sh/habitat/tree/0.30.1) (2017-08-22)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.0...0.30.1)
 
 ## Bug fixes
@@ -2516,7 +2516,7 @@
 - Removed old/broken links and redirected to new pages [\#2980](https://github.com/habitat-sh/habitat/pull/2980) ([davidwrede](https://github.com/davidwrede))
 - Bump version to 0.31.0-dev [\#2979](https://github.com/habitat-sh/habitat/pull/2979) ([chefsalim](https://github.com/chefsalim))
 
-## [0.30.0](https://github.com/habitat-sh/habitat/tree/0.30.0) (08-21-2017)
+## [0.30.0](https://github.com/habitat-sh/habitat/tree/0.30.0) (2017-08-21)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.29.1...0.30.0)
 
 ## Features & Enhancements
@@ -2586,7 +2586,7 @@
 - bump dev version [\#2912](https://github.com/habitat-sh/habitat/pull/2912) ([mwrock](https://github.com/mwrock))
 - Addresses doc issue \#912 [\#2911](https://github.com/habitat-sh/habitat/pull/2911) ([davidwrede](https://github.com/davidwrede))
 
-## [0.29.1](https://github.com/habitat-sh/habitat/tree/0.29.1) (08-10-2017)
+## [0.29.1](https://github.com/habitat-sh/habitat/tree/0.29.1) (2017-08-10)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.29.0...0.29.1)
 
 ## Bug fixes
@@ -2598,7 +2598,7 @@
 - release 0.29.1 [\#2910](https://github.com/habitat-sh/habitat/pull/2910) ([mwrock](https://github.com/mwrock))
 - version bump! [\#2908](https://github.com/habitat-sh/habitat/pull/2908) ([mgamini](https://github.com/mgamini))
 
-## [0.29.0](https://github.com/habitat-sh/habitat/tree/0.29.0) (08-10-2017)
+## [0.29.0](https://github.com/habitat-sh/habitat/tree/0.29.0) (2017-08-10)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.28.0...0.29.0)
 
 ## Features & Enhancements
@@ -2663,7 +2663,7 @@
 - Better async job status handling [\#2851](https://github.com/habitat-sh/habitat/pull/2851) ([chefsalim](https://github.com/chefsalim))
 - Better failure recovery for build jobs [\#2837](https://github.com/habitat-sh/habitat/pull/2837) ([chefsalim](https://github.com/chefsalim))
 
-## [0.28.0](https://github.com/habitat-sh/habitat/tree/0.28.0) (07-29-2017)
+## [0.28.0](https://github.com/habitat-sh/habitat/tree/0.28.0) (2017-07-29)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.27.1...0.28.0)
 
 ## Features & Enhancements
@@ -2682,7 +2682,7 @@
 
 - prep 0.28.0 [\#2850](https://github.com/habitat-sh/habitat/pull/2850) ([mwrock](https://github.com/mwrock))
 
-## [0.27.1](https://github.com/habitat-sh/habitat/tree/0.27.1) (07-28-2017)
+## [0.27.1](https://github.com/habitat-sh/habitat/tree/0.27.1) (2017-07-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.27.0...0.27.1)
 
 ## Bug fixes
@@ -2697,7 +2697,7 @@
 - Tweak the release instructions ever-so-slightly [\#2839](https://github.com/habitat-sh/habitat/pull/2839) ([christophermaier](https://github.com/christophermaier))
 - Bump to next dev version [\#2838](https://github.com/habitat-sh/habitat/pull/2838) ([christophermaier](https://github.com/christophermaier))
 
-## [0.27.0](https://github.com/habitat-sh/habitat/tree/0.27.0) (07-27-2017)
+## [0.27.0](https://github.com/habitat-sh/habitat/tree/0.27.0) (2017-07-27)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.26.1...0.27.0)
 
 ## Features & Enhancements
@@ -2804,7 +2804,7 @@
 - Tag scheduler builds with dynamic channel [\#2738](https://github.com/habitat-sh/habitat/pull/2738) ([chefsalim](https://github.com/chefsalim))
 - Restart services when hook files change [\#2729](https://github.com/habitat-sh/habitat/pull/2729) ([christophermaier](https://github.com/christophermaier))
 
-## [0.26.1](https://github.com/habitat-sh/habitat/tree/0.26.1) (07-15-2017)
+## [0.26.1](https://github.com/habitat-sh/habitat/tree/0.26.1) (2017-07-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.26.0...0.26.1)
 
 ## Bug fixes
@@ -2821,7 +2821,7 @@
 - Hardcode Depot GitHub cfg [\#2753](https://github.com/habitat-sh/habitat/pull/2753) ([reset](https://github.com/reset))
 - Bump version [\#2752](https://github.com/habitat-sh/habitat/pull/2752) ([chefsalim](https://github.com/chefsalim))
 
-## [0.26.0](https://github.com/habitat-sh/habitat/tree/0.26.0) (07-15-2017)
+## [0.26.0](https://github.com/habitat-sh/habitat/tree/0.26.0) (2017-07-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.25.1...0.26.0)
 
 ## Features & Enhancements
@@ -2878,7 +2878,7 @@
 - Add "hab pkg channels" to list channels for a given package. [\#2704](https://github.com/habitat-sh/habitat/pull/2704) ([raskchanky](https://github.com/raskchanky))
 - Add additional logging to LogForwarder and LogPipe. [\#2644](https://github.com/habitat-sh/habitat/pull/2644) ([raskchanky](https://github.com/raskchanky))
 
-## [0.25.1](https://github.com/habitat-sh/habitat/tree/0.25.1) (07-07-2017)
+## [0.25.1](https://github.com/habitat-sh/habitat/tree/0.25.1) (2017-07-07)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.25.0...0.25.1)
 
 ## Features & Enhancements
@@ -2905,7 +2905,7 @@
 - fix the mac and windows build [\#2699](https://github.com/habitat-sh/habitat/pull/2699) ([mwrock](https://github.com/mwrock))
 - Update builder dev [\#2623](https://github.com/habitat-sh/habitat/pull/2623) ([nellshamrell](https://github.com/nellshamrell))
 
-## [0.25.0](https://github.com/habitat-sh/habitat/tree/0.25.0) (07-06-2017)
+## [0.25.0](https://github.com/habitat-sh/habitat/tree/0.25.0) (2017-07-06)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.24.1...0.25.0)
 
 ## Features & Enhancements
@@ -3067,7 +3067,7 @@
 - \[core\] Cleanup of package Metadata parsing [\#2249](https://github.com/habitat-sh/habitat/pull/2249) ([georgemarshall](https://github.com/georgemarshall))
 - Take full control over windows process creation [\#2129](https://github.com/habitat-sh/habitat/pull/2129) ([mwrock](https://github.com/mwrock))
 
-## [0.24.1](https://github.com/habitat-sh/habitat/tree/0.24.1) (05-22-2017)
+## [0.24.1](https://github.com/habitat-sh/habitat/tree/0.24.1) (2017-05-22)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.24.0...0.24.1)
 
 ## Features & Enhancements
@@ -3112,7 +3112,7 @@
 - Hook up the "Request New Build" button [\#2412](https://github.com/habitat-sh/habitat/pull/2412) ([raskchanky](https://github.com/raskchanky))
 - \[www\] Update Community Page [\#2400](https://github.com/habitat-sh/habitat/pull/2400) ([raskchanky](https://github.com/raskchanky))
 
-## [0.24.0](https://github.com/habitat-sh/habitat/tree/0.24.0) (05-19-2017)
+## [0.24.0](https://github.com/habitat-sh/habitat/tree/0.24.0) (2017-05-19)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.23.0...0.24.0)
 
 ## Features & Enhancements
@@ -3203,7 +3203,7 @@
 - Handle failed acceptance of origin invites [\#2328](https://github.com/habitat-sh/habitat/pull/2328) ([cnunciato](https://github.com/cnunciato))
 - Added Eng blog to habitat.sh site [\#2079](https://github.com/habitat-sh/habitat/pull/2079) ([eeyun](https://github.com/eeyun))
 
-## [0.23.0](https://github.com/habitat-sh/habitat/tree/0.23.0) (05-11-2017)
+## [0.23.0](https://github.com/habitat-sh/habitat/tree/0.23.0) (2017-05-11)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.22.1...0.23.0)
 
 ## Features & Enhancements
@@ -3251,7 +3251,7 @@
 - bumping dev version [\#2289](https://github.com/habitat-sh/habitat/pull/2289) ([mwrock](https://github.com/mwrock))
 - Improve package search [\#2214](https://github.com/habitat-sh/habitat/pull/2214) ([raskchanky](https://github.com/raskchanky))
 
-## [0.22.1](https://github.com/habitat-sh/habitat/tree/0.22.1) (05-09-2017)
+## [0.22.1](https://github.com/habitat-sh/habitat/tree/0.22.1) (2017-05-09)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.22.0...0.22.1)
 
 ## Features & Enhancements
@@ -3306,7 +3306,7 @@
 - Fix missing dep in mac/install\_dev\_0\_mac\_latest.sh [\#2245](https://github.com/habitat-sh/habitat/pull/2245) ([georgemarshall](https://github.com/georgemarshall))
 - bump dev version [\#2244](https://github.com/habitat-sh/habitat/pull/2244) ([mwrock](https://github.com/mwrock))
 
-## [0.22.0](https://github.com/habitat-sh/habitat/tree/0.22.0) (05-06-2017)
+## [0.22.0](https://github.com/habitat-sh/habitat/tree/0.22.0) (2017-05-06)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.21.0...0.22.0)
 
 ## Features & Enhancements
@@ -3402,7 +3402,7 @@
 - Handle pending jobs when workers are ready [\#2135](https://github.com/habitat-sh/habitat/pull/2135) ([chefsalim](https://github.com/chefsalim))
 - Update process-build.html.md.erb [\#2113](https://github.com/habitat-sh/habitat/pull/2113) ([dmp1ce](https://github.com/dmp1ce))
 
-## [0.21.0](https://github.com/habitat-sh/habitat/tree/0.21.0) (04-20-2017)
+## [0.21.0](https://github.com/habitat-sh/habitat/tree/0.21.0) (2017-04-20)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.20.0...0.21.0)
 
 ## Features & Enhancements
@@ -3490,7 +3490,7 @@
 - Add Scaffolding to Concepts sidebar in docs [\#2053](https://github.com/habitat-sh/habitat/pull/2053) ([reset](https://github.com/reset))
 - Bug fixes for builder [\#2052](https://github.com/habitat-sh/habitat/pull/2052) ([chefsalim](https://github.com/chefsalim))
 
-## [0.20.0](https://github.com/habitat-sh/habitat/tree/0.20.0) (04-07-2017)
+## [0.20.0](https://github.com/habitat-sh/habitat/tree/0.20.0) (2017-04-07)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.19.0...0.20.0)
 
 ## Features & Enhancements
@@ -3586,7 +3586,7 @@
 - Remove confusing install step from tutorial. [\#1892](https://github.com/habitat-sh/habitat/pull/1892) ([phiggins](https://github.com/phiggins))
 - pkg\_env: Add support for plan environment variable definitions [\#1830](https://github.com/habitat-sh/habitat/pull/1830) ([georgemarshall](https://github.com/georgemarshall))
 
-## [0.19.0](https://github.com/habitat-sh/habitat/tree/0.19.0) (03-11-2017)
+## [0.19.0](https://github.com/habitat-sh/habitat/tree/0.19.0) (2017-03-11)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.18.0...0.19.0)
 
 ## Features & Enhancements
@@ -3646,7 +3646,7 @@
 - Bump version to 0.19.0-dev [\#1886](https://github.com/habitat-sh/habitat/pull/1886) ([chefsalim](https://github.com/chefsalim))
 - This now passes shellcheck...  [\#1883](https://github.com/habitat-sh/habitat/pull/1883) ([eeyun](https://github.com/eeyun))
 
-## [0.18.0](https://github.com/habitat-sh/habitat/tree/0.18.0) (03-02-2017)
+## [0.18.0](https://github.com/habitat-sh/habitat/tree/0.18.0) (2017-03-02)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.17.0...0.18.0)
 
 ## Features & Enhancements
@@ -3726,7 +3726,7 @@
 - Rework channels. [\#1759](https://github.com/habitat-sh/habitat/pull/1759) ([raskchanky](https://github.com/raskchanky))
 - Add validation and docs for pkg\_name and pkg\_origin [\#1719](https://github.com/habitat-sh/habitat/pull/1719) ([smith](https://github.com/smith))
 
-## [0.17.0](https://github.com/habitat-sh/habitat/tree/0.17.0) (02-14-2017)
+## [0.17.0](https://github.com/habitat-sh/habitat/tree/0.17.0) (2017-02-14)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.16.0...0.17.0)
 
 ## Features & Enhancements
@@ -3842,7 +3842,7 @@
 - Update software license for 2017 [\#1653](https://github.com/habitat-sh/habitat/pull/1653) ([reset](https://github.com/reset))
 - Add metrics endpoint to supervisor [\#1469](https://github.com/habitat-sh/habitat/pull/1469) ([jamesc](https://github.com/jamesc))
 
-## [0.16.0](https://github.com/habitat-sh/habitat/tree/0.16.0) (01-19-2017)
+## [0.16.0](https://github.com/habitat-sh/habitat/tree/0.16.0) (2017-01-19)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.15.0...0.16.0)
 
 ## Features & Enhancements
@@ -3906,7 +3906,7 @@
 - Link to webinar recording [\#1626](https://github.com/habitat-sh/habitat/pull/1626) ([nathenharvey](https://github.com/nathenharvey))
 - Updates docoumentation with working links. [\#1505](https://github.com/habitat-sh/habitat/pull/1505) ([dmccown](https://github.com/dmccown))
 
-## [0.15.0](https://github.com/habitat-sh/habitat/tree/0.15.0) (12-22-2016)
+## [0.15.0](https://github.com/habitat-sh/habitat/tree/0.15.0) (2016-12-22)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.14.0...0.15.0)
 
 ## Features & Enhancements
@@ -3956,7 +3956,7 @@
 - General Safety Improvements and API updating [\#1567](https://github.com/habitat-sh/habitat/pull/1567) ([Hoverbear](https://github.com/Hoverbear))
 - \[NOT-YET\] Update documentation for butterfly supervisor [\#1536](https://github.com/habitat-sh/habitat/pull/1536) ([adamhjk](https://github.com/adamhjk))
 
-## [0.14.0](https://github.com/habitat-sh/habitat/tree/0.14.0) (12-12-2016)
+## [0.14.0](https://github.com/habitat-sh/habitat/tree/0.14.0) (2016-12-12)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.13.1...0.14.0)
 
 ## Features & Enhancements
@@ -4047,7 +4047,7 @@
 - 0.14.0-dev [\#1481](https://github.com/habitat-sh/habitat/pull/1481) ([reset](https://github.com/reset))
 - Adding windows user implementations [\#1468](https://github.com/habitat-sh/habitat/pull/1468) ([mwrock](https://github.com/mwrock))
 
-## [0.13.1](https://github.com/habitat-sh/habitat/tree/0.13.1) (11-14-2016)
+## [0.13.1](https://github.com/habitat-sh/habitat/tree/0.13.1) (2016-11-14)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.13.0...0.13.1)
 
 ## Features & Enhancements
@@ -4069,7 +4069,7 @@
 - bumping version for development [\#1474](https://github.com/habitat-sh/habitat/pull/1474) ([mwrock](https://github.com/mwrock))
 - it's 80 not 00 [\#1473](https://github.com/habitat-sh/habitat/pull/1473) ([jjasghar](https://github.com/jjasghar))
 
-## [0.13.0](https://github.com/habitat-sh/habitat/tree/0.13.0) (11-10-2016)
+## [0.13.0](https://github.com/habitat-sh/habitat/tree/0.13.0) (2016-11-10)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.12.1...0.13.0)
 
 ## Features & Enhancements
@@ -4115,7 +4115,7 @@
 - Add core/curl as runtime dep for builder-worker [\#1452](https://github.com/habitat-sh/habitat/pull/1452) ([reset](https://github.com/reset))
 - Worker building plans from GitHub source [\#1437](https://github.com/habitat-sh/habitat/pull/1437) ([reset](https://github.com/reset))
 
-## [0.12.1](https://github.com/habitat-sh/habitat/tree/0.12.1) (11-02-2016)
+## [0.12.1](https://github.com/habitat-sh/habitat/tree/0.12.1) (2016-11-02)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.12.0...0.12.1)
 
 ## Features & Enhancements
@@ -4148,7 +4148,7 @@
 - Allow sourcing of /src/.studiorc to set hab env vars [\#1390](https://github.com/habitat-sh/habitat/pull/1390) ([bdangit](https://github.com/bdangit))
 - \[builder\] deprecate Content-Range header usage [\#1387](https://github.com/habitat-sh/habitat/pull/1387) ([chefsalim](https://github.com/chefsalim))
 
-## [0.12.0](https://github.com/habitat-sh/habitat/tree/0.12.0) (10-28-2016)
+## [0.12.0](https://github.com/habitat-sh/habitat/tree/0.12.0) (2016-10-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.11.0...0.12.0)
 
 ## Features & Enhancements
@@ -4206,7 +4206,7 @@
 - fix windows binary building on linux/vbox [\#1358](https://github.com/habitat-sh/habitat/pull/1358) ([mwrock](https://github.com/mwrock))
 - Fix lots of bugs from the Angular 2 upgrade [\#1330](https://github.com/habitat-sh/habitat/pull/1330) ([raskchanky](https://github.com/raskchanky))
 
-## [0.11.0](https://github.com/habitat-sh/habitat/tree/0.11.0) (10-14-2016)
+## [0.11.0](https://github.com/habitat-sh/habitat/tree/0.11.0) (2016-10-14)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.2...0.11.0)
 
 ## Features & Enhancements
@@ -4275,7 +4275,7 @@
 - SWIM as an independent library [\#1310](https://github.com/habitat-sh/habitat/pull/1310) ([adamhjk](https://github.com/adamhjk))
 - Run rspec/inspec tests in Travis [\#1263](https://github.com/habitat-sh/habitat/pull/1263) ([metadave](https://github.com/metadave))
 
-## [0.10.2](https://github.com/habitat-sh/habitat/tree/0.10.2) (09-30-2016)
+## [0.10.2](https://github.com/habitat-sh/habitat/tree/0.10.2) (2016-09-30)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.1...0.10.2)
 
 ## Bug fixes
@@ -4289,7 +4289,7 @@
 - Adding text on updating services through env var + title changes [\#1311](https://github.com/habitat-sh/habitat/pull/1311) ([davidwrede](https://github.com/davidwrede))
 - Start 0.11.0-dev [\#1305](https://github.com/habitat-sh/habitat/pull/1305) ([reset](https://github.com/reset))
 
-## [0.10.1](https://github.com/habitat-sh/habitat/tree/0.10.1) (09-29-2016)
+## [0.10.1](https://github.com/habitat-sh/habitat/tree/0.10.1) (2016-09-29)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.0...0.10.1)
 
 ## Features & Enhancements
@@ -4306,7 +4306,7 @@
 - 0.10.1 [\#1303](https://github.com/habitat-sh/habitat/pull/1303) ([reset](https://github.com/reset))
 - Start 0.11.0-dev [\#1300](https://github.com/habitat-sh/habitat/pull/1300) ([reset](https://github.com/reset))
 
-## [0.10.0](https://github.com/habitat-sh/habitat/tree/0.10.0) (09-29-2016)
+## [0.10.0](https://github.com/habitat-sh/habitat/tree/0.10.0) (2016-09-29)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/BLDR-0.10.0...0.10.0)
 
 ## Features & Enhancements
@@ -4367,7 +4367,7 @@
 - Home page copy updates [\#1247](https://github.com/habitat-sh/habitat/pull/1247) ([ryankeairns](https://github.com/ryankeairns))
 - Upgrade to Angular 2 RC-5 [\#1213](https://github.com/habitat-sh/habitat/pull/1213) ([raskchanky](https://github.com/raskchanky))
 
-## [BLDR-0.10.0](https://github.com/habitat-sh/habitat/tree/BLDR-0.10.0) (09-16-2016)
+## [BLDR-0.10.0](https://github.com/habitat-sh/habitat/tree/BLDR-0.10.0) (2016-09-16)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.3...BLDR-0.10.0)
 
 **Merged pull requests:**
@@ -4375,7 +4375,7 @@
 - Update clap to fix hashing file names with commas. [\#1250](https://github.com/habitat-sh/habitat/pull/1250) ([raskchanky](https://github.com/raskchanky))
 - Plumb feature flags into builder-web [\#1249](https://github.com/habitat-sh/habitat/pull/1249) ([reset](https://github.com/reset))
 
-## [0.9.3](https://github.com/habitat-sh/habitat/tree/0.9.3) (09-16-2016)
+## [0.9.3](https://github.com/habitat-sh/habitat/tree/0.9.3) (2016-09-16)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.2...0.9.3)
 
 ## Bug fixes
@@ -4387,7 +4387,7 @@
 - version bump and changelog update for 0.9.3 [\#1248](https://github.com/habitat-sh/habitat/pull/1248) ([metadave](https://github.com/metadave))
 - Improve logging/handling when receiving an unexpected route reply [\#1244](https://github.com/habitat-sh/habitat/pull/1244) ([reset](https://github.com/reset))
 
-## [0.9.2](https://github.com/habitat-sh/habitat/tree/0.9.2) (09-15-2016)
+## [0.9.2](https://github.com/habitat-sh/habitat/tree/0.9.2) (2016-09-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.1...0.9.2)
 
 ## Features & Enhancements
@@ -4435,7 +4435,7 @@
 - Update VERSION to the next one [\#1209](https://github.com/habitat-sh/habitat/pull/1209) ([raskchanky](https://github.com/raskchanky))
 - Integrate projects with the package details page [\#1157](https://github.com/habitat-sh/habitat/pull/1157) ([raskchanky](https://github.com/raskchanky))
 
-## [0.9.1](https://github.com/habitat-sh/habitat/tree/0.9.1) (09-01-2016)
+## [0.9.1](https://github.com/habitat-sh/habitat/tree/0.9.1) (2016-09-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.0...0.9.1)
 
 ## Features & Enhancements
@@ -4491,7 +4491,7 @@
 - Add CLI UX principles to repo [\#1158](https://github.com/habitat-sh/habitat/pull/1158) ([ryankeairns](https://github.com/ryankeairns))
 - Document use of exec in run hooks [\#1154](https://github.com/habitat-sh/habitat/pull/1154) ([mivok](https://github.com/mivok))
 
-## [0.9.0](https://github.com/habitat-sh/habitat/tree/0.9.0) (08-15-2016)
+## [0.9.0](https://github.com/habitat-sh/habitat/tree/0.9.0) (2016-08-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.8.0...0.9.0)
 
 ## Features & Enhancements
@@ -4577,7 +4577,7 @@
 - honor pkg\_svc\_user/pkg\_svc\_group \(rebased\) [\#1050](https://github.com/habitat-sh/habitat/pull/1050) ([metadave](https://github.com/metadave))
 - \[plan-build\] Add PKG\_CONFIG\_PATH metadata to packages [\#1049](https://github.com/habitat-sh/habitat/pull/1049) ([stevendanna](https://github.com/stevendanna))
 
-## [0.8.0](https://github.com/habitat-sh/habitat/tree/0.8.0) (07-08-2016)
+## [0.8.0](https://github.com/habitat-sh/habitat/tree/0.8.0) (2016-07-08)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.7.0...0.8.0)
 
 ## Features & Enhancements
@@ -4735,7 +4735,7 @@
 - Add banner advertising webinar to habitat.sh nav [\#852](https://github.com/habitat-sh/habitat/pull/852) ([magwalk](https://github.com/magwalk))
 - Join Habitat Slack from community page [\#851](https://github.com/habitat-sh/habitat/pull/851) ([ryankeairns](https://github.com/ryankeairns))
 
-## [0.7.0](https://github.com/habitat-sh/habitat/tree/0.7.0) (06-14-2016)
+## [0.7.0](https://github.com/habitat-sh/habitat/tree/0.7.0) (2016-06-14)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.6.0...0.7.0)
 
 ## Features & Enhancements
@@ -4994,7 +4994,7 @@
 - \[travis\] Fix up builder-web package upload & reorg ci scripts. [\#586](https://github.com/habitat-sh/habitat/pull/586) ([fnichol](https://github.com/fnichol))
 - Builder: Distributed Services & Job Queueing [\#525](https://github.com/habitat-sh/habitat/pull/525) ([reset](https://github.com/reset))
 
-## [0.6.0](https://github.com/habitat-sh/habitat/tree/0.6.0) (05-29-2016)
+## [0.6.0](https://github.com/habitat-sh/habitat/tree/0.6.0) (2016-05-29)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.5.0...0.6.0)
 
 **Closed issues:**
@@ -5065,7 +5065,7 @@
 - Create plan for Elixir 1.2.5 [\#518](https://github.com/habitat-sh/habitat/pull/518) ([shanesveller](https://github.com/shanesveller))
 - Update to docs navigation [\#517](https://github.com/habitat-sh/habitat/pull/517) ([ryankeairns](https://github.com/ryankeairns))
 
-## [0.5.0](https://github.com/habitat-sh/habitat/tree/0.5.0) (05-12-2016)
+## [0.5.0](https://github.com/habitat-sh/habitat/tree/0.5.0) (2016-05-12)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/jcd/pre-hab-rename...0.5.0)
 
 **Closed issues:**
@@ -5247,7 +5247,7 @@
 - \[bldr-build\] Variable name consistency updates [\#329](https://github.com/habitat-sh/habitat/pull/329) ([fnichol](https://github.com/fnichol))
 - \[plans\] Add a simple, sample Rails app [\#325](https://github.com/habitat-sh/habitat/pull/325) ([jtimberman](https://github.com/jtimberman))
 
-## [jcd/pre-hab-rename](https://github.com/habitat-sh/habitat/tree/jcd/pre-hab-rename) (03-29-2016)
+## [jcd/pre-hab-rename](https://github.com/habitat-sh/habitat/tree/jcd/pre-hab-rename) (2016-03-29)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.4.0...jcd/pre-hab-rename)
 
 **Merged pull requests:**
@@ -5371,7 +5371,7 @@
 - initial metadata store implementation [\#165](https://github.com/habitat-sh/habitat/pull/165) ([reset](https://github.com/reset))
 - Create self-hosted build environment with critical development toolchain [\#119](https://github.com/habitat-sh/habitat/pull/119) ([fnichol](https://github.com/fnichol))
 
-## [0.4.0](https://github.com/habitat-sh/habitat/tree/0.4.0) (02-02-2016)
+## [0.4.0](https://github.com/habitat-sh/habitat/tree/0.4.0) (2016-02-02)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/working_etcd_demo...0.4.0)
 
 **Merged pull requests:**
@@ -5391,7 +5391,7 @@
 - Allow listing all packages [\#183](https://github.com/habitat-sh/habitat/pull/183) ([smith](https://github.com/smith))
 - \[bldr-build\] Set `PATH` directly after resolving dependencies. [\#182](https://github.com/habitat-sh/habitat/pull/182) ([fnichol](https://github.com/fnichol))
 
-## [working_etcd_demo](https://github.com/habitat-sh/habitat/tree/working_etcd_demo) (01-28-2016)
+## [working_etcd_demo](https://github.com/habitat-sh/habitat/tree/working_etcd_demo) (2016-01-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.3.0...working_etcd_demo)
 
 **Merged pull requests:**
@@ -5420,7 +5420,7 @@
 - Sign in/out flow [\#156](https://github.com/habitat-sh/habitat/pull/156) ([smith](https://github.com/smith))
 - \[bldr\] generate user and service keys [\#154](https://github.com/habitat-sh/habitat/pull/154) ([metadave](https://github.com/metadave))
 
-## [0.3.0](https://github.com/habitat-sh/habitat/tree/0.3.0) (01-15-2016)
+## [0.3.0](https://github.com/habitat-sh/habitat/tree/0.3.0) (2016-01-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.2.0...0.3.0)
 
 **Merged pull requests:**
@@ -5476,7 +5476,7 @@
 - Put the plan files back for a bit [\#100](https://github.com/habitat-sh/habitat/pull/100) ([adamhjk](https://github.com/adamhjk))
 - Add Standard output and error formatting [\#99](https://github.com/habitat-sh/habitat/pull/99) ([adamhjk](https://github.com/adamhjk))
 
-## [0.2.0](https://github.com/habitat-sh/habitat/tree/0.2.0) (11-20-2015)
+## [0.2.0](https://github.com/habitat-sh/habitat/tree/0.2.0) (2015-11-20)
 **Merged pull requests:**
 
 - check for generated run file/symlink before re-linking [\#98](https://github.com/habitat-sh/habitat/pull/98) ([reset](https://github.com/reset))
