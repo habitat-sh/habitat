@@ -131,11 +131,7 @@ fn find_docker_cmd() -> Result<PathBuf> {
 
 fn is_image_present(docker_cmd: &Path) -> bool {
     let mut cmd = Command::new(docker_cmd);
-    let using_windows_containers = is_serving_windows_containers(&docker_cmd);
-    let image = image_identifier(
-        using_windows_containers,
-        target::PackageTarget::active_target(),
-    );
+    let image = image_identifier_for_active_target(&docker_cmd);
 
     cmd.arg("images").arg(&image).arg("-q");
     debug!("Running command: {:?}", cmd);
@@ -153,11 +149,7 @@ fn is_serving_windows_containers(docker_cmd: &Path) -> bool {
 }
 
 fn pull_image(docker_cmd: &Path) -> Result<()> {
-    let using_windows_containers = is_serving_windows_containers(&docker_cmd);
-    let image = image_identifier(
-        using_windows_containers,
-        target::PackageTarget::active_target(),
-    );
+    let image = image_identifier_for_active_target(&docker_cmd);
     let mut cmd = Command::new(docker_cmd);
     cmd.arg("pull")
         .arg(&image)
@@ -204,11 +196,7 @@ where
     S: AsRef<OsStr>,
 {
     let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
-    let using_windows_containers = is_serving_windows_containers(&docker_cmd);
-    let image = image_identifier(
-        using_windows_containers,
-        target::PackageTarget::active_target(),
-    );
+    let image = image_identifier_for_active_target(&docker_cmd);
 
     for vol in volumes {
         cmd_args.push("--volume".into());
@@ -244,10 +232,7 @@ where
     T: AsRef<str>,
 {
     let using_windows_containers = is_serving_windows_containers(&docker_cmd);
-    let image = image_identifier(
-        using_windows_containers,
-        target::PackageTarget::active_target(),
-    );
+    let image = image_identifier_for_active_target(&docker_cmd);
     let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
     if !using_windows_containers {
         cmd_args.push("--privileged".into());
@@ -303,6 +288,13 @@ fn unset_proxy_env_vars() {
             env::remove_var(var);
         }
     }
+}
+
+fn image_identifier_for_active_target(docker_cmd: &Path) -> String {
+    image_identifier(
+        is_serving_windows_containers(docker_cmd),
+        target::PackageTarget::active_target(),
+    )
 }
 
 /// Returns the Docker Studio image with tag for the desired version which corresponds to the
