@@ -19,6 +19,8 @@ steps:
     command: .buildkite/scripts/build_component.sh hab
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":linux: :two: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
@@ -55,6 +57,8 @@ steps:
     command: .buildkite/scripts/build_component.sh plan-build
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":linux: :two: :habicat: :hammer_and_wrench: core/hab-plan-build"
     command: .buildkite/scripts/build_component.sh plan-build
@@ -75,6 +79,8 @@ steps:
     command: .buildkite/scripts/build_component.sh bintray-publish
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":linux: :two: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.sh bintray-publish
@@ -96,6 +102,8 @@ steps:
     command: .buildkite/scripts/build_component.sh backline
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":drum_with_drumsticks: :habicat: :two: :drum_with_drumsticks: core/hab-backline"
     command: .buildkite/scripts/build_component.sh backline
@@ -111,6 +119,8 @@ steps:
     command: .buildkite/scripts/build_component.sh studio
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":linux: :two: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.sh studio
@@ -131,6 +141,8 @@ steps:
     command: .buildkite/scripts/build_component.sh sup
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":linux: :two: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.sh sup
@@ -154,32 +166,44 @@ steps:
     command: .buildkite/scripts/build_component.sh pkg-aci
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":linux: :docker: core/hab-pkg-export-docker"
     command: .buildkite/scripts/build_component.sh pkg-export-docker
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":windows: :docker: core/hab-pkg-export-docker"
     command: /bin/true
     skip: "No Windows builders yet"
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":k8s: core/hab-pkg-export-kubernetes"
     command: .buildkite/scripts/build_component.sh pkg-export-kubernetes
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":helm: core/hab-pkg-export-helm"
     command: .buildkite/scripts/build_component.sh pkg-export-helm
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":linux: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":linux: :two: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
@@ -199,6 +223,8 @@ steps:
     command: .buildkite/scripts/build_component.sh pkg-mesosize
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - wait
 
@@ -208,6 +234,8 @@ steps:
     command: .buildkite/scripts/build_component.sh pkg-cfize
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - wait
 

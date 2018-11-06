@@ -14,7 +14,7 @@ source .buildkite/scripts/shared.sh
 # etc.
 component=${1}
 
-channel=$(buildkite-agent meta-data get "release-channel")
+channel=$(get_release_channel)
 
 # `set_hab_binary` currently _must_ be called first!
 set_hab_binary
@@ -53,14 +53,14 @@ case "${component}" in
     "hab")
         echo "--- :buildkite: Storing artifact ${pkg_ident:?}"
         # buildkite-agent artifact upload "results/${pkg_artifact}"
-        buildkite-agent meta-data set "hab-version-${pkg_target:?}" "${pkg_ident:?}"
-        buildkite-agent meta-data set "hab-release-${pkg_target:?}" "${pkg_release:?}"
-        buildkite-agent meta-data set "hab-artifact-${pkg_target:?}" "${pkg_artifact:?}"
+        set_hab_ident "${pkg_target:?}" "${pkg_ident:?}"
+        set_hab_release "${pkg_target:?}" "${pkg_release:?}"
+        set_hab_artifact "${pkg_target:?}" "${pkg_artifact:?}"
         ;;
     "studio")
         echo "--- :buildkite: Recording metadata for ${pkg_ident}"
         # buildkite-agent artifact upload "results/${pkg_artifact}"
-        buildkite-agent meta-data set "studio-version-${pkg_target:?}" "${pkg_ident}"
+        set_studio_ident "${pkg_target:?}" "${pkg_ident:?}"
         ;;
     *)
         ;;

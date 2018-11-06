@@ -79,8 +79,8 @@ echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --appen
 # Since we can't store macOS packages in Builder yet, we'll store it
 # in Buildkite until we grab it later for upload to Bintray
 echo "--- :buildkite: Storing ${pkg_target:?} 'hab' artifact ${pkg_artifact:?}"
-buildkite-agent meta-data set "hab-artifact-${pkg_target:?}" "${pkg_artifact:?}"
-buildkite-agent meta-data set "hab-release-${pkg_target:?}" "${pkg_release:?}"
+set_hab_artifact "${pkg_target:?}" "${pkg_artifact:?}"
+set_hab_release "${pkg_target:?}" "${pkg_release:?}"
 (
     cd results
     buildkite-agent artifact upload "${pkg_artifact}"

@@ -13,7 +13,7 @@ fi
 echo "--- Preparing to push artifacts to the ${bintray_repository} Bintray repository"
 
 # We need to upload (but not publish) artifacts to Bintray right now.
-channel=$(buildkite-agent meta-data get "release-channel")
+channel=$(get_release_channel)
 
 # TODO (CM): extract set_hab_binary function to a common library and
 # use it here
@@ -24,7 +24,7 @@ sudo hab pkg install \
      core/hab-bintray-publish
 
 echo "--- :buildkite: Retrieving macOS core/hab artifact"
-hab_artifact=$(buildkite-agent meta-data get "hab-artifact-x86_64-darwin")
+hab_artifact=$(get_hab_artifact "x86_64-darwin")
 buildkite-agent artifact download "${hab_artifact}" .
 
 echo "--- :habicat: Uploading macOS core/hab to Bintray"

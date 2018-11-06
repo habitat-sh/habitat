@@ -17,7 +17,7 @@ else
 fi
 echo "--- Preparing to push artifacts to the ${bintray_repository} Bintray repository"
 
-channel=$(buildkite-agent meta-data get "release-channel")
+channel=$(get_release_channel)
 
 # TODO (CM): extract set_hab_binary function to a common library and
 # use it here
@@ -44,7 +44,7 @@ echo "--- :habicat: Uploading core/hab to Bintray"
 # Windows artifacts from Linux machines.)
 sudo "${hab_binary:?}" pkg install core/hab --channel="${channel}"
 
-hab_artifact=$(buildkite-agent meta-data get "hab-artifact-${BUILD_PKG_TARGET:?}")
+hab_artifact=$(get_hab_artifact "${BUILD_PKG_TARGET}")
 
 # We upload to the stable channel, but we don't *publish* until
 # later.

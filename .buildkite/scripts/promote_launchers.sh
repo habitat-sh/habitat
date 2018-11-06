@@ -25,7 +25,7 @@ linux_launcher="$(resolve_launcher linux-launcher x86_64-linux)"
 linux_kernel2_launcher="$(resolve_launcher linux-kernel2-launcher x86_64-linux-kernel2)"
 windows_launcher="$(resolve_launcher windows-launcher x86_64-windows)"
 
-channel=$(buildkite-agent meta-data get "release-channel")
+channel=$(get_release_channel)
 
 echo "--- :linux: :habicat: Promoting ${linux_launcher} for x86_64-linux to ${channel}"
 hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${linux_launcher}" "${channel}"

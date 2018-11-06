@@ -20,13 +20,13 @@ if [[ "${FAKE_RELEASE_TAG:-}" || "${BUILDKITE_TAG}" ]]; then
     echo "Release channel is '${channel}'"
     echo "## Habitat Release _${release}_" | buildkite-agent annotate --context "release-manifest"
 
-    buildkite-agent meta-data set "release-channel" "${channel}"
+    set_release_channel "${channel}"
 
     # We'll record the explicit version being built for future access,
     # even though 'cat'ing a file is pretty easy; we'll be sticking
     # other things into the Buildkite metadata, so it'll all be uniform.
     version=$(cat VERSION)
-    buildkite-agent meta-data set "version" "${version}"
+    set_version "${version}"
 
     buildkite-agent pipeline upload .buildkite/release_pipeline.yaml
 else

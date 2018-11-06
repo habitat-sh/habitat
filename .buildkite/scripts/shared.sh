@@ -80,29 +80,35 @@ set_hab_binary() {
     # It might be better to expect BUILD_PKG_TARGET to always be 
     # explicitly set. 
     local pkg_target
-    if [[ "${BUILD_PKG_TARGET:-}" == "x86_64-linux-kernel2" ]]; then
-        install_hab_kernel2_binary
-        hab_binary="$(which hab-x86_64-linux-kernel2)"
-        pkg_target="x86_64-linux-kernel2"
-    else 
-        hab_binary="$(which hab)"
-        pkg_target="x86_64-linux"
-    fi 
-
-    if buildkite-agent meta-data exists hab-version-${pkg_target} &&
-            buildkite-agent meta-data exists studio-version-${pkg_target}; then
+    case "${BUILD_PKG_TARGET}" in
+        x86_64-linux)
+            hab_binary="$(which hab)"
+            pkg_target="x86_64-linux"
+            ;;
+        x86_64-linux-kernel2)
+            install_hab_kernel2_binary
+            hab_binary="$(which hab-x86_64-linux-kernel2)"
+            pkg_target="x86_64-linux-kernel2"
+            ;;
+        *) 
+            echo "--- :no_entry_sign: Unknown PackageTarget: ${BUILD_PKG_TARGET}"
+            exit 1
+            ;;
+    esac
+        
+    if has_hab_ident "${pkg_target}" && has_studio_ident "${pkg_target}"; then
         echo "Buildkite metadata found; installing new versions of 'core/hab' and 'core/hab-studio'"
         # By definition, these will be fully-qualified identifiers,
         # and thus do not require a `--channel` option. However, they
         # should be coming from the release channel, and should be the
         # same packages built previously in this same release pipeline.
-        hab_ident=$(buildkite-agent meta-data get hab-version-${pkg_target})
+        hab_ident=$(get_hab_ident "${pkg_target}")
 
         # Note that we are explicitly not binlinking here; this is to
         # prevent accidentally polluting the builder for any future
         # runs that may take place on it.
         sudo "${hab_binary:?}" pkg install "${hab_ident}"
-        sudo "${hab_binary:?}" pkg install "$(buildkite-agent meta-data get studio-version-${pkg_target})"
+        sudo "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)"
         hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else
@@ -128,4 +134,80 @@ install_hab_kernel2_binary() {
     sudo chmod +x /bin/hab-x86_64-linux-kernel2
     popd 
     rm -rf "$tempdir" >/dev/null
+}
+
+# The following get/set functions abstract the meta-data key
+# names to provide consistant access, taking into account the 
+# target, where appropriate.
+
+get_hab_ident() {
+    local target=$1
+    buildkite-agent meta-data get "hab-ident-${target}"
+}
+
+has_hab_ident() {
+    local target=$1
+    buildkite-agent meta-data exists "hab-ident-${target}"
+}
+
+set_hab_ident() {
+    local target=$1
+    local ident=$2
+    buildkite-agent meta-data set "hab-ident-${target}" "${ident}"
+}
+
+get_hab_artifact() {
+    local target=$1
+    buildkite-agent meta-data get "hab-artifact-${target}"
+}
+
+set_hab_artifact() {
+    local target=$1
+    local artifact=$2
+    buildkite-agent meta-data set "hab-artifact-${target}" "${artifact}"
+}
+
+get_hab_release() {
+    local target=$1
+    buildkite-agent meta-data get "hab-release-${target}"
+}
+
+set_hab_release() {
+    local target=$1
+    local release=$2
+    buildkite-agent meta-data set "hab-release-${target}" "${release}"
+}
+
+get_studio_ident() {
+    local target=$1
+    buildkite-agent meta-data get "studio-ident-${target}"
+}
+
+has_studio_ident() {
+    local target=$1
+    buildkite-agent meta-data exists "studio-ident-${target}"
+}
+
+set_studio_ident() {
+    local target=$1
+    local version=$2
+    buildkite-agent meta-data set "studio-ident-${target}" "${ident}"
+}
+
+get_release_channel() {
+    buildkite-agent meta-data get "release-channel"
+}
+
+set_release_channel() {
+    local channel=$1
+    buildkite-agent meta-data set "release-channel" "${channel}"
+}
+
+get_version() {
+    buildkite-agent meta-data get "version" "${version}"
+}
+
+set_version() {
+    local version=$1
+    buildkite-agent meta-data set "version" "${version}"
 }

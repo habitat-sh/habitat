@@ -8,9 +8,9 @@
 set -euo pipefail
 
 source .buildkite/scripts/shared.sh
-version=$(buildkite-agent meta-data get "version")
-channel=$(buildkite-agent meta-data get "release-channel")
-target="${BUILD_PKG_TARGET:-x86_64-linux}"
+version=$(get_version)
+channel=$(get_release_channel)
+target="${BUILD_PKG_TARGET}"
 image_name="habitat/default-studio-${target}"
 image_name_with_tag="${image_name}:${version}"
 

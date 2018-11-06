@@ -5,8 +5,9 @@
 # ensures that we keep everything clean and tidy.
 
 set -euo pipefail
+source .buildkite/scripts/shared.sh
 
-channel="$(buildkite-agent meta-data get release-channel)"
+channel="$(get_release_channel)"
 echo "--- Destroying release channel '${channel}'"
 
 # TODO (CM): Once this command takes an --auth token, use that instead
