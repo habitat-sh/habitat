@@ -190,7 +190,7 @@ has_studio_ident() {
 
 set_studio_ident() {
     local target=$1
-    local version=$2
+    local ident=$2
     buildkite-agent meta-data set "studio-ident-${target}" "${ident}"
 }
 
@@ -204,7 +204,7 @@ set_release_channel() {
 }
 
 get_version() {
-    buildkite-agent meta-data get "version" "${version}"
+    buildkite-agent meta-data get "version"
 }
 
 set_version() {
