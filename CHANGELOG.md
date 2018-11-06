@@ -8,6 +8,7 @@
 - Reduce excessive disk I/O when persisting rumors [#5804](https://github.com/habitat-sh/habitat/pull/5804) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Changes CHANGELOG date format [#5816](https://github.com/habitat-sh/habitat/pull/5816) ([rsertelon](https://github.com/rsertelon))
 - extend timeout waiting for http gateway to start [#5819](https://github.com/habitat-sh/habitat/pull/5819) ([mwrock](https://github.com/mwrock))
 - Uses tempfile instead of tempdir [#5811](https://github.com/habitat-sh/habitat/pull/5811) ([rsertelon](https://github.com/rsertelon))
 - Add `hab pkg list` command [#5790](https://github.com/habitat-sh/habitat/pull/5790) ([jamesc](https://github.com/jamesc))
