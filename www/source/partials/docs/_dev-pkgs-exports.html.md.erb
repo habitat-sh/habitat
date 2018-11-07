@@ -133,7 +133,7 @@ The Kubernetes exporter is an additional command line subcommand to the standard
     ```shell
     $ hab pkg export kubernetes ./results/<hart-filename>.hart -o my_app.yaml
     ```
-5. Additionally, you can also push the Docker image the exporter creates to Docker Hub (or another container registry) with:
+5. To push the Docker image created by the Kubernetes exporter to Docker Hub or another container registry, use:
 
     ```shell
     $ hab pkg export kubernetes --push-image --username <your_docker_hub_username> --password <your_docker_hub_password> -o my_app.yaml
