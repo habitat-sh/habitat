@@ -34,10 +34,10 @@ use std::mem;
 use std::net::SocketAddr;
 use std::ops::DerefMut;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use std::result;
 use std::str::FromStr;
 use std::sync::{Arc, Condvar, Mutex, RwLock};
+use std::thread;
 use std::time::Duration;
 
 use butterfly;
@@ -62,7 +62,7 @@ use protocol::net::{self, ErrCode, NetResult};
 use serde;
 use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
-use tokio_core::reactor;
+use tokio::{executor, runtime};
 use toml;
 
 use self::peer_watcher::PeerWatcher;
@@ -189,7 +189,7 @@ pub struct GatewayState {
 }
 
 pub struct Manager {
-    pub state: Rc<ManagerState>,
+    pub state: Arc<ManagerState>,
     butterfly: butterfly::Server,
     census_ring: CensusRing,
     events_group: Option<ServiceGroup>,
@@ -384,7 +384,7 @@ impl Manager {
             None
         };
         Ok(Manager {
-            state: Rc::new(ManagerState {
+            state: Arc::new(ManagerState {
                 cfg: cfg_static,
                 services: services,
                 gateway_state: gateway_state,
@@ -648,14 +648,19 @@ impl Manager {
     }
 
     pub fn run(mut self, svc: Option<protocol::ctl::SvcLoad>) -> Result<()> {
-        let mut core = reactor::Core::new().expect("Couldn't start main reactor");
-        let handle = core.handle();
+        let mut runtime = runtime::Builder::new()
+            .name_prefix("tokio-")
+            .build()
+            .expect("Couldn't build Tokio Runtime!");
+
         let (ctl_tx, ctl_rx) = mpsc::unbounded();
         let ctl_handler = CtlAcceptor::new(self.state.clone(), ctl_rx).for_each(move |handler| {
-            handle.spawn(handler);
+            executor::spawn(handler);
             Ok(())
         });
-        core.handle().spawn(ctl_handler);
+
+        runtime.spawn(ctl_handler);
+
         if let Some(svc_load) = svc {
             Self::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
         }
@@ -838,8 +843,11 @@ impl Manager {
                     self.gossip_latest_service_rumor(&service);
                 }
             }
+
+            // This is really only needed until everything is running
+            // in futures.
             let time_to_wait = ((next_check - time::get_time()).num_milliseconds()).max(100);
-            core.turn(Some(Duration::from_millis(time_to_wait as u64)));
+            thread::sleep(Duration::from_millis(time_to_wait as u64));
         }
     }
 
@@ -1901,11 +1909,11 @@ where
 
 struct CtlAcceptor {
     rx: ctl_gateway::server::MgrReceiver,
-    state: Rc<ManagerState>,
+    state: Arc<ManagerState>,
 }
 
 impl CtlAcceptor {
-    fn new(state: Rc<ManagerState>, rx: ctl_gateway::server::MgrReceiver) -> Self {
+    fn new(state: Arc<ManagerState>, rx: ctl_gateway::server::MgrReceiver) -> Self {
         CtlAcceptor {
             state: state,
             rx: rx,
@@ -1935,11 +1943,11 @@ impl Stream for CtlAcceptor {
 
 struct CtlHandler {
     cmd: ctl_gateway::server::CtlCommand,
-    state: Rc<ManagerState>,
+    state: Arc<ManagerState>,
 }
 
 impl CtlHandler {
-    fn new(cmd: ctl_gateway::server::CtlCommand, state: Rc<ManagerState>) -> Self {
+    fn new(cmd: ctl_gateway::server::CtlCommand, state: Arc<ManagerState>) -> Self {
         CtlHandler {
             cmd: cmd,
             state: state,
