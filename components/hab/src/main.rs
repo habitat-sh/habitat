@@ -1365,7 +1365,7 @@ fn install_sources_from_matches(matches: &ArgMatches) -> Result<Vec<InstallSourc
 fn excludes_from_matches(matches: &ArgMatches) -> Vec<PackageIdent> {
     matches
         .values_of("EXCLUDE")
-        .unwrap() // Required via clap
+        .unwrap_or_default()
         .map(|i| PackageIdent::from_str(i).unwrap()) // unwrap safe as we've validated the input
         .collect()
 }
