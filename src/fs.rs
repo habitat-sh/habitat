@@ -36,6 +36,8 @@ pub const CACHE_KEY_PATH: &'static str = "hab/cache/keys";
 pub const CACHE_SRC_PATH: &'static str = "hab/cache/src";
 /// The default path where SSL-related artifacts are placed
 pub const CACHE_SSL_PATH: &'static str = "hab/cache/ssl";
+/// The root path for the launcher runtime
+pub const LAUNCHER_ROOT_PATH: &'static str = "hab/launcher";
 /// The root path containing all locally installed packages
 /// Because this value is used in template rendering, we
 /// use native directory separator
@@ -210,6 +212,17 @@ where
             Path::new(root.as_ref()).join(path.strip_prefix("/").unwrap())
         }
         _ => path.to_path_buf(),
+    }
+}
+
+/// Return the path to the root of the launcher runtime directory
+pub fn launcher_root_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
+    match fs_root_path {
+        Some(fs_root_path) => fs_root_path.as_ref().join(LAUNCHER_ROOT_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(LAUNCHER_ROOT_PATH),
     }
 }
 
