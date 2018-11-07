@@ -36,6 +36,7 @@ use hcore::package::list::temp_package_directory;
 /// 1. We find the fully qualified package ident and all its dependencies
 /// 2. We find all packages on the filesystem and convert them into a graph
 /// 3. We do a BFS on the graph to get the dependencies in order
+/// 4. Update our excludes list with any running services
 /// 4. We check if the specified package has any reverse deps
 ///     4a. If there are, we throw an error
 ///     4b. If not, we delete the package
@@ -49,7 +50,7 @@ pub fn start(
     fs_root_path: &Path,
     execution_strategy: ExecutionStrategy,
     scope: Scope,
-    excludes: Vec<PackageIdent>,
+    cli_excludes: Vec<PackageIdent>,
 ) -> Result<()> {
     // 1.
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
@@ -64,7 +65,18 @@ pub fn start(
     // 3.
     let deps = graph.ordered_deps(&ident);
 
-    // 4.
+    // 4. Update excludes if a supervisor is running
+    let excludes = if launcher_is_running(&fs_root_path) {
+        ui.status(
+            Status::Determining,
+            "list of running services in supervisor",
+        )?;
+        with_supervisor_excludes(&fs_root_path, cli_excludes)?
+    } else {
+        cli_excludes
+    };
+
+    // 5.
     match graph.count_rdeps(&ident) {
         None => {
             // package not in graph - this shouldn't happen but could be a race condition in Step 2 with another hab uninstall. We can
@@ -87,7 +99,7 @@ pub fn start(
         }
     }
 
-    // 5.
+    // 6.
     let mut count = 0;
     match scope {
         Scope::Package => {
@@ -230,4 +242,21 @@ fn load_all_packages(fs_root_path: &Path) -> Result<Vec<PackageInstall>> {
         result.push(pkg_install);
     }
     Ok(result)
+}
+
+/// Check if we have a launcher/supervisor running out of this habitat root.
+/// If the launcher PID file exists then the supervisor is up and running
+fn launcher_is_running(fs_root_path: &Path) -> bool {
+    let launcher_root = hfs::launcher_root_path(Some(fs_root_path));
+
+    let pid_file_path = launcher_root.join("PID");
+
+    pid_file_path.is_file()
+}
+
+fn with_supervisor_excludes(
+    _fs_root_path: &Path,
+    excludes: Vec<PackageIdent>,
+) -> Result<Vec<PackageIdent>> {
+    Ok(excludes)
 }
