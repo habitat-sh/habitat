@@ -828,14 +828,14 @@ impl Server {
     }
 
     /// Get all the Member ID's who are present in a given service group, and count towards quorum.
-    pub fn get_total_population(&self, key: &str) -> usize {
-        let mut total_pop = 0;
+    fn get_total_population(&self, key: &str) -> Vec<String> {
+        let mut total_pop = vec![];
         self.service_store.with_rumors(key, |s| {
             if self
                 .member_list
                 .check_in_voting_population_by_id(&s.member_id)
             {
-                total_pop += 1;
+                total_pop.push(s.member_id.clone());
             }
         });
         total_pop
@@ -847,10 +847,18 @@ impl Server {
     /// is over 50%, and at least 3 members.
     fn check_quorum(&self, key: &str) -> bool {
         let electorate = self.get_electorate(key);
-
-        let total_population = self.get_total_population(key);
+        let service_group_members = self.get_total_population(key);
+        let total_population = service_group_members.len();
         let alive_population = electorate.len();
 
+        trace!(
+            "check_quorum({}): {}/{} alive/total, electorate: {:?}, service_group: {:?}",
+            key,
+            alive_population,
+            total_population,
+            electorate,
+            service_group_members
+        );
         if total_population < 3 {
             trace!(
                 "Quorum size: {}/3 - election cannot complete",
@@ -870,8 +878,10 @@ impl Server {
         e.term = term;
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
+            warn!("start_election check_quorum failed: {:?}", e);
             e.no_quorum();
         }
+        debug!("start_election: {:?}", e);
         self.election_store.insert(e);
         self.rumor_heat.start_hot_rumor(ek);
     }
@@ -881,8 +891,10 @@ impl Server {
         e.term = term;
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
+            warn!("start_election check_quorum failed: {:?}", e);
             e.no_quorum();
         }
+        debug!("start_update_election: {:?}", e);
         self.update_store.insert(e);
         self.rumor_heat.start_hot_rumor(ek);
     }
@@ -900,6 +912,7 @@ impl Server {
                 .service_store
                 .contains_rumor(&service_group, self.member_id())
             {
+                debug!("restart_elections: checking {}", service_group);
                 // This is safe; there is only one id for an election, and it is "election"
                 let election = rumors
                     .get("election")
@@ -990,6 +1003,7 @@ impl Server {
     /// member on receipt of an election rumor for a service this server cares about. Also handles
     /// stopping the election if we are the winner and we have enough votes.
     pub fn insert_election(&self, mut election: Election) {
+        debug!("insert_election: {:?}", election);
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
@@ -997,6 +1011,11 @@ impl Server {
             .service_store
             .contains_rumor(&election.service_group, self.member_id())
         {
+            trace!(
+                "{} is a member of {}",
+                self.member_id(),
+                election.service_group
+            );
             // And the election store already has an election rumor for this election
             if self
                 .election_store
@@ -1005,9 +1024,11 @@ impl Server {
                 let mut new_term = false;
                 self.election_store
                     .with_rumor(election.key(), election.id(), |ce| {
+                        trace!("election_store already contains {:?}", ce);
                         new_term = election.term > ce.unwrap().term
                     });
                 if new_term {
+                    debug!("removing old rumor and starting new election");
                     self.election_store.remove(election.key(), election.id());
                     self.start_election(&election.service_group, election.term);
                 }
@@ -1057,6 +1078,7 @@ impl Server {
     }
 
     pub fn insert_update_election(&self, mut election: ElectionUpdate) {
+        debug!("insert_update_election: {:?}", election);
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
@@ -1064,6 +1086,11 @@ impl Server {
             .service_store
             .contains_rumor(&election.service_group, self.member_id())
         {
+            trace!(
+                "{} is a member of {}",
+                self.member_id(),
+                election.service_group
+            );
             // And the election store already has an election rumor for this election
             if self
                 .update_store
@@ -1072,9 +1099,11 @@ impl Server {
                 let mut new_term = false;
                 self.update_store
                     .with_rumor(election.key(), election.id(), |ce| {
+                        trace!("election_store already contains {:?}", ce);
                         new_term = election.term > ce.unwrap().term
                     });
                 if new_term {
+                    debug!("removing old rumor and starting new election");
                     self.update_store.remove(election.key(), election.id());
                     self.start_update_election(&election.service_group, 0, election.term);
                 }

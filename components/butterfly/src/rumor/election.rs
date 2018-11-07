@@ -149,50 +149,37 @@ impl From<Election> for newscast::Election {
 impl Rumor for Election {
     /// Updates this election based on the contents of another election.
     fn merge(&mut self, mut other: Election) -> bool {
+        debug!("merging stored {:?}", self);
+        debug!(" with received {:?}", other);
         if *self == other {
-            // If we are the same object, just return false
-            debug!("Equal: {:?} {:?}", self, other);
+            debug!("stored and received rumors are equal; nothing to do");
             false
         } else if other.term >= self.term && other.status == ElectionStatus::Finished {
-            // If the new rumors term is bigger or equal to ours, and it has a leader, we take it as
-            // the leader and move on.
+            debug!("received is finished and represents a newer term; replace stored and share");
             *self = other;
             true
         } else if other.term == self.term && self.status == ElectionStatus::Finished {
-            // If the terms are equal, and we are finished, then we drop the other side on the
-            // floor
+            debug!("stored rumor is finished and received rumor is for same term; nothing to do");
             false
         } else if self.term > other.term {
-            // If the rumor we got has a term that's lower than ours, keep sharing our rumor no
-            // matter what term they are on.
+            debug!("stored rumor represents a newer term than received; keep sharing it");
             true
         } else if self.suitability > other.suitability {
-            // If we are more suitable than the other side, we want to steal
-            // the other sides votes, and keep sharing.
-            debug!("Self suitable: {:?} {:?}", self, other);
+            debug!("stored rumor is more suitable; take received rumor's votes and share");
             self.steal_votes(&mut other);
             true
         } else if other.suitability > self.suitability {
-            // If the other side is more suitable than we are, we want to add our votes
-            // to its tally, then take it as our rumor.
-            debug!("Other suitable: {:?} {:?}", self, other);
+            debug!("received rumor is more suitable; take stored rumor's votes, replace stored and share");
             other.steal_votes(self);
             *self = other;
             true
         } else {
             if self.member_id >= other.member_id {
-                // If we are equally suitable, and our id sorts before the other, we want to steal
-                // it's votes, and mark it as having voted for us.
-                debug!(
-                    "Self sorts equal or greater than other: {:?} {:?}",
-                    self, other
-                );
+                debug!("stored rumor wins tie-breaker; take received rumor's votes and share");
                 self.steal_votes(&mut other);
                 true
             } else {
-                // If we are equally suitable, but the other id sorts before ours, then we give it
-                // our votes, vote for it ourselves, and spread it as the new rumor
-                debug!("Self sorts less than other: {:?} {:?}", self, other);
+                debug!("received rumor wins tie-breaker; take stored rumor's votes, replace stored and share");
                 other.steal_votes(self);
                 *self = other;
                 true
