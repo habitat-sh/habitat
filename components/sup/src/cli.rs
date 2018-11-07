@@ -1,38 +1,15 @@
 use clap::App;
 
-use hab::cli::{
-    sub_sup_bash, sub_sup_depart, sub_sup_run, sub_sup_secret, sub_sup_sh, sub_sup_term,
-    sub_svc_status,
-};
-use VERSION;
+use hab::cli::sup_commands;
 
 pub fn cli<'a, 'b>() -> App<'a, 'b> {
-    clap_app!(("hab-sup") =>
-        (about: "The Habitat Supervisor")
-        (version: VERSION)
-        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
-        // set custom usage string, otherwise the binary
-        // is displayed confusingly as `hab-sup`
-        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-        (usage: "hab sup <SUBCOMMAND>")
-        (@setting VersionlessSubcommands)
-        (@setting SubcommandRequiredElseHelp)
-        // this is the _full_ list of supervisor related cmds
-        // they are all enumerated here so that the entire help menu
-        // can be displayed from `hab sup --help`
-        (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
-        (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
-        (subcommand: sub_sup_run().aliases(&["r", "ru"]))
-        (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
-        (subcommand: sub_sup_sh().aliases(&[]))
-        (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
-        (subcommand: sub_sup_term().aliases(&["ter"]))
-    )
+    sup_commands()
 }
 
 #[cfg(test)]
 mod test {
     use super::cli;
+    use clap::ErrorKind;
 
     macro_rules! assert_cli_cmd {
         ($test:ident, $cmd:expr, $( $key:expr => $value:tt ),+) => {
@@ -41,6 +18,14 @@ mod test {
                 assert_cmd!(cli(), $cmd, $( $key => $value ),+ );
             }
         }
+    }
+
+    #[test]
+    fn sup_help_on_run_subcommand() {
+        let r = cli().get_matches_from_safe(vec!["hab-sup", "run", "--help"]);
+        assert!(r.is_err());
+        // not `ErrorKind::InvalidSubcommand`
+        assert_eq!(r.unwrap_err().kind, ErrorKind::HelpDisplayed);
     }
 
     mod sup_run {
