@@ -15,6 +15,7 @@
 - Put some guard rails around hab pkg uninstall [#5801](https://github.com/habitat-sh/habitat/pull/5801) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- corrects kubernetes docs [#5821](https://github.com/habitat-sh/habitat/pull/5821) ([nellshamrell](https://github.com/nellshamrell))
 - Reworks sup-term to use hab sup term [#5812](https://github.com/habitat-sh/habitat/pull/5812) ([rsertelon](https://github.com/rsertelon))
 - Changes CHANGELOG date format [#5816](https://github.com/habitat-sh/habitat/pull/5816) ([rsertelon](https://github.com/rsertelon))
 - extend timeout waiting for http gateway to start [#5819](https://github.com/habitat-sh/habitat/pull/5819) ([mwrock](https://github.com/mwrock))
