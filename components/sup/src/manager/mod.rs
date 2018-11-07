@@ -1549,15 +1549,19 @@ impl Manager {
             ShutdownReason::LauncherStopping | ShutdownReason::SvcStopCmd => true,
             _ => false,
         };
+
         if term {
             service.stop(&self.launcher, cause);
         }
+
         if let Err(_) = self.user_config_watcher.remove(service) {
             debug!(
                 "Error stopping user-config watcher thread for service {}",
                 service
             );
         }
+
+        self.updater.remove(service);
     }
 
     /// Check if any elections need restarting.
