@@ -3,20 +3,22 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### New Features & Enhancements
+- Add `hab pkg list` command [#5790](https://github.com/habitat-sh/habitat/pull/5790) ([jamesc](https://github.com/jamesc))
+- Propagate DO_CHECK into studio if set [#5657](https://github.com/habitat-sh/habitat/pull/5657) ([rsertelon](https://github.com/rsertelon))
+- Evolve the supervisor&#39;s HTTP API [#5787](https://github.com/habitat-sh/habitat/pull/5787) ([raskchanky](https://github.com/raskchanky))
+
 #### Bug Fixes
 - Add validation for all CLI args which accept package identifiers [#5807](https://github.com/habitat-sh/habitat/pull/5807) ([baumanj](https://github.com/baumanj))
 - Reduce excessive disk I/O when persisting rumors [#5804](https://github.com/habitat-sh/habitat/pull/5804) ([christophermaier](https://github.com/christophermaier))
+- Put some guard rails around hab pkg uninstall [#5801](https://github.com/habitat-sh/habitat/pull/5801) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
 - Reworks sup-term to use hab sup term [#5812](https://github.com/habitat-sh/habitat/pull/5812) ([rsertelon](https://github.com/rsertelon))
 - Changes CHANGELOG date format [#5816](https://github.com/habitat-sh/habitat/pull/5816) ([rsertelon](https://github.com/rsertelon))
 - extend timeout waiting for http gateway to start [#5819](https://github.com/habitat-sh/habitat/pull/5819) ([mwrock](https://github.com/mwrock))
 - Uses tempfile instead of tempdir [#5811](https://github.com/habitat-sh/habitat/pull/5811) ([rsertelon](https://github.com/rsertelon))
-- Add `hab pkg list` command [#5790](https://github.com/habitat-sh/habitat/pull/5790) ([jamesc](https://github.com/jamesc))
-- Propagate DO_CHECK into studio if set [#5657](https://github.com/habitat-sh/habitat/pull/5657) ([rsertelon](https://github.com/rsertelon))
 - Refactor ManagerConfig generation from ArgMatches [#5793](https://github.com/habitat-sh/habitat/pull/5793) ([mpeck](https://github.com/mpeck))
-- Put some guard rails around hab pkg uninstall [#5801](https://github.com/habitat-sh/habitat/pull/5801) ([jamesc](https://github.com/jamesc))
-- Evolve the supervisor&#39;s HTTP API [#5787](https://github.com/habitat-sh/habitat/pull/5787) ([raskchanky](https://github.com/raskchanky))
 - Automate bumping Homebrew version information after a release [#5799](https://github.com/habitat-sh/habitat/pull/5799) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 ## [0.67.0](https://github.com/habitat-sh/habitat/tree/0.67.0) (2018-10-30)
