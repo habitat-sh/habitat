@@ -9,6 +9,7 @@
 - Evolve the supervisor&#39;s HTTP API [#5787](https://github.com/habitat-sh/habitat/pull/5787) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
+- Add logging for elections [#5826](https://github.com/habitat-sh/habitat/pull/5826) ([baumanj](https://github.com/baumanj))
 - Fix bug where having no excludes for uninstall would trigger a panic [#5825](https://github.com/habitat-sh/habitat/pull/5825) ([jamesc](https://github.com/jamesc))
 - Add validation for all CLI args which accept package identifiers [#5807](https://github.com/habitat-sh/habitat/pull/5807) ([baumanj](https://github.com/baumanj))
 - Reduce excessive disk I/O when persisting rumors [#5804](https://github.com/habitat-sh/habitat/pull/5804) ([christophermaier](https://github.com/christophermaier))
