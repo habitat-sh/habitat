@@ -106,17 +106,7 @@ impl ServiceUpdater {
 
     /// Remove a `Service` from updates, e.g. if the service was unloaded.
     pub fn remove(&mut self, service: &Service) {
-        let updater_state = self.states.remove(&service.service_group);
-
-        if updater_state.is_none() {
-            warn!(
-                "Tried to remove {} from the ServiceUpdater, but it wasn't found.",
-                service
-            );
-            return;
-        }
-
-        match updater_state {
+        match self.states.remove(&service.service_group) {
             Some(UpdaterState::AtOnce(_rx, kill_tx)) => {
                 if kill_tx.send(()).is_err() {
                     debug!("Tried to kill the updater thread but it's already dead.");
@@ -141,7 +131,12 @@ impl ServiceUpdater {
                 },
                 _ => {}
             },
-            None => {}
+            None => {
+                warn!(
+                    "Tried to remove {} from the ServiceUpdater, but it wasn't found.",
+                    service
+                );
+            }
         }
     }
 
