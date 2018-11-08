@@ -122,9 +122,9 @@ where
 {
     let exe_root = env::current_exe()
         .unwrap()
-        .parent()  // deps
+        .parent() // deps
         .unwrap()
-        .parent()  // debug
+        .parent() // debug
         .unwrap()
         .to_path_buf();
     let bin = exe_root.join(binary_name.as_ref());
@@ -233,18 +233,18 @@ impl TestSup {
             "TESTING_FS_ROOT",
             fs_root.as_ref().to_string_lossy().as_ref(),
         ).env("HAB_SUP_BINARY", &sup_exe)
-            .env(BLDR_URL_ENVVAR, "http://hab.sup.test")
-            .arg("run")
-            .arg("--listen-gossip")
-            .arg(format!("{}:{}", listen_host, butterfly_port))
-            .arg("--listen-http")
-            .arg(format!("{}:{}", listen_host, http_port))
-            .arg("--listen-ctl")
-            .arg(format!("{}:{}", listen_host, control_port))
-            // Note: we will have already dropped off the spec files
-            // needed to run our test service, so we don't supply a
-            // package identifier here
-            .stdin(Stdio::null());
+        .env(BLDR_URL_ENVVAR, "http://hab.sup.test")
+        .arg("run")
+        .arg("--listen-gossip")
+        .arg(format!("{}:{}", listen_host, butterfly_port))
+        .arg("--listen-http")
+        .arg(format!("{}:{}", listen_host, http_port))
+        .arg("--listen-ctl")
+        .arg(format!("{}:{}", listen_host, control_port))
+        // Note: we will have already dropped off the spec files
+        // needed to run our test service, so we don't supply a
+        // package identifier here
+        .stdin(Stdio::null());
         if !nocapture_set() {
             cmd.stdout(Stdio::null());
             cmd.stderr(Stdio::null());

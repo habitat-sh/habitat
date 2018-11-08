@@ -193,46 +193,61 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 
     pub fn add_publishing_args(self) -> Self {
-        let app = self.app.arg(Arg::with_name("PUSH_IMAGE")
-                 .long("push-image")
-                 .conflicts_with("NO_PUSH_IMAGE")
-                 .requires_all(&["REGISTRY_USERNAME", "REGISTRY_PASSWORD"])
-                 .help("Push image to remote registry (default: no)"))
-            .arg(Arg::with_name("NO_PUSH_IMAGE")
-                 .long("no-push-image")
-                 .conflicts_with("PUSH_IMAGE")
-                 .help("Do not push image to remote registry (default: yes)"))
-            .arg(Arg::with_name("REGISTRY_USERNAME")
-                 .long("username")
-                 .short("U")
-                 .value_name("REGISTRY_USERNAME")
-                 .requires("REGISTRY_PASSWORD")
-                 .help("Remote registry username, required for pushing image to remote registry"))
-            .arg(Arg::with_name("REGISTRY_PASSWORD")
-                 .long("password")
-                 .short("P")
-                 .value_name("REGISTRY_PASSWORD")
-                 .requires("REGISTRY_USERNAME")
-                 .help("Remote registry password, required for pushing image to remote registry"))
-            .arg(Arg::with_name("REGISTRY_TYPE")
-                 .possible_values(RegistryType::variants())
-                 .long("registry-type")
-                 .short("R")
-                 .value_name("REGISTRY_TYPE")
-                 .help("Remote registry type (default: docker)"))
-            .arg(Arg::with_name("REGISTRY_URL")
-                 // This is not strictly a requirement but will keep someone from
-                 // making a mistake when inputing an ECR URL
-                 .required_if("REGISTRY_TYPE", "amazon")
-                 .required_if("REGISTRY_TYPE", "azure")
-                 .long("registry-url")
-                 .short("G")
-                 .value_name("REGISTRY_URL")
-                 .help("Remote registry url"))
+        let app = self
+            .app
+            .arg(
+                Arg::with_name("PUSH_IMAGE")
+                    .long("push-image")
+                    .conflicts_with("NO_PUSH_IMAGE")
+                    .requires_all(&["REGISTRY_USERNAME", "REGISTRY_PASSWORD"])
+                    .help("Push image to remote registry (default: no)"),
+            ).arg(
+                Arg::with_name("NO_PUSH_IMAGE")
+                    .long("no-push-image")
+                    .conflicts_with("PUSH_IMAGE")
+                    .help("Do not push image to remote registry (default: yes)"),
+            ).arg(
+                Arg::with_name("REGISTRY_USERNAME")
+                    .long("username")
+                    .short("U")
+                    .value_name("REGISTRY_USERNAME")
+                    .requires("REGISTRY_PASSWORD")
+                    .help(
+                        "Remote registry username, required for pushing image to remote registry",
+                    ),
+            ).arg(
+                Arg::with_name("REGISTRY_PASSWORD")
+                    .long("password")
+                    .short("P")
+                    .value_name("REGISTRY_PASSWORD")
+                    .requires("REGISTRY_USERNAME")
+                    .help(
+                        "Remote registry password, required for pushing image to remote registry",
+                    ),
+            ).arg(
+                Arg::with_name("REGISTRY_TYPE")
+                    .possible_values(RegistryType::variants())
+                    .long("registry-type")
+                    .short("R")
+                    .value_name("REGISTRY_TYPE")
+                    .help("Remote registry type (default: docker)"),
+            ).arg(
+                Arg::with_name("REGISTRY_URL")
+                    // This is not strictly a requirement but will keep someone from
+                    // making a mistake when inputing an ECR URL
+                    .required_if("REGISTRY_TYPE", "amazon")
+                    .required_if("REGISTRY_TYPE", "azure")
+                    .long("registry-url")
+                    .short("G")
+                    .value_name("REGISTRY_URL")
+                    .help("Remote registry url"),
+            )
             // Cleanup
-            .arg(Arg::with_name("RM_IMAGE")
-                 .long("rm-image")
-                 .help("Remove local image from engine after build and/or push (default: no)"));
+            .arg(
+                Arg::with_name("RM_IMAGE")
+                    .long("rm-image")
+                    .help("Remove local image from engine after build and/or push (default: no)"),
+            );
 
         Cli { app: app }
     }

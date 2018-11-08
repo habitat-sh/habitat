@@ -244,11 +244,12 @@ where
         }
     }
     if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
-        let opts = opts.split(" ")
-                .map(|v| v.into())
-                // Ensure we're not passing something like `--tty` again here.
-                .filter(|v| !cmd_args.contains(v))
-                .collect::<Vec<_>>();
+        let opts = opts
+            .split(" ")
+            .map(|v| v.into())
+            // Ensure we're not passing something like `--tty` again here.
+            .filter(|v| !cmd_args.contains(v))
+            .collect::<Vec<_>>();
         if !opts.is_empty() {
             debug!(
                 "Adding extra Docker options from {} = {:?}",
