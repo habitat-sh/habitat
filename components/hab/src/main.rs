@@ -58,7 +58,7 @@ use hcore::crypto::dpapi::encrypt;
 use hcore::crypto::keys::PairType;
 use hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
 use hcore::env as henv;
-use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path};
+use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path};
 use hcore::package::PackageIdent;
 
 use hcore::service::ServiceGroup;
@@ -527,7 +527,18 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         false => command::pkg::Scope::PackageAndDependencies,
     };
     let excludes = excludes_from_matches(&m);
-    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope, excludes)
+
+    let services = supervisor_services()?;
+
+    command::pkg::uninstall::start(
+        ui,
+        &ident,
+        &*FS_ROOT,
+        execute_strategy,
+        scope,
+        excludes,
+        services,
+    )
 }
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
@@ -1490,6 +1501,48 @@ where
         status.service_group,
     )?;
     return Ok(());
+}
+
+/// Check if we have a launcher/supervisor running out of this habitat root.
+/// If the launcher PID file exists then the supervisor is up and running
+fn launcher_is_running(fs_root_path: &Path) -> bool {
+    let launcher_root = launcher_root_path(Some(fs_root_path));
+    let pid_file_path = launcher_root.join("PID");
+
+    pid_file_path.is_file()
+}
+
+fn supervisor_services() -> Result<Vec<PackageIdent>> {
+    if !launcher_is_running(&*FS_ROOT) {
+        return Ok(vec![]);
+    }
+
+    let cfg = config::load()?;
+    let secret_key = ctl_secret_key(&cfg)?;
+    let sup_addr = protocol::ctl::default_addr();
+    let msg = protocol::ctl::SvcStatus::default();
+
+    let mut out: Vec<PackageIdent> = vec![];
+    SrvClient::connect(&sup_addr, &secret_key)
+        .and_then(|conn| {
+            conn.call(msg).for_each(|reply| match reply.message_id() {
+                "ServiceStatus" => {
+                    let m = reply.parse::<protocol::types::ServiceStatus>().unwrap();
+                    out.push(m.ident.into());
+                    Ok(())
+                }
+                "NetOk" => Ok(()),
+                "NetErr" => {
+                    let err = reply.parse::<protocol::net::NetErr>().unwrap();
+                    return Err(SrvClientError::from(err));
+                }
+                _ => {
+                    warn!("Unexpected status message, {:?}", reply);
+                    Ok(())
+                }
+            })
+        }).wait()?;
+    Ok(out)
 }
 
 /// A Builder URL, but *only* if the user specified it via CLI args or

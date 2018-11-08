@@ -36,7 +36,6 @@ use hcore::package::list::temp_package_directory;
 /// 1. We find the fully qualified package ident and all its dependencies
 /// 2. We find all packages on the filesystem and convert them into a graph
 /// 3. We do a BFS on the graph to get the dependencies in order
-/// 4. Update our excludes list with any running services
 /// 4. We check if the specified package has any reverse deps
 ///     4a. If there are, we throw an error
 ///     4b. If not, we delete the package
@@ -50,14 +49,24 @@ pub fn start(
     fs_root_path: &Path,
     execution_strategy: ExecutionStrategy,
     scope: Scope,
-    cli_excludes: Vec<PackageIdent>,
+    excludes: Vec<PackageIdent>,
+    services: Vec<PackageIdent>,
 ) -> Result<()> {
     // 1.
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
     let ident = pkg_install.ident();
     ui.begin(format!("Uninstalling {}", &ident))?;
 
-    // 2.
+    if !services.is_empty() {
+        ui.status(
+            Status::Determining,
+            "list of running services in supervisor",
+        )?;
+        for s in &services {
+            ui.status(Status::Found, format!("running service {}", s))?;
+        }
+    }
+
     let packages = load_all_packages(&fs_root_path)?;
     let mut graph = PackageGraph::new();
     graph.build(&packages)?;
@@ -65,18 +74,7 @@ pub fn start(
     // 3.
     let deps = graph.ordered_deps(&ident);
 
-    // 4. Update excludes if a supervisor is running
-    let excludes = if launcher_is_running(&fs_root_path) {
-        ui.status(
-            Status::Determining,
-            "list of running services in supervisor",
-        )?;
-        with_supervisor_excludes(&fs_root_path, cli_excludes)?
-    } else {
-        cli_excludes
-    };
-
-    // 5.
+    // 4.
     match graph.count_rdeps(&ident) {
         None => {
             // package not in graph - this shouldn't happen but could be a race condition in Step 2 with another hab uninstall. We can
@@ -91,6 +89,7 @@ pub fn start(
                 &pkg_install,
                 &execution_strategy,
                 &excludes,
+                &services,
             )?;
             graph.remove(&ident);
         }
@@ -99,7 +98,7 @@ pub fn start(
         }
     }
 
-    // 6.
+    // 5.
     let mut count = 0;
     match scope {
         Scope::Package => {
@@ -116,7 +115,14 @@ pub fn start(
                     }
                     Some(0) => {
                         let install = packages.iter().find(|&i| i.ident() == p).unwrap();
-                        maybe_delete(ui, &fs_root_path, &install, &execution_strategy, &excludes)?;
+                        maybe_delete(
+                            ui,
+                            &fs_root_path,
+                            &install,
+                            &execution_strategy,
+                            &excludes,
+                            &services,
+                        )?;
 
                         graph.remove(&p);
                         count = count + 1;
@@ -161,6 +167,7 @@ fn maybe_delete(
     install: &PackageInstall,
     strategy: &ExecutionStrategy,
     excludes: &Vec<PackageIdent>,
+    services: &Vec<PackageIdent>,
 ) -> Result<bool> {
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
@@ -174,6 +181,15 @@ fn maybe_delete(
         return Ok(false);
     }
 
+    let is_running = services.iter().any(|i| i.satisfies(ident));
+    if is_running {
+        ui.status(
+            Status::Skipping,
+            format!("{}. It is currently running in the supervisor", &ident),
+        )?;
+        return Ok(false);
+    }
+
     // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on the
     // exclude list then we should exclude core/redis/1.1.0/20180608091936.  We use the `Identifiable`
     // trait which supplies this logic for PackageIdents
@@ -183,18 +199,18 @@ fn maybe_delete(
             Status::Skipping,
             format!("{}. It is on the exclusion list", &ident),
         )?;
-        Ok(false)
-    } else {
-        match strategy {
-            ExecutionStrategy::DryRun => {
-                ui.status(Status::DryRunDeleting, &ident)?;
-                Ok(false)
-            }
-            ExecutionStrategy::Run => {
-                ui.status(Status::Deleting, &ident)?;
-                let pkg_dir = install.installed_path();
-                do_clean_delete(&pkg_root_path, &pkg_dir)
-            }
+        return Ok(false);
+    }
+
+    match strategy {
+        ExecutionStrategy::DryRun => {
+            ui.status(Status::DryRunDeleting, &ident)?;
+            Ok(false)
+        }
+        ExecutionStrategy::Run => {
+            ui.status(Status::Deleting, &ident)?;
+            let pkg_dir = install.installed_path();
+            do_clean_delete(&pkg_root_path, &pkg_dir)
         }
     }
 }
@@ -242,21 +258,4 @@ fn load_all_packages(fs_root_path: &Path) -> Result<Vec<PackageInstall>> {
         result.push(pkg_install);
     }
     Ok(result)
-}
-
-/// Check if we have a launcher/supervisor running out of this habitat root.
-/// If the launcher PID file exists then the supervisor is up and running
-fn launcher_is_running(fs_root_path: &Path) -> bool {
-    let launcher_root = hfs::launcher_root_path(Some(fs_root_path));
-
-    let pid_file_path = launcher_root.join("PID");
-
-    pid_file_path.is_file()
-}
-
-fn with_supervisor_excludes(
-    _fs_root_path: &Path,
-    excludes: Vec<PackageIdent>,
-) -> Result<Vec<PackageIdent>> {
-    Ok(excludes)
 }
