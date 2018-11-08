@@ -3,6 +3,10 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+## [0.68.0](https://github.com/habitat-sh/habitat/tree/0.68.0) (2018-11-08)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.67.0...0.68.0)
+
 #### New Features & Enhancements
 - Add `hab pkg list` command [#5790](https://github.com/habitat-sh/habitat/pull/5790) ([jamesc](https://github.com/jamesc))
 - Propagate DO_CHECK into studio if set [#5657](https://github.com/habitat-sh/habitat/pull/5657) ([rsertelon](https://github.com/rsertelon))
@@ -23,7 +27,7 @@
 - Uses tempfile instead of tempdir [#5811](https://github.com/habitat-sh/habitat/pull/5811) ([rsertelon](https://github.com/rsertelon))
 - Refactor ManagerConfig generation from ArgMatches [#5793](https://github.com/habitat-sh/habitat/pull/5793) ([mpeck](https://github.com/mpeck))
 - Automate bumping Homebrew version information after a release [#5799](https://github.com/habitat-sh/habitat/pull/5799) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
+
 ## [0.67.0](https://github.com/habitat-sh/habitat/tree/0.67.0) (2018-10-30)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.66.0...0.67.0)
 
