@@ -533,9 +533,9 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
 /// hab-sup 0.62.0-dev
 fn is_supported_supervisor_version(version_output: String) -> bool {
     if let Some(version_str) = version_output
-        .split(' ')                      // ["hab-sup", <version-number>]
-        .last()                          // drop "hab-sup", keep <version-number>
-        .unwrap()                        // split() always returns an 1+ element iterator
+        .split(' ') // ["hab-sup", <version-number>]
+        .last() // drop "hab-sup", keep <version-number>
+        .unwrap() // split() always returns an 1+ element iterator
         .split(|c| c == '/' || c == '-') // strip "-dev" or "/build"
         .next()
     {

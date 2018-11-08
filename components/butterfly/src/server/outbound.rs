@@ -258,7 +258,8 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
 
     // NOTE: the way this is currently implemented, this is grabbing
     // the 5 coolest (but still warm!) Member rumors.
-    let rumors: Vec<RumorKey> = server.rumor_heat
+    let rumors: Vec<RumorKey> = server
+        .rumor_heat
         .currently_hot_rumors(&target.id)
         .into_iter()
         .filter(|ref r| r.kind == RumorType::Member)
