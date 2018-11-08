@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.67.0/20181029215023 (linux) | 30 Oct 2018 |
+| hab 0.68.0/20181108151723 (linux) | 8 Nov 2018 |
 
 ## hab
 
@@ -1053,12 +1053,13 @@ hab pkg [SUBCOMMAND]
 | [hab pkg hash](#hab-pkg-hash) | Generates a blake2b hashsum from a target at any given filepath |
 | [hab pkg info](#hab-pkg-info) | Returns the Habitat Artifact information |
 | [hab pkg install](#hab-pkg-install) | Installs a Habitat package from Builder or locally from a Habitat Artifact |
+| [hab pkg list](#hab-pkg-list) | List all versions of installed packages |
 | [hab pkg path](#hab-pkg-path) | Prints the path to a specific installed release of a package |
 | [hab pkg promote](#hab-pkg-promote) | Promote a package to a specified channel |
 | [hab pkg provides](#hab-pkg-provides) | Search installed Habitat packages for a given file |
 | [hab pkg search](#hab-pkg-search) | Search for a package in Builder |
 | [hab pkg sign](#hab-pkg-sign) | Signs an archive with an origin key, generating a Habitat Artifact |
-| [hab pkg uninstall](#hab-pkg-uninstall) | Uninstall a package and dependencies from the local filesystem |
+| [hab pkg uninstall](#hab-pkg-uninstall) | Safely uninstall a package and dependencies from the local filesystem |
 | [hab pkg upload](#hab-pkg-upload) | Uploads a local Habitat Artifact to Builder |
 | [hab pkg verify](#hab-pkg-verify) | Verifies a Habitat Artifact with an origin key |
 ---
@@ -1475,6 +1476,40 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 
 ---
 
+### hab pkg list
+
+List all versions of installed packages
+
+**USAGE**
+
+```
+hab pkg list [OPTIONS] <--all|--origin <ORIGIN>|PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-a, --all        List all installed packages
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-o, --origin <ORIGIN>    An origin to list
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2).
+```
+
+
+
+---
+
 ### hab pkg path
 
 Prints the path to a specific installed release of a package
@@ -1530,7 +1565,7 @@ hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL>
 **ARGS**
 
 ```
-<PKG_IDENT>    A fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+<PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
 <CHANNEL>      Promote to the specified release channel
 ```
 
@@ -1638,12 +1673,12 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 
 ### hab pkg uninstall
 
-Uninstall a package and dependencies from the local filesystem
+Safely uninstall a package and dependencies from the local filesystem
 
 **USAGE**
 
 ```
-hab pkg uninstall [FLAGS] <PKG_IDENT>
+hab pkg uninstall [FLAGS] [OPTIONS] <PKG_IDENT>
 ```
 
 **FLAGS**
@@ -1655,11 +1690,16 @@ hab pkg uninstall [FLAGS] <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--exclude <EXCLUDE>...    Identifier of one or more packages that should not be uninstalled. (ex: core/redis, core/busybox-static/1.42.2/21120102031201)
+```
 
 **ARGS**
 
 ```
-<PKG_IDENT>    A package identifier (ex: core/busybox-static/1.42.2/21120102031201)
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2/21120102031201)
 ```
 
 
@@ -2182,7 +2222,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. default: 127.0.0.1:9632]
     --listen-gossip <LISTEN_GOSSIP>        The listen address for the Gossip System Gateway. If not specified, the value will be taken from the HAB_LISTEN_GOSSIP environment variable if defined. [default: 0.0.0.0:9638]
     --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway. If not specified, the value will be taken from the HAB_LISTEN_HTTP environment variable if defined. default: 0.0.0.0:9631]
-    --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of [default: default]
+    --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of.
     --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
     --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
 -r, --ring <RING>                          Ring key name
