@@ -3184,6 +3184,11 @@ mod tests {
 
         fn spin_watcher(&self, setup: &mut WatcherSetup, iterations: u32) {
             let mut iteration = 0;
+
+            // After switching single_iteration() from recv() to try_recv(), this sleep is required
+            // for these tests to pass.
+            ::std::thread::sleep(Duration::from_secs(3));
+
             while iteration < iterations {
                 setup.watcher.single_iteration().expect(&format!(
                     "iteration failed, debug info:\n{}",
