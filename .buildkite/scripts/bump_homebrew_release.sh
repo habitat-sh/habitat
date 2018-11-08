@@ -27,6 +27,7 @@ new_release=$(buildkite-agent meta-data get hab-release-macos)
 new_sha256=$(buildkite-agent meta-data get hab-macos-bintray-sha256)
 
 echo "--- :github: Cloning habitat-sh/homebrew-habitat"
+rm -rf homebrew-habitat
 git clone git@github.com:habitat-sh/homebrew-habitat
 cd homebrew-habitat
 git checkout -b bump
