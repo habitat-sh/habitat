@@ -20,6 +20,7 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use std::env::VarError;
 use std::fmt;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
@@ -29,6 +30,7 @@ use std::result;
 use std::str::FromStr;
 
 use error::{Error, Result, SupError};
+use hcore::env as henv;
 
 use protocol::socket_addr_env_or_default;
 
@@ -38,6 +40,68 @@ pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
 pub const DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_GOSSIP";
 
 static LOGKEY: &'static str = "CFG";
+
+/// Enable the creation of a value based on an environment variable
+/// that can be supplied at runtime by the user.
+pub trait EnvConfig: Default + FromStr {
+    /// The environment variable that will be parsed to create an
+    /// instance of `Self`.
+    const ENVVAR: &'static str;
+
+    /// Generate an instance of `Self` from the value of the
+    /// environment variable `Self::ENVVAR`.
+    ///
+    /// If the environment variable is present and not empty, its
+    /// value will be parsed as `Self`. If it cannot be parsed, or the
+    /// environment variable is not present, the default value of the
+    /// type will be given instead.
+    fn configured_value() -> Self {
+        match henv::var(Self::ENVVAR) {
+            Err(VarError::NotPresent) => Self::default(),
+            Ok(val) => match val.parse() {
+                Ok(parsed) => {
+                    Self::log_parsable(&val);
+                    parsed
+                }
+                Err(_) => {
+                    Self::log_unparsable(&val);
+                    Self::default()
+                }
+            },
+            Err(VarError::NotUnicode(nu)) => {
+                Self::log_unparsable(nu.to_string_lossy());
+                Self::default()
+            }
+        }
+    }
+
+    /// Overridable function for logging when an environment variable
+    /// value was found and was successfully parsed as a `Self`.
+    ///
+    /// By default, we log a message at the `warn` level.
+    fn log_parsable(env_value: &String) {
+        warn!(
+            "Found '{}' in environment; using value '{}'",
+            Self::ENVVAR,
+            env_value
+        );
+    }
+
+    /// Overridable function for logging when an environment variable
+    /// value was found and was _not_ successfully parsed as a `Self`.
+    ///
+    /// By default, we log a message at the `warn` level.
+    fn log_unparsable<S>(env_value: S)
+    where
+        S: AsRef<str>,
+    {
+        warn!(
+            "Found '{}' in environment, but value '{}' was unparsable; using default instead",
+            Self::ENVVAR,
+            env_value.as_ref()
+        );
+    }
+}
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
@@ -122,24 +186,81 @@ impl fmt::Display for GossipListenAddr {
 mod tests {
     use super::*;
 
-    #[test]
-    fn local_addr_for_gossip_listen_addr_works_for_unspecified_address() {
-        let listen_addr = GossipListenAddr::default();
-        assert!(listen_addr.0.ip().is_unspecified());
+    mod gossip_listen_addr {
+        use super::*;
+        #[test]
+        fn local_addr_for_gossip_listen_addr_works_for_unspecified_address() {
+            let listen_addr = GossipListenAddr::default();
+            assert!(listen_addr.0.ip().is_unspecified());
 
-        let local_addr = listen_addr.local_addr();
-        assert!(local_addr.0.ip().is_loopback());
+            let local_addr = listen_addr.local_addr();
+            assert!(local_addr.0.ip().is_loopback());
+        }
+
+        #[test]
+        fn local_addr_for_gossip_listen_addr_returns_same_ip_for_a_specified_address() {
+            let mut listen_addr = GossipListenAddr::default();
+            listen_addr
+                .0
+                .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
+            assert!(!listen_addr.0.ip().is_loopback());
+
+            let local_addr = listen_addr.local_addr();
+            assert_eq!(listen_addr, local_addr);
+        }
     }
 
-    #[test]
-    fn local_addr_for_gossip_listen_addr_returns_same_ip_for_a_specified_address() {
-        let mut listen_addr = GossipListenAddr::default();
-        listen_addr
-            .0
-            .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
-        assert!(!listen_addr.0.ip().is_loopback());
+    mod env_config {
+        use super::*;
+        use std::env;
+        use std::num::ParseIntError;
+        use std::result;
+        use std::str::FromStr;
 
-        let local_addr = listen_addr.local_addr();
-        assert_eq!(listen_addr, local_addr);
+        #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+        struct Thingie(u64);
+
+        impl Default for Thingie {
+            fn default() -> Self {
+                Thingie(2112)
+            }
+        }
+
+        impl FromStr for Thingie {
+            type Err = ParseIntError;
+            fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+                let raw = s.parse::<u64>()?;
+                Ok(Thingie(raw))
+            }
+        }
+
+        locked_env_var!(HAB_TESTING_THINGIE, lock_hab_testing_thingie);
+
+        impl EnvConfig for Thingie {
+            const ENVVAR: &'static str = "HAB_TESTING_THINGIE";
+        }
+
+        #[test]
+        fn no_env_var_yields_default() {
+            let _envvar = lock_hab_testing_thingie();
+            assert!(env::var("HAB_TESTING_THINGIE").is_err()); // it's not set
+            assert_eq!(Thingie::configured_value(), Thingie(2112));
+            assert_eq!(Thingie::configured_value(), Thingie::default());
+        }
+
+        #[test]
+        fn parsable_env_var_yields_parsed_value() {
+            let envvar = lock_hab_testing_thingie();
+            envvar.set("123");
+            assert_eq!(Thingie::configured_value(), Thingie(123));
+            assert_ne!(Thingie::configured_value(), Thingie::default());
+        }
+
+        #[test]
+        fn unparsable_env_var_yields_default() {
+            let envvar = lock_hab_testing_thingie();
+            envvar.set("I'm not a number");
+            assert_eq!(Thingie::configured_value(), Thingie::default());
+        }
     }
 }
