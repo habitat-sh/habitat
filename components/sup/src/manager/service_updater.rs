@@ -450,7 +450,7 @@ impl Worker {
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
         let install_source = (ident, *PackageTarget::active_target()).into();
-        let mut next_time = None::<SteadyTime>;
+        let mut next_time = SteadyTime::now();
 
         loop {
             match kill_rx.try_recv() {
@@ -465,7 +465,7 @@ impl Worker {
                 }
             }
 
-            if next_time.is_none() || SteadyTime::now() >= next_time.unwrap() {
+            if SteadyTime::now() >= next_time {
                 match util::pkg::install(
                     // We don't want anything in here to print
                     &mut UI::with_sinks(),
@@ -481,7 +481,7 @@ impl Worker {
                     Err(e) => warn!("Failed to install updated package: {:?}", e),
                 }
 
-                next_time = Some(self.next_period_start());
+                next_time = self.next_period_start();
             }
         }
     }
@@ -490,7 +490,7 @@ impl Worker {
     /// when found.
     fn run_poll(&mut self, sender: Sender<PackageInstall>, kill_rx: Receiver<()>) {
         let install_source = (self.spec_ident.clone(), *PackageTarget::active_target()).into();
-        let mut next_time = None::<SteadyTime>;
+        let mut next_time = SteadyTime::now();
 
         loop {
             match kill_rx.try_recv() {
@@ -505,7 +505,7 @@ impl Worker {
                 }
             }
 
-            if next_time.is_none() || SteadyTime::now() >= next_time.unwrap() {
+            if SteadyTime::now() >= next_time {
                 match util::pkg::install(
                     // We don't want anything in here to print
                     &mut UI::with_sinks(),
@@ -532,7 +532,7 @@ impl Worker {
                     Err(e) => warn!("Updater failed to get latest package: {:?}", e),
                 }
 
-                next_time = Some(self.next_period_start());
+                next_time = self.next_period_start();
             }
         }
     }
