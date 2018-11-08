@@ -38,7 +38,7 @@ const DEFAULT_FREQUENCY: i64 = MIN_ALLOWED_FREQUENCY;
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
 enum UpdaterState {
-    AtOnce(Receiver<PackageInstall>, Sender<bool>),
+    AtOnce(Receiver<PackageInstall>, Sender<()>),
     Rolling(RollingState),
 }
 
@@ -50,7 +50,7 @@ enum RollingState {
 }
 
 enum LeaderState {
-    Polling(Receiver<PackageInstall>, Sender<bool>),
+    Polling(Receiver<PackageInstall>, Sender<()>),
     Waiting,
 }
 
@@ -60,7 +60,7 @@ enum FollowerState {
     /// Waiting to be told to update
     Waiting,
     /// Currently updating
-    Updating(Receiver<PackageInstall>, Sender<bool>),
+    Updating(Receiver<PackageInstall>, Sender<()>),
 }
 
 /// The ServiceUpdater is in charge of updating a Service when a more recent version of a package
@@ -118,14 +118,14 @@ impl ServiceUpdater {
 
         match updater_state {
             Some(UpdaterState::AtOnce(_rx, kill_tx)) => {
-                if kill_tx.send(true).is_err() {
+                if kill_tx.send(()).is_err() {
                     debug!("Tried to kill the updater thread but it's already dead.");
                 }
             }
             Some(UpdaterState::Rolling(rs)) => match rs {
                 RollingState::Leader(ls) => match ls {
                     LeaderState::Polling(_rx, kill_tx) => {
-                        if kill_tx.send(true).is_err() {
+                        if kill_tx.send(()).is_err() {
                             debug!("Tried to kill the updater thread but it's already dead.");
                         }
                     }
@@ -133,7 +133,7 @@ impl ServiceUpdater {
                 },
                 RollingState::Follower(fs) => match fs {
                     FollowerState::Updating(_rx, kill_tx) => {
-                        if kill_tx.send(true).is_err() {
+                        if kill_tx.send(()).is_err() {
                             debug!("Tried to kill the updater thread but it's already dead.");
                         }
                     }
@@ -410,7 +410,7 @@ impl Worker {
         mut self,
         sg: &ServiceGroup,
         ident: Option<PackageIdent>,
-        kill_rx: Receiver<bool>,
+        kill_rx: Receiver<()>,
     ) -> Receiver<PackageInstall> {
         let (tx, rx) = channel();
         thread::Builder::new()
@@ -449,7 +449,7 @@ impl Worker {
         &mut self,
         sender: Sender<PackageInstall>,
         ident: PackageIdent,
-        kill_rx: Receiver<bool>,
+        kill_rx: Receiver<()>,
     ) {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
@@ -493,7 +493,7 @@ impl Worker {
 
     /// Continually poll for a new version of a package, installing it
     /// when found.
-    fn run_poll(&mut self, sender: Sender<PackageInstall>, kill_rx: Receiver<bool>) {
+    fn run_poll(&mut self, sender: Sender<PackageInstall>, kill_rx: Receiver<()>) {
         let install_source = (self.spec_ident.clone(), *PackageTarget::active_target()).into();
         let mut next_time = None::<SteadyTime>;
 
