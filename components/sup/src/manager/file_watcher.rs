@@ -1354,7 +1354,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         match self.rx.try_recv() {
             Ok(e) => self.handle_event(e),
             Err(TryRecvError::Empty) => Ok(()),
-            Err(e) => Err(sup_error!(Error::TryRecvError(e))),
+            Err(e) => Err(e.into()),
         }
     }
 
