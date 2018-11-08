@@ -460,7 +460,7 @@ impl Worker {
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
-                    info!("Service updater has gone away, yikes!");
+                    error!("Service updater has gone away, yikes!");
                     break;
                 }
             }
@@ -500,7 +500,7 @@ impl Worker {
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
-                    info!("Service updater has gone away, yikes!");
+                    error!("Service updater has gone away, yikes!");
                     break;
                 }
             }
