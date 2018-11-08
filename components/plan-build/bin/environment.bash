@@ -18,6 +18,7 @@ declare -A __buildtime_environment_provenance
 # PRs welcome!)
 declare -A -g __well_known_aggregate_env_vars=(
     # Shell
+    [LD_LIBRARY_PATH]=":"
     [PATH]=":"
 
     # Go
