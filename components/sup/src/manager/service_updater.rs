@@ -13,6 +13,9 @@
 // limitations under the License.
 
 use std::collections::HashMap;
+use std::num::ParseIntError;
+use std::result;
+use std::str::FromStr;
 use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
 use std::thread;
 
@@ -24,16 +27,17 @@ use hcore::service::ServiceGroup;
 use launcher_client::LauncherCli;
 
 use census::CensusRing;
+use config::EnvConfig;
 use manager::periodic::Periodic;
 use manager::service::{Service, Topology, UpdateStrategy};
 use time::SteadyTime;
 use util;
 
 static LOGKEY: &'static str = "SU";
-const FREQUENCY_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_MS";
-const FREQUENCY_BYPASS_CHECK_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
-const MIN_ALLOWED_FREQUENCY: i64 = 60_000;
-const DEFAULT_FREQUENCY: i64 = MIN_ALLOWED_FREQUENCY;
+// TODO (CM): Yes, the variable value should be "period" and not
+// "frequency"... we need to fix that.
+const PERIOD_BYPASS_CHECK_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
+const MIN_ALLOWED_PERIOD: u64 = 60_000;
 
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
@@ -329,6 +333,31 @@ impl ServiceUpdater {
     }
 }
 
+/// Represents how far apart checks for updates to individual services
+/// are, in milliseconds.
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+struct ServiceUpdatePeriod(u64);
+
+impl Default for ServiceUpdatePeriod {
+    fn default() -> Self {
+        ServiceUpdatePeriod(MIN_ALLOWED_PERIOD)
+    }
+}
+
+impl FromStr for ServiceUpdatePeriod {
+    type Err = ParseIntError;
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        let raw = s.parse::<u64>()?;
+        Ok(ServiceUpdatePeriod(raw))
+    }
+}
+
+impl EnvConfig for ServiceUpdatePeriod {
+    // TODO (CM): Yes, the variable value should be "period" and not
+    // "frequency"... we need to fix that.
+    const ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_MS";
+}
+
 struct Worker {
     current: PackageIdent,
     spec_ident: PackageIdent,
@@ -339,49 +368,16 @@ struct Worker {
 impl Periodic for Worker {
     // TODO (CM): Consider performing this check once and storing it,
     // instead of re-checking every time.
-    fn update_period(&self) -> i64 {
-        match env::var(FREQUENCY_ENVVAR) {
-            Ok(val) => match val.parse::<i64>() {
-                Ok(num) => {
-                    if (env::var(FREQUENCY_BYPASS_CHECK_ENVVAR).is_ok() && num > 0)
-                        || num >= MIN_ALLOWED_FREQUENCY
-                    {
-                        num
-                    } else if num <= 0 {
-                        outputln!(
-                            "{} has been set, but {} value ({}) is negative ({}) \
-                             Falling back to minimal {} MS frequency.",
-                            FREQUENCY_BYPASS_CHECK_ENVVAR,
-                            FREQUENCY_ENVVAR,
-                            num,
-                            MIN_ALLOWED_FREQUENCY,
-                            MIN_ALLOWED_FREQUENCY
-                        );
-                        MIN_ALLOWED_FREQUENCY
-                    } else {
-                        outputln!(
-                            "{} value ({}) is below the minimal authorized value ({}) \
-                             Falling back to minimal {} MS frequency.",
-                            FREQUENCY_ENVVAR,
-                            num,
-                            MIN_ALLOWED_FREQUENCY,
-                            MIN_ALLOWED_FREQUENCY
-                        );
-                        MIN_ALLOWED_FREQUENCY
-                    }
-                }
-                Err(_) => {
-                    outputln!(
-                        "Unable to parse '{}' from {} as a valid integer. Falling back \
-                         to default {} MS frequency.",
-                        val,
-                        FREQUENCY_ENVVAR,
-                        DEFAULT_FREQUENCY
-                    );
-                    DEFAULT_FREQUENCY
-                }
-            },
-            Err(_) => DEFAULT_FREQUENCY,
+    fn update_period(&self) -> u64 {
+        let val = ServiceUpdatePeriod::configured_value().0;
+        if val < MIN_ALLOWED_PERIOD {
+            if env::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok() {
+                val
+            } else {
+                MIN_ALLOWED_PERIOD
+            }
+        } else {
+            val
         }
     }
 }
@@ -535,5 +531,88 @@ impl Worker {
                 next_time = self.next_period_start();
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_update_period_is_equal_to_minimum_allowed_value() {
+        assert_eq!(ServiceUpdatePeriod::default().0, MIN_ALLOWED_PERIOD);
+    }
+
+    locked_env_var!(HAB_UPDATE_STRATEGY_FREQUENCY_MS, lock_period_var);
+    locked_env_var!(HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK, lock_bypass_var);
+
+    fn worker() -> Worker {
+        Worker {
+            current: "core/testing/1.0.0/20181109125930"
+                .parse()
+                .expect("Can't parse ident!"),
+            spec_ident: "core/testing".parse().expect("Can't parse ident!"),
+            builder_url: String::from("https://bldr.habitat.sh"),
+            channel: String::from("stable"),
+        }
+    }
+
+    #[test]
+    fn worker_period_defaults_properly() {
+        let period = lock_period_var();
+        let bypass = lock_bypass_var();
+        let worker = worker();
+
+        period.unset();
+        bypass.unset();
+
+        assert_eq!(worker.update_period(), ServiceUpdatePeriod::default().0);
+    }
+
+    #[test]
+    fn worker_period_can_be_overridden_by_env_var() {
+        let period = lock_period_var();
+        let bypass = lock_bypass_var();
+        let worker = worker();
+
+        period.set("120000");
+        bypass.unset();
+        assert!(120000 >= MIN_ALLOWED_PERIOD);
+        assert_eq!(worker.update_period(), 120000);
+    }
+
+    #[test]
+    fn worker_period_cannot_be_overridden_to_a_very_small_value_by_default() {
+        let period = lock_period_var();
+        let bypass = lock_bypass_var();
+        let worker = worker();
+
+        period.set("1"); // This is TOO low
+        bypass.unset();
+        assert!(1 < MIN_ALLOWED_PERIOD);
+        assert_eq!(worker.update_period(), ServiceUpdatePeriod::default().0);
+    }
+
+    #[test]
+    fn worker_period_cannot_be_overridden_by_a_non_number() {
+        let period = lock_period_var();
+        let bypass = lock_bypass_var();
+        let worker = worker();
+
+        period.set("this is not a number");
+        bypass.unset();
+        assert_eq!(worker.update_period(), ServiceUpdatePeriod::default().0);
+    }
+
+    #[test]
+    fn worker_period_can_be_overridden_by_a_small_value_with_bypass_var() {
+        let period = lock_period_var();
+        let bypass = lock_bypass_var();
+        let worker = worker();
+
+        period.set("5000");
+        bypass.set("1");
+        assert!(5000 < MIN_ALLOWED_PERIOD);
+        assert_eq!(worker.update_period(), 5000);
     }
 }

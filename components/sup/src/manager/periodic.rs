@@ -25,7 +25,7 @@ pub trait Periodic {
     /// When is the next time we should start a new task, given that
     /// we're going to start one right now?
     fn next_period_start(&self) -> SteadyTime {
-        SteadyTime::now() + TimeDuration::milliseconds(self.update_period())
+        SteadyTime::now() + TimeDuration::milliseconds(self.update_period() as i64)
     }
 
     /// Given the time we should start the next task, sleep as long as
@@ -38,5 +38,5 @@ pub trait Periodic {
     }
 
     /// Returns the number of milliseconds between tasks.
-    fn update_period(&self) -> i64;
+    fn update_period(&self) -> u64;
 }
