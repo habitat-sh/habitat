@@ -197,6 +197,22 @@ where
     pkg_path
 }
 
+/// Given a linux style absolute path (prepended with '/') and a fs_root,
+/// this will "re-root" the path just under the fs_root. Otherwise returns
+/// the given path unchanged. Non-Windows platforms will always return the
+/// unchanged path.
+pub fn fs_rooted_path<T>(path: &PathBuf, fs_root: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
+    match fs_root {
+        Some(ref root) if path.starts_with("/") && cfg!(windows) => {
+            Path::new(root.as_ref()).join(path.strip_prefix("/").unwrap())
+        }
+        _ => path.to_path_buf(),
+    }
+}
+
 /// Returns the absolute path for a given command, if it exists, by searching the `PATH`
 /// environment variable.
 ///
