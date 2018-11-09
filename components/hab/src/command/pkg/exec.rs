@@ -14,7 +14,7 @@
 
 use std::env;
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use hcore::fs::{find_command, FS_ROOT_PATH};
 use hcore::os::process;
@@ -28,24 +28,7 @@ where
 {
     let command = command.into();
     let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;
-    let mut cmd_env = pkg_install.environment_for_command()?;
-
-    let mut paths: Vec<PathBuf> = match cmd_env.get("PATH") {
-        Some(path) => env::split_paths(&path).collect(),
-        None => vec![],
-    };
-    for i in 0..paths.len() {
-        if paths[i].starts_with("/") {
-            paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
-        }
-    }
-    let joined = env::join_paths(paths)?;
-    cmd_env.insert(
-        String::from("PATH"),
-        joined
-            .into_string()
-            .expect("Unable to convert OsStr path to string!"),
-    );
+    let cmd_env = pkg_install.environment_for_command()?;
 
     for (key, value) in cmd_env.into_iter() {
         debug!("Setting: {}='{}'", key, value);

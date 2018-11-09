@@ -12,18 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::path::Path;
 
 use hcore::package::{PackageIdent, PackageInstall};
 
 use error::Result;
 
-// TODO: This needs a windows compatible version
 pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
     let env = pkg_install.environment_for_command()?;
+    render_environment(env);
+    Ok(())
+}
+
+#[cfg(unix)]
+fn render_environment(env: HashMap<String, String>) {
     for (key, value) in env.into_iter() {
         println!("export {}=\"{}\"", key, value);
     }
-    Ok(())
+}
+
+#[cfg(windows)]
+fn render_environment(env: HashMap<String, String>) {
+    for (key, value) in env.into_iter() {
+        println!("$env:{}=\"{}\"", key, value);
+    }
 }
