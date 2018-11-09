@@ -445,8 +445,9 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\nbase64\n", pair.name_with_rev()).as_bytes())
-            .unwrap();
+        f.write_all(
+            format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", pair.name_with_rev()).as_bytes(),
+        ).unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
