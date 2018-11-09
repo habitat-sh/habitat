@@ -237,12 +237,22 @@ impl PackageInstall {
         // present for backwards compatibility with older Habitat releases.
         env.remove(PATH_KEY);
 
-        let path = env::join_paths(self.runtime_paths()?)?
+        let mut paths = self.runtime_paths()?;
+
+        // Let's join the paths to the FS_ROOT
+        // In most cases, this does nothing and should only mutate
+        // the paths in a windows studio where FS_ROOT_PATH will
+        // be the studio root path (ie c:\hab\studios\...)
+        for path in &mut paths {
+            *path = fs::fs_rooted_path(&path, Some(&*self.fs_root_path));
+        }
+
+        let joined = env::join_paths(paths)?
             .into_string()
             .map_err(|s| Error::InvalidPathString(s))?;
         // Only insert a PATH entry if the resulting path string is non-empty
-        if !path.is_empty() {
-            env.insert(PATH_KEY.to_string(), path);
+        if !joined.is_empty() {
+            env.insert(PATH_KEY.to_string(), joined);
         }
 
         Ok(env)
@@ -1420,13 +1430,20 @@ core/bar=pub:core/publish sub:core/subscribe
         );
 
         let mut expected = HashMap::new();
+        let fs_root_path = fs_root.into_path();
         expected.insert("FOO".to_string(), "bar".to_string());
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
         expected.insert(
             "PATH".to_string(),
             env::join_paths(vec![
-                pkg_prefix_for(&pkg_install).join("bin"),
-                pkg_prefix_for(&other_pkg_install).join("sbin"),
+                fs::fs_rooted_path(
+                    &pkg_prefix_for(&pkg_install).join("bin"),
+                    Some(&*fs_root_path),
+                ),
+                fs::fs_rooted_path(
+                    &pkg_prefix_for(&other_pkg_install).join("sbin"),
+                    Some(&*fs_root_path),
+                ),
             ]).unwrap()
             .to_string_lossy()
             .into_owned(),
