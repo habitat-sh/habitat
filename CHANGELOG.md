@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### New Features & Enhancements
+- Add Windows-friendly behavior to `hab pkg env` [#5813](https://github.com/habitat-sh/habitat/pull/5813) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 ## [0.68.0](https://github.com/habitat-sh/habitat/tree/0.68.0) (2018-11-08)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.67.0...0.68.0)
