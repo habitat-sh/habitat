@@ -10,6 +10,11 @@
 
 set -euo pipefail
 
+if ! sed --version 2>&1 | grep -q "GNU sed"; then
+    echo "This script requires GNU sed; aborting"
+    exit 1
+fi
+
 configure-github-account chef-ci
 
 source .buildkite/scripts/shared.sh
@@ -33,7 +38,6 @@ cd homebrew-habitat
 git checkout -b bump
 
 echo "--- Modifying hab Homebrew Formula"
-# Note: requires GNU sed
 sed --in-place \
     --regexp-extended \
     's/current_version="(.*)"/current_version="'"${new_version}"'"/g' \
