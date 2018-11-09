@@ -64,5 +64,5 @@ if is_fake_release; then
 else
     # Push directly to master; alternatively, we could create a pull
     # request using the Github API and have a human merge it.
-    git push origin master
+    git push origin bump:master
 fi
