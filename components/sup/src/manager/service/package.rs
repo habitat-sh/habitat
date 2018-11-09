@@ -15,10 +15,9 @@
 use std::collections::HashMap;
 use std::env;
 use std::ops::Deref;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::result;
 
-use hcore::fs::FS_ROOT_PATH;
 use hcore::os::users;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
@@ -74,18 +73,6 @@ impl Env {
             Some(path) => env::split_paths(&path).collect(),
             None => vec![],
         };
-
-        // Lets join the run paths to the FS_ROOT
-        // In most cases, this does nothing and should only mutate
-        // the paths in a windows studio where FS_ROOT_PATH will
-        // be the studio root path (ie c:\hab\studios\...). In any other
-        // environment FS_ROOT will be "/" and this will not make any
-        // meaningful change.
-        for i in 0..paths.len() {
-            if paths[i].starts_with("/") {
-                paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
-            }
-        }
 
         util::path::append_interpreter_and_path(&mut paths)
     }
