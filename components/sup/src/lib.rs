@@ -109,6 +109,9 @@ macro_rules! sup_error {
 
 #[cfg(test)]
 #[macro_use]
+pub mod locked_env_var;
+#[cfg(test)]
+#[macro_use]
 pub mod cli_test_helpers;
 pub mod census;
 pub mod cli;
