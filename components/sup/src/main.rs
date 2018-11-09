@@ -30,9 +30,6 @@ extern crate time;
 extern crate tokio_core;
 extern crate url;
 
-#[cfg(test)]
-extern crate tempfile;
-
 use std::env;
 use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
@@ -545,8 +542,7 @@ mod test {
         #[test]
         fn gossip_listen_is_set_to_default_when_not_specified() {
             let config = config_from_cmd_str("hab-sup run");
-            let expected_addr = GossipListenAddr::from_str("0.0.0.0:9638")
-                .expect("Could not create GossipListenAddr");
+            let expected_addr = GossipListenAddr::default();
             assert_eq!(config.gossip_listen, expected_addr);
         }
 
@@ -561,8 +557,7 @@ mod test {
         #[test]
         fn http_listen_is_set_default_when_not_specified() {
             let config = config_from_cmd_str("hab-sup run");
-            let expected_addr = http_gateway::ListenAddr::from_str("0.0.0.0:9631")
-                .expect("Could not create http listen addr");
+            let expected_addr = http_gateway::ListenAddr::default();
             assert_eq!(config.http_listen, expected_addr);
         }
 
