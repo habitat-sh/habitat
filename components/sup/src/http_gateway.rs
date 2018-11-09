@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-use std::fs::File;
-use std::io::{self, Read};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
-use std::ops::{Deref, DerefMut};
-use std::option;
-use std::result;
-use std::str::FromStr;
-use std::sync::{Arc, Condvar, Mutex, RwLock};
-use std::thread;
+use std::{
+    fmt,
+    fs::File,
+    io::{self, Read},
+    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs},
+    ops::{Deref, DerefMut},
+    option, result,
+    str::FromStr,
+    sync::{Arc, Condvar, Mutex, RwLock},
+    thread,
+};
 
 use actix;
 use actix_web::{
     http::StatusCode, pred::Predicate, server, App, FromRequest, HttpRequest, HttpResponse, Path,
     Request,
 };
-use hcore::service::ServiceGroup;
+use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
 use serde_json::{self, Value as Json};
 
@@ -41,6 +42,8 @@ use feat;
 
 static LOGKEY: &'static str = "HG";
 const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
+pub const HTTP_THREADS_ENVVAR: &'static str = "HAB_SUP_HTTP_THREADS";
+pub const HTTP_THREAD_COUNT: usize = 2;
 
 /// Default listening port for the HTTPGateway listener.
 pub const DEFAULT_PORT: u16 = 9631;
@@ -157,11 +160,18 @@ impl Server {
         thread::spawn(move || {
             let &(ref lock, ref cvar) = &*control;
             let sys = actix::System::new("sup-http-gateway");
+            let thread_count = match henv::var(HTTP_THREADS_ENVVAR) {
+                Ok(val) => match val.parse::<usize>() {
+                    Ok(v) => v,
+                    Err(_) => HTTP_THREAD_COUNT,
+                },
+                Err(_) => HTTP_THREAD_COUNT,
+            };
 
             let bind = server::new(move || {
                 let app_state = AppState::new(gateway_state.clone());
                 App::with_state(app_state).configure(routes)
-            }).workers(2)
+            }).workers(thread_count)
             .bind(listen_addr.to_string());
 
             // We need to create this scope on purpose here because if we don't, the lock never
