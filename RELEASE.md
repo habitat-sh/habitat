@@ -59,12 +59,8 @@ is in effect
     $ make tag-release
     ```
 
-If you find issues during the release process that must be fixed before promoting the release, you will need to fix those issues and then have Travis and Appveyor rerun the deployment. After you merge the necessary PRs to fix the release issues:
-
-```
-    $ make re-tag-release
-```
-
+If there are problems discovered during validation, or you need to modify the tag to include
+additional commits, see (Addressing issues with a Release)[#addressing-issues-with-a-release].
 
 Once the release tag is pushed, Buildkite and AppVeyor builds will be triggered on the release tag. AppVeyor builds are currently very prone to timing out,
 so set a 1-hour timer to go and check on them. If they do time out, you just have to restart them and hope. You may also want to set up [email notifications](https://ci.appveyor.com/notifications).
@@ -139,6 +135,14 @@ Then you can actually exercise the software as follows:
 1. Verify that the supervisor is the correct version (`hab sup --version`)
 
 When testing the linux studio, you will need to `export CI_OVERRIDE_CHANNEL` to the rc channel of the release. So if you are releasing 0.75.2, the channel would be `rc-0.75.2`.
+
+### Addressing issues with a Release
+
+If you find issues when validating the release binaries that must be fixed before promoting the release, you will need to fix those issues and then have Buildkite and AppVeyor rerun the deployment. After you merge the necessary PRs to fix the release issues:
+
+```
+     $ make re-tag-release
+```
 
 # Post-Release Tasks
 The Buildkite release is fairly-well automated at this point, but once it is complete, there are still a few remaining manual tasks to perform. In time, these will be automated as well.
