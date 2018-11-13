@@ -740,8 +740,9 @@ impl<'a> InstallTask<'a> {
                 let temp_install_path = &pkg_install_path(ident, Some(temp_dir.path()));
                 artifact.unpack(Some(temp_dir.path()))?;
                 fs::rename(temp_install_path, real_install_path)?;
-                #[cfg(unix)]
-                fs::File::open(real_install_base).and_then(|f| f.sync_all())?;
+                if cfg!(unix) {
+                    fs::File::open(real_install_base).and_then(|f| f.sync_all())?;
+                }
                 ui.status(Status::Installed, ident)?;
                 Ok(())
             }
