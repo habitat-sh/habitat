@@ -45,7 +45,7 @@ function Test-SourceChanged {
 }
 
 function Test-DocsOnlyChanged {
-    (Get-ChangedFiles | 
+    (Get-ChangedFiles |
         Where-Object {
             !($_ -like '*.md') -and !($_ -like 'docs\*.md')
         }
@@ -89,7 +89,7 @@ if(Test-DocsOnlyChanged -and !(Test-ReleaseBuild)) {
                 pushd "$(Get-RepoRoot)/components/$component"
                 Write-Host "Testing $component"
                 Write-Host ""
-                cargo test --verbose
+                cargo test --verbose -- --nocapture
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 popd
             }

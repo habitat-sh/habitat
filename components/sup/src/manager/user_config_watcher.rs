@@ -329,17 +329,26 @@ mod tests {
 
     fn wait_for_watcher<T: Serviceable>(ucm: &UserConfigWatcher, service: &T) -> bool {
         let start = Instant::now();
-        let timeout = Duration::from_millis(1000);
+        let timeout = Duration::from_secs(10);
 
         while start.elapsed() < timeout {
             let state = ucm.states.get(service.name()).expect("service added");
             match state.started_watching.try_recv() {
-                Ok(_) => return true,
-                Err(TryRecvError::Empty) => (),
-                Err(TryRecvError::Disconnected) => return false,
+                Ok(_) => {
+                    println!("Received data on the start_watching channel. Returning true.");
+                    return true;
+                }
+                Err(TryRecvError::Empty) => {
+                    println!("Received nothing on the start_watching channel. Returning ().");
+                    ()
+                }
+                Err(TryRecvError::Disconnected) => {
+                    println!("The start_watching channel was disconnected. Returning false.");
+                    return false;
+                }
             }
 
-            thread::sleep(Duration::from_millis(10));
+            thread::sleep(Duration::from_millis(100));
         }
 
         false
@@ -354,7 +363,7 @@ mod tests {
                 return true;
             }
 
-            thread::sleep(Duration::from_millis(10));
+            thread::sleep(Duration::from_millis(100));
         }
 
         false
