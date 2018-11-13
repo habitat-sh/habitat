@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::cmp::{Ordering, PartialOrd};
 use std::collections::HashMap;
 use std::num::ParseIntError;
 use std::result;
 use std::str::FromStr;
 use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
 use std::thread;
+
+use time::Duration;
 
 use butterfly;
 use common::ui::UI;
@@ -37,7 +40,9 @@ static LOGKEY: &'static str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not
 // "frequency"... we need to fix that.
 const PERIOD_BYPASS_CHECK_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
-const MIN_ALLOWED_PERIOD: u64 = 60_000;
+lazy_static! {
+    static ref MIN_ALLOWED_PERIOD: Duration = Duration::seconds(60);
+}
 
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
@@ -335,20 +340,45 @@ impl ServiceUpdater {
 
 /// Represents how far apart checks for updates to individual services
 /// are, in milliseconds.
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
-struct ServiceUpdatePeriod(u64);
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ServiceUpdatePeriod(Duration);
 
 impl Default for ServiceUpdatePeriod {
     fn default() -> Self {
-        ServiceUpdatePeriod(MIN_ALLOWED_PERIOD)
+        ServiceUpdatePeriod(*MIN_ALLOWED_PERIOD)
     }
 }
 
 impl FromStr for ServiceUpdatePeriod {
     type Err = ParseIntError;
     fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s.parse::<u64>()?;
-        Ok(ServiceUpdatePeriod(raw))
+        // Parsing as a u32 gives us an effective range of 49+ days
+        let raw = s.parse::<u32>()?;
+        Ok(Duration::milliseconds(raw as i64).into())
+    }
+}
+
+impl From<Duration> for ServiceUpdatePeriod {
+    fn from(d: Duration) -> Self {
+        ServiceUpdatePeriod(d)
+    }
+}
+
+impl Into<Duration> for ServiceUpdatePeriod {
+    fn into(self) -> Duration {
+        self.0
+    }
+}
+
+impl PartialOrd<Duration> for ServiceUpdatePeriod {
+    fn partial_cmp(&self, other: &Duration) -> Option<Ordering> {
+        Some(self.0.cmp(other))
+    }
+}
+
+impl PartialEq<Duration> for ServiceUpdatePeriod {
+    fn eq(&self, other: &Duration) -> bool {
+        self.0 == *other
     }
 }
 
@@ -368,13 +398,13 @@ struct Worker {
 impl Periodic for Worker {
     // TODO (CM): Consider performing this check once and storing it,
     // instead of re-checking every time.
-    fn update_period(&self) -> u64 {
-        let val = ServiceUpdatePeriod::configured_value().0;
-        if val < MIN_ALLOWED_PERIOD {
+    fn update_period(&self) -> Duration {
+        let val = ServiceUpdatePeriod::configured_value().into();
+        if val < *MIN_ALLOWED_PERIOD {
             if env::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok() {
                 val
             } else {
-                MIN_ALLOWED_PERIOD
+                *MIN_ALLOWED_PERIOD
             }
         } else {
             val
@@ -540,7 +570,7 @@ mod tests {
 
     #[test]
     fn default_update_period_is_equal_to_minimum_allowed_value() {
-        assert_eq!(ServiceUpdatePeriod::default().0, MIN_ALLOWED_PERIOD);
+        assert_eq!(ServiceUpdatePeriod::default().0, *MIN_ALLOWED_PERIOD);
     }
 
     locked_env_var!(HAB_UPDATE_STRATEGY_FREQUENCY_MS, lock_period_var);
@@ -558,6 +588,13 @@ mod tests {
     }
 
     #[test]
+    fn service_update_period_must_be_positive() {
+        assert!(ServiceUpdatePeriod::from_str("-123").is_err());
+        assert!(ServiceUpdatePeriod::from_str("0").is_ok());
+        assert!(ServiceUpdatePeriod::from_str("5").is_ok());
+    }
+
+    #[test]
     fn worker_period_defaults_properly() {
         let period = lock_period_var();
         let bypass = lock_bypass_var();
@@ -566,7 +603,7 @@ mod tests {
         period.unset();
         bypass.unset();
 
-        assert_eq!(worker.update_period(), ServiceUpdatePeriod::default().0);
+        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
     }
 
     #[test]
@@ -577,8 +614,9 @@ mod tests {
 
         period.set("120000");
         bypass.unset();
-        assert!(120000 >= MIN_ALLOWED_PERIOD);
-        assert_eq!(worker.update_period(), 120000);
+        let expected_period: ServiceUpdatePeriod = Duration::milliseconds(120000).into();
+        assert!(expected_period >= *MIN_ALLOWED_PERIOD);
+        assert_eq!(expected_period, worker.update_period());
     }
 
     #[test]
@@ -589,8 +627,8 @@ mod tests {
 
         period.set("1"); // This is TOO low
         bypass.unset();
-        assert!(1 < MIN_ALLOWED_PERIOD);
-        assert_eq!(worker.update_period(), ServiceUpdatePeriod::default().0);
+        assert!(Duration::milliseconds(1) < *MIN_ALLOWED_PERIOD);
+        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
     }
 
     #[test]
@@ -601,7 +639,7 @@ mod tests {
 
         period.set("this is not a number");
         bypass.unset();
-        assert_eq!(worker.update_period(), ServiceUpdatePeriod::default().0);
+        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
     }
 
     #[test]
@@ -612,7 +650,8 @@ mod tests {
 
         period.set("5000");
         bypass.set("1");
-        assert!(5000 < MIN_ALLOWED_PERIOD);
-        assert_eq!(worker.update_period(), 5000);
+        let expected_period: ServiceUpdatePeriod = Duration::milliseconds(5000).into();
+        assert!(expected_period < *MIN_ALLOWED_PERIOD);
+        assert_eq!(expected_period, worker.update_period());
     }
 }
