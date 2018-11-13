@@ -167,7 +167,14 @@ docs: image ## build the docs
 		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > target/doc/index.html;'
 
 tag-release:
-	sh -c 'git tag $(VERSION)'
+	git tag $(VERSION)
+	git push origin --tags      # Add the remote tag
+
+re-tag-release:
+	git tag -d $(VERSION)       # Delete the local release tag
+	git push origin :$(VERSION) # Delete the remote tag
+	git tag $(VERSION)          # Tag the release again
+	git push origin --tags      # Add the remote tag
 
 define BUILD
 build-$1: image ## builds the $1 component
