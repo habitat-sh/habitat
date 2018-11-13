@@ -72,6 +72,7 @@ extern crate libc;
 #[macro_use]
 extern crate log;
 extern crate notify;
+extern crate num_cpus;
 extern crate prost;
 extern crate protobuf;
 extern crate rand;

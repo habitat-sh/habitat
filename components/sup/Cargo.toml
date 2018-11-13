@@ -47,6 +47,7 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 notify = "*"
+num_cpus = "*"
 prost = "*"
 protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
