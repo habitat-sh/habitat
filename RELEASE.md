@@ -60,7 +60,7 @@ is in effect
     ```
 
 If there are problems discovered during validation, or you need to modify the tag to include
-additional commits, see (Addressing issues with a Release)[#addressing-issues-with-a-release].
+additional commits, see [Addressing issues with a Release](#addressing-issues-with-a-release).
 
 Once the release tag is pushed, Buildkite and AppVeyor builds will be triggered on the release tag. AppVeyor builds are currently very prone to timing out,
 so set a 1-hour timer to go and check on them. If they do time out, you just have to restart them and hope. You may also want to set up [email notifications](https://ci.appveyor.com/notifications).
