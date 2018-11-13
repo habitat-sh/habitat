@@ -61,9 +61,9 @@ is in effect
 
 If you find issues during the release process that must be fixed before promoting the release, you will need to fix those issues and then have Travis and Appveyor rerun the deployment. After you merge the necessary PRs to fix the release issues:
 
-    ```
+```
     $ make re-tag-release
-    ```
+```
 
 
 Once the release tag is pushed, Buildkite and AppVeyor builds will be triggered on the release tag. AppVeyor builds are currently very prone to timing out,
