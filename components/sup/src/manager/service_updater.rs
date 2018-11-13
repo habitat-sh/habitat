@@ -24,7 +24,7 @@ use time::Duration;
 
 use butterfly;
 use common::ui::UI;
-use env;
+use hcore::env as henv;
 use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
 use hcore::service::ServiceGroup;
 use launcher_client::LauncherCli;
@@ -400,14 +400,10 @@ impl Periodic for Worker {
     // instead of re-checking every time.
     fn update_period(&self) -> Duration {
         let val = ServiceUpdatePeriod::configured_value().into();
-        if val < *MIN_ALLOWED_PERIOD {
-            if env::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok() {
-                val
-            } else {
-                *MIN_ALLOWED_PERIOD
-            }
-        } else {
+        if val >= *MIN_ALLOWED_PERIOD || henv::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok() {
             val
+        } else {
+            *MIN_ALLOWED_PERIOD
         }
     }
 }
@@ -592,6 +588,19 @@ mod tests {
         assert!(ServiceUpdatePeriod::from_str("-123").is_err());
         assert!(ServiceUpdatePeriod::from_str("0").is_ok());
         assert!(ServiceUpdatePeriod::from_str("5").is_ok());
+    }
+
+    #[test]
+    fn worker_period_must_be_bypassed_by_non_empty_value() {
+        let period = lock_period_var();
+        let bypass = lock_bypass_var();
+        let worker = worker();
+
+        period.set("123");
+        bypass.set(""); // empty string isn't allowed
+
+        assert_ne!(worker.update_period(), Duration::milliseconds(123));
+        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
     }
 
     #[test]
