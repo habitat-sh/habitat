@@ -15,6 +15,7 @@
 extern crate ansi_term;
 extern crate clap;
 extern crate env_logger;
+#[cfg_attr(test, macro_use)]
 extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
@@ -25,7 +26,11 @@ extern crate habitat_sup_protocol as protocol;
 extern crate libc;
 #[macro_use]
 extern crate log;
+#[cfg(test)]
+#[macro_use]
+extern crate lazy_static;
 extern crate protobuf;
+extern crate tempfile;
 extern crate time;
 extern crate tokio_core;
 extern crate url;
@@ -61,11 +66,11 @@ use sup::http_gateway;
 use sup::manager::{Manager, ManagerConfig};
 use sup::util;
 
+#[cfg(test)]
+use tempfile::TempDir;
+
 /// Our output key
 static LOGKEY: &'static str = "MN";
-
-static RING_ENVVAR: &'static str = "HAB_RING";
-static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 fn main() {
     env_logger::init();
@@ -269,18 +274,12 @@ fn get_ring_key(m: &ArgMatches) -> Result<Option<SymKey>> {
             let key = SymKey::get_latest_pair_for(&val, &default_cache_key_path(None))?;
             Ok(Some(key))
         }
-        None => match henv::var(RING_KEY_ENVVAR) {
-            Ok(val) => {
+        None => match m.value_of("RING_KEY") {
+            Some(val) => {
                 let (key, _) = SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
                 Ok(Some(key))
             }
-            Err(_) => match henv::var(RING_ENVVAR) {
-                Ok(val) => {
-                    let key = SymKey::get_latest_pair_for(&val, &default_cache_key_path(None))?;
-                    Ok(Some(key))
-                }
-                Err(_) => Ok(None),
-            },
+            None => Ok(None),
         },
     }
 }
@@ -487,8 +486,18 @@ mod test {
         use super::*;
         use std::iter::FromIterator;
 
+        locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
+
         fn config_from_cmd_str(cmd: &str) -> ManagerConfig {
-            let cmd_vec = Vec::from_iter(cmd.split_whitespace());
+            let cmd_vec = cmd_vec_from_cmd_str(&cmd);
+            config_from_cmd_vec(cmd_vec)
+        }
+
+        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> {
+            Vec::from_iter(cmd.split_whitespace())
+        }
+
+        fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
             let matches = cli()
                 .get_matches_from_safe(cmd_vec)
                 .expect("Error while getting matches");
@@ -641,6 +650,54 @@ mod test {
                 ServiceGroup::from_str("event.service").ok().map(Into::into);
 
             assert_eq!(eventsrv_group, expected_group);
+        }
+
+        #[test]
+        fn ring_key_is_set_properly_by_name() {
+            let key_cache = TempDir::new().expect("Could not create tempdir");
+            let lock = lock_var();
+            lock.set(key_cache.path());
+
+            let key_content =
+                "SYM-SEC-1\nfoobar-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
+            let (pair, _) = SymKey::write_file_from_str(key_content, key_cache.path())
+                .expect("Could not write key pair");
+            let config = config_from_cmd_str("hab-sup run --ring foobar");
+
+            assert_eq!(
+                config
+                    .ring_key
+                    .expect("No ring key on manager config")
+                    .name_with_rev(),
+                pair.name_with_rev()
+            );
+        }
+
+        #[test]
+        fn ring_key_is_set_properly_by_content() {
+            let key_cache = TempDir::new().expect("Could not create tempdir");
+            let lock = lock_var();
+            lock.set(key_cache.path());
+
+            env::set_var("HAB_CACHE_KEY_PATH", key_cache.path());
+            let cmd_vec = vec![
+                "hab-sup",
+                "run",
+                "--ring-key",
+                r#"SYM-SEC-1
+foobar-20160504220722
+
+RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
+            ];
+            let config = config_from_cmd_vec(cmd_vec);
+
+            assert_eq!(
+                config
+                    .ring_key
+                    .expect("No ring key on manager config")
+                    .name_with_rev(),
+                "foobar-20160504220722"
+            );
         }
 
     }

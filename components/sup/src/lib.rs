@@ -58,6 +58,7 @@ extern crate futures;
 extern crate glob;
 extern crate hab;
 extern crate habitat_butterfly as butterfly;
+#[cfg_attr(test, macro_use)]
 extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
@@ -106,9 +107,6 @@ macro_rules! sup_error {
     }};
 }
 
-#[cfg(test)]
-#[macro_use]
-pub mod locked_env_var;
 #[cfg(test)]
 #[macro_use]
 pub mod cli_test_helpers;

@@ -20,8 +20,8 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_ORG` | Supervisor | no default | Organization to use when running with [service group encryption](/docs/using-habitat#using-encryption)
 | `HAB_ORIGIN` | build system | no default | Origin used to build packages. The signing key for this origin is passed to the build system. |
 | `HAB_ORIGIN_KEYS` | build system | no default | Comma-separated list of origin keys to automatically share with the build system |
-| `HAB_RING` | Supervisor | no default | The ring used by the Supervisor when running with [wire encryption](/docs/using-habitat#using-encryption) |
-| `HAB_RING_KEY` | Supervisor | no default | The name of the ring key when running with [wire encryption](/docs/using-habitat#using-encryption) |
+| `HAB_RING` | Supervisor | no default | The name of the ring used by the Supervisor when running with [wire encryption](/docs/using-habitat#using-encryption) |
+| `HAB_RING_KEY` | Supervisor | no default | The contents of the ring key when running with [wire encryption](/docs/using-habitat#using-encryption). Useful when running in a container. |
 | `HAB_STUDIO_SECRET_<VARIABLE>` | build system | no default | Prefix to allow environment variables into the Studio. The prefix will be removed and your variable will be passed into the Studio at build time. |
 | `HAB_STUDIOS_HOME` | build system | `/hab/studios` | Directory in which to create build Studios |
 | `HAB_STUDIO_BACKLINE_PKG` | build system | `core/hab-backline/{{studio_version}}` | Overrides the default package identifier for the "backline" package which installs the Studio basline package set. |

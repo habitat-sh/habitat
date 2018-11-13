@@ -27,6 +27,9 @@ use url::Url;
 use command::studio;
 use feat;
 
+static RING_ENVVAR: &'static str = "HAB_RING";
+static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
+
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
         .about("Alias for 'config apply'")
@@ -876,7 +879,16 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
             "Watch this file for connecting to the ring"
         )
-        (@arg RING: --ring -r +takes_value "Ring key name")
+        (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY")
+            "The name of the ring used by the Supervisor when running with wire encryption. \
+             (ex: hab sup run --ring myring)")
+        (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden
+            "The contents of the ring key when running with wire encryption. \
+             (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
+             (ex: hab sup run --ring-key 'SYM-SEC-1 \
+                  foo-20181113185935 \
+
+                  GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
         (@arg CHANNEL: --channel +takes_value
             "Receive Supervisor updates from the specified release channel [default: stable]")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}
