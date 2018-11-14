@@ -282,7 +282,9 @@ impl Service {
     /// Create the service path for this package.
     pub fn create_svc_path(&self) -> Result<()> {
         debug!("{}, Creating svc paths", self.service_group);
-        SvcDir::new(&self.pkg.name, &self.pkg.svc_user, &self.pkg.svc_group).create()?;
+        let svc_dir = SvcDir::new(&self.pkg.name, &self.pkg.svc_user, &self.pkg.svc_group);
+        svc_dir.create()?;
+        svc_dir.purge_templated_content()?;
         Ok(())
     }
 
