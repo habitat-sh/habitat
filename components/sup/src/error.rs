@@ -36,18 +36,6 @@
 //! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
 //! it instead of the longer `Result` form.
 
-use std::{env,
-          error,
-          ffi,
-          fmt,
-          io,
-          net,
-          path::PathBuf,
-          result,
-          str,
-          string,
-          sync::mpsc};
-
 use crate::{api_client,
             butterfly,
             common,
@@ -59,10 +47,22 @@ use crate::{api_client,
                               PackageInstall}},
             launcher_client,
             protocol};
+use futures::sync::oneshot;
 use glob;
 use notify;
 use rustls;
 use serde_json;
+use std::{env,
+          error,
+          ffi,
+          fmt,
+          io,
+          net,
+          path::PathBuf,
+          result,
+          str,
+          string,
+          sync::mpsc};
 use toml;
 
 use crate::PROGRAM_NAME;
@@ -150,6 +150,7 @@ pub enum Error {
     NotifyCreateError(notify::Error),
     NotifyError(notify::Error),
     NulError(ffi::NulError),
+    OneshotCanceled(oneshot::Canceled),
     PackageNotFound(package::PackageIdent),
     PackageNotRunnable(package::PackageIdent),
     Permissions(String),
@@ -265,6 +266,7 @@ impl fmt::Display for SupError {
             Error::NotifyCreateError(ref e) => format!("Notify create error: {}", e),
             Error::NotifyError(ref e) => format!("Notify error: {}", e),
             Error::NulError(ref e) => e.to_string(),
+            Error::OneshotCanceled(ref e) => e.to_string(),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
@@ -394,6 +396,7 @@ impl error::Error for SupError {
             Error::NulError(_) => {
                 "An attempt was made to build a CString with a null byte inside it"
             }
+            Error::OneshotCanceled(ref e) => e.description(),
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::PackageNotRunnable(_) => "The package is not runnable",
             Error::Permissions(_) => "File system permissions error",
@@ -502,4 +505,8 @@ impl From<toml::ser::Error> for SupError {
 
 impl From<protocol::net::NetErr> for SupError {
     fn from(err: protocol::net::NetErr) -> Self { sup_error!(Error::NetErr(err)) }
+}
+
+impl From<oneshot::Canceled> for SupError {
+    fn from(err: oneshot::Canceled) -> Self { sup_error!(Error::OneshotCanceled(err)) }
 }

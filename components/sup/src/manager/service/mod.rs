@@ -15,8 +15,10 @@
 mod context;
 pub mod health;
 pub mod hooks;
+mod spawned_future;
 pub mod spec;
 mod supervisor;
+mod terminator;
 
 use std::{self,
           collections::HashSet,
