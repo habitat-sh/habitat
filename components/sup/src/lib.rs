@@ -109,6 +109,7 @@ pub mod ctl_gateway;
 pub mod error;
 pub mod http_gateway;
 pub mod manager;
+mod sys;
 #[cfg(test)]
 pub mod test_helpers;
 pub mod util;
