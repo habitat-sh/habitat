@@ -12,6 +12,7 @@
 - Use defaults in tests instead of hard coded values [#5838](https://github.com/habitat-sh/habitat/pull/5838) ([mpeck](https://github.com/mpeck))
 
 #### New Features & Enhancements
+- Add -t to support installing alternate PackageTarget cli  [#5770](https://github.com/habitat-sh/habitat/pull/5770) ([smacfarlane](https://github.com/smacfarlane))
 - Add Windows-friendly behavior to `hab pkg env` [#5813](https://github.com/habitat-sh/habitat/pull/5813) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 ## [0.68.0](https://github.com/habitat-sh/habitat/tree/0.68.0) (2018-11-08)
