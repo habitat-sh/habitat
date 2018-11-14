@@ -243,6 +243,8 @@ steps:
     command: .buildkite/scripts/dockerhub_upload.sh
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   # TODO Create a JFrog emoji
   - label: ":linux: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
