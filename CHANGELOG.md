@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Behavioral Changes
+- Add target to Docker image names for studio [#5805](https://github.com/habitat-sh/habitat/pull/5805) ([smacfarlane](https://github.com/smacfarlane))
+
 #### Bug Fixes
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
