@@ -19,6 +19,8 @@ use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
+#[cfg(unix)]
+use std::os::unix::process::ExitStatusExt;
 use std::path::{Path, PathBuf};
 #[cfg(not(windows))]
 use std::process::{Child, ExitStatus};
@@ -130,6 +132,22 @@ pub trait Hook: fmt::Debug + Sized {
         use hcore::util::win_perm;
 
         win_perm::harden_path(path.as_ref())
+    }
+
+    /// Output a message that a hook process was terminated by a
+    /// signal.
+    ///
+    /// This should only be called when `ExitStatus#code()` returns
+    /// `None`, and this only happens on non-Windows machines.
+    #[cfg(unix)]
+    fn output_termination_message(service_group: &ServiceGroup, status: &ExitStatus) {
+        outputln!(preamble service_group, "{} was terminated by signal {:?}",
+                  Self::file_name(),
+                  status.signal());
+    }
+    #[cfg(windows)]
+    fn output_termination_message(&self, _: &ServiceGroup, _: &ExitStatus) {
+        // No-op
     }
 
     /// Run a compiled hook.
@@ -265,8 +283,7 @@ impl Hook for HealthCheckHook {
                 health::HealthCheck::default()
             }
             None => {
-                outputln!(preamble service_group,
-                    "{} exited without a status code", Self::file_name());
+                Self::output_termination_message(service_group, status);
                 health::HealthCheck::default()
             }
         }
@@ -390,8 +407,7 @@ impl Hook for RunHook {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
-                outputln!(preamble service_group,
-                    "{} exited without a status code", Self::file_name());
+                Self::output_termination_message(service_group, status);
                 ExitCode::default()
             }
         }
@@ -445,8 +461,7 @@ impl Hook for PostRunHook {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
-                outputln!(preamble service_group,
-                    "{} exited without a status code", Self::file_name());
+                Self::output_termination_message(service_group, status);
                 ExitCode::default()
             }
         }
@@ -560,8 +575,7 @@ impl Hook for ReconfigureHook {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
-                outputln!(preamble service_group,
-                    "{} exited without a status code", Self::file_name());
+                Self::output_termination_message(service_group, status);
                 ExitCode::default()
             }
         }
@@ -616,8 +630,7 @@ impl Hook for SmokeTestHook {
             Some(0) => health::SmokeCheck::Ok,
             Some(code) => health::SmokeCheck::Failed(code),
             None => {
-                outputln!(preamble service_group,
-                    "{} exited without a status code", Self::file_name());
+                Self::output_termination_message(service_group, status);
                 health::SmokeCheck::Failed(-1)
             }
         }
@@ -702,8 +715,7 @@ impl Hook for SuitabilityHook {
                     "{} exited with status code {}", Self::file_name(), code);
             }
             None => {
-                outputln!(preamble service_group,
-                    "{} exited without a status code", Self::file_name());
+                Self::output_termination_message(service_group, status);
             }
         }
         None
@@ -762,8 +774,7 @@ impl Hook for PostStopHook {
                 false
             }
             None => {
-                outputln!(preamble service_group, "Post stop failed! '{}' exited without a \
-                    status code", Self::file_name());
+                Self::output_termination_message(service_group, status);
                 false
             }
         }
