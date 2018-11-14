@@ -28,4 +28,5 @@ members = [
 # habitat repo, you may need to adjust the paths.
 # [patch."https://github.com/habitat-sh/core.git"]
 # habitat_core = {path = "../core/components/core"}
+# habitat_http_client = {path = "../core/components/http-client"}
 # habitat_win_users = {path = "../core/components/win-users"}
