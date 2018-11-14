@@ -18,7 +18,7 @@ use std::env;
 use std::ffi::OsString;
 use std::mem::swap;
 use std::path::{Component, Path, PathBuf};
-use std::sync::mpsc::{channel, Receiver};
+use std::sync::mpsc::{channel, Receiver, TryRecvError};
 use std::time::Duration;
 
 use error::{Error, Result};
@@ -1348,11 +1348,14 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         if let Some(ref real_file) = self.initial_real_file {
             self.callbacks.file_appeared(real_file);
         }
+
         self.initial_real_file = None;
-        self.rx
-            .recv()
-            .map_err(|e| sup_error!(Error::RecvError(e)))
-            .and_then(|event| self.handle_event(event))
+
+        match self.rx.try_recv() {
+            Ok(e) => self.handle_event(e),
+            Err(TryRecvError::Empty) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
     }
 
     fn handle_event(&mut self, event: DebouncedEvent) -> Result<()> {
@@ -3181,6 +3184,11 @@ mod tests {
 
         fn spin_watcher(&self, setup: &mut WatcherSetup, iterations: u32) {
             let mut iteration = 0;
+
+            // After switching single_iteration() from recv() to try_recv(), this sleep is required
+            // for these tests to pass.
+            ::std::thread::sleep(Duration::from_secs(3));
+
             while iteration < iterations {
                 setup.watcher.single_iteration().expect(&format!(
                     "iteration failed, debug info:\n{}",

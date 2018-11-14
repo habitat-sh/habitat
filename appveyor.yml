@@ -26,6 +26,7 @@ environment:
   CARGO_TARGET_DIR: "c:\\projects\\habitat\\target"
   RUSTUP_USE_HYPER: 1
   CARGO_HTTP_CHECK_REVOKE: false
+  RUST_BACKTRACE: 1
   HAB_WINDOWS_STUDIO: true
   BINTRAY_USER: chef-releng-ops
   BINTRAY_KEY:

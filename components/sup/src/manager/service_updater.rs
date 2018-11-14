@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::collections::HashMap;
-use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
+use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
 use std::thread;
 
 use butterfly;
@@ -26,6 +26,7 @@ use launcher_client::LauncherCli;
 use census::CensusRing;
 use manager::periodic::Periodic;
 use manager::service::{Service, Topology, UpdateStrategy};
+use time::SteadyTime;
 use util;
 
 static LOGKEY: &'static str = "SU";
@@ -37,7 +38,7 @@ const DEFAULT_FREQUENCY: i64 = MIN_ALLOWED_FREQUENCY;
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
 enum UpdaterState {
-    AtOnce(Receiver<PackageInstall>),
+    AtOnce(Receiver<PackageInstall>, Sender<()>),
     Rolling(RollingState),
 }
 
@@ -49,7 +50,7 @@ enum RollingState {
 }
 
 enum LeaderState {
-    Polling(Receiver<PackageInstall>),
+    Polling(Receiver<PackageInstall>, Sender<()>),
     Waiting,
 }
 
@@ -59,7 +60,7 @@ enum FollowerState {
     /// Waiting to be told to update
     Waiting,
     /// Currently updating
-    Updating(Receiver<PackageInstall>),
+    Updating(Receiver<PackageInstall>, Sender<()>),
 }
 
 /// The ServiceUpdater is in charge of updating a Service when a more recent version of a package
@@ -88,8 +89,9 @@ impl ServiceUpdater {
                 self.states
                     .entry(service.service_group.clone())
                     .or_insert_with(|| {
-                        let rx = Worker::new(service).start(&service.service_group, None);
-                        UpdaterState::AtOnce(rx)
+                        let (kill_tx, kill_rx) = channel();
+                        let rx = Worker::new(service).start(&service.service_group, None, kill_rx);
+                        UpdaterState::AtOnce(rx, kill_tx)
                     });
                 true
             }
@@ -102,8 +104,41 @@ impl ServiceUpdater {
         }
     }
 
-    // TODO (CM): How do we remove something from the updater? e.g.,
-    // when we stop or unload a service?
+    /// Remove a `Service` from updates, e.g. if the service was unloaded.
+    pub fn remove(&mut self, service: &Service) {
+        match self.states.remove(&service.service_group) {
+            Some(UpdaterState::AtOnce(_rx, kill_tx)) => {
+                if kill_tx.send(()).is_err() {
+                    debug!("Tried to kill the updater thread but it's already dead.");
+                }
+            }
+            Some(UpdaterState::Rolling(rs)) => match rs {
+                RollingState::Leader(ls) => match ls {
+                    LeaderState::Polling(_rx, kill_tx) => {
+                        if kill_tx.send(()).is_err() {
+                            debug!("Tried to kill the updater thread but it's already dead.");
+                        }
+                    }
+                    LeaderState::Waiting => {}
+                },
+                RollingState::Follower(fs) => match fs {
+                    FollowerState::Updating(_rx, kill_tx) => {
+                        if kill_tx.send(()).is_err() {
+                            debug!("Tried to kill the updater thread but it's already dead.");
+                        }
+                    }
+                    FollowerState::Waiting => {}
+                },
+                _ => {}
+            },
+            None => {
+                warn!(
+                    "Tried to remove {} from the ServiceUpdater, but it wasn't found.",
+                    service
+                );
+            }
+        }
+    }
 
     /// See if the given service has an update. Returns `true` if a
     /// new version was installed, thus signalling that the service
@@ -116,7 +151,7 @@ impl ServiceUpdater {
     ) -> bool {
         let mut updated = false;
         match self.states.get_mut(&service.service_group) {
-            Some(&mut UpdaterState::AtOnce(ref mut rx)) => match rx.try_recv() {
+            Some(&mut UpdaterState::AtOnce(ref mut rx, ref mut kill_tx)) => match rx.try_recv() {
                 Ok(package) => {
                     service.update_package(package, launcher);
                     return true;
@@ -124,7 +159,9 @@ impl ServiceUpdater {
                 Err(TryRecvError::Empty) => return false,
                 Err(TryRecvError::Disconnected) => {
                     debug!("Service Updater worker has died; restarting...");
-                    *rx = Worker::new(service).start(&service.service_group, None);
+                    let (ktx, krx) = channel();
+                    *rx = Worker::new(service).start(&service.service_group, None, krx);
+                    *kill_tx = ktx;
                 }
             },
 
@@ -180,7 +217,7 @@ impl ServiceUpdater {
             }
             Some(&mut UpdaterState::Rolling(RollingState::Leader(ref mut state))) => {
                 match *state {
-                    LeaderState::Polling(ref mut rx) => match rx.try_recv() {
+                    LeaderState::Polling(ref mut rx, ref mut kill_tx) => match rx.try_recv() {
                         Ok(package) => {
                             debug!("Rolling Update, polling found a new package");
                             service.update_package(package, launcher);
@@ -189,28 +226,32 @@ impl ServiceUpdater {
                         Err(TryRecvError::Empty) => return false,
                         Err(TryRecvError::Disconnected) => {
                             debug!("Service Updater worker has died; restarting...");
-                            *rx = Worker::new(service).start(&service.service_group, None);
+                            let (ktx, krx) = channel();
+                            *rx = Worker::new(service).start(&service.service_group, None, krx);
+                            *kill_tx = ktx;
                         }
                     },
-                    LeaderState::Waiting => {
-                        match census_ring.census_group_for(&service.service_group) {
-                            Some(census_group) => {
-                                if census_group.members().iter().any(|cm| {
-                                    cm.pkg.as_ref().unwrap()
-                                        != census_group.me().unwrap().pkg.as_ref().unwrap()
-                                }) {
-                                    debug!("Update leader still waiting for followers...");
-                                    return false;
-                                }
-                                let rx = Worker::new(service).start(&service.service_group, None);
-                                *state = LeaderState::Polling(rx);
+                    LeaderState::Waiting => match census_ring
+                        .census_group_for(&service.service_group)
+                    {
+                        Some(census_group) => {
+                            if census_group.members().iter().any(|cm| {
+                                cm.pkg.as_ref().unwrap()
+                                    != census_group.me().unwrap().pkg.as_ref().unwrap()
+                            }) {
+                                debug!("Update leader still waiting for followers...");
+                                return false;
                             }
-                            None => panic!(
-                                "Expected census list to have service group '{}'!",
-                                &*service.service_group
-                            ),
+                            let (kill_tx, kill_rx) = channel();
+                            let rx =
+                                Worker::new(service).start(&service.service_group, None, kill_rx);
+                            *state = LeaderState::Polling(rx, kill_tx);
                         }
-                    }
+                        None => panic!(
+                            "Expected census list to have service group '{}'!",
+                            &*service.service_group
+                        ),
+                    },
                 }
                 if updated {
                     *state = LeaderState::Waiting;
@@ -235,9 +276,13 @@ impl ServiceUpdater {
                                         return false;
                                     }
                                     debug!("We're in an update and it's our turn");
-                                    let rx = Worker::new(service)
-                                        .start(&service.service_group, leader.pkg.clone());
-                                    *state = FollowerState::Updating(rx);
+                                    let (kill_tx, kill_rx) = channel();
+                                    let rx = Worker::new(service).start(
+                                        &service.service_group,
+                                        leader.pkg.clone(),
+                                        kill_rx,
+                                    );
+                                    *state = FollowerState::Updating(rx, kill_tx);
                                 }
                                 _ => return false,
                             },
@@ -247,26 +292,32 @@ impl ServiceUpdater {
                             ),
                         }
                     }
-                    FollowerState::Updating(ref mut rx) => match census_ring
-                        .census_group_for(&service.service_group)
-                    {
-                        Some(census_group) => match rx.try_recv() {
-                            Ok(package) => {
-                                service.update_package(package, launcher);
-                                updated = true
-                            }
-                            Err(TryRecvError::Empty) => return false,
-                            Err(TryRecvError::Disconnected) => {
-                                debug!("Service Updater worker has died; restarting...");
-                                let package = census_group.update_leader().unwrap().pkg.clone();
-                                *rx = Worker::new(service).start(&service.service_group, package);
-                            }
-                        },
-                        None => panic!(
-                            "Expected census list to have service group '{}'!",
-                            &*service.service_group
-                        ),
-                    },
+                    FollowerState::Updating(ref mut rx, ref mut kill_tx) => {
+                        match census_ring.census_group_for(&service.service_group) {
+                            Some(census_group) => match rx.try_recv() {
+                                Ok(package) => {
+                                    service.update_package(package, launcher);
+                                    updated = true
+                                }
+                                Err(TryRecvError::Empty) => return false,
+                                Err(TryRecvError::Disconnected) => {
+                                    debug!("Service Updater worker has died; restarting...");
+                                    let package = census_group.update_leader().unwrap().pkg.clone();
+                                    let (ktx, krx) = channel();
+                                    *rx = Worker::new(service).start(
+                                        &service.service_group,
+                                        package,
+                                        krx,
+                                    );
+                                    *kill_tx = ktx;
+                                }
+                            },
+                            None => panic!(
+                                "Expected census list to have service group '{}'!",
+                                &*service.service_group
+                            ),
+                        }
+                    }
                 }
                 if updated {
                     *state = FollowerState::Waiting;
@@ -350,13 +401,18 @@ impl Worker {
     /// Passing an optional package identifier will make the worker perform a run-once update to
     /// retrieve a specific version from Builder. If no package identifier is specified,
     /// then the updater will poll until a newer more suitable package is found.
-    fn start(mut self, sg: &ServiceGroup, ident: Option<PackageIdent>) -> Receiver<PackageInstall> {
-        let (tx, rx) = sync_channel(0);
+    fn start(
+        mut self,
+        sg: &ServiceGroup,
+        ident: Option<PackageIdent>,
+        kill_rx: Receiver<()>,
+    ) -> Receiver<PackageInstall> {
+        let (tx, rx) = channel();
         thread::Builder::new()
             .name(format!("service-updater-{}", sg))
             .spawn(move || match ident {
-                Some(latest) => self.run_once(tx, latest),
-                None => self.run_poll(tx),
+                Some(latest) => self.run_once(tx, latest, kill_rx),
+                None => self.run_poll(tx, kill_rx),
             }).expect("unable to start service-updater thread");
         rx
     }
@@ -384,67 +440,100 @@ impl Worker {
     /// Polls until a newer version of the specified package is
     /// available. When such a package is found, it is installed, and
     /// the function exits.
-    fn run_once(&mut self, sender: SyncSender<PackageInstall>, ident: PackageIdent) {
+    fn run_once(
+        &mut self,
+        sender: Sender<PackageInstall>,
+        ident: PackageIdent,
+        kill_rx: Receiver<()>,
+    ) {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
         let install_source = (ident, *PackageTarget::active_target()).into();
-        loop {
-            let next_time = self.next_period_start();
+        let mut next_time = SteadyTime::now();
 
-            match util::pkg::install(
-                // We don't want anything in here to print
-                &mut UI::with_sinks(),
-                &self.builder_url,
-                &install_source,
-                &self.channel,
-            ) {
-                Ok(package) => {
-                    self.current = package.ident().clone();
-                    sender.send(package).expect("Main thread has gone away!");
+        loop {
+            match kill_rx.try_recv() {
+                Ok(_) => {
+                    info!("Received some data on the kill channel. Letting this thread die.");
                     break;
                 }
-                Err(e) => warn!("Failed to install updated package: {:?}", e),
+                Err(TryRecvError::Empty) => {}
+                Err(TryRecvError::Disconnected) => {
+                    error!("Service updater has gone away, yikes!");
+                    break;
+                }
             }
 
-            self.sleep_until(next_time);
+            if SteadyTime::now() >= next_time {
+                match util::pkg::install(
+                    // We don't want anything in here to print
+                    &mut UI::with_sinks(),
+                    &self.builder_url,
+                    &install_source,
+                    &self.channel,
+                ) {
+                    Ok(package) => {
+                        self.current = package.ident().clone();
+                        sender.send(package).expect("Main thread has gone away!");
+                        break;
+                    }
+                    Err(e) => warn!("Failed to install updated package: {:?}", e),
+                }
+
+                next_time = self.next_period_start();
+            }
         }
     }
 
     /// Continually poll for a new version of a package, installing it
     /// when found.
-    fn run_poll(&mut self, sender: SyncSender<PackageInstall>) {
+    fn run_poll(&mut self, sender: Sender<PackageInstall>, kill_rx: Receiver<()>) {
         let install_source = (self.spec_ident.clone(), *PackageTarget::active_target()).into();
-        loop {
-            let next_time = self.next_period_start();
+        let mut next_time = SteadyTime::now();
 
-            match util::pkg::install(
-                // We don't want anything in here to print
-                &mut UI::with_sinks(),
-                &self.builder_url,
-                &install_source,
-                &self.channel,
-            ) {
-                Ok(maybe_newer_package) => {
-                    if self.current < *maybe_newer_package.ident() {
-                        outputln!(
-                            "Updating from {} to {}",
-                            self.current,
-                            maybe_newer_package.ident()
-                        );
-                        self.current = maybe_newer_package.ident().clone();
-                        sender
-                            .send(maybe_newer_package)
-                            .expect("Main thread has gone away!");
-                        break;
-                    } else {
-                        debug!("Package found is not newer than ours");
-                    }
+        loop {
+            match kill_rx.try_recv() {
+                Ok(_) => {
+                    info!("Received some data on the kill channel. Letting this thread die.");
+                    break;
                 }
-                Err(e) => warn!("Updater failed to get latest package: {:?}", e),
+                Err(TryRecvError::Empty) => {}
+                Err(TryRecvError::Disconnected) => {
+                    error!("Service updater has gone away, yikes!");
+                    break;
+                }
             }
 
-            self.sleep_until(next_time);
+            if SteadyTime::now() >= next_time {
+                match util::pkg::install(
+                    // We don't want anything in here to print
+                    &mut UI::with_sinks(),
+                    &self.builder_url,
+                    &install_source,
+                    &self.channel,
+                ) {
+                    Ok(maybe_newer_package) => {
+                        if self.current < *maybe_newer_package.ident() {
+                            outputln!(
+                                "Updating from {} to {}",
+                                self.current,
+                                maybe_newer_package.ident()
+                            );
+                            self.current = maybe_newer_package.ident().clone();
+                            sender
+                                .send(maybe_newer_package)
+                                .expect("Main thread has gone away!");
+                            break;
+                        } else {
+                            debug!("Package found is not newer than ours");
+                        }
+                    }
+                    Err(e) => warn!("Updater failed to get latest package: {:?}", e),
+                }
+
+                next_time = self.next_period_start();
+            }
         }
     }
 }
