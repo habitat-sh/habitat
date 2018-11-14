@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
+
 #### Merged Pull Requests
 - fix a compile warning on windows [#5842](https://github.com/habitat-sh/habitat/pull/5842) ([mwrock](https://github.com/mwrock))
 - Use defaults in tests instead of hard coded values [#5838](https://github.com/habitat-sh/habitat/pull/5838) ([mpeck](https://github.com/mpeck))
