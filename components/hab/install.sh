@@ -1,5 +1,4 @@
-#!/bin/sh
-# shellcheck disable=SC2039
+#!/bin/bash
 #
 # Copyright (c) 2010-2016 Chef Software, Inc. and/or applicable contributors
 #
@@ -31,7 +30,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:" opt; do
+  while getopts "c:hv:t:" opt; do
     case "${opt}" in
       c)
         channel="${OPTARG}"
@@ -42,6 +41,9 @@ main() {
         ;;
       v)
         version="${OPTARG}"
+        ;;
+      t)
+        target="${OPTARG}"
         ;;
       \?)
         echo "" >&2
@@ -54,6 +56,7 @@ main() {
   info "Installing Habitat 'hab' program"
   create_workdir
   get_platform
+  validate_target
   get_version
   download_archive
   verify_archive
@@ -83,6 +86,9 @@ FLAGS:
     -c    Specifies a channel [values: stable, unstable] [default: stable]
     -h    Prints help information
     -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
+    -t    Specifies the ActiveTarget of the 'hab' program to download.
+            [values: x86_64-linux, x86_64-linux-kernel2] [default: x86_64-linux]
+            This option is only valid on Linux platforms
 
 ENVIRONMENT VARIABLES:
      SSL_CERT_FILE   allows you to verify against a custom cert such as one
@@ -144,6 +150,10 @@ get_platform() {
       exit_with "Unrecognized sys type when determining platform: ${sys}" 3
       ;;
   esac
+
+  if [ -z "${target:-}" ]; then 
+    target="${arch}-${sys}"
+  fi
 }
 
 get_version() {
@@ -161,7 +171,7 @@ get_version() {
     btv=$_btv
   else
     info "Determining fully qualified version of package for \`$version'"
-    dl_file "${BT_SEARCH}/${channel}/hab-${arch}-${sys}" "${_j}"
+    dl_file "${BT_SEARCH}/${channel}/hab-${target}" "${_j}"
     # This is nasty and we know it. Clap your hands. If the install.sh stops
     # work its likely related to this here sed command. We have to pull
     # versions out of minified json. So if this ever stops working its likely
@@ -182,12 +192,34 @@ get_version() {
   fi
 }
 
+# Validate the CLI Target requested.  In most cases ${arch}-${sys}
+# for the current system is the only valid Target.  In the case of 
+# x86_64-linux systems we also need to support the x86_64-linux-kernel2
+# Target. Creates an array of valid Targets for the current system,
+# adding any valid alternate Targets, and checks if the requested 
+# Target is present in the array.
+validate_target() {
+  local valid_targets=("${arch}-${sys}")
+  case "${sys}" in
+   linux)
+    valid_targets+=("x86_64-linux-kernel2")
+    ;;
+  esac
+
+  if ! (_array_contains "${target}" "${valid_targets[@]}") ; then
+    local _vts
+    printf -v _vts "%s, " "${valid_targets[@]}"
+    _e="${target} is not a valid target for this system. Please specify one of: [${_vts%, }]"
+    exit_with "$_e" 7
+  fi
+}
+
 download_archive() {
   need_cmd cut
   need_cmd mv
 
-  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${btv}-${arch}-${sys}.${ext}"
-  query="?bt_package=hab-${arch}-${sys}"
+  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${btv}-${target}.${ext}"
+  query="?bt_package=hab-${target}"
 
   local _hab_url="${url}${query}"
   local _sha_url="${url}.sha256sum${query}"
@@ -233,13 +265,13 @@ extract_archive() {
       need_cmd tar
 
       zcat "${archive}" | tar x -C "${workdir}"
-      archive_dir="$(echo "${archive}" | sed 's/.tar.gz$//')"
+      archive_dir="${archive%.tar.gz}"
       ;;
     zip)
       need_cmd unzip
 
       unzip "${archive}" -d "${workdir}"
-      archive_dir="$(echo "${archive}" | sed 's/.zip$//')"
+      archive_dir="${archive%.zip}"
       ;;
     *)
       exit_with "Unrecognized file extension when extracting: ${ext}" 4
@@ -302,6 +334,16 @@ warn() {
 exit_with() {
   warn "$1"
   exit "${2:-10}"
+}
+
+_array_contains() {
+  local e
+  for e in "${@:2}"; do
+    if [[ "$e" == "$1" ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 dl_file() {
