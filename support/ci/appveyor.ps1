@@ -22,14 +22,14 @@ function Test-SentinelBuild() {
 }
 
 function Get-ChangedFiles {
-    if (Test-PullRequest -or Test-SentinelBuild) {
-        # for pull requests or sentinel builds diff
-        # against master
-        git diff master --name-only
-    } else {
-        # for master builds, check against the last merge
-        git show :/^Merge --pretty=format:%H -m --name-only
+    $sha = (git rev-parse HEAD)
+    $lastMerge = (git log --merges --max-count=1 --pretty=format:%H)
+    
+    if($sha -eq $lastMerge) {
+        $lastMerge=(git log --merges --max-count=1 --skip=1 --pretty=format:%H)
     }
+
+    git diff master --name-only $lastMerge
 }
 
 function Test-SourceChanged {
