@@ -28,7 +28,7 @@ simply 'hab'). In the latter case when just passing the binary name, the shell w
 if [[ $# -eq 0 ]] ; then
   print_help
   echo
-  echo "<path-to-hab-binary> must be specified"
+  echo "<path-to-hab-binary> must be specified!"
   exit 1
 else
   HAB_BINARY="$1"
