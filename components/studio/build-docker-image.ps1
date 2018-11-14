@@ -12,7 +12,7 @@ if((Get-Command hab -ErrorAction SilentlyContinue) -eq $null) {
 }
 
 If (-not (Test-Path env:IMAGE_NAME)) {
-   $imageName = "habitat-docker-registry.bintray.io/win-studio"
+   $imageName = "habitat-docker-registry.bintray.io/win-studio-x86_64-windows"
 } Else {
    $imageName = $env:IMAGE_NAME
 }
@@ -55,7 +55,7 @@ try {
     
     $pathParts = $studioPath.Replace("\", "/").Split("/")
     $ident = [String]::Join("/", $pathParts[-4..-1])
-    $shortVersion = $pathParts[-2]
+    $shortVersion = "${pathParts[-2]}"
     $version = "$($pathParts[-2])-$($pathParts[-1])"
     
 @"

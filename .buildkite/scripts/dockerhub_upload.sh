@@ -10,7 +10,9 @@ set -euo pipefail
 source .buildkite/scripts/shared.sh
 version=$(buildkite-agent meta-data get "version")
 channel=$(buildkite-agent meta-data get "release-channel")
-image_name="habitat/default-studio"
+target="${BUILD_PKG_TARGET:-x86_64-linux}"
+image_name="habitat/default-studio-${target}"
+image_name_with_tag="${image_name}:${version}"
 
 if is_fake_release; then
   image_name="habitat/fakey-mc-fake-face-studio"
@@ -23,14 +25,14 @@ docker login \
 trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
 
 pushd ./components/rootless_studio >/dev/null
-docker build -t habitat:hab-base .
-docker build --build-arg BLDR_CHANNEL="${channel}" --no-cache --tag "${image_name}:${version}" ./default
-docker push "${image_name}:${version}"
+docker build --build-arg PACKAGE_TARGET="${target}" -t "habitat-${target}:hab-base" .
+docker build --build-arg BLDR_CHANNEL="${channel}" --no-cache --tag "${image_name_with_tag}" ./default
+docker push "${image_name_with_tag}"
 popd >/dev/null
 
 cat << EOF | buildkite-agent annotate --style=success --context=docker-studio	
 <h3>DockerHub Studio Image (Linux)</h3>	
 <ul>	
-  <li><code>${image_name:?}:${version:?}</code></li>	
+  <li><code>${image_name_with_tag}</code></li>	
 </ul>	
 EOF

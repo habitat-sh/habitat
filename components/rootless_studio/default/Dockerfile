@@ -1,4 +1,5 @@
-FROM habitat:hab-base as hab
+ARG PACKAGE_TARGET
+FROM habitat-${PACKAGE_TARGET}:hab-base as hab
 ENV PATH=${PATH}:/hab/bin
 ARG BLDR_CHANNEL=stable
 RUN hab pkg install -c ${BLDR_CHANNEL} core/hab-backline \

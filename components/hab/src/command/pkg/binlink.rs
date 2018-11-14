@@ -253,6 +253,7 @@ impl Binlink {
 }
 
 #[cfg(test)]
+#[cfg(any(target_os = "linux", target_os = "windows"))]
 mod test {
     use std::collections::HashMap;
     use std::env;
