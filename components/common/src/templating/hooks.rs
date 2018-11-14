@@ -69,8 +69,14 @@ impl Default for ExitCode {
     fn default() -> ExitCode { ExitCode(-1) }
 }
 
-pub trait Hook: fmt::Debug + Sized {
-    type ExitValue: Default;
+// Hook and ExitValue must (currently) be Send so we can use them in
+// futures. ExitValue must currently be Debug because we want to use
+// it in Results
+//
+// Future refactorings may make these changes unnecessary, but it
+// helps us bridge the gap
+pub trait Hook: fmt::Debug + Sized + Send {
+    type ExitValue: Default + fmt::Debug + Send;
 
     fn file_name() -> &'static str;
 
