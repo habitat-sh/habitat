@@ -8,6 +8,7 @@ RUN set -ex \
     gnupg \
     libressl \
     wget \
+    bash \
   \
   && cd /tmp \
   && wget https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
