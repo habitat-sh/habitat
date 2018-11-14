@@ -869,7 +869,9 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
                 .for_each(|reply| match reply.message_id() {
                     "NetOk" => Ok(()),
                     "NetErr" => {
-                        let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                        let m = reply
+                            .parse::<protocol::net::NetErr>()
+                            .map_err(SrvClientError::Decode)?;
                         match ErrCode::from_i32(m.code) {
                             Some(ErrCode::InvalidPayload) => {
                                 ui.warn(m)?;
@@ -892,7 +894,9 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
             conn.call(set).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
                 _ => Err(SrvClientError::from(io::Error::from(
@@ -915,12 +919,16 @@ fn sub_svc_config(m: &ArgMatches) -> Result<()> {
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceCfg" => {
-                    let m = reply.parse::<protocol::types::ServiceCfg>().unwrap();
+                    let m = reply
+                        .parse::<protocol::types::ServiceCfg>()
+                        .map_err(SrvClientError::Decode)?;
                     println!("{}", m.default.unwrap_or_default());
                     Ok(())
                 }
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
                 _ => Err(SrvClientError::from(io::Error::from(
@@ -1080,7 +1088,9 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     match ErrCode::from_i32(m.code) {
                         Some(ErrCode::InvalidPayload) => {
                             ui.warn(m)?;
@@ -1119,7 +1129,9 @@ fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
                 _ => Err(SrvClientError::from(io::Error::from(
@@ -1424,18 +1436,24 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
     bar.message("    ");
     match reply.message_id() {
         "ConsoleLine" => {
-            let m = reply.parse::<protocol::ctl::ConsoleLine>().unwrap();
+            let m = reply
+                .parse::<protocol::ctl::ConsoleLine>()
+                .map_err(SrvClientError::Decode)?;
             print!("{}", m);
         }
         "NetProgress" => {
-            let m = reply.parse::<protocol::ctl::NetProgress>().unwrap();
+            let m = reply
+                .parse::<protocol::ctl::NetProgress>()
+                .map_err(SrvClientError::Decode)?;
             bar.total = m.total;
             if bar.set(m.position) >= m.total {
                 bar.finish();
             }
         }
         "NetErr" => {
-            let m = reply.parse::<protocol::net::NetErr>().unwrap();
+            let m = reply
+                .parse::<protocol::net::NetErr>()
+                .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(m));
         }
         _ => (),
@@ -1452,13 +1470,17 @@ where
     T: io::Write,
 {
     let status = match reply.message_id() {
-        "ServiceStatus" => reply.parse::<protocol::types::ServiceStatus>()?,
+        "ServiceStatus" => reply
+            .parse::<protocol::types::ServiceStatus>()
+            .map_err(SrvClientError::Decode)?,
         "NetOk" => {
             println!("No services loaded.");
             return Ok(());
         }
         "NetErr" => {
-            let err = reply.parse::<protocol::net::NetErr>()?;
+            let err = reply
+                .parse::<protocol::net::NetErr>()
+                .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(err));
         }
         _ => {
@@ -1527,13 +1549,17 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceStatus" => {
-                    let m = reply.parse::<protocol::types::ServiceStatus>().unwrap();
+                    let m = reply
+                        .parse::<protocol::types::ServiceStatus>()
+                        .map_err(SrvClientError::Decode)?;
                     out.push(m.ident.into());
                     Ok(())
                 }
                 "NetOk" => Ok(()),
                 "NetErr" => {
-                    let err = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let err = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     return Err(SrvClientError::from(err));
                 }
                 _ => {
