@@ -220,7 +220,32 @@ impl Server {
                 );
             }
         }
-        self.supervisor.wait().ok();
+
+        // With the Supervisor shutting down services, we need to
+        // ensure that the Launcher is able to reaping those main
+        // service processes as the Supervisor shuts them
+        // down... otherwise, the Supervisor can end up waiting a long
+        // time on zombie processes.
+        loop {
+            self.services.reap_services();
+            match self.supervisor.try_wait() {
+                Ok(Some(status)) => {
+                    debug!("Supervisor exited with: {}", status);
+                    break;
+                }
+                Ok(None) => {
+                    // Still hasn't exited; try again later
+                }
+                Err(e) => {
+                    error!("Error waiting on supervisor: {:?}", e);
+                    break;
+                }
+            }
+        }
+
+        // TODO (CM): Eventually this can go away... but we need to
+        // keep it around while we still support older Supervisors
+        // that don't shutdown services themselves.
         self.services.kill_all();
         outputln!("Hasta la vista, services.");
     }
