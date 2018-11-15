@@ -1,12 +1,4 @@
-Here are all the steps for the release process. Create a new PR at the beginning and check them off as you go.
-In the course of the release, you'll create and merge several other PRs. They should all be
-separate from this one. This PR exists to track progress on the release and ensure all the steps
-are carried out.
-When you're done, have someone review and merge the PR along with any fixes to the release process automation
-or documentation.
-The only file changes this PR should contain are changes for the *next* release. If there are none,
-this PR may have no file changes at all. Merge it anyway to make it clear that the release process
-is done and that no updates were made for next time.
+Here are all the steps for the release process. Create a new PR at the beginning and check them off as you go. In the course of the release, you'll create and merge several other PRs. They should all be separate from this one. This PR exists to track progress on the release and ensure all the steps are carried out. When you're done, have someone review and merge the PR along with any fixes to the release process automation or documentation. The only file changes this PR should contain are changes for the *next* release. If there are none, this PR may have no file changes at all. Merge it anyway to make it clear that the release process is done and that no updates were made for next time.
 
 - [ ] [Check if release will cause downtime and if so appropriately announce it](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#if-your-release-is-going-to-cause-downtime)
 - [ ] Release new launcher or confirm there have been no launcher changes since the [last stable version](https://bldr.habitat.sh/#/pkgs/core/hab-launcher/latest)
