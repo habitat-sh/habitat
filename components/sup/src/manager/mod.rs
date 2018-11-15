@@ -81,7 +81,7 @@ pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
 use census::{CensusRing, CensusRingProxy};
-use config::GossipListenAddr;
+use config::{EnvConfig, GossipListenAddr};
 use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
 use http_gateway;
@@ -173,6 +173,25 @@ impl Default for ManagerConfig {
     }
 }
 
+/// This represents an environment variable that holds an authentication token for the supervisor's
+/// HTTP gateway. If the environment variable is present, then its value is the auth token and all
+/// of the HTTP endpoints will require its presence. If it's not present, then everything continues
+/// to work unauthenticated.
+#[derive(Debug, Default)]
+struct GatewayAuthToken(Option<String>);
+
+impl FromStr for GatewayAuthToken {
+    type Err = ::std::string::ParseError;
+
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        Ok(GatewayAuthToken(Some(String::from(s))))
+    }
+}
+
+impl EnvConfig for GatewayAuthToken {
+    const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
+}
+
 /// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
 /// something you want the CtlGateway to be able to operate on, it needs to be put in here. This
 /// state gets shared with all the CtlGateway handlers.
@@ -189,6 +208,7 @@ pub struct GatewayState {
     pub butterfly_data: String,
     pub services_data: String,
     pub health_check_data: HashMap<ServiceGroup, HealthCheck>,
+    pub auth_token: Option<String>,
 }
 
 pub struct Manager {
@@ -361,7 +381,11 @@ impl Manager {
         );
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::new(RwLock::new(HashMap::new()));
-        let gateway_state = Arc::new(RwLock::new(GatewayState::default()));
+
+        let gateway_auth_token = GatewayAuthToken::configured_value();
+        let mut gateway_state = GatewayState::default();
+        gateway_state.auth_token = gateway_auth_token.0;
+
         let server = butterfly::Server::new(
             sys.gossip_listen(),
             sys.gossip_listen(),
@@ -390,7 +414,7 @@ impl Manager {
             state: Arc::new(ManagerState {
                 cfg: cfg_static,
                 services: services,
-                gateway_state: gateway_state,
+                gateway_state: Arc::new(RwLock::new(gateway_state)),
             }),
             self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
