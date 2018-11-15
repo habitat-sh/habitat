@@ -15,8 +15,11 @@
 use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{
-    channel, sync_channel, Receiver, SendError, Sender, SyncSender, TryRecvError, TrySendError,
+use std::sync::{
+    mpsc::{
+        channel, sync_channel, Receiver, SendError, Sender, SyncSender, TryRecvError, TrySendError,
+    },
+    Arc, Mutex,
 };
 use std::thread::Builder as ThreadBuilder;
 
@@ -76,13 +79,17 @@ struct WorkerState {
 
 type ServiceName = String;
 pub struct UserConfigWatcher {
-    states: HashMap<ServiceName, WorkerState>,
+    // We use Arc/Mutex here, because this needs to be shareable
+    // across threads so we can remove watchers from futures; the
+    // Sender and Receiver members of WorkerState aren't themselves
+    // shareable.
+    states: Arc<Mutex<HashMap<ServiceName, WorkerState>>>,
 }
 
 impl UserConfigWatcher {
     pub fn new() -> Self {
         Self {
-            states: HashMap::new(),
+            states: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -90,7 +97,8 @@ impl UserConfigWatcher {
     pub fn add<T: Serviceable>(&mut self, service: &T) -> io::Result<()> {
         // It isn't possible to use the `or_insert_with` function here because it can't have a
         // return value, which we need to return the error from `Worker::run`.
-        if self.states.get(service.name()).is_none() {
+        let mut states = self.states.lock().expect("states lock was poisoned");
+        if states.get(service.name()).is_none() {
             let user_toml_path = match service.user_config_path() {
                 &UserConfigPath::Recommended(ref p) => p.join(USER_CONFIG_FILE),
                 &UserConfigPath::Deprecated(ref p) => {
@@ -121,7 +129,7 @@ impl UserConfigWatcher {
                 started_watching: watching_rx,
             };
 
-            self.states.insert(service.name().to_owned(), state);
+            states.insert(service.name().to_owned(), state);
         }
 
         Ok(())
@@ -130,7 +138,12 @@ impl UserConfigWatcher {
     /// Removes a service from the User Config Watcher, and sends a message to the watcher thread
     /// to stop running.
     pub fn remove<T: Serviceable>(&mut self, service: &T) -> Result<(), SendError<()>> {
-        if let Some(state) = self.states.remove(service.name()) {
+        if let Some(state) = self
+            .states
+            .lock()
+            .expect("states lock was poisoned")
+            .remove(service.name())
+        {
             state.stop_running.send(())?;
         }
 
@@ -141,7 +154,12 @@ impl UserConfigWatcher {
     ///
     /// This also consumes the events.
     pub fn have_events_for<T: Serviceable>(&self, service: &T) -> bool {
-        if let Some(state) = self.states.get(service.name()) {
+        if let Some(state) = self
+            .states
+            .lock()
+            .expect("states lock was poisoned")
+            .get(service.name())
+        {
             let rx = &state.have_events;
 
             match rx.try_recv() {
@@ -332,7 +350,8 @@ mod tests {
         let timeout = Duration::from_secs(10);
 
         while start.elapsed() < timeout {
-            let state = ucm.states.get(service.name()).expect("service added");
+            let states = ucm.states.lock().expect("states lock was poisoned");
+            let state = states.get(service.name()).expect("service added");
             match state.started_watching.try_recv() {
                 Ok(_) => {
                     println!("Received data on the start_watching channel. Returning true.");
