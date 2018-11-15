@@ -51,7 +51,7 @@ use member::{Health, Incarnation, Member, MemberList, MemberListProxy};
 use message;
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
-use rumor::election::{Election, ElectionUpdate};
+use rumor::election::{Election, ElectionRumor, ElectionUpdate};
 use rumor::heat::RumorHeat;
 use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
@@ -899,26 +899,24 @@ impl Server {
         self.rumor_heat.start_hot_rumor(ek);
     }
 
-    /// Check to see if this server needs to restart a given election. This happens when:
-    ///
-    /// a) We are the leader, and we have lost quorum with the rest of the group.
-    /// b) We are not the leader, and we have detected that the leader is confirmed dead.
-    pub fn restart_elections(&self) {
-        let mut elections_to_restart: Vec<(String, u64)> = vec![];
-        let mut update_elections_to_restart: Vec<(String, u64)> = vec![];
+    fn elections_to_restart<T>(&self, elections: &RumorStore<T>) -> Vec<(String, u64)>
+    where
+        T: Rumor + ElectionRumor + Debug,
+    {
+        let mut elections_to_restart = vec![];
 
-        self.election_store.with_keys(|(service_group, rumors)| {
+        elections.with_keys(|(service_group, rumors)| {
             if self
                 .service_store
                 .contains_rumor(&service_group, self.member_id())
             {
-                debug!("restart_elections: checking {}", service_group);
+                debug!("elections_to_restart: checking {}", service_group);
                 // This is safe; there is only one id for an election, and it is "election"
                 let election = rumors
                     .get("election")
                     .expect("Lost an election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
-                if election.is_finished() && election.member_id == self.member_id() {
+                if election.is_finished() && election.member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
                         warn!(
@@ -927,12 +925,12 @@ impl Server {
                             election
                         );
                         elections_to_restart
-                            .push((String::from(&service_group[..]), election.term));
+                            .push((String::from(&service_group[..]), election.term()));
                     }
                 } else if election.is_finished() {
                     if self
                         .member_list
-                        .check_health_of_by_id(&election.member_id, Health::Confirmed)
+                        .check_health_of_by_id(&election.member_id(), Health::Confirmed)
                     {
                         warn!(
                             "Restarting election with a new term as the leader is dead {}: {:?}",
@@ -940,49 +938,22 @@ impl Server {
                             election
                         );
                         elections_to_restart
-                            .push((String::from(&service_group[..]), election.term));
+                            .push((String::from(&service_group[..]), election.term()));
                     }
                 }
             }
         });
 
-        self.update_store.with_keys(|(service_group, rumors)| {
-            if self
-                .service_store
-                .contains_rumor(&service_group, self.member_id())
-            {
-                // This is safe; there is only one id for an election, and it is "election"
-                let election = rumors
-                    .get("election")
-                    .expect("Lost an update election struct between looking it up and reading it.");
-                // If we are finished, and the leader is dead, we should restart the election
-                if election.is_finished() && election.member_id == self.member_id() {
-                    // If we are the leader, and we have lost quorum, we should restart the election
-                    if self.check_quorum(election.key()) == false {
-                        warn!(
-                            "Restarting election with a new term as the leader has lost \
-                             quorum: {:?}",
-                            election
-                        );
-                        update_elections_to_restart
-                            .push((String::from(&service_group[..]), election.term));
-                    }
-                } else if election.is_finished() {
-                    if self
-                        .member_list
-                        .check_health_of_by_id(&election.member_id, Health::Confirmed)
-                    {
-                        warn!(
-                            "Restarting election with a new term as the leader is dead {}: {:?}",
-                            self.member_id(),
-                            election
-                        );
-                        update_elections_to_restart
-                            .push((String::from(&service_group[..]), election.term));
-                    }
-                }
-            }
-        });
+        elections_to_restart
+    }
+
+    /// Check to see if this server needs to restart a given election. This happens when:
+    ///
+    /// a) We are the leader, and we have lost quorum with the rest of the group.
+    /// b) We are not the leader, and we have detected that the leader is confirmed dead.
+    pub fn restart_elections(&self) {
+        let elections_to_restart = self.elections_to_restart(&self.election_store);
+        let update_elections_to_restart = self.elections_to_restart(&self.update_store);
 
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;

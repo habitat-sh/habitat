@@ -30,6 +30,24 @@ pub use protocol::newscast::{election::Status as ElectionStatus, Election as Pro
 use protocol::{self, newscast, FromProto};
 use rumor::{Rumor, RumorPayload, RumorType};
 
+// The default implementations leverage ElectionUpdate's Deref -> Election behavior, but this
+// generates a warning. In practice, it's fine:
+// See https://play.rust-lang.org/?version=stable&mode=debug&edition=2015&gist=162d64d74390df6a3a8bb815cd3a2c73
+#[allow(unconditional_recursion)]
+pub trait ElectionRumor {
+    fn member_id(&self) -> &str {
+        self.member_id()
+    }
+
+    fn is_finished(&self) -> bool {
+        self.is_finished()
+    }
+
+    fn term(&self) -> u64 {
+        self.term()
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Election {
     pub from_id: String,
@@ -88,10 +106,19 @@ impl Election {
     pub fn no_quorum(&mut self) {
         self.status = ElectionStatus::NoQuorum;
     }
+}
 
-    /// Returns true if the election is finished.
-    pub fn is_finished(&self) -> bool {
+impl ElectionRumor for Election {
+    fn member_id(&self) -> &str {
+        &self.member_id
+    }
+
+    fn is_finished(&self) -> bool {
         self.status == ElectionStatus::Finished
+    }
+
+    fn term(&self) -> u64 {
+        self.term
     }
 }
 
@@ -214,6 +241,8 @@ impl ElectionUpdate {
         ElectionUpdate(election)
     }
 }
+
+impl ElectionRumor for ElectionUpdate {}
 
 impl Deref for ElectionUpdate {
     type Target = Election;
