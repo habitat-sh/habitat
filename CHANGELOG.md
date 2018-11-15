@@ -10,6 +10,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Add abstractions for better dealing with environment variables [#5840](https://github.com/habitat-sh/habitat/pull/5840) ([christophermaier](https://github.com/christophermaier))
 - fix the changed files returned in a merge commit [#5796](https://github.com/habitat-sh/habitat/pull/5796) ([mwrock](https://github.com/mwrock))
 - fix a compile warning on windows [#5842](https://github.com/habitat-sh/habitat/pull/5842) ([mwrock](https://github.com/mwrock))
 - Use defaults in tests instead of hard coded values [#5838](https://github.com/habitat-sh/habitat/pull/5838) ([mpeck](https://github.com/mpeck))
