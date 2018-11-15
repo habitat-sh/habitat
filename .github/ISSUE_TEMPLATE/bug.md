@@ -1,6 +1,6 @@
 ---
-name: Feature Request
-about: Suggest new functionality for Habitat
+name: Bug Report
+about: Explain a defect discovered in Habitat
 labels: C-bug
 
 ---
