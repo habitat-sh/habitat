@@ -1,3 +1,10 @@
+---
+name: Bug Report
+about: Explain a defect discovered in Habitat
+labels: C-bug
+
+---
+
 Hello - thanks for reporting an issue with Habitat.
 
 In order to help us troubleshoot the issue, please be sure to include the following information if applicable:
