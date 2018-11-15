@@ -20,20 +20,18 @@ sup_restarted() {
 }
 
 @test "supervisor: restart does not chown directories" {
-    background ${hab} run
-    sleep 2 # give it a sec to come up
+    start_supervisor
 
     ${hab} pkg install core/runit --binlink
 
     # start up nginx
-    ${hab} pkg install core/nginx
     ${hab} svc load core/nginx
     wait_for_service_to_run nginx
 
     # create an index.html so there is a page to fetch
     echo "test" > /hab/svc/nginx/data/index.html
 
-    # the nginx children (running as hab) should all have access 
+    # the nginx children (running as hab) should all have access
     # to the index.html at this point
     run curl -s -o /dev/null -w "%{http_code}" http://localhost
     [ "$output" = "200" ]
