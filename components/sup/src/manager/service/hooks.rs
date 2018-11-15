@@ -136,18 +136,23 @@ pub trait Hook: fmt::Debug + Sized {
 
     /// Output a message that a hook process was terminated by a
     /// signal.
-    ///
-    /// This should only be called when `ExitStatus#code()` returns
-    /// `None`, and this only happens on non-Windows machines.
     #[cfg(unix)]
     fn output_termination_message(service_group: &ServiceGroup, status: &ExitStatus) {
         outputln!(preamble service_group, "{} was terminated by signal {:?}",
                   Self::file_name(),
                   status.signal());
     }
+
+    /// This should only be called when `ExitStatus#code()` returns
+    /// `None`, and this can only happen on non-Windows machines.
+    ///
+    /// Thus, if this code is ever called on Windows, something has
+    /// fundamentally changed in the Rust standard library.
+    ///
+    /// See https://doc.rust-lang.org/1.30.1/std/process/struct.ExitStatus.html#method.code
     #[cfg(windows)]
-    fn output_termination_message(&self, _: &ServiceGroup, _: &ExitStatus) {
-        // No-op
+    fn output_termination_message(_: &ServiceGroup, _: &ExitStatus) {
+        panic!("ExitStatus::code should never return None on Windows; please report this to the Habitat core developers");
     }
 
     /// Run a compiled hook.
