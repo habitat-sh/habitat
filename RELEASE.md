@@ -3,6 +3,24 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Monday.
 
+# Create a PR to track progress from the template
+
+1. Create a new branch and call it whatever you like (for example, `cashew-milk`)
+1. Add a new line to the end of [.last-completed-release](https://github.com/habitat-sh/habitat/blob/master/.last-completed-release) with the version number you are about to release:
+
+    ```
+    $sed -e 's/-dev//' VERSION >> .last-completed-release
+    ```
+
+1. Commit your change on the branch and push it.
+1. Replace `cashew-milk` with your branch name in the following URL and use it create a PR which will track the progress of the release:
+
+    ```
+    https://github.com/habitat-sh/habitat/compare/cashew-milk?expand=1&template=release_checklist.md
+    ```
+
+1. Check off the items in the list as you go and merge the PR when the release is complete. If you make any changes to the release automation or documentation to include in the next release, you can include it in this PR.
+
 # If your Release is going to cause downtime
 
 1. Put a scheduled maintenance window into PagerDuty so the on-call doesn't go off.
