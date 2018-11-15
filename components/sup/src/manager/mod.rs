@@ -1402,21 +1402,20 @@ impl Manager {
 
     // Creates a rumor for the specified service.
     fn gossip_latest_service_rumor(&self, service: &Service) {
-        let mut incarnation = 1;
+        let incarnation = if let Some(rumor) = self
+            .butterfly
+            .service_store
+            .list
+            .read()
+            .expect("Rumor store lock poisoned")
+            .get(&*service.service_group)
+            .and_then(|r| r.get(&self.sys.member_id))
         {
-            let list = self
-                .butterfly
-                .service_store
-                .list
-                .read()
-                .expect("Rumor store lock poisoned");
-            if let Some(rumor) = list
-                .get(&*service.service_group)
-                .and_then(|r| r.get(&self.sys.member_id))
-            {
-                incarnation = rumor.clone().incarnation + 1;
-            }
-        }
+            rumor.clone().incarnation + 1
+        } else {
+            1
+        };
+
         self.butterfly.insert_service(service.to_rumor(incarnation));
     }
 

@@ -168,7 +168,7 @@ impl Service {
         gateway_state: Arc<RwLock<manager::GatewayState>>,
     ) -> Result<Service> {
         spec.validate(&package)?;
-        let all_pkg_binds = (&package).all_binds()?;
+        let all_pkg_binds = package.all_binds()?;
         let pkg = Pkg::from_install(package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
         let service_group = ServiceGroup::new(
