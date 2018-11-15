@@ -3,6 +3,12 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Monday.
 
+# Create an issue to track progress from the template
+
+1. Create an issue which will track the progress of the release with [this template](https://github.com/habitat-sh/habitat/issues/new?template=release_checklist.md).
+1. Check off the items in the list as you go.
+1. If you make any changes to the release automation or documentation to include in the next release, you can mark those PRs as resolving the issue. Otherwise, just close it when the release is done.
+
 # If your Release is going to cause downtime
 
 1. Put a scheduled maintenance window into PagerDuty so the on-call doesn't go off.
