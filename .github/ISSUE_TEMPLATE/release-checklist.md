@@ -1,7 +1,7 @@
 ---
 name: Release Checklist
 about: Track the status of a release
-labels: 
+labels: C-release
 
 ---
 

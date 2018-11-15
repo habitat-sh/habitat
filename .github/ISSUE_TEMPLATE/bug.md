@@ -1,3 +1,10 @@
+---
+name: Feature Request
+about: Suggest new functionality for Habitat
+labels: C-bug
+
+---
+
 Hello - thanks for reporting an issue with Habitat.
 
 In order to help us troubleshoot the issue, please be sure to include the following information if applicable:
