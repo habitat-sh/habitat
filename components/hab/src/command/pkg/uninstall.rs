@@ -43,6 +43,10 @@ use hcore::package::list::temp_package_directory;
 ///     5a. If there are, we skip it
 ///     5b. If there are not, we delete it from disk and the graph
 ///
+/// `excludes` is a list of user-supplied `PackageIdent`s.
+/// `services` is a list of fully-qualified `PackageIdent`s which are currently
+///    running in a supervisor out of the `fs_root_path`.
+///
 pub fn start(
     ui: &mut UI,
     ident: &PackageIdent,
@@ -67,6 +71,7 @@ pub fn start(
         }
     }
 
+    // 2.
     let packages = load_all_packages(&fs_root_path)?;
     let mut graph = PackageGraph::new();
     graph.build(&packages)?;
