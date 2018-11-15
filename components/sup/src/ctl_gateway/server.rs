@@ -22,6 +22,26 @@
 //! mpsc channel, [`CtlSender`], to [`CtlReceiver`]. A new mpsc pair is created for each
 //! transactional request where the sending half is given to a [`ctl_gateway.CtlRequest`].
 
+use super::{CtlRequest,
+            REQ_TIMEOUT};
+use crate::manager::{commands,
+                     ManagerState};
+use futures::{future::{self,
+                       Either},
+              prelude::*,
+              sync::mpsc,
+              try_ready};
+use habitat_core::crypto;
+use habitat_sup_protocol::{self as protocol,
+                           codec::*,
+                           net::{self,
+                                 ErrCode,
+                                 NetErr,
+                                 NetResult}};
+use prometheus::{HistogramTimer,
+                 HistogramVec,
+                 IntCounterVec};
+use prost;
 use std::{cell::RefCell,
           error,
           fmt,
@@ -30,30 +50,10 @@ use std::{cell::RefCell,
           rc::Rc,
           thread,
           time::Duration};
-
-use crate::{hcore::crypto,
-            protocol::{self,
-                       codec::*,
-                       net::{self,
-                             ErrCode,
-                             NetErr,
-                             NetResult}}};
-use futures::{future::{self,
-                       Either},
-              prelude::*,
-              sync::mpsc};
-use prometheus::{HistogramTimer,
-                 HistogramVec,
-                 IntCounterVec};
-use prost;
 use tokio::net::TcpListener;
 use tokio_codec::Framed;
-use tokio_core::reactor;
-
-use super::{CtlRequest,
-            REQ_TIMEOUT};
-use crate::manager::{commands,
-                     ManagerState};
+use tokio_core::{reactor,
+                 try_nb};
 
 lazy_static! {
     static ref RPC_CALLS: IntCounterVec = register_int_counter_vec!(
@@ -428,7 +428,15 @@ impl Future for SrvHandler {
                             }
                             Ok(AsyncSink::NotReady(_)) => return Ok(Async::NotReady),
                             Err(err) => {
-                                warn!("ManagerReceiver err, {:?}", err);
+                                // An error here means that the
+                                // receiving end of this channel went
+                                // away.
+                                //
+                                // Most often, this will be because
+                                // we're in the middle of an orderly
+                                // shutdown and no longer wish to
+                                // process incoming commands.
+                                warn!("ManagerReceiver err: {}", err);
                                 return Err(HandlerError::from(err));
                             }
                         }

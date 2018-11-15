@@ -50,8 +50,6 @@ extern crate cpu_time;
 extern crate ctrlc;
 #[macro_use]
 extern crate features;
-#[macro_use]
-extern crate futures;
 
 use habitat_butterfly as butterfly;
 use habitat_common as common;
@@ -82,9 +80,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 extern crate time as time_crate;
-
-#[macro_use]
-extern crate tokio_core;
 
 #[cfg(test)]
 extern crate json;
@@ -145,12 +140,3 @@ features! {
 
 pub const PRODUCT: &str = "hab-sup";
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-
-#[derive(Copy, Clone)]
-pub enum ShutdownReason {
-    Departed,
-    LauncherStopping,
-    PkgUpdating,
-    Signal,
-    SvcStopCmd,
-}

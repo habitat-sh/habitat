@@ -16,8 +16,8 @@ use crate::{error::{Result,
                     SupError},
             feat,
             manager::{self,
-                      service::{hooks::HealthCheckHook,
-                                HealthCheck}}};
+                      service::{HealthCheck,
+                                HealthCheckHook}}};
 use actix;
 use actix_web::{http::{self,
                        StatusCode},
