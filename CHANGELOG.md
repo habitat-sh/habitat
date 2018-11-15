@@ -10,6 +10,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Add release issue template [#5853](https://github.com/habitat-sh/habitat/pull/5853) ([baumanj](https://github.com/baumanj))
 - Abstract the logging of terminated hook processes [#5850](https://github.com/habitat-sh/habitat/pull/5850) ([christophermaier](https://github.com/christophermaier))
 - `hab sup help` no longer attempts to install &#39;core/hab-sup&#39; if not present [#5824](https://github.com/habitat-sh/habitat/pull/5824) ([jeremymv2](https://github.com/jeremymv2))
 - Enable UserConfigWatcher to be shared across threads [#5849](https://github.com/habitat-sh/habitat/pull/5849) ([christophermaier](https://github.com/christophermaier))
