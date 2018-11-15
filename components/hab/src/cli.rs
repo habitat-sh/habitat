@@ -584,16 +584,7 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
         )
-        (@subcommand sup =>
-            (about: "The Habitat Supervisor")
-            (@setting VersionlessSubcommands)
-            (@setting SubcommandRequiredElseHelp)
-            // these are the only sup cmds handled in `hab`, the remaining
-            // supervisor related commands are handled in `hab-sup`
-            (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
-            (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
-            (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
-        )
+        (subcommand: sup_commands())
         (@subcommand svc =>
             (about: "Commands relating to Habitat services")
             (aliases: &["sv", "ser", "serv", "service"])
@@ -685,6 +676,33 @@ fn sub_cli_setup() -> App<'static, 'static> {
     clap_app!(@subcommand setup =>
         (about: "Sets up the CLI with reasonable defaults.")
     )
+}
+
+pub fn sup_commands() -> App<'static, 'static> {
+    // Define all of the `hab sup *` subcommands in one place.
+    // This removes the need to duplicate this in `hab-sup`.
+    // The 'sup' App name here is significant for the `hab` binary as it
+    // is inserted as a named subcommand. For the `hab-sup` binary, it is
+    // the top-level App name (not a named subcommand) and therefore is not
+    // significant since we override `usage` below.
+    clap_app!(("sup") =>
+        (about: "The Habitat Supervisor")
+        (version: super::VERSION)
+        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
+        // set custom usage string, otherwise the binary
+        // is displayed as the clap_app name, which may or may not be different.
+        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+        (usage: "hab sup <SUBCOMMAND>")
+        (@setting VersionlessSubcommands)
+        (@setting SubcommandRequiredElseHelp)
+        (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
+        (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
+        (subcommand: sub_sup_run().aliases(&["r", "ru"]))
+        (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
+        (subcommand: sub_sup_sh().aliases(&[]))
+        (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
+        (subcommand: sub_sup_term().aliases(&["ter"]))
+        )
 }
 
 fn sub_cli_completers() -> App<'static, 'static> {
@@ -1131,3 +1149,38 @@ fn valid_origin(val: String) -> result::Result<(), String> {
 }
 
 ////////////////////////////////////////////////////////////////////////
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    mod sup_commands {
+
+        use super::*;
+        use clap::ErrorKind;
+
+        #[test]
+        fn sup_subcommand_short_help() {
+            let r = get().get_matches_from_safe(vec!["hab", "sup", "-h"]);
+            assert!(r.is_err());
+            // not `ErrorKind::InvalidSubcommand`
+            assert_eq!(r.unwrap_err().kind, ErrorKind::HelpDisplayed);
+        }
+
+        #[test]
+        fn sup_subcommand_run_with_peer() {
+            let r = get().get_matches_from_safe(vec!["hab", "sup", "run", "--peer", "1.1.1.1"]);
+            assert!(r.is_ok());
+            let matches = r.expect("Error while getting matches");
+            // validate `sup` subcommand
+            assert_eq!(matches.subcommand_name(), Some("sup"));
+            let (_, sup_matches) = matches.subcommand();
+            let sup_matches = sup_matches.expect("Error while getting sup matches");
+            assert_eq!(sup_matches.subcommand_name(), Some("run"));
+            let (_, run_matches) = sup_matches.subcommand();
+            let run_matches = run_matches.expect("Error while getting run matches");
+            assert_eq!(run_matches.value_of("PEER"), Some("1.1.1.1"));
+        }
+    }
+}

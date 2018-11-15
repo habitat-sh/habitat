@@ -47,7 +47,6 @@ extern crate bitflags;
 extern crate byteorder;
 #[cfg(target_os = "linux")]
 extern crate caps;
-#[macro_use]
 extern crate clap;
 extern crate crypto;
 #[cfg(windows)]
