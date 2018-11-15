@@ -152,3 +152,53 @@ $ curl http://172.17.0.2:9631/services
 > Note: The default listening port on the Supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
 
 Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.
+
+## Authentication
+The Supervisor currently supports simple HTTP authentication using Bearer tokens. By default, no authentication is used. If you would like to require authentication, export the `HAB_SUP_GATEWAY_AUTH_TOKEN` environment variable before starting the Supervisor. All HTTP requests will then require that same token to be present in an Authorization header, or they will receive a 401 Unauthorized response.
+
+### Example
+
+```shell
+$ HAB_SUP_GATEWAY_AUTH_TOKEN="sekret" hab sup run
+hab-sup(MR): Supervisor Member-ID e89b6616d2c040c8a82f475b00ba8c69
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting ctl-gateway on 0.0.0.0:9632
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+```
+
+```shell
+$ curl -v http://172.17.0.2:9631/services
+*   Trying 172.17.0.2...
+* TCP_NODELAY set
+* Connected to 172.17.0.2 (172.17.0.2) port 9631 (#0)
+> GET /services HTTP/1.1
+> Host: 172.17.0.2:9631
+> User-Agent: curl/7.54.0
+> Accept: */*
+>
+< HTTP/1.1 401 Unauthorized
+< content-length: 0
+< date: Thu, 15 Nov 2018 22:39:41 GMT
+<
+* Connection #0 to host 172.17.0.2 left intact
+```
+
+```shell
+$ curl -v -H "Authorization: Bearer sekret" http://172.17.0.2:9631/services
+*   Trying 172.17.0.2...
+* TCP_NODELAY set
+* Connected to 172.17.0.2 (172.17.0.2) port 9631 (#0)
+> GET /services HTTP/1.1
+> Host: 172.17.0.2:9631
+> User-Agent: curl/7.54.0
+> Accept: */*
+> Authorization: Bearer sekret
+>
+< HTTP/1.1 200 OK
+< content-length: 2
+< content-type: application/json
+< date: Thu, 15 Nov 2018 22:41:42 GMT
+<
+* Connection #0 to host 172.17.0.2 left intact
+[]
+```
