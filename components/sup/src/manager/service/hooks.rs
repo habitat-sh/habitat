@@ -68,30 +68,60 @@ pub trait Hook: fmt::Debug + Sized {
 
     fn file_name() -> &'static str;
 
+    /// Tries to load a hook if a (deprecated) hook file exists.
+    ///
+    /// Returns the hook if template file (deprecated or not) is found
     fn load<C, T>(service_group: &ServiceGroup, concrete_path: C, template_path: T) -> Option<Self>
     where
         C: AsRef<Path>,
         T: AsRef<Path>,
     {
-        let concrete = concrete_path.as_ref().join(Self::file_name());
-        let template = template_path.as_ref().join(Self::file_name());
-        match std::fs::metadata(&template) {
-            Ok(_) => {
-                let pair = match RenderPair::new(concrete, &template) {
-                    Ok(pair) => pair,
-                    Err(err) => {
-                        outputln!(preamble service_group, "Failed to load hook: {}", err);
-                        return None;
-                    }
-                };
-                Some(Self::new(service_group, pair))
-            }
-            Err(_) => {
-                debug!(
-                    "{} not found at {}, not loading",
-                    Self::file_name(),
-                    template.display()
+        let file_name = Self::file_name();
+        let deprecated_file_name = if Self::file_name().contains("-") {
+            Some(Self::file_name().replace("-", "_"))
+        } else {
+            None
+        };
+
+        let concrete = concrete_path.as_ref().join(&file_name);
+        let template = template_path.as_ref().join(&file_name);
+        let deprecated_template = deprecated_file_name
+            .as_ref()
+            .map(|n| template_path.as_ref().join(n));
+
+        let has_template = template.exists();
+        let has_deprecated_template = deprecated_template.as_ref().map_or(false, |t| t.exists());
+
+        let template_to_use = if has_template {
+            if has_deprecated_template {
+                outputln!(preamble service_group,
+                    "Deprecated hook file detected along with expected one. \
+                     You should remove {} and keep only {}.",
+                    deprecated_file_name.unwrap(),
+                    &file_name
                 );
+            }
+            template
+        } else if has_deprecated_template {
+            outputln!(preamble service_group,
+                "Deprecated hook file detected: {}. You should use {} instead.",
+                deprecated_file_name.unwrap(),
+                &file_name
+            );
+            deprecated_template.unwrap()
+        } else {
+            debug!(
+                "{} not found at {}, not loading",
+                &file_name,
+                template.display()
+            );
+            return None;
+        };
+
+        match RenderPair::new(concrete, &template_to_use, Self::file_name()) {
+            Ok(pair) => Some(Self::new(service_group, pair)),
+            Err(err) => {
+                outputln!(preamble service_group, "Failed to load hook: {}", err);
                 None
             }
         }
@@ -104,17 +134,19 @@ pub trait Hook: fmt::Debug + Sized {
     /// Returns `true` if the hook has changed.
     fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
         let content = self.renderer().render(Self::file_name(), ctx)?;
-        if write_hook(&content, self.path())? {
+        // We make sure we don't use a deprecated file name
+        let path = self.path().with_file_name(Self::file_name());
+        if write_hook(&content, &path)? {
             outputln!(preamble service_group,
                       "Modified hook content in {}",
-                      self.path().display());
-            Self::set_permissions(self.path())?;
+                      &path.display());
+            Self::set_permissions(&path)?;
             Ok(true)
         } else {
             debug!(
                 "{}, already compiled to {}",
                 Self::file_name(),
-                self.path().display()
+                &path.display()
             );
             Ok(false)
         }
@@ -212,7 +244,7 @@ impl Hook for FileUpdatedHook {
     type ExitValue = bool;
 
     fn file_name() -> &'static str {
-        "file_updated"
+        "file-updated"
     }
 
     fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
@@ -260,7 +292,7 @@ impl Hook for HealthCheckHook {
     type ExitValue = health::HealthCheck;
 
     fn file_name() -> &'static str {
-        "health_check"
+        "health-check"
     }
 
     fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
@@ -614,7 +646,7 @@ impl Hook for SmokeTestHook {
     type ExitValue = health::SmokeCheck;
 
     fn file_name() -> &'static str {
-        "smoke_test"
+        "smoke-test"
     }
 
     fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
@@ -939,18 +971,12 @@ pub struct RenderPair {
 }
 
 impl RenderPair {
-    pub fn new<C, T>(concrete_path: C, template_path: T) -> Result<Self>
+    pub fn new<C, T>(concrete_path: C, template_path: T, name: &'static str) -> Result<Self>
     where
         C: Into<PathBuf>,
         T: AsRef<Path>,
     {
         let mut renderer = TemplateRenderer::new();
-        let name = template_path
-            .as_ref()
-            .file_name()
-            .unwrap()
-            .to_string_lossy()
-            .into_owned();
         renderer.register_template_file(&name, template_path.as_ref())?;
         Ok(RenderPair {
             path: concrete_path.into(),

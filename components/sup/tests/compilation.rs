@@ -97,13 +97,13 @@ fn hook_only_packages_restart_on_config_application() {
     utils::sleep_seconds(3);
 
     let pid_before_apply = hab_root.pid_of(package_name);
-    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
 
     test_sup.apply_config(r#"hook_value = "something new and different""#);
     utils::sleep_seconds(2);
 
     let pid_after_apply = hab_root.pid_of(package_name);
-    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
 
     assert_ne!(hook_before_apply, hook_after_apply);
     assert_ne!(pid_before_apply, pid_after_apply);
@@ -136,7 +136,7 @@ fn config_files_change_but_hooks_do_not_still_restarts() {
     utils::sleep_seconds(3);
 
     let pid_before_apply = hab_root.pid_of(package_name);
-    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     test_sup.apply_config(
@@ -148,7 +148,7 @@ hook_value = "default"
     utils::sleep_seconds(2);
 
     let pid_after_apply = hab_root.pid_of(package_name);
-    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
     let config_after_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     assert_ne!(config_before_apply, config_after_apply);
@@ -183,7 +183,7 @@ fn hooks_change_but_config_files_do_not_still_restarts() {
     utils::sleep_seconds(3);
 
     let pid_before_apply = hab_root.pid_of(package_name);
-    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     test_sup.apply_config(
@@ -195,7 +195,7 @@ hook_value = "applied"
     utils::sleep_seconds(2);
 
     let pid_after_apply = hab_root.pid_of(package_name);
-    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
     let config_after_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     assert_eq!(config_before_apply, config_after_apply);
@@ -232,7 +232,7 @@ fn applying_identical_configuration_results_in_no_changes_and_no_restart() {
     utils::sleep_seconds(3);
 
     let pid_before_apply = hab_root.pid_of(package_name);
-    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     test_sup.apply_config(
@@ -244,7 +244,7 @@ hook_value = "default"
     utils::sleep_seconds(2);
 
     let pid_after_apply = hab_root.pid_of(package_name);
-    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health_check");
+    let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
     let config_after_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     assert_eq!(config_before_apply, config_after_apply);
