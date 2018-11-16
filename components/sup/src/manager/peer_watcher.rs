@@ -21,8 +21,8 @@ use std::sync::Arc;
 use std::thread::Builder as ThreadBuilder;
 
 use butterfly::member::Member;
-use config::GOSSIP_DEFAULT_PORT;
 use error::{Error, Result};
+use hab::default_values::GOSSIP_DEFAULT_PORT;
 use manager::file_watcher::{default_file_watcher, Callbacks};
 
 static LOGKEY: &'static str = "PW";
@@ -163,7 +163,7 @@ impl PeerWatcher {
 mod tests {
     use super::PeerWatcher;
     use butterfly::member::Member;
-    use config::GOSSIP_DEFAULT_PORT;
+    use hab::default_values::GOSSIP_DEFAULT_PORT;
     use std::fs::{File, OpenOptions};
     use std::io::Write;
     use tempfile::TempDir;

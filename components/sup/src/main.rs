@@ -15,6 +15,7 @@
 extern crate ansi_term;
 extern crate clap;
 extern crate env_logger;
+extern crate hab;
 #[cfg_attr(test, macro_use)]
 extern crate habitat_common as common;
 #[macro_use]
@@ -57,9 +58,10 @@ use protocol::{
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
 
+use hab::default_values::GOSSIP_DEFAULT_PORT;
 use sup::cli::cli;
 use sup::command;
-use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
+use sup::config::GossipListenAddr;
 use sup::error::{Error, Result, SupError};
 use sup::feat;
 use sup::http_gateway;
@@ -215,11 +217,12 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         gossip_permanent: m.is_present("PERMANENT_PEER"),
         ring_key: get_ring_key(m)?,
         gossip_peers: get_peers(m)?,
+        gossip_listen: GossipListenAddr::from_str(
+            m.value_of("LISTEN_GOSSIP")
+                .expect("LISTEN_GOSSIP should always have a value."),
+        )?,
         ..Default::default()
     };
-    if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
-        cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
-    }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
     }
