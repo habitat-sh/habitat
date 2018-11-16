@@ -27,8 +27,8 @@ ensure_files_changed() {
     fi
 }
 
-new_version=$(buildkite-agent meta-data get version)
-new_release=$(buildkite-agent meta-data get hab-release-macos)
+new_version=$(get_version)
+new_release=$(get_hab_release x86_64-darwin)
 new_sha256=$(buildkite-agent meta-data get hab-macos-bintray-sha256)
 
 echo "--- :github: Cloning habitat-sh/homebrew-habitat"
