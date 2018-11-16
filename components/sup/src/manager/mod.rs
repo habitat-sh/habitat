@@ -758,9 +758,17 @@ impl Manager {
                         };
                     }
                     http_gateway::ServerStartup::BindFailed => {
-                        return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())))
+                        return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
                     }
                     http_gateway::ServerStartup::Started => break,
+                    http_gateway::ServerStartup::InvalidCertFile => {
+                        let c = self.state.cfg.cert_file.clone();
+                        return Err(sup_error!(Error::InvalidCertsFile(c.unwrap())));
+                    }
+                    http_gateway::ServerStartup::InvalidKeyFile => {
+                        let k = self.state.cfg.key_file.clone();
+                        return Err(sup_error!(Error::InvalidKeyFile(k.unwrap())));
+                    }
                 }
             }
 

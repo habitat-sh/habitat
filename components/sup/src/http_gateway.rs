@@ -193,6 +193,8 @@ pub enum ServerStartup {
     NotStarted,
     Started,
     BindFailed,
+    InvalidCertFile,
+    InvalidKeyFile,
 }
 
 pub struct Server;
@@ -223,18 +225,48 @@ impl Server {
                     .configure(routes)
             }).workers(thread_count);
 
-            let bind = if cert_file.is_some() && key_file.is_some() {
+            let mut tls_status: Option<ServerStartup> = None;
+            let bind;
+
+            if cert_file.is_some() && key_file.is_some() {
                 let mut config = ServerConfig::new(NoClientAuth::new());
+
+                // The multiple unwraps here are safe because we've already verified that cert_file
+                // and key_file are both Some() and that they point to a file that exists on disk
+                // (otherwise they'd be None)
                 let cert_file = &mut BufReader::new(File::open(cert_file.unwrap()).unwrap());
                 let key_file = &mut BufReader::new(File::open(key_file.unwrap()).unwrap());
-                let cert_chain = certs(cert_file).unwrap();
-                let mut keys = rsa_private_keys(key_file).unwrap();
-                config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
 
-                server.bind_rustls(listen_addr.to_string(), config)
+                let cert_chain = match certs(cert_file) {
+                    Ok(c) => c,
+                    Err(_) => {
+                        tls_status = Some(ServerStartup::InvalidCertFile);
+                        vec![]
+                    }
+                };
+
+                // If we have an invalid cert file, don't even bother checking the key file. The
+                // whole thing is going to error anyway.
+                if tls_status.is_none() {
+                    if let Ok(mut keys) = rsa_private_keys(key_file) {
+                        config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+                    } else {
+                        tls_status = Some(ServerStartup::InvalidKeyFile);
+                    }
+                }
+
+                // bind has to be initialized to something, or the match statement below is going
+                // to fail. If we've gotten a TLS error already, try to do a regular bind, just so
+                // that that variable has _something_ in it. We'll never use it though, because the
+                // first match arm below will be the path we take.
+                if tls_status.is_none() {
+                    bind = server.bind_rustls(listen_addr.to_string(), config);
+                } else {
+                    bind = server.bind(listen_addr.to_string());
+                }
             } else {
-                server.bind(listen_addr.to_string())
-            };
+                bind = server.bind(listen_addr.to_string());
+            }
 
             // We need to create this scope on purpose here because if we don't, the lock never
             // releases, and the supervisor will wait forever on cvar. Creating this artifical
@@ -242,15 +274,24 @@ impl Server {
             {
                 let mut started = lock.lock().expect("Control mutex is poisoned");
 
-                *started = match bind {
-                    Ok(b) => {
-                        b.start();
-                        ServerStartup::Started
+                *started = match tls_status {
+                    Some(reason) => {
+                        error!(
+                            "HTTP gateway failed to start because of TLS issues: {:?}",
+                            &reason
+                        );
+                        reason
                     }
-                    Err(e) => {
-                        error!("HTTP gateway failed to bind: {:?}", e);
-                        ServerStartup::BindFailed
-                    }
+                    None => match bind {
+                        Ok(b) => {
+                            b.start();
+                            ServerStartup::Started
+                        }
+                        Err(e) => {
+                            error!("HTTP gateway failed to bind: {:?}", e);
+                            ServerStartup::BindFailed
+                        }
+                    },
                 };
             }
 
