@@ -19,6 +19,15 @@ steps:
     command: .buildkite/scripts/build_component.sh hab
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+  
+  - label: ":linux: :two: :habicat: core/hab"
+    command: .buildkite/scripts/build_component.sh hab
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab"
     command: /bin/true
@@ -48,6 +57,16 @@ steps:
     command: .buildkite/scripts/build_component.sh plan-build
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+  
+  - label: ":linux: :two: :habicat: :hammer_and_wrench: core/hab-plan-build"
+    command: .buildkite/scripts/build_component.sh plan-build
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+
 
   - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
     command: /bin/true
@@ -60,6 +79,15 @@ steps:
     command: .buildkite/scripts/build_component.sh bintray-publish
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+  
+  - label: ":linux: :two: :habicat: core/hab-bintray-publish"
+    command: .buildkite/scripts/build_component.sh bintray-publish
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-bintray-publish"
     command: /bin/true
@@ -74,6 +102,15 @@ steps:
     command: .buildkite/scripts/build_component.sh backline
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+  
+  - label: ":drum_with_drumsticks: :habicat: :two: :drum_with_drumsticks: core/hab-backline"
+    command: .buildkite/scripts/build_component.sh backline
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - wait
 
@@ -82,6 +119,15 @@ steps:
     command: .buildkite/scripts/build_component.sh studio
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+
+  - label: ":linux: :two: :habicat: core/hab-studio"
+    command: .buildkite/scripts/build_component.sh studio
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-studio"
     command: /bin/true
@@ -95,6 +141,15 @@ steps:
     command: .buildkite/scripts/build_component.sh sup
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+  
+  - label: ":linux: :two: :habicat: core/hab-sup"
+    command: .buildkite/scripts/build_component.sh sup
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-sup"
     command: /bin/true
@@ -111,32 +166,51 @@ steps:
     command: .buildkite/scripts/build_component.sh pkg-aci
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":linux: :docker: core/hab-pkg-export-docker"
     command: .buildkite/scripts/build_component.sh pkg-export-docker
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":windows: :docker: core/hab-pkg-export-docker"
     command: /bin/true
     skip: "No Windows builders yet"
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":k8s: core/hab-pkg-export-kubernetes"
     command: .buildkite/scripts/build_component.sh pkg-export-kubernetes
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":helm: core/hab-pkg-export-helm"
     command: .buildkite/scripts/build_component.sh pkg-export-helm
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":linux: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+  
+  - label: ":linux: :two: :package: core/hab-pkg-export-tar"
+    command: .buildkite/scripts/build_component.sh pkg-export-tar
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :package: core/hab-pkg-export-tar"
     command: /bin/true
@@ -149,6 +223,8 @@ steps:
     command: .buildkite/scripts/build_component.sh pkg-mesosize
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - wait
 
@@ -158,6 +234,8 @@ steps:
     command: .buildkite/scripts/build_component.sh pkg-cfize
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - wait
 
@@ -165,11 +243,22 @@ steps:
     command: .buildkite/scripts/dockerhub_upload.sh
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
   # TODO Create a JFrog emoji
   - label: ":linux: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+  
+  - label: ":linux: :two: Upload (but don't publish!) artifacts to Bintray"
+    command: .buildkite/scripts/bintray_upload.sh
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: Upload (but don't publish!) artifacts to Bintray"
     command: /bin/true
@@ -190,6 +279,16 @@ steps:
       Appveyor has generated the necessary artifacts and uploaded them
       to Builder and Bintray. Please ensure those artifacts have been
       uploaded before continuing with the release.
+  
+  - block: ":dango: :linux: :two: Build x86_64-linux-kernel2 Launcher"
+    prompt: |
+      x86_64-linux-kernel2 launcher will need to be built by hand.  If 
+      you are promoting launchers in the following step, please build 
+      and upload and x86_64-linux-kernel2 launcher before continuing.
+      Instructions for building an x86_64-linux-kernel2 launcher can be
+      found in the launcher README.
+      
+      https://github.com/habitat-sh/habitat/tree/master/components/launcher#building-an-x86_64-linux-kernel2-release
 
   - block: ":thumbsup: Select Launcher Versions to Promote to Release Channel"
     prompt: |
@@ -204,9 +303,13 @@ steps:
       used. This is OK, because promoting something already `stable`
       to `stable` is a no-op.
     fields:
-      - text: Linux Launcher
+      - text: Linux (x86_64-linux) Launcher
         key: linux-launcher
         hint: What is the fully-qualified identifier for the desired Linux Launcher?
+        required: false
+      - text: Linux (x86_64-linux-kernel2) Launcher
+        key: linux-kernel2-launcher
+        hint: What is the fully-qualified identifier for the desired Linux (kernel2) Launcher?
         required: false
       - text: Windows Launcher
         key: windows-launcher

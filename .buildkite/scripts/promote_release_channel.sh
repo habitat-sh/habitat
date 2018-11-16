@@ -33,7 +33,7 @@ source .buildkite/scripts/shared.sh
 #
 # TODO: It'd be nice to have this be an API function.
 to_channel=${1}
-from_channel=$(buildkite-agent meta-data get "release-channel")
+from_channel=$(get_release_channel)
 
 echo "--- :thinking_face: Determining which channel to promote to"
 if is_fake_release; then

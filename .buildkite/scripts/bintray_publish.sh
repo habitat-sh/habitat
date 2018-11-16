@@ -12,8 +12,14 @@ fi
 
 echo "--- Preparing to publish artifacts to the ${bintray_repository} Bintray repository"
 
-publish(){
-    url=${1}
+publish() {
+    local target version release repository url
+
+    target=${1}
+    version=${2}
+    release=${3}
+    repository=${4}
+    url="https://api.bintray.com/content/habitat/${repository}/${target}/${version}-${release}/publish"
     if is_fake_release; then
         echo "--- :warning: If this were a real release, we would have hit ${url}"
     else
@@ -23,20 +29,26 @@ publish(){
 
 echo "--- :habicat: Publishing all Habitat CLI artifacts in Bintray"
 
-version=$(buildkite-agent meta-data get "version")
+version=$(get_version)
 
 ########################################################################
-# Linux Publish
-release=$(buildkite-agent meta-data get "hab-release-linux")
-echo "--- :linux: Publishing Linux 'hab' ${version}-${release} on Bintray"
-publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-linux/${version}-${release}/publish"
+# Linux x86-64-linux Publish
+release=$(get_hab_release x86_64-linux)
+echo "--- :linux: Publishing x86-64-linux 'hab' ${version}-${release} on Bintray"
+publish "hab-x86_64-linux" "${version}" "${release}" "${bintray_repository}"
+
+########################################################################
+# Linux x86-64-linux-kernel2 Publish
+release=$(get_hab_release x86_64-linux-kernel2)
+echo "--- :linux: :two: Publishing x86-64-linux-kernel2 'hab' ${version}-${release} on Bintray"
+publish "hab-x86_64-linux-kernel2" "${version}" "${release}" "${bintray_repository}"
 
 ########################################################################
 # macOS Publish
 
-release=$(buildkite-agent meta-data get "hab-release-macos")
-echo "--- :mac: Publishing macOS 'hab' ${version}-${release} to Bintray"
-publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-darwin/${version}-${release}/publish"
+release=$(get_hab_release x86_64-darwin)
+echo "--- :mac: Publishing x86-64-darwin 'hab' ${version}-${release} to Bintray"
+publish "hab-x86_64-darwin" "${version}" "${release}" "${bintray_repository}"
 
 ########################################################################
 # Windows Publish
@@ -44,8 +56,8 @@ publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_6
 # NOTE: Windows releases aren't yet built in Buildkite, so we have to
 # ask Builder what the release actually is... Appveyor puts this here
 # for us.
-channel=$(buildkite-agent meta-data get "release-channel")
+channel=$(get_release_channel)
 windows_ident=$(latest_from_builder x86_64-windows "${channel}" hab "${version}")
 release=$(echo "${windows_ident}" | awk 'BEGIN { FS = "/" } ; { print $4 }')
-echo "--- :windows: Publishing Windows 'hab' ${version}-${release}"
-publish "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${version}-${release}/publish"
+echo "--- :windows: Publishing x86-64-windows 'hab' ${version}-${release}"
+publish "hab-x86_64-windows" "${version}" "${release}" "${bintray_repository}"
