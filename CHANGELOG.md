@@ -11,6 +11,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Enable kernel2 builds in pipeline [#5753](https://github.com/habitat-sh/habitat/pull/5753) ([smacfarlane](https://github.com/smacfarlane))
 - Makes hooks file names consistent regarding _ or - [#5847](https://github.com/habitat-sh/habitat/pull/5847) ([rsertelon](https://github.com/rsertelon))
 - Add release issue template [#5853](https://github.com/habitat-sh/habitat/pull/5853) ([baumanj](https://github.com/baumanj))
 - Abstract the logging of terminated hook processes [#5850](https://github.com/habitat-sh/habitat/pull/5850) ([christophermaier](https://github.com/christophermaier))
