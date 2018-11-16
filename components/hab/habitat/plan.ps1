@@ -55,6 +55,17 @@ function Invoke-Build {
     finally { Pop-Location }
 }
 
+function Invoke-Check {
+    Push-Location "$PLAN_CONTEXT"
+    try {
+        cargo test --release --verbose
+        if($LASTEXITCODE -ne 0) {
+            Write-Error "Cargo test failed!"
+        }
+    }
+    finally { Pop-Location }
+}
+
 function Invoke-Install {
     Write-BuildLine "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab.exe" "$pkg_prefix/bin/hab.exe"

@@ -55,8 +55,14 @@ function Test-DocsOnlyChanged {
 $ErrorActionPreference="stop"
 
 pushd (Get-RepoRoot)
-Write-Host "Configuring build environment"
-./build.ps1 -Configure -SkipBuild
+
+# Install rust just to start things off
+Write-Host "Installing rustup and stable-x86_64-pc-windows-msvc Rust."
+invoke-restmethod -usebasicparsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' -outfile 'rustup-init.exe'
+./rustup-init.exe -y --default-toolchain stable-x86_64-pc-windows-msvc --no-modify-path
+
+# Write-Host "Configuring build environment"
+# ./build.ps1 -Configure -SkipBuild
 $version = $(Get-Content VERSION)
 
 write-host "TAG: $env:APPVEYOR_REPO_TAG_NAME"
@@ -78,10 +84,10 @@ if(Test-DocsOnlyChanged -and !(Test-ReleaseBuild)) {
             Write-Host "Building hab..."
             Write-Host ""
 
-            ./build.ps1 -Path "components/hab" -Release
-            if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-            ./target/release/hab.exe --version
-            if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            # ./build.ps1 -Path "components/hab" -Release
+            # if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            # ./target/release/hab.exe --version
+            # if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
         }
         elseif ($BuildAction -like 'test') {
@@ -89,8 +95,8 @@ if(Test-DocsOnlyChanged -and !(Test-ReleaseBuild)) {
                 pushd "$(Get-RepoRoot)/components/$component"
                 Write-Host "Testing $component"
                 Write-Host ""
-                cargo test --verbose -- --nocapture
-                if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+                # cargo test --verbose -- --nocapture
+                # if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 popd
             }
         }
@@ -106,85 +112,85 @@ if(Test-DocsOnlyChanged -and !(Test-ReleaseBuild)) {
             $habExe = (Get-Item "$bootstrapDir/*/hab.exe").FullName
 
             # This will override plan's CARGO_TARGET_DIR so we do not have to build each clean
-            $env:HAB_CARGO_TARGET_DIR = "$(Get-RepoRoot)\target"
-            $env:HAB_ORIGIN="core"
-            if($env:ORIGIN_KEY) {
-                "SIG-SEC-1`ncore-20170318210306`n`n$($env:ORIGIN_KEY)" | & $habExe origin key import
-            }
-            else {
-                Write-Host "Generating fake secret origin key for core..."
-                & $habExe origin key generate core
-            }
-            if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            # $env:HAB_CARGO_TARGET_DIR = "$(Get-RepoRoot)\target"
+            # $env:HAB_ORIGIN="core"
+            # if($env:ORIGIN_KEY) {
+            #     "SIG-SEC-1`ncore-20170318210306`n`n$($env:ORIGIN_KEY)" | & $habExe origin key import
+            # }
+            # else {
+            #     Write-Host "Generating fake secret origin key for core..."
+            #     & $habExe origin key generate core
+            # }
+            # if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-            mkdir results -Force
-            foreach ($component in ($env:hab_components -split ';')) {
-                Write-Host "Building plan for $component"
-                Write-Host ""
-                & $habExe pkg build components/$component -R
-                if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            # mkdir results -Force
+            # foreach ($component in ($env:hab_components -split ';')) {
+            #     Write-Host "Building plan for $component"
+            #     Write-Host ""
+            #     & $habExe pkg build components/$component -R
+            #     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-                $hart = (Get-Item "$(Get-RepoRoot)\components\$component\habitat\results\*.hart")[-1]
-                Write-Host "Copying $hart to artifacts directory..."
-                Copy-Item $hart.FullName results
-                if(!($env:hab_components -eq "launcher" -and (Test-ReleaseBuild))) {
-                    & $habExe pkg install $hart.FullName
-                    if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            #     $hart = (Get-Item "$(Get-RepoRoot)\components\$component\habitat\results\*.hart")[-1]
+            #     Write-Host "Copying $hart to artifacts directory..."
+            #     Copy-Item $hart.FullName results
+            #     if(!($env:hab_components -eq "launcher" -and (Test-ReleaseBuild))) {
+            #         & $habExe pkg install $hart.FullName
+            #         if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-                    if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
-                        & $habExe pkg upload $hart --channel $channel
-                        if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-                    }
-                }
+            #         if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
+            #             & $habExe pkg upload $hart --channel $channel
+            #             if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            #         }
+            #     }
 
-                # Install and extract hab cli bin files for zip
-                if ($component -eq "hab") {
-                    Write-Host "Packaging HAB cli zip file"
-                    Write-Host ""
-                    $binPath = (Resolve-Path "/hab/pkgs/core/hab/*/*/bin").Path
-                    $pathParts = $binPath.Split("\")
-                    $versionStamp = "$($pathParts[-3])-$($pathParts[-2])"
-                    Update-AppveyorBuild -Version $versionStamp
-                    $zip = "hab-$versionStamp-x86_64-windows.zip"
-                    $zipDir = $zip.Replace(".zip", "")
-                    $stagingZipDir = "$(Get-RepoRoot)/windows/x86_64"
-                    mkdir $zipDir -Force
-                    Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
+            #     # Install and extract hab cli bin files for zip
+            #     if ($component -eq "hab") {
+            #         Write-Host "Packaging HAB cli zip file"
+            #         Write-Host ""
+            #         $binPath = (Resolve-Path "/hab/pkgs/core/hab/*/*/bin").Path
+            #         $pathParts = $binPath.Split("\")
+            #         $versionStamp = "$($pathParts[-3])-$($pathParts[-2])"
+            #         Update-AppveyorBuild -Version $versionStamp
+            #         $zip = "hab-$versionStamp-x86_64-windows.zip"
+            #         $zipDir = $zip.Replace(".zip", "")
+            #         $stagingZipDir = "$(Get-RepoRoot)/windows/x86_64"
+            #         mkdir $zipDir -Force
+            #         Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
 
-                    mkdir $stagingZipDir -Force
-                    Compress-Archive -Path $zipDir -DestinationPath "$stagingZipDir/$zip"
-                    if(Test-ReleaseBuild) {
-                        mkdir "results/prod" -Force
-                        Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
-                        $nuspec_version = $versionStamp.substring(0, $versionStamp.IndexOf('-'))
-                        $checksum = (Get-FileHash "$stagingZipDir/$zip" -Algorithm SHA256).Hash
-                        $choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
+            #         mkdir $stagingZipDir -Force
+            #         Compress-Archive -Path $zipDir -DestinationPath "$stagingZipDir/$zip"
+            #         if(Test-ReleaseBuild) {
+            #             mkdir "results/prod" -Force
+            #             Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
+            #             $nuspec_version = $versionStamp.substring(0, $versionStamp.IndexOf('-'))
+            #             $checksum = (Get-FileHash "$stagingZipDir/$zip" -Algorithm SHA256).Hash
+            #             $choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
 
-                        (Get-Content $choco_install) |
-                            % {$_.Replace('$version$', $versionStamp) } |
-                            Set-Content $choco_install
+            #             (Get-Content $choco_install) |
+            #                 % {$_.Replace('$version$', $versionStamp) } |
+            #                 Set-Content $choco_install
 
-                        (Get-Content $choco_install) |
-                            % {$_.Replace('$checksum$', $checksum) } |
-                            Set-Content $choco_install
+            #             (Get-Content $choco_install) |
+            #                 % {$_.Replace('$checksum$', $checksum) } |
+            #                 Set-Content $choco_install
 
-                        choco pack "$(Get-RepoRoot)/components/hab/win/habitat.nuspec" --version $nuspec_version --output-directory "results/prod"
-                    }
-                    Compress-Archive -Path ./windows -DestinationPath "results/$zip"
-                    Remove-Item $zipDir -Recurse -Force
-                    Remove-Item $stagingZipDir -Recurse -Force
-                }
-                if ($component -eq "studio") {
-                    # Now that we have built the studio we can use current hab and studio bits
-                    Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" (Split-Path $habExe -Parent) -Force
-                }
-            }
-            if(!(Test-PullRequest) -and $env:hab_components -ne "launcher") {
-                $env:HAB_BLDR_CHANNEL = $channel
-                & $habExe pkg exec core/hab-bintray-publish publish-studio
-                $env:HAB_BLDR_CHANNEL = $null
-                if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-            }
+            #             choco pack "$(Get-RepoRoot)/components/hab/win/habitat.nuspec" --version $nuspec_version --output-directory "results/prod"
+            #         }
+            #         Compress-Archive -Path ./windows -DestinationPath "results/$zip"
+            #         Remove-Item $zipDir -Recurse -Force
+            #         Remove-Item $stagingZipDir -Recurse -Force
+            #     }
+            #     if ($component -eq "studio") {
+            #         # Now that we have built the studio we can use current hab and studio bits
+            #         Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" (Split-Path $habExe -Parent) -Force
+            #     }
+            # }
+            # if(!(Test-PullRequest) -and $env:hab_components -ne "launcher") {
+            #     $env:HAB_BLDR_CHANNEL = $channel
+            #     & $habExe pkg exec core/hab-bintray-publish publish-studio
+            #     $env:HAB_BLDR_CHANNEL = $null
+            #     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            # }
         }
         else {
             Write-Warning "Unsupported Build Action: $BuildAction."
