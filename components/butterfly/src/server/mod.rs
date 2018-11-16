@@ -948,12 +948,16 @@ impl Server {
                             .push((String::from(&service_group[..]), election.term()));
                     }
                 } else if election.is_finished() {
-                    trace!(
-                        "Election finished, leader {:?} health: {:?}",
-                        election.member_id(),
-                        member_list.health_of_by_id(&election.member_id())
-                    );
-                    if member_list.check_health_of_by_id(&election.member_id(), Health::Confirmed) {
+                    let leader_health = member_list
+                        .health_of_by_id(election.member_id())
+                        .unwrap_or_else(|| {
+                            debug!(
+                                "No health information for {}; treating as Departed",
+                                election.member_id()
+                            );
+                            Health::Departed
+                        });
+                    if leader_health >= Health::Confirmed {
                         warn!(
                             "Restarting election with a new term as the leader is dead {}: {:?}",
                             myself_member_id, election
