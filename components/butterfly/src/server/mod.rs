@@ -903,22 +903,42 @@ impl Server {
     where
         T: Rumor + ElectionRumor + Debug,
     {
+        Self::elections_to_restart_impl(
+            elections,
+            &self.service_store,
+            &self.member_id(),
+            |k| self.check_quorum(k),
+            &self.member_list,
+        )
+    }
+
+    fn elections_to_restart_impl<T, F>(
+        elections: &RumorStore<T>,
+        service_store: &RumorStore<Service>,
+        myself_member_id: &str,
+        check_quorum: F,
+        member_list: &MemberList,
+    ) -> Vec<(String, u64)>
+    where
+        T: Rumor + ElectionRumor + Debug,
+        F: Fn(&str) -> bool,
+    {
         let mut elections_to_restart = vec![];
 
         elections.with_keys(|(service_group, rumors)| {
-            if self
-                .service_store
-                .contains_rumor(&service_group, self.member_id())
-            {
-                debug!("elections_to_restart: checking {}", service_group);
+            if service_store.contains_rumor(&service_group, myself_member_id) {
                 // This is safe; there is only one id for an election, and it is "election"
                 let election = rumors
                     .get("election")
                     .expect("Lost an election struct between looking it up and reading it.");
+                debug!(
+                    "elections_to_restart: checking {} -> {:#?}",
+                    service_group, election
+                );
                 // If we are finished, and the leader is dead, we should restart the election
-                if election.is_finished() && election.member_id() == self.member_id() {
+                if election.is_finished() && election.member_id() == myself_member_id {
                     // If we are the leader, and we have lost quorum, we should restart the election
-                    if self.check_quorum(election.key()) == false {
+                    if check_quorum(election.key()) == false {
                         warn!(
                             "Restarting election with a new term as the leader has lost \
                              quorum: {:?}",
@@ -928,14 +948,15 @@ impl Server {
                             .push((String::from(&service_group[..]), election.term()));
                     }
                 } else if election.is_finished() {
-                    if self
-                        .member_list
-                        .check_health_of_by_id(&election.member_id(), Health::Confirmed)
-                    {
+                    trace!(
+                        "Election finished, leader {:?} health: {:?}",
+                        election.member_id(),
+                        member_list.health_of_by_id(&election.member_id())
+                    );
+                    if member_list.check_health_of_by_id(&election.member_id(), Health::Confirmed) {
                         warn!(
                             "Restarting election with a new term as the leader is dead {}: {:?}",
-                            self.member_id(),
-                            election
+                            myself_member_id, election
                         );
                         elections_to_restart
                             .push((String::from(&service_group[..]), election.term()));
@@ -1231,6 +1252,96 @@ impl<'a> Serialize for ServerProxy<'a> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use habitat_core::service::ServiceGroup;
+
+    impl Default for Service {
+        fn default() -> Self {
+            Service {
+                member_id: String::default(),
+                service_group: ServiceGroup::new(None, "service", "group", None).unwrap(),
+                incarnation: Default::default(),
+                initialized: Default::default(),
+                pkg: Default::default(),
+                cfg: Default::default(),
+                sys: Default::default(),
+            }
+        }
+    }
+
+    #[test]
+    fn elections_are_restarted_when_leader_health_is_unknown() {
+        env_logger::try_init().ok();
+        let suitability = 1;
+        let term = 0;
+        let service_group = ServiceGroup::new(None, "baz", "qux", None).unwrap();
+        let elections = RumorStore::<Election>::default();
+        let service_store = RumorStore::<Service>::default();
+        let myself_member_id = "myself";
+        let unknown_leader_member_id = "unknown_leader";
+        let check_quorum = |_: &str| true;
+        let member_list = MemberList::new();
+
+        let mut election_with_unknown_leader =
+            Election::new(unknown_leader_member_id, &service_group, suitability);
+        election_with_unknown_leader.finish();
+        elections.insert(election_with_unknown_leader);
+
+        let service = Service {
+            member_id: myself_member_id.into(),
+            service_group: service_group.clone(),
+            ..Default::default()
+        };
+        service_store.insert(service);
+
+        let to_restart = Server::elections_to_restart_impl(
+            &elections,
+            &service_store,
+            myself_member_id,
+            check_quorum,
+            &member_list,
+        );
+
+        assert_eq!(to_restart, vec![(service_group.to_string(), term)]);
+    }
+
+    #[test]
+    fn elections_are_restarted_when_leader_is_departed() {
+        env_logger::try_init().ok();
+        let suitability = 1;
+        let term = 0;
+        let service_group = ServiceGroup::new(None, "baz", "qux", None).unwrap();
+        let elections = RumorStore::<Election>::default();
+        let service_store = RumorStore::<Service>::default();
+        let myself_member_id = "myself";
+        let departed_leader = Member::default();
+        let check_quorum = |_: &str| true;
+        let member_list = MemberList::new();
+
+        let mut election_with_unknown_leader =
+            Election::new(departed_leader.id.clone(), &service_group, suitability);
+        election_with_unknown_leader.finish();
+        elections.insert(election_with_unknown_leader);
+
+        let service = Service {
+            member_id: myself_member_id.into(),
+            service_group: service_group.clone(),
+            ..Default::default()
+        };
+        service_store.insert(service);
+
+        member_list.insert(departed_leader, Health::Departed);
+
+        let to_restart = Server::elections_to_restart_impl(
+            &elections,
+            &service_store,
+            myself_member_id,
+            check_quorum,
+            &member_list,
+        );
+
+        assert_eq!(to_restart, vec![(service_group.to_string(), term)]);
+    }
 
     mod myself {
         use super::super::*;
