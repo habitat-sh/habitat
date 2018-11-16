@@ -144,6 +144,8 @@ pub struct ManagerConfig {
     pub ring_key: Option<SymKey>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
+    pub cert_file: Option<PathBuf>,
+    pub key_file: Option<PathBuf>,
 }
 
 impl ManagerConfig {
@@ -169,6 +171,8 @@ impl Default for ManagerConfig {
             ring_key: None,
             organization: None,
             watch_peer_file: None,
+            cert_file: None,
+            key_file: None,
         }
     }
 }
@@ -722,6 +726,8 @@ impl Manager {
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(
                 http_listen_addr.clone(),
+                self.state.cfg.cert_file.clone(),
+                self.state.cfg.key_file.clone(),
                 self.state.gateway_state.clone(),
                 pair.clone(),
             );

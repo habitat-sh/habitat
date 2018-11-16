@@ -15,10 +15,10 @@
 use std::{
     fmt,
     fs::File,
-    io::{self, Read},
+    io::{self, BufReader, Read},
     net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs},
     ops::{Deref, DerefMut},
-    option, result,
+    option, path, result,
     str::FromStr,
     sync::{Arc, Condvar, Mutex, RwLock},
     thread,
@@ -33,6 +33,8 @@ use actix_web::{
 };
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
+use rustls::internal::pemfile::{certs, rsa_private_keys};
+use rustls::{NoClientAuth, ServerConfig};
 use serde_json::{self, Value as Json};
 
 use error::{Error, Result, SupError};
@@ -198,6 +200,8 @@ pub struct Server;
 impl Server {
     pub fn run(
         listen_addr: ListenAddr,
+        cert_file: Option<path::PathBuf>,
+        key_file: Option<path::PathBuf>,
         gateway_state: Arc<RwLock<manager::GatewayState>>,
         control: Arc<(Mutex<ServerStartup>, Condvar)>,
     ) {
@@ -212,13 +216,25 @@ impl Server {
                 Err(_) => HTTP_THREAD_COUNT,
             };
 
-            let mut workers = server::new(move || {
+            let server = server::new(move || {
                 let app_state = AppState::new(gateway_state.clone());
                 App::with_state(app_state)
                     .middleware(Authentication)
                     .configure(routes)
-            }).workers(thread_count)
-            .bind(listen_addr.to_string());
+            }).workers(thread_count);
+
+            let bind = if cert_file.is_some() && key_file.is_some() {
+                let mut config = ServerConfig::new(NoClientAuth::new());
+                let cert_file = &mut BufReader::new(File::open(cert_file.unwrap()).unwrap());
+                let key_file = &mut BufReader::new(File::open(key_file.unwrap()).unwrap());
+                let cert_chain = certs(cert_file).unwrap();
+                let mut keys = rsa_private_keys(key_file).unwrap();
+                config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+
+                server.bind_rustls(listen_addr.to_string(), config)
+            } else {
+                server.bind(listen_addr.to_string())
+            };
 
             // We need to create this scope on purpose here because if we don't, the lock never
             // releases, and the supervisor will wait forever on cvar. Creating this artifical

@@ -36,11 +36,14 @@ extern crate time;
 extern crate tokio_core;
 extern crate url;
 
-use std::env;
-use std::io::{self, Write};
-use std::net::{SocketAddr, ToSocketAddrs};
-use std::process;
-use std::str::{self, FromStr};
+use std::{
+    env,
+    io::{self, Write},
+    net::{SocketAddr, ToSocketAddrs},
+    path::PathBuf,
+    process,
+    str::{self, FromStr},
+};
 
 use clap::ArgMatches;
 use common::command::package::install::InstallSource;
@@ -235,6 +238,21 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     if let Some(events) = m.value_of("EVENTS") {
         cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
     }
+
+    if let Some(keyfile) = m.value_of("KEYFILE") {
+        let pb = PathBuf::from(keyfile);
+        if pb.exists() {
+            cfg.key_file = Some(pb);
+        }
+    }
+
+    if let Some(certfile) = m.value_of("CERTFILE") {
+        let pb = PathBuf::from(certfile);
+        if pb.exists() {
+            cfg.cert_file = Some(pb);
+        }
+    }
+
     Ok(cfg)
 }
 

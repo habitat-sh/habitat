@@ -15,7 +15,7 @@ doc = false
 
 [dependencies]
 actix = "*"
-actix-web = { version = "*", default-features = false }
+actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 clippy = { version = "*", optional = true }
 ansi_term = "*"
 bitflags = "*"
@@ -53,6 +53,7 @@ protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
 regex = "*"
 rust-crypto = "*"
+rustls = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"

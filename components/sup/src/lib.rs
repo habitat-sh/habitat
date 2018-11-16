@@ -78,6 +78,7 @@ extern crate prost;
 extern crate protobuf;
 extern crate rand;
 extern crate regex;
+extern crate rustls;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
