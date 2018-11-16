@@ -366,7 +366,7 @@ current_running_version_for() {
     service_name=${1}
     member_id=$(cat /hab/sup/default/MEMBER_ID)
 
-    ${jq} -r '.census_groups."redis.default".population."'"${member_id}"'".pkg | (.origin + "/" +.name + "/" + .version + "/" + .release)' /hab/sup/default/data/census.dat
+   ${curl} --silent http://localhost:9631/census | ${jq} -r '.census_groups."redis.default".population."'"${member_id}"'".pkg | (.origin + "/" +.name + "/" + .version + "/" + .release)'
 }
 
 # Given a package identifier and a channel name, query Builder to discover the
