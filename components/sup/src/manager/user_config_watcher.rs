@@ -21,7 +21,8 @@ use std::sync::{
     },
     Arc, Mutex,
 };
-use std::thread::Builder as ThreadBuilder;
+use std::thread::{self, Builder as ThreadBuilder};
+use std::time::Duration;
 
 use super::file_watcher::{default_file_watcher_with_no_initial_event, Callbacks};
 
@@ -269,6 +270,8 @@ impl Worker {
                             break;
                         }
                     }
+
+                    thread::sleep(Duration::from_secs(1));
                 }
             })?;
 

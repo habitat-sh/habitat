@@ -19,6 +19,7 @@ use std::ffi::OsString;
 use std::mem::swap;
 use std::path::{Component, Path, PathBuf};
 use std::sync::mpsc::{channel, Receiver, TryRecvError};
+use std::thread;
 use std::time::Duration;
 
 use error::{Error, Result};
@@ -1341,6 +1342,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     pub fn run(&mut self) -> Result<()> {
         loop {
             self.single_iteration()?;
+            thread::sleep(Duration::from_secs(1));
         }
     }
 
@@ -1680,6 +1682,7 @@ mod tests {
     use std::os::unix::fs as unix_fs;
     use std::path::{Component, Path, PathBuf};
     use std::sync::mpsc::Sender;
+    use std::thread;
     use std::time::Duration;
 
     use notify;
@@ -3187,7 +3190,7 @@ mod tests {
 
             // After switching single_iteration() from recv() to try_recv(), this sleep is required
             // for these tests to pass.
-            ::std::thread::sleep(Duration::from_secs(3));
+            thread::sleep(Duration::from_secs(3));
 
             while iteration < iterations {
                 setup.watcher.single_iteration().expect(&format!(
