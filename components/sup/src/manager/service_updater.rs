@@ -19,6 +19,7 @@ use std::result;
 use std::str::FromStr;
 use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
 use std::thread;
+use std::time;
 
 use time::Duration;
 
@@ -505,6 +506,8 @@ impl Worker {
 
                 next_time = self.next_period_start();
             }
+
+            thread::sleep(time::Duration::from_secs(1));
         }
     }
 
@@ -556,6 +559,8 @@ impl Worker {
 
                 next_time = self.next_period_start();
             }
+
+            thread::sleep(time::Duration::from_secs(1));
         }
     }
 }
