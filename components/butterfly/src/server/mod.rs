@@ -874,8 +874,7 @@ impl Server {
     /// term for the election.
     pub fn start_election(&self, service_group: &str, term: u64) {
         let suitability = self.suitability_lookup.get(&service_group);
-        let mut e = Election::new(self.member_id(), service_group, suitability);
-        e.term = term;
+        let mut e = Election::new(self.member_id(), service_group, term, suitability);
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
             warn!("start_election check_quorum failed: {:?}", e);
@@ -887,8 +886,7 @@ impl Server {
     }
 
     pub fn start_update_election(&self, service_group: &str, suitability: u64, term: u64) {
-        let mut e = ElectionUpdate::new(self.member_id(), service_group, suitability);
-        e.term = term;
+        let mut e = ElectionUpdate::new(self.member_id(), service_group, term, suitability);
         let ek = RumorKey::from(&e);
         if !self.check_quorum(e.key()) {
             warn!("start_election check_quorum failed: {:?}", e);
@@ -1258,6 +1256,7 @@ impl<'a> Serialize for ServerProxy<'a> {
 mod tests {
     use super::*;
     use habitat_core::service::ServiceGroup;
+    use rumor::election::Term;
 
     fn get_mock_service(member_id: String, service_group: ServiceGroup) -> Service {
         Service {
@@ -1284,8 +1283,12 @@ mod tests {
         let check_quorum = |_: &str| true;
         let member_list = MemberList::new();
 
-        let mut election_with_unknown_leader =
-            Election::new(unknown_leader_member_id, &service_group, suitability);
+        let mut election_with_unknown_leader = Election::new(
+            unknown_leader_member_id,
+            &service_group,
+            Term::default(),
+            suitability,
+        );
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 
@@ -1316,8 +1319,12 @@ mod tests {
         let check_quorum = |_: &str| true;
         let member_list = MemberList::new();
 
-        let mut election_with_unknown_leader =
-            Election::new(departed_leader.id.clone(), &service_group, suitability);
+        let mut election_with_unknown_leader = Election::new(
+            departed_leader.id.clone(),
+            &service_group,
+            Term::default(),
+            suitability,
+        );
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 

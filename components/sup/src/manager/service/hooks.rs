@@ -1071,6 +1071,7 @@ mod tests {
     use std::string::ToString;
 
     use butterfly::member::MemberList;
+    use butterfly::rumor::election;
     use butterfly::rumor::election::Election as ElectionRumor;
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
     use butterfly::rumor::service::Service as ServiceRumor;
@@ -1370,7 +1371,7 @@ echo "The message is Hola Mundo"
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a", &sg_one, 10);
+        let mut election = ElectionRumor::new("member-a", &sg_one, election::Term::default(), 10);
         election.finish();
         election_store.insert(election);
 
@@ -1477,7 +1478,7 @@ echo "The message is Hello"
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a", &sg_one, 10);
+        let mut election = ElectionRumor::new("member-a", &sg_one, election::Term::default(), 10);
         election.finish();
         election_store.insert(election);
 

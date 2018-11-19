@@ -38,6 +38,8 @@ pub trait ElectionRumor {
     fn term(&self) -> u64;
 }
 
+pub type Term = u64;
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Election {
     pub member_id: String,
@@ -51,7 +53,7 @@ pub struct Election {
 impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
-    pub fn new<S1>(member_id: S1, service_group: &str, suitability: u64) -> Election
+    pub fn new<S1>(member_id: S1, service_group: &str, term: u64, suitability: u64) -> Election
     where
         S1: Into<String>,
     {
@@ -59,7 +61,7 @@ impl Election {
         Election {
             member_id: from_id.clone(),
             service_group: service_group.into(),
-            term: 0,
+            term: term,
             suitability: suitability,
             status: ElectionStatus::Running,
             votes: vec![from_id],
@@ -220,11 +222,16 @@ impl Rumor for Election {
 pub struct ElectionUpdate(Election);
 
 impl ElectionUpdate {
-    pub fn new<S1>(member_id: S1, service_group: &str, suitability: u64) -> ElectionUpdate
+    pub fn new<S1>(
+        member_id: S1,
+        service_group: &str,
+        term: u64,
+        suitability: u64,
+    ) -> ElectionUpdate
     where
         S1: Into<String>,
     {
-        let election = Election::new(member_id, service_group, suitability);
+        let election = Election::new(member_id, service_group, term, suitability);
         ElectionUpdate(election)
     }
 }
@@ -299,7 +306,7 @@ impl Rumor for ElectionUpdate {
 mod tests {
     use habitat_core::service::ServiceGroup;
     use rumor::{
-        election::{Election, ElectionUpdate},
+        election::{Election, ElectionUpdate, Term},
         Rumor, RumorStore,
     };
 
@@ -315,6 +322,7 @@ mod tests {
         Election::new(
             member_id,
             &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
+            Term::default(),
             suitability,
         )
     }
@@ -323,6 +331,7 @@ mod tests {
         ElectionUpdate::new(
             member_id,
             &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
+            Term::default(),
             suitability,
         )
     }
