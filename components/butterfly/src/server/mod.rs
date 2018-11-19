@@ -1259,17 +1259,15 @@ mod tests {
     use super::*;
     use habitat_core::service::ServiceGroup;
 
-    impl Default for Service {
-        fn default() -> Self {
-            Service {
-                member_id: String::default(),
-                service_group: ServiceGroup::new(None, "service", "group", None).unwrap(),
-                incarnation: Default::default(),
-                initialized: Default::default(),
-                pkg: Default::default(),
-                cfg: Default::default(),
-                sys: Default::default(),
-            }
+    fn get_mock_service(member_id: String, service_group: ServiceGroup) -> Service {
+        Service {
+            member_id,
+            service_group,
+            incarnation: Default::default(),
+            initialized: Default::default(),
+            pkg: Default::default(),
+            cfg: Default::default(),
+            sys: Default::default(),
         }
     }
 
@@ -1291,11 +1289,7 @@ mod tests {
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 
-        let service = Service {
-            member_id: myself_member_id.into(),
-            service_group: service_group.clone(),
-            ..Default::default()
-        };
+        let service = get_mock_service(myself_member_id.into(), service_group.clone());
         service_store.insert(service);
 
         let to_restart = Server::elections_to_restart_impl(
@@ -1327,11 +1321,7 @@ mod tests {
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 
-        let service = Service {
-            member_id: myself_member_id.into(),
-            service_group: service_group.clone(),
-            ..Default::default()
-        };
+        let service = get_mock_service(myself_member_id.into(), service_group.clone());
         service_store.insert(service);
 
         member_list.insert(departed_leader, Health::Departed);
