@@ -30,6 +30,14 @@ pub use protocol::newscast::{election::Status as ElectionStatus, Election as Pro
 use protocol::{self, newscast, FromProto};
 use rumor::{Rumor, RumorPayload, RumorType};
 
+pub trait ElectionRumor {
+    fn member_id(&self) -> &str;
+
+    fn is_finished(&self) -> bool;
+
+    fn term(&self) -> u64;
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Election {
     pub from_id: String,
@@ -88,10 +96,19 @@ impl Election {
     pub fn no_quorum(&mut self) {
         self.status = ElectionStatus::NoQuorum;
     }
+}
 
-    /// Returns true if the election is finished.
-    pub fn is_finished(&self) -> bool {
+impl ElectionRumor for Election {
+    fn member_id(&self) -> &str {
+        &self.member_id
+    }
+
+    fn is_finished(&self) -> bool {
         self.status == ElectionStatus::Finished
+    }
+
+    fn term(&self) -> u64 {
+        self.term
     }
 }
 
@@ -212,6 +229,20 @@ impl ElectionUpdate {
     {
         let election = Election::new(member_id, service_group, suitability);
         ElectionUpdate(election)
+    }
+}
+
+impl ElectionRumor for ElectionUpdate {
+    fn member_id(&self) -> &str {
+        &self.member_id
+    }
+
+    fn is_finished(&self) -> bool {
+        self.status == ElectionStatus::Finished
+    }
+
+    fn term(&self) -> u64 {
+        self.term
     }
 }
 
