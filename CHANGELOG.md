@@ -7,6 +7,7 @@
 - Add target to Docker image names for studio [#5805](https://github.com/habitat-sh/habitat/pull/5805) ([smacfarlane](https://github.com/smacfarlane))
 
 #### Bug Fixes
+- Restart the election if the leader is dead [#5859](https://github.com/habitat-sh/habitat/pull/5859) ([baumanj](https://github.com/baumanj))
 - Exclude services from things you can uninstall [#5835](https://github.com/habitat-sh/habitat/pull/5835) ([jamesc](https://github.com/jamesc))
 - Miscellaneous code cleanup [#5857](https://github.com/habitat-sh/habitat/pull/5857) ([baumanj](https://github.com/baumanj))
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
