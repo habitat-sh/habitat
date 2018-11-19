@@ -862,7 +862,7 @@ impl Service {
         }
     }
 
-    /// Run file_updated hook if present.
+    /// Run file-updated hook if present.
     fn file_updated(&self) -> bool {
         if self.initialized {
             if let Some(ref hook) = self.hooks.file_updated {
