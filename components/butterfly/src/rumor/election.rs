@@ -53,7 +53,13 @@ pub struct Election {
 impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
-    pub fn new<S1>(member_id: S1, service_group: &str, term: u64, suitability: u64) -> Election
+    pub fn new<S1>(
+        member_id: S1,
+        service_group: &str,
+        term: u64,
+        suitability: u64,
+        has_quorum: bool,
+    ) -> Election
     where
         S1: Into<String>,
     {
@@ -63,7 +69,11 @@ impl Election {
             service_group: service_group.into(),
             term: term,
             suitability: suitability,
-            status: ElectionStatus::Running,
+            status: if has_quorum {
+                ElectionStatus::Running
+            } else {
+                ElectionStatus::NoQuorum
+            },
             votes: vec![from_id],
         }
     }
@@ -227,11 +237,12 @@ impl ElectionUpdate {
         service_group: &str,
         term: u64,
         suitability: u64,
+        has_quorum: bool,
     ) -> ElectionUpdate
     where
         S1: Into<String>,
     {
-        let election = Election::new(member_id, service_group, term, suitability);
+        let election = Election::new(member_id, service_group, term, suitability, has_quorum);
         ElectionUpdate(election)
     }
 }
@@ -324,6 +335,7 @@ mod tests {
             &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
             Term::default(),
             suitability,
+            true, // has_quorum
         )
     }
 
@@ -333,6 +345,7 @@ mod tests {
             &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
             Term::default(),
             suitability,
+            true, // has_quorum
         )
     }
 
