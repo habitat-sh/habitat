@@ -58,7 +58,7 @@ use hcore::crypto::dpapi::encrypt;
 use hcore::crypto::keys::PairType;
 use hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
 use hcore::env as henv;
-use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path};
+use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path};
 use hcore::package::PackageIdent;
 
 use hcore::service::ServiceGroup;
@@ -527,7 +527,18 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         false => command::pkg::Scope::PackageAndDependencies,
     };
     let excludes = excludes_from_matches(&m);
-    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope, excludes)
+
+    let services = supervisor_services()?;
+
+    command::pkg::uninstall::start(
+        ui,
+        &ident,
+        &*FS_ROOT,
+        execute_strategy,
+        scope,
+        excludes,
+        services,
+    )
 }
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
@@ -858,7 +869,9 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
                 .for_each(|reply| match reply.message_id() {
                     "NetOk" => Ok(()),
                     "NetErr" => {
-                        let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                        let m = reply
+                            .parse::<protocol::net::NetErr>()
+                            .map_err(SrvClientError::Decode)?;
                         match ErrCode::from_i32(m.code) {
                             Some(ErrCode::InvalidPayload) => {
                                 ui.warn(m)?;
@@ -881,7 +894,9 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
             conn.call(set).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
                 _ => Err(SrvClientError::from(io::Error::from(
@@ -904,12 +919,16 @@ fn sub_svc_config(m: &ArgMatches) -> Result<()> {
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceCfg" => {
-                    let m = reply.parse::<protocol::types::ServiceCfg>().unwrap();
+                    let m = reply
+                        .parse::<protocol::types::ServiceCfg>()
+                        .map_err(SrvClientError::Decode)?;
                     println!("{}", m.default.unwrap_or_default());
                     Ok(())
                 }
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
                 _ => Err(SrvClientError::from(io::Error::from(
@@ -1069,7 +1088,9 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     match ErrCode::from_i32(m.code) {
                         Some(ErrCode::InvalidPayload) => {
                             ui.warn(m)?;
@@ -1108,7 +1129,9 @@ fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
-                    let m = reply.parse::<protocol::net::NetErr>().unwrap();
+                    let m = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
                 _ => Err(SrvClientError::from(io::Error::from(
@@ -1413,18 +1436,24 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
     bar.message("    ");
     match reply.message_id() {
         "ConsoleLine" => {
-            let m = reply.parse::<protocol::ctl::ConsoleLine>().unwrap();
+            let m = reply
+                .parse::<protocol::ctl::ConsoleLine>()
+                .map_err(SrvClientError::Decode)?;
             print!("{}", m);
         }
         "NetProgress" => {
-            let m = reply.parse::<protocol::ctl::NetProgress>().unwrap();
+            let m = reply
+                .parse::<protocol::ctl::NetProgress>()
+                .map_err(SrvClientError::Decode)?;
             bar.total = m.total;
             if bar.set(m.position) >= m.total {
                 bar.finish();
             }
         }
         "NetErr" => {
-            let m = reply.parse::<protocol::net::NetErr>().unwrap();
+            let m = reply
+                .parse::<protocol::net::NetErr>()
+                .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(m));
         }
         _ => (),
@@ -1441,13 +1470,17 @@ where
     T: io::Write,
 {
     let status = match reply.message_id() {
-        "ServiceStatus" => reply.parse::<protocol::types::ServiceStatus>()?,
+        "ServiceStatus" => reply
+            .parse::<protocol::types::ServiceStatus>()
+            .map_err(SrvClientError::Decode)?,
         "NetOk" => {
             println!("No services loaded.");
             return Ok(());
         }
         "NetErr" => {
-            let err = reply.parse::<protocol::net::NetErr>()?;
+            let err = reply
+                .parse::<protocol::net::NetErr>()
+                .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(err));
         }
         _ => {
@@ -1490,6 +1523,52 @@ where
         status.service_group,
     )?;
     return Ok(());
+}
+
+/// Check if we have a launcher/supervisor running out of this habitat root.
+/// If the launcher PID file exists then the supervisor is up and running
+fn launcher_is_running(fs_root_path: &Path) -> bool {
+    let launcher_root = launcher_root_path(Some(fs_root_path));
+    let pid_file_path = launcher_root.join("PID");
+
+    pid_file_path.is_file()
+}
+
+fn supervisor_services() -> Result<Vec<PackageIdent>> {
+    if !launcher_is_running(&*FS_ROOT) {
+        return Ok(vec![]);
+    }
+
+    let cfg = config::load()?;
+    let secret_key = ctl_secret_key(&cfg)?;
+    let sup_addr = protocol::ctl::default_addr();
+    let msg = protocol::ctl::SvcStatus::default();
+
+    let mut out: Vec<PackageIdent> = vec![];
+    SrvClient::connect(&sup_addr, &secret_key)
+        .and_then(|conn| {
+            conn.call(msg).for_each(|reply| match reply.message_id() {
+                "ServiceStatus" => {
+                    let m = reply
+                        .parse::<protocol::types::ServiceStatus>()
+                        .map_err(SrvClientError::Decode)?;
+                    out.push(m.ident.into());
+                    Ok(())
+                }
+                "NetOk" => Ok(()),
+                "NetErr" => {
+                    let err = reply
+                        .parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
+                    return Err(SrvClientError::from(err));
+                }
+                _ => {
+                    warn!("Unexpected status message, {:?}", reply);
+                    Ok(())
+                }
+            })
+        }).wait()?;
+    Ok(out)
 }
 
 /// A Builder URL, but *only* if the user specified it via CLI args or

@@ -17,7 +17,7 @@ mod handlers;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
 use std::sync::{Arc, Condvar, Mutex};
@@ -30,7 +30,7 @@ use std::os::unix::process::ExitStatusExt;
 use std::process::ExitStatus;
 
 use core;
-use core::fs::FS_ROOT_PATH;
+use core::fs::{launcher_root_path, FS_ROOT_PATH};
 use core::os::process::{self, Pid, Signal};
 use core::os::signals::{self, SignalEvent};
 use core::package::{PackageIdent, PackageInstall};
@@ -84,7 +84,7 @@ impl Drop for Server {
 
 impl Server {
     pub fn new(args: Vec<String>) -> Result<Self> {
-        let launcher_root = Path::new(&*core::fs::FS_ROOT_PATH).join("hab/launcher");
+        let launcher_root = launcher_root_path(Some(&*core::fs::FS_ROOT_PATH));
         fs::create_dir_all(&launcher_root)?;
         let pid_file_path = launcher_root.join("PID");
         let mut pid_file = fs::File::create(&pid_file_path)?;
