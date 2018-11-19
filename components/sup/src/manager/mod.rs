@@ -850,8 +850,11 @@ impl Manager {
 
             // This is really only needed until everything is running
             // in futures.
-            let time_to_wait = ((next_check - time::get_time()).num_milliseconds()).max(100);
-            thread::sleep(Duration::from_millis(time_to_wait as u64));
+            let now = time::get_time();
+            if now < next_check {
+                let time_to_wait = next_check - now;
+                thread::sleep(time_to_wait.to_std().unwrap());
+            }
         }
     }
 
