@@ -14,14 +14,18 @@
 
 use std::path::Path;
 
+use super::Scope;
 use hcore::package::{PackageIdent, PackageInstall};
 
 use error::Result;
 
-pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
+pub fn start(ident: &PackageIdent, scope: &Scope, fs_root_path: &Path) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
 
-    let deps = pkg_install.tdeps()?;
+    let deps = match &scope {
+        Scope::Package => pkg_install.deps()?,
+        Scope::PackageAndDependencies => pkg_install.tdeps()?,
+    };
 
     for dep in &deps {
         println!("{}", dep);
