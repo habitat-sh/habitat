@@ -40,7 +40,6 @@ pub trait ElectionRumor {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Election {
-    pub from_id: String,
     pub member_id: String,
     pub service_group: String,
     pub term: u64,
@@ -58,7 +57,6 @@ impl Election {
     {
         let from_id = member_id.into();
         Election {
-            from_id: from_id.clone(),
             member_id: from_id.clone(),
             service_group: service_group.into(),
             term: 0,
@@ -134,7 +132,6 @@ impl FromProto<ProtoRumor> for Election {
         };
         let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
         Ok(Election {
-            from_id: from_id.clone(),
             member_id: from_id.clone(),
             service_group: payload
                 .service_group
