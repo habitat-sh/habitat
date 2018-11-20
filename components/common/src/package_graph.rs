@@ -13,6 +13,8 @@
 // limitations under the License.
 
 use error::Result;
+use hcore::fs as hfs;
+use hcore::package;
 use hcore::package::ident::PackageIdent;
 use hcore::package::PackageInstall;
 use petgraph;
@@ -20,6 +22,7 @@ use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 use petgraph::visit::Bfs;
 use std::collections::HashMap;
+use std::path::Path;
 
 pub struct PackageGraph {
     nodes: HashMap<PackageIdent, NodeIndex>,
@@ -34,11 +37,14 @@ impl PackageGraph {
         }
     }
 
-    // Given a list of packages build a directed package graph
-    // using the package dependencies
-    pub fn build(&mut self, packages: &Vec<PackageInstall>) -> Result<(usize, usize)> {
-        for p in packages {
-            let ident = p.ident();
+    // Load a set of packages that are stored in a package_path under a habitat
+    // root directory
+    pub fn load(&mut self, fs_root_path: &Path) -> Result<(usize, usize)> {
+        let package_path = hfs::pkg_root_path(Some(&fs_root_path));
+        let idents = package::all_packages(&package_path)?;
+
+        for ident in &idents {
+            let p = PackageInstall::load(&ident, Some(fs_root_path))?;
             let deps = p.deps()?;
             self.extend(&ident, &deps);
         }
