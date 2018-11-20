@@ -14,17 +14,36 @@
 
 use std::path::Path;
 
-use super::Scope;
+use super::{DependencyDirection, Scope};
+use common::package_graph::PackageGraph;
+use error::Result;
 use hcore::package::{PackageIdent, PackageInstall};
 
-use error::Result;
-
-pub fn start(ident: &PackageIdent, scope: &Scope, fs_root_path: &Path) -> Result<()> {
+/// Show the dependencies for an installed package.
+///
+/// We can either show the dependencies of the package or show the packages that are dependent on the provided
+/// identifier
+///
+pub fn start(
+    ident: &PackageIdent,
+    scope: &Scope,
+    direction: &DependencyDirection,
+    fs_root_path: &Path,
+) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
 
-    let deps = match &scope {
-        Scope::Package => pkg_install.deps()?,
-        Scope::PackageAndDependencies => pkg_install.tdeps()?,
+    let mut graph = PackageGraph::new();
+    graph.load(fs_root_path)?;
+
+    let deps = match &direction {
+        DependencyDirection::Down => match &scope {
+            Scope::Package => graph.deps(&pkg_install.ident()).unwrap_or(vec![]),
+            Scope::PackageAndDependencies => graph.ordered_deps(&pkg_install.ident()),
+        },
+        DependencyDirection::Up => match &scope {
+            Scope::Package => graph.rdeps(&pkg_install.ident()).unwrap_or(vec![]),
+            Scope::PackageAndDependencies => graph.ordered_reverse_deps(&pkg_install.ident()),
+        },
     };
 
     for dep in &deps {

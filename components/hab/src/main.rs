@@ -475,7 +475,11 @@ fn sub_pkg_dependencies(m: &ArgMatches) -> Result<()> {
         command::pkg::Scope::Package
     };
 
-    command::pkg::dependencies::start(&ident, &scope, &*FS_ROOT)
+    let direction = match m.is_present("REVERSE") {
+        true => command::pkg::DependencyDirection::Up,
+        false => command::pkg::DependencyDirection::Down,
+    };
+    command::pkg::dependencies::start(&ident, &scope, &direction, &*FS_ROOT)
 }
 
 fn sub_pkg_env(m: &ArgMatches) -> Result<()> {

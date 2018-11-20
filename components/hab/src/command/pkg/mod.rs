@@ -48,3 +48,8 @@ pub enum Scope {
     Package,
     PackageAndDependencies,
 }
+
+pub enum DependencyDirection {
+    Up,
+    Down,
+}
