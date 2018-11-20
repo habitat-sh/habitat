@@ -4,6 +4,7 @@ load 'helpers'
 
 setup() {
     reset_hab_root
+    start_supervisor
 }
 
 teardown() {
@@ -13,7 +14,7 @@ teardown() {
 @test "hab svc load: a bad topology value is rejected" {
     run ${hab} svc load --topology=beelzebub core/redis
     assert_failure
-    [[ "${output}" =~ "Invalid value for '--topology <TOPOLOGY>'" ]]
+    [[ "${output}" =~ "'beelzebub' isn't a valid value for '--topology <TOPOLOGY>'" ]]
 }
 
 @test "hab svc load: a bad strategy value is rejected" {
@@ -26,10 +27,11 @@ teardown() {
     run ${hab} svc load core/redis
     assert_success
 
+    wait_for_service_to_run redis
+
     latest_redis=$(latest_from_builder core/redis stable)
     assert_package_and_deps_installed "${latest_redis}"
 
-    # TODO: Should we test that the service is running? If so, need to sleep
     assert_spec_exists_for redis
 
     assert_spec_value redis ident core/redis
@@ -45,7 +47,9 @@ teardown() {
     run ${hab} svc load core/redis/3.2.4
     assert_success
 
-    latest_redis=$(latest_from_builder core/redis stable)
+    wait_for_service_to_run redis
+
+    latest_redis=$(latest_from_builder core/redis/3.2.4 stable)
     assert_package_and_deps_installed "${latest_redis}"
     assert_spec_exists_for redis
 
@@ -63,6 +67,8 @@ teardown() {
     run ${hab} svc load "${desired_version}"
     assert_success
 
+    wait_for_service_to_run redis
+
     assert_package_and_deps_installed "${desired_version}"
     assert_spec_exists_for redis
 
@@ -79,10 +85,14 @@ teardown() {
     # First, grab a hart file!
     desired_version="core/redis/3.2.4/20170514150022"
     hart_path=$(download_hart_for "${desired_version}")
-    reset_hab_root
 
-    run ${hab} svc load "${hart_path}"
+    run ${hab} pkg install "${hart_path}"
     assert_success
+    run ${hab} svc load "${desired_version}"
+    assert_success
+
+    wait_for_service_to_run redis
+
     assert_package_and_deps_installed "${desired_version}"
     assert_spec_exists_for redis
 
@@ -104,6 +114,8 @@ teardown() {
     run ${hab} svc load "core/redis"
     assert_success
 
+    wait_for_service_to_run redis
+
     assert_package_and_deps_installed "${desired_version}"
     assert_spec_exists_for redis
 }
@@ -111,6 +123,8 @@ teardown() {
 @test "hab svc load: change spec with --force (standalone service)" {
     run ${hab} svc load core/redis
     assert_success
+
+    wait_for_service_to_run redis
 
     # Assert the default values in the service spec
     assert_spec_value redis ident core/redis
@@ -139,6 +153,8 @@ teardown() {
     run ${hab} svc load core/redis
     assert_success
 
+    wait_for_service_to_run redis
+
     # Assert the contents of the spec file; we'll compare again later
     assert_spec_value redis ident core/redis
     assert_spec_value redis group default
@@ -166,6 +182,8 @@ teardown() {
     run ${hab} svc load --application=myapp --environment=prod core/redis
     assert_success
 
+    wait_for_service_to_run redis
+
     assert_spec_value redis ident core/redis
     assert_spec_value redis application_environment "myapp.prod"
     # TODO (CM): Need a way to assert a missing value in a spec so I
@@ -175,7 +193,10 @@ teardown() {
 @test "hab svc load: spec idents can change when force-loading using a different ident" {
     vsn="core/redis/3.2.3/20160920131015"
 
+    stop_supervisor
+
     HAB_UPDATE_STRATEGY_FREQUENCY_MS=5000 background ${hab} run
+    retry 5 1 launcher_is_alive
 
     run ${hab} svc load "${vsn}"
     assert_success

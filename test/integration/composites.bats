@@ -18,18 +18,21 @@ composite_short_ident="core/builder-tiny"
 composite_name="builder-tiny"
 
 @test "hab pkg install: local hart file (composite services)" {
+    skip "Composites will be going away soon"
     run ${hab} pkg install "${composite_hart}"
     assert_success
     assert_composite_and_services_are_installed "${composite_ident}"
 }
 
 @test "hab pkg install: trying to binlink with a composite doesn't blow up" {
+    skip "Composites will be going away soon"
     run ${hab} pkg install "${composite_hart}"
     assert_success
     assert_composite_and_services_are_installed "${composite_ident}"
 }
 
 @test "hab svc load: local hart file (composite services)" {
+    skip "Composites will be going away soon"
     ${hab} svc load "${composite_hart}"
     assert_success
 
@@ -52,6 +55,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: application/environment apply to all composite services" {
+    skip "Composites will be going away soon"
     run ${hab} svc load --application=skunkworks --environment=dev "${composite_hart}"
     assert_success
 
@@ -62,6 +66,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: reload a composite using --force, without changing the composite ident" {
+    skip "Composites will be going away soon"
     run ${hab} svc load --channel=unstable "${composite_hart}"
     assert_success
 
@@ -104,6 +109,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: reload a composite using --force, without changing binds or composite ident, should preserve existing binds, including extra-composite binds" {
+    skip "Composites will be going away soon"
     background ${hab} run
 
     run ${hab} pkg install core/runit --binlink
@@ -153,6 +159,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: reload a composite using --force, changing the ident, can change which services are running" {
+    skip "Composites will be going away soon"
     # v1 contains the router, api, and api-proxy services
     # v2 contains the router, admin, and admin-proxy services
     #
@@ -217,6 +224,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc unload: composite services" {
+    skip "Composites will be going away soon"
     # Load a composite and two other standalone services and verify
     # all specs are in place
     ########################################################################
@@ -275,6 +283,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc stop: composite services" {
+    skip "Composites will be going away soon"
     # Load a composite and two other standalone services and verify
     # all specs are in place
     ########################################################################
@@ -338,6 +347,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc start: composite services" {
+    skip "Composites will be going away soon"
     # Need to install runit (for chpst) to get builder-tiny working!
     # (a packaged supervisor would have this already)
     ${hab} pkg install core/runit --binlink
@@ -359,6 +369,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc start: restart stopped composite services" {
+    skip "Composites will be going away soon"
     ${hab} pkg install core/runit --binlink
     background ${hab} run
 
@@ -385,6 +396,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: composite binds for just service groups are generated and valid" {
+    skip "Composites will be going away soon"
     run ${hab} pkg install core/runit --binlink
     background ${hab} run
 
@@ -401,6 +413,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: composite binds for service group + app/env are generated and valid" {
+    skip "Composites will be going away soon"
     run ${hab} pkg install core/runit --binlink
     background ${hab} run
 
@@ -417,6 +430,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: composite with additional extra-composite binds" {
+    skip "Composites will be going away soon"
     background ${hab} run
 
     run ${hab} pkg install core/runit --binlink
@@ -446,6 +460,7 @@ composite_name="builder-tiny"
 }
 
 @test "hab svc load: two-part binds on the CLI are not accepted for composites" {
+    skip "Composites will be going away soon"
     # This is the version of router that was current when the test
     # composite was built.
     run ${hab} svc load --group=outside core/builder-router/5131/20170923114145
@@ -462,6 +477,7 @@ composite_name="builder-tiny"
 # This is tangentially related to composites, in that the notion of
 # 3-part binds came in with composites.
 @test "hab svc load: three-part binds on the CLI are not accepted for standalone services" {
+    skip "Composites will be going away soon"
     # This particular version of builder-api has a single bind: "router"
     run ${hab} svc load \
         --bind=builder-api:router:builder-router.default \

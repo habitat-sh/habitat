@@ -166,11 +166,20 @@ assert_composite_and_services_are_installed() {
 # Useful Setup / Teardown Functions
 ########################################################################
 
+start_supervisor() {
+    background "${hab}" run
+    retry 30 1 launcher_is_alive
+}
+
 # Some tests start up a Habitat Supervisor in the background. Call
 # this in a `teardown` function to ensure it is stopped before the
-# next test.a
+# next test.
 stop_supervisor() {
-    pkill hab-launch || true
+    if launcher_is_alive ; then
+        pkill -F /hab/launcher/PID
+        retry 30 1 launcher_is_not_alive
+    fi
+    launcher_is_not_alive
 }
 
 # Ensure a clean slate in `/hab` for each test
@@ -179,6 +188,7 @@ reset_hab_root() {
     empty_key_cache
     remove_all_services
     remove_installed_packages
+    reset_launcher
     reset_supervisor
 }
 
@@ -196,6 +206,10 @@ remove_all_services() {
 
 remove_installed_packages() {
     rm -Rf /hab/pkgs/*
+}
+
+reset_launcher() {
+    rm -Rf /hab/launcher/*
 }
 
 reset_supervisor() {
@@ -305,6 +319,21 @@ service_is_not_alive() {
     ! service_is_alive "$@"
 }
 
+launcher_is_alive() {
+    local pidfile="/hab/launcher/PID"
+    if [ -e "${pidfile}" ]; then
+        local pid
+        pid=$(cat "${pidfile}")
+        ps -p "${pid}" > /dev/null 2>&1
+    else
+        false
+    fi
+}
+
+launcher_is_not_alive() {
+    ! launcher_is_alive
+}
+
 # Checks once a second to see if the Habitat-supervised service
 # has is running yet.
 wait_for_service_to_run() {
@@ -337,7 +366,7 @@ current_running_version_for() {
     service_name=${1}
     member_id=$(cat /hab/sup/default/MEMBER_ID)
 
-    ${jq} -r '.census_groups."redis.default".population."'"${member_id}"'".pkg | (.origin + "/" +.name + "/" + .version + "/" + .release)' /hab/sup/default/data/census.dat
+   ${curl} --silent http://localhost:9631/census | ${jq} -r '.census_groups."redis.default".population."'"${member_id}"'".pkg | (.origin + "/" +.name + "/" + .version + "/" + .release)'
 }
 
 # Given a package identifier and a channel name, query Builder to discover the
