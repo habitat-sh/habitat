@@ -13,6 +13,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Use env var at the clap level for ring and ring_key [#5846](https://github.com/habitat-sh/habitat/pull/5846) ([mpeck](https://github.com/mpeck))
 - Updates hook names in documentation [#5862](https://github.com/habitat-sh/habitat/pull/5862) ([rsertelon](https://github.com/rsertelon))
 - Update homebrew release to utilize metadata helper functions [#5860](https://github.com/habitat-sh/habitat/pull/5860) ([smacfarlane](https://github.com/smacfarlane))
 - Add some sleeps to try_recv loops so we don&#39;t peg the CPU. [#5861](https://github.com/habitat-sh/habitat/pull/5861) ([raskchanky](https://github.com/raskchanky))
