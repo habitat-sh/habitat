@@ -10,6 +10,7 @@ ansi_term = "*"
 glob = "*"
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
+lazy_static = "*"
 libc = "*"
 log = "*"
 pbr = "*"

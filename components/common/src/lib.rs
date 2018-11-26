@@ -22,6 +22,8 @@ extern crate habitat_core as hcore;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
 extern crate pbr;
 extern crate petgraph;
 extern crate regex;
@@ -38,5 +40,6 @@ pub use self::error::{Error, Result};
 
 pub mod command;
 pub mod error;
+pub mod locked_env_var;
 pub mod package_graph;
 pub mod ui;
