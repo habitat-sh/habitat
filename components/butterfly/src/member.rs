@@ -26,7 +26,7 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
-use rand::{thread_rng, Rng};
+use rand::{seq::SliceRandom, thread_rng};
 use serde::{
     de,
     ser::{SerializeMap, SerializeStruct},
@@ -736,7 +736,7 @@ impl MemberList {
             .map(|v| v.clone())
             .collect();
         let mut rng = thread_rng();
-        rng.shuffle(&mut members);
+        members.shuffle(&mut rng);
         members
     }
 
@@ -756,7 +756,7 @@ impl MemberList {
             ml.values().map(|v| v.clone()).collect()
         };
         let mut rng = thread_rng();
-        rng.shuffle(&mut members);
+        members.shuffle(&mut rng);
         for member in members
             .into_iter()
             .filter(|m| {
