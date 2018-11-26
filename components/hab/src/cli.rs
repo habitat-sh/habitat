@@ -20,7 +20,7 @@ use std::str::FromStr;
 use clap::{App, AppSettings, Arg};
 use hcore::package::ident;
 use hcore::package::{Identifiable, PackageIdent};
-use hcore::{crypto::keys::PairType, service::ServiceGroup};
+use hcore::{crypto::keys::PairType, service::HealthCheckInterval, service::ServiceGroup};
 use protocol;
 use url::Url;
 
@@ -936,6 +936,8 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
     (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
         Implies NO_COLOR")
+    (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
+        "The interval (seconds) on which to run health checks [default: 30]")
     )
 }
 
@@ -1023,6 +1025,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             was previously loaded and running this operation will also restart the service")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
+            "The interval (seconds) on which to run health checks [default: 30]")
     )
 }
 
@@ -1060,6 +1064,8 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg PASSWORD: --password +takes_value "Password of the service user")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
+            "The interval (seconds) on which to run health checks [default: 30]")
     )
 }
 
@@ -1130,6 +1136,16 @@ fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
     match val.parse::<T>() {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("'{}' is not a valid number", &val)),
+    }
+}
+
+fn valid_health_check_interval(val: String) -> result::Result<(), String> {
+    match HealthCheckInterval::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!(
+            "'{}' is not a valid value for health check interval: {}",
+            val, e
+        )),
     }
 }
 

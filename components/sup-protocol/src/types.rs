@@ -229,6 +229,14 @@ impl Into<core::service::ApplicationEnvironment> for ApplicationEnvironment {
     }
 }
 
+impl From<core::service::HealthCheckInterval> for HealthCheckInterval {
+    fn from(h: core::service::HealthCheckInterval) -> Self {
+        let mut proto = HealthCheckInterval::default();
+        proto.seconds = h.as_ref().as_secs();
+        proto
+    }
+}
+
 impl From<package::PackageIdent> for PackageIdent {
     fn from(ident: package::PackageIdent) -> Self {
         let mut proto = PackageIdent::default();

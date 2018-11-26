@@ -20,11 +20,12 @@ use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
+use std::time::Duration;
 
 use hcore::channel::STABLE_CHANNEL;
 use hcore::package::metadata::BindMapping;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::{ApplicationEnvironment, ServiceGroup};
+use hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
 use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use protocol;
@@ -165,6 +166,9 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
         if let Some(ref svc_encrypted_password) = self.svc_encrypted_password {
             spec.svc_encrypted_password = Some(svc_encrypted_password.to_string());
         }
+        if let Some(ref interval) = self.health_check_interval {
+            spec.health_check_interval = Duration::from_secs(interval.seconds).into()
+        }
         spec.composite = None;
     }
 
@@ -284,6 +288,7 @@ pub struct ServiceSpec {
         serialize_with = "serialize_using_to_string"
     )]
     pub desired_state: DesiredState,
+    pub health_check_interval: HealthCheckInterval,
     pub svc_encrypted_password: Option<String>,
     // The name of the composite this service is a part of
     pub composite: Option<String>,
@@ -416,6 +421,7 @@ impl Default for ServiceSpec {
             binding_mode: BindingMode::Strict,
             config_from: None,
             desired_state: DesiredState::default(),
+            health_check_interval: HealthCheckInterval::default(),
             svc_encrypted_password: None,
             composite: None,
         }
@@ -601,7 +607,7 @@ mod test {
 
     use hcore::error::Error as HError;
     use hcore::package::PackageIdent;
-    use hcore::service::{ApplicationEnvironment, ServiceGroup};
+    use hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
     use tempfile::TempDir;
     use toml;
 
@@ -641,7 +647,9 @@ mod test {
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
             config_from = "/only/for/development"
 
-            extra_stuff = "should be ignored"
+            [health_check_interval]
+            secs = 5
+            nanos = 0
             "#;
         let spec = ServiceSpec::from_str(toml).unwrap();
 
@@ -667,6 +675,10 @@ mod test {
         assert_eq!(
             spec.config_from,
             Some(PathBuf::from("/only/for/development"))
+        );
+        assert_eq!(
+            spec.health_check_interval,
+            HealthCheckInterval::from_str("5").unwrap()
         );
     }
 
@@ -733,6 +745,7 @@ mod test {
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ],
             binding_mode: BindingMode::Relaxed,
+            health_check_interval: HealthCheckInterval::from_str("123").unwrap(),
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             svc_encrypted_password: None,
@@ -752,6 +765,9 @@ mod test {
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
         assert!(toml.contains(r#"binding_mode = "relaxed""#));
+        assert!(toml.contains(r#"[health_check_interval]"#));
+        assert!(toml.contains(r#"secs = 123"#));
+        assert!(toml.contains(r#"nanos = 0"#));
     }
 
     #[test]
@@ -783,7 +799,9 @@ mod test {
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
             config_from = "/only/for/development"
 
-            extra_stuff = "should be ignored"
+            [health_check_interval]
+            secs = 5
+            nanos = 0
             "#;
         file_from_str(&path, toml);
         let spec = ServiceSpec::from_file(path).unwrap();
@@ -818,6 +836,31 @@ mod test {
             BindingMode::Strict,
             "Strict is the default mode, if nothing was previously specified."
         );
+        assert_eq!(
+            spec.health_check_interval,
+            HealthCheckInterval::from_str("5").unwrap()
+        );
+    }
+
+    #[test]
+    fn service_spec_from_file_missing_healthcheck_interval() {
+        let tmpdir = TempDir::new().unwrap();
+        let path = tmpdir.path().join("name.spec");
+        let toml = r#"
+            ident = "origin/name/1.2.3/20170223130020"
+            group = "jobs"
+            application_environment = "theinternet.preprod"
+            bldr_url = "http://example.com/depot"
+            topology = "leader"
+            update_strategy = "rolling"
+            binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
+            config_from = "/only/for/development"
+            "#;
+
+        file_from_str(&path, toml);
+        let spec = ServiceSpec::from_file(path).unwrap();
+
+        assert_eq!(spec.health_check_interval, HealthCheckInterval::default());
     }
 
     #[test]
@@ -883,6 +926,7 @@ mod test {
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ],
             binding_mode: BindingMode::Relaxed,
+            health_check_interval: HealthCheckInterval::from_str("23").unwrap(),
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             svc_encrypted_password: None,
@@ -903,6 +947,9 @@ mod test {
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
         assert!(toml.contains(r#"binding_mode = "relaxed""#));
+        assert!(toml.contains(r#"[health_check_interval]"#));
+        assert!(toml.contains(r#"secs = 23"#));
+        assert!(toml.contains(r#"nanos = 0"#));
     }
 
     #[test]

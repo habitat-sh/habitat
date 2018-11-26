@@ -91,3 +91,6 @@ message ServiceStatus {
   optional DesiredState desired_state = 5;
 }
 
+message HealthCheckInterval {
+  required uint64 seconds = 1;
+}

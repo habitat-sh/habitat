@@ -90,6 +90,13 @@ pub struct ServiceStatus {
     #[prost(enumeration="DesiredState", optional, tag="5")]
     pub desired_state: ::std::option::Option<i32>,
 }
+#[derive(Clone, PartialEq, Message)]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct HealthCheckInterval {
+    #[prost(uint64, required, tag="1")]
+    pub seconds: u64,
+}
 /// Encapsulate all possible sources we can install packages from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
 #[derive(Serialize, Deserialize)]
