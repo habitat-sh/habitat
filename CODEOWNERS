@@ -5,14 +5,14 @@ components/builder* @chefsalim @raskchanky
 components/butterfly* @christophermaier @reset @baumanj @fnichol @raskchanky
 components/common @fnichol @baumanj @raskchanky
 components/eventsrv* @reset @raskchanky
-components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @elliott-davis @raskchanky @eeyun
+components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @raskchanky @eeyun
 components/launcher* @christophermaier @reset @baumanj @raskchanky
 components/pkg-* @fnichol @christophermaier @eeyun
-components/plan-build @fnichol @christophermaier @elliott-davis @scotthain
-components/rootless_studio @elliott-davis
-components/studio @fnichol @baumanj @elliott-davis @eeyun
+components/plan-build @fnichol @christophermaier @scotthain
+components/rootless_studio
+components/studio @fnichol @baumanj @eeyun
 components/sup* @christophermaier @reset @fnichol @baumanj @raskchanky
-support @fnichol @baumanj @elliott-davis @raskchanky
+support @fnichol @baumanj @raskchanky
 tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
 www @cnunciato @mgamini @raskchanky
 www/site/content @kagarmoe @mjingle
