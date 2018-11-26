@@ -245,11 +245,19 @@ impl Server {
                     }
                 };
 
+                if cert_chain.len() == 0 {
+                    tls_status = Some(ServerStartup::InvalidCertFile);
+                }
+
                 // If we have an invalid cert file, don't even bother checking the key file. The
                 // whole thing is going to error anyway.
                 if tls_status.is_none() {
                     if let Ok(mut keys) = rsa_private_keys(key_file) {
-                        config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+                        if keys.len() == 0 {
+                            tls_status = Some(ServerStartup::InvalidKeyFile);
+                        } else {
+                            config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+                        }
                     } else {
                         tls_status = Some(ServerStartup::InvalidKeyFile);
                     }
