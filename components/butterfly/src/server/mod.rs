@@ -874,29 +874,37 @@ impl Server {
     /// term for the election.
     pub fn start_election(&self, service_group: &str, term: u64) {
         let suitability = self.suitability_lookup.get(&service_group);
-        let mut e = Election::new(self.member_id(), service_group, suitability);
-        e.term = term;
-        let ek = RumorKey::from(&e);
-        if !self.check_quorum(e.key()) {
+        let has_quorum = self.check_quorum(service_group);
+        let e = Election::new(
+            self.member_id(),
+            service_group,
+            term,
+            suitability,
+            has_quorum,
+        );
+        if !has_quorum {
             warn!("start_election check_quorum failed: {:?}", e);
-            e.no_quorum();
         }
         debug!("start_election: {:?}", e);
+        self.rumor_heat.start_hot_rumor(RumorKey::from(&e));
         self.election_store.insert(e);
-        self.rumor_heat.start_hot_rumor(ek);
     }
 
     pub fn start_update_election(&self, service_group: &str, suitability: u64, term: u64) {
-        let mut e = ElectionUpdate::new(self.member_id(), service_group, suitability);
-        e.term = term;
-        let ek = RumorKey::from(&e);
-        if !self.check_quorum(e.key()) {
+        let has_quorum = self.check_quorum(service_group);
+        let e = ElectionUpdate::new(
+            self.member_id(),
+            service_group,
+            term,
+            suitability,
+            has_quorum,
+        );
+        if !has_quorum {
             warn!("start_election check_quorum failed: {:?}", e);
-            e.no_quorum();
         }
         debug!("start_update_election: {:?}", e);
+        self.rumor_heat.start_hot_rumor(RumorKey::from(&e));
         self.update_store.insert(e);
-        self.rumor_heat.start_hot_rumor(ek);
     }
 
     fn elections_to_restart<T>(&self, elections: &RumorStore<T>) -> Vec<(String, u64)>
@@ -1258,6 +1266,7 @@ impl<'a> Serialize for ServerProxy<'a> {
 mod tests {
     use super::*;
     use habitat_core::service::ServiceGroup;
+    use rumor::election::Term;
 
     fn get_mock_service(member_id: String, service_group: ServiceGroup) -> Service {
         Service {
@@ -1284,8 +1293,13 @@ mod tests {
         let check_quorum = |_: &str| true;
         let member_list = MemberList::new();
 
-        let mut election_with_unknown_leader =
-            Election::new(unknown_leader_member_id, &service_group, suitability);
+        let mut election_with_unknown_leader = Election::new(
+            unknown_leader_member_id,
+            &service_group,
+            Term::default(),
+            suitability,
+            true, // has_quorum
+        );
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 
@@ -1316,8 +1330,13 @@ mod tests {
         let check_quorum = |_: &str| true;
         let member_list = MemberList::new();
 
-        let mut election_with_unknown_leader =
-            Election::new(departed_leader.id.clone(), &service_group, suitability);
+        let mut election_with_unknown_leader = Election::new(
+            departed_leader.id.clone(),
+            &service_group,
+            Term::default(),
+            suitability,
+            true, // has_quorum
+        );
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 
