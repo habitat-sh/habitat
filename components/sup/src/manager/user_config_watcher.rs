@@ -378,7 +378,7 @@ mod tests {
 
     fn wait_for_events<T: Serviceable>(ucm: &UserConfigWatcher, service: &T) -> bool {
         let start = Instant::now();
-        let timeout = Duration::from_millis(WATCHER_DELAY_MS * 2);
+        let timeout = Duration::from_millis(WATCHER_DELAY_MS * 5);
 
         while start.elapsed() < timeout {
             if ucm.have_events_for(service) {
