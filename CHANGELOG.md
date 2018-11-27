@@ -13,6 +13,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Update version [#5880](https://github.com/habitat-sh/habitat/pull/5880) ([smacfarlane](https://github.com/smacfarlane))
 - Add 0.69.0 release post [#5877](https://github.com/habitat-sh/habitat/pull/5877) ([smacfarlane](https://github.com/smacfarlane))
 - Use env var at the clap level for ring and ring_key [#5846](https://github.com/habitat-sh/habitat/pull/5846) ([mpeck](https://github.com/mpeck))
 - Updates hook names in documentation [#5862](https://github.com/habitat-sh/habitat/pull/5862) ([rsertelon](https://github.com/rsertelon))
