@@ -63,6 +63,8 @@ write-host "TAG: $env:APPVEYOR_REPO_TAG_NAME"
 Write-Host "VERSION: $version"
 
 if(Test-DocsOnlyChanged -and !(Test-ReleaseBuild)) {
+    Write-Host "Test-ReleaseBuild: $(Test-ReleaseBuild)"
+    Write-Host "!Test-ReleaseBuild: $(!(Test-ReleaseBuild))"
     Write-Host "This is a DOCS only change. Exiting build."
 } elseif (($env:APPVEYOR_REPO_TAG_NAME -eq $version) -or (Test-SourceChanged) -or (test-path env:HAB_FORCE_TEST)) {
     if(Test-ReleaseBuild -and $env:hab_components -ne "launcher") {
