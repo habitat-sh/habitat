@@ -29,7 +29,7 @@ function Get-ChangedFiles {
         $lastMerge=(git log --merges --max-count=1 --skip=1 --pretty=format:%H)
     }
 
-    git diff master --name-only $lastMerge
+    git diff --name-only $lastMerge
 }
 
 function Test-SourceChanged {
