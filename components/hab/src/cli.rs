@@ -901,10 +901,10 @@ pub fn sub_sup_run() -> App<'static, 'static> {
             itself")
         (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
             group running a Habitat EventSrv to forward Supervisor and service event data to")
-        (@arg KEYFILE: --key +takes_value
+        (@arg KEYFILE: --key +takes_value {file_exists} requires[CERTFILE]
             "Read private key from KEYFILE.  This should be a RSA private key or PKCS8-encoded \
              private key, in PEM format. This is only for enabling TLS for the HTTP gateway.")
-        (@arg CERTFILE: --certs +takes_value
+        (@arg CERTFILE: --certs +takes_value {file_exists} requires[KEYFILE]
             "Read server certificates from CERTFILE. This should contain PEM-format certificates \
              in the right order (the first certificate should certify KEYFILE, the last should be a root CA). \
              This is only for enabling TLS for the HTTP gateway.")
@@ -1059,22 +1059,6 @@ fn sub_svc_load() -> App<'static, 'static> {
     )
 }
 
-fn file_exists(val: String) -> result::Result<(), String> {
-    if Path::new(&val).is_file() {
-        Ok(())
-    } else {
-        Err(format!("File: '{}' cannot be found", &val))
-    }
-}
-
-fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
-    if val == "-" {
-        Ok(())
-    } else {
-        file_exists(val)
-    }
-}
-
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
 fn valid_binding_mode(val: String) -> result::Result<(), String> {
@@ -1103,6 +1087,22 @@ fn dir_exists(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         Err(format!("Directory: '{}' cannot be found", &val))
+    }
+}
+
+fn file_exists(val: String) -> result::Result<(), String> {
+    if Path::new(&val).is_file() {
+        Ok(())
+    } else {
+        Err(format!("File: '{}' cannot be found", &val))
+    }
+}
+
+fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
+    if val == "-" {
+        Ok(())
+    } else {
+        file_exists(val)
     }
 }
 

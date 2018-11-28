@@ -226,31 +226,31 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         )?,
         ..Default::default()
     };
+
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
     }
+
     if let Some(addr_str) = m.value_of("LISTEN_CTL") {
         cfg.ctl_listen = SocketAddr::from_str(addr_str)?;
     }
+
     if let Some(watch_peer_file) = m.value_of("PEER_WATCH_FILE") {
         cfg.watch_peer_file = Some(String::from(watch_peer_file));
     }
+
     if let Some(events) = m.value_of("EVENTS") {
         cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
     }
 
-    if let Some(keyfile) = m.value_of("KEYFILE") {
-        let pb = PathBuf::from(keyfile);
-        if pb.exists() {
-            cfg.key_file = Some(pb);
-        }
-    }
+    let kf = m.value_of("KEYFILE");
+    let cf = m.value_of("CERTFILE");
 
-    if let Some(certfile) = m.value_of("CERTFILE") {
-        let pb = PathBuf::from(certfile);
-        if pb.exists() {
-            cfg.cert_file = Some(pb);
-        }
+    if kf.is_some() && cf.is_some() {
+        let kpb = PathBuf::from(kf.unwrap());
+        let cpb = PathBuf::from(cf.unwrap());
+
+        cfg.tls_files = Some((kpb, cpb));
     }
 
     Ok(cfg)

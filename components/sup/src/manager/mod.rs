@@ -143,8 +143,7 @@ pub struct ManagerConfig {
     pub ring_key: Option<SymKey>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
-    pub cert_file: Option<PathBuf>,
-    pub key_file: Option<PathBuf>,
+    pub tls_files: Option<(PathBuf, PathBuf)>,
 }
 
 impl ManagerConfig {
@@ -170,8 +169,7 @@ impl Default for ManagerConfig {
             ring_key: None,
             organization: None,
             watch_peer_file: None,
-            cert_file: None,
-            key_file: None,
+            tls_files: None,
         }
     }
 }
@@ -725,8 +723,7 @@ impl Manager {
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(
                 http_listen_addr.clone(),
-                self.state.cfg.cert_file.clone(),
-                self.state.cfg.key_file.clone(),
+                self.state.cfg.tls_files.clone(),
                 self.state.gateway_state.clone(),
                 pair.clone(),
             );
@@ -760,13 +757,13 @@ impl Manager {
                         return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
                     }
                     http_gateway::ServerStartup::Started => break,
-                    http_gateway::ServerStartup::InvalidCertFile => {
-                        let c = self.state.cfg.cert_file.clone();
-                        return Err(sup_error!(Error::InvalidCertsFile(c.unwrap())));
-                    }
                     http_gateway::ServerStartup::InvalidKeyFile => {
-                        let k = self.state.cfg.key_file.clone();
-                        return Err(sup_error!(Error::InvalidKeyFile(k.unwrap())));
+                        let k = self.state.cfg.tls_files.clone();
+                        return Err(sup_error!(Error::InvalidKeyFile(k.unwrap().0)));
+                    }
+                    http_gateway::ServerStartup::InvalidCertFile => {
+                        let c = self.state.cfg.tls_files.clone();
+                        return Err(sup_error!(Error::InvalidCertsFile(c.unwrap().1)));
                     }
                 }
             }

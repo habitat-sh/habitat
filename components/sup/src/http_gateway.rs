@@ -206,8 +206,7 @@ pub struct Server;
 impl Server {
     pub fn run(
         listen_addr: ListenAddr,
-        cert_file: Option<path::PathBuf>,
-        key_file: Option<path::PathBuf>,
+        tls_files: Option<(path::PathBuf, path::PathBuf)>,
         gateway_state: Arc<RwLock<manager::GatewayState>>,
         control: Arc<(Mutex<ServerStartup>, Condvar)>,
     ) {
@@ -232,14 +231,15 @@ impl Server {
             let mut tls_status: Option<ServerStartup> = None;
             let bind;
 
-            if cert_file.is_some() && key_file.is_some() {
+            if tls_files.is_some() {
                 let mut config = ServerConfig::new(NoClientAuth::new());
+                let (key_file, cert_file) = tls_files.unwrap();
 
                 // The multiple unwraps here are safe because we've already verified that cert_file
                 // and key_file are both Some() and that they point to a file that exists on disk
                 // (otherwise they'd be None)
-                let cert_file = &mut BufReader::new(File::open(cert_file.unwrap()).unwrap());
-                let key_file = &mut BufReader::new(File::open(key_file.unwrap()).unwrap());
+                let key_file = &mut BufReader::new(File::open(key_file).unwrap());
+                let cert_file = &mut BufReader::new(File::open(cert_file).unwrap());
 
                 let cert_chain = match certs(cert_file) {
                     Ok(c) => c,
