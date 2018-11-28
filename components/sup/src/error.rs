@@ -170,7 +170,8 @@ pub enum Error {
     ServiceSpecParse(toml::de::Error),
     ServiceSpecRender(toml::ser::Error),
     SignalFailed,
-    SpecWatcherDirNotFound(String),
+    SpecWatcherNotCreated,
+    SpecDirNotFound(String),
     SpecWatcherGlob(glob::PatternError),
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
@@ -335,7 +336,8 @@ impl fmt::Display for SupError {
                 format!("Service spec could not be rendered successfully: {}", err)
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
-            Error::SpecWatcherDirNotFound(ref path) => format!(
+            Error::SpecWatcherNotCreated => format!("Failed to create a SpecWatcher"),
+            Error::SpecDirNotFound(ref path) => format!(
                 "Spec directory '{}' not created or is not a directory",
                 path
             ),
@@ -442,7 +444,8 @@ impl error::Error for SupError {
             Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
             Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
             Error::SignalFailed => "Failed to send a signal to the child process",
-            Error::SpecWatcherDirNotFound(_) => "Spec directory not created or is not a directory",
+            Error::SpecWatcherNotCreated => "Failed to create a SpecWatcher",
+            Error::SpecDirNotFound(_) => "Spec directory not created or is not a directory",
             Error::SpecWatcherGlob(_) => "Spec watcher file globbing error",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",

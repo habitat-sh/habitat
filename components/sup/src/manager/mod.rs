@@ -21,6 +21,7 @@ mod peer_watcher;
 mod periodic;
 mod self_updater;
 mod service_updater;
+mod spec_dir;
 mod spec_watcher;
 mod sys;
 mod user_config_watcher;
@@ -76,7 +77,9 @@ pub use self::service::{
     Topology, UpdateStrategy,
 };
 use self::service_updater::ServiceUpdater;
-use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
+use self::spec_dir::SpecDir;
+use self::spec_watcher::SpecWatcher;
+
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
@@ -94,6 +97,19 @@ const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
+
+/// Captures the different operations that can be performed on a
+/// service.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ServiceOperation {
+    /// Start the indicated service.
+    Start(ServiceSpec),
+    /// Stop the indicated service.
+    Stop(ServiceSpec),
+    /// Stop a service that is currently running, and start it again
+    /// with a different spec.
+    Restart(ServiceSpec, ServiceSpec),
+}
 
 /// FileSystem paths that the Manager uses to persist data to disk.
 ///
@@ -224,6 +240,7 @@ pub struct Manager {
     peer_watcher: Option<PeerWatcher>,
     spec_watcher: SpecWatcher,
     user_config_watcher: UserConfigWatcher,
+    spec_dir: SpecDir,
     organization: Option<String>,
     self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
@@ -323,39 +340,6 @@ impl Manager {
         }
     }
 
-    /// Read all spec files and rewrite them to disk migrating their format from a previous
-    /// Supervisor's to the one currently running.
-    fn migrate_specs(fs_cfg: &FsCfg) {
-        // JW: In the future we should write spec files to the Supervisor's DAT file in a more
-        // appropriate machine readable format. We'll need to wait until we modify how we load and
-        // unload services, though. Right now we watch files on disk and communicate with the
-        // Supervisor asynchronously. We need to move to communicating directly with the
-        // Supervisor's main loop through IPC.
-        match SpecWatcher::spec_files(&fs_cfg.specs_path) {
-            Ok(specs) => for spec_file in specs {
-                match ServiceSpec::from_file(&spec_file) {
-                    Ok(spec) => {
-                        if let Err(err) = spec.to_file(&spec_file) {
-                            outputln!(
-                                "Unable to migrate service spec, {}, {}",
-                                spec_file.display(),
-                                err
-                            );
-                        }
-                    }
-                    Err(err) => {
-                        outputln!(
-                            "Unable to migrate service spec, {}, {}",
-                            spec_file.display(),
-                            err
-                        );
-                    }
-                }
-            },
-            Err(err) => outputln!("Unable to migrate service specs, {}", err),
-        }
-    }
-
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
@@ -406,12 +390,18 @@ impl Manager {
             peer.gossip_port = peer_addr.port();
             server.member_list.add_initial_member(peer);
         }
-        Self::migrate_specs(&fs_cfg);
+
         let peer_watcher = if let Some(path) = cfg.watch_peer_file {
             Some(PeerWatcher::run(path)?)
         } else {
             None
         };
+
+        let spec_dir = SpecDir::new(&fs_cfg.specs_path)?;
+        spec_dir.migrate_specs();
+
+        let spec_watcher = SpecWatcher::run(&spec_dir)?;
+
         Ok(Manager {
             state: Arc::new(ManagerState {
                 cfg: cfg_static,
@@ -425,8 +415,9 @@ impl Manager {
             events_group: cfg.eventsrv_group,
             launcher: launcher,
             peer_watcher: peer_watcher,
-            spec_watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
+            spec_watcher: spec_watcher,
             user_config_watcher: UserConfigWatcher::new(),
+            spec_dir: spec_dir,
             fs_cfg: Arc::new(fs_cfg),
             organization: cfg.organization,
             service_states: HashMap::new(),
@@ -694,7 +685,8 @@ impl Manager {
         if let Some(svc_load) = svc {
             Self::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
         }
-        self.start_initial_services_from_spec_watcher()?;
+        // This serves to start up any services that need starting
+        self.take_action_on_services()?;
 
         outputln!(
             "Starting gossip-listener on {}",
@@ -832,7 +824,11 @@ impl Manager {
                 self.shutdown(ShutdownReason::PkgUpdating);
                 return Ok(());
             }
-            self.update_running_services_from_spec_watcher()?;
+
+            if self.spec_watcher.has_events() {
+                self.take_action_on_services()?;
+            }
+
             self.update_peers_from_watch_file()?;
             self.update_running_services_from_user_config_watcher();
             self.check_for_updated_packages();
@@ -1492,10 +1488,10 @@ impl Manager {
         }
 
         for loaded in self
-            .spec_watcher
-            .specs_from_watch_path()
+            .spec_dir
+            .specs()
             .unwrap()
-            .values()
+            .iter()
             .filter(|s| !active_services.contains(&s.ident))
         {
             service_states.insert(loaded.ident.clone(), Timespec::new(0, 0));
@@ -1557,10 +1553,10 @@ impl Manager {
         // These would include stopped persistent services or other
         // persistent services that failed to load
         let watched_services: Vec<Service> = self
-            .spec_watcher
-            .specs_from_watch_path()
+            .spec_dir
+            .specs()
             .unwrap()
-            .values()
+            .iter()
             .filter(|spec| !existing_idents.contains(&spec.ident))
             .flat_map(|spec| {
                 Service::load(
@@ -1686,46 +1682,108 @@ impl Manager {
         self.butterfly.persist_data();
     }
 
-    fn start_initial_services_from_spec_watcher(&mut self) -> Result<()> {
-        for service_event in self.spec_watcher.initial_events()? {
-            match service_event {
-                SpecWatcherEvent::AddService(spec) => {
-                    if spec.desired_state == DesiredState::Up {
-                        // JW TODO: Should we retry starting services which we failed to add?
-                        self.add_service(spec);
-                    }
+    /// Start, stop, or restart services to bring what's running in
+    /// line with what our spec files say.
+    fn take_action_on_services(&mut self) -> Result<()> {
+        for op in self.reconcile_spec_files()? {
+            match op {
+                ServiceOperation::Stop(spec) => {
+                    self.remove_service_for_spec(&spec)?;
                 }
-                _ => warn!("Skipping unexpected watcher event: {:?}", service_event),
+                ServiceOperation::Start(spec) => {
+                    self.add_service(spec);
+                }
+                ServiceOperation::Restart(running, desired) => {
+                    self.remove_service_for_spec(&running)?;
+                    self.add_service(desired);
+                }
             }
         }
         Ok(())
     }
 
-    fn update_running_services_from_spec_watcher(&mut self) -> Result<()> {
-        let mut active_specs = HashMap::new();
-        for service in self
+    /// Determine what services we need to start, stop, or restart in
+    /// order to be running what our on-disk spec files tell us we
+    /// should be running.
+    ///
+    /// See `specs_to_operations` for the real logic.
+    fn reconcile_spec_files(&mut self) -> Result<Vec<ServiceOperation>> {
+        let services = self
             .state
             .services
             .read()
-            .expect("Services lock is poisoned!")
-            .values()
-        {
-            let spec = service.to_spec();
-            active_specs.insert(spec.ident.name.clone(), spec);
-        }
+            .expect("Services lock is poisoned");
+        let currently_running_specs = services.values().map(|s| s.to_spec());
+        let on_disk_specs = self.spec_dir.specs()?;
+        Ok(Self::specs_to_operations(
+            currently_running_specs,
+            on_disk_specs,
+        ))
+    }
 
-        for service_event in self.spec_watcher.new_events(active_specs)? {
-            match service_event {
-                SpecWatcherEvent::AddService(spec) => {
-                    if spec.desired_state == DesiredState::Up {
-                        self.add_service(spec);
+    /// Pure utility function to generate a list of operations to
+    /// perform to bring what's currently running with what _should_ be
+    /// running, based on the current on-disk spec files.
+    fn specs_to_operations<C, D>(
+        currently_running_specs: C,
+        on_disk_specs: D,
+    ) -> Vec<ServiceOperation>
+    where
+        C: IntoIterator<Item = ServiceSpec>,
+        D: IntoIterator<Item = ServiceSpec>,
+    {
+        let mut running_specs = currently_running_specs
+            .into_iter()
+            .map(|s| (s.ident.clone(), s))
+            .collect::<HashMap<_, _>>();
+        let disk_specs = on_disk_specs
+            .into_iter()
+            .map(|s| (s.ident.clone(), s))
+            .collect::<HashMap<_, _>>();
+
+        let mut operations = vec![];
+
+        for (ident, disk_spec) in disk_specs.into_iter() {
+            match disk_spec.desired_state {
+                DesiredState::Up => {
+                    if let Some(running_spec) = running_specs.remove(&ident) {
+                        if running_spec != disk_spec {
+                            // TODO (CM): In the future, this
+                            // would be the place where we can
+                            // evaluate what has changed between
+                            // the spec-on-disk and our in-memory
+                            // representation and potentially just
+                            // bring our in-memory representation
+                            // in line without having to restart
+                            // the entire service.
+                            debug!("Reconciliation: '{}' queued for restart", ident);
+                            operations.push(ServiceOperation::Restart(running_spec, disk_spec));
+                        } else {
+                            debug!("Reconciliation: '{}' unchanged", ident);
+                        }
+                    } else {
+                        debug!("Reconciliation: '{}' queued for start", ident);
+                        operations.push(ServiceOperation::Start(disk_spec));
                     }
                 }
-                SpecWatcherEvent::RemoveService(spec) => self.remove_service_for_spec(&spec)?,
+                DesiredState::Down => {
+                    if let Some(running_spec) = running_specs.remove(&ident) {
+                        debug!("Reconciliation: '{}' queued for stop", ident);
+                        operations.push(ServiceOperation::Stop(running_spec));
+                    } else {
+                        debug!("Reconciliation: '{}' should be down, and is", ident);
+                    }
+                }
             }
         }
+        // Anything left is something not present in our on-disk
+        // specs, so we should shut them all down
+        for (ident, running_spec) in running_specs.into_iter() {
+            debug!("Reconciliation: '{}' queued for shutdown", ident);
+            operations.push(ServiceOperation::Stop(running_spec));
+        }
 
-        Ok(())
+        operations
     }
 
     fn update_peers_from_watch_file(&mut self) -> Result<()> {
@@ -2200,4 +2258,195 @@ mod test {
 
     }
 
+    mod specs_to_operations {
+        //! Testing out the reconciliation of on-disk spec files with
+        //! what is currently running.
+
+        use super::super::*;
+
+        /// Helper function for generating a basic spec from an
+        /// identifier string
+        fn new_spec(ident: &str) -> ServiceSpec {
+            ServiceSpec::default_for(
+                PackageIdent::from_str(ident).expect("couldn't parse ident str"),
+            )
+        }
+
+        #[test]
+        fn no_specs_yield_no_changes() {
+            assert!(Manager::specs_to_operations(vec![], vec![]).is_empty());
+        }
+
+        /// If all the currently running services match all the
+        /// current specs, we shouldn't have anything to change.
+        #[test]
+        fn identical_specs_yield_no_changes() {
+            let specs = vec![new_spec("core/foo"), new_spec("core/bar")];
+            assert!(Manager::specs_to_operations(specs.clone(), specs.clone()).is_empty());
+        }
+
+        #[test]
+        fn missing_spec_on_disk_means_stop() {
+            let running = vec![new_spec("core/foo")];
+            let on_disk = vec![];
+
+            let operations = Manager::specs_to_operations(running, on_disk);
+            assert_eq!(operations.len(), 1);
+            assert_eq!(operations[0], ServiceOperation::Stop(new_spec("core/foo")));
+        }
+
+        #[test]
+        fn missing_active_spec_means_start() {
+            let running = vec![];
+            let on_disk = vec![new_spec("core/foo")];
+
+            let operations = Manager::specs_to_operations(running, on_disk);
+            assert_eq!(operations.len(), 1);
+            assert_eq!(operations[0], ServiceOperation::Start(new_spec("core/foo")));
+        }
+
+        #[test]
+        fn down_spec_on_disk_means_stop_running_service() {
+            let spec = new_spec("core/foo");
+
+            let running = vec![spec.clone()];
+
+            let down_spec = {
+                let mut s = spec.clone();
+                s.desired_state = DesiredState::Down;
+                s
+            };
+
+            let on_disk = vec![down_spec];
+
+            let operations = Manager::specs_to_operations(running, on_disk);
+            assert_eq!(operations.len(), 1);
+            assert_eq!(operations[0], ServiceOperation::Stop(spec));
+        }
+
+        #[test]
+        fn down_spec_on_disk_with_no_running_service_yields_no_changes() {
+            let running = vec![];
+            let down_spec = {
+                let mut s = new_spec("core/foo");
+                s.desired_state = DesiredState::Down;
+                s
+            };
+            let on_disk = vec![down_spec];
+
+            let operations = Manager::specs_to_operations(running, on_disk);
+            assert!(operations.is_empty());
+        }
+
+        #[test]
+        fn modified_spec_on_disk_means_restart() {
+            let running_spec = new_spec("core/foo");
+
+            let on_disk_spec = {
+                let mut s = running_spec.clone();
+                s.update_strategy = UpdateStrategy::AtOnce;
+                s
+            };
+            assert_ne!(running_spec.update_strategy, on_disk_spec.update_strategy);
+
+            let running = vec![running_spec];
+            let on_disk = vec![on_disk_spec];
+
+            let operations = Manager::specs_to_operations(running, on_disk);
+            assert_eq!(operations.len(), 1);
+
+            match operations[0] {
+                ServiceOperation::Restart(ref old, ref new) => {
+                    assert_eq!(old.ident, new.ident);
+                    assert_eq!(old.update_strategy, UpdateStrategy::None);
+                    assert_eq!(new.update_strategy, UpdateStrategy::AtOnce);
+                }
+                ref other => {
+                    panic!("Should have been a restart operation: got {:?}", other);
+                }
+            }
+        }
+
+        #[test]
+        fn multiple_operations_can_be_determined_at_once() {
+            // Nothing should happen with this; it's already how it
+            // needs to be.
+            let svc_1_running = new_spec("core/foo");
+            let svc_1_on_disk = svc_1_running.clone();
+
+            // Should get shut down.
+            let svc_2_running = new_spec("core/bar");
+            let svc_2_on_disk = {
+                let mut s = svc_2_running.clone();
+                s.desired_state = DesiredState::Down;
+                s
+            };
+
+            // Should get restarted.
+            let svc_3_running = new_spec("core/baz");
+            let svc_3_on_disk = {
+                let mut s = svc_3_running.clone();
+                s.update_strategy = UpdateStrategy::AtOnce;
+                s
+            };
+
+            // Nothing should happen with this; it's already down.
+            let svc_4_on_disk = {
+                let mut s = new_spec("core/quux");
+                s.desired_state = DesiredState::Down;
+                s
+            };
+
+            // This should get started
+            let svc_5_on_disk = new_spec("core/wat");
+
+            // This should get shut down
+            let svc_6_running = new_spec("core/lolwut");
+
+            let running = vec![
+                svc_1_running.clone(),
+                svc_2_running.clone(),
+                svc_3_running.clone(),
+                svc_6_running.clone(),
+            ];
+
+            let on_disk = vec![
+                svc_1_on_disk.clone(),
+                svc_2_on_disk.clone(),
+                svc_3_on_disk.clone(),
+                svc_4_on_disk.clone(),
+                svc_5_on_disk.clone(),
+            ];
+
+            let operations = Manager::specs_to_operations(running, on_disk);
+
+            let expected_operations = vec![
+                ServiceOperation::Stop(svc_2_running.clone()),
+                ServiceOperation::Restart(svc_3_running.clone(), svc_3_on_disk.clone()),
+                ServiceOperation::Start(svc_5_on_disk.clone()),
+                ServiceOperation::Stop(svc_6_running.clone()),
+            ];
+
+            // Ideally, we'd just sort `operations` and
+            // `expected_operations`, but we can't, since that would
+            // mean we'd need a total ordering on `PackageIdent`,
+            // which we can't do, since identifiers of different
+            // packages (say, `core/foo` and `core/bar`) are not
+            // comparable.
+            //
+            // Instead, we'll just do the verification one at a time.
+            assert_eq!(
+                operations.len(),
+                expected_operations.len(),
+                "Didn't generate the expected number of operations"
+            );
+            for op in expected_operations {
+                assert!(
+                    operations.contains(&op),
+                    "Should have expected operation: {:?}",
+                    op
+                );
+            }
+        }
+    }
 }
