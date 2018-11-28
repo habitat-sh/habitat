@@ -134,6 +134,7 @@ pub enum Error {
     InvalidBinds(Vec<String>),
     InvalidKeyParameter(String),
     InvalidPidFile,
+    InvalidTokioThreadCount,
     InvalidTopology(String),
     InvalidUpdateStrategy(String),
     Io(io::Error),
@@ -257,6 +258,9 @@ impl fmt::Display for SupError {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
             Error::InvalidPidFile => format!("Invalid child process PID file"),
+            Error::InvalidTokioThreadCount => {
+                format!("Tokio thread count should be a positive integer")
+            }
             Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => format!("{}", err),
@@ -388,6 +392,7 @@ impl error::Error for SupError {
             }
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
+            Error::InvalidTokioThreadCount => "Invalid Tokio thread count",
             Error::InvalidTopology(_) => "Invalid topology",
             Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
             Error::Io(ref err) => err.description(),

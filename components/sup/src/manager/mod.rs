@@ -34,11 +34,13 @@ use std::mem;
 use std::net::SocketAddr;
 use std::ops::DerefMut;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use std::result;
 use std::str::FromStr;
 use std::sync::{Arc, Condvar, Mutex, RwLock};
+use std::thread;
 use std::time::Duration;
+
+use num_cpus;
 
 use butterfly;
 use butterfly::member::Member;
@@ -46,6 +48,7 @@ use butterfly::server::{timing::Timing, ServerProxy, Suitability};
 use butterfly::trace::Trace;
 use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
+use config::EnvConfig;
 use futures::prelude::*;
 use futures::sync::mpsc;
 use hcore::crypto::SymKey;
@@ -62,7 +65,7 @@ use protocol::net::{self, ErrCode, NetResult};
 use serde;
 use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
-use tokio_core::reactor;
+use tokio::{executor, runtime};
 use toml;
 
 use self::peer_watcher::PeerWatcher;
@@ -189,7 +192,7 @@ pub struct GatewayState {
 }
 
 pub struct Manager {
-    pub state: Rc<ManagerState>,
+    pub state: Arc<ManagerState>,
     butterfly: butterfly::Server,
     census_ring: CensusRing,
     events_group: Option<ServiceGroup>,
@@ -384,7 +387,7 @@ impl Manager {
             None
         };
         Ok(Manager {
-            state: Rc::new(ManagerState {
+            state: Arc::new(ManagerState {
                 cfg: cfg_static,
                 services: services,
                 gateway_state: gateway_state,
@@ -648,14 +651,20 @@ impl Manager {
     }
 
     pub fn run(mut self, svc: Option<protocol::ctl::SvcLoad>) -> Result<()> {
-        let mut core = reactor::Core::new().expect("Couldn't start main reactor");
-        let handle = core.handle();
+        let mut runtime = runtime::Builder::new()
+            .name_prefix("tokio-")
+            .core_threads(TokioThreadCount::configured_value().into())
+            .build()
+            .expect("Couldn't build Tokio Runtime!");
+
         let (ctl_tx, ctl_rx) = mpsc::unbounded();
         let ctl_handler = CtlAcceptor::new(self.state.clone(), ctl_rx).for_each(move |handler| {
-            handle.spawn(handler);
+            executor::spawn(handler);
             Ok(())
         });
-        core.handle().spawn(ctl_handler);
+
+        runtime.spawn(ctl_handler);
+
         if let Some(svc_load) = svc {
             Self::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
         }
@@ -838,8 +847,14 @@ impl Manager {
                     self.gossip_latest_service_rumor(&service);
                 }
             }
-            let time_to_wait = ((next_check - time::get_time()).num_milliseconds()).max(100);
-            core.turn(Some(Duration::from_millis(time_to_wait as u64)));
+
+            // This is really only needed until everything is running
+            // in futures.
+            let now = time::get_time();
+            if now < next_check {
+                let time_to_wait = next_check - now;
+                thread::sleep(time_to_wait.to_std().unwrap());
+            }
         }
     }
 
@@ -1726,6 +1741,42 @@ impl Manager {
     }
 }
 
+/// Represents how many threads to start for our main Tokio runtime
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+struct TokioThreadCount(usize);
+
+impl Default for TokioThreadCount {
+    fn default() -> Self {
+        // This is the same internal logic used in Tokio itself.
+        // https://docs.rs/tokio/0.1.12/src/tokio/runtime/builder.rs.html#68
+        TokioThreadCount(num_cpus::get().max(1))
+    }
+}
+
+impl FromStr for TokioThreadCount {
+    type Err = Error;
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        let raw = s
+            .parse::<usize>()
+            .map_err(|_| Error::InvalidTokioThreadCount)?;
+        if raw > 0 {
+            Ok(TokioThreadCount(raw))
+        } else {
+            Err(Error::InvalidTokioThreadCount)
+        }
+    }
+}
+
+impl EnvConfig for TokioThreadCount {
+    const ENVVAR: &'static str = "HAB_TOKIO_THREAD_COUNT";
+}
+
+impl Into<usize> for TokioThreadCount {
+    fn into(self) -> usize {
+        self.0
+    }
+}
+
 #[derive(Deserialize)]
 pub struct ProcessStatus {
     #[serde(
@@ -1901,11 +1952,11 @@ where
 
 struct CtlAcceptor {
     rx: ctl_gateway::server::MgrReceiver,
-    state: Rc<ManagerState>,
+    state: Arc<ManagerState>,
 }
 
 impl CtlAcceptor {
-    fn new(state: Rc<ManagerState>, rx: ctl_gateway::server::MgrReceiver) -> Self {
+    fn new(state: Arc<ManagerState>, rx: ctl_gateway::server::MgrReceiver) -> Self {
         CtlAcceptor {
             state: state,
             rx: rx,
@@ -1935,11 +1986,11 @@ impl Stream for CtlAcceptor {
 
 struct CtlHandler {
     cmd: ctl_gateway::server::CtlCommand,
-    state: Rc<ManagerState>,
+    state: Arc<ManagerState>,
 }
 
 impl CtlHandler {
-    fn new(cmd: ctl_gateway::server::CtlCommand, state: Rc<ManagerState>) -> Self {
+    fn new(cmd: ctl_gateway::server::CtlCommand, state: Arc<ManagerState>) -> Self {
         CtlHandler {
             cmd: cmd,
             state: state,
@@ -2021,11 +2072,9 @@ impl From<SpecDesiredState> for i32 {
 
 #[cfg(test)]
 mod test {
-    use std::path::PathBuf;
-
+    use super::*;
     use protocol::STATE_PATH_PREFIX;
-
-    use super::ManagerConfig;
+    use std::path::PathBuf;
 
     #[test]
     fn manager_state_path_default() {
@@ -2055,4 +2104,36 @@ mod test {
 
         assert_eq!(PathBuf::from("/tmp/partay"), path);
     }
+
+    mod tokio_thread_count {
+        use super::*;
+
+        locked_env_var!(HAB_TOKIO_THREAD_COUNT, lock_thread_count);
+
+        #[test]
+        fn default_is_number_of_cpus() {
+            let tc = lock_thread_count();
+            tc.unset();
+
+            assert_eq!(TokioThreadCount::configured_value().0, num_cpus::get());
+        }
+
+        #[test]
+        fn can_be_overridden_by_env_var() {
+            let tc = lock_thread_count();
+            tc.set("128");
+            assert_eq!(TokioThreadCount::configured_value().0, 128);
+        }
+
+        #[test]
+        fn cannot_be_overridden_to_zero() {
+            let tc = lock_thread_count();
+            tc.set("0");
+
+            assert_ne!(TokioThreadCount::configured_value().0, 0);
+            assert_eq!(TokioThreadCount::configured_value().0, num_cpus::get());
+        }
+
+    }
+
 }
