@@ -13,6 +13,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- revert change windows docker studio creation assigning shortVersion [#5878](https://github.com/habitat-sh/habitat/pull/5878) ([mwrock](https://github.com/mwrock))
 - Update to modern Tokio usage in Supervisor [#5851](https://github.com/habitat-sh/habitat/pull/5851) ([christophermaier](https://github.com/christophermaier))
 - A sad goodbye [#5873](https://github.com/habitat-sh/habitat/pull/5873) ([elliott-davis](https://github.com/elliott-davis))
 - Update version [#5880](https://github.com/habitat-sh/habitat/pull/5880) ([smacfarlane](https://github.com/smacfarlane))
