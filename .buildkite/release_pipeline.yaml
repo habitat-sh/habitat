@@ -159,6 +159,14 @@ steps:
 
   - wait
 
+  - label: ":linux: :two: core/hab-launcher"
+    command: .buildkite/scripts/build_component.sh launcher
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+  
+  - wait
   # Exporters
 
   # TODO: Create an ACI emoji
@@ -280,16 +288,6 @@ steps:
       to Builder and Bintray. Please ensure those artifacts have been
       uploaded before continuing with the release.
   
-  - block: ":dango: :linux: :two: Build x86_64-linux-kernel2 Launcher"
-    prompt: |
-      x86_64-linux-kernel2 launcher will need to be built by hand.  If 
-      you are promoting launchers in the following step, please build 
-      and upload and x86_64-linux-kernel2 launcher before continuing.
-      Instructions for building an x86_64-linux-kernel2 launcher can be
-      found in the launcher README.
-      
-      https://github.com/habitat-sh/habitat/tree/master/components/launcher#building-an-x86_64-linux-kernel2-release
-
   - block: ":thumbsup: Select Launcher Versions to Promote to Release Channel"
     prompt: |
       Which `core/hab-launcher` versions should be in the release

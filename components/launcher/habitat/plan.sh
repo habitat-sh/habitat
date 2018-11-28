@@ -25,6 +25,10 @@ do_prepare() {
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
   export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
+  
+  # Used to set the active package target for the binaries at build time
+  export PLAN_PACKAGE_TARGET="$pkg_target"
+  build_line "Setting PLAN_PACKAGE_TARGET=$PLAN_PACKAGE_TARGET"
 }
 
 do_build() {
