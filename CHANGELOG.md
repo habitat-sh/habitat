@@ -13,6 +13,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- update docs to specify 64-bit as a requirement for windows [#5883](https://github.com/habitat-sh/habitat/pull/5883) ([ericcalabretta](https://github.com/ericcalabretta))
 - Update Cargo.lock [#5885](https://github.com/habitat-sh/habitat/pull/5885) ([smacfarlane](https://github.com/smacfarlane))
 - revert change windows docker studio creation assigning shortVersion [#5878](https://github.com/habitat-sh/habitat/pull/5878) ([mwrock](https://github.com/mwrock))
 - Update to modern Tokio usage in Supervisor [#5851](https://github.com/habitat-sh/habitat/pull/5851) ([christophermaier](https://github.com/christophermaier))
