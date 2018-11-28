@@ -55,7 +55,7 @@ try {
     
     $pathParts = $studioPath.Replace("\", "/").Split("/")
     $ident = [String]::Join("/", $pathParts[-4..-1])
-    $shortVersion = "${pathParts[-2]}"
+    $shortVersion = $pathParts[-2]
     $version = "$($pathParts[-2])-$($pathParts[-1])"
     
 @"
