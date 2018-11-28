@@ -69,7 +69,6 @@ The web application for the Habitat builder and depot.
 
 #### Maintainers
 
-* [Elliott Davis](https://github.com/elliott-davis)
 * [Fletcher Nichol](https://github.com/fnichol)
 * [Jamie Winsor](https://github.com/reset)
 * [Matt Wrock](https://github.com/mwrock)
