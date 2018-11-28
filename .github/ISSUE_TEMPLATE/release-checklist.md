@@ -18,6 +18,7 @@ Here are all the steps for the release process. Create a new issue at the beginn
 - [ ] [Buildkite](https://buildkite.com/chef/habitat-sh-habitat-master-release) run success
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [darwin binaries](https://bintray.com/habitat/stable/hab-x86_64-darwin)
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [linux binaries](https://bintray.com/habitat/stable/hab-x86_64-linux)
+- [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [linux-kernel2 binaries](https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2)
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [windows binaries](https://bintray.com/habitat/stable/hab-x86_64-windows)
 - [ ] Declare merge thaw and update slack status
 - [ ] Merge blog announcement PR
