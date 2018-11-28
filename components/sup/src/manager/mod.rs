@@ -48,7 +48,6 @@ use butterfly::server::{timing::Timing, ServerProxy, Suitability};
 use butterfly::trace::Trace;
 use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
-use config::EnvConfig;
 use futures::prelude::*;
 use futures::sync::mpsc;
 use hcore::crypto::SymKey;

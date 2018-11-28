@@ -31,6 +31,7 @@ use actix_web::{
     pred::Predicate,
     server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
+use constant_time_eq::constant_time_eq;
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
 use rustls::internal::pemfile::{certs, rsa_private_keys};
@@ -180,7 +181,10 @@ impl Middleware<AppState> for Authentication {
 
         let incoming_token = hdr_components[1];
 
-        if current_token.as_ref().unwrap() != incoming_token {
+        if !constant_time_eq(
+            current_token.as_ref().unwrap().as_bytes(),
+            incoming_token.as_bytes(),
+        ) {
             return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
         }
 
