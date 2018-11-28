@@ -243,8 +243,8 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
     }
 
-    let kf = m.value_of("KEYFILE");
-    let cf = m.value_of("CERTFILE");
+    let kf = m.value_of("KEY_FILE");
+    let cf = m.value_of("CERT_FILE");
 
     if kf.is_some() && cf.is_some() {
         let kpb = PathBuf::from(kf.unwrap());
