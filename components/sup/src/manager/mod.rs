@@ -1688,13 +1688,13 @@ impl Manager {
         for op in self.reconcile_spec_files()? {
             match op {
                 ServiceOperation::Stop(spec) => {
-                    self.remove_service_for_spec(&spec)?;
+                    self.remove_service_for_spec(&spec);
                 }
                 ServiceOperation::Start(spec) => {
                     self.add_service(spec);
                 }
                 ServiceOperation::Restart(running, desired) => {
-                    self.remove_service_for_spec(&running)?;
+                    self.remove_service_for_spec(&running);
                     self.add_service(desired);
                 }
             }
@@ -1816,7 +1816,7 @@ impl Manager {
         }
     }
 
-    fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
+    fn remove_service_for_spec(&mut self, spec: &ServiceSpec) {
         let svc = self
             .state
             .services
@@ -1834,7 +1834,6 @@ impl Manager {
                 );
             }
         }
-        Ok(())
     }
 }
 
