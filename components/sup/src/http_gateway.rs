@@ -175,17 +175,17 @@ impl Middleware<AppState> for Authentication {
         // anything short of a fully formed Authorization header containing a Bearer token that
         // matches the value we have in our state, results in an Unauthorized response.
 
-        let hdr = match req.headers().get(http::header::AUTHORIZATION) {
-            Some(hdr) => {
-                match hdr.to_str() {
-                    Ok(h) => h,
-                    Err(e) => {
-                        debug!("Authorization headers can only contain printable ASCII characters. {:?}.", e);
-                        return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
-                    }
-                }
+        let hdr = match req
+            .headers()
+            .get(http::header::AUTHORIZATION)
+            .ok_or("header missing")
+            .and_then(|hv| hv.to_str().or(Err("can't convert to str")))
+        {
+            Ok(h) => h,
+            Err(e) => {
+                debug!("Error reading required Authorization header: {:?}.", e);
+                return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
             }
-            None => return Ok(Started::Response(HttpResponse::Unauthorized().finish())),
         };
 
         let hdr_components: Vec<&str> = hdr.split_whitespace().collect();
