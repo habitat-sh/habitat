@@ -31,6 +31,7 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 extern crate protobuf;
+extern crate rustls;
 extern crate tempfile;
 extern crate time;
 extern crate tokio_core;
@@ -38,9 +39,10 @@ extern crate url;
 
 use std::{
     env,
-    io::{self, Write},
+    fs::File,
+    io::{self, BufReader, Write},
     net::{SocketAddr, ToSocketAddrs},
-    path::PathBuf,
+    path::{Path, PathBuf},
     process,
     str::{self, FromStr},
 };
@@ -60,6 +62,7 @@ use protocol::{
     ctl::ServiceBindList,
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
+use rustls::internal::pemfile::{certs, rsa_private_keys};
 
 use hab::default_values::GOSSIP_DEFAULT_PORT;
 use sup::cli::cli;
@@ -250,10 +253,37 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         let kpb = PathBuf::from(kf.unwrap());
         let cpb = PathBuf::from(cf.unwrap());
 
+        if invalid_key_file(kpb.as_path()) {
+            return Err(sup_error!(Error::InvalidKeyFile(kpb)));
+        }
+
+        if invalid_cert_file(cpb.as_path()) {
+            return Err(sup_error!(Error::InvalidCertFile(cpb)));
+        }
+
         cfg.tls_files = Some((kpb, cpb));
     }
 
     Ok(cfg)
+}
+
+fn invalid_key_file(key_file: &Path) -> bool {
+    let key_file = &mut BufReader::new(File::open(key_file).unwrap());
+    if let Ok(keys) = rsa_private_keys(key_file) {
+        keys.len() == 0
+    } else {
+        true
+    }
+}
+
+fn invalid_cert_file(cert_file: &Path) -> bool {
+    let cert_file = &mut BufReader::new(File::open(cert_file).unwrap());
+    let cert_chain = match certs(cert_file) {
+        Ok(c) => c,
+        Err(_) => return true,
+    };
+
+    cert_chain.len() == 0
 }
 
 // Various CLI Parsing Functions

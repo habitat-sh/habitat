@@ -132,7 +132,7 @@ pub enum Error {
     TemplateRenderError(handlebars::RenderError),
     InvalidBinding(String),
     InvalidBinds(Vec<String>),
-    InvalidCertsFile(PathBuf),
+    InvalidCertFile(PathBuf),
     InvalidKeyFile(PathBuf),
     InvalidKeyParameter(String),
     InvalidPidFile,
@@ -256,7 +256,7 @@ impl fmt::Display for SupError {
                 binding
             ),
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
-            Error::InvalidCertsFile(ref path) => format!("Invalid certs file: {}", path.display()),
+            Error::InvalidCertFile(ref path) => format!("Invalid cert file: {}", path.display()),
             Error::InvalidKeyFile(ref path) => format!("Invalid key file: {}", path.display()),
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
@@ -394,7 +394,7 @@ impl error::Error for SupError {
             Error::InvalidBinds(_) => {
                 "Service binds detected that are neither required nor optional package binds"
             }
-            Error::InvalidCertsFile(_) => "Invalid certs file",
+            Error::InvalidCertFile(_) => "Invalid cert file",
             Error::InvalidKeyFile(_) => "Invalid key file",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",

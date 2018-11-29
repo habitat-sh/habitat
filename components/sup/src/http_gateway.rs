@@ -34,8 +34,10 @@ use actix_web::{
 use constant_time_eq::constant_time_eq;
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
-use rustls::internal::pemfile::{certs, rsa_private_keys};
-use rustls::{NoClientAuth, ServerConfig};
+use rustls::{
+    internal::pemfile::{certs, rsa_private_keys},
+    NoClientAuth, ServerConfig,
+};
 use serde_json::{self, Value as Json};
 
 use error::{Error, Result, SupError};
@@ -204,8 +206,6 @@ pub enum ServerStartup {
     NotStarted,
     Started,
     BindFailed,
-    InvalidCertFile,
-    InvalidKeyFile,
 }
 
 pub struct Server;
@@ -235,88 +235,52 @@ impl Server {
                     .configure(routes)
             }).workers(thread_count);
 
-            let mut tls_status: Option<ServerStartup> = None;
-            let bind;
-
-            if tls_files.is_some() {
-                let mut config = ServerConfig::new(NoClientAuth::new());
-                let (key_file, cert_file) = tls_files.unwrap();
-
-                // The multiple unwraps here are safe because we've already verified that cert_file
-                // and key_file are both Some() and that they point to a file that exists on disk
-                // (otherwise they'd be None)
-                let key_file = &mut BufReader::new(File::open(key_file).unwrap());
-                let cert_file = &mut BufReader::new(File::open(cert_file).unwrap());
-
-                let cert_chain = match certs(cert_file) {
-                    Ok(c) => c,
-                    Err(_) => {
-                        tls_status = Some(ServerStartup::InvalidCertFile);
-                        vec![]
-                    }
-                };
-
-                if cert_chain.len() == 0 {
-                    tls_status = Some(ServerStartup::InvalidCertFile);
-                }
-
-                // If we have an invalid cert file, don't even bother checking the key file. The
-                // whole thing is going to error anyway.
-                if tls_status.is_none() {
-                    if let Ok(mut keys) = rsa_private_keys(key_file) {
-                        if keys.len() == 0 {
-                            tls_status = Some(ServerStartup::InvalidKeyFile);
-                        } else {
-                            config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
-                        }
-                    } else {
-                        tls_status = Some(ServerStartup::InvalidKeyFile);
-                    }
-                }
-
-                // bind has to be initialized to something, or the match statement below is going
-                // to fail. If we've gotten a TLS error already, try to do a regular bind, just so
-                // that that variable has _something_ in it. We'll never use it though, because the
-                // first match arm below will be the path we take.
-                if tls_status.is_none() {
-                    bind = server.bind_rustls(listen_addr.to_string(), config);
-                } else {
-                    bind = server.bind(listen_addr.to_string());
-                }
-            } else {
-                bind = server.bind(listen_addr.to_string());
-            }
+            let config = tls_config(tls_files);
 
             // We need to create this scope on purpose here because if we don't, the lock never
             // releases, and the supervisor will wait forever on cvar. Creating this artifical
             // scope forces the lock to release, and things work as expected.
             {
                 let mut started = lock.lock().expect("Control mutex is poisoned");
-
-                *started = match tls_status {
-                    Some(reason) => {
-                        error!(
-                            "HTTP gateway failed to start because of TLS issues: {:?}",
-                            &reason
-                        );
-                        reason
-                    }
-                    None => match bind {
-                        Ok(b) => {
-                            b.start();
-                            ServerStartup::Started
-                        }
-                        Err(e) => {
-                            error!("HTTP gateway failed to bind: {:?}", e);
-                            ServerStartup::BindFailed
-                        }
-                    },
+                let bind = match config {
+                    Some(c) => server.bind_rustls(listen_addr.to_string(), c),
+                    None => server.bind(listen_addr.to_string()),
                 };
+
+                *started = match bind {
+                    Ok(b) => {
+                        b.start();
+                        ServerStartup::Started
+                    }
+                    Err(e) => {
+                        error!("HTTP gateway failed to bind: {:?}", e);
+                        ServerStartup::BindFailed
+                    }
+                }
             }
 
             cvar.notify_one();
             sys.run();
         });
+    }
+}
+
+fn tls_config(tls_files: Option<(path::PathBuf, path::PathBuf)>) -> Option<ServerConfig> {
+    match tls_files {
+        Some((key_file, cert_file)) => {
+            let mut config = ServerConfig::new(NoClientAuth::new());
+            let key_file = &mut BufReader::new(File::open(key_file).unwrap());
+            let cert_file = &mut BufReader::new(File::open(cert_file).unwrap());
+
+            // The validation for both the key file and the cert file happen upfront when we parse
+            // CLI args. By the time we get to this place, we know for certain that we have
+            // valid key and cert files, so we unwrap everything here.
+            let cert_chain = certs(cert_file).unwrap();
+            let mut keys = rsa_private_keys(key_file).unwrap();
+            config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+            Some(config)
+        }
+        None => None,
     }
 }
 

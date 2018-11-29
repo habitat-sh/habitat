@@ -757,14 +757,6 @@ impl Manager {
                         return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
                     }
                     http_gateway::ServerStartup::Started => break,
-                    http_gateway::ServerStartup::InvalidKeyFile => {
-                        let k = self.state.cfg.tls_files.clone();
-                        return Err(sup_error!(Error::InvalidKeyFile(k.unwrap().0)));
-                    }
-                    http_gateway::ServerStartup::InvalidCertFile => {
-                        let c = self.state.cfg.tls_files.clone();
-                        return Err(sup_error!(Error::InvalidCertsFile(c.unwrap().1)));
-                    }
                 }
             }
 
