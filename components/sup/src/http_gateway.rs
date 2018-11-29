@@ -278,6 +278,7 @@ fn tls_config(tls_files: Option<(path::PathBuf, path::PathBuf)>) -> Option<Serve
             let cert_chain = certs(cert_file).unwrap();
             let mut keys = rsa_private_keys(key_file).unwrap();
             config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+            config.ignore_client_order = true;
             Some(config)
         }
         None => None,
