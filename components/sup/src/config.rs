@@ -30,14 +30,8 @@ use std::result;
 use std::str::FromStr;
 
 use error::{Error, Result, SupError};
+use hab::default_values::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR};
 use hcore::env as henv;
-
-use protocol::socket_addr_env_or_default;
-
-pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
-
-/// Default environment variable override for GossipListenAddr.
-pub const DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_GOSSIP";
 
 static LOGKEY: &'static str = "CFG";
 
@@ -126,14 +120,17 @@ impl GossipListenAddr {
 
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
-        GossipListenAddr(socket_addr_env_or_default(
-            DEFAULT_ADDRESS_ENVVAR,
-            SocketAddr::V4(SocketAddrV4::new(
-                Ipv4Addr::new(0, 0, 0, 0),
-                GOSSIP_DEFAULT_PORT,
-            )),
-        ))
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
+            GOSSIP_DEFAULT_IP
+                .parse()
+                .expect("GOSSIP_DEFAULT_IP can not be parsed."),
+            GOSSIP_DEFAULT_PORT,
+        )))
     }
+}
+
+impl EnvConfig for GossipListenAddr {
+    const ENVVAR: &'static str = GOSSIP_LISTEN_ADDRESS_ENVVAR;
 }
 
 impl Deref for GossipListenAddr {
@@ -154,17 +151,7 @@ impl FromStr for GossipListenAddr {
     type Err = SupError;
 
     fn from_str(val: &str) -> Result<Self> {
-        match SocketAddr::from_str(val) {
-            Ok(addr) => Ok(GossipListenAddr(addr)),
-            Err(_) => match IpAddr::from_str(val) {
-                Ok(ip) => {
-                    let mut addr = GossipListenAddr::default();
-                    addr.set_ip(ip);
-                    Ok(addr)
-                }
-                Err(_) => Err(sup_error!(Error::IPFailed)),
-            },
-        }
+        Ok(GossipListenAddr(SocketAddr::from_str(val)?))
     }
 }
 
