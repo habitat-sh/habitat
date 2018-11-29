@@ -31,7 +31,7 @@ use actix_web::{
     pred::Predicate,
     server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
-use constant_time_eq::constant_time_eq;
+use crypto;
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
 use rustls::{
@@ -192,7 +192,10 @@ impl Middleware<AppState> for Authentication {
 
         match hdr_components.as_slice() {
             ["Bearer", incoming_token]
-                if constant_time_eq(current_token.as_bytes(), incoming_token.as_bytes()) =>
+                if crypto::util::fixed_time_eq(
+                    current_token.as_bytes(),
+                    incoming_token.as_bytes(),
+                ) =>
             {
                 Ok(Started::Done)
             }

@@ -17,7 +17,6 @@ doc = false
 actix = "*"
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 clippy = { version = "*", optional = true }
-constant_time_eq = "*"
 ansi_term = "*"
 bitflags = "*"
 byteorder = "*"
