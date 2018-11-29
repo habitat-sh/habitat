@@ -159,36 +159,43 @@ impl Middleware<AppState> for Authentication {
             .expect("GatewayState lock is poisoned")
             .auth_token;
 
-        // If there's no auth token in the state, just return. Everything will continue to function
-        // unauthenticated.
-        if current_token.is_none() {
-            return Ok(Started::Done);
-        }
+        let current_token = match current_token.as_ref() {
+            Some(t) => t,
+            // If there's no auth token in the state, just return. Everything will continue to function
+            // unauthenticated.
+            None => {
+                debug!("No auth token present. HTTP gateway starting in unauthenticated mode.");
+                return Ok(Started::Done);
+            }
+        };
 
         // From this point forward, we know that we have an auth token in the state. Therefore,
         // anything short of a fully formed Authorization header containing a Bearer token that
         // matches the value we have in our state, results in an Unauthorized response.
 
         let hdr = match req.headers().get(http::header::AUTHORIZATION) {
-            Some(hdr) => hdr.to_str().unwrap(), // unwrap Ok
+            Some(hdr) => {
+                match hdr.to_str() {
+                    Ok(h) => h,
+                    Err(e) => {
+                        debug!("Authorization headers can only contain printable ASCII characters. {:?}.", e);
+                        return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
+                    }
+                }
+            }
             None => return Ok(Started::Response(HttpResponse::Unauthorized().finish())),
         };
 
         let hdr_components: Vec<&str> = hdr.split_whitespace().collect();
-        if hdr_components.len() != 2 || hdr_components[0] != "Bearer" {
-            return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
+
+        match hdr_components.as_slice() {
+            ["Bearer", incoming_token]
+                if constant_time_eq(current_token.as_bytes(), incoming_token.as_bytes()) =>
+            {
+                Ok(Started::Done)
+            }
+            _ => Ok(Started::Response(HttpResponse::Unauthorized().finish())),
         }
-
-        let incoming_token = hdr_components[1];
-
-        if !constant_time_eq(
-            current_token.as_ref().unwrap().as_bytes(),
-            incoming_token.as_bytes(),
-        ) {
-            return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
-        }
-
-        Ok(Started::Done)
     }
 }
 
