@@ -29,11 +29,9 @@ use std::option;
 use std::result;
 use std::str::FromStr;
 
-use error::{Error, Result, SupError};
+use error::{Result, SupError};
 use hab::default_values::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR};
 use hcore::env as henv;
-
-static LOGKEY: &'static str = "CFG";
 
 /// Enable the creation of a value based on an environment variable
 /// that can be supplied at runtime by the user.
