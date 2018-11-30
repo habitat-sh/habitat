@@ -1780,9 +1780,10 @@ impl Manager {
     }
 }
 
-fn tls_config<P>(key_path: P, cert_path: P) -> Result<ServerConfig>
+fn tls_config<A, B>(key_path: A, cert_path: B) -> Result<ServerConfig>
 where
-    P: AsRef<Path>,
+    A: AsRef<Path>,
+    B: AsRef<Path>,
 {
     let mut config = ServerConfig::new(NoClientAuth::new());
     let key_file = &mut BufReader::new(File::open(&key_path)?);
