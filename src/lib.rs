@@ -17,6 +17,7 @@
 
 extern crate ansi_term;
 extern crate base64;
+extern crate crypto as rust_crypto;
 #[cfg(windows)]
 extern crate ctrlc;
 extern crate dirs;

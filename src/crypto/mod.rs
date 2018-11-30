@@ -224,6 +224,7 @@
 //! <symkey_base64>
 //! ```
 
+use rust_crypto;
 use std::path::{Path, PathBuf};
 
 use env as henv;
@@ -272,6 +273,18 @@ pub fn default_cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
         Ok(val) => PathBuf::from(val),
         Err(_) => cache_key_path(fs_root_path),
     }
+}
+
+/// A comparison function that takes a consistent amount of time to compare
+/// values of a given number of bytes so as to be resistant to timing attacks.
+/// This function should be used whenever comparing a secret value to one
+/// supplied by a user.
+pub fn secure_eq<T, U>(t: T, u: U) -> bool
+where
+    T: AsRef<[u8]>,
+    U: AsRef<[u8]>,
+{
+    rust_crypto::util::fixed_time_eq(t.as_ref(), u.as_ref())
 }
 
 #[cfg(test)]
