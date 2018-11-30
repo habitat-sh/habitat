@@ -716,8 +716,9 @@ impl Manager {
             // First let's check and see if we're going to use TLS. If so, we'll generate the
             // appropriate config here, where it's easy to propagate errors, vs in a separate
             // thread, where that process is more cumbersome.
+
             let tls_server_config = match self.state.cfg.tls_files {
-                Some(ref files) => match tls_config(files.clone()) {
+                Some((ref key_path, ref cert_path)) => match tls_config(key_path, cert_path) {
                     Ok(c) => Some(c),
                     Err(e) => return Err(e),
                 },
@@ -1779,19 +1780,26 @@ impl Manager {
     }
 }
 
-fn tls_config(tls_files: (PathBuf, PathBuf)) -> Result<ServerConfig> {
-    let (kp, cp) = tls_files;
+fn tls_config<P>(key_path: P, cert_path: P) -> Result<ServerConfig>
+where
+    P: AsRef<Path>,
+{
     let mut config = ServerConfig::new(NoClientAuth::new());
-    let key_file = &mut BufReader::new(File::open(&kp).unwrap());
-    let cert_file = &mut BufReader::new(File::open(&cp).unwrap());
+    let key_file = &mut BufReader::new(File::open(&key_path)?);
+    let cert_file = &mut BufReader::new(File::open(&cert_path)?);
 
+    // Note that we must explicitly map these errors because rustls returns () as the error from both
+    // pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return different errors
+    // for each.
     let cert_chain = pemfile::certs(cert_file)
-        .map_err(|_| sup_error!(Error::InvalidCertFile(cp, String::new())))?;
-    let mut keys = pemfile::rsa_private_keys(key_file)
-        .map_err(|_| sup_error!(Error::InvalidKeyFile(kp, String::new())))?;
-    config
-        .set_single_cert(cert_chain, keys.remove(0))
-        .map_err(|e| sup_error!(Error::TLSError(e)))?;
+        .and_then(|c| if c.is_empty() { Err(()) } else { Ok(c) })
+        .map_err(|_| sup_error!(Error::InvalidCertFile(cert_path.as_ref().to_path_buf())))?;
+
+    let key = pemfile::rsa_private_keys(key_file)
+        .and_then(|mut k| k.pop().ok_or(()))
+        .map_err(|_| sup_error!(Error::InvalidKeyFile(key_path.as_ref().to_path_buf())))?;
+
+    config.set_single_cert(cert_chain, key)?;
     config.ignore_client_order = true;
     Ok(config)
 }

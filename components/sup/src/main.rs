@@ -39,10 +39,9 @@ extern crate url;
 
 use std::{
     env,
-    fs::File,
-    io::{self, BufReader, Write},
+    io::{self, Write},
     net::{SocketAddr, ToSocketAddrs},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process,
     str::{self, FromStr},
 };
@@ -62,7 +61,6 @@ use protocol::{
     ctl::ServiceBindList,
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
-use rustls::internal::pemfile;
 
 use hab::default_values::GOSSIP_DEFAULT_PORT;
 use sup::cli::cli;
@@ -246,78 +244,11 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
     }
 
-    let kf = m.value_of("KEY_FILE");
-    let cf = m.value_of("CERT_FILE");
-
-    if kf.is_some() && cf.is_some() {
-        let kpb = PathBuf::from(kf.unwrap());
-        let cpb = PathBuf::from(cf.unwrap());
-
-        validate_key_file(kpb.as_path())?;
-        validate_cert_file(cpb.as_path())?;
-
-        cfg.tls_files = Some((kpb, cpb));
+    if let (Some(kf), Some(cf)) = (m.value_of("KEY_FILE"), m.value_of("CERT_FILE")) {
+        cfg.tls_files = Some((PathBuf::from(kf), PathBuf::from(cf)));
     }
 
     Ok(cfg)
-}
-
-fn validate_key_file(key_path: &Path) -> Result<()> {
-    match File::open(key_path) {
-        Ok(f) => {
-            let key_file = &mut BufReader::new(f);
-
-            if let Ok(keys) = pemfile::rsa_private_keys(key_file) {
-                if keys.len() > 0 {
-                    Ok(())
-                } else {
-                    Err(sup_error!(Error::InvalidKeyFile(
-                        key_path.to_path_buf(),
-                        String::from("No private keys inside key file.")
-                    )))
-                }
-            } else {
-                Err(sup_error!(Error::InvalidKeyFile(
-                    key_path.to_path_buf(),
-                    String::from("No private keys inside key file.")
-                )))
-            }
-        }
-        Err(e) => Err(sup_error!(Error::InvalidKeyFile(
-            key_path.to_path_buf(),
-            e.to_string()
-        ))),
-    }
-}
-
-fn validate_cert_file(cert_path: &Path) -> Result<()> {
-    match File::open(cert_path) {
-        Ok(f) => {
-            let cert_file = &mut BufReader::new(f);
-            let cert_chain = match pemfile::certs(cert_file) {
-                Ok(c) => c,
-                Err(_) => {
-                    return Err(sup_error!(Error::InvalidCertFile(
-                        cert_path.to_path_buf(),
-                        String::new()
-                    )))
-                }
-            };
-
-            if cert_chain.len() > 0 {
-                Ok(())
-            } else {
-                Err(sup_error!(Error::InvalidCertFile(
-                    cert_path.to_path_buf(),
-                    String::from("No certs inside cert file.")
-                )))
-            }
-        }
-        Err(e) => Err(sup_error!(Error::InvalidCertFile(
-            cert_path.to_path_buf(),
-            e.to_string()
-        ))),
-    }
 }
 
 // Various CLI Parsing Functions

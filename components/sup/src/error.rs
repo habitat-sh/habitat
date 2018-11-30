@@ -133,8 +133,8 @@ pub enum Error {
     TemplateRenderError(handlebars::RenderError),
     InvalidBinding(String),
     InvalidBinds(Vec<String>),
-    InvalidCertFile(PathBuf, String),
-    InvalidKeyFile(PathBuf, String),
+    InvalidCertFile(PathBuf),
+    InvalidKeyFile(PathBuf),
     InvalidKeyParameter(String),
     InvalidPidFile,
     InvalidTokioThreadCount,
@@ -258,12 +258,8 @@ impl fmt::Display for SupError {
                 binding
             ),
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
-            Error::InvalidCertFile(ref path, ref s) => {
-                format!("Invalid cert file: {}. {}", path.display(), s)
-            }
-            Error::InvalidKeyFile(ref path, ref s) => {
-                format!("Invalid key file: {}. {}", path.display(), s)
-            }
+            Error::InvalidCertFile(ref path) => format!("Invalid cert file: {}", path.display()),
+            Error::InvalidKeyFile(ref path) => format!("Invalid key file: {}", path.display()),
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
@@ -401,8 +397,8 @@ impl error::Error for SupError {
             Error::InvalidBinds(_) => {
                 "Service binds detected that are neither required nor optional package binds"
             }
-            Error::InvalidCertFile(_, _) => "Invalid cert file",
-            Error::InvalidKeyFile(_, _) => "Invalid key file",
+            Error::InvalidCertFile(_) => "Invalid cert file",
+            Error::InvalidKeyFile(_) => "Invalid key file",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidTokioThreadCount => "Invalid Tokio thread count",
@@ -458,6 +454,12 @@ impl error::Error for SupError {
             Error::UnpackFailed => "Failed to unpack a package",
             Error::UserNotFound(_) => "No matching UID for user found",
         }
+    }
+}
+
+impl From<rustls::TLSError> for SupError {
+    fn from(err: rustls::TLSError) -> SupError {
+        sup_error!(Error::TLSError(err))
     }
 }
 
