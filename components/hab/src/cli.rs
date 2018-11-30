@@ -902,12 +902,12 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
             group running a Habitat EventSrv to forward Supervisor and service event data to")
         (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
-            "Read private key from KEY_FILE.  This should be a RSA private key or PKCS8-encoded \
-             private key, in PEM format. This is only for enabling TLS for the HTTP gateway.")
+            "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
+             This should be a RSA private key or PKCS8-encoded private key, in PEM format.")
         (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
-            "Read server certificates from CERT_FILE. This should contain PEM-format certificates \
-             in the right order (the first certificate should certify KEY_FILE, the last should be a root CA). \
-             This is only for enabling TLS for the HTTP gateway.")
+            "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
+             This should contain PEM-format certificates in the right order (the first certificate \
+             should certify KEY_FILE, the last should be a root CA).")
         // === Optional arguments to additionally load an initial service for the Supervisor
         (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
             the Supervisor startup specified by a package identifier \
