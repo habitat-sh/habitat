@@ -4,17 +4,17 @@ pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
-pkg_deps=(core/coreutils/8.25/20170513213226
-          core/util-linux/2.27.1/20170513214732
-          core/bash/4.3.42/20170513213519
-          core/zip/3.0/20170514214344
-          core/tar/1.29/20170513213607
-          core/xz/5.2.2/20170513214327
-          core/gzip/1.6/20170513214605
-          core/jfrog-cli/1.7.1/20171014213633
-          core/grep/2.22/20170513213444
-          core/findutils/4.4.2/20170513214305
-          core/gawk/4.1.3/20170513213646
+pkg_deps=(core/coreutils
+          core/util-linux
+          core/bash
+          core/zip
+          core/tar
+          core/xz
+          core/gzip
+          core/jfrog-cli
+          core/grep
+          core/findutils
+          core/gawk
           core/hab)
 pkg_bin_dirs=(bin)
 

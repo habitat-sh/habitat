@@ -4,12 +4,12 @@ pkg_name=hab-pkg-aci
 pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=("Apache-2.0")
-pkg_deps=(core/coreutils/8.25/20170513213226
-          core/findutils/4.4.2/20170513214305
-          core/gawk/4.1.3/20170513213646
-          core/grep/2.22/20170513213444
-          core/bash/4.3.42/20170513213519
-          core/acbuild/0.4.0/20171109161533
+pkg_deps=(core/coreutils
+          core/findutils
+          core/gawk
+          core/grep
+          core/bash
+          core/acbuild
           core/hab-studio)
 pkg_build_deps=()
 pkg_bin_dirs=(bin)

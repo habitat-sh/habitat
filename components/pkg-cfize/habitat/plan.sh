@@ -17,10 +17,10 @@ pkg_upstream_url="https://github.com/habitat-sh/habitat"
 #
 # It's a bit of a moot point, though, since Docker's not going to run
 # on older kernels anyway.
-pkg_deps=(core/coreutils/8.25/20170513213226
-          core/findutils/4.4.2/20170513214305
-          core/grep/2.22/20170513213444
-          core/gawk/4.1.3/20170513213646
+pkg_deps=(core/coreutils
+          core/findutils
+          core/grep
+          core/gawk
           core/hab-pkg-export-docker
           core/docker)
 pkg_bin_dirs=(bin)

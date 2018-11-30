@@ -5,18 +5,18 @@ pkg_origin=core
 pkg_version=$(cat "$SRC_PATH/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=(core/busybox-static/1.24.2/20170513215502
-          core/glibc/2.22/20170513201042
-          core/gcc-libs/5.2.0/20170513212920
-          core/libarchive/3.3.2/20171018164107
-          core/libsodium/1.0.13/20170905223149
-          core/openssl/1.0.2l/20171014213633
-          core/zeromq/4.2.5/20180407102804)
-pkg_build_deps=(core/coreutils/8.25/20170513213226
-                core/cacerts/2017.09.20/20171014212239
+pkg_deps=(core/busybox-static
+          core/glibc
+          core/gcc-libs
+          core/libarchive
+          core/libsodium
+          core/openssl
+          core/zeromq)
+pkg_build_deps=(core/coreutils
+                core/cacerts
                 core/rust
-                core/gcc/5.2.0/20170513202244
-                core/raml2html/6.3.0/20180409195740)
+                core/gcc
+                core/raml2html)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname
