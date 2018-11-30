@@ -15,10 +15,10 @@
 use std::{
     fmt,
     fs::File,
-    io::{self, BufReader, Read},
+    io::{self, Read},
     net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs},
     ops::{Deref, DerefMut},
-    option, path, result,
+    option, result,
     str::FromStr,
     sync::{Arc, Condvar, Mutex, RwLock},
     thread,
@@ -34,10 +34,7 @@ use actix_web::{
 use crypto;
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
-use rustls::{
-    internal::pemfile::{certs, rsa_private_keys},
-    NoClientAuth, ServerConfig,
-};
+use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 
 use error::{Error, Result, SupError};
@@ -216,7 +213,7 @@ pub struct Server;
 impl Server {
     pub fn run(
         listen_addr: ListenAddr,
-        tls_files: Option<(path::PathBuf, path::PathBuf)>,
+        tls_config: Option<ServerConfig>,
         gateway_state: Arc<RwLock<manager::GatewayState>>,
         control: Arc<(Mutex<ServerStartup>, Condvar)>,
     ) {
@@ -238,53 +235,25 @@ impl Server {
                     .configure(routes)
             }).workers(thread_count);
 
-            let config = tls_config(tls_files);
+            let bind = match tls_config {
+                Some(c) => server.bind_rustls(listen_addr.to_string(), c),
+                None => server.bind(listen_addr.to_string()),
+            };
 
-            // We need to create this scope on purpose here because if we don't, the lock never
-            // releases, and the supervisor will wait forever on cvar. Creating this artifical
-            // scope forces the lock to release, and things work as expected.
-            {
-                let mut started = lock.lock().expect("Control mutex is poisoned");
-                let bind = match config {
-                    Some(c) => server.bind_rustls(listen_addr.to_string(), c),
-                    None => server.bind(listen_addr.to_string()),
-                };
-
-                *started = match bind {
-                    Ok(b) => {
-                        b.start();
-                        ServerStartup::Started
-                    }
-                    Err(e) => {
-                        error!("HTTP gateway failed to bind: {:?}", e);
-                        ServerStartup::BindFailed
-                    }
+            *lock.lock().expect("Control mutex is poisoned") = match bind {
+                Ok(b) => {
+                    b.start();
+                    ServerStartup::Started
                 }
-            }
+                Err(e) => {
+                    error!("HTTP gateway failed to bind: {}", e);
+                    ServerStartup::BindFailed
+                }
+            };
 
             cvar.notify_one();
             sys.run();
         });
-    }
-}
-
-fn tls_config(tls_files: Option<(path::PathBuf, path::PathBuf)>) -> Option<ServerConfig> {
-    match tls_files {
-        Some((key_file, cert_file)) => {
-            let mut config = ServerConfig::new(NoClientAuth::new());
-            let key_file = &mut BufReader::new(File::open(key_file).unwrap());
-            let cert_file = &mut BufReader::new(File::open(cert_file).unwrap());
-
-            // The validation for both the key file and the cert file happen upfront when we parse
-            // CLI args. By the time we get to this place, we know for certain that we have
-            // valid key and cert files, so we unwrap everything here.
-            let cert_chain = certs(cert_file).unwrap();
-            let mut keys = rsa_private_keys(key_file).unwrap();
-            config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
-            config.ignore_client_order = true;
-            Some(config)
-        }
-        None => None,
     }
 }
 

@@ -61,6 +61,7 @@ use hcore::service::ServiceGroup;
 use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
 use protocol::net::{self, ErrCode, NetResult};
+use rustls::{internal::pemfile, NoClientAuth, ServerConfig};
 use serde;
 use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
@@ -712,6 +713,17 @@ impl Manager {
         if self.http_disable {
             info!("http-gateway disabled");
         } else {
+            // First let's check and see if we're going to use TLS. If so, we'll generate the
+            // appropriate config here, where it's easy to propagate errors, vs in a separate
+            // thread, where that process is more cumbersome.
+            let tls_server_config = match self.state.cfg.tls_files {
+                Some(ref files) => match tls_config(files.clone()) {
+                    Ok(c) => Some(c),
+                    Err(e) => return Err(e),
+                },
+                None => None,
+            };
+
             // Here we use a Condvar to wait on the HTTP gateway server to start up and inspect its
             // return value. Specifically, we're looking for errors when it tries to bind to the
             // listening TCP socket, so we can alert the user.
@@ -723,7 +735,7 @@ impl Manager {
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(
                 http_listen_addr.clone(),
-                self.state.cfg.tls_files.clone(),
+                tls_server_config,
                 self.state.gateway_state.clone(),
                 pair.clone(),
             );
@@ -1765,6 +1777,23 @@ impl Manager {
         }
         Ok(())
     }
+}
+
+fn tls_config(tls_files: (PathBuf, PathBuf)) -> Result<ServerConfig> {
+    let (kp, cp) = tls_files;
+    let mut config = ServerConfig::new(NoClientAuth::new());
+    let key_file = &mut BufReader::new(File::open(&kp).unwrap());
+    let cert_file = &mut BufReader::new(File::open(&cp).unwrap());
+
+    let cert_chain = pemfile::certs(cert_file)
+        .map_err(|_| sup_error!(Error::InvalidCertFile(cp, String::new())))?;
+    let mut keys = pemfile::rsa_private_keys(key_file)
+        .map_err(|_| sup_error!(Error::InvalidKeyFile(kp, String::new())))?;
+    config
+        .set_single_cert(cert_chain, keys.remove(0))
+        .map_err(|e| sup_error!(Error::TLSError(e)))?;
+    config.ignore_client_order = true;
+    Ok(config)
 }
 
 /// Represents how many threads to start for our main Tokio runtime

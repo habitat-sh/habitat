@@ -62,7 +62,7 @@ use protocol::{
     ctl::ServiceBindList,
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
-use rustls::internal::pemfile::{certs, rsa_private_keys};
+use rustls::internal::pemfile;
 
 use hab::default_values::GOSSIP_DEFAULT_PORT;
 use sup::cli::cli;
@@ -253,13 +253,8 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         let kpb = PathBuf::from(kf.unwrap());
         let cpb = PathBuf::from(cf.unwrap());
 
-        if invalid_key_file(kpb.as_path()) {
-            return Err(sup_error!(Error::InvalidKeyFile(kpb)));
-        }
-
-        if invalid_cert_file(cpb.as_path()) {
-            return Err(sup_error!(Error::InvalidCertFile(cpb)));
-        }
+        validate_key_file(kpb.as_path())?;
+        validate_cert_file(cpb.as_path())?;
 
         cfg.tls_files = Some((kpb, cpb));
     }
@@ -267,23 +262,62 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     Ok(cfg)
 }
 
-fn invalid_key_file(key_file: &Path) -> bool {
-    let key_file = &mut BufReader::new(File::open(key_file).unwrap());
-    if let Ok(keys) = rsa_private_keys(key_file) {
-        keys.len() == 0
-    } else {
-        true
+fn validate_key_file(key_path: &Path) -> Result<()> {
+    match File::open(key_path) {
+        Ok(f) => {
+            let key_file = &mut BufReader::new(f);
+
+            if let Ok(keys) = pemfile::rsa_private_keys(key_file) {
+                if keys.len() > 0 {
+                    Ok(())
+                } else {
+                    Err(sup_error!(Error::InvalidKeyFile(
+                        key_path.to_path_buf(),
+                        String::from("No private keys inside key file.")
+                    )))
+                }
+            } else {
+                Err(sup_error!(Error::InvalidKeyFile(
+                    key_path.to_path_buf(),
+                    String::from("No private keys inside key file.")
+                )))
+            }
+        }
+        Err(e) => Err(sup_error!(Error::InvalidKeyFile(
+            key_path.to_path_buf(),
+            e.to_string()
+        ))),
     }
 }
 
-fn invalid_cert_file(cert_file: &Path) -> bool {
-    let cert_file = &mut BufReader::new(File::open(cert_file).unwrap());
-    let cert_chain = match certs(cert_file) {
-        Ok(c) => c,
-        Err(_) => return true,
-    };
+fn validate_cert_file(cert_path: &Path) -> Result<()> {
+    match File::open(cert_path) {
+        Ok(f) => {
+            let cert_file = &mut BufReader::new(f);
+            let cert_chain = match pemfile::certs(cert_file) {
+                Ok(c) => c,
+                Err(_) => {
+                    return Err(sup_error!(Error::InvalidCertFile(
+                        cert_path.to_path_buf(),
+                        String::new()
+                    )))
+                }
+            };
 
-    cert_chain.len() == 0
+            if cert_chain.len() > 0 {
+                Ok(())
+            } else {
+                Err(sup_error!(Error::InvalidCertFile(
+                    cert_path.to_path_buf(),
+                    String::from("No certs inside cert file.")
+                )))
+            }
+        }
+        Err(e) => Err(sup_error!(Error::InvalidCertFile(
+            cert_path.to_path_buf(),
+            e.to_string()
+        ))),
+    }
 }
 
 // Various CLI Parsing Functions
