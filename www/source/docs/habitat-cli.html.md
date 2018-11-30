@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.68.0/20181108151723 (linux) | 8 Nov 2018 |
+| hab 0.69.0/20181127182011 (linux) | 27 Nov 2018 |
 
 ## hab
 
@@ -2225,7 +2225,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of.
     --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
     --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
--r, --ring <RING>                          Ring key name
+-r, --ring <RING>                          The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
 -s, --strategy <STRATEGY>                  The update strategy; [default: none] [values: none, at-once, rolling]
 -t, --topology <TOPOLOGY>                  Service topology; [default: none] [possible values: standalone, leader]
 ```
