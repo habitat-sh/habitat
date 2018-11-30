@@ -22,6 +22,8 @@ extern crate habitat_core as hcore;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+#[cfg(test)]
+#[macro_use]
 extern crate lazy_static;
 extern crate pbr;
 extern crate petgraph;
