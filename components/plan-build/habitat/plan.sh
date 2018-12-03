@@ -6,23 +6,23 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
 
-pkg_deps=(core/bash/4.3.42/20170513213519
-          core/binutils/2.25.1/20170513201927
-          core/bzip2/1.0.6/20170513212938
-          core/coreutils/8.25/20170513213226
-          core/file/5.24/20170513201915
-          core/findutils/4.4.2/20170513214305
-          core/gawk/4.1.3/20170513213646
-          core/grep/2.22/20170513213444
-          core/gzip/1.6/20170513214605
+pkg_deps=(core/bash
+          core/binutils
+          core/bzip2
+          core/coreutils
+          core/file
+          core/findutils
+          core/gawk
+          core/grep
+          core/gzip
           core/hab
-          core/rq/0.9.2/20170612005822
-          core/sed/4.2.2/20170513213123
-          core/tar/1.29/20170513213607
-          core/unzip/6.0/20180310001951
-          core/wget/1.19.1/20171024102323
-          core/xz/5.2.2/20170513214327)
-pkg_build_deps=(core/bats/0.4.0/20170514013659)
+          core/rq
+          core/sed
+          core/tar
+          core/unzip
+          core/wget
+          core/xz)
+pkg_build_deps=(core/bats)
 
 program=$pkg_name
 

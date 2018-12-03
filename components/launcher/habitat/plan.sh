@@ -4,15 +4,15 @@ pkg_name=hab-launcher
 pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=(core/glibc/2.22/20170513201042
-          core/gcc-libs/5.2.0/20170513212920
-          core/libarchive/3.3.2/20171018164107
-          core/libsodium/1.0.13/20170905223149
-          core/openssl/1.0.2l/20171014213633)
-pkg_build_deps=(core/coreutils/8.25/20170513213226
+pkg_deps=(core/glibc
+          core/gcc-libs
+          core/libarchive
+          core/libsodium
+          core/openssl)
+pkg_build_deps=(core/coreutils
                 core/rust
-                core/gcc/5.2.0/20170513202244
-                core/git/2.14.2/20180416203520)
+                core/gcc
+                core/git)
 pkg_bin_dirs=(bin)
 bin="hab-launch"
 
