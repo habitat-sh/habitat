@@ -48,7 +48,6 @@ use butterfly::server::{timing::Timing, ServerProxy, Suitability};
 use butterfly::trace::Trace;
 use common::command::package::install::InstallSource;
 use common::ui::UIWriter;
-use config::EnvConfig;
 use futures::prelude::*;
 use futures::sync::mpsc;
 use hcore::crypto::SymKey;
@@ -62,6 +61,7 @@ use hcore::service::ServiceGroup;
 use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
 use protocol::net::{self, ErrCode, NetResult};
+use rustls::{internal::pemfile, NoClientAuth, ServerConfig};
 use serde;
 use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
@@ -81,7 +81,7 @@ pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
 use census::{CensusRing, CensusRingProxy};
-use config::GossipListenAddr;
+use config::{EnvConfig, GossipListenAddr};
 use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
 use http_gateway;
@@ -144,6 +144,7 @@ pub struct ManagerConfig {
     pub ring_key: Option<SymKey>,
     pub organization: Option<String>,
     pub watch_peer_file: Option<String>,
+    pub tls_files: Option<(PathBuf, PathBuf)>,
 }
 
 impl ManagerConfig {
@@ -169,8 +170,28 @@ impl Default for ManagerConfig {
             ring_key: None,
             organization: None,
             watch_peer_file: None,
+            tls_files: None,
         }
     }
+}
+
+/// This represents an environment variable that holds an authentication token for the supervisor's
+/// HTTP gateway. If the environment variable is present, then its value is the auth token and all
+/// of the HTTP endpoints will require its presence. If it's not present, then everything continues
+/// to work unauthenticated.
+#[derive(Debug, Default)]
+struct GatewayAuthToken(Option<String>);
+
+impl FromStr for GatewayAuthToken {
+    type Err = ::std::string::ParseError;
+
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        Ok(GatewayAuthToken(Some(String::from(s))))
+    }
+}
+
+impl EnvConfig for GatewayAuthToken {
+    const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
 }
 
 /// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
@@ -189,6 +210,7 @@ pub struct GatewayState {
     pub butterfly_data: String,
     pub services_data: String,
     pub health_check_data: HashMap<ServiceGroup, HealthCheck>,
+    pub auth_token: Option<String>,
 }
 
 pub struct Manager {
@@ -361,7 +383,11 @@ impl Manager {
         );
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::new(RwLock::new(HashMap::new()));
-        let gateway_state = Arc::new(RwLock::new(GatewayState::default()));
+
+        let gateway_auth_token = GatewayAuthToken::configured_value();
+        let mut gateway_state = GatewayState::default();
+        gateway_state.auth_token = gateway_auth_token.0;
+
         let server = butterfly::Server::new(
             sys.gossip_listen(),
             sys.gossip_listen(),
@@ -390,7 +416,7 @@ impl Manager {
             state: Arc::new(ManagerState {
                 cfg: cfg_static,
                 services: services,
-                gateway_state: gateway_state,
+                gateway_state: Arc::new(RwLock::new(gateway_state)),
             }),
             self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
@@ -687,6 +713,18 @@ impl Manager {
         if self.http_disable {
             info!("http-gateway disabled");
         } else {
+            // First let's check and see if we're going to use TLS. If so, we'll generate the
+            // appropriate config here, where it's easy to propagate errors, vs in a separate
+            // thread, where that process is more cumbersome.
+
+            let tls_server_config = match self.state.cfg.tls_files {
+                Some((ref key_path, ref cert_path)) => match tls_config(key_path, cert_path) {
+                    Ok(c) => Some(c),
+                    Err(e) => return Err(e),
+                },
+                None => None,
+            };
+
             // Here we use a Condvar to wait on the HTTP gateway server to start up and inspect its
             // return value. Specifically, we're looking for errors when it tries to bind to the
             // listening TCP socket, so we can alert the user.
@@ -698,6 +736,7 @@ impl Manager {
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(
                 http_listen_addr.clone(),
+                tls_server_config,
                 self.state.gateway_state.clone(),
                 pair.clone(),
             );
@@ -728,7 +767,7 @@ impl Manager {
                         };
                     }
                     http_gateway::ServerStartup::BindFailed => {
-                        return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())))
+                        return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
                     }
                     http_gateway::ServerStartup::Started => break,
                 }
@@ -1739,6 +1778,31 @@ impl Manager {
         }
         Ok(())
     }
+}
+
+fn tls_config<A, B>(key_path: A, cert_path: B) -> Result<ServerConfig>
+where
+    A: AsRef<Path>,
+    B: AsRef<Path>,
+{
+    let mut config = ServerConfig::new(NoClientAuth::new());
+    let key_file = &mut BufReader::new(File::open(&key_path)?);
+    let cert_file = &mut BufReader::new(File::open(&cert_path)?);
+
+    // Note that we must explicitly map these errors because rustls returns () as the error from both
+    // pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return different errors
+    // for each.
+    let cert_chain = pemfile::certs(cert_file)
+        .and_then(|c| if c.is_empty() { Err(()) } else { Ok(c) })
+        .map_err(|_| sup_error!(Error::InvalidCertFile(cert_path.as_ref().to_path_buf())))?;
+
+    let key = pemfile::rsa_private_keys(key_file)
+        .and_then(|mut k| k.pop().ok_or(()))
+        .map_err(|_| sup_error!(Error::InvalidKeyFile(key_path.as_ref().to_path_buf())))?;
+
+    config.set_single_cert(cert_chain, key)?;
+    config.ignore_client_order = true;
+    Ok(config)
 }
 
 /// Represents how many threads to start for our main Tokio runtime

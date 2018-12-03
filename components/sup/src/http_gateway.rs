@@ -26,11 +26,15 @@ use std::{
 
 use actix;
 use actix_web::{
-    http::StatusCode, pred::Predicate, server, App, FromRequest, HttpRequest, HttpResponse, Path,
-    Request,
+    http::{self, StatusCode},
+    middleware::{Middleware, Started},
+    pred::Predicate,
+    server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
+use crypto;
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
+use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 
 use error::{Error, Result, SupError};
@@ -142,6 +146,61 @@ impl AppState {
     }
 }
 
+// Our authentication middleware
+struct Authentication;
+
+impl Middleware<AppState> for Authentication {
+    fn start(&self, req: &HttpRequest<AppState>) -> actix_web::Result<Started> {
+        let current_token = &req
+            .state()
+            .gateway_state
+            .read()
+            .expect("GatewayState lock is poisoned")
+            .auth_token;
+
+        let current_token = match current_token.as_ref() {
+            Some(t) => t,
+            // If there's no auth token in the state, just return. Everything will continue to function
+            // unauthenticated.
+            None => {
+                debug!("No auth token present. HTTP gateway starting in unauthenticated mode.");
+                return Ok(Started::Done);
+            }
+        };
+
+        // From this point forward, we know that we have an auth token in the state. Therefore,
+        // anything short of a fully formed Authorization header containing a Bearer token that
+        // matches the value we have in our state, results in an Unauthorized response.
+
+        let hdr = match req
+            .headers()
+            .get(http::header::AUTHORIZATION)
+            .ok_or("header missing")
+            .and_then(|hv| hv.to_str().or(Err("can't convert to str")))
+        {
+            Ok(h) => h,
+            Err(e) => {
+                debug!("Error reading required Authorization header: {:?}.", e);
+                return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
+            }
+        };
+
+        let hdr_components: Vec<&str> = hdr.split_whitespace().collect();
+
+        match hdr_components.as_slice() {
+            ["Bearer", incoming_token]
+                if crypto::util::fixed_time_eq(
+                    current_token.as_bytes(),
+                    incoming_token.as_bytes(),
+                ) =>
+            {
+                Ok(Started::Done)
+            }
+            _ => Ok(Started::Response(HttpResponse::Unauthorized().finish())),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum ServerStartup {
     NotStarted,
@@ -154,6 +213,7 @@ pub struct Server;
 impl Server {
     pub fn run(
         listen_addr: ListenAddr,
+        tls_config: Option<ServerConfig>,
         gateway_state: Arc<RwLock<manager::GatewayState>>,
         control: Arc<(Mutex<ServerStartup>, Condvar)>,
     ) {
@@ -168,9 +228,11 @@ impl Server {
                 Err(_) => HTTP_THREAD_COUNT,
             };
 
-            let mut workers = server::new(move || {
+            let mut server = server::new(move || {
                 let app_state = AppState::new(gateway_state.clone());
-                App::with_state(app_state).configure(routes)
+                App::with_state(app_state)
+                    .middleware(Authentication)
+                    .configure(routes)
             }).workers(thread_count);
 
             // On Windows the default actix signal handler will create a ctrl+c handler for the
@@ -183,28 +245,24 @@ impl Server {
             // feature is always enabled in the Habitat Windows Service which relies on ctrl+c
             // signals to stop the supervisor.
             if feat::is_enabled(feat::IgnoreSignals) {
-                workers = workers.disable_signals();
+                server = server.disable_signals();
             }
 
-            let bind = workers.bind(listen_addr.to_string());
+            let bind = match tls_config {
+                Some(c) => server.bind_rustls(listen_addr.to_string(), c),
+                None => server.bind(listen_addr.to_string()),
+            };
 
-            // We need to create this scope on purpose here because if we don't, the lock never
-            // releases, and the supervisor will wait forever on cvar. Creating this artifical
-            // scope forces the lock to release, and things work as expected.
-            {
-                let mut started = lock.lock().expect("Control mutex is poisoned");
-
-                *started = match bind {
-                    Ok(b) => {
-                        b.start();
-                        ServerStartup::Started
-                    }
-                    Err(e) => {
-                        error!("HTTP gateway failed to bind: {:?}", e);
-                        ServerStartup::BindFailed
-                    }
-                };
-            }
+            *lock.lock().expect("Control mutex is poisoned") = match bind {
+                Ok(b) => {
+                    b.start();
+                    ServerStartup::Started
+                }
+                Err(e) => {
+                    error!("HTTP gateway failed to bind: {}", e);
+                    ServerStartup::BindFailed
+                }
+            };
 
             cvar.notify_one();
             sys.run();

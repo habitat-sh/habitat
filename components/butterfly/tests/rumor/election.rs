@@ -74,6 +74,7 @@ fn two_members_find_quorum_when_a_third_comes() {
 }
 
 #[test]
+#[ignore]
 fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     let mut net = btest::SwimNet::new(5);
     net.mesh();

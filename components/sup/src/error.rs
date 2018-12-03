@@ -60,6 +60,7 @@ use hcore::package::{self, Identifiable, PackageInstall};
 use launcher_client;
 use notify;
 use protocol;
+use rustls;
 use serde_json;
 use toml;
 
@@ -132,6 +133,8 @@ pub enum Error {
     TemplateRenderError(handlebars::RenderError),
     InvalidBinding(String),
     InvalidBinds(Vec<String>),
+    InvalidCertFile(PathBuf),
+    InvalidKeyFile(PathBuf),
     InvalidKeyParameter(String),
     InvalidPidFile,
     InvalidTokioThreadCount,
@@ -171,6 +174,7 @@ pub enum Error {
     SpecWatcherGlob(glob::PatternError),
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
+    TLSError(rustls::TLSError),
     TomlEncode(toml::ser::Error),
     TomlMergeError(String),
     TomlParser(toml::de::Error),
@@ -254,6 +258,8 @@ impl fmt::Display for SupError {
                 binding
             ),
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
+            Error::InvalidCertFile(ref path) => format!("Invalid cert file: {}", path.display()),
+            Error::InvalidKeyFile(ref path) => format!("Invalid key file: {}", path.display()),
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
@@ -336,6 +342,7 @@ impl fmt::Display for SupError {
             Error::SpecWatcherGlob(ref e) => format!("{}", e),
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
+            Error::TLSError(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
             Error::TomlMergeError(ref e) => format!("Failed to merge TOML: {}", e),
             Error::TomlParser(ref err) => format!("Failed to parse TOML: {}", err),
@@ -390,6 +397,8 @@ impl error::Error for SupError {
             Error::InvalidBinds(_) => {
                 "Service binds detected that are neither required nor optional package binds"
             }
+            Error::InvalidCertFile(_) => "Invalid cert file",
+            Error::InvalidKeyFile(_) => "Invalid key file",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidTokioThreadCount => "Invalid Tokio thread count",
@@ -437,6 +446,7 @@ impl error::Error for SupError {
             Error::SpecWatcherGlob(_) => "Spec watcher file globbing error",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            Error::TLSError(_) => "TLS Error!",
             Error::TomlEncode(_) => "Failed to encode toml!",
             Error::TomlMergeError(_) => "Failed to merge TOML!",
             Error::TomlParser(_) => "Failed to parse TOML!",
@@ -444,6 +454,12 @@ impl error::Error for SupError {
             Error::UnpackFailed => "Failed to unpack a package",
             Error::UserNotFound(_) => "No matching UID for user found",
         }
+    }
+}
+
+impl From<rustls::TLSError> for SupError {
+    fn from(err: rustls::TLSError) -> SupError {
+        sup_error!(Error::TLSError(err))
     }
 }
 

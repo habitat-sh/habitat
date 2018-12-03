@@ -31,16 +31,20 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 extern crate protobuf;
+extern crate rustls;
 extern crate tempfile;
 extern crate time;
 extern crate tokio_core;
 extern crate url;
 
-use std::env;
-use std::io::{self, Write};
-use std::net::{SocketAddr, ToSocketAddrs};
-use std::process;
-use std::str::{self, FromStr};
+use std::{
+    env,
+    io::{self, Write},
+    net::{SocketAddr, ToSocketAddrs},
+    path::PathBuf,
+    process,
+    str::{self, FromStr},
+};
 
 use clap::ArgMatches;
 use common::command::package::install::InstallSource;
@@ -223,18 +227,27 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         )?,
         ..Default::default()
     };
+
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
     }
+
     if let Some(addr_str) = m.value_of("LISTEN_CTL") {
         cfg.ctl_listen = SocketAddr::from_str(addr_str)?;
     }
+
     if let Some(watch_peer_file) = m.value_of("PEER_WATCH_FILE") {
         cfg.watch_peer_file = Some(String::from(watch_peer_file));
     }
+
     if let Some(events) = m.value_of("EVENTS") {
         cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
     }
+
+    if let (Some(kf), Some(cf)) = (m.value_of("KEY_FILE"), m.value_of("CERT_FILE")) {
+        cfg.tls_files = Some((PathBuf::from(kf), PathBuf::from(cf)));
+    }
+
     Ok(cfg)
 }
 
