@@ -13,6 +13,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Remove deprecated error message [#5914](https://github.com/habitat-sh/habitat/pull/5914) ([chefsalim](https://github.com/chefsalim))
 - adds instructions to the launcher release doc about invoking a windows-service build [#5910](https://github.com/habitat-sh/habitat/pull/5910) ([mwrock](https://github.com/mwrock))
 - disable actix signal handling when the IgnoreSignals feature is enabled [#5906](https://github.com/habitat-sh/habitat/pull/5906) ([mwrock](https://github.com/mwrock))
 - Add x86_64-linux-kernel2 validation to release checklist [#5887](https://github.com/habitat-sh/habitat/pull/5887) ([smacfarlane](https://github.com/smacfarlane))
