@@ -571,11 +571,7 @@ impl<'a> InstallTask<'a> {
                             local.as_ref(),
                             &ident,
                         ))?;
-                        Err(Error::PackageNotFound(
-                            "If you are attempting to install from a local depot with an upstream \
-                             configured, try again in a few seconds."
-                                .to_string(),
-                        ))
+                        Err(Error::PackageNotFound("".to_string()))
                     } else {
                         ui.status(
                             Status::Missing,
@@ -593,11 +589,7 @@ impl<'a> InstallTask<'a> {
                 (Err(_), Some(remote)) => Ok(remote),
                 (Err(_), None) => {
                     self.recommend_channels(ui, &ident, target, token)?;
-                    Err(Error::PackageNotFound(
-                        "If you are attempting to install from a local depot with an upstream \
-                         configured, try again in a few seconds."
-                            .to_string(),
-                    ))
+                    Err(Error::PackageNotFound("".to_string()))
                 }
             }
         }
