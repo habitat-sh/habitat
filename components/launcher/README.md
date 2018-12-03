@@ -30,6 +30,33 @@ Since the Supervisor requires the Launcher to start and it always attempts to st
 
 The launcher may optionaly start a Windows process under an alternate identity declared via `svc_user`. Windows requires a password for this identity. We encrypt the identity when loading services and decrypt the password when the launcher spawns the new process. We ["complexify" this encryption with a secret key](https://docs.microsoft.com/en-us/windows/desktop/api/dpapi/nf-dpapi-cryptprotectdata). This key is stored in 1password and must be set in the `HAB_CRYPTO_KEY` environment variable when building `hab` or `launcher`. The `hab` build gets this from a secret appveyor key but the key must be manually set wnenever the launcher is built manually.
 
+We have an appveyor build that will build and promote Windows launchers when code changes are merged into the `launcher` component. In order for a new launcher to get included in the Habitat Windows service and also built into the dockerized Windows Studio, one needs to invoke a new Appveyor build of the [windows-service](https://github.com/habitat-sh/windows-service) repo. This builds, uploads and promotes the `windows-service` Habitat package. The best way to do this is by using its rest API. First you will need a bearer token to authenticate with. You can get this by signing into the Appveyor site and then going to your [api-keys](https://ci.appveyor.com/api-keys) page. Choose "chef" from the accounts drop down menu and then copy your bearer token. With that, the following Powershell script will invoke the build:
+
+```
+$token = 'MY_BEARER_TOKEN'
+$headers = @{
+  "Authorization" = "Bearer $token"
+  "Content-type" = "application/json"
+}
+$body = @"
+{
+    "accountName": "chef",
+    "projectSlug": "windows-service",
+    "branch": "master"
+}
+"@
+curl -H  -Uri 'https://ci.appveyor.com/api/builds' -Headers $headers -Method Post -Body $body
+```
+
+In bash:
+
+```
+token=MY_BEARER_TOKEN
+curl -H "Content-type: application/json" -H "Authorization: Bearer ${token}"  https://ci.appveyor.com/api/builds -X POST --data "{'accountName': 'chef','projectSlug': 'windows-service','branch': 'master'}"
+```
+
+You must invoke this build before starting a Windows release build.
+
 ### Building an x86_64-linux-kernel2 Release
 
 If you are promoting launchers for x86_64-linux and x86_64-windows, you will also need to build a launcher for x86_64-linux-kernel2 by hand. You can do this by creating a CentOS-6 VM, either on your laptop or in a cloud instance. All further instructions are executed in the context of this VM. Once the VM is booted, you will then need to obtain an x86_64-linux-kernel2 hab binary, which can be downloaded by passing the -t argument to the install.sh script: `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t x86_64-linux-kernel2`.  Then, you will need to obtain the core origin signing keys and [install them](https://www.habitat.sh/docs/habitat-cli/#hab-origin-key-import). Next, you will need to clone this repository. Once that is done, cd into the directory created and run `env HAB_ORIGIN=core hab pkg build components/launcher`.  The resulting hart file should be uploaded to builder to the `unstable` channel. Take note of the `$pkg_ident` for use in the pipeline.
