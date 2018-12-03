@@ -13,6 +13,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- disable actix signal handling when the IgnoreSignals feature is enabled [#5906](https://github.com/habitat-sh/habitat/pull/5906) ([mwrock](https://github.com/mwrock))
 - Add x86_64-linux-kernel2 validation to release checklist [#5887](https://github.com/habitat-sh/habitat/pull/5887) ([smacfarlane](https://github.com/smacfarlane))
 - Enable build of kernel2 launcher as part of release pipeline [#5886](https://github.com/habitat-sh/habitat/pull/5886) ([smacfarlane](https://github.com/smacfarlane))
 - Enable building of kernel2 docker image as part of release pipeline [#5888](https://github.com/habitat-sh/habitat/pull/5888) ([smacfarlane](https://github.com/smacfarlane))
