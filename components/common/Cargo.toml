@@ -7,6 +7,7 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 ansi_term = "*"
+bimap = "*"
 glob = "*"
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
