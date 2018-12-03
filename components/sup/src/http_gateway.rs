@@ -168,11 +168,25 @@ impl Server {
                 Err(_) => HTTP_THREAD_COUNT,
             };
 
-            let bind = server::new(move || {
+            let mut workers = server::new(move || {
                 let app_state = AppState::new(gateway_state.clone());
                 App::with_state(app_state).configure(routes)
-            }).workers(thread_count)
-            .bind(listen_addr.to_string());
+            }).workers(thread_count);
+
+            // On Windows the default actix signal handler will create a ctrl+c handler for the
+            // process which will disable default windows ctrl+c behavior and allow us to
+            // handle via check_for_signal in the supervisor service loop. However, if the
+            // supervisor is in a long running non-run hook, that loop will not get to
+            // check_for_signal in a reasonable amount of time and the supervisor will not
+            // respond to ctrl+c. On Windows, we let the launcher catch ctrl+c and gracefully
+            // shut down services. ctrl+c should simply halt the supervisor. The IgnoreSignals
+            // feature is always enabled in the Habitat Windows Service which relies on ctrl+c
+            // signals to stop the supervisor.
+            if feat::is_enabled(feat::IgnoreSignals) {
+                workers = workers.disable_signals();
+            }
+
+            let bind = workers.bind(listen_addr.to_string());
 
             // We need to create this scope on purpose here because if we don't, the lock never
             // releases, and the supervisor will wait forever on cvar. Creating this artifical
