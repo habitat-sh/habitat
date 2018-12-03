@@ -43,6 +43,7 @@
 - Use defaults in tests instead of hard coded values [#5838](https://github.com/habitat-sh/habitat/pull/5838) ([mpeck](https://github.com/mpeck))
 
 #### New Features & Enhancements
+- Add simple auth and TLS to supervisor HTTP gateway [#5874](https://github.com/habitat-sh/habitat/pull/5874) ([raskchanky](https://github.com/raskchanky))
 - Add -t to support installing alternate PackageTarget cli  [#5770](https://github.com/habitat-sh/habitat/pull/5770) ([smacfarlane](https://github.com/smacfarlane))
 - Add Windows-friendly behavior to `hab pkg env` [#5813](https://github.com/habitat-sh/habitat/pull/5813) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
