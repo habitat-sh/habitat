@@ -35,8 +35,7 @@ use common::defaults::{
     LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
 };
 use config::EnvConfig;
-use crypto;
-use hcore::{env as henv, service::ServiceGroup};
+use hcore::{crypto, env as henv, service::ServiceGroup};
 use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 
@@ -183,12 +182,7 @@ impl Middleware<AppState> for Authentication {
         let hdr_components: Vec<&str> = hdr.split_whitespace().collect();
 
         match hdr_components.as_slice() {
-            ["Bearer", incoming_token]
-                if crypto::util::fixed_time_eq(
-                    current_token.as_bytes(),
-                    incoming_token.as_bytes(),
-                ) =>
-            {
+            ["Bearer", incoming_token] if crypto::secure_eq(current_token, incoming_token) => {
                 Ok(Started::Done)
             }
             _ => Ok(Started::Response(HttpResponse::Unauthorized().finish())),

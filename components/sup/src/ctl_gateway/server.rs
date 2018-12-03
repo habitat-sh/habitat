@@ -31,10 +31,10 @@ use std::rc::Rc;
 use std::thread;
 use std::time::Duration;
 
-use crypto;
 use futures::future::{self, Either};
 use futures::prelude::*;
 use futures::sync::mpsc;
+use hcore::crypto;
 use prost;
 use protocol;
 use protocol::codec::*;
@@ -191,14 +191,7 @@ impl Client {
                             Ok(decoded) => {
                                 trace!("Received handshake, {:?}", decoded);
                                 let decoded_key = decoded.secret_key.unwrap_or_default();
-                                Ok((
-                                    m,
-                                    crypto::util::fixed_time_eq(
-                                        decoded_key.as_bytes(),
-                                        secret_key.as_bytes(),
-                                    ),
-                                    io,
-                                ))
+                                Ok((m, crypto::secure_eq(decoded_key, secret_key), io))
                             }
                             Err(err) => {
                                 warn!("Handshake error, {:?}", err);
