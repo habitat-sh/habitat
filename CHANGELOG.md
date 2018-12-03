@@ -13,6 +13,7 @@
 - Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Enable build of kernel2 launcher as part of release pipeline [#5886](https://github.com/habitat-sh/habitat/pull/5886) ([smacfarlane](https://github.com/smacfarlane))
 - Enable building of kernel2 docker image as part of release pipeline [#5888](https://github.com/habitat-sh/habitat/pull/5888) ([smacfarlane](https://github.com/smacfarlane))
 - Move env var and default value for listen gossip to the clap layer [#5884](https://github.com/habitat-sh/habitat/pull/5884) ([mpeck](https://github.com/mpeck))
 - update docs to specify 64-bit as a requirement for windows [#5883](https://github.com/habitat-sh/habitat/pull/5883) ([ericcalabretta](https://github.com/ericcalabretta))
