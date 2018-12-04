@@ -4,6 +4,9 @@
 ## Unreleased
 
 <!-- latest_release -->
+## [0.70.0](https//github.com/habitat-sh/habitat/tree/0.70.0) (2018-12-04)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.69.0...0.70.0)
+
 #### New Features & Enhancements
 - Add simple auth and TLS to supervisor HTTP gateway [#5874](https://github.com/habitat-sh/habitat/pull/5874) ([raskchanky](https://github.com/raskchanky))
 
@@ -29,14 +32,18 @@
 ## [0.69.0](https://github.com/habitat-sh/habitat/tree/0.69.0) (2018-11-27)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.68.0...0.69.0)
 
+#### New Features & Enhancements
+- Add Windows-friendly behavior to `hab pkg env` [#5813](https://github.com/habitat-sh/habitat/pull/5813) ([mwrock](https://github.com/mwrock))
+- Add -t to support installing alternate PackageTarget cli  [#5770](https://github.com/habitat-sh/habitat/pull/5770) ([smacfarlane](https://github.com/smacfarlane))
+
 #### Behavioral Changes
 - Use env var at the clap level for ring and ring_key [#5846](https://github.com/habitat-sh/habitat/pull/5846) ([mpeck](https://github.com/mpeck))
-- Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 - Add target to Docker image names for studio [#5805](https://github.com/habitat-sh/habitat/pull/5805) ([smacfarlane](https://github.com/smacfarlane))
 
 #### Bug Fixes
 - Miscellaneous code cleanup [#5857](https://github.com/habitat-sh/habitat/pull/5857) ([baumanj](https://github.com/baumanj))
 - Exclude services from things you can uninstall [#5835](https://github.com/habitat-sh/habitat/pull/5835) ([jamesc](https://github.com/jamesc))
+- Clean up a variety of leaks [#5828](https://github.com/habitat-sh/habitat/pull/5828) ([raskchanky](https://github.com/raskchanky))
 - Restart the election if the leader is dead [#5859](https://github.com/habitat-sh/habitat/pull/5859) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
@@ -48,15 +55,11 @@
 - `hab sup help` no longer attempts to install &#39;core/hab-sup&#39; if not present [#5824](https://github.com/habitat-sh/habitat/pull/5824) ([jeremymv2](https://github.com/jeremymv2))
 - Abstract the logging of terminated hook processes [#5850](https://github.com/habitat-sh/habitat/pull/5850) ([christophermaier](https://github.com/christophermaier))
 - Add release issue template [#5853](https://github.com/habitat-sh/habitat/pull/5853) ([baumanj](https://github.com/baumanj))
-- Makes hooks file names consistent regarding _ or - [#5847](https://github.com/habitat-sh/habitat/pull/5847) ([rsertelon](https://github.com/rsertelon))
 - Enable kernel2 builds in pipeline [#5753](https://github.com/habitat-sh/habitat/pull/5753) ([smacfarlane](https://github.com/smacfarlane))
 - Add some sleeps to try_recv loops so we don&#39;t peg the CPU. [#5861](https://github.com/habitat-sh/habitat/pull/5861) ([raskchanky](https://github.com/raskchanky))
 - Update homebrew release to utilize metadata helper functions [#5860](https://github.com/habitat-sh/habitat/pull/5860) ([smacfarlane](https://github.com/smacfarlane))
 - Updates hook names in documentation [#5862](https://github.com/habitat-sh/habitat/pull/5862) ([rsertelon](https://github.com/rsertelon))
-
-#### New Features & Enhancements
-- Add Windows-friendly behavior to `hab pkg env` [#5813](https://github.com/habitat-sh/habitat/pull/5813) ([mwrock](https://github.com/mwrock))
-- Add -t to support installing alternate PackageTarget cli  [#5770](https://github.com/habitat-sh/habitat/pull/5770) ([smacfarlane](https://github.com/smacfarlane))
+- Makes hooks file names consistent regarding _ or - [#5847](https://github.com/habitat-sh/habitat/pull/5847) ([rsertelon](https://github.com/rsertelon))
 
 ## [0.68.0](https://github.com/habitat-sh/habitat/tree/0.68.0) (2018-11-08)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.67.0...0.68.0)
