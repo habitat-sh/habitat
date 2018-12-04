@@ -225,12 +225,12 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
             m.value_of("LISTEN_GOSSIP")
                 .expect("LISTEN_GOSSIP should always have a value."),
         )?,
+        http_listen: http_gateway::ListenAddr::from_str(
+            m.value_of("LISTEN_HTTP")
+                .expect("LISTEN_HTTP should always have a value"),
+        )?,
         ..Default::default()
     };
-
-    if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
-    }
 
     if let Some(addr_str) = m.value_of("LISTEN_CTL") {
         cfg.ctl_listen = SocketAddr::from_str(addr_str)?;
