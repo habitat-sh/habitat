@@ -77,6 +77,15 @@ impl FromStr for DesiredState {
     }
 }
 
+impl From<DesiredState> for i32 {
+    fn from(other: DesiredState) -> Self {
+        match other {
+            DesiredState::Down => 0,
+            DesiredState::Up => 1,
+        }
+    }
+}
+
 pub enum Spec {
     Service(ServiceSpec),
     Composite(CompositeSpec, Vec<ServiceSpec>),
@@ -492,6 +501,25 @@ impl serde::Serialize for ServiceBind {
         S: serde::Serializer,
     {
         serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl From<ServiceBind> for protocol::types::ServiceBind {
+    fn from(bind: ServiceBind) -> Self {
+        let mut proto = protocol::types::ServiceBind::default();
+        proto.name = bind.name;
+        proto.service_group = bind.service_group.into();
+        proto
+    }
+}
+
+impl Into<ServiceBind> for protocol::types::ServiceBind {
+    fn into(self) -> ServiceBind {
+        ServiceBind {
+            name: self.name,
+            service_group: self.service_group.into(),
+            service_name: self.service_name,
+        }
     }
 }
 
