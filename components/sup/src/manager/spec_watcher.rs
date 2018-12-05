@@ -16,13 +16,7 @@
 //! on disk. This is how we know when to start, stop, or restart
 //! services in response to the various `hab svc` commands.
 
-use std::{
-    num::ParseIntError,
-    str::FromStr,
-    sync::mpsc::{channel, Receiver},
-    thread::Builder,
-    time::Duration,
-};
+use std::{num::ParseIntError, str::FromStr, sync::mpsc, thread::Builder, time::Duration};
 
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
@@ -48,24 +42,22 @@ impl From<Duration> for SpecWatcherDelay {
 
 impl Default for SpecWatcherDelay {
     fn default() -> Self {
-        // There's nothing particularly magical about 2000ms,
-        // particularly since we're monitoring at such a coarse level
-        // ("something happened in this directory").
+        // There's nothing particularly magical about 2s, particularly
+        // since we're monitoring at such a coarse level ("something
+        // happened in this directory").
         //
         // Smaller is probably fine, but you wouldn't want to go much
         // higher, as this could extend the amount of time you'd need
         // to wait before realizing you need to take action on a
         // service.
-        Duration::from_millis(2_000).into()
+        Duration::from_secs(2).into()
     }
 }
 
 impl FromStr for SpecWatcherDelay {
     type Err = ParseIntError;
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
-        // u16 ~= 65 seconds, which is _more_ than enough
-        let raw = s.parse::<u16>()?;
-        Ok(Duration::from_millis(raw as u64).into())
+        Ok(Duration::from_millis(s.parse()?).into())
     }
 }
 
@@ -83,7 +75,7 @@ pub struct SpecWatcher {
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
     _watcher: RecommendedWatcher,
-    channel: Receiver<DebouncedEvent>,
+    channel: mpsc::Receiver<DebouncedEvent>,
 }
 
 impl SpecWatcher {
@@ -126,7 +118,7 @@ impl SpecWatcher {
     /// didn't care what the resulting watcher threads were named,
     /// we'd just use this directly.
     fn new(spec_dir: &SpecDir) -> Result<SpecWatcher> {
-        let (tx, rx) = channel();
+        let (tx, rx) = mpsc::channel();
         let delay = SpecWatcherDelay::configured_value();
         let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
         watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;

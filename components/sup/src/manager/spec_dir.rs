@@ -1,9 +1,10 @@
 use std::error::Error as StdErr;
 use std::ffi::OsStr;
+use std::iter::IntoIterator;
 use std::path::Path;
 use std::path::PathBuf;
 
-use glob::glob;
+use glob;
 
 use super::service::spec::ServiceSpec;
 use error::{Error, Result};
@@ -27,12 +28,13 @@ impl SpecDir {
         P: AsRef<Path>,
     {
         let path: PathBuf = path.as_ref().into();
-        if !path.is_dir() {
-            return Err(sup_error!(Error::SpecDirNotFound(
+        if path.is_dir() {
+            Ok(SpecDir(path))
+        } else {
+            Err(sup_error!(Error::SpecDirNotFound(
                 path.display().to_string()
-            )));
+            )))
         }
-        Ok(SpecDir(path))
     }
 
     /// Read all spec files and rewrite them to disk migrating their format from a previous
@@ -45,16 +47,8 @@ impl SpecDir {
         // Supervisor's main loop through IPC.
 
         for spec_file in self.spec_files() {
-            match ServiceSpec::from_file(&spec_file) {
-                Ok(spec) => {
-                    if let Err(err) = spec.to_file(&spec_file) {
-                        outputln!(
-                            "Unable to migrate service spec, {}, {}",
-                            spec_file.display(),
-                            err
-                        );
-                    }
-                }
+            match ServiceSpec::from_file(&spec_file).map(|spec| spec.to_file(&spec_file)) {
+                Ok(_) => debug!("migrated {:?}", spec_file),
                 Err(err) => {
                     outputln!(
                         "Unable to migrate service spec, {}, {}",
@@ -97,8 +91,22 @@ impl SpecDir {
                 }
             };
 
-            let file_stem = match spec_file.file_stem().and_then(OsStr::to_str) {
-                Some(s) => s,
+            specs.push(match spec_file.file_stem().and_then(OsStr::to_str) {
+                Some(stem) if stem == spec.ident.name => spec,
+                Some(_) => {
+                    outputln!(
+                        "Error when loading service spec file '{}' \
+                         (File name does not match ident name '{}' from ident = \"{}\", \
+                         it should be called '{}.{}'). \
+                         This file will be skipped.",
+                        spec_file.display(),
+                        &spec.ident.name,
+                        &spec.ident,
+                        &spec.ident.name,
+                        SPEC_FILE_EXT
+                    );
+                    continue;
+                }
                 None => {
                     outputln!(
                         "Error when loading service spec file '{}' \
@@ -108,34 +116,17 @@ impl SpecDir {
                     );
                     continue;
                 }
-            };
-
-            if file_stem != &spec.ident.name {
-                outputln!(
-                    "Error when loading service spec file '{}' \
-                     (File name does not match ident name '{}' from ident = \"{}\", \
-                     it should be called '{}.{}'). \
-                     This file will be skipped.",
-                    spec_file.display(),
-                    &spec.ident.name,
-                    &spec.ident,
-                    &spec.ident.name,
-                    SPEC_FILE_EXT
-                );
-                continue;
-            }
-            specs.push(spec);
+            });
         }
 
         Ok(specs)
     }
 
     /// Return the list of all spec files in the directory
-    fn spec_files(&self) -> Vec<PathBuf> {
-        glob(&self.0.join(SPEC_FILE_GLOB).display().to_string())
+    fn spec_files(&self) -> impl IntoIterator<Item = PathBuf> {
+        glob::glob(&self.0.join(SPEC_FILE_GLOB).display().to_string())
             .expect("Invalid spec file glob pattern!")
-            .filter_map(|p| p.ok())
+            .filter_map(glob::GlobResult::ok)
             .filter(|p| p.is_file())
-            .collect()
     }
 }

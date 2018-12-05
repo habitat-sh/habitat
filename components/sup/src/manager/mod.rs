@@ -98,17 +98,14 @@ const PROC_LOCK_FILE: &'static str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
 
-/// Captures the different operations that can be performed on a
-/// service.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ServiceOperation {
-    /// Start the indicated service.
     Start(ServiceSpec),
-    /// Stop the indicated service.
     Stop(ServiceSpec),
-    /// Stop a service that is currently running, and start it again
-    /// with a different spec.
-    Restart(ServiceSpec, ServiceSpec),
+    Restart {
+        to_stop: ServiceSpec,
+        to_start: ServiceSpec,
+    },
 }
 
 /// FileSystem paths that the Manager uses to persist data to disk.
@@ -1693,7 +1690,10 @@ impl Manager {
                 ServiceOperation::Start(spec) => {
                     self.add_service(spec);
                 }
-                ServiceOperation::Restart(running, desired) => {
+                ServiceOperation::Restart {
+                    to_stop: running,
+                    to_start: desired,
+                } => {
                     self.remove_service_for_spec(&running);
                     self.add_service(desired);
                 }
@@ -1732,58 +1732,92 @@ impl Manager {
         C: IntoIterator<Item = ServiceSpec>,
         D: IntoIterator<Item = ServiceSpec>,
     {
-        let mut running_specs = currently_running_specs
-            .into_iter()
-            .map(|s| (s.ident.clone(), s))
-            .collect::<HashMap<_, _>>();
-        let disk_specs = on_disk_specs
-            .into_iter()
-            .map(|s| (s.ident.clone(), s))
-            .collect::<HashMap<_, _>>();
+        let mut svc_states = HashMap::new();
 
-        let mut operations = vec![];
-
-        for (ident, disk_spec) in disk_specs.into_iter() {
-            match disk_spec.desired_state {
-                DesiredState::Up => {
-                    if let Some(running_spec) = running_specs.remove(&ident) {
-                        if running_spec != disk_spec {
-                            // TODO (CM): In the future, this
-                            // would be the place where we can
-                            // evaluate what has changed between
-                            // the spec-on-disk and our in-memory
-                            // representation and potentially just
-                            // bring our in-memory representation
-                            // in line without having to restart
-                            // the entire service.
-                            debug!("Reconciliation: '{}' queued for restart", ident);
-                            operations.push(ServiceOperation::Restart(running_spec, disk_spec));
-                        } else {
-                            debug!("Reconciliation: '{}' unchanged", ident);
-                        }
-                    } else {
-                        debug!("Reconciliation: '{}' queued for start", ident);
-                        operations.push(ServiceOperation::Start(disk_spec));
-                    }
-                }
-                DesiredState::Down => {
-                    if let Some(running_spec) = running_specs.remove(&ident) {
-                        debug!("Reconciliation: '{}' queued for stop", ident);
-                        operations.push(ServiceOperation::Stop(running_spec));
-                    } else {
-                        debug!("Reconciliation: '{}' should be down, and is", ident);
-                    }
-                }
-            }
-        }
-        // Anything left is something not present in our on-disk
-        // specs, so we should shut them all down
-        for (ident, running_spec) in running_specs.into_iter() {
-            debug!("Reconciliation: '{}' queued for shutdown", ident);
-            operations.push(ServiceOperation::Stop(running_spec));
+        #[derive(Default)]
+        struct ServiceState {
+            running: Option<ServiceSpec>,
+            disk: Option<(DesiredState, ServiceSpec)>,
         }
 
-        operations
+        for rs in currently_running_specs {
+            svc_states.insert(
+                rs.ident.clone(),
+                ServiceState {
+                    running: Some(rs),
+                    disk: None,
+                },
+            );
+        }
+
+        for ds in on_disk_specs {
+            let ident = ds.ident.clone();
+            svc_states
+                .entry(ident)
+                .or_insert(ServiceState::default())
+                .disk = Some((ds.desired_state, ds));
+        }
+
+        svc_states
+            .into_iter()
+            .filter_map(|(ident, ss)| match ss {
+                ServiceState {
+                    disk: Some((DesiredState::Up, disk_spec)),
+                    running: None,
+                } => {
+                    debug!("Reconciliation: '{}' queued for start", ident);
+                    Some(ServiceOperation::Start(disk_spec))
+                }
+
+                ServiceState {
+                    disk: Some((DesiredState::Up, disk_spec)),
+                    running: Some(running_spec),
+                } => if running_spec == disk_spec {
+                    debug!("Reconciliation: '{}' unchanged", ident);
+                    None
+                } else {
+                    // TODO (CM): In the future, this would be the
+                    // place where we can evaluate what has changed
+                    // between the spec-on-disk and our in-memory
+                    // representation and potentially just bring our
+                    // in-memory representation in line without having
+                    // to restart the entire service.
+                    debug!("Reconciliation: '{}' queued for restart", ident);
+                    Some(ServiceOperation::Restart {
+                        to_stop: running_spec,
+                        to_start: disk_spec,
+                    })
+                },
+
+                ServiceState {
+                    disk: Some((DesiredState::Down, _)),
+                    running: Some(running_spec),
+                } => {
+                    debug!("Reconciliation: '{}' queued for stop", ident);
+                    Some(ServiceOperation::Stop(running_spec))
+                }
+
+                ServiceState {
+                    disk: Some((DesiredState::Down, _)),
+                    running: None,
+                } => {
+                    debug!("Reconciliation: '{}' should be down, and is", ident);
+                    None
+                }
+
+                ServiceState {
+                    disk: None,
+                    running: Some(running_spec),
+                } => {
+                    debug!("Reconciliation: '{}' queued for shutdown", ident);
+                    Some(ServiceOperation::Stop(running_spec))
+                }
+
+                ServiceState {
+                    disk: None,
+                    running: None,
+                } => unreachable!(),
+            }).collect()
     }
 
     fn update_peers_from_watch_file(&mut self) -> Result<()> {
@@ -2355,7 +2389,10 @@ mod test {
             assert_eq!(operations.len(), 1);
 
             match operations[0] {
-                ServiceOperation::Restart(ref old, ref new) => {
+                ServiceOperation::Restart {
+                    to_stop: ref old,
+                    to_start: ref new,
+                } => {
                     assert_eq!(old.ident, new.ident);
                     assert_eq!(old.update_strategy, UpdateStrategy::None);
                     assert_eq!(new.update_strategy, UpdateStrategy::AtOnce);
@@ -2421,7 +2458,10 @@ mod test {
 
             let expected_operations = vec![
                 ServiceOperation::Stop(svc_2_running.clone()),
-                ServiceOperation::Restart(svc_3_running.clone(), svc_3_on_disk.clone()),
+                ServiceOperation::Restart {
+                    to_stop: svc_3_running.clone(),
+                    to_start: svc_3_on_disk.clone(),
+                },
                 ServiceOperation::Start(svc_5_on_disk.clone()),
                 ServiceOperation::Stop(svc_6_running.clone()),
             ];
