@@ -18,7 +18,7 @@ petgraph = "*"
 regex = "*"
 tempfile = "*"
 retry = "*"
-term = "*"
+term = { git = "https://github.com/habitat-sh/term" }
 time = "*"
 toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }
