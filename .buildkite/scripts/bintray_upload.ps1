@@ -24,9 +24,9 @@ Write-Host "--- Using hab executable at $baseHabExe"
 # install buildkite agent because we are in a container :(
 Write-Host "--- Installing buildkite agent in container"
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1'))
+Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1).Content
 
-$HabArtifact = Invoke-Expression "buildkite-agent meta-data get hab-artifact-windows --job $Env:BUILDKITE_JOB_ID"
+$HabArtifact = & buildkite-agent meta-data get hab-artifact-windows --job $Env:BUILDKITE_JOB_ID
 
 Write-Host "--- :windows: Install core/hab-bintray-publish package"
 Invoke-Expression "$baseHabExe pkg install --channel=$SourceChannel core/hab-bintray-publish"
@@ -40,3 +40,6 @@ $Env:BINTRAY_USER="$Env:HABITAT_BINTRAY_USER"
 $Env:BINTRAY_KEY="$Env:HABITAT_BINTRAY_KEY"
 $Env:BINTRAY_PASSPHRASE="$Env:HABITAT_BINTRAY_PASSPHRASE"
 Invoke-Expression "$baseHabExe pkg exec core/hab-bintray-publish publish-hab -s -r $TargetChannel C:\hab\cache\artifacts\$HabArtifact"
+
+
+if($LASTEXITCODE -ne 0) { Write-Error "Something mysterious and unexpected happened!" } 

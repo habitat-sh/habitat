@@ -11,11 +11,13 @@ param (
     [string]$SourceChannel="stable"
 )
 
+$ErrorActionPreference="stop" 
+
 # Import shared functions
-. "$PSScriptRoot\shared.ps1" -ErrorAction Stop
+. "$PSScriptRoot\shared.ps1"
 
 if($Component.Equals("")) {
-    Write-Error "--- :error: Component to build not specified, please use the -Component flag" -ErrorAction Stop
+    Write-Error "--- :error: Component to build not specified, please use the -Component flag"
 }
 
 Write-Host "--- Setting source package channel to $SourceChannel"
@@ -24,7 +26,7 @@ $Env:HAB_BLDR_CHANNEL="$SourceChannel"
 # install buildkite agent because we are in a container :(
 Write-Host "--- Installing buildkite agent in container"
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1'))    
+Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1).Content
     
 Write-Host "--- Installing base habitat binary version: $BaseHabVersion"
 $baseHabExe = [HabShared]::install_base_habitat_binary($BaseHabVersion, $SourceChannel)
@@ -39,12 +41,12 @@ Copy-Item -Path C:\workdir\* -Destination C:\build -Recurse
 
 Push-Location "C:\build"
     Write-Host "--- Running hab pkg build for $Component"
-    Invoke-Expression "$baseHabExe pkg build components\$Component --keys core" -ErrorAction Stop
+    Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
     . "components\$Component\habitat\results\last_build.ps1"
     
-    $ReleaseChannel = Invoke-Expression "buildkite-agent meta-data get release-channel"
+    $ReleaseChannel = & buildkite-agent meta-data get release-channel
     Write-Host "Running hab pkg upload for $Component to channel $ReleaseChannel"
-    Invoke-Expression "$baseHabExe pkg upload components\$Component\habitat\results\$pkg_artifact --channel=$ReleaseChannel" -ErrorAction Stop
+    Invoke-Expression "$baseHabExe pkg upload components\$Component\habitat\results\$pkg_artifact --channel=$ReleaseChannel"
 
     If ($Component -eq 'hab') {
         Write-Host "--- :buildkite: Recording metadata $pkg_ident"
