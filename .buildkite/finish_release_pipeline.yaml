@@ -44,8 +44,7 @@ steps:
       queue: habitat-release
 
   - label: "Add core/backline to Acceptance Environment"
-    command: /bin/true
-    skip: Not implemented yet
+    command: .buildkite/scripts/upload_backline_to_acceptance.sh
     agents:
       queue: habitat-release
 

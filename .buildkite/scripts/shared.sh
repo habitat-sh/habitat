@@ -200,6 +200,28 @@ set_studio_ident() {
     buildkite-agent meta-data set "studio-ident-${target}" "${ident}"
 }
 
+get_backline_ident() {
+    local target=$1
+    buildkite-agent meta-data get "backline-ident-${target}"
+}
+
+set_backline_ident() {
+    local target=$1
+    local ident=$2
+    buildkite-agent meta-data set "backline-ident-${target}" "${ident}"
+}
+
+get_backline_artifact() {
+    local target=$1
+    buildkite-agent meta-data get "backline-artifact-${target}"
+}
+
+set_backline_artifact() {
+    local target=$1
+    local ident=$2
+    buildkite-agent meta-data set "backline-artifact-${target}" "${ident}"
+}
+
 get_release_channel() {
     buildkite-agent meta-data get "release-channel"
 }
