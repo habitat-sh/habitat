@@ -1039,7 +1039,7 @@ dependencies = [
  "regex 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "retry 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 3.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "term 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "term 0.5.1 (git+https://github.com/habitat-sh/term)",
  "time 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2708,6 +2708,16 @@ dependencies = [
 [[package]]
 name = "term"
 version = "0.5.1"
+source = "git+https://github.com/habitat-sh/term#1b646454f859178295e7fdf41c8205add8003131"
+dependencies = [
+ "byteorder 1.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "dirs 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "term"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 1.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3675,6 +3685,7 @@ dependencies = [
 "checksum tee 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "37c12559dba7383625faaff75be24becf35bfc885044375bcab931111799a3da"
 "checksum tempdir 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)" = "15f2b5fb00ccdf689e0149d1b1b3c03fead81c2b37735d812fa8bddbbf41b6d8"
 "checksum tempfile 3.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "7e91405c14320e5c79b3d148e1c86f40749a36e490642202a31689cb1a3452b2"
+"checksum term 0.5.1 (git+https://github.com/habitat-sh/term)" = "<none>"
 "checksum term 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5e6b677dd1e8214ea1ef4297f85dbcbed8e8cdddb561040cc998ca2551c37561"
 "checksum termcolor 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)" = "4096add70612622289f2fdcdbd5086dc81c1e2675e6ae58d6c4f62a16c6d7f2f"
 "checksum termion 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "689a3bdfaab439fd92bc87df5c4c78417d3cbe537487274e9b0b2dce76e92096"
