@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Eeyun/release v70 [#5920](https://github.com/habitat-sh/habitat/pull/5920) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
 ## [0.70.0](https//github.com/habitat-sh/habitat/tree/0.70.0) (2018-12-04)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.69.0...0.70.0)
