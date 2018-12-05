@@ -72,11 +72,10 @@ pub fn start(
     }
 
     // 2.
-    let mut graph = PackageGraph::new();
-    graph.load(&fs_root_path)?;
+    let mut graph = PackageGraph::from_root_path(fs_root_path)?;
 
     // 3.
-    let deps = graph.ordered_deps(&ident);
+    let deps = graph.owned_ordered_deps(&ident);
 
     // 4.
     match graph.count_rdeps(&ident) {
@@ -119,7 +118,6 @@ pub fn start(
                     }
                     Some(0) => {
                         let install = PackageInstall::load(&p, Some(fs_root_path))?;
-                        //packages.iter().find(|&i| i.ident() == p).unwrap();
                         maybe_delete(
                             ui,
                             &fs_root_path,

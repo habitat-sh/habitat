@@ -49,7 +49,10 @@ pub enum Scope {
     PackageAndDependencies,
 }
 
-pub enum DependencyDirection {
-    Up,
-    Down,
+/// Express the relationship between two packages
+/// `Requires`: a dependency from a package to one it depends on
+/// `Supports`: a dependency from a package to one that depends on it
+pub enum DependencyRelation {
+    Requires,
+    Supports,
 }

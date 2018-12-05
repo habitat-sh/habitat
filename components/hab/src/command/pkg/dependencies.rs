@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use super::{DependencyDirection, Scope};
+use super::{DependencyRelation, Scope};
 use common::package_graph::PackageGraph;
 use error::Result;
 use hcore::package::{PackageIdent, PackageInstall};
@@ -27,21 +27,20 @@ use hcore::package::{PackageIdent, PackageInstall};
 pub fn start(
     ident: &PackageIdent,
     scope: &Scope,
-    direction: &DependencyDirection,
+    direction: &DependencyRelation,
     fs_root_path: &Path,
 ) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
 
-    let mut graph = PackageGraph::new();
-    graph.load(fs_root_path)?;
+    let graph = PackageGraph::from_root_path(fs_root_path)?;
 
     let deps = match &direction {
-        DependencyDirection::Down => match &scope {
-            Scope::Package => graph.deps(&pkg_install.ident()).unwrap_or(vec![]),
+        DependencyRelation::Requires => match &scope {
+            Scope::Package => graph.deps(&pkg_install.ident()),
             Scope::PackageAndDependencies => graph.ordered_deps(&pkg_install.ident()),
         },
-        DependencyDirection::Up => match &scope {
-            Scope::Package => graph.rdeps(&pkg_install.ident()).unwrap_or(vec![]),
+        DependencyRelation::Supports => match &scope {
+            Scope::Package => graph.rdeps(&pkg_install.ident()),
             Scope::PackageAndDependencies => graph.ordered_reverse_deps(&pkg_install.ident()),
         },
     };
