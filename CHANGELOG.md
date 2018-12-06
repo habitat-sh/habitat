@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Move env var and default value to clap layer for listen http [#5918](https://github.com/habitat-sh/habitat/pull/5918) ([mpeck](https://github.com/mpeck))
 - Release blog post for v0.70.0 [#5926](https://github.com/habitat-sh/habitat/pull/5926) ([eeyun](https://github.com/eeyun))
 - Eeyun/release v70 [#5920](https://github.com/habitat-sh/habitat/pull/5920) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
