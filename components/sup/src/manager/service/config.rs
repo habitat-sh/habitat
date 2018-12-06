@@ -227,7 +227,7 @@ impl Cfg {
     }
 
     /// Returns a subset of the overall configuration which intersects with the given package's exports.
-    pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
+    pub fn to_exported(&self, pkg: &Pkg) -> Result<Vec<u8>> {
         let mut map = toml::value::Table::default();
         let cfg = toml::Value::try_from(&self).unwrap();
         for (key, path) in pkg.exports.iter() {
@@ -253,7 +253,7 @@ impl Cfg {
                 map.insert(key.clone(), curr.clone());
             }
         }
-        Ok(map)
+        toml::ser::to_vec(&map).map_err(|e| sup_error!(Error::TomlEncode(e)))
     }
 
     fn load_toml_file<T1, T2>(dir: T1, file: T2) -> Result<Option<toml::value::Table>>

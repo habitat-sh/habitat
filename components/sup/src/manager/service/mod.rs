@@ -681,7 +681,7 @@ impl Service {
             &self.pkg.ident,
             self.service_group.clone(),
             self.sys.as_sys_info().clone(),
-            exported.as_ref(),
+            exported,
         );
         rumor.incarnation = incarnation;
         rumor

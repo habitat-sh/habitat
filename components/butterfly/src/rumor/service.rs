@@ -87,7 +87,7 @@ impl Service {
         package: &T,
         service_group: ServiceGroup,
         sys: SysInfo,
-        cfg: Option<&toml::value::Table>,
+        cfg: Option<Vec<u8>>,
     ) -> Self
     where
         T: Identifiable,
@@ -110,11 +110,7 @@ impl Service {
             initialized: false,
             pkg: package.to_string(),
             sys: sys,
-            // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
-            // in this constructor?
-            cfg: cfg
-                .map(|v| toml::ser::to_vec(v).expect("Struct should serialize to bytes"))
-                .unwrap_or_default(),
+            cfg: cfg.unwrap_or_default(),
         }
     }
 }
