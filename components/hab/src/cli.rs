@@ -25,8 +25,9 @@ use protocol;
 use url::Url;
 
 use command::studio;
-use default_values::{
-    GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, RING_ENVVAR, RING_KEY_ENVVAR,
+use common::defaults::{
+    GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_HTTP_ADDRESS_ENVVAR,
+    LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
 };
 use feat;
 
@@ -862,9 +863,8 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
               (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
             "The listen address for the Gossip System Gateway.")
-        (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_socket_addr}
-            "The listen address for the HTTP Gateway. If not specified, the value will \
-            be taken from the HAB_LISTEN_HTTP environment variable if defined. [default: 0.0.0.0:9631]")
+        (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
+            "The listen address for the HTTP Gateway.")
         (@arg HTTP_DISABLE: --("http-disable") -D
             "Disable the HTTP Gateway completely [default: false]")
         (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}

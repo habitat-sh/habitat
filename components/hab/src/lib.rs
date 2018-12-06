@@ -37,8 +37,6 @@ extern crate features;
 extern crate flate2;
 extern crate hyper;
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate log;
 extern crate pbr;
 extern crate retry;
@@ -66,7 +64,6 @@ pub mod analytics;
 pub mod cli;
 pub mod command;
 pub mod config;
-pub mod default_values;
 pub mod error;
 mod exec;
 pub mod scaffolding;

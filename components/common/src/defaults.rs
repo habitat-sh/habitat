@@ -14,9 +14,8 @@
 
 //! This file contains the string defaults values as well as environment variable strings
 //! for use in the clap layer of the application. This is not the final form for defaults.
-//! Eventually this will likely reside in it's own crate and be composed of fully typed
-//! default values. But as a first step we need a spot to consolidate those values and help simplify
-//! some of the logic around them.
+//! Eventually this will be composed of fully typed default values. But as a first step we
+//! need a spot to consolidate those values and help simplify some of the logic around them.
 
 pub const GOSSIP_DEFAULT_IP: &'static str = "0.0.0.0";
 pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
@@ -27,3 +26,11 @@ lazy_static! {
 pub const GOSSIP_LISTEN_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_GOSSIP";
 pub const RING_ENVVAR: &'static str = "HAB_RING";
 pub const RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
+
+pub const LISTEN_HTTP_DEFAULT_PORT: u16 = 9631;
+pub const LISTEN_HTTP_DEFAULT_IP: &'static str = "0.0.0.0";
+lazy_static! {
+    pub static ref LISTEN_HTTP_DEFAULT_ADDR: String =
+        { format!("{}:{}", LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT) };
+}
+pub const LISTEN_HTTP_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_HTTP";

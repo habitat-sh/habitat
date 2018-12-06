@@ -16,7 +16,7 @@ use std::{
     fmt,
     fs::File,
     io::{self, Read},
-    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs},
+    net::{IpAddr, SocketAddr, SocketAddrV4, ToSocketAddrs},
     ops::{Deref, DerefMut},
     option, result,
     str::FromStr,
@@ -31,29 +31,28 @@ use actix_web::{
     pred::Predicate,
     server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
+use common::defaults::{
+    LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
+};
+use config::EnvConfig;
 use crypto;
 use hcore::{env as henv, service::ServiceGroup};
-use protocol::socket_addr_env_or_default;
 use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 
-use error::{Error, Result, SupError};
+use error::{Result, SupError};
 use manager;
 use manager::service::hooks::{self, HealthCheckHook};
 use manager::service::HealthCheck;
 
 use feat;
 
-static LOGKEY: &'static str = "HG";
 const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
 pub const HTTP_THREADS_ENVVAR: &'static str = "HAB_SUP_HTTP_THREADS";
 pub const HTTP_THREAD_COUNT: usize = 2;
 
 /// Default listening port for the HTTPGateway listener.
 pub const DEFAULT_PORT: u16 = 9631;
-
-/// Default environment variable override for HTTPGateway listener address.
-pub const DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_HTTP";
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ListenAddr(SocketAddr);
@@ -66,11 +65,17 @@ impl ListenAddr {
 
 impl Default for ListenAddr {
     fn default() -> ListenAddr {
-        ListenAddr(socket_addr_env_or_default(
-            DEFAULT_ADDRESS_ENVVAR,
-            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), DEFAULT_PORT)),
-        ))
+        ListenAddr(SocketAddr::V4(SocketAddrV4::new(
+            LISTEN_HTTP_DEFAULT_IP
+                .parse()
+                .expect("LISTEN_HTTP_DEFAULT_IP can not be parsed."),
+            LISTEN_HTTP_DEFAULT_PORT,
+        )))
     }
+}
+
+impl EnvConfig for ListenAddr {
+    const ENVVAR: &'static str = LISTEN_HTTP_ADDRESS_ENVVAR;
 }
 
 impl Deref for ListenAddr {
@@ -91,17 +96,7 @@ impl FromStr for ListenAddr {
     type Err = SupError;
 
     fn from_str(val: &str) -> Result<Self> {
-        match SocketAddr::from_str(val) {
-            Ok(addr) => Ok(ListenAddr(addr)),
-            Err(_) => match IpAddr::from_str(val) {
-                Ok(ip) => {
-                    let mut addr = ListenAddr::default();
-                    addr.set_ip(ip);
-                    Ok(addr)
-                }
-                Err(_) => Err(sup_error!(Error::IPFailed)),
-            },
-        }
+        Ok(ListenAddr(SocketAddr::from_str(val)?))
     }
 }
 
