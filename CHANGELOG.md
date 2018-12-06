@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Release blog post for v0.70.0 [#5926](https://github.com/habitat-sh/habitat/pull/5926) ([eeyun](https://github.com/eeyun))
 - Eeyun/release v70 [#5920](https://github.com/habitat-sh/habitat/pull/5920) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
 ## [0.70.0](https//github.com/habitat-sh/habitat/tree/0.70.0) (2018-12-04)
