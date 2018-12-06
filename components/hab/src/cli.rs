@@ -25,7 +25,7 @@ use protocol;
 use url::Url;
 
 use command::studio;
-use default_values::{
+use common::defaults::{
     GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_HTTP_ADDRESS_ENVVAR,
     LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
 };

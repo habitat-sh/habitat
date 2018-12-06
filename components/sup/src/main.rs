@@ -62,7 +62,7 @@ use protocol::{
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
 
-use hab::default_values::GOSSIP_DEFAULT_PORT;
+use common::defaults::GOSSIP_DEFAULT_PORT;
 use sup::cli::cli;
 use sup::command;
 use sup::config::GossipListenAddr;

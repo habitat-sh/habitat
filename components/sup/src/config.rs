@@ -29,8 +29,8 @@ use std::option;
 use std::result;
 use std::str::FromStr;
 
+use common::defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR};
 use error::{Result, SupError};
-use hab::default_values::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR};
 use hcore::env as henv;
 
 /// Enable the creation of a value based on an environment variable
