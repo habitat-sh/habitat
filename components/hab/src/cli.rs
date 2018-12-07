@@ -533,8 +533,10 @@ pub fn get() -> App<'static, 'static> {
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand dependencies =>
-                (about: "Returns the Habitat Artifact dependencies")
+                (about: "Returns the Habitat Artifact dependencies. By default it will return \
+                    the direct dependencies of the package")
                 (aliases: &["dep", "deps"])
+                (@arg TRANSITIVE: -t --transitive "Show transitive dependencies")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )

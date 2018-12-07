@@ -42,8 +42,8 @@ pub enum ExecutionStrategy {
     Run,
 }
 
-/// Used in `hab pkg uninstall` to choose where to iterate over just a package
-/// or the package and it's dependencies
+/// Used in `hab pkg` commands to choose where to apply the command to just a package
+/// or the package and its dependencies
 pub enum Scope {
     Package,
     PackageAndDependencies,

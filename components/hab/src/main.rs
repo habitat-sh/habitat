@@ -469,7 +469,13 @@ fn sub_pkg_binds(m: &ArgMatches) -> Result<()> {
 
 fn sub_pkg_dependencies(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    command::pkg::dependencies::start(&ident, &*FS_ROOT)
+    let scope = if m.is_present("TRANSITIVE") {
+        command::pkg::Scope::PackageAndDependencies
+    } else {
+        command::pkg::Scope::Package
+    };
+
+    command::pkg::dependencies::start(&ident, &scope, &*FS_ROOT)
 }
 
 fn sub_pkg_env(m: &ArgMatches) -> Result<()> {
