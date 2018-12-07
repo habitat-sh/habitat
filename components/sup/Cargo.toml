@@ -52,7 +52,6 @@ prost = "*"
 protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
 regex = "*"
-rust-crypto = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
