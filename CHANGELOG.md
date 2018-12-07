@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Behavioral Changes
+- Add --transitive option to hab pkg dependencies [#5940](https://github.com/habitat-sh/habitat/pull/5940) ([jamesc](https://github.com/jamesc))
+
 #### Merged Pull Requests
 - Move env var and default value to clap layer for listen http [#5918](https://github.com/habitat-sh/habitat/pull/5918) ([mpeck](https://github.com/mpeck))
 - Release blog post for v0.70.0 [#5926](https://github.com/habitat-sh/habitat/pull/5926) ([eeyun](https://github.com/eeyun))
