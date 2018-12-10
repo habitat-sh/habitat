@@ -63,13 +63,17 @@ if ! echo "${channel_pkgs_json}" | jq -e '.range_end - .range_start + 1 == .tota
     exit 1
 fi
 
-# TODO (CM): consider ordering these somehow (e.g., save the
-# supervisor for absolute last. If it goes out first, Builder itself
-# can have a hiccup while _it_ is updating, taking the API out so
-# subsequent promotions don't go through.
+# We explicitly promote the Supervisor packages last. Initially, this
+# was due to a Supervisor bug that caused us problems in our Builder
+# environment. That bug has since been fixed, but promoting the
+# supervisors last provides some degree of determinism in how the
+# packages are promoted.
 #
-# That's also a good argument for making this step retriable.
-
+# Our A2 team is using this for some automation purposes right now,
+# for instance. Once Builder has notifications and / or we can
+# atomically promote a set of packages, we can simplify all this to
+# just promote everything at once. Until that time, however, please
+# leave this arrangement "as is".
 non_supervisor_packages=($(echo "${channel_pkgs_json}" | \
                            jq -r \
                              '.data |
