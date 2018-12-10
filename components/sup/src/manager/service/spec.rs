@@ -43,7 +43,7 @@ const SPEC_FILE_EXT: &'static str = "spec";
 
 pub type BindMap = HashMap<PackageIdent, Vec<BindMapping>>;
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum DesiredState {
     Down,
     Up,
