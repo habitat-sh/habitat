@@ -7,6 +7,7 @@
 - Add --transitive option to hab pkg dependencies [#5940](https://github.com/habitat-sh/habitat/pull/5940) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- Refactor SpecWatcher [#5892](https://github.com/habitat-sh/habitat/pull/5892) ([christophermaier](https://github.com/christophermaier))
 - Update version file [#5943](https://github.com/habitat-sh/habitat/pull/5943) ([eeyun](https://github.com/eeyun))
 - Corrects blog date [#5939](https://github.com/habitat-sh/habitat/pull/5939) ([eeyun](https://github.com/eeyun))
 - Move env var and default value to clap layer for listen http [#5918](https://github.com/habitat-sh/habitat/pull/5918) ([mpeck](https://github.com/mpeck))
