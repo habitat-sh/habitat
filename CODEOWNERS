@@ -15,5 +15,5 @@ components/sup* @christophermaier @reset @fnichol @baumanj @raskchanky
 support @fnichol @baumanj @raskchanky
 tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
 www @cnunciato @mgamini @raskchanky
-www/site/content @kagarmoe @mjingle
+www/site/content/* @kagarmoe @mjingle
 UX_PRINCIPLES.md @apriofrost
