@@ -44,7 +44,7 @@ use tokio_codec::Framed;
 use tokio_core::reactor;
 
 use super::{CtlRequest, REQ_TIMEOUT};
-use manager::{Manager, ManagerState};
+use manager::{commands, ManagerState};
 
 /// Sending half of an mpsc unbounded channel used for sending replies for a transactional message
 /// from the main thread back to the CtlGateway. This half is stored in a
@@ -280,7 +280,7 @@ impl Future for SrvHandler {
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
                                     msg.transaction(),
-                                    move |state, req| Manager::service_cfg(state, req, m.clone()),
+                                    move |state, req| commands::service_cfg(state, req, m.clone()),
                                 )
                             }
                             "SvcFilePut" => {
@@ -291,7 +291,7 @@ impl Future for SrvHandler {
                                     Some(self.tx.clone()),
                                     msg.transaction(),
                                     move |state, req| {
-                                        Manager::service_file_put(state, req, m.clone())
+                                        commands::service_file_put(state, req, m.clone())
                                     },
                                 )
                             }
@@ -303,7 +303,7 @@ impl Future for SrvHandler {
                                     Some(self.tx.clone()),
                                     msg.transaction(),
                                     move |state, req| {
-                                        Manager::service_cfg_set(state, req, m.clone())
+                                        commands::service_cfg_set(state, req, m.clone())
                                     },
                                 )
                             }
@@ -315,7 +315,7 @@ impl Future for SrvHandler {
                                     Some(self.tx.clone()),
                                     msg.transaction(),
                                     move |state, req| {
-                                        Manager::service_cfg_validate(state, req, m.clone())
+                                        commands::service_cfg_validate(state, req, m.clone())
                                     },
                                 )
                             }
@@ -326,7 +326,7 @@ impl Future for SrvHandler {
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
                                     msg.transaction(),
-                                    move |state, req| Manager::service_load(state, req, m.clone()),
+                                    move |state, req| commands::service_load(state, req, m.clone()),
                                 )
                             }
                             "SvcUnload" => {
@@ -337,7 +337,7 @@ impl Future for SrvHandler {
                                     Some(self.tx.clone()),
                                     msg.transaction(),
                                     move |state, req| {
-                                        Manager::service_unload(state, req, m.clone())
+                                        commands::service_unload(state, req, m.clone())
                                     },
                                 )
                             }
@@ -348,7 +348,9 @@ impl Future for SrvHandler {
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
                                     msg.transaction(),
-                                    move |state, req| Manager::service_start(state, req, m.clone()),
+                                    move |state, req| {
+                                        commands::service_start(state, req, m.clone())
+                                    },
                                 )
                             }
                             "SvcStop" => {
@@ -358,7 +360,7 @@ impl Future for SrvHandler {
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
                                     msg.transaction(),
-                                    move |state, req| Manager::service_stop(state, req, m.clone()),
+                                    move |state, req| commands::service_stop(state, req, m.clone()),
                                 )
                             }
                             "SvcStatus" => {
@@ -369,7 +371,7 @@ impl Future for SrvHandler {
                                     Some(self.tx.clone()),
                                     msg.transaction(),
                                     move |state, req| {
-                                        Manager::service_status(state, req, m.clone())
+                                        commands::service_status(state, req, m.clone())
                                     },
                                 )
                             }
@@ -381,7 +383,7 @@ impl Future for SrvHandler {
                                     Some(self.tx.clone()),
                                     msg.transaction(),
                                     move |state, req| {
-                                        Manager::supervisor_depart(state, req, m.clone())
+                                        commands::supervisor_depart(state, req, m.clone())
                                     },
                                 )
                             }
