@@ -1178,7 +1178,6 @@ impl<'a> Serialize for ServiceProxy<'a> {
 mod tests {
     use super::*;
 
-    use std::net::SocketAddr;
     use std::path::PathBuf;
     use std::str::FromStr;
 
@@ -1189,6 +1188,7 @@ mod tests {
         manager::{sys::Sys, FsCfg},
         ServiceSpec,
     };
+    use common::ListenCtlAddr;
     use config::GossipListenAddr;
     use http_gateway;
     use test_helpers::*;
@@ -1196,7 +1196,7 @@ mod tests {
     #[test]
     fn service_proxy_conforms_to_the_schema() {
         let socket_addr =
-            SocketAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
+            ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let http_addr = http_gateway::ListenAddr::default();
         let sys = Sys::new(false, GossipListenAddr::default(), socket_addr, http_addr);
 

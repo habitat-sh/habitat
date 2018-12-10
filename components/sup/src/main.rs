@@ -48,7 +48,9 @@ use std::{
 
 use clap::ArgMatches;
 use common::command::package::install::InstallSource;
+use common::defaults::GOSSIP_DEFAULT_PORT;
 use common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
+use common::ListenCtlAddr;
 use hcore::channel;
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
@@ -62,7 +64,6 @@ use protocol::{
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
 
-use common::defaults::GOSSIP_DEFAULT_PORT;
 use sup::cli::cli;
 use sup::command;
 use sup::config::GossipListenAddr;
@@ -599,11 +600,11 @@ mod test {
         fn ctl_listen_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --listen-ctl 3.3.3.3:3333");
             let expected_addr =
-                SocketAddr::from_str("3.3.3.3:3333").expect("Could not create ctl listen addr");
+                ListenCtlAddr::from_str("3.3.3.3:3333").expect("Could not create ctl listen addr");
             assert_eq!(config.ctl_listen, expected_addr);
 
             let config = config_from_cmd_str("hab-sup run");
-            let expected_addr = protocol::ctl::default_addr();
+            let expected_addr = ListenCtlAddr::default();
             assert_eq!(config.ctl_listen, expected_addr);
         }
 

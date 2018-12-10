@@ -16,6 +16,7 @@ use std::env;
 use std::error;
 use std::fmt;
 use std::io;
+use std::net;
 use std::result;
 use std::str;
 use std::string;
@@ -41,6 +42,7 @@ pub enum Error {
     HabitatCore(hcore::Error),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
+    NetParseError(net::AddrParseError),
     OfflineArtifactNotFound(PackageIdent),
     OfflineOriginKeyNotFound(String),
     OfflinePackageNotFound(PackageIdent),
@@ -75,6 +77,7 @@ impl fmt::Display for Error {
             Error::FileNameError => format!("Failed to extract a filename"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
+            Error::NetParseError(ref err) => format!("{}", err),
             Error::OfflineArtifactNotFound(ref ident) => {
                 format!("Cached artifact not found in offline mode: {}", ident)
             }
@@ -119,6 +122,7 @@ impl error::Error for Error {
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::NetParseError(_) => "Can't parse IP:port",
             Error::OfflineArtifactNotFound(_) => "Cached artifact not found in offline mode",
             Error::OfflineOriginKeyNotFound(_) => "Cached origin key not found in offline mode",
             Error::OfflinePackageNotFound(_) => {
@@ -170,5 +174,11 @@ impl From<string::FromUtf8Error> for Error {
 impl From<toml::ser::Error> for Error {
     fn from(err: toml::ser::Error) -> Self {
         Error::TomlSerializeError(err)
+    }
+}
+
+impl From<net::AddrParseError> for Error {
+    fn from(err: net::AddrParseError) -> Self {
+        Error::NetParseError(err)
     }
 }

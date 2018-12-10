@@ -17,6 +17,8 @@
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
 
+use ListenCtlAddr;
+
 pub const GOSSIP_DEFAULT_IP: &'static str = "0.0.0.0";
 pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
 lazy_static! {
@@ -34,3 +36,8 @@ lazy_static! {
         { format!("{}:{}", LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT) };
 }
 pub const LISTEN_HTTP_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_HTTP";
+
+lazy_static! {
+    pub static ref LISTEN_CTL_DEFAULT_ADDR_STRING: String =
+        { ListenCtlAddr::default().to_string() };
+}
