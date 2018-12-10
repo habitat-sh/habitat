@@ -18,7 +18,7 @@ use std::str;
 use butterfly::rumor::service::SysInfo;
 use hcore;
 
-use common::ListenCtlAddr;
+use common::types::ListenCtlAddr;
 use config::GossipListenAddr;
 use error::{Error, Result};
 use http_gateway;

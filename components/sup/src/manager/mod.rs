@@ -47,7 +47,7 @@ use butterfly;
 use butterfly::member::Member;
 use butterfly::server::{timing::Timing, ServerProxy, Suitability};
 use butterfly::trace::Trace;
-use common::ListenCtlAddr;
+use common::types::{EnvConfig, ListenCtlAddr};
 use futures::prelude::*;
 use futures::sync::mpsc;
 use hcore::crypto::SymKey;
@@ -78,7 +78,6 @@ pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
 use census::{CensusRing, CensusRingProxy};
-use common::types::EnvConfig;
 use config::GossipListenAddr;
 use ctl_gateway::{self, CtlRequest};
 use error::{Error, Result, SupError};
@@ -167,7 +166,7 @@ impl Default for ManagerConfig {
             update_url: "".to_string(),
             update_channel: "".to_string(),
             gossip_listen: GossipListenAddr::default(),
-            ctl_listen: ListenCtlAddr::configured_value(),
+            ctl_listen: ListenCtlAddr::default(),
             http_listen: http_gateway::ListenAddr::default(),
             http_disable: false,
             gossip_peers: vec![],

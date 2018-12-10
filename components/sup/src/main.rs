@@ -50,13 +50,11 @@ use clap::ArgMatches;
 use common::cli_defaults::GOSSIP_DEFAULT_PORT;
 use common::command::package::install::InstallSource;
 use common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
-use common::ListenCtlAddr;
 use hcore::channel;
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 use hcore::env as henv;
-use hcore::service::ServiceGroup;
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE};
 use protocol::{
@@ -66,10 +64,8 @@ use protocol::{
 
 use sup::cli::cli;
 use sup::command;
-use sup::config::GossipListenAddr;
 use sup::error::{Error, Result, SupError};
 use sup::feat;
-use sup::http_gateway;
 use sup::manager::{Manager, ManagerConfig};
 use sup::util;
 
@@ -141,7 +137,7 @@ fn start() -> Result<()> {
             sub_run(m, launcher)
         }
         ("sh", Some(_)) => sub_sh(),
-        ("term", Some(m)) => sub_term(m),
+        ("term", Some(_)) => sub_term(),
         _ => unreachable!(),
     }
 }
@@ -153,7 +149,7 @@ fn sub_bash() -> Result<()> {
 fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     set_supervisor_logging_options(m);
 
-    let cfg = mgrcfg_from_matches(m)?;
+    let cfg = mgrcfg_from_sup_run_matches(m)?;
     let manager = Manager::load(cfg, launcher)?;
 
     // We need to determine if we have an initial service to start
@@ -195,8 +191,11 @@ fn sub_sh() -> Result<()> {
     command::shell::sh()
 }
 
-fn sub_term(m: &ArgMatches) -> Result<()> {
-    let cfg = mgrcfg_from_matches(m)?;
+fn sub_term() -> Result<()> {
+    // We were generating a ManagerConfig from matches here, but 'hab sup term' takes no options.
+    // This means that we were implicitly getting the default ManagerConfig here. Instead of calling
+    // a function to generate said config, we can just explicitly pass the default.
+    let cfg = ManagerConfig::default();
     match Manager::term(&cfg) {
         Err(SupError {
             err: Error::ProcessLockIO(_, _),
@@ -212,42 +211,65 @@ fn sub_term(m: &ArgMatches) -> Result<()> {
 // Internal Implementation Details
 ////////////////////////////////////////////////////////////////////////
 
-fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
-    let mut cfg = ManagerConfig {
+fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
+    let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
         update_url: bldr_url(m),
         update_channel: channel(m),
         http_disable: m.is_present("HTTP_DISABLE"),
-        organization: m.value_of("ORGANIZATION").map(|org| org.to_string()),
+        organization: m.value_of("ORGANIZATION").map(str::to_string),
         gossip_permanent: m.is_present("PERMANENT_PEER"),
         ring_key: get_ring_key(m)?,
         gossip_peers: get_peers(m)?,
+        watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
+        eventsrv_group: m.value_of("EVENTS").and_then(|events| events.parse().ok()),
+        // TODO: Refactor this to remove the duplication
+        gossip_listen: m.value_of("LISTEN_GOSSIP").map_or_else(
+            || {
+                let default = sup::config::GossipListenAddr::default();
+                error!(
+                    "Value for LISTEN_GOSSIP has not been set. Using default: {}",
+                    default
+                );
+                Ok(default)
+            },
+            |v| v.parse(),
+        )?,
+        ctl_listen: m.value_of("LISTEN_CTL").map_or_else(
+            || {
+                let default = common::types::ListenCtlAddr::default();
+                error!(
+                    "Value for LISTEN_CTL has not been set. Using default: {}",
+                    default
+                );
+                Ok(default)
+            },
+            |v| v.parse(),
+        )?,
+        http_listen: m.value_of("LISTEN_HTTP").map_or_else(
+            || {
+                let default = sup::http_gateway::ListenAddr::default();
+                error!(
+                    "Value for LISTEN_HTTP has not been set. Using default: {}",
+                    default
+                );
+                Ok(default)
+            },
+            |v| v.parse(),
+        )?,
+        tls_files: m.value_of("KEY_FILE").and_then(|kf| {
+            Some((
+                PathBuf::from(kf),
+                PathBuf::from(
+                    m.value_of("CERT_FILE")
+                        .expect("CERT_FILE should always have a value if KEY_FILE has a value."),
+                ),
+            ))
+        }),
+        // default is only included here for the custom_state_path field which will ideally eventually
+        // be removed, it only exists to manipulate test data.
         ..Default::default()
     };
-
-    if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
-        cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
-    }
-
-    if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
-    }
-
-    if let Some(addr_str) = m.value_of("LISTEN_CTL") {
-        cfg.ctl_listen = SocketAddr::from_str(addr_str)?;
-    }
-
-    if let Some(watch_peer_file) = m.value_of("PEER_WATCH_FILE") {
-        cfg.watch_peer_file = Some(String::from(watch_peer_file));
-    }
-
-    if let Some(events) = m.value_of("EVENTS") {
-        cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
-    }
-
-    if let (Some(kf), Some(cf)) = (m.value_of("KEY_FILE"), m.value_of("CERT_FILE")) {
-        cfg.tls_files = Some((PathBuf::from(kf), PathBuf::from(cf)));
-    }
 
     Ok(cfg)
 }
@@ -497,6 +519,10 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
 #[cfg(test)]
 mod test {
     use super::*;
+    use common::types::ListenCtlAddr;
+    use hcore::service::ServiceGroup;
+    use sup::config::GossipListenAddr;
+    use sup::http_gateway;
 
     mod manager_config {
 
@@ -521,7 +547,7 @@ mod test {
             let (_, sub_matches) = matches.subcommand();
             let sub_matches = sub_matches.expect("Error getting sub command matches");
 
-            mgrcfg_from_matches(&sub_matches).expect("Could not get config")
+            mgrcfg_from_sup_run_matches(&sub_matches).expect("Could not get config")
         }
 
         #[test]

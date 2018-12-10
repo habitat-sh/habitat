@@ -13,19 +13,19 @@
 // limitations under the License.
 
 use std::fmt;
-use std::io;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
-use std::option;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::result;
 use std::str::FromStr;
 
+use super::env_config::EnvConfig;
 use error::{Error, Result};
-use EnvConfig;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);
 
 impl ListenCtlAddr {
+    pub const DEFAULT_PORT: u16 = 9632;
+
     pub fn new(ip: Ipv4Addr, port: u16) -> Self {
         ListenCtlAddr(SocketAddr::V4(SocketAddrV4::new(ip, port)))
     }
@@ -41,7 +41,7 @@ impl ListenCtlAddr {
 
 impl Default for ListenCtlAddr {
     fn default() -> ListenCtlAddr {
-        ListenCtlAddr::new(Ipv4Addr::LOCALHOST, 9632)
+        ListenCtlAddr::new(Ipv4Addr::LOCALHOST, ListenCtlAddr::DEFAULT_PORT)
     }
 }
 
@@ -53,20 +53,24 @@ impl FromStr for ListenCtlAddr {
     type Err = Error;
 
     fn from_str(val: &str) -> Result<Self> {
-        Ok(ListenCtlAddr(SocketAddr::from_str(val)?))
-    }
-}
-
-impl ToSocketAddrs for ListenCtlAddr {
-    type Iter = option::IntoIter<SocketAddr>;
-
-    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
-        self.0.to_socket_addrs()
+        Ok(val.parse::<SocketAddr>()?.into())
     }
 }
 
 impl fmt::Display for ListenCtlAddr {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
+    }
+}
+
+impl From<SocketAddr> for ListenCtlAddr {
+    fn from(socket_addr: SocketAddr) -> Self {
+        ListenCtlAddr(socket_addr)
+    }
+}
+
+impl AsRef<SocketAddr> for ListenCtlAddr {
+    fn as_ref(&self) -> &SocketAddr {
+        &self.0
     }
 }

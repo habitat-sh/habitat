@@ -1188,17 +1188,22 @@ mod tests {
         manager::{sys::Sys, FsCfg},
         ServiceSpec,
     };
-    use common::ListenCtlAddr;
+    use common::types::ListenCtlAddr;
     use config::GossipListenAddr;
     use http_gateway;
     use test_helpers::*;
 
     #[test]
     fn service_proxy_conforms_to_the_schema() {
-        let socket_addr =
+        let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let http_addr = http_gateway::ListenAddr::default();
-        let sys = Sys::new(false, GossipListenAddr::default(), socket_addr, http_addr);
+        let sys = Sys::new(
+            false,
+            GossipListenAddr::default(),
+            listen_ctl_addr,
+            http_addr,
+        );
 
         let ident = if cfg!(target_os = "linux") {
             PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"))
