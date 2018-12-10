@@ -636,19 +636,6 @@ impl MemberList {
         }
     }
 
-    pub fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
-        match self
-            .health
-            .read()
-            .expect("Health lock is poisoned")
-            .get(member_id)
-        {
-            Some(&Health::Alive) | Some(&Health::Suspect) | Some(&Health::Confirmed) => true,
-            Some(&Health::Departed) => false,
-            None => false,
-        }
-    }
-
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of(&self, member: &Member, health: Health) -> bool {
         match self

@@ -827,14 +827,25 @@ impl Server {
         electorate
     }
 
+    fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
+        match self
+            .member_list
+            .health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member_id)
+        {
+            Some(&Health::Alive) | Some(&Health::Suspect) | Some(&Health::Confirmed) => true,
+            Some(&Health::Departed) => false,
+            None => false,
+        }
+    }
+
     /// Get all the Member ID's who are present in a given service group, and count towards quorum.
     fn get_total_population(&self, key: &str) -> Vec<String> {
         let mut total_pop = vec![];
         self.service_store.with_rumors(key, |s| {
-            if self
-                .member_list
-                .check_in_voting_population_by_id(&s.member_id)
-            {
+            if self.check_in_voting_population_by_id(&s.member_id) {
                 total_pop.push(s.member_id.clone());
             }
         });
