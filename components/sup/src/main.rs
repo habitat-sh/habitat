@@ -47,8 +47,8 @@ use std::{
 };
 
 use clap::ArgMatches;
+use common::cli_defaults::GOSSIP_DEFAULT_PORT;
 use common::command::package::install::InstallSource;
-use common::defaults::GOSSIP_DEFAULT_PORT;
 use common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
 use common::ListenCtlAddr;
 use hcore::channel;
