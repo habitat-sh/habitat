@@ -90,6 +90,12 @@ set_hab_binary() {
             hab_binary="$(which hab-x86_64-linux-kernel2)"
             pkg_target="x86_64-linux-kernel2"
             ;;
+        x86_64-windows)
+            # We're going to use the existing hab binary here.
+            # This is hella abusing this.
+            hab_binary="$(which hab)"
+            pkg_target="x86_64-windows"
+            ;;
         *) 
             echo "--- :no_entry_sign: Unknown PackageTarget: ${BUILD_PKG_TARGET}"
             exit 1
