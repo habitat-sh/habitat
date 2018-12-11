@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- Remove minimum 3 member requirement from quorum check [#5965](https://github.com/habitat-sh/habitat/pull/5965) ([baumanj](https://github.com/baumanj))
+
 #### Behavioral Changes
 - Add --transitive option to hab pkg dependencies [#5940](https://github.com/habitat-sh/habitat/pull/5940) ([jamesc](https://github.com/jamesc))
 
