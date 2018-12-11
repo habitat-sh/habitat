@@ -202,20 +202,7 @@ to make sure it is successful and looks correct.
 
 ## Update the Acceptance environment with the new hab-backline
 
-After the new hab is released and there is a new hab-backline in stable, the acceptance environment will also need to be updated. In order to do this, (from a Linux machine):
-
-```
-./update-hab-backline.sh stable $(< VERSION)
-```
-
-If your auth token isn't specified in your environment, you can add `-z <AUTH_TOKEN>`
-(or any other arguments to pass to the `hab pkg upload` command) to the
-`update-hab-backline.sh` script after the channel and version arguments.
-
-Make sure the commands from the trace output look correct when the script executes:
-1. The version is the version being released (no `-dev` suffix)
-1. The install is from the `stable` channel
-1. The upload is to the `stable` channel
+This step is handled by buildkite. If it is necessary to do manually, you can find instructions in [a previous release of this file.](https://github.com/habitat-sh/habitat/blob/bebf0fdfb738e1304ea201717fb6054733b17939/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline)
 
 ## Update the Docs
 
