@@ -859,13 +859,6 @@ impl Server {
             electorate,
             service_group_members
         );
-        if total_population < 3 {
-            trace!(
-                "Quorum size: {}/3 - election cannot complete",
-                total_population
-            );
-            return false;
-        }
 
         alive_population >= ((total_population / 2) + 1)
     }
