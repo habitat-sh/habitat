@@ -743,9 +743,8 @@ impl Server {
         if !self.service_store.contains_rumor(&rk.key, &rk.id) {
             let mut service_entries: Vec<Service> = Vec::new();
             self.service_store.with_rumors(&rk.key, |service_rumor| {
-                if self
-                    .member_list
-                    .check_health_of_by_id(&service_rumor.member_id, Health::Confirmed)
+                if self.member_list.health_of_by_id(&service_rumor.member_id)
+                    == Some(Health::Confirmed)
                 {
                     service_entries.push(service_rumor.clone());
                 }
@@ -817,10 +816,7 @@ impl Server {
     fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
         self.service_store.with_rumors(key, |s| {
-            if self
-                .member_list
-                .check_health_of_by_id(&s.member_id, Health::Alive)
-            {
+            if self.member_list.health_of_by_id(&s.member_id) == Some(Health::Alive) {
                 electorate.push(s.member_id.clone());
             }
         });
