@@ -850,17 +850,19 @@ impl Server {
         let service_group_members = self.get_total_population(key);
         let total_population = service_group_members.len();
         let alive_population = electorate.len();
+        let has_quorum = alive_population > total_population / 2;
 
         trace!(
-            "check_quorum({}): {}/{} alive/total, electorate: {:?}, service_group: {:?}",
+            "check_quorum({}): {}/{} alive/total => {}, electorate: {:?}, service_group: {:?}",
             key,
             alive_population,
             total_population,
+            has_quorum,
             electorate,
             service_group_members
         );
 
-        alive_population >= ((total_population / 2) + 1)
+        has_quorum
     }
 
     /// Start an election for the given service group, declaring this members suitability and the
