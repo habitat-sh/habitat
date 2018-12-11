@@ -46,34 +46,6 @@ fn three_members_run_election_from_one_starting_rumor() {
 }
 
 #[test]
-fn two_members_fail_to_find_quorum() {
-    let mut net = btest::SwimNet::new(2);
-    net.mesh();
-    net.add_service(0, "core/witcher/1.2.3/20161208121212");
-    net.add_service(1, "core/witcher/1.2.3/20161208121212");
-    net.add_election(0, "witcher");
-    assert_wait_for_equal_election!(net, [0..2, 0..2], "witcher.prod");
-    assert_wait_for_election_status!(net, [0..2], "witcher.prod", ElectionStatus::NoQuorum);
-}
-
-#[test]
-fn two_members_find_quorum_when_a_third_comes() {
-    let mut net = btest::SwimNet::new(2);
-    net.mesh();
-    net.add_service(0, "core/witcher/1.2.3/20161208121212");
-    net.add_service(1, "core/witcher/1.2.3/20161208121212");
-    net.add_election(0, "witcher");
-    assert_wait_for_equal_election!(net, [0..2, 0..2], "witcher.prod");
-    assert_wait_for_election_status!(net, [0..2], "witcher.prod", ElectionStatus::NoQuorum);
-
-    net.members.push(btest::start_server("2", None, 0));
-    net.add_service(2, "core/witcher/1.2.3/20161208121212");
-    net.connect(2, 0);
-    assert_wait_for_election_status!(net, [0..2], "witcher.prod", ElectionStatus::Finished);
-    assert_wait_for_equal_election!(net, [0..3, 0..3], "witcher.prod");
-}
-
-#[test]
 #[ignore]
 fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     let mut net = btest::SwimNet::new(5);
