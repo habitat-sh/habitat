@@ -1,0 +1,9 @@
+steps:
+  - label: "Dummy Step! YAY!"
+    command:
+      - echo "YAY!"
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
