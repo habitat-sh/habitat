@@ -22,7 +22,7 @@ use common::ui::{Status, UIWriter, UI};
 use error::{Error, Result};
 use hcore::error as herror;
 use hcore::fs as hfs;
-use hcore::package::{all_packages, Identifiable, PackageIdent, PackageInstall};
+use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 
 use hcore::package::list::temp_package_directory;
 
@@ -72,12 +72,10 @@ pub fn start(
     }
 
     // 2.
-    let packages = load_all_packages(&fs_root_path)?;
-    let mut graph = PackageGraph::new();
-    graph.build(&packages)?;
+    let mut graph = PackageGraph::from_root_path(fs_root_path)?;
 
     // 3.
-    let deps = graph.ordered_deps(&ident);
+    let deps = graph.owned_ordered_deps(&ident);
 
     // 4.
     match graph.count_rdeps(&ident) {
@@ -119,7 +117,7 @@ pub fn start(
                         ui.warn(format!("Tried to find dependant packages of {} but it wasn't in graph.  Maybe another uninstall command was run at the same time?", &p))?;
                     }
                     Some(0) => {
-                        let install = packages.iter().find(|&i| i.ident() == p).unwrap();
+                        let install = PackageInstall::load(&p, Some(fs_root_path))?;
                         maybe_delete(
                             ui,
                             &fs_root_path,
@@ -251,16 +249,4 @@ fn do_clean_delete(pkg_root_path: &Path, real_install_path: &Path) -> Result<boo
         }
         None => unreachable!("Install path doesn't have a parent"),
     }
-}
-
-fn load_all_packages(fs_root_path: &Path) -> Result<Vec<PackageInstall>> {
-    let package_path = hfs::pkg_root_path(Some(&fs_root_path));
-    let idents = all_packages(&package_path)?;
-
-    let mut result = Vec::with_capacity(idents.len());
-    for i in idents {
-        let pkg_install = PackageInstall::load(&i, Some(fs_root_path))?;
-        result.push(pkg_install);
-    }
-    Ok(result)
 }

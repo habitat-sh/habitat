@@ -16,6 +16,7 @@
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
 extern crate ansi_term;
+extern crate bimap;
 extern crate glob;
 extern crate habitat_api_client as api_client;
 extern crate habitat_core as hcore;

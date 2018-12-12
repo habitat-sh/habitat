@@ -537,6 +537,7 @@ pub fn get() -> App<'static, 'static> {
                     the direct dependencies of the package")
                 (aliases: &["dep", "deps"])
                 (@arg TRANSITIVE: -t --transitive "Show transitive dependencies")
+                (@arg REVERSE: -r --reverse "Show packages which are dependant on this one")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
