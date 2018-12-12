@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### New Features & Enhancements
+- Add --reverse option to hab pkg dependencies [#5923](https://github.com/habitat-sh/habitat/pull/5923) ([jamesc](https://github.com/jamesc))
+
 #### Bug Fixes
 - Remove minimum 3 member requirement from quorum check [#5965](https://github.com/habitat-sh/habitat/pull/5965) ([baumanj](https://github.com/baumanj))
 
