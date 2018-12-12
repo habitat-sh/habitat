@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
+use std::num::ParseIntError;
 use std::ops::{Deref, DerefMut};
 use std::result;
 use std::str::FromStr;
+use std::time::Duration;
 
 use regex::Regex;
 
@@ -28,6 +31,10 @@ lazy_static! {
     static ref AE_FROM_STR_RE: Regex =
         Regex::new(r"\A(?P<application>[^#.@]+)\.(?P<environment>[^#.@]+)\z").unwrap();
 }
+
+pub const DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS: u64 = 30;
+pub static DEFAULT_HEALTH_CHECK_INTERVAL: Duration =
+    Duration::from_secs(DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS);
 
 /// Determines how the presence of bound service groups affects the
 /// starting of a service.
@@ -350,11 +357,53 @@ impl FromStr for ApplicationEnvironment {
     }
 }
 
+/// Represents how far apart to run health checks for individual services
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct HealthCheckInterval(pub Duration);
+
+impl Default for HealthCheckInterval {
+    fn default() -> Self {
+        HealthCheckInterval(DEFAULT_HEALTH_CHECK_INTERVAL)
+    }
+}
+
+impl FromStr for HealthCheckInterval {
+    type Err = ParseIntError;
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        let raw = s.parse::<u32>()?;
+        Ok(Duration::from_secs(raw as u64).into())
+    }
+}
+
+impl From<Duration> for HealthCheckInterval {
+    fn from(d: Duration) -> Self {
+        HealthCheckInterval(d)
+    }
+}
+
+impl Into<Duration> for HealthCheckInterval {
+    fn into(self) -> Duration {
+        self.0
+    }
+}
+
+impl PartialOrd<Duration> for HealthCheckInterval {
+    fn partial_cmp(&self, other: &Duration) -> Option<Ordering> {
+        Some(self.0.cmp(other))
+    }
+}
+
+impl PartialEq<Duration> for HealthCheckInterval {
+    fn eq(&self, other: &Duration) -> bool {
+        self.0 == *other
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::str::FromStr;
 
-    use super::{ApplicationEnvironment, ServiceGroup};
+    use super::*;
 
     #[test]
     fn service_group_from_str_with_org() {
@@ -502,5 +551,36 @@ mod test {
     #[should_panic(expected = "hashes.not#allowed")]
     fn application_environment_from_str_with_hashes_middle() {
         ApplicationEnvironment::from_str("hashes.not#allowed").unwrap();
+    }
+
+    #[test]
+    fn default_health_check_interval_has_correct_default() {
+        assert_eq!(
+            HealthCheckInterval::default().0,
+            DEFAULT_HEALTH_CHECK_INTERVAL
+        );
+    }
+
+    #[test]
+    fn health_check_interval_must_be_positive() {
+        assert!(HealthCheckInterval::from_str("-123").is_err());
+        assert!(HealthCheckInterval::from_str("5").is_ok());
+    }
+
+    #[test]
+    fn health_check_interval_correctly_implements_comparison() {
+        let one: HealthCheckInterval = Duration::from_secs(5).into();
+        assert!(one < HealthCheckInterval::default().0);
+        let two: HealthCheckInterval = Duration::from_secs(50).into();
+        assert!(two > HealthCheckInterval::default().0);
+        let three: HealthCheckInterval =
+            Duration::from_secs(DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS).into();
+        assert!(three == HealthCheckInterval::default().0);
+    }
+
+    #[test]
+    #[should_panic(expected = "oh-noes")]
+    fn health_check_interval_from_str_invalid() {
+        ApplicationEnvironment::from_str("oh-noes").unwrap();
     }
 }
