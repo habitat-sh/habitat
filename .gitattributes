@@ -1,0 +1,2 @@
+components/sup-protocol/src/generated/*.rs linguist-generated
+components/butterfly/src/generated/*.rs linguist-generated
