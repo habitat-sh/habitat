@@ -622,7 +622,7 @@ impl Server {
         // with it as best we can, with our head held high.
         let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
-        let trace_health = health.clone();
+        let trace_health = health;
         if self.member_list.insert(member, health) {
             trace_it!(
                 MEMBERSHIP: self,
@@ -715,7 +715,7 @@ impl Server {
         // on, knowing life is still worth living.
         let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
-        let trace_health = health.clone();
+        let trace_health = health;
 
         if self.member_list.insert(member, health) || incremented_incarnation {
             trace_it!(

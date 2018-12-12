@@ -1055,7 +1055,7 @@ mod tests {
                 };
 
                 assert!(
-                    ml.insert(member.clone(), from_health.clone()),
+                    ml.insert(member.clone(), from_health),
                     "Could not insert member into list initially"
                 );
 
@@ -1068,7 +1068,7 @@ mod tests {
 
                 assert_eq!(
                     ml.health_of(&member),
-                    Some(from_health.clone()),
+                    Some(from_health),
                     "Member should have had health {:?}, but didn't",
                     from_health
                 );
@@ -1091,7 +1091,7 @@ mod tests {
                 "Update counter should not have been incremented after trying to insert a lower-incarnation-number rumor"
             );
                 assert_eq!(
-                ml.health_of(&member), Some(from_health.clone()),
+                ml.health_of(&member), Some(from_health),
                 "Member should have still have health {:?} following attempt to insert lower-incarnation-number rumor, but didn't",
                 from_health
             );
@@ -1143,7 +1143,7 @@ mod tests {
                 };
 
                 assert!(
-                    ml.insert(member.clone(), from_health.clone()),
+                    ml.insert(member.clone(), from_health),
                     "Could not insert member into list initially"
                 );
 
@@ -1156,7 +1156,7 @@ mod tests {
 
                 assert_eq!(
                     ml.health_of(&member),
-                    Some(from_health.clone()),
+                    Some(from_health),
                     "Member should have had health {:?}, but didn't",
                     from_health
                 );
@@ -1179,7 +1179,7 @@ mod tests {
                 "Update counter should increment by 1 when inserting a higher-incarnation-number rumor"
             );
                 assert_eq!(
-                ml.health_of(&member), Some(to_health.clone()),
+                ml.health_of(&member), Some(to_health),
                 "Member should have health {:?} following insertion of higher-incarnation-number rumor",
                 to_health
             );
@@ -1231,7 +1231,7 @@ mod tests {
                 };
 
                 assert!(
-                    ml.insert(member.clone(), from_health.clone()),
+                    ml.insert(member.clone(), from_health),
                     "Could not insert member into list initially"
                 );
 
@@ -1244,7 +1244,7 @@ mod tests {
 
                 assert_eq!(
                     ml.health_of(&member),
-                    Some(from_health.clone()),
+                    Some(from_health),
                     "Member should have had health {:?}, but didn't",
                     from_health
                 );
@@ -1264,7 +1264,7 @@ mod tests {
                     "Update counter should increment by 1 when inserting a same-incarnation-number rumor with worse health"
                 );
                     assert_eq!(
-                    ml.health_of(&member), Some(to_health.clone()),
+                    ml.health_of(&member), Some(to_health),
                     "Member should have health {:?} following insertion of same-incarnation-number rumor with worse health",
                     to_health
                 );
@@ -1281,7 +1281,7 @@ mod tests {
                     "Update counter should not increment when inserting a same-incarnation-number rumor without worse health"
                 );
                     assert_eq!(
-                    ml.health_of(&member), Some(from_health.clone()),
+                    ml.health_of(&member), Some(from_health),
                     "Member should still have health {:?} following insertion of same-incarnation-number rumor without worse health",
                     from_health
                 );
@@ -1333,7 +1333,7 @@ mod tests {
                 let member_one = Member::default();
 
                 assert!(
-                    ml.insert_health_by_id(&member_one.id, from_health.clone()),
+                    ml.insert_health_by_id(&member_one.id, from_health),
                     "Should be able to insert initial health of {:?} into empty MemberList",
                     from_health
                 );
@@ -1390,7 +1390,7 @@ mod tests {
 
                 if from_health == to_health {
                     assert!(
-                        !ml.insert_health_by_id(&member_one.id, to_health.clone()),
+                        !ml.insert_health_by_id(&member_one.id, to_health),
                         "Transitioning from {:?} to {:?} (i.e., no change) should be a no-op",
                         from_health,
                         to_health
@@ -1409,7 +1409,7 @@ mod tests {
                     );
                 } else {
                     assert!(
-                    ml.insert_health_by_id(&member_one.id, to_health.clone()),
+                    ml.insert_health_by_id(&member_one.id, to_health),
                     "Transitioning from {:?} to {:?} (i.e., different health) should NOT be a no-op",
                     from_health,
                     to_health
