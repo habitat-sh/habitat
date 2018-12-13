@@ -622,7 +622,7 @@ impl Server {
         // with it as best we can, with our head held high.
         let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
-        let trace_health = health.clone();
+        let trace_health = health;
         if self.member_list.insert(member, health) {
             trace_it!(
                 MEMBERSHIP: self,
@@ -715,7 +715,7 @@ impl Server {
         // on, knowing life is still worth living.
         let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
-        let trace_health = health.clone();
+        let trace_health = health;
 
         if self.member_list.insert(member, health) || incremented_incarnation {
             trace_it!(
@@ -743,9 +743,8 @@ impl Server {
         if !self.service_store.contains_rumor(&rk.key, &rk.id) {
             let mut service_entries: Vec<Service> = Vec::new();
             self.service_store.with_rumors(&rk.key, |service_rumor| {
-                if self
-                    .member_list
-                    .check_health_of_by_id(&service_rumor.member_id, Health::Confirmed)
+                if self.member_list.health_of_by_id(&service_rumor.member_id)
+                    == Some(Health::Confirmed)
                 {
                     service_entries.push(service_rumor.clone());
                 }
@@ -817,24 +816,32 @@ impl Server {
     fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
         self.service_store.with_rumors(key, |s| {
-            if self
-                .member_list
-                .check_health_of_by_id(&s.member_id, Health::Alive)
-            {
+            if self.member_list.health_of_by_id(&s.member_id) == Some(Health::Alive) {
                 electorate.push(s.member_id.clone());
             }
         });
         electorate
     }
 
+    fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
+        match self
+            .member_list
+            .health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member_id)
+        {
+            Some(&Health::Alive) | Some(&Health::Suspect) | Some(&Health::Confirmed) => true,
+            Some(&Health::Departed) => false,
+            None => false,
+        }
+    }
+
     /// Get all the Member ID's who are present in a given service group, and count towards quorum.
     fn get_total_population(&self, key: &str) -> Vec<String> {
         let mut total_pop = vec![];
         self.service_store.with_rumors(key, |s| {
-            if self
-                .member_list
-                .check_in_voting_population_by_id(&s.member_id)
-            {
+            if self.check_in_voting_population_by_id(&s.member_id) {
                 total_pop.push(s.member_id.clone());
             }
         });
