@@ -74,7 +74,7 @@ impl LockedEnvVar {
             Err(env::VarError::NotUnicode(os_string)) => Some(os_string),
         };
         LockedEnvVar {
-            lock: lock,
+            lock,
             original_value: original,
         }
     }

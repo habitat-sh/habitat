@@ -28,9 +28,9 @@ use term::{Terminal, TerminfoTerminal};
 use self::tty::StdStream;
 use error::{Error, Result};
 
-pub const NONINTERACTIVE_ENVVAR: &'static str = "HAB_NONINTERACTIVE";
+pub const NONINTERACTIVE_ENVVAR: &str = "HAB_NONINTERACTIVE";
 
-pub const NOCOLORING_ENVVAR: &'static str = "HAB_NOCOLORING";
+pub const NOCOLORING_ENVVAR: &str = "HAB_NOCOLORING";
 
 pub enum Status {
     Applying,
@@ -155,7 +155,7 @@ pub trait UIWriter {
         } else {
             format!("{} {}\n", symbol, message)
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -173,7 +173,7 @@ pub trait UIWriter {
         } else {
             format!("{} {}\n", symbol, message)
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -192,7 +192,7 @@ pub trait UIWriter {
         } else {
             format!("{} {} {}\n", symbol, status_str, message)
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -201,7 +201,7 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.out().write(format!("{}\n", text).as_bytes())?;
+        self.out().write_all(format!("{}\n", text).as_bytes())?;
         self.out().flush()
     }
 
@@ -218,7 +218,7 @@ pub trait UIWriter {
         } else {
             format!("∅ {}\n", message)
         };
-        self.err().write(formatted.as_bytes())?;
+        self.err().write_all(formatted.as_bytes())?;
         self.err().flush()
     }
 
@@ -239,14 +239,14 @@ pub trait UIWriter {
             buf.push_str(&format!("{}\n", color.bold().paint("✗✗✗")));
             buf
         } else {
-            let mut buf = format!("✗✗✗\n");
+            let mut buf = "✗✗✗\n".to_string();
             for line in message.to_string().lines() {
                 buf.push_str(&format!("✗✗✗ {}\n", line));
             }
             buf.push_str("✗✗✗\n");
             buf
         };
-        self.err().write(formatted.as_bytes())?;
+        self.err().write_all(formatted.as_bytes())?;
         self.err().flush()
     }
 
@@ -256,11 +256,7 @@ pub trait UIWriter {
         T: AsRef<str>,
     {
         if self.is_out_colored() {
-            write!(
-                self.out(),
-                "{}\n",
-                Colour::Green.bold().paint(text.as_ref())
-            )?;
+            writeln!(self.out(), "{}", Colour::Green.bold().paint(text.as_ref()))?;
             write!(
                 self.out(),
                 "{}\n\n",
@@ -271,7 +267,7 @@ pub trait UIWriter {
                 ))
             )?;
         } else {
-            write!(self.out(), "{}\n", text.as_ref())?;
+            writeln!(self.out(), "{}", text.as_ref())?;
             write!(
                 self.out(),
                 "{}\n\n",
@@ -291,7 +287,7 @@ pub trait UIWriter {
         } else {
             format!("{}\n\n", text.as_ref())
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -302,7 +298,7 @@ pub trait UIWriter {
 
     /// Write a line break message`.
     fn br(&mut self) -> io::Result<()> {
-        self.out().write(b"\n")?;
+        self.out().write_all(b"\n")?;
         self.out().flush()
     }
 }
@@ -316,7 +312,7 @@ pub struct UI {
 impl UI {
     /// Creates a new `UI` from a `Shell`.
     pub fn new(shell: Shell) -> Self {
-        UI { shell: shell }
+        UI { shell }
     }
 
     /// Creates a new default `UI` with a coloring strategy and tty hinting.
@@ -432,45 +428,46 @@ impl UIReader for UI {
     }
 
     fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool> {
-        let ref mut stream = self.shell.out;
+        let stream = &mut self.shell.out;
         let choice = match default {
-            Some(yes) => {
-                if yes {
-                    match stream.is_colored() {
-                        true => format!(
-                            "{}{}{}",
-                            Colour::White.paint("["),
-                            Colour::White.bold().paint("Yes"),
-                            Colour::White.paint("/no/quit]")
-                        ),
-                        false => format!("[Yes/no/quit]"),
-                    }
+            Some(true) => {
+                if stream.is_colored() {
+                    format!(
+                        "{}{}{}",
+                        Colour::White.paint("["),
+                        Colour::White.bold().paint("Yes"),
+                        Colour::White.paint("/no/quit]")
+                    )
                 } else {
-                    match stream.is_colored() {
-                        true => format!(
-                            "{}{}{}",
-                            Colour::White.paint("[yes/"),
-                            Colour::White.bold().paint("No"),
-                            Colour::White.paint("/quit]")
-                        ),
-                        false => format!("[yes/No/quit]"),
-                    }
+                    "[Yes/no/quit]".to_string()
                 }
             }
-            None => match stream.is_colored() {
-                true => format!("{}", Colour::White.paint("[yes/no/quit]")),
-                false => format!("[yes/no/quit]"),
-            },
+            Some(false) => {
+                if stream.is_colored() {
+                    format!(
+                        "{}{}{}",
+                        Colour::White.paint("[yes/"),
+                        Colour::White.bold().paint("No"),
+                        Colour::White.paint("/quit]")
+                    )
+                } else {
+                    "[yes/No/quit]".to_string()
+                }
+            }
+            None => {
+                if stream.is_colored() {
+                    format!("{}", Colour::White.paint("[yes/no/quit]"))
+                } else {
+                    "[yes/no/quit]".to_string()
+                }
+            }
         };
         loop {
             stream.flush()?;
-            match stream.is_colored() {
-                true => {
-                    write!(stream, "{} {} ", Colour::Cyan.paint(question), choice)?;
-                }
-                false => {
-                    write!(stream, "{} {} ", question, choice)?;
-                }
+            if stream.is_colored() {
+                write!(stream, "{} {} ", Colour::Cyan.paint(question), choice)?;
+            } else {
+                write!(stream, "{} {} ", question, choice)?;
             }
             stream.flush()?;
             let mut response = String::new();
@@ -492,33 +489,33 @@ impl UIReader for UI {
     }
 
     fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
-        let ref mut stream = self.shell.out;
+        let stream = &mut self.shell.out;
         let choice = match default {
-            Some(d) => match stream.is_colored() {
-                true => format!(
-                    " {}{}{}",
-                    Colour::White.paint("[default: "),
-                    Colour::White.bold().paint(d),
-                    Colour::White.paint("]")
-                ),
-                false => format!(" [default: {}]", d),
-            },
+            Some(d) => {
+                if stream.is_colored() {
+                    format!(
+                        " {}{}{}",
+                        Colour::White.paint("[default: "),
+                        Colour::White.bold().paint(d),
+                        Colour::White.paint("]")
+                    )
+                } else {
+                    format!(" [default: {}]", d)
+                }
+            }
             None => "".to_string(),
         };
         loop {
             stream.flush()?;
-            match stream.is_colored() {
-                true => {
-                    write!(
-                        stream,
-                        "{}{} ",
-                        Colour::Cyan.paint(format!("{}:", question)),
-                        choice
-                    )?;
-                }
-                false => {
-                    write!(stream, "{}{} ", format!("{}:", question), choice)?;
-                }
+            if stream.is_colored() {
+                write!(
+                    stream,
+                    "{}{} ",
+                    Colour::Cyan.paint(format!("{}:", question)),
+                    choice
+                )?;
+            } else {
+                write!(stream, "{}{} ", format!("{}:", question), choice)?;
             }
             stream.flush()?;
             let mut response = String::new();
@@ -540,14 +537,14 @@ impl UIReader for UI {
     where
         T: fmt::Display,
     {
-        let editor = env::var("EDITOR").map_err(|e| Error::EditorEnv(e))?;
+        let editor = env::var("EDITOR").map_err(Error::EditorEnv)?;
 
         let mut tmp_file_path = env::temp_dir();
         tmp_file_path.push(format!("_hab_{}.tmp", Uuid::new_v4()));
 
         let mut tmp_file = File::create(&tmp_file_path)?;
 
-        if contents.len() > 0 {
+        if !contents.is_empty() {
             for line in contents {
                 write!(tmp_file, "{}", line)?;
             }
@@ -581,11 +578,7 @@ pub struct Shell {
 
 impl Shell {
     pub fn new(input: InputStream, out: OutputStream, err: OutputStream) -> Self {
-        Shell {
-            input: input,
-            out: out,
-            err: err,
-        }
+        Shell { input, out, err }
     }
 
     pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
@@ -628,10 +621,7 @@ pub struct InputStream {
 
 impl InputStream {
     pub fn new(inner: Box<Read + Send>, isatty: bool) -> Self {
-        InputStream {
-            inner: inner,
-            isatty: isatty,
-        }
+        InputStream { inner, isatty }
     }
 
     pub fn from_stdin(isatty: Option<bool>) -> Self {
@@ -639,7 +629,7 @@ impl InputStream {
             Box::new(io::stdin()),
             match isatty {
                 Some(val) => val,
-                None => tty::isatty(StdStream::Stdin),
+                None => tty::isatty(&StdStream::Stdin),
             },
         )
     }
@@ -670,9 +660,9 @@ pub struct OutputStream {
 impl OutputStream {
     pub fn new(inner: WriteStream, coloring: Coloring, isatty: bool) -> Self {
         OutputStream {
-            inner: inner,
-            coloring: coloring,
-            isatty: isatty,
+            inner,
+            coloring,
+            isatty,
         }
     }
 
@@ -682,7 +672,7 @@ impl OutputStream {
             coloring,
             match isatty {
                 Some(val) => val,
-                None => tty::isatty(StdStream::Stdout),
+                None => tty::isatty(&StdStream::Stdout),
             },
         )
     }
@@ -693,7 +683,7 @@ impl OutputStream {
             coloring,
             match isatty {
                 Some(val) => val,
-                None => tty::isatty(StdStream::Stderr),
+                None => tty::isatty(&StdStream::Stderr),
             },
         )
     }
@@ -810,7 +800,7 @@ mod tty {
     }
 
     #[cfg(unix)]
-    pub fn isatty(output: StdStream) -> bool {
+    pub fn isatty(output: &StdStream) -> bool {
         extern crate libc;
 
         let fd = match output {
@@ -873,8 +863,8 @@ impl DisplayProgress for ConsoleProgressBar {
     }
 
     fn finish(&mut self) {
-        println!("");
-        io::stdout().flush().ok().expect("flush() fail");
+        println!();
+        io::stdout().flush().expect("flush() fail");
     }
 }
 
@@ -913,7 +903,7 @@ where
         for word in line.split_whitespace() {
             let wl = word.chars().count();
             if (width + wl + 1) > (wrap_width - left_indent) {
-                write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
+                writeln!(stream, "{:<width$}{}", " ", buffer, width = left_indent)?;
                 buffer.clear();
                 width = 0;
             }
@@ -922,9 +912,9 @@ where
             buffer.push(' ');
         }
         if !buffer.is_empty() {
-            write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
+            writeln!(stream, "{:<width$}{}", " ", buffer, width = left_indent)?;
         }
-        write!(stream, "\n")?;
+        writeln!(stream)?;
     }
     stream.flush()
 }

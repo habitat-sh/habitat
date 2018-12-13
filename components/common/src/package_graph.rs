@@ -83,7 +83,7 @@ impl PackageGraph {
     }
 
     /// Extend a graph by adding in dependencies for a package
-    fn extend(&mut self, package: &PackageIdent, deps: &Vec<PackageIdent>) -> (usize, usize) {
+    fn extend(&mut self, package: &PackageIdent, deps: &[PackageIdent]) -> (usize, usize) {
         let idx = self.node_idx(package);
 
         for dep in deps {
@@ -107,10 +107,9 @@ impl PackageGraph {
                 // `skip` it here so it's not in the result Vec
                 let bfs = Bfs::new(&self.graph, idx).iter(&self.graph).skip(1);
 
-                bfs.into_iter()
-                    .map(|child| self.graph.node_weight(child).unwrap())
+                bfs.map(|child| self.graph.node_weight(child).unwrap())
                     .collect()
-            }).unwrap_or(vec![])
+            }).unwrap_or_else(Vec::new)
     }
 
     /// Return the dependencies of a given Package Identifier as `PackageIdent`s. This
@@ -138,10 +137,9 @@ impl PackageGraph {
                     .iter(Reversed(&self.graph))
                     .skip(1);
 
-                bfs.into_iter()
-                    .map(|child| self.graph.node_weight(child).unwrap())
+                bfs.map(|child| self.graph.node_weight(child).unwrap())
                     .collect()
-            }).unwrap_or(vec![])
+            }).unwrap_or_else(Vec::new)
     }
 
     /// Remove a package from a graph
@@ -208,7 +206,7 @@ impl PackageGraph {
                     .neighbors_directed(idx, direction)
                     .map(|n| self.nodes.get_by_right(&n).unwrap()) //  unwrap here is ok as we have consistency between `self.graph` and `self.nodes`
                     .collect()
-            }).unwrap_or(vec![])
+            }).unwrap_or_else(Vec::new)
     }
 
     /// Returns the direct dependencies for a package.
@@ -265,14 +263,14 @@ mod test {
 
     fn empty_package_deps(ident: PackageIdent) -> PackageDeps {
         PackageDeps {
-            ident: ident,
+            ident,
             deps: vec![],
         }
     }
 
     fn package_deps(ident: PackageIdent, deps: &Vec<PackageIdent>) -> PackageDeps {
         PackageDeps {
-            ident: ident,
+            ident,
             deps: deps.to_vec(),
         }
     }
