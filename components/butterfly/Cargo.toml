@@ -21,7 +21,7 @@ lazy_static = "*"
 prost = "*"
 prost-derive = "*"
 rand = "*"
-serde = "*"
+serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"
 tempfile = "*"

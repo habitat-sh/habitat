@@ -212,7 +212,7 @@ pub struct Server {
     // TODO (CM): This is currently public because butterfly-test
     // depends on it being so. Refactor so it can be private.
     pub member: Arc<RwLock<Myself>>,
-    pub member_list: MemberList,
+    pub member_list: Arc<MemberList>,
     ring_key: Arc<Option<SymKey>>,
     rumor_heat: RumorHeat,
     pub service_store: RumorStore<Service>,
@@ -312,7 +312,7 @@ impl Server {
                     // on member, if we have a better type
                     member_id: Arc::new(member_id),
                     member: Arc::new(RwLock::new(myself)),
-                    member_list: MemberList::new(),
+                    member_list: Arc::new(MemberList::new()),
                     ring_key: Arc::new(ring_key),
                     rumor_heat: RumorHeat::default(),
                     service_store: RumorStore::default(),

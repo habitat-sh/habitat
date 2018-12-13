@@ -24,7 +24,7 @@ use std::ops::Add;
 use std::result;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{
@@ -328,20 +328,20 @@ impl FromProto<newscast::Rumor> for Membership {
 
 /// Tracks lists of members, their health, and how long they have been
 /// suspect or confirmed.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct MemberList {
-    pub members: Arc<RwLock<HashMap<UuidSimple, Member>>>,
-    pub health: Arc<RwLock<HashMap<UuidSimple, Health>>>,
+    pub members: RwLock<HashMap<UuidSimple, Member>>,
+    pub health: RwLock<HashMap<UuidSimple, Health>>,
     /// Records timestamps of when Members are marked `Suspect`. This
     /// supports automatically transitioning them to `Confirmed` after
     /// an appropriate amount of time.
-    aging_suspects: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
+    aging_suspects: RwLock<HashMap<UuidSimple, SteadyTime>>,
     /// Records timestamps of when Members are marked
     /// `Confirmed`. This supports automatically transitioning them to
     /// `Departed` after an appropriate amount of time.
-    aging_confirmed: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
-    initial_members: Arc<RwLock<Vec<Member>>>,
-    update_counter: Arc<AtomicUsize>,
+    aging_confirmed: RwLock<HashMap<UuidSimple, SteadyTime>>,
+    initial_members: RwLock<Vec<Member>>,
+    update_counter: AtomicUsize,
 }
 
 impl Serialize for MemberList {
@@ -372,12 +372,12 @@ impl MemberList {
     /// Creates a new, empty, MemberList.
     pub fn new() -> MemberList {
         MemberList {
-            members: Arc::new(RwLock::new(HashMap::new())),
-            health: Arc::new(RwLock::new(HashMap::new())),
-            aging_suspects: Arc::new(RwLock::new(HashMap::new())),
-            aging_confirmed: Arc::new(RwLock::new(HashMap::new())),
-            initial_members: Arc::new(RwLock::new(Vec::new())),
-            update_counter: Arc::new(AtomicUsize::new(0)),
+            members: RwLock::new(HashMap::new()),
+            health: RwLock::new(HashMap::new()),
+            aging_suspects: RwLock::new(HashMap::new()),
+            aging_confirmed: RwLock::new(HashMap::new()),
+            initial_members: RwLock::new(Vec::new()),
+            update_counter: AtomicUsize::new(0),
         }
     }
 
