@@ -58,7 +58,11 @@ environment:
 
     - hab_build_action: "package"
       hab_exe_version: "%24latest"
-      hab_components: "hab;plan-build-ps1;studio;sup;pkg-export-docker;pkg-export-tar;bintray-publish"
+      hab_components: "pkg-export-docker;pkg-export-tar;bintray-publish"
+
+    - hab_build_action: "package"
+      hab_exe_version: "%24latest"
+      hab_components: "hab;plan-build-ps1;studio;sup"
 
     - hab_build_action: "package"
       hab_exe_version: "%24latest"
