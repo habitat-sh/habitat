@@ -179,11 +179,14 @@ if((Test-DocsOnlyChanged -eq $true) -and (Test-ReleaseBuild -eq $false)) {
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" (Split-Path $habExe -Parent) -Force
                 }
             }
-            if(!(Test-PullRequest) -and $env:hab_components -ne "launcher") {
-                $env:HAB_BLDR_CHANNEL = $channel
-                & $habExe pkg exec core/hab-bintray-publish publish-studio
-                $env:HAB_BLDR_CHANNEL = $null
-                if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            # only publish the studio component
+            if($env:hab_components -eq "hab-bintray-publish") {
+                if(!(Test-PullRequest)) {
+                    $env:HAB_BLDR_CHANNEL = $channel
+                    & $habExe pkg exec core/hab-bintray-publish publish-studio
+                    $env:HAB_BLDR_CHANNEL = $null
+                    if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+                }
             }
         }
         else {
