@@ -528,12 +528,7 @@ impl Server {
     }
 
     pub fn need_peer_seeding(&self) -> bool {
-        let m = self
-            .member_list
-            .members
-            .read()
-            .expect("Members lock is poisoned");
-        m.is_empty()
+        self.member_list.len() == 0
     }
 
     /// Persistently block a given address, causing no traffic to be seen.

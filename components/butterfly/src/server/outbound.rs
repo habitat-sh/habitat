@@ -335,17 +335,12 @@ pub fn ping(
     socket: &UdpSocket,
     target: &Member,
     addr: SocketAddr,
-    forward_to: Option<Member>,
+    forward_to: Option<&Member>,
 ) {
-    let forward_addr = if let Some(ref forward_to) = forward_to {
-        Some(format!("{}@{}", forward_to.id, forward_to.address))
-    } else {
-        None
-    };
     let ping = Ping {
         membership: vec![],
         from: server.member.read().unwrap().as_member(),
-        forward_to: forward_to,
+        forward_to: forward_to.cloned(), // TODO: see if we can eliminate this clone
     };
     let mut swim: Swim = ping.into();
     populate_membership_rumors(server, target, &mut swim);
@@ -365,11 +360,11 @@ pub fn ping(
     };
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
-            if let Some(forward_addr) = forward_addr {
-                trace!("Sent Ping to {} on behalf of {}", addr, forward_addr);
-            } else {
-                trace!("Sent Ping to {}", addr);
-            }
+            let on_behalf_of = match forward_to {
+                Some(x) => format!(" on behalf of {}@{}", x.id, x.address),
+                None => "".into(),
+            };
+            trace!("Sent Ping to {}{}", addr, on_behalf_of);
         }
         Err(e) => error!("Failed Ping to {}: {}", addr, e),
     }

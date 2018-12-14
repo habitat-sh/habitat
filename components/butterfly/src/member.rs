@@ -330,7 +330,7 @@ impl FromProto<newscast::Rumor> for Membership {
 /// suspect or confirmed.
 #[derive(Debug)]
 pub struct MemberList {
-    pub members: RwLock<HashMap<UuidSimple, Member>>,
+    members: RwLock<HashMap<UuidSimple, Member>>,
     pub health: RwLock<HashMap<UuidSimple, Health>>,
     /// Records timestamps of when Members are marked `Suspect`. This
     /// supports automatically transitioning them to `Confirmed` after
@@ -713,8 +713,11 @@ impl MemberList {
 
     /// Takes a function whose argument is a `HashMap::Values` iterator, with the ID and Membership
     /// entry.
-    pub fn with_member_iter(&self, mut with_closure: impl FnMut(hash_map::Values<String, Member>)) {
-        with_closure(self.members_read().values());
+    pub fn with_member_iter<T>(
+        &self,
+        mut with_closure: impl FnMut(hash_map::Values<String, Member>) -> T,
+    ) -> T {
+        with_closure(self.members_read().values())
     }
 
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
