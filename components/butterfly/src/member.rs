@@ -381,8 +381,26 @@ impl MemberList {
         }
     }
 
-    /// Increment the update counter for this store.
-    ///
+    fn members_read(&self) -> std::sync::RwLockReadGuard<HashMap<UuidSimple, Member>> {
+        self.members.read().expect("Members read lock")
+    }
+
+    fn members_write(&self) -> std::sync::RwLockWriteGuard<HashMap<UuidSimple, Member>> {
+        self.members.write().expect("Members write lock")
+    }
+
+    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<Vec<Member>> {
+        self.initial_members
+            .read()
+            .expect("Initial members read lock")
+    }
+
+    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<Vec<Member>> {
+        self.initial_members
+            .write()
+            .expect("Initial members write lock")
+    }
+
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
     fn increment_update_counter(&self) {
@@ -394,39 +412,19 @@ impl MemberList {
     }
 
     pub fn len_initial_members(&self) -> usize {
-        let im = self
-            .initial_members
-            .read()
-            .expect("Initial members lock is poisoned");
-        im.len()
+        self.initial_members_read().len()
     }
 
     pub fn add_initial_member(&self, member: Member) {
-        let mut im = self
-            .initial_members
-            .write()
-            .expect("Initial members lock is poisoned");
-        im.push(member);
+        self.initial_members_write().push(member);
     }
 
     pub fn set_initial_members(&self, members: Vec<Member>) {
-        let mut im = self
-            .initial_members
-            .write()
-            .expect("Initial members lock is poisoned");
-        im.clear();
-        im.extend(members);
+        *self.initial_members_write() = members;
     }
 
-    pub fn with_initial_members<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(&Member),
-    {
-        let im = self
-            .initial_members
-            .read()
-            .expect("Initial members lock is poisoned");
-        for member in im.iter() {
+    pub fn with_initial_members(&self, mut with_closure: impl FnMut(&Member)) {
+        for member in self.initial_members_read().iter() {
             with_closure(member);
         }
     }
@@ -497,12 +495,7 @@ impl MemberList {
     ///
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
-        let accept_and_propagate_rumor = match self
-            .members
-            .read()
-            .expect("Member List read lock poisoned")
-            .get(&incoming_member.id)
-        {
+        let accept_and_propagate_rumor = match self.members_read().get(&incoming_member.id) {
             None => true,
             Some(existing_member) => {
                 match existing_member
@@ -530,9 +523,7 @@ impl MemberList {
 
         if accept_and_propagate_rumor {
             let member_id = incoming_member.id.clone();
-            self.members
-                .write()
-                .expect("Member list lock is poisoned")
+            self.members_write()
                 .insert(incoming_member.id.clone(), incoming_member);
             let updated = self.insert_health_by_id(&member_id, incoming_health);
             if !updated {
@@ -671,8 +662,7 @@ impl MemberList {
             Some(health) => *health,
             None => return None,
         };
-        let ml = self.members.read().expect("Member list lock is poisoned");
-        match ml.get(member_id) {
+        match self.members_read().get(member_id) {
             Some(member) => Some(Membership {
                 health: mhealth,
                 member: member.clone(),
@@ -683,44 +673,31 @@ impl MemberList {
 
     /// Returns the number of members.
     pub fn len(&self) -> usize {
-        self.members
-            .read()
-            .expect("Member list lock is poisoned")
-            .len()
+        self.members_read().len()
     }
 
     /// A randomized list of members to check.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
-        let mut members: Vec<Member> = self
-            .members
-            .read()
-            .expect("Member list lock is poisoned")
+        let mut members: Vec<_> = self
+            .members_read()
             .values()
             .filter(|v| v.id != exclude_id)
-            .map(|v| v.clone())
+            .cloned()
             .collect();
-        let mut rng = thread_rng();
-        members.shuffle(&mut rng);
+        members.shuffle(&mut thread_rng());
         members
     }
 
     /// Takes a function whose first argument is a member, and calls it for every pingreq target.
-    pub fn with_pingreq_targets<F>(
+    pub fn with_pingreq_targets(
         &self,
         sending_member_id: &str,
         target_member_id: &str,
-        mut with_closure: F,
-    ) -> ()
-    where
-        F: FnMut(Member) -> (),
-    {
+        mut with_closure: impl FnMut(Member),
+    ) {
         // This will lead to nested read locks if you don't deal with making a copy
-        let mut members: Vec<Member> = {
-            let ml = self.members.read().expect("Member list lock is poisoned");
-            ml.values().map(|v| v.clone()).collect()
-        };
-        let mut rng = thread_rng();
-        members.shuffle(&mut rng);
+        let mut members: Vec<_> = self.members_read().values().cloned().collect();
+        members.shuffle(&mut thread_rng());
         for member in members
             .into_iter()
             .filter(|m| {
@@ -736,39 +713,18 @@ impl MemberList {
 
     /// Takes a function whose argument is a `HashMap::Values` iterator, with the ID and Membership
     /// entry.
-    pub fn with_member_iter<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(hash_map::Values<String, Member>) -> (),
-    {
-        with_closure(
-            self.members
-                .read()
-                .expect("Member list lock is poisoned")
-                .values(),
-        );
+    pub fn with_member_iter(&self, mut with_closure: impl FnMut(hash_map::Values<String, Member>)) {
+        with_closure(self.members_read().values());
     }
 
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
-    pub fn with_member<F>(&self, member_id: &str, mut with_closure: F) -> ()
-    where
-        F: FnMut(Option<&Member>) -> (),
-    {
-        let ml = self.members.read().expect("Member list lock poisoned");
-        let member = ml.get(member_id);
-        with_closure(member);
+    pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
+        with_closure(self.members_read().get(member_id));
     }
 
     /// Iterates over the member list, calling the function for each member.
-    pub fn with_members<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(&Member) -> (),
-    {
-        for member in self
-            .members
-            .read()
-            .expect("Member list lock is poisoned")
-            .values()
-        {
+    pub fn with_members(&self, mut with_closure: impl FnMut(&Member)) {
+        for member in self.members_read().values() {
             with_closure(member);
         }
     }
@@ -831,10 +787,7 @@ impl MemberList {
     }
 
     pub fn contains_member(&self, member_id: &str) -> bool {
-        self.members
-            .read()
-            .expect("Member list lock is poisoned")
-            .contains_key(member_id)
+        self.members_read().contains_key(member_id)
     }
 }
 
