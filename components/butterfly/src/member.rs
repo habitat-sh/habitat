@@ -331,7 +331,7 @@ impl FromProto<newscast::Rumor> for Membership {
 #[derive(Debug)]
 pub struct MemberList {
     members: RwLock<HashMap<UuidSimple, Member>>,
-    pub health: RwLock<HashMap<UuidSimple, Health>>,
+    health: RwLock<HashMap<UuidSimple, Health>>,
     /// Records timestamps of when Members are marked `Suspect`. This
     /// supports automatically transitioning them to `Confirmed` after
     /// an appropriate amount of time.
@@ -609,28 +609,16 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of(&self, member: &Member) -> Option<Health> {
-        match self
-            .health
-            .read()
-            .expect("Health lock is poisoned")
-            .get(&member.id)
-        {
-            Some(health) => Some(*health),
-            None => None,
-        }
+        self.health_of_by_id(&member.id)
     }
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
-        match self
-            .health
+        self.health
             .read()
             .expect("Health lock is poisoned")
             .get(member_id)
-        {
-            Some(health) => Some(*health),
-            None => None,
-        }
+            .cloned() // this is cheap since Health is a Copy type
     }
 
     /// Returns true if the member is alive, suspect, or persistent; used during the target

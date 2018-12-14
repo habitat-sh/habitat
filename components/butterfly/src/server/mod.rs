@@ -819,16 +819,9 @@ impl Server {
     }
 
     fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
-        match self
-            .member_list
-            .health
-            .read()
-            .expect("Health lock is poisoned")
-            .get(member_id)
-        {
-            Some(&Health::Alive) | Some(&Health::Suspect) | Some(&Health::Confirmed) => true,
-            Some(&Health::Departed) => false,
-            None => false,
+        match self.member_list.health_of_by_id(member_id) {
+            Some(Health::Alive) | Some(Health::Suspect) | Some(Health::Confirmed) => true,
+            Some(Health::Departed) | None => false,
         }
     }
 
