@@ -17,10 +17,11 @@
 //! This is the thread for distributing rumors to members. It distributes to `FANOUT` members, no
 //! more often than `Timing::GOSSIP_PERIOD_DEFAULT_MS`.
 
-use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
+use habitat_core::util::ToI64;
+use prometheus::{IntCounterVec, IntGaugeVec};
 use time::SteadyTime;
 use zmq;
 
@@ -32,6 +33,21 @@ use crate::trace::TraceKind;
 use crate::ZMQ_CONTEXT;
 
 const FANOUT: usize = 5;
+
+lazy_static! {
+    static ref GOSSIP_MESSAGES_SENT: IntCounterVec = register_int_counter_vec!(
+        "hab_butterfly_gossip_messages_sent_total",
+        "Total number of gossip messages sent",
+        &["type", "mode"]
+    )
+    .unwrap();
+    static ref GOSSIP_BYTES_SENT: IntGaugeVec = register_int_gauge_vec!(
+        "hab_butterfly_gossip_sent_bytes",
+        "Gossip message size sent in bytes",
+        &["type", "mode"]
+    )
+    .unwrap();
+}
 
 /// The Push server
 #[derive(Debug)]
@@ -55,7 +71,7 @@ impl Push {
     /// exceed that time.
     pub fn run(&mut self) {
         loop {
-            if self.server.pause.load(Ordering::Relaxed) {
+            if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
                 continue;
             }
@@ -144,7 +160,7 @@ impl PushWorker {
     /// Send the list of rumors to a given member. This method creates an outbound socket and then
     /// closes the connection as soon as we are done sending rumors. ZeroMQ may choose to keep the
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
-    /// method can loose messages.
+    /// method can lose messages.
     fn send_rumors(&self, member: Member, rumors: Vec<RumorKey>) {
         let socket = (**ZMQ_CONTEXT)
             .as_mut()
@@ -170,6 +186,9 @@ impl PushWorker {
             Ok(()) => debug!("Connected push socket to {:?}", member),
             Err(e) => {
                 error!("Cannot connect push socket to {:?}: {:?}", member, e);
+                let label_values = &["socket_connect", "failure"];
+                GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                 return;
             }
         }
@@ -192,6 +211,9 @@ impl PushWorker {
                                  sending rumor: {:?}",
                                 e
                             );
+                            let label_values = &["member_rumor_encode", "failure"];
+                            GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                            GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                             continue 'rumorlist;
                         }
                     }
@@ -213,6 +235,9 @@ impl PushWorker {
                                  sending rumor: {:?}",
                                 e
                             );
+                            let label_values = &["service_rumor_encode", "failure"];
+                            GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                            GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                             continue 'rumorlist;
                         }
                     }
@@ -234,6 +259,9 @@ impl PushWorker {
                                  sending rumor: {:?}",
                                 e
                             );
+                            let label_values = &["service_config_rumor_encode", "failure"];
+                            GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                            GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                             continue 'rumorlist;
                         }
                     }
@@ -255,6 +283,9 @@ impl PushWorker {
                                  sending rumor: {:?}",
                                 e
                             );
+                            let label_values = &["service_file_rumor_encode", "failure"];
+                            GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                            GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                             continue 'rumorlist;
                         }
                     }
@@ -271,6 +302,9 @@ impl PushWorker {
                              sending rumor: {:?}",
                             e
                         );
+                        let label_values = &["departure_rumor_encode", "failure"];
+                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                         continue 'rumorlist;
                     }
                 },
@@ -291,6 +325,9 @@ impl PushWorker {
                                  sending rumor: {:?}",
                                 e
                             );
+                            let label_values = &["election_rumor_encode", "failure"];
+                            GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                            GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                             continue 'rumorlist;
                         }
                     }
@@ -307,6 +344,9 @@ impl PushWorker {
                              rumor: {:?}",
                             e
                         );
+                        let label_values = &["election_update_rumor_encode", "failure"];
+                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
                         continue 'rumorlist;
                     }
                 },
@@ -315,15 +355,29 @@ impl PushWorker {
                     continue 'rumorlist;
                 }
             };
+            let rumor_len = rumor_as_bytes.len().to_i64();
             let payload = match self.server.generate_wire(rumor_as_bytes) {
                 Ok(payload) => payload,
                 Err(e) => {
                     error!("Generating protobuf failed: {}", e);
+                    let label_values = &["generate_wire", "failure"];
+                    GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                    GOSSIP_BYTES_SENT
+                        .with_label_values(label_values)
+                        .set(rumor_len);
                     continue 'rumorlist;
                 }
             };
             match socket.send(&payload, 0) {
-                Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
+                Ok(()) => {
+                    GOSSIP_MESSAGES_SENT
+                        .with_label_values(&[&rumor_key.kind.to_string(), "success"])
+                        .inc();
+                    GOSSIP_BYTES_SENT
+                        .with_label_values(&[&rumor_key.kind.to_string(), "success"])
+                        .set(payload.len().to_i64());
+                    debug!("Sent rumor {:?} to {:?}", rumor_key, member);
+                }
                 Err(e) => warn!(
                     "Could not send rumor to {:?} @ {:?}; ZMQ said: {:?}",
                     member.id, to_addr, e

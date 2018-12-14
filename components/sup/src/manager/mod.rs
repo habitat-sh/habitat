@@ -56,14 +56,24 @@ use crate::hcore::os::process::{self, Pid, Signal};
 use crate::hcore::os::signals::{self, SignalEvent};
 use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use crate::hcore::service::ServiceGroup;
+use crate::hcore::util::ToI64;
 use crate::launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use crate::protocol;
+use cpu_time::ProcessTime;
 use futures::prelude::*;
 use futures::sync::mpsc;
+#[cfg(unix)]
+use proc_self;
+use prometheus::{HistogramVec, IntGauge, IntGaugeVec};
 use rustls::{internal::pemfile, NoClientAuth, ServerConfig};
 use serde_json;
-use time::{self, Duration as TimeDuration, Timespec};
+use time::{self, Duration as TimeDuration, SteadyTime, Timespec};
 use tokio::{executor, runtime};
+#[cfg(windows)]
+use winapi::{
+    shared::minwindef::PDWORD,
+    um::{processthreadsapi, winnt::HANDLE},
+};
 
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
@@ -91,6 +101,31 @@ const MEMBER_ID_FILE: &str = "MEMBER_ID";
 const PROC_LOCK_FILE: &str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
+
+lazy_static! {
+    static ref RUN_LOOP_DURATION: HistogramVec = register_histogram_vec!(
+        "hab_sup_run_loop_duration_seconds",
+        "The time it takes for one tick of a run loop",
+        &["loop"]
+    )
+    .unwrap();
+    static ref FILE_DESCRIPTORS: IntGauge = register_int_gauge!(
+        "hab_sup_open_file_descriptors_total",
+        "A count of the total number of open file descriptors. Unix only"
+    )
+    .unwrap();
+    static ref MEMORY_STATS: IntGaugeVec = register_int_gauge_vec!(
+        "hab_sup_memory_allocations_bytes",
+        "Memory allocation statistics",
+        &["category"]
+    )
+    .unwrap();
+    static ref CPU_TIME: IntGauge = register_int_gauge!(
+        "hab_sup_cpu_time_nanoseconds",
+        "CPU time of the supervisor process in nanoseconds"
+    )
+    .unwrap();
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ServiceOperation {
@@ -515,6 +550,11 @@ impl Manager {
     }
 
     pub fn run(mut self, svc: Option<protocol::ctl::SvcLoad>) -> Result<()> {
+        let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
+        let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
+        let mut next_cpu_measurement = SteadyTime::now();
+        let mut cpu_start = ProcessTime::now();
+
         let mut runtime = runtime::Builder::new()
             .name_prefix("tokio-")
             .core_threads(TokioThreadCount::configured_value().into())
@@ -627,6 +667,18 @@ impl Manager {
         }
 
         loop {
+            // time will be recorded automatically by HistogramTimer's drop implementation when
+            // this var goes out of scope
+            #[allow(unused_variables)]
+            let main_timer = main_hist.start_timer();
+
+            match get_fd_count() {
+                Ok(f) => FILE_DESCRIPTORS.set(f.to_i64()),
+                Err(e) => error!("Error retrieving open file descriptor count: {:?}", e),
+            }
+
+            track_memory_stats();
+
             if feat::is_enabled(feat::TestExit) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
                     if let Ok(mut exit_code_file) = File::open(&exit_file_path) {
@@ -700,6 +752,10 @@ impl Manager {
                 .expect("Services lock is poisoned!")
                 .values_mut()
             {
+                // time will be recorded automatically by HistogramTimer's drop implementation when
+                // this var goes out of scope
+                #[allow(unused_variables)]
+                let service_timer = service_hist.start_timer();
                 if service.tick(&self.census_ring, &self.launcher) {
                     self.gossip_latest_service_rumor(&service);
                 }
@@ -711,6 +767,19 @@ impl Manager {
             if now < next_check {
                 let time_to_wait = next_check - now;
                 thread::sleep(time_to_wait.to_std().unwrap());
+            }
+
+            // Measure CPU time every second
+            if SteadyTime::now() >= next_cpu_measurement {
+                let cpu_duration = cpu_start.elapsed();
+                let cpu_nanos = cpu_duration
+                    .as_secs()
+                    .checked_mul(1_000_000_000)
+                    .and_then(|ns| ns.checked_add(cpu_duration.subsec_nanos().into()))
+                    .expect("overflow in cpu_duration");
+                CPU_TIME.set(cpu_nanos.to_i64());
+                next_cpu_measurement = SteadyTime::now() + TimeDuration::seconds(1);
+                cpu_start = ProcessTime::now();
             }
         }
     }
@@ -1328,6 +1397,49 @@ where
             err
         ))),
     }
+}
+
+#[cfg(windows)]
+fn get_fd_count() -> std::io::Result<usize> {
+    let mut count: usize = 0;
+
+    unsafe {
+        let handle = processthreadsapi::GetCurrentProcess();
+        match processthreadsapi::GetProcessHandleCount(handle, &mut count as PDWORD) {
+            true => Ok(count),
+            false => Err("error getting file descriptor count"),
+        }
+    }
+}
+
+#[cfg(unix)]
+fn get_fd_count() -> std::io::Result<usize> {
+    proc_self::FdIter::new().map(|f| f.count())
+}
+
+fn track_memory_stats() {
+    // We'd like to track some memory stats, but these stats are cached and only refreshed
+    // when the epoch is advanced. We manually advance it here to ensure our stats are
+    // fresh.
+    jemalloc_ctl::epoch().unwrap();
+    MEMORY_STATS
+        .with_label_values(&["active"])
+        .set(jemalloc_ctl::stats::active().unwrap().to_i64());
+    MEMORY_STATS
+        .with_label_values(&["allocated"])
+        .set(jemalloc_ctl::stats::allocated().unwrap().to_i64());
+    MEMORY_STATS
+        .with_label_values(&["mapped"])
+        .set(jemalloc_ctl::stats::mapped().unwrap().to_i64());
+    MEMORY_STATS
+        .with_label_values(&["metadata"])
+        .set(jemalloc_ctl::stats::metadata().unwrap().to_i64());
+    MEMORY_STATS
+        .with_label_values(&["resident"])
+        .set(jemalloc_ctl::stats::resident().unwrap().to_i64());
+    MEMORY_STATS
+        .with_label_values(&["retained"])
+        .set(jemalloc_ctl::stats::retained().unwrap().to_i64());
 }
 
 struct CtlAcceptor {

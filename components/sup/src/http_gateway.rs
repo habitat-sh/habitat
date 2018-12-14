@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::{
+    cell::Cell,
     fmt,
     fs::File,
     io::{self, Read},
@@ -33,10 +34,11 @@ use crate::hcore::{crypto, env as henv, service::ServiceGroup};
 use actix;
 use actix_web::{
     http::{self, StatusCode},
-    middleware::{Middleware, Started},
+    middleware::{Finished, Middleware, Started},
     pred::Predicate,
     server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
+use prometheus::{self, CounterVec, Encoder, HistogramTimer, HistogramVec, TextEncoder};
 use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 
@@ -53,6 +55,21 @@ pub const HTTP_THREAD_COUNT: usize = 2;
 
 /// Default listening port for the HTTPGateway listener.
 pub const DEFAULT_PORT: u16 = 9631;
+
+lazy_static! {
+    static ref HTTP_GATEWAY_REQUESTS: CounterVec = register_counter_vec!(
+        "hab_sup_http_gateway_requests_total",
+        "Total number of HTTP gateway requests",
+        &["path"]
+    )
+    .unwrap();
+    static ref HTTP_GATEWAY_REQUEST_DURATION: HistogramVec = register_histogram_vec!(
+        "hab_sup_http_gateway_request_duration_seconds",
+        "The latency for HTTP gateway requests",
+        &["path"]
+    )
+    .unwrap();
+}
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ListenAddr(SocketAddr);
@@ -133,15 +150,19 @@ impl Into<StatusCode> for HealthCheck {
 
 struct AppState {
     gateway_state: Arc<RwLock<manager::GatewayState>>,
+    timer: Cell<Option<HistogramTimer>>,
 }
 
 impl AppState {
     fn new(gs: Arc<RwLock<manager::GatewayState>>) -> Self {
-        AppState { gateway_state: gs }
+        AppState {
+            gateway_state: gs,
+            timer: Cell::new(None),
+        }
     }
 }
 
-// Our authentication middleware
+// Begin middleware
 struct Authentication;
 
 impl Middleware<AppState> for Authentication {
@@ -191,6 +212,34 @@ impl Middleware<AppState> for Authentication {
     }
 }
 
+struct Metrics;
+
+impl Middleware<AppState> for Metrics {
+    fn start(&self, req: &HttpRequest<AppState>) -> actix_web::Result<Started> {
+        let label_values = &[req.path()];
+
+        HTTP_GATEWAY_REQUESTS.with_label_values(label_values).inc();
+        let timer = HTTP_GATEWAY_REQUEST_DURATION
+            .with_label_values(label_values)
+            .start_timer();
+        req.state().timer.set(Some(timer));
+
+        Ok(Started::Done)
+    }
+
+    fn finish(&self, req: &HttpRequest<AppState>, _resp: &HttpResponse) -> Finished {
+        let timer = req.state().timer.replace(None);
+
+        if timer.is_some() {
+            timer.unwrap().observe_duration();
+        }
+
+        Finished::Done
+    }
+}
+
+// End middleware
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum ServerStartup {
     NotStarted,
@@ -222,6 +271,7 @@ impl Server {
                 let app_state = AppState::new(gateway_state.clone());
                 App::with_state(app_state)
                     .middleware(Authentication)
+                    .middleware(Metrics)
                     .configure(routes)
             })
             .workers(thread_count);
@@ -292,6 +342,7 @@ fn routes(app: App<AppState>) -> App<AppState> {
         })
         .resource("/butterfly", |r| r.get().filter(RedactHTTP).f(butterfly))
         .resource("/census", |r| r.get().filter(RedactHTTP).f(census))
+        .resource("/metrics", |r| r.get().f(metrics))
 }
 
 fn json_response(data: String) -> HttpResponse {
@@ -363,6 +414,7 @@ fn config(
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
+
     match service_from_services(&service_group, &data) {
         Some(mut s) => HttpResponse::Ok().json(s["cfg"].take()),
         None => HttpResponse::NotFound().finish(),
@@ -455,10 +507,33 @@ fn service(
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
+
     match service_from_services(&service_group, &data) {
         Some(s) => HttpResponse::Ok().json(s),
         None => HttpResponse::NotFound().finish(),
     }
+}
+
+fn metrics(_req: &HttpRequest<AppState>) -> HttpResponse {
+    let encoder = TextEncoder::new();
+    let metric_families = prometheus::gather();
+    let mut buffer = vec![];
+
+    if let Err(e) = encoder.encode(&metric_families, &mut buffer) {
+        error!("Error encoding metrics: {:?}", e);
+    }
+
+    let resp = match String::from_utf8(buffer) {
+        Ok(s) => s,
+        Err(e) => {
+            error!("Error constructing string from metrics buffer: {:?}", e);
+            String::from("")
+        }
+    };
+
+    HttpResponse::Ok()
+        .content_type(encoder.format_type())
+        .body(resp)
 }
 
 fn doc(_req: &HttpRequest<AppState>) -> HttpResponse {

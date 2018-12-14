@@ -25,6 +25,8 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::RwLock;
 
+use habitat_core::util::ToI64;
+use prometheus::IntGaugeVec;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{
     de,
@@ -41,6 +43,15 @@ use crate::rumor::{RumorKey, RumorPayload, RumorType};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
+
+lazy_static! {
+    static ref PEER_HEALTH_COUNT: IntGaugeVec = register_int_gauge_vec!(
+        "hab_butterfly_peer_health_total",
+        "Number of butterfly peers",
+        &["health"]
+    )
+    .unwrap();
+}
 
 /// Wraps a `u64` to represent the "incarnation number" of a
 /// `Member`. Incarnation numbers can only ever be incremented.
@@ -65,6 +76,10 @@ impl From<u64> for Incarnation {
 impl Incarnation {
     pub fn to_u64(&self) -> u64 {
         self.0
+    }
+
+    pub fn to_i64(&self) -> i64 {
+        self.0.to_i64()
     }
 }
 
@@ -546,6 +561,7 @@ impl MemberList {
 
         if modified {
             self.increment_update_counter();
+            self.calculate_peer_health_metrics();
         }
 
         modified
@@ -564,6 +580,27 @@ impl MemberList {
             *health = Health::Departed;
         } else {
             trace!("set_departed called on unknown member {}", member_id);
+        }
+    }
+
+    fn calculate_peer_health_metrics(&self) {
+        let mut health_counts: HashMap<Health, i64> = HashMap::new();
+
+        for entry in self.read_entries().values() {
+            *health_counts.entry(entry.health).or_insert(0) += 1;
+        }
+
+        for health in [
+            Health::Alive,
+            Health::Suspect,
+            Health::Confirmed,
+            Health::Departed,
+        ]
+        .iter()
+        {
+            PEER_HEALTH_COUNT
+                .with_label_values(&[&health.to_string()])
+                .set(*health_counts.get(health).unwrap_or(&0));
         }
     }
 

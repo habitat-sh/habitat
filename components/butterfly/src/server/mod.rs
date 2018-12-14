@@ -27,7 +27,7 @@ mod pull;
 mod push;
 pub mod timing;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::ffi;
 use std::fmt::{self, Debug};
 use std::fs;
@@ -42,6 +42,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use habitat_core::crypto::SymKey;
+use prometheus::{HistogramTimer, HistogramVec, IntGauge};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
@@ -63,6 +64,31 @@ use crate::trace::{Trace, TraceKind};
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
 const SELF_DEPARTURE_RUMOR_FANOUT: usize = 10;
+
+lazy_static! {
+    static ref INCARNATION: IntGauge = register_int_gauge!(opts!(
+        "hab_butterfly_incarnation_number",
+        "Incarnation number of the supervisor"
+    ))
+    .unwrap();
+    static ref ELECTION_DURATION: HistogramVec = register_histogram_vec!(
+        "hab_butterfly_election_duration_seconds",
+        "How long it takes to complete an election",
+        &["service_group"]
+    )
+    .unwrap();
+}
+
+// We need this here to track how long it takes to complete an election. We need to store the timer
+// somehow so we can reference it between separate function invocations, and storing it directly in
+// the Server struct isn't an option, since HistogramTimer doesn't implement Debug.
+struct ElectionTimer(HistogramTimer);
+
+impl fmt::Debug for ElectionTimer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "An election timer!")
+    }
+}
 
 type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
 type AckSender = mpsc::Sender<(SocketAddr, Ack)>;
@@ -111,6 +137,7 @@ impl Myself {
             Some(ref mut s) => {
                 let value = s.load()?;
                 self.member.incarnation = value;
+                INCARNATION.set(value.to_i64());
             }
             None => {
                 // Can't sync unless you've got a store!
@@ -170,6 +197,7 @@ impl Myself {
     /// that.
     fn refute_incarnation(&mut self, incoming: Incarnation) {
         self.member.incarnation = incoming + 1;
+        INCARNATION.set(self.member.incarnation.to_i64());
         if let Some(ref mut s) = self.incarnation_store {
             if let Err(e) = s.store(self.member.incarnation) {
                 error!(
@@ -234,6 +262,7 @@ pub struct Server {
     swim_rounds: Arc<AtomicIsize>,
     gossip_rounds: Arc<AtomicIsize>,
     block_list: Arc<RwLock<HashSet<String>>>,
+    election_timers: Arc<Mutex<HashMap<String, ElectionTimer>>>,
 }
 
 impl Clone for Server {
@@ -263,6 +292,7 @@ impl Clone for Server {
             gossip_rounds: self.gossip_rounds.clone(),
             block_list: self.block_list.clone(),
             socket: None,
+            election_timers: self.election_timers.clone(),
         }
     }
 }
@@ -333,6 +363,7 @@ impl Server {
                     gossip_rounds: Arc::new(AtomicIsize::new(0)),
                     block_list: Arc::new(RwLock::new(HashSet::new())),
                     socket: None,
+                    election_timers: Arc::new(Mutex::new(HashMap::new())),
                 })
             }
             (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
@@ -1030,6 +1061,22 @@ impl Server {
                         if num_votes == electorate.len() {
                             debug!("Election is finished: {:#?}", election);
                             election.finish();
+                            // Now we're going to record how long the election took. NOTE that this
+                            // will only work as long as the same member starts and finishes the
+                            // election (which is how it currently is). If we ever change elections
+                            // so that any member can finish an election, this will break.
+                            let mut existing_timers = self
+                                .election_timers
+                                .lock()
+                                .expect("Election timers lock poisoned");
+
+                            // Just to be extra clear, we don't need this timer any more because
+                            // once we call observe_duration(), the HistogramVec contained in
+                            // ELECTION_DURATION has the data we want, stored in the global
+                            // registry.
+                            if let Some(timer) = existing_timers.remove(&election.service_group) {
+                                timer.0.observe_duration();
+                            }
                         } else {
                             debug!(
                                 "I have quorum, but election is not finished {}/{}",
@@ -1045,6 +1092,14 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
+                let timer = ELECTION_DURATION
+                    .with_label_values(&[&election.service_group])
+                    .start_timer();
+                let mut existing_timers = self
+                    .election_timers
+                    .lock()
+                    .expect("Election timers lock poisoned");
+                existing_timers.insert(election.service_group.clone(), ElectionTimer(timer));
                 self.start_election(&election.service_group, election.term);
             }
             if !election.is_finished() {

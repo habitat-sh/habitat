@@ -38,6 +38,7 @@ use crate::protocol::net::{self, ErrCode, NetErr, NetResult};
 use futures::future::{self, Either};
 use futures::prelude::*;
 use futures::sync::mpsc;
+use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
 use prost;
 use tokio::net::TcpListener;
 use tokio_codec::Framed;
@@ -45,6 +46,21 @@ use tokio_core::reactor;
 
 use super::{CtlRequest, REQ_TIMEOUT};
 use crate::manager::{commands, ManagerState};
+
+lazy_static! {
+    static ref RPC_CALLS: IntCounterVec = register_int_counter_vec!(
+        "hab_sup_rpc_call_total",
+        "Total number of RPC calls",
+        &["name"]
+    )
+    .unwrap();
+    static ref RPC_CALL_DURATION: HistogramVec = register_histogram_vec!(
+        "hab_sup_rpc_call_request_duration_seconds",
+        "The latency for RPC calls",
+        &["name"]
+    )
+    .unwrap();
+}
 
 /// Sending half of an mpsc unbounded channel used for sending replies for a transactional message
 /// from the main thread back to the CtlGateway. This half is stored in a
@@ -251,6 +267,7 @@ struct SrvHandler {
     mgr_tx: MgrSender,
     rx: CtlReceiver,
     tx: CtlSender,
+    timer: Option<HistogramTimer>,
 }
 
 impl SrvHandler {
@@ -262,6 +279,7 @@ impl SrvHandler {
             mgr_tx: mgr_tx,
             rx: rx,
             tx: tx,
+            timer: None,
         }
     }
 }
@@ -275,6 +293,13 @@ impl Future for SrvHandler {
             match self.state {
                 SrvHandlerState::Receiving => match try_ready!(self.io.poll()) {
                     Some(msg) => {
+                        let label_values = &[msg.message_id()];
+                        RPC_CALLS.with_label_values(label_values).inc();
+                        let timer = RPC_CALL_DURATION
+                            .with_label_values(label_values)
+                            .start_timer();
+                        self.timer = Some(timer);
+
                         trace!("OnMessage, {}", msg.message_id());
                         let cmd = match msg.message_id() {
                             "SvcGetDefaultCfg" => {
@@ -425,6 +450,9 @@ impl Future for SrvHandler {
                     Err(()) => break,
                 },
                 SrvHandlerState::Sent => {
+                    if let Some(timer) = self.timer.take() {
+                        timer.observe_duration();
+                    }
                     trace!("OnMessage complete");
                     break;
                 }

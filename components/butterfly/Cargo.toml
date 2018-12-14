@@ -19,6 +19,7 @@ habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_common = { path = "../common" }
 log = "*"
 lazy_static = "*"
+prometheus = "*"
 prost = "*"
 prost-derive = "*"
 rand = "*"

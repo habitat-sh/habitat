@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::fmt;
+
 use crate::rumor::departure::Departure as CDeparture;
 use crate::rumor::election::{Election as CElection, ElectionUpdate as CElectionUpdate};
 use crate::rumor::service::Service as CService;
@@ -21,6 +23,24 @@ use crate::rumor::service_file::ServiceFile as CServiceFile;
 include!("../generated/butterfly.newscast.rs");
 
 pub use self::{rumor::Payload as RumorPayload, rumor::Type as RumorType};
+
+impl fmt::Display for RumorType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            RumorType::Member => "member",
+            RumorType::Service => "service",
+            RumorType::Election => "election",
+            RumorType::ServiceConfig => "service-config",
+            RumorType::ServiceFile => "service-file",
+            RumorType::Fake => "fake",
+            RumorType::Fake2 => "fake2",
+            RumorType::ElectionUpdate => "election-update",
+            RumorType::Departure => "departure",
+        };
+
+        write!(f, "{}", value)
+    }
+}
 
 impl From<CDeparture> for Rumor {
     fn from(value: CDeparture) -> Self {

@@ -44,7 +44,8 @@ extern crate bitflags;
 
 #[cfg(target_os = "linux")]
 extern crate caps;
-
+extern crate clap;
+extern crate cpu_time;
 #[cfg(windows)]
 extern crate ctrlc;
 #[macro_use]
@@ -63,7 +64,18 @@ use habitat_sup_protocol as protocol;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-
+extern crate notify;
+extern crate num_cpus;
+#[cfg(unix)]
+extern crate proc_self;
+#[macro_use]
+extern crate prometheus;
+extern crate prost;
+extern crate protobuf;
+extern crate rand;
+extern crate regex;
+extern crate rustls;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 #[allow(unused_imports)]

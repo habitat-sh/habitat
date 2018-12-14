@@ -18,11 +18,12 @@
 
 use std::fmt;
 use std::net::{SocketAddr, UdpSocket};
-use std::sync::atomic::Ordering;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
+use habitat_core::util::ToI64;
+use prometheus::{HistogramTimer, HistogramVec, IntCounterVec, IntGaugeVec};
 use time::SteadyTime;
 
 use super::AckReceiver;
@@ -35,6 +36,33 @@ use crate::trace::TraceKind;
 
 /// How long to sleep between calls to `recv`.
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;
+
+lazy_static! {
+    static ref SWIM_MESSAGES_SENT: IntCounterVec = register_int_counter_vec!(
+        "hab_butterfly_swim_messages_sent_total",
+        "Total number of SWIM messages sent",
+        &["type"]
+    )
+    .unwrap();
+    static ref SWIM_BYTES_SENT: IntGaugeVec = register_int_gauge_vec!(
+        "hab_butterfly_swim_sent_bytes",
+        "SWIM message size sent in bytes",
+        &["type"]
+    )
+    .unwrap();
+    static ref SWIM_PROBES_SENT: IntCounterVec = register_int_counter_vec!(
+        "hab_butterfly_swim_probes_sent_total",
+        "Total number of SWIM probes sent",
+        &["type"]
+    )
+    .unwrap();
+    static ref SWIM_PROBE_DURATION: HistogramVec = register_histogram_vec!(
+        "hab_butterfly_swim_probe_duration_seconds",
+        "SWIM probe round trip time",
+        &["type"]
+    )
+    .unwrap();
+}
 
 /// Where an Ack came from; either Ping or PingReq.
 #[derive(Debug)]
@@ -106,7 +134,7 @@ impl Outbound {
                 }
             }
 
-            if self.server.pause.load(Ordering::Relaxed) {
+            if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
                 continue;
             }
@@ -162,15 +190,23 @@ impl Outbound {
     ///
     /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
     fn probe(&mut self, member: Member) {
+        let pa_timer = SWIM_PROBE_DURATION
+            .with_label_values(&["ping/ack"])
+            .start_timer();
+        let mut pr_timer: Option<HistogramTimer> = None;
         let addr = member.swim_socket_address();
 
         trace_it!(PROBE: &self.server, TraceKind::ProbeBegin, &member.id, addr);
 
         // Ping the member, and wait for the ack.
+        SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
         ping(&self.server, &self.socket, &member, addr, None);
+
         if self.recv_ack(&member, addr, AckFrom::Ping) {
             trace_it!(PROBE: &self.server, TraceKind::ProbeAckReceived, &member.id, addr);
             trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
+            SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
+            pa_timer.observe_duration();
             return;
         }
 
@@ -182,10 +218,20 @@ impl Outbound {
                           TraceKind::ProbePingReq,
                           &pingreq_target.id,
                           &pingreq_target.address);
+                SWIM_PROBES_SENT.with_label_values(&["pingreq"]).inc();
+                pr_timer = Some(
+                    SWIM_PROBE_DURATION
+                        .with_label_values(&["pingreq/ack"])
+                        .start_timer(),
+                );
                 pingreq(&self.server, &self.socket, &pingreq_target, &member);
             },
         );
-        if !self.recv_ack(&member, addr, AckFrom::PingReq) {
+
+        if self.recv_ack(&member, addr, AckFrom::PingReq) {
+            SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
+            trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
+        } else {
             // We mark as suspect when we fail to get a response from the PingReq. That moves us
             // into the suspicion phase, where anyone marked as suspect has a certain number of
             // protocol periods to recover.
@@ -193,8 +239,13 @@ impl Outbound {
             trace_it!(PROBE: &self.server, TraceKind::ProbeSuspect, &member.id, addr);
             trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
             self.server.insert_member(member, Health::Suspect);
-        } else {
-            trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
+            SWIM_PROBES_SENT
+                .with_label_values(&["pingreq/failure"])
+                .inc();
+        }
+
+        if pr_timer.is_some() {
+            pr_timer.unwrap().observe_duration();
         }
     }
 
@@ -304,13 +355,20 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
         }
     };
     match socket.send_to(&payload, addr) {
-        Ok(_s) => trace!(
-            "Sent PingReq to {}@{} for {}@{}",
-            &pingreq_target.id,
-            addr,
-            &target.id,
-            target.swim_socket_address()
-        ),
+        Ok(_s) => {
+            let label_values = &["pingreq"];
+            SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
+            SWIM_BYTES_SENT
+                .with_label_values(label_values)
+                .set(payload.len().to_i64());
+            trace!(
+                "Sent PingReq to {}@{} for {}@{}",
+                &pingreq_target.id,
+                addr,
+                &target.id,
+                target.swim_socket_address()
+            );
+        }
         Err(e) => error!(
             "Failed PingReq to {}@{} for {}@{}: {}",
             &pingreq_target.id,
@@ -360,6 +418,11 @@ pub fn ping(
     };
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
+            let label_values = &["ping"];
+            SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
+            SWIM_BYTES_SENT
+                .with_label_values(label_values)
+                .set(payload.len().to_i64());
             let on_behalf_of = match forward_to {
                 Some(x) => format!(" on behalf of {}@{}", x.id, x.address),
                 None => "".into(),
@@ -433,7 +496,14 @@ pub fn ack(
         }
     };
     match socket.send_to(&payload, addr) {
-        Ok(_s) => trace!("Sent ack to {}@{}", member_id, addr),
+        Ok(_s) => {
+            let label_values = &["ack"];
+            SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
+            SWIM_BYTES_SENT
+                .with_label_values(label_values)
+                .set(payload.len().to_i64());
+            trace!("Sent ack to {}@{}", member_id, addr);
+        }
         Err(e) => error!("Failed ack to {}@{}: {}", member_id, addr, e),
     }
     trace_it!(SWIM: server, TraceKind::SendAck, &target.id, addr, &swim);

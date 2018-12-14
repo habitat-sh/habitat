@@ -21,6 +21,7 @@ ansi_term = "*"
 bitflags = "*"
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
+cpu-time = "*"
 env_logger = "*"
 features = "*"
 futures = "*"
@@ -32,11 +33,14 @@ habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_api_client = { path = "../builder-api-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
+jemallocator = "*"
+jemalloc-ctl = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
 notify = "*"
 num_cpus = "*"
+prometheus = "*"
 prost = "*"
 protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
@@ -58,6 +62,9 @@ valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
+
+[target.'cfg(target_family = "unix")'.dependencies]
+proc_self = "0.1.0" # pinning this explicitly because newer versions switched to a different crate that doesn't support stable rust
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
