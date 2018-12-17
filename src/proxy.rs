@@ -448,9 +448,9 @@ pub fn proxy_unless_domain_exempted(for_domain: Option<&Url>) -> Result<Option<P
         None => "",
     };
     match env::var("no_proxy") {
-        Ok(domains) => process_no_proxy(for_domain, scheme, domains),
+        Ok(domains) => process_no_proxy(for_domain, scheme, &domains),
         _ => match env::var("NO_PROXY") {
-            Ok(domains) => process_no_proxy(for_domain, scheme, domains),
+            Ok(domains) => process_no_proxy(for_domain, scheme, &domains),
             _ => match scheme {
                 "https" => https_proxy(),
                 _ => http_proxy(),
@@ -462,7 +462,7 @@ pub fn proxy_unless_domain_exempted(for_domain: Option<&Url>) -> Result<Option<P
 fn process_no_proxy(
     for_domain: Option<&Url>,
     scheme: &str,
-    domains: String,
+    domains: &str,
 ) -> Result<Option<ProxyInfo>> {
     let domain = match for_domain {
         Some(url) => url.host_str().unwrap_or(""),
