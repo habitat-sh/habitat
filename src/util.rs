@@ -18,7 +18,7 @@ use hyper::client::Response;
 use serde;
 use serde_json;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub fn decoded_response<T>(mut response: Response) -> Result<T>
 where

@@ -25,14 +25,14 @@ extern crate serde;
 extern crate serde_json;
 extern crate url;
 
-pub mod api_client;
-pub mod error;
-pub mod net;
+mod api_client;
+mod error;
+mod net;
 pub mod proxy;
 pub mod util;
 
-pub use api_client::ApiClient;
-pub use error::{Error, Result};
+pub use crate::api_client::ApiClient;
+pub use crate::error::{Error, Result};
 
 #[cfg(not(target_os = "macos"))]
 mod ssl {
@@ -46,7 +46,7 @@ mod ssl {
     use hab_core::package::{PackageIdent, PackageInstall};
     use openssl::ssl::SslContextBuilder;
 
-    use error::Result;
+    use crate::error::Result;
 
     const CACERTS_PKG_IDENT: &'static str = "core/cacerts";
     const CACERT_PEM: &'static str = include_str!(concat!(env!("OUT_DIR"), "/cacert.pem"));
@@ -89,7 +89,7 @@ mod ssl {
 
     use openssl::ssl::SslContextBuilder;
 
-    use error::Result;
+    use crate::error::Result;
 
     pub fn set_ca(ctx: &mut SslContextBuilder, _fs_root_path: Option<&Path>) -> Result<()> {
         ctx.set_default_verify_paths()?;

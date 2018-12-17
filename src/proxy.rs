@@ -18,7 +18,7 @@ use url::{self, Url};
 use base64;
 use hab_core::env;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 /// Configuration relating to an HTTP Proxy.
 ///

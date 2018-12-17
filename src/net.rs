@@ -20,7 +20,7 @@ use hyper::method::Method;
 use hyper::net::{HttpConnector, HttpsStream, NetworkConnector, SslClient};
 use hyper::version::HttpVersion;
 
-use proxy::ProxyInfo;
+use crate::proxy::ProxyInfo;
 
 /// A connector that uses an HTTP proxy server (pass-through for plaintext and tunneled for SSL
 /// sessions).

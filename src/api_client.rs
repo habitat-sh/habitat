@@ -30,10 +30,10 @@ use openssl::ssl::{
 };
 use url::Url;
 
-use error::{Error, Result};
-use net::ProxyHttpsConnector;
-use proxy::{proxy_unless_domain_exempted, ProxyInfo};
-use ssl;
+use crate::error::{Error, Result};
+use crate::net::ProxyHttpsConnector;
+use crate::proxy::{proxy_unless_domain_exempted, ProxyInfo};
+use crate::ssl;
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
 const CLIENT_SOCKET_RW_TIMEOUT_SEC: u64 = 120;
